@@ -12,7 +12,7 @@ import java.lang.ref.WeakReference;
  */
 public class WeakTopcatListener implements TopcatListener {
 
-    private final Reference baseRef_;
+    private final Reference<TopcatListener> baseRef_;
 
     /**
      * Constructor.
@@ -20,11 +20,11 @@ public class WeakTopcatListener implements TopcatListener {
      * @param   base  base listener
      */
     public WeakTopcatListener( TopcatListener base ) {
-        baseRef_ = new WeakReference( base );
+        baseRef_ = new WeakReference<TopcatListener>( base );
     }
 
     public void modelChanged( TopcatEvent evt ) {
-        TopcatListener base = (TopcatListener) baseRef_.get();
+        TopcatListener base = baseRef_.get();
         if ( base != null ) {
             base.modelChanged( evt );
         }

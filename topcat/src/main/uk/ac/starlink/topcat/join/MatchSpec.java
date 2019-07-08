@@ -109,7 +109,7 @@ public abstract class MatchSpec extends JPanel {
     /**
      * Returns a standard set of FixActions for a given number of tables.
      *
-     * @param  nTable
+     * @param  nTable   number of tables
      * @return  <tt>nTable</tt>-element array of sensible FixActions
      */
     public JoinFixAction[] getDefaultFixActions( int nTable ) {

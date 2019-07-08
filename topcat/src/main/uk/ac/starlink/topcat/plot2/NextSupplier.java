@@ -47,8 +47,8 @@ public class NextSupplier {
      *
      * @return   managed key list
      */
-    public ConfigKey[] getKeys() {
-        return kvalMap_.keySet().toArray( new ConfigKey[ 0 ] );
+    public ConfigKey<?>[] getKeys() {
+        return kvalMap_.keySet().toArray( new ConfigKey<?>[ 0 ] );
     }
 
     /**

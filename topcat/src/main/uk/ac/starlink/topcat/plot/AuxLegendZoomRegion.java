@@ -40,14 +40,14 @@ public abstract class AuxLegendZoomRegion extends AxisZoomRegion {
     }
 
     /**
-     * @throws  UnsupportedOperationException
+     * @throws  UnsupportedOperationException  always
      */
     public void setDisplay( Rectangle display ) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * @throws  UnsupportedOperationException
+     * @throws  UnsupportedOperationException  always
      */
     public void setTarget( Rectangle target ) {
         throw new UnsupportedOperationException();

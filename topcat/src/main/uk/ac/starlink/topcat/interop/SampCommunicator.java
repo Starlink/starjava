@@ -8,7 +8,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -55,6 +54,7 @@ import uk.ac.starlink.vo.RegistryPanel;
  * @author   Mark Taylor
  * @since    4 Sep 2008
  */
+@SuppressWarnings("rawtypes")
 public class SampCommunicator implements TopcatCommunicator {
 
     private final ClientProfile clientProfile_;
@@ -165,7 +165,7 @@ public class SampCommunicator implements TopcatCommunicator {
             }
             public void highlightRow( TopcatModel tcModel, long lrow )
                     throws IOException {
-                Map msg = sampControl_.createRowMessage( tcModel, lrow );
+                Map<?,?> msg = sampControl_.createRowMessage( tcModel, lrow );
                 if ( msg != null ) {
                     rowSender.notify( msg );
                 }
@@ -182,7 +182,8 @@ public class SampCommunicator implements TopcatCommunicator {
             }
             public void selectSubset( TopcatModel tcModel, RowSubset rset )
                     throws IOException {
-                Map msg = sampControl_.createSubsetMessage( tcModel, rset );
+                Map<?,?> msg =
+                    sampControl_.createSubsetMessage( tcModel, rset );
                 if ( msg != null ) {
                     subsetSender.call( msg );
                 }
@@ -197,7 +198,7 @@ public class SampCommunicator implements TopcatCommunicator {
             public ComboBoxModel getTargetSelector() {
                 return spectrumSender.getComboBoxModel();
             }
-            public void displaySpectrum( String location, Map metadata )
+            public void displaySpectrum( String location, Map<?,?> metadata )
                     throws IOException {
                 Message msg = new Message( "spectrum.load.ssa-generic" );
                 msg.addParam( "url", location );
@@ -318,7 +319,7 @@ public class SampCommunicator implements TopcatCommunicator {
             subWin_ = subWin;
         }
 
-        protected Map createMessage() throws IOException {
+        protected Map<?,?> createMessage() throws IOException {
             RowSubset rset = subWin_.getSelectedSubset();
             return sampControl_.createSubsetMessage( tcModel_, rset );
         }
@@ -341,7 +342,7 @@ public class SampCommunicator implements TopcatCommunicator {
             densWin_ = densWin;
         }
 
-        protected Map createMessage() throws IOException, FitsException {
+        protected Map<?,?> createMessage() throws IOException, FitsException {
 
             /* Write the FITS image to a byte array. */
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -403,8 +404,8 @@ public class SampCommunicator implements TopcatCommunicator {
             regPanel_ = regPanel;
         }
 
-        protected Map createMessage() {
-            Map idMap = new LinkedHashMap<String,String>();
+        protected Map<?,?> createMessage() {
+            Map<String,String> idMap = new LinkedHashMap<String,String>();
             RegResource[] resources = regPanel_.getResources();
             for ( int ir = 0; ir < resources.length; ir++ ) {
                 idMap.put( resources[ ir ].getIdentifier(), "" );
@@ -467,27 +468,28 @@ public class SampCommunicator implements TopcatCommunicator {
      * Makes sure that a map is SAMP-friendly.
      * Any entries which are not are simply discarded.
      */
-    public static Map sanitizeMap( Map map ) {
+    public static Map<String,String> sanitizeMap( Map<?,?> map ) {
 
         /* Retain only entries which are String->String mappings.
          * This is more restrictive than strictly necessary, but it's 
          * easy to do, and it's unlikely (impossible?) that other 
          * legitimate types of entry (String->List or ->Map will be present. */
-        Map okMap = new LinkedHashMap();
-        for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
+        Map<String,String> okMap = new LinkedHashMap<String,String>();
+        for ( Map.Entry<?,?> entry : map.entrySet() ) {
             Object key = entry.getKey();
             Object value = entry.getValue();
             if ( key instanceof String ) {
+                String skey = (String) key;
                 if ( value instanceof String ) {
-                    okMap.put( key, value );
+                    okMap.put( skey, (String) value );
                 }
                 else if ( value instanceof Number ) {
-                    okMap.put( key, value.toString() );
+                    okMap.put( skey, value.toString() );
                 }
                 else if ( value instanceof Boolean ) {
-                    okMap.put( key, SampUtils.encodeBoolean( ((Boolean) value)
-                                                            .booleanValue() ) );
+                    okMap.put( skey,
+                               SampUtils.encodeBoolean( ((Boolean) value)
+                                                       .booleanValue() ) );
                 }
             }
         }

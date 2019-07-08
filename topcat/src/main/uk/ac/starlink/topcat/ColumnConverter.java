@@ -39,7 +39,7 @@ public abstract class ColumnConverter {
      */
     public static ColumnConverter[] getConverters( ValueInfo info ) {
         String units = info.getUnitString();
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
 
         /* Does the column represent a right ascension? */
         if ( matches( info, Tables.RA_INFO ) &&

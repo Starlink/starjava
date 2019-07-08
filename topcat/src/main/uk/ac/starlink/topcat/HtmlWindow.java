@@ -29,7 +29,7 @@ public class HtmlWindow extends AuxWindow {
 
     private final JEditorPane textPane_;
     private final JLabel urlLabel_;
-    private final List history_;
+    private final List<URL> history_;
     private final static int HISTORY_LIMIT = 100;
     private int historyPoint_;
     private final Action forwardAct_;
@@ -75,7 +75,7 @@ public class HtmlWindow extends AuxWindow {
         } );
 
         /* Set up history list. */
-        history_ = new ArrayList();
+        history_ = new ArrayList<URL>();
         historyPoint_ = -1;
 
         /* Define and configure forward and back actions. */
@@ -169,7 +169,7 @@ public class HtmlWindow extends AuxWindow {
 
         public void actionPerformed( ActionEvent evt ) {
             try {
-                moveToURL( (URL) history_.get( historyPoint_ + increment_ ) );
+                moveToURL( history_.get( historyPoint_ + increment_ ) );
                 historyPoint_ += increment_;
                 configureActions();
             }

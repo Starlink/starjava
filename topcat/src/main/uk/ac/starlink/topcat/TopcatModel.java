@@ -67,6 +67,7 @@ import uk.ac.starlink.ttools.convert.ValueConverter;
  * @author   Mark Taylor (Starlink)
  * @since    18 Feb 2004
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class TopcatModel {
 
     private final PlasticStarTable dataModel_;
@@ -74,12 +75,12 @@ public class TopcatModel {
     private final TableColumnModel columnModel_;
     private final ColumnList columnList_;
     private final OptionsListModel<RowSubset> subsets_;
-    private final Map subsetCounts_;
+    private final Map<RowSubset,Long> subsetCounts_;
     private final ComboBoxModel sortSelectionModel_;
     private final ComboBoxModel subsetSelectionModel_;
     private final SortSenseModel sortSenseModel_;
-    private final Collection listeners_;
-    private final Map columnSelectorMap_;
+    private final Collection<TopcatListener> listeners_;
+    private final Map<ValueInfo,ColumnSelectorModel> columnSelectorMap_;
     private final TableBuilder tableBuilder_;
     private ActivationWindow activationWindow_;
     private SubsetConsumerDialog subsetConsumerDialog_;
@@ -189,17 +190,17 @@ public class TopcatModel {
         subsetSelectionModel_ = new SubsetSelectionModel();
 
         /* Initialise count of subsets. */
-        subsetCounts_ = new HashMap();
+        subsetCounts_ = new HashMap<RowSubset,Long>();
         subsetCounts_.put( RowSubset.NONE, new Long( 0 ) );
         subsetCounts_.put( RowSubset.ALL, new Long( startab.getRowCount() ) );
 
         /* Set up a map to contain column selector models. */
-        columnSelectorMap_ = new HashMap();
+        columnSelectorMap_ = new HashMap<ValueInfo,ColumnSelectorModel>();
 
         /* Install numeric converters as appropriate. */
         for ( int icol = 0; icol < dataModel_.getColumnCount(); icol++ ) {
             ColumnInfo cinfo = dataModel_.getColumnInfo( icol );
-            Class clazz = cinfo.getContentClass();
+            Class<?> clazz = cinfo.getContentClass();
             if ( ! Number.class.isAssignableFrom( clazz ) ) {
                 ValueConverter conv = Conversions.getNumericConverter( cinfo );
                 if ( conv != null ) {
@@ -218,7 +219,7 @@ public class TopcatModel {
                                       "Use natural row order" );
 
         /* Set up the listeners. */
-        listeners_ = new ArrayList();
+        listeners_ = new ArrayList<TopcatListener>();
     }
 
     /**
@@ -354,7 +355,7 @@ public class TopcatModel {
      *
      * @return  subset count map
      */
-    public Map getSubsetCounts() {
+    public Map<RowSubset,Long> getSubsetCounts() {
         return subsetCounts_;
     }
 
@@ -430,7 +431,7 @@ public class TopcatModel {
             columnSelectorMap_.put( info, 
                                     new ColumnSelectorModel( this, info ) );
         }
-        return (ColumnSelectorModel) columnSelectorMap_.get( info );
+        return columnSelectorMap_.get( info );
     }
 
     /**
@@ -486,8 +487,8 @@ public class TopcatModel {
      */
     public void fireModelChanged( int code, Object datum ) {
         TopcatEvent evt = new TopcatEvent( this, code, datum );
-        for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
-            ((TopcatListener) it.next()).modelChanged( evt );
+        for ( TopcatListener l : listeners_ ) {
+            l.modelChanged( evt );
         }
     }
 
@@ -922,13 +923,15 @@ public class TopcatModel {
         final int sense = ascending ? 1 : -1;
          
         /* Define a little class for objects being sorted. */
-        class Item implements Comparable { 
+        class Item implements Comparable<Item> { 
             int rank;
-            Comparable value;
-            public int compareTo( Object o ) {
-                Comparable oval = ((Item) o).value;
+            Comparable<?> value;
+            public int compareTo( Item other ) {
+                Comparable<?> oval = other.value;
                 if ( value != null && oval != null ) {
-                    return sense * value.compareTo( oval );
+                    @SuppressWarnings("unchecked")
+                    int cmp = ((Comparable<Object>) value).compareTo( oval ); 
+                    return sense * cmp;
                 } 
                 else if ( value == null && oval == null ) {
                     return 0;
@@ -947,7 +950,7 @@ public class TopcatModel {
         for ( int i = 0; i < nrow; i++ ) {
             Item item = new Item();
             item.rank = i;
-            item.value = (Comparable) coldata.readValue( (long) i );
+            item.value = (Comparable<?>) coldata.readValue( (long) i );
             items[ i ] = item;
         }
 
@@ -1142,7 +1145,7 @@ public class TopcatModel {
          * Defines which columns can be sorted on - only the comparable ones.
          */
         public boolean acceptColumn( ColumnInfo cinfo ) {
-            Class clazz = cinfo.getContentClass();
+            Class<?> clazz = cinfo.getContentClass();
             return Comparable.class.isAssignableFrom( clazz );
         }
 

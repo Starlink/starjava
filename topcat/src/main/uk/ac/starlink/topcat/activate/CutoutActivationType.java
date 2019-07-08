@@ -75,6 +75,7 @@ public class CutoutActivationType implements ActivationType {
     /**
      * Configurator for use with CutoutActivationType.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class CutoutConfigurator extends SkyPosConfigurator {
 
         private final TopcatModel tcModel_;

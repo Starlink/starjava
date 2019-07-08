@@ -64,14 +64,14 @@ public class DalMultiWindow extends AuxWindow {
                 RegistryProtocol regProto = queryFactory_.getRegistrySelector()
                                            .getModel().getProtocol();
                 RegCapabilityInterface[] caps = super.getCapabilities( res );
-                List serviceCapList = new ArrayList();
+                List<RegCapabilityInterface> serviceCapList =
+                    new ArrayList<RegCapabilityInterface>();
                 for ( int ic = 0; ic < caps.length; ic++ ) {
                     if ( regProto.hasCapability( capability, caps[ ic ] ) ) {
                         serviceCapList.add( caps[ ic ] );
                     }
                 }
-                return (RegCapabilityInterface[])
-                       serviceCapList
+                return serviceCapList
                       .toArray( new RegCapabilityInterface[ 0 ] );
             }
         };

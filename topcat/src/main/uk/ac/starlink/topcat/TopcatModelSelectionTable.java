@@ -17,6 +17,7 @@ import javax.swing.event.ListDataListener;
  * @author    Mark Taylor
  * @since     3 Aug 2010
  */
+@SuppressWarnings("rawtypes")
 public class TopcatModelSelectionTable {
 
     private final boolean defaultSelected_;

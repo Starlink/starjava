@@ -19,8 +19,8 @@ import uk.ac.starlink.table.gui.TableSaveChooser;
  * SavePanel implementation for saving the current table.
  *
  * @author   Mark Taylor
- * @since    
  */
+@SuppressWarnings("rawtypes")
 public class CurrentSavePanel extends SavePanel {
 
     private final JLabel nameField_;

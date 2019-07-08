@@ -246,6 +246,7 @@ public class ServiceActivationType implements ActivationType {
     /**
      * Panel for selecting a URL Invoker.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class InvokePanel extends LabelledComponentStack {
         private final UrlOptions urlopts_;
         final JComboBox invokeSelector_;
@@ -288,6 +289,7 @@ public class ServiceActivationType implements ActivationType {
     /**
      * Panel for selecting, and displaying details of, a service.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class ServicePanel extends JPanel {
         final JComboBox serviceSelector_;
         final JTextField urlField_;

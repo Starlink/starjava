@@ -294,9 +294,9 @@ public abstract class AxisController<P,A> implements Configger {
      * @throws  AssertionError if the result would be false and assertions
      *                         are enabled
      */
-    public boolean assertHasKeys( ConfigKey[] requiredKeys ) {
-        Set<ConfigKey> reqSet =
-            new HashSet<ConfigKey>( Arrays.asList( requiredKeys ) );
+    public boolean assertHasKeys( ConfigKey<?>[] requiredKeys ) {
+        Set<ConfigKey<?>> reqSet =
+            new HashSet<ConfigKey<?>>( Arrays.asList( requiredKeys ) );
         Set<ConfigKey<?>> gotSet = getConfig().keySet();
         reqSet.removeAll( gotSet );
         assert reqSet.isEmpty() : "Missing required keys " + reqSet;

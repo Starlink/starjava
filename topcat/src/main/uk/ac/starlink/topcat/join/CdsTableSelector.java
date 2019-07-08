@@ -38,6 +38,7 @@ import uk.ac.starlink.util.gui.Downloader;
  * @author   Mark Taylor
  * @since    15 May 2014
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class CdsTableSelector extends JPanel {
 
     private final JComboBox nameSelector_;

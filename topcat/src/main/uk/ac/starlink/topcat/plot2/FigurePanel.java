@@ -47,7 +47,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  */
 public abstract class FigurePanel extends JComponent {
 
-    private final PlotPanel plotPanel_;
+    private final PlotPanel<?,?> plotPanel_;
     private final FigureMode[] figureModes_;
     private final boolean isDisplayExpr_;
     private final FigureListener figureListener_;
@@ -75,7 +75,7 @@ public abstract class FigurePanel extends JComponent {
      * @param  figureModes   available modes
      * @param  isDisplayExpr  true to display current expression on screen
      */
-    public FigurePanel( PlotPanel plotPanel, FigureMode[] figureModes,
+    public FigurePanel( PlotPanel<?,?> plotPanel, FigureMode[] figureModes,
                         boolean isDisplayExpr ) {
         plotPanel_ = plotPanel;
         figureModes_ = figureModes;
@@ -274,7 +274,7 @@ public abstract class FigurePanel extends JComponent {
             }
 
             /* Draw lines joining up the points so far added. */
-            List<Point2D> pathPoints = new ArrayList( points_ );
+            List<Point2D> pathPoints = new ArrayList<Point2D>( points_ );
             if ( activePoint_ != null ) {
                 pathPoints.add( activePoint_ );
             }
@@ -434,6 +434,7 @@ public abstract class FigurePanel extends JComponent {
      * and provides a selector which the user can use to choose
      * which FigureMode will be used.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private class ModeEnquiryPanel extends JPanel {
         private final JComboBox modeSelector_;
 

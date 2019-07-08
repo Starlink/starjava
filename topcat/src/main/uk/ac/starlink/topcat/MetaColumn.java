@@ -19,7 +19,7 @@ public abstract class MetaColumn {
      * @param  clazz  the Class of which every entry in this column will
      *         be a member
      */
-    public MetaColumn( String name, Class clazz ) {
+    public MetaColumn( String name, Class<?> clazz ) {
         this( name, clazz, null );
     }
 
@@ -32,7 +32,7 @@ public abstract class MetaColumn {
      *         be a member
      * @param  description  short textual description of column
      */
-    public MetaColumn( String name, Class clazz, String description ) {
+    public MetaColumn( String name, Class<?> clazz, String description ) {
         this( new ColumnInfo( name.replaceAll( " ", "_" ),
                               clazz, description ) );
     }
@@ -91,7 +91,7 @@ public abstract class MetaColumn {
      *
      * @return  content class
      */
-    public Class getContentClass() {
+    public Class<?> getContentClass() {
         return info_.getContentClass();
     }
 

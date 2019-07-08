@@ -90,7 +90,8 @@ public class UrlOptions {
         map.put( ResourceType.WEB, browser );
         map.put( ResourceType.UNKNOWN, browser );
         assert map.keySet()
-              .equals( new HashSet( Arrays.asList( ResourceType.values() ) ) );
+              .equals( new HashSet<ResourceType>
+                                  ( Arrays.asList( ResourceType.values() ) ) );
         return new UrlOptions( invokers, map );
     }
 

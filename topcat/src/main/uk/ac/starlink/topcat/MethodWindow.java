@@ -49,12 +49,12 @@ public class MethodWindow extends AuxWindow {
         final DefaultMutableTreeNode root = browser_.getRoot();
 
         /* Put class information into the tree. */
-        for ( Class clazz : TopcatJELUtils.getStaticClasses() ) {
+        for ( Class<?> clazz : TopcatJELUtils.getStaticClasses() ) {
             browser_.addStaticClass( clazz, root );
         }
         activNode_ = new DefaultMutableTreeNode( Heading.ACTIVATION, true );
         root.add( activNode_ );
-        for ( Class clazz : TopcatJELUtils.getActivationStaticClasses() ) {
+        for ( Class<?> clazz : TopcatJELUtils.getActivationStaticClasses() ) {
             browser_.addStaticClass( clazz, activNode_ );
         }
 
@@ -82,7 +82,7 @@ public class MethodWindow extends AuxWindow {
                         return;
                     }
                     else {
-                        Class clazz = TopcatJELUtils.classForName( cname );
+                        Class<?> clazz = TopcatJELUtils.classForName( cname );
                         if ( clazz != null ) {
                             TopcatJELUtils.getStaticClasses().add( clazz );
                             browser_.addStaticClass( clazz, root );

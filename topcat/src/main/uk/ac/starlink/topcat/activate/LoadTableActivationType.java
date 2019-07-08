@@ -59,6 +59,7 @@ public class LoadTableActivationType implements ActivationType {
      */
     private static class TableColumnConfigurator extends UrlColumnConfigurator {
         private final ControlWindow controlWindow_;
+        @SuppressWarnings("rawtypes")
         private final JComboBox formatSelector_;
         private final JCheckBox multipleSelector_;
         private final JCheckBox paramsSelector_;

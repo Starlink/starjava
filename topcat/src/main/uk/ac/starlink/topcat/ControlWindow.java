@@ -131,6 +131,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.MemoryMonitor;
 import uk.ac.starlink.util.gui.StringPaster;
 import uk.ac.starlink.vo.DalLoader;
+import uk.ac.starlink.vo.DalTableLoadDialog;
 import uk.ac.starlink.vo.SkyDalTableLoadDialog;
 import uk.ac.starlink.vo.SkyPositionEntry;
 
@@ -148,6 +149,7 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  * @author   Mark Taylor (Starlink)
  * @since    9 Mar 2004
  */
+@SuppressWarnings({"unchecked","rawtypes","deprecation"})
 public class ControlWindow extends AuxWindow
                            implements ListSelectionListener, 
                                       ListDataListener,
@@ -383,19 +385,24 @@ public class ControlWindow extends AuxWindow
         final ModelViewAction viewerAct;
         viewActs_ = new ModelViewAction[] {
             viewerAct =
-            new ModelViewWindowAction( "Table Data", ResourceIcon.VIEWER,
+            new ModelViewWindowAction<TableViewerWindow>
+                                     ( "Table Data", ResourceIcon.VIEWER,
                                        "Display table cell data",
                                        TableViewerWindow.class ),
-            new ModelViewWindowAction( "Table Parameters", ResourceIcon.PARAMS,
+            new ModelViewWindowAction<ParameterWindow>
+                                     ( "Table Parameters", ResourceIcon.PARAMS,
                                        "Display table metadata",
                                        ParameterWindow.class ),
-            new ModelViewWindowAction( "Column Info", ResourceIcon.COLUMNS,
+            new ModelViewWindowAction<ColumnInfoWindow>
+                                     ( "Column Info", ResourceIcon.COLUMNS,
                                        "Display column metadata",
                                        ColumnInfoWindow.class ),
-            new ModelViewWindowAction( "Row Subsets", ResourceIcon.SUBSETS,
+            new ModelViewWindowAction<SubsetWindow>
+                                     ( "Row Subsets", ResourceIcon.SUBSETS,
                                        "Display row subsets",
                                        SubsetWindow.class ),
-            new ModelViewWindowAction( "Column Statistics", ResourceIcon.STATS,
+            new ModelViewWindowAction<StatsWindow>
+                                     ( "Column Statistics", ResourceIcon.STATS,
                                        "Display statistics for each column",
                                        StatsWindow.class ),
             new ActivationWindowAction( "Activation Actions",
@@ -403,7 +410,8 @@ public class ControlWindow extends AuxWindow
                                         "Display actions invoked when rows "
                                       + "are selected" ),
             datalinkAct_ =
-            new ModelViewWindowAction( "DataLink View", ResourceIcon.DATALINK,
+            new ModelViewWindowAction<DatalinkWindow>
+                                     ( "DataLink View", ResourceIcon.DATALINK,
                                        "Show row data as a DataLink table",
                                        DatalinkWindow.class ),
         };
@@ -679,19 +687,17 @@ public class ControlWindow extends AuxWindow
             }
             public void menuSelected( MenuEvent evt ) {
                 voMenu.removeMenuListener( this );
-                Class[] tldClasses = new Class[] {
-                    TopcatConeSearchDialog.class,
-                    TopcatSiapTableLoadDialog.class,
-                    TopcatSsapTableLoadDialog.class,
-                    TopcatTapTableLoadDialog.class,
-                    VizierTableLoadDialog.class,
-                    GavoTableLoadDialog.class,
-                    BaSTITableLoadDialog.class,
-                };
+                List<Class<? extends TableLoadDialog>> tldClasses =
+                    new ArrayList<Class<? extends TableLoadDialog>>();
+                tldClasses.add( TopcatConeSearchDialog.class );
+                tldClasses.add( TopcatSiapTableLoadDialog.class );
+                tldClasses.add( TopcatSsapTableLoadDialog.class );
+                tldClasses.add( TopcatTapTableLoadDialog.class );
+                tldClasses.add( VizierTableLoadDialog.class );
+                tldClasses.add( GavoTableLoadDialog.class );
+                tldClasses.add( BaSTITableLoadDialog.class );
                 LoadWindow loadWin = getLoadWindow();
-                for ( int ic = 0; ic < tldClasses.length; ic++ ) {
-                    Class clazz = tldClasses[ ic ];
-                    assert TableLoadDialog.class.isAssignableFrom( clazz );
+                for ( Class<? extends TableLoadDialog> clazz : tldClasses ) {
                     Action act = loadWin.getDialogAction( clazz );
                     assert act != null;
                     voMenu.add( act );
@@ -833,10 +839,10 @@ public class ControlWindow extends AuxWindow
     public void moveCurrent( boolean up ) {
         ListSelectionModel selModel = tablesList_.getSelectionModel();
         int iFrom = selModel.getMinSelectionIndex();
-        TopcatModel tcFrom = (TopcatModel) tablesModel_.get( iFrom );
+        TopcatModel tcFrom = tablesModel_.getElementAt( iFrom );
         int iTo = iFrom + ( up ? -1 : +1 );
         int iLo = iFrom + ( up ? -1 : 0 );
-        tablesModel_.insertElementAt( (TopcatModel) tablesModel_.get( iLo ),
+        tablesModel_.insertElementAt( tablesModel_.getElementAt( iLo ),
                                       iLo + 2 );
         tablesModel_.remove( iLo );
         assert tablesModel_.get( iTo ) == tcFrom;
@@ -1187,7 +1193,8 @@ public class ControlWindow extends AuxWindow
      * @param  tld  load dialogue
      * @param  tldClass  load dialogue type
      */
-    public boolean loadDialogMatches( TableLoadDialog tld, Class tldClass ) {
+    public boolean
+            loadDialogMatches( TableLoadDialog tld, Class<?> tldClass ) {
         return tldClass != null && tldClass.isAssignableFrom( tld.getClass() );
     }
 
@@ -1195,7 +1202,9 @@ public class ControlWindow extends AuxWindow
      * Indicates whether the given multi window is of the type indicated
      * by the given class.
      */
-    public boolean multiWindowMatches( DalMultiWindow mw, Class mwClass ) {
+    public boolean
+        multiWindowMatches( DalMultiWindow mw,
+                            Class<? extends DalMultiWindow> mwClass ) {
         return mwClass != null && mwClass.isAssignableFrom( mw.getClass() );
     }
 
@@ -1233,7 +1242,7 @@ public class ControlWindow extends AuxWindow
                 System.exit( 0 );
             }
             else {
-                for ( Enumeration en = tablesModel_.elements();
+                for ( Enumeration<?> en = tablesModel_.elements();
                       en.hasMoreElements(); ) {
                     removeTable( (TopcatModel) en.nextElement() );
                 }
@@ -1580,7 +1589,7 @@ public class ControlWindow extends AuxWindow
                     msg = "Remove table " + tcModels[ 0 ] + " from list?";
                 }
                 else {
-                    List msgList = new ArrayList();
+                    List<String> msgList = new ArrayList<String>();
                     msgList.add( "Remove tables from list?" );
                     for ( int i = 0; i < nt; i++ ) {
                         msgList.add( "    " + tcModels[ i ] );
@@ -1664,12 +1673,14 @@ public class ControlWindow extends AuxWindow
     /**
      * ModelViewAction class for actions which pop up a view window.
      */
-    private class ModelViewWindowAction extends BasicAction
-                                        implements ModelViewAction {
+    private class ModelViewWindowAction<W extends AuxWindow>
+            extends BasicAction
+            implements ModelViewAction {
 
-        AuxWindow window_;
-        final Constructor constructor_;
-        private final Map modelWindows_ = new WeakHashMap();
+        W window_;
+        final Constructor<W> constructor_;
+        private final Map<TopcatModel,W> modelWindows_ =
+            new WeakHashMap<TopcatModel,W>();
 
         /**
          * Constructor.
@@ -1681,13 +1692,10 @@ public class ControlWindow extends AuxWindow
          *         constructor that takes (TopcatModel,Component).
          */
         ModelViewWindowAction( String name, Icon icon, String shortdesc,
-                               Class winClass ) {
+                               Class<W> winClass ) {
             super( name, icon, shortdesc );
-            if ( ! AuxWindow.class.isAssignableFrom( winClass ) ) {
-                throw new IllegalArgumentException();
-            }
             try {
-                constructor_ = winClass.getConstructor( new Class[] {
+                constructor_ = winClass.getConstructor( new Class<?>[] {
                     TopcatModel.class, Component.class,
                 } );
             }
@@ -1707,7 +1715,7 @@ public class ControlWindow extends AuxWindow
             if ( tcModel == null ) {
                 return;
             }
-            Window window = (Window) modelWindows_.get( tcModel );
+            W window = modelWindows_.get( tcModel );
             if ( window == null ) {
                 window = createWindow( tcModel );
                 modelWindows_.put( tcModel, window );
@@ -1716,7 +1724,7 @@ public class ControlWindow extends AuxWindow
         }
 
         public void setViewVisible( TopcatModel tcModel, boolean visible ) {
-            Window window = (Window) modelWindows_.get( tcModel );
+            W window = modelWindows_.get( tcModel );
             if ( window != null ) {
                 if ( visible ) {
                     window.setVisible( true );
@@ -1732,11 +1740,11 @@ public class ControlWindow extends AuxWindow
          *
          * @param  tcModel  table the window will apply to
          */
-        private Window createWindow( TopcatModel tcModel ) {
+        private W createWindow( TopcatModel tcModel ) {
             try {
                 Object[] args = new Object[] { tcModel, ControlWindow.this };
                 try {
-                    return (AuxWindow) constructor_.newInstance( args );
+                    return constructor_.newInstance( args );
                 }
                 catch ( InvocationTargetException e ) {
                     throw e.getCause();
@@ -1839,7 +1847,7 @@ public class ControlWindow extends AuxWindow
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            StackPlotWindow window =
+            StackPlotWindow<?,?> window =
                 ptype_.createWindow( plot2parent_, tablesModel_ );
             window.setTitle( ptype_.getName() + " Plot (" + ++iPlotwin_ + ")" );
             TopcatModel tcModel = getCurrentModel();
@@ -1887,8 +1895,7 @@ public class ControlWindow extends AuxWindow
             int ntab = tablesModel_.getSize();
             for ( int i = 0; i < ntab; i++ ) {
                 boolean isSelected = tablesList_.isSelectedIndex( i );
-                TopcatModel tcModel = 
-                    (TopcatModel) tablesModel_.getElementAt( i );
+                TopcatModel tcModel = tablesModel_.getElementAt( i );
                 Object effect = isSelected ? selEffect : otherEffect;
                 if ( effect == WindowEffect.HIDE ) {
                     setViewsVisible( tcModel, false );

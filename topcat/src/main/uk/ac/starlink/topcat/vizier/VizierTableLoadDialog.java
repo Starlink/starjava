@@ -70,6 +70,7 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  * @author   Thomas Boch
  * @since    19 Oct 2009
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class VizierTableLoadDialog extends AbstractTableLoadDialog {
 
     private final ContentCoding coding_;

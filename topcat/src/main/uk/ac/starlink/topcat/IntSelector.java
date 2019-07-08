@@ -17,6 +17,7 @@ import javax.swing.JPanel;
  * @author   Mark Taylor (Starlink)
  * @since    7 Oct 2004
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class IntSelector extends JPanel implements ItemListener {
 
     private final JComboBox cbox_;

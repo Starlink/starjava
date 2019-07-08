@@ -153,7 +153,7 @@ public class GavoCSVTableParser  {
      * @param line a String with the line to parse
      * @return a List with the tokens
      */
-    public List parseLine(String line) {
+    public List<String> parseLine(String line) {
         return recursiveDescentParser.parse(line);
     }
     
@@ -167,7 +167,7 @@ public class GavoCSVTableParser  {
         }
         else if(line.startsWith("#OK"))
         {
-          Vector columnLines = new Vector();
+          Vector<String> columnLines = new Vector<String>();
           while((line = reader.readLine()) != null && line.startsWith("#"))
             if(line.startsWith("#COLUMN"))
               columnLines.add(line);
@@ -176,11 +176,11 @@ public class GavoCSVTableParser  {
           int[] types = new int[dim];
           for(int i = 0; i < dim; i++)
           {
-              String columnLine = (String)columnLines.get(i);
+              String columnLine = columnLines.get(i);
               int index1 = columnLine.indexOf("JDBC_TYPE=")+10;
               int index2= columnLine.indexOf(" ",index1);
               types[i] = Integer.parseInt(columnLine.substring(index1, index2));
-              Class type = classForJDBCType(types[i]);
+              Class<?> type = classForJDBCType(types[i]);
               index1 = columnLine.indexOf("name=")+5;
               index2= columnLine.indexOf(" ",index1);
               String name = columnLine.substring(index1, index2);
@@ -245,9 +245,9 @@ public class GavoCSVTableParser  {
                         throw new IOException( sb.toString() ); 
                     }
                   }
-                  List cells_ = parseLine(line);
+                  List<String> cells_ = parseLine(line);
                   
-                  String[] cells = (String[])cells_.toArray(new String[]{}); 
+                  String[] cells = cells_.toArray(new String[]{}); 
                   row = new Object[dim];
                   for(int i = 0; i < dim; i++)
                       row[i] = objectForJDBCType(types[i],cells[i]);
@@ -318,7 +318,7 @@ public class GavoCSVTableParser  {
         private StringTokenizer stringTokenizer;
         private String delimiter = DEFAULT_DELIMITER;
         private StringBuffer currentItem = new StringBuffer();
-        private List itemList;
+        private List<String> itemList;
 
         /** Holds value of property line. */
         private String line;
@@ -391,7 +391,7 @@ public class GavoCSVTableParser  {
          *
          * @return a List with the parsed items
          */
-        public List parse(String line) {
+        public List<String> parse(String line) {
             setLine(line);
             parse();
 
@@ -405,12 +405,12 @@ public class GavoCSVTableParser  {
          *
          * @see #setLine
          */
-        public List parse() {
+        public List<String> parse() {
             if (stringTokenizer == null) {
                 return null;
             }
 
-            itemList = new ArrayList();
+            itemList = new ArrayList<String>();
             parseLine();
             if(delimiter.equals(lastToken)) // take care of null as last item
               itemList.add("");
@@ -517,7 +517,7 @@ public class GavoCSVTableParser  {
         }
     }
 
-    public static Class classForJDBCType(int jdbcType)
+    public static Class<?> classForJDBCType(int jdbcType)
     {
         switch(jdbcType)
         {

@@ -16,6 +16,7 @@ import uk.ac.starlink.table.JoinFixAction;
  * @author   Mark Taylor
  * @since    16 Jun 2014
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class JoinFixSelector extends JPanel {
 
     private final JComboBox scopeSelector_;

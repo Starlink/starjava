@@ -19,6 +19,7 @@ import javax.swing.JList;
  * @author   Mark Taylor
  * @since    9 April 2009
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class LoadingList extends JList {
 
     /**

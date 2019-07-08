@@ -117,7 +117,7 @@ public abstract class FormLayerControl
         /* Set up a manager for per-subset configuration. */
         subsetManager_ =
             new SubsetConfigManager( nextSupplier,
-                                     new ConfigKey[] { StyleKeys.LABEL,
+                                     new ConfigKey<?>[] { StyleKeys.LABEL,
                                                        StyleKeys.SHOW_LABEL } );
         subsetManager_.addActionListener( forwarder );
 
@@ -423,6 +423,7 @@ public abstract class FormLayerControl
      * is changed.  Usually this will be because the user has selected
      * a new one from the table selector.
      */
+    @SuppressWarnings("rawtypes")
     private void tableChanged() {
 
         /* Reassign the listener to listen to the new current model
@@ -525,6 +526,7 @@ public abstract class FormLayerControl
      * and not to have to worry about keeping changing the target of their
      * listeners when state of the layer control changes.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class WrapperListModel implements ListModel {
         private final List<ListDataListener> listenerList_;
         private final ListDataListener listDataForwarder_;

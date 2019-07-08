@@ -4,7 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javax.swing.Box;
@@ -34,6 +34,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    23 Feb 2007
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class AxisDataSelector extends JPanel {
 
     private final JComponent extrasBox_;
@@ -41,7 +42,7 @@ public class AxisDataSelector extends JPanel {
     private final JComboBox loSelector_;
     private final JComboBox hiSelector_;
     private final JComboBox lhSelector_;
-    private final Map extentMap_;
+    private final Map<ErrorMode.Extent,JComboBox> extentMap_;
     private final ActionForwarder actionForwarder_;
     private ErrorMode errorMode_ = ErrorMode.NONE;
 
@@ -110,7 +111,7 @@ public class AxisDataSelector extends JPanel {
         lhSelector_.addActionListener( new ColumnSelectionListener( LH ) );
 
         /* Cache information about which selectors represent which extents. */
-        extentMap_ = new HashMap();
+        extentMap_ = new HashMap<ErrorMode.Extent,JComboBox>();
         extentMap_.put( ErrorMode.LOWER_EXTENT, loSelector_ );
         extentMap_.put( ErrorMode.UPPER_EXTENT, hiSelector_ );
         extentMap_.put( ErrorMode.BOTH_EXTENT, lhSelector_ );
@@ -187,7 +188,7 @@ public class AxisDataSelector extends JPanel {
         int nex = extents.length;
         JComboBox[] selectors = new JComboBox[ nex ];
         for ( int i = 0; i < nex; i++ ) {
-            selectors[ i ] = (JComboBox) extentMap_.get( extents[ i ] );
+            selectors[ i ] = extentMap_.get( extents[ i ] );
         }
         return selectors;
     }
@@ -207,7 +208,7 @@ public class AxisDataSelector extends JPanel {
         for ( int i = 0; i < extents.length; i++ ) {
             ErrorMode.Extent extent = extents[ i ];
             placeSelector( extrasBox_, extent.getLabel(),
-                           (JComboBox) extentMap_.get( extent ) );
+                           extentMap_.get( extent ) );
         }
         errorMode_ = errorMode;
         revalidate();
@@ -471,7 +472,8 @@ public class AxisDataSelector extends JPanel {
          * A null entry means the value should be blank; this differs from
          * an absent entry which means it is unknown.
          */
-        private final Map errColMap_ = new HashMap();
+        private final Map<List<Object>,ColumnData> errColMap_ =
+            new HashMap<List<Object>,ColumnData>();
 
         /**
          * Called when the main selector in an AxisDataSelector has a new
@@ -489,14 +491,11 @@ public class AxisDataSelector extends JPanel {
                 axSel.lhSelector_.setSelectedItem( null );
             }
             else {
-                for ( Iterator it =
-                      Arrays.asList( new Object[] { LO, HI, LH } ).iterator();
-                      it.hasNext(); ) {
-                    ErrorType type = (ErrorType) it.next();
-                    Object key = getKey( mainCol, type );
+                for ( ErrorType type : new ErrorType[] { LO, HI, LH, } ) {
+                    List<Object> key = getKey( mainCol, type );
                     JComboBox selector = type.getSelector( axSel );
                     ColumnData col = errColMap_.containsKey( key )
-                                   ? (ColumnData) errColMap_.get( key )
+                                   ? errColMap_.get( key )
                                    : guessColumn( mainCol, type, selector );
                     selector.setSelectedItem( col );
                 }
@@ -517,7 +516,7 @@ public class AxisDataSelector extends JPanel {
                                  ColumnData col ) {
             Object mainDat = axSel.atSelector_.getSelectedItem();
             if ( mainDat instanceof ColumnData ) {
-                Object key = getKey( (ColumnData) mainDat, type );
+                List<Object> key = getKey( (ColumnData) mainDat, type );
                 if ( col != null || errColMap_.containsKey( key ) ) {
                     errColMap_.put( key, col );
                 }
@@ -531,7 +530,8 @@ public class AxisDataSelector extends JPanel {
          * @param   type      error type
          * @return  opaque key object
          */
-        private static Object getKey( ColumnData mainCol, ErrorType type ) {
+        private static List<Object> getKey( ColumnData mainCol,
+                                            ErrorType type ) {
             return Arrays.asList( new Object[] { mainCol, type, } );
         }
     }

@@ -12,6 +12,7 @@ import javax.swing.event.ListDataListener;
  * @author   Mark Taylor
  * @since    10 May 2018
  */
+@SuppressWarnings("rawtypes")
 public class ListModel2 extends AbstractListModel {
 
     private final ListModel model1_;

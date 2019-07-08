@@ -82,7 +82,7 @@ public class SpectrogramLayerControl extends BasicCoordLayerControl {
         ColumnDataComboBoxModel.Filter vectorFilter =
                 new ColumnDataComboBoxModel.Filter() {
             public boolean acceptColumn( ValueInfo info ) {
-                Class clazz = info.getContentClass();
+                Class<?> clazz = info.getContentClass();
                 int[] shape = info.isArray() ? info.getShape() : null;
                 boolean isNumericArray =
                        double[].class.isAssignableFrom( clazz )

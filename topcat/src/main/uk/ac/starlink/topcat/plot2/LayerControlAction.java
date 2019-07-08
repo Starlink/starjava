@@ -24,7 +24,7 @@ import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 public abstract class LayerControlAction extends BasicAction {
 
     private final ControlStack stack_;
-    private final Plotter plotter_;
+    private final Plotter<?> plotter_;
 
     /**
      * Constructs a LayerControlAction from name, icon and description.
@@ -39,7 +39,7 @@ public abstract class LayerControlAction extends BasicAction {
      * @param   stack   plot stack
      */
     public LayerControlAction( String name, Icon layerIcon, String descrip,
-                               Plotter plotter, ControlStack stack ) {
+                               Plotter<?> plotter, ControlStack stack ) {
         super( name, ResourceIcon.toAddIcon( layerIcon ), descrip );
         stack_ = stack;
         plotter_ = plotter;
@@ -51,7 +51,7 @@ public abstract class LayerControlAction extends BasicAction {
      * @param  plotter   plotter which will be added to the stack
      * @param  stack    plot stack
      */
-    public LayerControlAction( Plotter plotter, ControlStack stack ) {
+    public LayerControlAction( Plotter<?> plotter, ControlStack stack ) {
         this( "Add " + plotter.getPlotterName() + " Control",
               plotter.getPlotterIcon(),
               "Add a new " + plotter.getPlotterName().toLowerCase()
@@ -76,7 +76,7 @@ public abstract class LayerControlAction extends BasicAction {
      *
      * @return  plotter for this action, or null
      */
-    public Plotter getPlotter() {
+    public Plotter<?> getPlotter() {
         return plotter_;
     }
 
@@ -96,7 +96,7 @@ public abstract class LayerControlAction extends BasicAction {
      * @return  new action to add plotter control to stack, or null
      */
     public static LayerControlAction
-            createPlotterAction( final Plotter plotter, ControlStack stack,
+            createPlotterAction( final Plotter<?> plotter, ControlStack stack,
                                  final TypedListModel<TopcatModel> tablesModel,
                                  final ZoneFactory zfact,
                                  final NextSupplier nextSupplier,

@@ -2,7 +2,6 @@ package uk.ac.starlink.topcat.plot;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -25,7 +24,7 @@ public class CutChooser extends JPanel {
 
     private final JSlider loSlider_;
     private final JSlider hiSlider_;
-    private final List changeListeners_;
+    private final List<ChangeListener> changeListeners_;
     private boolean percentileLabels_ = true;
     private double min_ = 0.001;
     private static final int SCALE = 10000;
@@ -45,8 +44,8 @@ public class CutChooser extends JPanel {
                                  (int) -( Math.log( min_ ) * SCALE ) );
 
         /* Construct a table of labels with which to annotate the sliders. */
-        Hashtable loLabels = new Hashtable();
-        Hashtable hiLabels = new Hashtable();
+        Hashtable<Integer,JLabel> loLabels = new Hashtable<Integer,JLabel>();
+        Hashtable<Integer,JLabel> hiLabels = new Hashtable<Integer,JLabel>();
         double[] points = new double[] { .5, .1, .01, .001, };
         for ( int i = 0; i < points.length; i++ ) {
             double point = points[ i ];
@@ -69,14 +68,13 @@ public class CutChooser extends JPanel {
 
         /* Arrange to notify listeners when one of the sliders has moved
          * (but not while it's moving). */
-        changeListeners_ = new ArrayList();
+        changeListeners_ = new ArrayList<ChangeListener>();
         ChangeListener changer = new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 if ( ! ((JSlider) evt.getSource()).getValueIsAdjusting() ) {
                     ChangeEvent fevt = new ChangeEvent( CutChooser.this );
-                    for ( Iterator it = changeListeners_.iterator();
-                          it.hasNext(); ) {
-                        ((ChangeListener) it.next()).stateChanged( fevt );
+                    for ( ChangeListener l : changeListeners_ ) {
+                        l.stateChanged( fevt );
                     }
                 }
             }

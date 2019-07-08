@@ -68,7 +68,8 @@ public class PlanePlotWindow
         public FigureMode[] getFigureModes() {
             return PlaneFigureMode.MODES;
         }
-        public GangerFactory getGangerFactory() {
+        public GangerFactory<PlaneSurfaceFactory.Profile,PlaneAspect>
+                getGangerFactory() {
             return SingleGanger.createFactory( PLOT_TYPE );
         }
         public ZoneFactory createZoneFactory() {

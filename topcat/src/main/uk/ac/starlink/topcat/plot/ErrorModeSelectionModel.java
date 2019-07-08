@@ -6,7 +6,6 @@ import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -32,6 +31,7 @@ import uk.ac.starlink.ttools.plot.ErrorRenderer;
  * @author   Mark Taylor
  * @since    26 Feb 2007
  */
+@SuppressWarnings("rawtypes")
 public class ErrorModeSelectionModel
         implements ErrorModeSelection, ComboBoxModel, ActionListener {
 
@@ -40,7 +40,7 @@ public class ErrorModeSelectionModel
     private final ErrorMode[] options_;
     private final ActionForwarder actionForwarder_;
     private final ErrorRenderer errorRenderer_;
-    private final List controlList_;
+    private final List<JComponent> controlList_;
     private boolean enabled_;
     private int iOpt_;
 
@@ -57,7 +57,7 @@ public class ErrorModeSelectionModel
         actionForwarder_ = new ActionForwarder();
         errorRenderer_ = ErrorRenderer.EXAMPLE;
         enabled_ = true;
-        controlList_ = new ArrayList();
+        controlList_ = new ArrayList<JComponent>();
         setMode( ErrorMode.NONE );
     }
 
@@ -85,8 +85,8 @@ public class ErrorModeSelectionModel
      * @param  enabled  true iff user should be able to change state
      */
     public void setEnabled( boolean enabled ) {
-        for ( Iterator it = controlList_.iterator(); it.hasNext(); ) {
-            ((JComponent) it.next()).setEnabled( enabled );
+        for ( JComponent comp : controlList_ ) {
+            comp.setEnabled( enabled );
         }
         enabled_ = enabled;
     }

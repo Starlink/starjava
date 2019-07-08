@@ -74,7 +74,7 @@ public abstract class FormControl implements Control {
      *
      * @return   config keys
      */
-    protected abstract ConfigKey[] getConfigKeys();
+    protected abstract ConfigKey<?>[] getConfigKeys();
 
     public JComponent getPanel() {
         if ( panel_ == null ) {
@@ -82,8 +82,8 @@ public abstract class FormControl implements Control {
             final JComponent coordPanel = getCoordPanel();
             panel_.add( coordPanel, BorderLayout.NORTH );
             if ( getPlotter().hasReports() ) {
-                reportPanel_ = new ReportPanel( new Factory<Plotter>() {
-                    public Plotter getItem() {
+                reportPanel_ = new ReportPanel( new Factory<Plotter<?>>() {
+                    public Plotter<?> getItem() {
                         return FormControl.this.getPlotter();
                     }
                 } ) {
@@ -156,18 +156,18 @@ public abstract class FormControl implements Control {
 
         /* Add a new style panel if the table is non-null. */
         if ( tcModel != null ) {
-            Factory<Plotter> plotterFact = new Factory<Plotter>() {
-                public Plotter getItem() {
+            Factory<Plotter<?>> plotterFact = new Factory<Plotter<?>>() {
+                public Plotter<?> getItem() {
                     return FormControl.this.getPlotter();
                 }
             };
 
             /* If any of the config keys are supplied by the base configger,
              * don't acquire them from the layer style panel. */
-            List<ConfigKey> klist = new ArrayList<ConfigKey>();
+            List<ConfigKey<?>> klist = new ArrayList<ConfigKey<?>>();
             klist.addAll( Arrays.asList( getConfigKeys() ) );
             klist.removeAll( baseConfigger_.getConfig().keySet() );
-            ConfigKey[] keys = klist.toArray( new ConfigKey[ 0 ] );
+            ConfigKey<?>[] keys = klist.toArray( new ConfigKey<?>[ 0 ] );
             FormStylePanel sp =
                 new FormStylePanel( keys, baseConfigger_, plotterFact,
                                     subManager, subStack, tcModel );

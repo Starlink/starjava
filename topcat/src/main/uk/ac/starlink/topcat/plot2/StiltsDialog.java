@@ -51,7 +51,7 @@ public class StiltsDialog extends AuxDialog {
      * @param  isMultiZone   true if the possibility of multiple zones
      *                       should be accounted for in the command
      */
-    public StiltsDialog( Window parent, PlotPanel plotPanel,
+    public StiltsDialog( Window parent, PlotPanel<?,?> plotPanel,
                          boolean isMultiZone ) {
         super( "STILTS Export", parent );
         JComponent content = new JPanel( new BorderLayout() );

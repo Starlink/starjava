@@ -38,6 +38,7 @@ public class SendSkyPosActivationType implements ActivationType {
     /**
      * Configurator implementation for use with this activation type.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class SendConfigurator extends SkyPosConfigurator {
 
         private final SampSender skySender_;

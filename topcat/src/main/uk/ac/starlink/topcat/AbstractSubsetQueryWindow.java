@@ -14,6 +14,7 @@ import javax.swing.JTextField;
  * @author   Mark Taylor
  * @since    28 Sep 2006
  */
+@SuppressWarnings("rawtypes")
 public abstract class AbstractSubsetQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel_;

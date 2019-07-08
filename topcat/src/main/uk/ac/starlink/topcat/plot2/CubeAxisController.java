@@ -43,7 +43,7 @@ public class CubeAxisController
         /* Log/flip config tab - only makes sense for anisotropic mode. */
         if ( ! isIso ) {
             mainControl.addSpecifierTab( "Coords",
-                                         new ConfigSpecifier( new ConfigKey[] {
+                                     new ConfigSpecifier( new ConfigKey<?>[] {
                 CubeSurfaceFactory.XLOG_KEY,
                 CubeSurfaceFactory.YLOG_KEY,
                 CubeSurfaceFactory.ZLOG_KEY,
@@ -138,14 +138,14 @@ public class CubeAxisController
         mainControl.addControlTab( "View", viewPanel.getComponent(), true );
 
         /* Grid config tab. */
-        List<ConfigKey> gridKeyList = new ArrayList<ConfigKey>();
+        List<ConfigKey<?>> gridKeyList = new ArrayList<ConfigKey<?>>();
         gridKeyList.add( CubeSurfaceFactory.FRAME_KEY );
         gridKeyList.add( StyleKeys.MINOR_TICKS );
         if ( isIso ) {
             gridKeyList.add( CubeSurfaceFactory.ISOCROWD_KEY );
         }
         else {
-            gridKeyList.addAll( Arrays.asList( new ConfigKey[] {
+            gridKeyList.addAll( Arrays.asList( new ConfigKey<?>[] {
                 CubeSurfaceFactory.XCROWD_KEY,
                 CubeSurfaceFactory.YCROWD_KEY,
                 CubeSurfaceFactory.ZCROWD_KEY,
@@ -153,8 +153,8 @@ public class CubeAxisController
         }
         gridKeyList.add( StyleKeys.GRID_ANTIALIAS );
         mainControl.addSpecifierTab( "Grid",
-                         new ConfigSpecifier( gridKeyList
-                                             .toArray( new ConfigKey[ 0 ] ) ) );
+                     new ConfigSpecifier( gridKeyList
+                                         .toArray( new ConfigKey<?>[ 0 ] ) ) );
 
         /* Labels config tab. */
         if ( ! isIso ) {
@@ -205,7 +205,8 @@ public class CubeAxisController
         list.add( CubeSurfaceFactory.YLABEL_KEY );
         list.add( CubeSurfaceFactory.ZLABEL_KEY );
         @SuppressWarnings("unchecked")
-        ConfigKey<String>[] keys = list.toArray( new ConfigKey[ 0 ] );
+        ConfigKey<String>[] keys =
+            (ConfigKey<String>[]) list.toArray( new ConfigKey<?>[ 0 ] );
         return keys;
     }
 }

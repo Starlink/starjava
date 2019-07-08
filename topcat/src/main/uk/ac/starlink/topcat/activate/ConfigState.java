@@ -32,6 +32,7 @@ import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
  * @author   Mark Taylor
  * @since    30 Apr 2018
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ConfigState {
 
     private final Map<String,String> map_;
@@ -42,7 +43,7 @@ public class ConfigState {
      * Constructs an empty state object.
      */
     public ConfigState() {
-        this( new LinkedHashMap() );
+        this( new LinkedHashMap<String,String>() );
     }
 
     /**

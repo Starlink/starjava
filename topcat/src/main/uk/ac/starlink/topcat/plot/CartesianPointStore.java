@@ -53,7 +53,7 @@ public class CartesianPointStore implements PointStore {
 
         /* Set up an array of objects which can read error information for
          * each error dimension from the ValueStore. */
-        List rdrList = new ArrayList();
+        List<ErrorReader> rdrList = new ArrayList<ErrorReader>();
         int nerrWord = 0;
         for ( int idim = 0; idim < errorModes.length; idim++ ) {
             ErrorReader rdr = createErrorReader( idim, errorModes[ idim ] );
@@ -63,7 +63,7 @@ public class CartesianPointStore implements PointStore {
             }
         }
         nerrWord_ = nerrWord;
-        errorReaders_ = (ErrorReader[]) rdrList.toArray( new ErrorReader[ 0 ] );
+        errorReaders_ = rdrList.toArray( new ErrorReader[ 0 ] );
 
         /* Work out the total number of words (doubles in this case) which
          * are used for each row of data. */

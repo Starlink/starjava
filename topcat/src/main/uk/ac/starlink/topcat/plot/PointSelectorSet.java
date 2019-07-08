@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -171,15 +170,15 @@ public abstract class PointSelectorSet extends JPanel {
     public PointSelection getPointSelection() {
 
         /* Assemble a list of the point selectors with plottable data. */
-        List activeList = new ArrayList();
+        List<PointSelector> activeList = new ArrayList<PointSelector>();
         for ( int i = 0; i < getSelectorCount(); i++ ) {
             PointSelector psel = getSelector( i );
             if ( psel.isReady() ) {
                 activeList.add( psel );
             }
         }
-        PointSelector[] activeSelectors = 
-            (PointSelector[]) activeList.toArray( new PointSelector[ 0 ] );
+        PointSelector[] activeSelectors =
+            activeList.toArray( new PointSelector[ 0 ] );
 
         /* Assemble a flattened list of the subsets to be plotted. */
         int[][] subsetPointers =
@@ -350,10 +349,11 @@ public abstract class PointSelectorSet extends JPanel {
          * Stores a boolean[] for each PointSelector, indicating which
          * subsets are selected.
          */
-        final Map flagMap_ = new WeakHashMap();
+        final Map<PointSelector,boolean[]> flagMap_ =
+            new WeakHashMap<PointSelector,boolean[]>();
 
         /** List of Item objects giving the order of subsets chosen. */
-        final List order_ = new ArrayList();
+        final List<Item> order_ = new ArrayList<Item>();
 
         /**
          * Returns a structure indicating the order in which selection
@@ -368,9 +368,8 @@ public abstract class PointSelectorSet extends JPanel {
          * @return  array giving selection order
          */
         int[][] getSubsetPointers( PointSelector[] selectors ) {
-            List resultList = new ArrayList();
-            for ( Iterator it = order_.iterator(); it.hasNext(); ) {
-                Item item = (Item) it.next();
+            List<int[]> resultList = new ArrayList<int[]>();
+            for ( Item item : order_ ) {
                 for ( int isel = 0; isel < selectors.length; isel++ ) {
                     if ( item.sel_ == selectors[ isel ] ) {
                         resultList.add( new int[] { isel, item.isub_ } );
@@ -378,7 +377,7 @@ public abstract class PointSelectorSet extends JPanel {
                     }
                 }
             }
-            return (int[][]) resultList.toArray( new int[ 0 ][] );
+            return resultList.toArray( new int[ 0 ][] );
         }
 
         /**
@@ -389,7 +388,7 @@ public abstract class PointSelectorSet extends JPanel {
             for ( int isel = 0; isel < getSelectorCount(); isel++ ) {
                 PointSelector sel = getSelector( isel );
                 boolean[] oldFlags = flagMap_.containsKey( sel )
-                                   ? (boolean[]) flagMap_.get( sel )
+                                   ? flagMap_.get( sel )
                                    : new boolean[ 0 ];
                 boolean[] newFlags = sel.getSubsetSelection();
                 flagMap_.put( sel, newFlags );
@@ -450,6 +449,7 @@ public abstract class PointSelectorSet extends JPanel {
      * Listener which sets default values for plot axes of secondary point
      * selectors given the current values of the main point selector.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private class AxisDefaulter implements ActionListener {
 
         private final PointSelector mainPsel_;

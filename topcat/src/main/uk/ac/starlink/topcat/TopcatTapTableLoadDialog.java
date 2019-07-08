@@ -187,7 +187,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
             ufmtButtGroup.add( menuItem );
             ufmtMenu.add( menuItem );
-            if ( datfmt == (DataFormat) TapQuery.DFLT_UPLOAD_SER ) {
+            if ( datfmt == TapQuery.DFLT_UPLOAD_SER ) {
                 menuItem.doClick();
                 hasDflt = true;
             }
@@ -429,6 +429,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
      *
      * @return   array of currently loaded TopcatModels
      */
+    @SuppressWarnings("rawtypes")
     private TopcatModel[] getTopcatModels() {
         ListModel tcList = ControlWindow.getInstance().getTablesListModel();
         TopcatModel[] tcModels = new TopcatModel[ tcList.getSize() ];

@@ -23,12 +23,14 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  * @author   Mark Taylor (Starlink)
  * @since    6 Oct 2004
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ColumnSelectorModel {
 
     private final ValueInfo info_;
     private final ComboBoxModel convChooser_;
     private final ColumnConverter converter0_;
-    private final Map convMap_ = new HashMap();
+    private final Map<ColumnData,ColumnConverter> convMap_ =
+        new HashMap<ColumnData,ColumnConverter>();
     private final SelectionListener selectionListener_;
     private TopcatModel tcModel_;
     private ComboBoxModel colChooser_;
@@ -159,8 +161,7 @@ public class ColumnSelectorModel {
      */
     private void columnSelected( ColumnData cdata ) {
         if ( convChooser_ != null ) {
-            ColumnConverter storedConverter =
-               (ColumnConverter) convMap_.get( cdata );
+            ColumnConverter storedConverter = convMap_.get( cdata );
 
             /* If we've used this column before, set the converter type
              * to the one that was in effect last time. */
@@ -187,7 +188,7 @@ public class ColumnSelectorModel {
     private void converterSelected( ColumnConverter conv ) {
 
         /* Remember what converter was chosen for the current column. */
-        convMap_.put( colChooser_.getSelectedItem(), conv );
+        convMap_.put( (ColumnData) colChooser_.getSelectedItem(), conv );
     }
 
     /**

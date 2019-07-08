@@ -44,6 +44,7 @@ public class BrowserActivationType implements ActivationType {
     /**
      * Implementation that displays a URL in a general purpose web browser.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class BrowserColumnConfigurator
                          extends UrlColumnConfigurator {
         private final JComboBox mapperChooser_;

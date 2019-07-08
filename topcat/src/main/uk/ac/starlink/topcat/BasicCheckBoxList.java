@@ -18,6 +18,7 @@ import javax.swing.ListModel;
  * @author   Mark Taylor
  * @since    21 Dec 2017
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class BasicCheckBoxList<T> extends CheckBoxList<T> {
 
     private final Class<T> clazz_;

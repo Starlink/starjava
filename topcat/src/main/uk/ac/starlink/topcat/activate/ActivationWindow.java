@@ -76,6 +76,7 @@ import uk.ac.starlink.util.Loader;
  * @author   Mark Taylor
  * @since    21 Dec 2017
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ActivationWindow extends AuxWindow {
 
     private final TopcatModel tcModel_;
@@ -127,6 +128,7 @@ public class ActivationWindow extends AuxWindow {
      * @param  tcModel  topcat model
      * @param  parent  parent window, may be used for positioning
      */
+    @SuppressWarnings("fallthrough")
     public ActivationWindow( final TopcatModel tcModel, Component parent ) {
         super( tcModel, "Activation Actions", parent );
         tcModel_ = tcModel;

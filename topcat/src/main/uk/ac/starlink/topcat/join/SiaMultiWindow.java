@@ -43,15 +43,16 @@ public class SiaMultiWindow extends DalMultiWindow {
      */
     private static class SiaMultiService implements DalMultiService {
 
-        private final JComboBox formatSelector_;
+        @SuppressWarnings({"unchecked","rawtypes"})
+        private final JComboBox formatSelector_
+            = new JComboBox( SiapTableLoadDialog.getFormatOptions() );
+
         private final JComponent controlBox_;
 
         /**
          * Constructor.
          */
         SiaMultiService() {
-            formatSelector_ =
-                new JComboBox( SiapTableLoadDialog.getFormatOptions() );
             formatSelector_.setSelectedIndex( 0 );
             formatSelector_.setEditable( true );
 

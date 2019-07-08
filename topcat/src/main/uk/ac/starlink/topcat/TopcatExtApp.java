@@ -30,10 +30,11 @@ import uk.ac.starlink.votable.VOTableBuilder;
  * @author   Mark Taylor
  * @since    14 Oct 2005
  */
+@SuppressWarnings("rawtypes")
 public class TopcatExtApp implements ExtApp {
 
     private final ControlWindow cwin_;
-    private final Map importTables_;
+    private final Map<TopcatModel,String> importTables_;
     private int subsetCount_;
 
     /** Name defined by ExtApp documentation to mark ID column. */
@@ -49,7 +50,7 @@ public class TopcatExtApp implements ExtApp {
      */
     TopcatExtApp( ControlWindow cwin ) {
         cwin_ = cwin;
-        importTables_ = new HashMap();
+        importTables_ = new HashMap<TopcatModel,String>();
     }
 
     public void loadVOTable( ExtApp app, InputStream in ) {
@@ -139,7 +140,7 @@ public class TopcatExtApp implements ExtApp {
                     + oids.length + " items" );
 
         /* Make a Set from the array of IDs. */
-        Set oidSet = new HashSet();
+        Set<String> oidSet = new HashSet<String>();
         for ( int i = 0; i < oids.length; i++ ) {
             oidSet.add( oids[ i ] );
         }
@@ -168,7 +169,7 @@ public class TopcatExtApp implements ExtApp {
      * @return  array of zero or more _OID-type columns
      */
     private static int[] getOidColumns( TopcatModel tcModel ) {
-        List oidColList = new ArrayList();
+        List<Integer> oidColList = new ArrayList<Integer>();
         ColumnList colList = tcModel.getColumnList();
         for ( int icol = 0; icol < colList.size(); icol++ ) {
             TableColumn col = colList.getColumn( icol );
@@ -178,7 +179,7 @@ public class TopcatExtApp implements ExtApp {
         }
         int[] oidCols = new int[ oidColList.size() ];
         for ( int i = 0; i < oidColList.size(); i++ ) {
-            oidCols[ i ] = ((Integer) oidColList.get( i )).intValue();
+            oidCols[ i ] = oidColList.get( i ).intValue();
         }
         return oidCols;
     }
@@ -193,7 +194,7 @@ public class TopcatExtApp implements ExtApp {
      * @return  row subset identifynig rows in <code>tcModel</code> with
      *          IDs <code>oidSet</code>
      */
-    private RowSubset locateSubset( TopcatModel tcModel, Set oidSet ) {
+    private RowSubset locateSubset( TopcatModel tcModel, Set<String> oidSet ) {
 
         /* Get a bit vector representing the requested rows. */
         BitSet included = identifyIncluded( tcModel, oidSet );
@@ -231,7 +232,7 @@ public class TopcatExtApp implements ExtApp {
      *          <code>tcModel</code>'s dataModel with an OID in
      *          <code>oidSet</code>
      */
-    private BitSet identifyIncluded( TopcatModel tcModel, Set oidSet ) {
+    private BitSet identifyIncluded( TopcatModel tcModel, Set<String> oidSet ) {
         int[] oidCols = getOidColumns( tcModel );
         StarTable dataModel = tcModel.getDataModel();
         BitSet included = new BitSet();
@@ -242,8 +243,8 @@ public class TopcatExtApp implements ExtApp {
             while ( rseq.next() ) {
                 for ( int i = 0; i < oidCols.length; i++ ) {
                     int icol = oidCols[ i ];
-                    Object obj = rseq.getCell( icol );
-                    if ( oidSet.contains( obj ) ) {
+                    Object str = rseq.getCell( icol );
+                    if ( oidSet.contains( str ) ) {
                         included.set( Tables.checkedLongToInt( irow ) );
                     }
                 }

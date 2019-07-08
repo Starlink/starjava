@@ -25,7 +25,7 @@ public abstract class PositionCoordPanel extends CoordPanel {
      * @param  coords  coordinate definitions for which values are required
      * @param  configKeys  config value keys (often empty)
      */
-    protected PositionCoordPanel( Coord[] coords, ConfigKey[] configKeys ) {
+    protected PositionCoordPanel( Coord[] coords, ConfigKey<?>[] configKeys ) {
         super( coords, configKeys );
     }
 

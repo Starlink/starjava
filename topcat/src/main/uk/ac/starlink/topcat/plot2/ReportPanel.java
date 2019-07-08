@@ -37,11 +37,12 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    11 Dec 2014
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ReportPanel extends JPanel {
 
-    private final Factory<Plotter> plotterFact_;
+    private final Factory<Plotter<?>> plotterFact_;
     private final JComboBox subsetSelector_;
-    private final Map<ReportKey,JComponent> boxMap_;
+    private final Map<ReportKey<?>,JComponent> boxMap_;
     private final DefaultComboBoxModel subsetSelModel_;
     private final JPanel reportHolder_;
     private Map<RowSubset,ReportMap> reports_;
@@ -52,7 +53,7 @@ public class ReportPanel extends JPanel {
      * @param  plotterFact   object that can supply the Plotter
      *                       currently associated with this report panel
      */
-    public ReportPanel( Factory<Plotter> plotterFact ) {
+    public ReportPanel( Factory<Plotter<?>> plotterFact ) {
         super( new BorderLayout() );
         plotterFact_ = plotterFact;
         subsetSelModel_ = new DefaultComboBoxModel();
@@ -67,7 +68,7 @@ public class ReportPanel extends JPanel {
              BorderLayout.NORTH );
         reportHolder_ = new JPanel( new BorderLayout() );
         add( reportHolder_, BorderLayout.CENTER );
-        boxMap_ = new LinkedHashMap<ReportKey,JComponent>();
+        boxMap_ = new LinkedHashMap<ReportKey<?>,JComponent>();
         reports_ = new HashMap<RowSubset,ReportMap>();
     }
 
@@ -112,10 +113,10 @@ public class ReportPanel extends JPanel {
     private void displayReport( ReportMap report ) {
 
         /* Assemble a list of key-string pairs to display. */
-        Map<ReportKey,JComponent> componentMap =
-            new LinkedHashMap<ReportKey,JComponent>();
+        Map<ReportKey<?>,JComponent> componentMap =
+            new LinkedHashMap<ReportKey<?>,JComponent>();
         if ( report != null ) {
-            for ( ReportKey key : report.keySet() ) {
+            for ( ReportKey<?> key : report.keySet() ) {
                 if ( key.isGeneralInterest() ) {
                     componentMap.put( key,
                                       createReportComponent( key, report ) );
@@ -129,7 +130,7 @@ public class ReportPanel extends JPanel {
         if ( ! boxMap_.keySet().containsAll( componentMap.keySet() ) ) {
             boxMap_.clear();
             LabelledComponentStack stack = new LabelledComponentStack();
-            for ( ReportKey key : componentMap.keySet() ) {
+            for ( ReportKey<?> key : componentMap.keySet() ) {
                 JComponent box = Box.createHorizontalBox();
                 stack.addLine( key.getMeta().getLongName(), null, box, true );
                 boxMap_.put( key, box );
@@ -140,8 +141,8 @@ public class ReportPanel extends JPanel {
         }
 
         /* Display the report items in the display component. */
-        for ( Map.Entry<ReportKey,JComponent> entry : boxMap_.entrySet() ) {
-            ReportKey key = entry.getKey();
+        for ( Map.Entry<ReportKey<?>,JComponent> entry : boxMap_.entrySet() ) {
+            ReportKey<?> key = entry.getKey();
             JComponent box = entry.getValue();
             box.removeAll();
             JComponent cmp = componentMap.get( key );

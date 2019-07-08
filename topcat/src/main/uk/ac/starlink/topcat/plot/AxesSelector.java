@@ -14,6 +14,7 @@ import uk.ac.starlink.ttools.plot.ErrorMode;
  * @author   Mark Taylor
  * @since    1 Jun 2007
  */
+@SuppressWarnings("rawtypes")
 public interface AxesSelector {
 
     /**

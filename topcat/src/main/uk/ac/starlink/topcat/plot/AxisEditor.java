@@ -35,7 +35,7 @@ public class AxisEditor extends JPanel {
     protected final JTextField loField_;
     protected final JTextField hiField_;
     private final ActionForwarder actionForwarder_;
-    private final List ranges_;
+    private final List<Range> ranges_;
     private ValueInfo axis_;
 
     /**
@@ -54,7 +54,7 @@ public class AxisEditor extends JPanel {
 
         /* Arrange for actions (data entry) on the fields to be forwarded to
          * interested parties. */
-        ranges_ = new ArrayList();
+        ranges_ = new ArrayList<Range>();
         actionForwarder_ = new ActionForwarder();
         ActionListener axListener = new AxisListener();
         loField_.addActionListener( axListener );
@@ -174,7 +174,7 @@ public class AxisEditor extends JPanel {
     public void removeMaintainedRange( Range range ) {
 
         /* Note we want to use == not .equals(), so List.remove() is no good. */
-        for ( Iterator it = ranges_.iterator(); it.hasNext(); ) {
+        for ( Iterator<Range> it = ranges_.iterator(); it.hasNext(); ) {
             if ( it.next() == range ) {
                 it.remove();
             }
@@ -302,9 +302,9 @@ public class AxisEditor extends JPanel {
      * according to its current state.
      */
     public void updateRanges() {
-        for ( Iterator it = ranges_.iterator(); it.hasNext(); ) {
+        for ( Range range : ranges_ ) {
             double[] bounds = getAxisBounds();
-            ((Range) it.next()).setBounds( bounds[ 0 ], bounds[ 1 ] );
+            range.setBounds( bounds[ 0 ], bounds[ 1 ] );
         }
     }
 

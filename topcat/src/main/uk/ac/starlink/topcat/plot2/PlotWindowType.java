@@ -19,24 +19,27 @@ public enum PlotWindowType {
     HISTOGRAM( "Histogram", ResourceIcon.PLOT2_HISTOGRAM,
                "Plane plotting window configured for convenience "
              + "when plotting histograms") {
-        public StackPlotWindow createWindow( Component parent,
-                                             TypedListModel<TopcatModel> tm ) {
+        public StackPlotWindow<?,?>
+                createWindow( Component parent,
+                              TypedListModel<TopcatModel> tm ) {
             return new HistogramPlotWindow( parent, tm );
         }
     },
 
     /** Plane. */
     PLANE( "Plane", ResourceIcon.PLOT2_PLANE, "Plane plotting window" ) {
-        public StackPlotWindow createWindow( Component parent,
-                                             TypedListModel<TopcatModel> tm ) {
+        public StackPlotWindow<?,?>
+                createWindow( Component parent,
+                              TypedListModel<TopcatModel> tm ) {
             return new PlanePlotWindow( parent, tm );
         }
     },
 
     /** Sky. */
     SKY( "Sky", ResourceIcon.PLOT2_SKY, "Sky plotting window" ) {
-        public StackPlotWindow createWindow( Component parent,
-                                             TypedListModel<TopcatModel> tm ) {
+        public StackPlotWindow<?,?>
+                createWindow( Component parent,
+                              TypedListModel<TopcatModel> tm ) {
             return new SkyPlotWindow( parent, tm );
         }
     },
@@ -44,8 +47,9 @@ public enum PlotWindowType {
     /** Cube. */
     CUBE( "Cube", ResourceIcon.PLOT2_CUBE,
           "3D plotting window using Cartesian coordinates") {
-        public StackPlotWindow createWindow( Component parent,
-                                             TypedListModel<TopcatModel> tm ) {
+        public StackPlotWindow<?,?>
+                createWindow( Component parent,
+                              TypedListModel<TopcatModel> tm ) {
             return new CubePlotWindow( parent, tm );
         }
     },
@@ -53,16 +57,18 @@ public enum PlotWindowType {
     /** Sphere. */
     SPHERE( "Sphere", ResourceIcon.PLOT2_SPHERE,
             "3D plotting window using spherical polar coordinates" ) {
-        public StackPlotWindow createWindow( Component parent,
-                                             TypedListModel<TopcatModel> tm ) {
+        public StackPlotWindow<?,?>
+                createWindow( Component parent,
+                              TypedListModel<TopcatModel> tm ) {
             return new SpherePlotWindow( parent, tm );
         }
     },
 
     /** Time. */
     TIME( "Time", ResourceIcon.PLOT2_TIME, "Time series plotting window" ) {
-        public StackPlotWindow createWindow( Component parent,
-                                             TypedListModel<TopcatModel> tm ) {
+        public StackPlotWindow<?,?>
+                createWindow( Component parent,
+                              TypedListModel<TopcatModel> tm ) {
             return new TimePlotWindow( parent, tm );
         }
     };
@@ -117,9 +123,9 @@ public enum PlotWindowType {
      * @param  parent   parent component, used for placement
      * @param  tablesModel  list of available tables
      */
-    public abstract StackPlotWindow
+    public abstract StackPlotWindow<?,?>
             createWindow( Component parent,
-            TypedListModel<TopcatModel> tablesModel );
+                          TypedListModel<TopcatModel> tablesModel );
 
     @Override
     public String toString() {

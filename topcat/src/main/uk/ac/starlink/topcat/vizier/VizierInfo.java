@@ -222,7 +222,7 @@ public class VizierInfo {
         for ( int icol = 0; icol < table.getColumnCount(); icol++ ) {
             ColumnInfo info = table.getColumnInfo( icol );
             String name = info.getName();
-            Class clazz = info.getContentClass();
+            Class<?> clazz = info.getContentClass();
             if ( "name".equalsIgnoreCase( name ) &&
                  String.class.equals( clazz ) ) {
                 icName = icol;

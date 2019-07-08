@@ -33,6 +33,7 @@ import javax.swing.table.TableModel;
  *
  * @author molinaro
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class BaSTIPanel {
 
     //static String[] OutPutTables = null;

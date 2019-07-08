@@ -46,6 +46,7 @@ import uk.ac.starlink.vo.RegistryPanel;
  * @author   Mark Taylor
  * @since    4 Sep 2008
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class PlasticCommunicator implements TopcatCommunicator {
 
     private final ControlWindow control_;
@@ -206,7 +207,7 @@ public class PlasticCommunicator implements TopcatCommunicator {
             public ComboBoxModel getTargetSelector() {
                 return selector;
             }
-            public void displaySpectrum( String location, Map metadata )
+            public void displaySpectrum( String location, Map<?,?> metadata )
                     throws IOException {
                 Object item = selector.getSelectedItem();
                 final URI[] recipients =

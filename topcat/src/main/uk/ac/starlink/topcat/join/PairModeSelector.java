@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.join.FindModeParameter;
  * @author   Mark Taylor
  * @since    17 Apr 2009
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class PairModeSelector extends Box {
 
     private final JLabel label_;

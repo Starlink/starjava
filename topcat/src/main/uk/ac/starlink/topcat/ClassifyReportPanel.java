@@ -82,7 +82,7 @@ public class ClassifyReportPanel extends JPanel {
      * @param  cdata  column data used for classification
      * @param  classifier   classification results
      */
-    public void setData( ColumnData cdata, Classifier<Object> classifier ) {
+    public void setData( ColumnData cdata, Classifier<?> classifier ) {
         cdata_ = cdata;
         final List<Item> itemList = new ArrayList<Item>();
         if ( classifier != null && cdata != null ) {
@@ -105,7 +105,7 @@ public class ClassifyReportPanel extends JPanel {
             };
 
             /* Add a new item for each category. */
-            for ( Classifier.CountedValue<Object> cv :
+            for ( Classifier.CountedValue<?> cv :
                   classifier.getTopValues( ncat_ ) ) {
                 Item item = new Item( cv, prefix_ );
                 item.flagBox_.addActionListener( flagListener );
@@ -170,7 +170,7 @@ public class ClassifyReportPanel extends JPanel {
             if ( item.flagBox_.isSelected() ) {
                 String name = item.txtField_.getText();
                 if ( name != null && name.trim().length() > 0 ) {
-                    Classifier.CountedValue cval = item.cval_;
+                    Classifier.CountedValue<?> cval = item.cval_;
                     if ( cval == null ) {
                         assert otherItem == null;
                         otherItem = item;
@@ -218,7 +218,7 @@ public class ClassifyReportPanel extends JPanel {
         gc.gridx = 0;
         gc.gridy = iy;
         gc.weighty = 1.0;
-        gc.fill = gc.BOTH;
+        gc.fill = GridBagConstraints.BOTH;
         addGridComponent( Box.createVerticalGlue(), gc );
         revalidate();
         repaint();
@@ -232,8 +232,8 @@ public class ClassifyReportPanel extends JPanel {
         gc.ipadx = 4;
         gc.ipady = 2;
         gc.gridy = 0;
-        gc.anchor = gc.WEST;
-        gc.fill = gc.HORIZONTAL;
+        gc.anchor = GridBagConstraints.WEST;
+        gc.fill = GridBagConstraints.HORIZONTAL;
         gc.gridx = 0;
         addGridComponent( createTitleLabel( "Count" ), gc );
         gc.gridx++;
@@ -271,19 +271,19 @@ public class ClassifyReportPanel extends JPanel {
         gc.insets = new Insets( 0, 5, 0, 5 );
         gc.gridy = index;
         gc.gridx = 0;
-        gc.anchor = gc.EAST;
+        gc.anchor = GridBagConstraints.EAST;
         addGridComponent( item.countLabel_, gc );
-        gc.anchor = gc.WEST;
+        gc.anchor = GridBagConstraints.WEST;
         gc.gridx++;
         addGridComponent( item.labelLabel_, gc );
         gc.gridx++;
         gc.weightx = 1;
         gc.insets = new Insets( 0, 0, 0, 0 );
-        gc.fill = gc.HORIZONTAL;
+        gc.fill = GridBagConstraints.HORIZONTAL;
         addGridComponent( item.txtField_, gc );
         gc.weightx = 0;
         gc.insets = new Insets( 0, 5, 0, 5 );
-        gc.fill = gc.NONE;
+        gc.fill = GridBagConstraints.NONE;
         gc.gridx++;
         addGridComponent( item.flagBox_, gc );
     }
@@ -357,7 +357,7 @@ public class ClassifyReportPanel extends JPanel {
      */
     private static class Item {
 
-        final Classifier.CountedValue<Object> cval_;
+        final Classifier.CountedValue<?> cval_;
         final JLabel countLabel_;
         final JLabel labelLabel_;
         final JTextField txtField_;
@@ -369,7 +369,7 @@ public class ClassifyReportPanel extends JPanel {
          * @param  cval  counted value containing item data
          * @param  prefix   default prefix for subset name
          */
-        Item( Classifier.CountedValue<Object> cval, String prefix ) {
+        Item( Classifier.CountedValue<?> cval, String prefix ) {
             cval_ = cval;
             boolean isOther = cval == null;
             countLabel_ =

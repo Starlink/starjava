@@ -24,6 +24,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -122,11 +123,11 @@ import uk.ac.starlink.ttools.plot2.task.ZoneSpec;
  */
 public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
-    private final PlotType plotType_;
+    private final PlotType<P,A> plotType_;
     private final DataStoreFactory storeFact_;
     private final SurfaceFactory<P,A> surfFact_;
     private final Factory<Ganger<P,A>> gangerFact_;
-    private final Factory<ZoneDef<P,A>[]> zonesFact_;
+    private final Factory<List<ZoneDef<P,A>>> zonesFact_;
     private final Factory<PlotPosition> posFact_;
     private final PaperTypeSelector ptSel_;
     private final Compositor compositor_;
@@ -139,13 +140,13 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final List<ChangeListener> graphicChangeListenerList_;
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
-    private final Workings<A> dummyWorkings_;
+    private final Workings<P,A> dummyWorkings_;
     private final P[] profiles0_;
     private PlotJob<P,A> plotJob_;
     private PlotJobRunner plotRunner_;
     private Cancellable plotNoteRunner_;
     private Cancellable extraNoteRunner_;
-    private Workings<A> workings_;
+    private Workings<P,A> workings_;
     private Surface[] latestSurfaces_;
     private Map<SubCloud,double[]> highlightMap_;
     private Decoration navDecoration_;
@@ -193,10 +194,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  auxLockModel  model to determine whether aux range auto-rescaling
      *                       should be inhibited
      */
-    public PlotPanel( PlotType plotType, DataStoreFactory storeFact,
+    public PlotPanel( PlotType<P,A> plotType, DataStoreFactory storeFact,
                       SurfaceFactory<P,A> surfFact,
                       Factory<Ganger<P,A>> gangerFact,
-                      Factory<ZoneDef<P,A>[]> zonesFact,
+                      Factory<List<ZoneDef<P,A>>> zonesFact,
                       Factory<PlotPosition> posFact,
                       PaperTypeSelector ptSel, Compositor compositor,
                       ToggleButtonModel sketchModel,
@@ -390,7 +391,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return   zone count
      */
     public int getZoneCount() {
-        return workings_.zones_.length;
+        return workings_.zones_.size();
     }
 
     /**
@@ -402,11 +403,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return  zone index, or -1
      */
     public int getZoneIndex( Point pos ) {
-        Workings w = workings_;
+        Workings<P,A> w = workings_;
         int iz = w.gang_.getNavigationZoneIndex( pos );
         return iz >= 0 &&
-               w.zones_[ iz ].placer_.getSurface().getPlotBounds()
-                                                  .contains( pos )
+               w.zones_.get( iz ).placer_.getSurface().getPlotBounds()
+                                                      .contains( pos )
              ? iz
              : -1;
     }
@@ -419,7 +420,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return  zone id
      */
     public ZoneId getZoneId( int iz ) {
-        return workings_.zones_[ iz ].zid_;
+        return workings_.zones_.get( iz ).zid_;
     }
 
     /**
@@ -430,7 +431,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return  plot surface
      */
     public Surface getSurface( int iz ) {
-        return workings_.zones_[ iz ].placer_.getSurface();
+        return workings_.zones_.get( iz ).placer_.getSurface();
     }
 
     /**
@@ -441,7 +442,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return  plot layers
      */
     public PlotLayer[] getPlotLayers( int iz ) {
-        return workings_.zones_[ iz ].layers_;
+        return workings_.zones_.get( iz ).layers_;
     }
 
     /**
@@ -453,7 +454,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return   per-layer plot reports
      */
     public ReportMap[] getReports( int iz ) {
-        return workings_.zones_[ iz ].reports_;
+        return workings_.zones_.get( iz ).reports_;
     }
 
     /**
@@ -461,7 +462,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      *
      * @return  plot specification
      */
-    public PlotSpec getPlotSpec() {
+    public PlotSpec<P,A> getPlotSpec() {
         return workings_ == null ? null : workings_.plotSpec_;
     }
 
@@ -480,7 +481,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public GuiPointCloud createGuiPointCloud( int iz ) {
         SubCloud[] subClouds =
-            SubCloud.createSubClouds( workings_.zones_[ iz ].layers_, true );
+            SubCloud.createSubClouds( workings_.zones_.get( iz ).layers_,
+                                      true );
         return new GuiPointCloud( TableCloud.createTableClouds( subClouds ),
                                   getDataStore(),
                                   showProgressModel_.isSelected() ? progModel_
@@ -499,7 +501,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     public GuiPointCloud createPartialGuiPointCloud( int iz ) {
         SubCloud[] subClouds =
             SubCloud
-           .createPartialSubClouds( workings_.zones_[ iz ].layers_, true );
+           .createPartialSubClouds( workings_.zones_.get( iz ).layers_, true );
         return new GuiPointCloud( TableCloud.createTableClouds( subClouds ),
                                   getDataStore(),
                                   showProgressModel_.isSelected() ? progModel_
@@ -580,13 +582,13 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         Ganger<P,A> ganger = gangerFact_.getItem();
         boolean axisLock = axisLockModel_.isSelected();
         boolean auxLock = auxLockModel_.isSelected();
-        ZoneDef<P,A>[] zoneDefs = zonesFact_.getItem();
-        int nz = zoneDefs.length;
+        List<ZoneDef<P,A>> zoneDefs = zonesFact_.getItem();
+        int nz = zoneDefs.size();
 
         /* Get profiles, made consistent across multi-zone plots. */
         List<ConfigMap> surfConfigs = new ArrayList<ConfigMap>();
         List<P> profileList = new ArrayList<P>();
-        for ( ZoneDef zoneDef : zoneDefs ) {
+        for ( ZoneDef<P,A> zoneDef : zoneDefs ) {
             ConfigMap surfConfig = zoneDef.getAxisController().getConfig();
             surfConfigs.add( surfConfig );
             profileList.add( surfFact_.createProfile( surfConfig ) );
@@ -600,7 +602,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         List<ZoneSpec> zoneSpecs = new ArrayList<ZoneSpec>();
         List<LayerSpec> layerSpecs = new ArrayList<LayerSpec>();
         for ( int iz = 0; iz < nz; iz++ ) {
-            ZoneDef zoneDef = zoneDefs[ iz ];
+            ZoneDef<P,A> zoneDef = zoneDefs.get( iz );
             TopcatLayer[] tclayers = zoneDef.getLayers();
             int nl = tclayers.length;
             PlotLayer[] layers = new PlotLayer[ nl ];
@@ -667,15 +669,13 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             zoneSpecs.add( new ZoneSpec( zconfig, hasAux, title,
                                          legSpec, auxSpec ) );
         }
-        @SuppressWarnings("unchecked")
-        PlotJob.Zone<P,A>[] zones =
-            (PlotJob.Zone<P,A>[]) zoneList.toArray( new PlotJob.Zone[ 0 ] );
 
         /* Construct the plot specification. */
-        PlotSpec plotSpec =
-            new PlotSpec( plotType_, bounds.getSize(), plotpos.getPadding(),
-                          zoneSpecs.toArray( new ZoneSpec[ 0 ] ),
-                          layerSpecs.toArray( new LayerSpec[ 0 ] ) );
+        PlotSpec<P,A> plotSpec =
+            new PlotSpec<P,A>( plotType_, bounds.getSize(),
+                               plotpos.getPadding(),
+                               zoneSpecs.toArray( new ZoneSpec[ 0 ] ),
+                               layerSpecs.toArray( new LayerSpec[ 0 ] ) );
 
         /* For any of the currently highlighted points, if no layer
          * in any zone contains it, drop that highlight permanently.
@@ -686,7 +686,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         highlightMap_.keySet().retainAll( allSubclouds );
 
         /* Construct and return a plot job that defines what has to be done. */
-        return new PlotJob<P,A>( workings_, surfFact_, ganger, zones,
+        return new PlotJob<P,A>( workings_, surfFact_, ganger, zoneList,
                                  storeFact_, bounds, graphicsConfig,
                                  bgColor, auxLock, plotSpec );
     }
@@ -701,7 +701,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         Rectangle extBox = null;
 
         /* Draw the actual pre-calculated plot zone icons. */
-        for ( Workings.ZoneWork zone : workings_.zones_ ) {
+        for ( Workings.ZoneWork<A> zone : workings_.zones_ ) {
             Icon plotIcon = zone.plotIcon_;
             if ( plotIcon != null ) {
                 plotIcon.paintIcon( this, g, insets.left, insets.top );
@@ -856,7 +856,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  zoneDef   zone definition
      * @return  array of plot layers in zone
      */
-    private static PlotLayer[] getPlotLayers( ZoneDef zoneDef ) {
+    private static PlotLayer[] getPlotLayers( ZoneDef<?,?> zoneDef ) {
         List<PlotLayer> plotLayers = new ArrayList<PlotLayer>();
         for ( TopcatLayer tclayer : zoneDef.getLayers() ) {
             plotLayers.add( tclayer.getPlotLayer() );
@@ -983,7 +983,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  plotType  plot type
      * @return   dummy workings object
      */
-    private static <P,A> Workings<A> createDummyWorkings( PlotType plotType ) {
+    private static <P,A> Workings<P,A>
+            createDummyWorkings( PlotType<P,A> plotType ) {
         final Rectangle bounds = new Rectangle( 400, 300 );
         Gang gang = new Gang() {
             public int getNavigationZoneIndex( Point p ) {
@@ -996,14 +997,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 return bounds;
             }
         };
-        Workings.ZoneWork[] zones = new Workings.ZoneWork[] {
-            createDummyZoneWork( plotType.getSurfaceFactory() ),
-        };
-        PlotSpec plotSpec =
-            new PlotSpec( plotType, bounds.getSize(), new Padding(),
-                          new ZoneSpec[ 0 ], new LayerSpec[ 0 ] );
-        return new Workings<A>( gang, zones, bounds, (DataStore) null, 1, 0L,
-                                plotSpec );
+        List<Workings.ZoneWork<A>> zones = Collections.singletonList(
+            createDummyZoneWork( plotType.getSurfaceFactory() )
+        );
+        PlotSpec<P,A> plotSpec =
+            new PlotSpec<P,A>( plotType, bounds.getSize(), new Padding(),
+                               new ZoneSpec[ 0 ], new LayerSpec[ 0 ] );
+        return new Workings<P,A>( gang, zones, bounds, (DataStore) null, 1, 0L,
+                                  plotSpec );
     }
 
     /**
@@ -1014,14 +1015,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * for subsequent plots if the input requirements are sufficiently
      * similar.
      */
-    private static class Workings<A> {
+    private static class Workings<P,A> {
         final Gang gang_;
-        final ZoneWork<A>[] zones_;
+        final List<ZoneWork<A>> zones_;
         final Rectangle extBounds_;
         final DataStore dataStore_;
         final int rowStep_;
         final long plotMillis_;
-        final PlotSpec plotSpec_;
+        final PlotSpec<P,A> plotSpec_;
 
         /**
          * Constructs a fully populated workings object.
@@ -1035,9 +1036,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *                     plot (plans+paint), but not data acquisition
          * @param  plotSpec  plot specification
          */
-        Workings( Gang gang, ZoneWork<A>[] zones, Rectangle extBounds,
+        Workings( Gang gang, List<ZoneWork<A>> zones, Rectangle extBounds,
                   DataStore dataStore, int rowStep, long plotMillis,
-                  PlotSpec plotSpec ) {
+                  PlotSpec<P,A> plotSpec ) {
             gang_ = gang;
             zones_ = zones;
             extBounds_ = extBounds;
@@ -1050,7 +1051,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         @Equality
         List<DataIconId> getDataIconIdList() {
             List<DataIconId> list = new ArrayList<DataIconId>();
-            for ( ZoneWork zone : zones_ ) {
+            for ( ZoneWork<A> zone : zones_ ) {
                 list.add( zone.getDataIconId() );
             }
             return list;
@@ -1157,16 +1158,16 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     private static class PlotJob<P,A> {
        
-        private final Workings<A> oldWorkings_;
+        private final Workings<P,A> oldWorkings_;
         private final SurfaceFactory<P,A> surfFact_;
         private final Ganger<P,A> ganger_;
-        private final Zone<P,A>[] zones_;
+        private final List<Zone<P,A>> zones_;
         private final DataStoreFactory storeFact_;
         private final Rectangle extBounds_;
         private final GraphicsConfiguration graphicsConfig_;
         private final Color bgColor_;
         private final boolean auxLock_;
-        private final PlotSpec plotSpec_;
+        private final PlotSpec<P,A> plotSpec_;
         private final Workings.ZoneWork<A> dummyZoneWork_;
 
         /**
@@ -1186,11 +1187,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *                     need to be recalculated
          * @param   plotSpec   plot specification
          */
-        PlotJob( Workings<A> oldWorkings, SurfaceFactory<P,A> surfFact,
-                 Ganger<P,A> ganger, Zone<P,A>[] zones,
+        PlotJob( Workings<P,A> oldWorkings, SurfaceFactory<P,A> surfFact,
+                 Ganger<P,A> ganger, List<Zone<P,A>> zones,
                  DataStoreFactory storeFact, Rectangle extBounds,
                  GraphicsConfiguration graphicsConfig, Color bgColor,
-                 boolean auxLock, PlotSpec plotSpec ) {
+                 boolean auxLock, PlotSpec<P,A> plotSpec ) {
             oldWorkings_ = oldWorkings;
             surfFact_ = surfFact;
             ganger_ = ganger;
@@ -1216,8 +1217,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @return  workings object or null
          */
         @Slow
-        public Workings<A> calculateWorkings( int rowStep,
-                                              BoundedRangeModel progModel ) {
+        public Workings<P,A> calculateWorkings( int rowStep,
+                                                BoundedRangeModel progModel ) {
             try {
                 return attemptCalculateWorkings( rowStep, progModel );
             }
@@ -1252,7 +1253,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @throws   InterruptedException   if interrupted
          */
         @Slow
-        private Workings<A>
+        private Workings<P,A>
                 attemptCalculateWorkings( int rowStep,
                                           BoundedRangeModel progModel )
                 throws IOException, InterruptedException {
@@ -1313,7 +1314,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
             /* Assess what data specs we will need. */
             List<DataSpec> dataSpecList = new ArrayList<DataSpec>();
-            for ( Zone zone : zones_ ) {
+            for ( Zone<P,A> zone : zones_ ) {
                 dataSpecList.addAll( getDataSpecs( zone.layers_ ) );
             }
             DataSpec[] dataSpecs = dataSpecList.toArray( new DataSpec[ 0 ] );
@@ -1356,9 +1357,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @return  workings object representing completed plot, or null
          */
         @Slow
-        private Workings<A> createWorkings( DataStore dataStore, int rowStep,
-                                            final BoundedRangeModel progModel,
-                                            long ntuple ) {
+        private Workings<P,A> createWorkings( DataStore dataStore, int rowStep,
+                                              final BoundedRangeModel progModel,
+                                              long ntuple ) {
             long startPlot = System.currentTimeMillis();
    
             /* Record the base data store which will be stored in the
@@ -1385,12 +1386,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * surface aspects and shade axes for each zone.
              * Calculate those, and retain other intermediate results
              * we'll need later that we generate along the way. */
-            int nz = zones_.length;
+            int nz = zones_.size();
             A[] aspects = PlotUtil.createAspectArray( surfFact_, nz );
             Range[][] geomRanges = new Range[ nz ][];
             long startRange = System.currentTimeMillis();
             for ( int iz = 0; iz < nz; iz++ ) {
-                Zone<P,A> zone = zones_[ iz ];
+                Zone<P,A> zone = zones_.get( iz );
 
                 /* Ascertain the surface aspect.  If it has been set
                  * explicitly, use that.  The fixAspect can come indirectly
@@ -1439,7 +1440,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             /* Collect previously calculated plans, which may be able to
              * supply results required this time round and thus avoid
              * some recalculations. */
-            Set oldPlans = new HashSet();
+            Set<Object> oldPlans = new HashSet<Object>();
             for ( Workings.ZoneWork<A> zone : oldWorkings_.zones_ ) {
                 oldPlans.addAll( Arrays.asList( zone.plans_ ) );
             }
@@ -1463,16 +1464,16 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * results. */
             ShadeAxis[] shadeAxes = new ShadeAxis[ nz ];
             Surface[] approxSurfs = new Surface[ nz ];
-            Map<AuxScale,Span>[] auxDataSpanMaps =
-                (Map<AuxScale,Span>[]) new Map[ nz ];
-            Map<AuxScale,Span>[] auxClipSpanMaps =
-                (Map<AuxScale,Span>[]) new Map[ nz ];
+            List<Map<AuxScale,Span>> auxDataSpanMaps =
+                new ArrayList<Map<AuxScale,Span>>();
+            List<Map<AuxScale,Span>> auxClipSpanMaps =
+                new ArrayList<Map<AuxScale,Span>>();
             long startAux = System.currentTimeMillis();
             for ( int iz = 0; iz < nz; iz++ ) {
-                Zone<P,A> zone = zones_[ iz ];
+                Zone<P,A> zone = zones_.get( iz );
                 Workings.ZoneWork<A> oldZoneWork =
-                      iz < oldWorkings_.zones_.length
-                    ? oldWorkings_.zones_[ iz ]
+                      iz < oldWorkings_.zones_.size()
+                    ? oldWorkings_.zones_.get( iz )
                     : dummyZoneWork_;
 
                 /* Work out the required aux scale ranges.
@@ -1558,8 +1559,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 /* Store results for later. */
                 shadeAxes[ iz ] = shadeAxis;
                 approxSurfs[ iz ] = approxSurf;
-                auxDataSpanMaps[ iz ] = auxDataSpanMap;
-                auxClipSpanMaps[ iz ] = auxClipSpanMap;
+                auxDataSpanMaps.add( auxDataSpanMap );
+                auxClipSpanMaps.add( auxClipSpanMap );
+                assert auxDataSpanMaps.size() == iz;
+                assert auxClipSpanMaps.size() == iz;
             }
             PlotUtil.logTimeFromStart( logger_, "AuxRange", startAux );
 
@@ -1573,14 +1576,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * per-zone ZoneWork objects. */
             long planMillis = 0;
             long paintMillis = 0;
-            Workings.ZoneWork<A>[] zoneWorks =
-                (Workings.ZoneWork<A>[]) new Workings.ZoneWork[ nz ];
+            List<Workings.ZoneWork<A>> zoneWorks =
+                new ArrayList<Workings.ZoneWork<A>>();
             boolean changed = false;
             for ( int iz = 0; iz < nz; iz++ ) {
-                Zone<P,A> zone = zones_[ iz ];
+                Zone<P,A> zone = zones_.get( iz );
                 Workings.ZoneWork<A> oldZoneWork =
-                      iz < oldWorkings_.zones_.length
-                    ? oldWorkings_.zones_[ iz ]
+                      iz < oldWorkings_.zones_.size()
+                    ? oldWorkings_.zones_.get( iz )
                     : dummyZoneWork_;
 
                 /* Aux range locking is in principle handled on a per-zone
@@ -1628,7 +1631,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                  * will have been picked up from the previous plot. */
                 boolean sameDataIcon =
                     new DataIconId( surface, zone.layers_,
-                                    auxClipSpanMaps[ iz ] )
+                                    auxClipSpanMaps.get( iz ) )
                    .equals( oldZoneWork.getDataIconId() );
                 boolean samePlot =
                     sameDataIcon && placer.equals( oldZoneWork.placer_ );
@@ -1662,7 +1665,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                     else {
                         PlotLayer[] layers = zone.layers_;
                         int nl = layers.length;
-                        Map<AuxScale,Span> auxSpanMap = auxClipSpanMaps[ iz ];
+                        Map<AuxScale,Span> auxSpanMap =
+                            auxClipSpanMaps.get( iz );
                         long startPlan = System.currentTimeMillis();
                         Drawing[] drawings = new Drawing[ nl ];
                         for ( int il = 0; il < nl; il++ ) {
@@ -1703,15 +1707,16 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                                   approxSurfs[ iz ],
                                                   geomRanges[ iz ],
                                                   aspects[ iz ],
-                                                  auxDataSpanMaps[ iz ],
-                                                  auxClipSpanMaps[ iz ],
+                                                  auxDataSpanMaps.get( iz ),
+                                                  auxClipSpanMaps.get( iz ),
                                                   auxLock, shadeAxes[ iz ],
                                                   placer, dataIcon, plotIcon,
                                                   reports, zone.axisController_,
                                                   zone.zid_ );
                 }
-                zoneWorks[ iz ] = zoneWork;
+                zoneWorks.add( zoneWork );
             }
+            assert zoneWorks.size() == nz;
             PlotUtil.logTimeElapsed( logger_, "Plan", planMillis );
             PlotUtil.logTimeElapsed( logger_, "Paint", paintMillis );
             long plotMillis = System.currentTimeMillis() - startPlot;
@@ -1721,20 +1726,21 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             ZoneSpec[] zoneSpecs = plotSpec_.getZoneSpecs().clone();
             for ( int iz = 0; iz < nz; iz++ ) {
                 zoneSpecs[ iz ] =
-                    updateZoneSpec( zoneSpecs[ iz ], zoneWorks[ iz ] );
+                    updateZoneSpec( zoneSpecs[ iz ], zoneWorks.get( iz ) );
             }
-            PlotSpec plotSpec =
-                new PlotSpec( plotSpec_.getPlotType(), plotSpec_.getExtSize(),
-                              plotSpec_.getPadding(), zoneSpecs,
-                              plotSpec_.getLayerSpecs() );
+            PlotSpec<P,A> plotSpec =
+                new PlotSpec<P,A>( plotSpec_.getPlotType(),
+                                   plotSpec_.getExtSize(),
+                                   plotSpec_.getPadding(), zoneSpecs,
+                                   plotSpec_.getLayerSpecs() );
 
             /* Construct and return an object containing the workings
              * for all zones, unless it's exactly the same as last time,
              * in which case return null to indicate that no replotting
              * needs to be done.. */
-            return changed ? new Workings<A>( gang, zoneWorks, extBounds_,
-                                              dataStore0, rowStep, plotMillis,
-                                              plotSpec )
+            return changed ? new Workings<P,A>( gang, zoneWorks, extBounds_,
+                                                dataStore0, rowStep, plotMillis,
+                                                plotSpec )
                            : null;
         }
 
@@ -1756,11 +1762,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * calculated (set to null). */
 
             /* First try to work out the aspects. */
-            int nz = zones_.length;
+            int nz = zones_.size();
             A[] aspects = PlotUtil.createAspectArray( surfFact_, nz );
             boolean hasAllAspects = true;
             for ( int iz = 0; iz < nz; iz++ ) {
-                Zone<P,A> zone = zones_[ iz ];
+                Zone<P,A> zone = zones_.get( iz );
                 final A aspect;
                 if ( zone.fixAspect_ != null ) {
                     aspect = zone.fixAspect_;
@@ -1805,7 +1811,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                         surfs[ iz ] =
                             surfFact_
                            .createSurface( gang.getZonePlotBounds( iz ),
-                                           zones_[ iz ].profile_,
+                                           zones_.get( iz ).profile_,
                                            aspects[ iz ] );
                     }
                 }
@@ -1839,11 +1845,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @return  surface positioning gang
          */
         private Gang createGang( A[] aspects, ShadeAxis[] shadeAxes ) {
-            int nz = zones_.length;
+            int nz = zones_.size();
             ZoneContent[] zoneContents = new ZoneContent[ nz ];
             P[] profiles = PlotUtil.createProfileArray( surfFact_, nz );
             for ( int iz = 0; iz < nz; iz++ ) {
-                Zone<P,A> zone = zones_[ iz ];
+                Zone<P,A> zone = zones_.get( iz );
                 profiles[ iz ] = zone.profile_;
                 zoneContents[ iz ] =
                     new ZoneContent( zone.layers_, zone.legend_,
@@ -1941,11 +1947,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *                   for the current drawings
          * @return  array of per-drawing plans
          */
-        private static Object[] calculateDrawingPlans( Drawing[] drawings,
-                                                       DataStore dataStore,
-                                                       Collection oldPlans ) {
+        private static Object[]
+                calculateDrawingPlans( Drawing[] drawings, DataStore dataStore,
+                                       Collection<?> oldPlans ) {
             int nl = drawings.length;
-            Set knownPlans = new HashSet( oldPlans );
+            Set<Object> knownPlans = new HashSet<Object>( oldPlans );
             Object[] plans = new Object[ nl ];
             for ( int il = 0; il < nl; il++ ) {
                 Object plan =
@@ -2121,7 +2127,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private class PlotJobRunner {
         private final Object simObj_;
         private final int rowStep_;
-        private PlotJob plotJob_;
+        private PlotJob<P,A> plotJob_;
         private volatile Cancellable fullCanceler_;
         private volatile Cancellable stepCanceler_;
         private volatile long fullPlotMillis_;
@@ -2146,7 +2152,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @param   referenceRunner   an instance for a previously submitted
          *          job related to this one; null if none is available
          */
-        public PlotJobRunner( PlotJob plotJob, PlotJobRunner refRunner ) {
+        public PlotJobRunner( PlotJob<P,A> plotJob, PlotJobRunner refRunner ) {
             plotJob_ = plotJob;
             simObj_ = getSimilarityObject( plotJob );
             assert simObj_.equals( getSimilarityObject( plotJob ) );
@@ -2213,7 +2219,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             if ( fullCanceler_ != null ) {
                 throw new IllegalStateException( "Don't call it twice" );
             }
-            final PlotJob plotJob = plotJob_;
+            final PlotJob<P,A> plotJob = plotJob_;
 
             /* Void the reference to the plot job so it can be GC'd as
              * early as possible. */
@@ -2224,7 +2230,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 showProgressModel_.isSelected() ? progModel_ : null;
             Runnable fullJob = new Runnable() {
                 public void run() {
-                    Workings<A> workings =
+                    Workings<P,A> workings =
                         plotJob.calculateWorkings( 1, progModel );
                     fullPlotMillis_ = workings.plotMillis_;
                     submitWorkings( workings );
@@ -2232,7 +2238,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             };
             Runnable stepJob = new Runnable() {
                 public void run() {
-                    Workings<A> workings =
+                    Workings<P,A> workings =
                         plotJob.calculateWorkings( rowStep_, null );
                     submitWorkings( workings );
                 }
@@ -2285,7 +2291,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *
          * @param  workings  workings object, may be null
          */
-        private void submitWorkings( final Workings<A> workings ) {
+        private void submitWorkings( final Workings<P,A> workings ) {
 
             /* A null result may mean that the plot was interrupted or
              * that the result was the same as for the previously
@@ -2299,7 +2305,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                             ! workings.getDataIconIdList()
                              .equals( workings_.getDataIconIdList() );
                         workings_ = workings;
-                        for ( Workings.ZoneWork zone : workings.zones_ ) {
+                        for ( Workings.ZoneWork<A> zone : workings.zones_ ) {
                             zone.updateAxisController();
                         }
                         repaint();
@@ -2317,7 +2323,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @param  plotJob   other plot job
          * @return  true iff this object's job is like the other one
          */
-        public boolean isSimilar( PlotJob otherJob ) {
+        public boolean isSimilar( PlotJob<P,A> otherJob ) {
             return simObj_.equals( getSimilarityObject( otherJob ) );
         }
     }
@@ -2328,7 +2334,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     private static class ExportIcon implements Icon {
 
-        private final Workings workings_;
+        private final Workings<?,?> workings_;
         private final boolean forceBitmap_;
         private final PaperTypeSelector ptSel_;
         private final Compositor compositor_;
@@ -2342,7 +2348,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @param  ptSel   rendering policy
          * @param  compositor  compositor for composition of transparent pixels
          */
-        public ExportIcon( Workings workings, boolean forceBitmap,
+        public ExportIcon( Workings<?,?> workings, boolean forceBitmap,
                            PaperTypeSelector ptSel, Compositor compositor ) {
             workings_ = workings;
             forceBitmap_ = forceBitmap;
@@ -2364,7 +2370,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             DataStore dataStore = workings_.dataStore_;
             boolean cached = false;
             Collection<Object> plans = null;
-            for ( Workings.ZoneWork zone : workings_.zones_ ) {
+            for ( Workings.ZoneWork<?> zone : workings_.zones_ ) {
                 PlotPlacement placer = zone.placer_;
                 PlotLayer[] layers = zone.layers_;
                 Map<AuxScale,Span> auxSpans = zone.auxClipSpanMap_;

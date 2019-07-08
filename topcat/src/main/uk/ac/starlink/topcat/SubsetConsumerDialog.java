@@ -33,6 +33,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor
  * @since    11 Dec 2008
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SubsetConsumerDialog extends JPanel {
 
     private final JComboBox nameSelector_;

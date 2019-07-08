@@ -27,12 +27,13 @@ public class PlaneAxisController
      */
     public PlaneAxisController() {
         super( new PlaneSurfaceFactory( false ), createAxisLabelKeys() );
-        SurfaceFactory surfFact = getSurfaceFactory();
+        SurfaceFactory<PlaneSurfaceFactory.Profile,PlaneAspect> surfFact =
+            getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
    
         /* Log/flip tab. */
         mainControl.addSpecifierTab( "Coords",
-                                     new ConfigSpecifier( new ConfigKey[] {
+                                     new ConfigSpecifier( new ConfigKey<?>[] {
             PlaneSurfaceFactory.XLOG_KEY,
             PlaneSurfaceFactory.YLOG_KEY,
             PlaneSurfaceFactory.XFLIP_KEY,
@@ -60,7 +61,7 @@ public class PlaneAxisController
 
         /* Grid tab. */
         mainControl.addSpecifierTab( "Grid",
-                                     new ConfigSpecifier( new ConfigKey[] {
+                                     new ConfigSpecifier( new ConfigKey<?>[] {
             PlaneSurfaceFactory.GRID_KEY,
             StyleKeys.GRID_COLOR,
             StyleKeys.AXLABEL_COLOR,
@@ -96,7 +97,8 @@ public class PlaneAxisController
         list.add( PlaneSurfaceFactory.XLABEL_KEY );
         list.add( PlaneSurfaceFactory.YLABEL_KEY );
         @SuppressWarnings("unchecked")
-        ConfigKey<String>[] keys = list.toArray( new ConfigKey[ 0 ] );
+        ConfigKey<String>[] keys =
+            (ConfigKey<String>[]) list.toArray( new ConfigKey<?>[ 0 ] );
         return keys;
     }
 }

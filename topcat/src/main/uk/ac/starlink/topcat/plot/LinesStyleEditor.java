@@ -31,6 +31,7 @@ import uk.ac.starlink.util.gui.ValueButtonGroup;
  * @author   Mark Taylor
  * @since    14 Mar 2006
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class LinesStyleEditor extends StyleEditor {
 
     private final ErrorModeSelectionModel[] errorModeModels_;
@@ -40,7 +41,7 @@ public class LinesStyleEditor extends StyleEditor {
     private final JComboBox shapeSelector_;
     private final JComboBox sizeSelector_;
     private final JComboBox errorSelector_;
-    private final ValueButtonGroup lineMarkSelector_;
+    private final ValueButtonGroup<List<Boolean>> lineMarkSelector_;
 
     private static final int MAX_THICK = 6;
 
@@ -63,7 +64,7 @@ public class LinesStyleEditor extends StyleEditor {
         JRadioButton lineButton = new JRadioButton( "Line", true );
         JRadioButton markButton = new JRadioButton( "Markers" );
         JRadioButton bothButton = new JRadioButton( "Both" );
-        lineMarkSelector_ = new ValueButtonGroup();
+        lineMarkSelector_ = new ValueButtonGroup<List<Boolean>>();
         lineMarkSelector_.add( lineButton, booleanList( true, false ) );
         lineMarkSelector_.add( markButton, booleanList( false, true ) );
         lineMarkSelector_.add( bothButton, booleanList( true, true ) );
@@ -178,12 +179,12 @@ public class LinesStyleEditor extends StyleEditor {
     }
 
     public Style getStyle() {
-        List lineMark = (List) lineMarkSelector_.getValue();
+        List<Boolean> lineMark = lineMarkSelector_.getValue();
         return getStyle( (MarkShape) shapeSelector_.getSelectedItem(),
                          sizeSelector_.getSelectedIndex(),
                          colorSelector_.getSelectedColor(),
-                         ((Boolean) lineMark.get( 0 )).booleanValue(),
-                         ((Boolean) lineMark.get( 1 )).booleanValue(),
+                         lineMark.get( 0 ).booleanValue(),
+                         lineMark.get( 1 ).booleanValue(),
                          (ErrorRenderer) errorSelector_.getSelectedItem(),
                          thickSelector_.getSelectedThickness(),
                          dashSelector_.getSelectedDash() );
@@ -195,9 +196,9 @@ public class LinesStyleEditor extends StyleEditor {
 
     protected void refreshState() {
         super.refreshState();
-        List lineMark = (List) lineMarkSelector_.getValue();
-        boolean hasLine = ((Boolean) lineMark.get( 0 )).booleanValue();
-        boolean hasMark = ((Boolean) lineMark.get( 1 )).booleanValue();
+        List<Boolean> lineMark = lineMarkSelector_.getValue();
+        boolean hasLine = lineMark.get( 0 ).booleanValue();
+        boolean hasMark = lineMark.get( 1 ).booleanValue();
         boolean hasError =
             errorModeModels_[ 0 ].getErrorMode() != ErrorMode.NONE ||
             errorModeModels_[ 1 ].getErrorMode() != ErrorMode.NONE;
@@ -243,7 +244,7 @@ public class LinesStyleEditor extends StyleEditor {
      * @param   flag2  second value
      * @return  list containing Boolean objects with values flag1, flag2
      */
-    private static List booleanList( boolean flag1, boolean flag2 ) {
+    private static List<Boolean> booleanList( boolean flag1, boolean flag2 ) {
         return Arrays.asList( new Boolean[] { Boolean.valueOf( flag1 ),
                                               Boolean.valueOf( flag2 ), } );
     }

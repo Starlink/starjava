@@ -45,7 +45,7 @@ public class ParameterWindow extends AuxWindow
     private TableModel viewModel;
     private TableColumnModel columnModel;
     private ParamList params;
-    private Collection uneditableParams;
+    private Collection<DescribedValue> uneditableParams;
     private DescribedValue ncolParam;
     private DescribedValue nrowParam;
     private final MetaColumnTableModel metaTableModel;
@@ -101,7 +101,7 @@ public class ParameterWindow extends AuxWindow
 
         /* Also maintain a record of subsets of this list which have
          * certain characteristics. */
-        uneditableParams = new HashSet();
+        uneditableParams = new HashSet<DescribedValue>();
 
         /* Make a parameter for the table name. */
         DescribedValue nameParam = new DescribedValue( NAME_INFO ) {
@@ -151,7 +151,7 @@ public class ParameterWindow extends AuxWindow
         /* Assemble a list of MetaColumns which hold information about
          * the columns in the JTable this component will display.
          * Each column holds one item of information about a DescribedValue. */
-        List metas = new ArrayList();
+        List<MetaColumn> metas = new ArrayList<MetaColumn>();
 
         /* Add name column. */
         metas.add( new MetaColumn( NAME_NAME, String.class ) {
@@ -175,7 +175,8 @@ public class ParameterWindow extends AuxWindow
             }
             public boolean isEditable( int irow ) {
                 if ( isEditableParameter( irow ) ) {
-                    Class clazz = getParam( irow ).getInfo().getContentClass();
+                    Class<?> clazz =
+                        getParam( irow ).getInfo().getContentClass();
 
                     /* Not all value types can be edited, since the 
                      * ValueInfo.unformatString() method doesn't work in all

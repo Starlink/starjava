@@ -14,6 +14,7 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  * @author   Mark Taylor (Starlink)
  * @since    20 Feb 2004
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ColumnCellRenderer implements ListCellRenderer {
 
     private final ListCellRenderer baseRenderer_;

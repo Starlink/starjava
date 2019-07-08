@@ -116,7 +116,7 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
         HealpixCoordPanel( Configger globalConfigger ) {
             super( new Coord[] { HealpixDataGeom.HEALPIX_COORD,
                                  HealpixPlotter.VALUE_COORD },
-                   new ConfigKey[] { DATASYS_KEY, DATALEVEL_KEY } );
+                   new ConfigKey<?>[] { DATASYS_KEY, DATALEVEL_KEY } );
             globalConfigger_ = globalConfigger;
         }
 

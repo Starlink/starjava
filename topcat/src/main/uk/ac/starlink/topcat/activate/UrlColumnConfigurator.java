@@ -28,6 +28,7 @@ import uk.ac.starlink.util.URLUtils;
  * @author   Mark Taylor
  * @since    21 Dec 2017
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public abstract class UrlColumnConfigurator
                 extends AbstractActivatorConfigurator {
 

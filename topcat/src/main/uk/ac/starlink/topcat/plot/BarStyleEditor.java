@@ -25,11 +25,12 @@ import uk.ac.starlink.util.gui.ValueButtonGroup;
  * @author   Mark Taylor
  * @since    11 Jan 2006
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class BarStyleEditor extends StyleEditor {
 
     private final ColorComboBox colorSelector_;
     private final JComboBox formSelector_;
-    private final ValueButtonGroup placeSelector_;
+    private final ValueButtonGroup<BarStyle.Placement> placeSelector_;
     private final ThicknessComboBox thickSelector_;
     private final DashComboBox dashSelector_;
 
@@ -57,7 +58,7 @@ public class BarStyleEditor extends StyleEditor {
 
         JRadioButton overButton = new JRadioButton( "Over", true );
         JRadioButton adjButton = new JRadioButton( "Adjacent" );
-        placeSelector_ = new ValueButtonGroup();
+        placeSelector_ = new ValueButtonGroup<BarStyle.Placement>();
         placeSelector_.add( overButton, BarStyle.PLACE_OVER );
         placeSelector_.add( adjButton, BarStyle.PLACE_ADJACENT );
         placeSelector_.addChangeListener( this );
@@ -131,7 +132,7 @@ public class BarStyleEditor extends StyleEditor {
     public Style getStyle() {
         return getStyle( colorSelector_.getSelectedColor(),
                          (BarStyle.Form) formSelector_.getSelectedItem(),
-                         (BarStyle.Placement) placeSelector_.getValue(),
+                         placeSelector_.getValue(),
                          thickSelector_.getSelectedThickness(),
                          dashSelector_.getSelectedDash() );
     }

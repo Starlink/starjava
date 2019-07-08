@@ -37,6 +37,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor
  * @since    3 Feb 2015
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ClassifyWindow extends AuxWindow {
 
     private final TopcatModel tcModel_;
@@ -216,7 +217,7 @@ public class ClassifyWindow extends AuxWindow {
             }
             reportPanel_.setPrefix( prefixField_.getText() );
             ColumnData cdata = classification_.cdata_;
-            Classifier classifier = classification_.classifier_;
+            Classifier<?> classifier = classification_.classifier_;
             reportPanel_.setData( cdata, classifier );
             countText = "  / " + classifier.getValueCount() + " ";
         }
@@ -324,7 +325,7 @@ public class ClassifyWindow extends AuxWindow {
          * @param  classifier  object containing classification results
          * @param  cdata  data object to which the results apply
          */
-        Classification( Classifier classifier, ColumnData cdata ) {
+        Classification( Classifier<Object> classifier, ColumnData cdata ) {
             classifier_ = classifier;
             cdata_ = cdata;
         }

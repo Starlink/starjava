@@ -2,7 +2,6 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Map;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -157,11 +156,8 @@ public class GuiDataSpec extends AbstractDataSpec {
      * @return   row count or -1
      */
     public long getKnownRowCount() {
-        Map subsetCounts = tcModel_.getSubsetCounts();
-        Object countObj = subsetCounts.get( subset_ );
-        return countObj instanceof Number
-             ? ((Number) countObj).longValue()
-             : -1L;
+        Long count = tcModel_.getSubsetCounts().get( subset_ );
+        return count == null ? -1L : count.longValue();
     }
 
     /**

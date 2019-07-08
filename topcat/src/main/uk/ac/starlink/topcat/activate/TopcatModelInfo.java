@@ -152,7 +152,7 @@ public class TopcatModelInfo {
             String ucd = info.getUCD();
             String name = info.getName();
             String utype = info.getUtype();
-            Class clazz = info.getContentClass();
+            Class<?> clazz = info.getContentClass();
             boolean isString = String.class.equals( clazz );
             boolean isDatalink = false;
             boolean isUrl = false;

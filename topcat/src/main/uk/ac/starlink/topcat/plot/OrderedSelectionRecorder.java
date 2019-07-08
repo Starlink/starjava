@@ -17,14 +17,14 @@ public abstract class OrderedSelectionRecorder
         implements ListSelectionListener {
 
     private boolean[] lastState_;
-    private List orderedSelection_;
+    private List<Integer> orderedSelection_;
 
     /**
      * Constructs a new recorder with no items selected.
      */
     public OrderedSelectionRecorder() {
         lastState_ = new boolean[ 0 ];
-        orderedSelection_ = new ArrayList();
+        orderedSelection_ = new ArrayList<Integer>();
     }
 
     /**
@@ -48,7 +48,7 @@ public abstract class OrderedSelectionRecorder
         int nsel = orderedSelection_.size();
         int[] sel = new int[ nsel ];
         for ( int i = 0; i < nsel; i++ ) {
-            sel[ i ] = ((Integer) orderedSelection_.get( i )).intValue();
+            sel[ i ] = orderedSelection_.get( i ).intValue();
         }
         return sel;
     }

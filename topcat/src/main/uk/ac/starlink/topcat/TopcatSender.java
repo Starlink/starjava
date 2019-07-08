@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.astrogrid.samp.Message;
@@ -149,9 +148,9 @@ public abstract class TopcatSender {
          * table load message (versions before 3.9 may not).
          * If we find one, we can just send the location and given format
          * (which may be auto-detection). */
-        Map clientMap1 = conn.getSubscribedClients( TOPCAT_LOAD_MTYPE );
-        for ( Iterator it = clientMap1.keySet().iterator(); it.hasNext(); ) {
-            String clientId = (String) it.next();
+        Map<?,?> clientMap1 = conn.getSubscribedClients( TOPCAT_LOAD_MTYPE );
+        for ( Object cid : clientMap1.keySet() ) {
+            String clientId = String.valueOf( cid );
             if ( isTopcatMetadata( conn.getMetadata( clientId ) ) ) {
                 conn.callAndWait( clientId, pingMsg, pingWait );
                 return new TopcatSender( conn, clientId ) {
@@ -168,9 +167,9 @@ public abstract class TopcatSender {
         /* Failing that, look for a TOPCAT client which subscribes to
          * table.load.votable (any topcat should do this).  We may have
          * to work harder to construct the load message in this case. */
-        Map clientMap2 = conn.getSubscribedClients( "table.load.votable" );
-        for ( Iterator it = clientMap2.keySet().iterator(); it.hasNext(); ) {
-            String clientId = (String) it.next();
+        Map<?,?> clientMap2 = conn.getSubscribedClients( "table.load.votable" );
+        for ( Object cid : clientMap2.keySet() ) {
+            String clientId = String.valueOf( cid );
             if ( isTopcatMetadata( conn.getMetadata( clientId ) ) ) {
                 conn.callAndWait( clientId, pingMsg, pingWait );
                 final Subscriptions subs = conn.getSubscriptions( clientId );

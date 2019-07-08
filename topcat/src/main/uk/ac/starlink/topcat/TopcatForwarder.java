@@ -1,7 +1,6 @@
 package uk.ac.starlink.topcat;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -13,7 +12,8 @@ import java.util.List;
  */
 public class TopcatForwarder implements TopcatListener {
 
-    private final List listeners_ = new ArrayList();
+    private final List<TopcatListener> listeners_ =
+        new ArrayList<TopcatListener>();
 
     /**
      * Adds a new listener.
@@ -34,8 +34,8 @@ public class TopcatForwarder implements TopcatListener {
     }
 
     public void modelChanged( TopcatEvent evt ) {
-        for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
-            ((TopcatListener) it.next()).modelChanged( evt );
+        for ( TopcatListener l : listeners_ ) {
+            l.modelChanged( evt );
         }
     }
 }

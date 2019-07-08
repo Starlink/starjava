@@ -314,7 +314,7 @@ public class TopcatCodec1 implements TopcatCodec {
      * @param   clazz  class of value which will be stored under this item
      * @return   new metadata description object
      */
-    private static ValueInfo createCodecInfo( String name, Class clazz ) {
+    private static ValueInfo createCodecInfo( String name, Class<?> clazz ) {
         DefaultValueInfo info =
             new DefaultValueInfo( CODEC_NAME_PREFIX + name, clazz );
         info.setUtype( CODEC_UTYPE_PREFIX + name );
@@ -395,7 +395,7 @@ public class TopcatCodec1 implements TopcatCodec {
     private RowSubset createRowSubset( String name, final StarTable table,
                                        final int icol, int iflag ) {
         ColumnInfo info = table.getColumnInfo( icol );
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
         if ( clazz == Short.class ) {
             final short mask = (short) ( 1 << iflag );
             return new RowSubset( name ) {
@@ -537,7 +537,7 @@ public class TopcatCodec1 implements TopcatCodec {
              * but we need to return the value in the form requested
              * by the supplied info argument, since it will get cast
              * to that class. */
-            Class infoClazz = info.getContentClass();
+            Class<?> infoClazz = info.getContentClass();
             if ( value == null || infoClazz.isInstance( value ) ) {
                 return value;
             }

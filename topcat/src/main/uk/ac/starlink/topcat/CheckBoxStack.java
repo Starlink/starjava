@@ -37,6 +37,7 @@ import javax.swing.event.ListSelectionListener;
  *
  * @author   Mark Taylor (Starlink)
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class CheckBoxStack extends JPanel
                            implements ListSelectionListener,
                                       ListDataListener,
@@ -44,7 +45,7 @@ public class CheckBoxStack extends JPanel
 
     private DefaultListSelectionModel selModel_;
     private ListModel listModel_;
-    private List entries_;
+    private List<JCheckBox> entries_;
     private final Annotator annotator_;
 
     /**
@@ -148,7 +149,7 @@ public class CheckBoxStack extends JPanel
      */
     private void redoAllItems() {
         removeAll();
-        entries_ = new ArrayList();
+        entries_ = new ArrayList<JCheckBox>();
         for ( int i = 0; i < listModel_.getSize(); i++ ) {
             addItem( listModel_.getElementAt( i ) );
         }
@@ -182,8 +183,7 @@ public class CheckBoxStack extends JPanel
     public void valueChanged( ListSelectionEvent evt ) {
         for ( int i = evt.getFirstIndex(); i <= evt.getLastIndex(); i++ ) {
             if ( i < entries_.size() ) {
-                ((JCheckBox) entries_.get( i ))
-               .setSelected( selModel_.isSelectedIndex( i ) );
+                entries_.get( i ).setSelected( selModel_.isSelectedIndex( i ) );
             }
         }
     }
@@ -253,7 +253,7 @@ public class CheckBoxStack extends JPanel
     }
 
     private int getLineHeight() {
-        return entries_.size() > 0 ? ((Component) entries_.get( 0 )).getHeight()
+        return entries_.size() > 0 ? entries_.get( 0 ).getHeight()
                                    : 0;
     }
 

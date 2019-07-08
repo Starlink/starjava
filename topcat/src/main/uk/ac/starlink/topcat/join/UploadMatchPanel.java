@@ -66,6 +66,7 @@ import uk.ac.starlink.vo.DoubleValueField;
  *
  * @author   Mark Taylor
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class UploadMatchPanel extends JPanel {
 
     private final JProgressBar progBar_;

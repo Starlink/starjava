@@ -44,14 +44,14 @@ public class PlotPositionSpecifier extends SpecifierPanel<PlotPosition> {
      */
     public PlotPositionSpecifier() {
         super( false );
-        List<ConfigKey> keyList = new ArrayList();
+        List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
         keyList.add( XPIX_KEY );
         keyList.add( YPIX_KEY );
         keyList.add( TOP_KEY );
         keyList.add( LEFT_KEY );
         keyList.add( BOTTOM_KEY );
         keyList.add( RIGHT_KEY );
-        ConfigKey[] keys = keyList.toArray( new ConfigKey[ 0 ] );
+        ConfigKey<?>[] keys = keyList.toArray( new ConfigKey<?>[ 0 ] );
         configSpecifier_ = new ConfigSpecifier( keys );
         configSpecifier_.addActionListener( getActionForwarder() );
     }

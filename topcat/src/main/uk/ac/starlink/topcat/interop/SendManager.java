@@ -26,6 +26,7 @@ import org.astrogrid.samp.gui.SubscribedClientListModel;
  * @author   Mark Taylor
  * @since    17 Sep 2008
  */
+@SuppressWarnings("rawtypes")
 public class SendManager {
 
     private final GuiHubConnector connector_;
@@ -90,7 +91,7 @@ public class SendManager {
      *
      * @param  message   {@link org.astrogrid.samp.Message}-like map
      */
-    public void notify( Map message ) throws SampException {
+    public void notify( Map<?,?> message ) throws SampException {
         HubConnection connection = connector_.getConnection();
         if ( connection != null ) {
             Client client = comboBoxModel_.getClient();
@@ -111,7 +112,7 @@ public class SendManager {
      *
      * @param  message   {@link org.astrogrid.samp.Message}-like map
      */
-    public void call( Map message ) throws SampException {
+    public void call( Map<?,?> message ) throws SampException {
         HubConnection connection = connector_.getConnection();
         if ( connection != null ) {
             Client client = comboBoxModel_.getClient();

@@ -44,7 +44,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
     private final TopcatModel tcModel;
     private final OptionsListModel<RowSubset> subsets;
-    private final Map subsetCounts;
+    private final Map<RowSubset,Long> subsetCounts;
     private final PlasticStarTable dataModel;
     private final MetaColumnTableModel subsetsTableModel;
     private final ToggleButtonModel autoCountModel;
@@ -250,6 +250,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 if ( rset != null ) {
                     selectionModel.setValueIsAdjusting( true );
                     selectionModel.clearSelection();
+                    @SuppressWarnings("rawtypes")
                     ComboBoxModel tcSelModel = 
                         tcModel.getSubsetSelectionModel();
                     for ( int irow = 0; irow < subsetsTableModel.getRowCount();
@@ -379,7 +380,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             }
             public Object getValue( int irow ) {
                 RowSubset rset = getSubset( irow );
-                Number count = (Number) subsetCounts.get( rset );
+                Long count = subsetCounts.get( rset );
                 return count == null
                      ? null
                      : fmt.format( count.doubleValue()
@@ -457,7 +458,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         };
 
         /* Make a TableModel from these columns. */
-        List cols = new ArrayList();
+        List<MetaColumn> cols = new ArrayList<MetaColumn>();
         cols.add( idCol );
         cols.add( nameCol );
         cols.add( sizeCol );
@@ -539,7 +540,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
      */
     private Object getSubsetSize( int irow ) {
         RowSubset rset = getSubset( irow );
-        Number count = (Number) subsetCounts.get( rset );
+        Long count = subsetCounts.get( rset );
         if ( count == null || count.longValue() < 0 ) {
 
             /* If the value is unknown and autocount mode is on, then kick

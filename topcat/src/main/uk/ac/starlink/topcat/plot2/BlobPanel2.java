@@ -14,7 +14,6 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -39,7 +38,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 public abstract class BlobPanel2 extends JComponent {
 
     private final BlobListener blobListener_;
-    private List blobs_;
+    private List<Shape> blobs_;
     private GeneralPath dragPath_;
     private Action blobAction_;
     private Color fillColor_ = new Color( 0, 0, 0, 64 );
@@ -91,8 +90,8 @@ public abstract class BlobPanel2 extends JComponent {
      */
     public Shape getBlob() {
         Area area = new Area();
-        for ( Iterator it = blobs_.iterator(); it.hasNext(); ) {
-            area.add( new Area( (Shape) it.next() ) );
+        for ( Shape blob : blobs_ ) {
+            area.add( new Area( blob ) );
         }
         return simplify( area );
     }
@@ -103,7 +102,7 @@ public abstract class BlobPanel2 extends JComponent {
      * @param  blob  shape to be displayed and played around with by the user
      */
     public void setBlob( Shape blob ) {
-        blobs_ = new ArrayList();
+        blobs_ = new ArrayList<Shape>();
         blobs_.add( blob );
         repaint();
     }
@@ -112,7 +111,7 @@ public abstract class BlobPanel2 extends JComponent {
      * Resets the current blob to an empty shape.
      */
     public void clear() {
-        blobs_ = new ArrayList();
+        blobs_ = new ArrayList<Shape>();
         repaint();
     }
 
@@ -209,8 +208,8 @@ public abstract class BlobPanel2 extends JComponent {
         Graphics2D g2 = (Graphics2D) g;
 
         Area area = new Area();
-        for ( Iterator it = blobs_.iterator(); it.hasNext(); ) {
-            area.add( new Area( (Shape) it.next() ) );
+        for ( Shape blob : blobs_ ) {
+            area.add( new Area( blob ) );
         }
         if ( dragPath_ != null ) {
             area.add( new Area( dragPath_ ) );

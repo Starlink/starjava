@@ -28,6 +28,7 @@ import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
  *
  * @author   Mark Taylor (Starlink)
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class OptionsListModel<T> extends AbstractList<T> implements ListModel {
 
     private final List<Entry<T>> entryList_;
@@ -250,7 +251,7 @@ public class OptionsListModel<T> extends AbstractList<T> implements ListModel {
             }
             public void contentsChanged( ListDataEvent evt ) {
                 removeAll();
-                for ( Entry entry : entryList_ ) {
+                for ( Entry<T> entry : entryList_ ) {
                     addMenuItem( entry.toString() );
                 }
             }

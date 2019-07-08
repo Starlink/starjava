@@ -36,7 +36,7 @@ import uk.ac.starlink.ttools.plot2.config.SpecifierPanel;
  */
 public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
 
-    private final KSpec[] kspecs_;
+    private final KSpec<?>[] kspecs_;
     private static final ComponentGui DEFAULT_GUI = new ComponentGui() {
         public <T> Specifier<T> createSpecifier( ConfigKey<T> key ) {
             return key.createSpecifier();
@@ -50,7 +50,7 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
      *
      * @param   keys   config keys to gather values for
      */
-    public ConfigSpecifier( ConfigKey[] keys ) {
+    public ConfigSpecifier( ConfigKey<?>[] keys ) {
         this( keys, DEFAULT_GUI );
     }
 
@@ -61,13 +61,13 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
      * @param   gui   specifier generation factory that can provide
      *                customised specifiers for different keys
      */
-    public ConfigSpecifier( ConfigKey[] keys, ComponentGui gui ) {
+    public ConfigSpecifier( ConfigKey<?>[] keys, ComponentGui gui ) {
         super( true );
         ActionListener forwarder = getActionForwarder();
         int nk = keys.length;
-        kspecs_ = new KSpec[ nk ];
+        kspecs_ = new KSpec<?>[ nk ];
         for ( int ik = 0; ik < nk; ik++ ) {
-            KSpec<?> kspec = createKSpec( (ConfigKey<?>) keys[ ik ], gui );
+            KSpec<?> kspec = createKSpec( keys[ ik ], gui );
             kspec.specifier_.addActionListener( forwarder );
             kspecs_[ ik ] = kspec;
         }
@@ -169,7 +169,7 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
     }
 
     public void submitReport( ReportMap report ) {
-        for ( KSpec kspec : kspecs_ ) {
+        for ( KSpec<?> kspec : kspecs_ ) {
             kspec.specifier_.submitReport( report );
         }
     }
@@ -195,7 +195,7 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
      * @return   config keys
      */
     public ConfigKey<?>[] getConfigKeys() {
-        ConfigKey[] keys = new ConfigKey[ kspecs_.length ];
+        ConfigKey<?>[] keys = new ConfigKey<?>[ kspecs_.length ];
         for ( int ik = 0; ik < keys.length; ik++ ) {
             keys[ ik ] = kspecs_[ ik ].key_;
         }
@@ -211,7 +211,7 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
      */
     public <T> Specifier<T> getSpecifier( ConfigKey<T> key ) {
         for ( int ik = 0; ik < kspecs_.length; ik++ ) {
-            KSpec kspec = kspecs_[ ik ];
+            KSpec<?> kspec = kspecs_[ ik ];
             if ( kspec.key_.equals( key ) ) {
                 @SuppressWarnings("unchecked")
                 KSpec<T> tspec = (KSpec<T>) kspec;

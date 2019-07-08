@@ -42,6 +42,7 @@ public class SendImageActivationType implements ActivationType {
     /**
      * Configurator implementation for URLs pointing to FITS images.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class ImageColumnConfigurator extends UrlColumnConfigurator {
         final TopcatModel tcModel_;
         final SampSender imageSender_;

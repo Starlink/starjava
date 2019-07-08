@@ -43,7 +43,8 @@ public class SingleFormLayerControl extends FormLayerControl {
                                    Specifier<ZoneId> zsel, boolean autoPopulate,
                                    NextSupplier nextSupplier,
                                    TopcatListener tcListener, Icon controlIcon,
-                                   Plotter plotter, Configger baseConfigger ) {
+                                   Plotter<?> plotter,
+                                   Configger baseConfigger ) {
         super( posCoordPanel, tablesModel, zsel, autoPopulate, nextSupplier,
                tcListener, controlIcon );
         formControl_ =

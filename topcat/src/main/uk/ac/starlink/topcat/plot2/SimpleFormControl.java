@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
  */
 public class SimpleFormControl extends FormControl {
 
-    private final Plotter plotter_;
+    private final Plotter<?> plotter_;
     private final CoordPanel extraCoordPanel_;
 
     /**
@@ -27,7 +27,7 @@ public class SimpleFormControl extends FormControl {
      * @param  extraCoords  any coordinates which are to be solicited from
      *                      the form control
      */
-    public SimpleFormControl( Configger baseConfigger, Plotter plotter,
+    public SimpleFormControl( Configger baseConfigger, Plotter<?> plotter,
                               Coord[] extraCoords ) {
         super( baseConfigger );
         plotter_ = plotter;
@@ -44,7 +44,7 @@ public class SimpleFormControl extends FormControl {
         return plotter_;
     }
 
-    protected ConfigKey[] getConfigKeys() {
+    protected ConfigKey<?>[] getConfigKeys() {
         return plotter_.getStyleKeys();
     }
 

@@ -96,7 +96,7 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Assemble a list of MetaColumns which hold information about
          * the columns in the JTable this component will display.
          * Each column represents an item of metadata in the data table. */
-        List metas = new ArrayList();
+        List<MetaColumn> metas = new ArrayList<MetaColumn>();
 
         /* Add index column. */
         icolColsetIndex_ = metas.size();
@@ -413,7 +413,7 @@ public class ColumnInfoWindow extends AuxWindow {
 
         /* Construct and place a JTable to contain it. */
         jtab = new JTable( metaTableModel ) {
-            public TableCellRenderer getDefaultRenderer( Class clazz ) {
+            public TableCellRenderer getDefaultRenderer( Class<?> clazz ) {
                 if ( Boolean.class.equals( clazz ) ) {
                     return super.getDefaultRenderer( clazz );
                 }
@@ -766,7 +766,7 @@ public class ColumnInfoWindow extends AuxWindow {
 
         private ValueInfo vinfo;
         private boolean isEditable;
-        private Class vclass;
+        private Class<?> vclass;
         private boolean isFormattable;
 
         ValueInfoMetaColumn( ValueInfo vinfo, boolean isEditable ) {
@@ -828,7 +828,7 @@ public class ColumnInfoWindow extends AuxWindow {
      * @return   true if String format/unformat is implemented
      */
     private static boolean canFormat( ValueInfo info ) {
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
         return Number.class.isAssignableFrom( clazz )
             || String.class.isAssignableFrom( clazz )
             || Boolean.class.isAssignableFrom( clazz );

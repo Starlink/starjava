@@ -25,6 +25,7 @@ import uk.ac.starlink.votable.VOTableWriter;
  * @author   Mark Taylor
  * @since    4 Aug 2010
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SessionSavePanel extends SavePanel {
 
     private final TopcatModelSelectionTable tSelector_;

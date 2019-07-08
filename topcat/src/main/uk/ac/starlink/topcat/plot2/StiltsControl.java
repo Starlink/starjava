@@ -36,7 +36,7 @@ import uk.ac.starlink.util.gui.TallWrapper;
  */
 public class StiltsControl extends TabberControl {
 
-    private final PlotPanel plotPanel_;
+    private final PlotPanel<?,?> plotPanel_;
     private final boolean isMultiZone_;
     private final ToggleButtonModel windowToggle_;
     private boolean configured_;
@@ -50,7 +50,7 @@ public class StiltsControl extends TabberControl {
      * @param  windowToggle  model for posting a separate window
      *                       displaying the command text
      */
-    public StiltsControl( PlotPanel plotPanel, boolean isMultiZone,
+    public StiltsControl( PlotPanel<?,?> plotPanel, boolean isMultiZone,
                           ToggleButtonModel windowToggle ) {
         super( "STILTS", ResourceIcon.STILTS );
         plotPanel_ = plotPanel;
@@ -125,6 +125,7 @@ public class StiltsControl extends TabberControl {
     /**
      * Panel that displays command format configuration options.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class FormatPanel extends LabelledComponentStack {
         private final JComboBox invokerSelector_;
         private final JComboBox zoneSuffixSelector_;

@@ -48,6 +48,7 @@ import uk.ac.starlink.util.gui.WeakTableColumnModelListener;
  * @author   Mark Taylor
  * @since    23 Jan 2005
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ColumnDataComboBoxModel
         extends AbstractListModel
         implements TableColumnModelListener, ComboBoxModel {
@@ -202,7 +203,7 @@ public class ColumnDataComboBoxModel
 
         /* Otherwise, try to interpret the string as a JEL expression. */
         ColumnData cdata = new SyntheticColumnData( tcModel_, txt );
-        Class clazz = cdata.getColumnInfo().getContentClass();
+        Class<?> clazz = cdata.getColumnInfo().getContentClass();
         if ( filter_.acceptColumn( cdata.getColumnInfo() ) ) {
             return cdata;
         }

@@ -55,11 +55,12 @@ import uk.ac.starlink.ttools.func.CoordsRadians;
  *
  * @author   Mark Taylor (Starlink)
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class MatchWindow extends AuxWindow implements ItemListener {
 
     private final int nTable;
     private final JComboBox engineSelector;
-    private final Map matchSpecs = new HashMap();
+    private final Map<MatchEngine,MatchSpec> matchSpecs;
     private final CardLayout paramCards;
     private final JComponent paramContainer;
     private final JTextArea logArea;
@@ -80,6 +81,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
     public MatchWindow( Component parent, int nTable ) {
         super( "Match Tables", parent );
         this.nTable = nTable;
+        matchSpecs = new HashMap<MatchEngine,MatchSpec>();
 
         /* Get the list of all the match engines we know about. */
         MatchEngine[] engines = getEngines();
@@ -190,11 +192,10 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      */
     private MatchSpec getMatchSpec() {
         MatchEngine engine = getMatchEngine();
-        Object key = engine;
-        if ( ! matchSpecs.containsKey( key ) ) {
-            matchSpecs.put( key, makeMatchSpec( engine ) );
+        if ( ! matchSpecs.containsKey( engine ) ) {
+            matchSpecs.put( engine, makeMatchSpec( engine ) );
         }
-        return (MatchSpec) matchSpecs.get( key );
+        return matchSpecs.get( engine );
     }
 
     /**

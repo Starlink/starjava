@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Map;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import org.astrogrid.samp.Client;
@@ -59,7 +58,7 @@ public class TableSendActionManager extends IndividualCallActionManager
         controlWindow_ = sampControl.getControlWindow();
     }
 
-    protected Map createMessage( Client client ) throws IOException {
+    protected Message createMessage( Client client ) throws IOException {
         Sender sender = getSender( client );
         TopcatModel tcModel = controlWindow_.getCurrentModel();
         if ( sender != null && tcModel != null ) {

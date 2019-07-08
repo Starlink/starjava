@@ -47,7 +47,7 @@ public class DemoLoadDialog extends TreeTableLoadDialog {
     private static DataNode getDemoNode() {
 
         /* Get the list of resources which constitute the demo set. */
-        List demoList = new ArrayList();
+        List<String> demoList = new ArrayList<String>();
         InputStream
             strm = DemoLoadDialog.class.getClassLoader()
                   .getResourceAsStream( TopcatUtils.DEMO_LOCATION + "/" +

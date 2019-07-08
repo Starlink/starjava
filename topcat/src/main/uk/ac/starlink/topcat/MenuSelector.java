@@ -36,7 +36,7 @@ public class MenuSelector<T> {
         ButtonGroup grp = new ButtonGroup();
         for ( T opt : options ) {
             final T option = opt;
-            final OptionButton butt = new OptionButton( option );
+            final OptionButton<T> butt = new OptionButton<T>( option );
             butt.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
                     if ( butt.isSelected() ) {
@@ -95,8 +95,8 @@ public class MenuSelector<T> {
         int n = menu_.getItemCount();
         for ( int i = 0; i < n; i++ ) {
             JMenuItem menuItem = menu_.getItem( i );
-            if ( menuItem instanceof MenuSelector<?>.OptionButton &&
-                 ((OptionButton) menuItem).option_.equals( option ) ) {
+            if ( menuItem instanceof OptionButton &&
+                 ((OptionButton<?>) menuItem).option_.equals( option ) ) {
                 menuItem.doClick();
                 return;
             }
@@ -136,7 +136,7 @@ public class MenuSelector<T> {
     /**
      * Submenu item.
      */
-    private class OptionButton extends JRadioButtonMenuItem {
+    private static class OptionButton<T> extends JRadioButtonMenuItem {
         final T option_;
 
         /**

@@ -187,7 +187,7 @@ public class ParameterDetailPanel extends JPanel {
      * @param   value  parameter value
      */
     private JComponent getDisplayComponent( ValueInfo info, Object value ) {
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
         ValueDisplay display;
         boolean editable = irow_ >= 0
                         && model_.isCellEditable( irow_, iValueCol_ );

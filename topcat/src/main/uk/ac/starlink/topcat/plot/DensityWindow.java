@@ -21,7 +21,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Action;
@@ -80,6 +79,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    1 Dec 2005
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class DensityWindow extends GraphicsWindow {
 
     private final JComponent plotPanel_;
@@ -94,7 +94,7 @@ public class DensityWindow extends GraphicsWindow {
     private final PixelSizeAction pixDecAction_;
     private final Action fitsAction_;
     private final DensityStyle[] styles_;
-    private final List rgbRepaintList_;
+    private final List<JComponent> rgbRepaintList_;
     private final ComboBoxModel shaderModel_;
     private int pixelSize_ = 1;
 
@@ -201,9 +201,8 @@ public class DensityWindow extends GraphicsWindow {
          * changed. */
         ActionListener legendPainter = new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                for ( Iterator it = rgbRepaintList_.iterator();
-                      it.hasNext(); ) {
-                    ((JComponent) it.next()).repaint();
+                for ( JComponent comp : rgbRepaintList_ ) {
+                    comp.repaint();
                 }
             }
         };
@@ -214,7 +213,7 @@ public class DensityWindow extends GraphicsWindow {
                                            "indexed rendering" );
         rgbModel_.setSelected( true );
         rgbModel_.addActionListener( getReplotListener() );
-        rgbRepaintList_ = new ArrayList();
+        rgbRepaintList_ = new ArrayList<JComponent>();
         rgbModel_.addActionListener( legendPainter );
 
         /* Model for the shader which controls the indexed (non-RGB) 

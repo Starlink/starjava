@@ -36,6 +36,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    25 Nov 2013
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class BasicCoordLayerControl extends ConfigControl
                                     implements LayerControl {
 
@@ -110,12 +111,12 @@ public class BasicCoordLayerControl extends ConfigControl
         /* Configure panel for specifying style.
          * If any of the config keys are supplied by the base configger,
          * don't re-acquire them here. */
-        List<ConfigKey> klist = new ArrayList<ConfigKey>();
+        List<ConfigKey<?>> klist = new ArrayList<ConfigKey<?>>();
         klist.addAll( Arrays.asList( plotter.getStyleKeys() ) );
         klist.removeAll( baseConfigger_.getConfig().keySet() );
         klist.removeAll( Arrays.asList( coordPanel_.getConfigSpecifier()
                                                    .getConfigKeys() ) );
-        ConfigKey[] keys = klist.toArray( new ConfigKey[ 0 ] );
+        ConfigKey<?>[] keys = klist.toArray( new ConfigKey<?>[ 0 ] );
         ConfigSpecifier styleSpecifier = new ConfigSpecifier( keys );
 
         /* Add tabs. */

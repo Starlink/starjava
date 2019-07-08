@@ -270,7 +270,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
      * @param   matrix  9-element array giving rotation of data space
      */
     public void setRotation( double[] matrix ) {
-        double[] rot = (double[]) matrix.clone();
+        double[] rot = matrix.clone();
         if ( northModel_.isSelected() ) {
             double theta = Math.atan2( rot[ 2 ], rot[ 5 ] );
             double[] correction = 

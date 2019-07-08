@@ -51,6 +51,7 @@ public class SendIndexActivationType implements ActivationType {
                                : Suitability.SUGGESTED;
     }
 
+    @SuppressWarnings({"unchecked","rawtypes"})
     public ActivatorConfigurator createConfigurator( TopcatModelInfo tinfo ) {
         final SampSender rowSender = new SampSender( "table.highlight.row" );
         final TopcatModel tcModel = tinfo.getTopcatModel();
@@ -127,7 +128,8 @@ public class SendIndexActivationType implements ActivationType {
 
         public Outcome activateRow( long lrow, ActivationMeta meta ) {
             if ( meta == null || ! meta.isInhibitSend() ) {
-                Map message = sampControl_.createRowMessage( tcModel_, lrow );
+                Map<?,?> message =
+                    sampControl_.createRowMessage( tcModel_, lrow );
                 if ( message != null ) {
                     return rowSender_.activateMessage( message );
                 }
@@ -156,6 +158,7 @@ public class SendIndexActivationType implements ActivationType {
          *
          * @return  true iff the table has an ID or URL
          */
+        @SuppressWarnings("rawtypes")
         public boolean hasPublicIdentifier() {
             ListModel tableIdListModel =
                 sampControl_.getIdentifiableTableListModel();

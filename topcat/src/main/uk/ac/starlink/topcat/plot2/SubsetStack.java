@@ -37,6 +37,7 @@ import uk.ac.starlink.util.gui.ConstrainedViewportLayout;
  * @author   Mark Taylor
  * @since    14 Mar 2013
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SubsetStack {
 
     private final PermutedListModel model_;

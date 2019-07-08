@@ -20,6 +20,7 @@ import uk.ac.starlink.table.gui.UCDSelector;
  * A dialogue window which queries the user for the characteristics of a
  * new column and then appends it to the table.
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SyntheticColumnQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel;
@@ -195,7 +196,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      *
      * @param   clazz  forced expression type, or null
      */
-    public void setExpressionType( Class clazz ) {
+    public void setExpressionType( Class<?> clazz ) {
         typeField.setSelectedItem( clazz );
     }
 
@@ -205,8 +206,8 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      *
      * @return  forced expression type, or null
      */
-    public Class getExpressionType() {
-        return (Class) typeField.getSelectedItem();
+    public Class<?> getExpressionType() {
+        return (Class<?>) typeField.getSelectedItem();
     }
 
     /**
@@ -231,7 +232,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         String unit = getUnit();
         String expr = getExpression();
         String ucd = getUCD();
-        Class clazz = getExpressionType();
+        Class<?> clazz = getExpressionType();
         ColumnInfo info = new ColumnInfo( name );
         if ( desc != null ) {
             info.setDescription( desc );

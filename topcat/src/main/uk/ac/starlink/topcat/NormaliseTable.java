@@ -79,7 +79,7 @@ public class NormaliseTable extends WrapperStarTable {
      * @return  converter
      */
     private static Converter createConverter( final ColumnInfo info ) {
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
 
         /* Primitives and array - no problem, use a null converter. */
         if ( clazz == Byte.class ||

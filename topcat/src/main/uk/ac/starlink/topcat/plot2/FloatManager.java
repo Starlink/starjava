@@ -7,16 +7,12 @@ import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JSplitPane;
-import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
-import javax.swing.plaf.basic.BasicToolBarUI;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 
@@ -187,66 +183,6 @@ public abstract class FloatManager {
                     }
                 } );
             }
-        }
-    }
-
-    /**
-     * FloatManager which places the floatable component in a JToolBar.
-     * The point of this is that JToolBars have floatable grab-handles
-     * built into the GUI.
-     * This could count as abuse of JToolBar, since nothing else about
-     * this usage is toolbarish.
-     * 
-     * <p>This code is not quite working.  Maybe more effort could get it
-     * going.
-     *
-     * @deprecated  Not working
-     */
-    private static class ToolbarFloatManager extends FloatManager {
-
-        /**
-         * Constructor.
-         *
-         * @param  container   containing panel which contains one or both of
-         *                     the others
-         * @param  fixedPanel  component which is always inside container
-         * @param  floatablePanel  component which may be inside container
-         */
-        ToolbarFloatManager( JComponent container, JComponent fixedPanel,
-                             JComponent floatablePanel ) {
-            super( container, fixedPanel, new JToolBar() );
-            final JToolBar bar = (JToolBar) getFloatablePanel();
-            bar.setLayout( new BorderLayout() );
-            bar.setFloatable( true );
-            bar.removeAll();
-            bar.add( floatablePanel );
-            final BasicToolBarUI ui = (BasicToolBarUI) bar.getUI();
-            bar.addHierarchyListener( new HierarchyListener() {
-                boolean wasFloating;
-                public void hierarchyChanged( HierarchyEvent evt ) {
-                    if ( ( evt.getChangeFlags()
-                           & HierarchyEvent.PARENT_CHANGED ) != 0 ) {
-                        final boolean isFloating = ui.isFloating();
-                        if ( isFloating ) {
-                            setResizable( bar );
-                        }
-                        if ( isFloating ^ wasFloating ) {
-                            wasFloating = isFloating;
-                                    configureContainer( isFloating ); 
-                        }
-                    }
-                }
-            } );
-        }
-
-        @Override
-        public void init() {
-            configureContainer( false );
-        }
-
-        @Override
-        public ToggleButtonModel getFloatToggle() {
-            return null;
         }
     }
 

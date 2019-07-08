@@ -25,7 +25,7 @@ public abstract class PositionReporter implements MouseMotionListener {
     private final PlotSurface surface_;
     private final ValueConverter xConv_;
     private final ValueConverter yConv_;
-    private final Map convMap_;
+    private final Map<ValueConverter,Integer> convMap_;
 
     /**
      * Constructs a new position reporter for a given plot surface.
@@ -52,7 +52,7 @@ public abstract class PositionReporter implements MouseMotionListener {
         surface_ = surface;
         xConv_ = xConv;
         yConv_ = yConv;
-        convMap_ = new HashMap();
+        convMap_ = new HashMap<ValueConverter,Integer>();
     }
 
     /**
@@ -230,7 +230,7 @@ public abstract class PositionReporter implements MouseMotionListener {
         if ( ! convMap_.containsKey( conv ) ) {
             convMap_.put( conv, new Integer( 0 ) );
         }
-        int itrunc = ((Integer) convMap_.get( conv )).intValue();
+        int itrunc = convMap_.get( conv ).intValue();
 
         /* Format the given values and ones (precision) either side. */
         Object om = conv.unconvert( new Double( value - precision ) );

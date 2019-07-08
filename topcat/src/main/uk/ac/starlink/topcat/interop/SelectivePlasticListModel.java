@@ -24,13 +24,14 @@ import uk.ac.starlink.plastic.HubManager;
  * @author   Mark Taylor
  * @since    22 Apr 2006
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SelectivePlasticListModel
         extends AbstractListModel
         implements ListDataListener, ComboBoxModel {
 
     private final ListModel base_;
     private final URI messageId_;
-    private List appList_;
+    private List<Object> appList_;
     private boolean includeAll_;
     private HubManager excludeApp_;
     private Object selected_;
@@ -57,7 +58,7 @@ public class SelectivePlasticListModel
         messageId_ = messageId;
         includeAll_ = includeAll;
         excludeApp_ = excludeApp;
-        appList_ = new ArrayList();
+        appList_ = new ArrayList<Object>();
         updateItems();
         base_.addListDataListener( this );
         if ( includeAll_ ) {
@@ -69,7 +70,7 @@ public class SelectivePlasticListModel
      * Updates state to match that of the base model.
      */
     private void updateItems() {
-        List list = new ArrayList();
+        List<Object> list = new ArrayList<Object>();
 
         /* Optionally include an entry representing a full broadcast. */
         if ( includeAll_ ) {
@@ -86,7 +87,7 @@ public class SelectivePlasticListModel
             if ( obj instanceof ApplicationItem ) {
                 ApplicationItem app = (ApplicationItem) obj;
                 if ( excludeId == null || ! excludeId.equals( app.getId() ) ) {
-                    List msgList = app.getSupportedMessages();
+                    List<?> msgList = app.getSupportedMessages();
                     if ( msgList == null || msgList.size() == 0 ||
                          msgList.contains( messageId_ ) ) {
                         list.add( app );

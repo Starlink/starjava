@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +199,7 @@ public class TopcatSampControl {
      * @param  rset    row subset of tcModel to send
      * @return   table.select.rowList message
      */
-    public Map createSubsetMessage( TopcatModel tcModel, RowSubset rset ) {
+    public Map<?,?> createSubsetMessage( TopcatModel tcModel, RowSubset rset ) {
 
         /* Try to identify a table we have already talked about via SAMP 
          * which relates to the supplied table. 
@@ -236,7 +235,7 @@ public class TopcatSampControl {
         /* Assemble a list of row indices in SAMP-friendly format which 
          * represents the subset we have been asked to represent,
          * but in terms of the row numbers of the publicly identified table. */
-        List rowList = new ArrayList();
+        List<String> rowList = new ArrayList<String>();
         if ( rowMap == null ) {
             int nrow = (int) tcModel.getDataModel().getRowCount();
             for ( int ir = 0; ir < nrow; ir++ ) {
@@ -285,6 +284,7 @@ public class TopcatSampControl {
      *
      * @return  listmodel of identifiable tables 
      */
+    @SuppressWarnings("rawtypes")
     public ListModel getIdentifiableTableListModel() {
         return idListModel_;
     }
@@ -298,7 +298,7 @@ public class TopcatSampControl {
      * @return   table.highlight.row message, or null if no suitable message
      *           can be constructed
      */
-    public Map createRowMessage( TopcatModel tcModel, long lrow ) {
+    public Message createRowMessage( TopcatModel tcModel, long lrow ) {
 
         /* Get a table id. */
         TableWithRows tr = new TableWithRows( tcModel, null );
@@ -387,8 +387,8 @@ public class TopcatSampControl {
 
             /* Highlight a single row. */
             new AbstractMessageHandler( "table.highlight.row" ) {
-                public Map processCall( HubConnection conn, String senderId,
-                                        Message msg )
+                public Response processCall( HubConnection conn,
+                                             String senderId, Message msg )
                         throws MalformedURLException {
                     TableWithRows tr =
                         lookupTable( (String) msg.getParam( "table-id" ),
@@ -403,13 +403,14 @@ public class TopcatSampControl {
 
             /* Select a list of rows. */
             new AbstractMessageHandler( "table.select.rowList" ) {
-                public Map processCall( HubConnection conn, String senderId,
-                                        Message msg )
+                public Response processCall( HubConnection conn,
+                                             String senderId, Message msg )
                         throws MalformedURLException {
                     TableWithRows tr =
                         lookupTable( (String) msg.getParam( "table-id" ),
                                      (String) msg.getParam( "url" ) );
-                    List rowList = (List) msg.getRequiredParam( "row-list" );
+                    List<?> rowList =
+                        (List<?>) msg.getRequiredParam( "row-list" );
                     int[] irows = new int[ rowList.size() ];
                     for ( int i = 0; i < irows.length; i++ ) {
                         irows[ i ] =
@@ -422,8 +423,8 @@ public class TopcatSampControl {
 
             /* Accept sky position. */
             new ResponseMessageHandler( "coord.pointAt.sky" ) {
-                public Map processCall( HubConnection conn, String senderId,
-                                        Message msg ) {
+                public Response processCall( HubConnection conn,
+                                             String senderId, Message msg ) {
                     double ra =
                         SampUtils
                        .decodeFloat( (String) msg.getRequiredParam( "ra" ) );
@@ -574,6 +575,7 @@ public class TopcatSampControl {
 
         /* If that fails, examine the URL. */
         else if ( url != null ) {
+            @SuppressWarnings("rawtypes")
             ListModel tablesList =
                 ControlWindow.getInstance().getTablesListModel();
             URL u = new URL( url );
@@ -636,7 +638,7 @@ public class TopcatSampControl {
             iconStore_ = new IconStore( ResourceIcon.SAMP );
         }
 
-        public Map getSubscriptions() {
+        public Subscriptions getSubscriptions() {
             return subs_;
         }
 
@@ -762,7 +764,7 @@ public class TopcatSampControl {
         }
 
         public boolean loadSuccess( StarTable table ) {
-            respond( Response.createSuccessResponse( new HashMap() ) );
+            respond( Response.createSuccessResponse( Collections.EMPTY_MAP ) );
             TopcatModel tcModel = super.addTable( table );
             String tableId = (String) message_.getParam( "table-id" );
             if ( tableId != null && tableId.trim().length() > 0 ) {
@@ -780,13 +782,15 @@ public class TopcatSampControl {
         public void endSequence( boolean cancelled ) {
             super.endSequence( cancelled );
             if ( cancelled ) {
-                respond( new Response( Response.ERROR_STATUS, new HashMap(),
+                respond( new Response( Response.ERROR_STATUS,
+                                       Collections.EMPTY_MAP,
                                        new ErrInfo( "User cancelled load" ) ) );
             }
             else {
                 if ( ! responded_ ) {
                     logger_.warning( "Neither success nor failure?" );
-                    respond( new Response( Response.ERROR_STATUS, new HashMap(),
+                    respond( new Response( Response.ERROR_STATUS,
+                                           Collections.EMPTY_MAP,
                                            new ErrInfo( "No table found" ) ) );
                 }
             }
@@ -849,10 +853,11 @@ public class TopcatSampControl {
             dalMultiWindowClass_ = dalMultiWindowClass;
         }
 
-        public Map processCall( HubConnection conn, String senderId,
-                                Message msg ) {
-            Map idMap = (Map) msg.getRequiredParam( "ids" );
-            String[] ids = (String[]) idMap.keySet().toArray( new String[ 0 ] );
+        public Response processCall( HubConnection conn, String senderId,
+                                     Message msg ) {
+            @SuppressWarnings("unchecked") // could fail with ClassCastException
+            Map<String,?> idMap = (Map<String,?>) msg.getRequiredParam( "ids" );
+            String[] ids = idMap.keySet().toArray( new String[ 0 ] );
             if ( ids.length > 0 ) {
                 StringBuffer mbuf = new StringBuffer();
                 mbuf.append( "Loading resource set" );
@@ -900,10 +905,11 @@ public class TopcatSampControl {
          * @param connection  hub connection
          * @param senderId  public ID of sender client
          * @param message  message with MType this handler is subscribed to
-         * @return   message response (Response instance)
+         * @return   message response
          */
-        public abstract Map processCall( HubConnection connection,
-                                         String senderId, Message message );
+        public abstract Response processCall( HubConnection connection,
+                                              String senderId,
+                                              Message message );
 
 
         /**
@@ -914,8 +920,7 @@ public class TopcatSampControl {
                 throws SampException {
             Response response;
             try {
-                response =
-                    (Response) processCall( connection, senderId, message );
+                response = processCall( connection, senderId, message );
             }
             catch ( Throwable e ) {
                 response = Response.createErrorResponse( new ErrInfo( e ) );
@@ -931,7 +936,7 @@ public class TopcatSampControl {
          * @param  dataType  type of data transferred by the call
          *                   (used in error message)
          */
-        Response createAcceptanceResponse( Map result, boolean accepted,
+        Response createAcceptanceResponse( Map<?,?> result, boolean accepted,
                                            String dataType ) {
             if ( result == null ) {
                 result = Response.EMPTY;
@@ -960,7 +965,7 @@ public class TopcatSampControl {
      * Encapsulates a table plus its row order.
      */
     private static class TableWithRows {
-        private final Reference tcModelRef_;
+        private final Reference<TopcatModel> tcModelRef_;
         private final String tcId_;
         private int[] rowMap_;
 
@@ -973,7 +978,7 @@ public class TopcatSampControl {
         TableWithRows( TopcatModel tcModel, int[] rowMap ) {
             assert tcModel != null;
             tcId_ = tcModel.toString();
-            tcModelRef_ = new WeakReference( tcModel );
+            tcModelRef_ = new WeakReference<TopcatModel>( tcModel );
             rowMap_ = rowMap;
         }
 
@@ -984,7 +989,7 @@ public class TopcatSampControl {
          * @return  table, or null
          */
         TopcatModel getTable() {
-            TopcatModel tcModel = (TopcatModel) tcModelRef_.get();
+            TopcatModel tcModel = tcModelRef_.get();
 
             /* If the table has become unloaded take the opportunity
              * to clear out the row map array too, since it won't be needed.
@@ -1031,6 +1036,7 @@ public class TopcatSampControl {
      * Listeners to this list will be notified when the contents
      * may have changed.
      */
+    @SuppressWarnings("rawtypes")
     private class TableIdListModel extends AbstractListModel {
         volatile TopcatModel[] list_;
 

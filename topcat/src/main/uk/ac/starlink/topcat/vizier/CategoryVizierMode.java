@@ -18,6 +18,7 @@ import javax.swing.SwingUtilities;
  * @author   Mark Taylor
  * @since    19 Oct 2009
  */
+@SuppressWarnings({"unchecked","rawtypes","deprecation"})
 public class CategoryVizierMode extends SearchVizierMode {
 
     private final JList lambdaList_;

@@ -25,8 +25,8 @@ import javax.swing.table.TableColumnModel;
 public class ColumnList implements TableColumnModelListener {
 
     private final TableColumnModel columnModel;
-    private final List columnList;
-    private final List active;
+    private final List<TableColumn> columnList;
+    private final List<Boolean> active;
 
     /**
      * Constructs a new ColumnList, which will track a given column model.
@@ -36,8 +36,9 @@ public class ColumnList implements TableColumnModelListener {
     public ColumnList( TableColumnModel columnModel ) {
         this.columnModel = columnModel;
         this.columnList = Collections.list( columnModel.getColumns() );
-        this.active = new ArrayList( Collections.nCopies( columnList.size(), 
-                                                          Boolean.TRUE ) );
+        this.active =
+            new ArrayList<Boolean>( Collections.nCopies( columnList.size(), 
+                                                         Boolean.TRUE ) );
         columnModel.addColumnModelListener( this );
     }
 
@@ -48,7 +49,7 @@ public class ColumnList implements TableColumnModelListener {
      * @return  column at list index <tt>jcol</tt>
      */
     public TableColumn getColumn( int jcol ) {
-        return (TableColumn) columnList.get( jcol );
+        return columnList.get( jcol );
     }
 
     /**
@@ -59,7 +60,7 @@ public class ColumnList implements TableColumnModelListener {
      * @return  true  iff column at <tt>jcol</tt> is active
      */
     public boolean isActive( int jcol ) {
-        return ((Boolean) active.get( jcol )).booleanValue();
+        return active.get( jcol ).booleanValue();
     }
 
     /**

@@ -1,6 +1,10 @@
 package uk.ac.starlink.topcat.plot2;
 
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.starlink.ttools.plot2.Ganger;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 
 /**
  * MultiController that works with AxisController instances.
@@ -11,6 +15,8 @@ import uk.ac.starlink.ttools.plot2.Ganger;
 public class MultiAxisController<P,A>
         extends MultiController<AxisController<P,A>> {
 
+    private final SurfaceFactory<P,A> surfFact_;
+
     /**
      * Constructor.
      *
@@ -18,9 +24,12 @@ public class MultiAxisController<P,A>
      * @param  zfact     zone id factory
      * @param  configger   manages global and per-zone axis config items
      */
-    public MultiAxisController( PlotTypeGui<P,A> plotType, ZoneFactory zfact,
+    public MultiAxisController( PlotTypeGui<P,A> plotType,
+                                SurfaceFactory<P,A> surfFact,
+                                ZoneFactory zfact,
                                 MultiConfigger configger ) {
         super( new AxisControllerFactory<P,A>( plotType ), zfact, configger );
+        surfFact_ = surfFact;
     }
 
     /**
@@ -36,14 +45,15 @@ public class MultiAxisController<P,A>
         /* Assemble an array of existing aspects. */
         ZoneId[] zones = getZones();
         int nz = zones.length;
-        AxisController<P,A>[] axControllers =
-            (AxisController<P,A>[]) new AxisController[ nz ];
-        A[] aspects = (A[]) new Object[ nz ];
+        List<AxisController<P,A>> axControllers =
+            new ArrayList<AxisController<P,A>>( nz );
+        A[] aspects = PlotUtil.createAspectArray( surfFact_, nz );
         int iz0 = -1;
         for ( int iz = 0; iz < nz; iz++ ) {
             ZoneId zid1 = zones[ iz ];
-            axControllers[ iz ] = getController( zid1 );
-            aspects[ iz ] = axControllers[ iz ].getAspect();
+            AxisController<P,A> ac = getController( zid1 );
+            axControllers.add( ac );
+            aspects[ iz ] = ac.getAspect();
             if ( zid != null && zid.equals( zid1 ) ) {
                 iz0 = iz;
             }
@@ -59,7 +69,7 @@ public class MultiAxisController<P,A>
 
         /* Write the updated aspects to their controller objects. */
         for ( int iz = 0; iz < nz; iz++ ) {
-            axControllers[ iz ].setAspect( aspects[ iz ] );
+            axControllers.get( iz ).setAspect( aspects[ iz ] );
         }
     }
 

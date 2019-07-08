@@ -24,7 +24,8 @@ import uk.ac.starlink.topcat.TopcatUtils;
 public class Sog {
 
     private static SOG sog_;
-    private static Map soggers_ = new HashMap();
+    private static Map<String,SOGNavigatorImageDisplay> soggers_ =
+        new HashMap<String,SOGNavigatorImageDisplay>();
 
     /**
      * Private constructor prevents instantiation.
@@ -102,8 +103,7 @@ public class Sog {
             sogger.setTitle( label );
             soggers_.put( label, sogger );
         }
-        SOGNavigatorImageDisplay sogger =
-            (SOGNavigatorImageDisplay) soggers_.get( label );
+        SOGNavigatorImageDisplay sogger = soggers_.get( label );
         if ( ! sogger.isShowing() ) {
             SwingUtilities.windowForComponent( sogger ).setVisible( true );
         }

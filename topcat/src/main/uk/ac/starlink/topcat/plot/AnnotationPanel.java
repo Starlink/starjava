@@ -52,7 +52,7 @@ public class AnnotationPanel extends JComponent implements ActionListener {
      *          sequence)
      */
     public void setActivePoints( int[] ipoints ) {
-        activePoints_ = (int[]) ipoints.clone();
+        activePoints_ = ipoints.clone();
         repaint();
     }
 
@@ -62,7 +62,7 @@ public class AnnotationPanel extends JComponent implements ActionListener {
      * @return  array of point indexes (indexes into current PlotData sequence)
      */
     public int[] getActivePoints() {
-        return (int[]) activePoints_.clone();
+        return activePoints_.clone();
     }
 
     /**

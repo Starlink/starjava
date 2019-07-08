@@ -52,6 +52,7 @@ public class SendSpectrumActivationType implements ActivationType {
     /**
      * Configurator implementation for URLs pointing to (SSA) spectra.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class SpectrumColumnConfigurator extends
             UrlColumnConfigurator {
         final TopcatModel tcModel_;

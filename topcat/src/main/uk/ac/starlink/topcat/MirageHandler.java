@@ -38,10 +38,10 @@ class MirageHandler {
             Class.forName( "mirage.Mirage", true, Thread.currentThread().getContextClassLoader() );
 
             /* Reflect as necessary. */
-            Class driverClass = 
+            Class<?> driverClass = 
                 Class.forName( "uk.ac.starlink.mirage.MirageDriver",
                                true, Thread.currentThread().getContextClassLoader());
-            Class[] argTypes = new Class[] { StarTable.class, List.class };
+            Class<?>[] argTypes = { StarTable.class, List.class };
             invokeMethod = driverClass.getMethod( "invokeMirage", argTypes );
 
             /* If we've got this far, we can invoke Mirage. */
@@ -66,7 +66,7 @@ class MirageHandler {
      * @throws   UnsupportedOperationException   if {@link #isMirageAvailable}
      *           would return false
      */
-    public static void invokeMirage( StarTable startab, List margs ) 
+    public static void invokeMirage( StarTable startab, List<String> margs ) 
             throws Exception {
         if ( ! isMirageAvailable() ) {
             throw new UnsupportedOperationException( "No mirage" );

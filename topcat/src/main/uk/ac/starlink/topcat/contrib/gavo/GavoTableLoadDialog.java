@@ -50,6 +50,7 @@ import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.Base64OutputStream;
 
+@SuppressWarnings({"unchecked","rawtypes"})
 public class GavoTableLoadDialog extends AbstractTableLoadDialog {
 
     private int nquery = 0;

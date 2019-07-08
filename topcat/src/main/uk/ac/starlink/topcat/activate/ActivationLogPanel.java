@@ -198,7 +198,7 @@ public class ActivationLogPanel extends JPanel {
      */
     private class LogTableModel extends AbstractTableModel {
         final List<Item> items_;
-        final ItemColumn[] cols_;
+        final ItemColumn<?>[] cols_;
         final int[] maxWidths_;
         long iseq0_;
         long iseq_;
@@ -208,7 +208,7 @@ public class ActivationLogPanel extends JPanel {
          */
         LogTableModel() {
             items_ = new ArrayList<Item>();
-            cols_ = new ItemColumn[] {
+            cols_ = new ItemColumn<?>[] {
                 new ItemColumn<Long>( "Seq", Long.class ) {
                     public Long getValue( Item item ) {
                         return new Long( item.iseq_ + 1 );
@@ -363,7 +363,7 @@ public class ActivationLogPanel extends JPanel {
      */
     private static abstract class ItemColumn<T> {
         final String name_;
-        final Class clazz_;
+        final Class<T> clazz_;
 
         /**
          * Constructor.

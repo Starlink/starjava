@@ -25,12 +25,13 @@ public class TimeAxisController
      */
     public TimeAxisController() {
         super( new TimeSurfaceFactory(), createAxisLabelKeys() );
-        SurfaceFactory surfFact = getSurfaceFactory();
+        SurfaceFactory<TimeSurfaceFactory.Profile,TimeAspect> surfFact =
+            getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
 
         /* Log/flip tab. */
         mainControl.addSpecifierTab( "Coords",
-                                     new ConfigSpecifier( new ConfigKey[] {
+                                     new ConfigSpecifier( new ConfigKey<?>[] {
             TimeSurfaceFactory.YLOG_KEY,
             TimeSurfaceFactory.YFLIP_KEY,
         } ) );
@@ -55,7 +56,7 @@ public class TimeAxisController
 
         /* Grid tab. */
         mainControl.addSpecifierTab( "Grid",
-                                     new ConfigSpecifier( new ConfigKey[] {
+                                     new ConfigSpecifier( new ConfigKey<?>[] {
             TimeSurfaceFactory.TFORMAT_KEY,
             TimeSurfaceFactory.GRID_KEY,
             StyleKeys.MINOR_TICKS,
@@ -98,7 +99,8 @@ public class TimeAxisController
         List<ConfigKey<String>> list = new ArrayList<ConfigKey<String>>();
         list.add( TimeSurfaceFactory.YLABEL_KEY );
         @SuppressWarnings("unchecked")
-        ConfigKey<String>[] keys = list.toArray( new ConfigKey[ 0 ] );
+        ConfigKey<String>[] keys =
+            (ConfigKey<String>[]) list.toArray( new ConfigKey<?>[ 0 ] );
         return keys;
     }
 }

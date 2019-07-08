@@ -13,6 +13,7 @@ import uk.ac.starlink.table.gui.TableSaveChooser;
  * @author   Mark Taylor
  * @since    15 Jul 2010
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public abstract class SavePanel extends JPanel {
 
     private final String title_;

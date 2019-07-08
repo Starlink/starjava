@@ -76,6 +76,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    29 Sep 2009
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class DalMultiPanel extends JPanel {
 
     private final DalMultiService service_;
@@ -126,7 +127,7 @@ public class DalMultiPanel extends JPanel {
         progBar_ = progBar;
         progBar.setStringPainted( true );
         JComponent main = AlignedBox.createVerticalBox();
-        List cList = new ArrayList();
+        List<JComponent> cList = new ArrayList<JComponent>();
         add( main );
 
         /* Field for service URL. */
@@ -342,7 +343,7 @@ public class DalMultiPanel extends JPanel {
         };
 
         /* Initialise enabledness of controls etc. */
-        components_ = (JComponent[]) cList.toArray( new JComponent[ 0 ] );
+        components_ = cList.toArray( new JComponent[ 0 ] );
         updateState();
     }
 

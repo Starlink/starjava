@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * @author   Mark Taylor
  * @since    20 Dec 2010
  */
-public class Version implements Comparable {
+public class Version implements Comparable<Version> {
 
     private static Pattern VERSION_REGEX =
         Pattern.compile( "([0-9+])\\.([0-9+])(?:-([0-9+]))?(.*)" );
@@ -65,8 +65,7 @@ public class Version implements Comparable {
         return vstr_.hashCode();
     }
 
-    public int compareTo( Object o ) {
-        Version other = (Version) o;
+    public int compareTo( Version other ) {
         int cmp = this.major_ - other.major_;
         if ( cmp == 0 ) {
             cmp = this.minor_ - other.minor_;

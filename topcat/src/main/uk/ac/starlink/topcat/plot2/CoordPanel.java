@@ -36,6 +36,7 @@ import uk.ac.starlink.util.gui.ComboBoxBumper;
  * @author   Mark Taylor
  * @since    13 Mar 2013
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class CoordPanel {
 
     private final Coord[] coords_;
@@ -51,7 +52,7 @@ public class CoordPanel {
      * @param  coords  coordinate definitions for which values are required
      */
     public CoordPanel( Coord[] coords ) {
-        this( coords, new ConfigKey[ 0 ] );
+        this( coords, new ConfigKey<?>[ 0 ] );
     }
 
     /**
@@ -60,7 +61,7 @@ public class CoordPanel {
      * @param  coords  coordinate definitions for which values are required
      * @param  configKeys   config value keys
      */
-    public CoordPanel( Coord[] coords, ConfigKey[] configKeys ) {
+    public CoordPanel( Coord[] coords, ConfigKey<?>[] configKeys ) {
         panel_ = new JPanel( new BorderLayout() );
         coords_ = coords;
         forwarder_ = new ActionForwarder();

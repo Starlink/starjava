@@ -4,7 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -41,19 +43,8 @@ public class DatalinkPanel extends JPanel {
     private Map<LinkColMap.ColDef<String>,String> selectionMap_;
     private String[] colnames_;
 
-    /**
-     * Ordered list of DataLink table columns to examine to find out
-     * whether a row in one DataLink table "corresponds to" a row in
-     * another one.  The earlier-listed columns are more significant;
-     * later ones are used as tie-breakers.
-     */
-    private static final LinkColMap.ColDef<String>[] CHAR_COLS =
-            (LinkColMap.ColDef<String>[]) new LinkColMap.ColDef<?>[] {
-        LinkColMap.COL_SEMANTICS,
-        LinkColMap.COL_DESCRIPTION,
-        LinkColMap.COL_CONTENTTYPE,
-        LinkColMap.COL_SERVICEDEF,
-    };
+    private static final List<LinkColMap.ColDef<String>> CHAR_COLS =
+        createCharCols();
 
     /**
      * Ordered list of DataLink table columns for display.
@@ -251,7 +242,7 @@ public class DatalinkPanel extends JPanel {
             return -1;
         }
         int[] scores = new int[ nrow ];
-        int nc = CHAR_COLS.length;
+        int nc = CHAR_COLS.size();
         for ( int irow = 0; irow < nrow; irow++ ) {
             Object[] row;
             try {
@@ -262,7 +253,7 @@ public class DatalinkPanel extends JPanel {
             }
             int score = 0;
             for ( int ic = 0; ic < nc; ic++ ) {
-                LinkColMap.ColDef<String> col = CHAR_COLS[ ic ];
+                LinkColMap.ColDef<String> col = CHAR_COLS.get( ic );
                 String oldValue = selectionMap_.get( col );
                 if ( oldValue != null &&
                      oldValue.equals( colMap.getValue( col, row ) ) ) {
@@ -281,4 +272,22 @@ public class DatalinkPanel extends JPanel {
         }
         return iHi;
     }
+
+    /**
+     * Returns an ordered list of DataLink table columns to examine to find out
+     * whether a row in one DataLink table "corresponds to" a row in
+     * another one.  The earlier-listed columns are more significant;
+     * later ones are used as tie-breakers.
+     *
+     * @return  char col list
+     */
+    private static List<LinkColMap.ColDef<String>> createCharCols() {
+        List<LinkColMap.ColDef<String>> list =
+            new ArrayList<LinkColMap.ColDef<String>>();
+        list.add( LinkColMap.COL_SEMANTICS );
+        list.add( LinkColMap.COL_DESCRIPTION );
+        list.add( LinkColMap.COL_CONTENTTYPE );
+        list.add( LinkColMap.COL_SERVICEDEF );
+        return list;
+    };
 }

@@ -115,7 +115,7 @@ public class TopcatLayer {
      * @return  layer specification, hopefully not null??
      */
     public LayerSpec getLayerSpec( int izone ) {
-        Plotter plotter = plotLayer_.getPlotter();
+        Plotter<?> plotter = plotLayer_.getPlotter();
         if ( tcModel_ == null ) {
             return new LayerSpec( plotter, config_, leglabel_, izone );
         }

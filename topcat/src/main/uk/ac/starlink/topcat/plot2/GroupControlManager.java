@@ -45,17 +45,17 @@ import uk.ac.starlink.util.Loader;
  * @author   Mark Taylor
  * @since    15 Mar 2013
  */
-public class GroupControlManager implements ControlManager {
+public class GroupControlManager<P,A> implements ControlManager {
 
     private final ControlStack stack_;
-    private final PlotType plotType_;
-    private final PlotTypeGui plotTypeGui_;
+    private final PlotType<P,A> plotType_;
+    private final PlotTypeGui<P,A> plotTypeGui_;
     private final TypedListModel<TopcatModel> tablesModel_;
     private final ZoneFactory zfact_;
     private final MultiConfigger baseConfigger_;
     private final TopcatListener tcListener_;
     private final NextSupplier nextSupplier_;
-    private final Map<CoordsType,List<Plotter>> plotterMap_;
+    private final Map<CoordsType,List<Plotter<?>>> plotterMap_;
     private final Action[] stackActs_;
 
     private static final Logger logger_ =
@@ -84,8 +84,8 @@ public class GroupControlManager implements ControlManager {
      *                     for it to listen to whatever is the currently
      *                     selected TopcatModel
      */
-    public GroupControlManager( ControlStack stack, PlotType plotType,
-                                PlotTypeGui plotTypeGui,
+    public GroupControlManager( ControlStack stack, PlotType<P,A> plotType,
+                                PlotTypeGui<P,A> plotTypeGui,
                                 TypedListModel<TopcatModel> tablesModel,
                                 ZoneFactory zfact, MultiConfigger baseConfigger,
                                 TopcatListener tcListener ) {
@@ -103,15 +103,15 @@ public class GroupControlManager implements ControlManager {
 
         /* Split the list up by the number of positional coordinates
          * they have. */
-        plotterMap_ = new LinkedHashMap<CoordsType,List<Plotter>>();
+        plotterMap_ = new LinkedHashMap<CoordsType,List<Plotter<?>>>();
         for ( CoordsType ctyp : CoordsType.values() ) {
-            plotterMap_.put( ctyp, new ArrayList<Plotter>() );
+            plotterMap_.put( ctyp, new ArrayList<Plotter<?>>() );
         }
-        for ( Plotter plotter : plotType_.getPlotters() ) {
+        for ( Plotter<?> plotter : plotType_.getPlotters() ) {
             CoordsType ctyp = CoordsType.getInstance( plotter );
             plotterMap_.get( ctyp ).add( plotter );
         }
-        for ( Plotter plotter :
+        for ( Plotter<?> plotter :
               Loader.getClassInstances( PLOTTERS_PROP, Plotter.class ) ) {
             CoordsType ctyp = CoordsType.getInstance( plotter );
             plotterMap_.get( ctyp ).add( plotter );
@@ -139,7 +139,7 @@ public class GroupControlManager implements ControlManager {
 
         /* Add single controls for miscellaneous plotters. */
         assert CoordsType.MISC.getIcon() == null;
-        for ( Plotter plotter : plotterMap_.get( CoordsType.MISC ) ) {
+        for ( Plotter<?> plotter : plotterMap_.get( CoordsType.MISC ) ) {
             Action stackAct =
                 LayerControlAction
                .createPlotterAction( plotter, stack, tablesModel_, zfact_,
@@ -199,7 +199,7 @@ public class GroupControlManager implements ControlManager {
         return null;
     }
 
-    public void addLayer( LayerCommand lcmd ) throws LayerException {
+    public void addLayer( LayerCommand<?> lcmd ) throws LayerException {
         logger_.info( "Add layer: " + lcmd );
         getGroupControl( lcmd ).addLayer( lcmd );
     }
@@ -214,7 +214,7 @@ public class GroupControlManager implements ControlManager {
      * @return  control in the stack for which <code>addLayer(lcmd)</code>
      *          will work
      */
-    private MultiFormLayerControl getGroupControl( LayerCommand lcmd )
+    private MultiFormLayerControl getGroupControl( LayerCommand<?> lcmd )
             throws LayerException {
         ControlStackModel stackModel = stack_.getStackModel();
 
@@ -246,7 +246,7 @@ public class GroupControlManager implements ControlManager {
      * @return  true iff <code>control.addLayer(lcmd)</code> will work
      */
     private static boolean isCompatible( MultiFormLayerControl control,
-                                         LayerCommand lcmd ) {
+                                         LayerCommand<?> lcmd ) {
 
         /* Note the implementation of this method is closely tied to the
          * implementation of MultiFormLayerControl.addLayer. */
@@ -304,7 +304,7 @@ public class GroupControlManager implements ControlManager {
      * @param  lcmd  layer specification
      * @return  new control for which <code>addLayer(lcmd)</code> will work
      */
-    private MultiFormLayerControl createGroupControl( LayerCommand lcmd )
+    private MultiFormLayerControl createGroupControl( LayerCommand<?> lcmd )
             throws LayerException {
 
         /* Create the control. */
@@ -359,7 +359,7 @@ public class GroupControlManager implements ControlManager {
      */
     private MultiFormLayerControl createGroupControl( CoordsType ctyp,
                                                       boolean autoPlot ) {
-        List<Plotter> plotterList = plotterMap_.get( ctyp );
+        List<Plotter<?>> plotterList = plotterMap_.get( ctyp );
         if ( plotterList != null && plotterList.size() > 0 ) {
             PositionCoordPanel coordPanel =
                 ctyp.createPositionCoordPanel( plotType_, plotTypeGui_ );
@@ -372,7 +372,7 @@ public class GroupControlManager implements ControlManager {
                                            autoPop, nextSupplier_, tcListener_,
                                            ctyp.getIcon(),
                                            plotterList
-                                          .toArray( new Plotter[ 0 ] ),
+                                          .toArray( new Plotter<?>[ 0 ] ),
                                            zoneConfigger );
             if ( autoPlot ) {
                 control.addDefaultLayer();
@@ -393,27 +393,27 @@ public class GroupControlManager implements ControlManager {
 
         /** Plotter with a single positional coordinate. */
         SINGLE_POS( ResourceIcon.PLOT_DATA, "Position", "positional", true ) {
-            public PositionCoordPanel
-                    createPositionCoordPanel( PlotType plotType,
-                                              PlotTypeGui plotTypeGui ) {
+            public <P,A> PositionCoordPanel
+                    createPositionCoordPanel( PlotType<P,A> plotType,
+                                              PlotTypeGui<P,A> plotTypeGui ) {
                 return plotTypeGui.createPositionCoordPanel( 1 );
             }
         },
 
         /** Plotter with two positional coordinates. */
         DOUBLE_POS( ResourceIcon.PLOT_PAIR, "Pair", "pair position", true ) {
-            public PositionCoordPanel
-                    createPositionCoordPanel( PlotType plotType,
-                                              PlotTypeGui plotTypeGui ) {
+            public <P,A> PositionCoordPanel
+                    createPositionCoordPanel( PlotType<P,A> plotType,
+                                              PlotTypeGui<P,A> plotTypeGui ) {
                 return plotTypeGui.createPositionCoordPanel( 2 );
             }
         },
 
         /** Plotter with four positional coordinates. */
         QUAD_POS( ResourceIcon.PLOT_QUAD, "Quad", "quadrilateral", true ) {
-            public PositionCoordPanel
-                    createPositionCoordPanel( PlotType plotType,
-                                              PlotTypeGui plotTypeGui ) {
+            public <P,A> PositionCoordPanel
+                    createPositionCoordPanel( PlotType<P,A> plotType,
+                                              PlotTypeGui<P,A> plotTypeGui ) {
                 return plotTypeGui.createPositionCoordPanel( 4 );
             }
         },
@@ -421,9 +421,9 @@ public class GroupControlManager implements ControlManager {
         /** Histogram-like plotter. */
         WEIGHTED_HISTO( ResourceIcon.PLOT_HISTO, "Histogram",
                         "optionally weighted histogram", true ) {
-            public PositionCoordPanel
-                    createPositionCoordPanel( PlotType plotType,
-                                              PlotTypeGui plotTypeGui ) {
+            public <P,A> PositionCoordPanel
+                    createPositionCoordPanel( PlotType<P,A> plotType,
+                                              PlotTypeGui<P,A> plotTypeGui ) {
                 Coord[] coords = {
                     plotType.getPointDataGeoms()[ 0 ].getPosCoords()[ 0 ],
                     FloatingCoord.WEIGHT_COORD,
@@ -434,9 +434,9 @@ public class GroupControlManager implements ControlManager {
 
         /** Plotter not covered by other categories. */
         MISC( null, null, null, false ) {
-            public PositionCoordPanel
-                    createPositionCoordPanel( PlotType plotType,
-                                              PlotTypeGui plotTypeGui ) {
+            public <P,A> PositionCoordPanel
+                    createPositionCoordPanel( PlotType<P,A> plotType,
+                                              PlotTypeGui<P,A> plotTypeGui ) {
                 return null;
             }
         };
@@ -505,9 +505,9 @@ public class GroupControlManager implements ControlManager {
          * @param   plotType  plot specifics
          * @param   plotTypeGui  gui plot specifics
          */
-        public abstract PositionCoordPanel
-                createPositionCoordPanel( PlotType plotType,
-                                          PlotTypeGui plotTypeGui );
+        public abstract <P,A> PositionCoordPanel
+                createPositionCoordPanel( PlotType<P,A> plotType,
+                                          PlotTypeGui<P,A> plotTypeGui );
 
         /**
          * Categorises plotters in terms of this enum.
@@ -515,7 +515,7 @@ public class GroupControlManager implements ControlManager {
          * @param  plotter  plotter to categorise
          * @return  instance of this class corresponding to plotter, not null
          */
-        public static CoordsType getInstance( Plotter plotter ) {
+        public static CoordsType getInstance( Plotter<?> plotter ) {
             CoordGroup cgrp = plotter.getCoordGroup();
             int npos = cgrp.getPositionCount();
 

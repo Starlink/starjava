@@ -45,11 +45,13 @@ public class ConeMultiWindow extends DalMultiWindow {
      */
     private static class ConeMultiService implements DalMultiService {
 
-        private final JComboBox verbSelector_;
+        @SuppressWarnings({"unchecked","rawtypes"})
+        private final JComboBox verbSelector_ =
+            new JComboBox( ConeVerbosity.getOptions() );
+
         private final JComponent controlBox_;
 
         ConeMultiService() {
-            verbSelector_ = new JComboBox( ConeVerbosity.getOptions() );
             verbSelector_.setSelectedIndex( 1 );
             assert ((ConeVerbosity) verbSelector_.getSelectedItem()).getLevel()
                    == 2;

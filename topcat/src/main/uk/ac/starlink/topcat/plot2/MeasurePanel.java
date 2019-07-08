@@ -28,7 +28,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 public class MeasurePanel extends JPanel {
 
     private final PlotMetric metric_;
-    private final PlotPanel plotPanel_;
+    private final PlotPanel<?,?> plotPanel_;
     private final ToggleButtonModel measureModel_;
     private final MeasureListener listener_;
     private final Color fg_;
@@ -45,7 +45,7 @@ public class MeasurePanel extends JPanel {
      *                   this panel will be presented with
      * @param   plotPanel   factory for surfaces
      */
-    public MeasurePanel( PlotMetric metric, PlotPanel plotPanel ) {
+    public MeasurePanel( PlotMetric metric, PlotPanel<?,?> plotPanel ) {
         metric_ = metric;
         plotPanel_ = plotPanel;
         listener_ = new MeasureListener();

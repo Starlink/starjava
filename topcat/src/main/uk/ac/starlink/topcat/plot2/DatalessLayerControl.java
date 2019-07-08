@@ -23,7 +23,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 public class DatalessLayerControl extends ConfigControl
                                   implements LayerControl {
 
-    private final Plotter plotter_;
+    private final Plotter<?> plotter_;
     private final Specifier<ZoneId> zsel_;
     private final Configger baseConfigger_;
     private final ConfigStyler styler_;
@@ -35,7 +35,7 @@ public class DatalessLayerControl extends ConfigControl
      * @param   zsel    zone id specifier, may be null for single-zone case
      * @param   baseConfigger   provides global configuration info
      */
-    public DatalessLayerControl( Plotter plotter, Specifier<ZoneId> zsel,
+    public DatalessLayerControl( Plotter<?> plotter, Specifier<ZoneId> zsel,
                                  Configger baseConfigger ) {
         super( plotter.getPlotterName(), plotter.getPlotterIcon() );
         plotter_ = plotter;

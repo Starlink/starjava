@@ -41,6 +41,7 @@ public abstract class TablePullHandler extends AbstractMessageHandler {
      * If it's a Response, use it as is, if not wrap it up as a success.
      */
     @Override
+    @SuppressWarnings("rawtypes")
     protected Response createResponse( Map processOutput ) {
         return processOutput instanceof Response
              ? (Response) processOutput
@@ -48,7 +49,8 @@ public abstract class TablePullHandler extends AbstractMessageHandler {
     }
 
     @Override
-    public Map processCall( HubConnection conn, String senderId, Message msg )
+    public Response processCall( HubConnection conn, String senderId,
+                                 Message msg )
             throws IOException {
         StarTableWriter twriter = getTableWriter( msg );
 
@@ -73,7 +75,7 @@ public abstract class TablePullHandler extends AbstractMessageHandler {
                 TableSendActionManager.createTableResource( table, twriter );
             URL turl =
                 TopcatServer.getInstance().addResource( fname, resource );
-            Map result = new LinkedHashMap();
+            Map<String,String> result = new LinkedHashMap<String,String>();
             result.put( "url", turl.toString() );
             return Response.createSuccessResponse( result );
         }
@@ -137,6 +139,7 @@ public abstract class TablePullHandler extends AbstractMessageHandler {
             return cwin.getCurrentModel();
         }
         else {
+            @SuppressWarnings("rawtypes")
             ListModel listModel = cwin.getTablesListModel();
             int nt = listModel.getSize();
             for ( int it = 0; it < nt; it++ ) {

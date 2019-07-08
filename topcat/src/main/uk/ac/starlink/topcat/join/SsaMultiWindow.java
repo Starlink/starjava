@@ -43,15 +43,16 @@ public class SsaMultiWindow extends DalMultiWindow {
      */
     private static class SsaMultiService implements DalMultiService {
 
-        private final JComboBox formatSelector_;
+        @SuppressWarnings({"unchecked","rawtypes"})
+        private final JComboBox formatSelector_
+            = new JComboBox( SsapTableLoadDialog.getFormatOptions() );
+
         private final JComponent controlBox_;
 
         /**
          * Constructor.
          */
         SsaMultiService() {
-            formatSelector_ =
-                new JComboBox( SsapTableLoadDialog.getFormatOptions() );
             formatSelector_.setSelectedIndex( 0 );
             formatSelector_.setEditable( true );
 

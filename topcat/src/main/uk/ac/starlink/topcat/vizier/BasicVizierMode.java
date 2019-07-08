@@ -48,7 +48,8 @@ public abstract class BasicVizierMode implements VizierMode {
         tModel_.setColumns( columns );
         table_ = new JTable( tModel_ );
         table_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
-        ArrayTableSorter sorter = new ArrayTableSorter<Queryable>( tModel_ );
+        ArrayTableSorter<Queryable> sorter =
+            new ArrayTableSorter<Queryable>( tModel_ );
         sorter.install( table_.getTableHeader() );
         sorter.setSorting( 0, false );
         panel_.add( new JScrollPane( table_,

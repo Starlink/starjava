@@ -21,6 +21,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    17 Aug 2007
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class LabelledAxesSelector implements AxesSelector, Wrapper {
 
     private final AxesSelector baseSelector_;

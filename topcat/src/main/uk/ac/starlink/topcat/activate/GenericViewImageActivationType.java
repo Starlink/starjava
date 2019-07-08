@@ -74,6 +74,7 @@ public class GenericViewImageActivationType implements ActivationType {
     /**
      * Configurator implementation for URLs pointing to images.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class ImageColumnConfigurator extends UrlColumnConfigurator {
         final TopcatModel tcModel_;
         final boolean isRegion_;
@@ -466,6 +467,7 @@ public class GenericViewImageActivationType implements ActivationType {
     /**
      * Component for choosing a numeric table column.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class NumberSelector {
         final String label_;
         final ColumnDataComboBoxModel model_;

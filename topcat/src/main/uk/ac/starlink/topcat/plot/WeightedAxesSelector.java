@@ -23,6 +23,7 @@ import uk.ac.starlink.ttools.plot.ErrorMode;
  * @author   Mark Taylor
  * @since    20 Jun 2007
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class WeightedAxesSelector implements AxesSelector {
 
     private final AxesSelector baseSelector_;

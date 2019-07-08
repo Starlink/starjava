@@ -34,6 +34,7 @@ import uk.ac.starlink.topcat.interop.TopcatSampControl;
  * @author   Mark Taylor
  * @since    27 Mar 2018
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SampSender {
 
     private final String mtype_;
@@ -133,7 +134,7 @@ public class SampSender {
      * @param  message  message to send
      * @return   outcome
      */
-    public Outcome activateMessage( Map message ) {
+    public Outcome activateMessage( Map<?,?> message ) {
         if ( !isAvailable() ) {
             return Outcome.failure( "No SAMP at all." );
         }
@@ -218,7 +219,7 @@ public class SampSender {
         if ( response.isOK() ) {
             String txt = "Successfully sent to " + client;
             try {
-                Map result = response.getResult();
+                Map<?,?> result = response.getResult();
                 if ( result != null && ! result.isEmpty() ) {
                     txt += ": " + result;
                 }

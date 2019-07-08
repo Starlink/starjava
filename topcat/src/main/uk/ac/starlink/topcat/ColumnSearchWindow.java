@@ -45,6 +45,7 @@ import uk.ac.starlink.util.gui.ValueButtonGroup;
  * @author   Mark Taylor
  * @since    28 Jun 2018
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ColumnSearchWindow extends AuxDialog {
 
     private final TableViewerWindow viewWindow_;

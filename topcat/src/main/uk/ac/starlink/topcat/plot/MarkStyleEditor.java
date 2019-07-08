@@ -38,6 +38,7 @@ import uk.ac.starlink.util.gui.ValueButtonGroup;
  * @author   Mark Taylor
  * @since    10 Jan 2005
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class MarkStyleEditor extends StyleEditor {
 
     private final JCheckBox markFlagger_;
@@ -47,11 +48,11 @@ public class MarkStyleEditor extends StyleEditor {
     private final LogSlider opaqueSlider_;
     private final ThicknessComboBox thickSelector_;
     private final DashComboBox dashSelector_;
-    private final ValueButtonGroup lineSelector_;
+    private final ValueButtonGroup<MarkStyle.Line> lineSelector_;
     private final JComboBox errorSelector_;
     private final ErrorModeSelectionModel[] errorModeModels_;
     private final JComponent corrBox_;
-    private final Map statMap_;
+    private final Map<SetId,XYStats> statMap_;
     private final String helpId_;
 
     private static final int MAX_SIZE = 5;
@@ -88,7 +89,7 @@ public class MarkStyleEditor extends StyleEditor {
                             ErrorRenderer defaultRenderer,
                             ErrorModeSelectionModel[] errorModeModels ) {
         super();
-        statMap_ = new HashMap();
+        statMap_ = new HashMap<SetId,XYStats>();
         boolean withErrors = errorModeModels.length > 0;
         helpId_ = withLines ? "MarkStyleEditor" : "MarkStyleEditorNoLines";
 
@@ -150,7 +151,7 @@ public class MarkStyleEditor extends StyleEditor {
         JRadioButton noneButton = new JRadioButton( "None", true );
         JRadioButton dotsButton = new JRadioButton( "Dot to Dot" );
         JRadioButton corrButton = new JRadioButton( "Linear Correlation" );
-        lineSelector_ = new ValueButtonGroup();
+        lineSelector_ = new ValueButtonGroup<MarkStyle.Line>();
         lineSelector_.add( noneButton, null );
         lineSelector_.add( dotsButton, MarkStyle.DOT_TO_DOT );
         lineSelector_.add( corrButton, MarkStyle.LINEAR );
@@ -274,7 +275,7 @@ public class MarkStyleEditor extends StyleEditor {
                          opaqueSlider_.getValue1(),
                          markFlagger_.isEnabled() && markFlagger_.isSelected(),
                          (ErrorRenderer) errorSelector_.getSelectedItem(),
-                         (MarkStyle.Line) lineSelector_.getValue(),
+                         lineSelector_.getValue(),
                          thickSelector_.getSelectedThickness(),
                          dashSelector_.getSelectedDash(),
                          errorModeModels_ );
@@ -341,7 +342,7 @@ public class MarkStyleEditor extends StyleEditor {
 
         /* Ensure that information about linear correlations is up to date. */
         String statText;
-        XYStats stats = (XYStats) statMap_.get( setId );
+        XYStats stats = statMap_.get( setId );
         if ( stats != null ) {
             statText = new StringBuffer()
                 .append( "m=" )

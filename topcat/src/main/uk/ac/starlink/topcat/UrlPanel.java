@@ -30,6 +30,7 @@ import javax.swing.SwingUtilities;
  * @author   Mark Taylor
  * @since    6 Feb 2018
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class UrlPanel extends JPanel {
 
     private final UrlOptions urlopts_;

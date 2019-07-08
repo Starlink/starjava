@@ -53,12 +53,13 @@ public class HistogramAxisController
     public HistogramAxisController() {
         super( new HistogramSurfaceFactory(),
                PlaneAxisController.createAxisLabelKeys() );
-        SurfaceFactory surfFact = getSurfaceFactory();
+        SurfaceFactory<PlaneSurfaceFactory.Profile,PlaneAspect> surfFact =
+            getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
 
         /* Log/flip tab. */
         mainControl.addSpecifierTab( "Coords",
-                                     new ConfigSpecifier( new ConfigKey[] {
+                                     new ConfigSpecifier( new ConfigKey<?>[] {
             PlaneSurfaceFactory.XLOG_KEY,
             PlaneSurfaceFactory.YLOG_KEY,
             PlaneSurfaceFactory.XFLIP_KEY,
@@ -86,7 +87,7 @@ public class HistogramAxisController
 
         /* Grid tab. */
         mainControl.addSpecifierTab( "Grid",
-                                     new ConfigSpecifier( new ConfigKey[] {
+                                     new ConfigSpecifier( new ConfigKey<?>[] {
             PlaneSurfaceFactory.GRID_KEY,
             StyleKeys.GRID_COLOR,
             StyleKeys.AXLABEL_COLOR,
@@ -109,7 +110,8 @@ public class HistogramAxisController
                                                          .getKeys() ) );
 
         /* Bars control. */
-        ConfigSpecifier hbarSpecifier = new ConfigSpecifier( new ConfigKey[] {
+        ConfigSpecifier hbarSpecifier =
+                new ConfigSpecifier( new ConfigKey<?>[] {
             HistogramPlotter.BINSIZER_KEY,
             HistogramPlotter.PHASE_KEY,
         } );
@@ -119,7 +121,8 @@ public class HistogramAxisController
         histoCountLabel_ = new JLabel();
         addCountLabel( hbarSpecifier.getComponent(),
                        "Visible Histograms", histoCountLabel_ );
-        ConfigSpecifier kbinSpecifier = new ConfigSpecifier( new ConfigKey[] {
+        ConfigSpecifier kbinSpecifier =
+                new ConfigSpecifier( new ConfigKey<?>[] {
             Pixel1dPlotter.SMOOTHSIZER_KEY,
             Pixel1dPlotter.KERNEL_KEY,
         } );
@@ -129,7 +132,7 @@ public class HistogramAxisController
         kdeCountLabel_ = new JLabel();
         addCountLabel( kbinSpecifier.getComponent(),
                        "Visible KDEs", kdeCountLabel_ );
-        ConfigSpecifier genSpecifier = new ConfigSpecifier( new ConfigKey[] {
+        ConfigSpecifier genSpecifier = new ConfigSpecifier( new ConfigKey<?>[] {
             StyleKeys.CUMULATIVE,
             StyleKeys.NORMALISE,
         } );
@@ -349,8 +352,8 @@ public class HistogramAxisController
         }
 
         @Override
-        public ConfigKey[] getNavigatorKeys() {
-            return new ConfigKey[] {
+        public ConfigKey<?>[] getNavigatorKeys() {
+            return new ConfigKey<?>[] {
                 NAVAXES_KEY,
                 HIST_XANCHOR_KEY,
                 HIST_YANCHOR_KEY,

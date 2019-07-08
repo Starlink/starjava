@@ -187,7 +187,7 @@ public class OptionalConfigSpecifier extends ConfigSpecifier {
      * Otherwise falls back to default behaviour.
      */
     private static class OptComponentGui implements ComponentGui {
-        final Collection optKeys_;
+        final Collection<ConfigKey<?>> optKeys_;
         final String optText_;
 
         /**

@@ -61,7 +61,7 @@ class ResultsTableModel extends AbstractTableModel {
     @Override
     public String getColumnName(int col) {
         /* table for column names conversion */
-        Hashtable DBtoDisplay = new Hashtable();
+        Hashtable<String,String> DBtoDisplay = new Hashtable<String,String>();
         DBtoDisplay.put("FILENAME", "BaSTI Table");
         DBtoDisplay.put("FILE_TYPE", "Data Type");
         DBtoDisplay.put("SCENARIO_TYPE", "Scenario");
@@ -81,7 +81,7 @@ class ResultsTableModel extends AbstractTableModel {
         // ID and PATH will not be directly displayed in result
         col += 2;
         /* return correct column name */
-        return DBtoDisplay.get(names[col]).toString();
+        return DBtoDisplay.get(names[col]);
     }
 
     /**

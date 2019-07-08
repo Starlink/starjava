@@ -43,6 +43,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor (Starlink)
  * @since    25 Mar 2004
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ConcatWindow extends AuxWindow {
 
     private final JComboBox t1selector;
@@ -191,7 +192,7 @@ public class ConcatWindow extends AuxWindow {
                     ((StarTableColumn) colModel1.getColumn( icol ))
                    .getColumnInfo();
                 colPanel.add( new JLabel( cinfo.getName() + ": " ) );
-                Class clazz = cinfo.getContentClass();
+                Class<?> clazz = cinfo.getContentClass();
                 if ( Number.class.isAssignableFrom( clazz ) ) {
                     clazz = Number.class;
                 }
@@ -297,7 +298,7 @@ public class ConcatWindow extends AuxWindow {
      * @param  clazz2  second type
      * @return   true iff classes are similar
      */
-    private static boolean isMatchingClass( Class clazz1, Class clazz2 ) {
+    private static boolean isMatchingClass( Class<?> clazz1, Class<?> clazz2 ) {
         return clazz1.equals( clazz2 )
             || isIntegerClass( clazz1 ) && isIntegerClass( clazz2 )
             || isFloatingClass( clazz1 ) && isFloatingClass( clazz2 );
@@ -309,7 +310,7 @@ public class ConcatWindow extends AuxWindow {
      * @param  clazz  type
      * @return  true if integer wrapper type
      */
-    private static boolean isIntegerClass( Class clazz ) {
+    private static boolean isIntegerClass( Class<?> clazz ) {
         return Byte.class.equals( clazz )
             || Short.class.equals( clazz )
             || Integer.class.equals( clazz )
@@ -322,7 +323,7 @@ public class ConcatWindow extends AuxWindow {
      * @param  clazz  type
      * @return  true if floating point wrapper type
      */
-    private static boolean isFloatingClass( Class clazz ) {
+    private static boolean isFloatingClass( Class<?> clazz ) {
         return Float.class.equals( clazz )
             || Double.class.equals( clazz );
     }
@@ -341,8 +342,8 @@ public class ConcatWindow extends AuxWindow {
             return new BlankColumn( info );
         }
         else {
-            Class dataClazz = cdata.getColumnInfo().getContentClass();
-            Class reqClazz = info.getContentClass();
+            Class<?> dataClazz = cdata.getColumnInfo().getContentClass();
+            Class<?> reqClazz = info.getContentClass();
             if ( dataClazz.equals( reqClazz ) ) {
                 return cdata;
             }
@@ -438,7 +439,7 @@ public class ConcatWindow extends AuxWindow {
          */
         public static TranslateNumericTypeColumnData
                 createInstance( ColumnData cdata, ColumnInfo info ) {
-            Class clazz = info.getContentClass();
+            Class<?> clazz = info.getContentClass();
             if ( Byte.class.equals( clazz ) ) {
                 return new TranslateNumericTypeColumnData( cdata, info ) {
                     protected Object translate( Number value ) {

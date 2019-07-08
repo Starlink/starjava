@@ -3,7 +3,6 @@ package uk.ac.starlink.topcat;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -24,7 +23,8 @@ import javax.swing.event.ListDataListener;
 public class ActionForwarder
              implements ActionListener, ChangeListener, ListDataListener {
 
-    private final List listeners_ = new ArrayList();
+    private final List<ActionListener> listeners_ =
+        new ArrayList<ActionListener>();
 
     /**
      * Adds a new listener to the list of forwardees.
@@ -46,8 +46,8 @@ public class ActionForwarder
     }
 
     public void actionPerformed( ActionEvent evt ) {
-        for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
-            ((ActionListener) it.next()).actionPerformed( evt );
+        for ( ActionListener l : listeners_ ) {
+            l.actionPerformed( evt );
         }
     }
 

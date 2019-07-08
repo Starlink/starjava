@@ -20,6 +20,7 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
  * @author   Mark Taylor
  * @since    13 Mar 2013
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ControlStackModel extends AbstractListModel {
 
     private final List<Control> list_;

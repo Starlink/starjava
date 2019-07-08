@@ -68,16 +68,16 @@ public class ShaderControl extends ConfigControl {
         ActionListener forwarder = getActionForwarder();
 
         AutoConfigSpecifier axisSpecifier = new AutoConfigSpecifier(
-            new ConfigKey[] { AUXVISIBLE_KEY, AUXLABEL_KEY,
-                              StyleKeys.AUX_CROWD },
-            new ConfigKey[] { AUXVISIBLE_KEY, AUXLABEL_KEY, }
+            new ConfigKey<?>[] { AUXVISIBLE_KEY, AUXLABEL_KEY,
+                                 StyleKeys.AUX_CROWD },
+            new ConfigKey<?>[] { AUXVISIBLE_KEY, AUXLABEL_KEY, }
         );
         labelSpecifier_ = axisSpecifier.getAutoSpecifier( AUXLABEL_KEY );
         visibleSpecifier_ = axisSpecifier.getAutoSpecifier( AUXVISIBLE_KEY );
         labelSpecifier_.setAutoValue( null );
         visibleSpecifier_.setAutoValue( false );
         configureForLayers( new LayerControl[ 0 ] );
-        rangeSpecifier_ = new ConfigSpecifier( new ConfigKey[] {
+        rangeSpecifier_ = new ConfigSpecifier( new ConfigKey<?>[] {
             StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH, StyleKeys.SHADE_SUBRANGE,
         } ) {
             @Override
@@ -100,9 +100,10 @@ public class ShaderControl extends ConfigControl {
         };
         rangeSpecifier_.addActionListener( forwarder );
 
-        ConfigKey[] shaderKeys =
-            PlotUtil.arrayConcat( RAMP_KEYS.getKeys(),
-                                  new ConfigKey[] { StyleKeys.AUX_NULLCOLOR } );
+        ConfigKey<?>[] shaderKeys =
+            PlotUtil
+           .arrayConcat( RAMP_KEYS.getKeys(),
+                         new ConfigKey<?>[] { StyleKeys.AUX_NULLCOLOR } );
         addSpecifierTab( "Map", new ConfigSpecifier( shaderKeys ) );
         addSpecifierTab( "Ramp", axisSpecifier );
         addSpecifierTab( "Range", rangeSpecifier_ );

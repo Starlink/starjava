@@ -40,6 +40,7 @@ public class SendTableActivationType implements ActivationType {
     /**
      * Configurator implementation for URLs pointing to VOTables.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class SendTableColumnConfigurator
             extends UrlColumnConfigurator {
         final TopcatModel tcModel_;

@@ -7,7 +7,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractListModel;
@@ -26,6 +25,7 @@ import uk.ac.starlink.topcat.func.Sog;
  * @author   Mark Taylor
  * @since    18 Sep 2008
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class PlasticImageActivity implements ImageActivity {
 
     private final TopcatPlasticListener plasticServer_;
@@ -126,13 +126,12 @@ public class PlasticImageActivity implements ImageActivity {
          */
         void setFits( boolean isFits ) {
             isFits_ = isFits;
-            List vList = new ArrayList();
+            List<ImageViewer> vList = new ArrayList<ImageViewer>();
             vList.add( basicViewer_ );
             if ( TopcatUtils.canSog() ) {
                 vList.add( sogViewer_ );
             }
-            baseViewers_ =
-                (ImageViewer[]) vList.toArray( new ImageViewer[ 0 ] );
+            baseViewers_ = vList.toArray( new ImageViewer[ 0 ] );
             int nv = getSize();
             boolean selectionLegal = false;
             for ( int iv = 0; iv < nv; iv++ ) {
@@ -202,20 +201,18 @@ public class PlasticImageActivity implements ImageActivity {
 
         public boolean viewImage( String label, String location ) {
             try {
-                List argList =
-                    Arrays.asList( new Object[] { location, label, } );
+                List<String> argList =
+                    Arrays.asList( new String[] { location, label, } );
                 URI msgId = MessageId.FITS_LOADIMAGE;
                 plasticServer_.register();
                 PlasticHubListener hub = plasticServer_.getHub();
                 URI plasticId = plasticServer_.getRegisteredId();
-                Map responses = ( recipient_ == null )
-                    ? hub.request( plasticId, msgId, argList )
-                    : hub.requestToSubset( plasticId, msgId, argList,
-                                           Collections
-                                          .singletonList( recipient_ ) );
-                for ( Iterator it = responses.values().iterator();
-                      it.hasNext(); ) {
-                    Object response = it.next();
+                Map<?,?> responses = ( recipient_ == null )
+                       ? hub.request( plasticId, msgId, argList )
+                       : hub.requestToSubset( plasticId, msgId, argList,
+                                              Collections
+                                             .singletonList( recipient_ ) );
+                for ( Object response : responses.values() ) {
                     if ( response instanceof Boolean &&
                          ((Boolean) response).booleanValue() ) {
                         return true;

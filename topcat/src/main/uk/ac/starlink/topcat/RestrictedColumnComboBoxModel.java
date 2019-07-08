@@ -21,16 +21,16 @@ public abstract class RestrictedColumnComboBoxModel
 
     private TableColumnModel colModel;
     private boolean hasNone;
-    private List activeColumns;
-    private List modelColumns;
+    private List<TableColumn> activeColumns;
+    private List<TableColumn> modelColumns;
 
     public RestrictedColumnComboBoxModel( TableColumnModel colModel,
                                           boolean hasNone ) {
         super( colModel, hasNone );
         this.colModel = colModel;
         this.hasNone = hasNone;
-        activeColumns = new ArrayList();
-        modelColumns = new ArrayList();
+        activeColumns = new ArrayList<TableColumn>();
+        modelColumns = new ArrayList<TableColumn>();
         if ( hasNone ) {
             activeColumns.add( NO_COLUMN );
         }
@@ -84,7 +84,7 @@ public abstract class RestrictedColumnComboBoxModel
 
     public void columnRemoved( TableColumnModelEvent evt ) {
         int index = evt.getFromIndex();
-        TableColumn tcol = (TableColumn) modelColumns.get( index );
+        TableColumn tcol = modelColumns.get( index );
         modelColumns.remove( tcol );
         int pos = activeColumns.indexOf( tcol );
         if ( pos >= 0 ) {
@@ -95,11 +95,11 @@ public abstract class RestrictedColumnComboBoxModel
 
     public void columnMoved( TableColumnModelEvent evt ) {
         int from = evt.getFromIndex();
-        TableColumn tcol = (TableColumn) modelColumns.get( from );
+        TableColumn tcol = modelColumns.get( from );
         if ( activeColumns.contains( tcol ) ) {
-            List oldActive = activeColumns;
-            activeColumns = new ArrayList();
-            modelColumns = new ArrayList();
+            List<TableColumn> oldActive = activeColumns;
+            activeColumns = new ArrayList<TableColumn>();
+            modelColumns = new ArrayList<TableColumn>();
             if ( hasNone ) {
                 activeColumns.add( NO_COLUMN );
             }
@@ -128,11 +128,11 @@ public abstract class RestrictedColumnComboBoxModel
      *                    data assignable to
      */
     public static RestrictedColumnComboBoxModel makeClassColumnComboBoxModel(
-            TableColumnModel colModel, boolean hasNone, Class clazz ) {
+            TableColumnModel colModel, boolean hasNone, Class<?> clazz ) {
         if ( Number.class.isAssignableFrom( clazz ) ) {
             clazz = Number.class;
         }
-        final Class effClazz = clazz;
+        final Class<?> effClazz = clazz;
         return new RestrictedColumnComboBoxModel( colModel, hasNone ) {
             public boolean acceptColumn( ColumnInfo colInfo ) {
                 return effClazz.isAssignableFrom( colInfo.getContentClass() );

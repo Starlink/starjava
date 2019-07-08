@@ -44,7 +44,7 @@ public abstract class ValueCodec {
      */
     public static ValueCodec[] getCodecs( ValueInfo info ) {
         String units = info.getUnitString();
-        Class clazz = info.getContentClass();
+        Class<?> clazz = info.getContentClass();
         if ( Number.class.isAssignableFrom( clazz ) &&
              ( units != null && ( units.equalsIgnoreCase( "radian" ) ||
                                   units.equalsIgnoreCase( "radians" ) ) ) ) {

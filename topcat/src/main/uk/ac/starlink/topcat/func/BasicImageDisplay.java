@@ -20,7 +20,8 @@ import uk.ac.starlink.topcat.ImageWindow;
  */
 public class BasicImageDisplay {
 
-    private static Map viewers_ = new HashMap();
+    private static Map<String,ImageWindow> viewers_ =
+        new HashMap<String,ImageWindow>();
 
     /**
      * Private constructor prevents instantiation.
@@ -61,7 +62,7 @@ public class BasicImageDisplay {
             viewer.setTitle( label );
             viewers_.put( label, viewer );
         }
-        ImageWindow viewer = (ImageWindow) viewers_.get( label );
+        ImageWindow viewer = viewers_.get( label );
         if ( ! viewer.isShowing() ) {
             viewer.setVisible( true );
         }

@@ -52,13 +52,14 @@ import uk.ac.starlink.util.gui.SizingScrollPane;
  *
  * @author   Mark Taylor (Starlink)
  */
+@SuppressWarnings("rawtypes")
 public class StatsWindow extends AuxWindow {
 
     private final TopcatModel tcModel_;
     private final StarTable dataModel_;
     private final TableColumnModel columnModel_;
     private final OptionsListModel<RowSubset> subsets_;
-    private final Map calcMap_;
+    private final Map<RowSubset,StatsCalculator> calcMap_;
     private final JTable jtab_;
     private final JProgressBar progBar_;
     private final JComboBox subSelector_;
@@ -99,7 +100,7 @@ public class StatsWindow extends AuxWindow {
         subsets_ = tcModel.getSubsets();
 
         /* Set up a map to contain statistic sets that have been calculated. */
-        calcMap_ = new HashMap();
+        calcMap_ = new HashMap<RowSubset,StatsCalculator>();
 
         /* Construct a table model which contains the results of the
          * current calculation. */
@@ -284,7 +285,7 @@ public class StatsWindow extends AuxWindow {
         /* If we have already done this calculation, display the results
          * directly. */
         if ( calcMap_.containsKey( rset ) ) {
-            displayCalculations( (StatsCalculator) calcMap_.get( rset ) );
+            displayCalculations( calcMap_.get( rset ) );
         }
 
         /* Otherwise, kick off a new thread which will perform the
@@ -348,7 +349,7 @@ public class StatsWindow extends AuxWindow {
         StarJTable.configureColumnWidth( jtab, 200, Integer.MAX_VALUE, 0 );
 
         for ( int icol = 0; icol < tcm.getColumnCount(); icol++ ) {
-            Class clazz = tmodel.getColumnClass( icol );
+            Class<?> clazz = tmodel.getColumnClass( icol );
             if ( clazz.equals( Long.class ) ) {
                 clazz = Integer.class;
             }
@@ -410,7 +411,7 @@ public class StatsWindow extends AuxWindow {
 
         /* Assemble the list of statistical quantities the model knows
          * about.  Some of the following columns are hidden by default. */
-        List metas = new ArrayList();
+        List<MetaColumn> metas = new ArrayList<MetaColumn>();
 
         /* Index. */
         hideColumns_.set( metas.size() );
@@ -767,7 +768,7 @@ public class StatsWindow extends AuxWindow {
      *           value is between 0 (0th percentile) and 1 (100th percentile)
      */
     private static Map<Double,String> createNamedQuantiles() {
-        Map map = new LinkedHashMap();
+        Map<Double,String> map = new LinkedHashMap<Double,String>();
         map.put( new Double( 0.001 ), "Q001" );
         map.put( new Double( 0.01 ), "Q01" );
         map.put( new Double( 0.1 ), "Q10" );
@@ -831,7 +832,7 @@ public class StatsWindow extends AuxWindow {
         public Object getValue( int irow ) {
             int jcol = getModelIndexFromRow( irow );
             if ( lastCalc_.hasQuant ) {
-                Map quantiles = lastCalc_.quantiles[ jcol ];
+                Map<Double,Number> quantiles = lastCalc_.quantiles.get( jcol );
                 if ( quantiles == null || ! quantiles.containsKey( key_ ) ) {
                     return null;
                 }
@@ -883,7 +884,7 @@ public class StatsWindow extends AuxWindow {
         double[] sum3s;
         double[] sum4s;
         int[] cards;
-        Map[] quantiles;
+        List<Map<Double,Number>> quantiles;
         QuantCalc[] quantCalcs;
 
         /**
@@ -1002,13 +1003,17 @@ public class StatsWindow extends AuxWindow {
             sum3s = new double[ ncol ];
             sum4s = new double[ ncol ];
             cards = new int[ ncol ];
-            quantiles = new Map[ ncol ];
+            quantiles = new ArrayList<Map<Double,Number>>( ncol );
             quantCalcs = new QuantCalc[ ncol ];
 
             boolean[] badcompars = new boolean[ ncol ];
             double[] dmins = new double[ ncol ];
             double[] dmaxs = new double[ ncol ];
-            Set[] valuesets = new Set[ ncol ];
+            List<Set<Object>> valuesets = new ArrayList<Set<Object>>( ncol );
+            for ( int i = 0; i < ncol; i++ ) {
+                quantiles.add( null );
+                valuesets.add( null );
+            }
             Arrays.fill( dmins, Double.MAX_VALUE );
             Arrays.fill( dmaxs, -Double.MAX_VALUE );
 
@@ -1028,18 +1033,21 @@ public class StatsWindow extends AuxWindow {
 
             /* See which columns we can sensibly gather statistics on. */
             for ( int icol = 0; icol < ncol; icol++ ) {
-                Class clazz = dataModel_.getColumnInfo( icol )
-                                        .getContentClass();
+                Class<?> clazz = dataModel_.getColumnInfo( icol )
+                                           .getContentClass();
                 isNumber[ icol ] = Number.class.isAssignableFrom( clazz );
                 isComparable[ icol ] = Comparable.class
                                                  .isAssignableFrom( clazz );
                 isBoolean[ icol ] = clazz.equals( Boolean.class );
                 isCardinal[ icol ] = ! clazz.equals( Boolean.class );
                 if ( isCardinal[ icol ] ) {
-                    valuesets[ icol ] = new HashSet();
+                    valuesets.set( icol, new HashSet<Object>() );
                 }
                 if ( hasQuant && isNumber[ icol ] ) {
-                    quantCalcs[ icol ] = QuantCalc.createInstance( clazz, nr );
+                    @SuppressWarnings("unchecked")
+                    Class<? extends Number> nclazz =
+                        (Class<? extends Number>) clazz;
+                    quantCalcs[ icol ] = QuantCalc.createInstance( nclazz, nr );
                 }
             }
 
@@ -1149,7 +1157,9 @@ public class StatsWindow extends AuxWindow {
                                     good = true;
                                 }
                                 if ( good ) {
-                                    Comparable cval = (Comparable) val;
+                                    @SuppressWarnings("unchecked")
+                                    Comparable<Object> cval =
+                                        (Comparable<Object>) val;
                                     if ( mins[ icol ] == null ) {
                                         assert maxs[ icol ] == null;
                                         mins[ icol ] = val;
@@ -1193,10 +1203,10 @@ public class StatsWindow extends AuxWindow {
 
                         /* Maybe calculate the cardinalities. */
                         if ( good && isCardinal[ icol ] ) {
-                            valuesets[ icol ].add( val );
-                            if ( valuesets[ icol ].size() > cardlimit ) {
+                            valuesets.get( icol ).add( val );
+                            if ( valuesets.get( icol ).size() > cardlimit ) {
                                 isCardinal[ icol ] = false;
-                                valuesets[ icol ] = null;
+                                valuesets.set( icol, null );
                             }
                         }
                     }
@@ -1250,22 +1260,22 @@ public class StatsWindow extends AuxWindow {
                         means[ icol ] = (double) ntrues[ icol ] / ngood;
                     }
                     if ( isCardinal[ icol ] ) {
-                        int card = valuesets[ icol ].size();
+                        int card = valuesets.get( icol ).size();
                         if ( card <= getCardinalityLimit( ngood ) ) {
                             cards[ icol ] = card;
                         }
                         else {
                             cards[ icol ] = 0;
                             isCardinal[ icol ] = false;
-                            valuesets[ icol ] = null;
+                            valuesets.set( icol, null );
                         }
                     }
                     QuantCalc quantCalc = quantCalcs[ icol ];
                     if ( quantCalc != null ) {
                         quantCalc.ready();
-                        quantiles[ icol ] = new HashMap();
+                        quantiles.set( icol, new HashMap<Double,Number>() );
                         for ( Double qval : NAMED_QUANTILES.keySet() ) {
-                            quantiles[ icol ]
+                            quantiles.get( icol )
                            .put( qval, quantCalc.getQuantile( qval ) );
                         }
                         mads[ icol ] =

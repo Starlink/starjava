@@ -5,7 +5,6 @@ import java.awt.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Action;
@@ -149,7 +148,7 @@ public class PairMatchSpec extends MatchSpec {
         /* Create a new table based on the matched lines. */
         boolean addGroups = pairMode.mayProduceGroups();
         fixActs_ = getDefaultFixActions( 2 );
-        StarTable[] useBases = (StarTable[]) bases.clone();
+        StarTable[] useBases = bases.clone();
         for ( int i = 0; i < 2; i++ ) {
             if ( ! joinType_.getUsedTableFlags()[ i ] ) {
                 useBases[ i ] = null;
@@ -164,8 +163,7 @@ public class PairMatchSpec extends MatchSpec {
         if ( joinType_.getUsedMatchFlag() ) {
             BitSet matched = new BitSet();
             int iLink = 0;
-            for ( Iterator it = links.iterator(); it.hasNext(); ) {
-                RowLink link = (RowLink) it.next();
+            for ( RowLink link : links ) {
                 matched.set( iLink++, link.size() == 2 );
             }
             assert iLink == links.size();
@@ -223,7 +221,7 @@ public class PairMatchSpec extends MatchSpec {
     private static void addMatchMetadata( StarTable table, MatchEngine engine,
                                           PairMode pairMode, JoinType joinType,
                                           TopcatModel[] tcModels ) {
-        List params = table.getParameters();
+        List<DescribedValue> params = table.getParameters();
         String type = "Pair match; " + pairMode.getSummary();
         params.add( new DescribedValue( MATCHTYPE_INFO, type ) );
         params.add( new DescribedValue( ENGINE_INFO, engine.toString() ) );
@@ -244,6 +242,7 @@ public class PairMatchSpec extends MatchSpec {
                         tcModels[ 1 ].toString() ) );
     }
 
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class JoinSelector extends Box {
         final JComboBox jCombo_;
         JoinSelector() {

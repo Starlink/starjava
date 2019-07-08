@@ -40,7 +40,7 @@ import uk.ac.starlink.ttools.jel.JELUtils;
  */
 public class TopcatJELUtils extends JELUtils {
 
-    private static List<Class> activationStaticClasses;
+    private static List<Class<?>> activationStaticClasses;
     public static final String ACTIVATION_CLASSES_PROPERTY =
         "jel.classes.activation";
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -81,13 +81,13 @@ public class TopcatJELUtils extends JELUtils {
      */
     public static Library getLibrary( JELRowReader rowReader,
                                       boolean activation ) {
-        List<Class> statix = new ArrayList<Class>( getStaticClasses() );
-        List<Class> activStatix = activation ? getActivationStaticClasses()
-                                             : new ArrayList<Class>();
+        List<Class<?>> statix = new ArrayList<Class<?>>( getStaticClasses() );
+        List<Class<?>> activStatix = activation ? getActivationStaticClasses()
+                                                : new ArrayList<Class<?>>();
         statix.addAll( activStatix );
-        Class[] staticLib = statix.toArray( new Class[ 0 ] );
-        Class[] dynamicLib = new Class[] { rowReader.getClass() };
-        Class[] dotClasses = new Class[ 0 ];
+        Class<?>[] staticLib = statix.toArray( new Class<?>[ 0 ] );
+        Class<?>[] dynamicLib = { rowReader.getClass() };
+        Class<?>[] dotClasses = {};
         DVMap resolver = rowReader;
         Library lib = new Library( staticLib, dynamicLib, dotClasses,
                                    resolver, null );
@@ -99,7 +99,7 @@ public class TopcatJELUtils extends JELUtils {
          * you might have them while you're experimenting, and it is
          * surprising to see the expression be evaluated when you type
          * the expression in rather than when the activation takes place. */
-        for ( Class clazz : activStatix ) {
+        for ( Class<?> clazz : activStatix ) {
             for ( Method method : clazz.getMethods() ) {
                 int mods = method.getModifiers();
                 if ( Modifier.isPublic( mods ) &&
@@ -127,13 +127,13 @@ public class TopcatJELUtils extends JELUtils {
      *
      * @return  list of activation classes with static methods
      */
-    public static List<Class> getActivationStaticClasses() {
+    public static List<Class<?>> getActivationStaticClasses() {
         if ( activationStaticClasses == null ) {
 
             /* Assemble the list of classes which we know we have on hand.
              * Be careful though, since we may not have the classes they
              * rely on. */
-            List<Class> classList = new ArrayList<Class>();
+            List<Class<?>> classList = new ArrayList<Class<?>>();
             classList.add( Output.class );
             classList.add( uk.ac.starlink.topcat.func.System.class );
             classList.add( Image.class );
@@ -155,7 +155,7 @@ public class TopcatJELUtils extends JELUtils {
                     String[] cs = auxClasses.split( ":" );
                     for ( int i = 0; i < cs.length; i++ ) {
                         String className = cs[ i ].trim();
-                        Class clazz = classForName( className );
+                        Class<?> clazz = classForName( className );
                         if ( clazz != null ) {
                             if ( ! classList.contains( clazz ) ) {
                                 classList.add( clazz );
@@ -184,7 +184,7 @@ public class TopcatJELUtils extends JELUtils {
      * @param   prim  primitive class
      * @return  the corresponding non-primitive wrapper class
      */
-    public static Class wrapPrimitiveClass( Class prim ) {
+    public static Class<?> wrapPrimitiveClass( Class<?> prim ) {
         if ( prim == boolean.class ) {
             return Boolean.class;
         }
@@ -224,7 +224,7 @@ public class TopcatJELUtils extends JELUtils {
      * @param   cname  class name
      * @return  class or null
      */
-    public static Class classForName( String cname ) {
+    public static Class<?> classForName( String cname ) {
 
         // Hmm - not sure now why I wanted to make sure I got this classloader.
         // I wonder if there is a good reason??

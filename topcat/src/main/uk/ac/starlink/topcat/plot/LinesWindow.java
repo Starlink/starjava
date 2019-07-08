@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,7 +82,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     private final ToggleButtonModel antialiasModel_;
     private final ToggleButtonModel vlineModel_;
     private final ToggleButtonModel zeroLineModel_;
-    private final Map yViewRangeMap_;
+    private final Map<PointSelector,Range> yViewRangeMap_;
 
     private Range[] yDataRanges_;
     private StyleSet styles_;
@@ -131,7 +130,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                createErrorModeModels( AXIS_NAMES ), parent );
 
         /* Set some initial values. */
-        yViewRangeMap_ = new HashMap();
+        yViewRangeMap_ = new HashMap<PointSelector,Range>();
         annotator_ = new Annotator();
 
         /* Construct a plot component to hold the plotted graphs. */
@@ -349,7 +348,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         double[][] yBounds = new double[ nsel ][];
         boolean[] yLogFlags = new boolean[ nsel ];
         boolean[] yFlipFlags = new boolean[ nsel ];
-        List pselList = new ArrayList( nsel );
+        List<PointSelector> pselList = new ArrayList<PointSelector>( nsel );
         for ( int isel = 0; isel < nsel; isel++ ) {
             PointSelector psel = pointSelectors.getSelector( isel );
             pselList.add( psel );
@@ -370,7 +369,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                 yFlipFlags[ isel ] = axsel.getYFlipModel().isSelected();
                 yRange = new Range( yDataRanges_[ isel ] );
                 if ( yViewRangeMap_.containsKey( psel ) ) {
-                    yRange.limit( (Range) yViewRangeMap_.get( psel ) );
+                    yRange.limit( yViewRangeMap_.get( psel ) );
                 }
             }
             else {
@@ -517,7 +516,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
          * dataset. */
         boolean hasMultiples = false;
         SetId[] setIds = ((PointSelection) state.getPlotData()).getSetIds();
-        Set pselSet = new HashSet();
+        Set<PointSelector> pselSet = new HashSet<PointSelector>();
         for ( int i = 0; ! hasMultiples && i < setIds.length; i++ ) {
             PointSelector psel = setIds[ i ].getPointSelector();
             if ( pselSet.contains( psel ) ) {
@@ -657,7 +656,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         getAxisWindow().getEditors()[ 1 + igraph ].clearBounds();
         PointSelector psel = getPointSelectors().getSelector( igraph );
         if ( yViewRangeMap_.containsKey( psel ) ) {
-            ((Range) yViewRangeMap_.get( psel )).setBounds( y0, y1 );
+            yViewRangeMap_.get( psel ).setBounds( y0, y1 );
         }
         replot();
     }
@@ -670,7 +669,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     private class AxisWindowUpdater implements ActionListener {
         int nsel_;
         AxisEditor xAxEd_;
-        Map yAxEdMap_;
+        Map<PointSelector,AxisEditor> yAxEdMap_;
 
         /**
          * Check that this object has run through initialisation sequence.
@@ -698,7 +697,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
                 /* Set up a map to keep track of which axis editor corresponds
                  * to which selector. */
-                yAxEdMap_ = new HashMap();
+                yAxEdMap_ = new HashMap<PointSelector,AxisEditor>();
                 yAxEdMap_.put( mainSel, yAxEd );
             }
             assert xAxEd_ != null;
@@ -741,7 +740,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                     yAxEd.addMaintainedRange( yRange );
                     yViewRangeMap_.put( psel, yRange );
                 }
-                axEds[ 1 + isel ] = (AxisEditor) yAxEdMap_.get( psel );
+                axEds[ 1 + isel ] = yAxEdMap_.get( psel );
             }
 
             /* Install it in the axis window. */
@@ -975,9 +974,8 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                 if ( scaleY_ ) {
                     System.arraycopy( ranges, 1,
                                       yDataRanges_, 0, ranges.length - 1 );
-                    for ( Iterator it = yViewRangeMap_.entrySet().iterator();
-                          it.hasNext(); ) {
-                        ((Range) ((Map.Entry) it.next()).getValue()).clear();
+                    for ( Range range : yViewRangeMap_.values() ) {
+                        range.clear();
                     }
                 }
                 replot();
@@ -992,6 +990,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      * selector, unlike those in plot windows which share the same
      * log/flip flag arrays for each axis.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class LinesAxesSelector extends CartesianAxesSelector {
         private final ToggleButtonModel yLogModel_;
         private final ToggleButtonModel yFlipModel_;

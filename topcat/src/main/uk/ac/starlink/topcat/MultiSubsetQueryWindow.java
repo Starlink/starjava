@@ -29,6 +29,7 @@ import uk.ac.starlink.util.gui.SizingScrollPane;
  * @author   Mark Taylor
  * @since    18 Sep 2018
  */
+@SuppressWarnings("rawtypes")
 public class MultiSubsetQueryWindow extends QueryWindow {
 
     private final JComboBox nameSelector_;

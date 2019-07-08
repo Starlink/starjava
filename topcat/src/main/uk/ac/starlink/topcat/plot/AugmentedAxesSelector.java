@@ -3,7 +3,6 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.util.Iterator;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
@@ -30,6 +29,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    4 Jun 2007
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class AugmentedAxesSelector implements AxesSelector, Wrapper {
 
     private final AxesSelector baseSelector_;

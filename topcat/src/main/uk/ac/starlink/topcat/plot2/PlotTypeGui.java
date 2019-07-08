@@ -58,7 +58,7 @@ public interface PlotTypeGui<P,A> {
      *
      * @return   ganger factory
      */
-    GangerFactory getGangerFactory();
+    GangerFactory<P,A> getGangerFactory();
 
     /**
      * Returns a new zone ID factory for use with this plot.

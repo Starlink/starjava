@@ -38,7 +38,7 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
         fireTableCellUpdated( irow, icol );
     }
 
-    public Class getColumnClass( int icol ) {
+    public Class<?> getColumnClass( int icol ) {
         return metaList_.get( icol ).getContentClass();
     }
 
@@ -86,7 +86,7 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
     public boolean sortRows( MetaColumn sortCol, boolean isDescending ) {
 
         /* Determine the comparison order. */
-        final Comparator<Comparable> vcomp =
+        final Comparator<Object> vcomp =
             sortCol == null ? null : getComparator( sortCol, isDescending );
 
         /* Natural sort order is required. */
@@ -138,8 +138,8 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
      * @param  isDescending  false ascending order, true for descending
      * @return  comparator, or null
      */
-    private Comparator<Comparable> getComparator( MetaColumn sortCol,
-                                                  boolean isDescending ) {
+    private Comparator<Object> getComparator( MetaColumn sortCol,
+                                              boolean isDescending ) {
         return Comparable.class.isAssignableFrom( sortCol.getContentClass() )
              ? new NormalComparator( isDescending, false )
              : null;
@@ -155,11 +155,12 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
      * @return   true iff the rowMap is already arranged according to
      *           the requested sort order
      */
-    private static boolean isSorted( int[] rowMap, MetaColumn sortCol,
-                                     Comparator<Comparable> vcomp ) {
+    @SuppressWarnings("unchecked")
+    private static <T> boolean isSorted( int[] rowMap, MetaColumn sortCol,
+                                         Comparator<T> vcomp ) {
         for ( int i = 0; i < rowMap.length - 1; i++ ) {
-            Comparable c1 = (Comparable) sortCol.getValue( rowMap[ i ] );
-            Comparable c2 = (Comparable) sortCol.getValue( rowMap[ i + 1 ] );
+            T c1 = (T) sortCol.getValue( rowMap[ i ] );
+            T c2 = (T) sortCol.getValue( rowMap[ i + 1 ] );
             if ( vcomp.compare( c1, c2 ) > 0 ) {
                 return false;
             }
@@ -178,11 +179,10 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
      */
     private static int[]
             calculateSortMap( int nrow, MetaColumn sortCol,
-                              final Comparator<Comparable> vcomp ) {
+                              final Comparator<Object> vcomp ) {
         IndexedValue[] items = new IndexedValue[ nrow ];
         for ( int i = 0; i < nrow; i++ ) {
-            items[ i ] =
-                new IndexedValue( i, (Comparable) sortCol.getValue( i ) );
+            items[ i ] = new IndexedValue( i, sortCol.getValue( i ) );
         }
         try {
             Arrays.sort( items, new Comparator<IndexedValue>() {
@@ -230,7 +230,7 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
      */
     private static class IndexedValue {
         final int index_;
-        final Comparable value_;
+        final Object value_;
 
         /**
          * Constructor.
@@ -238,7 +238,7 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
          * @param  index  index
          * @param  value  value
          */
-        IndexedValue( int index, Comparable value ) {
+        IndexedValue( int index, Object value ) {
             index_ = index;
             value_ = value;
         }
@@ -248,7 +248,7 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
      * Comparator for objects which are expected to be assignment-compatible
      * with Comparable.  Nulls are toleratred.
      */
-    private static class NormalComparator implements Comparator<Comparable> {
+    private static class NormalComparator implements Comparator<Object> {
         private final int sense_;
         private final boolean nullsFirst_;
 
@@ -264,7 +264,7 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
             nullsFirst_ = nullsFirst;
         }
 
-        public int compare( Comparable o1, Comparable o2 ) {
+        public int compare( Object o1, Object o2 ) {
             boolean null1 = o1 == null;
             boolean null2 = o2 == null;
             if ( null1 && null2 ) {
@@ -277,7 +277,9 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
                 return nullsFirst_ ? +1 : -1;
             }
             else {
-                return sense_ * o1.compareTo( o2 );
+                @SuppressWarnings("unchecked")
+                int cmp = ((Comparable<Object>) o1).compareTo( o2 );
+                return sense_ * cmp;
             }
         }
     }

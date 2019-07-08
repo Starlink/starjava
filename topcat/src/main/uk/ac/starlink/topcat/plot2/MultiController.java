@@ -173,6 +173,7 @@ public class MultiController<C> {
      *
      * @return  renderer
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private final ListCellRenderer createZoneRenderer() {
         final Dimension size = new Dimension( 24, 16 );
         return new DefaultListCellRenderer() {
@@ -203,6 +204,7 @@ public class MultiController<C> {
      * Control that manages a single control from this class's controller
      * (C) type, by allowing the user to work with multiple zones.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private class MultiControl implements Control {
         final int iControl_;
         final JComponent panel_;

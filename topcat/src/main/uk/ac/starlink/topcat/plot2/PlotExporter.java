@@ -28,6 +28,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    12 Mar 2013
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class PlotExporter {
 
     private final JFileChooser saveChooser_;

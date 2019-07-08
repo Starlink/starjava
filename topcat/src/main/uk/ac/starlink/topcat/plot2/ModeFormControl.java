@@ -61,7 +61,7 @@ public class ModeFormControl extends FormControl {
     private final JComponent modeConfigHolder_;
     private final CoordPanel commonExtraCoordPanel_;
     private final String formLabel_;
-    private final ConfigKey[] nonModeKeys_;
+    private final ConfigKey<?>[] nonModeKeys_;
     private ModeState state_;
     private TopcatModel tcModel_;
 
@@ -75,8 +75,8 @@ public class ModeFormControl extends FormControl {
      * @param  subsetKeys  config keys which are managed on a per-subset
      *                     basis by some other component
      */
-    public ModeFormControl( Configger baseConfigger, ModePlotter[] plotters,
-                            ConfigKey[] subsetKeys ) {
+    public ModeFormControl( Configger baseConfigger, ModePlotter<?>[] plotters,
+                            ConfigKey<?>[] subsetKeys ) {
         super( baseConfigger );
         final ActionListener forwarder = getActionForwarder();
 
@@ -92,11 +92,11 @@ public class ModeFormControl extends FormControl {
         }
         commonExtraCoordPanel_.addActionListener( forwarder );
 
-        List<ConfigKey> commonKeyList = getCommonKeys( plotters );
+        List<ConfigKey<?>> commonKeyList = getCommonKeys( plotters );
         ModePlotter.Form commonForm = plotters[ 0 ].getForm();
         modeMap_ = new LinkedHashMap<ModePlotter.Mode,ModeState>();
         for ( int ip = 0; ip < plotters.length; ip++ ) {
-            ModePlotter plotter = plotters[ ip ];
+            ModePlotter<?> plotter = plotters[ ip ];
             assert plotter.getForm().equals( commonForm );
 
             /* Get all coords specific to this mode. */
@@ -107,13 +107,14 @@ public class ModeFormControl extends FormControl {
             Coord[] modeCoords = coordList.toArray( new Coord[ 0 ] );
 
             /* Get all config keys specific to this mode. */
-            Collection<ConfigKey> keyList =
-                new ArrayList<ConfigKey>( Arrays.asList( plotter
-                                                        .getStyleKeys() ) );
+            Collection<ConfigKey<?>> keyList =
+                new ArrayList<ConfigKey<?>>( Arrays.asList( plotter
+                                                           .getStyleKeys() ) );
             keyList.removeAll( commonKeyList );
             keyList.removeAll( baseConfigger.getConfig().keySet() );
             keyList.removeAll( Arrays.asList( subsetKeys ) );
-            ConfigKey[] modeConfigKeys = keyList.toArray( new ConfigKey[ 0 ] );
+            ConfigKey<?>[] modeConfigKeys =
+                keyList.toArray( new ConfigKey<?>[ 0 ] );
 
             /* Prepare and store a ModeState for this mode. */
             ModePlotter.Mode mode = plotter.getMode();
@@ -125,10 +126,10 @@ public class ModeFormControl extends FormControl {
         }
 
         /* Prepare a list of the non-mode-specific config keys. */
-        List<ConfigKey> otherKeyList =
-            new ArrayList<ConfigKey>( commonKeyList );
+        List<ConfigKey<?>> otherKeyList =
+            new ArrayList<ConfigKey<?>>( commonKeyList );
         otherKeyList.addAll( Arrays.asList( subsetKeys ) );
-        nonModeKeys_ = otherKeyList.toArray( new ConfigKey[ 0 ] );
+        nonModeKeys_ = otherKeyList.toArray( new ConfigKey<?>[ 0 ] );
 
         /* Work out the label for this control. */
         formLabel_ = commonForm == null ? null : commonForm.getFormName();
@@ -213,7 +214,7 @@ public class ModeFormControl extends FormControl {
         return state_.plotter_;
     }
 
-    public ConfigKey[] getConfigKeys() {
+    public ConfigKey<?>[] getConfigKeys() {
         return nonModeKeys_;
     }
 
@@ -261,7 +262,7 @@ public class ModeFormControl extends FormControl {
      * @param  plotters  list of plotters
      * @return   common non-positional coordinates
      */
-    private static List<Coord> getCommonCoords( Plotter[] plotters ) {
+    private static List<Coord> getCommonCoords( Plotter<?>[] plotters ) {
         List<Coord> commonList = new ArrayList<Coord>();
         commonList.addAll( Arrays.asList( plotters[ 0 ].getCoordGroup()
                                                        .getExtraCoords() ) );
@@ -288,8 +289,8 @@ public class ModeFormControl extends FormControl {
      * @param  plotters  list of plotters
      * @return   common style keys
      */
-    private static List<ConfigKey> getCommonKeys( Plotter[] plotters ) {
-        List<ConfigKey> commonList = new ArrayList<ConfigKey>();
+    private static List<ConfigKey<?>> getCommonKeys( Plotter<?>[] plotters ) {
+        List<ConfigKey<?>> commonList = new ArrayList<ConfigKey<?>>();
         commonList.addAll( Arrays.asList( plotters[ 0 ].getStyleKeys() ) );
         for ( int ip = 1; ip < plotters.length; ip++ ) {
             commonList.retainAll( Arrays
@@ -304,6 +305,7 @@ public class ModeFormControl extends FormControl {
      * @param   modes   mode list
      * @return  new specifier
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static Specifier<ModePlotter.Mode>
             createPlotterModeSpecifier( Collection<ModePlotter.Mode> modes ) {
         JComboBox comboBox = new JComboBox( modes.toArray() );
@@ -335,7 +337,7 @@ public class ModeFormControl extends FormControl {
      * Stores state specific to a particular mode for this control.
      */
     private static class ModeState {
-        final ModePlotter plotter_;
+        final ModePlotter<?> plotter_;
         final CoordPanel modeCoordPanel_;
         final ConfigSpecifier modeConfigSpecifier_;
 
@@ -346,8 +348,8 @@ public class ModeFormControl extends FormControl {
          * @param   modeCoords  mode-specific required plotting coordinates
          * @param   configKeys  mode-specific style config keys
          */
-        ModeState( ModePlotter plotter, Coord[] modeCoords,
-                   ConfigKey[] configKeys ) {
+        ModeState( ModePlotter<?> plotter, Coord[] modeCoords,
+                   ConfigKey<?>[] configKeys ) {
             plotter_ = plotter;
             modeCoordPanel_ = new CoordPanel( modeCoords );
             if ( modeCoords.length > 0 ) {

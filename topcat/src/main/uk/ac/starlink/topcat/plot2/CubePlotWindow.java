@@ -67,7 +67,8 @@ public class CubePlotWindow
         public FigureMode[] getFigureModes() {
             return new FigureMode[ 0 ];
         }
-        public GangerFactory getGangerFactory() {
+        public GangerFactory<CubeSurfaceFactory.Profile,CubeAspect>
+                getGangerFactory() {
             return SingleGanger.createFactory( PLOT_TYPE );
         }
         public ZoneFactory createZoneFactory() {

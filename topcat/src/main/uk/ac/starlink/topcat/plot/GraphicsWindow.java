@@ -125,6 +125,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor
  * @since    26 Oct 2005
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public abstract class GraphicsWindow extends AuxWindow {
 
     private final TablePlot plot_;
@@ -281,7 +282,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         }
 
         /* Error mode selectors. */
-        errorModeModels_ = (ErrorModeSelectionModel[]) errorModeModels.clone();
+        errorModeModels_ = errorModeModels.clone();
         for ( int ierr = 0; ierr < errorModeModels_.length; ierr++ ) {
             errorModeModels_[ ierr ].addActionListener( replotListener_ );
         }
@@ -1726,7 +1727,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @return   styleset library
      */
     public static StyleSet[] getStandardMarkStyleSets() {
-        return (StyleSet[]) MARK_STYLE_SETS.clone();
+        return MARK_STYLE_SETS.clone();
     }
 
     /**
@@ -1739,7 +1740,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     public static StyleSet[] fixDefaultErrorRenderers( ErrorRenderer erend,
                                                        StyleSet[] styleSets ) {
-        styleSets = (StyleSet[]) styleSets.clone();
+        styleSets = styleSets.clone();
         for ( int i = 0; i < styleSets.length; i++ ) {
             styleSets[ i ] = new ErrorMarkStyleSet( styleSets[ i ], erend );
         }

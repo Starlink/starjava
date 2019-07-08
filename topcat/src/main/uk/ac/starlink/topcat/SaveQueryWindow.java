@@ -30,6 +30,7 @@ import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
  * @author   Mark Taylor
  * @since    15 Jul 2010
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SaveQueryWindow extends QueryWindow {
 
     private final TableSaveChooser chooser_;
@@ -109,7 +110,7 @@ public class SaveQueryWindow extends QueryWindow {
         tabber_.setPreferredSize( new Dimension( 400, 120 ) );
 
         /* Toolbar buttons. */
-        List<Action> saveActList = new ArrayList();
+        List<Action> saveActList = new ArrayList<Action>();
         saveActList.addAll( Arrays.asList( chooser_.getSaveDialogActions() ) );
         saveActList.add( chooser_
                         .createSaveDialogAction( new SQLWriteDialog() ) );

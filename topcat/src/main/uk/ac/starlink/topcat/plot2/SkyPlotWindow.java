@@ -86,7 +86,8 @@ public class SkyPlotWindow
             return SkyFigureMode.MODES;
         }
 
-        public GangerFactory getGangerFactory() {
+        public GangerFactory<SkySurfaceFactory.Profile,SkyAspect>
+                getGangerFactory() {
             return SingleGanger.createFactory( PLOT_TYPE );
         }
 
@@ -145,7 +146,7 @@ public class SkyPlotWindow
         SkyPositionCoordPanel( int npos ) {
             super( multiplyCoords( SkyDataGeom.createGeom( null, null )
                                               .getPosCoords(), npos ),
-                   new ConfigKey[] { DATASYS_KEY } );
+                   new ConfigKey<?>[] { DATASYS_KEY } );
             npos_ = npos;
             dataSysSpecifier_ =
                 getConfigSpecifier().getSpecifier( DATASYS_KEY );

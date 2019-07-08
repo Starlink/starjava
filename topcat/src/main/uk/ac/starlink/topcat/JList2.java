@@ -21,6 +21,7 @@ import javax.swing.Scrollable;
  * Contains two adjacent vertical JLists in the same component.  
  * Scrolling is taken care of.
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class JList2 extends JPanel implements Scrollable {
 
     private final JList list1_;
@@ -39,8 +40,8 @@ public class JList2 extends JPanel implements Scrollable {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.fill = gbc.HORIZONTAL;
-        gbc.anchor = gbc.FIRST_LINE_START;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         gbc.weightx = 1;
         gbc.weighty = 0;
         add( list1_, gbc );

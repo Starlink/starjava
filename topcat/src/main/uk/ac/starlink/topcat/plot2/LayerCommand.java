@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot2;
 import java.util.Map;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.Input;
@@ -13,9 +14,9 @@ import uk.ac.starlink.ttools.plot2.data.Input;
  * @author   Mark Taylor
  * @since    18 Dec 2013
  */
-public class LayerCommand {
+public class LayerCommand<S extends Style> {
 
-    private final Plotter plotter_;
+    private final Plotter<S> plotter_;
     private final TopcatModel tcModel_;
     private final Map<String,String> inputValues_;
     private final ConfigMap config_;
@@ -32,7 +33,7 @@ public class LayerCommand {
      *                    default values will be used for any not supplied
      * @param   rset     row subset for which the plot will be made
      */
-    public LayerCommand( Plotter plotter, TopcatModel tcModel,
+    public LayerCommand( Plotter<S> plotter, TopcatModel tcModel,
                          Map<String,String> inputValues, ConfigMap config,
                          RowSubset rset ) {
         plotter_ = plotter;
@@ -47,7 +48,7 @@ public class LayerCommand {
      *
      * @return   plotter
      */
-    public Plotter getPlotter() {
+    public Plotter<S> getPlotter() {
         return plotter_;
     }
 

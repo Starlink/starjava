@@ -10,7 +10,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +57,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    28 Oct 2005
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class PointSelector extends JPanel {
 
     private final AxesSelector axesSelector_;
@@ -66,8 +66,8 @@ public class PointSelector extends JPanel {
     private final JScrollPane entryScroller_;
     private final OrderedSelectionRecorder subSelRecorder_;
     private final SelectionForwarder selectionForwarder_;
-    private final List topcatListeners_;
-    private final Map subsetFluffs_;
+    private final List<TopcatListener> topcatListeners_;
+    private final Map<Integer,SubsetFluff> subsetFluffs_;
     private final TopcatListener tcListener_;
     private final TopcatListener weakTcListener_;
     private final ActionForwarder actionForwarder_;
@@ -92,7 +92,7 @@ public class PointSelector extends JPanel {
          * and its values are SubsetFluff objects giving relevant
          * information about the labelling of styles.
          * A default label is used for subsets with no entry. */
-        subsetFluffs_ = new HashMap();
+        subsetFluffs_ = new HashMap<Integer,SubsetFluff>();
 
         /* Set up some listeners. */
         actionForwarder_ = new ActionForwarder();
@@ -111,7 +111,7 @@ public class PointSelector extends JPanel {
             }
         };
         axesSelector_.addActionListener( actionForwarder_ );
-        topcatListeners_ = new ArrayList();
+        topcatListeners_ = new ArrayList<TopcatListener>();
         final JComponent controlBox = Box.createHorizontalBox();
         add( controlBox, BorderLayout.SOUTH );
 
@@ -156,9 +156,8 @@ public class PointSelector extends JPanel {
                 }
 
                 /* Forward the event to other listeners. */
-                for ( Iterator it = topcatListeners_.iterator();
-                      it.hasNext(); ) {
-                    ((TopcatListener) it.next()).modelChanged( evt );
+                for ( TopcatListener l : topcatListeners_ ) {
+                    l.modelChanged( evt );
                 }
             }
         };
@@ -704,7 +703,7 @@ public class PointSelector extends JPanel {
      * @param  isub  current index of subset
      * @return   unique object representing subset
      */
-    private Object indexToKey( int isub ) {
+    private Integer indexToKey( int isub ) {
         return tcModel_ == null
              ? null
              : new Integer( tcModel_.getSubsets().indexToId( isub ) );
@@ -735,8 +734,7 @@ public class PointSelector extends JPanel {
      * @return  subset label
      */
     private String getSubsetLabel( int isub ) {
-        SubsetFluff fluff =
-            (SubsetFluff) subsetFluffs_.get( indexToKey( isub ) );
+        SubsetFluff fluff = subsetFluffs_.get( indexToKey( isub ) );
         String label = fluff == null ? null : fluff.label_;
         if ( label == null ) {
             label = getTable().getSubsets().get( isub ).getName();
@@ -769,8 +767,7 @@ public class PointSelector extends JPanel {
      * @return   true to hide the subset
      */
     private boolean getSubsetHidden( int isub ) {
-        SubsetFluff fluff =
-            (SubsetFluff) subsetFluffs_.get( indexToKey( isub ) );
+        SubsetFluff fluff = subsetFluffs_.get( indexToKey( isub ) );
         return fluff != null && fluff.hidden_;
     }
 
@@ -819,9 +816,9 @@ public class PointSelector extends JPanel {
      */
     private class StyleAnnotator implements CheckBoxStack.Annotator,
                                             ListSelectionListener {
-        private final List list_;
+        private final List<RowSubset> list_;
         private final ListSelectionModel selModel_;
-        private final Map actions_;
+        private final Map<Integer,Action> actions_;
         private final Icon blankIcon_;
 
         /**
@@ -831,10 +828,10 @@ public class PointSelector extends JPanel {
          * @param  selModel  selection model describing which subsets
          *                   are currently selected
          */
-        StyleAnnotator( List list, ListSelectionModel selModel ) {
+        StyleAnnotator( List<RowSubset> list, ListSelectionModel selModel ) {
             list_ = list;
             selModel_ = selModel;
-            actions_ = new HashMap();
+            actions_ = new HashMap<Integer,Action>();
             selModel_.addListSelectionListener( this );
             Icon sampleIcon = getStyle( 0 ).getLegendIcon();
             blankIcon_ = IconUtils.emptyIcon( sampleIcon.getIconWidth(),
@@ -861,9 +858,8 @@ public class PointSelector extends JPanel {
          * @param  styles   new styleset
          */
         void resetStyles( StyleSet styles ) {
-            for ( Iterator it = actions_.keySet().iterator(); it.hasNext(); ) {
-                int index = ((Integer) it.next()).intValue();
-                clearStyle( index );
+            for ( Integer key : actions_.keySet() ) {
+                clearStyle( key.intValue() );
             }
             valueChanged( null );
         }
@@ -878,7 +874,7 @@ public class PointSelector extends JPanel {
          * @return  action relating to entry <code>index</code>
          */
         private Action getAction( int index ) {
-            final Object key = indexToKey( index );
+            final Integer key = indexToKey( index );
             if ( ! actions_.containsKey( key ) ) {
                 Action act = new BasicAction( null, blankIcon_,
                                               "Edit style for subset " +
@@ -889,7 +885,7 @@ public class PointSelector extends JPanel {
                 };
                 actions_.put( key, act );
             }
-            return (Action) actions_.get( key );
+            return actions_.get( key );
         }
 
         /**
@@ -939,9 +935,9 @@ public class PointSelector extends JPanel {
          * @return  true iff the item has ever had a style
          */
         private boolean hasStyle( int index ) {
-            Object key = indexToKey( index );
+            Integer key = indexToKey( index );
             return actions_.containsKey( key )
-                && ((Action) actions_.get( key )).getValue( Action.SMALL_ICON )
+                && actions_.get( key ).getValue( Action.SMALL_ICON )
                    != blankIcon_;
         }
 
@@ -953,8 +949,7 @@ public class PointSelector extends JPanel {
         private void clearStyle( int index ) {
             Object key = indexToKey( index );
             if ( actions_.containsKey( key ) ) {
-                ((Action) actions_.get( key )).putValue( Action.SMALL_ICON,
-                                                         blankIcon_ );
+                actions_.get( key ).putValue( Action.SMALL_ICON, blankIcon_ );
             }
         }
     }
@@ -964,7 +959,8 @@ public class PointSelector extends JPanel {
      * client listeners.
      */
     private class SelectionForwarder implements ListSelectionListener {
-        final List listeners_ = new ArrayList();
+        final List<ListSelectionListener> listeners_ =
+            new ArrayList<ListSelectionListener>();
         void add( ListSelectionListener listener ) {
             listeners_.add( listener );
         }
@@ -979,8 +975,8 @@ public class PointSelector extends JPanel {
                 new ListSelectionEvent( PointSelector.this, evt.getFirstIndex(),
                                         evt.getLastIndex(),
                                         evt.getValueIsAdjusting() );
-            for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
-                ((ListSelectionListener) it.next()).valueChanged( fEvt );
+            for ( ListSelectionListener l : listeners_ ) {
+                l.valueChanged( fEvt );
             }
         }
     }

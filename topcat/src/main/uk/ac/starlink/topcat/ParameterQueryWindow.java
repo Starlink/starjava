@@ -16,6 +16,7 @@ import uk.ac.starlink.table.gui.UCDSelector;
  * @author   Mark Taylor (Starlink)
  * @since    17 Aug 2004
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ParameterQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel_;
@@ -85,7 +86,7 @@ public class ParameterQueryWindow extends QueryWindow {
      */
     protected boolean perform() {
         String name = normalize( nameField_.getText() );
-        Class clazz = (Class) typeBox_.getSelectedItem();
+        Class<?> clazz = (Class<?>) typeBox_.getSelectedItem();
         String valueString = normalize( valueField_.getText() );
         String units = normalize( unitsField_.getText() );
         String desc = normalize( descField_.getText() );

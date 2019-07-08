@@ -8,6 +8,7 @@ import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
  * @author   Mark Taylor (Starlink)
  * @since    17 Aug 2004
  */
+@SuppressWarnings("rawtypes")
 public class ClassComboBoxRenderer extends CustomComboBoxRenderer<Class> {
 
     /**

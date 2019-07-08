@@ -39,7 +39,7 @@ public class TopcatWindowAction<W extends JFrame>
                                Class<? extends W> winClazz ) {
         super( name, icon, shortdesc );
         try {
-            constructor_ = winClazz.getConstructor( new Class[] {
+            constructor_ = winClazz.getConstructor( new Class<?>[] {
                 Component.class,
             } );
         }

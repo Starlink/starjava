@@ -34,7 +34,7 @@ public class BaSTIPOSTMessage {
     private String[] DataType, Age, Mass, Z, Y, FeH, MH, Type, MassLoss, Photometry, Mixture, Scenario;
     static String[] SQLresults;
     /* name conversion between interface values and DB values */
-    static Hashtable DBnames = new Hashtable();
+    static Hashtable<String,String> DBnames = new Hashtable<String,String>();
     
     /* constructor */
     public BaSTIPOSTMessage(){
@@ -235,17 +235,17 @@ public class BaSTIPOSTMessage {
         post.MH[0] = (BaSTIPanel.MHCheck.isSelected())? "1" : "0";
         /* Selected values for query */
         String DataTypeValue = BaSTIPanel.DataType.getSelectedItem().toString();
-        post.DataType[2] = ( DataTypeValue.equals("") )? "" : (String) DBnames.get(DataTypeValue);
+        post.DataType[2] = ( DataTypeValue.equals("") )? "" : DBnames.get(DataTypeValue);
         String ScenarioValue = BaSTIPanel.Scenario.getSelectedItem().toString();
-        post.Scenario[2] = ( ScenarioValue.equals("") )? "" : (String) DBnames.get(ScenarioValue);
+        post.Scenario[2] = ( ScenarioValue.equals("") )? "" : DBnames.get(ScenarioValue);
         String TypeValue = BaSTIPanel.Type.getSelectedItem().toString();
-        post.Type[2] = ( TypeValue.equals("") )? "" : (String) DBnames.get(TypeValue);
+        post.Type[2] = ( TypeValue.equals("") )? "" : DBnames.get(TypeValue);
         String MassLossValue = BaSTIPanel.MassLoss.getSelectedItem().toString();
         post.MassLoss[2] = ( MassLossValue.equals("") )? "" : MassLossValue;
         String PhotometryValue = BaSTIPanel.Photometry.getSelectedItem().toString();
-        post.Photometry[2] = ( PhotometryValue.equals("") )? "" : (String) DBnames.get(PhotometryValue);
+        post.Photometry[2] = ( PhotometryValue.equals("") )? "" : DBnames.get(PhotometryValue);
         String MixtureValue = BaSTIPanel.Mixture.getSelectedItem().toString();
-        post.Mixture[2] = ( MixtureValue.equals("") )? "" : (String) DBnames.get(MixtureValue);
+        post.Mixture[2] = ( MixtureValue.equals("") )? "" : DBnames.get(MixtureValue);
         /* Inserted values for query */
         post.Age[2] = BaSTIPanel.AgeMin.getText().trim() + ":" + BaSTIPanel.AgeMax.getText().trim();
         post.Mass[2] = BaSTIPanel.MassMin.getText().trim() + ":" + BaSTIPanel.MassMax.getText().trim();

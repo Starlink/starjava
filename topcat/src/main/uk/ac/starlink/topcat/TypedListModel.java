@@ -11,6 +11,7 @@ import javax.swing.ListModel;
  * @author   Mark Taylor
  * @since    9 May 2018
  */
+@SuppressWarnings("rawtypes")
 public interface TypedListModel<T> extends ListModel {
     T getElementAt( int index );
 }

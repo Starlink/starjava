@@ -73,7 +73,7 @@ public class PointSelection implements PlotData {
         }
 
         /* Store the tables and column indices representing the data. */
-        errorModes_ = (ErrorMode[]) mainSelector_.getAxesSelector()
+        errorModes_ = mainSelector_.getAxesSelector()
                                                  .getErrorModes().clone();
         tcModels_ = new TopcatModel[ nTable_ ];
         dataTables_ = new StarTable[ nTable_ ];
@@ -370,7 +370,7 @@ public class PointSelection implements PlotData {
      * @return   array of point indices for that row
      */
     public long[] getPointsForRow( TopcatModel tcModel, long lrow ) {
-        List ipList = new ArrayList();
+        List<Long> ipList = new ArrayList<Long>();
         long offset = 0;
         for ( int itab = 0; itab < nTable_; itab++ ) {
             if ( tcModels_[ itab ] == tcModel ) {
@@ -380,7 +380,7 @@ public class PointSelection implements PlotData {
         }
         long[] ips = new long[ ipList.size() ];
         for ( int i = 0; i < ips.length; i++ ) {
-            ips[ i ] = ((Long) ipList.get( i )).longValue();
+            ips[ i ] = ipList.get( i ).longValue();
         }
         return ips;
     }
@@ -412,8 +412,8 @@ public class PointSelection implements PlotData {
          * is a list of the table indices which correspond to that table.
          * The point of this is so that we can tackle all the selection 
          * elements corresponding to a single table at once. */
-        List tableList = new ArrayList();
-        List indexList = new ArrayList();
+        List<TopcatModel> tableList = new ArrayList<TopcatModel>();
+        List<List<Integer>> indexList = new ArrayList<List<Integer>>();
         for ( int itab = 0; itab < nTable_; itab++ ) {
             TopcatModel tcModel = tcModels_[ itab ];
             if ( tcModel != null ) {
@@ -421,9 +421,9 @@ public class PointSelection implements PlotData {
                 if ( igrp < 0 ) {
                     igrp = tableList.size();
                     tableList.add( tcModel );
-                    indexList.add( new ArrayList() );
+                    indexList.add( new ArrayList<Integer>() );
                 }
-                ((List) indexList.get( igrp )).add( new Integer( itab ) );
+                indexList.get( igrp ).add( new Integer( itab ) );
             }
         }
         int ngrp = tableList.size();
@@ -432,21 +432,19 @@ public class PointSelection implements PlotData {
         /* Now for each table, amalgamate any parts of the mask which
          * apply to it and if the result is a non-empty set of points
          * in that table, record the table/mask pair. */
-        List tableMaskList = new ArrayList();
+        List<TableMask> tableMaskList = new ArrayList<TableMask>();
         for ( int igrp = 0; igrp < ngrp; igrp++ ) {
-            TopcatModel tcModel = (TopcatModel) tableList.get( igrp );
+            TopcatModel tcModel = tableList.get( igrp );
             BitSet tMask = new BitSet();
-            Integer[] ixs = (Integer[]) ((List) indexList.get( igrp ))
-                                       .toArray( new Integer[ 0 ] );
-            for ( int iix = 0; iix < ixs.length; iix++ ) {
-                int itab = ixs[ iix ].intValue();
+            for ( Integer itObj : indexList.get( igrp ) ) {
+                int itab = itObj.intValue();
                 tMask.or( pointMask.get( starts[ itab ], ends[ itab ] ) );
             }
             if ( tMask.cardinality() > 0 ) {
                 tableMaskList.add( new TableMask( tcModel, tMask ) );
             }
         }
-        return (TableMask[]) tableMaskList.toArray( new TableMask[ 0 ] );
+        return tableMaskList.toArray( new TableMask[ 0 ] );
     }
 
     /**

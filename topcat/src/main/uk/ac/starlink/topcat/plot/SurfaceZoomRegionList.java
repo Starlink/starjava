@@ -14,7 +14,7 @@ import uk.ac.starlink.ttools.plot.SurfacePlot;
  * @author   Mark Taylor
  * @since    2 Apr 2008
  */
-public abstract class SurfaceZoomRegionList extends AbstractList {
+public abstract class SurfaceZoomRegionList extends AbstractList<ZoomRegion> {
 
     private final SurfacePlot plot_;
     private final Rectangle display_;
@@ -100,7 +100,7 @@ public abstract class SurfaceZoomRegionList extends AbstractList {
         return ok_ ? regions_.length : 0;
     }
 
-    public Object get( int index ) {
+    public ZoomRegion get( int index ) {
         return ok_ ? regions_[ index ] : null;
     }
 

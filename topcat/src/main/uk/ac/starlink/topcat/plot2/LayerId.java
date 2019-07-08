@@ -19,7 +19,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 @Equality
 public class LayerId {
 
-    private final Plotter plotter_;
+    private final Plotter<?> plotter_;
     private final DataSpec dataSpec_;
     private final DataGeom dataGeom_;
     private final Style style_;
@@ -32,7 +32,7 @@ public class LayerId {
      * @param  dataGeom   mapping to graphics space
      * @param  style    layer style
      */
-    public LayerId( Plotter plotter, DataSpec dataSpec, DataGeom dataGeom,
+    public LayerId( Plotter<?> plotter, DataSpec dataSpec, DataGeom dataGeom,
                     Style style ) {
         plotter_ = plotter;
         dataSpec_ = dataSpec;
@@ -45,7 +45,7 @@ public class LayerId {
      *
      * @return  plotter
      */
-    public Plotter getPlotter() {
+    public Plotter<?> getPlotter() {
         return plotter_;
     }
 
@@ -103,7 +103,7 @@ public class LayerId {
     /**
      * Returns a layerId characterising a given plot layer.
      *
-     * @param  layer
+     * @param  layer   plot layer
      * @return  layer id
      */
     public static LayerId createLayerId( PlotLayer layer ) {

@@ -33,6 +33,7 @@ import javax.swing.event.ListSelectionListener;
  * @author   Mark Taylor
  * @since    13 Mar 2013
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ControlStackPanel extends JPanel {
 
     private final DefaultListModel fixListModel_;

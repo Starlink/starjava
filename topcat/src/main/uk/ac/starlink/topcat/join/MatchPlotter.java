@@ -49,6 +49,7 @@ import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
+import uk.ac.starlink.ttools.plot2.layer.ShapeStyle;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -120,7 +121,8 @@ public abstract class MatchPlotter {
              sameFirstNames( cNames,
                              new String[] { "Lon", "Lat", "Radius" } ) ) {
             return new BasicMatchPlotter( SphereDataGeom.INSTANCE, false ) {
-                public StackPlotWindow createPlotWindow( Component parent ) {
+                public StackPlotWindow<?,?>
+                        createPlotWindow( Component parent ) {
                     return new SpherePlotWindow( parent, tablesModel );
                 }
             };
@@ -131,7 +133,8 @@ public abstract class MatchPlotter {
                   sameFirstNames( cNames, new String[] { "Lon", "Lat" } ) ) {
             return new BasicMatchPlotter( SkyDataGeom.createGeom( null, null ),
                                           true ) {
-                public StackPlotWindow createPlotWindow( Component parent ) {
+                public StackPlotWindow<?,?>
+                        createPlotWindow( Component parent ) {
                     return new SkyPlotWindow( parent, tablesModel );
                 }
             };
@@ -140,7 +143,8 @@ public abstract class MatchPlotter {
         /* Cube plot. */
         else if ( sameFirstNames( cNames, new String[] { "X", "Y", "Z" } ) ) {
             return new BasicMatchPlotter( CubeDataGeom.INSTANCE, false ) {
-                public StackPlotWindow createPlotWindow( Component parent ) {
+                public StackPlotWindow<?,?>
+                        createPlotWindow( Component parent ) {
                     return new CubePlotWindow( parent, tablesModel );
                 }
             };
@@ -149,7 +153,8 @@ public abstract class MatchPlotter {
         /* Plane plot. */
         else if ( sameFirstNames( cNames, new String[] { "X", "Y" } ) ) {
             return new BasicMatchPlotter( PlaneDataGeom.INSTANCE, true ) {
-                public StackPlotWindow createPlotWindow( Component parent ) {
+                public StackPlotWindow<?,?>
+                        createPlotWindow( Component parent ) {
                     return new PlanePlotWindow( parent, tablesModel );
                 }
             };
@@ -266,7 +271,7 @@ public abstract class MatchPlotter {
          *
          * @param   parent  parent component
          */
-        abstract StackPlotWindow createPlotWindow( Component parent );
+        abstract StackPlotWindow<?,?> createPlotWindow( Component parent );
 
         /**
          * Returns style configuration for single-point markers.
@@ -314,14 +319,14 @@ public abstract class MatchPlotter {
             int nin = tselectors.length;
             int nupc = userPosCoordNames_.length;
             String[][] exprs = new String[ nupc ][ nin ];
-            StackPlotWindow win = createPlotWindow( parent );
+            StackPlotWindow<?,?> win = createPlotWindow( parent );
             ControlManager controlManager = win.getControlManager();
 
             /* For each input table, add a layer giving single positions.
              * We have to find the position expressions (user Coord values)
              * by looking at the values the user entered into the
              * TupleSelectors to specify the match. */
-            Plotter plotter1 =
+            Plotter<ShapeStyle> plotter1 =
                 new ShapePlotter.ShapeModePlotter( "input", MarkForm.SINGLE,
                                                    markMode1_ );
             for ( int iin = 0; iin < nin; iin++ ) {
@@ -337,9 +342,10 @@ public abstract class MatchPlotter {
                 }
                 ConfigMap config = createMarkConfig1( iin );
                 TopcatModel tcModel = tsel.getTable();
-                LayerCommand lcmd =
-                    new LayerCommand( plotter1, tcModel, coordVals,
-                                      config, tcModel.getSelectedSubset() );
+                LayerCommand<?> lcmd =
+                    new LayerCommand<ShapeStyle>( plotter1, tcModel, coordVals,
+                                                  config,
+                                                  tcModel.getSelectedSubset() );
                 controlManager.addLayer( lcmd );
             }
 
@@ -378,7 +384,8 @@ public abstract class MatchPlotter {
                 Collection<String> colNames0 = new HashSet<String>();
                 Collection<String> colNamesOther = new HashSet<String>();
                 for ( int jin = 0; jin < nin; jin++ ) {
-                    Collection list = jin == iin ? colNames0 : colNamesOther;
+                    Collection<String> list = jin == iin ? colNames0
+                                                         : colNamesOther;
                     StarTable table =
                         tselectors[ jin ].getTable().getDataModel();
                     int ncol = table.getColumnCount();
@@ -412,22 +419,25 @@ public abstract class MatchPlotter {
 
             /* Use the calculated information to set up a new layer creation
              * command. */
-            Plotter markPlotterN =
+            Plotter<ShapeStyle> markPlotterN =
                 new ShapePlotter
                    .ShapeModePlotter( "result", MarkForm.createMarkForm( nin ),
                                       markModeN_ );
-            LayerCommand markCmd =
-                new LayerCommand( markPlotterN, result, coordValuesN,
-                                  createMarkConfigN(), RowSubset.ALL );
+            LayerCommand<?> markCmd =
+                new LayerCommand<ShapeStyle>( markPlotterN, result,
+                                              coordValuesN, createMarkConfigN(),
+                                              RowSubset.ALL );
             controlManager.addLayer( markCmd );
             if ( nin == 2 ) {
-                Plotter linkPlotter =
+                Plotter<ShapeStyle> linkPlotter =
                     new ShapePlotter
                    .ShapeModePlotter( "result", PairLinkForm.getInstance(),
                                       markModeN_ );
-                LayerCommand linkCmd =
-                    new LayerCommand( linkPlotter, result, coordValuesN,
-                                      createPairLinkConfig(), RowSubset.ALL );
+                LayerCommand<?> linkCmd =
+                    new LayerCommand<ShapeStyle>( linkPlotter, result,
+                                                  coordValuesN,
+                                                  createPairLinkConfig(),
+                                                  RowSubset.ALL );
                 controlManager.addLayer( linkCmd );
             }
             win.setVisible( true );

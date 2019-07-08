@@ -146,7 +146,7 @@ public class TopcatServer {
     private static URL getDocResource() throws MalformedURLException {
 
         /* Start with a class which is in the classpath package we need. */
-        Class clazz = Driver.class;
+        Class<Driver> clazz = Driver.class;
 
         /* Get the relative resource name of this class. */
         String cname = clazz.getName().replaceFirst( ".*\\.", "" ) + ".class";

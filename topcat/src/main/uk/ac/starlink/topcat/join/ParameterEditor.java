@@ -25,13 +25,14 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor (Starlink)
  * @since    20 Mar 2004
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ParameterEditor extends JComponent {
 
     private final DescribedValue dval_;
     private final JTextField field_;
     private final JComboBox conversionChooser_;
     private final ValueCodec codec0_;
-    private final List listenerList_;
+    private final List<ChangeListener> listenerList_;
 
     /**
      * Constructs a new editor.
@@ -40,7 +41,7 @@ public class ParameterEditor extends JComponent {
      */
     public ParameterEditor( DescribedValue dval ) {
         dval_ = dval;
-        listenerList_ = new ArrayList();
+        listenerList_ = new ArrayList<ChangeListener>();
         ValueInfo info = dval.getInfo();
         String descrip = info.getDescription();
         String units = info.getUnitString();
@@ -141,8 +142,8 @@ public class ParameterEditor extends JComponent {
         /* Alert listeners. */
         if ( ! isSame( oldVal, dval_.getValue() ) ) {
             ChangeEvent evt = new ChangeEvent( this );
-            for ( Iterator it = listenerList_.iterator(); it.hasNext(); ) {
-                ((ChangeListener) it.next()).stateChanged( evt );
+            for ( ChangeListener l : listenerList_ ) {
+                l.stateChanged( evt );
             }
         }
     }

@@ -54,11 +54,12 @@ import uk.ac.starlink.votable.VOTableWriter;
  * @since    8 Feb 2006
  * @see      <a href="http://plastic.sourceforge.net/">PLASTIC</a>
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class TopcatPlasticListener extends HubManager {
 
     private final ControlWindow controlWindow_;
-    private final Map idMap_;
-    private final Map highlightMap_;
+    private final Map<String,TableWithRows> idMap_;
+    private final Map<TopcatModel,Long> highlightMap_;
 
     private static final URI[] SUPPORTED_MESSAGES = new URI[] {
         MessageId.VOT_LOAD,
@@ -79,8 +80,9 @@ public class TopcatPlasticListener extends HubManager {
     public TopcatPlasticListener( ControlWindow controlWindow ) {
         super( "topcat", SUPPORTED_MESSAGES );
         controlWindow_ = controlWindow;
-        idMap_ = Collections.synchronizedMap( new HashMap() );
-        highlightMap_ = new HashMap();
+        idMap_ = Collections
+                .synchronizedMap( new HashMap<String,TableWithRows>() );
+        highlightMap_ = new HashMap<TopcatModel,Long>();
     }
 
     /**
@@ -96,7 +98,7 @@ public class TopcatPlasticListener extends HubManager {
 
         /* Load VOTable passed as text in an argument. */
         if ( MessageId.VOT_LOAD.equals( message ) &&
-             checkArgs( args, new Class[] { String.class } ) ) {
+             checkArgs( args, new Class<?>[] { String.class } ) ) {
             String text = (String) args.get( 0 );
             String id = args.size() > 1 ? String.valueOf( args.get( 1 ) )
                                         : null;
@@ -106,7 +108,7 @@ public class TopcatPlasticListener extends HubManager {
 
         /* Load VOTable by URL. */
         else if ( MessageId.VOT_LOADURL.equals( message ) &&
-                  checkArgs( args, new Class[] { Object.class } ) ) {
+                  checkArgs( args, new Class<?>[] { Object.class } ) ) {
             String url = args.get( 0 ) instanceof String
                        ? (String) args.get( 0 )
                        : args.get( 0 ).toString();
@@ -125,7 +127,7 @@ public class TopcatPlasticListener extends HubManager {
                   args.size() >= 2 &&
                   args.get( 1 ) instanceof List ) {
             String tableId = args.get( 0 ).toString();
-            List objList = (List) args.get( 1 );
+            List<?> objList = (List<?>) args.get( 1 );
             return Boolean.valueOf( showObjects( sender, tableId, objList ) );
         }
 
@@ -230,8 +232,9 @@ public class TopcatPlasticListener extends HubManager {
          * don't block the GUI. */
         new Thread( "PLASTIC table broadcast" ) {
             public void run() {
-                List argList = Arrays.asList( new Object[] { tmpUrl, tmpUrl } );
-                Map responses = recipients == null 
+                List<String> argList =
+                    Arrays.asList( new String[] { tmpUrl, tmpUrl } );
+                Map<?,?> responses = recipients == null 
                     ? hub.request( plasticId, MessageId.VOT_LOADURL, argList )
                     : hub.requestToSubset( plasticId, MessageId.VOT_LOADURL,
                                            argList,
@@ -314,13 +317,12 @@ public class TopcatPlasticListener extends HubManager {
          * tables we've previously broadcast.  If so, send the rows using
          * the same ID. */
         boolean done = false;
-        for ( Iterator it = idMap_.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            String tableId = entry.getKey().toString();
-            TableWithRows tr = (TableWithRows) entry.getValue();
-            TopcatModel tcm = (TopcatModel) tr.tcModelRef_.get();
+        for ( Map.Entry<String,TableWithRows> entry : idMap_.entrySet() ) {
+            String tableId = entry.getKey();
+            TableWithRows tr = entry.getValue();
+            TopcatModel tcm = tr.tcModelRef_.get();
             if ( tcm != null && tcm == tcModel ) {
-                List rowList = new ArrayList();
+                List<Integer> rowList = new ArrayList<Integer>();
 
                 /* Assemble a list of rows, possibly modulated by the
                  * row order when the table was sent originally. */
@@ -345,7 +347,7 @@ public class TopcatPlasticListener extends HubManager {
                 }
 
                 /* Send the request. */
-                List argList =
+                List<Object> argList =
                     Arrays.asList( new Object[] { tableId, rowList } );
                 if ( recipients == null ) {
                     hub.requestAsynch( plasticId, MessageId.VOT_SHOWOBJECTS,
@@ -367,7 +369,7 @@ public class TopcatPlasticListener extends HubManager {
             URL url = URLUtils.fixURL( tcModel.getDataModel()
                                               .getBaseTable().getURL() );
             if ( url != null ) {
-                List rowList = new ArrayList();
+                List<Integer> rowList = new ArrayList<Integer>();
                 int nrow =
                     (int) Math.min( (long) Integer.MAX_VALUE,
                                     tcModel.getDataModel().getRowCount() );
@@ -376,7 +378,7 @@ public class TopcatPlasticListener extends HubManager {
                         rowList.add( new Integer( i ) );
                     }
                 }
-                List argList =
+                List<Object> argList =
                     Arrays.asList( new Object[] { url.toString(), rowList } );
                 if ( recipients == null ) {
                     hub.requestAsynch( plasticId, MessageId.VOT_SHOWOBJECTS,
@@ -417,11 +419,12 @@ public class TopcatPlasticListener extends HubManager {
         boolean done = false;
         int sendRow = -1;
         String tableId = null;
-        for ( Iterator it = idMap_.entrySet().iterator();
+        for ( Iterator<Map.Entry<String,TableWithRows>> it =
+                  idMap_.entrySet().iterator();
               ! done && it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            TableWithRows tr = (TableWithRows) entry.getValue();
-            TopcatModel tcm = (TopcatModel) tr.tcModelRef_.get();
+            Map.Entry<String,TableWithRows> entry = it.next();
+            TableWithRows tr = entry.getValue();
+            TopcatModel tcm = tr.tcModelRef_.get();
             if ( tcm != null && tcm == tcModel ) {
                 int[] rowMap = tr.rowMap_;
                 if ( rowMap == null ) {
@@ -435,7 +438,7 @@ public class TopcatPlasticListener extends HubManager {
                         }
                     }
                 }
-                tableId = entry.getKey().toString();
+                tableId = entry.getKey();
                 done = true;
             }
         }
@@ -454,7 +457,7 @@ public class TopcatPlasticListener extends HubManager {
 
         /* Send the message if we've got the arguments. */
         if ( done && sendRow >= 0 ) {
-            List args = Arrays.asList( new Object[] {
+            List<Object> args = Arrays.asList( new Object[] {
                 tableId,
                 new Integer( sendRow ),
             } );
@@ -490,8 +493,9 @@ public class TopcatPlasticListener extends HubManager {
         register();
         PlasticHubListener hub = getHub();
         URI plasticId = getRegisteredId();
-        List args = Arrays.asList( new Object[] { new Double( ra2000 ),
-                                                  new Double( dec2000 ) } );
+        List<Object> args =
+            Arrays.asList( new Object[] { new Double( ra2000 ),
+                                          new Double( dec2000 ) } );
         if ( recipients == null ) {
             hub.requestAsynch( plasticId, MessageId.SKY_POINT, args );
         }
@@ -586,7 +590,7 @@ public class TopcatPlasticListener extends HubManager {
         TableWithRows tr = lookupTable( tableId );
         final TopcatModel tcModel = tr == null
                                   ? null
-                                  : (TopcatModel) tr.tcModelRef_.get();
+                                  : tr.tcModelRef_.get();
         if ( tcModel != null ) {
 
             /* Find out what row is named in the message. */
@@ -598,7 +602,7 @@ public class TopcatPlasticListener extends HubManager {
              * The purpose of this is to avoid the possibility of
              * eternal PLASTIC ping-pong between two (or more) 
              * applications.  It doesn't completely work though. */
-            Long lastHigh = (Long) highlightMap_.get( tcModel );
+            Long lastHigh = highlightMap_.get( tcModel );
             if ( lastHigh == null || lastHigh.longValue() != lrow ) {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
@@ -620,18 +624,17 @@ public class TopcatPlasticListener extends HubManager {
      * @param   objList  list of row indices (should be Numbers)
      * @return   true iff highlight was successful
      */
-    private boolean showObjects( URI sender, String tableId, List objList ) {
+    private boolean showObjects( URI sender, String tableId, List<?> objList ) {
         TableWithRows tr = lookupTable( tableId );
         TopcatModel tcModel = tr == null
                             ? null
-                            : (TopcatModel) tr.tcModelRef_.get();
+                            : tr.tcModelRef_.get();
         if ( tcModel != null ) {
 
             /* Turn the list of row indices into a bit vector. */
             int[] rowMap = tr.rowMap_;
             BitSet mask = new BitSet();
-            for ( Iterator it = objList.iterator(); it.hasNext(); ) {
-                Object val = it.next();
+            for ( Object val : objList ) {
                 if ( val instanceof Number ) {
                     int index = ((Number) val).intValue();
                     mask.set( rowMap == null ? index : rowMap[ index ] );
@@ -751,7 +754,7 @@ public class TopcatPlasticListener extends HubManager {
      * @return  tableWithRows object corresponding to tableId, or null
      */
     private TableWithRows lookupTable( String tableId ) {
-        TableWithRows tr = (TableWithRows) idMap_.get( tableId );
+        TableWithRows tr = idMap_.get( tableId );
         if ( tr != null ) {
             return tr;
         }
@@ -795,10 +798,10 @@ public class TopcatPlasticListener extends HubManager {
      * Encapsulates a table plus its row order.
      */
     private static class TableWithRows {
-        final Reference tcModelRef_;
+        final Reference<TopcatModel> tcModelRef_;
         final int[] rowMap_;
         TableWithRows( TopcatModel tcModel, int[] rowMap ) {
-            tcModelRef_ = new WeakReference( tcModel );
+            tcModelRef_ = new WeakReference<TopcatModel>( tcModel );
             rowMap_ = rowMap;
         }
     }

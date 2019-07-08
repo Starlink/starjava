@@ -250,10 +250,8 @@ public class LoadWindow extends AuxWindow {
      * @param  clazz  class, some subclass of TableLoadDialog
      * @return  existing dialog instance of clazz, or null
      */
-    public TableLoadDialog getKnownDialog( Class clazz ) {
-        if ( ! TableLoadDialog.class.isAssignableFrom( clazz ) ) {
-            throw new IllegalArgumentException();
-        }
+    public TableLoadDialog
+            getKnownDialog( Class<? extends TableLoadDialog> clazz ) {
         for ( int i = 0; i < knownDialogs_.length; i++ ) {
             TableLoadDialog tld = knownDialogs_[ i ];
             if ( clazz.isAssignableFrom( tld.getClass() ) ) {
@@ -270,10 +268,7 @@ public class LoadWindow extends AuxWindow {
      * @param  tldClazz  class, some subclass of TableLoadDialog
      * @return  action which invokes an instance of tldClazz, if one is in use
      */
-    public Action getDialogAction( Class tldClazz ) {
-        if ( ! TableLoadDialog.class.isAssignableFrom( tldClazz ) ) {
-            throw new IllegalArgumentException();
-        }
+    public Action getDialogAction( Class<? extends TableLoadDialog> tldClazz ) {
         for ( Action act : actList_ ) {
             if ( act instanceof DialogAction ) {
                 DialogAction dact = (DialogAction) act;

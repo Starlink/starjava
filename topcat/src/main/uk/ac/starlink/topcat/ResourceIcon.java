@@ -641,6 +641,7 @@ public class ResourceIcon implements Icon {
      *
      * @return  member name => member value mapping for hand-drawn icons
      */
+    @SuppressWarnings("static")
     private static Map<String,Icon> getDiyIconMap() {
         Map<String,Icon> nameMap = new LinkedHashMap<String,Icon>();
         ErrorModeSelectionModel errX = new ErrorModeSelectionModel( 0, "X" );
@@ -685,11 +686,11 @@ public class ResourceIcon implements Icon {
                         .getResource( "plaf/basic/images/SearchNav.gif" ) ) );
 
         /* Pull in icons from external packages. */
-        Class[] riClazzes = new Class[] {
+        Class<?>[] riClazzes = new Class<?>[] {
             uk.ac.starlink.ttools.gui.ResourceIcon.class,
             uk.ac.starlink.vo.ResourceIcon.class,
         };
-        for ( Class riClazz : riClazzes ) {
+        for ( Class<?> riClazz : riClazzes ) {
             Field[] fields = riClazz.getDeclaredFields();
             for ( int i = 0; i < fields.length; i++ ) {
                 Field field = fields[ i ];
@@ -905,7 +906,7 @@ public class ResourceIcon implements Icon {
             }
         }
         else if ( "-entities".equals( mode ) ) {
-            Map iconMap = getMemberNameMap();
+            Map<String,ResourceIcon> iconMap = getMemberNameMap();
             String t1 = "  <!ENTITY IMG.";
             String t2 = " '<img src=\"../" + PREFIX;
             String t3 = "\"/>'>";
@@ -929,7 +930,6 @@ public class ResourceIcon implements Icon {
             }
         }
         else if ( "-writepngs".equals( mode ) ) {
-            Map diyMap = getDiyIconMap();
             for ( Map.Entry<String,Icon> entry : getDiyIconMap().entrySet() ) {
                 writePng( entry.getValue(),
                           new File( entry.getKey() + ".png" ) );

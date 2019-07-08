@@ -16,6 +16,7 @@ import uk.ac.starlink.util.gui.WeakListDataListener;
  * @author   Mark Taylor
  * @since    31 Aug 2010
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class TablesListComboBox extends JComboBox {
 
     private final TypedListModel<TopcatModel> tablesList_;

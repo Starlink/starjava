@@ -298,7 +298,7 @@ public class TopcatJELRowReader extends RandomJELRowReader {
              name.equals( "$00" ) ) {
             final ViewerTableModel viewModel = tcModel_.getViewModel();
             return new Constant() {
-                public Class getContentClass() {
+                public Class<?> getContentClass() {
                     return Integer.class;
                 }
                 public Object getValue() {
@@ -310,7 +310,7 @@ public class TopcatJELRowReader extends RandomJELRowReader {
         else if ( name.equalsIgnoreCase( "$nrow0" ) ) {
             final ViewerTableModel viewModel = tcModel_.getViewModel();
             return new Constant() {
-                public Class getContentClass() {
+                public Class<?> getContentClass() {
                     return Integer.class;
                 }
                 public Object getValue() {
@@ -321,7 +321,7 @@ public class TopcatJELRowReader extends RandomJELRowReader {
         else if ( name.equalsIgnoreCase( "$ncol0" ) ) {
             final TableColumnModel colModel = tcModel_.getColumnModel();
             return new Constant() {
-                public Class getContentClass() {
+                public Class<?> getContentClass() {
                     return Integer.class;
                 }
                 public Object getValue() {
@@ -345,9 +345,9 @@ public class TopcatJELRowReader extends RandomJELRowReader {
     @Override
     protected Constant createDescribedValueConstant( final
                                                      DescribedValue dval ) {
-        final Class clazz = dval.getInfo().getContentClass();
+        final Class<?> clazz = dval.getInfo().getContentClass();
         return new Constant() {
-            public Class getContentClass() {
+            public Class<?> getContentClass() {
                 return clazz;
             }
             public Object getValue() {

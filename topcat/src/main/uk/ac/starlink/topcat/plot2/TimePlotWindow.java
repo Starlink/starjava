@@ -125,7 +125,8 @@ public class TimePlotWindow
         public FigureMode[] getFigureModes() {
             return new FigureMode[ 0 ];
         }
-        public GangerFactory getGangerFactory() {
+        public GangerFactory<TimeSurfaceFactory.Profile,TimeAspect>
+                getGangerFactory() {
             return TimeStackGanger.FACTORY;
         }
         public ZoneFactory createZoneFactory() {

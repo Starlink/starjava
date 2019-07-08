@@ -30,7 +30,7 @@ public class PoolStyleSet implements MutableStyleSet {
      * indicates an index into the base style set list, or a 
      * <code>Style</code> which is a literal style to use.
      */
-    private final Map map_;
+    private final Map<Integer,Object> map_;
 
     /**
      * Constructs a new StyleSet.
@@ -43,7 +43,7 @@ public class PoolStyleSet implements MutableStyleSet {
     public PoolStyleSet( StyleSet base, BitSet used ) {
         base_ = base;
         used_ = used;
-        map_ = new HashMap();
+        map_ = new HashMap<Integer,Object>();
     }
 
     public String getName() {
@@ -93,9 +93,8 @@ public class PoolStyleSet implements MutableStyleSet {
      * set to the pool.
      */
     public void reset() {
-        for ( Iterator it = map_.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            Object value = entry.getValue();
+        for ( Iterator<?> it = map_.values().iterator(); it.hasNext(); ) {
+            Object value = it.next();
             if ( value instanceof Integer ) {
                 int ibase = ((Integer) value).intValue();
                 assert used_.get( ibase );

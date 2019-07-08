@@ -51,7 +51,7 @@ public class SyntheticColumn extends ColumnData {
      * @param  rowReader  context for JEL expression evaluation
      */
     public SyntheticColumn( ColumnInfo cinfo, String expression,
-                            Class resultType, RandomJELRowReader rowReader )
+                            Class<?> resultType, RandomJELRowReader rowReader )
             throws CompilationException {
         super( cinfo );
         setExpression( expression, resultType, rowReader );
@@ -70,7 +70,7 @@ public class SyntheticColumn extends ColumnData {
      *         a suitable class is chosen automatically.
      * @param  rowReader  context for JEL expression evaluation
      */
-    public void setExpression( String expression, Class resultType,
+    public void setExpression( String expression, Class<?> resultType,
                                RandomJELRowReader rowReader ) 
             throws CompilationException {
 
@@ -80,7 +80,7 @@ public class SyntheticColumn extends ColumnData {
         rowReader_ = rowReader;
 
         /* Work out the type of the compiled expression. */
-        Class actualType =
+        Class<?> actualType =
             new Parser( expression, lib ).parse( resultType ).resType;
         if ( actualType.isPrimitive() ) {
             actualType = TopcatJELUtils.wrapPrimitiveClass( actualType );

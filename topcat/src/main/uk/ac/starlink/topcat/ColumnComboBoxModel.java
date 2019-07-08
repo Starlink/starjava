@@ -26,6 +26,7 @@ import uk.ac.starlink.util.gui.WeakTableColumnModelListener;
  *
  * @author   Mark Taylor (Starlink)
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ColumnComboBoxModel extends AbstractListModel 
                                  implements TableColumnModelListener,
                                             ComboBoxModel {

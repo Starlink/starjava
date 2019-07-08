@@ -7,7 +7,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Box;
@@ -148,8 +147,7 @@ public class InterMatchSpec extends MatchSpec {
         }
         matchCount = 0;
         int irow = 0;
-        for ( Iterator it = matches.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
+        for ( RowLink link : matches ) {
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
                 int iTable = link.getRef( i ).getTableIndex();
@@ -239,7 +237,7 @@ public class InterMatchSpec extends MatchSpec {
     private static void addMatchMetadata( StarTable table, String matchType,
                                           MatchEngine engine,
                                           StarTable[] effTables ) {
-        List params = table.getParameters();
+        List<DescribedValue> params = table.getParameters();
         params.add( new DescribedValue( MATCHTYPE_INFO, matchType ) );
         params.add( new DescribedValue( ENGINE_INFO, engine.toString() ) );
         DescribedValue[] matchParams = engine.getMatchParameters();

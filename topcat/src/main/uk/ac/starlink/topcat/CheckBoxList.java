@@ -44,6 +44,7 @@ import javax.swing.event.MouseInputAdapter;
  * @author   Mark Taylor
  * @since    13 Mar 2013
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public abstract class CheckBoxList<T> extends JList {
 
     private final Class<T> clazz_;

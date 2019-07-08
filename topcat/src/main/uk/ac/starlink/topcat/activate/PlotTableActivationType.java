@@ -57,6 +57,7 @@ public class PlotTableActivationType implements ActivationType {
     /**
      * Configurator for use with this class.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class PlotColumnConfigurator extends UrlColumnConfigurator {
         private final StarTableFactory tfact_;
         private TablePlotDisplay plotDisplay_;

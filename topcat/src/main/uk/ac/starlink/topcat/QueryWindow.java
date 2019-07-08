@@ -211,6 +211,7 @@ public abstract class QueryWindow extends AuxWindow {
      * Do configuration of keys for the input fields in the stack.
      * We configure the Enter key to close the window.
      */
+    @SuppressWarnings("rawtypes")
     private void configureKeys() {
         Object okKey = new Object();
         KeyStroke hitEnter = KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 );

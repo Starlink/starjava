@@ -273,13 +273,13 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Prepare a list of actions which are enabled/disabled according
          * to whether the plot state is valid. */
-        List actList = new ArrayList();
+        List<Action> actList = new ArrayList<Action>();
         actList.add( rescaleActionXY );
         actList.add( rescaleActionX );
         actList.add( rescaleActionY );
         actList.add( fromVisibleAction );
         actList.add( getReplotAction() );
-        validityActions_ = (Action[]) actList.toArray( new Action[ 0 ] );
+        validityActions_ = actList.toArray( new Action[ 0 ] );
 
         /* Add standard help actions. */
         addHelp( "HistogramWindow" );
@@ -534,9 +534,9 @@ public class HistogramWindow extends GraphicsWindow {
 
             double gap = ( xBounds[ 1 ] - xBounds[ 0 ] ) / DEFAULT_BINS;
             assert gap > 0.0;
-            Class clazz = getPointSelectors().getMainSelector()
-                         .getAxesSelector().getData().getColumnInfo( 0 )
-                         .getContentClass();
+            Class<?> clazz = getPointSelectors().getMainSelector()
+                            .getAxesSelector().getData().getColumnInfo( 0 )
+                            .getContentClass();
             double bwLinear = Rounder.LINEAR.round( gap );
             if ( clazz == Byte.class ||
                  clazz == Short.class ||
@@ -563,11 +563,11 @@ public class HistogramWindow extends GraphicsWindow {
             binBase = offset ? bwLinear / 2.0 : 0.0;
             binWidth = bwLinear;
         }
-        MapBinnedData.BinMapper mapper =
+        MapBinnedData.BinMapper<Long> mapper =
             MapBinnedData.createBinMapper( xlog, binWidth, binBase );
-        BinnedData binned = new MapBinnedData( nset, mapper );
+        BinnedData binned = mapper.createBinnedData( nset );
         BinnedData binnedNorm =
-            new NormalisedBinnedData( new MapBinnedData( nset, mapper ) );
+            new NormalisedBinnedData( mapper.createBinnedData( nset ) );
 
         /* Work out the X bounds. */
         double xlo = mapper.getBounds( mapper.getKey( xBounds[ 0 ] ) )[ 0 ];
@@ -595,9 +595,10 @@ public class HistogramWindow extends GraphicsWindow {
         Range yRangeCum = new Range();
         {
             double[] ytots = new double[ nset ];
-            for ( Iterator binIt = binned.getBinIterator( false );
+            for ( Iterator<BinnedData.Bin> binIt =
+                      binned.getBinIterator( false );
                   binIt.hasNext(); ) {
-                BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+                BinnedData.Bin bin = binIt.next();
                 for ( int is = 0; is < nset; is++ ) {
                     double s = bin.getWeightedCount( is );
                     ytots[ is ] += s;
@@ -610,9 +611,10 @@ public class HistogramWindow extends GraphicsWindow {
         Range yRangeCumNorm = new Range();
         {
             double[] yntots = new double[ nset ];
-            for ( Iterator binIt = binnedNorm.getBinIterator( false );
+            for ( Iterator<BinnedData.Bin> binIt =
+                      binnedNorm.getBinIterator( false );
                   binIt.hasNext(); ) {
-                BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+                BinnedData.Bin bin = binIt.next();
                 for ( int is = 0; is < nset; is++ ) {
                     double s = bin.getWeightedCount( is );
                     yntots[ is ] += s;
@@ -650,9 +652,7 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Get the list of set IDs which describes which table/subset pairs
          * each of the sets in the binned data represents. */
-        SetId[] setIds =
-           ((PointSelection) getPointSelectors().getPointSelection())
-          .getSetIds();
+        SetId[] setIds = getPointSelectors().getPointSelection().getSetIds();
         final int nset = setIds.length;
 
         /* Set up the first two columns of the output table, which are
@@ -725,17 +725,18 @@ public class HistogramWindow extends GraphicsWindow {
                 return -1L;
             }
             public ColumnInfo getColumnInfo( int icol ) {
-                return (ColumnInfo) infos[ icol ];
+                return infos[ icol ];
             }
             public RowSequence getRowSequence() {
-                final Iterator binIt = binData.getBinIterator( true );
+                final Iterator<BinnedData.Bin> binIt =
+                    binData.getBinIterator( true );
                 final double[] sums = new double[ nset ];
                 return new RowSequence() {
                     private Object[] currentRow_;
 
                     public boolean next() {
                         while ( binIt.hasNext() ) {
-                            BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+                            BinnedData.Bin bin = binIt.next();
                             if ( bin.getHighBound() > xlo &&
                                  bin.getLowBound() < xhi ) {
                                 currentRow_ = getRow( bin );

@@ -25,9 +25,9 @@ import uk.ac.starlink.ttools.plot2.config.Specifier;
 public class SubsetConfigManager {
 
     private final NextSupplier nextSupplier_;
-    private final ConfigKey[] nextKeys_;
-    private final ConfigKey[] otherKeys_;
-    private final ConfigKey[] allKeys_;
+    private final ConfigKey<?>[] nextKeys_;
+    private final ConfigKey<?>[] otherKeys_;
+    private final ConfigKey<?>[] allKeys_;
     private final Map<RowSubset,SubsetConfigger> configgers_;
     private final ActionForwarder forwarder_;
 
@@ -41,7 +41,7 @@ public class SubsetConfigManager {
      *                     managers configgers
      */
     public SubsetConfigManager( NextSupplier nextSupplier,
-                                ConfigKey[] otherKeys ) {
+                                ConfigKey<?>[] otherKeys ) {
         nextSupplier_ = nextSupplier;
         nextKeys_ = nextSupplier_.getKeys();
         otherKeys_ = otherKeys;
@@ -53,7 +53,7 @@ public class SubsetConfigManager {
     /**
      * Returns the config keys managed by this manager.
      */
-    public ConfigKey[] getConfigKeys() {
+    public ConfigKey<?>[] getConfigKeys() {
         return allKeys_;
     }
 
@@ -163,7 +163,7 @@ public class SubsetConfigManager {
             if ( ! init_ ) {
                 init_ = true;
                 for ( int ik = 0; ik < nextKeys_.length; ik++ ) {
-                    initNextValue( (ConfigKey<?>) nextKeys_[ ik ] );
+                    initNextValue( nextKeys_[ ik ] );
                 }
             }
             return specifier_.getSpecifiedValue();

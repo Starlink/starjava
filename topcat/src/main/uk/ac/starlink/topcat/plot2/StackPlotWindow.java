@@ -121,7 +121,7 @@ import uk.ac.starlink.ttools.plot2.paper.Compositor;
  */
 public class StackPlotWindow<P,A> extends AuxWindow {
 
-    private final PlotType plotType_;
+    private final PlotType<P,A> plotType_;
     private final PlotTypeGui<P,A> plotTypeGui_;
     private final ZoneFactory zoneFact_;
     private final SurfaceFactory<P,A> surfFact_;
@@ -170,7 +170,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      *                      for plot type
      * @param  tablesModel  list of available tables
      */
-    public StackPlotWindow( String name, Component parent, PlotType plotType,
+    public StackPlotWindow( String name, Component parent,
+                            PlotType<P,A> plotType,
                             PlotTypeGui<P,A> plotTypeGui,
                             TypedListModel<TopcatModel> tablesModel ) {
         super( name, parent );
@@ -201,7 +202,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         auxLockModel_ =
             new ToggleButtonModel( "Lock Aux Range", ResourceIcon.AUX_LOCK,
                                    "Do not auto-rescale aux scales" );
-        surfFact_ = (SurfaceFactory<P,A>) plotType_.getSurfaceFactory();
+        surfFact_ = plotType_.getSurfaceFactory();
         DataStoreFactory storeFact =
             new CachedDataStoreFactory(
                 new SmartColumnFactory( new MemoryColumnFactory() ) );
@@ -226,8 +227,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return getGanger();
             }
         };
-        Factory<ZoneDef<P,A>[]> zonesFact = new Factory<ZoneDef<P,A>[]>() {
-            public ZoneDef<P,A>[] getItem() {
+        Factory<List<ZoneDef<P,A>>> zonesFact =
+                new Factory<List<ZoneDef<P,A>>>() {
+            public List<ZoneDef<P,A>> getItem() {
                 return getZoneDefs();
             }
         };
@@ -251,7 +253,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         stackPanel_.addFixedControl( frameControl_ );
         stackPanel_.addFixedControl( legendControl_ );
         multiAxisController_ =
-            new MultiAxisController<P,A>( plotTypeGui_, zoneFact_, configger );
+            new MultiAxisController<P,A>( plotTypeGui_, surfFact_, zoneFact_,
+                                          configger );
         for ( Control c : multiAxisController_.getStackControls() ) {
             stackPanel_.addFixedControl( c );
         }
@@ -508,8 +511,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         };
         controlManager_ =
-            new GroupControlManager( stack_, plotType, plotTypeGui, tablesModel,
-                                     zoneFact_, configger, tcListener );
+            new GroupControlManager<P,A>( stack_, plotType, plotTypeGui,
+                                          tablesModel, zoneFact_,
+                                          configger, tcListener );
 
         /* Prepare actions for adding and removing stack controls. */
         Action[] stackActions = controlManager_.getStackActions();
@@ -738,8 +742,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     private Ganger<P,A> getGanger() {
         Padding padding = frameControl_.getPlotPosition().getPadding();
-        return (Ganger<P,A>)
-               plotTypeGui_.getGangerFactory().createGanger( padding );
+        return plotTypeGui_.getGangerFactory().createGanger( padding );
     }
 
     /**
@@ -747,7 +750,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      *
      * @return  plot panel
      */
-    public PlotPanel getPlotPanel() {
+    public PlotPanel<P,A> getPlotPanel() {
         return plotPanel_;
     }
 
@@ -757,7 +760,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param   iz  zone index
      * @return  axis controller
      */
-    public AxisController getAxisController( int iz ) {
+    public AxisController<P,A> getAxisController( int iz ) {
         return multiAxisController_.getController( plotPanel_.getZoneId( iz ) );
     }
 
@@ -920,7 +923,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      *
      * @return  zone definition array
      */
-    private ZoneDef<P,A>[] getZoneDefs() {
+    private List<ZoneDef<P,A>> getZoneDefs() {
         List<ZoneDef<P,A>> zdefs = new ArrayList<ZoneDef<P,A>>();
         for ( Map.Entry<ZoneId,LayerControl[]> entry :
               getLayerControlsByZone().entrySet() ) {
@@ -989,7 +992,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 }
             } );
         }
-        return (ZoneDef<P,A>[]) zdefs.toArray( new ZoneDef[ 0 ] );
+        return zdefs;
     }
 
     /**
@@ -1050,7 +1053,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             LayerId lid = entry.getKey();
             ReportMap report = entry.getValue();
             if ( report != null ) {
-                for ( ReportKey rkey : report.keySet() ) {
+                for ( ReportKey<?> rkey : report.keySet() ) {
                     if ( rkey.isGeneralInterest() &&
                          StarTable.class
                                   .isAssignableFrom( rkey.getValueClass() ) ) {
@@ -1091,7 +1094,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     return table;
                 }
             };
-            Plotter plotter = lid.getPlotter();
+            Plotter<?> plotter = lid.getPlotter();
             String dtype = rmeta.getLongName();
             String label = plotter.getPlotterName();
             importAct_ = window.createImportTableAction( dtype, tsrc, label );

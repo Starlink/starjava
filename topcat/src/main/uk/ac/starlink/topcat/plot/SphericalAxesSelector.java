@@ -38,6 +38,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    31 May 2007
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SphericalAxesSelector implements AxesSelector {
 
     private final JComponent colBox_;
@@ -202,7 +203,7 @@ public class SphericalAxesSelector implements AxesSelector {
     }
 
     public StarTable getErrorData() {
-        List colList = new ArrayList();
+        List<ColumnData> colList = new ArrayList<ColumnData>();
         boolean hasTanerr = tangentErrorToggler_.isSelected();
         ErrorMode radialMode = radialVisible_
                              ? radialErrorModeModel_.getErrorMode()
@@ -221,8 +222,7 @@ public class SphericalAxesSelector implements AxesSelector {
                 colList.add( rData );
             }
         }
-        ColumnData[] eCols =
-            (ColumnData[]) colList.toArray( new ColumnData[ 0 ] );
+        ColumnData[] eCols = colList.toArray( new ColumnData[ 0 ] );
         return new ColumnDataTable( tcModel_, eCols );
     }
 

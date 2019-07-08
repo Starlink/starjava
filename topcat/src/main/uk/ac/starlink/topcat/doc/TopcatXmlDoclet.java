@@ -26,7 +26,7 @@ import uk.ac.starlink.ttools.build.FullXmlDoclet;
  */
 public class TopcatXmlDoclet extends FullXmlDoclet {
 
-    private Class[] classes_;
+    private Class<?>[] classes_;
 
     /**
      * Begin processing document.
@@ -64,11 +64,11 @@ public class TopcatXmlDoclet extends FullXmlDoclet {
             String opt = opts[ 0 ];
             if ( opt.equals( "-gen" ) ) {
                 classes_ = TopcatJELUtils.getStaticClasses()
-                                         .toArray( new Class[ 0 ] );
+                                         .toArray( new Class<?>[ 0 ] );
             }
             else if ( opt.equals( "-act" ) ) {
                 classes_ = TopcatJELUtils.getActivationStaticClasses()
-                                         .toArray( new Class[ 0 ] );
+                                         .toArray( new Class<?>[ 0 ] );
             }
         }
     }

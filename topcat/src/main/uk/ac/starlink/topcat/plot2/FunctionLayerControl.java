@@ -51,20 +51,21 @@ public class FunctionLayerControl extends ConfigControl
         plotter_ = plotter;
         zsel_ = zsel;
         AutoConfigSpecifier legendSpecifier =
-            new AutoConfigSpecifier( new ConfigKey[] { FUNCLABEL_KEY,
-                                                       StyleKeys.SHOW_LABEL },
-                                     new ConfigKey[] { FUNCLABEL_KEY } );
+            new AutoConfigSpecifier( new ConfigKey<?>[] { FUNCLABEL_KEY,
+                                                          StyleKeys.SHOW_LABEL},
+                                     new ConfigKey<?>[] { FUNCLABEL_KEY } );
         final AutoSpecifier<String> labelSpecifier =
             legendSpecifier.getAutoSpecifier( FUNCLABEL_KEY );
 
         /* Split up style keys into two parts for more logical presentation
          * in the GUI. */
-        final ConfigKey[] funcKeys = plotter.getFunctionStyleKeys();
-        List<ConfigKey> otherKeyList =
-            new ArrayList( Arrays.asList( plotter.getStyleKeys() ) );
+        final ConfigKey<?>[] funcKeys = plotter.getFunctionStyleKeys();
+        List<ConfigKey<?>> otherKeyList =
+            new ArrayList<ConfigKey<?>>( Arrays
+                                        .asList( plotter.getStyleKeys() ) );
         otherKeyList.removeAll( Arrays.asList( funcKeys ) );
-        final ConfigKey[] otherKeys =
-            otherKeyList.toArray( new ConfigKey[ 0 ] );
+        final ConfigKey<?>[] otherKeys =
+            otherKeyList.toArray( new ConfigKey<?>[ 0 ] );
         final FuncSpecifier funcSpecifier = new FuncSpecifier( funcKeys );
         final ConfigSpecifier otherSpecifier = new ConfigSpecifier( otherKeys );
 
@@ -183,7 +184,7 @@ public class FunctionLayerControl extends ConfigControl
          * @param   funcKeys  keys  config keys for this specifier;
          *                    should include FEXPR_KEY
          */
-        FuncSpecifier( ConfigKey[] funcKeys ) {
+        FuncSpecifier( ConfigKey<?>[] funcKeys ) {
             super( funcKeys );
 
             /* Prepare to do special manipulation of the text field

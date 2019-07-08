@@ -25,7 +25,7 @@ public class TablePlotDisplay {
     private final String tableLabel_;
     private final boolean isVisibleOnPlot_;
     private final ExtraTablesListModel tablesModel_;
-    private StackPlotWindow plotWindow_;
+    private StackPlotWindow<?,?> plotWindow_;
 
     /**
      * Constructor.
@@ -116,14 +116,15 @@ public class TablePlotDisplay {
      *
      * @return   plot window, may be null
      */
-    public StackPlotWindow getWindow() {
+    public StackPlotWindow<?,?> getWindow() {
         return plotWindow_;
     }
 
     /**
-     * ListModel<TopcatModel> implementation that combines a base model
+     * ListModel&lt;TopcatModel&gt; implementation that combines a base model
      * and a new model that can contain extra TableModels.
      */
+    @SuppressWarnings({"unchecked","rawtypes"})
     private static class ExtraTablesListModel
                          extends ListModel2
                          implements TypedListModel<TopcatModel> {

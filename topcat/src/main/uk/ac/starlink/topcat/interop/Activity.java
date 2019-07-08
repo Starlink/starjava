@@ -17,5 +17,6 @@ public interface Activity {
      *
      * @return   target application selection model
      */
+    @SuppressWarnings("rawtypes")
     ComboBoxModel getTargetSelector();
 }

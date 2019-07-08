@@ -23,7 +23,7 @@ public class SimplePositionCoordPanel extends PositionCoordPanel {
      * @param  geom  fixed data geom
      */
     public SimplePositionCoordPanel( Coord[] coords, DataGeom geom ) {
-        this( coords, new ConfigKey[ 0 ], geom );
+        this( coords, new ConfigKey<?>[ 0 ], geom );
     }
 
     /**
@@ -33,7 +33,7 @@ public class SimplePositionCoordPanel extends PositionCoordPanel {
      * @param  configKeys   config value keys
      * @param  geom  fixed data geom
      */
-    public SimplePositionCoordPanel( Coord[] coords, ConfigKey[] configKeys,
+    public SimplePositionCoordPanel( Coord[] coords, ConfigKey<?>[] configKeys,
                                      DataGeom geom ) {
         super( coords, configKeys );
         geom_ = geom;

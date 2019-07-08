@@ -237,7 +237,7 @@ public class Driver {
         setStandalone( true );
 
         /* Process flags. */
-        List argList = new ArrayList( Arrays.asList( args ) );
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         boolean demo = false;
         int verbosity = 0;
         boolean debug = false;
@@ -247,8 +247,8 @@ public class Driver {
         boolean noHub = false;
         boolean checkVersion = true;
         boolean useRunning = false;
-        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-            String arg = (String) it.next();
+        for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
+            String arg = it.next();
             if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
                 System.out.println( getHelp( cmdname ) );
                 return;
@@ -267,12 +267,12 @@ public class Driver {
             }
             else if ( arg.equals( "-stilts" ) ) {
                 it.remove();
-                Stilts.main( (String[]) argList.toArray( new String[ 0 ] ) );
+                Stilts.main( argList.toArray( new String[ 0 ] ) );
                 return;
             }
             else if ( arg.equals( "-jsamp" ) ) {
                 it.remove();
-                JSamp.main( (String[]) argList.toArray( new String[ 0 ] ) );
+                JSamp.main( argList.toArray( new String[ 0 ] ) );
                 return;
             }
             else if ( arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
@@ -386,11 +386,11 @@ public class Driver {
         final List<DataSourceLoader> loaderList =
             new ArrayList<DataSourceLoader>();
         String handler = null;
-        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-            String arg = (String) it.next();
+        for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
+            String arg = it.next();
             if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
                 if ( it.hasNext() ) {
-                    handler = (String) it.next();
+                    handler = it.next();
                     if ( handler.equals( "auto" ) ) {
                         handler = null;
                     }
@@ -678,10 +678,10 @@ public class Driver {
         /* Auto-detected formats. */
         buf.append( p1 + "Auto-detected formats: " )
            .append( p2 );
-        for ( Iterator it = tabfact.getDefaultBuilders().iterator();
+        for ( Iterator<TableBuilder> it =
+                  tabfact.getDefaultBuilders().iterator();
               it.hasNext(); ) {
-            buf.append( ((TableBuilder) it.next()).getFormatName()
-                                                  .toLowerCase() );
+            buf.append( it.next().getFormatName().toLowerCase() );
             if ( it.hasNext() ) {
                 buf.append( ", " );
             }
@@ -690,9 +690,9 @@ public class Driver {
         /* All known formats. */
         buf.append( p1 + "All known formats:" )
            .append( p2 );
-        for ( Iterator it = tabfact.getKnownFormats().iterator();
+        for ( Iterator<String> it = tabfact.getKnownFormats().iterator();
               it.hasNext(); ) {
-            buf.append( ((String) it.next()).toLowerCase() );
+            buf.append( it.next().toLowerCase() );
             if ( it.hasNext() ) {
                 buf.append( ", " );
             }

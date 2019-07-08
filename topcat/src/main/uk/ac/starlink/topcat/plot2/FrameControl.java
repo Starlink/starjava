@@ -39,7 +39,8 @@ public class FrameControl extends ConfigControl {
 
         /* Title tab. */
         titleSpecifier_ =
-            new ConfigSpecifier( new ConfigKey[] { TITLE_KEY, TITLE_VIS_KEY } );
+            new ConfigSpecifier( new ConfigKey<?>[] { TITLE_KEY,
+                                                      TITLE_VIS_KEY } );
         addSpecifierTab( "Title", titleSpecifier_ );
     }
 

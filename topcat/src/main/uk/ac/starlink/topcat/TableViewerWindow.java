@@ -656,7 +656,7 @@ public class TableViewerWindow extends AuxWindow {
     public void setSelection( RowSubset rset ) {
         rowSelectionModel_.setValueIsAdjusting( true );
         rowSelectionModel_.clearSelection();
-        int nrow = (int) viewModel_.getRowCount();
+        int nrow = viewModel_.getRowCount();
         int[] rowMap = viewModel_.getRowMap();
         for ( int irow = 0; irow < nrow; irow++ ) {
             long jrow = rowMap == null ? (long) irow

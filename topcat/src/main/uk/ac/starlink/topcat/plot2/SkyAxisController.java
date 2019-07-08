@@ -45,12 +45,13 @@ public class SkyAxisController
      */
     public SkyAxisController() {
         super( new SkySurfaceFactory() );
-        SurfaceFactory surfFact = getSurfaceFactory();
+        SurfaceFactory<SkySurfaceFactory.Profile,SkyAspect> surfFact =
+            getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
 
         /* Projection specifier. */
         final ConfigSpecifier projSpecifier =
-                new ConfigSpecifier( new ConfigKey[] {
+                new ConfigSpecifier( new ConfigKey<?>[] {
             SkySurfaceFactory.PROJECTION_KEY,
             SkySurfaceFactory.REFLECT_KEY,
             SkySurfaceFactory.VIEWSYS_KEY,
@@ -71,7 +72,7 @@ public class SkyAxisController
 
         /* Grid appearance specifier. */
         mainControl.addSpecifierTab( "Grid",
-                                     new ConfigSpecifier( new ConfigKey[] {
+                                     new ConfigSpecifier( new ConfigKey<?>[] {
             SkySurfaceFactory.GRID_KEY,
             SkySurfaceFactory.SCALEBAR_KEY,
             SkySurfaceFactory.SEX_KEY,
@@ -110,15 +111,16 @@ public class SkyAxisController
          *
          * @param  keys  aspect keys for surface factory
          */
-        FieldOfViewSpecifier( ConfigKey[] keys ) {
+        FieldOfViewSpecifier( ConfigKey<?>[] keys ) {
 
             /* Check these are what we're expecting. */
-            assert new HashSet<ConfigKey>( Arrays.asList( new ConfigKey[] {
-                       SkySurfaceFactory.LON_KEY,
-                       SkySurfaceFactory.LAT_KEY,
-                       SkySurfaceFactory.FOV_RADIUS_KEY,
-                    } ) )
-                   .equals( new HashSet<ConfigKey>( Arrays.asList( keys ) ) );
+            assert
+                new HashSet<ConfigKey<?>>( Arrays.asList( new ConfigKey<?>[] {
+                   SkySurfaceFactory.LON_KEY,
+                   SkySurfaceFactory.LAT_KEY,
+                   SkySurfaceFactory.FOV_RADIUS_KEY,
+                } ) )
+               .equals( new HashSet<ConfigKey<?>>( Arrays.asList( keys ) ) );
 
             /* Set up an entry GUI for a sky position.  This includes a
              * name resolver.  Add a radius field. */

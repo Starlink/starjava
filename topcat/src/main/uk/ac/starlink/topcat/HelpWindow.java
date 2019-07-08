@@ -13,7 +13,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -253,7 +252,7 @@ public class HelpWindow extends AuxWindow {
         /* If succesful so far, get a list of all the tools in the help 
          * toolbar. */
         if ( jhBar != null ) {
-            List tools = new ArrayList();
+            List<Component> tools = new ArrayList<Component>();
             for ( int i = 0; ; i++ ) {
                 Component tool = jhBar.getComponentAtIndex( i );
                 if ( tool == null ) {
@@ -263,8 +262,7 @@ public class HelpWindow extends AuxWindow {
             }
 
             /* Move each one from the help toolbar to this window's toolbar. */
-            for ( Iterator it = tools.iterator(); it.hasNext(); ) {
-                Component tool = (Component) it.next();
+            for ( Component tool : tools ) {
                 jhBar.remove( tool );
                 getToolBar().add( tool );
             }
@@ -288,7 +286,7 @@ public class HelpWindow extends AuxWindow {
 
     private static void prepareTOC( JHelp jhelp ) {
         JHelpTOCNavigator tocnav = null;
-        for ( Enumeration en = jhelp.getHelpNavigators();
+        for ( Enumeration<?> en = jhelp.getHelpNavigators();
               en.hasMoreElements(); ) {
             Object nav = en.nextElement();
             if ( nav instanceof JHelpTOCNavigator ) {
@@ -300,7 +298,7 @@ public class HelpWindow extends AuxWindow {
             return;  // oh well
         }
         HelpSet hs = jhelp.getModel().getHelpSet();
-        for ( Enumeration en = hs.getCombinedMap().getAllIDs();
+        for ( Enumeration<?> en = hs.getCombinedMap().getAllIDs();
               en.hasMoreElements(); ) {
             String id = ((javax.help.Map.ID) en.nextElement()).id;
             tocnav.collapseID( id );

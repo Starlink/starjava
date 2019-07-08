@@ -24,6 +24,7 @@ import uk.ac.starlink.table.ValueInfo;
  * @since    6 Oct 2004
  * @see      ColumnSelectorModel
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class ColumnSelector extends JComponent {
 
     private ColumnSelectorModel model_;
@@ -44,7 +45,7 @@ public class ColumnSelector extends JComponent {
     public ColumnSelector( ValueInfo info, boolean showLabel ) {
         info_ = info;
         String units = info_.getUnitString();
-        List compList = new ArrayList();
+        List<Component> compList = new ArrayList<Component>();
 
         /* Set up label. */
         label_ = new JLabel( info_.getName() + " column:" );
@@ -85,7 +86,7 @@ public class ColumnSelector extends JComponent {
             add( ulabel );
             compList.add( ulabel );
         }
-        components_ = (Component[]) compList.toArray( new Component[ 0 ] );
+        components_ = compList.toArray( new Component[ 0 ] );
 
         /* Not ready yet. */
         setEnabled( false );

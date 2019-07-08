@@ -91,7 +91,8 @@ public class ColumnIndexSpinner extends JSpinner {
             setMaximum( new Integer( columnModel.getColumnCount() + 1) );
             Object v = getValue();
             if ( v instanceof Comparable ) {
-                Comparable val = (Comparable) v;
+                @SuppressWarnings("unchecked")
+                Comparable<Object> val = (Comparable<Object>) v;
                 if ( val.compareTo( getMaximum() ) > 0 ) {
                     setValue( getMaximum() );
                     fireStateChanged();

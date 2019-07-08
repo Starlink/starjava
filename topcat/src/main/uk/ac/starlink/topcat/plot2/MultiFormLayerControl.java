@@ -43,11 +43,11 @@ import uk.ac.starlink.ttools.plot2.layer.ModePlotter;
 public class MultiFormLayerControl extends FormLayerControl {
 
     private final Configger baseConfigger_;
-    private final ConfigKey[] subsetKeys_;
+    private final ConfigKey<?>[] subsetKeys_;
     private final ControlStack formStack_;
     private final ControlStackModel formStackModel_;
-    private final List<Plotter> singlePlotterList_;
-    private final Map<ModePlotter.Form,List<ModePlotter>> modePlotterMap_;
+    private final List<Plotter<?>> singlePlotterList_;
+    private final Map<ModePlotter.Form,List<ModePlotter<?>>> modePlotterMap_;
     private final Action dfltFormAct_;
 
     private static final Logger logger_ =
@@ -78,7 +78,7 @@ public class MultiFormLayerControl extends FormLayerControl {
                                   Specifier<ZoneId> zsel, boolean autoPopulate,
                                   NextSupplier nextSupplier,
                                   TopcatListener tcListener, Icon controlIcon,
-                                  Plotter[] plotters,
+                                  Plotter<?>[] plotters,
                                   Configger baseConfigger ) {
         super( posCoordPanel, tablesModel, zsel, autoPopulate, nextSupplier,
                tcListener, controlIcon );
@@ -164,16 +164,17 @@ public class MultiFormLayerControl extends FormLayerControl {
 
         /* Divide up the supplied plotters into those which constitute
          * mode/form families, and standalone ones. */
-        singlePlotterList_ = new ArrayList<Plotter>();
+        singlePlotterList_ = new ArrayList<Plotter<?>>();
         modePlotterMap_ =
-            new LinkedHashMap<ModePlotter.Form,List<ModePlotter>>();
+            new LinkedHashMap<ModePlotter.Form,List<ModePlotter<?>>>();
         for ( int ip = 0; ip < plotters.length; ip++ ) {
-            Plotter plotter = plotters[ ip ];
+            Plotter<?> plotter = plotters[ ip ];
             if ( plotter instanceof ModePlotter ) {
-                ModePlotter modePlotter = (ModePlotter) plotter;
+                ModePlotter<?> modePlotter = (ModePlotter<?>) plotter;
                 ModePlotter.Form form = modePlotter.getForm();
                 if ( ! modePlotterMap_.containsKey( form ) ) {
-                    modePlotterMap_.put( form, new ArrayList<ModePlotter>() );
+                    modePlotterMap_.put( form,
+                                         new ArrayList<ModePlotter<?>>() );
                 }
                 modePlotterMap_.get( form ).add( modePlotter );
             }
@@ -186,11 +187,11 @@ public class MultiFormLayerControl extends FormLayerControl {
          * standalone plotter. */
         List<Action> formActionList = new ArrayList<Action>();
         for ( ModePlotter.Form form : modePlotterMap_.keySet() ) {
-            ModePlotter[] modePlotters =
-                modePlotterMap_.get( form ).toArray( new ModePlotter[ 0 ] );
+            ModePlotter<?>[] modePlotters =
+                modePlotterMap_.get( form ).toArray( new ModePlotter<?>[ 0 ] );
             formActionList.add( new ModeFormAction( modePlotters, form ) );
         }
-        for ( Plotter plotter : singlePlotterList_ ) {
+        for ( Plotter<?> plotter : singlePlotterList_ ) {
             formActionList.add( new SingleFormAction( plotter ) );
         }
 
@@ -247,7 +248,7 @@ public class MultiFormLayerControl extends FormLayerControl {
      *
      * @param   lcmd  layer specification
      */
-    public void addLayer( LayerCommand lcmd ) {
+    public void addLayer( LayerCommand<?> lcmd ) {
         FormControl fc = createFormControl( lcmd.getPlotter() );
         if ( fc != null ) {
             FormStylePanel stylePanel = fc.getStylePanel();
@@ -278,7 +279,7 @@ public class MultiFormLayerControl extends FormLayerControl {
      * @param  plotter  plotter
      * @return  new control
      */
-    private FormControl createFormControl( Plotter plotter ) {
+    private FormControl createFormControl( Plotter<?> plotter ) {
 
         /* If it's a mode plotter, try to set up a ModeFormControl with
          * all the other associated modes present, but the relevant one
@@ -290,15 +291,15 @@ public class MultiFormLayerControl extends FormLayerControl {
          * equal.  In that case you'll end up falling through this part,
          * and get a SimpleFormControl instead. */
         if ( plotter instanceof ModePlotter ) {
-            ModePlotter mPlotter = (ModePlotter) plotter;
+            ModePlotter<?> mPlotter = (ModePlotter<?>) plotter;
             ModePlotter.Mode mode = mPlotter.getMode();
             ModePlotter.Form form = mPlotter.getForm();
-            List<ModePlotter> mPlotterList = modePlotterMap_.get( form );
+            List<ModePlotter<?>> mPlotterList = modePlotterMap_.get( form );
             if ( mPlotterList != null ) {
-                for ( ModePlotter mp1 : mPlotterList ) {
+                for ( ModePlotter<?> mp1 : mPlotterList ) {
                     if ( mp1.getMode().equals( mode ) ) {
-                        ModePlotter[] mPlotters =
-                            mPlotterList.toArray( new ModePlotter[ 0 ] );
+                        ModePlotter<?>[] mPlotters =
+                            mPlotterList.toArray( new ModePlotter<?>[ 0 ] );
                         ModeFormControl fc = createModeFormControl( mPlotters );
                         fc.setMode( mp1.getMode() );
                         return fc;
@@ -319,7 +320,7 @@ public class MultiFormLayerControl extends FormLayerControl {
      * @param   plotter  plotter
      * @return   new form control configured for the current table
      */
-    private FormControl createSimpleFormControl( Plotter plotter ) {
+    private FormControl createSimpleFormControl( Plotter<?> plotter ) {
 
         /* The coordinate entry fields in the form control should be
          * those which are not requested by the (common to several forms)
@@ -349,7 +350,7 @@ public class MultiFormLayerControl extends FormLayerControl {
      * @param  plotters  list of mode plotters with the same form
      * @return   new form control configured for the current table
      */
-    private ModeFormControl createModeFormControl( ModePlotter[] plotters ) {
+    private ModeFormControl createModeFormControl( ModePlotter<?>[] plotters ) {
         ModeFormControl fc =
             new ModeFormControl( baseConfigger_, plotters, subsetKeys_ );
         fc.setTable( getTopcatModel(), getSubsetManager(), getSubsetStack() );
@@ -360,14 +361,14 @@ public class MultiFormLayerControl extends FormLayerControl {
      * Action to add a form control for a non-modal plotter.
      */
     private class SingleFormAction extends AbstractAction {
-        private final Plotter plotter_;
+        private final Plotter<?> plotter_;
 
         /**
          * Constructor.
          *
          * @param  plotter   object that generates plot layers
          */
-        public SingleFormAction( Plotter plotter ) {
+        public SingleFormAction( Plotter<?> plotter ) {
             super( "Add " + plotter.getPlotterName(),
                    ResourceIcon.toAddIcon( plotter.getPlotterIcon() ) );
             putValue( SHORT_DESCRIPTION,
@@ -385,7 +386,7 @@ public class MultiFormLayerControl extends FormLayerControl {
      * form and a selection of modes.
      */
     private class ModeFormAction extends AbstractAction {
-        private final ModePlotter[] plotters_;
+        private final ModePlotter<?>[] plotters_;
 
         /**
          * Constructor.
@@ -394,7 +395,8 @@ public class MultiFormLayerControl extends FormLayerControl {
          *                    but different modes
          * @param  form   common form
          */
-        public ModeFormAction( ModePlotter[] plotters, ModePlotter.Form form ) {
+        public ModeFormAction( ModePlotter<?>[] plotters,
+                               ModePlotter.Form form ) {
             super( "Add " + form.getFormName(),
                    ResourceIcon.toAddIcon( form.getFormIcon() ) );
             putValue( SHORT_DESCRIPTION,

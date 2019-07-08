@@ -31,6 +31,7 @@ import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
  * @author   Mark Taylor
  * @since    12 Oct 2005
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SkyColumnQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel_;
@@ -258,7 +259,7 @@ public class SkyColumnQueryWindow extends QueryWindow {
              * appropriately for the system. */
             sysChooser_.addItemListener( new ItemListener() {
                 public void itemStateChanged( ItemEvent evt ) {
-                    if ( evt.getStateChange() == evt.SELECTED ) {
+                    if ( evt.getStateChange() == ItemEvent.SELECTED ) {
                         systemSelected( (SkySystem) evt.getItem() );
                     }
                 }
@@ -299,7 +300,7 @@ public class SkyColumnQueryWindow extends QueryWindow {
                 private ComboBoxModel dummyModel = new DefaultComboBoxModel();
                 public void itemStateChanged( ItemEvent evt ) {
                     int state = evt.getStateChange();
-                    if ( state == evt.SELECTED ) {
+                    if ( state == ItemEvent.SELECTED ) {
                         ComboBoxModel[] models = getColumnModels();
                         for ( int i = 0; i < 2; i++ ) {
                             coordChoosers[ i ].setModel( models[ i ] );
@@ -322,8 +323,8 @@ public class SkyColumnQueryWindow extends QueryWindow {
          */
         private ComboBoxModel[] getColumnModels() {
             SkyUnits units = (SkyUnits) unitChooser_.getSelectedItem();
-            Class okClass = ( units == SkyUnits.SEXAGESIMAL ) ? String.class
-                                                              : Number.class;
+            Class<?> okClass = ( units == SkyUnits.SEXAGESIMAL ) ? String.class
+                                                                 : Number.class;
             ComboBoxModel[] models = new ComboBoxModel[ 2 ];
             for ( int i = 0; i < 2; i++ ) {
                 models[ i ] = RestrictedColumnComboBoxModel

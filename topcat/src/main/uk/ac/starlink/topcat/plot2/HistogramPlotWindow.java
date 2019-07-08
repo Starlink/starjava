@@ -70,9 +70,10 @@ import uk.ac.starlink.ttools.plot2.layer.Unit;
 public class HistogramPlotWindow
              extends StackPlotWindow<PlaneSurfaceFactory.Profile,PlaneAspect> {
 
-    private static final PlotType PLOT_TYPE =
+    private static final PlanePlotType PLOT_TYPE =
         new PlanePlotType( createHistogramPlotters(), false );
-    private static final PlotTypeGui PLOT_GUI = new HistogramPlotTypeGui();
+    private static final HistogramPlotTypeGui PLOT_GUI =
+        new HistogramPlotTypeGui();
     private static final int BINS_TABLE_INTRO_NCOL = 2;
 
     /**
@@ -145,7 +146,7 @@ public class HistogramPlotWindow
      *          in the given zone
      */
     private boolean hasHistogramLayers( int iz ) {
-        PlotPanel plotPanel = getPlotPanel();
+        PlotPanel<?,?> plotPanel = getPlotPanel();
         if ( iz < plotPanel.getZoneCount() ) {
             for ( PlotLayer layer : plotPanel.getPlotLayers( iz ) ) {
                 if ( layer.getPlotter() instanceof HistogramPlotter ) {
@@ -165,7 +166,7 @@ public class HistogramPlotWindow
      */
     private StarTable getBinDataTable( int iz ) {
         Unit unit = Unit.UNIT;
-        PlotPanel plotPanel = getPlotPanel();
+        PlotPanel<?,?> plotPanel = getPlotPanel();
         if ( iz >= plotPanel.getZoneCount() ) {
             return null;
         }
@@ -325,7 +326,7 @@ public class HistogramPlotWindow
             /* Construct the data array for the column. */
             BinBag binBag = binsMap.get( layer );
             final Number[] data = new Number[ nrow ];
-            final Class clazz = isInt ? Integer.class : Double.class;
+            final Class<?> clazz = isInt ? Integer.class : Double.class;
             for ( Iterator<BinBag.Bin> binIt =
                       binBag.binIterator( isCumulative, norm, unit );
                   binIt.hasNext(); ) {
@@ -373,7 +374,7 @@ public class HistogramPlotWindow
      * @param  iz  zone index
      */
     private void rescaleY( int iz ) {
-        PlotPanel plotPanel = getPlotPanel();
+        PlotPanel<?,?> plotPanel = getPlotPanel();
         if ( iz < plotPanel.getZoneCount() ) {
             Range yrange = readVerticalRange( iz );
             PlaneSurface surface =
@@ -396,7 +397,7 @@ public class HistogramPlotWindow
      * @return  Y range of plotted histogram data, or null
      */
     private Range readVerticalRange( int iz ) {
-        PlotPanel plotPanel = getPlotPanel();
+        PlotPanel<?,?> plotPanel = getPlotPanel();
 
         /* Initialise range object with the lower limit for the bottom of
          * the bars. */
@@ -438,7 +439,7 @@ public class HistogramPlotWindow
             PlotLayer layer = layers[ il ];
             ReportMap report = reports[ il ];
             if ( report != null ) {
-                Plotter plotter = layer.getPlotter();
+                Plotter<?> plotter = layer.getPlotter();
                 if ( plotter instanceof AbstractKernelDensityPlotter ) {
                     double[] bins =
                         report.get( AbstractKernelDensityPlotter.BINS_KEY );
@@ -458,10 +459,10 @@ public class HistogramPlotWindow
      *
      * @return  histogram plotter list
      */
-    private static Plotter[] createHistogramPlotters() {
+    private static Plotter<?>[] createHistogramPlotters() {
         FloatingCoord xCoord = PlaneDataGeom.X_COORD;
         ConfigKey<Unit> unitKey = null;
-        return new Plotter[] {
+        return new Plotter<?>[] {
             new HistogramPlotter( xCoord, true, null ),
             new FixedKernelDensityPlotter( xCoord, true, null ),
             new KnnKernelDensityPlotter( xCoord, true, null ),
@@ -485,7 +486,8 @@ public class HistogramPlotWindow
                   .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
                                 null );
         }
-        public GangerFactory getGangerFactory() {
+        public GangerFactory<PlaneSurfaceFactory.Profile,PlaneAspect>
+                getGangerFactory() {
             return SingleGanger.createFactory( PLOT_TYPE );
         }
         public ZoneFactory createZoneFactory() {

@@ -30,13 +30,15 @@ import uk.ac.starlink.util.URLUtils;
  * @author   Mark Taylor
  * @since    18 Sep 2008
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class SampImageActivity implements ImageActivity {
 
     private final GuiHubConnector connector_;
     private final SubscribedClientListModel clientModel_;
     private final JComboBox formatSelector_;
     private final ViewerComboBoxModel viewerModel_;
-    private static final Map mfactMap_ = createMessageFactoryMap();
+    private static final Map<String,MessageFactory> mfactMap_ =
+        createMessageFactoryMap();
 
     /**
      * Constructor.
@@ -84,7 +86,7 @@ public class SampImageActivity implements ImageActivity {
      * @param  format  one of the FORMAT_* members of ImageActivity
      */
     private void setFormat( String format ) {
-        MessageFactory mfact = (MessageFactory) mfactMap_.get( format );
+        MessageFactory mfact = mfactMap_.get( format );
         clientModel_.setMTypes( mfact == null
                               ? new String[ 0 ]
                               : new String[] { mfact.mtype_ } );
@@ -96,10 +98,10 @@ public class SampImageActivity implements ImageActivity {
      *
      * @return   new  String->MessageFactory map
      */
-    private static Map createMessageFactoryMap() {
-        Map map = new HashMap();
+    private static Map<String,MessageFactory> createMessageFactoryMap() {
+        Map<String,MessageFactory> map = new HashMap<String,MessageFactory>();
         map.put( FORMAT_FITS, new MessageFactory( "image.load.fits" ) {
-            public Map createMessage( String location, String label ) {
+            public Message createMessage( String location, String label ) {
                 URL url = URLUtils.makeURL( location );
                 return url == null ? null
                                    : new Message( "image.load.fits" )
@@ -107,7 +109,7 @@ public class SampImageActivity implements ImageActivity {
             }
         } );
         map.put( FORMAT_JPEG, new MessageFactory( "image.load.jpeg" ) {
-            public Map createMessage( String location, String label ) {
+            public Message createMessage( String location, String label ) {
                 URL url = URLUtils.makeURL( location );
                 return url == null ? null
                                    : new Message( "image.load.jpeg" )
@@ -164,7 +166,7 @@ public class SampImageActivity implements ImageActivity {
          * @param  format  image format name
          */
         public void setFormat( String format ) {
-            List viewerList = new ArrayList();
+            List<ImageViewer> viewerList = new ArrayList<ImageViewer>();
             if ( FORMAT_FITS.equals( format ) ||
                  FORMAT_JPEG.equals( format ) ||
                  FORMAT_GIF.equals( format ) ||
@@ -185,8 +187,7 @@ public class SampImageActivity implements ImageActivity {
                     } );
                 }
             }
-            final MessageFactory mfact =
-                (MessageFactory) mfactMap_.get( format );
+            final MessageFactory mfact = mfactMap_.get( format );
             if ( mfact != null ) {
                 viewerList.add( new DefaultImageViewer( "All Clients (SAMP)" ) {
                     public boolean viewImage( String label, String location ) {
@@ -194,7 +195,7 @@ public class SampImageActivity implements ImageActivity {
                             HubConnection connection =
                                 connector_.getConnection();
                             if ( connection != null ) {
-                                Map msg =
+                                Message msg =
                                     mfact.createMessage( location, label );
                                 if ( msg != null ) {
                                     connection.notifyAll( msg );
@@ -215,8 +216,7 @@ public class SampImageActivity implements ImageActivity {
                 } );
             }
 
-            baseViewers_ =
-                (ImageViewer[]) viewerList.toArray( new ImageViewer[ 0 ] );
+            baseViewers_ = viewerList.toArray( new ImageViewer[ 0 ] );
             int nv = getSize();
             boolean selectionLegal = false;
             for ( int iv = 0; iv < nv; iv++ ) {
@@ -241,9 +241,8 @@ public class SampImageActivity implements ImageActivity {
             else {
                 Client client =
                     (Client) clientModel_.getElementAt( index - nb );
-                MessageFactory mfact = 
-                    (MessageFactory) mfactMap_.get( formatSelector_
-                                                   .getSelectedItem() );
+                MessageFactory mfact =
+                    mfactMap_.get( formatSelector_.getSelectedItem() );
                 return new ClientImageViewer( client, mfact );
             }
         }
@@ -309,7 +308,7 @@ public class SampImageActivity implements ImageActivity {
             try {
                 HubConnection connection = connector_.getConnection();
                 if ( connection != null ) {
-                    Map msg = mfact_.createMessage( location, label );
+                    Message msg = mfact_.createMessage( location, label );
                     if ( msg != null ) {
                         connection.notify( client_.getId(), msg );
                         return true;
@@ -364,6 +363,6 @@ public class SampImageActivity implements ImageActivity {
          * @param  location   filename or URL locating image file
          * @param  target application label
          */
-        abstract Map createMessage( String location, String label );
+        abstract Message createMessage( String location, String label );
     }
 }

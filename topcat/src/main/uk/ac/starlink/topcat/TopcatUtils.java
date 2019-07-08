@@ -54,7 +54,7 @@ public class TopcatUtils {
     private static String version_;
     private static String stilVersion_;
     private static DecimalFormat longFormat_;
-    private static Map statusMap_;
+    private static Map<Object,Object> statusMap_;
     private static Boolean canBrowse_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -534,14 +534,16 @@ public class TopcatUtils {
                 URL url = new URL( STATUS_URL );
                 Properties versionProps = new Properties();
                 versionProps.load( url.openStream() );
-                statusMap_ = new HashMap( versionProps );
+                statusMap_ = new HashMap<Object,Object>( versionProps );
             }
             catch ( Throwable e ) {
-                statusMap_ = new HashMap();
+                statusMap_ = new HashMap<Object,Object>();
             }
             String currentVersion = getVersion();
-            String latestVersion =
-                (String) statusMap_.get( "topcat.latest.version" );
+            Object latestVers = statusMap_.get( "topcat.latest.version" );
+            String latestVersion = latestVers instanceof String
+                                 ? (String) latestVers
+                                 : null;
             StringBuffer statusBuf = new StringBuffer()
                 .append( "This is TOPCAT version " )
                 .append( currentVersion );
@@ -630,13 +632,13 @@ public class TopcatUtils {
      * @param  msgLines  lines of text to appear in dialogue window
      * @param  title   dialogue window title
      */
+    @SuppressWarnings("rawtypes")
     public static void addSubset( JComponent parent, TopcatModel tcModel,
                                   BitSet matchMask, String dfltName,
                                   String[] msgLines, String title ) {
         int nmatch = matchMask.cardinality();
         Box nameLine = Box.createHorizontalBox();
-        JComboBox nameSelector =
-             tcModel.createNewSubsetNameSelector();
+        JComboBox nameSelector = tcModel.createNewSubsetNameSelector();
         nameSelector.setSelectedItem( dfltName );
         nameLine.add( new JLabel( "Subset name: " ) );
         nameLine.add( nameSelector );
@@ -697,6 +699,7 @@ public class TopcatUtils {
      *        TopcatModel.createNewSubsetNameSelector
      * @return   subset name as string, or null
      */
+    @SuppressWarnings("rawtypes")
     private static String getSubsetName( JComboBox rsetSelector ) {
         Object item = rsetSelector.getSelectedItem();
         if ( item == null ) {

@@ -23,6 +23,7 @@ import uk.ac.starlink.vo.TapCapabilityPanel;
  * @author   Mark Taylor
  * @since    9 May 2011
  */
+@SuppressWarnings("rawtypes")
 public abstract class UploadAdqlExample extends AbstractAdqlExample {
 
     private final JList tcList_;

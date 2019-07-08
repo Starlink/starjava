@@ -52,14 +52,14 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  */
 public class StiltsMonitor {
 
-    private final PlotPanel plotPanel_;
+    private final PlotPanel<?,?> plotPanel_;
     private final JTextComponent textPanel_;
     private final Action clipboardAct_;
     private final Action errorAct_;
     private final Action executeAct_;
     private final Action[] actions_;
     private StiltsPlotFormatter formatter_;
-    private PlotSpec plotSpec_;
+    private PlotSpec<?,?> plotSpec_;
     private StiltsState state_;
 
     /**
@@ -67,7 +67,7 @@ public class StiltsMonitor {
      *
      * @param   plotPanel  panel to mirror
      */
-    public StiltsMonitor( PlotPanel plotPanel ) {
+    public StiltsMonitor( PlotPanel<?,?> plotPanel ) {
         plotPanel_ = plotPanel;
         plotSpec_ = plotPanel.getPlotSpec();
 
@@ -411,7 +411,7 @@ public class StiltsMonitor {
      * @return   state
      */
     private static StiltsState
-            createStiltsState( PlotSpec plotSpec,
+            createStiltsState( PlotSpec<?,?> plotSpec,
                                StiltsPlotFormatter formatter ) {
         StiltsPlot sp;
         try {
@@ -420,7 +420,8 @@ public class StiltsMonitor {
         catch ( Exception err ) {
             String errtxt = "???";
             return new StiltsState( null, formatter, errtxt, err,
-                                    formatter.createBasicDocument( errtxt ) );
+                                    StiltsPlotFormatter
+                                   .createBasicDocument( errtxt ) );
         }
         StyledDocument doc = formatter.createShellDocument( sp );
         String txt;

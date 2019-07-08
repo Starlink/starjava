@@ -24,6 +24,7 @@ import uk.ac.starlink.ttools.plot.ErrorMode;
  * @author   Mark Taylor
  * @since    31 May 2007
  */
+@SuppressWarnings({"unchecked","rawtypes"})
 public class CartesianAxesSelector implements AxesSelector {
 
     private final String[] axisNames_;
@@ -99,12 +100,12 @@ public class CartesianAxesSelector implements AxesSelector {
     }
 
     public JComboBox[] getColumnSelectors() {
-        List selectorList = new ArrayList();
+        List<JComboBox> selectorList = new ArrayList<JComboBox>();
         for ( int idim = 0; idim < ndim_; idim++ ) {
             selectorList.addAll( Arrays.asList( dataSelectors_[ idim ]
                                        .getSelectors() ) );
         }
-        return (JComboBox[]) selectorList.toArray( new JComboBox[ 0 ] );
+        return selectorList.toArray( new JComboBox[ 0 ] );
     }
 
     public int getNdim() {
@@ -139,7 +140,7 @@ public class CartesianAxesSelector implements AxesSelector {
      * @return   error data table
      */
     public StarTable getErrorData() {
-        List colList = new ArrayList();
+        List<ColumnData> colList = new ArrayList<ColumnData>();
         for ( int idim = 0; idim < ndim_; idim++ ) {
             JComboBox[] errorSelectors =
                 dataSelectors_[ idim ].getErrorSelectors();
@@ -149,8 +150,7 @@ public class CartesianAxesSelector implements AxesSelector {
                                                        : null );
             }
         }
-        ColumnData[] cols =
-            (ColumnData[]) colList.toArray( new ColumnData[ 0 ] );
+        ColumnData[] cols = colList.toArray( new ColumnData[ 0 ] );
         for ( int icol = 0; icol < cols.length; icol++ ) {
             if ( cols[ icol ] == null ) {
                 cols[ icol ] = ConstantColumnData.ZERO;
@@ -232,7 +232,7 @@ public class CartesianAxesSelector implements AxesSelector {
     }
 
     public void initialiseSelectors() {
-        Set usedCols = new HashSet();
+        Set<ColumnData> usedCols = new HashSet<ColumnData>();
         usedCols.add( null );
 
         /* Iterate over each dimension. */
@@ -254,7 +254,8 @@ public class CartesianAxesSelector implements AxesSelector {
                      * error columns, to the list of used ones. */
                     JComboBox[] errSels = dataSelector.getSelectors();
                     for ( int isel = 0; isel < errSels.length; isel++ ) {
-                        usedCols.add( errSels[ isel ].getSelectedItem() );
+                        usedCols.add( (ColumnData)
+                                      errSels[ isel ].getSelectedItem() );
                     }
                     done = true;
                 }
