@@ -67,11 +67,11 @@ public class TableColumnChooser
         addCoordNamePattern( "redshift.*" );
         addCoordNamePattern( "pos.*" );
         addCoordNamePattern( "x*." );
+        addCoordNamePattern( "loglam" ); // SDSS spectra
+        addCoordNamePattern( "linewave"); // SDSS Lines
         addCoordNamePattern( "time*." );
         addCoordNamePattern( "jd" );
         addCoordNamePattern( ".*jd" );
-        addCoordNamePattern( "loglam" ); // SDSS spectra
-        addCoordNamePattern( "linewave"); // SDSS Lines 
 
         coordUtypePatterns = new ArrayList();
         addCoordUtypePattern( ".*spectralaxis.*" );       // SSAP

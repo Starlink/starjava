@@ -410,7 +410,7 @@ public class LineIDTableSpecDataImpl
         columnInfos = Tables.getColumnInfos( starTable );
         columnNames = new String[columnInfos.length];
         for ( int i = 0; i < columnNames.length; i++ ) {
-            columnNames[i] = columnInfos[i].getName();
+            columnNames[i] = columnInfos[i].getName().toLowerCase();
         }
 
         coordColumn =

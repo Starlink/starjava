@@ -621,7 +621,7 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
 	@Override
 	public void plotRemoved(PlotChangedEvent e) {
 		updatePlotList();	
-		if ( activePlotBox.getSelectedIndex() >= 0 ) {
+		if ( activePlotBox.getSelectedIndex() >= 0 && ! activePlotBox.getSelectedItem().toString().equals("No plots available")) {
 			PlotControl plot = globalList.getPlot(activePlotBox.getSelectedIndex());
 			setPlot(plot);
 		}
