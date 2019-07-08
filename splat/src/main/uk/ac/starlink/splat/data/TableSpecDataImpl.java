@@ -697,9 +697,9 @@ public class TableSpecDataImpl
     		return true;
     	}
     	if (desc != null && (
-    			desc.contains("time") || desc.contains("JD") )) // TODO to be improved
+    			desc.toLowerCase().contains("time") || desc.toLowerCase().contains("JD") )) // TODO to be improved
     		return true;
-    	if ( colname != null &&  colname.contains("JD") || colname.contains("time"))
+    	if ( colname != null &&  colname.toLowerCase().contains("JD") || colname.toLowerCase().contains("time"))
     		return true;
     	
 		return false;

@@ -13,5 +13,6 @@ package uk.ac.starlink.splat.data;
  */
 public enum ObjectTypeEnum {
 	SPECTRUM,
-	TIMESERIES
+	TIMESERIES,
+	UNKNOWN            // splat will try to open it as spectrum.
 }

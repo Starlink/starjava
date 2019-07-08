@@ -258,8 +258,9 @@ public class SpecDataFactory
      *  {@link #get(String)}.
      *
      *  @param specspec the specification of the spectrum to be opened.
-     *  @param type the type of the spectrum (one of types defined in
+     *  @param type the type of the data (one of types defined in
      *              this class).
+     *  @param objectType the type of the object (spectrum or timeseries).
      *  @return the list of SpecData objects created from the given
      *          specification.
      *  @exception SplatException thrown if specification does not
@@ -292,13 +293,43 @@ public class SpecDataFactory
      */
     public SpecData get1( String specspec, int type ) 
             throws SplatException {
-        List<SpecData> spectra = getAll(specspec, type, null); //TODO !!!!!!!!!!
+        List<SpecData> spectra = getAll(specspec, type); 
         
         if (spectra != null && !spectra.isEmpty())
           return spectra.get(0);
            // return spectra;
         else
             return null;
+    }
+    
+    /**
+     *  Attempt to open a given specification as a known type, setting 
+     *  the found objects to have a given type (spectrum/timeseries). 
+     *
+     *  @param specspec the specification of the spectrum to be opened.
+     *  @param type the type of the data specification (one of types defined in
+     *              this class).
+     *  @param objectType the type of the object (spectrum or timeseries).
+     *  @return the List of SpecData objects created from the given
+     *          specification.
+     *  @exception SplatException thrown if specification does not
+     *             specify a spectrum that can be accessed.
+     */
+
+    public List<SpecData> getAll( String specspec, int type, ObjectTypeEnum objectType )
+        throws SplatException {
+    	List<SpecData> specs = getAll(specspec, type);
+    	
+    	if (objectType == ObjectTypeEnum.UNKNOWN) // use the detected types
+    		return specs;
+    	
+    	for (SpecData spec : specs) {
+    		if (spec.getObjectType() == ObjectTypeEnum.UNKNOWN) {
+    			spec.setObjectType(ObjectTypeEnum.SPECTRUM); // default is spectrum
+    		} else 
+    			spec.setObjectType(objectType); // set to given object type
+    	}
+    	return specs;
     }
     
     /**
@@ -315,8 +346,7 @@ public class SpecDataFactory
      *  @exception SplatException thrown if specification does not
      *             specify a spectrum that can be accessed.
      */
-
-    public List<SpecData> getAll( String specspec, int type, ObjectTypeEnum objectType )
+    public List<SpecData> getAll( String specspec, int type)
         throws SplatException
     {
     	List<SpecData> specDataList = new ConstrainedList<SpecData>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
@@ -341,7 +371,7 @@ public class SpecDataFactory
         if ( isRemote ) {
              int remotetype = checkMimeType(namer.getURL());
              if (remotetype == DATALINK) { // if it's a datalink file, it has to be parsed and its information extracted
-                 try {
+                 try { // try opening the link with #this semantics.
                      DataLinkResponse dlp = new DataLinkResponse(specspec);
                      String thisLink= dlp.getThisLink();
                     
@@ -350,7 +380,7 @@ public class SpecDataFactory
                     	 else 
                     		 type = mimeToSPLATType(dlp.getThisContentType()); 
                     	 // got the datalink information, do it all again with the new url
-                    	 return getAll(thisLink, type, objectType);
+                    	 return getAll(thisLink, type);
                      	
                  } catch (IOException e) {
                      throw new SplatException(e);
@@ -429,7 +459,7 @@ public class SpecDataFactory
             }
             
             for (SpecDataImpl impl : impls) {
-                impl.setObjectType(objectType);
+                //impl.setObjectType(objectType);
             	specDataList.add(makeSpecDataFromImpl( impl, isRemote, namer.getURL() ));
             }
             

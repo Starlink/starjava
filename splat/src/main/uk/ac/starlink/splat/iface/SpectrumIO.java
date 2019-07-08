@@ -157,6 +157,21 @@ public class SpectrumIO
         this.display = display;
         loadSpectra();
     }
+    
+    /**
+     * Load an array of spectra whose specifications are contained in the
+     * elements of an array of Strings. This version uses a single
+     * defined type for all spectra (set to {@link SpecDataFactory.DEFAULT}
+     * for the usual file extensions rules).
+     */
+    public void load( SplatBrowser browser, String[] spectra,
+                      boolean display, int usertype, ObjectTypeEnum objectType )
+    {
+        setSpectra( spectra, usertype, objectType );
+        this.browser = browser;
+        this.display = display;
+        loadSpectra();
+    }
 
     /**
      * Load an array of spectra whose specifications are contained in the
@@ -195,6 +210,20 @@ public class SpectrumIO
         if ( spectra != null ) {
             for ( int i = 0; i < spectra.length; i++ ) {
                 queue.add( new Props( spectra[i], type, null ) );
+            }
+        }
+    }
+    
+    /**
+     * Set the spectra to load, all have the same data type.
+     */
+    protected synchronized void setSpectra( String[] spectra, int type, ObjectTypeEnum objectType )
+    {
+        if ( spectra != null ) {
+            for ( int i = 0; i < spectra.length; i++ ) {
+            	Props props = new Props( spectra[i], type, null );
+            	props.setObjectType(objectType);
+                queue.add( props );
             }
         }
     }
@@ -380,7 +409,7 @@ public class SpectrumIO
         protected String idSource;
         protected String dataLinkRequest;
         protected String dataLinkFormat;
-        protected ObjectTypeEnum objectType = ObjectTypeEnum.SPECTRUM; // default value
+        protected ObjectTypeEnum objectType = ObjectTypeEnum.UNKNOWN; // default value
 
         protected String serverURL;
 
@@ -422,7 +451,7 @@ public class SpectrumIO
                     dataUnits, coordUnits,
                     dataColumn, coordColumn,
                     errorColumn, sourceType, idsrc, idValue, 
-                    ObjectTypeEnum.SPECTRUM );
+                    ObjectTypeEnum.UNKNOWN );
         }
         
         public Props( String spectrum, int type, String shortName,
@@ -677,7 +706,7 @@ public class SpectrumIO
                 }
             }
             
-            if (objectType != null && objectType==ObjectTypeEnum.TIMESERIES) { 
+            if (objectType != null && objectType!=ObjectTypeEnum.UNKNOWN) { 
             	// change only if it's not the default value. In some cases the spectrum already determined the correct type
             	spectrum.setObjectType(objectType);
             }

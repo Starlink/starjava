@@ -30,6 +30,10 @@ public class DefaultRenderingPropertiesFactory {
 			objectType = data.getObjectType();
 		}
 		
+		if ( objectType != null && objectType==ObjectTypeEnum.UNKNOWN) {
+			objectType = defaultObjectType;
+		}
+		
 		if (objectType == null) { // not properly initialized data
 			objectType = defaultObjectType;
 		}

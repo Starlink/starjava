@@ -363,7 +363,7 @@ public class SplatBrowser
     /**
      * The object type of data: spectra (default) or timeseries
      */
-    protected ObjectTypeEnum objectType = ObjectTypeEnum.SPECTRUM;
+    protected ObjectTypeEnum objectType = ObjectTypeEnum.UNKNOWN;
 
     /**
      * The type of data that spectra are saved in by default. This is the
@@ -1839,8 +1839,10 @@ public class SplatBrowser
         layouter.add( ndPanel, true );
         
         objectTypeBox = new JComboBox();
+        objectTypeBox.addItem( new KeyValue( "UNKNOWN", ObjectTypeEnum.UNKNOWN ) );
         objectTypeBox.addItem( new KeyValue( "SPECTRUM", ObjectTypeEnum.SPECTRUM ) );
         objectTypeBox.addItem( new KeyValue( "TIMESERIES", ObjectTypeEnum.TIMESERIES ) );
+      
         objectTypeBox.setToolTipText("set object type of file content: spectrum or timeseries");
         layouter.add( "Object type:", false );
         layouter.add( objectTypeBox, true );
@@ -2352,7 +2354,7 @@ public class SplatBrowser
         else {           
                
             try {
-                List<SpecData> spectra = specDataFactory.getAll( name, usertype, null );
+                List<SpecData> spectra = specDataFactory.getAll( name, usertype );
                 if (spectra != null) {
                     for (SpecData spectrum : spectra) {
                         addSpectrum( spectrum );
@@ -2437,6 +2439,7 @@ public class SplatBrowser
                         	//props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
                         }
                     } 
+                    
                     spectra = specDataFactory.get( props.getSpectrum(), props.getType(), props.getObjectType() ); 
                     for (int s=0; s < spectra.size(); s++ ){
                         spectrum=spectra.get(s);

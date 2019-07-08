@@ -93,7 +93,7 @@ public class SplatSelectedProperties
     protected PlotStyleBox lineType = new PlotStyleBox();
     protected PointTypeBox pointType = new PointTypeBox();
     
-    protected JComboBox objectTypeBox = new JComboBox(ObjectTypeEnum.values());
+   // protected JComboBox objectTypeBox = new JComboBox(ObjectTypeEnum.values());
 
     /**
      *  Storage handler for rendering properties defaults and persistence.
@@ -179,7 +179,8 @@ public class SplatSelectedProperties
         dataColumn.setEnabled( false );
         errorColumn.setEnabled( false );
 
-        layouter.add("Data type: ");
+        /*
+         * layouter.add("Data type: ");
         JPanel dataTypePanel = new JPanel();
         dataTypePanel.add(objectTypeBox);
         objectTypeBox.setSelectedItem(ObjectTypeEnum.SPECTRUM);
@@ -187,6 +188,7 @@ public class SplatSelectedProperties
         objectTypeBox.addActionListener(this);
         layouter.add(dataTypePanel, false);
         layouter.eatLine();
+        */
         
         //  Set up the line colour control. Note it, saveProp and resetProp go
         //  on same line.
@@ -800,6 +802,7 @@ public class SplatSelectedProperties
             update(); // To error button.
         }
     }
+    /*
     protected void updateObjectType()
     {
         //if ( inhibitChanges ) return;
@@ -820,9 +823,8 @@ public class SplatSelectedProperties
             update(); // To error button.
         }
     }
-
-
-    private ObjectTypeEnum getObjectType() {
+    
+      private ObjectTypeEnum getObjectType() {
         return (ObjectTypeEnum) objectTypeBox.getSelectedItem();        		
 	}
     
@@ -830,6 +832,7 @@ public class SplatSelectedProperties
 		objectTypeBox.setSelectedItem(objType);
 		
 	}
+	*/
 
 	/**
      *  Save the current rendering properties, making them the defaults
@@ -903,11 +906,13 @@ public class SplatSelectedProperties
             updateErrorColumn();
             return;
         }
+       /* 
         if ( source.equals( objectTypeBox ) ) {
+        
             updateObjectType();
             return;
         }
-
+        */
         if ( source.equals( lineColour ) ) {
             updateLineColour();
             return;
