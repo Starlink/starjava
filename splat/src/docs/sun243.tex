@@ -18,7 +18,7 @@
 \stardocauthors     {Peter W. Draper, Margarida Castro Neves \& Mark Taylor}
 \stardocdate        {1 Apr 2018}
 \stardoctitle       {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\stardocversion     {3.14}
+\stardocversion     {3.15}
 \stardocmanual      {User's Manual}
 \stardocabstract {
 \xlabel{abstract}
@@ -30,7 +30,7 @@ spectra that can also interact with the Virtual Observatory.
 % Document specific \providecommand or \newenvironment commands.
 
 % SPLAT.
-\providecommand{\SPLAT}{\textsf{SPLAT-VO}}
+\providecommand{\SPLAT}{\textsf{SPLAT-VO }}
 
 
 %%Image stuff picks up .gifs in html format, which are in a different
@@ -149,7 +149,10 @@ in the Virtual Observatory.
 
 \SPLAT\ can also display time series in certain formats, and search for spectral lines
 using VO and VAMDC services . This are still  experimental features, and will evolve 
-as  the respective IVOA standards evolve.
+as  the respective IVOA standards evolve. The time series will be displayed the same way
+as the spectra, just that there is a time axis instead of wavelength axis, so this manual 
+chapters about displaying spectra should also be considered when displaying time series.
+In this case the Starlink \xref{AST}{sun211}{} library time coordinate systems are used.
 
 Finally, \SPLAT\ can interoperate with other VO enabled desktop tools using
 the SAMP protocol.
@@ -253,11 +256,10 @@ once, you can tell it's selected when it becomes highlighted, as shown
 above) and choose the display selected spectra button in the
 toolbar. This is the button that looks like \inline{display} (it's
 meant to represent a spectrum with axes drawn in a plot). If you're
-successful then a window looking like this:
+successful then a window looking like this should appear as before:
 
 \mainfigure{plot1}
 
-should appear as before.
 
 Since \SPLAT\ is meant to be capable of displaying many spectra
 (sometimes in the same plot as we'll see in the next section), you
@@ -353,7 +355,9 @@ being displayed in \hitext{<plot0>}:
 
 If any spectra were not displayed in this plot then they could be
 added to it using this mechanism. Naturally this also extends to the
-case when there are many plots available.
+case when there are many plots available. If you have so many plots open, that
+the main window can not be found, just click the  \inline{splatlogo}  button in any plot window 
+to bring \SPLAT's main window to front.
 
 \newpage
 \subsection{Basic control of a plot view\xlabel{basic_control}}
@@ -592,6 +596,9 @@ in the following figure:
 
   \item[] \inline{unarymaths} Perform simple maths using a spectrum and a
   constant (add, subtract, divide and multiply).
+  
+  \item[] \inline{samp} Opens SAMP control window. If \SPLAT is registered to a SAMP hub,
+  the icon changes to \inline{sampgo}.
 
   \item[] \inline{help} Access the on-line help system.
 
@@ -784,8 +791,9 @@ the display area.\\
 
  The \labelitem{:log} controls determine if either of the axes are drawing
  using log spacing (this is not possible if either axis spans the value
- zero). Finer control of the log spacing and labelling can obtained using the
- plot configuration window.
+ zero. In this case, the user is notified and asked if a copy of the plot with such values
+ removed should be created). Finer control of the log spacing and labelling can be obtained 
+ using the plot configuration window. If there are values 
 
  The \labelitem{Track free} checkbox determines what values are shown in the
  continuous coordinate readouts. When unchecked (the default) the values
@@ -802,6 +810,9 @@ the display area.\\
  help.
 
  \begin{itemize}
+ 
+  \item[] \inline{splatlogo} Bring the main browser window to front. This can be
+  useful if there are too many open plots, and the browser window is difficult to find.
 
   \item[] \inline{print} Print a copy of the display area to an installed
   printer or to a file. The output produced fits the output page format using
@@ -1297,6 +1308,8 @@ shown in the \labelitem{Query results:} region. There is a tab of results for
 each server.  If no tab has been created for a selected server, then the server
 has no spectra for the selected region or is not available at the moment.
 
+\label{query_results}
+
 When right-clicking on a spectra, a popup menu will appear. From this menu you can
 download or display the spectrum, see its fields (and, if supported, see a preview), or
 copy the contents of the current table, line or cell to the clipboard.
@@ -1321,6 +1334,17 @@ item is still switched on in the plot window.
 
 To view a single spectrum quickly just double click on its row. This will
 download the spectrum and display it in its own plot window.\\
+
+When right-clicking on a line from the query results, a popup menu will
+appear with following options:
+\begin{itemize}
+\item Datalink - It opens the datalink kinks menu for this result. This item is
+	only available if the spectra contains DataLink information. See 
+\item Download - Downloads the spectrum into \SPLAT (without displaying it).
+\item Info - shows preview (if available) and information on all columns returned.
+\item Display - displays the the spectrum in \SPLAT.
+\item Selection - show options for copying data to clipboard and pasting somewhere else.
+\end{itemize}
 
 
 \subheading{Implementation status}
@@ -1409,6 +1433,12 @@ AND s_resolution < 2
 AND t_exptime > 3600
 \end{verbatim}
 
+
+\subheading {Query results}
+The ObsCore  query results interface works in the same way as described in  the  \htmlref{query results}{query_results} part of  the  SSAP window section.
+ \latex{(\S\ref{query_results})}. 
+
+
 \subheading{Implementation status}
 
 ObsCore and TAP are  being developed by the IVOA
@@ -1429,10 +1459,22 @@ If there's a link to a preview image then SPLAT will automatically display it on
 \subheading{Server-side manipulation with DataLink/SODA}
 
 A query response table may contain descriptions of  \textbf{SODA}  services, which can be either defined specifically for single spectra, or for all of the returned spectra. In both cases an input formular will be produced by \SPLAT\, where parameters can be entered. In the first case, the formular appears in the \textbf{Datalink} resources list when right-clicking one line from the query results list.  In the second case the soda operation can be submitted one or more selected spectra at once. This is done by clicking the Datalink button on the lower right side of the results table:
- After a SSAP or ObsCore query is sent, \SPLAT\ checks the responding servers for  \textbf{SODA} definitions. Table-wide  \textbf{SODA} operations are present, service will be marked with  a symbol (\inline{cutter}). If  at least one \textbf{DataLink} supporting server has been found, a \textbf{DataLink} button will appear below the query results. By clicking on it, \textbf{DataLink}. will be activated, and all results tabs will be deactivated except the results from servers that support \textbf{DataLink}. When you choose one of the active services, a window will appear, where the respective parameters for sever-side manipulation can be entered. The parameters will be set by clicking on the \textbf{set parameters} button. While  \textbf{dataLink} is activated and the parameters are set, the spectra you select and display or download will be manipulated using the chosen parameters. To deactivate \textbf{dataLink} and have retrieve the original spectra just click on the \textbf{dataLink} button again.
+ After a SSAP or ObsCore query is sent, \SPLAT\ checks the responding servers for  \textbf{SODA} definitions. \\Table-wide  \textbf{SODA} operations are present, service will be marked with  a symbol (\inline{cutter}). If  at least one \textbf{DataLink} supporting server has been found, a \textbf{DataLink} button will appear below the query results. By clicking on it, \textbf{DataLink}. will be activated, and all results tabs will be deactivated except the results from servers that support \textbf{DataLink}. When you choose one of the active services, a window will appear, where the respective parameters for sever-side manipulation can be entered. The parameters will be set by clicking on the \textbf{set parameters} button. While  \textbf{dataLink} is activated and the parameters are set, the spectra you select and display or download will be manipulated using the chosen parameters. To deactivate \textbf{dataLink} and have retrieve the original spectra just click on the \textbf{dataLink} button again.\\
 
 \mainfigure{datalinkparams}
 
+
+\subheading{The DataLink links window}
+
+
+The \textbf{DataLink}  links window is created when the Datalink option at the popup menu obtained by right-clicking on a spectrum from either an ObsCore or SSAP query result list. It contains a table containing all the links this available for the spectrum. 
+The table has one row for each link, and columns containing among other information the location, content-type, size, and semantics (what is in this link).  \\
+In the semantics column, \textbf{\#this} means the actual spectrum, which would be displayed by \SPLAT when clicking on the spectrum in the query results list. If a 
+\textbf{\#preview} is available, it will be automatically displayed in the DataLink window. If there are \textbf{SODA} links (semantics \textbf{\#proc}), the respective form will also be displayed below the links table. The presence of an error message means link is not available. \\
+As many of the links can contain objects in data formats \SPLAT  cannot understand (and are not necessarily spectra or timeseries), \SPLAT splat does not open all available links. If the content type is something that \SPLAT could understand, it tries to open as a spectrum. If the content type is \textit{text/html}, the link will be opened in a web browser. The description column should tell if it makes sense to click on the link to open it in \SPLAT or not. By right-clicking on a link, it's possible to 
+copy the row, or just the access url to the clipboard, which can be used to open it with other application. 
+
+\mainfigure{datalinklinks}
 
 
 \newpage
@@ -1445,8 +1487,11 @@ and displayed into a plot. First of all, one or more wavelength ranges have to
 be added to the ranges list by clicking on the {Add} Button and selecting a region
 in the plot. The selected region will be marked by a gray rectangle. After the query, 
 or when it's not needed anymore, it can be removed from  the plot using the {Delete} button.
+To search use this window with a different plot, use the plot selection box.
+
 
 \mainfigure{spectrallineswindow}
+
 
 The query options that can be added are element symbol and stage/ion charge. Most SLAP 
 services do not support (yet) the later, but it's supported by VAMDC services.
@@ -3370,6 +3415,7 @@ keyword that cannot be a Java identifier will be converted into an underscore
 \item \labelitem{Shift-F1} Display help on window.
 \end{itemize}
 
+
 \newpage
 \section{Supported data formats\xlabel{data_formats}}
 
@@ -3668,7 +3714,22 @@ SAMP MTypes which \SPLAT\ knows about are:
 \item \hitext{spectrum.load.ssa-generic}:
       send and receive spectra
 \item \hitext{table.load.votable}, \hitext{table.load.fits}:
-      send and receive SSA query results
+      send and receive SSA query results, or spectra
+\end{itemize}
+
+\subheading{Display options}
+
+The \menuitem{Interop} menu contains some options that will affect the way spectra coming
+from SAMP will be displayed in \SPLAT:
+\begin{itemize}
+ \item Same window for SAMP Spectra - When checked, all incoming SAMP spectra will be displayed in the same plot window.
+  \begin{itemize}
+  \item overwrite spectra - overwrite the existing spectra in the plot window (only the latest SAMP spectrum will be displayed).
+  \end{itemize}
+\item Handle table.load.votable as spectra - Set whether the  incoming data of this type should be handled as spectrum or list of spectra. 
+\item Open SAMP coords in SSAP window - If a client sends coordinates via SAMP, add the coordinates to and open the SSAP browser window to start a search for objects at this position.
+\item Open SAMP coords in ObsCore window - If another client sends coordinates via SAMP, add the coordinates to and open the ObsCore browser window to start a search for objects at this position.
+
 \end{itemize}
 
 \newpage
@@ -3727,8 +3788,10 @@ and more recently by it's successor organisation the
 
 Further development has been done by the
 \htmladdnormallink{German Astrophysical Virtual Observatory  (GAVO)} {http://www.g-vo.org} team at the
-\htmladdnormallink{Zentrum f\"ur Astronomie Heidelberg} {http://www.zah.uni-heidelberg.de}.
+\htmladdnormallink{Zentrum f\"ur Astronomie Heidelberg (ZAH)} {http://www.zah.uni-heidelberg.de}.
 GAVO was funded through the Verbundforschung of the German Ministry for Research (BMBF) until June 2017.
+Further funding for the development at  the ZAH was provided by the EU Project ASTERICS (Horizon 2020 grant agreement number 653477).  
+Currently, development is funded through the EOSC infrastructure project ESCAPE (Horizon 2020 grant agreement number 824064).
 
 When using this software for research please consider citing it in your papers. The main
 refereed paper is ``Spectroscopic analysis in the virtual observatory environment with SPLAT-VO'',

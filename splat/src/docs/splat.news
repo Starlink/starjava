@@ -3,9 +3,12 @@
    3.15
    ========
    - support for SDSS spectra
-   - SAMP - now it's also possible to send coordinates to SPLAT
+   - SAMP - now it's also possible to send coordinates to SPLAT SSAP or ObsCore browsers
    - SAMP - option to receive result tables
+   - SAMP - option to overwrite all SAMP spectra in one plot
+   - option to collapse/extract 2/3D Spectra coming from SSAP or ObsCore 
    - improved Datalink and timeseries processing
+   - added splat icon to plots, iwhen clicked brings main window to front
    - bugfixes
 
    3.14-1
