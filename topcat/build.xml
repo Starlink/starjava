@@ -583,17 +583,6 @@
     </java>
 
     <delete file="${dist.lib.pkg}/extras.zip"/>
-
-    <echo message="standalone jar files not signed"/>
-    <!--
-     !   <signjar alias="${webstart.alias}"
-     !            keystore="${webstart.keystore}"
-     !            keypass="${webstart.keypass}"
-     !            storepass="${webstart.storepass}">
-     !     <fileset dir="${dist.lib.pkg}"
-     !              includes="topcat-lite.jar topcat-full.jar"/>
-     !   </signjar>
-     !-->
   </target>
 
   <!--
@@ -676,13 +665,16 @@
          basedir="${build.etc}/demo"/>
 
     <!-- Sign all jar files -->
+    <antcall target="signjars"/>
+  </target>
+
+  <target name="signjars" if="sign.jars">
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}">
       <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
     </signjar>
-
   </target>
 
   <!--

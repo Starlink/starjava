@@ -654,6 +654,10 @@ XXX delete
     </jar>
 
     <!-- Sign all jar files -->
+    <antcall target="signjars"/>
+  </target>
+
+  <target name="signjars" if="sign.jars">
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
@@ -664,7 +668,6 @@ XXX delete
         <exclude name="**/showndx.jar"/>
       </fileset>
     </signjar>
-
   </target>
 
   <!--
@@ -690,13 +693,6 @@ XXX delete
       <arg value="-x"/><arg value="gsi-classes.jar"/>
       <arg value="${star.lib.pkg}/treeview.jar"/>
     </java>
-    <signjar alias="${webstart.alias}"
-             keystore="${webstart.keystore}"
-             keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}">
-      <fileset dir="${dist.lib.pkg}"
-               includes="treeview-full.jar"/>
-    </signjar>
   </target>
 
   <!--

@@ -425,13 +425,16 @@
     </jar>
 
     <!-- Sign all jar files, except those signed by a third party -->
+    <antcall target="signjars"/>
+  </target>
+     
+  <target name="signjars" if="sign.jars">
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}">
       <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
     </signjar>
-
   </target>
 
   <!--

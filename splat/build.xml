@@ -764,22 +764,16 @@ JNI libraries not built (NDF library not installed in ${stardev})"
          basedir="${build.examples}"/>
 
     <!-- Sign all jar files -->
-    <antcall target="signjar"/>
-
+    <antcall target="signjars"/>
   </target>
 
-  <!-- Local target so it can be skipped when "skip.sign.jar" is set -->
-  <target name="signjar"
-          description="sign all jar files"
-          unless="sign.jar.skip">
-
+  <target name="signjars" if="sign.jars">
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}">
       <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
     </signjar>
-
   </target>
 
 

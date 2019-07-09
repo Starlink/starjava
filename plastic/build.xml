@@ -454,6 +454,10 @@
     </jar>
 
     <!-- Sign all jar files -->
+    <antcall target="signjars"/>
+  </target>
+
+  <target name="signjars" if="sign.jars">
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
@@ -461,7 +465,6 @@
       <fileset dir="${dist.lib.pkg}" includes="**/*.jar"
                                      excludes="**/microhub.jar"/>
     </signjar>
-
   </target>
 
   <!--
