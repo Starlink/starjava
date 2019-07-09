@@ -367,16 +367,6 @@
   <property name="tests-libpath" refid="tests-libpath.id"/>
 
   <!--
-   !    ===============
-   !    Extension tasks
-   !    ===============
-   !    Add any local or extension ANT tasks that are required. Local
-   !    tasks should be moved into the ANT package if used outside of this
-   !    package. 
-   !-->
-  <taskdef resource="axis-tasks.properties" classpathref="classpath"/>
-
-  <!--
    !    =========================================
    !    Check availability of direct dependencies
    !    =========================================
