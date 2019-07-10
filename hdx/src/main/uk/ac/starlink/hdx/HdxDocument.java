@@ -827,12 +827,12 @@ public class HdxDocument
                     Class ftc = facadeToken.getClass();
                     assert ftc != null; // getClass() always succeeds
                     java.lang.reflect.Method ftclone
-                            = ftc.getMethod("clone", null);
+                            = ftc.getMethod("clone", new Class[0]);
                     System.err.println("cloning " + ftc.getName()
                                        + " with method " + ftclone
                                        + ", is accessible? "
                                        + ftclone.isAccessible());
-                    fe.facadeToken = ftclone.invoke(this, null);
+                    fe.facadeToken = ftclone.invoke(this, new Object[0]);
                 } catch (IllegalAccessException ex) {
                     throw new IllegalArgumentException
                             ("Illegal access to clone: " + ex);

@@ -106,7 +106,7 @@ public class HdxDOMImplementation
      * is malformed, if the qualifiedName has a prefix and the
      * namespaceURI is null, or if the qualifiedName has a prefix that
      * is <code>xml</code> and the namespaceURI is different from
-     * <code<http://www.w3.org/XML/1998/namespace</code> , or if the
+     * <code>http://www.w3.org/XML/1998/namespace</code> , or if the
      * DOM implementation does not support the "XML" feature but a
      * non-null namespace URI was provided, since namespaces were
      * defined by XML.
@@ -115,7 +115,7 @@ public class HdxDOMImplementation
      * already been used with a different document or was created from
      * a different implementation.
      *
-     * @throws NOT_SUPPORTED_ERR: May be raised by DOM implementations
+     * @throws DOMException NOT_SUPPORTED_ERR: May be raised by DOM implementations
      * which do not support the "XML" feature, if they choose not to
      * support this method. Other features introduced in the future,
      * by the DOM WG or in extensions defined by other groups, may

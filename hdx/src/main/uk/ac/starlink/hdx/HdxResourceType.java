@@ -26,7 +26,7 @@ import org.w3c.dom.*;
  * initialization of this <code>HdxResourceType</code> class.  This is an
  * `Hdx property', which means that it may be specified as either a
  * System property, or in an Hdx property file as described in {@link
- * HdxProperties}.</p>
+ * HdxProperties}.
  *
  * </ol>
  *

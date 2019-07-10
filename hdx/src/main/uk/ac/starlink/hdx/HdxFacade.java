@@ -153,7 +153,7 @@ public interface HdxFacade extends Cloneable {
     /**
      * Produces a <code>Source</code> representing the object.
      *
-     * <p>This method, and {@link #getDOM} are partners, in the sense that
+     * <p>This method, and <code>getDOM</code> are partners, in the sense that
      * one is a convenience interface for the other, but which one is
      * which depends on the implementation.  Since the conversion between
      * a DOM and a Source might possibly require some processing, client

@@ -33,7 +33,7 @@ import org.w3c.dom.*;
  * </pre>
  * If you already have a DOM obtained from an XML file, then you can extract 
  * the HdxContainer from it using the {@link
- * #newHdxContainer(Element)} method.</p>
+ * #newHdxContainer(Element)} method.
  *
  * <p>This class, or rather the group of <code>newHdxContainer</code>
  * methods, is also the gatekeeper for the Hdx system, in the sense
@@ -67,7 +67,7 @@ import org.w3c.dom.*;
  * initialization of this <code>HdxFactory</code> class.  This is an
  * `Hdx property', which means that it may be specified as either a
  * System property, or in an Hdx property file as described in {@link
- * HdxProperties}.</p>
+ * HdxProperties}.
  *
  * </ol>
  * @author Norman Gray

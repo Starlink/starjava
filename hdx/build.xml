@@ -842,13 +842,11 @@
              destdir="${dist.javadocs}"
              author="true"
              version="true"
+             classpathref="classpath"
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
       	     source="1.4">
-      <!-- classpathref="classpath" probably useful eventually, but
-      MASSIVELY confuses things as long as there are any hdx.jar files
-      elsewhere in the classpath -->
 
       <!-- Get a list of directories that name all the potential
        !   java packages -->

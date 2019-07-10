@@ -9,7 +9,7 @@ package uk.ac.starlink.hdx;
  * implementing such extensions, if it wishes to indicate a
  * `this-can't-happen' error during its initialisation.
  *
- * @author Norman Gray <norman@astro.gla.ac.uk>
+ * @author Norman Gray &lt;norman@astro.gla.ac.uk&gt;
  * @version $Id$
  */
 public class PluginException
