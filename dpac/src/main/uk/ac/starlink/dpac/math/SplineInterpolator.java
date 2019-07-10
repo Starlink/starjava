@@ -52,12 +52,6 @@ public class SplineInterpolator {
      * @param x the arguments for the interpolation points
      * @param y the values for the interpolation points
      * @return a function which interpolates the data set
-     * @throws DimensionMismatchException if {@code x} and {@code y}
-     * have different sizes.
-     * @throws NonMonotonicSequenceException if {@code x} is not sorted in
-     * strict increasing order.
-     * @throws NumberIsTooSmallException if the size of {@code x} is smaller
-     * than 3.
      */
     public PolynomialSplineFunction interpolate(double x[], double y[]) {
         if (x.length != y.length) {

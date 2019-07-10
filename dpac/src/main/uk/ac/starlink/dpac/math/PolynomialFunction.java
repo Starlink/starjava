@@ -49,8 +49,6 @@ public class PolynomialFunction {
      * the coefficients property.</p>
      *
      * @param c Polynomial coefficients.
-     * @throws NullArgumentException if {@code c} is {@code null}.
-     * @throws NoDataException if {@code c} is empty.
      */
     public PolynomialFunction(double c[]) {
         int n = c.length;
@@ -106,8 +104,6 @@ public class PolynomialFunction {
      * @param coefficients Coefficients of the polynomial to evaluate.
      * @param argument Input value.
      * @return the value of the polynomial.
-     * @throws NoDataException if {@code coefficients} is empty.
-     * @throws NullArgumentException if {@code coefficients} is {@code null}.
      */
     protected static double evaluate(double[] coefficients, double argument) {
         int n = coefficients.length;

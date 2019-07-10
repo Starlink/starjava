@@ -85,11 +85,6 @@ public class PolynomialSplineFunction {
      *
      * @param knots Spline segment interval delimiters.
      * @param polynomials Polynomial functions that make up the spline.
-     * @throws NullArgumentException if either of the input arrays is {@code null}.
-     * @throws NumberIsTooSmallException if knots has length less than 2.
-     * @throws DimensionMismatchException if {@code polynomials.length != knots.length - 1}.
-     * @throws NonMonotonicSequenceException if the {@code knots} array is not strictly increasing.
-     *
      */
     public PolynomialSplineFunction(double knots[], PolynomialFunction polynomials[]) {
         if (knots == null ||
@@ -117,7 +112,6 @@ public class PolynomialSplineFunction {
      *
      * @param v Point for which the function value should be computed.
      * @return the value.
-     * @throws OutOfRangeException if {@code v} is outside of the domain of the
      * spline function (smaller than the smallest knot point or larger than the
      * largest knot point).
      */
