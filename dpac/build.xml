@@ -466,7 +466,7 @@
        </security>
 
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
 
          <!-- Define the main library jar file -->
          <jar href="${name}/${name}.jar"/>

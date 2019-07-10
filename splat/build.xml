@@ -804,7 +804,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
          <jar href="splat/splat.jar" main="true"/>
          <extension name="SPLAT-PARTS" href="splat-parts.jnlp"/>
          <extension name="JSKY-PARTS" href="jsky-parts.jnlp"/>
@@ -828,7 +828,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
          <fileset dir="${dist.lib}" includes="splat/*.jar splat/*.zip"/>
          <extension name="DATANODE" href="datanode.jnlp"/>
          <extension name="ASTGUI" href="astgui.jnlp"/>

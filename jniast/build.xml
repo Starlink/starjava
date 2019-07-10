@@ -97,7 +97,7 @@
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
-  <property name="source.version" value="1.4"/>
+  <property name="source.version" value="1.6"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -985,7 +985,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
          <jar href="${name}/${name}.jar"/>
          <extension name="UTIL" href="util.jnlp"/>
        </resources>

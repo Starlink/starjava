@@ -369,7 +369,7 @@
 
     <mkdir dir="${build.classes}"/>
     <javac deprecation="${deprecation}"
-        source="1.4"
+        source="1.6"
         destdir="${build.classes}"
         debug="${debug}"
         srcdir="${build.java}"
@@ -465,7 +465,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
          <jar href="${name}/${name}.jar"/>
          <extension name="UTIL" href="util.jnlp"/>
        </resources>
@@ -846,7 +846,7 @@
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
-      	     source="1.4">
+      	     source="1.6">
 
       <!-- Get a list of directories that name all the potential
        !   java packages -->
@@ -958,7 +958,7 @@
     <mkdir dir="${build.tests}"/>
 
     <javac deprecation="${deprecation}" 
-      source="1.4"
+      source="1.6"
       destdir="${build.tests}"
       debug="${debug}"
       srcdir="${tests.dir}">

@@ -465,7 +465,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
          <jar href="jaiutil/jaiutil.jar"/>
          <extension name="HDX" href="hdx.jnlp"/>
          <extension name="NDX" href="ndx.jnlp"/>

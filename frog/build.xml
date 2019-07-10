@@ -555,7 +555,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
          <jar href="frog/frog.jar"/>
          <extension name="FROG-PARTS" href="${name}-parts.jnlp"/>
          <extension name="ASTGUI" href="astgui.jnlp"/>
@@ -585,7 +585,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
        </resources>
        <component_desc/>

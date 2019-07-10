@@ -435,7 +435,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
        </resources>
        <component_desc/>

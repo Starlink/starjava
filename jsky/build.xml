@@ -439,7 +439,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
          <jar href="${name}/${name}.jar"/>
          <extension name="JSKY-PARTS" href="${name}-parts.jnlp"/>
        </resources>
@@ -461,7 +461,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
          <extension name="DIVA" href="diva.jnlp"/>
          <extension name="TAMFITS" href="tamfits.jnlp"/>

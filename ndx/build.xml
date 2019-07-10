@@ -373,7 +373,7 @@
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
-	   source="1.4"
+	   source="1.6"
            optimize="${optimize}">
 
       <classpath refid="classpath"/>
@@ -450,7 +450,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.5+"/>
+         <j2se version="1.6+"/>
          <jar href="ndx/ndx.jar"/>
          <extension name="ARRAY" href="array.jnlp"/>
          <extension name="JNIAST" href="jniast.jnlp"/>
@@ -795,7 +795,7 @@
              author="true"
              version="true"
              locale="en"
-             source="1.4"
+             source="1.6"
              windowtitle="${Name} API"
              doctitle="${Name}"
              classpathref="classpath">
