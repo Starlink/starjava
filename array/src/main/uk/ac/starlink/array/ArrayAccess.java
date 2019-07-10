@@ -48,7 +48,7 @@ public interface ArrayAccess extends ArrayDescription {
      *
      * @param   off  the position at which the next read/write will start
      * @throws  IOException  if some unexpected I/O error occurs
-     * @throws  IndexOutOfBoundsException  if off<0 or off>=npixel
+     * @throws  IndexOutOfBoundsException  if off&lt;0 or off&gt;=npixel
      * @throws  IllegalStateException   if this accessor has been closed
      * @throws  UnsupportedOperationException  if an attempt is made to set
      *              the offset to a value lower than its current one,

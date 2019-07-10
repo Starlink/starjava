@@ -104,7 +104,7 @@ public class NDArrayFactory {
     }
 
     /**
-     * Gets the list of builders which actually do the URL->NDArray
+     * Gets the list of builders which actually do the URL-&gt;NDArray
      * construction.  Builders earlier in the list are given a 
      * chance to handle a URL before ones later in the list.
      * This list may be modified to change the behaviour of the 
@@ -118,7 +118,7 @@ public class NDArrayFactory {
     }
 
     /**
-     * Sets the list of builders which actually do the URL->NDArray
+     * Sets the list of builders which actually do the URL-&gt;NDArray
      * construction  Builders earlier in the list are given a chance
      * to handle a URL before ones later in the list.
      *

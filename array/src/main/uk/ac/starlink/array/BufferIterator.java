@@ -82,7 +82,7 @@ public class BufferIterator implements Iterator {
      * last iteration when a smaller one may be required).
      *
      * @return   a primitive array of the same size as this chunk
-     * @throws  NoSuchElementException if hasNext would return false
+     * @throws  java.util.NoSuchElementException if hasNext would return false
      */
     public Object next() {
         int size = chunkIt.getSize();

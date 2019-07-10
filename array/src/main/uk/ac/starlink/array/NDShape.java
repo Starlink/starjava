@@ -90,7 +90,7 @@ public class NDShape implements Cloneable {
      * Each element of the origin is taken to be {@link #DEFAULT_ORIGIN}.
      *
      * @param   dims  an array representing the dimension extents
-     * @throws  IllegalArgumentExceptoin  if any of the dimensions are
+     * @throws  IllegalArgumentException  if any of the dimensions are
      *          not positive
      */
     public NDShape( long[] dims ) {
@@ -103,7 +103,7 @@ public class NDShape implements Cloneable {
      * Each element of the origin is taken to be {@link #DEFAULT_ORIGIN}.
      *
      * @param   dims  an array representing the dimension extents
-     * @throws  IllegalArgumentExceptoin  if any of the dimensions are
+     * @throws  IllegalArgumentException  if any of the dimensions are
      *          not positive
      */
     public NDShape( int[] dims ) {

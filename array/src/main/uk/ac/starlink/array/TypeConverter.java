@@ -33,8 +33,8 @@ public class TypeConverter implements Converter {
      *                       <code>double</code> function to apply 
      *                       to values in addition to
      *                       the type conversion.  The forward mapping will
-     *                       be used for 1->2 conversions, and the inverse 
-     *                       one for 2->1 conversions.  If null, a unit 
+     *                       be used for 1-&gt;2 conversions, and the inverse 
+     *                       one for 2-&gt;1 conversions.  If null, a unit 
      *                       function is used (efficiently)
      */
     public TypeConverter( Type type1, BadHandler handler1, 
@@ -124,7 +124,7 @@ public class TypeConverter implements Converter {
      * Indicates whether the conversion from type 1 to type 2 is known to
      * be a unit transformation.
      *
-     * @return  true if the output of 1->2 conversion always equals its input
+     * @return  true if the output of 1-&gt;2 conversion always equals its input
      */
     public boolean isUnit12() {
         return worker12.isUnit();
@@ -134,7 +134,7 @@ public class TypeConverter implements Converter {
      * Indicates whether the conversion from type 2 to type 1 is known to
      * be a unit transformation.
      *
-     * @return  true if the output of 2->1 conversion always equals its input
+     * @return  true if the output of 2-&gt;1 conversion always equals its input
      */
     public boolean isUnit21() {
         return worker21.isUnit();
