@@ -49,7 +49,7 @@ public abstract class NDArrayData
     /**
      * Constructor.
      *
-     * @param tiler the NDArray
+     * @param nda the NDArray
      */
     public NDArrayData( NDArray nda )
         throws IOException
@@ -77,7 +77,7 @@ public abstract class NDArrayData
     /** 
      * Constructor.
      *
-     * @param tiler the NDArray
+     * @param nda the NDArray
      * @param axes an array containing the dimensions of the image
      */
     public NDArrayData( NDArray nda, int[] axes ) 

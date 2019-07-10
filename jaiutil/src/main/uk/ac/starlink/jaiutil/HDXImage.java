@@ -58,7 +58,7 @@ import uk.ac.starlink.ndx.XMLNdxHandler;
 
 /**
  * This is the core class for JAI HDX/NDX support. It handles the
- * conversion between the HDX->NDX->NDArrays and the display data.
+ * conversion between the HDX-&gt;NDX-&gt;NDArrays and the display data.
  * The data array is displayed by default.
  * <p>
  * This class defines a number of properties that can be accessed by
@@ -190,7 +190,7 @@ public class HDXImage
     /**
      * Construct a HDXImage from a file or URL.
      *
-     * @param fileOrURL the file name or URL
+     * @param fileOrUrl the file name or URL
      */
     public HDXImage( String fileOrUrl )
         throws IOException
@@ -216,7 +216,7 @@ public class HDXImage
     /**
      * Create a HDXImage from a w3c Document.
      *
-     * @param Document HDX structure
+     * @param document HDX structure
      * @param param the parameter passed to the JAI create method
      * @param page specifies the desired NDX (default: 0)
      */
@@ -231,7 +231,7 @@ public class HDXImage
     /**
      * Create a HDXImage from a w3c Element
      *
-     * @param Document HDX DOM structure containing an NDX.
+     * @param element HDX DOM structure containing an NDX.
      * @param page specifies the desired NDX (default: 0)
      */
     public HDXImage( Element element, int page )

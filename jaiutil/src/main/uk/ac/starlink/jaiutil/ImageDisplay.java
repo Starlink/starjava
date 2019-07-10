@@ -167,7 +167,7 @@ public class ImageDisplay extends JComponent
     /** 
      * Constructs an ImageDisplay to display a PlanarImage.
      *
-     * @param source a PlanarImage to be displayed.
+     * @param im a PlanarImage to be displayed.
      */
     public ImageDisplay(PlanarImage im) {
         super();

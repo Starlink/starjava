@@ -18,7 +18,7 @@ public class HDXDecodeParam
 {    
     /** 
      * This specifies the size of the preview image. The default is 0,
-     * meaning that no preview image will be generated. If a value > 0
+     * meaning that no preview image will be generated. If a value &gt; 0
      * is specified, it is taken to be the size of the window in which 
      * the preview image should fit.
      */
