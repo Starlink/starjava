@@ -190,7 +190,7 @@ public class AOParams {
     public void setLapserate( double lr ) { lapserate = lr; }
 
 /** Set refractive index A
- *  @param rfa
+ *  @param rfa Refractive index A
  */
     public void setRefractA( double rfa ) { refractA = rfa; }
 
@@ -200,7 +200,7 @@ public class AOParams {
     public void setRefractB( double rfb ) { refractB = rfb; }
 
 /** Set longitude + eqn of equinoxes + "sidereal &Delta;UT"
- *  @param lplus
+ *  @param lplus  Longitude + eqn of equinoxes + "sidereal &Delta;UT"
  */
     public void setLongplus( double lplus ) { longplus = lplus; }
 

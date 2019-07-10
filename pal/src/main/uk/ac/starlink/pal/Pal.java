@@ -12,8 +12,7 @@ import java.text.*;
  *  @author R T Platon (Starlink)
  *  @version 1.0
  *  [Latest Revision: January 2003]
- *  <br/>
- *  Based on the C version of slalib written by P T Wallace.
+ *  <p>Based on the C version of slalib written by P T Wallace.
  */
 public class Pal {
 
@@ -182,7 +181,7 @@ public class Pal {
 /**
  *  Add the e-terms (elliptic component of annual aberration) to a
  *  pre IAU 1976 mean place to conform to the old catalogue convention.
- *  <p> </p>
+ *
  *  <dl>
  *  <dt>Explanation:</dt>
  *  <dd>
@@ -247,7 +246,7 @@ public class Pal {
  *  The mean coordinate system is the post IAU 1976 system,
  *  loosely called FK5.
  *  </p>
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The distinction between the required TDB and TT is always
@@ -266,7 +265,7 @@ public class Pal {
  *       once, followed by one call to Ampqk per star.
  *  </li>
  *  <li>The accuracy is sub-milliarcsecond, limited by the
- *       precession-nutation model (IAU 1976 precession, Shirai &
+ *       precession-nutation model (IAU 1976 precession, Shirai &amp;
  *       Fukushima 2001 forced nutation and precession corrections).
  *  </li>
  *  <li>The accuracy is further limited by the routine Evp, called
@@ -278,14 +277,14 @@ public class Pal {
  *  <dt> References:</dt>
  *  <dd>
  *      1984 Astronomical Almanac, pp B39-B41.
- *      (also Lederle & Schwan, Astron. Astrophys. 134, 1-6, 1984)
+ *      (also Lederle &amp; Schwan, Astron. Astrophys. 134, 1-6, 1984)
  *  </dd>
- *  </dl> </p>
+ *  </dl>
  *
- *  @param ap apparent RA & Dec (radians)
+ *  @param ap apparent RA &amp; Dec (radians)
  *  @param date TDB for apparent place (JD-2400000.5)
  *  @param eq equinox:  Julian epoch of mean place
- *  @return mean RA & Dec (Radians)
+ *  @return mean RA &amp; Dec (Radians)
  */
 
 /*  Latest Revision: 17 November 2001 (RTP)
@@ -320,7 +319,7 @@ public class Pal {
  *  <dt>References:</dt>
  *  <dd>
  *     1984 Astronomical Almanac, pp B39-B41.
- *     (also Lederle & Schwan, Astron. Astrophys. 134, 1-6, 1984)
+ *     (also Lederle &amp; Schwan, Astron. Astrophys. 134, 1-6, 1984)
  *  </dd>
  *
  *  <dt>Note:</dt>
@@ -333,9 +332,9 @@ public class Pal {
  *  </dd>
  *  </dl>
  *
- *  @param ra apparent RA & Dec (radians)
+ *  @param ap apparent RA &amp; Dec (radians)
  *  @param amprms star-independent mean-to-apparent parameters
- *  @return mean RA & Dec (radians)
+ *  @return mean RA &amp; Dec (radians)
 */
 /*  Latest Revision: 29 November 2001 (RTP)
  *
@@ -429,7 +428,6 @@ public class Pal {
 /** <p>
  *  Precompute apparent to observed place parameters required by
  *  Aopqk and Oapqk.
- *  </p> <p> </p>
  *  <dl>
  *  <dt>Notes:</dt>
  *  <dd><ol>
@@ -492,13 +490,13 @@ public class Pal {
  *        times.  Fresh calls to Aoppa will be needed only when changes
  *        in the precession have grown to unacceptable levels or when
  *        anything affecting the refraction has changed.
- *  </li> </dd> </dl>
+ *  </li> </ol> </dd> </dl>
  *
- *  @param date UTC date/time (Modified Julian Date, JD-2400000.5) &
+ *  @param date UTC date/time (Modified Julian Date, JD-2400000.5) &amp;
  *              delta UT:  UT1-UTC (UTC seconds)
  *  @param pm mean longitude of the observer (radians, east +ve),
  *            mean geodetic latitude of the observer (radians),
- *            observer's height above sea level (metres) &
+ *            observer's height above sea level (metres) &amp;
  *            polar motion x-coordinate (radians)
  *  @param tdk local ambient temperature (DegK; std=273.155)
  *  @param pmb local atmospheric pressure (mB; std=1013.25)
@@ -578,7 +576,7 @@ public class Pal {
         uau = g[0]; vau = g[1];
         aoprms.setDabb( D2PI * uau * SOLSID / C );
 
-/* Copy the refraction parameters and compute the A & B constants */
+/* Copy the refraction parameters and compute the A &amp; B constants */
         aoprms.setHeight ( hm );
         aoprms.setTemp ( tdk );
         aoprms.setPressure ( pmb );
@@ -608,7 +606,6 @@ public class Pal {
  *  @param date UTC date/time (Modified Julian Date, JD-2400000.5)
  *             (see Aoppa source for comments on leap seconds)
  *  @param aoprms star-independent apparent-to-observed parameters
- *  @return star-independent apparent-to-observed parameters
  */
 
 /*  Latest Revision: 20 November 2001 (RTP)
@@ -778,14 +775,12 @@ public class Pal {
 
 /**
  *  Convert degrees, arcminutes, arcseconds to radians.
- *  <p>
  *  <dl>
  *  <dt>Notes:</dt>
  *  <dd><ol>
  *  <li>The result is computed even if any of the range checks fail.</li>
  *  <li>The sign must be dealt with outside this routine.</li>
  *  </ol> </dd> </dl>
- *  </p>
  *  @param ideg  Degrees
  *  @param iamin Arcminutes
  *  @param asec  Arcseconds
@@ -847,7 +842,6 @@ public class Pal {
 /**
  *  Increment to be applied to Coordinated Universal Time UTC to give
  *  International Atomic Time TAI.
- *  <p>
  *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
@@ -868,10 +862,9 @@ public class Pal {
  *     to call the routine with an earlier epoch.  However, if this
  *     is attempted, the TAI-UTC expression for the year 1960 is used.
  *  </li> </ol>
- *  <pre>
- *  <dd><strong>Latest leap second:  2017 January 1</strong></dd>
- *  </dd> </dl>
- *  </p>
+ *  <dt>Latest leap second:</dt>
+ *  <dd>2017 January 1</dd>
+ *  </dl>
  *  @param utc UTC date as a modified JD (JD-2400000.5)
  *  @return TAI-UTC in seconds
  */
@@ -1126,7 +1119,6 @@ public class Pal {
  *  <dd>1 = null field</dd>
  *  <dd>2 = error</dd>
  *  </dl>
- *  </p>
  *  <p>
  *  And the additional <strong>Flag</strong> is one of the following:
  *  <dl>
@@ -1134,7 +1126,7 @@ public class Pal {
  *  <dd>1 = 'B' or 'b'</dd>
  *  <dd>2 = 'J' or 'j'</dd>
  *  </dl>
- *  </p> <p>
+ *  <p>
  *  For details of the basic syntax, see Dfltin.
  *  </p>
  *
@@ -1227,10 +1219,10 @@ public class Pal {
     }
 
 /**
- *  Conversion of position & velocity in Cartesian coordinates
+ *  Conversion of position &amp; velocity in Cartesian coordinates
  *  to spherical coordinates.
  *
- *  @param v Cartesian position & velocity vector
+ *  @param v Cartesian position &amp; velocity vector
  *  @return Spherical Coordinates (Radians) -
  *         Longitude, Latitude, Radial plus derivitives
  */
@@ -1238,7 +1230,7 @@ public class Pal {
 /*  Latest Revision: 23 November 2001 (RTP)
  *
  *  Given:
- *     v     double[6]  Cartesian position & velocity vector
+ *     v     double[6]  Cartesian position &amp; velocity vector
  *
  *  Returned:
  *     *a    double     longitude (radians)
@@ -1584,10 +1576,9 @@ public class Pal {
 
 /**
  *  Convert free-format input into double precision floating point.
- *  <p>
  *  <dl>
  *  <dt>Notes:</dt>
- *  <ol>
+ *  <dd> <ol>
  *   <li>    A tab character is interpreted as a space, and lower
  *           case d,e are interpreted as upper case.
  *   </li>
@@ -1644,7 +1635,7 @@ public class Pal {
  *           Dfltin does not detect that '1e999' is unacceptable
  *           until the whole field has been read.
  *   </li>
- *   <li>    Certain highly unlikely combinations of mantissa &
+ *   <li>    Certain highly unlikely combinations of mantissa &amp;
  *           exponent can cause arithmetic faults during the
  *           decode, in some cases despite the fact that they
  *           together could be construed as a valid number.
@@ -1658,8 +1649,7 @@ public class Pal {
  *   </li>
  *   <li>    See also Flotin and Intin.
  *   </li>
- *  </ol> </dl>
- *  </p>
+ *  </ol> </dd> </dl>
  *  @param string String containing field to be decoded
  *  @param dreslt Previous result
  *  @return Result
@@ -2119,7 +2109,6 @@ public class Pal {
 
 /*
  *  Internal routine used by Dfltin:
- *  <br/>
  *  identify next character in string.
  *
  *  Given:
@@ -2212,7 +2201,6 @@ public class Pal {
 
 /**
  *  Performs the 3-d backward unitary transformation.
- *  <p> </p>
  *  <dl>
  *  <dd> 
  *  vector vb = (inverse of matrix dm) * vector va
@@ -2446,7 +2434,7 @@ public class Pal {
     }
 
 /**
- *  Matrix inversion & solution of simultaneous equations.
+ *  Matrix inversion &amp; solution of simultaneous equations.
  *  <dl>
  *  <dt>For the set of n simultaneous equations in n unknowns:</dt>
  *  <dd>   a.y = x </dd>
@@ -2471,7 +2459,7 @@ public class Pal {
  *      <td>inverse</td> </tr>
  *  <tr><td>  *y </td> <td>  double </td> <td>  [n]  </td> <td>vector  </td>
  *      <td>solution</td> </tr>
- *  <tr><td   *d </td> <td>  double </td> <td>       </td> <td> -      </td>
+ *  <tr><td>  *d </td> <td>  double </td> <td>       </td> <td> -      </td>
  *      <td>determinant</td> </tr>
  *  <tr><td> *jf </td> <td> int </td>    <td>       </td> <td> -      </td>
  *      <td># singularity flag</td> </tr>
@@ -2479,7 +2467,7 @@ public class Pal {
  *      <td>workspace</td> </tr>
  *  </table> </dd>
  *  <dd># jf is the singularity flag.  If the matrix is non-singular,
- *       jf=0 is returned.  If the matrix is singular, jf=-1 & d=0.0 are
+ *       jf=0 is returned.  If the matrix is singular, jf=-1 &amp; d=0.0 are
  *       returned.  In the latter case, the contents of array a on return
  *       are undefined.</dd>
  *
@@ -2506,7 +2494,7 @@ public class Pal {
  *     double a[MP][MP], v[MP], d;
  *     int j, iw[MP];
  *      :
- *     Dmat ( n, (double *) a, v, &d, &j, iw );
+ *     Dmat ( n, (double *) a, v, &amp;d, &amp;j, iw );
  *
  *  Last revision:   22 November 2001 (RTP)
  *
@@ -2814,7 +2802,7 @@ public class Pal {
 
 /**
  *  Velocity component in a given direction due to Earth rotation.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Sign convention:</dt>
  *  <dd>The result is +ve when the observer is receding from the
  *     given point on the sky.
@@ -2827,7 +2815,6 @@ public class Pal {
  *     Pvobs.
  *  </dd>
  *  </dl>
- *  </p>
  *  @param phi Latitude of observing station (geodetic)
  *  @param r Apparent RA,Dec (radians)
  *  @param st local apparent sidereal time
@@ -2858,11 +2845,11 @@ public class Pal {
 /**
  *  Velocity component in a given direction due to the rotation
  *  of the Galaxy.
- *  <p><dl>
+ *  <dl>
  *  <dt>Sign convention:</dt>
  *  <dd>   The result is +ve when the dynamical LSR is receding from the
  *     given point on the sky.
- *  <dd>
+ *  </dd>
  *  <dt>Note:</dt>
  *  <dd>The Local Standard of Rest used here is a point in the
  *      vicinity of the Sun which is in a circular orbit around
@@ -2874,10 +2861,9 @@ public class Pal {
  *  </dd>
  *  <dt>Reference:</dt>
  *  <dd>The orbital speed of 220 km/s used here comes from
- *      Kerr & Lynden-Bell (1986), MNRAS, 221, p1023.
+ *      Kerr &amp; Lynden-Bell (1986), MNRAS, 221, p1023.
  *  </dd>
  *  </dl>
- *  </p>
  *  @param r2000 J2000.0 mean RA,Dec (radians)
  *  @return Component of dynamical LSR motion in direction r2000,d2000 (km/s)
  */
@@ -2926,7 +2912,7 @@ public class Pal {
  *  Velocity component in a given direction due to the combination
  *  of the rotation of the Galaxy and the motion of the Galaxy
  *  relative to the mean motion of the local group.
- *  <p> <dl>
+ *  <dl>
  *  <dt> Sign convention:</dt>
  *  <dd> The result is +ve when the Sun is receding from the
  *     given point on the sky.
@@ -2934,7 +2920,6 @@ public class Pal {
  *  <dt>Reference:</dt>
  *  <dd> IAU trans 1976, 168, p201. </dd>
  *  </dl>
- *  </p>
  *  @param r2000 J2000.0 mean RA,Dec (radians)
  *  @return Component of solar motion in direction r2000,d2000 (km/s)
  */
@@ -2981,7 +2966,7 @@ public class Pal {
 /**
  *  Velocity component in a given direction due to the Sun's
  *  motion with respect to the dynamical Local Standard of Rest.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Sign convention:</dt>
  *  <dd>The result is +ve when the Sun is receding
  *      from the given point on the sky.
@@ -3003,7 +2988,6 @@ public class Pal {
  *  <dt>Reference:</dt>
  *  <dd>Delhaye (1965), in "Stars and Stellar Systems", vol 5, p73.
  *  </dd> </dl>
- *  </p>
  *  @param r2000 J2000.0 mean RA,Dec (radians)
  *  @return Component of "peculiar" solar motion in direction R2000,D2000 (km/s)
  */
@@ -3048,7 +3032,7 @@ public class Pal {
 /**
  *  Velocity component in a given direction due to the Sun's motion
  *  with respect to an adopted kinematic Local Standard of Rest.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Sign convention:</dt>
  *  <dd>The result is +ve when the Sun is receding from the given point on
  *      the sky.
@@ -3068,10 +3052,10 @@ public class Pal {
  *         dynamical LSR use the routine Rvlsrd.
  *  </p> </dd>
  *
- *  <dt>Reference:<dt>
+ *  <dt>Reference:</dt>
  *  <dd>Delhaye (1965), in "Stars and Stellar Systems", vol 5, p73.
- *  </dd> </dl> </p>
- *  @param  J2000.0 mean RA,Dec (radians)
+ *  </dd> </dl>
+ *  @param  r2000 J2000.0 mean RA,Dec (radians)
  *  @return Component of "standard" solar motion in direction R2000,D2000 (km/s)
  */
 
@@ -3114,11 +3098,11 @@ public class Pal {
     }
 
 /**
- *  Conversion of position & velocity in spherical coordinates
+ *  Conversion of position &amp; velocity in spherical coordinates
  *  to Cartesian coordinates.
  *
  *  @param s Spherical coordinates (longitude, latitude, radial)
- *  @return Cartesian position & velocity vector
+ *  @return Cartesian position &amp; velocity vector
  */
 
 /*  Latest Revision: 26 November 2001 (RTP)
@@ -3132,7 +3116,7 @@ public class Pal {
  *     rd    double      radial derivative
  *
  *  Returned:
- *     v     double[6]   Cartesian position & velocity vector
+ *     v     double[6]   Cartesian position &amp; velocity vector
  *
  *  Copyright P.T.Wallace.  All rights reserved.
  */
@@ -3235,18 +3219,18 @@ public class Pal {
 /**
  *  Estimate the offset between dynamical time and Universal Time
  *  for a given historical epoch.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>Depending on the epoch, one of three parabolic approximations
  *     is used:
  *  <dl> <dd><table border="0">
  *  <tr><td>before 979 </td>
- *      <td>Stephenson & Morrison's 390 BC to AD 948 model</td> </tr>
+ *      <td>Stephenson &amp; Morrison's 390 BC to AD 948 model</td> </tr>
  *  <tr><td>   979 to 1708 </td>
- *      <td>  Stephenson & Morrison's 948 to 1600 model</td> </tr>
+ *      <td>  Stephenson &amp; Morrison's 948 to 1600 model</td> </tr>
  *  <tr><td>   after 1708 </td>
- *      <td>   McCarthy & Babcock's post-1650 model</td> </tr>
+ *      <td>   McCarthy &amp; Babcock's post-1650 model</td> </tr>
  *  </table> </dd> </dl>
  *     The breakpoints are chosen to ensure continuity:  they occur
  *     at places where the adjacent models give the same answer as
@@ -3267,10 +3251,9 @@ public class Pal {
  *  <dd>Explanatory Supplement to the Astronomical Almanac,
  *      ed P.K.Seidelmann, University Science Books (1992),
  *      section 2.553, p83.  This contains references to
- *      the Stephenson & Morrison and McCarthy & Babcock
+ *      the Stephenson &amp; Morrison and McCarthy &amp; Babcock
  *      papers.
  *  </dd> </dl>
- *  </p>
  *
  *  @param epoch (Julian) epoch (e.g. 1850.0)
  *  @return Estimate of ET-UT (after 1984, TT-UT1) at
@@ -3318,18 +3301,17 @@ public class Pal {
 
 /**
  *  Convert hours, minutes, seconds to days.
- *  <p> <dl>
- *  <dt>Notes:<dt>
+ *  <dl>
+ *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The result is computed even if any of the range checks fail.</li>
  *
  *  <li>The sign must be dealt with outside this routine.</li>
  *  </ol> </dd> </dl>
- *  </p>
  *
  *  @param ihour Hours
  *  @param imin Minutes
- *  @param isec Seconds
+ *  @param sec Seconds
  *  @return Interval in days
  *  @throws palError Hour, Min or Sec out of range
  */
@@ -3375,17 +3357,17 @@ public class Pal {
 
 /**
  *  Convert hours, minutes, seconds to radians.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The result is computed even if any of the range checks fail.</li>
  *
  *  <li>The sign must be dealt with outside this routine.</li>
- *  </ol> </dd> </dl> </p>
+ *  </ol> </dd> </dl>
  *
  *  @param ihour Hours
  *  @param imin Minutes
- *  @param isec Seconds
+ *  @param sec Seconds
  *  @return Angle in radians
  *  @throws palError Hour, Min or Sec out of range
  */
@@ -3431,7 +3413,7 @@ public class Pal {
  * Transform tangent plane coordinates into spherical.
  *
  *  @param x Tangent plane rectangular coordinates (xi, eta)
- *  @param z Spherical coordinates of tangent point (ra, dec)
+ *  @param rz Spherical coordinates of tangent point (ra, dec)
  *  @return  Spherical coordinates (0-2pi,+/-pi/2)
  */
 
@@ -3466,7 +3448,7 @@ public class Pal {
 /**
  *  Increment to be applied to Coordinated Universal Time UTC to give
  *  Terrestrial Time TT (formerly Ephemeris Time ET).
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The UTC is specified to be a date rather than a time to indicate
@@ -3479,7 +3461,7 @@ public class Pal {
  *
  *  <li>See also the routine Dt, which roughly estimates ET-UT for
  *     historical epochs.</li>
- *  </ol> </dd> </dl> </p>
+ *  </ol> </dd> </dl>
  *
  *  @param utc UTC date as a modified JD (JD-2400000.5)
  *  @return TT-UTC in seconds
@@ -3527,10 +3509,10 @@ public class Pal {
 
 /**
  *  Normalizes a 3-vector also giving the modulus.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Note:</dt>
  *  <dd>v and uv may be the same array.</dd>
- *  </dl> </p>
+ *  </dl>
  *  <p>
  *  If the modulus of v is zero, uv is set to zero as well.
  *  </p>
@@ -3575,10 +3557,10 @@ public class Pal {
 
 /**
  *  Vector product of two 3-vectors.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Note:</dt>
  *  <dd>the same vector may be specified more than once.</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param va First vector
  *  @param vb Second vector 
@@ -3616,7 +3598,7 @@ public class Pal {
  *
  *  @param dl ecliptic longitude and latitude
  *                            (mean of date, IAU 1980 theory, radians)
- *  @param TDB (loosely ET) as Modified Julian Date (JD-2400000.5)
+ *  @param date TDB (loosely ET) as Modified Julian Date (JD-2400000.5)
  *  @return J2000.0 mean (RA, Dec) (radians)
  */
 
@@ -3662,14 +3644,14 @@ public class Pal {
 
 /**
  *  Form the equatorial to ecliptic rotation matrix (IAU 1980 theory).
- *  <p> <dl>
+ *  <dl>
  *  <dt>References:</dt>
  *  <dd>Murray, C.A., Vectorial Astrometry, section 4.3.</dd>
  *
  *  <dt>Note:</dt>
  *  <dd>The matrix is in the sense   v[ecl]  =  rmat * v[equ];  the
  *      equator, equinox and ecliptic are mean of date. </dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param date TDB (loosely ET) as Modified Julian Date (JD-2400000.5)
  *  @return Rotation matrix
@@ -3706,10 +3688,10 @@ public class Pal {
 
 /**
  *  Conversion of Modified Julian Date to Besselian epoch.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Reference:</dt>
  *  <dd>Lieske,J.H., 1979. Astron. Astrophys.,73,282.</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param date Modified Julian Date (JD - 2400000.5)
  *  @return The Besselian epoch
@@ -3731,10 +3713,10 @@ public class Pal {
 
 /**
  * Conversion of Besselian epoch to Modified Julian Date.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Reference:</dt>
  *  <dd>Lieske,J.H., 1979. Astron. Astrophys.,73,282.</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param epb Besselian epoch
  *  @return Modified Julian Date (JD - 2400000.5)
@@ -3756,7 +3738,7 @@ public class Pal {
 
 /**
  *  Convert an epoch into the appropriate form - 'B' or 'J'.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li> The result is always either equal to or very close to
@@ -3771,7 +3753,7 @@ public class Pal {
  *       <li>If k0 is 'B' or 'b' and k isn't, the conversion is J to B.</li>
  *       <li>In all other cases, the conversion is B to J.</li>
  *       </ul> </li>
- *  </ol> </dd> </dl> </p>
+ *  </ol> </dd> </dl>
  *
  *  @param k0 Form of result:  'B'=Besselian, 'J'=Julian
  *  @param k Form of given epoch:  'B' or 'J'
@@ -3810,10 +3792,10 @@ public class Pal {
 
 /**
  *  Conversion of Modified Julian Date to Julian epoch.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Reference:</dt>
  *  <dd>Lieske,J.H., 1979. Astron. Astrophys.,73,282.</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param date Modified Julian Date (JD - 2400000.5)
  *  @return Julian epoch
@@ -3835,10 +3817,10 @@ public class Pal {
 
 /**
  *  Conversion of Julian epoch to Modified Julian Date.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Reference:</dt>
  *  <dd>Lieske,J.H., 1979. Astron. Astrophys.,73,282.</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param epj Julian epoch
  *  @return Modified Julian Date (JD - 2400000.5)
@@ -3910,14 +3892,14 @@ public class Pal {
 
 /**
  *  Equation of the equinoxes (IAU 1994, double precision).
- *  <p> <dl>
+ *  <dl>
  *  <dd><p>Greenwich apparent ST = Greenwich mean ST + equation of the equinoxes</p></dd>
  *  
  *  <dt>References:</dt>
  *  <dd>IAU Resolution C7, Recommendation 3 (1994)
- *               Capitaine, N. & Gontier, A.-M., Astron. Astrophys.,
+ *               Capitaine, N. &amp; Gontier, A.-M., Astron. Astrophys.,
  *               275, 645-650 (1993)</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param date  TDB (loosely ET) as Modified Julian Date (JD-2400000.5)
  *  @return Equation of the equinoxes (in radians)
@@ -3935,7 +3917,7 @@ public class Pal {
  *  Greenwich apparent ST = Greenwich mean ST + equation of the equinoxes
  *
  *  References:  IAU Resolution C7, Recommendation 3 (1994)
- *               Capitaine, N. & Gontier, A.-M., Astron. Astrophys.,
+ *               Capitaine, N. &amp; Gontier, A.-M., Astron. Astrophys.,
  *               275, 645-650 (1993)
  *
  *  Called:  Nutc
@@ -3965,14 +3947,14 @@ public class Pal {
 /**
  *  Transformation from J2000.0 equatorial coordinates to
  *  IAU 1958 Galactic coordinates.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Note:</dt>
  *  <dd> The equatorial coordinates are J2000.0.  Use the routine
  *       slaEg50 if conversion from B1950.0 'FK4' coordinates is required.</dd>
  *
  *  <dt>Reference:</dt>
  *  <dd>Blaauw et al, Mon.Not.R.astron.Soc.,121,123 (1960)</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param dr  J2000.0 (RA, Dec) (in radians)
  *  @return Galactic longitude and latitude (l2, b2) (in radians)
@@ -4036,7 +4018,7 @@ public class Pal {
     }
 /**
  *  Compute the e-terms (elliptic component of annual aberration) vector.
- *  <p> <dl>
+ *  <dl>
  *  <dt>References:</dt>
  *  <dd> <ol>
  *  <li> Smith, C.A. et al, 1989.  "The transformation of astrometric
@@ -4046,12 +4028,12 @@ public class Pal {
  *       from FK4 B1950.0 to FK5 J2000.0 using matrices in 6-space".
  *       Astron.J. 97, 274.</li>
  *  </ol> </dd>
- *  <dt><p>Note the use of the J2000 aberration constant (20.49552 arcsec).
+ *  <dt>Note the use of the J2000 aberration constant (20.49552 arcsec).
  *  This is a reflection of the fact that the e-terms embodied in
  *  existing star catalogues were computed from a variety of
  *  aberration constants.  Rather than adopting one of the old
- *  constants the latest value is used here.</p></dt>
- *  </dl> </p>
+ *  constants the latest value is used here.</dt>
+ *  </dl>
  *
  *  @param ep Besselian epoch
  *  @return E-terms as ( dx, dy, dz )
@@ -4101,7 +4083,7 @@ public class Pal {
 
 /**
  *  Barycentric and heliocentric velocity and position of the Earth.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Accuracy:</dt>
  *
  *  <dd> The maximum deviations from the JPL DE96 ephemeris are as follows:
@@ -4129,13 +4111,13 @@ public class Pal {
  *  if the various polynomial evaluations were nested.  Note also
  *  that one of Stumpff's precession constants differs by 0.001 arcsec
  *  from the value given in the Explanatory Supplement to the A.E.
- *  </p <p>
+ *  </p> <p>
  *  (Units are AU/s for velocity and AU for position)
  *  </p>
  *
  *  @param date TDB (loosely ET) as a Modified Julian Date (JD-2400000.5)
  *  @param deqx Julian epoch (e.g. 2000.0) of mean equator and
- *                equinox of the vectors returned.  If deqx <= 0.0,
+ *                equinox of the vectors returned.  If deqx &lt;= 0.0,
  *                all vectors are referred to the mean equator and
  *                equinox (FK5) of epoch date
  *  @param dvb (Returned) barycentric velocity
@@ -4735,8 +4717,8 @@ public class Pal {
  *  Kinoshita's development of Andoyer's post-Newcomb precession is
  *  used.  The numerical constants from Seidelmann et al (Ref 3) are
  *  used canonically.
- *  <p> <dl>
- *  <dt>Notes:<dt>
+ *  <dl>
+ *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The proper motions in RA are dRA/dt rather than
  *      cos(Dec)*dRA/dt, and are per year rather than per century. </li>
@@ -4777,7 +4759,7 @@ public class Pal {
  *
  *   <li> Seidelmann, P.K. (ed), 1992.  "Explanatory Supplement to
  *        the Astronomical Almanac", ISBN 0-935702-68-7.</li>
- *  </ol> </dd> </dl> </p>
+ *  </ol> </dd> </dl>
  *
  *  @param s1950 B1950.0 RA,dec (rad), 
  *               proper motions (rad/trop.yr),
@@ -4976,7 +4958,7 @@ public class Pal {
  *  </p> <p>
  *  The method is from Appendix 2 of Ref 1, but using the constants of Ref 4.
  *  </p>
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The epoch BEPOCH is strictly speaking Besselian, but
@@ -5016,12 +4998,12 @@ public class Pal {
  *       catalog systems to the equinox J2000.0".  Astron.J. 97, 265.</li>
  *
  *  <li> Yallop, B.D. et al, 1989.  "Transformation of mean star places
- *       from FK4 B1950.0 to FK5 J2000.0 using matrices in 6-space".</li>
- *       Astron.J. 97, 274.
+ *       from FK4 B1950.0 to FK5 J2000.0 using matrices in 6-space".
+ *       Astron.J. 97, 274.</li>
  *
  *  <li> Seidelmann, P.K. (ed), 1992.  "Explanatory Supplement to
  *       the Astronomical Almanac", ISBN 0-935702-68-7.</li>
- *  </ol> </dd> </dl> </p>
+ *  </ol> </dd> </dl>
  *
  *  @param r1950 B1950.0 FK4 RA,Dec at epoch (rad)
  *  @param bepoch Besselian epoch (e.g. 1979.3)
@@ -5120,8 +5102,8 @@ public class Pal {
  *   used.  The numerical constants from Seidelmann et al (Ref 3) are
  *   used canonically.
  *  </p>
- *  <p> <dl>
- *  <dt>Notes:<dt>
+ *  <dl>
+ *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The proper motions in RA are dRA/dt rather than
  *      cos(Dec)*dRA/dt, and are per year rather than per century.</li>
@@ -5162,7 +5144,7 @@ public class Pal {
  *
  *  <li> Seidelmann, P.K. (ed), 1992.  "Explanatory Supplement to
  *       the Astronomical Almanac", ISBN 0-935702-68-7.</li>
- *  </ol> </dd> </dl> </p>
+ *  </ol> </dd> </dl>
  *
  *    @param j2000 J2000.0 RA,Dec (rad),
  *           J2000.0 proper motions (rad/Jul.yr),
@@ -5365,7 +5347,7 @@ public class Pal {
  *  This routine converts star positions from the new, IAU 1976,
  *  FK5, Fricke system to the old, Bessel-Newcomb, FK4 system.
  *  </p>
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The proper motion in RA is dRA/dt rather than cos(Dec)*dRA/dt.</li>
@@ -5388,7 +5370,7 @@ public class Pal {
  *      reference frame but at Besselian epoch bepoch.  For
  *      comparison with catalogues the bepoch argument will
  *      frequently be 1950.0.</li>
- *  </ol> </dd> </dl> </p>
+ *  </ol> </dd> </dl>
  *
  *  @param r2000 J2000.0 FK5 RA,Dec (rad)
  *  @param bepoch Besselian epoch (e.g. 1950)
@@ -5431,7 +5413,7 @@ public class Pal {
 /**
  *  Transformation from IAU 1958 Galactic coordinates to
  *  J2000.0 equatorial coordinates.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Note:</dt>
  *  <dd>
  *     The equatorial coordinates are J2000.0.  Use the routine
@@ -5440,7 +5422,7 @@ public class Pal {
  *  </dd>
  *  <dt>Reference:</dt>
  *  <dd>Blaauw et al, Mon.Not.R.astron.Soc.,121,123 (1960)</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param gl Galactic longitude and latitude l2, b2
  *  @return J2000.0 RA, dec
@@ -5505,20 +5487,20 @@ public class Pal {
 /**
  *  Transformation from IAU 1958 Galactic coordinates to
  *  De Vaucouleurs supergalactic coordinates.
- *  <p> <dl>
+ *  <dl>
  *  <dt>References:</dt>
  *  <dd> <ol>
- *  <li>De Vaucouleurs, De Vaucouleurs, & Corwin, Second reference
+ *  <li>De Vaucouleurs, De Vaucouleurs, &amp; Corwin, Second reference
  *     catalogue of bright galaxies, U. Texas, page 8.</li>
  *
- *     <li>Systems & Applied Sciences Corp., Documentation for the
+ *     <li>Systems &amp; Applied Sciences Corp., Documentation for the
  *     machine-readable version of the above catalogue,
  *     contract NAS 5-26490.</li>
  *  </ol> 
  *  <dd>(These two references give different values for the Galactic
  *     longitude of the Supergalactic origin.  Both are wrong;  the
  *     correct value is l2 = 137.37.)
- *  </dd> </dl> </p>
+ *  </dd> </dl>
  *
  *  @param gl Galactic longitude and latitude l2,b2
  *  @return Supergalactic longitude and latitude
@@ -5576,7 +5558,7 @@ public class Pal {
 
 /**
  *  Convert geodetic position to geocentric.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li> Geocentric latitude can be obtained by evaluating atan2(z,r).</li>
@@ -5585,7 +5567,7 @@ public class Pal {
  *  </ol> </dd>
  *  <dt>Reference:</dt>
  *  <dd> Green,R.M., Spherical Astronomy, CUP 1985, p98.</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param p latitude (geodetic, radians)
  *  @param h height above reference spheroid (geodetic, metres)
@@ -5648,7 +5630,7 @@ public class Pal {
  *  precision by accepting the UT date and time as separate arguments.
  *  </p>
  *
- *  @param utl Universal Time (strictly UT1) expressed as
+ *  @param ut1 Universal Time (strictly UT1) expressed as
  *                    Modified Julian Date (JD-2400000.5)
  *  @return Greenwich Mean Sidereal Time (radians)
  */
@@ -5690,7 +5672,7 @@ public class Pal {
  *  @return 'B' or 'J'
  *  @throws palError Illegal prefix
  *  <p>
- *  If jb=0, B is assumed for e < 1984.0, otherwise J.
+ *  If jb=0, B is assumed for e &lt; 1984.0, otherwise J.
  *  </p>
  */
 
@@ -5743,7 +5725,7 @@ public class Pal {
  *  <p>
  *    The reference frames and timescales used are post IAU 1976.
  *  </p>
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>eq is the Julian epoch specifying both the reference frame and
@@ -5767,7 +5749,7 @@ public class Pal {
  *      assumes zero parallax and proper motion).</li>
  *
  *  <li>The accuracy is sub-milliarcsecond, limited by the
- *      precession-nutation model (IAU 1976 precession, Shirai &
+ *      precession-nutation model (IAU 1976 precession, Shirai &amp;
  *      Fukushima 2001 forced nutation and precession corrections).</li>
  *
  *  <li>The accuracy is further limited by the routine Evp, called
@@ -5777,8 +5759,8 @@ public class Pal {
  *  </ol> </dd>
  *  <dt>References:</dt>
  *  <dd>1984 Astronomical Almanac, pp B39-B41.
- *     (also Lederle & Schwan, Astron. Astrophys. 134, 1-6, 1984)</dd>
- *  </dl> </p>
+ *     (also Lederle &amp; Schwan, Astron. Astrophys. 134, 1-6, 1984)</dd>
+ *  </dl>
  *
  *  @param sd  mean RA,Dec (rad)
  *             proper motions (RA,Dec changes per Julian year),
@@ -5831,7 +5813,7 @@ public class Pal {
  *  <p>
  *  The reference frames and timescales used are post IAU 1976.
  *  </p>
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>For date, the distinction between the required TDB and TT
@@ -5845,7 +5827,7 @@ public class Pal {
  *      Ampqk, Mapqk and Mapqkz.</li>
  *
  *  <li>The accuracy is sub-milliarcsecond, limited by the
- *      precession-nutation model (IAU 1976 precession, Shirai &
+ *      precession-nutation model (IAU 1976 precession, Shirai &amp;
  *      Fukushima 2001 forced nutation and precession corrections).</li>
  *
  *  <li>A further limit to the accuracy of routines using the parameter
@@ -5856,8 +5838,8 @@ public class Pal {
  *  </ol> </dd>
  *  <dt>References:</dt>
  *  <dd>1984 Astronomical Almanac, pp B39-B41.
- *     (also Lederle & Schwan, Astron. Astrophys. 134, 1-6, 1984)</dd>
- *  </dd> </dl> </p>
+ *     (also Lederle &amp; Schwan, Astron. Astrophys. 134, 1-6, 1984)
+ *  </dd> </dl>
  *
  *  @param eq epoch of mean equinox to be used (Julian)
  *  @param date TDB (JD-2400000.5)
@@ -5939,7 +5921,7 @@ public class Pal {
  *  The reference frames and timescales used are post IAU 1976.
  *  </p>
  *
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li> The vectors amprms(1-3) and amprms(4-6) are referred to
@@ -5956,8 +5938,8 @@ public class Pal {
  *  </ol> </dd>
  *  <dt>References:</dt>
  *  <dd>1984 Astronomical Almanac, pp B39-B41.
- *     (also Lederle & Schwan, Astron. Astrophys. 134, 1-6, 1984)</dd>
- *  </dl> </p>
+ *     (also Lederle &amp; Schwan, Astron. Astrophys. 134, 1-6, 1984)</dd>
+ *  </dl>
  *
  *  @param s Mean RA,Dec (rad),
  *           proper motions (RA,Dec changes per Julian year),
@@ -6083,7 +6065,7 @@ public class Pal {
  *  </p> <p>
  *  The reference frames and timescales used are post IAU 1976.
  *  </p>
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>  The vectors amprms(1-3) and amprms(4-6) are referred to the
@@ -6100,8 +6082,8 @@ public class Pal {
  *  </ol> </dd>
  *  <dt>References:</dt>
  *  <dd>1984 Astronomical Almanac, pp B39-B41.
- *     (also Lederle & Schwan, Astron. Astrophys. 134, 1-6, 1984)</dd>
- *  </dl> </p>
+ *     (also Lederle &amp; Schwan, Astron. Astrophys. 134, 1-6, 1984)</dd>
+ *  </dl>
  *
  *  @param rm     Mean RA,dec (rad)
  *  @param amprms Star-independent mean-to-apparent parameters
@@ -6185,7 +6167,7 @@ public class Pal {
 /*  Latest Revision: 17 November 2001 (RTP)
  *
  *  References:
- *     Shirai, T. & Fukushima, T., Astron.J. 121, 3270-3283 (2001).
+ *     Shirai, T. &amp; Fukushima, T., Astron.J. 121, 3270-3283 (2001).
  *
  *  Given:
  *     date   double        TDB (loosely ET) as Modified Julian Date
@@ -6213,9 +6195,9 @@ public class Pal {
     }
 
 /**
- *  Nutation:  longitude & obliquity components and
+ *  Nutation:  longitude &amp; obliquity components and
  *             mean obliquity (IAU 1980 theory).
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The routine predicts forced nutation (but not free core nutation)
@@ -6232,13 +6214,13 @@ public class Pal {
  *  </ol> </dd>
  *  <dt>References:</dt>
  *  <dd> <ol>
- *  <li>Shirai, T. & Fukushima, T., Astron.J. 121, 3270-3283 (2001).</li>
+ *  <li>Shirai, T. &amp; Fukushima, T., Astron.J. 121, 3270-3283 (2001).</li>
  *
  *  <li>Fukushima, T., 1991, Astron.Astrophys. 244, L11 (1991).</li>
  *
  *  <li>Simon, J. L., Bretagnon, P., Chapront, J., Chapront-Touze, M.,
- *     Francou, G. & Laskar, J., Astron.Astrophys. 282, 663 (1994).</li>
- *  </ol> </dd> </dl> </p>
+ *     Francou, G. &amp; Laskar, J., Astron.Astrophys. 282, 663 (1994).</li>
+ *  </ol> </dd> </dl>
  *
  *  @param date TDB (loosely ET) as Modified Julian Date (JD-2400000.5)
  *  @return Nutation in longitude, obliquity, and mean obliquity
@@ -7387,7 +7369,7 @@ public class Pal {
 
 /**
  *  Apply corrections for proper motion to a star RA,Dec.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The proper motions in RA are dRA/dt rather than cos(Dec)*dRA/dt,
@@ -7398,7 +7380,7 @@ public class Pal {
  *      must both be Besselian rather than Julian.  In such cases, a
  *      scaling factor of 365.2422D0/365.25D0 should be applied to the
  *      radial velocity before use.</li>
- *  </ol> </dd> </dl> </p>
+ *  </ol> </dd> </dl>
  *
  *  @param r0 RA,Dec at epoch ep0 (rad)
  *  @param pm proper motions:  RA,Dec changes per year of epoch
@@ -7413,7 +7395,7 @@ public class Pal {
  *
  *  References:
  *     1984 Astronomical Almanac, pp B39-B41.
- *     (also Lederle & Schwan, Astron. Astrophys. 134, 1-6, 1984)
+ *     (also Lederle &amp; Schwan, Astron. Astrophys. 134, 1-6, 1984)
  *
  *  Given:
  *     r0,d0    double     RA,Dec at epoch ep0 (rad)
@@ -7474,7 +7456,7 @@ public class Pal {
  *  <dd>Kinoshita, H. (1975) 'Formulas for precession', SAO Special
  *      Report No. 364, Smithsonian Institution Astrophysical
  *      Observatory, Cambridge, Massachusetts.</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param bep0 Beginning Besselian epoch
  *  @param bep1 Ending Besselian epoch
@@ -7520,7 +7502,7 @@ public class Pal {
 
 /**
  *  Form the matrix of precession between two epochs (IAU 1976, FK5).
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The epochs are TDB (loosely ET) Julian epochs.</li>
@@ -7544,9 +7526,9 @@ public class Pal {
  *  <dt>References:</dt>
  *  <dd> <ol>
  *   <li>  Lieske,J.H., 1979. Astron. Astrophys.,73,282.
- *          equations (6) & (7), p283.</li>
+ *          equations (6) &amp; (7), p283.</li>
  *   <li>  Kaplan,G.H., 1981. USNO circular no. 163, pa2.</li>
- *  </ol> </dd> </dl> </p>
+ *  </ol> </dd> </dl>
  *
  *  @param ep0 Beginning epoch
  *  @param ep1 Ending epoch
@@ -7593,13 +7575,13 @@ public class Pal {
 /**
  *  Precession - either FK4 (Bessel-Newcomb, pre-IAU1976) or
  *  FK5 (Fricke, post-IAU1976) as required.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The epochs are Besselian if sys='FK4' and Julian if 'FK5'.
  *      For example, to precess coordinates in the old system from
  *      equinox 1900.0 to 1950.0 the call would be:
- *          Preces ( "FK4", 1900.0, 1950.0, &ra, &dc )</li>
+ *          Preces ( "FK4", 1900.0, 1950.0, &amp;ra, &amp;dc )</li>
  *
  *  <li>This routine will not correctly convert between the old and
  *      the new systems - for example conversion from B1950 to J2000.
@@ -7608,13 +7590,13 @@ public class Pal {
  *
  *  <li>If an invalid sys is supplied, values of -99.0,-99.0 will
  *      be returned for both ra and dc.</li>
- *  </ol> </dd> </dl> </p>
+ *  </ol> </dd> </dl>
  *
  *  @param sys Precession to be applied: "FK4" or "FK5"
  *  @param ep0 Starting epoch
  *  @param ep1 Ending epoch
- *  @param d RA,Dec, mean equator & equinox of epoch ep0
- *  @return RA,Dec, mean equator & equinox of epoch ep1
+ *  @param d RA,Dec, mean equator &amp; equinox of epoch ep0
+ *  @return RA,Dec, mean equator &amp; equinox of epoch ep1
  */
 
 /*  Latest Revision: 27 November 2001 (RTP)
@@ -7622,10 +7604,10 @@ public class Pal {
  *  Given:
  *     sys        char[]     precession to be applied: "FK4" or "FK5"
  *     ep0,ep1    double     starting and ending epoch
- *     ra,dc      double     RA,Dec, mean equator & equinox of epoch ep0
+ *     ra,dc      double     RA,Dec, mean equator &amp; equinox of epoch ep0
  *
  *  Returned:
- *     *ra,*dc    double     RA,Dec, mean equator & equinox of epoch ep1
+ *     *ra,*dc    double     RA,Dec, mean equator &amp; equinox of epoch ep1
  *
  *  Called:    Dranrm, Prebn, Prec, Dcs2c,
  *             Dmxv, Dcc2s
@@ -7666,7 +7648,7 @@ public class Pal {
  *  Form the matrix of precession between two epochs, using the
  *  model of Simon et al (1994), which is suitable for long
  *  periods of time.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The epochs are TDB (loosely ET) Julian epochs.</li>
@@ -7682,7 +7664,7 @@ public class Pal {
  *  </ol> </dd>
  *  <dt>Reference:</dt>
  *  <dd>Simon, J.L., et al., 1994. Astron.Astrophys., 282, 663-683.</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param ep0 Beginning epoch
  *  @param ep1 Ending epoch
@@ -7784,14 +7766,14 @@ public class Pal {
 
 /**
  *  Form the matrix of precession and nutation (IAU 1976/1980/FK5).
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The epoch and date are TDB (loosely ET).</li>
  *
  *  <li>The matrix is in the sense   v(true)  =  rmatpn * v(mean).</li>
  *  </ol> </dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param epoch Julian epoch for mean coordinates
  *  @param date Modified Julian Date (JD-2400000.5) for true coordinates
@@ -7835,22 +7817,23 @@ public class Pal {
  *  refraction) and dz is what to add to z to give the "topocentric"
  *  (i.e. in vacuo) zenith distance.
  *  </p>
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>Typical values for the tlr and eps arguments might be 0.0065 and
  *     1e-10 respectively.</li>
  *
- *  <li>The radio refraction is chosen by specifying wl > 100 micrometres.</li>
+ *  <li>The radio refraction is chosen by specifying wl &gt; 100
+ *      micrometres.</li>
  *
  *  <li> The routine is a slower but more accurate alternative to the
  *     Refcoq routine.  The constants it produces give perfect
  *     agreement with Refro at zenith distances arctan(1) (45 deg)
  *     and arctan(4) (about 76 deg).  It achieves 0.5 arcsec accuracy
- *     for ZD < 80 deg, 0.01 arcsec accuracy for ZD < 60 deg, and
- *     0.001 arcsec accuracy for ZD < 45 deg.</li>
+ *     for ZD &lt; 80 deg, 0.01 arcsec accuracy for ZD &lt; 60 deg, and
+ *     0.001 arcsec accuracy for ZD &lt; 45 deg.</li>
  *  </ol> </dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param hm  Height of the observer above sea level (metre)
  *  @param tdk Ambient temperature at the observer (deg k)
@@ -7906,7 +7889,7 @@ public class Pal {
  
 /**
  *  Atmospheric refraction for radio and optical/IR wavelengths.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>A suggested value for the tlr argument is 0.0065.  The
@@ -7948,7 +7931,7 @@ public class Pal {
  *
  *     <li>Provision for radio wavelengths has been added using
  *         expressions devised by A.T.Sinclair, RGO (private
- *         communication 1989), based on the Essen & Froome
+ *         communication 1989), based on the Essen &amp; Froome
  *         refractivity formula adopted in Resolution 1 of the
  *         13th International Geodesy Association General Assembly
  *         (Bulletin Geodesique 70 p390, 1963).</li>
@@ -7965,7 +7948,7 @@ public class Pal {
  *     4 arcsec for a hot, humid, low-altitude site during a period of
  *     low pressure.</li>
  *
- *  <li>The radio refraction is chosen by specifying wl > 100 micrometres.
+ *  <li>The radio refraction is chosen by specifying wl &gt; 100 micrometres.
  *     Because the algorithm takes no account of the ionosphere, the
  *     accuracy deteriorates at low frequencies, below about 30 MHz.</li>
  *
@@ -7994,7 +7977,7 @@ public class Pal {
  *     mass of dry air divided by that for saturated air at the same
  *     temperature and pressure (see Gill 1982).</li>
  *  </ol> </dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param zobs Observed zenith distance of the source (radian)
  *  @param hm   Height of the observer above sea level (metre)
@@ -8352,7 +8335,7 @@ public class Pal {
 /**
  *  Remove the e-terms (elliptic component of annual aberration)
  *  from a pre IAU 1976 catalogue RA,Dec to give a mean place.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Explanation:</dt>
  *  <dd>Most star positions from pre-1984 optical catalogues (or
  *      derived from astrometry using such stars) embody the
@@ -8363,7 +8346,7 @@ public class Pal {
  *  <dt>Reference:</dt>
  *  <dd>Explanatory Supplement to the Astronomical Ephemeris,
  *      section 2D, page 48.</dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param rc RA,Dec (radians) with e-terms included
  *  @param eq Besselian epoch of mean equator and equinox
@@ -8413,21 +8396,21 @@ public class Pal {
 /**
  *  Transformation from De Vaucouleurs supergalactic coordinates
  *  to IAU 1958 Galactic coordinates.
- *  <p> <dl>
+ *  <dl>
  *  <dt>References:</dt>
  *  <dd> <ol>
- *  <li>De Vaucouleurs, De Vaucouleurs, & Corwin, Second Reference
+ *  <li>De Vaucouleurs, De Vaucouleurs, &amp; Corwin, Second Reference
  *     Catalogue of Bright Galaxies, U. Texas, page 8.</li>
  *
- *  <li> Systems & Applied Sciences Corp., Documentation for the
+ *  <li> Systems &amp; Applied Sciences Corp., Documentation for the
  *     machine-readable version of the above catalogue,
  *     contract NAS 5-26490.</li>
  *  </ol> <p>
  *    (These two references give different values for the Galactic
  *     longitude of the supergalactic origin.  Both are wrong;  the
  *     correct value is l2=137.37.)</p>
- *  </p> </dd>
- *  </dl> </p>
+ *  </dd>
+ *  </dl>
  *
  *  @param ds Supergalactic longitude and latitude
  *  @return Galactic longitude and latitude l2,b2
@@ -8484,7 +8467,7 @@ public class Pal {
 
 /**
  *  HA, Dec to Zenith Distance.
- *  <p> <dl>
+ *  <dl>
  *  <dt>Notes:</dt>
  *  <dd> <ol>
  *  <li>The latitude must be geodetic.  In critical applications,
@@ -8508,7 +8491,7 @@ public class Pal {
  *      as sine and cosine of latitude, and perhaps sine and cosine of
  *      declination.</li>
  *  </ol> </dd>
- *  </dl> </p>
+ *  </dl>
  *
  *  @param ha  Hour Angle in radians
  *  @param dec Declination in radians
