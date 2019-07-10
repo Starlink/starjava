@@ -148,7 +148,6 @@ public class CoordinateConversion
  * <dt>E</dt> <dd>Ecliptic coordinates [lamda, beta], new system (mean of date)</dd>
  * <dt>G</dt> <dd>Galactic coordinates [l, b], IAU 1958 system</dd>
  * </dl>
- * </p>
  */
     public void setInSystem ( char in ) {
         insys = Character.toUpperCase( in );
@@ -185,7 +184,7 @@ public class CoordinateConversion
 
 /**
  * Set the input Equinox.
- * @param ep The epoch, eg. 1950 (optional B or J prefix)
+ * @param eq The eqinox, eg. 1950 (optional B or J prefix)
  */
     public void setInEquinox ( String eq ) {
         if ( eq == null ) return;
@@ -211,7 +210,6 @@ public class CoordinateConversion
  * <dt>E</dt> <dd>Ecliptic coordinates [lamda, beta], new system (mean of date)</dd>
  * <dt>G</dt> <dd>Galactic coordinates [l, b], IAU 1958 system</dd>
  * </dl>
- * </p>
  */
     public void setOutSystem ( char out ) {
         outsys = Character.toUpperCase( out );
@@ -246,7 +244,7 @@ public class CoordinateConversion
 
 /**
  * Set the output Equinox.
- * @param ep The epoch, eg. 1950 (optional B or J prefix)
+ * @param eq The equinox, eg. 1950 (optional B or J prefix)
  */
     public void setOutEquinox ( String eq ) {
         if ( eq == null ) return;
