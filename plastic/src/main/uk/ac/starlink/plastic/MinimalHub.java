@@ -288,7 +288,7 @@ public class MinimalHub implements PlasticHubListener, XmlRpcHandler {
     /**
      * Not supported.
      *
-     * @throws  UnsupportedOperationException
+     * @throws  UnsupportedOperationException  always
      */
     public URI registerPolling( String name, List supportedMessages ) {
         throw new UnsupportedOperationException( "Polling not supported" );
@@ -297,7 +297,7 @@ public class MinimalHub implements PlasticHubListener, XmlRpcHandler {
     /**
      * Not supported.
      *
-     * @throws  UnsupportedOperationException
+     * @throws  UnsupportedOperationException  always
      */
     public List pollForMessages( URI id ) {
         throw new UnsupportedOperationException( "Polling not supported" );

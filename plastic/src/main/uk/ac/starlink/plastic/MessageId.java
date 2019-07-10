@@ -7,7 +7,8 @@ import java.net.URISyntaxException;
  * Convenience class containing URI constants for some of the standard
  * PLASTIC message definitions.
  * These are taken from the PLASTIC core message definitions list at
- * <a href="http://plastic.sourceforge.net/coremessages.html"/>
+ * <a href="http://plastic.sourceforge.net/coremessages.html"
+ *         >http://plastic.sourceforge.net/coremessages.html</a>
  * and possibly elsewhere.
  *
  * @author   Mark Taylor

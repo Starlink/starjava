@@ -274,7 +274,7 @@ public class PlasticMonitor implements PlasticApplication {
      * <dd>Writes a log to standard output of all PLASTIC traffic</dd>
      * <dt>-warn</dt>
      * <dd>Writes a log to standard output of illegal or questionable
-     *     conditions</dt>
+     *     conditions</dd>
      * <dt>-multi</dt>
      * <dd>Attempt to implement as many messages as possible
      *     (a dummy implementation is provided for every message know by
