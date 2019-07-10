@@ -147,7 +147,7 @@ public class RegClientTest {
     }
 
     /**
-     * Returns a map containing nickname->service endpoint pairs
+     * Returns a map containing nickname-&gt;service endpoint pairs
      * for some popular registries, for convenience.
      *
      * @return    map of nicknames to registry service endpoints

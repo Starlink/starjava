@@ -65,7 +65,7 @@ public class BasicResource {
 
     /**
      * Returns the resource unique identifier.
-     * This is a URI of the form <code>ivo://authority/path<code>.
+     * This is a URI of the form <code>ivo://authority/path</code>.
      *
      * @return  identifier
      */
