@@ -64,7 +64,7 @@ public class ColourIcon implements Icon
     /**
      *  Create an icon with the given colour and defaults.
      *
-     *  @param mainColour the colour.
+     *  @param colour the colour.
      */
     public ColourIcon( Color colour ) 
     {

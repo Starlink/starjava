@@ -31,7 +31,7 @@ public interface PlotController
     /**
      * Apply the current PlotConfiguration object state to the Plot.
      * The current configuration can be obtained as single String
-     * using the {@link PlotConfiguration.getAst} method.
+     * using the {@link PlotConfiguration#getAst} method.
      */
     public void updatePlot();
 

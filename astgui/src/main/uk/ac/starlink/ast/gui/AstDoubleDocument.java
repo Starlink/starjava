@@ -28,7 +28,8 @@ import uk.ac.starlink.ast.Frame;
  */
 public class AstDoubleDocument extends PlainDocument
 {
-    /** Used to access the {@link Plot}, needed as Plots are generally
+    /** Used to access the {@link uk.ac.starlink.ast.Plot},
+     *  needed as Plots are generally
      *  re-created and a direct reference would go stale. */
     private PlotController controller;
     private int axis;

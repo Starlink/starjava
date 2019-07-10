@@ -96,7 +96,6 @@ public class ComponentColourControls
      * @param controller a controller for the object that is to be
      *                   coloured. 
      * @param colourStore the storage for the actual Colour.
-     * @param description a short description of the property.
      */
     public ComponentColourControls( PlotController controller,
                                     AbstractPlotControlsModel colourStore,

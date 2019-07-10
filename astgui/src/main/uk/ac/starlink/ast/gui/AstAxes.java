@@ -348,7 +348,7 @@ public class AstAxes
     /**
      * Set the colour of the X axis.
      *
-     * @param colour The new colour value
+     * @param xColour The new colour value
      */
     public void setXColour( Color xColour )
     {
@@ -373,7 +373,7 @@ public class AstAxes
     /**
      * Set the colour of the Y axis.
      *
-     * @param colour The new colour value
+     * @param yColour The new colour value
      */
     public void setYColour( Color yColour )
     {
@@ -399,7 +399,7 @@ public class AstAxes
     /**
      * Set the X axis line width. The value DefaultGrf.BAD means no value.
      *
-     * @param width The new width value
+     * @param xWidth The new width value
      */
     public void setXWidth( double xWidth )
     {
@@ -425,7 +425,7 @@ public class AstAxes
     /**
      * Set the Y axis line width. The value DefaultGrf.BAD means no value.
      *
-     * @param width The new width value
+     * @param yWidth The new width value
      */
     public void setYWidth( double yWidth )
     {

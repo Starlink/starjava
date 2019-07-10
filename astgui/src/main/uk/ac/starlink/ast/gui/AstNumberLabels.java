@@ -18,7 +18,8 @@ import uk.ac.starlink.ast.grf.DefaultGrfFontManager;
  * AstNumberLabels is a model of the axis numeric label elements shown in say
  * an AST Plot. It encompasses all the values that describe their
  * representations (which are not independent, hence what seems to be two
- * elements - X & Y - in one class, in fact these are also related to the text
+ * elements - X &amp; Y - in one class, in fact these are also related
+ * to the text
  * labels, which determine the edge) and returns these in various formats
  * (such as the complete AST Plot options list for configuring it).
  *
@@ -254,7 +255,7 @@ public class AstNumberLabels extends AbstractPlotControlsModel
      * Set whether the X label log labelling is set or unset (unset implies
      * that label properties should remain at their AST defaults).
      *
-     * @param setLogLabelling The new value.
+     * @param logLabelSet The new value.
      */
     public void setLogLabelSet( boolean logLabelSet )
     {

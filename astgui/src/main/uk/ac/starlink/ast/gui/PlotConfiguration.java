@@ -46,7 +46,7 @@ import uk.ac.starlink.util.gui.StoreConfiguration;
  * @see Plot
  * @see AstTitle
  * @see AstStrings
- * @see AstAxisLabels,
+ * @see AstAxisLabels
  * @see AstNumberLabels
  * @see AstGrid
  * @see AstAxes

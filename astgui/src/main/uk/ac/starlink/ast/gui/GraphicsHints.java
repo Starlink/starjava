@@ -10,12 +10,13 @@ import org.w3c.dom.Element;
  * drawing of a Plot. Currently there are only two possible values,
  * antialiased text, or antialiased text and lines.
  *
+ * <p>Copyright (C) 2000 Central Laboratory of the Research Councils
+ *
  * @since $Date$
  * @since 16-NOV-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
- * @see Plot, PlotConfig.
+ * @see uk.ac.starlink.ast.Plot
  */
 public class GraphicsHints extends AbstractPlotControlsModel
 {

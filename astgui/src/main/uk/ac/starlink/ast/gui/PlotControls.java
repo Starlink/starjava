@@ -17,7 +17,7 @@ import javax.swing.JComponent;
  * JPanel (the tabbed pane parent). 
  * <p>
  * It is expected that such a pane of controls relate to the
- * configuration of an AST {@link Plot}.
+ * configuration of an AST {@link uk.ac.starlink.ast.Plot}.
  *
  * @author Peter W. Draper
  * @version $Id$

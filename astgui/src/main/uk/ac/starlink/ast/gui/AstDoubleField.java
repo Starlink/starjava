@@ -24,7 +24,8 @@ public class AstDoubleField
 {
     /**
      * Reference to the {@link PlotController} that supplies a reference to
-     * the current {@link Frame} of an associated {@link Plot}.
+     * the current {@link uk.ac.starlink.ast.Frame}
+     * of an associated {@link Plot}.
      */
     protected PlotController controller = null;
 

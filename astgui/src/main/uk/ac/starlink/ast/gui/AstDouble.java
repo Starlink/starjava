@@ -148,12 +148,7 @@ public class AstDouble extends Number implements Comparable
      * represented by the specified string. This is useful as it
      * keeps the existing frame set and axis.
      *
-     * @param s the string to be parsed.
-     * @param frame a reference to an AST frame whose properties
-     *                 define the axis formatting and unformatting
-     *                 capabilities. This may be a frameset or plot, in
-     *                 which case it applies to the current frame.
-     * @param axis the axis in the frameset that should be used.
+     * @param value the string to be parsed.
      *
      * @return the new AstDouble object.
      */
@@ -167,7 +162,7 @@ public class AstDouble extends Number implements Comparable
      * Returns a new AstDouble object initialized to the value
      * represented by the specified string.
      *
-     * @param s the string to be parsed.
+     * @param value the string to be parsed.
      * @param frame a reference to an AST frame whose properties
      *              define the axis formatting and unformatting
      *              capabilities. This may be a frameset or plot, in
@@ -227,8 +222,8 @@ public class AstDouble extends Number implements Comparable
     *         AstDouble; and a value greater than 0 if the argument is
     *         an AstDouble numerically less than this Double.
     *
-    * @exception ClassCastException if the argument is not an AstDouble.
-    * @see java.lang.Double.compareTo()
+    * @throws ClassCastException if the argument is not an AstDouble.
+    * @see java.lang.Double#compareTo
     */
     public int compareTo( Object o )
     {

@@ -29,12 +29,13 @@ import uk.ac.starlink.util.gui.StoreConfiguration;
  * This abstract class provides a default implementation for a
  * XMLEncodeDecode. An AbstractPlotControlsModel provides backing
  * store for the state of some controls that define properties that
- * are related to a {@link Plot}. The state of the model can be saved
+ * are related to a {@link uk.ac.starlink.ast.Plot}.
+ * The state of the model can be saved
  * and restored from an XML description.
  * <p>
  * This implementation also provides default implementations of {@link
- * Changelistener} methods that allow the model to register, respond
- * and issue {@link ChangeEvents}. It also forces any sub-classes to
+ * ChangeListener} methods that allow the model to register, respond
+ * and issue {@link ChangeEvent}s. It also forces any sub-classes to
  * provide methods for encoding and decoding their internal
  * configurations as XML Elements so that they can be written-to and
  * restored-from permanent store.

@@ -42,7 +42,7 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
  * @author Peter W. Draper
  * @version $Id$
  *
- * @see AstAxisLabel
+ * @see AstAxisLabels
  * @see PlotConfigurator
  */
 public class AxisLabelControls extends JPanel

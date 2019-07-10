@@ -6,11 +6,12 @@ import java.awt.Font;
 /**
  * FontChangedEvent defines an event that passes on a new Font.
  *
+ * <p>Copyright (C) 2000 Central Laboratory of the Research Councils
+ *
  * @since $Date$
  * @since 08-NOV-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
 public class FontChangedEvent extends EventObject 
 {

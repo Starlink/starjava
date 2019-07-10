@@ -7,11 +7,12 @@ import javax.swing.JComboBox;
  * that correspond to the default AST line styles (plain, dashed, dot
  * etc.).
  *
+ * <p>Copyright (C) 2000 Central Laboratory of the Research Councils
+ *
  * @since $Date$
  * @since 13-NOV-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
 public class AstStyleBox extends JComboBox 
 {
