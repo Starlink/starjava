@@ -400,7 +400,7 @@ public class Ndxs {
      * Returns a default AST <tt>FrameSet</tt> for an Ndx.
      * This has GRID and PIXEL Frames, such that when the unit hypercube
      * (having coordinates <i>x<sub>i</sub></i> in the range
-     * 0&lt=<i>x<sub>i</sub></i>..1 in each dimension <i>i</i>) 
+     * 0&lt;=<i>x<sub>i</sub></i>..1 in each dimension <i>i</i>) 
      * is transformed into the PIXEL frame it
      * becomes the hypercube with coordinates in the range
      * <i>Origin<sub>i</sub>-1&lt;=x<sub>i</sub>&lt;=Origin<sub>i</sub></i>,

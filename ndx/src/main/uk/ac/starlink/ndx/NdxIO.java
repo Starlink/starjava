@@ -130,7 +130,7 @@ public class NdxIO {
     }
 
     /**
-     * Gets the list of handlers which actually do the URL->Ndx
+     * Gets the list of handlers which actually do the URL-&gt;Ndx
      * construction.  Handlers earlier in the list are given a
      * chance to handle a URL before ones later in the list.
      * This list is mutable and may be modified to change the behaviour 
@@ -144,7 +144,7 @@ public class NdxIO {
     }
 
     /**
-     * Sets the list of handlers which actually do the URL->Ndx
+     * Sets the list of handlers which actually do the URL-&gt;Ndx
      * construction.  Handlers earlier in the list are given a 
      * chance to handle a URL before ones later in the list.
      *
