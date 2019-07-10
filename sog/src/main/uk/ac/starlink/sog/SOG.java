@@ -58,7 +58,7 @@ import uk.ac.starlink.util.gui.BasicFileFilter;
  * Main class for the SOG application.
  *
  * @author Peter W. Draper
- * @created June 11, 2002
+ * @since June 11, 2002
  */
 public class SOG
     extends JFrame

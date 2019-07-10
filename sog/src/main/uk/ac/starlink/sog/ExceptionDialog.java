@@ -44,7 +44,7 @@ public class ExceptionDialog
      * the given exception, but which will also display the full text
      * of the exception stack trace.
      * 
-     * @param the a parent for this window, can be null.
+     * @param parent the parent for this window, can be null.
      * @param e the exception to report and maybe display.
      */
     public ExceptionDialog( Component parent, Exception e )

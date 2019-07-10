@@ -74,7 +74,7 @@ public class SOGMenuBar
     }
 
     /**
-     * Create the File => Open menu item
+     * Create the File =&gt; Open menu item
      */
     protected JMenuItem createFileOpenMenuItem() 
     {
@@ -88,7 +88,7 @@ public class SOGMenuBar
     }
 
     /**
-     * Create the File => Exit menu item
+     * Create the File =&gt; Exit menu item
      */
     protected JMenuItem createFileExitMenuItem() 
     {
