@@ -853,6 +853,7 @@
              doctitle="${Name}"
              defaultexcludes="yes"
              classpathref="classpath">
+      <arg value="-Xdoclint:all,-missing"/>
 
       <!-- Exclude broken and test files etc. from the document -->
       <packageset dir="${java.dir}" defaultexcludes="yes">

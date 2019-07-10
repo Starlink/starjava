@@ -1055,6 +1055,7 @@
              source="${source.version}"
              failonerror="yes"
              classpathref="classpath">
+      <arg value="-Xdoclint:all,-missing"/>
 
       <!-- Get a list of directories that name all the potential
        !   java packages -->
