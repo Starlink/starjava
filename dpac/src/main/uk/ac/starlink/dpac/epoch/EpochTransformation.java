@@ -34,7 +34,6 @@ public final class EpochTransformation {
      *            epoch difference
      * @param a0
      *            original source parameters in rad(/timeunit) in order:
-     *            <p>
      *            <ul>
      *            <li>alpha, right ascension at t0 [rad]
      *            <li>delta, declination at t0 [rad]
@@ -44,7 +43,6 @@ public final class EpochTransformation {
      *            <li>muDelta, proper motion in Dec at t0 [rad/timeunit]
      *            <li>mu_R, normalised radial velocity at t0 [rad/timeunit]
      *            </ul>
-     *            <p>
      *            <p style="margin-left: 20px">
      *            The normalised radial velocity at epoch t0 is given by
      *            vr0*varPi/4.740470446 where vr0 is the barycentric radial velocity
@@ -73,7 +71,6 @@ public final class EpochTransformation {
      *            epoch difference in arbitrary timeunit
      * @param a0
      *            original source parameters in rad(/timeunit) in order:
-     *            <p>
      *            <ul>
      *            <li>alpha, right ascension at t0 [rad]
      *            <li>delta, declination at t0 [rad]
@@ -83,7 +80,6 @@ public final class EpochTransformation {
      *            <li>muDelta, proper motion in Dec at t0 [rad/timeunit]
      *            <li>mu_R, normalised radial velocity at t0 [rad/timeunit]
      *            </ul>
-     *            <p>
      *            <p style="margin-left: 20px">
      *            The normalised radial velocity at epoch t0 is given by
      *            vr0*varPi/4.740470446 where vr0 is the barycentric radial velocity
@@ -119,7 +115,6 @@ public final class EpochTransformation {
      *            epoch difference in arbitrary timeunit
      * @param a0
      *            original source parameters in rad(/timeunit) in order:
-     *            <p>
      *            <ul>
      *            <li>alpha, right ascension at t0 [rad]
      *            <li>delta, declination at t0 [rad]
@@ -129,7 +124,6 @@ public final class EpochTransformation {
      *            <li>muDelta, proper motion in Dec at t0 [rad/timeunit]
      *            <li>mu_R, normalised radial velocity at t0 [rad/timeunit]
      *            </ul>
-     *            <p>
      *            <p style="margin-left: 20px">
      *            The normalised radial velocity at epoch t0 is given by
      *            vr0*varPi/4.740470446 where vr0 is the barycentric radial velocity

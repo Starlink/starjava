@@ -23,7 +23,7 @@ import gaia.cu9.tools.parallax.util.CdfIntegration;
  * is specified, and can be reused for several stars.
  * 
  * Several parameters controlling how the estimation should be done can be 
- * passed through an optional Map<String, String>
+ * passed through an optional Map&lt;String, String&gt;
  * 
  * @author eutrilla
  *

@@ -17,9 +17,6 @@ public class UniformDistanceDEM extends DistanceEstimationMethod {
 	 * Initialize the uniform distance prior PDF. Inputs should be in
 	 * consistent units, i.e. if parallax measurements are in MAS then
 	 * distance should be in KPC.
-	 * @param varPi
-	 * @param sigma
-	 * @param rLim
 	 */
 	public UniformDistanceDEM(double varPi, double sigma, double rLim){
 		this.varPi = varPi;

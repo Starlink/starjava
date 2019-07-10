@@ -3,7 +3,7 @@ package gaia.cu9.tools.parallax.PDF;
 public interface PDF {
 	/**
 	 * Calculate the value of the PDF at point x
-	 * @param x
+         * @param x x
 	 * @return PDF(x)
 	 */
 	double getUnnormalizedProbabilityAt(double x);

@@ -77,7 +77,7 @@ public class GVector3d {
 	 * elements of a given double array.
 	 * 
 	 * @param v
-	 *            array of length >=3 to initialize this vector from
+	 *            array of length &gt;=3 to initialize this vector from
 	 * @throws IllegalArgumentException
 	 *             if input array has less than three elements
 	 */
@@ -195,9 +195,9 @@ public class GVector3d {
 	 * <code>(alpha, delta)</code>
 	 * 
 	 * @param alpha
-	 *            longitude [rad] (0<=alpha<2 Pi)
+	 *            longitude [rad] (0&lt;=alpha&lt;2 Pi)
 	 * @param delta
-	 *            latitude [rad] (-Pi/2<=delta<=Pi/2)
+	 *            latitude [rad] (-Pi/2&lt;=delta&lt;=Pi/2)
 	 * @return computed normal trid as three element array 0: unit vector in the
 	 *         direction of increasing <code>alpha</code> 1: unit vector in the
 	 *         direction of increasing <code>delta</code> 2: unit vector towards

@@ -58,7 +58,7 @@ public class ParallaxProcessor {
 		}
 		
 		long endTime = System.nanoTime();
-		long ellapsedTime = (long)((endTime-startTime)/1000000);
+		long ellapsedTime = ((endTime-startTime)/1000000);
 		
 		Logger.getLogger(this.getClass().getName()).info(nObjects + " processed in " + ellapsedTime + " ms.");
 
