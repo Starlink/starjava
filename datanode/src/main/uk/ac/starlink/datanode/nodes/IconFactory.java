@@ -109,7 +109,7 @@ public class IconFactory {
      * may be null if the icon does not have a gif (because it is acquired
      * directly from the UIManager for instance).
      *
-     * @param  id
+     * @param  id  icon identifier
      * @return  the URL of the icon, or null
      * @throws  IllegalArgumentException  if <tt>id</tt> is not one of the
      *          known icon identifiers
