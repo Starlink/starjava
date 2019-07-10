@@ -631,6 +631,8 @@ public class GlobalSpecPlotList
         int index = plotList.indexOf( plot );
         firePlotChanged( index );
     }
+    
+   
 
     /**
      *  Add a list of spectra to a plot.

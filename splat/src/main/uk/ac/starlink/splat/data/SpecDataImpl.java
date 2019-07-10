@@ -184,4 +184,43 @@ public interface SpecDataImpl
      */
     public void setDataErrorColumnName( String name )
         throws SplatException;
+    
+    /**
+     * Getter for object type that identifies type of object (spectrum or timeseries)
+     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     * @return
+     */
+    public ObjectTypeEnum getObjectType();
+    
+    /**
+     * /**
+     * Setter for object type that identifies type of object (spectrum or timeseries)
+     * 
+     
+     * @param objectType
+     */
+    public void setObjectType(ObjectTypeEnum objectType);
+    
+    /**
+     * Getter for object type that identifies timeseries time system
+     * 
+     * @return
+     */
+    public String getTimeSystem();
+    
+  
+    /**
+     * /**
+     * Setter for object type that identifies timeseries time system
+     * 
+     
+     * @param timeSystem
+     */
+    public void setTimeSystem(String timeSystem );
+
+
+
+	
+
+    
 }

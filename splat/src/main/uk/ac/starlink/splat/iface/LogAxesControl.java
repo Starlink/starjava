@@ -11,10 +11,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JCheckBox;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import jsky.util.Logger;
+import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.ast.gui.AstAxes;
 import uk.ac.starlink.ast.gui.PlotController;
 
@@ -148,13 +152,24 @@ public class LogAxesControl
      */
     protected void matchControl()
     {
-        if ( axis == 1 ) {
-            astAxes.setXLog( logAxisBox.isSelected() );
-        }
-        else {
-            astAxes.setYLog( logAxisBox.isSelected() );
-        }
+    	if (logPossible(axis)) {
+    		if ( axis == 1 ) {        	
+        		astAxes.setXLog( logAxisBox.isSelected() );        	
+    		}
+    		else {        	
+        		astAxes.setYLog( logAxisBox.isSelected() );
+    		}
+    	}
+    	else { 
+    		logAxisBox.setSelected(false);
+    		logAxisBox.setEnabled(false);
+    		logAxisBox.setToolTipText("Cannot create Log of negative values.");    
+    		if ( controller != null ) {
+                ((PlotControl) controller).dealWithInvalidLogValues();
+            }
+    	}
 
+        
         //  Controller performs an update.
         if ( controller != null ) {
             controller.updatePlot();
@@ -166,18 +181,31 @@ public class LogAxesControl
      */
     protected void updateFromAstAxes()
     {
-        //  Take care with the ChangeListener, we don't want to get into a
-        //  loop.
-        astAxes.removeChangeListener( this );
-        if ( axis == 1 ) {
-            logAxisBox.setSelected( astAxes.getXLog() );
-        }
-        else {
-            logAxisBox.setSelected( astAxes.getYLog() );
-        }
-        astAxes.addChangeListener( this );
+    	//  Take care with the ChangeListener, we don't want to get into a
+    	//  loop.
+    	astAxes.removeChangeListener( this );
+    	if (logPossible(axis)) {
+    		if ( axis == 1 ) {
+    			logAxisBox.setSelected( astAxes.getXLog() );        	
+    		}
+    		else {        	
+    			logAxisBox.setSelected( astAxes.getYLog() );
+    			
+    		}
+    	} 
+    	astAxes.addChangeListener( this );
     }
 
+    private boolean logPossible(int axis) {
+    	if ( controller == null )
+    		return true;
+    	if (axis == 1)
+			return (((PlotControl) controller).logXPossible());	
+    	else 
+			return (((PlotControl) controller).logYPossible());	
+	 
+	}
+    
 //
 // Implement the ChangeListener interface
 //

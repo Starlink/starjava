@@ -174,7 +174,15 @@ public abstract class AbstractSpecDataImpl
      * The reference to a parent implementation.
      */
     protected SpecDataImpl parentImpl = null;
+    
+    private ObjectTypeEnum objectType;
+    private String timeSystem;
+    private String timeRefpos;
+    private double time0;
+    private String timeScale;
+    private String timeField;
 
+    
     /**
      * Reference to another SpecDataImpl that is a "parent" of this
      * instance. This facility is provided so that data formats that
@@ -243,5 +251,58 @@ public abstract class AbstractSpecDataImpl
     {
         // Do nothing.
     }
+    
+    @Override
+    public ObjectTypeEnum getObjectType() {
+    	return objectType;
+    }
+    
+    @Override
+    public void setObjectType(ObjectTypeEnum objectType) {
+    	this.objectType = objectType;
+    }
+    
+    @Override
+    public String getTimeSystem() {
+        return this.timeSystem;
+    } 
+    
+    public String getTimeRefpos() {
+		return this.timeRefpos;		
+	}
+    
+    public String getTimeField() {
+		return timeField;
+	}
+    
+    public double getTime0() {
+		return time0;
+	}
+    
+    public String getTimeScale() {
+		return timeScale;		
+	}
+    
+    @Override
+    public void setTimeSystem(String ts) {
+        this.timeSystem = ts;
+    }
+    
+	public void setTimeRefpos(String timeRefpos) {
+		this.timeRefpos=timeRefpos;		
+	}
+	
+	public void setTimeField(String timeField) {
+		this.timeField=timeField;		
+	}
+
+	public void setTime0(double time02) {
+		this.time0 = time02;		
+	}
+
+	public void setTimeScale(String timeScale) {
+		this.timeScale = timeScale;
+	}
+
 }
 

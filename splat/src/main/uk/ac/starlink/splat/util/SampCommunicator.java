@@ -8,7 +8,12 @@
 package uk.ac.starlink.splat.util;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -41,14 +46,22 @@ import org.astrogrid.samp.gui.MessageTrackerHubConnector;
 import org.astrogrid.samp.gui.SysTray;
 import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.hub.HubServiceMode;
+import org.xml.sax.InputSource;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.SampFrame;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SplatBrowser;
+import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SpectrumIO.SourceType;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.vo.DalResourceXMLFilter;
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.votable.VOElement;
+import uk.ac.starlink.votable.VOElementFactory;
 
 /**
  * Communicator implementation based on the SAMP protocol.
@@ -80,7 +93,10 @@ public class SampCommunicator
     /** Logger. */
     private static Logger logger =
         Logger.getLogger( SampCommunicator.class.getName() );
-
+    
+    /** Property Change Support */
+    private final PropertyChangeSupport propChange = new PropertyChangeSupport(this);
+    
     /**
      * Constructor.
      */
@@ -91,7 +107,8 @@ public class SampCommunicator
         ClientProfile profile = server.getSampProfile();
         hubConnector = new MessageTrackerHubConnector( profile );
         SpectrumLoadHandler loadHandler = new SpectrumLoadHandler();
-        initConnector( new MessageHandler[] { loadHandler, } );
+    // TableLoadHandler tableHandler = new TableLoadHandler();
+        initConnector( new MessageHandler[] { loadHandler } );
     }
 
     /**
@@ -206,6 +223,29 @@ public class SampCommunicator
     {
         return new SpectrumSendActionManager( specList, hubConnector );
     }
+    
+    public EventEnabledTransmitter createBinFITSTableTransmitter( JList specList )
+    {
+        return new BinFITSTableSendActionManager( specList, hubConnector );
+    }
+    
+    public EventEnabledTransmitter createBinFITSTableTransmitter( SSAQueryBrowser ssaQueryBrowser )
+    {
+        return new BinFITSTableSendActionManager( ssaQueryBrowser, hubConnector );
+    }
+    
+    public EventEnabledTransmitter createVOTableTransmitter( JList specList )
+    {
+        return new VOTableSendActionManager( specList, hubConnector );
+    }
+    
+    public EventEnabledTransmitter createVOTableTransmitter( SSAQueryBrowser ssaQueryBrowser )
+    {
+        return new VOTableSendActionManager( ssaQueryBrowser, hubConnector );
+    }
+
+    
+ 
 
     /**
      * MessageHandler implementation for dealing with spectrum load MTypes.
@@ -219,9 +259,12 @@ public class SampCommunicator
         SpectrumLoadHandler()
         {
         	subs = new Subscriptions();
+        	subs.addMType( "table.load.votable" );
             subs.addMType( "spectrum.load.ssa-generic" );
             subs.addMType( "table.load.fits" );
-            subs.addMType( "table.load.votable" );
+            subs.addMType( "coord.pointAt.sky");
+            
+           // subs.addMType( "table.load.votable" );
             propsMap = Collections.synchronizedMap( new IdentityHashMap() );
         }
 
@@ -235,28 +278,79 @@ public class SampCommunicator
          * required.
          */
         public void receiveNotification( HubConnection connection,
-                                         String senderId, Message message )
+        		String senderId, Message message )
         {
-        	SpectrumIO.Props props = createProps( message );
-            SpectrumIO.getInstance().setWatcher( this );
-            props.setType(7); //set type == guess
-            loadSpectrum( props );
+        	  		
+        	String mtype = message.getMType();
+        	
+           	if (mtype.equalsIgnoreCase("coord.pointat.sky")) {
+        		logger.info("got coords "+message.toString());        	
+        		browser.addSampCoords(message.getParams());
+        		return;
+        	}
+           	String location = (String) message.getRequiredParam( "url" );
+        	if (mtype.equalsIgnoreCase("table.load.votable") && ! browser.getPreference("handleVOTableAsSpectra", false)) {        		
+        		browser.addSampResults(location, (String) message.getParam( "name" ));
+        	} else {        		
+        		SpectrumIO.Props props = createProps( message );
+        		SpectrumIO.getInstance().setWatcher( this );
+        		props.setType(7); //set type == guess
+        		loadSpectrum( props );
+        	}
+
         }
 
-        /**
+
+		/**
          * Invoked by SAMP to request SPLAT spectrum load, with an
          * asynchronous response required.
          */
         public void receiveCall( HubConnection connection, String senderId,
-                                 String msgId, Message message )
+        		String msgId, Message message )
         {
-        	SpectrumIO.Props props = createProps( message );
-            propsMap.put( props, new MsgInfo( connection, msgId ) );
-            SpectrumIO.getInstance().setWatcher( this );
-            loadSpectrum( props );
+        	String mtype = message.getMType();
+        	MsgInfo msgInfo = new MsgInfo( connection, msgId );
+        	
+        	if (mtype.equalsIgnoreCase("coord.pointat.sky")) {
+        		//logger.info("got coords "+message.toString());
+        		browser.addSampCoords(message.getParams());
+        		replyAck( msgInfo);
+        		return;
+        	}
+        	
+        	String location = (String) message.getRequiredParam( "url" );
+        	
+        	if (mtype.equalsIgnoreCase("table.load.votable") && ! browser.getPreference("SplatBrowser_handleVOTableAsSpectra", false)) {        		
+        		browser.addSampResults(location, (String) message.getParam( "name" ));
+        		replyAck( msgInfo);
+        	} else { 
+        		SpectrumIO.Props props = createProps( message );
+            	propsMap.put( props, msgInfo );
+        		SpectrumIO.getInstance().setWatcher( this );
+        		loadSpectrum( props );
+        	}
+
         }
 
-        /**
+        
+		/**
+         * Just reply to the Samp HUB to acknowledge that the message is received.
+         */
+        public void replyAck(MsgInfo msginfo)
+        {
+            if ( msginfo != null ) {
+                Response response =
+                    Response.createSuccessResponse( new HashMap() );
+                msginfo.reply( response );
+            }
+            else {
+                logger.info( "Orphaned SAMP success?" );
+            }
+            
+        }
+
+        
+		/**
          * Invoked by SpectrumIO when a load has completed with success.
          */
         public void loadSucceeded( SpectrumIO.Props props )
@@ -340,6 +434,91 @@ public class SampCommunicator
             SwingUtilities.invokeLater( specAdder );
         }
     }
+    
+	private boolean isResultsTable(String location) {
+		
+		URL source;
+		URLConnection con;
+		InputSource inSrc;
+		boolean isSpectrum=browser.getPreference("handleVOTableAsSpectra", false);
+		
+		
+		try {
+			source = new URL(location);
+			con = source.openConnection();
+
+			//  Handle redirects
+			if ( con instanceof HttpURLConnection ) {
+				int code = ((HttpURLConnection)con).getResponseCode();
+
+
+				if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
+						code == HttpURLConnection.HTTP_MOVED_TEMP ||
+						code == HttpURLConnection.HTTP_SEE_OTHER ) {
+					String newloc = con.getHeaderField( "Location" );
+
+					source = new URL(newloc);
+					con = source.openConnection();
+				}
+
+			}
+
+			con.setConnectTimeout(10 * 1000); // 10 seconds
+			con.setReadTimeout(30*1000);
+			con.connect();
+			
+			inSrc = new InputSource( con.getInputStream() );
+			
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			return false; // failed
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			return false;
+		}
+       
+             
+        // inSrc.setSystemId( ssaQuery.getBaseURL() );
+        inSrc.setSystemId( source.toString());
+        
+        StarTable starTable = null;
+        VOElementFactory vofact = new VOElementFactory();
+        VOElement voe;
+		try {
+			voe = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
+			 starTable = DalResourceXMLFilter.getResourceTable( voe );
+		} catch (IOException e) {
+			return false;
+		}
+        
+      
+      
+        //  Check parameter QUERY_STATUS, this should be set to OK
+        // 
+        String queryOK = null;
+
+        // TO DO 
+        // parse further to recognise if result is ssap or obscore result
+        //
+        // String queryDescription = null;
+        try {
+            queryOK = starTable
+                    .getParameterByName( "QUERY_STATUS" )
+                    .getValueAsString( 100 );
+            //queryDescription = starTable
+            //        .getParameterByName( "QUERY_STATUS" )
+            //        .getInfo().getDescription();
+        }
+        catch (NullPointerException ne) {
+            // Probably QUERY_STATUS does not exist -> not a results table
+            return false;
+        }
+        if ( queryOK != null && (! "OK".equalsIgnoreCase( queryOK ) && ! "OVERFLOW".equalsIgnoreCase( queryOK ) ) ) {
+           return false;
+        }
+        
+        return true; // it's a results table
+	}
 
     /**
      * Convert a spectrum specification (a URL and Map of SSAP metadata) into
@@ -370,6 +549,7 @@ public class SampCommunicator
                 if ( key.equals( "vox:spectrum_format" ) ||
                      utypeMatches( key, "access.format" ) ) {
                     props.setType( specDataFactory.mimeToSPLATType( value ) );
+                    //props.setObjectType(SpecDataFactory.mimeToObjectType(value));
                 }
                 else if ( key.equals( "vox:image_title" ) ||
                           utypeMatches( key, "target.name" ) ) {
@@ -546,4 +726,10 @@ public class SampCommunicator
                       hubConnector.isConnected() ? onIcon : offIcon );
         }
     }
+
+	
+	public void disconnect() {
+		hubConnector.setActive(false);
+		
+	}
 }

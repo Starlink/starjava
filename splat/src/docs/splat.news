@@ -1,15 +1,68 @@
 1 Starlink SPLAT news.
 
-   A bug extracting the lines from 2D input data has been fixed. Previously
+   3.15
+   ========
+   - A bug extracting the lines from 2D input data has been fixed. Previously
    this was completely broken and only the first line was extracted and
    repeated for each other line.
+   - support for SDSS spectra
+   - SAMP - now it's also possible to send coordinates to SPLAT SSAP or ObsCore browsers
+   - SAMP - option to receive result tables
+   - SAMP - option to overwrite all SAMP spectra in one plot
+   - option to collapse/extract 2/3D Spectra coming from SSAP or ObsCore 
+   - improved Datalink and timeseries processing
+   - added splat icon to plots, iwhen clicked brings main window to front
+   - several bugfixes
+
+   3.14-1
+   ========
+   - corrections on Datalink processing
+   - several other bugfixes
+
+   3.14
+   ========
+   - improved Datalink processing
+   - DataLink support also in Obscore
+   - VAMDC interface now works also for molecules
+   - improved timeseries detection and visualization
+   - sending/receiving query results tables via SAMP
+   - gives feedback to user in case of invalid values for log axes
+   - bugfixes
+
+   3.13
+   ====
+   - spectral lines query support from slap and vamdc services
+   - several fixes/improvements
+
+   3.12
+   ====
+   -  initial timeseries support: detection and handling of timeseries
+   -  several corrections
+
+   3.11-6
+   ======
+   - no more need for builtin server list. If no previously saved list found, ask user to query the registry. (ssap,obscore)
+   - ssap: bug corrections in metadata handling
+   - ssap: now keeping datalink parameters in memory after changing tabs
+   - ssap: better differentiation between theoretical and observation services input parameters
+   - improved/corrected download of several spectra (buttons behaviour, error messages)
 
 
+
+   3.11-5
+   ======
+   - changes in user interface structure (SSAP, Obscore)
+   - correction of Obscore simple search interface
+   - added data product type option to obscore simple search (allow timeseries or spectra)
+    
    3.11-4
    ======
 
    Fix a problem receiving local files from SAMP communicators.
-
+   - improvement on handling remote files (detecting file type, compression)
+   - Timeseries initial support
+   - sending spectra as table via SAMP
+   - Bug fix: sending SAMP results tableImprovements in the ObsCore interface
 
    3.11-3
    ======

@@ -70,6 +70,7 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
      */
     public DalResourceXMLFilter( XMLReader parent, Namespacing namespacing ) {
         super( parent );
+        
         namespacing_ = namespacing;
         path_ = new StringBuffer();
     }
@@ -92,11 +93,11 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
         path_.append( '/' ).append( voTagName );
 
         if ( "RESOURCE".equals( voTagName ) &&
-             "results".equals( atts.getValue( "type" ) ) ) {
+             "results".equalsIgnoreCase( atts.getValue( "type" ) ) ) {
             resultsPath_ = path_.toString();
         } else 
  
-        if ( "RESOURCE".equals( voTagName ) && "service".equals( atts.getValue( "type" ) ) ) {
+        if ( "RESOURCE".equals( voTagName ) && "service".equalsIgnoreCase( atts.getValue( "type" ) ) ) {
             servicePath_ = path_.toString();
         } 
         
@@ -200,19 +201,16 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
 
 
     /**
-     * Utility method which can return the single results table from a
-     * DAL-type response.  This is the single table within the RESOURCE
-     * element containing DataLink information.
-     * The QUERY_STATUS INFO element is checked; in case of ERROR, 
-     * an exception is thrown.
+     * Utility method which can return a list of datalink service elements read from a query results table 
+     * from a DAL-type response.  
      *
-     * @param   vofact  factory which can generate VOTable DOMs
-     * @param   inSrc   source of the SAX stream
-     * @return  result table, never null
+     * @param   VOElement voel VO table element 
+     * @param   boolean parse also the response table (the votable is a datalink response containing  a datalink table)
+     * @return  datalink parameters
      * @throws  IOException  in case of error, including an ERROR-valued
      *          QUERY_STATUS in the response, or no suitable table found
      */
-    public static DataLinkParams getDalGetServiceElement( VOElement voEl )
+    public static DataLinkServices getDalGetServiceElement( VOElement voEl, boolean dataLinkResponse )
             throws IOException {
 
        
@@ -228,16 +226,38 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
             return null;    // don't complain, as the presence of datalink services is not mandatory
         }
         
-        DataLinkParams dlParams = new DataLinkParams();
-        dlParams.setServiceElement( serviceEl);
+        DataLinkServices dlParams = new DataLinkServices(serviceEl);
         
-        for (int i=0; i< serviceEl.size(); i++) {
-            VOElement voel = serviceEl.get(i);
-           // VOElement groupEl = locateElement( serviceEl.get(i), "GROUP", "name", "inputParams" );
-            dlParams.addService(voel);
-        }
+      //  if (dataLinkResponse) {
+      //  	dlParams.addResponse(getDalResultTable( voEl ));
+        	
+       // }
+ 
         return dlParams;
     }
+    
+   
+  
+    
+    public static DataLinkServices getDalGetServiceElement( VOElement voEl )
+            throws IOException {
+    	return getDalGetServiceElement(voEl, false );
+    }
+
+    public static StarTable getResourceTable( VOElement voEl )
+            throws IOException {
+    	
+    	
+    	 VOElement[] resources = voEl.getChildrenByName( "RESOURCE" );
+         for (VOElement ve : resources) {
+        	 String at1 = ve.getAttribute("type");
+        	 if (! at1.equalsIgnoreCase("meta"))
+        		 return getStarTable( ve ) ; //get fist resource that is not "meta"
+        		 
+         }
+         throw  new IOException( "No table found"); 
+    	
+    }  	
     
     /**
      * Utility method which can return the single results table from a
@@ -296,21 +316,29 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
             }
         }
 
-        /* Locate result TABLE element. */
-        NodeList tableNodes = resultEl.getElementsByVOTagName( "TABLE" );
-        int nTable = tableNodes.getLength();
-        if ( nTable == 0 ) {
-            throw new IOException( "No table found"
-                                 + " in <RESOURCE type='results'>" );
-        }
-        if ( nTable > 1 ) {
-            logger_.warning( "Found " + nTable + " tables"
-                           + " in <RESOURCE type='results'>"
-                           + " - just returning first" );
-        }
+        return getStarTable( resultEl ) ; 
+      
+       
+    }
+    
+    /**
+     *  returns table element as vostartable
+     * @throws IOException 
+     */
+    static VOStarTable getStarTable( VOElement voEl ) throws IOException {
+    	/* Locate result TABLE element. */
+    	 NodeList tableNodes = voEl.getElementsByVOTagName( "TABLE" );
+    	 int nTable = tableNodes.getLength();
+         if ( nTable == 0 ) {
+             throw new IOException( "No table found");
+         }
+         if ( nTable > 1 ) {
+             logger_.warning( "Found " + nTable + " tables"
+                            + " - just returning first" );
+         }
 
-        /* Return it as a StarTable. */
-        return new VOStarTable( (TableElement) tableNodes.item( 0 ) );
+         /* Return it as a StarTable. */
+         return new VOStarTable( (TableElement) tableNodes.item( 0 ) );
     }
 
     /**
@@ -400,4 +428,6 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
         }
         else return null;
     }
+    
+   
 }

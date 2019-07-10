@@ -67,12 +67,16 @@ public class TableColumnChooser
         addCoordNamePattern( "redshift.*" );
         addCoordNamePattern( "pos.*" );
         addCoordNamePattern( "x*." );
+        addCoordNamePattern( "loglam" ); // SDSS spectra
+        addCoordNamePattern( "linewave"); // SDSS Lines
         addCoordNamePattern( "time*." );
+        addCoordNamePattern( "jd" );
+        addCoordNamePattern( ".*jd" );
 
         coordUtypePatterns = new ArrayList();
         addCoordUtypePattern( ".*spectralaxis.*" );       // SSAP
         addCoordUtypePattern( ".*timeaxis.*" );       // LightCurves
-        addCoordUtypePattern( ".*line\\.wavelength" );     // SLAP
+        addCoordUtypePattern( ".*line.wavelength*" );     // SLAP
 
         dataNamePatterns = new ArrayList();
         addDataNamePattern( "flux.*" );
@@ -97,9 +101,11 @@ public class TableColumnChooser
         addLabelNamePattern( "identifiers.*" );
         addLabelNamePattern( "label.*" );
         addLabelNamePattern( "name.*" );
+        addLabelNamePattern( "linename" ); // SDSS Lines
+       
 
         labelUtypePatterns = new ArrayList();
-        addLabelUtypePattern( "line.title" );             // SLAP
+        addLabelUtypePattern( ".*line\\.title" );             // SLAP
    }
 
     /**

@@ -60,6 +60,13 @@ public class SplatRegistryQuery implements RegistryQuery {
     
     private final URL regUrl_;
     private String adql_=null;
+    
+    // The possible kinds of query
+    
+    public static final int SSAP = 0;
+    public static final int OBSCORE = 1;
+    public static final int SLAP = 2;
+    
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -125,16 +132,17 @@ public class SplatRegistryQuery implements RegistryQuery {
      * @param   adqlWhere  text to be ANDed with existing ADQL WHERE clause,
      *                     or null for no further restriction
      */
-    public SplatRegistryQuery( String regurl, String protocol) {
+    public SplatRegistryQuery( String regurl, int protocol) {
        
        regUrl_ = toUrl( regurl );
        
-       if (protocol.equalsIgnoreCase("ObsCore"))
+       if (protocol == OBSCORE)
                adql_ = getObsCoreAdql();
-       else 
+       else  if (protocol == SSAP)
                adql_ = getSSAPAdql();
-
-  }
+       else if (protocol == SLAP)
+               adql_ = getSLAPAdql();
+    }
     
     private String getSSAPAdql() {
 
@@ -156,6 +164,26 @@ public class SplatRegistryQuery implements RegistryQuery {
                 "WHERE standard_id='ivo://ivoa.net/std/ssa' AND intf_type='vs:paramhttp' " ;
     }
 
+    private String getSLAPAdql() {
+
+        return "SELECT short_name, res_title,  res_description, ivoid, access_url, reference_url, "+
+                "waveband, content_type, baseroles, rolenames,  emails, cappaths, capvals, " +
+                "standard_id, std_version, res_subjects " +
+                "FROM rr.resource AS res NATURAL JOIN rr.interface NATURAL JOIN rr.capability " +
+                "NATURAL LEFT OUTER JOIN   (SELECT ivoid, " +
+                "ivo_string_agg(detail_xpath, '#') AS cappaths, "+
+                "ivo_string_agg(detail_value, '#') AS capvals "+ 
+                "FROM rr.res_detail GROUP BY ivoid ) as qq " +
+                "NATURAL LEFT OUTER JOIN (SELECT ivoid,  ivo_string_agg(res_subject, ', ') AS res_subjects " +
+                "FROM rr.res_subject GROUP BY ivoid) AS sbj " +
+                "NATURAL LEFT OUTER JOIN (SELECT  ivoid, " +
+                "ivo_string_agg(base_role, '#') as baseroles, "+
+                "ivo_string_agg(role_name, '#') as rolenames, "+
+                "ivo_string_agg(email, '#') as emails "+
+                "FROM rr.res_role GROUP BY ivoid) as q "+
+                "WHERE standard_id='ivo://ivoa.net/std/slap'" ;
+    }
+
     private String getObsCoreAdql() {
 
         return "SELECT short_name, res_title,  res_description, ivoid, access_url, reference_url, "+
@@ -174,10 +202,8 @@ public class SplatRegistryQuery implements RegistryQuery {
                 "ivo_string_agg(role_name, '#') as rolenames, "+
                 "ivo_string_agg(email, '#') as emails "+
                 "FROM rr.res_role GROUP BY ivoid) as q "+
-                "WHERE standard_id='ivo://ivoa.net/std/tap' and detail_xpath='/capability/dataModel/@ivo-id' "+
-                "AND (1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore-1.0') OR "+
-                "1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore/v1.0'))";
-
+                "WHERE standard_id='ivo://ivoa.net/std/tap' AND detail_xpath='/capability/dataModel/@ivo-id' "+                
+                "AND (1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore%'))";
     }
 
     public DescribedValue[] getMetadata() {
@@ -311,11 +337,11 @@ public class SplatRegistryQuery implements RegistryQuery {
             return resMap_.values().toArray( new SSAPRegResource[ 0 ] );
         }
 
-        public SSAPRegResource[] getSSAPRegResource() {
+       /* public SSAPRegResource[] getSSAPRegResource() {
             Collection col = resMap_.values();
             
             return null;
-        }
+        }*/
 
         public void acceptMetadata( StarTable meta ) {
 
@@ -411,7 +437,7 @@ public class SplatRegistryQuery implements RegistryQuery {
             }
             SSAPRegResource resource = resMap_.get(ivoid);
 
-            if ( intfIndex != null ) {
+           // if ( intfIndex != null ) {
                
                // Integer ix = new Integer( intfIndex.intValue() );
               //  if ( ! resource.capMap.containsKey( ix ) ) {
@@ -426,7 +452,7 @@ public class SplatRegistryQuery implements RegistryQuery {
                     caps[0] = cap;
                     resource.setCapabilities(caps);
                 //}
-            }
+         //   }
         }
 
         /**

@@ -167,8 +167,13 @@ public class UnitUtilities
         if ( "1.0E-17 erg/cm/s/Angstrom".equals( result ) ||
              "10^(-17)ergcm^(-2)s^(-1)Angstrom(-1)".equals( result ) ||
              "10^(-17) erg cm^(-2) s^(-1) Angstrom(-1)".equals( result ) ) {
-            result = "10E-17 erg/cm^2/s/Angstrom";
+            result = "1E-17 erg/cm^2/s/Angstrom";
         }
+        
+        // 
+      //  if ( "A".equals( result ) ) { // A is Ampere, but many spectral services use A instead...
+      //      result = "Angstrom";
+      //  }
 
         return result;
     }
@@ -194,14 +199,20 @@ public class UnitUtilities
 
         //  All forms of angstrom(s). People do like that trailing s.
         if ( lunit.startsWith( "ang" ) ) {
-            return "Angstrom";
+        	if (lunit.endsWith("^")) // 
+        		return "Angstrom^";
+        	else return "Angstrom";
         }
 
         //  Single A. Taken as angstroms, but could be Ampere. Unlikely for
         //  spectra. 10/05/2011: removed to keep in sync with AST.
-        //if ( lunit.equals( "a" ) ) {
-        //    return "Angstrom";
-        //}
+        // 07/2018: MCN added again, as many spectral services use A as Angstroms
+        if ( lunit.equals( "a" ) ) {
+            return "Angstrom";
+        }
+        if ( lunit.equals( "a^" ) ) {
+            return "Angstrom^";
+        }
 
         //  Missing powers or case problems (CM^2).
         if ( lunit.equals( "cm2" ) || lunit.equals( "cm^2" ) ) {

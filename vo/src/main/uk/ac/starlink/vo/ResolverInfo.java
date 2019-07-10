@@ -86,8 +86,12 @@ public class ResolverInfo {
      * @throws  ResolverException  if resolution failed for some reason
      */
     public static ResolverInfo resolve( String name ) throws ResolverException {
+        return resolve(name, SESAME_URL);       
+    }
+    
+    public static ResolverInfo resolve( String name, String resolverUrl ) throws ResolverException {
         try {
-            URL url = new URL( SESAME_URL
+            URL url = new URL( resolverUrl
                     + URLEncoder.encode( name, "UTF-8" ) );
             logger_.info( url.toString() );
             Element el = new SourceReader()

@@ -15,12 +15,14 @@
  */
 package uk.ac.starlink.splat.data;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PushbackInputStream;
 import java.net.FileNameMap;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -36,19 +38,23 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 import javax.activation.MimeType;
 
-
-
+import org.xml.sax.SAXException;
 
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
-
+import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.TimeUtilities;
+import uk.ac.starlink.splat.vo.DalResourceXMLFilter;
+
+import uk.ac.starlink.splat.vo.DataLinkResponse;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
 
 
@@ -64,6 +70,7 @@ import uk.ac.starlink.splat.util.ConstrainedList.ConstraintType;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
@@ -250,20 +257,21 @@ public class SpecDataFactory
      *  {@link #get(String)}.
      *
      *  @param specspec the specification of the spectrum to be opened.
-     *  @param type the type of the spectrum (one of types defined in
+     *  @param type the type of the data (one of types defined in
      *              this class).
+     *  @param objectType the type of the object (spectrum or timeseries).
      *  @return the list of SpecData objects created from the given
      *          specification.
      *  @exception SplatException thrown if specification does not
      *             specify a spectrum that can be accessed.
      */
-    public List<SpecData> get( String specspec, int type )
-                throws SplatException {
-        List<SpecData> spectra = getAll(specspec, type);
-
-        if (spectra != null && !spectra.isEmpty())
-            return spectra;
-        return null;
+    public List<SpecData> get( String specspec, int type, ObjectTypeEnum objectType ) 
+    		throws SplatException {
+    	List<SpecData> spectra = getAll(specspec, type, objectType);
+    	
+    	if (spectra != null && !spectra.isEmpty())
+    	    return spectra;
+    	return null;
     }
 
     /**
@@ -292,6 +300,36 @@ public class SpecDataFactory
     }
 
     /**
+     *  Attempt to open a given specification as a known type, setting 
+     *  the found objects to have a given type (spectrum/timeseries). 
+     *
+     *  @param specspec the specification of the spectrum to be opened.
+     *  @param type the type of the data specification (one of types defined in
+     *              this class).
+     *  @param objectType the type of the object (spectrum or timeseries).
+     *  @return the List of SpecData objects created from the given
+     *          specification.
+     *  @exception SplatException thrown if specification does not
+     *             specify a spectrum that can be accessed.
+     */
+
+    public List<SpecData> getAll( String specspec, int type, ObjectTypeEnum objectType )
+        throws SplatException {
+    	List<SpecData> specs = getAll(specspec, type);
+    	
+    	if (objectType == ObjectTypeEnum.UNKNOWN) // use the detected types
+    		return specs;
+    	
+    	for (SpecData spec : specs) {
+    		if (spec.getObjectType() == ObjectTypeEnum.UNKNOWN) {
+    			spec.setObjectType(ObjectTypeEnum.SPECTRUM); // default is spectrum
+    		} else 
+    			spec.setObjectType(objectType); // set to given object type
+    	}
+    	return specs;
+    }
+    
+    /**
      *  Attempt to open a given specification as a known type. If this
      *  fails then a SplatException will be thrown. Note that if the
      *  type is DEFAULT then this is equivalent to calling
@@ -305,8 +343,7 @@ public class SpecDataFactory
      *  @exception SplatException thrown if specification does not
      *             specify a spectrum that can be accessed.
      */
-
-    public List<SpecData> getAll( String specspec, int type )
+    public List<SpecData> getAll( String specspec, int type)
         throws SplatException
     {
         List<SpecData> specDataList = new ConstrainedList<SpecData>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
@@ -324,9 +361,33 @@ public class SpecDataFactory
         //  downloaded by SPLAT.
         NameParser namer = new NameParser( specspec );
         boolean isRemote = namer.isRemote();
+       
         if ( isRemote ) {
-            if ( ( type != TABLE && type != HDX ) || ( type == GUESS ) ) {
-                PathParser pathParser = remoteToLocalFile( namer.getURL(), type );
+             int remotetype = checkMimeType(namer.getURL());
+             if (remotetype == DATALINK) { // if it's a datalink file, it has to be parsed and its information extracted
+                 try { // try opening the link with #this semantics.
+                     DataLinkResponse dlp = new DataLinkResponse(specspec);
+                     String thisLink= dlp.getThisLink();
+                    
+                    	 if ( dlp.getThisContentType() == null || dlp.getThisContentType().isEmpty()) //if not, use contenttype
+                    		 type = GUESS;
+                    	 else 
+                    		 type = mimeToSPLATType(dlp.getThisContentType()); 
+                    	 // got the datalink information, do it all again with the new url
+                    	 return getAll(thisLink, type);
+                     	
+                 } catch (IOException e) {
+                     throw new SplatException(e);
+                 } catch (SAXException e) {
+                	 throw new SplatException(e);
+		 }
+             }
+                 
+           //  if ( remotetype != GUESS && remotetype != NOT_SUPPORTED)
+           //      type = remotetype;
+              
+             if ( ( /*type != TABLE &&*/ type != HDX ) || ( type == GUESS ) ) {               
+                PathParser pathParser = remoteToLocalFile( namer.getURL(), type ); 
                 specspec = pathParser.ndfname();
             }
         }
@@ -392,6 +453,7 @@ public class SpecDataFactory
 
             for (SpecDataImpl impl : impls) {
                 specDataList.add(makeSpecDataFromImpl( impl, isRemote, namer.getURL() ));
+            	specDataList.add(makeSpecDataFromImpl( impl, isRemote, namer.getURL() ));
             }
 
             return specDataList;
@@ -402,6 +464,26 @@ public class SpecDataFactory
         specDataList.addAll(makeGuessedSpecDataList(specspec, namer.getURL()));
         return specDataList;
       }
+
+    private int checkMimeType(URL url) throws SplatException {
+        String conttype = "";
+
+        try {
+
+            URLConnection connection = openConnection(url);
+
+            conttype=connection.getContentType();
+            if (conttype==null) { // avoids NPE
+                 conttype="";                        
+            } 
+           
+        } catch (Exception e) {
+            throw new SplatException(e);
+        }
+        if (conttype.isEmpty())
+            return GUESS;
+        return mimeToSPLATType(conttype);
+    }
 
     /**
      *  Check the format of the incoming specification and create an
@@ -502,10 +584,8 @@ public class SpecDataFactory
      *  @param specspec the specification of the spectrum to be
      *                  opened (i.e. file.fits, file.sdf,
      *                  file.fits[2], file.more.ext_1 etc.).
-     *
-     * @param specspec the specification of the spectrum to be
-     *                  opened (i.e. file.fits, file.sdf,
-     *                  file.fits[2], file.more.ext_1 etc.).
+     *                  
+     * @param format the format of the spectrum
      *
      *  @return the SpecData object created from the given
      *          specification.
@@ -534,8 +614,8 @@ public class SpecDataFactory
      *  @param specspec the specification of the spectrum to be
      *                  opened (i.e. file.fits, file.sdf,
      *                  file.fits[2], file.more.ext_1 etc.).
-     *
-     * @param specspec the specification of the spectrum to be
+     *                  
+     * @param format the specification of the spectrum to be
      *                  opened (i.e. file.fits, file.sdf,
      *                  file.fits[2], file.more.ext_1 etc.).
      *
@@ -641,6 +721,7 @@ public class SpecDataFactory
     {
         List<SpecDataImpl> impls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
         //SpecDataImpl impl = null;
+    	
         if ( format.equals( "NDF" ) ) {
             //impl = makeNDFSpecDataImpl( name );
                 impls.add(makeNDFSpecDataImpl( name ));
@@ -716,14 +797,20 @@ public class SpecDataFactory
     protected List<SpecDataImpl> makeFITSSpecDataImplList( String specspec )
         throws SplatException
     {
-        List<SpecDataImpl> specDataImpls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
-        boolean singleDish = false;
-        SpecDataImpl implGlobal = null;
-        boolean success=true;
-
+    	List<SpecDataImpl> specDataImpls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
+    	boolean singleDish = false;
+    	SpecDataImpl implGlobal = null;
+    	boolean success=true;
+    	boolean sdssfits=false;
+    	
+    	
         implGlobal = new FITSSpecDataImpl( specspec );
-    //    if (is_sdfits(implGlobal))
-
+        if (((FITSSpecDataImpl) implGlobal).isSDSSFITSHeader()) {
+        	// get the spectrum
+        	SDSSFITSSpecDataHandler  sdsshandler = new SDSSFITSSpecDataHandler((FITSSpecDataImpl) implGlobal, specspec);        	
+        	return sdsshandler.getImpls();        	
+        }
+        
         for (int i = 0; i < ((FITSSpecDataImpl)implGlobal).hdurefs.length; i++) {
             singleDish = false;
                 SpecDataImpl impl = new FITSSpecDataImpl( specspec, i );
@@ -759,7 +846,8 @@ public class SpecDataFactory
                                 specDataImpls.add(impl);
                             }
                         }// if i==1
-                    } else {
+                    } else { 
+                        Header header = ((FITSSpecDataImpl)impl).getFitsHeaders();
                         impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString(),
                                 ((FITSSpecDataImpl)impl).getFitsHeaders());
                     } // not SDFITS
@@ -769,18 +857,21 @@ public class SpecDataFactory
                     se.setSpec(specspec);
                     logger.info(se.getMessage());
                     success=false;
-                    //throw se;
+                    throw se;
                 }
                 catch (Exception e) {
                     if (e.getMessage().contains("HDU "+ i +"TABLE is empty")) {
                         impl=null;
                         logger.info( e.getMessage() );
                         // throw new SplatException (e);
+                        e.printStackTrace();
                     }
                     else logger.info( "Failed to open FITS table "+e.getMessage() );
                     //throw new SplatException( "Failed to open FITS table", e );
                     success=false;
                 }
+            } else {
+            	logger.info(String.format("Ignoring HDU #%d in '%s' (no spectra/data array size 0)", i, impl.getFullName()));
             }
 
                 /* add only if data array size is not 0
@@ -820,40 +911,100 @@ public class SpecDataFactory
         throws SplatException
     {
         SpecDataImpl impl = null;
+      
 
         //  Check if this is a VOTable first (signature easier to check).
+        StarTable starTable = null;
+        DataSource datsrc = null;
         Exception tableException = null;
         try {
-            DataSource datsrc = null;
-            if ( isRemote ) {
-                datsrc = new URLDataSource( url );
-            }
-            else {
-                datsrc = new FileDataSource( specspec );
-            }
-            StarTable starTable =
-                new VOTableBuilder().makeStarTable( datsrc, true,
-                                                    storagePolicy );
-            if ( starTable.getRowCount() == 0 )
-                throw new Exception( "The TABLE is empty");
-            if ( starTable != null ) {
-                return new TableSpecDataImpl( starTable );
-            }
+        	if ( isRemote ) {
+        		datsrc = new URLDataSource( url );               
+        	}
+        	else {
+        		datsrc = new FileDataSource( specspec );             
+        	}
 
+        	starTable =
+        			new VOTableBuilder().makeStarTable( datsrc, true,
+        					storagePolicy );
+
+
+        	if ( starTable.getRowCount() == 0 )
+        		throw new SplatException( "The TABLE is empty");
         }
-        catch (Exception e) {
-            tableException = e;
-            if (e.getMessage().contains("No TABLE element found")) {
-                impl=null;
-                logger.info( "VOTABLE returned no table" );
-                throw new SplatException (tableException);
-            }
-            if (e.getMessage().contains("TABLE is empty")) {
-                impl=null;
-                logger.info( e.getMessage() );
-                throw new SplatException (tableException);
-            }
+        catch (IOException e) {
+        	tableException = e;
+        	if (e.getMessage().contains("No TABLE element found")) {
+        		impl=null;
+        		logger.info( "VOTABLE returned no table" );
+        		throw new SplatException (tableException);
+        	}
+        	if (e.getMessage().contains("TABLE is empty")) {
+        		impl=null;
+        		logger.info( e.getMessage() );
+        		throw new SplatException (tableException);
+        	}
         }
+        if ( starTable != null ) {
+        	//is it a line id table?
+        	if (islineIDTable(starTable))
+        		return new LineIDTableSpecDataImpl( starTable );
+        	else { // is it a time series??
+    			impl = new TableSpecDataImpl(starTable);
+    			// search for TIMESYS
+    			try {
+    				 VOElement root = new VOElementFactory().makeVOElement( specspec ); 
+    				 VOElement[] resource = root.getChildrenByName("RESOURCE");
+    				 for (int i=0;i<resource.length;i++) {
+    					 VOElement timesys = resource[i].getChildByName("TIMESYS");
+    					 if (timesys != null) {
+    						 double time0 = Double.parseDouble(timesys.getAttribute("timeorigin"));
+    						 String timeRefpos = timesys.getAttribute("refposition");
+    						 ((TableSpecDataImpl) impl).setTimeRefpos( timeRefpos );
+    						 ((TableSpecDataImpl) impl).setTime0(time0);
+    						 String timescale = timesys.getAttribute("timescale");
+    						 ((TableSpecDataImpl) impl).setTimeScale(timescale);
+    						 if (timescale != null &&  timeRefpos != null ) 
+    							 ((TableSpecDataImpl) impl).setTimeScale(TimeUtilities.getSupportedTimeScale(timeRefpos, timescale));
+
+    						 if (TimeUtilities.MJD_Origin == time0) { // TODO improve this
+    							 impl.setTimeSystem("MJD");
+    						 } else {
+    							 impl.setTimeSystem("JD");
+    						 }
+    						 //return impl;
+    					 }
+    				 }
+                 
+            	
+    	        }
+    	        catch (Exception e) {
+    	            // throw new SplatException( "Failed to open VOTable"+e.getMessage(), e );
+    	        	logger.info( "couldn't read TIMESYS" );
+    	        }
+
+    	       
+    			
+    			// search for VODML time parameters
+        		try {
+        			VODMLReader vodml = new VODMLReader( datsrc );
+        			String productType = vodml.getDataProductType(); 
+        			String timeSystem = vodml.getTimeFrameKindParameter();                	
+        			
+        			if (productType.equalsIgnoreCase("TIMESERIES")) {
+        				impl.setObjectType(ObjectTypeEnum.TIMESERIES);
+        				if (timeSystem != null && ! timeSystem.isEmpty() )
+        					impl.setTimeSystem(timeSystem);
+        			}
+        		} catch (SplatException e) {
+        			logger.info(e.getMessage());
+        		}
+        		
+        		return impl;
+        	}
+        }
+      
         try {
             if ( isRemote ) {
                 impl = new NDXSpecDataImpl( url );
@@ -871,6 +1022,14 @@ public class SpecDataFactory
         return impl;
     }
 
+    private boolean islineIDTable(StarTable starTable) {
+        String s="";
+        DescribedValue sp = starTable.getParameterByName("SERVICE_PROTOCOL");
+        if (sp != null) 
+             s=sp.getInfo().getDescription().toLowerCase();
+        return (s.contains("slap")) ;
+    }
+
     /**
      * Make a suitable SpecData for a given implementation. If the spectrum is
      * remote and not a line identifier, then a {@link RemoteSpecData} object
@@ -886,6 +1045,11 @@ public class SpecDataFactory
             LocalLineIDManager.getInstance()
                 .addSpectrum( (LineIDSpecData) specData );
         }
+        else if ( impl instanceof LineIDTableSpecDataImpl ) {
+            specData = new LineIDSpecData( (LineIDTableSpecDataImpl) impl );
+            LocalLineIDManager.getInstance()
+                .addSpectrum( (LineIDSpecData) specData );
+        }
         else {
             if ( isRemote ) {
                 specData = new RemoteSpecData( impl, url );
@@ -893,6 +1057,7 @@ public class SpecDataFactory
             else {
                 specData = new SpecData( impl );
             }
+            specData.setObjectType(impl.getObjectType());
         }
         return specData;
     }
@@ -1287,7 +1452,7 @@ public class SpecDataFactory
         }
         else if ( impl instanceof TableSpecDataImpl ) {
             result[0] = TABLE;
-            //result[1] = ????; // What type of TABLE is this?
+            
         }
         return result;
     }
@@ -1303,160 +1468,144 @@ public class SpecDataFactory
             throws SplatException
     {
         PathParser namer = null;
-        boolean compressed = false;
-        MimeType mimetype = null;
         String remotetype = null;
+        URLConnection connection=null;
+        String conttype = "";
+        
+        InputStream is;
 
+        //  Contact the resource.
+       
         try {
+        	connection = openConnection(url);
+        	
+            is =  connection.getInputStream();
+            conttype=connection.getContentType();
+            String contenc = connection.getContentEncoding();
 
-            //  Contact the resource.
+            boolean compressed = (contenc != null && contenc.contains("gzip") || (conttype != null && conttype.contains("gzip")));
+            remotetype = getRemoteType(connection.getHeaderField("Content-disposition"));
+            if (compressed) 
+            	is = new GZIPInputStream(is);
+           // else
+           // 	is = unzipIfNecessary(is); // if service sends gzipped data without declaring it
+        } catch (IOException e) {
+            throw new SplatException( e );
+        }
+       
+        //  And read it into a local file. Use the existing file extension
+        //  if available and we're not guessing the type.
+        namer = new PathParser( url.toString() );
+        String stype = null;
+      
+        int mimetype=mimeToSPLATType(conttype);
+        if ((type == DEFAULT || type == GUESS) && mimetype != GUESS && mimetype != NOT_SUPPORTED)
+           type=mimetype;
+        
+        //  Create a temporary file. Use a file extension based on the
+        //  type, if known.
 
-
-            URLConnection connection = url.openConnection();
-
-            //  Handle switching from HTTP to HTTPS, if a HTTP 30x redirect is
-            //  returned, as Java doesn't do this by default (security issues
-            //  when moving from secure to non-secure).
-            if ( connection instanceof HttpURLConnection ) {
-                int code = ((HttpURLConnection)connection).getResponseCode();
-
-
-                if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
-                     code == HttpURLConnection.HTTP_MOVED_TEMP ||
-                     code == HttpURLConnection.HTTP_SEE_OTHER ) {
-                    String newloc = connection.getHeaderField( "Location" );
-                    URL newurl = new URL( newloc );
-                    connection = newurl.openConnection();
-                }
-                code = ((HttpURLConnection)connection).getResponseCode();
-                if ( code >= 500  ) // 5** codes, server is not available so we can stop right now.
-                {
-                    throw new SplatException( "Server returned " + ((HttpURLConnection)connection).getResponseMessage() + " " +
-                            " for the URL : " + url.toString()    );
-                }
-                String conttype=connection.getContentType();
-                if (conttype!=null) {
-                    mimetype = new MimeType(conttype);
-                }
-
-                compressed = ("gzip".equals(connection.getContentEncoding()) || conttype.contains("gzip"));
-                remotetype = getRemoteType(connection.getHeaderField("Content-disposition"));
+        switch (type) {
+            case FITS: {
+                stype = ".fits";
             }
-
-            // Handle local URLs.
-            if (mimetype == null) {
-                mimetype = new MimeType();
+            break;
+            case HDS: {
+                stype = ".sdf";
             }
-
-            connection.setConnectTimeout(10*1000); // 10 seconds
-            connection.setReadTimeout(30*1000); // 30 seconds read timeout???
-            InputStream is = connection.getInputStream();
-            if (compressed)
-                is = new GZIPInputStream(is);
-            //  And read it into a local file. Use the existing file extension
-            //  if available and we're not guessing the type.
-            namer = new PathParser( url.toString() );
-
-            String stype = null;
-
-            // parse mime type
-            if (mimetype.getSubType().contains("votable") || mimetype.getSubType().contains("xml")) {
-                type = HDX;
-            } else if (mimetype.getSubType().contains("fits") ) {
-                type = FITS;
-            } else if (mimetype.getPrimaryType().contains("text") && mimetype.getSubType().contains("plain") ) {
-                type = TEXT;
+            break;
+            case TEXT: {
+                stype = ".txt";
             }
+            break;
+            case HDX: {
+                stype = ".xml";
+            }
+            break;
+            case TABLE: {
+                stype = ".vot";
+            }
+            break;
+            case GUESS: {
+                stype = ".tmp";
+            }
+            break;
+            default: {
+                if (remotetype != null) 
+                    stype=remotetype; // the type of the remote filename
+                else 
+                    stype = namer.type();
 
-            //  Create a temporary file. Use a file extension based on the
-            //  type, if known.
-
-            switch (type) {
-                case FITS: {
-                    stype = ".fits";
-                }
-                break;
-                case HDS: {
-                    stype = ".sdf";
-                }
-                break;
-                case TEXT: {
-                    stype = ".txt";
-                }
-                break;
-                case HDX: {
-                    stype = ".xml";
-                }
-                break;
-                case TABLE: {
+                if ( stype.equals( "" ) ) {
                     stype = ".tmp";
                 }
-                break;
-                case GUESS: {
-                    stype = ".tmp";
-                }
-                break;
-                default: {
-                    if (remotetype != null)
-                        stype=remotetype; // the type of the remote filename
-                    else
-                        stype = namer.type();
-
-                    if ( stype.equals( "" ) ) {
-                        stype = ".tmp";
-                    }
-                }
             }
+        }
+       
 
-            TemporaryFileDataSource datsrc =
-                new TemporaryFileDataSource( is, url.toString(), "SPLAT",
-                                             stype, null );
+        try {          
+            TemporaryFileDataSource datsrc = new TemporaryFileDataSource( is, url.toString(), "SPLAT", stype, null );
             String tmpFile = datsrc.getFile().getCanonicalPath();
-
             namer.setPath( tmpFile );
-            datsrc.close();
-
+            datsrc.close(); 
             //  Check file. If an error occurred with the request at the
             //  server end this will probably result in the download of an
             //  HTML file, or a file starting with NULL.
             FileInputStream fis = new FileInputStream( tmpFile );
-         /*   BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-             String line1 = null, line2=null;
-             line1 = br.readLine();
-             line2 = br.readLine();
-             br.close();*/
-            // char[] header = line1.toCharArray();
+
+            // try to get file format from its first lines 
+            // if extension is not in pathname
+
             byte[] header = new byte[4];
             fis.read( header );
             fis.close();
 
             //  Test if equal to '<!DO' of "<!DOCTYPE" or '<HTM'
             if ( ( header[0] == '<' && header[1] == '!' &&
-                   header[2] == 'D' && header[3] == 'O' ) ||
-                 header[0] == '<' && header[1] == 'H' &&
-                 header[2] == 'T' && header[3] == 'M' ) {
+                    header[2] == 'D' && header[3] == 'O' ) ||
+                    header[0] == '<' && header[1] == 'H' &&
+                    header[2] == 'T' && header[3] == 'M' ) {
                 //  Must be HTML.
                 throw new SplatException( "Cannot use the file returned" +
-                                          " by the URL : " + url.toString() +
-                                          " it contains an HTML document" );
+                        " by the URL : " + url.toString() +
+                        " it contains an HTML document" );
             }
             else if ( header[0] == 0 && header[1] == 0 ) {
                 throw new SplatException( "Cannot use the file returned" +
-                                          " by the URL : " + url.toString() +
-                                          " as it is empty" );
+                        " by the URL : " + url.toString() +
+                        " as it is empty" );
             }
 
-            // try to get file format from its first lines
-            // if extension is not in pathname
-
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new SplatException( e );
         }
+
         return namer;
     }
 
-
+    private InputStream unzipIfNecessary(InputStream is) throws IOException {
+        BufferedInputStream bis = new BufferedInputStream( is ); 
+        bis.mark(0);
+        byte header[] = new byte[2];
+       
+        try {
+        	header[0]=(byte) bis.read();
+        	header[1]=(byte) bis.read();
+        	byte magic1= (byte) GZIPInputStream.GZIP_MAGIC;
+        	byte magic2 = (byte) (GZIPInputStream.GZIP_MAGIC >>> 8);
+        	bis.reset();
+        	
+            if ((header[0] ==  magic1)  && (header[1] == magic2)) {
+            	 return new GZIPInputStream( bis );
+            }           
+            bis.mark(0);
+        } catch (IOException e) {
+        	return is;
+        }
+      
+        return bis;
+   }
+    
     /*
      * getRemoteType
      * gets remote file type from remote filename contained in HTTP connection header string
@@ -1554,9 +1703,13 @@ public class SpecDataFactory
             //  Purge any spectra with BAD limits.
             if ( purge && results != null ) {
                 results = purgeBadLimits( results );
+                if (results.length == 0)
+                	results=null;
             }
         }
+       
         return results;
+       
     }
 
     /**
@@ -1808,38 +1961,88 @@ public class SpecDataFactory
         //  Access the VOTable.
         VOElement root = null;
         try {
-            root = new VOElementFactory().makeVOElement( specspec );
+            root = new VOElementFactory().makeVOElement( specspec );            
         }
         catch (Exception e) {
             throw new SplatException( "Failed to open VOTable"+e.getMessage(), e );
             //throw new SplatException( "Failed to open SED VOTable"+e.getMessage(), e );
         }
 
-        //  First element should be a RESOURCE.
         VOElement[] resource = root.getChildren();
+    
         String tagName = null;
         String utype = null;
         SpecData specData = null;
         VOStarTable table = null;
+        String productType = "";
+        String timeRef = "";
+        String timeSystem = "";
+        String timeRefpos = "";
+    	double time0 = 0;
+    	String timeField = "";
+    	String timeScale = "";
+    	
         for ( int i = 0; i < resource.length; i++ ) {
             tagName = resource[i].getTagName();
-            if ( "RESOURCE".equals( tagName ) ) {
+            if ( "VODML".equals( tagName ) ) {
+                VODMLReader  dml = new VODMLReader(resource[i]);
+                productType = dml.getDataProductType(); 
+                timeSystem = dml.getTimeFrameKindParameter();
+            }
+            else if ( "RESOURCE".equals( tagName ) ) {
+              //  String resourceType = resource[i].getAttribute("type");
+             //   if (resourceType.equalsIgnoreCase("results"))
+              //      throw new SplatException("results table");
 
                 //  Look for the TABLEs and check if any have utype
                 //  "sed:Segment" these are the spectra.
                 VOElement child[] = resource[i].getChildren();
                 for ( int j = 0; j < child.length; j++ ) {
                     tagName = child[j].getTagName();
-                    if ( "TABLE".equals( tagName ) ) {
-                        utype = child[j].getAttribute( "utype" );
-                        //   if ( "sed:Segment".equals( utype ) ) { // we try this also for multiple spectra in a VOTable which do not have this utype (i.E. echelle spectra)
-
+                    if ("TIMESYS".equals(tagName)) {
+                    	timeRefpos = child[j].getAttribute("refposition");
+                    	time0 = Double.parseDouble(child[j].getAttribute("timeorigin"));
+                    	timeRef = child[j].getAttribute("ID");
+                    	VOElement timeFieldElement = child[j].getReferencedElement(timeRef, "FIELD");
+                    	if (timeFieldElement != null)
+                    		timeField = timeFieldElement.getName();
+                    	timeScale = child[j].getAttribute("timescale");
+                    	if (TimeUtilities.MJD_Origin == time0) { // TODO improve this
+                    		timeSystem="MJD";
+                    	} else {
+                    		timeSystem="JD";
+                    	}
+                    	
+                    	//productType = "TIMESERIES"; //!!!!!!!
+                    }
+                    else if ( "TABLE".equals( tagName ) ) {
+                        utype = child[j].getAttribute( "utype" );  
+                        //child[j].setAttribute("dataproducttype", productType);
                                 try {
                                     table = new VOStarTable( (TableElement) child[j] );
 
                                 if ( table.getRowCount() == 0 )
                                     throw new SplatException( "The table is empty: "+specspec);
-                                specData = new SpecData( new TableSpecDataImpl(table) );
+                                
+                                TableSpecDataImpl impl = new TableSpecDataImpl(table);
+                                
+                                if (productType.equalsIgnoreCase("TIMESERIES")) {
+                                    impl.setObjectType(ObjectTypeEnum.TIMESERIES);                                   
+                                    if (timeField != null && ! timeField.isEmpty() ) 
+                                        impl.setTimeField(timeField);
+                                    if (timeRefpos != null && ! timeRefpos.isEmpty() )
+                                        impl.setTimeRefpos(timeRefpos);                                                                                                  
+                                    if (timeScale != null && ! timeScale.isEmpty() ) {
+                                    	timeScale = TimeUtilities.getSupportedTimeScale(timeRefpos, timeScale);
+                                        impl.setTimeScale(timeScale);
+                                    }
+                                    if (timeSystem != null && ! timeSystem.isEmpty() )
+                                        impl.setTimeSystem(timeSystem);
+                                    impl.setTime0(time0);       
+                                }
+                                specData = new SpecData( impl );
+                                
+                                
                                // specData.setShortName(specData.getShortName() + " " + child[j].getAttribute("name"));
                                 specList.add( specData );
                                 } catch (IOException e) {
@@ -1880,19 +2083,46 @@ public class SpecDataFactory
     }
 
     /**
+     * Converts a mime type to one of recognized ObjectType.
+     * 
+     * FIXME: Hacky way for quick and partial timeseries support
+     * 
+     * @param type
+     * @return
+     */
+    public static ObjectTypeEnum productTypeToObjectType(String type) {
+    	ObjectTypeEnum objectType = ObjectTypeEnum.SPECTRUM;
+    	
+    	if (type != null &&  (type.toLowerCase().trim().startsWith("timeseries") ||
+    			              type.toLowerCase().trim().equals("lightcurve") ||
+    			              type.toLowerCase().trim().equals("light curve"))) {
+    		objectType = ObjectTypeEnum.TIMESERIES;
+    	}
+//    	System.out.println("and146: mimeToObjectType: " + objectType);
+    	return objectType;
+    }
+    
+    /**
      * Convert a of mime types into the equivalent SPLAT type (these are
      * int constants defined in SpecDataFactory). Note we use the full MIME
      * types and the SSAP shorthand versions (fits, votable, xml).
      */
     public static int mimeToSPLATType( String type )
     {
-        int stype = SpecDataFactory.DEFAULT;
+    	
+//        System.out.println("and146: type to detect: " + type);
+    	int stype = SpecDataFactory.DEFAULT;
+    	
+    	if (type == null)
+    		return stype;
+    	
         String simpleType = type.toLowerCase();
 
         //   Note allow for application/fits;xxxx, so use startsWith,
         //   same for full mime types below.
 
         if ( simpleType.startsWith( "application/fits" ) ||
+        	 simpleType.startsWith( "application/x-fits" ) || 
              simpleType.equals( "fits" ) ) {
             //  FITS format, is that image or table?
             stype = SpecDataFactory.FITS;
@@ -1911,20 +2141,19 @@ public class SpecDataFactory
         }
         else if ( simpleType.startsWith( "text/plain" ) ) {
             //  ASCII table of some kind.
-            stype = SpecDataFactory.TABLE;
+            stype = SpecDataFactory.TEXT;
         }
         else if ( simpleType.startsWith( "application/x-votable+xml" ) ||
                   simpleType.equals( "text/xml;x-votable" ) ||
                   simpleType.startsWith( "text/x-votable+xml" ) ||
-                  simpleType.equals( "xml" ) ) {
-
+                  simpleType.equals( "xml" ) ||
+                  simpleType.startsWith("text/xml")) {
+            
             // VOTABLE containing DataLink information
             if (simpleType.contains("content=datalink"))
                 stype = SpecDataFactory.DATALINK;
             else
-            // VOTable spectrum, open as a table. Is really the SSAP native
-            // XML representation so could be a SED? In which case this might be
-            // better as SpecDataFactory.SED, we'll see.
+            // VOTable spectrum, open as a table. 
                stype = SpecDataFactory.TABLE;
                // stype = SpecDataFactory.SED;
         }
@@ -1988,5 +2217,32 @@ public class SpecDataFactory
 
     public void setAuthenticator(SSAPAuthenticator auth) {
         authenticator=auth;
+    }
+    
+    private URLConnection openConnection(URL url) throws SplatException, IOException {
+        
+        URLConnection connection = url.openConnection();
+
+        if ( connection instanceof HttpURLConnection ) {
+            int code = ((HttpURLConnection)connection).getResponseCode();
+            if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
+                    code == HttpURLConnection.HTTP_MOVED_TEMP ||
+                    code == HttpURLConnection.HTTP_SEE_OTHER ) {
+                String newloc = connection.getHeaderField( "Location" );
+                URL newurl = new URL( newloc );
+                connection = newurl.openConnection();
+            }
+
+
+            code = ((HttpURLConnection)connection).getResponseCode();
+            if ( code >= 500  ) // 5** codes, server is not available so we can stop right now.
+            {
+                throw new SplatException( "Server returned " + ((HttpURLConnection)connection).getResponseMessage() + " " + 
+                        " for the URL : " + url.toString()    );
+            }
+        }
+        connection.setConnectTimeout(10*1000); // 10 seconds
+        connection.setReadTimeout(30*1000); // 30 seconds read timeout??? 
+        return connection;
     }
 }

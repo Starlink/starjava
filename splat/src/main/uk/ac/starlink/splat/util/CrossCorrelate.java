@@ -30,6 +30,12 @@ public class CrossCorrelate
      * Correlation result.
      */
     private double[] correlation = null;
+    
+    /**
+     * Autocorrelation result.
+     */
+    private double[] acf = null;
+
 
     /**
      * Position of peak in correlation result.
@@ -60,6 +66,20 @@ public class CrossCorrelate
         // Local peak. XXX use a model to decrease noise sensitivity?
         findPeak();
     }
+    
+    /**
+     * get the autocorrelation function
+     *
+     * @param signal the values to cross-correlate.
+     */
+    public void autocorrelate()
+    {
+       
+        acf = doCalc( refResult, refResult );
+
+        // Local peak. XXX use a model to decrease noise sensitivity?
+        findPeak();
+    }
 
     /**
      * Return the correlation signal.
@@ -67,6 +87,14 @@ public class CrossCorrelate
     public double[] getCorrelation()
     {
         return correlation;
+    }
+    
+    /**
+     * Return the correlation signal.
+     */
+    public double[] getACF()
+    {
+        return acf;
     }
 
     /**

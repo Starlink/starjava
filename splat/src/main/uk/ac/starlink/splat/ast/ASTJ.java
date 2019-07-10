@@ -30,6 +30,7 @@ import uk.ac.starlink.ast.LutMap;
 import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.SpecFluxFrame;
 import uk.ac.starlink.ast.SpecFrame;
+import uk.ac.starlink.ast.TimeFrame;
 import uk.ac.starlink.ast.UnitMap;
 
 /**
@@ -405,7 +406,8 @@ public class ASTJ
 
     /**
      *  Convert the current frameset into a one suitable for displaying a
-     *  spectrum.
+     *  spectrum or timeseries.
+     *  MCN: added support for timeseries 
      *
      *  @param axis  the axis to select as the spectral dimension.
      *  @param start first position in input base frame coordinates (GRID)
@@ -418,14 +420,22 @@ public class ASTJ
      *               distance (rather than coordinate).
      *  @param dofind if true, then search for a SpecFrame using findFrame, if
      *                the spectral axis of the current frame isn't a SpecFrame.
-     *
+     *  @param timeseries if true, allow time frame
      *
      *  @return the new frameset for displaying a spectrum
      *
      *  @throws Exception if the attempt fails you may find out why
      */
+    
     public FrameSet makeSpectral( int axis, int start, int end, String label,
-                                  String units, boolean dist, boolean dofind )
+            String units, boolean dist, boolean dofind )
+         throws AstException
+    {
+        return makeSpectral(  axis,  start,  end, label, units,  dist,  dofind, false );
+    }
+    
+    public FrameSet makeSpectral( int axis, int start, int end, String label,
+                                  String units, boolean dist, boolean dofind, boolean timeseries )
         throws AstException
     {
         if ( astRef == null ) {
@@ -532,8 +542,14 @@ public class ASTJ
 
         // Use selected axis from the current frame as the spectral axis.
         // This may be a SpecFrame, which adds units understanding.
-        Frame f1 = getSpectralAxisFrame( axis, dofind );
+        Frame f1=null;
+        if (timeseries)
+            f1 = getTimeAxisFrame( axis, dofind );
+        else 
+            f1 = getSpectralAxisFrame( axis, dofind );
+        
         boolean haveSpecFrame = f1 instanceof SpecFrame;
+        boolean haveTimeFrame = f1 instanceof TimeFrame;
 
         // If we have data units that can be understood (as some kind of flux
         // in general), then create a FluxFrame using them, but only if we
@@ -543,7 +559,7 @@ public class ASTJ
         // SpecFluxFrame).  Otherwise we use a plain Frame to just represent
         // the data values.
         Frame f2 = null;
-        if ( haveSpecFrame &&
+        if ( (haveSpecFrame || haveTimeFrame) &&
              ! units.equals( "" ) && ! units.equals( "unknown" ) ) {
             try {
                 f2 = createFluxFrame( units, null, true );
@@ -565,7 +581,7 @@ public class ASTJ
         Frame frame2 = null;
         if ( haveSpecFrame && haveFluxFrame ) {
             frame2 = new SpecFluxFrame( (SpecFrame) f1, (FluxFrame) f2 );
-        } else {
+        } else  {      
             frame2 = new CmpFrame( f1, f2 );
         }
 
@@ -687,6 +703,10 @@ public class ASTJ
         // Take a guess at creating a spectral axis from the picked axis.
         String label = picked.getC( "Label(1)" );
         label = label.toLowerCase();
+        
+    //    if (label.indexOf("time") != -1) // it's a timeseries
+   //         return getTimeAxisFrame(  axis, dofind );
+        
         boolean goodLabel = true;
 
         if ( label.indexOf( "wave" ) != -1 ) {
@@ -829,6 +849,152 @@ public class ASTJ
     }
 
     /**
+     * Extract a time axis from the current FrameSet.
+     * MCN: Adapted from getSpectralAxisFrame()
+     * <p>
+     * The return is a TimeFrame if any reason to create one can be deduced,
+     * unless dofind is false, in which case the axis is just extracted.
+     * <p>
+     * Otherwise, if the selected axis of the current frame is a TimeFrame,
+     * then that is returned, if not a search is made for a TimeFrame.
+     * <p>
+     * Next an attempt to create a TimeFrame is created using various
+     * heuristics (from sample code provided by David Berry, these use guesses
+     * from the available units). As a last resort the original Frame is
+     * returned, if this is supposed to be a SpecFrame then the user will need
+     * to set this manually.  
+     * <p> 
+     * Finally if a TimeFrame is created then an attempt to attach this to the
+     * current FrameSet will be made. This makes the TimeFrame available
+     * immediately in future and correctly updates the FrameSet when it is
+     * written out in any way.
+     */
+    public Frame getTimeAxisFrame( int axis, boolean dofind )
+    {
+        TimeFrame result = new TimeFrame();
+        if ( astRef == null ) {
+            return result;
+        }
+
+        // Pick out the axis that should be a TimeFrame.
+        Frame picked = pickAxis( axis );
+
+        // Nothing to do if this is a TimeFrame, or do find is false.
+        if ( picked instanceof TimeFrame || ! dofind ) {
+            return picked;
+        }
+
+        // Before pushing on, attempt to find a TimeFrame within
+        // original FrameSet.
+        Frame randomGuess = astRef.findFrame( result, "" );
+        if ( randomGuess != null ) {
+            return randomGuess;
+        }
+
+        // Take a guess at creating a time axis from the picked axis.
+        String label = picked.getC( "Label(1)" );
+        label = label.toLowerCase();
+        boolean goodLabel = true;
+
+      //  if ( label.indexOf( "time" ) != -1 ) {
+      //      // Time.
+      //      result.setC( "System", "Time" );
+      //  }
+        
+       // else {
+       //     // Label not recognized.
+       //     goodLabel = false;
+       // }
+
+        // If the label was recognised, we need to check any units. If this
+        // fails then we do not create a TimeFrame. If the label hasn't been
+        // recognised then try a guess based on any units.
+        // Note that we to actually use a frame to cause a check of the
+        // validity of the units, hence calls to findFrame.
+        String unit = picked.getC( "Unit(1)" );
+        TimeFrame simpleTimeFrame = new TimeFrame();
+        if ( goodLabel ) {
+        	 result.setC("Label(1)" , label);
+            if ( unit != null && ( ! unit.equals( "" ) ) ) {
+                try {
+                    result.setC( "Unit", unit );
+                    result.findFrame( simpleTimeFrame, "" );
+                }
+                catch (AstException e) {
+                    // Units do not match system. Use the default frame.
+                    return picked;
+                }
+            }
+        }
+        else {
+            // The label was not recognised. Try to derive a TimeFrame from
+            // any units that are around.
+            // Check the units by applying them to some likely systems.
+            if ( unit == null || unit.equals( "" ) ) {
+                // No units, so return the default original frame.
+                return picked;
+            }
+            else {
+                result.setC( "System", "Time" );
+                result.setC( "Unit", unit );
+                if ( ! checkTimeFrame( result ) ) {
+                    result.setC( "System", "Freq" );
+                    result.setC( "Unit", unit );
+                    if ( ! checkTimeFrame( result ) ) {
+                            // Default is the original frame. User will have
+                            // to set any TimeFrame attributes interactively.
+                            return picked;           
+                    }
+                }
+            }
+        }
+
+        //  Created a TimeFrame, also need to attach this to the current
+        //  FrameSet.
+        Frame cfrm = astRef.getFrame( FrameSet.AST__CURRENT );
+        int nax = cfrm.getNaxes();
+        if ( nax == 1 ) {
+            astRef.addFrame( FrameSet.AST__CURRENT, new UnitMap( 1 ), result );
+        }
+        else {
+            //  Need to pick out axes and add in our SpecFrame.
+            Frame newFrame = null;
+            if ( axis > 1 ) {
+                // SpecFrame somewhere in middle or at top.
+                int iaxes[] = new int[ nax - 1 ];
+                int i = 1;
+                for ( i = 1; i < axis; i++ ) {
+                    iaxes[ i - 1 ] = i;
+                }
+                Frame part1 = astRef.pickAxes( i - 1, iaxes, null );
+                newFrame = new CmpFrame( part1, result );
+                if ( axis < nax ) {
+                    // Not at top, more needed to get to end.
+                    int j = 1;
+                    for ( i = axis + 1; i <= nax; i++, j++ ) {
+                        iaxes[ j - 1 ] = i;
+                    }
+                    Frame part3 = astRef.pickAxes( j - 1, iaxes, null );
+                    newFrame = new CmpFrame( newFrame, part3 );
+                }
+            }
+            else {
+                // TimeFrame is first.
+                int iaxes[] = new int[ nax ];
+                int i = 1;
+                for ( i = 2; i <= nax; i++ ) {
+                    iaxes[ i - 1 ] = i;
+                }
+                Frame part2 = astRef.pickAxes( i - 2, iaxes, null );
+                newFrame = new CmpFrame( result, part2 );
+            }
+            astRef.addFrame( FrameSet.AST__CURRENT, new UnitMap( nax ),
+                             newFrame );
+        }
+        return result;
+    }
+
+    /**
      *   Check if a SpecFrame is valid. Use when not sure if the system and
      *   units are matched correctly.
      */
@@ -846,7 +1012,24 @@ public class ASTJ
         }
         return ok;
     }
-
+    /**
+     *   Check if a TimeFrame is valid. Use when not sure if the system and
+     *   units are matched correctly.
+     */
+    public static boolean checkTimeFrame( TimeFrame timeFrame )
+    {
+        boolean ok = false;
+        try {
+            TimeFrame copy = (TimeFrame) timeFrame.copy();
+            copy.clear( "Unit" );
+            FrameSet fs = copy.convert( timeFrame, "" );
+            ok = true;
+        }
+        catch (AstException e) {
+            ok = false;
+        }
+        return ok;
+    }
 
     /**
      * Creates a FrameSet that only has one input and one output axis
