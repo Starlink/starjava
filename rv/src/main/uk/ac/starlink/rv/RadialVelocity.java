@@ -103,7 +103,7 @@ public class RadialVelocity {
 
 /**
  * Sets a Date
- * @param date The date expressed as a string( yyyy mm dd days
+ * @param day The date expressed as a string giving integer number of days
  */            
     public void setDays( String day  ) throws palError {
         try {
