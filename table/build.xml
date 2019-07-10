@@ -358,9 +358,9 @@
            deprecation="${deprecation}"
            source="${source.version}"
            optimize="${optimize}">
+      <compilerarg value="-Xlint:all,-path,-serial"/>
 
       <classpath refid="classpath"/>
-<!--  <compilerarg value="-Xlint:unchecked"/>  -->
 
       <!-- Exclude any files in the source tree that should not be
        !   compiled -->

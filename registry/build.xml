@@ -392,7 +392,7 @@
            source="${source.version}"
            optimize="${optimize}">
 
-      <compilerarg value="-Xlint:unchecked"/>
+      <compilerarg value="-Xlint:all,-path,-serial"/>
       <classpath refid="classpath"/>
 
       <!-- Exclude any files in the source tree that should not be

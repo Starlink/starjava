@@ -363,7 +363,7 @@
            optimize="${optimize}">
 
       <classpath refid="classpath"/>
-      <compilerarg value="-Xlint:unchecked"/>
+      <compilerarg value="-Xlint:all,-path,-serial"/>
 
       <!-- Exclude any files in the source tree that should not be
        !   compiled -->
