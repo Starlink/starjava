@@ -27,7 +27,7 @@ package uk.ac.starlink.ast;
  * Mapping when transforming values for axes described by the Region.
  * Thus input axis values corresponding to positions which are outside the
  * Region will result in bad output axis values.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of

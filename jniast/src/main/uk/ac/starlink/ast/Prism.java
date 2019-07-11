@@ -21,7 +21,7 @@ package uk.ac.starlink.ast;
  * Circle, using an Interval to define the extrusion. Ih this case, the
  * Interval would have a single axis and would specify the upper and
  * lower limits of the cylinder along its length.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -58,7 +58,7 @@ public class Prism extends Region {
      * Circle, using an Interval to define the extrusion. Ih this case, the
      * Interval would have a single axis and would specify the upper and
      * lower limits of the cylinder along its length.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Deep copies are taken of the supplied Regions. This means that
      * any subsequent changes made to the component Regions using the
      * supplied pointers will have no effect on the Prism.

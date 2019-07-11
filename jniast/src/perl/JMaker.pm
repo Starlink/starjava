@@ -223,7 +223,7 @@ sub makeSetAttrib {
    my( $descrip ) = $args{ 'descrip' };
    my( $stringtoo ) = $args{ 'stringtoo' };
    my( $applic ) = $args{ 'applic' } 
-                 ? "<h4>Class Applicability</h4>\n" . $args{ 'applic' }
+                 ? "<h3>Class Applicability</h3>\n" . $args{ 'applic' }
                  : "";
    my( $extra ) = $args{ 'extra' } || "";
 
@@ -268,7 +268,7 @@ sub makeGetAttrib {
    my( $purpose ) = $args{ 'purpose' };
    my( $descrip ) = $args{ 'descrip' };
    my( $applic ) = $args{ 'applic' } 
-                 ? "<h4>Class Applicability</h4>\n" . $args{ 'applic' }
+                 ? "<h3>Class Applicability</h3>\n" . $args{ 'applic' }
                  : "";
    my( $extra ) = $args{ 'extra' } || "";
 
@@ -299,7 +299,7 @@ sub makeSetAttribByAxis {
    my( $purpose ) = $args{ 'purpose' };
    my( $descrip ) = $args{ 'descrip' };
    my( $applic ) = $args{ 'applic' } 
-                 ? "<h4>Class Applicability</h4>\n" . $args{ 'applic' }
+                 ? "<h3>Class Applicability</h3>\n" . $args{ 'applic' }
                  : "";
    my( $extra ) = $args{ 'extra' } || "";
 
@@ -343,7 +343,7 @@ sub makeGetAttribByAxis {
    my( $purpose ) = $args{ 'purpose' };
    my( $descrip ) = $args{ 'descrip' };
    my( $applic ) = $args{ 'applic' } 
-                 ? "<h4>Class Applicability</h4>\n" . $args{ 'applic' }
+                 ? "<h3>Class Applicability</h3>\n" . $args{ 'applic' }
                  : "";
    my( $extra ) = $args{ 'extra' } || "";
 

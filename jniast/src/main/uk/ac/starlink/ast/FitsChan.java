@@ -94,7 +94,7 @@ import java.io.*;
  * encoding. Otherwise (e.g. the NATIVE encoding), multiple Object
  * descriptions are written sequentially and may later be read
  * back in the same sequence.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -505,7 +505,7 @@ public class FitsChan extends Channel {
      * known).
      * <p>
      * After deletion, the following card becomes the current card.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This function returns without action if the FitsChan is
      * initially positioned at the "end-of-file" (i.e. if the Card
      * attribute exceeds the number of cards in the FitsChan).
@@ -531,7 +531,7 @@ public class FitsChan extends Channel {
      * found or, if required, the one following it. If the search is
      * not successful, the function returns zero and the Card attribute
      * is set to the "end-of-file".
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The search always starts with the current card, as identified
      * by the Card attribute. To ensure you search the entire contents
      * of a FitsChan, you should first clear the Card attribute (using
@@ -542,7 +542,7 @@ public class FitsChan extends Channel {
      * <br> - A value of zero will be returned if this function is invoked
      * with the AST error status set, or if it should fail for any
      * reason.
-     * <h4>Keyword Templates</h4>
+     * <h3>Keyword Templates</h3>
      * The templates used to match FITS keywords are normally composed
      * of literal characters, which must match the keyword exactly
      * (apart from case). However, a template may also contain "field
@@ -622,7 +622,7 @@ public class FitsChan extends Channel {
      * have an associated value, a
      * zero
      * value is returned.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> -  The current card is left unchanged by this function.
      * <br> -  The card following the current card is checked first. If this is
      * not the required card, then the rest of the FitsChan is searched,
@@ -655,7 +655,7 @@ public class FitsChan extends Channel {
      * This function stores a FITS header card in a FitsChan. The card
      * is either inserted before the current card (identified by the
      * Card attribute), or over-writes the current card, as required.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the Card attribute initially points at the "end-of-file"
      * (i.e. exceeds the number of cards in the FitsChan), then the new
      * card is appended as the last card in the FitsChan.
@@ -692,7 +692,7 @@ public class FitsChan extends Channel {
      * in the process of creating the returned AST Object. Any cards that
      * are irrelevant to the creation of the AST Object are retained whether
      * or not they are flagged.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This function returns without action if the FitsChan is
      * initially positioned at the "end-of-file" (i.e. if the Card
      * attribute exceeds the number of cards in the FitsChan).
@@ -723,7 +723,7 @@ public class FitsChan extends Channel {
      * astRead
      * can be made immediately without the need to re-wind the FitsChan
      * first.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - An error will result if the supplied string contains any cards
      * which cannot be interpreted.
      * @param   cards
@@ -1033,7 +1033,7 @@ public class FitsChan extends Channel {
      * section below. If you wish to ensure that a particular encoding
      * system is used, independently of any FITS cards already present,
      * you should set an explicit Encoding value yourself.
-     * <h4>Encodings Available</h4>
+     * <h3>Encodings Available</h3>
      * The Encoding attribute can take any of the following (case
      * insensitive) string values to select the corresponding encoding
      * <p>
@@ -1109,7 +1109,7 @@ public class FitsChan extends Channel {
      * (although all such applications must, of course, make use of the
      * AST library to interpret the information). For further details,
      * see the section "The NATIVE Encoding" below.
-     * <h4>Choice of Default Encoding</h4>
+     * <h3>Choice of Default Encoding</h3>
      * If the Encoding attribute of a FitsChan is not set, the default
      * value it takes is determined by the presence of certain critical
      * FITS keywords within the FitsChan. The sequence of decisions
@@ -1166,7 +1166,7 @@ public class FitsChan extends Channel {
      * know this, there may sometimes be an advantage in writing the
      * information several times, using a different encoding on each
      * occasion.
-     * <h4>The DSS Encoding</h4>
+     * <h3>The DSS Encoding</h3>
      * The DSS encoding uses FITS header cards to store a multi-term
      * polynomial which relates pixel positions on a digitised
      * photographic plate to celestial coordinates (right ascension and
@@ -1212,7 +1212,7 @@ public class FitsChan extends Channel {
      * fails (or if the Object supplied is not a FrameSet), then no
      * data will be written to the FitsChan and astWrite will return
      * zero. No error will result.
-     * <h4>The NATIVE Encoding</h4>
+     * <h3>The NATIVE Encoding</h3>
      * The NATIVE encoding may be used to store a description of any
      * class of AST Object in the form of FITS header cards, and (for
      * most practical purposes) any number of these Object descriptions
@@ -1309,7 +1309,7 @@ public class FitsChan extends Channel {
      * section below. If you wish to ensure that a particular encoding
      * system is used, independently of any FITS cards already present,
      * you should set an explicit Encoding value yourself.
-     * <h4>Encodings Available</h4>
+     * <h3>Encodings Available</h3>
      * The Encoding attribute can take any of the following (case
      * insensitive) string values to select the corresponding encoding
      * <p>
@@ -1385,7 +1385,7 @@ public class FitsChan extends Channel {
      * (although all such applications must, of course, make use of the
      * AST library to interpret the information). For further details,
      * see the section "The NATIVE Encoding" below.
-     * <h4>Choice of Default Encoding</h4>
+     * <h3>Choice of Default Encoding</h3>
      * If the Encoding attribute of a FitsChan is not set, the default
      * value it takes is determined by the presence of certain critical
      * FITS keywords within the FitsChan. The sequence of decisions
@@ -1442,7 +1442,7 @@ public class FitsChan extends Channel {
      * know this, there may sometimes be an advantage in writing the
      * information several times, using a different encoding on each
      * occasion.
-     * <h4>The DSS Encoding</h4>
+     * <h3>The DSS Encoding</h3>
      * The DSS encoding uses FITS header cards to store a multi-term
      * polynomial which relates pixel positions on a digitised
      * photographic plate to celestial coordinates (right ascension and
@@ -1488,7 +1488,7 @@ public class FitsChan extends Channel {
      * fails (or if the Object supplied is not a FrameSet), then no
      * data will be written to the FitsChan and astWrite will return
      * zero. No error will result.
-     * <h4>The NATIVE Encoding</h4>
+     * <h3>The NATIVE Encoding</h3>
      * The NATIVE encoding may be used to store a description of any
      * class of AST Object in the form of FITS header cards, and (for
      * most practical purposes) any number of these Object descriptions
@@ -1643,7 +1643,7 @@ public class FitsChan extends Channel {
      * performed, and report the text of any such cards to the user. ASTWARN
      * cards will be propagated to any output header unless they are
      * deleted from the FitsChan using astDelFits.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * This attribute only controls the warnings that are to be stored as
      * a set of header cards in the FitsChan as described above. It has no
      * effect on the storage of warnings in the parent Channel structure.
@@ -1677,7 +1677,7 @@ public class FitsChan extends Channel {
      * performed, and report the text of any such cards to the user. ASTWARN
      * cards will be propagated to any output header unless they are
      * deleted from the FitsChan using astDelFits.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * This attribute only controls the warnings that are to be stored as
      * a set of header cards in the FitsChan as described above. It has no
      * effect on the storage of warnings in the parent Channel structure.
@@ -1699,7 +1699,7 @@ public class FitsChan extends Channel {
      * This read-only attribute is a space separated list of all the conditions
      * names recognized by the Warnings attribute. The names are listed
      * below.
-     * <h4>Conditions</h4>
+     * <h3>Conditions</h3>
      * The following conditions are currently recognised (all are
      * <p>
      * case-insensitive):

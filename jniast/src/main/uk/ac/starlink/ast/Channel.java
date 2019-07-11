@@ -214,7 +214,7 @@ public class Channel extends AstObject {
      * The "Strict" attribute allows this warning facility to be switched
      * off, so that a fatal error is always reported for any conversion
      * error.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The returned KeyMap uses keys of the form "Warning_1",
      * "Warning_2", etc.
      * <br> - A value of
@@ -278,7 +278,7 @@ public class Channel extends AstObject {
      * be suppressed to minimise the amount of output, while if it is
      * positive, the output will include the maximum amount of detailed
      * information about the Object being written.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - All positive values supplied for this attribute are converted
      * to +1 and all negative values are converted to -1.
      *
@@ -301,7 +301,7 @@ public class Channel extends AstObject {
      * be suppressed to minimise the amount of output, while if it is
      * positive, the output will include the maximum amount of detailed
      * information about the Object being written.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - All positive values supplied for this attribute are converted
      * to +1 and all negative values are converted to -1.
      *
@@ -450,7 +450,7 @@ public class Channel extends AstObject {
      * structure. Such messages can be retrieved using the
      * astWarnings
      * function.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This attribute was introduced in AST version 5.0. Prior to this
      * version of AST unexpected data items read by a basic Channel always
      * caused an error to be reported. So applications linked against
@@ -478,7 +478,7 @@ public class Channel extends AstObject {
      * structure. Such messages can be retrieved using the
      * astWarnings
      * function.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This attribute was introduced in AST version 5.0. Prior to this
      * version of AST unexpected data items read by a basic Channel always
      * caused an error to be reported. So applications linked against

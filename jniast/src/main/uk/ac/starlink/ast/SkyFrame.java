@@ -26,7 +26,7 @@ package uk.ac.starlink.ast;
  * All the coordinate values used by a SkyFrame are in
  * radians. These may be formatted in more conventional ways for
  * display by using astFormat.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -75,7 +75,7 @@ public class SkyFrame extends Frame {
      * SkyFrame's System attribute. This ensures, for example, that
      * right ascension values will be formatted as times by default,
      * following normal conventions.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The AsTime attribute operates by changing the default value of
      * the corresponding Format(axis) attribute. This, in turn, may
      * also affect the value of the Unit(axis) attribute.
@@ -121,7 +121,7 @@ public class SkyFrame extends Frame {
      * SkyFrame's System attribute. This ensures, for example, that
      * right ascension values will be formatted as times by default,
      * following normal conventions.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The AsTime attribute operates by changing the default value of
      * the corresponding Format(axis) attribute. This, in turn, may
      * also affect the value of the Unit(axis) attribute.
@@ -181,7 +181,7 @@ public class SkyFrame extends Frame {
      * The default Equinox value is B1950.0 (Besselian) for the old
      * FK4-based coordinate systems (see the System attribute) and
      * J2000.0 (Julian) for all others.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Care must be taken to distinguish the Equinox value, which
      * relates to the definition of a time-dependent coordinate system
      * (based on solar system reference planes which are in motion),
@@ -233,7 +233,7 @@ public class SkyFrame extends Frame {
      * The default Equinox value is B1950.0 (Besselian) for the old
      * FK4-based coordinate systems (see the System attribute) and
      * J2000.0 (Julian) for all others.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Care must be taken to distinguish the Equinox value, which
      * relates to the definition of a time-dependent coordinate system
      * (based on solar system reference planes which are in motion),
@@ -511,7 +511,7 @@ public class SkyFrame extends Frame {
      * will be used when getting the value of the attribute.
      * <p>
      * The default values for SkyRef are zero longitude and zero latitude.
-     * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
+     * <h3>Aligning SkyFrames with Offset Coordinate Systems</h3>
      * The offset coordinate system within a SkyFrame should normally be
      * considered as a superficial "re-badging" of the axes of the coordinate
      * system specified by the System attribute - it merely provides an
@@ -528,7 +528,7 @@ public class SkyFrame extends Frame {
      * However, by setting the AlignOffset attribute ot a non-zero value, it
      * is possible to change this behaviour so that the effect of the offset
      * coordinate system is not removed when aligning two SkyFrames.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the System attribute of the SkyFrame is changed, any position
      * given for SkyRef is transformed into the new System.
      * <br> - If a value has been assigned to SkyRef attribute, then
@@ -587,7 +587,7 @@ public class SkyFrame extends Frame {
      * will be used when getting the value of the attribute.
      * <p>
      * The default values for SkyRef are zero longitude and zero latitude.
-     * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
+     * <h3>Aligning SkyFrames with Offset Coordinate Systems</h3>
      * The offset coordinate system within a SkyFrame should normally be
      * considered as a superficial "re-badging" of the axes of the coordinate
      * system specified by the System attribute - it merely provides an
@@ -604,7 +604,7 @@ public class SkyFrame extends Frame {
      * However, by setting the AlignOffset attribute ot a non-zero value, it
      * is possible to change this behaviour so that the effect of the offset
      * coordinate system is not removed when aligning two SkyFrames.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the System attribute of the SkyFrame is changed, any position
      * given for SkyRef is transformed into the new System.
      * <br> - If a value has been assigned to SkyRef attribute, then
@@ -664,7 +664,7 @@ public class SkyFrame extends Frame {
      * will be used when getting the value of the attribute.
      * <p>
      * The default values for SkyRef are zero longitude and zero latitude.
-     * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
+     * <h3>Aligning SkyFrames with Offset Coordinate Systems</h3>
      * The offset coordinate system within a SkyFrame should normally be
      * considered as a superficial "re-badging" of the axes of the coordinate
      * system specified by the System attribute - it merely provides an
@@ -681,7 +681,7 @@ public class SkyFrame extends Frame {
      * However, by setting the AlignOffset attribute ot a non-zero value, it
      * is possible to change this behaviour so that the effect of the offset
      * coordinate system is not removed when aligning two SkyFrames.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the System attribute of the SkyFrame is changed, any position
      * given for SkyRef is transformed into the new System.
      * <br> - If a value has been assigned to SkyRef attribute, then
@@ -728,7 +728,7 @@ public class SkyFrame extends Frame {
      * will be used when getting the value of the attribute.
      * <p>
      * The default values for SkyRef are zero longitude and zero latitude.
-     * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
+     * <h3>Aligning SkyFrames with Offset Coordinate Systems</h3>
      * The offset coordinate system within a SkyFrame should normally be
      * considered as a superficial "re-badging" of the axes of the coordinate
      * system specified by the System attribute - it merely provides an
@@ -745,7 +745,7 @@ public class SkyFrame extends Frame {
      * However, by setting the AlignOffset attribute ot a non-zero value, it
      * is possible to change this behaviour so that the effect of the offset
      * coordinate system is not removed when aligning two SkyFrames.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the System attribute of the SkyFrame is changed, any position
      * given for SkyRef is transformed into the new System.
      * <br> - If a value has been assigned to SkyRef attribute, then
@@ -794,7 +794,7 @@ public class SkyFrame extends Frame {
      * containing two formatted axis values (an axis 1 value followed by a
      * comma, followed by an axis 2 value). The same form
      * will be used when getting the value of the attribute.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the position given by the SkyRef attribute defines the origin
      * of the offset coordinate system (that is, if the SkyRefIs attribute
      * is set to "origin"), then there will in general be two orientations
@@ -861,7 +861,7 @@ public class SkyFrame extends Frame {
      * containing two formatted axis values (an axis 1 value followed by a
      * comma, followed by an axis 2 value). The same form
      * will be used when getting the value of the attribute.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the position given by the SkyRef attribute defines the origin
      * of the offset coordinate system (that is, if the SkyRefIs attribute
      * is set to "origin"), then there will in general be two orientations
@@ -929,7 +929,7 @@ public class SkyFrame extends Frame {
      * containing two formatted axis values (an axis 1 value followed by a
      * comma, followed by an axis 2 value). The same form
      * will be used when getting the value of the attribute.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the position given by the SkyRef attribute defines the origin
      * of the offset coordinate system (that is, if the SkyRefIs attribute
      * is set to "origin"), then there will in general be two orientations
@@ -984,7 +984,7 @@ public class SkyFrame extends Frame {
      * containing two formatted axis values (an axis 1 value followed by a
      * comma, followed by an axis 2 value). The same form
      * will be used when getting the value of the attribute.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the position given by the SkyRef attribute defines the origin
      * of the offset coordinate system (that is, if the SkyRefIs attribute
      * is set to "origin"), then there will in general be two orientations

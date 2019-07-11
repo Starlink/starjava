@@ -18,7 +18,7 @@ import uk.ac.starlink.util.Loader;
  * behaviour and Object manipulation facilities required throughout
  * the library. There is no Object constructor, however, as Objects
  * on their own are not useful.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -362,7 +362,7 @@ public class AstObject {
      * default attribute value will subsequently be used instead. This
      * also causes the astTest function to return the value zero for
      * the attribute, indicating that no value has been set.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Attribute names are not case sensitive and may be surrounded
      * by white space.
      * <br> - It does no harm to clear an attribute whose value has not been
@@ -386,7 +386,7 @@ public class AstObject {
      * data are copied, not simply the references). This means that
      * modifications may safely be made to the copy without indirectly
      * affecting any other Object.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.
@@ -555,7 +555,7 @@ public class AstObject {
      * present, these will be substituted by values supplied as
      * additional optional arguments (using the normal "printf" rules)
      * before the string is used.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Attribute names are not case sensitive and may be surrounded
      * by white space.
      * <br> - White space may also surround attribute values, where it will
@@ -595,7 +595,7 @@ public class AstObject {
      * This function returns a boolean result (0 or 1) to indicate
      * whether a value has been explicitly set for one of an Object's
      * attributes.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Attribute names are not case sensitive and may be surrounded
      * by white space.
      * <br> - A value of zero will be returned if this function is invoked
@@ -616,7 +616,7 @@ public class AstObject {
      * global tuning parameter, optionally storing a new value for the
      * parameter. For character-valued tuning parameters, see
      * astTuneC.
-     * <h4>Tuning Parameters</h4>
+     * <h3>Tuning Parameters</h3>
      * ObjectCaching
      *    A boolean flag which indicates what should happen
      *    to the memory occupied by an AST Object when the Object is deleted
@@ -639,7 +639,7 @@ public class AstObject {
      *    that it controls caching of all memory blocks of less than 300 bytes
      *    allocated by AST (whether for internal or external use), not just
      *    memory used to store AST Objects.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This function attempts to execute even if the AST error
      * status is set
      * on entry, although no further error report will be
@@ -677,7 +677,7 @@ public class AstObject {
      * <p>
      * This attribute may also be useful during debugging, to
      * distinguish similar Objects when using astShow to display them.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Unlike most other attributes, the value of the ID attribute is
      * not transferred when an Object is copied. Instead, its value is
      * undefined (and therefore defaults to an empty string) in any
@@ -707,7 +707,7 @@ public class AstObject {
      * <p>
      * This attribute may also be useful during debugging, to
      * distinguish similar Objects when using astShow to display them.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Unlike most other attributes, the value of the ID attribute is
      * not transferred when an Object is copied. Instead, its value is
      * undefined (and therefore defaults to an empty string) in any

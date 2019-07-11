@@ -11,7 +11,7 @@ package uk.ac.starlink.ast;
  *  - add a constant value to each coordinate. 
  * A ShiftMap is a linear Mapping which shifts each axis by a
  * specified constant value.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of

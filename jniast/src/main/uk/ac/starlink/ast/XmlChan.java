@@ -28,7 +28,7 @@ import java.io.OutputStream;
  * Alternatively, an XmlChan can be told to read or write from
  * specific text files using the SinkFile and SourceFile attributes,
  * in which case no sink or source function need be supplied.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -97,7 +97,7 @@ public class XmlChan extends Channel {
      * to ensure that a particular format system is used, independently of
      * any XML already read, you should set an explicit XmlFormat value
      * yourself.
-     * <h4>Formats Available</h4>
+     * <h3>Formats Available</h3>
      * The XmlFormat attribute can take any of the following (case
      * insensitive) string values to select the corresponding formatting
      * system:
@@ -122,7 +122,7 @@ public class XmlChan extends Channel {
      * historical interest. Note, the alternative "STC-S" format (a
      * simpler non-XML encoding of the STC metadata) is supported by the
      * StcsChan class.
-     * <h4>The IVOA Format</h4>
+     * <h3>The IVOA Format</h3>
      * The IVOA support caters only for certain parts of V1.20 of the
      * draft Space-Time Coordinate (STC) schema (see
      * http://www.ivoa.net/Documents/WD/STC/STC-20050225.html). Note, this
@@ -206,7 +206,7 @@ public class XmlChan extends Channel {
      * to ensure that a particular format system is used, independently of
      * any XML already read, you should set an explicit XmlFormat value
      * yourself.
-     * <h4>Formats Available</h4>
+     * <h3>Formats Available</h3>
      * The XmlFormat attribute can take any of the following (case
      * insensitive) string values to select the corresponding formatting
      * system:
@@ -231,7 +231,7 @@ public class XmlChan extends Channel {
      * historical interest. Note, the alternative "STC-S" format (a
      * simpler non-XML encoding of the STC metadata) is supported by the
      * StcsChan class.
-     * <h4>The IVOA Format</h4>
+     * <h3>The IVOA Format</h3>
      * The IVOA support caters only for certain parts of V1.20 of the
      * draft Space-Time Coordinate (STC) schema (see
      * http://www.ivoa.net/Documents/WD/STC/STC-20050225.html). Note, this

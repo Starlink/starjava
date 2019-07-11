@@ -30,7 +30,7 @@ package uk.ac.starlink.ast;
  * which they were supplied when the Polygon was created (i.e. the
  * inside is to the left of the boundary when moving through the
  * vertices in the order supplied).
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -76,11 +76,11 @@ public class Polygon extends Region {
      * which they were supplied when the Polygon was created (i.e. the
      * inside is to the left of the boundary when moving through the
      * vertices in the order supplied).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.
-     * <h4>Status Handling</h4>
+     * <h3>Status Handling</h3>
      * The protected interface to this function includes an extra
      * parameter at the end of the parameter list descirbed above. This
      * parameter is a pointer to the integer inherited status

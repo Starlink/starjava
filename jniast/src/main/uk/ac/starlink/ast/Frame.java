@@ -24,12 +24,12 @@ package uk.ac.starlink.ast;
  * <p>
  * Frames may also contain knowledge of how to transform to and
  * from related coordinate systems.
- * <h4>Notes</h4>
+ * <h3>Notes</h3>
  * <br> - When used as a Mapping, a Frame implements a unit (null)
  * transformation in both the forward and inverse directions
  * (equivalent to a UnitMap). The Nin and Nout attribute values are
  * both equal to the number of Frame axes.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -76,7 +76,7 @@ public class Frame extends Mapping {
      * and the line joining points C and B. These lines will in fact be
      * geodesic curves appropriate to the Frame in use. For instance, in
      * SkyFrame, they will be great circles.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A value of AST__BAD will also be returned if points A and B are
      * co-incident, or if points B and C are co-incident.
      * <br> - A value of AST__BAD will also be returned if this function is
@@ -111,7 +111,7 @@ public class Frame extends Mapping {
      * finds the angle, as seen from point A, between the positive
      * direction of a specified axis, and the geodesic curve joining point
      * A to point B.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The geodesic curve used by this function is the path of
      * shortest distance between two points, as defined by the
      * astDistance function.
@@ -150,7 +150,7 @@ public class Frame extends Mapping {
      * For a simple Frame, this is a trivial operation returning the
      * difference between the two axis values. But for other derived classes
      * of Frame (such as a SkyFrame) this is not the case.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This function will return a "bad" result value (AST__BAD) if
      * any of the input values has this value.
      * <br> - A "bad" value will also be returned if this function is
@@ -182,7 +182,7 @@ public class Frame extends Mapping {
      * For example, in a basic Frame, it will find the point of
      * intersection between two straight lines. But for a SkyFrame it
      * will find an intersection of two great circles.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For SkyFrames each curve will be a great circle, and in general
      * each pair of curves will intersect at two diametrically opposite
      * points on the sky. The returned position is the one which is
@@ -234,7 +234,7 @@ public class Frame extends Mapping {
      * For a simple Frame, this is a trivial operation returning the
      * sum of the two supplied values. But for other derived classes
      * of Frame (such as a SkyFrame) this is not the case.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This function will return a "bad" result value (AST__BAD) if
      * any of the input values has this value.
      * <br> - A "bad" value will also be returned if this function is
@@ -285,7 +285,7 @@ public class Frame extends Mapping {
      * Domain attribute matches one of the domains given. If conversion
      * cannot be achieved using the first domain, the next one is
      * considered, and so on, until success is achieved.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> -  The Mapping represented by the returned FrameSet results in
      * alignment taking place in the coordinate system specified by the
      * AlignSystem attribute of the "to" Frame. See the description of the
@@ -372,7 +372,7 @@ public class Frame extends Mapping {
      * points. For a more specialised Frame describing a sky coordinate
      * system, however, it would be the distance along the great circle
      * passing through two sky positions.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This function will return a "bad" result value (AST__BAD) if
      * any of the input coordinates has this value.
      * <br> - A "bad" value will also be returned if this function is
@@ -444,7 +444,7 @@ public class Frame extends Mapping {
      * which converts from the target coordinate system to this hybrid
      * one, and the returned FrameSet encapsulates all of this
      * information.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> -  The Mapping represented by the returned FrameSet results in
      * alignment taking place in the coordinate system specified by the
      * AlignSystem attribute of the "template" Frame. See the description
@@ -456,7 +456,7 @@ public class Frame extends Mapping {
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.
-     * <h4>More on Using Templates</h4>
+     * <h3>More on Using Templates</h3>
      * A Frame (describing a coordinate system) will be found by this
      * function if (a) it is "matched" by the template you supply, and
      * (b) the value of its Domain attribute appears in the "domainlist"
@@ -576,7 +576,7 @@ public class Frame extends Mapping {
      * attributes and, in particular, by any Format attribute string
      * that has been set for the axis. A suitable default format (based
      * on the Digits attribute value) will be applied if necessary.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The returned pointer is guaranteed to remain valid and the
      * string to which it points will not be over-written for a total
      * of 50 successive invocations of this function. After this, the
@@ -607,7 +607,7 @@ public class Frame extends Mapping {
      * returns the current value of the ActiveUnit flag for a Frame. See
      * the description of the astSetActiveUnit function
      * for a description of the ActiveUnit flag.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A zero value will be returned if this function is
      * invoked with the AST error status set, or if it should fail for
      * any reason.
@@ -623,7 +623,7 @@ public class Frame extends Mapping {
      * might be unsuitable for display (e.g. may lie outside the
      * expected range) into a set of acceptable values suitable for
      * display.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For some classes of Frame, whose coordinate values are not
      * constrained, this function will never modify the values
      * supplied. However, for Frames whose axes represent cyclic
@@ -661,7 +661,7 @@ public class Frame extends Mapping {
      * straight line joining two points. For a more specialised Frame
      * describing a sky coordinate system, however, it would be along
      * the great circle passing through two sky positions.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The geodesic curve used by this function is the path of
      * shortest distance between two points, as defined by the
      * astDistance function.
@@ -706,7 +706,7 @@ public class Frame extends Mapping {
      * straight line joining two points. For a more specialised Frame
      * describing a sky coordinate system, however, it would be along
      * the great circle passing through two sky positions.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The geodesic curve used by this function is the path of
      * shortest distance between two points, as defined by the
      * astDistance function.
@@ -749,7 +749,7 @@ public class Frame extends Mapping {
     /** 
      * Permute the axis order in a Frame.   
      * This function permutes the order in which a Frame's axes occur.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Only genuine permutations of the axis order are permitted, so
      * each axis must be referenced exactly once in the "perm" array.
      * <br> - If successive axis permutations are applied to a Frame, then
@@ -774,7 +774,7 @@ public class Frame extends Mapping {
      * <p>
      * Optionally, a Mapping that converts between the coordinate
      * systems described by the two Frames will also be returned.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The new Frame will contain a "deep" copy (c.f. astCopy) of all
      * the data selected from the original Frame. Modifying any aspect
      * of the new Frame will therefore not affect the original one.
@@ -818,7 +818,7 @@ public class Frame extends Mapping {
      * parallel and perpendicular to this basis vector. The lengths of the
      * two components are returned, together with the position of closest
      * aproach of the basis vector to point 3.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Each vector used in this function is the path of
      * shortest distance between two points, as defined by the
      * astDistance function.
@@ -913,7 +913,7 @@ public class Frame extends Mapping {
      * Frame being re-mapped (that is, the Mappings which define the
      * relationships between Frames within the FrameSet will be modified to
      * take into account the change in Units).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The ActiveUnit flag resembles a Frame attribute, except that it
      * cannot be tested or cleared, and it cannot be accessed using the
      * generic astGet&lt;X&gt; and astSet&lt;X&gt; functions.
@@ -940,7 +940,7 @@ public class Frame extends Mapping {
      * is interpreted with reference to the Frame's attributes (in
      * particular, the Format string associated with the Frame's
      * axis). This function is, in essence, the inverse of astFormat.
-     * <h4>Frame Input Format</h4>
+     * <h3>Frame Input Format</h3>
      * The input format accepted for a basic Frame axis is as follows:
      * <br> - An optional sign, followed by:
      * <br> - A sequence of one or more digits possibly containing a decimal point,
@@ -956,7 +956,7 @@ public class Frame extends Mapping {
      * <br> - 1E8
      * <br> - -.99e-17
      * <br> - &lt;bad&gt;
-     * <h4>SkyFrame Input Format</h4>
+     * <h3>SkyFrame Input Format</h3>
      * The input format accepted for a SkyFrame axis is as follows:
      * <br> - An optional sign, followed by between one and three fields
      * representing either degrees, arc-minutes, arc-seconds or hours,
@@ -1040,7 +1040,7 @@ public class Frame extends Mapping {
      * <p>
      * Where alternative interpretations are shown, the choice of angle or
      * time depends on the associated Format(axis) attribute.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A function value of zero (and no coordinate value) will be
      * returned, without error, if the string supplied does not contain
      * a suitably formatted value.
@@ -1105,7 +1105,7 @@ public class Frame extends Mapping {
      * these positions from the intermediate coordinate system into the
      * second Frame, using the attributes of the second Frame.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The AlignSystem attribute for a basic Frame always equals "Cartesian",
@@ -1154,7 +1154,7 @@ public class Frame extends Mapping {
      * these positions from the intermediate coordinate system into the
      * second Frame, using the attributes of the second Frame.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The AlignSystem attribute for a basic Frame always equals "Cartesian",
@@ -1186,11 +1186,11 @@ public class Frame extends Mapping {
      * lowest axis value to display by axis.  
      * This attribute gives the lowest axis value to be displayed (for
      * instance, by the astGrid method).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is to display all axis
@@ -1226,11 +1226,11 @@ public class Frame extends Mapping {
      * lowest axis value to display by axis.  
      * This attribute gives the lowest axis value to be displayed (for
      * instance, by the astGrid method).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is to display all axis
@@ -1280,7 +1280,7 @@ public class Frame extends Mapping {
      * the Digits attribute is used to determine the number of decimal
      * places to produce.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Digits value supplied by the Frame class is 7. If
@@ -1323,7 +1323,7 @@ public class Frame extends Mapping {
      * the Digits attribute is used to determine the number of decimal
      * places to produce.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Digits value supplied by the Frame class is 7. If
@@ -1366,7 +1366,7 @@ public class Frame extends Mapping {
      * the Digits attribute is used to determine the number of decimal
      * places to produce.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Digits value supplied by the Frame class is 7. If
@@ -1421,7 +1421,7 @@ public class Frame extends Mapping {
      * the Digits attribute is used to determine the number of decimal
      * places to produce.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Digits value supplied by the Frame class is 7. If
@@ -1470,7 +1470,7 @@ public class Frame extends Mapping {
      * this attribute indicates that the direction should be reversed,
      * as would often be done for an astronomical magnitude or a right
      * ascension axis.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
@@ -1479,7 +1479,7 @@ public class Frame extends Mapping {
      * programs about the orientation in which they may wish to display
      * any data associated with the Frame. Applications are free to
      * ignore this hint if they wish.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Direction value supplied by the Frame class is 1,
@@ -1530,7 +1530,7 @@ public class Frame extends Mapping {
      * this attribute indicates that the direction should be reversed,
      * as would often be done for an astronomical magnitude or a right
      * ascension axis.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
@@ -1539,7 +1539,7 @@ public class Frame extends Mapping {
      * programs about the orientation in which they may wish to display
      * any data associated with the Frame. Applications are free to
      * ignore this hint if they wish.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Direction value supplied by the Frame class is 1,
@@ -1594,10 +1594,10 @@ public class Frame extends Mapping {
      * same Domain value will be matched. If the template's Domain
      * value is not set, however, then the target's Domain will be
      * ignored.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - All Domain values are converted to upper case and white space
      * is removed before use.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Domain value supplied by the Frame class is an
@@ -1652,10 +1652,10 @@ public class Frame extends Mapping {
      * same Domain value will be matched. If the template's Domain
      * value is not set, however, then the target's Domain will be
      * ignored.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - All Domain values are converted to upper case and white space
      * is removed before use.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Domain value supplied by the Frame class is an
@@ -1770,7 +1770,7 @@ public class Frame extends Mapping {
      * but for some purposes (for instance, for converting sky positions
      * between different types of equatorial system) the timescale is not
      * significant, and UTC may be used.
-     * <h4>Input Formats</h4>
+     * <h3>Input Formats</h3>
      * The formats accepted when setting an Epoch value are listed
      * below. They are all case-insensitive and are generally tolerant
      * of extra white space and alternative field delimiters:
@@ -1801,7 +1801,7 @@ public class Frame extends Mapping {
      * a fraction of a day expressed as hours, minutes and seconds
      * ("1996-Oct-2 12:13:56.985" for example). The date and time can be
      * separated by a space or by a "T" (as used by ISO8601 format).
-     * <h4>Output Format</h4>
+     * <h3>Output Format</h3>
      * When enquiring Epoch values, the format used is the "Year"
      * format described under "Input Formats". This is a value in
      * decimal years which will be a Besselian epoch if less than
@@ -1809,7 +1809,7 @@ public class Frame extends Mapping {
      * prefix, this format allows the Epoch value to be obtained as
      * either a character string or a floating point value.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    All Frames have this attribute. The basic Frame class provides
@@ -1891,7 +1891,7 @@ public class Frame extends Mapping {
      * but for some purposes (for instance, for converting sky positions
      * between different types of equatorial system) the timescale is not
      * significant, and UTC may be used.
-     * <h4>Input Formats</h4>
+     * <h3>Input Formats</h3>
      * The formats accepted when setting an Epoch value are listed
      * below. They are all case-insensitive and are generally tolerant
      * of extra white space and alternative field delimiters:
@@ -1922,7 +1922,7 @@ public class Frame extends Mapping {
      * a fraction of a day expressed as hours, minutes and seconds
      * ("1996-Oct-2 12:13:56.985" for example). The date and time can be
      * separated by a space or by a "T" (as used by ISO8601 format).
-     * <h4>Output Format</h4>
+     * <h3>Output Format</h3>
      * When enquiring Epoch values, the format used is the "Year"
      * format described under "Input Formats". This is a value in
      * decimal years which will be a Besselian epoch if less than
@@ -1930,7 +1930,7 @@ public class Frame extends Mapping {
      * prefix, this format allows the Epoch value to be obtained as
      * either a character string or a floating point value.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    All Frames have this attribute. The basic Frame class provides
@@ -2012,7 +2012,7 @@ public class Frame extends Mapping {
      * but for some purposes (for instance, for converting sky positions
      * between different types of equatorial system) the timescale is not
      * significant, and UTC may be used.
-     * <h4>Input Formats</h4>
+     * <h3>Input Formats</h3>
      * The formats accepted when setting an Epoch value are listed
      * below. They are all case-insensitive and are generally tolerant
      * of extra white space and alternative field delimiters:
@@ -2043,7 +2043,7 @@ public class Frame extends Mapping {
      * a fraction of a day expressed as hours, minutes and seconds
      * ("1996-Oct-2 12:13:56.985" for example). The date and time can be
      * separated by a space or by a "T" (as used by ISO8601 format).
-     * <h4>Output Format</h4>
+     * <h3>Output Format</h3>
      * When enquiring Epoch values, the format used is the "Year"
      * format described under "Input Formats". This is a value in
      * decimal years which will be a Besselian epoch if less than
@@ -2051,7 +2051,7 @@ public class Frame extends Mapping {
      * prefix, this format allows the Epoch value to be obtained as
      * either a character string or a floating point value.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    All Frames have this attribute. The basic Frame class provides
@@ -2131,7 +2131,7 @@ public class Frame extends Mapping {
      * supplied instead. This is based on the value of the Digits, or
      * Digits(axis), attribute and is chosen so that it displays the
      * requested number of digits of precision.
-     * <h4>SkyFrame Formats</h4>
+     * <h3>SkyFrame Formats</h3>
      * The Format string supplied for a SkyFrame should contain zero or
      * more of the following characters. These may occur in any order,
      * but the following is recommended for clarity:
@@ -2200,7 +2200,7 @@ public class Frame extends Mapping {
      * whole format string is assumed to conform to the syntax defined by
      * the Frame class, and the axis values is formated as a decimal
      * radians value.
-     * <h4>TimeFrame Formats</h4>
+     * <h3>TimeFrame Formats</h3>
      * The Format string supplied for a TimeFrame should either use the
      * syntax defined by the base Frame class (i.e. a C "printf" format
      * string), or the extended "iso" syntax described below (the default
@@ -2230,11 +2230,11 @@ public class Frame extends Mapping {
      * space unless 'T' is appended to the end of string, in which case
      * the letter T (upper case) will be used as the separator. The value of
      * the Digits attribute is ignored when using this "iso" format.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The Frame class interprets this attribute as a format
@@ -2299,7 +2299,7 @@ public class Frame extends Mapping {
      * supplied instead. This is based on the value of the Digits, or
      * Digits(axis), attribute and is chosen so that it displays the
      * requested number of digits of precision.
-     * <h4>SkyFrame Formats</h4>
+     * <h3>SkyFrame Formats</h3>
      * The Format string supplied for a SkyFrame should contain zero or
      * more of the following characters. These may occur in any order,
      * but the following is recommended for clarity:
@@ -2368,7 +2368,7 @@ public class Frame extends Mapping {
      * whole format string is assumed to conform to the syntax defined by
      * the Frame class, and the axis values is formated as a decimal
      * radians value.
-     * <h4>TimeFrame Formats</h4>
+     * <h3>TimeFrame Formats</h3>
      * The Format string supplied for a TimeFrame should either use the
      * syntax defined by the base Frame class (i.e. a C "printf" format
      * string), or the extended "iso" syntax described below (the default
@@ -2398,11 +2398,11 @@ public class Frame extends Mapping {
      * space unless 'T' is appended to the end of string, in which case
      * the letter T (upper case) will be used as the separator. The value of
      * the Digits attribute is ignored when using this "iso" format.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The Frame class interprets this attribute as a format
@@ -2463,13 +2463,13 @@ public class Frame extends Mapping {
      * <p>
      * If a Label value has not been set for a Frame axis, then a
      * suitable default is supplied.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Axis labels are intended purely for interpretation by human
      * readers and not by software.
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is the string "Axis
@@ -2515,13 +2515,13 @@ public class Frame extends Mapping {
      * <p>
      * If a Label value has not been set for a Frame axis, then a
      * suitable default is supplied.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Axis labels are intended purely for interpretation by human
      * readers and not by software.
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is the string "Axis
@@ -2576,7 +2576,7 @@ public class Frame extends Mapping {
      * will be matched and any un-matched leading axes will be
      * disregarded instead.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default MatchEnd value for a Frame is zero, so that
@@ -2609,7 +2609,7 @@ public class Frame extends Mapping {
      * will be matched and any un-matched leading axes will be
      * disregarded instead.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default MatchEnd value for a Frame is zero, so that
@@ -2639,7 +2639,7 @@ public class Frame extends Mapping {
      * same number of axes as itself. By setting a different value,
      * however, the matching process may be used to identify Frames
      * with specified numbers of axes.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When setting a MaxAxes value, the value of the MinAxes
      * attribute may also be silently changed so that it remains
      * consistent with (i.e. does not exceed) the new value. The
@@ -2648,7 +2648,7 @@ public class Frame extends Mapping {
      * <br> - If a template Frame is used to match a target with a different
      * number of axes, the MatchEnd attribute of the template is used
      * to determine how the individual axes of each Frame should match.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default MaxAxes value for a Frame is equal to the number
@@ -2689,7 +2689,7 @@ public class Frame extends Mapping {
      * same number of axes as itself. By setting a different value,
      * however, the matching process may be used to identify Frames
      * with specified numbers of axes.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When setting a MaxAxes value, the value of the MinAxes
      * attribute may also be silently changed so that it remains
      * consistent with (i.e. does not exceed) the new value. The
@@ -2698,7 +2698,7 @@ public class Frame extends Mapping {
      * <br> - If a template Frame is used to match a target with a different
      * number of axes, the MatchEnd attribute of the template is used
      * to determine how the individual axes of each Frame should match.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default MaxAxes value for a Frame is equal to the number
@@ -2739,7 +2739,7 @@ public class Frame extends Mapping {
      * same number of axes as itself. By setting a different value,
      * however, the matching process may be used to identify Frames
      * with specified numbers of axes.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When setting a MinAxes value, the value of the MaxAxes
      * attribute may also be silently changed so that it remains
      * consistent with (i.e. is not less than) the new value. The
@@ -2748,7 +2748,7 @@ public class Frame extends Mapping {
      * <br> - If a template Frame is used to match a target with a different
      * number of axes, the MatchEnd attribute of the template is used
      * to determine how the individual axes of each Frame should match.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default MinAxes value for a Frame is equal to the number
@@ -2787,7 +2787,7 @@ public class Frame extends Mapping {
      * same number of axes as itself. By setting a different value,
      * however, the matching process may be used to identify Frames
      * with specified numbers of axes.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When setting a MinAxes value, the value of the MaxAxes
      * attribute may also be silently changed so that it remains
      * consistent with (i.e. is not less than) the new value. The
@@ -2796,7 +2796,7 @@ public class Frame extends Mapping {
      * <br> - If a template Frame is used to match a target with a different
      * number of axes, the MatchEnd attribute of the template is used
      * to determine how the individual axes of each Frame should match.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default MinAxes value for a Frame is equal to the number
@@ -2830,7 +2830,7 @@ public class Frame extends Mapping {
      * which the Frame describes). This value is determined when the
      * Frame is created.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    All Frames have this attribute.
@@ -2866,7 +2866,7 @@ public class Frame extends Mapping {
      * usual "+" and "-". When converting the stored value to a string, the
      * format "[s]dd:mm:ss.ss" is used, when "[s]" is "N" or "S".
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    All Frames have this attribute.
@@ -2907,7 +2907,7 @@ public class Frame extends Mapping {
      * usual "+" and "-". When converting the stored value to a string, the
      * format "[s]dd:mm:ss.ss" is used, when "[s]" is "N" or "S".
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    All Frames have this attribute.
@@ -2950,7 +2950,7 @@ public class Frame extends Mapping {
      * format "[s]ddd:mm:ss.ss" is used, when "[s]" is "E" or "W" and the
      * numerical value is chosen to be less than 180 degrees.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    All Frames have this attribute.
@@ -2993,7 +2993,7 @@ public class Frame extends Mapping {
      * format "[s]ddd:mm:ss.ss" is used, when "[s]" is "E" or "W" and the
      * numerical value is chosen to be less than 180 degrees.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    All Frames have this attribute.
@@ -3032,7 +3032,7 @@ public class Frame extends Mapping {
      * <p>
      * The default value is 1, so that axis permutation will be attempted.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    All Frames have this attribute. However, the Frame class
@@ -3070,7 +3070,7 @@ public class Frame extends Mapping {
      * <p>
      * The default value is 1, so that axis permutation will be attempted.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    All Frames have this attribute. However, the Frame class
@@ -3152,11 +3152,11 @@ public class Frame extends Mapping {
      * <p>
      * If a Symbol value has not been set for a Frame axis, then a
      * suitable default is supplied.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Symbol value supplied by the Frame class is the
@@ -3209,11 +3209,11 @@ public class Frame extends Mapping {
      * <p>
      * If a Symbol value has not been set for a Frame axis, then a
      * suitable default is supplied.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Symbol value supplied by the Frame class is the
@@ -3272,7 +3272,7 @@ public class Frame extends Mapping {
      * System value is shown, the first of will be returned when an
      * enquiry is made.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The System attribute for a basic Frame always equals "Cartesian",
@@ -3482,7 +3482,7 @@ public class Frame extends Mapping {
      * System value is shown, the first of will be returned when an
      * enquiry is made.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The System attribute for a basic Frame always equals "Cartesian",
@@ -3686,10 +3686,10 @@ public class Frame extends Mapping {
      * <p>
      * If a Title value has not been set for a Frame, then a suitable
      * default is supplied, depending on the class of the Frame.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A Frame's Title is intended purely for interpretation by human
      * readers and not by software.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is "&lt;n&gt;-d coordinate
@@ -3722,10 +3722,10 @@ public class Frame extends Mapping {
      * <p>
      * If a Title value has not been set for a Frame, then a suitable
      * default is supplied, depending on the class of the Frame.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A Frame's Title is intended purely for interpretation by human
      * readers and not by software.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is "&lt;n&gt;-d coordinate
@@ -3753,11 +3753,11 @@ public class Frame extends Mapping {
      * highest axis value to display by axis.  
      * This attribute gives the highest axis value to be displayed (for
      * instance, by the astGrid method).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is to display all axis
@@ -3793,11 +3793,11 @@ public class Frame extends Mapping {
      * highest axis value to display by axis.  
      * This attribute gives the highest axis value to be displayed (for
      * instance, by the astGrid method).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is to display all axis
@@ -3836,11 +3836,11 @@ public class Frame extends Mapping {
      * units used to represent coordinate values on a particular axis
      * of a Frame. The astSetActiveUnit function controls how the Unit values
      * are used.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is an empty string.
@@ -3890,11 +3890,11 @@ public class Frame extends Mapping {
      * units used to represent coordinate values on a particular axis
      * of a Frame. The astSetActiveUnit function controls how the Unit values
      * are used.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is an empty string.
@@ -3947,7 +3947,7 @@ public class Frame extends Mapping {
      * For instance, if Unit is set to "s*(m/s)", the NormUnit value will
      * be "m". If no simplification can be performed, the value of the
      * NormUnit attribute will equal that of the Unit attribute.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When specifying this attribute by name, it should be
      * subscripted with the number of the Frame axis to which it
      * applies.

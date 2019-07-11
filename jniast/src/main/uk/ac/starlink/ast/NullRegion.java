@@ -14,7 +14,7 @@ package uk.ac.starlink.ast;
  * represents a Region containing no points. If the Negated attribute of
  * a NullRegion is true, the NullRegion represents an infinite Region
  * (that is, all points in the coordinate system are inside the NullRegion).
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -44,7 +44,7 @@ public class NullRegion extends Region {
      * points. If the Negated attribute of a NullRegion is true, the NullRegion
      * represents an infinite Region containing all points within the
      * coordinate system.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.

@@ -24,7 +24,7 @@ package uk.ac.starlink.ast;
  * <p>
  * For details of the individual coordinate conversions available,
  * see the description of the astSlaAdd function.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -91,7 +91,7 @@ public class SlaMap extends Mapping {
      * replaced by its own inverse. This process inverts the overall
      * effect of the SlaMap. In this case, the first conversion to be
      * applied would be the inverse of the one most recently added.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - All coordinate values processed by an SlaMap are in
      * radians. The first coordinate is the celestial longitude and the
      * second coordinate is the celestial latitude.
@@ -107,7 +107,7 @@ public class SlaMap extends Mapping {
      * <br> - This function does not check to ensure that the sequence of
      * coordinate conversions added to an SlaMap is physically
      * meaningful.
-     * <h4>SLALIB Conversions</h4>
+     * <h3>SLALIB Conversions</h3>
      * The following strings (which are case-insensitive) may be supplied
      * via the "cvt" parameter to indicate which celestial coordinate
      * conversion is to be added to the SlaMap. Each string is derived

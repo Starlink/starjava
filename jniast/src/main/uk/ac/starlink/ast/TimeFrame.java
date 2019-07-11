@@ -38,7 +38,7 @@ package uk.ac.starlink.ast;
  * When a time value is formatted it can be formated either as a simple
  * floating point value, or as a Gregorian date (see the Format
  * attribute).
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -92,7 +92,7 @@ public class TimeFrame extends Frame {
      * When a time value is formatted it can be formated either as a simple
      * floating point value, or as a Gregorian date (see the Format
      * attribute).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When conversion between two TimeFrames is requested (as when
      * supplying TimeFrames to astConvert),
      * account will be taken of the nature of the time coordinate systems
@@ -117,7 +117,7 @@ public class TimeFrame extends Frame {
      * value should be interpreted using the attribute values of the
      * TimeFrame. This includes System, TimeOrigin, LTOffset, TimeScale,
      * and Unit.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Values of AST__BAD will be returned if this function is
      * invoked with the AST error status set, or if it should fail for
      * any reason.
@@ -253,7 +253,7 @@ public class TimeFrame extends Frame {
      * stored inside the TimeFrame structure is modified whenever TimeFrame
      * attribute values are changed so that it refers to the original moment
      * in time.
-     * <h4>Input Formats</h4>
+     * <h3>Input Formats</h3>
      * The formats accepted when setting a TimeOrigin value are listed
      * below. They are all case-insensitive and are generally tolerant
      * of extra white space and alternative field delimiters:
@@ -287,7 +287,7 @@ public class TimeFrame extends Frame {
      * a fraction of a day expressed as hours, minutes and seconds
      * ("1996-Oct-2 12:13:56.985" for example). The date and time can be
      * separated by a space or by a "T" (as used by ISO8601 format).
-     * <h4>Output Format</h4>
+     * <h3>Output Format</h3>
      * When enquiring TimeOrigin values, the returned formatted floating
      * point value represents a value in the TimeFrame's System, in the unit
      * specified by the TimeFrame's Unit attribute.
@@ -311,7 +311,7 @@ public class TimeFrame extends Frame {
      * stored inside the TimeFrame structure is modified whenever TimeFrame
      * attribute values are changed so that it refers to the original moment
      * in time.
-     * <h4>Input Formats</h4>
+     * <h3>Input Formats</h3>
      * The formats accepted when setting a TimeOrigin value are listed
      * below. They are all case-insensitive and are generally tolerant
      * of extra white space and alternative field delimiters:
@@ -345,7 +345,7 @@ public class TimeFrame extends Frame {
      * a fraction of a day expressed as hours, minutes and seconds
      * ("1996-Oct-2 12:13:56.985" for example). The date and time can be
      * separated by a space or by a "T" (as used by ISO8601 format).
-     * <h4>Output Format</h4>
+     * <h3>Output Format</h3>
      * When enquiring TimeOrigin values, the returned formatted floating
      * point value represents a value in the TimeFrame's System, in the unit
      * specified by the TimeFrame's Unit attribute.
@@ -369,7 +369,7 @@ public class TimeFrame extends Frame {
      * stored inside the TimeFrame structure is modified whenever TimeFrame
      * attribute values are changed so that it refers to the original moment
      * in time.
-     * <h4>Input Formats</h4>
+     * <h3>Input Formats</h3>
      * The formats accepted when setting a TimeOrigin value are listed
      * below. They are all case-insensitive and are generally tolerant
      * of extra white space and alternative field delimiters:
@@ -403,7 +403,7 @@ public class TimeFrame extends Frame {
      * a fraction of a day expressed as hours, minutes and seconds
      * ("1996-Oct-2 12:13:56.985" for example). The date and time can be
      * separated by a space or by a "T" (as used by ISO8601 format).
-     * <h4>Output Format</h4>
+     * <h3>Output Format</h3>
      * When enquiring TimeOrigin values, the returned formatted floating
      * point value represents a value in the TimeFrame's System, in the unit
      * specified by the TimeFrame's Unit attribute.
@@ -440,7 +440,7 @@ public class TimeFrame extends Frame {
      * specifies the difference between the UT1 and UTC time scales, in seconds,
      * and defaults to zero. See the documentation for the Dut1 attribute for
      * further details.
-     * <h4>Time Scales</h4>
+     * <h3>Time Scales</h3>
      * The TimeFrame class supports the following TimeScale values (all are
      * case-insensitive):
      * <p>
@@ -458,7 +458,7 @@ public class TimeFrame extends Frame {
      * <p>
      * An very informative description of these and other time scales is
      * available at http://www.ucolick.org/~sla/leapsecs/timescales.html.
-     * <h4>UTC Warnings</h4>
+     * <h3>UTC Warnings</h3>
      * UTC should ideally be expressed using separate hours, minutes and
      * seconds fields (or at least in seconds for a given date) if leap seconds
      * are to be taken into account. Since the TimeFrame class represents
@@ -504,7 +504,7 @@ public class TimeFrame extends Frame {
      * specifies the difference between the UT1 and UTC time scales, in seconds,
      * and defaults to zero. See the documentation for the Dut1 attribute for
      * further details.
-     * <h4>Time Scales</h4>
+     * <h3>Time Scales</h3>
      * The TimeFrame class supports the following TimeScale values (all are
      * case-insensitive):
      * <p>
@@ -522,7 +522,7 @@ public class TimeFrame extends Frame {
      * <p>
      * An very informative description of these and other time scales is
      * available at http://www.ucolick.org/~sla/leapsecs/timescales.html.
-     * <h4>UTC Warnings</h4>
+     * <h3>UTC Warnings</h3>
      * UTC should ideally be expressed using separate hours, minutes and
      * seconds fields (or at least in seconds for a given date) if leap seconds
      * are to be taken into account. Since the TimeFrame class represents

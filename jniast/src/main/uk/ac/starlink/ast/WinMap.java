@@ -17,7 +17,7 @@ package uk.ac.starlink.ast;
  * A WinMap is specified by giving the coordinates of two opposite
  * corners (A and B) of the window in both the input and output
  * coordinate systems.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of

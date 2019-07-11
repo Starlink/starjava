@@ -23,7 +23,7 @@ package uk.ac.starlink.ast;
  * some coordinate systems (such as SkyFrame coordinates). A Box
  * should usually be used in these cases since this requires the user
  * to think about suitable upper and lower limits,
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -64,11 +64,11 @@ public class Interval extends Region {
      * some coordinate systems (such as SkyFrame coordinates). A Box
      * should usually be used in these cases since this requires the user
      * to think about suitable upper and lower limits,
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.
-     * <h4>Status Handling</h4>
+     * <h3>Status Handling</h3>
      * The protected interface to this function includes an extra
      * parameter at the end of the parameter list descirbed above. This
      * parameter is a pointer to the integer inherited status

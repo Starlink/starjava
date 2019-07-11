@@ -15,7 +15,7 @@ package uk.ac.starlink.ast;
  * are specified when the MatrixMap is created) to give a new
  * column-vector containing the output coordinates. If appropriate,
  * the inverse transformation may also be performed.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of

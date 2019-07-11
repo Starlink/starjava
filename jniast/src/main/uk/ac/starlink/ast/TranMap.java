@@ -20,7 +20,7 @@ package uk.ac.starlink.ast;
  * when the inverse transformation of the TranMap is referred to, the
  * transformation actually used is the inverse transformation of the
  * second Mapping supplied when the TranMap was constructed.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of

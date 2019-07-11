@@ -13,7 +13,7 @@ package uk.ac.starlink.ast;
  * 2-dimensional compound Frame. Such a Frame can for instance be used
  * to describe a Plot of a spectrum in which the first axis represents
  * spectral position and the second axis represents flux.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of

@@ -18,7 +18,7 @@ package uk.ac.starlink.ast;
  * is simply a container class for a family of specialised sub-classes
  * including StcCatalogEntryLocation, StcResourceProfile, StcSearchLocation
  * and StcObsDataLocation.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -179,7 +179,7 @@ public abstract class Stc extends Region {
      * Obtain a copy of the encapsulated Region within a Stc.   
      * This function returns a pointer to a deep copy of the Region
      * supplied when the Stc was created.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.

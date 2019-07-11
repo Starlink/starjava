@@ -76,7 +76,7 @@ package uk.ac.starlink.ast;
  * It is possible to negate an existing Region so that it represents all
  * areas of the encapsulated Frame except for the area specified when
  * the Region was created.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -110,7 +110,7 @@ public abstract class Region extends Frame {
      * the Frame represented by the Region. The value of the Negated
      * attribute is ignored (i.e. it is assumed that the Region has not
      * been negated).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      *  The value of the Negated attribute is ignored (i.e. it is assumed that
      * he Region has not been negated).
      *  If an axis has no extent on an axis then the lower limit will be
@@ -134,7 +134,7 @@ public abstract class Region extends Frame {
      * Obtain a pointer to the encapsulated Frame within a Region.   
      * This function returns a pointer to the Frame represented by a
      * Region.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.
@@ -152,7 +152,7 @@ public abstract class Region extends Frame {
      * returns the axis values at the points that define the supplied
      * Region. The particular meaning of these points will depend on the
      * type of class supplied, as listed below under "Applicability:".
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the coordinate system represented by the Region has been
      * changed since it was first created, the returned axis values refer
      * to the new (changed) coordinate system, rather than the original
@@ -178,7 +178,7 @@ public abstract class Region extends Frame {
      * associated with positions within the supplied Region. See
      * astSetUnc
      * for more information about Region uncertainties and their use.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If uncertainty information is associated with a Region, and the
      * coordinate system described by the Region is subsequently changed
      * (e.g. by changing the value of its System attribute, or using the
@@ -213,7 +213,7 @@ public abstract class Region extends Frame {
      * Mapping is supplied which transforms positions between the old and new
      * coordinate systems. The new Region may not be of the same class as
      * the original region.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The uncertainty associated with the supplied Region is modified
      * using the supplied Mapping.
      * <br> - A null Object pointer (AST__NULL) will be returned if this
@@ -265,7 +265,7 @@ public abstract class Region extends Frame {
      * not possible (for instance because the two Regions represent areas in
      * different domains), then the check cannot be performed and a zero value
      * is returned to indicate this.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The returned values 5 and 6 do not check the value of the Closed
      * attribute in the two Regions.
      * <br> - A value of zero will be returned if this function is invoked with the
@@ -295,7 +295,7 @@ public abstract class Region extends Frame {
      * with type "float", you should use the function astMaskF (see
      * the "Data Type Codes" section below for the codes appropriate to
      * other numerical types).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A value of zero will be returned if this function is invoked
      * with the global error status set, or if it should fail for any
      * reason.

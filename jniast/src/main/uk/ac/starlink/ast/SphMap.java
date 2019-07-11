@@ -17,7 +17,7 @@ package uk.ac.starlink.ast;
  * with the sphere surface. The inverse transformation always
  * produces points which are a unit distance from the origin
  * (i.e. unit vectors).
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -67,7 +67,7 @@ public class SphMap extends Mapping {
      * length, the input vector may not have. This will, in general,
      * change the coordinate values, so it prevents the pair of SphMaps
      * being simplified.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This attribute is intended mainly for use when SphMaps are
      * involved in a sequence of Mappings which project (e.g.) a
      * dataset on to the celestial sphere. By regarding the celestial
@@ -112,7 +112,7 @@ public class SphMap extends Mapping {
      * length, the input vector may not have. This will, in general,
      * change the coordinate values, so it prevents the pair of SphMaps
      * being simplified.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This attribute is intended mainly for use when SphMaps are
      * involved in a sequence of Mappings which project (e.g.) a
      * dataset on to the celestial sphere. By regarding the celestial

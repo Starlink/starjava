@@ -29,7 +29,7 @@ package uk.ac.starlink.ast;
  * The inverse transformation of a PcdMap removes the distortion
  * produced by the forward transformation. The expression used to derive
  * R from RD is an approximate inverse of the expression above.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -126,7 +126,7 @@ public class PcdMap extends Mapping {
      * respectively. This attribute is set when a PcdMap is created, but may
      * later be modified. If the attribute is cleared, the default value for
      * both axes is zero.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "PcdCen" instead of
      * "PcdCen(2)"), then a "set" or "clear" operation will affect
      * the attribute value of both axes, while a "get" or "test"
@@ -158,7 +158,7 @@ public class PcdMap extends Mapping {
      * respectively. This attribute is set when a PcdMap is created, but may
      * later be modified. If the attribute is cleared, the default value for
      * both axes is zero.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "PcdCen" instead of
      * "PcdCen(2)"), then a "set" or "clear" operation will affect
      * the attribute value of both axes, while a "get" or "test"

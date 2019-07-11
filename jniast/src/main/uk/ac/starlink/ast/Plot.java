@@ -62,7 +62,7 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
  * FrameSet, however, in that an attempt to transform points which
  * lie in clipped areas of the Plot will result in bad coordinate
  * values (AST__BAD).
- * <h4>Graphical Elements</h4>
+ * <h3>Graphical Elements</h3>
  * The colour index, character font, character size, line style and
  * line width used for plotting can be set independently for
  * various elements of the graphical output produced by a Plot.
@@ -95,7 +95,7 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
  * <br> - Ticks1: Tick marks (both major and minor) for axis 1 drawn using astGrid
  * <br> - Ticks2: Tick marks (both major and minor) for axis 2 drawn using astGrid
  * <br> - Title: The Plot title drawn using astGrid
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -359,7 +359,7 @@ public class Plot extends FrameSet {
      * coordinates in the 3D current Frame of the Plot3D, then additional
      * lines are drawn along the edges of the 3D plotting volume so that
      * the entire plotting volume is enclosed within a cuboid grid.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A value of zero will be returned if this function is invoked
      * with the AST error status set, or if it should fail for any
      * reason.
@@ -379,7 +379,7 @@ public class Plot extends FrameSet {
      * which produce graphical output. If no such previous call has yet
      * been made, or if the call failed for any reason, then the bounding box
      * returned by this function is undefined.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - An error results if the base Frame of the Plot is not
      * 2-dimensional.
      * @return  
@@ -396,7 +396,7 @@ public class Plot extends FrameSet {
      * Any subsequent graphical output created using the Plot will then
      * be visible only within the unclipped regions of the plotting
      * area. See also the Clip attribute.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Only one clipping Frame may be active at a time. This function
      * will deactivate any previously-established clipping Frame before
      * setting up new clipping limits.
@@ -490,7 +490,7 @@ public class Plot extends FrameSet {
      * <p>
      * If you need to draw curves which are not geodesics, see astGenCurve
      * or astGridLine.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - No curve is drawn if either of the "start" or "finish" arrays
      * contains any coordinates with the value AST__BAD.
      * <br> - An error results if the base Frame of the Plot is not 2-dimensional.
@@ -523,7 +523,7 @@ public class Plot extends FrameSet {
      * <p>
      * If you need to draw simple straight lines (geodesics), astCurve
      * or astPolyCurve will usually be easier to use and faster.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - An error results if the base Frame of the Plot is not 2-dimensional.
      * <br> - An error also results if the transformation between the
      * current and base Frames of the Plot is not defined (i.e. the
@@ -551,7 +551,7 @@ public class Plot extends FrameSet {
      * superimposed. Details of the axes and grid can be controlled by
      * setting values for the various attributes defined by the Plot
      * class (q.v.).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the supplied Plot is a Plot3D, the axes will be annotated
      * using three 2-dimensional Plots, one for each 2D plane in the 3D
      * current coordinate system. The plots will be "pasted" onto 3 faces
@@ -582,7 +582,7 @@ public class Plot extends FrameSet {
      * non-linear. Any discontinuities in the Mapping between physical
      * and graphical coordinates are catered for, as is any
      * clipping established using astClip.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - No curve is drawn if the "start" array contains any
      * coordinates with the value AST__BAD, nor if "length" has this value.
      * <br> - An error results if the base Frame of the Plot is not 2-dimensional.
@@ -614,7 +614,7 @@ public class Plot extends FrameSet {
      * positions are transformed into graphical coordinates to
      * determine where the markers should appear within the plotting
      * area.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Markers are not drawn at positions which have any coordinate
      * equal to the value AST__BAD (or where the transformation into
      * graphical coordinates yields coordinates containing the value
@@ -666,7 +666,7 @@ public class Plot extends FrameSet {
      * As with astCurve, full account is taken of the Mapping between
      * physical and graphical coordinate systems. This includes any
      * discontinuities and clipping established using astClip.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - No curve is drawn on either side of any point which has any
      * coordinate equal to the value AST__BAD.
      * <br> - An error results if the base Frame of the Plot is not
@@ -700,7 +700,7 @@ public class Plot extends FrameSet {
      * the physical coordinate system of a Plot. The physical position
      * is transformed into graphical coordinates to determine where the
      * text should appear within the plotting area.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The Plot3D class currently does not interpret graphical escape
      * sequences contained within text displayed using this method.
      * <br> - Text is not drawn at positions which have any coordinate equal
@@ -920,7 +920,7 @@ public class Plot extends FrameSet {
      * default behaviour is for all graphical elements to be drawn
      * using the default colour index supplied by this graphics system
      * (normally, this is likely to result in white plotting on a black
-     * background, or vice versa).<h4>Notes</h4>
+     * background, or vice versa).<h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Colour" instead
@@ -1026,7 +1026,7 @@ public class Plot extends FrameSet {
      * default behaviour is for all graphical elements to be drawn
      * using the default colour index supplied by this graphics system
      * (normally, this is likely to result in white plotting on a black
-     * background, or vice versa).<h4>Notes</h4>
+     * background, or vice versa).<h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Colour" instead
@@ -1133,7 +1133,7 @@ public class Plot extends FrameSet {
      * default behaviour is for all graphical elements to be drawn
      * using the default colour index supplied by this graphics system
      * (normally, this is likely to result in white plotting on a black
-     * background, or vice versa).<h4>Notes</h4>
+     * background, or vice versa).<h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Colour" instead
@@ -1187,7 +1187,7 @@ public class Plot extends FrameSet {
      * <p>
      * If the DrawAxes value of a Plot is non-zero (the default), then
      * axis lines will be drawn, otherwise they will be omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Axis lines are drawn independently of any coordinate grid
      * lines (see the Grid attribute) so grid lines may be used to
      * substitute for axis lines if required.
@@ -1235,7 +1235,7 @@ public class Plot extends FrameSet {
      * <p>
      * If the DrawAxes value of a Plot is non-zero (the default), then
      * axis lines will be drawn, otherwise they will be omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Axis lines are drawn independently of any coordinate grid
      * lines (see the Grid attribute) so grid lines may be used to
      * substitute for axis lines if required.
@@ -1284,7 +1284,7 @@ public class Plot extends FrameSet {
      * <p>
      * If the DrawAxes value of a Plot is non-zero (the default), then
      * axis lines will be drawn, otherwise they will be omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Axis lines are drawn independently of any coordinate grid
      * lines (see the Grid attribute) so grid lines may be used to
      * substitute for axis lines if required.
@@ -1320,7 +1320,7 @@ public class Plot extends FrameSet {
      * <p>
      * If the DrawAxes value of a Plot is non-zero (the default), then
      * axis lines will be drawn, otherwise they will be omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Axis lines are drawn independently of any coordinate grid
      * lines (see the Grid attribute) so grid lines may be used to
      * substitute for axis lines if required.
@@ -1348,7 +1348,7 @@ public class Plot extends FrameSet {
      * <p>
      * If the DrawTitle value of a Plot is non-zero (the default), then
      * the title will be drawn, otherwise it will be omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The text used for the title is obtained from the Plot's Title
      * attribute.
      * <br> - The vertical placement of the title can be controlled using
@@ -1369,7 +1369,7 @@ public class Plot extends FrameSet {
      * <p>
      * If the DrawTitle value of a Plot is non-zero (the default), then
      * the title will be drawn, otherwise it will be omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The text used for the title is obtained from the Plot's Title
      * attribute.
      * <br> - The vertical placement of the title can be controlled using
@@ -1399,7 +1399,7 @@ public class Plot extends FrameSet {
      * Labelling attribute) but cannot be produced using these default
      * Edge values, then the default values will be swapped if this
      * enables exterior labelling to be produced.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - In some circumstances, numerical labels will be drawn along
      * internal grid lines instead of at the edges of the plotting area
      * (see the Labelling attribute). In this case, the Edge attribute
@@ -1443,7 +1443,7 @@ public class Plot extends FrameSet {
      * Labelling attribute) but cannot be produced using these default
      * Edge values, then the default values will be swapped if this
      * enables exterior labelling to be produced.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - In some circumstances, numerical labels will be drawn along
      * internal grid lines instead of at the edges of the plotting area
      * (see the Labelling attribute). In this case, the Edge attribute
@@ -1486,7 +1486,7 @@ public class Plot extends FrameSet {
      * below when printed. Otherwise, they are printed literally.
      * <p>
      * See also the {@link uk.ac.starlink.ast.grf.GrfEscape#setEscapes} function.
-     * <h4>Escape Sequences</h4>
+     * <h3>Escape Sequences</h3>
      * Escape sequences are introduced into the text string by a percent
      * "%" character. Any unrecognised, illegal or incomplete escape sequences
      * are printed literally. The following escape sequences are
@@ -1586,7 +1586,7 @@ public class Plot extends FrameSet {
      * below when printed. Otherwise, they are printed literally.
      * <p>
      * See also the {@link uk.ac.starlink.ast.grf.GrfEscape#setEscapes} function.
-     * <h4>Escape Sequences</h4>
+     * <h3>Escape Sequences</h3>
      * Escape sequences are introduced into the text string by a percent
      * "%" character. Any unrecognised, illegal or incomplete escape sequences
      * are printed literally. The following escape sequences are
@@ -1684,7 +1684,7 @@ public class Plot extends FrameSet {
      * system.  The default behaviour is for all graphical elements to
      * be drawn using the default font supplied by this graphics
      * system.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Font" instead
@@ -1777,7 +1777,7 @@ public class Plot extends FrameSet {
      * system.  The default behaviour is for all graphical elements to
      * be drawn using the default font supplied by this graphics
      * system.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Font" instead
@@ -1871,7 +1871,7 @@ public class Plot extends FrameSet {
      * system.  The default behaviour is for all graphical elements to
      * be drawn using the default font supplied by this graphics
      * system.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Font" instead
@@ -1909,7 +1909,7 @@ public class Plot extends FrameSet {
      * system.  The default behaviour is for all graphical elements to
      * be drawn using the default font supplied by this graphics
      * system.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Font" instead
@@ -1954,7 +1954,7 @@ public class Plot extends FrameSet {
      * attribute. The default behaviour is for the Plot to generate its
      * own Gap value when required, based on the range of axis values
      * to be represented.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The Gap value should use the same units as are used internally
      * for storing coordinate values on the corresponding axis. For
      * example, with a celestial coordinate system, the Gap value
@@ -2003,7 +2003,7 @@ public class Plot extends FrameSet {
      * attribute. The default behaviour is for the Plot to generate its
      * own Gap value when required, based on the range of axis values
      * to be represented.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The Gap value should use the same units as are used internally
      * for storing coordinate values on the corresponding axis. For
      * example, with a celestial coordinate system, the Gap value
@@ -2053,7 +2053,7 @@ public class Plot extends FrameSet {
      * attribute. The default behaviour is for the Plot to generate its
      * own Gap value when required, based on the range of axis values
      * to be represented.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The Gap value should use the same units as are used internally
      * for storing coordinate values on the corresponding axis. For
      * example, with a celestial coordinate system, the Gap value
@@ -2082,7 +2082,7 @@ public class Plot extends FrameSet {
      * the major axis values.  The default behaviour is to use tick
      * marks if the entire plotting area is filled by valid physical
      * coordinates, but to draw grid lines otherwise.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The spacing between major axis values, which determines the
      * spacing of grid lines, may be set using the Gap(axis) attribute.
      *
@@ -2105,7 +2105,7 @@ public class Plot extends FrameSet {
      * the major axis values.  The default behaviour is to use tick
      * marks if the entire plotting area is filled by valid physical
      * coordinates, but to draw grid lines otherwise.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The spacing between major axis values, which determines the
      * spacing of grid lines, may be set using the Gap(axis) attribute.
      *
@@ -2183,7 +2183,7 @@ public class Plot extends FrameSet {
      * <p>
      * The default bahaviour is for the Plot to generate its own
      * position for numerical labels and tick marks.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The LabelAt value should use the same units as are used
      * internally for storing coordinate values on the appropriate
      * axis. For example, with a celestial coordinate system, the
@@ -2237,7 +2237,7 @@ public class Plot extends FrameSet {
      * <p>
      * The default bahaviour is for the Plot to generate its own
      * position for numerical labels and tick marks.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The LabelAt value should use the same units as are used
      * internally for storing coordinate values on the appropriate
      * axis. For example, with a celestial coordinate system, the
@@ -2288,7 +2288,7 @@ public class Plot extends FrameSet {
      * include a unit description unless the current Frame of the Plot
      * is a SkyFrame representing equatorial, ecliptic, galactic or
      * supergalactic coordinates, in which case it is omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The text used for the unit description is obtained from the
      * Plot's Unit(axis) attribute.
      * <br> - If no axis is specified, (e.g. "LabelUnits" instead of
@@ -2336,7 +2336,7 @@ public class Plot extends FrameSet {
      * include a unit description unless the current Frame of the Plot
      * is a SkyFrame representing equatorial, ecliptic, galactic or
      * supergalactic coordinates, in which case it is omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The text used for the unit description is obtained from the
      * Plot's Unit(axis) attribute.
      * <br> - If no axis is specified, (e.g. "LabelUnits" instead of
@@ -2385,7 +2385,7 @@ public class Plot extends FrameSet {
      * include a unit description unless the current Frame of the Plot
      * is a SkyFrame representing equatorial, ecliptic, galactic or
      * supergalactic coordinates, in which case it is omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The text used for the unit description is obtained from the
      * Plot's Unit(axis) attribute.
      * <br> - If no axis is specified, (e.g. "LabelUnits" instead of
@@ -2423,7 +2423,7 @@ public class Plot extends FrameSet {
      * around the edge of the plot, and to produce labels that follow the
      * axes if the labels are placed within the interior of the plot (see
      * attribute Labelling).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - In some circumstances, numerical labels and tick marks are
      * drawn around the edges of the plotting area (see the Labelling
      * attribute).  In this case, the value of the LabelUp attribute is
@@ -2471,7 +2471,7 @@ public class Plot extends FrameSet {
      * around the edge of the plot, and to produce labels that follow the
      * axes if the labels are placed within the interior of the plot (see
      * attribute Labelling).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - In some circumstances, numerical labels and tick marks are
      * drawn around the edges of the plotting area (see the Labelling
      * attribute).  In this case, the value of the LabelUp attribute is
@@ -2520,7 +2520,7 @@ public class Plot extends FrameSet {
      * around the edge of the plot, and to produce labels that follow the
      * axes if the labels are placed within the interior of the plot (see
      * attribute Labelling).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - In some circumstances, numerical labels and tick marks are
      * drawn around the edges of the plotting area (see the Labelling
      * attribute).  In this case, the value of the LabelUp attribute is
@@ -2548,7 +2548,7 @@ public class Plot extends FrameSet {
      * around the edges of the plotting area, if possible. If this is
      * not possible, or if the Labelling value is "interior", then they
      * are placed along grid lines inside the plotting area.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The LabelAt(axis) attribute may be used to determine the exact
      * placement of labels and tick marks that are drawn inside the
      * plotting area.
@@ -2571,7 +2571,7 @@ public class Plot extends FrameSet {
      * around the edges of the plotting area, if possible. If this is
      * not possible, or if the Labelling value is "interior", then they
      * are placed along grid lines inside the plotting area.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The LabelAt(axis) attribute may be used to determine the exact
      * placement of labels and tick marks that are drawn inside the
      * plotting area.
@@ -2602,7 +2602,7 @@ public class Plot extends FrameSet {
      * supplied, an error will be reported when the grid is drawn. The default
      * behaviour is for the Plot to generate its own LogGap value when
      * required, based on the range of axis values to be represented.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The LogGap value is a ratio between axis values and is therefore
      * dimensionless.
      * <br> - If no axis is specified, (e.g. "LogGap" instead of "LogGap(2)"),
@@ -2648,7 +2648,7 @@ public class Plot extends FrameSet {
      * supplied, an error will be reported when the grid is drawn. The default
      * behaviour is for the Plot to generate its own LogGap value when
      * required, based on the range of axis values to be represented.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The LogGap value is a ratio between axis values and is therefore
      * dimensionless.
      * <br> - If no axis is specified, (e.g. "LogGap" instead of "LogGap(2)"),
@@ -2695,7 +2695,7 @@ public class Plot extends FrameSet {
      * supplied, an error will be reported when the grid is drawn. The default
      * behaviour is for the Plot to generate its own LogGap value when
      * required, based on the range of axis values to be represented.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The LogGap value is a ratio between axis values and is therefore
      * dimensionless.
      * <br> - If no axis is specified, (e.g. "LogGap" instead of "LogGap(2)"),
@@ -2725,7 +2725,7 @@ public class Plot extends FrameSet {
      * <p>
      * The default is to produce exponential labels if the major tick
      * marks are logarithmically spaced (see the LogTicks attribute).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "LogLabel" instead of
      * "LogLabel(2)"), then a "set" or "clear" operation will affect the
      * attribute value of all the Plot axes, while a "get" or "test"
@@ -2765,7 +2765,7 @@ public class Plot extends FrameSet {
      * <p>
      * The default is to produce exponential labels if the major tick
      * marks are logarithmically spaced (see the LogTicks attribute).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "LogLabel" instead of
      * "LogLabel(2)"), then a "set" or "clear" operation will affect the
      * attribute value of all the Plot axes, while a "get" or "test"
@@ -2806,7 +2806,7 @@ public class Plot extends FrameSet {
      * <p>
      * The default is to produce exponential labels if the major tick
      * marks are logarithmically spaced (see the LogTicks attribute).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "LogLabel" instead of
      * "LogLabel(2)"), then a "set" or "clear" operation will affect the
      * attribute value of all the Plot axes, while a "get" or "test"
@@ -2835,7 +2835,7 @@ public class Plot extends FrameSet {
      * If the LogPlot value of a Plot axis is non-zero, it causes that
      * axis to be mapped logarithmically, otherwise (the default) the axis
      * is mapped linearly.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The setting of the LogPlot attribute provides the default value
      * for the related LogTicks attribute. By selecting suitable values for
      * LogPlot and LogTicks, it is possible to have tick marks which are evenly
@@ -2888,7 +2888,7 @@ public class Plot extends FrameSet {
      * If the LogPlot value of a Plot axis is non-zero, it causes that
      * axis to be mapped logarithmically, otherwise (the default) the axis
      * is mapped linearly.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The setting of the LogPlot attribute provides the default value
      * for the related LogTicks attribute. By selecting suitable values for
      * LogPlot and LogTicks, it is possible to have tick marks which are evenly
@@ -2942,7 +2942,7 @@ public class Plot extends FrameSet {
      * If the LogPlot value of a Plot axis is non-zero, it causes that
      * axis to be mapped logarithmically, otherwise (the default) the axis
      * is mapped linearly.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The setting of the LogPlot attribute provides the default value
      * for the related LogTicks attribute. By selecting suitable values for
      * LogPlot and LogTicks, it is possible to have tick marks which are evenly
@@ -2989,7 +2989,7 @@ public class Plot extends FrameSet {
      * LogPlot attribute is non-zero and the ratio of maximum axis value
      * to minimum axis value is 100 or more. If either of these conditions
      * is not met, the default is to produce linearly spaced tick marks.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The setting of the LogTicks attribute does not affect the mapping
      * of the plot onto the screen, which is controlled by attribute LogPlot.
      * By selecting suitable values for LogPlot and LogTicks, it is possible to
@@ -3043,7 +3043,7 @@ public class Plot extends FrameSet {
      * LogPlot attribute is non-zero and the ratio of maximum axis value
      * to minimum axis value is 100 or more. If either of these conditions
      * is not met, the default is to produce linearly spaced tick marks.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The setting of the LogTicks attribute does not affect the mapping
      * of the plot onto the screen, which is controlled by attribute LogPlot.
      * By selecting suitable values for LogPlot and LogTicks, it is possible to
@@ -3098,7 +3098,7 @@ public class Plot extends FrameSet {
      * LogPlot attribute is non-zero and the ratio of maximum axis value
      * to minimum axis value is 100 or more. If either of these conditions
      * is not met, the default is to produce linearly spaced tick marks.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The setting of the LogTicks attribute does not affect the mapping
      * of the plot onto the screen, which is controlled by attribute LogPlot.
      * By selecting suitable values for LogPlot and LogTicks, it is possible to
@@ -3138,7 +3138,7 @@ public class Plot extends FrameSet {
      * drawn inside the plotting area (see the Grid attribute). If so,
      * the default MajTickLen value is zero (so that major ticks are
      * not drawn), otherwise the default is +0.015.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "MajTickLen" instead of
      * "MajTickLen(2)"), then a "set" or "clear" operation will affect
      * the attribute value of all the Plot axes, while a "get" or "test"
@@ -3184,7 +3184,7 @@ public class Plot extends FrameSet {
      * drawn inside the plotting area (see the Grid attribute). If so,
      * the default MajTickLen value is zero (so that major ticks are
      * not drawn), otherwise the default is +0.015.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "MajTickLen" instead of
      * "MajTickLen(2)"), then a "set" or "clear" operation will affect
      * the attribute value of all the Plot axes, while a "get" or "test"
@@ -3231,7 +3231,7 @@ public class Plot extends FrameSet {
      * drawn inside the plotting area (see the Grid attribute). If so,
      * the default MajTickLen value is zero (so that major ticks are
      * not drawn), otherwise the default is +0.015.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "MajTickLen" instead of
      * "MajTickLen(2)"), then a "set" or "clear" operation will affect
      * the attribute value of all the Plot axes, while a "get" or "test"
@@ -3262,7 +3262,7 @@ public class Plot extends FrameSet {
      * values cause them to be placed on the inside.
      * <p>
      * The default value is +0.007.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The number of minor tick marks drawn is determined by the
      * Plot's MinTick(axis) attribute.
      * <br> - If no axis is specified, (e.g. "MinTickLen" instead of
@@ -3307,7 +3307,7 @@ public class Plot extends FrameSet {
      * values cause them to be placed on the inside.
      * <p>
      * The default value is +0.007.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The number of minor tick marks drawn is determined by the
      * Plot's MinTick(axis) attribute.
      * <br> - If no axis is specified, (e.g. "MinTickLen" instead of
@@ -3353,7 +3353,7 @@ public class Plot extends FrameSet {
      * values cause them to be placed on the inside.
      * <p>
      * The default value is +0.007.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The number of minor tick marks drawn is determined by the
      * Plot's MinTick(axis) attribute.
      * <br> - If no axis is specified, (e.g. "MinTickLen" instead of
@@ -3384,7 +3384,7 @@ public class Plot extends FrameSet {
      * more than the number of minor tick marks to be drawn.  By
      * default, a value is chosen that depends on the gap between major
      * axis values and the nature of the axis.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "MinTick" instead of
      * "MinTick(2)"), then a "set" or "clear" operation will affect
      * the attribute value of all the Plot axes, while a "get" or
@@ -3424,7 +3424,7 @@ public class Plot extends FrameSet {
      * more than the number of minor tick marks to be drawn.  By
      * default, a value is chosen that depends on the gap between major
      * axis values and the nature of the axis.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "MinTick" instead of
      * "MinTick(2)"), then a "set" or "clear" operation will affect
      * the attribute value of all the Plot axes, while a "get" or
@@ -3465,7 +3465,7 @@ public class Plot extends FrameSet {
      * more than the number of minor tick marks to be drawn.  By
      * default, a value is chosen that depends on the gap between major
      * axis values and the nature of the axis.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "MinTick" instead of
      * "MinTick(2)"), then a "set" or "clear" operation will affect
      * the attribute value of all the Plot axes, while a "get" or
@@ -3491,7 +3491,7 @@ public class Plot extends FrameSet {
      * If the NumLab value of a Plot axis is non-zero (the default),
      * then numerical labels will be drawn for that axis, otherwise
      * they will be omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The drawing of associated descriptive axis labels for a Plot
      * (describing the quantity being plotted along each axis) is
      * controlled by the TextLab(axis) attribute.
@@ -3532,7 +3532,7 @@ public class Plot extends FrameSet {
      * If the NumLab value of a Plot axis is non-zero (the default),
      * then numerical labels will be drawn for that axis, otherwise
      * they will be omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The drawing of associated descriptive axis labels for a Plot
      * (describing the quantity being plotted along each axis) is
      * controlled by the TextLab(axis) attribute.
@@ -3574,7 +3574,7 @@ public class Plot extends FrameSet {
      * If the NumLab value of a Plot axis is non-zero (the default),
      * then numerical labels will be drawn for that axis, otherwise
      * they will be omitted.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The drawing of associated descriptive axis labels for a Plot
      * (describing the quantity being plotted along each axis) is
      * controlled by the TextLab(axis) attribute.
@@ -3609,7 +3609,7 @@ public class Plot extends FrameSet {
      * <p>
      * The NumLabGap value should be given as a fraction of the minimum
      * dimension of the plotting area, the default value being +0.01.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "NumLabGap" instead of
      * "NumLabGap(2)"), then a "set" or "clear" operation will affect
      * the attribute value of all the Plot axes, while a "get" or
@@ -3653,7 +3653,7 @@ public class Plot extends FrameSet {
      * <p>
      * The NumLabGap value should be given as a fraction of the minimum
      * dimension of the plotting area, the default value being +0.01.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "NumLabGap" instead of
      * "NumLabGap(2)"), then a "set" or "clear" operation will affect
      * the attribute value of all the Plot axes, while a "get" or
@@ -3698,7 +3698,7 @@ public class Plot extends FrameSet {
      * <p>
      * The NumLabGap value should be given as a fraction of the minimum
      * dimension of the plotting area, the default value being +0.01.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If no axis is specified, (e.g. "NumLabGap" instead of
      * "NumLabGap(2)"), then a "set" or "clear" operation will affect
      * the attribute value of all the Plot axes, while a "get" or
@@ -3724,7 +3724,7 @@ public class Plot extends FrameSet {
      * The default behaviour is for all graphical elements to be drawn
      * using the default character size supplied by this graphics
      * system.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Size" instead
@@ -3814,7 +3814,7 @@ public class Plot extends FrameSet {
      * The default behaviour is for all graphical elements to be drawn
      * using the default character size supplied by this graphics
      * system.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Size" instead
@@ -3905,7 +3905,7 @@ public class Plot extends FrameSet {
      * The default behaviour is for all graphical elements to be drawn
      * using the default character size supplied by this graphics
      * system.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Size" instead
@@ -3940,7 +3940,7 @@ public class Plot extends FrameSet {
      * The default behaviour is for all graphical elements to be drawn
      * using the default character size supplied by this graphics
      * system.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Size" instead
@@ -3975,7 +3975,7 @@ public class Plot extends FrameSet {
      * behaviour is for all graphical elements to be drawn using the
      * default line style supplied by this graphics system (normally,
      * this is likely to give a solid line).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Style" instead of
@@ -4066,7 +4066,7 @@ public class Plot extends FrameSet {
      * behaviour is for all graphical elements to be drawn using the
      * default line style supplied by this graphics system (normally,
      * this is likely to give a solid line).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Style" instead of
@@ -4158,7 +4158,7 @@ public class Plot extends FrameSet {
      * behaviour is for all graphical elements to be drawn using the
      * default line style supplied by this graphics system (normally,
      * this is likely to give a solid line).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Style" instead of
@@ -4197,7 +4197,7 @@ public class Plot extends FrameSet {
      * labels if tick marks and numerical labels are being drawn around
      * the edges of the plotting area (see the Labelling attribute),
      * but to omit them otherwise.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The text used for the descriptive labels is derived from the
      * Plot's Label(axis) attribute, together with its Unit(axis)
      * attribute if appropriate (see the LabelUnits(axis) attribute).
@@ -4244,7 +4244,7 @@ public class Plot extends FrameSet {
      * labels if tick marks and numerical labels are being drawn around
      * the edges of the plotting area (see the Labelling attribute),
      * but to omit them otherwise.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The text used for the descriptive labels is derived from the
      * Plot's Label(axis) attribute, together with its Unit(axis)
      * attribute if appropriate (see the LabelUnits(axis) attribute).
@@ -4292,7 +4292,7 @@ public class Plot extends FrameSet {
      * labels if tick marks and numerical labels are being drawn around
      * the edges of the plotting area (see the Labelling attribute),
      * but to omit them otherwise.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The text used for the descriptive labels is derived from the
      * Plot's Label(axis) attribute, together with its Unit(axis)
      * attribute if appropriate (see the LabelUnits(axis) attribute).
@@ -4331,7 +4331,7 @@ public class Plot extends FrameSet {
      * <p>
      * The TextLabGap value should be given as a fraction of the minimum
      * dimension of the plotting area, the default value being +0.01.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If drawn, descriptive labels are always placed at the edges of
      * the plotting area, even although the corresponding numerical
      * labels may be drawn along axis lines in the interior of the
@@ -4380,7 +4380,7 @@ public class Plot extends FrameSet {
      * <p>
      * The TextLabGap value should be given as a fraction of the minimum
      * dimension of the plotting area, the default value being +0.01.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If drawn, descriptive labels are always placed at the edges of
      * the plotting area, even although the corresponding numerical
      * labels may be drawn along axis lines in the interior of the
@@ -4430,7 +4430,7 @@ public class Plot extends FrameSet {
      * <p>
      * The TextLabGap value should be given as a fraction of the minimum
      * dimension of the plotting area, the default value being +0.01.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If drawn, descriptive labels are always placed at the edges of
      * the plotting area, even although the corresponding numerical
      * labels may be drawn along axis lines in the interior of the
@@ -4458,7 +4458,7 @@ public class Plot extends FrameSet {
      * they will be drawn only on those edges where the numerical and
      * descriptive axis labels are drawn (see the Edge(axis)
      * attribute).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - In some circumstances, numerical labels and tick marks are
      * drawn along grid lines inside the plotting area, rather than
      * around its edges (see the Labelling attribute).  In this case,
@@ -4482,7 +4482,7 @@ public class Plot extends FrameSet {
      * they will be drawn only on those edges where the numerical and
      * descriptive axis labels are drawn (see the Edge(axis)
      * attribute).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - In some circumstances, numerical labels and tick marks are
      * drawn along grid lines inside the plotting area, rather than
      * around its edges (see the Labelling attribute).  In this case,
@@ -4509,7 +4509,7 @@ public class Plot extends FrameSet {
      * <p>
      * The TitleGap value should be given as a fraction of the minimum
      * dimension of the plotting area, the default value being +0.05.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The text used for the title is obtained from the Plot's Title
      * attribute.
      *
@@ -4534,7 +4534,7 @@ public class Plot extends FrameSet {
      * <p>
      * The TitleGap value should be given as a fraction of the minimum
      * dimension of the plotting area, the default value being +0.05.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The text used for the title is obtained from the Plot's Title
      * attribute.
      *
@@ -4603,7 +4603,7 @@ public class Plot extends FrameSet {
      * graphical elements to be drawn using the default line width
      * supplied by this graphics system. This will not necessarily
      * correspond to a Width value of 1.0.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Width" instead of
@@ -4695,7 +4695,7 @@ public class Plot extends FrameSet {
      * graphical elements to be drawn using the default line width
      * supplied by this graphics system. This will not necessarily
      * correspond to a Width value of 1.0.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Width" instead of
@@ -4788,7 +4788,7 @@ public class Plot extends FrameSet {
      * graphical elements to be drawn using the default line width
      * supplied by this graphics system. This will not necessarily
      * correspond to a Width value of 1.0.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For a list of the graphical elements available, see the
      * description of the Plot class.
      * <br> - If no graphical element is specified, (e.g. "Width" instead of

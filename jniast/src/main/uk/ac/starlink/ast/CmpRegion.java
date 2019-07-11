@@ -41,7 +41,7 @@ package uk.ac.starlink.ast;
  * component in forming further CmpRegions. Regions of arbitrary
  * complexity may be built from simple individual Regions in this
  * way.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -104,7 +104,7 @@ public class CmpRegion extends Region {
      * component in forming further CmpRegions. Regions of arbitrary
      * complexity may be built from simple individual Regions in this
      * way.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If one of the supplied Regions has an associated uncertainty,
      * that uncertainty will also be used for the returned CmpRegion.
      * If both supplied Regions have associated uncertainties, the

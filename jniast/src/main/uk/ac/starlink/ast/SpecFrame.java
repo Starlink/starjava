@@ -21,7 +21,7 @@ package uk.ac.starlink.ast;
  * By setting a value for thr SpecOrigin attribute, a SpecFrame can be made
  * to represent offsets from a given spectral position, rather than absolute
  * spectral values.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -57,7 +57,7 @@ public class SpecFrame extends Frame {
      * RefDec) converted to the celestial coordinate system represented by
      * a supplied SkyFrame. The celestial longitude and latitude values
      * are returned in radians.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Values of AST__BAD will be returned if this function is
      * invoked with the AST error status set, or if it should fail for
      * any reason.
@@ -476,7 +476,7 @@ public class SpecFrame extends Frame {
      * by the SourceVRF attribute.
      * <p>
      * The default SourceVel value is zero.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - It is important to set an appropriate value for SourceVRF and
      * SourceSys before setting a value for SourceVel. If a new value is later
      * set for SourceVRF or SourceSys, the value stored for SourceVel will
@@ -514,7 +514,7 @@ public class SpecFrame extends Frame {
      * by the SourceVRF attribute.
      * <p>
      * The default SourceVel value is zero.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - It is important to set an appropriate value for SourceVRF and
      * SourceSys before setting a value for SourceVel. If a new value is later
      * set for SourceVRF or SourceSys, the value stored for SourceVel will
@@ -586,7 +586,7 @@ public class SpecFrame extends Frame {
      * listed in the "Standards of Rest" section (below).
      * <p>
      * The default StdOfRest value is "Helio".
-     * <h4>Standards of Rest</h4>
+     * <h3>Standards of Rest</h3>
      * The SpecFrame class supports the following StdOfRest values (all are
      * case-insensitive):
      * <p>
@@ -658,7 +658,7 @@ public class SpecFrame extends Frame {
      * listed in the "Standards of Rest" section (below).
      * <p>
      * The default StdOfRest value is "Helio".
-     * <h4>Standards of Rest</h4>
+     * <h3>Standards of Rest</h3>
      * The SpecFrame class supports the following StdOfRest values (all are
      * case-insensitive):
      * <p>

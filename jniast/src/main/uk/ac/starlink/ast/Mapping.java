@@ -19,7 +19,7 @@ package uk.ac.starlink.ast;
  * function of its own, as it is simply a container class for a
  * family of specialised Mappings which implement particular types
  * of coordinate transformation.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -109,7 +109,7 @@ public class Mapping extends AstObject {
      * other Mappings. It is of potential benefit, for example, in
      * reducing execution time if applied before using a Mapping to
      * transform a large number of coordinates.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This function can safely be applied even to Mappings which
      * cannot be simplified. If no simplification is possible, it
      * behaves exactly like astClone and returns a pointer to the
@@ -136,7 +136,7 @@ public class Mapping extends AstObject {
      * Since the Frame class inherits from the Mapping class, Frames can
      * be considered as special types of Mappings and so this method can
      * be used to decompose either CmpMaps or CmpFrames.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The returned Invert values should be used in preference to the
      * current values of the Invert attribute in map1 and map2. This is
      * because the attributes may have changed value since the Mappings
@@ -190,7 +190,7 @@ public class Mapping extends AstObject {
      * these bounding values are attained. It should be used repeatedly
      * to obtain the extent of the bounding box in more than one
      * dimension.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Any input points which are transformed by the Mapping to give
      * output coordinates containing the value AST__BAD are regarded as
      * invalid and are ignored. They will make no contribution to
@@ -285,7 +285,7 @@ public class Mapping extends AstObject {
      * supplied Mapping, then
      * a NULL
      * Mapping pointer is returned.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If this
      * function
      * is invoked with the global error status set, or if it should fail for
@@ -390,11 +390,11 @@ public class Mapping extends AstObject {
      * approximation is found, or the region to which it is being
      * applied becomes too small (in which case the original Mapping is
      * used directly).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A value of zero will be returned if this function is invoked
      * with the global error status set, or if it should fail for any
      * reason.
-     * <h4>Propagation of Missing Data</h4>
+     * <h3>Propagation of Missing Data</h3>
      * Unless the AST__NOBAD flag is specified, instances of missing data
      * (bad pixels) in the output grid are
      * identified by occurrences of the "badval" value in the "out"
@@ -839,7 +839,7 @@ public class Mapping extends AstObject {
      * approximation is found, or the region to which it is being
      * applied becomes too small (in which case the original Mapping is
      * used directly).
-     * <h4>Pixel Spreading Schemes</h4>
+     * <h3>Pixel Spreading Schemes</h3>
      * The pixel spreading scheme specifies the Point Spread Function (PSF)
      * applied to each input pixel value as it is copied into the output
      * array. It can be thought of as the inverse of the sub-pixel
@@ -898,7 +898,7 @@ public class Mapping extends AstObject {
      * to zero. This should be given as a number of output pixels on either
      * side of the central output point in each dimension (the nearest integer
      * value is used).
-     * <h4>Propagation of Missing Data</h4>
+     * <h3>Propagation of Missing Data</h3>
      * Instances of missing data (bad pixels) in the output grid are
      * identified by occurrences of the "badval" value in the "out"
      * array. These are produced if the sum of the weights of the
@@ -1198,7 +1198,7 @@ public class Mapping extends AstObject {
      * Transform 1-dimensional coordinates.   
      * This function applies a Mapping to transform the coordinates of
      * a set of points in one dimension.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The Mapping supplied must have the value 1 for both its Nin
      * and Nout attributes.
      * @param   npoint
@@ -1225,7 +1225,7 @@ public class Mapping extends AstObject {
      * Transform 2-dimensional coordinates.   
      * This function applies a Mapping to transform the coordinates of
      * a set of points in two dimensions.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The Mapping supplied must have the value 2 for both its Nin
      * and Nout attributes.
      * @param   npoint
@@ -1266,7 +1266,7 @@ public class Mapping extends AstObject {
      * <p>
      * If the coordinates are not stored in a single array, then the
      * astTranP function might be more suitable.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the forward coordinate transformation is being applied, the
      * Mapping supplied must have the value of "ncoord_in" for its Nin
      * attribute and the value of "ncoord_out" for its Nout attribute. If
@@ -1325,7 +1325,7 @@ public class Mapping extends AstObject {
      * <p>
      * If the coordinates are stored in a single (2-dimensional) array,
      * then the astTranN function might be more suitable.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the forward coordinate transformation is being applied, the
      * Mapping supplied must have the value of "ncoord_in" for its Nin
      * attribute and the value of "ncoord_out" for its Nout
@@ -1379,7 +1379,7 @@ public class Mapping extends AstObject {
      * sub-division continues until a sufficiently good linear approximation
      * is found, or the region to which it is being applied becomes too small
      * (in which case the original Mapping is used directly).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the forward coordinate transformation is being applied, the
      * Mapping supplied must have the value of "ncoord_in" for its Nin
      * attribute and the value of "ncoord_out" for its Nout attribute. If
@@ -1493,7 +1493,7 @@ public class Mapping extends AstObject {
      * polynomial and the supplied Mapping function. This method produces
      * good accuracy but can involve evaluating the Mapping 100 or more
      * times.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A value of AST__BAD will be returned if this function is invoked
      * with the global error status set, or if it should fail for any
      * reason.
@@ -1530,7 +1530,7 @@ public class Mapping extends AstObject {
      * forward transformation within the specified range of output coordinates.
      * If the transformation is not sufficiently linear, no coefficients
      * are returned.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - This function fits the Mapping's forward transformation. To fit
      * the inverse transformation, the Mapping should be inverted using
      * astInvert
@@ -1601,7 +1601,7 @@ public class Mapping extends AstObject {
      * attributes will also be interchanged. This operation may be
      * performed with the astInvert function.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Mapping</dt><dd>
      *    All Mappings have this attribute.
@@ -1643,7 +1643,7 @@ public class Mapping extends AstObject {
      * attributes will also be interchanged. This operation may be
      * performed with the astInvert function.
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Mapping</dt><dd>
      *    All Mappings have this attribute.
@@ -1675,7 +1675,7 @@ public class Mapping extends AstObject {
      * dimensions of the space in which the Mapping's input points
      * reside).
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Mapping</dt><dd>
      *    All Mappings have this attribute.
@@ -1714,7 +1714,7 @@ public class Mapping extends AstObject {
      * dimensions of the space in which the Mapping's output points
      * reside).
      * 
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Mapping</dt><dd>
      *    All Mappings have this attribute.
@@ -1758,13 +1758,13 @@ public class Mapping extends AstObject {
      * <p>
      * This attribute is provided as an aid to debugging, and to avoid
      * having to report values explicitly in simple programs.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Unlike most other attributes, the value of the Report
      * attribute is not transferred when a Mapping is copied. Instead,
      * its value is undefined (and therefore defaults to zero) in any
      * copy. Similarly, it becomes undefined in any external
      * representation of a Mapping produced by the astWrite function.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Mapping</dt><dd>
      *    All Mappings have this attribute.
@@ -1807,13 +1807,13 @@ public class Mapping extends AstObject {
      * <p>
      * This attribute is provided as an aid to debugging, and to avoid
      * having to report values explicitly in simple programs.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Unlike most other attributes, the value of the Report
      * attribute is not transferred when a Mapping is copied. Instead,
      * its value is undefined (and therefore defaults to zero) in any
      * copy. Similarly, it becomes undefined in any external
      * representation of a Mapping produced by the astWrite function.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Mapping</dt><dd>
      *    All Mappings have this attribute.
@@ -1852,10 +1852,10 @@ public class Mapping extends AstObject {
      * coordinates into output coordinates). If this attribute is
      * non-zero, the forward transformation is available. Otherwise, it
      * is not.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - An error will result if a Mapping with a TranForward value of
      * zero is used to transform coordinates in the forward direction.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Mapping</dt><dd>
      *    All Mappings have this attribute.
@@ -1889,10 +1889,10 @@ public class Mapping extends AstObject {
      * coordinates back into input coordinates). If this attribute is
      * non-zero, the inverse transformation is available. Otherwise, it
      * is not.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - An error will result if a Mapping with a TranInverse value of
      * zero is used to transform coordinates in the inverse direction.
-     * <h4>Class Applicability</h4>
+     * <h3>Class Applicability</h3>
      * <dl>
      * <dt>Mapping</dt><dd>
      *    All Mappings have this attribute.

@@ -32,7 +32,7 @@ package uk.ac.starlink.ast;
  * using the ObsLon and ObsLat attributes of the Frame encapsulated
  * within the Stc representing the observation location (this assumes
  * the observatory is located at sea level).
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of

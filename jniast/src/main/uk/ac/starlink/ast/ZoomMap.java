@@ -14,7 +14,7 @@ package uk.ac.starlink.ast;
  * scale factor (the inverse transformation is performed by
  * dividing by this scale factor). The number of coordinate values
  * representing each point is unchanged.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -66,7 +66,7 @@ public class ZoomMap extends Mapping {
      * Note that if a ZoomMap is inverted (e.g. by using astInvert),
      * then the reciprocal of this zoom factor will, in effect, be
      * used.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The Zoom attribute may not be set to zero.
      *
      * @return  this object's Zoom attribute
@@ -87,7 +87,7 @@ public class ZoomMap extends Mapping {
      * Note that if a ZoomMap is inverted (e.g. by using astInvert),
      * then the reciprocal of this zoom factor will, in effect, be
      * used.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The Zoom attribute may not be set to zero.
      *
      * @param  zoom   the Zoom attribute of this object

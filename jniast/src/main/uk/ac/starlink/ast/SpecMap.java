@@ -36,7 +36,7 @@ package uk.ac.starlink.ast;
  * <p>
  * For details of the individual coordinate conversions available,
  * see the description of the astSpecAdd function.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -107,7 +107,7 @@ public class SpecMap extends Mapping {
      * replaced by its own inverse. This process inverts the overall
      * effect of the SpecMap. In this case, the first conversion to be
      * applied would be the inverse of the one most recently added.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When assembling a multi-stage conversion, it can sometimes be
      * difficult to determine the most economical conversion path. For
      * example, when converting between reference frames, converting first
@@ -121,7 +121,7 @@ public class SpecMap extends Mapping {
      * <br> - This function does not check to ensure that the sequence of
      * coordinate conversions added to a SpecMap is physically
      * meaningful.
-     * <h4>Available Conversions</h4>
+     * <h3>Available Conversions</h3>
      * The following strings (which are case-insensitive) may be supplied
      * via the "cvt" parameter to indicate which spectral coordinate
      * conversion is to be added to the SpecMap. Where arguments are needed by

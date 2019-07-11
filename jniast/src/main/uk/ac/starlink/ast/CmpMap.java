@@ -22,7 +22,7 @@ package uk.ac.starlink.ast;
  * component in forming further CmpMaps. Mappings of arbitrary
  * complexity may be built from simple individual Mappings in this
  * way.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -60,7 +60,7 @@ public class CmpMap extends Mapping {
      * component in forming further CmpMaps. Mappings of arbitrary
      * complexity may be built from simple individual Mappings in this
      * way.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the component Mappings are connected in series, then using
      * the resulting CmpMap to transform coordinates will cause the
      * first Mapping to be applied, followed by the second Mapping. If

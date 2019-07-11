@@ -25,7 +25,7 @@ package uk.ac.starlink.ast;
  * determined by the values supplied for the GrismWaveR, GrismNRP and
  * GrismG attribute: whatever units are used for these attributes will
  * also be used for the wavelength values.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of

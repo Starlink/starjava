@@ -24,7 +24,7 @@ package uk.ac.starlink.ast;
  * A RateMap which has not been inverted does not define an inverse
  * transformation. If a RateMap has been inverted then it will define
  * an inverse transformation but not a forward transformation.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of

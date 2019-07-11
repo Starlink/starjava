@@ -31,7 +31,7 @@ package uk.ac.starlink.ast;
  * If the lookup table entries increase or decrease monotonically
  * (ignoring any flat sections), then the inverse transformation may
  * also be performed.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of

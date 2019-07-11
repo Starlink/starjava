@@ -205,7 +205,7 @@ sub getDescrip {
       my( $block ) = $2;
       if ( $heading !~ /^$ignoreStanzas_rx/i ) {
          # print STDERR "$heading\n";
-         $descrip .= "<h4>$heading</h4>\n";
+         $descrip .= "<h3>$heading</h3>\n";
          $descrip .= strip( 6, $block );
       }
    }

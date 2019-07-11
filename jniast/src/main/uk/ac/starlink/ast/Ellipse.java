@@ -11,7 +11,7 @@ package uk.ac.starlink.ast;
  *  - an elliptical region within a 2-dimensional Frame. 
  * The Ellipse class implements a Region which represents a ellipse
  * within a 2-dimensional Frame.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -38,7 +38,7 @@ public class Ellipse extends Region {
      * <p>
      * A Ellipse is a Region which represents a elliptical area within the
      * supplied 2-dimensional Frame.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.

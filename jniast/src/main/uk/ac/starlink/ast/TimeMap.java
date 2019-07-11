@@ -22,7 +22,7 @@ package uk.ac.starlink.ast;
  * <p>
  * For details of the individual coordinate conversions available,
  * see the description of the astTimeAdd function.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -67,7 +67,7 @@ public class TimeMap extends Mapping {
      * <p>
      * For details of the individual coordinate conversions available,
      * see the description of the astTimeAdd function.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The nature and units of the coordinate values supplied for the
      * first input (i.e. the time input) of a TimeMap must be appropriate
      * to the first conversion step applied by the TimeMap. For instance, if
@@ -114,7 +114,7 @@ public class TimeMap extends Mapping {
      * replaced by its own inverse. This process inverts the overall
      * effect of the TimeMap. In this case, the first conversion to be
      * applied would be the inverse of the one most recently added.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - When assembling a multi-stage conversion, it can sometimes be
      * difficult to determine the most economical conversion path. A solution
      * to this is to include all the steps which are (logically) necessary,
@@ -125,7 +125,7 @@ public class TimeMap extends Mapping {
      * <br> - This function does not check to ensure that the sequence of
      * coordinate conversions added to a TimeMap is physically
      * meaningful.
-     * <h4>Available Conversions</h4>
+     * <h3>Available Conversions</h3>
      * The following strings (which are case-insensitive) may be supplied
      * via the "cvt" parameter to indicate which time coordinate
      * conversion is to be added to the TimeMap. Where arguments are needed by

@@ -49,7 +49,7 @@ package uk.ac.starlink.ast;
  * required, and which have defaults. When creating the WcsMap, you must
  * explicitly set values for all those required projection parameters
  * which do not have defaults defined in this paper.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -211,7 +211,7 @@ public class WcsMap extends Mapping {
      * are provided through the PVi_j keywords.
      * <p>
      * The NatLat attribute is read-only.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A default value of AST__BAD is used if no latitude value is available.
      *
      * @return  this object's NatLat attribute
@@ -288,7 +288,7 @@ public class WcsMap extends Mapping {
      * parameters for both axes are used to represent polynomical correction
      * terms, and the native longitude and latitude at the fiducial point may
      * not be changed from the default values of zero and 90 degrees.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the projection parameter values given for a WcsMap do not
      * satisfy all the required constraints (as defined in the FITS-WCS
      * paper), then an error will result when the WcsMap is used to
@@ -350,7 +350,7 @@ public class WcsMap extends Mapping {
      * parameters for both axes are used to represent polynomical correction
      * terms, and the native longitude and latitude at the fiducial point may
      * not be changed from the default values of zero and 90 degrees.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - If the projection parameter values given for a WcsMap do not
      * satisfy all the required constraints (as defined in the FITS-WCS
      * paper), then an error will result when the WcsMap is used to

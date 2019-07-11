@@ -32,7 +32,7 @@ package uk.ac.starlink.ast;
  * as the "intermediate frequency" (IF). The value supplied for IF can
  * be a signed value in order to indicate whether the LO frequency is
  * above or below the central position.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -198,7 +198,7 @@ public class DSBSpecFrame extends SpecFrame {
      * this time in units of "km/s", before being returned.
      * <p>
      * The default value for this attribute is 30 GHz.
-     * <h4>Note</h4>
+     * <h3>Note</h3>
      * <br> - The attributes which define the transformation to or from topocentric
      * frequency should be assigned their correct values before accessing
      * this attribute. These potentially include System, Unit, StdOfRest,
@@ -238,7 +238,7 @@ public class DSBSpecFrame extends SpecFrame {
      * this time in units of "km/s", before being returned.
      * <p>
      * The default value for this attribute is 30 GHz.
-     * <h4>Note</h4>
+     * <h3>Note</h3>
      * <br> - The attributes which define the transformation to or from topocentric
      * frequency should be assigned their correct values before accessing
      * this attribute. These potentially include System, Unit, StdOfRest,

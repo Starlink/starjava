@@ -53,7 +53,7 @@ package uk.ac.starlink.ast;
  * case the Mapping between a pair of Frames within a FrameSet will
  * include the effects of the clipping produced by any Regions included
  * in the path between the Frames.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -115,7 +115,7 @@ public class FrameSet extends Frame {
      * This function
      * may also be used to merge two FrameSets, or to append extra axes
      * to every Frame in a FrameSet.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A value of AST__BASE or AST__CURRENT may be given for the
      * "iframe" parameter to specify the base Frame or the current
      * Frame respectively.
@@ -191,7 +191,7 @@ public class FrameSet extends Frame {
      * Obtain a pointer to a specified Frame in a FrameSet.   
      * This function returns a pointer to a specified Frame in a
      * FrameSet.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A value of AST__BASE or AST__CURRENT may be given for the
      * "iframe" parameter to specify the base Frame or the current
      * Frame respectively.
@@ -216,7 +216,7 @@ public class FrameSet extends Frame {
      * This function returns a pointer to a Mapping that will convert
      * coordinates between the coordinate systems represented by two
      * Frames in a FrameSet.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The returned Mapping will include the clipping effect of any
      * Regions which occur on the path between the two supplied Frames
      * (this includes the two supplied Frames themselves).
@@ -265,7 +265,7 @@ public class FrameSet extends Frame {
      * Frame describing the image will then have undergone a coordinate
      * transformation, and this should be communicated to the associated
      * FrameSet using this function.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A value of AST__BASE or AST__CURRENT may be given for the
      * "iframe" parameter to specify the base Frame or the current
      * Frame respectively.
@@ -304,7 +304,7 @@ public class FrameSet extends Frame {
      * This function removes a Frame from a FrameSet. All other Frames
      * in the FrameSet have their indices re-numbered from one (if
      * necessary), but are otherwise unchanged.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Removing a Frame from a FrameSet does not affect the
      * relationship between other Frames in the FrameSet, even if they
      * originally depended on the Frame being removed.
@@ -338,7 +338,7 @@ public class FrameSet extends Frame {
      * regarded as the "base" Frame within a FrameSet. The default is
      * the first Frame added to the FrameSet when it is created (this
      * Frame always has an index of 1).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Inverting a FrameSet (inverting the boolean sense of its
      * Invert attribute, with the astInvert function for example) will
      * interchange the values of its Base and Current attributes.
@@ -356,7 +356,7 @@ public class FrameSet extends Frame {
      * regarded as the "base" Frame within a FrameSet. The default is
      * the first Frame added to the FrameSet when it is created (this
      * Frame always has an index of 1).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Inverting a FrameSet (inverting the boolean sense of its
      * Invert attribute, with the astInvert function for example) will
      * interchange the values of its Base and Current attributes.
@@ -374,7 +374,7 @@ public class FrameSet extends Frame {
      * regarded as the "current" Frame within a FrameSet. The default
      * is the most recent Frame added to the FrameSet (this Frame
      * always has an index equal to the FrameSet's Nframe attribute).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Inverting a FrameSet (inverting the boolean sense of its
      * Invert attribute, with the astInvert function for example) will
      * interchange the values of its Base and Current attributes.
@@ -392,7 +392,7 @@ public class FrameSet extends Frame {
      * regarded as the "current" Frame within a FrameSet. The default
      * is the most recent Frame added to the FrameSet (this Frame
      * always has an index equal to the FrameSet's Nframe attribute).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - Inverting a FrameSet (inverting the boolean sense of its
      * Invert attribute, with the astInvert function for example) will
      * interchange the values of its Base and Current attributes.

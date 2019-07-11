@@ -15,7 +15,7 @@ package uk.ac.starlink.ast;
  * function) but you do not want it to have any effect.
  * The Nin and Nout attributes of a UnitMap are always equal and
  * are specified when it is created.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of

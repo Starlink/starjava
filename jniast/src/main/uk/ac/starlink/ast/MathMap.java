@@ -19,7 +19,7 @@ package uk.ac.starlink.ast;
  * MathMap therefore provides a flexible way of defining new types of
  * Mapping whose descriptions may be stored as part of a dataset and
  * interpreted by other programs.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -54,7 +54,7 @@ public class MathMap extends Mapping {
      * MathMap therefore provides a flexible way of defining new types of
      * Mapping whose descriptions may be stored as part of a dataset and
      * interpreted by other programs.
-     * <h4>Defining Transformation Functions</h4>
+     * <h3>Defining Transformation Functions</h3>
      * A MathMap's transformation functions are supplied as a set of
      * expressions in an array of character strings. Normally you would
      * supply the same number of expressions for the forward transformation,
@@ -93,7 +93,7 @@ public class MathMap extends Mapping {
      * <p>
      * for the inverse transformation above, which serves to name the input
      * variables but without defining an inverse transformation.
-     * <h4>Calculating Intermediate Values</h4>
+     * <h3>Calculating Intermediate Values</h3>
      * It is sometimes useful to calculate intermediate values and then to
      * use these in the final expressions for the output (or input)
      * variables. This may be done by supplying additional expressions for
@@ -120,7 +120,7 @@ public class MathMap extends Mapping {
      * transformation and may not be referenced by the inverse
      * transformation. The inverse transformation may, however, define its
      * own private intermediate variables.
-     * <h4>Expression Syntax</h4>
+     * <h3>Expression Syntax</h3>
      * The expressions given for the forward and inverse transformations
      * closely follow the syntax of the C programming language (with some
      * extensions for compatibility with Fortran). They may contain
@@ -131,18 +131,18 @@ public class MathMap extends Mapping {
      * over-ride the normal order of evaluation. There is no built-in limit
      * to the length of expressions and they are insensitive to case or the
      * presence of additional white space.
-     * <h4>Variables</h4>
+     * <h3>Variables</h3>
      * Variable names must begin with an alphabetic character and may contain
      * only alphabetic characters, digits, and the underscore character
      * "_". There is no built-in limit to the length of variable names.
-     * <h4>Literal Constants</h4>
+     * <h3>Literal Constants</h3>
      * Literal constants, such as "0", "1", "0.007" or "2.505e-16" may appear
      * in expressions, with the decimal point and exponent being optional (a
      * "D" may also be used as an exponent character for compatibility with
      * Fortran). A unary minus "-" may be used as a prefix.
-     * <h4>Arithmetic Precision</h4>
+     * <h3>Arithmetic Precision</h3>
      * All arithmetic is floating point, performed in double precision.
-     * <h4>Propagation of Missing Data</h4>
+     * <h3>Propagation of Missing Data</h3>
      * Unless indicated otherwise, if any argument of a function or operator
      * has the value AST__BAD (indicating missing data), then the result of
      * that function or operation is also AST__BAD, so that such values are
@@ -154,7 +154,7 @@ public class MathMap extends Mapping {
      * to any numerical error (such as division by zero or numerical
      * overflow), or if an invalid argument value is provided to a function
      * or operator.
-     * <h4>Arithmetic Operators</h4>
+     * <h3>Arithmetic Operators</h3>
      * The following arithmetic operators are available:
      * <br> - x1 + x2: Sum of "x1" and "x2".
      * <br> - x1 - x2: Difference of "x1" and "x2".
@@ -163,7 +163,7 @@ public class MathMap extends Mapping {
      * <br> - x1 ** x2: "x1" raised to the power of "x2".
      * <br> - + x: Unary plus, has no effect on its argument.
      * <br> - - x: Unary minus, negates its argument.
-     * <h4>Boolean Operators</h4>
+     * <h3>Boolean Operators</h3>
      * Boolean values are represented using zero to indicate false and
      * non-zero to indicate true. In addition, the value AST__BAD is taken to
      * mean "unknown". The values returned by boolean operators may therefore
@@ -194,7 +194,7 @@ public class MathMap extends Mapping {
      * <br> - ! x: Boolean unary NOT operation, returning 1 if "x" is zero, and
      * 0 otherwise. (The synonym ".not." is also provided for compatibility
      * with Fortran.)
-     * <h4>Relational Operators</h4>
+     * <h3>Relational Operators</h3>
      * Relational operators return the boolean result (0 or 1) of comparing
      * the values of two floating point values for equality or inequality. The
      * value AST__BAD may also be returned if either argument is &lt;bad&gt;.
@@ -216,7 +216,7 @@ public class MathMap extends Mapping {
      * Note that relational operators cannot usefully be used to compare
      * values with the &lt;bad&gt; value (representing missing data), because the
      * result is always &lt;bad&gt;. The isbad() function should be used instead.
-     * <h4>Bitwise Operators</h4>
+     * <h3>Bitwise Operators</h3>
      * The bitwise operators provided by C are often useful when operating on
      * raw data (e.g. from instruments), so they are also provided for use in
      * MathMap expressions. In this case, however, the values on which they
@@ -254,7 +254,7 @@ public class MathMap extends Mapping {
      * pure integer case because bits to the right of the binary point are
      * also inverted. To invert only those bits to the left of the binary
      * point, use a bitwise exclusive OR with the value -1 (i.e. "x^-1").
-     * <h4>Symbolic Constants</h4>
+     * <h3>Symbolic Constants</h3>
      * The following symbolic constants are available (the enclosing "&lt;&gt;"
      * brackets must be included):
      * <br> - &lt;bad&gt;: The "bad" value (AST__BAD) used to flag missing data. Note
@@ -286,7 +286,7 @@ public class MathMap extends Mapping {
      * addition. Possible values include: -1 (indeterminate), 0 (toward
      * zero), 1 (to nearest), 2 (toward plus infinity) and 3 (toward minus
      * infinity). Other values indicate machine-dependent behaviour.
-     * <h4>Evaluation Precedence and Associativity</h4>
+     * <h3>Evaluation Precedence and Associativity</h3>
      * Items appearing in expressions are evaluated in the following order
      * (highest precedence first):
      * <br> - Constants and variables
@@ -309,7 +309,7 @@ public class MathMap extends Mapping {
      * <p>
      * All operators associate from left-to-right, except for unary +,
      * unary -, !, .not. and ** which associate from right-to-left.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The sequence of numbers produced by the random number functions
      * available within a MathMap is normally unpredictable and different for
      * each MathMap. However, this behaviour may be controlled by means of
@@ -414,7 +414,7 @@ public class MathMap extends Mapping {
      * By default, the SimpFI attribute is zero, so that AST will not perform
      * this simplification unless you have set SimpFI to indicate that it is
      * safe to do so.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For simplification to occur, the two MathMaps must be in series and
      * be identical (with textually identical transformation
      * functions). Functional equivalence is not sufficient.
@@ -451,7 +451,7 @@ public class MathMap extends Mapping {
      * By default, the SimpFI attribute is zero, so that AST will not perform
      * this simplification unless you have set SimpFI to indicate that it is
      * safe to do so.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For simplification to occur, the two MathMaps must be in series and
      * be identical (with textually identical transformation
      * functions). Functional equivalence is not sufficient.
@@ -488,7 +488,7 @@ public class MathMap extends Mapping {
      * By default, the SimpIF attribute is zero, so that AST will not perform
      * this simplification unless you have set SimpIF to indicate that it is
      * safe to do so.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For simplification to occur, the two MathMaps must be in series and
      * be identical (with textually identical transformation
      * functions). Functional equivalence is not sufficient.
@@ -525,7 +525,7 @@ public class MathMap extends Mapping {
      * By default, the SimpIF attribute is zero, so that AST will not perform
      * this simplification unless you have set SimpIF to indicate that it is
      * safe to do so.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - For simplification to occur, the two MathMaps must be in series and
      * be identical (with textually identical transformation
      * functions). Functional equivalence is not sufficient.

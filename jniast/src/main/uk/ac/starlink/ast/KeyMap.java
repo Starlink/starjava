@@ -24,7 +24,7 @@ package uk.ac.starlink.ast;
  * similarity, and it should be noted that the KeyMap class inherits from
  * the Object class rather than the Mapping class. The methods of the
  * Mapping class cannot be used with a KeyMap.
- * <h4>Licence</h4>
+ * <h3>Licence</h3>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
  * published by the Free Software Foundation; either version 2 of
@@ -89,7 +89,7 @@ public class KeyMap extends AstObject {
     /** 
      * Get the number of entries in a KeyMap.   
      * This function returns the number of entries in a KeyMap.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A function value of zero will be returned if an error has already
      * occurred, or if this function should fail for any reason.
      * 
@@ -103,7 +103,7 @@ public class KeyMap extends AstObject {
      * Get the vector length of an entry in a KeyMap.   
      * This function returns the vector length of a named entry in a KeyMap,
      * (that is, how many values are associated with the entry).
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A function value of zero will be returned if an error has already
      * occurred, or if this function should fail for any reason.
      * 
@@ -125,7 +125,7 @@ public class KeyMap extends AstObject {
      * Check if an entry with a given key exists in a KeyMap.   
      * This function returns a flag indicating if the KeyMap contains an
      * entry with the given key.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A non-zero function value
      * is returned if the key exists but has an undefined value (that is,
      * the returned value does not depend on whether the entry has a
@@ -162,7 +162,7 @@ public class KeyMap extends AstObject {
      * zero to one less than the size of the KeyMap.
      * The index associated with a given entry is determined by the SortBy
      * attribute.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - The returned pointer is guaranteed to remain valid and the
      * string to which it points will not be over-written for a total
      * of 50 successive invocations of this function. After this, the
@@ -187,7 +187,7 @@ public class KeyMap extends AstObject {
      * This function returns a value indicating the data type of a
      * named entry in a KeyMap. This is the data type which was used when the
      * entry was added to the KeyMap.
-     * <h4>Notes</h4>
+     * <h3>Notes</h3>
      * <br> - A function value of AST__BADTYPE will be returned if an error has
      * already occurred, or if this function should fail for any reason.
      * 
