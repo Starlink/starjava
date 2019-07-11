@@ -226,7 +226,7 @@ public abstract class SaxParserUtil extends DefaultHandler {
         // use the reflection API to call "end<ElementName>()", if it exists
         String methodName = "_" + qName + "End";
         try {
-            this.getClass().getMethod(methodName, null).invoke(this, null);
+            this.getClass().getMethod(methodName, new Class[0]).invoke(this, new Object[0]);
         }
         catch (Exception e) {
             System.out.println("SaxParserUtil.endElement: error calling " + methodName + ": " + e + ": " + e.getMessage());

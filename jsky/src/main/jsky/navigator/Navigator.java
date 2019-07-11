@@ -99,7 +99,7 @@ public class Navigator extends CatalogNavigator implements CatalogNavigatorOpene
 	    try {
 		Class c = Class.forName(className,true,
                             Thread.currentThread().getContextClassLoader());
-		Object o = c.getMethod("getDirectory", null).invoke(null, null);
+		Object o = c.getMethod("getDirectory", new Class[0]).invoke(null, new Object[0]);
 		if (o instanceof CatalogDirectory) {
 		    _catDir = (CatalogDirectory)o;
 		    _catDir.setName("My Catalogs");

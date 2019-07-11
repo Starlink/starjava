@@ -363,7 +363,7 @@ public final class AstroCatXML extends SaxParserUtil {
 		c = this.getClass().forName(className);
 	    String path = cat.getURLPath();
 	    if (path == null || path.length() == 0) {
-		Object o = c.getMethod("getDirectory", null).invoke(null, null);
+		Object o = c.getMethod("getDirectory", new Class[0]).invoke(null, new Object[0]);
 		CatalogDirectory catDir = (CatalogDirectory)o;
 		catDir.setName(cat.getName());
 		return catDir;
