@@ -148,9 +148,9 @@ public class MathMap extends Mapping {
      * that function or operation is also AST__BAD, so that such values are
      * propagated automatically through all operations performed by MathMap
      * transformations.  The special value AST__BAD can be represented in
-     * expressions by the symbolic constant "<bad>".
+     * expressions by the symbolic constant "&lt;bad&gt;".
      * <p>
-     * A <bad> result (i.e. equal to AST__BAD) is also produced in response
+     * A &lt;bad&gt; result (i.e. equal to AST__BAD) is also produced in response
      * to any numerical error (such as division by zero or numerical
      * overflow), or if an invalid argument value is provided to a function
      * or operator.
@@ -174,7 +174,7 @@ public class MathMap extends Mapping {
      * non-zero.
      * <p>
      * The following boolean operators are available:
-     * <br> - x1 && x2: Boolean AND between "x1" and "x2", returning 1 if both "x1"
+     * <br> - x1 &amp;&amp; x2: Boolean AND between "x1" and "x2", returning 1 if both "x1"
      * and "x2" are non-zero, and 0 otherwise. This operator implements
      * tri-state logic. (The synonym ".and." is also provided for compatibility
      * with Fortran.)
@@ -197,25 +197,25 @@ public class MathMap extends Mapping {
      * <h4>Relational Operators</h4>
      * Relational operators return the boolean result (0 or 1) of comparing
      * the values of two floating point values for equality or inequality. The
-     * value AST__BAD may also be returned if either argument is <bad>.
+     * value AST__BAD may also be returned if either argument is &lt;bad&gt;.
      * <p>
      * The following relational operators are available:
      * <br> - x1 == x2: Tests whether "x1" equals "x1". (The synonym ".eq." is
      * also provided for compatibility with Fortran.)
      * <br> - x1 != x2: Tests whether "x1" is unequal to "x2". (The synonym ".ne."
      * is also provided for compatibility with Fortran.)
-     * <br> - x1 > x2: Tests whether "x1" is greater than "x2". (The synonym
+     * <br> - x1 &gt; x2: Tests whether "x1" is greater than "x2". (The synonym
      * ".gt." is also provided for compatibility with Fortran.)
-     * <br> - x1 >= x2: Tests whether "x1" is greater than or equal to "x2". (The
+     * <br> - x1 &gt;= x2: Tests whether "x1" is greater than or equal to "x2". (The
      * synonym ".ge."  is also provided for compatibility with Fortran.)
-     * <br> - x1 < x2: Tests whether "x1" is less than "x2". (The synonym ".lt."
+     * <br> - x1 &lt; x2: Tests whether "x1" is less than "x2". (The synonym ".lt."
      * is also provided for compatibility with Fortran.)
-     * <br> - x1 <= x2: Tests whether "x1" is less than or equal to "x2". (The
+     * <br> - x1 &lt;= x2: Tests whether "x1" is less than or equal to "x2". (The
      * synonym ".le." is also provided for compatibility with Fortran.)
      * <p>
      * Note that relational operators cannot usefully be used to compare
-     * values with the <bad> value (representing missing data), because the
-     * result is always <bad>. The isbad() function should be used instead.
+     * values with the &lt;bad&gt; value (representing missing data), because the
+     * result is always &lt;bad&gt;. The isbad() function should be used instead.
      * <h4>Bitwise Operators</h4>
      * The bitwise operators provided by C are often useful when operating on
      * raw data (e.g. from instruments), so they are also provided for use in
@@ -230,17 +230,17 @@ public class MathMap extends Mapping {
      * representing the fractional part are also possible, however.
      * <p>
      * The following bitwise operators are available:
-     * <br> - x1 >> x2: Rightward bit shift. The integer value of "x2" is taken
+     * <br> - x1 &gt;&gt; x2: Rightward bit shift. The integer value of "x2" is taken
      * (rounding towards zero) and the bits representing "x1" are then
      * shifted this number of places to the right (or to the left if the
      * number of places is negative). This is equivalent to dividing "x1" by
      * the corresponding power of 2.
-     * <br> - x1 << x2: Leftward bit shift. The integer value of "x2" is taken
+     * <br> - x1 &lt;&lt; x2: Leftward bit shift. The integer value of "x2" is taken
      * (rounding towards zero), and the bits representing "x1" are then
      * shifted this number of places to the left (or to the right if the
      * number of places is negative). This is equivalent to multiplying "x1"
      * by the corresponding power of 2.
-     * <br> - x1 & x2: Bitwise AND between the bits of "x1" and those of "x2"
+     * <br> - x1 &amp; x2: Bitwise AND between the bits of "x1" and those of "x2"
      * (equivalent to a boolean AND applied at each bit position in turn).
      * <br> - x1 | x2: Bitwise OR between the bits of "x1" and those of "x2"
      * (equivalent to a boolean OR applied at each bit position in turn).
@@ -255,34 +255,34 @@ public class MathMap extends Mapping {
      * also inverted. To invert only those bits to the left of the binary
      * point, use a bitwise exclusive OR with the value -1 (i.e. "x^-1").
      * <h4>Symbolic Constants</h4>
-     * The following symbolic constants are available (the enclosing "<>"
+     * The following symbolic constants are available (the enclosing "&lt;&gt;"
      * brackets must be included):
-     * <br> - <bad>: The "bad" value (AST__BAD) used to flag missing data. Note
+     * <br> - &lt;bad&gt;: The "bad" value (AST__BAD) used to flag missing data. Note
      * that you cannot usefully compare values with this constant because the
-     * result is always <bad>. The isbad() function should be used instead.
-     * <br> - <dig>: Number of decimal digits of precision available in a
+     * result is always &lt;bad&gt;. The isbad() function should be used instead.
+     * <br> - &lt;dig&gt;: Number of decimal digits of precision available in a
      * floating point (double) value.
-     * <br> - <e>: Base of natural logarithms.
-     * <br> - <epsilon>: Smallest positive number such that 1.0+<epsilon> is
+     * <br> - &lt;e&gt;: Base of natural logarithms.
+     * <br> - &lt;epsilon&gt;: Smallest positive number such that 1.0+&lt;epsilon&gt; is
      * distinguishable from unity.
-     * <br> - <mant_dig>: The number of base <radix> digits stored in the
+     * <br> - &lt;mant_dig&gt;: The number of base &lt;radix&gt; digits stored in the
      * mantissa of a floating point (double) value.
-     * <br> - <max>: Maximum representable floating point (double) value.
-     * <br> - <max_10_exp>: Maximum integer such that 10 raised to that power
+     * <br> - &lt;max&gt;: Maximum representable floating point (double) value.
+     * <br> - &lt;max_10_exp&gt;: Maximum integer such that 10 raised to that power
      * can be represented as a floating point (double) value.
-     * <br> - <max_exp>: Maximum integer such that <radix> raised to that
+     * <br> - &lt;max_exp&gt;: Maximum integer such that &lt;radix&gt; raised to that
      * power minus 1 can be represented as a floating point (double) value.
-     * <br> - <min>: Smallest positive number which can be represented as a
+     * <br> - &lt;min&gt;: Smallest positive number which can be represented as a
      * normalised floating point (double) value.
-     * <br> - <min_10_exp>: Minimum negative integer such that 10 raised to that
+     * <br> - &lt;min_10_exp&gt;: Minimum negative integer such that 10 raised to that
      * power can be represented as a normalised floating point (double) value.
-     * <br> - <min_exp>: Minimum negative integer such that <radix> raised to
+     * <br> - &lt;min_exp&gt;: Minimum negative integer such that &lt;radix&gt; raised to
      * that power minus 1 can be represented as a normalised floating point
      * (double) value.
-     * <br> - <pi>: Ratio of the circumference of a circle to its diameter.
-     * <br> - <radix>: The radix (number base) used to represent the mantissa of
+     * <br> - &lt;pi&gt;: Ratio of the circumference of a circle to its diameter.
+     * <br> - &lt;radix&gt;: The radix (number base) used to represent the mantissa of
      * floating point (double) values.
-     * <br> - <rounds>: The mode used for rounding floating point results after
+     * <br> - &lt;rounds&gt;: The mode used for rounding floating point results after
      * addition. Possible values include: -1 (indeterminate), 0 (toward
      * zero), 1 (to nearest), 2 (toward plus infinity) and 3 (toward minus
      * infinity). Other values indicate machine-dependent behaviour.
@@ -296,13 +296,13 @@ public class MathMap extends Mapping {
      * <br> - **
      * <br> - * /
      * <br> - + -
-     * <br> - << >>
-     * <br> - < .lt. <= .le. > .gt. >= .ge.
+     * <br> - &lt;&lt; &gt;&gt;
+     * <br> - &lt; .lt. &lt;= .le. &gt; .gt. &gt;= .ge.
      * <br> - == .eq. != .ne.
-     * <br> - &
+     * <br> - &amp;
      * <br> - ^
      * <br> - |
-     * <br> - && .and.
+     * <br> - &amp;&amp; .and.
      * <br> - ^^
      * <br> - || .or
      * <br> - .eqv. .neqv. .xor.

@@ -1201,8 +1201,8 @@ public class Plot extends FrameSet {
      * "test" operation will use just the DrawAxes(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the DrawAxes attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -1249,8 +1249,8 @@ public class Plot extends FrameSet {
      * "test" operation will use just the DrawAxes(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  drawAxes  the DrawAxes attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -1408,8 +1408,8 @@ public class Plot extends FrameSet {
      * axis lines).
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the Edge attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -1452,8 +1452,8 @@ public class Plot extends FrameSet {
      * axis lines).
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  edge  the Edge attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -1511,12 +1511,12 @@ public class Plot extends FrameSet {
      *   %v+     - Draw subsequent characters with the normal base-line
      *             (equivalent to %^+).
      * <p>
-     *   %>...+  - Leave a gap before drawing subsequent characters.
+     *   %&gt;...+  - Leave a gap before drawing subsequent characters.
      *             The digits "..." give the size of the gap, scaled
      *             so that a value of "100" corresponds to the height of
      *             "normal" text.
      * <p>
-     *   %<...+  - Move backwards before drawing subsequent characters.
+     *   %&lt;...+  - Move backwards before drawing subsequent characters.
      *             The digits "..." give the size of the movement, scaled
      *             so that a value of "100" corresponds to the height of
      *             "normal" text.
@@ -1611,12 +1611,12 @@ public class Plot extends FrameSet {
      *   %v+     - Draw subsequent characters with the normal base-line
      *             (equivalent to %^+).
      * <p>
-     *   %>...+  - Leave a gap before drawing subsequent characters.
+     *   %&gt;...+  - Leave a gap before drawing subsequent characters.
      *             The digits "..." give the size of the gap, scaled
      *             so that a value of "100" corresponds to the height of
      *             "normal" text.
      * <p>
-     *   %<...+  - Move backwards before drawing subsequent characters.
+     *   %&lt;...+  - Move backwards before drawing subsequent characters.
      *             The digits "..." give the size of the movement, scaled
      *             so that a value of "100" corresponds to the height of
      *             "normal" text.
@@ -1965,8 +1965,8 @@ public class Plot extends FrameSet {
      * will use just the Gap(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the Gap attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -2014,8 +2014,8 @@ public class Plot extends FrameSet {
      * will use just the Gap(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  gap  the Gap attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -2198,8 +2198,8 @@ public class Plot extends FrameSet {
      * ignored.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the LabelAt attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -2252,8 +2252,8 @@ public class Plot extends FrameSet {
      * ignored.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  labelAt  the LabelAt attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -2301,8 +2301,8 @@ public class Plot extends FrameSet {
      * extracted from a SkyFrame.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the LabelUnits attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -2349,8 +2349,8 @@ public class Plot extends FrameSet {
      * extracted from a SkyFrame.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  labelUnits  the LabelUnits attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -2434,8 +2434,8 @@ public class Plot extends FrameSet {
      * operation will use just the LabelUp(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the LabelUp attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -2482,8 +2482,8 @@ public class Plot extends FrameSet {
      * operation will use just the LabelUp(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  labelUp  the LabelUp attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -2611,8 +2611,8 @@ public class Plot extends FrameSet {
      * will use just the LogGap(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the LogGap attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -2657,8 +2657,8 @@ public class Plot extends FrameSet {
      * will use just the LogGap(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  logGap  the LogGap attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -2732,8 +2732,8 @@ public class Plot extends FrameSet {
      * operation will use just the LogLabel(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the LogLabel attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -2772,8 +2772,8 @@ public class Plot extends FrameSet {
      * operation will use just the LogLabel(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  logLabel  the LogLabel attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -2854,8 +2854,8 @@ public class Plot extends FrameSet {
      * operation will use just the LogPlot(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the LogPlot attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -2907,8 +2907,8 @@ public class Plot extends FrameSet {
      * operation will use just the LogPlot(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  logPlot  the LogPlot attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -3003,8 +3003,8 @@ public class Plot extends FrameSet {
      * operation will use just the LogTicks(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the LogTicks attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -3057,8 +3057,8 @@ public class Plot extends FrameSet {
      * operation will use just the LogTicks(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  logTicks  the LogTicks attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -3146,8 +3146,8 @@ public class Plot extends FrameSet {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the MajTickLen attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -3192,8 +3192,8 @@ public class Plot extends FrameSet {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  majTickLen  the MajTickLen attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -3272,8 +3272,8 @@ public class Plot extends FrameSet {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the MinTickLen attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -3317,8 +3317,8 @@ public class Plot extends FrameSet {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  minTickLen  the MinTickLen attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -3391,8 +3391,8 @@ public class Plot extends FrameSet {
      * "test" operation will use just the MinTick(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the MinTick attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -3431,8 +3431,8 @@ public class Plot extends FrameSet {
      * "test" operation will use just the MinTick(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  minTick  the MinTick attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -3501,8 +3501,8 @@ public class Plot extends FrameSet {
      * operation will use just the NumLab(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the NumLab attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -3542,8 +3542,8 @@ public class Plot extends FrameSet {
      * operation will use just the NumLab(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  numLab  the NumLab attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -3616,8 +3616,8 @@ public class Plot extends FrameSet {
      * "test" operation will use just the NumLabGap(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the NumLabGap attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -3660,8 +3660,8 @@ public class Plot extends FrameSet {
      * "test" operation will use just the NumLabGap(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  numLabGap  the NumLabGap attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -4210,8 +4210,8 @@ public class Plot extends FrameSet {
      * "test" operation will use just the TextLab(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the TextLab attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -4257,8 +4257,8 @@ public class Plot extends FrameSet {
      * "test" operation will use just the TextLab(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  textLab  the TextLab attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -4342,8 +4342,8 @@ public class Plot extends FrameSet {
      * "test" operation will use just the TextLabGap(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the TextLabGap attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -4391,8 +4391,8 @@ public class Plot extends FrameSet {
      * "test" operation will use just the TextLabGap(1) value.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  textLabGap  the TextLabGap attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the

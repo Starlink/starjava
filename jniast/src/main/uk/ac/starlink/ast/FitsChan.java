@@ -29,9 +29,9 @@ import java.io.*;
  * the FitsChan's integer Card attribute, which identifies a "current"
  * card, to which subsequent operations apply. Searches
  * based on keyword may be performed (using astFindFits), new
- * cards may be inserted (astPutFits, astPutCards, astSetFits<X>) and
- * existing ones may be deleted (astDelFits), extracted (astGetFits<X>),
- * or changed (astSetFits<X>).
+ * cards may be inserted (astPutFits, astPutCards, astSetFits&lt;X&gt;) and
+ * existing ones may be deleted (astDelFits), extracted (astGetFits&lt;X&gt;),
+ * or changed (astSetFits&lt;X&gt;).
  * <p>
  * When you create a FitsChan, you have the option of specifying
  * "source" and "sink" functions which connect it to external data
@@ -808,7 +808,7 @@ public class FitsChan extends Channel {
      * default), it is assumed that the CAR projection conforms to the
      * conventions described in the FITS world coordinate system (FITS-WCS)
      * paper II "Representation of Celestial Coordinates in FITS" by
-     * M. Calabretta & E.W. Greisen. If CarLin is non-zero, then these
+     * M. Calabretta &amp; E.W. Greisen. If CarLin is non-zero, then these
      * conventions are ignored, and it is assumed that the mapping from pixel
      * coordinates to celestial coordinates is a simple linear transformation
      * (hence the attribute name "CarLin"). This is appropriate for some older
@@ -841,7 +841,7 @@ public class FitsChan extends Channel {
      * default), it is assumed that the CAR projection conforms to the
      * conventions described in the FITS world coordinate system (FITS-WCS)
      * paper II "Representation of Celestial Coordinates in FITS" by
-     * M. Calabretta & E.W. Greisen. If CarLin is non-zero, then these
+     * M. Calabretta &amp; E.W. Greisen. If CarLin is non-zero, then these
      * conventions are ignored, and it is assumed that the mapping from pixel
      * coordinates to celestial coordinates is a simple linear transformation
      * (hence the attribute name "CarLin"). This is appropriate for some older
@@ -882,7 +882,7 @@ public class FitsChan extends Channel {
      * (which also represent a square matrix) together with a corresponding
      * set of CDELTi keywords representing the axis scalings. See FITS-WCS
      * paper II "Representation of Celestial Coordinates in FITS" by
-     * M. Calabretta & E.W. Greisen, for a complete description of these two
+     * M. Calabretta &amp; E.W. Greisen, for a complete description of these two
      * schemes.
      * <p>
      * The default value of the CDMatrix attribute is determined by the
@@ -924,7 +924,7 @@ public class FitsChan extends Channel {
      * (which also represent a square matrix) together with a corresponding
      * set of CDELTi keywords representing the axis scalings. See FITS-WCS
      * paper II "Representation of Celestial Coordinates in FITS" by
-     * M. Calabretta & E.W. Greisen, for a complete description of these two
+     * M. Calabretta &amp; E.W. Greisen, for a complete description of these two
      * schemes.
      * <p>
      * The default value of the CDMatrix attribute is determined by the
@@ -1724,7 +1724,7 @@ public class FitsChan extends Channel {
      * etc., applied to the pixel axes, and is specified by keywords such as
      * PCi_j, CDi_j, CROTA, etc. For example, the matrix will not be invertable
      * if any rows or columns consist entirely of zeros. The FITS-WCS Paper I
-     * "Representation of World Coordinates in FITS" by Greisen & Calabretta
+     * "Representation of World Coordinates in FITS" by Greisen &amp; Calabretta
      * requires that this matrix be invertable. Many operations (such as
      * grid plotting) will not be possible if the matrix cannot be inverted.
      * <p>

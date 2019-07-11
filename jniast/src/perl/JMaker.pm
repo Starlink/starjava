@@ -315,8 +315,8 @@ sub makeSetAttribByAxis {
      * Set $startText by axis.  $moreText
      *
      * \@param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * \@param  $name  the $Name attribute for the indicated axis 
      *                of this object.
      * \@throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -359,8 +359,8 @@ sub makeGetAttribByAxis {
      * Get $startText by axis.  $moreText
      *
      * \@param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * \@return       the $Name attribute for the indicated axis of this object
      * \@throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>

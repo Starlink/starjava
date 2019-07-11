@@ -32,7 +32,7 @@ package uk.ac.starlink.ast;
  * <p>
  * In addition, since Frame inherits from Mapping, a Region is also a sort
  * of Mapping. Transforming positions by supplying a Region to one of the
- * astTran<X> functions
+ * astTran&lt;X&gt; functions
  * is the way to determine if a given position is inside or outside the
  * Region. When used as a Mapping, most classes of Frame are equivalent to
  * a UnitMap. However, the Region class modifies this behaviour so that a
@@ -289,8 +289,8 @@ public abstract class Region extends Frame {
      * the specified Region.
      * <p>
      * You should use a masking function which matches the numerical
-     * type of the data you are processing by replacing <X> in
-     * the generic function name astMask<X> by an appropriate 1- or
+     * type of the data you are processing by replacing &lt;X&gt; in
+     * the generic function name astMask&lt;X&gt; by an appropriate 1- or
      * 2-character type code. For example, if you are masking data
      * with type "float", you should use the function astMaskF (see
      * the "Data Type Codes" section below for the codes appropriate to

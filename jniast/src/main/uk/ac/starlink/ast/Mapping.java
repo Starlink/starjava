@@ -334,8 +334,8 @@ public class Mapping extends AstObject {
      * is supported.
      * <p>
      * You should use a resampling function which matches the numerical
-     * type of the data you are processing by replacing <X> in
-     * the generic function name astResample<X> by an appropriate 1- or
+     * type of the data you are processing by replacing &lt;X&gt; in
+     * the generic function name astResample&lt;X&gt; by an appropriate 1- or
      * 2-character type code. For example, if you are resampling data
      * with type "float", you should use the function astResampleF (see
      * the "Data Type Codes" section below for the codes appropriate to
@@ -358,7 +358,7 @@ public class Mapping extends AstObject {
      * scaling the output values using the ratio of the output pixel size
      * to the input pixel size. However, if accurate flux conservation is
      * important to you, consder using the
-     * astRebin<X> or astRebinSeq<X> family of functions
+     * astRebin&lt;X&gt; or astRebinSeq&lt;X&gt; family of functions
      * instead.
      * <p>
      * Output pixel coordinates are transformed into the coordinate
@@ -552,7 +552,7 @@ public class Mapping extends AstObject {
      * elements in the "out" (and "out_var") array(s) for which
      * resampled values could not be obtained (see the "Propagation
      * of Missing Data" section below for details of the
-     * circumstances under which this may occur). The astResample<X>
+     * circumstances under which this may occur). The astResample&lt;X&gt;
      * function return value indicates whether any such values have
      * been produced. If the AST__NOBAD flag is set. then output array
      * elements for which no resampled value could be obtained are
@@ -786,12 +786,12 @@ public class Mapping extends AstObject {
      * <p>
      * Note, if you will be rebining a sequence of input arrays and then
      * co-adding them into a single array, the alternative
-     * astRebinSeq<X> functions
+     * astRebinSeq&lt;X&gt; functions
      * will in general be more efficient.
      * <p>
      * You should use a rebinning function which matches the numerical
-     * type of the data you are processing by replacing <X> in
-     * the generic function name astRebin<X> by an appropriate 1- or
+     * type of the data you are processing by replacing &lt;X&gt; in
+     * the generic function name astRebin&lt;X&gt; by an appropriate 1- or
      * 2-character type code. For example, if you are rebinning data
      * with type "float", you should use the function astRebinF (see
      * the "Data Type Codes" section below for the codes appropriate to
@@ -844,7 +844,7 @@ public class Mapping extends AstObject {
      * applied to each input pixel value as it is copied into the output
      * array. It can be thought of as the inverse of the sub-pixel
      * interpolation schemes used by the
-     * astResample<X>
+     * astResample&lt;X&gt;
      * group of functions. That is, in a sub-pixel interpolation scheme the
      * kernel specifies the weight to assign to each input pixel when
      * forming the weighted mean of the input pixels, whereas the kernel in a
@@ -854,7 +854,7 @@ public class Mapping extends AstObject {
      * between schemes which tend to degrade sharp features in the data by
      * smoothing them, and those which attempt to preserve sharp features but
      * which often tend to introduce unwanted artifacts. See the
-     * astResample<X>
+     * astResample&lt;X&gt;
      * documentation for further discussion.
      * <p>
      * The binning algorithm used has the ability to introduce artifacts
@@ -873,7 +873,7 @@ public class Mapping extends AstObject {
      * may be assigned to the
      * "spread"
      * parameter. See the
-     * astResample<X>
+     * astResample&lt;X&gt;
      * documentation for details of these schemes including the use of the
      * "fspread" and "params" parameters:
      * <p>
@@ -886,7 +886,7 @@ public class Mapping extends AstObject {
      * <br> - AST__SOMBCOS
      * <p>
      * In addition, the following schemes can be used with
-     * astRebin<X> but not with astResample<X>:
+     * astRebin&lt;X&gt; but not with astResample&lt;X&gt;:
      * <p>
      * <br> - AST__GAUSS: This scheme uses a kernel of the form exp(-k*x*x), with k
      * a positive constant determined by the full-width at half-maximum (FWHM).
@@ -2101,7 +2101,7 @@ public class Mapping extends AstObject {
          * Returns a resampling interpolator which uses a
          * <code>somb(pi*x).cos(k*pi*x)</code> 1-dimensional kernel.
          * <code>k</code> is a constant, out to the point where
-         * <code>cos(k*pi*x) goes to zero, and zero beyond,
+         * <code>cos(k*pi*x)</code> goes to zero, and zero beyond,
          * and <code>somb(z)=2*1(z)/z</code> (J1 is a Bessel function
          * of the first kind of order 1).
          *

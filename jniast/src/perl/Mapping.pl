@@ -200,7 +200,7 @@ makeNativeMethod(
    ],
 );
 
-$fName = "resample<X>";
+$fName = "resample&lt;X&gt;";
 makeJavaMethodHeader(
    name => ( "resample" ),
    purpose => FuncPurpose( $fName ),
@@ -515,7 +515,7 @@ __EOT__
 # }
 
 
-$fName = "rebin<X>";
+$fName = "rebin&lt;X&gt;";
 makeJavaMethodHeader(
    name => "rebin",
    purpose => FuncPurpose( $fName ),
@@ -1193,7 +1193,7 @@ print <<'__EOT__';
          * Returns a resampling interpolator which uses a
          * <code>somb(pi*x).cos(k*pi*x)</code> 1-dimensional kernel.
          * <code>k</code> is a constant, out to the point where
-         * <code>cos(k*pi*x) goes to zero, and zero beyond,
+         * <code>cos(k*pi*x)</code> goes to zero, and zero beyond,
          * and <code>somb(z)=2*1(z)/z</code> (J1 is a Bessel function
          * of the first kind of order 1).
          *

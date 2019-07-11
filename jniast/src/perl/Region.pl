@@ -127,7 +127,7 @@ makeNativeMethod(
    ],
 );
 
-$fName = "mask<X>";
+$fName = "mask&lt;X&gt;";
 makeJavaMethodHeader(
    name => "mask",
    purpose => FuncPurpose( $fName ),

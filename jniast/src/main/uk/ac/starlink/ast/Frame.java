@@ -887,7 +887,7 @@ public class Frame extends Mapping {
      * between the corresponding units string, then an error is reported.
      * In this mode, it is assumed that values of the Unit attribute conform
      * to the syntax for units strings described in the FITS WCS Paper I
-     * "Representations of world coordinates in FITS" (Greisen & Calabretta).
+     * "Representations of world coordinates in FITS" (Greisen &amp; Calabretta).
      * Particularly, any of the named unit symbols, functions, operators or
      * standard multiplier prefixes listed within that paper can be used within
      * a units string. A units string may contain symbols for unit which are
@@ -916,7 +916,7 @@ public class Frame extends Mapping {
      * <h4>Notes</h4>
      * <br> - The ActiveUnit flag resembles a Frame attribute, except that it
      * cannot be tested or cleared, and it cannot be accessed using the
-     * generic astGet<X> and astSet<X> functions.
+     * generic astGet&lt;X&gt; and astSet&lt;X&gt; functions.
      * <br> - The astGetActiveUnit function can be used to retrieve the current
      * value of the ActiveUnit flag.
      * 
@@ -955,7 +955,7 @@ public class Frame extends Mapping {
      * <br> - -1.6
      * <br> - 1E8
      * <br> - -.99e-17
-     * <br> - <bad>
+     * <br> - &lt;bad&gt;
      * <h4>SkyFrame Input Format</h4>
      * The input format accepted for a SkyFrame axis is as follows:
      * <br> - An optional sign, followed by between one and three fields
@@ -1036,7 +1036,7 @@ public class Frame extends Mapping {
      * <br> - .9" (0d 00' 00.9")
      * <br> - d12m (0d 12' 00")
      * <br> - H 12:22.3s (0h 12m 22.3s)
-     * <br> - <bad> (AST__BAD)
+     * <br> - &lt;bad&gt; (AST__BAD)
      * <p>
      * Where alternative interpretations are shown, the choice of angle or
      * time depends on the associated Format(axis) attribute.
@@ -1056,7 +1056,7 @@ public class Frame extends Mapping {
      * the correct format, but which cannot be converted into a valid
      * coordinate value (for instance, because the value of one or more
      * of its fields is invalid).
-     * <br> - The string "<bad>" is recognised as a special case and will
+     * <br> - The string "&lt;bad&gt;" is recognised as a special case and will
      * yield the coordinate value AST__BAD without error. The test for
      * this string is case-insensitive and also permits embedded white
      * space.
@@ -1204,8 +1204,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the Bottom attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -1244,8 +1244,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  bottom  the Bottom attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -1386,8 +1386,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the Digits attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -1441,8 +1441,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  digits  the Digits attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -1502,8 +1502,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the Direction attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -1562,8 +1562,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  direction  the Direction attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -1607,7 +1607,7 @@ public class Frame extends Mapping {
      *    "SKY".
      * <dt>CmpFrame</dt><dd>
      *    The CmpFrame class re-defines the default Domain value to be
-     *    of the form "<dom1>-<dom2>", where <dom1> and <dom2> are the
+     *    of the form "&lt;dom1&gt;-&lt;dom2&gt;", where &lt;dom1&gt; and &lt;dom2&gt; are the
      *    Domains of the two component Frames. If both these Domains are
      *    blank, then the string "CMP" is used as the default Domain name.
      * <dt>FrameSet</dt><dd>
@@ -1665,7 +1665,7 @@ public class Frame extends Mapping {
      *    "SKY".
      * <dt>CmpFrame</dt><dd>
      *    The CmpFrame class re-defines the default Domain value to be
-     *    of the form "<dom1>-<dom2>", where <dom1> and <dom2> are the
+     *    of the form "&lt;dom1&gt;-&lt;dom2&gt;", where &lt;dom1&gt; and &lt;dom2&gt; are the
      *    Domains of the two component Frames. If both these Domains are
      *    blank, then the string "CMP" is used as the default Domain name.
      * <dt>FrameSet</dt><dd>
@@ -2269,8 +2269,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the Format attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -2437,8 +2437,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  format  the Format attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -2473,7 +2473,7 @@ public class Frame extends Mapping {
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is the string "Axis
-     *    <n>", where <n> is 1, 2, etc. for each successive axis.
+     *    &lt;n&gt;", where &lt;n&gt; is 1, 2, etc. for each successive axis.
      * <dt>SkyFrame</dt><dd>
      *    The SkyFrame class re-defines the default Label value
      *    (e.g. to "Right ascension" or "Galactic latitude") as
@@ -2490,8 +2490,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the Label attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -2525,7 +2525,7 @@ public class Frame extends Mapping {
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default supplied by the Frame class is the string "Axis
-     *    <n>", where <n> is 1, 2, etc. for each successive axis.
+     *    &lt;n&gt;", where &lt;n&gt; is 1, 2, etc. for each successive axis.
      * <dt>SkyFrame</dt><dd>
      *    The SkyFrame class re-defines the default Label value
      *    (e.g. to "Right ascension" or "Galactic latitude") as
@@ -2542,8 +2542,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  label  the Label attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -3160,11 +3160,11 @@ public class Frame extends Mapping {
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Symbol value supplied by the Frame class is the
-     *    string "<Domain><n>", where <n> is 1, 2, etc. for successive
-     *    axes, and <Domain> is the value of the Frame's Domain
+     *    string "&lt;Domain&gt;&lt;n&gt;", where &lt;n&gt; is 1, 2, etc. for successive
+     *    axes, and &lt;Domain&gt; is the value of the Frame's Domain
      *    attribute (truncated if necessary so that the final string
      *    does not exceed 15 characters). If no Domain value has been
-     *    set, "x" is used as the <Domain> value in constructing this
+     *    set, "x" is used as the &lt;Domain&gt; value in constructing this
      *    default string.
      * <dt>SkyFrame</dt><dd>
      *    The SkyFrame class re-defines the default Symbol value
@@ -3181,8 +3181,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the Symbol attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -3217,11 +3217,11 @@ public class Frame extends Mapping {
      * <dl>
      * <dt>Frame</dt><dd>
      *    The default Symbol value supplied by the Frame class is the
-     *    string "<Domain><n>", where <n> is 1, 2, etc. for successive
-     *    axes, and <Domain> is the value of the Frame's Domain
+     *    string "&lt;Domain&gt;&lt;n&gt;", where &lt;n&gt; is 1, 2, etc. for successive
+     *    axes, and &lt;Domain&gt; is the value of the Frame's Domain
      *    attribute (truncated if necessary so that the final string
      *    does not exceed 15 characters). If no Domain value has been
-     *    set, "x" is used as the <Domain> value in constructing this
+     *    set, "x" is used as the &lt;Domain&gt; value in constructing this
      *    default string.
      * <dt>SkyFrame</dt><dd>
      *    The SkyFrame class re-defines the default Symbol value
@@ -3238,8 +3238,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  symbol  the Symbol attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -3692,12 +3692,12 @@ public class Frame extends Mapping {
      * <h4>Class Applicability</h4>
      * <dl>
      * <dt>Frame</dt><dd>
-     *    The default supplied by the Frame class is "<n>-d coordinate
-     *    system", where <n> is the number of Frame axes (Naxes
+     *    The default supplied by the Frame class is "&lt;n&gt;-d coordinate
+     *    system", where &lt;n&gt; is the number of Frame axes (Naxes
      *    attribute).
      * <dt>CmpFrame</dt><dd>
      *    The CmpFrame class re-defines the default Title value to be
-     *    "<n>-d compound coordinate system", where <n> is the number
+     *    "&lt;n&gt;-d compound coordinate system", where &lt;n&gt; is the number
      *    of CmpFrame axes (Naxes attribute).
      * <dt>FrameSet</dt><dd>
      *    The Title attribute of a FrameSet is the same as that of its
@@ -3728,12 +3728,12 @@ public class Frame extends Mapping {
      * <h4>Class Applicability</h4>
      * <dl>
      * <dt>Frame</dt><dd>
-     *    The default supplied by the Frame class is "<n>-d coordinate
-     *    system", where <n> is the number of Frame axes (Naxes
+     *    The default supplied by the Frame class is "&lt;n&gt;-d coordinate
+     *    system", where &lt;n&gt; is the number of Frame axes (Naxes
      *    attribute).
      * <dt>CmpFrame</dt><dd>
      *    The CmpFrame class re-defines the default Title value to be
-     *    "<n>-d compound coordinate system", where <n> is the number
+     *    "&lt;n&gt;-d compound coordinate system", where &lt;n&gt; is the number
      *    of CmpFrame axes (Naxes attribute).
      * <dt>FrameSet</dt><dd>
      *    The Title attribute of a FrameSet is the same as that of its
@@ -3771,8 +3771,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the Top attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -3811,8 +3811,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  top  the Top attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -3866,8 +3866,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the Unit attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -3920,8 +3920,8 @@ public class Frame extends Mapping {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  unit  the Unit attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -3953,8 +3953,8 @@ public class Frame extends Mapping {
      * applies.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the NormUnit attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>

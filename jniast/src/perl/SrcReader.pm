@@ -138,6 +138,9 @@ close( SRC );
 
 #  Parse the source file.
 
+$fileText =~ s/&/&amp;/g;
+$fileText =~ s/</&lt;/g;
+$fileText =~ s/>/&gt;/g;
 $fileText =~ /\n\*class\+\+ *\n(.*?)\*class\-\- *\n/s;
 my( $classPrologue ) = $1;
 $classPurpose = getPurpose( $classPrologue );
@@ -175,7 +178,7 @@ while ( $fileText =~ /\n\*\+\+ *\n(.*?)\*\-\- *\n/gs ) {
 
 sub getName {
    my( $name ) = getStanza( $_[ 0 ], "Name" );
-   $name =~ /(\w[a-zA-Z_0-9<>]*)/;
+   $name =~ /(\w[a-zA-Z_0-9<>&;]*)/;
    $name = $1;
    return $name;
 }
@@ -254,7 +257,7 @@ sub namify {
    my( $text ) = $_[ 0 ] || "";
    if ( $text ) {
       $text =~ tr/A-Z/a-z/;
-      $text =~ /^\s*(\w[A-Za-z_0-9<>]*)/;
+      $text =~ /^\s*(\w[A-Za-z_0-9<>&;]*)/;
       return $1;
    }
    else {

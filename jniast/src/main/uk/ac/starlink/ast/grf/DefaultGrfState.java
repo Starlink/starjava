@@ -12,7 +12,7 @@ import java.awt.Rectangle;
 
 /**
  * Java class to store the current GRF state. The GRF state is defined as the
- * current colour, line style & width, character and marker size.
+ * current colour, line style and width, character and marker size.
  *
  * @author Peter W. Draper
  * @version $Id$

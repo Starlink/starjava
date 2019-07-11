@@ -84,8 +84,8 @@ public class SkyFrame extends Frame {
      * over-ride any effect from the AsTime attribute.
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the AsTime attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -130,8 +130,8 @@ public class SkyFrame extends Frame {
      * over-ride any effect from the AsTime attribute.
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  asTime  the AsTime attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -541,8 +541,8 @@ public class SkyFrame extends Frame {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the SkyRef attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -617,8 +617,8 @@ public class SkyFrame extends Frame {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  skyRef  the SkyRef attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
@@ -813,8 +813,8 @@ public class SkyFrame extends Frame {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be got.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @return       the SkyRefP attribute for the indicated axis of this object
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
      *                                     range <code>1..Naxes</code>
@@ -880,8 +880,8 @@ public class SkyFrame extends Frame {
      * 
      *
      * @param  axis  index of the axis for which the attribute is to be set.
-     *               Must be >= 1 and <= the value of the <code>Naxes</code>
-     *               attribute.
+     *             Must be &gt;= 1 and &lt;= the value of the <code>Naxes</code>
+     *             attribute.
      * @param  skyRefP  the SkyRefP attribute for the indicated axis 
      *                of this object.
      * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the

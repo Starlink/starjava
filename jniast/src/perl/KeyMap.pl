@@ -143,7 +143,7 @@ makeNativeMethod(
    },
 );
 
-$fName = "mapPut0<X>";
+$fName = "mapPut0&lt;X&gt;";
 makeNativeMethod(
    name => "mapPut0D",
    purpose => "Store a double value",
@@ -241,7 +241,7 @@ makeNativeMethod(
 );
 
 
-$fName = "mapGet0<X>";
+$fName = "mapGet0&lt;X&gt;";
 makeNativeMethod(
    name => "mapGet0D",
    purpose => "Retrieve a double value",
@@ -322,7 +322,7 @@ makeNativeMethod(
    },
 );
 
-$fName = "mapPut1<X>";
+$fName = "mapPut1&lt;X&gt;";
 
 makeNativeMethod(
    name => "mapPut1D",
@@ -420,7 +420,7 @@ makeNativeMethod(
    return => { type => 'void' },
 );
 
-$fName = "mapGet1<X>";
+$fName = "mapGet1&lt;X&gt;";
 
 makeNativeMethod(
    name => "mapGet1D",
