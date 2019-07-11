@@ -22,7 +22,6 @@ import java.util.Map;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see Plot, PlotConfigurator
  * @since 24-MAY-2002
  */
 public class AppAxisServerFactory extends DefaultAxisServerFactory

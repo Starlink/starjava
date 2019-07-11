@@ -46,7 +46,7 @@ import org.mortbay.xml.XmlConfiguration;
  * <pre>
  *    AppHttpSOAPServer server = new AppHttpSOAPServer( port_number );
  *    server.start();
- *    server.addSOAPServices( <URL of "deploy.wsdd" file> );
+ *    server.addSOAPServices( &lt;URL of "deploy.wsdd" file&gt; );
  * </pre>
  * <p>
  *
@@ -114,8 +114,6 @@ public class AppHttpSOAPServer
      * will return an {@link ServletHttpContext} instance (rather than a
      * non-servlet type).
      *
-     * @param contextPathSpec
-     *
      * @return {@link ServletHttpContext}
      */
     protected HttpContext newHttpContext()
@@ -130,7 +128,6 @@ public class AppHttpSOAPServer
      * @param direct name of the Axis war file.
      *
      * @return {@link WebApplicationContext}
-     * @exception IOException
      */
     public WebApplicationContext addAxisSOAPServices( String direct )
         throws IOException
