@@ -40,7 +40,7 @@ package uk.ac.starlink.ast;
  *     <code>conserveFlux</code> flag could be used. This causes each output
  *     pixel value to be scaled by the ratio of the output pixel size to
  *     the input pixel size.
- *     <br/>
+ *     <br>
  *     This flag can only be used if the Mapping is succesfully approximated
  *     by one or more linear transformations. Thus an error will be reported
  *     if it used when the
@@ -57,7 +57,7 @@ package uk.ac.starlink.ast;
  *     <code>tol</code> parameter
  *     until the difference between adjacent panels is sufficiently small
  *     to be insignificant.
- *     <br/>
+ *     <br>
  *     Note, this flag cannot be used in conjunction with the <code>noBad</code>
  *     flag (an error will be reported if both flags are specified).
  *     Flux conservation can only be approximate when using a resampling

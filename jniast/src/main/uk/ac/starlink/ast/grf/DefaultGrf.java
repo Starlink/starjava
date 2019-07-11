@@ -1305,9 +1305,8 @@ public class DefaultGrf
      *     colour - probably not what you want.  To specify normal
      *     (opaque) grey, you should use <code>0xffc0c0c0</code> or
      *     equivalantly <code>encodeColor(Color.LIGHT_GRAY)</code>.
-     *     </ul>
+     *     </dd>
      * </dl>
-     * <p>
      */
     public double attr( int attr, double value, int prim )
     {

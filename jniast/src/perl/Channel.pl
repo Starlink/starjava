@@ -192,7 +192,7 @@ public class Channel extends AstObject {
      * because of difficulties in its implementation, and because it is
      * probably not that useful.
      *
-     * @throws   UnsupportedOperationException
+     * @throws   UnsupportedOperationException  always
      */
     public AstObject copy() {
         /* It might not be all that hard to support, but you'd need to
