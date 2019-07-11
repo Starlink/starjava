@@ -813,7 +813,9 @@
              windowtitle="${Name} API"
              doctitle="${Name}"
              classpathref="classpath">
-      <arg value="-Xdoclint:all,-missing"/>
+      <arg value="-Xdoclint:none"/>
+      <arg value="-tag"/>
+      <arg value="rating"/>
 
       <!-- Get a list of directories that name all the potential
        !   java packages -->

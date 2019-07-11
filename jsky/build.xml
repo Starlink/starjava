@@ -843,7 +843,7 @@
              doctitle="${Name}"
              defaultexcludes="yes"
              classpathref="classpath">
-      <arg value="-Xdoclint:all,-missing"/>
+      <arg value="-Xdoclint:none"/>
 
       <!-- Get a list of directories that name all the potential
        !   java packages -->
