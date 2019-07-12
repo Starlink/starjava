@@ -385,6 +385,7 @@
        </fileset>
      </path>
 
+     <delete dir="${docs.javadocs}"/>
      <mkdir dir="${docs.javadocs}"/>
      <javadoc useexternalfile="yes"
               destdir="${docs.javadocs}"
@@ -394,9 +395,8 @@
               windowtitle="${FullName} API"
               doctitle="${FullName}"
               protected="true"
-              classpathref="classpath"
-              source="1.5"
-              maxmemory="512m">
+              classpathref="classpath">
+      <arg value="-Xdoclint:none"/>
 
       <!-- Get all possible package names from the build/java
        !   directories. Need to name all top-level packages
