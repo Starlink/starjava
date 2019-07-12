@@ -16,15 +16,12 @@
  */
 package uk.ac.starlink.splat.plot;
 
-import diva.canvas.JCanvas;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -32,19 +29,18 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.EventListenerList;
 
-import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Grf;
@@ -64,10 +60,14 @@ import uk.ac.starlink.diva.DrawGraphicsPane;
 import uk.ac.starlink.diva.FigureStore;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.DataLimits;
+import uk.ac.starlink.splat.data.ObjectTypeEnum;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.plot.behavior.MagnitudeAxisInvertingBehavior;
+import uk.ac.starlink.splat.plot.behavior.PlotBehavior;
 import uk.ac.starlink.splat.util.SplatException;
+import diva.canvas.JCanvas;
 
 /**
  * Plots an astronomical spectra using a Swing component with Diva graphics
@@ -160,6 +160,12 @@ public class DivaPlot
      * Bounding box for creating full-sized Plot from physical coordinates.
      */
     protected double[] baseBox = new double[4];
+    
+    /**
+     * Controls whether the plot touches the base box or not.
+     */
+	private boolean baseBoxSpacing = false;
+	private double boxSpacingFactor = 1.;
 
     /**
      * Bounding box of visible region in physical coordinates.
@@ -287,6 +293,8 @@ public class DivaPlot
      * The legend figure.
      */
     protected SpecLegendFigure legendFigure = null;
+    
+    protected List<PlotBehavior> behaviors = new LinkedList<PlotBehavior>();
 
     /**
      * Plot a series of spectra.
@@ -345,6 +353,9 @@ public class DivaPlot
         //  The AstAxes object is used for testing if logarithmic drawing is
         //  enabled.
         astAxes = (AstAxes) plotConfig.getControlsModel( AstAxes.class );
+        
+        // add some extra behaviors
+        addBehaviors();
     }
 
     /**
@@ -698,6 +709,19 @@ public class DivaPlot
             baseBox[3] = yMax;
         }
 
+        if (baseBoxSpacing) {
+        	
+         double bb0 =	baseBox[0] - (baseBox[2]-baseBox[0])/boxSpacingFactor;
+         double bb1 =   baseBox[1] - (baseBox[3]-baseBox[1])/boxSpacingFactor;
+         double bb2 =   baseBox[2] - (baseBox[0]-baseBox[2])/boxSpacingFactor;
+         double bb3 =   baseBox[3] - (baseBox[1]-baseBox[3])/boxSpacingFactor;
+         
+       	 baseBox[0] = bb0;
+       	 baseBox[1] = bb1;
+       	 baseBox[2] = bb2;
+       	 baseBox[3] = bb3;
+       }
+        
         //  Set the values that define what a unit scale in either axes means.
         if ( init ) {
             setBaseScale();
@@ -736,6 +760,12 @@ public class DivaPlot
                 yMin = dataLimits.getYLower();
                 yMax = dataLimits.getYUpper();
             }
+            
+            // apply extra behaviors
+            for (PlotBehavior behavior : behaviors) {
+            	behavior.setDataLimits(this);
+            }
+            
         }
     }
 
@@ -1909,6 +1939,8 @@ public class DivaPlot
     //
     protected EventListenerList plotClickedListeners = new EventListenerList();
 
+
+
     /**
      * Registers a listener for to be informed when the Plot recieves a click..
      *
@@ -2011,4 +2043,14 @@ public class DivaPlot
     {
         return mainPlot;
     }
+    
+    protected void addBehaviors() {
+    	behaviors.add(new MagnitudeAxisInvertingBehavior());
+    }
+
+	public void setAxisBoxSpacing(boolean addSpace, double factor) {
+		baseBoxSpacing=addSpace;
+		boxSpacingFactor=factor;		
+	}
+
 }

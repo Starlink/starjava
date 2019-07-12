@@ -21,6 +21,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.util.prefs.Preferences;
 
@@ -55,6 +56,7 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.GraphicFileUtilities;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.vo.LineBrowser;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 
 /**
@@ -153,6 +155,7 @@ public class PlotControlFrame
      *  Main menubar and various menus.
      */
     protected JCheckBoxMenuItem autoFitPercentiles = null;
+    protected JCheckBoxMenuItem axisBoxSpacing = null;
     protected JCheckBoxMenuItem baseSystemMatching = null;
     protected JCheckBoxMenuItem coordinateMatching = null;
     protected JCheckBoxMenuItem dataUnitsMatching = null;
@@ -171,6 +174,7 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem sidebandMatching = null;
     protected JCheckBoxMenuItem suffixLineIDs = null;
     protected JCheckBoxMenuItem trackerLineIDs = null;
+   
     protected JMenu analysisMenu = new JMenu();
     protected JMenu editMenu = new JMenu();
     protected JMenu fileMenu = new JMenu();
@@ -179,6 +183,7 @@ public class PlotControlFrame
     protected JMenu optionsMenu = new JMenu();
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenuItem drawMenu = new JMenuItem();
+    protected JMenuItem openSlapBrowser = null;
     protected JMenuItem loadAllLineIDs = null;
     protected JMenuItem loadLoadedLineIDs = null;
     protected JMenuItem removeCurrent = null;
@@ -205,6 +210,14 @@ public class PlotControlFrame
      */
     private boolean showDeblend = false;
 
+   // private LineBrowser slapBrowser;
+
+	private double boxSpacingFactor=20.;
+
+	private SplatBrowser browser = null;
+	
+	private PropertyChangeSupport propSupport = new PropertyChangeSupport(this);
+
     /**
      *  Create an instance using an existing SpecDataComp.
      *
@@ -226,10 +239,11 @@ public class PlotControlFrame
      *            use).
      *
      */
-    public PlotControlFrame( SpecDataComp specDataComp, int id )
+    public PlotControlFrame( SpecDataComp specDataComp, int id, SplatBrowser browser )
         throws SplatException
     {
         this( "PlotControlFrame", specDataComp, id );
+        this.browser =browser;
     }
 
     /**
@@ -315,6 +329,7 @@ public class PlotControlFrame
         }
 
         this.plot = plotControl;
+        
         initUI( title );
     }
 
@@ -419,7 +434,15 @@ public class PlotControlFrame
             ImageHolder.class.getResource( "config.gif" ) );
         ImageIcon pannerImage = new ImageIcon(
             ImageHolder.class.getResource( "panner.gif" ) );
-
+        ImageIcon splatImage = new ImageIcon(
+            ImageHolder.class.getResource( "splatlogo.gif" ) );
+      
+        // add action to bring main splat window to front
+        MainToFrontAction mainToFrontAction  =
+                new  MainToFrontAction( "SPLAT window", splatImage,
+                                 "Bring main SPLAT window to front" );
+            fileMenu.add( mainToFrontAction );//.setMnemonic( KeyEvent.VK_P );
+            toolBar.add( mainToFrontAction );
         //  Add action to print figure.
         PrintAction printAction  =
             new PrintAction( "Print", printImage,
@@ -509,6 +532,7 @@ public class PlotControlFrame
             new ImageIcon( ImageHolder.class.getResource( "flip.gif" ) );
         ImageIcon statsImage =
             new ImageIcon( ImageHolder.class.getResource( "sigma.gif" ) );
+
 
         //  Add action to enable to cut out the current view of
         //  current spectrum.
@@ -616,6 +640,7 @@ public class PlotControlFrame
         optionsMenu.setText( "Options" );
         optionsMenu.setMnemonic( KeyEvent.VK_O );
         menuBar.add( optionsMenu );
+        
 
         //  Arrange to carefully align coordinates when asked (expensive
         //  otherwise).
@@ -679,7 +704,13 @@ public class PlotControlFrame
 
         state1 = prefs.getBoolean( "PlotControlFrame_clipgraphics", false );
         clipGraphics.setSelected( state1 );
-
+        
+        //  Whether to clip spectrum graphics to lie with axes border.
+        axisBoxSpacing = new JCheckBoxMenuItem( "Add spacing between axis box and data" );
+        optionsMenu.add( axisBoxSpacing );
+        axisBoxSpacing.addItemListener( this );
+        axisBoxSpacing.setSelected(plot.getDefaultSpacingValue());
+        
         setupLineOptionsMenu();
 
         //  Include spacing for error bars in the auto ranging.
@@ -732,7 +763,9 @@ public class PlotControlFrame
         //plot.setShowLegend( state1 );
     }
 
-    /**
+    
+
+	/**
      * Set up the line identifier options menu.
      */
     protected void setupLineOptionsMenu()
@@ -740,7 +773,23 @@ public class PlotControlFrame
         lineOptionsMenu.setText( "Line identifiers" );
         lineOptionsMenu.setMnemonic( KeyEvent.VK_L );
         optionsMenu.add( lineOptionsMenu );
+        
+        ImageIcon linesImage = new ImageIcon(
+                ImageHolder.class.getResource( "linestrs.png" ) );
 
+
+        openSlapBrowser = new JMenuItem("SLAP Browser");
+        
+      
+        SLAPAction slapAction =
+                new SLAPAction( "Lines Browser", linesImage,
+                        "Open Spectral Line browser (SLAP/VAMDC)" );
+        lineOptionsMenu.add(slapAction);
+      
+        toolBar.add( slapAction );
+     
+        //openSlapBrowser.addActionListener( this );
+    
         //  Load line identifiers into the plot. This comes in two flavours
         //  load all line identifiers and only those that are already
         //  available in the global list.
@@ -888,6 +937,11 @@ public class PlotControlFrame
                                             "Printer warning",
                                             JOptionPane.ERROR_MESSAGE );
         }
+    }
+    
+    protected void mainSplatWindowToFront() {
+    	browser.toFront();
+    	//propSupport.firePropertyChange("mainSPLATToFront", false, true);
     }
 
     /**
@@ -1480,6 +1534,29 @@ public class PlotControlFrame
             stackerFrame = null;
         }
     }
+    
+    /**
+     *  Activate the SLAP Browser window.
+     */
+    public void showSlapBrowser()
+    {
+        coordinateMatching.setSelected( true );
+        if (browser != null)
+        	browser.showLinesBrowser(this.getPlot());
+       // if ( slapBrowser == null ) {
+        //    slapBrowser = new LineBrowser( getPlot() );
+            //  We'd like to know if the window is closed.
+ /*           slapBrowser.addWindowListener( new WindowAdapter() {
+                    public void windowClosed( WindowEvent evt ) {
+                        slapBrowserClosed();
+                    }
+                });
+ */
+   //     } else {
+   //         Utilities.raiseFrame( slapBrowser );
+  //      }
+    }
+
 
     /**
      * Set the main cursor to indicate waiting for some action to
@@ -1590,6 +1667,24 @@ public class PlotControlFrame
         public void actionPerformed( ActionEvent ae )
         {
             closeWindow();
+        }
+    }
+    
+    /**
+     *  Inner class defining Action for printing.
+     */
+    protected class MainToFrontAction extends AbstractAction
+    {
+        public MainToFrontAction( String name, Icon icon, String help )
+        {
+            super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
+
+           // putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control P" ) );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            mainSplatWindowToFront();
         }
     }
 
@@ -1914,6 +2009,25 @@ public class PlotControlFrame
             lineFit();
         }
     }
+    
+    /**
+     *  Inner class defining Action for SLAP browsing and adding spectral lines.
+     */
+    protected class SLAPAction extends AbstractAction
+    {
+        public SLAPAction( String name, Icon icon, String help )
+        {
+            super( name, icon);
+           // super( name);
+            putValue( SHORT_DESCRIPTION, help );
+
+            //putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control V" ) );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            showSlapBrowser();
+        }
+    }
 
     //
     // Implement ItemListener interface. This is used for menus items
@@ -1991,6 +2105,14 @@ public class PlotControlFrame
             boolean state = showVisibleOnly.isSelected();
             plot.getPlot().setVisibleOnly( state );
             prefs.putBoolean( "PlotControlFrame_showvisibleonly", state );
+            plot.updatePlot();
+            return;
+        }
+        
+        if ( source.equals( axisBoxSpacing ) ) {
+            boolean state = axisBoxSpacing.isSelected();
+            plot.getPlot().setAxisBoxSpacing( state, boxSpacingFactor );
+            prefs.putBoolean( "PlotControlFrame_axisBoxSpacing", state );
             plot.updatePlot();
             return;
         }
@@ -2126,6 +2248,11 @@ public class PlotControlFrame
             return;
         }
 
+      /*  if ( source.equals( openSlapBrowser ) ) {
+            slapBrowser = new SLAPBrowser( plot);
+            return;
+        }*/
+        
         if ( source.equals( loadAllLineIDs ) ) {
             plot.loadLineIDs( true, doubleDSBLineIDs.isSelected(),
                               LocalLineIDManager.getInstance() );
@@ -2143,4 +2270,20 @@ public class PlotControlFrame
             return;
         }
     }
+ /*   
+    public void setBoxSpacing( boolean newstate) {
+        boolean state = axisBoxSpacing.isSelected();
+        if (state != newstate) {
+        	plot.getPlot().setAxisBoxSpacing( newstate, boxSpacingFactor );
+        	prefs.putBoolean( "PlotControlFrame_axisBoxSpacing", newstate );
+        	plot.updatePlot();
+        }
+        return;
+    }
+*/    
+    //  the main browser
+
+	public void setBrowser(SplatBrowser splatBrowser) {
+		browser=splatBrowser;
+	}
 }

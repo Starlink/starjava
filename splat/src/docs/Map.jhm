@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<!DOCTYPE map
+PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 1.0//EN"
+"http://java.sun.com/products/javahelp/map_1_0.dtd">
+
+<!-- This file maps help IDs into URIs -->
+<map version="1.0">
+
+<mapID target="splat-help"                 url="sun243.htx/sun243.html"/>
+<mapID target="abstract" url="sun243.htx/sun243li1.html#xref_abstract"/>
+<mapID target="overview" url="sun243.htx/sun243se1.html#xref_overview"/>
+
+<mapID target="getting-started" url="sun243.htx/sun243se2.html#xref_getting_started"/>
+<mapID target="displaying-a-spectrum" url="sun243.htx/sun243su1.html#xref_displaying_a_spectrum"/>
+<mapID target="displaying-many-spectra" url="sun243.htx/sun243su2.html#xref_displaying_more_than_one_spectrum"/>
+<mapID target="plot-control" url="sun243.htx/sun243su3.html#xref_basic_control"/>
+
+<mapID target="window-level-help" url="sun243.htx/sun243se3.html#xref_help_window_individual"/>
+<mapID target="browser-window" url="sun243.htx/sun243su4.html#xref_browser_window"/>
+<mapID target="plot-window" url="sun243.htx/sun243su5.html#xref_plot_window"/>
+<mapID target="ssa-window" url="sun243.htx/sun243su6.html#xref_ssap_window"/>
+<mapID target="obscore-window" url="sun243.htx/sun243su7.html#xref_obscore_window"/>
+<mapID target="datalink" url="sun243.htx/sun243su8.html#xref_datalink"/>
+<mapID target="lines-browser" url="sun243.htx/sun243su9.html#xref_lines_browser"/>
+<mapID target="animation-window" url="sun243.htx/sun243su10.html#xref_animation_window"/>
+<mapID target="viewer" url="sun243.htx/sun243su11.html#xref_view_modify_window"/>
+<mapID target="specxcoord-window" url="sun243.htx/sun243su12.html#xref_spectral_coords_window"/>
+<mapID target="dataunits-window" url="sun243.htx/sun243su13.html#xref_data_units_window"/>
+<mapID target="binary-maths" url="sun243.htx/sun243su14.html#xref_binary_maths_window"/>
+<mapID target="unary-maths" url="sun243.htx/sun243su15.html#xref_unary_maths_window"/>
+<mapID target="panner-window" url="sun243.htx/sun243su16.html#xref_panner_window"/>
+
+<mapID target="config-window" url="sun243.htx/sun243su17.html#xref_config_window"/>
+<mapID target="config-window-limits" url="sun243.htx/sun243su17.html#xref_config_window_limits"/>
+<mapID target="config-window-title" url="sun243.htx/sun243su17.html#xref_config_window_title"/>
+<mapID target="config-window-axis-labels" url="sun243.htx/sun243su17.html#xref_config_window_axis_labels"/>
+<mapID target="config-window-axis-numbers" url="sun243.htx/sun243su17.html#xref_config_window_axis_numbers"/>
+<mapID target="config-window-axes" url="sun243.htx/sun243su17.html#xref_config_window_axes"/>
+<mapID target="config-window-grid" url="sun243.htx/sun243su17.html#xref_config_window_grid"/>
+<mapID target="config-window-border" url="sun243.htx/sun243su17.html#xref_config_window_border"/>
+<mapID target="config-window-ticks" url="sun243.htx/sun243su17.html#xref_config_window_ticks"/>
+<mapID target="config-window-render" url="sun243.htx/sun243su17.html#xref_config_window_render"/>
+<mapID target="config-window-edge" url="sun243.htx/sun243su17.html#xref_config_window_edge"/>
+<mapID target="config-window-background" url="sun243.htx/sun243su17.html#xref_config_window_background"/>
+
+<mapID target="save-window" url="sun243.htx/sun243su21.html#xref_fit_save_window"/>
+<mapID target="cutter-window" url="sun243.htx/sun243su18.html#xref_cutter_window"/>
+<mapID target="polynomial-fit-window" url="sun243.htx/sun243su19.html#xref_poly_window"/>
+<mapID target="interpolation-window" url="sun243.htx/sun243su20.html#xref_interp_window"/>
+<mapID target="line-fit-window" url="sun243.htx/sun243su21.html#xref_fit_window"/>
+<mapID target="line-fit-saving-window" url="sun243.htx/sun243su21.html#xref_fit_save_window"/>
+<mapID target="filter-window" url="sun243.htx/sun243su22.html#xref_filter_window"/>
+<mapID target="simpleunits-window" url="sun243.htx/sun243su23.html#xref_change_units_window"/>
+<mapID target="flipper-window" url="sun243.htx/sun243su24.html#xref_flipper_window"/>
+<mapID target="stats-window" url="sun243.htx/sun243su25.html#xref_stats_window"/>
+<mapID target="stacker-window" url="sun243.htx/sun243su26.html#xref_stacker_window"/>
+
+<mapID target="data-formats" url="sun243.htx/sun243se4.html#xref_data_formats"/>
+<mapID target="command-line" url="sun243.htx/sun243se5.html#xref_command_line"
+<mapID target="interop" url="sun243.htx/sun243se6.html#xref_interop"/>
+<mapID target="acknowledgements" url="sun243.htx/sun243se7.html#xref_acknowledgements"/>
+
+</map>

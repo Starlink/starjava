@@ -8,22 +8,18 @@
  */
 package uk.ac.starlink.splat.data;
 
-import java.awt.Rectangle;
-
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.io.IOException;
-import java.util.Arrays;
 
-import uk.ac.starlink.ast.Grf;
-import uk.ac.starlink.ast.Plot;
-import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Grf;
+import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.grf.DefaultGrfState;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.ast.ASTChannel;
 
 /**
  * A type of EditableSpecData that draws a string at a "spectral"
@@ -122,7 +118,18 @@ public class LineIDSpecData
         useInAutoRanging = false; // by default.
         setPointSize( 1.0 );
     }
-
+    /**
+     * Constructor, takes a LineIDTableSpecDataImpl.
+     */
+   public LineIDSpecData( LineIDTableSpecDataImpl lineIDImpl )
+            throws SplatException
+    {
+         super( lineIDImpl );
+         setRange();               // Deferred from super constructor
+         useInAutoRanging = false; // by default.
+        // setPointSize( 1.0 );
+    }
+    
     /**
      * Set the SpecData used to defined the relative positioning for
      * the labels.
@@ -170,9 +177,13 @@ public class LineIDSpecData
      */
     public String[] getLabels()
     {
-        if ( impl != null && impl instanceof LineIDSpecDataImpl ) {
-            return ((LineIDSpecDataImpl)impl).getLabels();
-        }
+        if (impl != null) {
+            if (  impl instanceof LineIDSpecDataImpl ) 
+                return ((LineIDSpecDataImpl)impl).getLabels();
+            else  if (  impl instanceof LineIDTableSpecDataImpl ) 
+                return ((LineIDTableSpecDataImpl)impl).getLabels();
+            
+        } 
         return null;
     }
 
@@ -182,8 +193,11 @@ public class LineIDSpecData
     public void setLabels( String[] labels )
         throws SplatException
     {
-        if ( impl != null && impl instanceof LineIDSpecDataImpl ) {
-            ((LineIDSpecDataImpl)impl).setLabels( labels );
+        if ( impl != null ) {
+            if ( impl instanceof LineIDSpecDataImpl ) 
+                ((LineIDSpecDataImpl)impl).setLabels( labels );
+            else  if (  impl instanceof LineIDTableSpecDataImpl ) 
+                ((LineIDTableSpecDataImpl)impl).setLabels( labels );
         }
     }
 
@@ -192,8 +206,11 @@ public class LineIDSpecData
      */
     public void setLabel( int index, String label )
     {
-        if ( impl != null && impl instanceof LineIDSpecDataImpl ) {
-            ((LineIDSpecDataImpl)impl).setLabel( index, label );
+        if ( impl != null ) {
+            if ( impl instanceof LineIDSpecDataImpl ) 
+                ((LineIDSpecDataImpl)impl).setLabel( index, label );
+            else  if (  impl instanceof LineIDTableSpecDataImpl ) 
+                ((LineIDTableSpecDataImpl)impl).setLabel( index, label);
         }
     }
 
@@ -281,8 +298,11 @@ public class LineIDSpecData
      */
     public boolean haveDataPositions()
     {
-        if ( impl != null && impl instanceof LineIDSpecDataImpl ) {
-            return ((LineIDSpecDataImpl)impl).haveDataPositions();
+        if ( impl != null ) {
+            if ( impl instanceof LineIDSpecDataImpl  )      
+                return ((LineIDSpecDataImpl)impl).haveDataPositions();
+            else if ( impl instanceof LineIDTableSpecDataImpl  ) 
+            return ((LineIDTableSpecDataImpl)impl).haveDataPositions();
         }
         return false;
     }
@@ -291,7 +311,7 @@ public class LineIDSpecData
     // values.
     public void setRange()
     {
-        if ( impl == null || ! ( impl instanceof LineIDSpecDataImpl ) ) return;
+        if ( impl == null || (! ( impl instanceof LineIDSpecDataImpl ) && ! (impl instanceof LineIDTableSpecDataImpl) )) return;
 
         if ( haveDataPositions() ) {
             super.setRange();
@@ -329,6 +349,8 @@ public class LineIDSpecData
         fullRange[2] = -1.0;
         fullRange[3] = 1.0;
     }
+    
+    
 
     //
     // Draw the "spectrum". Override the default implementation to call the
@@ -509,9 +531,11 @@ public class LineIDSpecData
         //  spectrum). The text style can be set using the "strings"
         //  configuration options of the plot (which is why we use it
         //  and not the Grf object, which bypasses the Plot).
+        setPointSize(1.0);
         DefaultGrf defaultGrf = (DefaultGrf) grf;
         DefaultGrfState oldState = setGrfAttributes( defaultGrf, false );
 
+        
         //  No Grf clipping, we just apply an X coordinate range check.
         defaultGrf.setClipRegion( null );
 
@@ -584,6 +608,7 @@ public class LineIDSpecData
                 if ( pos[0] >= limits[0] && pos[0] <= limits[1] ) {
                     drawn++;
                     pos[1] = xypos[j+1];
+                  
                     plot.text( label, pos, upVector, "CC" );
                     if ( showVerticalMarks ) {
                         pos[1] = xypos[j+1] + shift;

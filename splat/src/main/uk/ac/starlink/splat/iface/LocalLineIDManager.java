@@ -294,6 +294,7 @@ public class LocalLineIDManager
         int count = 0;
         Iterator i = propsList.iterator();
         LineProps props;
+       
         while( i.hasNext() ) {
             props = (LineProps) i.next();
             if ( props.intersects( specFrame, range ) ) {
@@ -494,6 +495,7 @@ public class LocalLineIDManager
                 double maxsr = Math.max( range[0], range[1] );
 
                 if ( minsr <= maxtr && maxsr >= mintr  ) {
+                    //!!!!!!!!!!!!!!!!!
                     return true;
                 }
             }

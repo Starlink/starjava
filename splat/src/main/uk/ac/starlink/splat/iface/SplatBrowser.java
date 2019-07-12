@@ -39,6 +39,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -48,16 +50,20 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -68,6 +74,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
@@ -75,13 +82,17 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
+import org.xml.sax.SAXException;
+
 //import org.astrogrid.acr.InvalidArgumentException;
 
 
 
 import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
+import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.NameParser;
+import uk.ac.starlink.splat.data.ObjectTypeEnum;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -107,11 +118,13 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.votable.VOTableBuilder;
 
-import uk.ac.starlink.splat.vo.DataLinkParams;
+
+import uk.ac.starlink.splat.vo.DataLinkResponse;
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 import uk.ac.starlink.splat.vo.SSAServerList;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
 import uk.ac.starlink.splat.vo.ObsCorePanel;
+import uk.ac.starlink.splat.vo.LineBrowser;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -141,7 +154,7 @@ import uk.ac.starlink.table.TableFormatException;
  * and {@link DivaPlot}).
  *
  * @author Peter W. Draper
- * @author Mark Taylor
+ * @author Mark Taylor, Margarida Castro Neves
  * @version $Id$
  *
  * @see GlobalSpecPlotList
@@ -168,6 +181,11 @@ public class SplatBrowser
      *  Factory methods for creating SpecData instances.
      */
     protected SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
+
+    /**
+     *  Line ID manager.
+     */
+    protected LocalLineIDManager lineIDManager = LocalLineIDManager.getInstance();
 
     /**
      * UI preferences.
@@ -264,6 +282,11 @@ public class SplatBrowser
     protected HistoryStringDialog locationChooser = null;
 
     /**
+     * property listener
+     */
+    protected MainSplatToFrontListener splatToFrontListener = new MainSplatToFrontListener();
+
+    /**
      *  SSAP browser.
      */
     protected SSAQueryBrowser ssapBrowser = null;
@@ -272,6 +295,12 @@ public class SplatBrowser
      * OBSCore browser.
      */
     protected ObsCorePanel obscorePanel = null; 
+    protected JFrame obscoreFrame = null; 
+
+    /**
+     * SLAP browser.
+     */
+    protected LineBrowser spectralLinesBrowser  = null; 
 
     /**
      *  Stack open or save chooser.
@@ -332,6 +361,11 @@ public class SplatBrowser
     protected int openUsertypeIndex = SpecDataFactory.DEFAULT;
 
     /**
+     * The object type of data: spectra (default) or timeseries
+     */
+    protected ObjectTypeEnum objectType = ObjectTypeEnum.UNKNOWN;
+
+    /**
      * The type of data that spectra are saved in by default. This is the
      * value of one of the SpecDataFactory constants. Usually only set by the
      * save spectrum dialog.
@@ -371,6 +405,8 @@ public class SplatBrowser
      */
     protected Integer selectAxis = null;
 
+    //  Whether spectra 2/3D Spectra will be collapsed or extracted
+    protected JMenu ndActionMenu = null;
     /**
      * Whether to purge extracted spectra with bad limits. Make's sure
      * the spectra can be displayed.
@@ -388,7 +424,28 @@ public class SplatBrowser
      */
     protected JCheckBoxMenuItem plotSampSpectraToSameWindowItem = null;
     protected boolean plotSampSpectraToSameWindow = false;
+    /**
+     * Whether to add samp spectra to the same window or overwrite them
+     * 
+     */
+    protected JRadioButtonMenuItem overplotSampSpectraToSameWindowItem = null;
+    protected boolean overplotSampSpectraToSameWindow = false;
+    
+    
+    /**
+     * Whether to handle SAMP Mtype table.load.votable as results or spectra
+     */
+    protected JCheckBoxMenuItem handleVOTableAsSpectraItem = null;
+    protected boolean  handleVOTableAsSpectra = false;
 
+    /**
+     * Whether to open SAMP Mtype coord.pointat.sky in obscore or ssap browser
+     */
+    protected JCheckBoxMenuItem openSampCoordsInSSAPItem = null;
+    protected boolean  openSampCoordsInSSAP = false;
+    protected JCheckBoxMenuItem openSampCoordsInObsCoreItem = null;
+    protected boolean  openSampCoordsInObsCore = false;
+    
     /**
      * Controls communications for SAMP interoperability.
      */
@@ -483,6 +540,7 @@ public class SplatBrowser
             }
             this.communicator = communicator;
             initComponents();
+ //           this.addPropertyChangeListener( splatToFrontListener);
         }
         catch ( Exception e ) {
             logger.log( Level.SEVERE, e.getMessage(), e );
@@ -543,7 +601,10 @@ public class SplatBrowser
                     }
                 });
         }
+ 
     }
+
+
 
     /**
      * Set the ndAction value to match a string description. Strings are
@@ -667,7 +728,15 @@ public class SplatBrowser
 
         // showing spectra from SAMP in the same window
         setPlotSampSpectraToSameWindow( true );
-
+        // adding/overwriting spectra from SAMP in the same window
+        setOverplotSampSpectraToSameWindow( true );
+        
+        // treat samp tables as spectra
+        setHandleVOTableAsSpectra( true );
+        
+       // open samp coords in SSAP/ObsCore 
+        setOpenSampCoordsInSSAP( true );
+        setOpenSampCoordsInObsCore( true );
         
         //  Set up split pane.
         splitPane.setOneTouchExpandable( true );
@@ -768,7 +837,7 @@ public class SplatBrowser
         toolBar.add( ssapAction );
 
        
-        // Add acion to go to use OBSCORE
+     // Add acion to go to use OBSCORE
         ImageIcon obscoreImage =
                 new ImageIcon( ImageHolder.class.getResource( "obscore.gif" ) );
         LocalAction obsCoreAction = new LocalAction( LocalAction.OBSCORE,
@@ -777,6 +846,16 @@ public class SplatBrowser
                                                      "Query VO using ObsCore TAP" );
         fileMenu.add(obsCoreAction);
         toolBar.add( obsCoreAction );
+        
+     // Add acion to go to use the SLAP Browser
+       // ImageIcon obscoreImage =
+        //        new ImageIcon( ImageHolder.class.getResource( "obscore.gif" ) );
+     //   LocalAction slapAction = new LocalAction( LocalAction.SLAP,
+    //                                                "Slap Browser", 
+    //                                                 null, 
+    //                                                 "Query VO for Spectral Lines" );
+    //    fileMenu.add(slapAction);
+       // toolBar.add( slapAction );
 
         //  Add action to browse the local file system and look for tables
         //  etc. in sub-components.
@@ -1039,7 +1118,7 @@ public class SplatBrowser
         menuBar.add( optionsMenu );
 
         //  Add any locally availabel line identifiers.
-        LocalLineIDManager.getInstance().populate( optionsMenu, this );
+        lineIDManager.populate( optionsMenu, this );
 
         //  Add the LookAndFeel selections.
         new SplatLookAndFeelManager( contentPane, optionsMenu );
@@ -1085,6 +1164,29 @@ public class SplatBrowser
             ( "Show simplified short names in global list, " +
               "when they are same as long names" );
         showSimpleShortNamesItem.addItemListener( this );
+
+        //  Whether spectra 2/3D Spectra will be collapsed or extracted
+      
+        ndActionMenu = new JMenu("Action for 2/3D data");
+        ndActionMenu.setToolTipText( "Default action when dealing with 2/3D data" );
+        JMenuItem collapseItem = new JMenuItem(collapseDescription);
+        JMenuItem extractItem = new JMenuItem(extractDescription);
+        JMenuItem vectorizeItem = new JMenuItem(vectorizeDescription);
+        ActionListener ndActionListener = new ActionListener() {
+        	 public void actionPerformed(ActionEvent e) {
+                JMenuItem src = (JMenuItem) (e.getSource());
+                setNDAction(src.getText());
+         }
+        };
+		collapseItem.addActionListener(ndActionListener );
+        extractItem.addActionListener(ndActionListener);
+        vectorizeItem.addActionListener(ndActionListener);
+       
+        ndActionMenu.add(collapseItem);
+        ndActionMenu.add(extractItem);
+        ndActionMenu.add(vectorizeItem);
+        ndActionMenu.addItemListener(this);
+        optionsMenu.add(ndActionMenu);
 
         //  Whether spectra with bad data limits should be removed when
         //  opening nD data.
@@ -1145,6 +1247,18 @@ public class SplatBrowser
         interopMenu.add( specTransmitter.createSendMenu() )
             .setMnemonic( KeyEvent.VK_T );
         
+        Transmitter binFITSTableTransmitter = 
+        		communicator.createBinFITSTableTransmitter(specList);
+        interopMenu.addSeparator();
+        interopMenu.add( binFITSTableTransmitter.getBroadcastAction() );
+        interopMenu.add( binFITSTableTransmitter.createSendMenu() );
+        
+        Transmitter voTableTransmitter = 
+        		communicator.createVOTableTransmitter(specList);
+        interopMenu.addSeparator();
+        interopMenu.add( voTableTransmitter.getBroadcastAction() );
+        interopMenu.add( voTableTransmitter.createSendMenu() );
+        
         
         //  Add checkbox for opening the spectra from SAM to the same plot
         interopMenu.addSeparator();
@@ -1152,6 +1266,26 @@ public class SplatBrowser
         interopMenu.add( plotSampSpectraToSameWindowItem );
         plotSampSpectraToSameWindowItem.setToolTipText( "Show spectra from SAMP in the same window" );
         plotSampSpectraToSameWindowItem.addItemListener( this );
+        overplotSampSpectraToSameWindowItem = new JRadioButtonMenuItem( "--- overwrite spectra" );
+        interopMenu.add( overplotSampSpectraToSameWindowItem );
+        overplotSampSpectraToSameWindowItem.setToolTipText( "If set, each incoming SAMP spectra will be overwritten, otherwise they will be added to the window" );
+        overplotSampSpectraToSameWindowItem.addItemListener( this );
+        
+        interopMenu.addSeparator();
+
+        //  Add checkbox for opening the spectra from SAM to the same plot
+        handleVOTableAsSpectraItem = new JCheckBoxMenuItem( "Handle table.load.votable as Spectra" );
+        interopMenu.add( handleVOTableAsSpectraItem );
+        handleVOTableAsSpectraItem.setToolTipText( "SAMP type table.load.votable are handled as spectra instead of results tables" );
+        handleVOTableAsSpectraItem.addItemListener( this );
+        openSampCoordsInSSAPItem = new JCheckBoxMenuItem( "Open SAMP Coords in SSAP window" );
+        openSampCoordsInSSAPItem.setToolTipText( "SAMP type coord.pointat.sky adds the coordinates to SSAP Browser" );
+        openSampCoordsInSSAPItem.addItemListener( this );
+        interopMenu.add( openSampCoordsInSSAPItem );
+        openSampCoordsInObsCoreItem = new JCheckBoxMenuItem( "Open SAMP Coords in ObsCore window" );
+        openSampCoordsInObsCoreItem.setToolTipText( "SAMP type coord.pointat.sky adds the coordinates to ObsCore Browser" );
+        openSampCoordsInObsCoreItem.addItemListener( this );
+        interopMenu.add( openSampCoordsInObsCoreItem );
  
     }
 
@@ -1251,13 +1385,27 @@ public class SplatBrowser
     }
     
     /**
+     * Set whether to extract all spectra or collapse 2/3D data
+     */
+   
+    protected void setndActionItem( int action )
+    {
+    	// TO DO !!!!!!
+    //    if (action==SpecDataFactory.COLLAPSE)
+   //     	setndActionItem(true);
+   //     else 
+   //     	setndActionItem(false);
+   //     ndAction = ndActionItem.isSelected()?SpecDataFactory.COLLAPSE:SpecDataFactory.EXTRACT;
+   //     setPreference( "SplatBrowser_collapseSpectra", ndActionItem.isSelected());
+    }
+    
+    /**
      * Set whether to show spectra from SAMP in the same window
      */
     protected void setPlotSampSpectraToSameWindow( boolean init )
     {
         if ( init ) {
-            // TODO: add this to the preferences?
-            boolean state = false;
+            boolean state = getPreference( "SplatBrowser_plotsampspectratosamewindow", false );
             plotSampSpectraToSameWindowItem.setSelected( state );
         }
         plotSampSpectraToSameWindow = plotSampSpectraToSameWindowItem.isSelected();
@@ -1265,6 +1413,63 @@ public class SplatBrowser
             globalList.setLastPlotForSourceType(SourceType.SAMP, null);
         setPreference( "SplatBrowser_plotsampspectratosamewindow", plotSampSpectraToSameWindow );
     }
+    
+    /**
+     * Set whether to show spectra from SAMP in the same window
+     */
+    protected void setOverplotSampSpectraToSameWindow( boolean init )
+    {
+        if ( init ) {
+            boolean state = getPreference( "SplatBrowser_overplotsampspectratosamewindow", false );
+            overplotSampSpectraToSameWindowItem.setSelected( state );
+        }
+        overplotSampSpectraToSameWindow = overplotSampSpectraToSameWindowItem.isSelected();
+        //if (plotSampSpectraToSameWindow)
+        //    globalList.setLastPlotForSourceType(SourceType.SAMP, null);
+        setPreference( "SplatBrowser_overplotsampspectratosamewindow", overplotSampSpectraToSameWindow );
+    }
+    
+    /**
+     * Set whether to open SAMP coordinates in SSAP browser 
+     */
+    protected void setOpenSampCoordsInSSAP( boolean init )
+    {
+        if ( init ) {
+            
+            boolean state = getPreference( "SplatBrowser_openSampCoordsInSSAP", false );
+            openSampCoordsInSSAPItem.setSelected( state );
+        }
+        openSampCoordsInSSAP = openSampCoordsInSSAPItem.isSelected();
+        setPreference( "SplatBrowser_openSampCoordsInSSAP", openSampCoordsInSSAP);
+    }
+    
+    /**
+     * Set whether to open SAMP coordinates in ObsCore browser 
+     */
+    protected void setOpenSampCoordsInObsCore( boolean init )
+    {
+        if ( init ) {
+            
+            boolean state = getPreference( "SplatBrowser_openSampCoordsInObsCore", false );
+            openSampCoordsInObsCoreItem.setSelected( state );
+        }
+        openSampCoordsInObsCore = openSampCoordsInObsCoreItem.isSelected();
+        setPreference( "SplatBrowser_openSampCoordsInObsCore", openSampCoordsInObsCore);
+    }
+
+    /**
+     * Set whether to show spectra from SAMP in the same window
+     */
+    protected void setHandleVOTableAsSpectra( boolean init )
+    {
+        if ( init ) {            
+            boolean state = getPreference( "SplatBrowser_handleVOTableAsSpectra", false );
+            handleVOTableAsSpectraItem.setSelected( state );
+        }
+        handleVOTableAsSpectra = handleVOTableAsSpectraItem.isSelected();
+        setPreference( "SplatBrowser_handleVOTableAsSpectra", handleVOTableAsSpectra);
+    }
+
 
 
     /**
@@ -1453,6 +1658,10 @@ public class SplatBrowser
             dispAxis = (Integer) keyvalue.getValue();
             keyvalue = (KeyValue) selectAxisBox.getSelectedItem();
             selectAxis = (Integer) keyvalue.getValue();
+            
+            // set the object type            
+            keyvalue = (KeyValue) objectTypeBox.getSelectedItem();
+            objectType = (ObjectTypeEnum) keyvalue.getValue();
 
             //  Load the spectra.
             threadLoadChosenSpectra();
@@ -1560,6 +1769,7 @@ public class SplatBrowser
     protected JComboBox ndActionBox = null;
     protected JComboBox dispersionAxisBox = null;
     protected JComboBox selectAxisBox = null;
+    protected JComboBox objectTypeBox = null;
 
     /**
      * Initialise the accessory components for opening spectra. Currently
@@ -1597,11 +1807,9 @@ public class SplatBrowser
             ( BorderFactory.createTitledBorder( "2/3D data" ) );
 
         //  Method to handle 2/3D data.
-        ndActionBox = new JComboBox();
-        ndActionBox.addItem( collapseDescription );
-        ndActionBox.addItem( extractDescription );
-        ndActionBox.addItem( vectorizeDescription );
-        ndActionBox.setToolTipText( "Choose a method for handling 2/3D data" );
+        if (ndActionBox == null)
+        	initNdActionBox();
+        
 
         ndLayouter.add( "Action:", false );
         ndLayouter.add( ndActionBox, true );
@@ -1626,12 +1834,28 @@ public class SplatBrowser
         selectAxisBox.addItem( new KeyValue( "3", new Integer( 2 ) ) );
         selectAxisBox.setToolTipText
             ( "Select a non-dispersion axis for 3D data" );
-
         ndLayouter.add( "Select axis:", false );
         ndLayouter.add( selectAxisBox, true );
-
         layouter.add( ndPanel, true );
+        
+        objectTypeBox = new JComboBox();
+        objectTypeBox.addItem( new KeyValue( "UNKNOWN", ObjectTypeEnum.UNKNOWN ) );
+        objectTypeBox.addItem( new KeyValue( "SPECTRUM", ObjectTypeEnum.SPECTRUM ) );
+        objectTypeBox.addItem( new KeyValue( "TIMESERIES", ObjectTypeEnum.TIMESERIES ) );
+      
+        objectTypeBox.setToolTipText("set object type of file content: spectrum or timeseries");
+        layouter.add( "Object type:", false );
+        layouter.add( objectTypeBox, true );
+        
         layouter.eatSpare();
+    }
+    
+    private void initNdActionBox() {
+    	ndActionBox = new JComboBox();
+    	ndActionBox.addItem( collapseDescription );
+    	ndActionBox.addItem( extractDescription );
+    	ndActionBox.addItem( vectorizeDescription );
+    	ndActionBox.setToolTipText( "Choose a method for handling 2/3D data" );
     }
 
     // StackAccessory components.
@@ -1895,11 +2119,11 @@ public class SplatBrowser
     {
         if ( ssapBrowser == null ) {
             try {
-                ssapBrowser = new SSAQueryBrowser( new SSAServerList(), this );
+                ssapBrowser = new SSAQueryBrowser( new SSAServerList(true), this );
                 authenticator = ssapBrowser.getAuthenticator();
             }
             catch (SplatException e) {
-                ErrorDialog.showError( this, e );
+                ssapBrowser = new SSAQueryBrowser( null, this );
                 return;
             }
         } else {
@@ -1908,6 +2132,7 @@ public class SplatBrowser
         }
         ssapBrowser.setVisible( true );
     }
+    
 
     /**
      * Open the OBSCORE window
@@ -1922,8 +2147,30 @@ public class SplatBrowser
                 ErrorDialog.showError( this, e );
                 return;
             }
-        }
+        }        
         obscorePanel.setVisible( true );
+    }
+ 
+
+    /**
+     * Open the SLAP Browser window
+     * @param plotControl 
+     */
+    
+    public void showLinesBrowser(PlotControl plotControl)
+    {
+        if ( spectralLinesBrowser == null ) {
+            try {
+            	spectralLinesBrowser = new LineBrowser(this, plotControl);
+            }
+            catch (Exception e) {
+                ErrorDialog.showError( this, e );
+                return;
+            }
+        } else {
+        	spectralLinesBrowser.setPlot(plotControl);
+        }
+        spectralLinesBrowser.setVisible( true );
 
     }
 
@@ -1936,7 +2183,7 @@ public class SplatBrowser
     protected void threadLoadChosenSpectra()
     {
         SpectrumIO sio = SpectrumIO.getInstance();
-        sio.load( this, newFiles, displayNewFiles, openUsertypeIndex );
+        sio.load( this, newFiles, displayNewFiles, openUsertypeIndex, objectType );
     }
 
     /**
@@ -2155,10 +2402,16 @@ public class SplatBrowser
             String shortname=props.getShortName();
             for ( int i = 0; i < spectra.length; i++ ) {
                 String str = spectra[i].getShortName();
-                addSpectrum( spectra[i] );
+//                if (spectra[i].getObjectType() == null) {
+//                	spectra[i].setObjectType(props.getObjectType());
+//                }
+                props.apply( spectra[i] ); // warning - moved this line BEFORE addSpectrum (it was after). See if it affects something
+                addSpectrum( spectra[i], props.getSourceType() );
                 if (str != null && str.startsWith("order"))
                     props.setShortName(shortname+" ["+str+"]");
-                props.apply( spectra[i] );
+                //props.apply( spectra[i] );
+                
+//                System.out.println("and146: SED or TABLE #" + i);
             }
         }
         else {
@@ -2168,23 +2421,42 @@ public class SplatBrowser
                 SpecData spectrum;
                 List<SpecData> spectra;
                     if (props.getType() == SpecDataFactory.DATALINK) {
-                        DataLinkParams dlparams = new DataLinkParams(props.getSpectrum());
-                        props.setSpectrum(dlparams.getQueryAccessURL(0)); // get the accessURL for the first service read 
-                        if (props.getDataLinkFormat() != null ) // see if user has changed the output format
-                            props.setType(SpecDataFactory.mimeToSPLATType(props.getDataLinkFormat()));                 
-                        else if ( dlparams.getQueryContentType(0) == null || dlparams.getQueryContentType(0).isEmpty()) //if not, use contenttype
+                       
+                    	DataLinkResponse dlparams = new DataLinkResponse(props.getSpectrum()); // get SODA Params   
+                    	
+                    	props.setSpectrum(dlparams.getThisLink()); // get the accessURL for the first service read 
+                        String stype = null;
+                        if (props.getDataLinkFormat() != null ) { // see if user has changed the output format
+                        	stype = props.getDataLinkFormat();
+                        	props.setType(SpecDataFactory.mimeToSPLATType(stype));
+                            //props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
+                        }
+                        else if ( dlparams.getThisContentType() == null || dlparams.getThisContentType().isEmpty()) //if not, use contenttype
                             props.setType(SpecDataFactory.GUESS);
-                        else 
-                            props.setType(SpecDataFactory.mimeToSPLATType(dlparams.getQueryContentType(0))); 
-                    }
-                    spectra = specDataFactory.get( props.getSpectrum(), props.getType() ); ///!!! IF it's a list???
+                        else { 
+                            stype = dlparams.getThisContentType();
+                        	props.setType(SpecDataFactory.mimeToSPLATType(stype));
+                        	//props.setObjectType(SpecDataFactory.mimeToObjectType(stype));
+                        }
+                    } 
+                    
+                    spectra = specDataFactory.get( props.getSpectrum(), props.getType(), props.getObjectType() ); 
                     for (int s=0; s < spectra.size(); s++ ){
                         spectrum=spectra.get(s);
                         String sname = spectrum.getShortName();
                         if (sname != null && ! sname.isEmpty())
                             props.setShortName(sname);
-                        addSpectrum( spectrum );
-                        props.apply( spectrum );
+                        	props.apply( spectrum ); 
+//                        spectrum.setObjectType(props.getObjectType());
+                      /*  if ( spectrum.isSDSSTableSpecData() ) {    
+                        	addSpectrum(spectrum);
+                        	showLinesBrowser();
+                        	spectralLinesBrowser.addLinesTable(spectrum.getLineIDStarTable(), sname);
+                        
+                        } else {*/
+                        	addSpectrum( spectrum, props.getSourceType() );
+                      //  }
+                       // props.apply( spectrum );
                         
                     }
                 //}
@@ -2203,8 +2475,9 @@ public class SplatBrowser
                 if ( props.getType() == SpecDataFactory.FITS || se.getType() == SpecDataFactory.FITS) {
                     SpecData spectra[] = specDataFactory.expandFITSSED( specpath, se.getRows() );
                     for ( int i = 0; i < spectra.length; i++ ) {
+                        props.apply( spectra[i] ); // !!!!!!!
                         addSpectrum( spectra[i] );
-                        props.apply( spectra[i] );
+                       // props.apply( spectra[i] );
                     }
                 } 
                 //   }
@@ -2213,13 +2486,9 @@ public class SplatBrowser
                 //        else 
                 //                    throw new SplatException( se );
 
-            }
-            catch(SplatException sple) {
-                if (! sple.getMessage().contains("No TABLE element found")) 
-                    JOptionPane.showMessageDialog
-                    ( this, sple.getMessage(), "",
-                      JOptionPane.ERROR_MESSAGE );
-            }
+            } catch (SAXException e) {
+            	throw new SplatException(e.getMessage());
+			}
         }
     }
 
@@ -2270,6 +2539,14 @@ public class SplatBrowser
      * @param spectrum the SpecData object.
      */
     public void addSpectrum( SpecData spectrum ) {
+        if (spectrum.getClass() == (LineIDSpecData.class)) {
+            try {
+                lineIDManager.addSpectrum((LineIDSpecData) spectrum);
+            } catch (SplatException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
         addSpectrum(spectrum, SourceType.UNDEFINED);
     }
     /**
@@ -2284,6 +2561,9 @@ public class SplatBrowser
         //  Get the current top of SpecList.
         SpecList list = SpecList.getInstance();
         int top = list.specCount();
+        if (sourceType==null) {
+        	sourceType=SourceType.UNDEFINED;
+        }
 
         //  2D spectra may need reprocessing by collapsing or extracting
         //  many spectra. This is performed here. If any of ndAction, dispAxis
@@ -2361,6 +2641,7 @@ public class SplatBrowser
         int plotIndex = -1;
 
         boolean samePlotForSampSpectra = getPreference("SplatBrowser_plotsampspectratosamewindow", false);
+        boolean overplotSamePlotForSampSpectra = getPreference("SplatBrowser_overplotsampspectratosamewindow", false);
         
         int[] specIndices = getSelectedSpectra();
         if ( specIndices == null ) {
@@ -2414,8 +2695,9 @@ public class SplatBrowser
 
                 switch(sourceType) {
                     case SAMP:
-                        if (samePlotForSampSpectra)
+                        if (samePlotForSampSpectra) { 
                             sampSpectra.add(spectrum);
+                        }
                         else
                             allSelectedSpectra.add(spectrum);
                         break;
@@ -2433,11 +2715,14 @@ public class SplatBrowser
             
             if (allSelectedSpectra.size() > 0) {
                 SpecData spec = null;
-                //spec = globalList.getSpectrum( specIndices[0] );
                 spec = allSelectedSpectra.get(0);
                 
                 final PlotControlFrame plot = displaySpectrum( spec );
                 plotIndex = globalList.getPlotIndex( plot.getPlot() );
+                if ( spec.isSDSSTableSpecData() ) {    
+                	showLinesBrowser(plot.getPlot());
+                	spectralLinesBrowser.addLinesandDisplay(spec.getLineIDTable(), spec.getShortName());            
+                } 
                 
                 allSelectedSpectra.remove(0);
                 SpecData spectra[] = allSelectedSpectra.toArray(new SpecData[allSelectedSpectra.size()]);
@@ -2463,6 +2748,7 @@ public class SplatBrowser
                 }
             }
             
+            
             // show spectra from SAMP to the same plot
             if (samePlotForSampSpectra && sampSpectra.size() > 0 && failed == 0) {
                 boolean firstSampSpectra = globalList.getLastPlotForSourceType(SourceType.SAMP) == null;
@@ -2473,8 +2759,13 @@ public class SplatBrowser
                 
                 if (firstSampSpectra)
                     sampSpectra.remove(0);
+                else if ( overplotSamePlotForSampSpectra ) {                		 
+					//  First, remove all existing spectra                      
+                     SpecData[] dispSpec = sampPlot.getSpecDataComp().get();
+                     sampPlot.getSpecDataComp().remove( dispSpec );
+        	    }
                 try {
-                    globalList.addSpectra( sampPlot, sampSpectra.toArray(new SpecData[sampSpectra.size()]) );
+                    	 globalList.addSpectra( sampPlot, sampSpectra.toArray(new SpecData[sampSpectra.size()]) );
                 }
                 catch (SplatException e) {
                     failed++;
@@ -2843,7 +3134,8 @@ public class SplatBrowser
         if ( addSpectrum( spectrum ) ) {
             SpecData specData =
                 globalList.getSpectrum( globalList.specCount() - 1 );
-            return displaySpectrum( specData );
+            PlotControlFrame plot = displaySpectrum( specData );
+            return plot;
         }
         return null;
     }
@@ -2856,7 +3148,8 @@ public class SplatBrowser
      */
     public PlotControlFrame displaySpectrum( SpecData spectrum )
     {
-        return displaySpectrum( -1, spectrum );
+    	  PlotControlFrame plot = displaySpectrum( -1, spectrum );
+          return plot;
     }
 
     /**
@@ -2874,7 +3167,7 @@ public class SplatBrowser
         SpecDataComp comp = new SpecDataComp( spectrum );
         PlotControlFrame plot = null;
         try {
-            plot = new PlotControlFrame( comp, id );
+            plot = new PlotControlFrame( comp, id, this );
             int index = globalList.add( plot.getPlot() );
             plot.setTitle( Utilities.getReleaseName() + ": " +
                            globalList.getPlotName( index ) );
@@ -2909,6 +3202,7 @@ public class SplatBrowser
                                            JOptionPane.ERROR_MESSAGE );
             if ( plot != null ) {
                 plot.setVisible( false );
+                plot.setBrowser(this);
             }
             plot = null;
         }
@@ -2916,6 +3210,7 @@ public class SplatBrowser
             //  Always make sure we reset the cursor.
             resetWaitCursor();
         }
+       //plot.addPropertyChangeListener(splatToFrontListener);
         return plot;
     }
 
@@ -3250,6 +3545,7 @@ public class SplatBrowser
         if ( colourAsLoaded ) {
             spectrum.setLineColour( MathUtils.getRandomRGB());
         }
+       // selectedProperties.setObjectType( spectrum.getObjectType());
     }
 
     /**
@@ -3264,6 +3560,8 @@ public class SplatBrowser
         }
         else {
             Utilities.saveFrameLocation( this, prefs, "SplatBrowser" );
+            if (communicator != null)
+            	communicator.disconnect();
             System.exit( 0 );
         }
     }
@@ -3276,8 +3574,13 @@ public class SplatBrowser
     protected void processWindowEvent( WindowEvent e )
     {
         super.processWindowEvent( e );
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         if ( e.getID() == WindowEvent.WINDOW_CLOSING ) {
-            exitApplicationEvent();
+                int PromptResult = JOptionPane.showConfirmDialog(null,"Are you sure you want to close SPLAT-VO?","SPLAT-VO",JOptionPane.YES_NO_OPTION);                
+                if(PromptResult==JOptionPane.YES_OPTION)
+                {
+                    exitApplicationEvent();
+                }           
         }
     }
 
@@ -3318,6 +3621,7 @@ public class SplatBrowser
         public static final int FITS_VIEWER = 27;
         public static final int EXIT = 28;
         public static final int OBSCORE = 29;
+        public static final int SLAP = 30;
 
         private int type = 0;
 
@@ -3508,7 +3812,13 @@ public class SplatBrowser
                    showObscorePanel();
                    break;
                }
-
+               
+            /*
+               case SLAP: {           
+                   showSlapBrowser();
+                   break;
+               }
+            */
                case EXIT: {
                    exitApplicationEvent();
                }
@@ -3524,6 +3834,7 @@ public class SplatBrowser
     public void itemStateChanged( ItemEvent e )
     {
         Object source = e.getSource();
+        
         if ( source.equals( splitOrientation ) ) {
             setSplitOrientation( false );
         }
@@ -3545,6 +3856,18 @@ public class SplatBrowser
         else if ( source.equals( plotSampSpectraToSameWindowItem ) ) {
             setPlotSampSpectraToSameWindow( false );
         }
+        else if ( source.equals( overplotSampSpectraToSameWindowItem ) ) {
+            setOverplotSampSpectraToSameWindow( false );
+        }
+        else if ( source.equals( handleVOTableAsSpectraItem ) ) {
+            setHandleVOTableAsSpectra( false );
+        }
+        else if ( source.equals( openSampCoordsInSSAPItem ) ) {
+            setOpenSampCoordsInSSAP( false );
+        }
+        else if ( source.equals( openSampCoordsInObsCoreItem ) ) {
+            setOpenSampCoordsInObsCore( false );
+        }
     }
 
     //
@@ -3553,6 +3876,7 @@ public class SplatBrowser
     //
     public void actionPerformed( ActionEvent e )
     {
+    	
         // The cascade request.
         PlotWindowOrganizer organizer = new PlotWindowOrganizer();
         organizer.cascade();
@@ -3652,4 +3976,53 @@ public class SplatBrowser
         
         return fileFormat;
     }
+
+
+    public void addLinesToCurrentPlot(LineIDSpecData data) {
+        int plotIndex=globalList.currentSpectrum;
+        this.displaySpectrum(data);
+        globalList.add( data, SourceType.UNDEFINED );
+        PlotControl current = globalList.getPlot(plotIndex);
+        current.loadLineIDs(false, false, lineIDManager);
+        
+    }
+
+	public void addSampResults(String location, String shortname) {
+		showSSAPBrowser();
+		ssapBrowser.addSampResults(location, "SAMP:"+shortname);
+		
+	}
+
+	public void addSampCoords(Map coords) {
+		String ra = (String) coords.get("ra");
+		String dec = (String) coords.get("dec");
+		if (openSampCoordsInSSAP /*&& ssapBrowser != null*/) {
+			showSSAPBrowser();
+			ssapBrowser.setCoords(ra, dec);
+			ssapBrowser.repaint();
+		}
+		if (openSampCoordsInObsCore /*&& obscorePanel != null*/ ) {
+			showObscorePanel();
+			obscorePanel.setCoords(ra, dec);
+			obscorePanel.repaint();
+		}
+		
+	}
+	
+	public class MainSplatToFrontListener implements PropertyChangeListener {
+		
+		MainSplatToFrontListener() {
+			
+		}
+
+		@Override
+		public void propertyChange(PropertyChangeEvent pvt) {
+			if (pvt.getPropertyName().equals("mainSPLATToFront")) {
+				toFront();
+			}
+
+		}
+	}
+
+	
 }
