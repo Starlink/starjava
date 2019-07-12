@@ -171,7 +171,7 @@ public class SSLUtil
      * public credentials and uses the certificate chain and private key
      * found there to set up a KeyStore for the SSLSocketFactory.
      * 
-     * @param s
+     * @param s  subject
      * @return an SSLSocketFactory, or null if no X509CertificateChain can
      *         be found
      */
@@ -255,7 +255,6 @@ public class SSLUtil
      * preserving the order.
      * @param certBuf buffer containing certificates
      * @return decoded certificate chain
-     * @throws IOException
      */
     public static byte[] getCertificates(byte[] certBuf) throws IOException
     {
@@ -322,10 +321,7 @@ public class SSLUtil
     }
 
     /**
-     * @param certBuf
      * @return certificate chain
-     * @throws CertificateException
-     * @throws IOException
      */
     public static X509Certificate[] readCertificateChain(byte[] certBuf) throws CertificateException, IOException
     {
@@ -586,12 +582,8 @@ public class SSLUtil
      * Convenience method to parse a PEM encoded file and return the
      * corresponding X509 Certificate chain.
      * 
-     * @param pemFile
+     * @param pemFile  file containing PEM data
      * @return certificate chain
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
-     * @throws CertificateException
      */
     public static X509CertificateChain readPemCertificateAndKey(File pemFile) 
         throws InvalidKeySpecException, NoSuchAlgorithmException, IOException, CertificateException
@@ -607,10 +599,6 @@ public class SSLUtil
      * 
      * @param data content encoded as PEM. 
      * @return X509 Certificate chain.
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
-     * @throws CertificateException
      */
     public static X509CertificateChain readPemCertificateAndKey(byte[] data) 
         throws InvalidKeySpecException, NoSuchAlgorithmException, IOException, CertificateException
@@ -642,7 +630,6 @@ public class SSLUtil
      * 
      * @param code byte array containing the key
      * @return RSAPrivateCrtKeySpec
-     * @throws IOException
      */
     public static RSAPrivateCrtKeySpec parseKeySpec(byte[] code) 
         throws IOException
@@ -788,9 +775,8 @@ public class SSLUtil
     /**
      * Read a (small) file into a byte array.
      * 
-     * @param f
+     * @param f  file
      * @return byte array containing the content of the file
-     * @throws IOException
      */
     public static byte[] readFile(File f) throws IOException
     {
