@@ -571,7 +571,7 @@ public class SSLUtil
         //log.debug("Type : " + keystore.getType());
         //log.debug("Size : " + keystore.size());
 
-        Enumeration en = keystore.aliases();
+        Enumeration<String> en = keystore.aliases();
         while (en.hasMoreElements())
         {
             System.out.println("Alias: " + en.nextElement());
