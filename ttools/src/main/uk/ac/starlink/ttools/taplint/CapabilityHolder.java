@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.taplint;
 
+import org.w3c.dom.Element;
 import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TapCapability;
 
@@ -10,6 +11,14 @@ import uk.ac.starlink.vo.TapCapability;
  * @since     27 Jun 2011
  */
 public interface CapabilityHolder {
+
+    /**
+     * Returns the top-level (presumably capabilities) element of the
+     * capabilities document.
+     *
+     * @return  document element
+     */
+    Element getElement();
 
     /**
      * Returns TAPRegExt capability information for a TAP service.

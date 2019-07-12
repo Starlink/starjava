@@ -1,7 +1,10 @@
 package uk.ac.starlink.ttools.taplint;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,10 +14,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TapCapabilitiesDoc;
 import uk.ac.starlink.vo.TapCapability;
@@ -351,7 +359,7 @@ public class TapLinter {
     private static class CapabilitiesReader implements CapabilityHolder {
         private Reporter reporter_;
         private TapService tapService_;
-        private TapCapabilitiesDoc capsDoc_;
+        private CapabilityHolder holder_;
 
         /**
          * Initialises for use.
@@ -364,12 +372,16 @@ public class TapLinter {
             tapService_ = tapService;
         }
 
+        public Element getElement() {
+            return getCapabilityHolder().getElement();
+        }
+
         public TapCapability getCapability() {
-            return getCapabilitiesDoc().getTapCapability();
+            return getCapabilityHolder().getCapability();
         }
 
         public StdCapabilityInterface[] getInterfaces() {
-            return getCapabilitiesDoc().getInterfaces();
+            return getCapabilityHolder().getInterfaces();
         }
 
         /**
@@ -378,50 +390,89 @@ public class TapLinter {
          *
          * @return  capabilities document, not null
          */
-        private TapCapabilitiesDoc getCapabilitiesDoc() {
-            if ( capsDoc_ == null ) {
-                capsDoc_ = readCapabilitiesDoc();
+        private CapabilityHolder getCapabilityHolder() {
+            if ( holder_ == null ) {
+                holder_ = readCapabilityHolder();
             }
-            return capsDoc_;
+            return holder_;
         }
 
         /**
-         * Reads a capabilities document from the TAP service.
+         * Reads a capabilities holder from the TAP service.
          * May be a dummy if reading fails, but will not be null.
          *
-         * @return  capabilities document, not null
+         * @return  capabilities holder, not null
          */
-        private TapCapabilitiesDoc readCapabilitiesDoc() {
+        private CapabilityHolder readCapabilityHolder() {
             URL capUrl = tapService_.getCapabilitiesEndpoint();
             reporter_.report( FixedCode.I_CURL,
                               "Reading capability metadata from " + capUrl );
+            InputStream in = null;
+            Element el;
             try {
-                return TapCapabilitiesDoc.readCapabilities( capUrl );
+                URLConnection conn =
+                    URLUtils.followRedirects( capUrl.openConnection(), null );
+                in = new BufferedInputStream( conn.getInputStream() );
+                el = DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder()
+                    .parse( in )
+                    .getDocumentElement();
             }
             catch ( SAXException e ) {
+                el = null;
                 reporter_.report( FixedCode.E_CPSX,
                                   "Error parsing capabilities metadata", e );
-                return createDummy();
+            }
+            catch ( ParserConfigurationException e ) {
+                el = null;
+                reporter_.report( FixedCode.F_CAPC,
+                                  "Trouble setting up XML parse", e );
             }
             catch ( IOException e ) {
+                el = null;
                 reporter_.report( FixedCode.E_CPIO,
                                   "Error reading capabilities metadata", e );
-                return createDummy();
             }
-        }
-
-        /**
-         * Returns a dummy capabilities document.
-         *
-         * @return  capabilities document with no content
-         */
-        private static TapCapabilitiesDoc createDummy() {
-
-            /* Strictly speaking supplying null for the list of interfaces
-             * violates the TapCapabilitiesDoc contract, but since it's only
-             * used internally here it's OK. */
-            return new TapCapabilitiesDoc( (TapCapability) null,
-                                           (StdCapabilityInterface[]) null );
+            finally {
+                if ( in != null ) {
+                    try {
+                        in.close();
+                    }
+                    catch ( IOException e ) {
+                    }
+                }
+            }
+            final StdCapabilityInterface[] intfs =
+                el == null ? null
+                           : TapCapabilitiesDoc.getInterfaces( el );
+            TapCapability tapcap;
+            if ( el != null ) {
+                try {
+                    tapcap = TapCapabilitiesDoc.getTapCapability( el );
+                }
+                catch ( XPathExpressionException e ) {
+                    tapcap = null;
+                    reporter_.report( FixedCode.E_CPSX,
+                                      "Error parsing capabilities metadata",
+                                      e);
+                }
+            }
+            else {
+                tapcap = null;
+            }
+            final Element el0 = el;
+            final TapCapability tapcap0 = tapcap;
+            return new CapabilityHolder() {
+                public Element getElement() {
+                    return el0;
+                }
+                public TapCapability getCapability() {
+                    return tapcap0;
+                }
+                public StdCapabilityInterface[] getInterfaces() {
+                    return intfs;
+                }
+            };
         }
     }
 }
