@@ -1125,16 +1125,18 @@ For details, see http://ivoa.net/documents/Notes/XMLVers -->
          </xs:element>
 
          <xs:element name="securityMethod" type="vr:SecurityMethod"
-                     minOccurs="0" maxOccurs="1">
+                     minOccurs="0" maxOccurs="unbounded">
             <xs:annotation>
                <xs:documentation>
                   The mechanism the client must employ to authenticate
                   to the service.
                </xs:documentation>
                <xs:documentation>
-                  Services not requiring authentication must provide
-                  at least one interface definition without a 
-                  securityMethod defined.
+                  A missing securityMethod child indicates an interface
+                  usable without authentication.  In the presence of at
+                  least one securityMethod element, services indicate the
+                  possibility of unauthenticated access using an empty
+                  securityMethod element (i.e., one without standardID).
                </xs:documentation>
             </xs:annotation>
          </xs:element>
@@ -1343,7 +1345,3 @@ For details, see http://ivoa.net/documents/Notes/XMLVers -->
    </xs:complexType>
 
 </xs:schema>
-
-<!-- 
-vim: sta:et:ts=3 
--->
