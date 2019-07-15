@@ -74,7 +74,7 @@ public class IvoaSchemaResolver implements LSResourceResolver {
                  base.getResource( "VOSITables-v1.1.xsd" ) );
         map.put( VORESOURCE_URI =
                  "http://www.ivoa.net/xml/VOResource/v1.0",
-                 base.getResource( "VOResource-v1.0.xsd" ) );
+                 base.getResource( "VOResource-v1.1.xsd" ) );
         map.put( TAPREGEXT_URI =
                  "http://www.ivoa.net/xml/TAPRegExt/v1.0",
                  base.getResource( "TAPRegExt-v1.0-Erratum1.xsd" ) );

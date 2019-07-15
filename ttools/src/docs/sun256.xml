@@ -12244,6 +12244,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>arxivUrl</code>, <code>simbadUrl</code> and
         <code>nedUrl</code> in class
         <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>.</li>
+    <li>VOResource validation in <code>taplint</code> now uses
+        VOResource v1.1 not v1.0.</li>
     </ul>
     </p></dd>
 
