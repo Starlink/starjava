@@ -1,8 +1,15 @@
 package uk.ac.starlink.util;
 
-import org.w3c.dom.*;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 
 import java.net.URI;
 
@@ -93,6 +100,29 @@ public class DOMUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns all child elements of a node with a given name.
+     *
+     * @param  parent  the node whose children are to be searched
+     * @param  name    the name of the element being searched for
+     * @return  array of child elements of <tt>parent</tt> with tagname
+     *          <tt>name</tt>; if <tt>name</tt> is null, all child elements
+     *          are returned
+     */
+    public static Element[] getChildElementsByName( Node parent, String name ) {
+        List<Element> els = new ArrayList<Element>();
+        for ( Node child = parent.getFirstChild(); child != null;
+              child  = child.getNextSibling() ) {
+            if ( child instanceof Element ) {
+                Element childEl = (Element) child;
+                if ( name == null || name.equals( childEl.getTagName() ) ) {
+                    els.add( childEl );
+                }
+            }
+        }
+        return els.toArray( new Element[ 0 ] );
     }
 
     /**
