@@ -6963,6 +6963,7 @@ instance.
 <webref url="http://www.ivoa.net/documents/DALI/">DALI</webref>,
 <webref url="http://www.ivoa.net/Documents/ObsCore/">ObsCore</webref>,
 <webref url="http://www.ivoa.net/Documents/VOTable/">VOTable</webref>,
+<webref url="http://www.ivoa.net/documents/SSO/">SSO</webref>,
 <webref url="http://www.w3.org/Protocols/rfc2616/rfc2616.html">HTTP</webref>,
 <webref url="https://www.w3.org/TR/rdfa-lite/">RDFa Lite</webref>),
 and it is hard to write a validator which is comprehensive, especially
@@ -12246,7 +12247,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>.</li>
     <li>VOResource validation in <code>taplint</code> now uses
         VOResource v1.1 not v1.0.
-        Erratum #1 (multiple security methods) is applied.</li>
+        Erratum #1 (multiple security methods) has been applied.</li>
+    <li>More taplint tests added for TAP 1.1-style capabilities
+        document.</li>
     </ul>
     </p></dd>
 

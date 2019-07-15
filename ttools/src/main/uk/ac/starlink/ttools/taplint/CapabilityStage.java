@@ -7,12 +7,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import org.w3c.dom.Element;
+import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.OutputFormat;
+import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapLanguage;
 import uk.ac.starlink.vo.TapLanguageFeature;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapService;
+import uk.ac.starlink.vo.TapVersion;
 
 /**
  * Stage for checking content of TAPRegExt capability metadata.
@@ -46,23 +50,83 @@ public class CapabilityStage implements Stage {
     }
 
     public String getDescription() {
-        return "Check content of TAPRegExt capabilities record";
+        return "Check TAP and TAPRegExt content of capabilities document";
     }
 
     public void run( Reporter reporter, TapService tapService ) {
         TapCapability tcap = capHolder_.getCapability();
         if ( tcap == null ) {
-            reporter.report( FixedCode.F_CAP0, "No TAP capabilities" );
+            reporter.report( FixedCode.F_CAP0, "No TAPRegExt capability" );
         }
         else {
-            new CapabilityRunner( reporter, tcap ).run();
+            new TapRegExtRunner( reporter, tcap ).run();
+        }
+        Cap[] caps = readCaps( reporter, capHolder_.getElement() );
+        if ( caps == null ) {
+            reporter.report( FixedCode.F_CAP0, "No capabilities" );
+        }
+        else {
+            new CapDocRunner( reporter, tapService, caps ).run();
         }
     }
 
     /**
-     * Does the work for the Capability stage.
+     * Read parsed capability information from a Capabilities document element.
+     * This yields something similar to the StdCapabilityInterface[] array
+     * available from the CapabilityHolder object, but it preserves
+     * more of the hierarchical information.
+     *
+     * @param  reporter   destination for validation messages
+     * @param  capsEl   top-level element containing capabilities document
+     *                  (presumably a &lt;capabilities&gt; element)
+     * @return   hierarchy of capabilities represented by document
      */
-    private static class CapabilityRunner implements Runnable {
+    private static Cap[] readCaps( Reporter reporter, Element capsEl ) {
+        List<Cap> caps = new ArrayList<Cap>();
+        for ( Element capEl :
+              DOMUtils.getChildElementsByName( capsEl, "capability" ) ) {
+            Cap cap = new Cap( getAtt( capEl, "standardID" ) );
+            caps.add( cap );
+            for ( Element intfEl :
+                  DOMUtils.getChildElementsByName( capEl, "interface" ) ) {
+                Intf intf = new Intf( getAtt( intfEl, "xsi:type" ),
+                                      getAtt( intfEl, "role" ),
+                                      getAtt( intfEl, "version" ) );
+                cap.intfs_.add( intf );
+                for ( Element el :
+                      DOMUtils.getChildElementsByName( intfEl, null ) ) {
+                    String tagName = el.getTagName();
+                    if ( "securityMethod".equals( tagName ) ) {
+                        SecMeth sm = new SecMeth( getAtt( el, "standardID" ) );
+                        intf.secMeths_.add( sm );
+                    }
+                    else if ( "accessURL".equals( tagName ) ) {
+                        intf.accessUrl_ = DOMUtils.getTextContent( el ).trim();
+                    }
+                }
+            }
+        }
+        return caps.toArray( new Cap[ 0 ] );
+    }
+
+    /**
+     * Extracts the value of an attribute from an element.
+     * Unlike the Element.getAttribute method, it returns null instead of
+     * an empty string in case of no attribute present.
+     *
+     * @param   el  element
+     * @param  attName  attribute name
+     * @return   attribute value, or null if not present
+     */
+    private static String getAtt( Element el, String attName ) {
+        return el.hasAttribute( attName ) ? el.getAttribute( attName ) : null;
+    }
+
+    /**
+     * Tests the TapCapability object (content of TAPRegExt part of the
+     * capabilities document).
+     */
+    private static class TapRegExtRunner implements Runnable {
         private final Reporter reporter_;
         private final TapCapability tcap_;
 
@@ -72,7 +136,7 @@ public class CapabilityStage implements Stage {
          * @param  reporter  validation message destination
          * @param  tcap  TAP capability object
          */
-        CapabilityRunner( Reporter reporter, TapCapability tcap ) {
+        TapRegExtRunner( Reporter reporter, TapCapability tcap ) {
             reporter_ = reporter;
             tcap_ = tcap;
         }
@@ -379,6 +443,312 @@ public class CapabilityStage implements Stage {
                     reporter_.report( FixedCode.E_XOFK, msg );
                 }
             }
+        }
+    }
+
+    /**
+     * Tests the capability/interface structure of the capabilities document.
+     */
+    private static class CapDocRunner implements Runnable {
+        private final Reporter reporter_;
+        private final TapService tapService_;
+        private final Cap[] caps_;
+
+        private static final String TAPCAP_STDID = "ivo://ivoa.net/std/TAP";
+        private static final String VOSI_URI = "ivo://ivoa.net/std/VOSI";
+        private static final String DALI_URI = "ivo://ivoa.net/std/DALI";
+        private static final Collection<String> SSO_SMIDS =
+                new HashSet<String>( Arrays.asList( new String[] {
+            "ivo://ivoa.net/sso#BasicAA",
+            "ivo://ivoa.net/sso#tls-with-password",
+            "ivo://ivoa.net/sso#tls-with-certificate",
+            "ivo://ivoa.net/sso#cookie",
+            "ivo://ivoa.net/sso#OAuth",
+            "ivo://ivoa.net/sso#saml2.0",
+            "ivo://ivoa.net/sso#OpenID",
+        } ) );
+
+        /**
+         * Constructor.
+         *
+         * @param  reporter  validation message destination
+         * @param  tapService   TAP service object
+         * @param  caps   capability objects read from document
+         */
+        CapDocRunner( Reporter reporter, TapService tapService, Cap[] caps ) {
+            reporter_ = reporter;
+            tapService_ = tapService;
+            caps_ = caps;
+        }
+
+        public void run() {
+            Cap tapCap = getTapCap();
+            checkSecurityMethods();
+            if ( tapCap != null ) {
+
+                /* TAP 1.1 section 2.4, section 2; also required by TAP 1.0.
+                 * Examples is not listed here since will not in general
+                 * have a role="std" interface
+                 * (it's normally accessed via a web page).
+                 * Availability is not listed since it can be at
+                 * a different URL. */
+                checkAccessUrl( tapCap, VOSI_URI + "#capabilities",
+                                "/capabilities" );
+                checkAccessUrl( tapCap, VOSI_URI + "#tables(-.*)?", "/tables" );
+            }
+        }
+
+        /**
+         * Returns the capability element representating the TAP service
+         * itself.  This ought to be unique in the document.
+         * Any anomalies are reported through the reporting system.
+         *
+         * @return  TAP capability, or null if none found
+         */
+        private Cap getTapCap() {
+
+            /* Assemble all TAP capabilities. */
+            List<Cap> tapcaps = new ArrayList<Cap>();
+            for ( Cap cap : caps_ ) {
+                if ( TAPCAP_STDID.equals( cap.standardId_ ) ) {
+                    tapcaps.add( cap );
+                }
+            }
+
+            /* TAP 1.1 section 2.4 requires exactly one such capability;
+             * report if some other number is found, and bail out if
+             * there are none. */
+            if ( tapcaps.size() == 0 ) {
+                String msg = new StringBuffer()
+                   .append( "No capability element with " )
+                   .append( "standardID='" + TAPCAP_STDID + "'" )
+                   .toString();
+                reporter_.report( FixedCode.E_CPT1, msg );
+                return null;
+            }
+            else if ( tapcaps.size() > 1 ) {
+                String msg = new StringBuffer()
+                   .append( "Multiple capability elements with " )
+                   .append( "standardID='" + TAPCAP_STDID + "'" )
+                   .toString();
+                reporter_.report( FixedCode.E_CPT1, msg );
+            }
+
+            /* Identify the one we will use in any case and its
+             * std interface. */
+            Cap tapcap = tapcaps.get( 0 );
+            List<Intf> stdIntfs = new ArrayList<Intf>();
+            for ( Intf intf : tapcap.intfs_ ) {
+                if ( "std".equals( intf.role_ ) ) {
+                    stdIntfs.add( intf );
+                }
+            }
+            if ( stdIntfs.size() == 0 ) {
+                String msg = new StringBuffer()
+                   .append( "No TAP interface element with " )
+                   .append( "role=\"std\"" )
+                   .toString();
+                reporter_.report( FixedCode.E_CPIF, msg );
+            }
+            else if ( stdIntfs.size() > 1 ) {
+                String msg = new StringBuffer()
+                   .append( "Multiple TAP interface elements with " )
+                   .append( "role=\"std\"" )
+                   .toString();
+                reporter_.report( FixedCode.W_CPI2, msg );
+            }
+
+            /* Look at the standard interface. */
+            Intf tapintf = stdIntfs.size() > 0 ? stdIntfs.get( 0 ) : null;
+            if ( tapintf != null ) {
+
+                /* Check the version is what we thought it was.
+                 * In some cases this is a pointless step, since the version
+                 * will have been determined by reading this value in any case,
+                 * but not always. */
+                String intfVers = tapintf.version_;
+                TapVersion tapVers = tapService_.getTapVersion();
+                if ( tapVers.is11() && ! "1.1".equals( intfVers ) ) {
+                    String msg = new StringBuffer()
+                       .append( "TAP interface does not declare " )
+                       .append( "version 1.1" )
+                       .append( " (<interface role=\"std\"" )
+                       .append( " version=\"" + intfVers + "\">" )
+                       .append( " for " + tapVers + ")" )
+                       .toString();
+                    reporter_.report( FixedCode.E_CPTV, msg );
+                }
+                else if ( ! tapVers.is11() && 
+                          ! ( intfVers == null ||
+                              intfVers.equals( "1.0" ) ) ) {
+                    String msg = new StringBuffer()
+                       .append( "TAP interface version declaration" )
+                       .append( " mismatch" )
+                       .append( " (<interface role=\"std\"" )
+                       .append( " version=\"" + intfVers + "\">" )
+                       .append( " for " + tapVers + ")" )
+                       .toString();
+                    reporter_.report( FixedCode.E_CPTV, msg );
+                }
+
+                /* Check that the URL is what we thought it was.
+                 * That's not essential, but it can lead to surprises if not.
+                 * Note however that depending on how taplint was invoked,
+                 * the originally requested base URL may not be accessible
+                 * by now anyway. */
+                String tapUrl = tapService_.getIdentity();
+                String intfUrl = tapintf.accessUrl_;
+                if ( tapUrl != null && ! tapUrl.equals( intfUrl ) ) {
+                    String msg = new StringBuffer()
+                       .append( "TAP role='std' interface accessURL " )
+                       .append( "differs from TAP service URL " )
+                       .append( "(" + intfUrl + " != " + tapUrl + ")" )
+                       .toString();
+                    reporter_.report( FixedCode.W_CPUR, msg );
+                }
+            }
+
+            /* Return the TAP capability. */
+            return tapcap;
+        }
+
+        /**
+         * Tests presence and content of securityMethod elements.
+         */
+        private void checkSecurityMethods() {
+            for ( Cap cap : caps_ ) {
+                for ( Intf intf : cap.intfs_ ) {
+                    SecMeth[] sms = intf.secMeths_.toArray( new SecMeth[ 0 ] );
+                    if ( sms.length == 1 &&
+                         ( sms[ 0 ].standardId_ == null ||
+                           sms[ 0 ].standardId_.trim().length() == 0 ) ) {
+
+                        /* TAP 1.1 section 2.4. */
+                        String msg = new StringBuffer()
+                           .append( "Interface has single anonymous " )
+                           .append( "security method - " )
+                           .append( "zero security methods is preferred" )
+                           .toString();
+                        reporter_.report( FixedCode.W_CPAN, msg );
+                    }
+                    List<String> idlist = new ArrayList<String>();
+                    for ( SecMeth sm : sms ) {
+                        String stdid = sm.standardId_;
+                        idlist.add( stdid );
+                        if ( stdid != null && ! SSO_SMIDS.contains( stdid ) ) {
+                            String msg = new StringBuffer()
+                               .append( "Unknown SecurityMethod standardID " )
+                               .append( "\"" + stdid + "\" " )
+                               .append( "(not defined in SSO 2.0)" )
+                               .toString();
+                            reporter_.report( FixedCode.W_CPSM, msg );
+                        }
+                    }
+                    if ( idlist.size() >
+                         new HashSet<String>( idlist ).size() ) {
+                        String msg = new StringBuffer()
+                           .append( "Duplicate security methods present " )
+                           .append( "in capabilities interface: " )
+                           .append( idlist )
+                           .toString();
+                        reporter_.report( FixedCode.W_CPS2, msg );
+                    }
+                }
+            }
+        }
+
+        /**
+         * Tests that the accessURL for a TAP-related resource is in
+         * its proper place.
+         *
+         * @param  tapCap  standard TAP capability
+         * @param  stdIdRegex  pattern for standardID of capability to check
+         * @param  subpath   subpath relative to TAP accessURL at which
+         *                   the given capability is expected
+         */
+        private void checkAccessUrl( Cap tapCap, String stdIdRegex,
+                                     String subpath ) {
+            String tapUrl = getStdAccessUrl( tapCap );
+            for ( Cap cap : caps_ ) {
+                if ( cap.standardId_.matches( stdIdRegex ) ) {
+                    String vosiUrl = getStdAccessUrl( cap );
+                    if ( vosiUrl != null &&
+                         ! vosiUrl.equals( tapUrl + subpath ) ) {
+
+                        /* Issue a warning rather than an error here,
+                         * since just because (e.g.) the capabilities
+                         * accessURL is listed at a non-standard place
+                         * doesn't mean that it's not present in the
+                         * standard place (TAP does not in general require
+                         * these capabilities to be present at all). */
+                        String msg = new StringBuffer()
+                           .append( "AccessURL for " )
+                           .append( cap.standardId_ )
+                           .append( " is not at fixed location" )
+                           .append( " (" )
+                           .append( "\"" + vosiUrl + "\"" )
+                           .append( " != " )
+                           .append( "\"" + tapUrl + subpath )
+                           .toString();
+                        reporter_.report( FixedCode.W_CPUL, msg );
+                    }
+                }
+            }
+        }
+
+        /**
+         * Returns the standard access URL for a given capability
+         * (the one from the interface with role="std").
+         * 
+         * @param  cap  capability
+         * @return   access URL
+         */
+        private static String getStdAccessUrl( Cap cap ) {
+            for ( Intf intf : cap.intfs_ ) {
+                if ( "std".equals( intf.role_ ) ) {
+                    return intf.accessUrl_;
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Represents a capability element.
+     */
+    private static class Cap {
+        final String standardId_;
+        final List<Intf> intfs_;
+        Cap( String standardId ) {
+            standardId_ = standardId;
+            intfs_ = new ArrayList<Intf>();
+        }
+    }
+
+    /**
+     * Represents the interface element child of a capability.
+     */
+    private static class Intf {
+        final String xsiType_;
+        final String role_;
+        final String version_;
+        String accessUrl_;
+        final List<SecMeth> secMeths_;
+        Intf( String xsiType, String role, String version ) {
+            xsiType_ = xsiType;
+            role_ = role;
+            version_ = version;
+            secMeths_ = new ArrayList<SecMeth>();
+        }
+    }
+
+    /**
+     * Represents the securityMethod element child of an interface.
+     */
+    private static class SecMeth {
+        final String standardId_;
+        SecMeth( String standardId ) {
+            standardId_ = standardId;
         }
     }
 }
