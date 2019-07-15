@@ -274,7 +274,7 @@ public class CompareMetadataStage implements Stage {
             return false;
         }
         dt1 = stripAdqlType( dt1 );
-        if ( dt1.equals( dt2 ) ) {
+        if ( dt1.equalsIgnoreCase( dt2 ) ) {
             return true;
         }
         if ( dt1.equals( "SMALLINT" ) && dt2.equals( "short" ) ||
