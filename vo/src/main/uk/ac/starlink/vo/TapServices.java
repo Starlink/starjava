@@ -188,8 +188,9 @@ public class TapServices {
             return TapVersion.V11;
         }
         else {
-            logger_.warning( "Unrecognised TAP interface @version attribute \""
-                           + versStr + "\"; assume 1.0" );
+            /* PR-TAP-1.1-20190626 (section 2.4) says 'clients should
+             * treat a missing version attribute [as] equivalent to
+             * version="1.0"'. */
             return TapVersion.V10;
         }
     }
