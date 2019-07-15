@@ -551,7 +551,8 @@ public class TapSchemaStage extends TableMetadataStage {
                             TableData.createTableData( reporter_, table );
                         if ( tdata != null && tdata.getRowCount() > 0 ) {
                             reporter_.report( FixedCode.E_TSNL,
-                                              "Non-null values in " + ctxt );
+                                              "Null values in non-nullable "
+                                            + ctxt );
                         }
                     }
                 }
