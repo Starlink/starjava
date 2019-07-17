@@ -485,7 +485,7 @@ public class TopcatUtils {
                 && Desktop.getDesktop().isSupported( Desktop.Action.BROWSE );
             if ( ! canBrowse ) {
                 logger_.warning( "Can't send URLs to browser"
-                               + " (no Desktop.Action.BROWSE" );
+                               + " (no Desktop.Action.BROWSE)" );
             }
             canBrowse_ = Boolean.valueOf( canBrowse );
         }
