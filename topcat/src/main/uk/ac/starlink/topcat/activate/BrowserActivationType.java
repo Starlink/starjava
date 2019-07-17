@@ -7,10 +7,10 @@ import java.util.List;
 import javax.swing.JComboBox;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
+import uk.ac.starlink.topcat.AbstractHtmlPanel;
 import uk.ac.starlink.topcat.HtmlWindow;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
-import uk.ac.starlink.topcat.SwingHtmlPanel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.calc.WebMapper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -131,11 +131,28 @@ public class BrowserActivationType implements ActivationType {
      */
     private final Browser[] createBrowserList() {
         List<Browser> list = new ArrayList<Browser>();
+        if ( AbstractHtmlPanel.hasJavaFx() ) {
+            list.add( new BasicBrowser( "JavaFX browser" ) {
+                AbstractHtmlPanel createHtmlPanel() {
+                    AbstractHtmlPanel panel =
+                        AbstractHtmlPanel.createFxPanel();
+                    if ( panel == null ) {
+                        assert false; 
+                        panel = AbstractHtmlPanel.createSwingPanel();
+                    }
+                    return panel;
+                }
+            } );
+        }
+        list.add( new BasicBrowser( "basic browser" ) {
+            AbstractHtmlPanel createHtmlPanel() {
+                return AbstractHtmlPanel.createSwingPanel();
+            }
+        } );
         Desktop desktop = TopcatUtils.getBrowserDesktop();
         if ( desktop != null ) {
             list.add( new DesktopBrowser( desktop ) );
         }
-        list.add( new BasicBrowser() );
         return list.toArray( new Browser[ 0 ] );
     }
 
@@ -168,10 +185,10 @@ public class BrowserActivationType implements ActivationType {
     /**
      * Internally implemented HTML display window.
      */
-    private static class BasicBrowser extends Browser {
+    private static abstract class BasicBrowser extends Browser {
         private HtmlWindow htmlWin_;
-        BasicBrowser() {
-            super( "basic browser" );
+        BasicBrowser( String name ) {
+            super( name );
         }
         public Outcome browse( URL url, String label ) {
             HtmlWindow win = getHtmlWindow( label );
@@ -185,7 +202,7 @@ public class BrowserActivationType implements ActivationType {
         }
         private HtmlWindow getHtmlWindow( String label ) {
             if ( htmlWin_ == null ) {
-                htmlWin_ = new HtmlWindow( null, new SwingHtmlPanel() );
+                htmlWin_ = new HtmlWindow( null, createHtmlPanel() );
             }
             htmlWin_.setTitle( label );
             if ( ! htmlWin_.isShowing() ) {
@@ -193,6 +210,13 @@ public class BrowserActivationType implements ActivationType {
             }
             return htmlWin_;
         }
+
+        /**
+         * Returns an AbstractHtmlPanel implementation.
+         *
+         * @return  html panel, not null
+         */
+        abstract AbstractHtmlPanel createHtmlPanel();
     }
 
     /**

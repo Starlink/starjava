@@ -21950,21 +21950,34 @@ using the expression language.
     </dl>
     </p></dd>
 <dt>Browser</dt>
-<dd><p>A couple of options are available for controlling what browser is used
-    to display the URL.
+<dd><p>Determines where the web resource will be displayed;
+    see also <ref id="documentViewers"/>.
     <dl>
+    <dt>JavaFX Browser:</dt>
+    <dd><p>Displays the URL content in a basic HTML viewer implemented
+        within TOPCAT using <em>JavaFX</em> classes.
+        The same window is re-used every time the action is invoked.
+        This generally does a better job than the <label>Basic Browser</label>,
+        including being able to render JavaScript as well as static HTML.
+        However, this option may or may not be available,
+        depending on your java installation.
+        </p></dd>
+    <dt>Basic Browser:</dt>
+    <dd><p>Displays the URL content in a basic HTML viewer implemented
+        within TOPCAT using <em>Swing</em> classes.
+        The same window is re-used every time the action is invoked.
+        This is OK for basic HTML and images,
+        but more complex or non-web-page content may not work,
+        and rendering may not be very beautiful.
+        This option is always present.
+        </p></dd>
     <dt>System Browser:</dt>
     <dd><p>Attempts to open the URL in the default desktop web browser.
         There is, unfortunately, no control over whether the new web page
         will appear in the same tab/window or if the browser will open
         a new one each time, it's down to the browser itself.
-        </p></dd>
-    <dt>Basic Browser:</dt>
-    <dd><p>Displays the URL content in a basic HTML viewer implemented
-        within TOPCAT (see <ref id="documentViewers"/>).
-        This is OK for basic HTML and images,
-        but more complex or non-web-page content may not work.
-        The same window is re-used every time the action is invoked.
+        This option may or may not be available,
+        depending on your java installation.
         </p></dd>
     </dl>
     </p></dd>
@@ -22547,14 +22560,21 @@ via the <ref id="SendSpectrumActivationType">Send Spectrum</ref> action.
 action
 then activating a row will display the web page whose URL 
 is in one of the columns in a web browser.
-You are given the option of what browser you would like to use in this case.
+You are given the option of what browser you would like to use in this case;
+the options available depend on your java installation.
 </p>
 
-<p>The <label>basic browser</label> option uses a simple
-browser which can view HTML or plain text pages and has forward and
-back buttons which work as you'd expect.  In many cases this is fine
-for viewing HTML pages, and it is available regardless of the system
-that you are running TOPCAT on.  It looks like this:
+<p>The <label>Basic Browser</label> and <label>JavaFX Browser</label>
+options use an internal browser implementation that runs inside
+the TOPCAT application itself.
+This can view HTML or plain text pages and has forward and
+back buttons which work as you'd expect.
+The JavaFX variant has more capabilities and generally works better,
+for instance it can render JavaScript as well as static HTML,
+so it's generally better to select this if it's available,
+but it's not present in all Java Runtime Environments.
+The Basic variant is always available.
+These browsers look approximately like this:
 </p>
 
 <figure>
@@ -22562,8 +22582,12 @@ that you are running TOPCAT on.  It looks like this:
 <figureimage src="&FIG.HtmlWindow;"/>
 </figure>
 
-<p>Other options are available for using other installed web browsers,
-which in most cases will behave better.
+<p>Alternatively, the <label>System Browser</label> option may be
+available.  This will send the URL to the default browser installed
+on your desktop.  This will certainly be a more capable browser
+implementation than the internal options, but there may be annoyances;
+for instance in some cases it opens a new tab every time a new URL
+is opened.
 </p>
 
 </subsubsubsect>
@@ -28641,6 +28665,10 @@ introduced since the last version:
         activation action so that it can show web pages for not only
         URLs and filenames, but things like DOIs, bibcodes and
         arXiv identifiers too.</li>
+    <li>New <label>JavaFX</label> browser option in the
+        <ref id="BrowserActivationType">View in Web Browser</ref>
+        activation action.  This is like the existing Basic Browser,
+        but more capable (e.g. can render JavaScript).</li>
     </ul>
     </p></dd>
 
