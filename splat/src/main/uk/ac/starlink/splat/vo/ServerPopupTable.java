@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package uk.ac.starlink.splat.vo;
 
@@ -27,24 +27,24 @@ import uk.ac.starlink.table.StarTable;
 /**
  * ServerPopupTable
  * A RowPopupTable that represents a table of ssa service resources
- * 
+ *
  * @author mm
  *
  */
  public class ServerPopupTable extends RowPopupTable {
 
-    
+
      private AbstractServerList serverList;
    //  private TableRowSorter<DefaultTableModel> sorter;
 
      static final int NRCOLS = 15;                    // the number of columns in the table
 
      // the table indexes
-  
+
       public static final int SHORTNAME_INDEX = 0;
       public static final int TITLE_INDEX = 1;
       public static final int DESCRIPTION_INDEX = 2;
-      public static final int IDENTIFIER_INDEX = 3;    
+      public static final int IDENTIFIER_INDEX = 3;
       public static final int PUBLISHER_INDEX = 4;
       public static final int CONTACT_INDEX = 5;
       public static final int ACCESSURL_INDEX = 6;
@@ -57,53 +57,54 @@ import uk.ac.starlink.table.StarTable;
       public static final int VERSION_INDEX = 13;
       public static final int SUBJECTS_INDEX = 14;
       public static final int TAGS_INDEX = 15;
-     
+
      // the table headers
      private String[] headers = { "short name", "title", "description", "identifier",
-                                 "publisher", "contact", "access URL", "reference URL", "waveband", "content type", 
+                                 "publisher", "contact", "access URL", "reference URL", "waveband", "content type",
                                  "data source", "creation type", "stantardid", "version", "subjects"};//, "tags"};
 
 
      public ServerPopupTable() {
-         super();       
+         super();
          try {
             serverList=new SSAServerList(false);
         } catch (SplatException e) {
-            // 
-        }            
+            //
+        }
      }
 
      public ServerPopupTable(AbstractServerList list) {
-         super();       
+         super();
          serverList=list;
          populate();
          sortTableAlphabetically();
-             
+
      }
-    /* 
-     * Populate 
+    /*
+     * Populate
      * fills the table with the values of serverList
      * Instead of using directly the StarTable model,
      * this way the columns are set in the desired order
      */
     public void populate() {
-       
-      
+
+
         DefaultTableModel model =  (DefaultTableModel) this.getModel();
         model.setRowCount(0);
         model.setColumnIdentifiers(headers);
-        
+
         Iterator<?>  i =  serverList.getIterator();
-        
-        
+
+
         while( i.hasNext()) {
 
-            SSAPRegResource server= (SSAPRegResource) i.next(); 
+            SSAPRegResource server= (SSAPRegResource) i.next();
             if (server != null) {
                 SSAPRegCapability caps[] = server.getCapabilities();
+                if (caps == null || caps.length == 0) continue;
                 String[] tablerow = new String[headers.length];
 
-                String name = server.getShortName(); 
+                String name = server.getShortName();
                 if ( name == null )
                     name = server.getTitle();
                 else {
@@ -124,52 +125,52 @@ import uk.ac.starlink.table.StarTable;
                 tablerow[WAVEBAND_INDEX] = stringJoin(server.getWaveband());
                 tablerow[CONTTYPE_INDEX] = server.getContentType();
                 tablerow[SUBJECTS_INDEX] =  stringJoin(server.getSubjects());
-                SSAPRegCapability cap = caps[0]; 
+                SSAPRegCapability cap = caps[0];
                 tablerow[ACCESSURL_INDEX] = cap.getAccessUrl();
-                tablerow[DESCRIPTION_INDEX] = cap.getDescription(); 
-                tablerow[DATASOURCE_INDEX] = cap.getDataSource(); 
+                tablerow[DESCRIPTION_INDEX] = cap.getDescription();
+                tablerow[DATASOURCE_INDEX] = cap.getDataSource();
                 tablerow[CREATIONTYPE_INDEX] = cap.getCreationType();
-                tablerow[STDID_INDEX] = cap.getStandardId(); 
+                tablerow[STDID_INDEX] = cap.getStandardId();
                 tablerow[VERSION_INDEX] = cap.getVersion();
 
-                model.addRow(tablerow);    
+                model.addRow(tablerow);
             }
         }
-               
+
         this.setModel(model);
         setRowSorter(new TableRowSorter<TableModel>(model));
         updateServerTable();
-      
+
     }
-    
+
     // initially sort the services in alphabetical order
     public void sortTableAlphabetically() {
         TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>) getRowSorter();
          List<RowSorter.SortKey> sortKeys = new ArrayList<SortKey>();
          sortKeys.add(new RowSorter.SortKey(SHORTNAME_INDEX, SortOrder.ASCENDING));
          sorter.setSortKeys(sortKeys);
-         setRowSorter(sorter);        
+         setRowSorter(sorter);
      }
-    
-    
+
+
  // server table formatting and sorting
     private void updateServerTable() {
-       
+
       for (int i=getColumnCount()-1; i>1; i--)  {
             /// update server table to show only the two first columns
             // the information remains in the tablemodel
             removeColumn(getColumn(getColumnName(i)));
       }
       updateUI();
-   
+
     }
-    
+
     // Transform a StringArray into a comma separated String
     private String stringJoin(String[] str) {
-       
+
         if (str == null  || str.length==0 )
             return "";
-        
+
         StringBuilder csbuilder=new StringBuilder();
         for (int s=0;s<str.length;s++)
             csbuilder.append(str[s]+", ");
@@ -185,33 +186,33 @@ import uk.ac.starlink.table.StarTable;
 
         if (serverList == null)
             serverList = new SSAServerList(table);
-        else 
+        else
             serverList.addNewServers(table);
-        populate();        
+        populate();
     }
 
     public void updateServers(StarTable table, ArrayList<String> manuallyAddedServices ) {
 
         if (serverList == null)
             serverList = new SSAServerList(table);
-        else 
+        else
             serverList.addNewServers(table, manuallyAddedServices );
 
-        populate();       
+        populate();
 
     }
 
     /**
      *  Opens a Dialog Window with Information on the right-clicked service
-     * @param strings 
-     * @param tags 
+     * @param strings
+     * @param tags
      */
     public void showInfo(int r, String type, String[] tags) {
-              
+
         String info = "<HTML><TABLE border=0 valign=\"top\">";
         DefaultTableModel model = (DefaultTableModel) this.getModel();
-            
-       
+
+
         for ( int c= 0; c< model.getColumnCount(); c++) {
             String val = "";
             try {
@@ -223,12 +224,12 @@ import uk.ac.starlink.table.StarTable;
             } catch (Exception e) {
                // do nothing, the value will be an empty string
             }
-            info += "<TR><TD col width= \"25%\"><B>"+model.getColumnName(c)+":</B></TD><TD col width= \"70%\">"+val+"</TD></TR>";            
+            info += "<TR><TD col width= \"25%\"><B>"+model.getColumnName(c)+":</B></TD><TD col width= \"70%\">"+val+"</TD></TR>";
         }
-        
-        
-        info += "<TR><TD col width= \"25%\"><B>Tags:</B></TD><TD col width= \"70%\">"+stringJoin(tags)+"</TD></TR>";  
-        
+
+
+        info += "<TR><TD col width= \"25%\"><B>Tags:</B></TD><TD col width= \"70%\">"+stringJoin(tags)+"</TD></TR>";
+
         if (type.equals("SSAP")) {
             ArrayList<MetadataInputParameter> params = (ArrayList<MetadataInputParameter>) serverList.getResource((String) model.getValueAt(r, ServerPopupTable.SHORTNAME_INDEX)).getMetadata();
             if (params!=null) {
@@ -237,17 +238,17 @@ import uk.ac.starlink.table.StarTable;
                     String p = params.get(i).getName().replace("INPUT:", "");
                     paramlist+=p+"; ";
                 }
-                info += "<TR><TD col width= \"25%\"><B>Metadata:</B></TD><TD col width= \"70%\">"+paramlist+"</TD></TR>"; 
-            } 
-        }   
+                info += "<TR><TD col width= \"25%\"><B>Metadata:</B></TD><TD col width= \"70%\">"+paramlist+"</TD></TR>";
+            }
+        }
 
         info += "</TABLE></HTML>";
-        
+
         JTextPane infoPane =  new JTextPane();
         infoPane.setContentType("text/html");
-        infoPane.setText(info);       
-        infoPane.setPreferredSize(new Dimension(500,300));      
-        
+        infoPane.setText(info);
+        infoPane.setPreferredSize(new Dimension(500,300));
+
         JOptionPane.showMessageDialog(this,
                 new JScrollPane(infoPane),
                 type+" Service Information",
@@ -256,18 +257,18 @@ import uk.ac.starlink.table.StarTable;
 
      public String getShortName(int row) {
          return (String) getModel().getValueAt(row, SHORTNAME_INDEX);
-         
+
      }
      public String getAccessURL(int row) {
          return (String) getModel().getValueAt(row, ACCESSURL_INDEX).toString();
-         
+
      }
      public String getTitle(int row) {
          return (String) getModel().getValueAt(row, TITLE_INDEX);
-         
+
      }
 
-    public void removeServer(int row) { 
+    public void removeServer(int row) {
        serverList.removeServer((String)getModel().getValueAt(row, SHORTNAME_INDEX).toString());
        //this.removeRowSelectionInterval(0, this.getRowCount()-1);
        ((DefaultTableModel) this.getModel()).removeRow(row);
@@ -275,48 +276,48 @@ import uk.ac.starlink.table.StarTable;
     }
 
     public void addNewServer(SSAPRegResource server) {
-       serverList.addServer(server, true);        
+       serverList.addServer(server, true);
        populate();
  //      sortTable();
        //sortTable();
     }
-    
+
     public  AbstractServerList getServerList() {
         return serverList;
      }
 
     public void saveServers() throws SplatException {
         serverList.saveServers();
-        
+
     }
 
     public void saveServers(File file) throws SplatException {
         serverList.saveServers(file);
-        
+
     }
 
     public void restoreServers(File file) throws SplatException {
         serverList.restoreServers(file);
-        
+
     }
 
     public void setServerList(AbstractServerList list) {
         serverList=list;
         populate();
     }
-    
+
     public void setServerListValue(AbstractServerList list) {
         serverList=list;
     }
 
     public void sortTable() {
         TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>) getRowSorter();
-        sorter.sort();        
+        sorter.sort();
     }
 
   /*  public void setServerTags(int row, String[] tags) {
-       
+
         this.getModel().setValueAt(stringJoin(tags), row, TAGS_INDEX);
-        
+
     }*/
 }
