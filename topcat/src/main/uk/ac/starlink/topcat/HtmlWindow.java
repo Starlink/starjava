@@ -5,7 +5,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,11 +14,8 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.JEditorPane;
 import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
+import javax.swing.JTextField;
 
 /**
  * Window which displays simple HTML.
@@ -27,13 +25,13 @@ import javax.swing.event.HyperlinkListener;
  */
 public class HtmlWindow extends AuxWindow {
 
-    private final JEditorPane textPane_;
-    private final JLabel urlLabel_;
+    private final JTextField urlField_;
+    private final AbstractHtmlPanel htmlPanel_;
     private final List<URL> history_;
     private final static int HISTORY_LIMIT = 100;
-    private int historyPoint_;
     private final Action forwardAct_;
     private final Action backAct_;
+    private int historyPoint_;
 
     /**
      * Constructs a new HtmlWindow.
@@ -42,37 +40,28 @@ public class HtmlWindow extends AuxWindow {
      */
     public HtmlWindow( Component parent ) {
         super( "Html Browser", parent );
+        htmlPanel_ = new SwingHtmlPanel();
         JComponent main = getMainArea();
         main.setLayout( new BorderLayout() );
 
         /* Add text display component in frame centre. */
-        textPane_ = new JEditorPane();
-        textPane_.setEditable( false );
-        JScrollPane scroller = new JScrollPane( textPane_ );
-        scroller.setPreferredSize( new Dimension( 450, 400 ) );
-        main.add( scroller, BorderLayout.CENTER );
+        htmlPanel_.setPreferredSize( new Dimension( 450, 400 ) );
+        main.add( htmlPanel_, BorderLayout.CENTER );
 
         /* Add location display line at frame bottom. */
         Box line = Box.createHorizontalBox();
         line.add( new JLabel( "URL: " ) );
-        urlLabel_ = new JLabel();
-        line.add( urlLabel_ );
-        main.add( line, BorderLayout.SOUTH );
-
-        /* Add a listener for links. */
-        textPane_.addHyperlinkListener( new HyperlinkListener() {
-            public void hyperlinkUpdate( HyperlinkEvent evt ) {
-                if ( evt.getEventType() == 
-                     HyperlinkEvent.EventType.ACTIVATED ) {
-                    try {
-                        setURL( evt.getURL() );
-                    }
-                    catch ( IOException e ) {
-                        Toolkit.getDefaultToolkit().beep();
-                    }
-                }
+        urlField_ = new JTextField();
+        urlField_.setEditable( false );
+        line.add( urlField_ );
+        htmlPanel_.addPropertyChangeListener( "url",
+                                              new PropertyChangeListener() {
+            public void propertyChange( PropertyChangeEvent evt ) {
+                Object url = evt.getNewValue();
+                urlField_.setText( url instanceof URL ? url.toString() : null );
             }
         } );
+        main.add( line, BorderLayout.SOUTH );
 
         /* Set up history list. */
         history_ = new ArrayList<URL>();
@@ -95,15 +84,12 @@ public class HtmlWindow extends AuxWindow {
     /**
      * Attempts to display a new URL in the browser window, updating
      * history state accordingly.
-     * Loading is asynchronous, but if the named resource doesn't exist
-     * an IOException will (probably) be thrown.
      *
      * @param   url   URL
      */
-    public void setURL( URL url ) throws IOException {
+    public void setURL( URL url ) {
 
-        /* Attempt to load the new URL.  This will throw an IOException if
-         * the URL doesn't exist. */
+        /* Attempt to load the new URL. */
         moveToURL( url );
 
         /* If we're not currently at the head of the history list, trim it
@@ -133,9 +119,9 @@ public class HtmlWindow extends AuxWindow {
      *
      * @param  url   URL
      */
-    private void moveToURL( URL url ) throws IOException {
-        textPane_.setPage( url );
-        urlLabel_.setText( url.toString() );
+    private void moveToURL( URL url ) {
+        htmlPanel_.setUrl( url );
+        urlField_.setText( url.toString() );
     }
 
     /**
@@ -168,14 +154,9 @@ public class HtmlWindow extends AuxWindow {
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            try {
-                moveToURL( history_.get( historyPoint_ + increment_ ) );
-                historyPoint_ += increment_;
-                configureActions();
-            }
-            catch ( IOException e ) {
-                Toolkit.getDefaultToolkit().beep();
-            }
+            moveToURL( history_.get( historyPoint_ + increment_ ) );
+            historyPoint_ += increment_;
+            configureActions();
         }
     }
 }

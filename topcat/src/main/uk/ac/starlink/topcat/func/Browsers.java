@@ -63,17 +63,8 @@ public class Browsers {
                 return "Bad URL: " + url;
             }
         }
-        try {
-            getHtmlWindow().setURL( url1 );
-            return url;
-        }
-        catch ( IOException e ) {
-            String msg = e.getMessage();
-            if ( e == null ) {
-                msg = e.toString();
-            }
-            return msg + ": " + url;
-        }
+        getHtmlWindow().setURL( url1 );
+        return url;
     }
 
     /**
