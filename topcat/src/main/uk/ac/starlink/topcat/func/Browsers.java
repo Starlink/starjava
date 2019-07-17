@@ -5,12 +5,14 @@
 
 package uk.ac.starlink.topcat.func;
 
+import java.awt.Component;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import uk.ac.starlink.topcat.AbstractHtmlPanel;
 import uk.ac.starlink.topcat.Executor;
 import uk.ac.starlink.topcat.HtmlWindow;
 
@@ -164,7 +166,8 @@ public class Browsers {
      */
     private static HtmlWindow getHtmlWindow() {
         if ( htmlWindow_ == null ) {
-            htmlWindow_ = new HtmlWindow( null );
+            htmlWindow_ = new HtmlWindow( (Component) null,
+                                          AbstractHtmlPanel.createPanel() );
         }
         if ( ! htmlWindow_.isShowing() ) {
             htmlWindow_.setVisible( true );

@@ -10,6 +10,7 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.HtmlWindow;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
+import uk.ac.starlink.topcat.SwingHtmlPanel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.calc.WebMapper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -184,7 +185,7 @@ public class BrowserActivationType implements ActivationType {
         }
         private HtmlWindow getHtmlWindow( String label ) {
             if ( htmlWin_ == null ) {
-                htmlWin_ = new HtmlWindow( null );
+                htmlWin_ = new HtmlWindow( null, new SwingHtmlPanel() );
             }
             htmlWin_.setTitle( label );
             if ( ! htmlWin_.isShowing() ) {

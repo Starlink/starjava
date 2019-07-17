@@ -18,7 +18,9 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 /**
- * Window which displays simple HTML.
+ * Very basic HTML browser window.
+ * This class handles very simple decoration and history management,
+ * the HTML rendering is done by a supplied AbstractHtmlPanel instance.
  *
  * @author   Mark Taylor (Starlink)
  * @since    10 Jun 2005
@@ -37,16 +39,17 @@ public class HtmlWindow extends AuxWindow {
      * Constructs a new HtmlWindow.
      *
      * @param  parent  parent component
+     * @param  htmlPanel  HTML rendering panel
      */
-    public HtmlWindow( Component parent ) {
+    public HtmlWindow( Component parent, AbstractHtmlPanel htmlPanel ) {
         super( "Html Browser", parent );
-        htmlPanel_ = new SwingHtmlPanel();
+        htmlPanel_ = htmlPanel;
         JComponent main = getMainArea();
         main.setLayout( new BorderLayout() );
 
         /* Add text display component in frame centre. */
-        htmlPanel_.setPreferredSize( new Dimension( 450, 400 ) );
-        main.add( htmlPanel_, BorderLayout.CENTER );
+        htmlPanel.setPreferredSize( new Dimension( 450, 400 ) );
+        main.add( htmlPanel, BorderLayout.CENTER );
 
         /* Add location display line at frame bottom. */
         Box line = Box.createHorizontalBox();
