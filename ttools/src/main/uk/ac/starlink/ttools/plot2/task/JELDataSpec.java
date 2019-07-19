@@ -116,6 +116,10 @@ public class JELDataSpec extends AbstractDataSpec {
         }
     }
 
+    public boolean isMaskTrue() {
+        return ALL_MASK.equals( maskId_ );
+    }
+
     public boolean isCoordBlank( int icoord ) {
         for ( String expr : coordValues_[ icoord ].getExpressions() ) {
             if ( expr != null && expr.trim().length() > 0 ) {

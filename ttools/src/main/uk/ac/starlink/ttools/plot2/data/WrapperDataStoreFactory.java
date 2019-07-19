@@ -173,6 +173,10 @@ public abstract class WrapperDataStoreFactory implements DataStoreFactory {
             return baseSpec_.createUserDataReader();
         }
 
+        public boolean isMaskTrue() {
+            return baseSpec_.isMaskTrue();
+        }
+
         public boolean isCoordBlank( int icoord ) {
             return baseSpec_.isCoordBlank( icoord );
         }

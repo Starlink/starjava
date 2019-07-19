@@ -101,6 +101,10 @@ public class GuiDataSpec extends AbstractDataSpec {
         };
     }
 
+    public boolean isMaskTrue() {
+        return RowSubset.ALL.equals( subset_ );
+    }
+
     public boolean isCoordBlank( int icoord ) {
         for ( String expr : contents_[ icoord ].getDataLabels() ) {
             if ( expr != null && expr.trim().length() > 0 ) {

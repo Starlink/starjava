@@ -93,6 +93,19 @@ public interface DataSpec {
     UserDataReader createUserDataReader();
 
     /**
+     * Indicates whether the mask flag specified by this object
+     * is known always to be true.
+     * If true is returned, then
+     * {@link UserDataReader#getMaskFlag getUserDataReader().getMaskFlag}
+     * will always return true.
+     * False negatives are permitted; even if the result is false, the
+     * mask may in fact always return true.
+     *
+     * @return  true if all rows are known to be included in the mask
+     */
+    boolean isMaskTrue();
+
+    /**
      * Indicates whether the value for a given coord specified by this object
      * is known to have a constant, blank value in all cases.
      * Clients don't have to test this, since data stores will always dispense

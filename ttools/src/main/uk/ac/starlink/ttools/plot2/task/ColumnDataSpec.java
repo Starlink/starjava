@@ -103,6 +103,13 @@ public class ColumnDataSpec extends AbstractDataSpec {
         };
     }
 
+    /**
+     * Returns true.
+     */
+    public boolean isMaskTrue() {
+        return true;
+    }
+
     public boolean isCoordBlank( int icoord ) {
         return false;
     }
