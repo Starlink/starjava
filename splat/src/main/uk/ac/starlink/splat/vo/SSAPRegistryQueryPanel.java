@@ -42,7 +42,7 @@ public class SSAPRegistryQueryPanel extends JPanel {
     /**
      * Constructor.
      */
-    public SSAPRegistryQueryPanel(String queryProtocol) {
+    public SSAPRegistryQueryPanel(int queryProtocol) {
         super( new BorderLayout() );
         
         qBox = Box.createVerticalBox();
@@ -68,10 +68,10 @@ public class SSAPRegistryQueryPanel extends JPanel {
             }
         });
         regtypes.setSelectedIndex(0);
-        if (queryProtocol.equalsIgnoreCase("obscore"))  // for ObsCore we just use RegTap
-            regtypes.setEnabled(false);
-        else 
+        if (queryProtocol == SplatRegistryQuery.SSAP )  
             regtypes.setEnabled(true);
+        else 
+            regtypes.setEnabled(false);// for ObsCore and SLAP  we just use RegTap
 
 
         /* Registry URL selector. */
@@ -110,7 +110,7 @@ public class SSAPRegistryQueryPanel extends JPanel {
      *
      * @return  query object
      */
-    public RegistryQuery getRegistryQuery(String type) throws MalformedURLException {
+    public RegistryQuery getRegistryQuery(int type) throws MalformedURLException {
            
         String regServ = (String) urlSelector_.getUrl();
         
@@ -125,19 +125,15 @@ public class SSAPRegistryQueryPanel extends JPanel {
             throw new MalformedURLException( "Bad registry URL: " + regServ );
         }
         
-        if (regProtocol_.equals(RegistryProtocol.REGTAP)) {
-            if (type.equalsIgnoreCase("ObsCore")) 
-                return new SplatRegistryQuery( regURL.toString(), "ObsCore" );
-            else    
-                return new SplatRegistryQuery( regURL.toString(), "SSAP");
-
+        if (regProtocol_.equals(RegistryProtocol.REGTAP)) {            
+            return new SplatRegistryQuery( regURL.toString(), type );
         } else if (regProtocol_.equals(RegistryProtocol.RI1)) {
-            if (type.equalsIgnoreCase("ObsCore")) {
+          //  if (type == SplatRegistryQuery.OBSCORE) {
                 return (RegistryQuery) new SSAPRegistryQuery(regURL.toString(), (String) querySelector_.getSelectedItem().toString());
-            }
-            else {
-                return (RegistryQuery) new SSAPRegistryQuery(regURL.toString(), (String) querySelector_.getSelectedItem().toString());
-            }
+         //   }
+         //   else if (type == SplatRegistryQuery.SSAP) {
+          //      return (RegistryQuery) new SSAPRegistryQuery(regURL.toString(), (String) querySelector_.getSelectedItem().toString());
+          //  }
         }
         return null; // should never happen
     }

@@ -30,6 +30,7 @@ public class MetadataInputParameter //implements java.io.Serializable
     String datatype = null;
  //   String min=null;    
  //   String max=null;
+    Boolean checked=false; // selected by user on GUI
    
    public MetadataInputParameter() {
        servers = new SupportingServers();
@@ -49,6 +50,7 @@ public class MetadataInputParameter //implements java.io.Serializable
         unit = param.getUnit();
         
         UCD = param.getUcd();
+        this.checked=false;
         
         /* To be done later after some questions have been cleared:
          * 
@@ -76,6 +78,11 @@ public class MetadataInputParameter //implements java.io.Serializable
  //       this.min= null;    
  //       this.max= null;     
         
+    }
+    
+    public MetadataInputParameter(MetadataInputParameter mip, boolean check) {
+        this(mip);
+        this.checked=check;
     }
    
     public String getName() {
@@ -143,7 +150,14 @@ public class MetadataInputParameter //implements java.io.Serializable
     public void setUCD(String ucd) {
          this.UCD = ucd;
     }
-   
+ 
+    public boolean isChecked() {
+        return this.checked;
+   }
+    public void setChecked(boolean check) {
+        this.checked=check;
+   }
+
 
     public class SupportingServers {
         List<String> servers;

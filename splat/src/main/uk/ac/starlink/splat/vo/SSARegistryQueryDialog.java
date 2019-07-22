@@ -41,9 +41,9 @@ public class SSARegistryQueryDialog
     private SSAPRegistryQueryPanel rqPanel_;
     private static Boolean available_;
     private StarTable table_;
-    private String protocol_;
+    private int protocol_;
 
-    SSARegistryQueryDialog( String proto) {
+    SSARegistryQueryDialog( int proto) {
        super();
        protocol_=proto; 
     }
@@ -57,6 +57,11 @@ public class SSARegistryQueryDialog
     public static String[] defaultOBSCoreQuery_ = new String[]
             {
                     "capability/@standardID = 'ivo://ivoa.net/std/ObsCore'"
+            };
+    
+    public static String[] defaultSLAPQuery_ = new String[]
+            {
+                    "capability/@standardID = 'ivo://ivoa.net/std/slap'"
             };
 
 
@@ -73,9 +78,9 @@ public class SSARegistryQueryDialog
     protected Component createQueryComponent()
     {
         rqPanel_ = new SSAPRegistryQueryPanel(protocol_);
-        if (! protocol_.equalsIgnoreCase("ObsCore"))
+        if (protocol_ == SplatRegistryQuery.SSAP)
             rqPanel_.setPresetQueries( defaultSSAPQuery_ );
-        else 
+        else if (protocol_ == SplatRegistryQuery.OBSCORE)
             rqPanel_.setPresetQueries( defaultOBSCoreQuery_ );
         return rqPanel_;
     }

@@ -291,6 +291,7 @@ implements ActionListener, ItemListener
             if ( status==1) {
                 setResource(); // create a new resoure object
                 statusLabel.setText(new String( "Added "+shortNameField.getText()+ "("+ accessURLField.getText()+ ")") );
+                closeWindowEvent();
             }
         }
         if ( command.equals( "reset" ) ) // reset text fields
@@ -305,7 +306,7 @@ implements ActionListener, ItemListener
         }
         // if everything OK (status changed) fire an event - this will cause the
         // new resource to be added to the list
-        statusChange.firePropertyChange("status", oldstatus, status);
+        statusChange.firePropertyChange("AddNewServer", oldstatus, status);
         status=0;
     }
 

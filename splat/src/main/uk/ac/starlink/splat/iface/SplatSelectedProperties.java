@@ -32,6 +32,7 @@ import javax.swing.event.ListSelectionListener;
 
 import uk.ac.starlink.ast.gui.AstStyleBox;
 import uk.ac.starlink.ast.gui.ColourIcon;
+import uk.ac.starlink.splat.data.ObjectTypeEnum;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.util.gui.GridBagLayouter;
@@ -91,6 +92,8 @@ public class SplatSelectedProperties
     protected JTextField shortName = new JTextField();
     protected PlotStyleBox lineType = new PlotStyleBox();
     protected PointTypeBox pointType = new PointTypeBox();
+    
+   // protected JComboBox objectTypeBox = new JComboBox(ObjectTypeEnum.values());
 
     /**
      *  Storage handler for rendering properties defaults and persistence.
@@ -176,6 +179,17 @@ public class SplatSelectedProperties
         dataColumn.setEnabled( false );
         errorColumn.setEnabled( false );
 
+        /*
+         * layouter.add("Data type: ");
+        JPanel dataTypePanel = new JPanel();
+        dataTypePanel.add(objectTypeBox);
+        objectTypeBox.setSelectedItem(ObjectTypeEnum.SPECTRUM);
+        objectTypeBox.setToolTipText("type of plot for specific datatype");
+        objectTypeBox.addActionListener(this);
+        layouter.add(dataTypePanel, false);
+        layouter.eatLine();
+        */
+        
         //  Set up the line colour control. Note it, saveProp and resetProp go
         //  on same line.
         JPanel colourSaveResetPanel = new JPanel();
@@ -788,8 +802,39 @@ public class SplatSelectedProperties
             update(); // To error button.
         }
     }
+    /*
+    protected void updateObjectType()
+    {
+        //if ( inhibitChanges ) return;
 
-    /**
+        int[] indices = specList.getSelectedIndices();
+        if ( indices.length > 0 && indices[0] > -1 ) {
+            SpecData spec = null;       
+            ObjectTypeEnum objType = getObjectType();
+       
+            for ( int i = 0; i < indices.length; i++ ) {
+                spec = globalList.getSpectrum( indices[i] );
+                if ( spec != null ) {                 
+                    	spec.setObjectType(objType);         
+                    	applyRenderingProps(spec);
+                        globalList.notifySpecListenersModified( spec );                    
+                }
+            }
+            update(); // To error button.
+        }
+    }
+    
+      private ObjectTypeEnum getObjectType() {
+        return (ObjectTypeEnum) objectTypeBox.getSelectedItem();        		
+	}
+    
+    public void setObjectType(ObjectTypeEnum objType) {
+		objectTypeBox.setSelectedItem(objType);
+		
+	}
+	*/
+
+	/**
      *  Save the current rendering properties, making them the defaults
      *  to be applied to new spectra if required and preserving between
      *  sessions.
@@ -861,7 +906,13 @@ public class SplatSelectedProperties
             updateErrorColumn();
             return;
         }
-
+       /* 
+        if ( source.equals( objectTypeBox ) ) {
+        
+            updateObjectType();
+            return;
+        }
+        */
         if ( source.equals( lineColour ) ) {
             updateLineColour();
             return;
@@ -934,7 +985,7 @@ public class SplatSelectedProperties
     {
         public RenProps()
         {
-            reset();
+        	reset();
         }
 
         private double alpha;
@@ -947,6 +998,7 @@ public class SplatSelectedProperties
         private int lineThickness;
         private int plotStyle;
         private int pointType;
+ //       private ObjectTypeEnum objType;
 
         public void save() 
         {
@@ -960,6 +1012,7 @@ public class SplatSelectedProperties
             plotStyle = getPlotStyle();
             pointSize = getPointSize();
             pointType = getPointType();
+ //           objType = getObjectType();
             
             prefs.putDouble( "SplatSelectedProperties_alpha", alpha );
             prefs.putInt( "SplatSelectedProperties_errorcolour", errorColour );
@@ -973,6 +1026,7 @@ public class SplatSelectedProperties
             prefs.putInt( "SplatSelectedProperties_plotstyle", plotStyle );
             prefs.putDouble( "SplatSelectedProperties_pointsize", pointSize );
             prefs.putInt( "SplatSelectedProperties_pointtype", pointType );
+ //           prefs.putInt( "SplatSelectedProperties_objtype", objType.ordinal() );
        }
 
         public void restore()
@@ -997,6 +1051,9 @@ public class SplatSelectedProperties
                 ( "SplatSelectedProperties_pointsize", 5.0 );
             pointType = prefs.getInt
                 ( "SplatSelectedProperties_pointtype", 0 );
+            int typeord = prefs.getInt
+                    ( "SplatSelectedProperties_pointtype", 0 );
+  //          objType = ObjectTypeEnum.values()[typeord];
         }
 
         public void reset()
@@ -1011,20 +1068,28 @@ public class SplatSelectedProperties
             plotStyle = SpecData.POLYLINE;
             pointSize = 5.0;
             pointType = 0;
+ //           objType = ObjectTypeEnum.SPECTRUM;
         }
 
         public void apply( SpecData spectrum ) 
         {
-            spectrum.setAlphaComposite( alpha );
+            // default properties - only some of them are used, the rest is customizable
+        	DefaultRenderingProperties defaultProperties = DefaultRenderingPropertiesFactory.create(spectrum);
+        	
+        	spectrum.setAlphaComposite( alpha );
             spectrum.setErrorColour( errorColour );
             spectrum.setErrorFrequency( errorFrequency );
             spectrum.setErrorNSigma( errorScale );
             spectrum.setLineColour( lineColour );
             spectrum.setLineStyle( lineStyle );
             spectrum.setLineThickness( lineThickness );
-            spectrum.setPlotStyle( plotStyle );
-            spectrum.setPointSize( pointSize );
-            spectrum.setPointType( pointType );
+//            System.out.println("and146: #3: " + plotStyle + " / " + spectrum.getPrefferedPlotType() + " [" + spectrum.getObjectType() + "]");
+            spectrum.setPlotStyle( defaultProperties.getPlotStyle() );
+            spectrum.setPointSize( defaultProperties.getPointSize() );
+            spectrum.setPointType( defaultProperties.getPointType() );
+          //  spectrum.setObjectType( defaultProperties.getObjectType() );
         }
     }
+
+	
 }

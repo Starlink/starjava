@@ -8,8 +8,11 @@
  */
 package uk.ac.starlink.splat.data;
 
+import java.util.Arrays;
 import java.util.List;
 import java.io.IOException;
+
+import org.apache.axis.utils.ArrayUtil;
 
 import nom.tam.fits.Header;
 import uk.ac.starlink.ast.FrameSet;
@@ -560,11 +563,32 @@ public class TableSpecDataImpl
     protected void readTable( long row )
         throws SplatException
     {
-        //  Access table columns and look for which to assign to the various
+    	// Detect timeseries
+    	for (Object oParam : starTable.getParameters()) {
+    		if (oParam instanceof DescribedValue) {
+    			DescribedValue param = (DescribedValue) oParam;
+    			if (param.getInfo().getName().toLowerCase().contains("dataproducttype")) {
+    				String value = (String) param.getValue();
+    				if (value != null && (value.equalsIgnoreCase("timeseries") || value.equalsIgnoreCase("lightcurve"))) {
+    					setObjectType(ObjectTypeEnum.TIMESERIES);
+    				}
+    			} else if (param.getInfo().getUtype() != null
+    					&& (param.getInfo().getUtype().toLowerCase().contains("dataproducttype") ||
+    					    param.getInfo().getUtype().toLowerCase().contains("spectrum.type"))) {
+    				String value = (String) param.getValue();
+    				if (value != null && (value.equalsIgnoreCase("timeseries") || value.equalsIgnoreCase("lightcurve"))) {
+    					setObjectType(ObjectTypeEnum.TIMESERIES);
+    				}
+    			}
+    		}
+    	}
+    	
+    	//  Access table columns and look for which to assign to the various
         //  data types. The default, if the matching fails, is to use the
         //  first and second (whatever that means) columns that are numeric
         //  types and do not look for any errors. Do not allow spaces in 
         //  column names. These cause trouble with lists of names.
+    	
         columnInfos = Tables.getColumnInfos( starTable );
         columnNames = new String[columnInfos.length];
         for ( int i = 0; i < columnNames.length; i++ ) {
@@ -584,6 +608,9 @@ public class TableSpecDataImpl
                 }
             }
         }
+        if (detectTimeSeries(columnNames[coordColumn], columnInfos[coordColumn]))
+        	setObjectType(ObjectTypeEnum.TIMESERIES);
+        	
 
         dataColumn =
             TableColumnChooser.getInstance().getDataMatch( columnInfos,
@@ -649,7 +676,6 @@ public class TableSpecDataImpl
                 readColumn( errors, errorColumn );
             }
         }
-
         //  Create the AST frameset that describes the data-coordinate
         //  relationship.
         createAst();
@@ -657,7 +683,29 @@ public class TableSpecDataImpl
 
  
     
-    /**
+    private boolean detectTimeSeries(String colname, ColumnInfo colInfos) {
+		// check if the column information contains timeseries information
+    	String desc = colInfos.getDescription();
+    	String unit = colInfos.getUnitString();
+    	String ucd = colInfos.getUCD();
+    	String utype = colInfos.getUtype();
+    	// TODO to be improved
+    	if (utype != null && utype.contains("timeaxis")) {
+    		return true;
+    	}
+    	if (ucd != null && ucd.contains("time.epoch")) {
+    		return true;
+    	}
+    	if (desc != null && (
+    			desc.toLowerCase().contains("time") || desc.toLowerCase().contains("JD") )) // TODO to be improved
+    		return true;
+    	if ( colname != null &&  colname.toLowerCase().contains("JD") || colname.toLowerCase().contains("time"))
+    		return true;
+    	
+		return false;
+	}
+
+	/**
      * Read an array of data from a vector cell. Returns the values as a
      * double array.
      */ 
@@ -874,7 +922,8 @@ public class TableSpecDataImpl
         
         //  Coordinate units.
         astref.setCurrent( current );
-        if (dataColumn >=0)
+        //if (dataColumn >=0)
+        if (coordColumn >=0)
             guessUnitsDescription( coordColumn );
     }
 
@@ -893,7 +942,7 @@ public class TableSpecDataImpl
         // If the description doesn't exist, then try for a UCD
         // description, if that doesn't exist just use the column name.
         String desc = columnInfos[column].getDescription();
-        if ( desc == null ) {
+        if ( desc == null || desc.isEmpty()) {
             desc = columnInfos[column].getUCD();
             if ( desc != null ) {
                 UCD ucd = UCD.getUCD( desc );
@@ -904,13 +953,14 @@ public class TableSpecDataImpl
                     desc = ucd.getDescription();
                 }
             }
-            if ( desc == null ) {
+            if ( desc == null || desc.isEmpty() ) {
                 desc = columnInfos[column].getName();
             }
         }
 
+        
         if ( desc != null && ! "".equals( desc ) ) {
-            astref.setLabel( 1, desc );
-        }
+            astref.setLabel( 1, desc.trim() );
+        } 
     }
 }

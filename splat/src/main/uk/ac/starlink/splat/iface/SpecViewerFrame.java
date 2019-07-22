@@ -295,6 +295,11 @@ public class SpecViewerFrame
             new DeleteErrorColumnAction( "Delete error column",
                                          "Delete the error column" );
         editMenu.add( deleteErrorColumnAction );
+        // select non positive data values (negative flux values)
+        DeleteNonPositiveDataAction deleteNonPositiveDataAction =
+                new DeleteNonPositiveDataAction( "Delete rows with data values <= 0",
+                                             "Delete Rows with non-positive data values" );
+            editMenu.add( deleteNonPositiveDataAction );
     }
 
     /**
@@ -799,6 +804,22 @@ public class SpecViewerFrame
         }
     }
 
+    
+    
+    
+    protected void selectNonPositiveDataValues() {
+    	          
+    	   table.clearSelection();
+           double[] values = specData.getYData();
+           
+           for ( int i = 0; i < values.length; i++ ) {              
+        	   if ( values[i] <= 0  )
+             	  table.addRowSelectionInterval(i, i);            
+           }
+         
+    }
+    
+    
     /**
      * Inner class defining Action for closing a window.
      */
@@ -963,6 +984,27 @@ public class SpecViewerFrame
             deleteErrorColumn();
         }
     }
+    
+    /**
+     * Inner class defining Action for selecting data <=0.
+     */
+    protected class DeleteNonPositiveDataAction extends AbstractAction
+    {
+        public DeleteNonPositiveDataAction( String name, String shortHelp )
+        {
+            super( name );
+            putValue( SHORT_DESCRIPTION, shortHelp );
+        }
+
+        /**
+         * Respond to actions from the buttons.
+         */
+        public void actionPerformed( ActionEvent ae )
+        {
+        	selectNonPositiveDataValues();
+        	deleteSelectedRows();
+        }
+    }
 
     /**
      * Inner class defining Action for deleting the selected rows.
@@ -983,6 +1025,8 @@ public class SpecViewerFrame
             deleteSelectedRows();
         }
     }
+    
+    
 
     //
     // ItemListener interface.
@@ -1325,6 +1369,19 @@ public class SpecViewerFrame
             ( this, "File " + file.getName() + " was successfuly saved.", "Readonly",
               JOptionPane.INFORMATION_MESSAGE );
     	}
+    }
+    
+    
+    /**
+     * Remove all rows where data values <= 0.
+     *
+     */
+    public void deleteNonPositiveDataRows() {
+    	readOnly.setSelected(false);
+    	   
+    	this.selectNonPositiveDataValues() ;
+    	this.deleteSelectedRows();          
+    	
     }
     
 }

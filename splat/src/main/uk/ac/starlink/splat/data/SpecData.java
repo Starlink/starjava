@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import nom.tam.fits.Header;
-
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
@@ -37,6 +36,8 @@ import uk.ac.starlink.splat.ast.ASTChannel;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.TimeUtilities;
+import uk.ac.starlink.table.StarTable;
 
 //  IMPORT NOTE: modifying the member variables could change the
 //  serialization signature of this class. If really need to then
@@ -480,7 +481,7 @@ public class SpecData
     /**
      * The spectrum plot style.
      */
-    protected int plotStyle = POLYLINE;
+    protected int plotStyle = POLYLINE; //and146: set this to POINT
 
     /**
      * Whether error bars should be drawn.
@@ -576,7 +577,12 @@ public class SpecData
      * Whether the Y offsets to coordinates should be applied.
      */
     private boolean applyYOffset = false;
-
+    
+    /**
+     * Properties of the spectrum legend
+     */
+    private SpecLegend legend;
+    
     //  ==============
     //  Public methods
     //  ==============
@@ -1787,7 +1793,26 @@ public class SpecData
         return SpecData.searchForSpecFrames;
     }
 
-
+    /**
+     * Getter for object type that identifies type of object (spectrum or timeseries)
+     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     * @return
+     */
+    public ObjectTypeEnum getObjectType() {
+    	return impl.getObjectType();
+	}
+    
+    /**
+     * /**
+     * Setter for object type that identifies type of object (spectrum or timeseries)
+     * FIXME: This is a hacky way for quick and partial timeseries implementation
+     
+     * @param objectType
+     */
+    public void setObjectType(ObjectTypeEnum objectType) {
+    	impl.setObjectType(objectType);
+	}
+    
     /**
      * Read the data from the spectrum into local arrays.  This also
      * initialises a suitable AST frameset to describe the coordinate system
@@ -1865,21 +1890,24 @@ public class SpecData
             checkForExtractionPosition( astref, sigaxis );
 
             //  Create a frameset that is suitable for displaying a
-            //  "spectrum". This has a coordinate X axis and a data Y
+            //  "spectrum" or a timeseries. This has a coordinate X axis and a data Y
             //  axis. The coordinates are chosen to run along the sigaxis (if
             //  input data has more than one dimension) and may be a distance,
             //  rather than absolute coordinate.
+            //  
             FrameSet specref = null;
             try {
                 specref = ast.makeSpectral( sigaxis, 0, yPos.length,
                                             getDataLabel(), getDataUnits(),
-                                            false, searchForSpecFrames );
+                                            false, searchForSpecFrames, impl.getObjectType()==ObjectTypeEnum.TIMESERIES );
             }
             catch (AstException e) {
                 throw new SplatException( "Failed to find a valid spectral " +
                                           "coordinate system", e );
             }
             try {
+            	String xlabel=specref.getC("Label (1)");
+            	String ylabel=specref.getC("Label (2)");
                 astJ = new ASTJ( specref );
 
                 //  Get the mapping for the X axis and check that it is
@@ -1902,13 +1930,40 @@ public class SpecData
                 double[] tPos = ASTJ.astTran1( oned, xPos, true );
                 xPos = tPos;
                 tPos = null;
-
+              
+                if (impl.getObjectType()==ObjectTypeEnum.TIMESERIES ) {
+                    String tsys = impl.getTimeSystem(); 
+                    String tscale = ((TableSpecDataImpl) impl).getTimeScale();
+                    if (tsys != null && ! tsys.isEmpty()) {
+                    	
+                        FrameSet frameSet = astJ.getRef();
+                        try {
+                        	frameSet.setC("System", tsys);
+                        } catch (Exception e) {
+                        	logger.warning(e.getMessage()+"\n Using default (MJD)");
+                        }
+                    }
+                 
+                    if (tscale != null && ! tscale.isEmpty()) {
+                    	
+                        FrameSet frameSet = astJ.getRef();
+                        try {
+                        	frameSet.setC("TimeScale", tscale);
+                        } catch (Exception e) {
+                        	logger.warning(e.getMessage()+"\n Using default (MJD)");
+                        }
+                    }                
+                }
                 //  Set the apparent data units, if possible.
                 convertToApparentDataUnits();
 
                 //  Set the axis range.
                 setRangePrivate();
-
+              
+                if (xlabel != null && !xlabel.isEmpty())
+                	specref.setC("Label (1)", xlabel);  
+                if (ylabel != null && !ylabel.isEmpty())
+                    specref.setC("Label (2)", ylabel); //restore label
                 //  Establish the digits value used to format the wavelengths,
                 //  if not already set in the original data (the plot may
                 //  override this).
@@ -1917,6 +1972,7 @@ public class SpecData
             catch (Exception e) {
                 throw new SplatException( e );
             }
+            
         }
     }
 
@@ -2588,16 +2644,26 @@ public class SpecData
      * @param xpos the graphics X positions.
      * @param ypos the graphics Y positions.
      */
-    public void drawLegendSpec( Grf grf, double xpos[], double ypos[] )
+    public void drawLegendSpec( DefaultGrf grf, double xpos[], double ypos[] )
     {
         boolean line = ( plotStyle != POINT );
-        DefaultGrf defaultGrf = (DefaultGrf) grf;
+        DefaultGrf defaultGrf =  grf;
+       
         DefaultGrfState oldState = setGrfAttributes( defaultGrf, line );
-        if ( line ) {
-            renderSpectrum( defaultGrf, xpos, ypos );
-        }
-        else {
-            renderPointSpectrum( defaultGrf, xpos, ypos, pointType );
+        if (legend == null) 
+        	legend = new SpecLegend(defaultGrf, xpos, ypos);
+        try {
+        	legend.drawLegend(defaultGrf);
+         /*   try {
+        	if ( line ) {
+        		renderSpectrum( defaultGrf, xpos, ypos );
+        	}
+        	else {
+        		renderPointSpectrum( defaultGrf, xpos, ypos, pointType );
+        	}
+        	*/
+        } catch (Exception e) {
+        	e.printStackTrace();
         }
         resetGrfAttributes( defaultGrf, oldState, line );
     }
@@ -2725,6 +2791,35 @@ public class SpecData
         return bounds;
     }
 
+    public int getPreferredPlotType() {
+    	int plotType = SpecData.POLYLINE;
+    	
+    	if (ObjectTypeEnum.TIMESERIES.equals(getObjectType())) {
+    		plotType = SpecData.POINT;
+    	}
+    	
+    	return plotType;
+    }
+    
+    public int getPreferredPointType() {
+    	int pointType = 0; // dot
+    	
+    	if (ObjectTypeEnum.TIMESERIES.equals(getObjectType())) {
+    		pointType = 1; // cross
+    	}
+    	
+    	return pointType;
+    }
+    
+    public boolean getDefaultAxisSpacingBehavior() {
+    	if (ObjectTypeEnum.TIMESERIES.equals(getObjectType())) {
+    		return true; 
+    	}
+   	
+    	return false;
+    }
+    
+    
     /**
      * Lookup the physical values (i.e.&nbsp;wavelength and data value) that
      * correspond to a graphics X coordinate. Value is returned as formatted
@@ -2899,6 +2994,7 @@ public class SpecData
         if ( isColumnMutable() ) {
             String currentName = getYDataColumnName();
             if ( ! currentName.equals( name ) ) {
+            	// and146: tady se nastavuje vse kolem osy y
                 impl.setDataColumnName( name );
                 readData();
                 return true;
@@ -3088,4 +3184,49 @@ public class SpecData
             e.printStackTrace();
         }
     }
+
+	public boolean isSDSSTableSpecData() {
+		
+		return impl.getClass().equals(SDSSTableSpecDataImpl.class);
+	}
+
+	public StarTable getLineIDTable() {
+		if (isSDSSTableSpecData())
+			return   (StarTable) ((SDSSTableSpecDataImpl) impl).getLineIDTable();
+		else return null;		
+	}
+	
+	public void removeLegend() {
+		if (legend != null)
+			legend.removeLegend();
+	}
+	
+	protected class SpecLegend {
+		boolean line=true;
+		boolean visible=false;
+		double xpos[];
+		double ypos[];
+		
+		public SpecLegend(DefaultGrf grf, double x[], double y[]) {
+			 xpos=x;
+			 ypos=y;
+			 line = ( plotStyle != POINT );
+			 visible=true;
+			// drawLegend(grf);			
+		}
+
+		public void drawLegend(DefaultGrf grf) {
+			if (!visible)
+				return;
+			if ( line ) {
+        		renderSpectrum( grf, xpos, ypos );
+        	}
+        	else {
+        		renderPointSpectrum( grf, xpos, ypos, pointType );
+        	}						
+		}
+		public void removeLegend() {
+			visible=false;					
+		}		
+	}
 }

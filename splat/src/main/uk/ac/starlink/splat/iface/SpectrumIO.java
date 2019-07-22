@@ -21,6 +21,7 @@ import java.net.URLEncoder;
 import java.util.Vector;
 
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.splat.data.ObjectTypeEnum;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.util.SplatException;
@@ -65,6 +66,7 @@ public class SpectrumIO
         UNDEFINED,
         SAMP,
         SSAP,
+        SLAP,
         LOCAL
     };
     
@@ -155,6 +157,21 @@ public class SpectrumIO
         this.display = display;
         loadSpectra();
     }
+    
+    /**
+     * Load an array of spectra whose specifications are contained in the
+     * elements of an array of Strings. This version uses a single
+     * defined type for all spectra (set to {@link SpecDataFactory.DEFAULT}
+     * for the usual file extensions rules).
+     */
+    public void load( SplatBrowser browser, String[] spectra,
+                      boolean display, int usertype, ObjectTypeEnum objectType )
+    {
+        setSpectra( spectra, usertype, objectType );
+        this.browser = browser;
+        this.display = display;
+        loadSpectra();
+    }
 
     /**
      * Load an array of spectra whose specifications are contained in the
@@ -193,6 +210,20 @@ public class SpectrumIO
         if ( spectra != null ) {
             for ( int i = 0; i < spectra.length; i++ ) {
                 queue.add( new Props( spectra[i], type, null ) );
+            }
+        }
+    }
+    
+    /**
+     * Set the spectra to load, all have the same data type.
+     */
+    protected synchronized void setSpectra( String[] spectra, int type, ObjectTypeEnum objectType )
+    {
+        if ( spectra != null ) {
+            for ( int i = 0; i < spectra.length; i++ ) {
+            	Props props = new Props( spectra[i], type, null );
+            	props.setObjectType(objectType);
+                queue.add( props );
             }
         }
     }
@@ -378,6 +409,7 @@ public class SpectrumIO
         protected String idSource;
         protected String dataLinkRequest;
         protected String dataLinkFormat;
+        protected ObjectTypeEnum objectType = ObjectTypeEnum.UNKNOWN; // default value
 
         protected String serverURL;
 
@@ -411,9 +443,22 @@ public class SpectrumIO
         }
         
         public Props( String spectrum, int type, String shortName,
+                String dataUnits, String coordUnits,
+                String dataColumn, String coordColumn,
+                String errorColumn, SourceType sourceType, String idsrc, String idValue ) {
+        	
+        	this(spectrum, type, shortName,
+                    dataUnits, coordUnits,
+                    dataColumn, coordColumn,
+                    errorColumn, sourceType, idsrc, idValue, 
+                    ObjectTypeEnum.UNKNOWN );
+        }
+        
+        public Props( String spectrum, int type, String shortName,
                       String dataUnits, String coordUnits,
                       String dataColumn, String coordColumn,
-                      String errorColumn, SourceType sourceType, String idsrc, String idValue )
+                      String errorColumn, SourceType sourceType, String idsrc, String idValue,
+                      ObjectTypeEnum objectType)
         {
             this.spectrum = spectrum;
             this.type = type;
@@ -429,6 +474,7 @@ public class SpectrumIO
             this.idValue=idValue;
             this.idSource = idsrc;
             this.serverURL=null;
+            this.objectType = objectType;
         }
 
         public String getSpectrum()
@@ -446,10 +492,8 @@ public class SpectrumIO
                         e1.printStackTrace();
                     }
                 else
-                    try {
-                     
-                        return (serverURL+ "?"+"ID="+URLEncoder.encode(idValue, "UTF-8")+dataLinkRequest);
-            
+                    try {  
+                        return (serverURL+ "?"+"ID="+URLEncoder.encode(idValue, "UTF-8")+dataLinkRequest);            
                     } catch (UnsupportedEncodingException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
@@ -569,6 +613,14 @@ public class SpectrumIO
             this.serverURL = serverURL;
         }
 
+        public ObjectTypeEnum getObjectType() {
+			return objectType;
+		}
+        
+        public void setObjectType(ObjectTypeEnum objectType) {
+        	this.objectType = objectType;
+		}
+        
         //  Create a copy of this object.
         public Props copy()
         {
@@ -652,6 +704,11 @@ public class SpectrumIO
                 catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+            
+            if (objectType != null && objectType!=ObjectTypeEnum.UNKNOWN) { 
+            	// change only if it's not the default value. In some cases the spectrum already determined the correct type
+            	spectrum.setObjectType(objectType);
             }
         }
 
