@@ -92,6 +92,29 @@ public abstract class PrimitiveList {
     }
 
     /**
+     * Appends all the elements of a second list to this list.
+     *
+     * <p>The other list must be of the same type as this one;
+     * that constraint should be enforced by type-specific concrete subclasses
+     * of PrimitiveList.
+     *
+     * @param  other  other list
+     * @return   true iff this collection changed as a result of the call
+     */
+    boolean addAll( PrimitiveList other ) {
+        int n = other.size();
+        if ( n > 0 ) {
+            int pos = size();
+            expandSize( n );
+            System.arraycopy( other.array_, 0, array_, pos, n );
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
      * Determines by how much the storage array will grow if it needs to
      * expand.  
      * Any return value is legal; if a value less than the 

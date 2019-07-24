@@ -66,6 +66,16 @@ public class DoubleList extends PrimitiveList {
     }
 
     /**
+     * Appends all the elements of a second list to this list.
+     *
+     * @param  other  other list
+     * @return   true iff this collection changed as a result of the call
+     */
+    public boolean addAll( DoubleList other ) {
+        return super.addAll( other );
+    }
+
+    /**
      * Returns the contents of this list as an array.
      *
      * @return   copy of list contents
