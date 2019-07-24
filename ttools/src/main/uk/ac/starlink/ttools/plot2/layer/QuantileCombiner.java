@@ -33,27 +33,36 @@ public abstract class QuantileCombiner extends Combiner {
     }
 
     public ArrayBinList createArrayBinList( int size ) {
-        final DoubleList[] dlists = new DoubleList[ size ];
-        return new ArrayBinList( size, this ) {
-            public void submitToBinInt( int index, double value ) {
-                DoubleList dlist = dlists[ index ];
-                if ( dlist == null ) {
-                    dlists[ index ] = new DoubleList( new double[] { value } );
-                }
-                else {
-                    dlist.add( value );
-                }
+        return new QuantileBinList( size );
+    }
+
+    /**
+     * ArrayBinList subclass for QuantileCombiner.
+     */
+    private class QuantileBinList extends ArrayBinList {
+        final DoubleList[] dlists_;
+        QuantileBinList( int size ) {
+            super( size, QuantileCombiner.this );
+            dlists_ = new DoubleList[ size ];
+        }
+        public void submitToBinInt( int index, double value ) {
+            DoubleList dlist = dlists_[ index ];
+            if ( dlist == null ) {
+                dlists_[ index ] = new DoubleList( new double[] { value } );
             }
-            public double getBinResultInt( int index ) {
-                DoubleList dlist = dlists[ index ];
-                return dlist == null ? Double.NaN
-                                     : calculateQuantile( dlist );
+            else {
+                dlist.add( value );
             }
-            public void copyBin( int index, Combiner.Container bin ) {
-                QuantileContainer container = (QuantileContainer) bin;
-                dlists[ index ] = container.dlist_;
-            }
-        };
+        }
+        public double getBinResultInt( int index ) {
+            DoubleList dlist = dlists_[ index ];
+            return dlist == null ? Double.NaN
+                                 : calculateQuantile( dlist );
+        }
+        public void copyBin( int index, Combiner.Container bin ) {
+            QuantileContainer container = (QuantileContainer) bin;
+            dlists_[ index ] = container.dlist_;
+        }
     }
 
     public Container createContainer() {
