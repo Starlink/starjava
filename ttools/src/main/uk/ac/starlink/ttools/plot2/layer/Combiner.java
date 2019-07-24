@@ -407,6 +407,11 @@ public abstract class Combiner {
                 counts_[ index ] = container.count_;
                 sums_[ index ] = container.sum_;
             }
+            public void addBin( int index, ArrayBinList other ) {
+                MeanBinList meanOther = (MeanBinList) other;
+                counts_[ index ] += meanOther.counts_[ index ];
+                sums_[ index ] += meanOther.sums_[ index ];
+            }
         }
 
         /**
@@ -536,6 +541,12 @@ public abstract class Combiner {
                 sum1s_[ index ] = container.sum1_;
                 sum2s_[ index ] = container.sum2_;
             }
+            public void addBin( int index, ArrayBinList other ) {
+                StdevBinList stdevOther = (StdevBinList) other;
+                counts_[ index ] += stdevOther.counts_[ index ];
+                sum1s_[ index ] += stdevOther.sum1s_[ index ];
+                sum2s_[ index ] += stdevOther.sum2s_[ index ];
+            }
         }
 
         /**
@@ -643,6 +654,10 @@ public abstract class Combiner {
             public void copyBin( int index, Container bin ) {
                 CountContainer container = (CountContainer) bin;
                 counts_[ index ] = container.count_;
+            }
+            public void addBin( int index, ArrayBinList other ) {
+                AbstractCountBinList countOther = (AbstractCountBinList) other;
+                counts_[ index ] += countOther.counts_[ index ];
             }
         }
 
@@ -759,6 +774,12 @@ public abstract class Combiner {
             public void copyBin( int index, Container bin ) {
                 SumContainer container = (SumContainer) bin;
                 sums_[ index ] = container.sum_;
+            }
+            public void addBin( int index, ArrayBinList other ) {
+                double otherSum = ((AbstractSumBinList) other).sums_[ index ];
+                if ( ! Double.isNaN( otherSum ) ) {
+                    sums_[ index ] = combineSum( sums_[ index ], otherSum );
+                }
             }
         }
 
@@ -890,6 +911,12 @@ public abstract class Combiner {
                 MinContainer container = (MinContainer) bin;
                 mins_[ index ] = container.min_;
             }
+            public void addBin( int index, ArrayBinList other ) {
+                double otherMin = ((MinBinList) other).mins_[ index ];
+                if ( ! Double.isNaN( otherMin ) ) {
+                    mins_[ index ] = combineMin( mins_[ index ], otherMin );
+                }
+            }
         }
 
         /**
@@ -974,6 +1001,12 @@ public abstract class Combiner {
                 MaxContainer container = (MaxContainer) bin;
                 maxs_[ index ] = container.max_;
             }
+            public void addBin( int index, ArrayBinList other ) {
+                double otherMax = ((MaxBinList) other).maxs_[ index ];
+                if ( ! Double.isNaN( otherMax ) ) {
+                    maxs_[ index ] = combineMax( maxs_[ index ], otherMax );
+                }
+            }
         }
 
         /**
@@ -1038,6 +1071,11 @@ public abstract class Combiner {
             public void copyBin( int index, Container bin ) {
                 HitContainer container = (HitContainer) bin;
                 mask_.set( index, container.hit_ );
+            }
+            public void addBin( int index, ArrayBinList other ) {
+                if ( ((HitBinList) other).mask_.get( index ) ) {
+                    mask_.set( index );
+                }
             }
         }
 

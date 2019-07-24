@@ -63,6 +63,15 @@ public abstract class QuantileCombiner extends Combiner {
             QuantileContainer container = (QuantileContainer) bin;
             dlists_[ index ] = container.dlist_;
         }
+        public void addBin( int index, ArrayBinList other ) {
+            DoubleList dlist1 = ((QuantileBinList) other).dlists_[ index ];
+            if ( dlist1 != null ) {
+                if ( dlists_[ index ] == null ) {
+                    dlists_[ index ] = new DoubleList( dlist1.size() );
+                }
+                dlists_[ index ].addAll( dlist1 );
+            }
+        }
     }
 
     public Container createContainer() {

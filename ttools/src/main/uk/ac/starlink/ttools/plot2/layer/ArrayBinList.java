@@ -60,6 +60,21 @@ public abstract class ArrayBinList implements BinList {
      */
     protected abstract void copyBin( int index, Combiner.Container container );
 
+    /**
+     * Accumulates the contents of a numbered bin from another BinList into
+     * the corresponding bin of this BinList.  The effect is the same as if
+     * all the data submitted to the given bin of <code>other</code>
+     * had been submitted to the corresponding bin of this.
+     *
+     * <p>The other list must be of the same type as this one.
+     *
+     * @param  index   index of a non-empty bin in the other list
+     * @param  other   second ArrayBinList compatible with this one
+     * @throws   ClassCastException   if <code>other</code>'s type
+     *                                does not match this one
+     */
+    protected abstract void addBin( int index, ArrayBinList other );
+
     public void submitToBin( long lndex, double datum ) {
         int index = (int) lndex;
         mask_.set( index );
@@ -80,6 +95,27 @@ public abstract class ArrayBinList implements BinList {
                 return getBinResultInt( index );
             }
         };
+    }
+
+    /**
+     * Accumulates all the data from another BinList into this one.
+     * The effect is the same as if all the data submitted to <code>other</code>
+     * had been submitted to this.
+     *
+     * <p>The other list must be compatible with this one; of the same
+     * type and with the same bin count.
+     *
+     * @param  other   second ArrayBinList compatible with this one
+     * @throws   ClassCastException   if <code>other</code>'s type
+     *                                does not match this one
+     */
+    public void addBins( ArrayBinList other ) {
+        BitSet otherMask = other.mask_;
+        for ( int ibit = otherMask.nextSetBit( 0 ); ibit >= 0;
+              ibit = otherMask.nextSetBit( ibit + 1 ) ) {
+            mask_.set( ibit );
+            addBin( ibit, other );
+        }
     }
 
     /**
