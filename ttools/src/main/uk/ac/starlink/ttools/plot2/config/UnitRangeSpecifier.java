@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.plot2.config;
 
-import com.jidesoft.swing.RangeSlider;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -8,10 +7,13 @@ import java.awt.event.ActionListener;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -30,7 +32,7 @@ import uk.ac.starlink.ttools.plot2.Subrange;
 public class UnitRangeSpecifier extends SpecifierPanel<Subrange> {
 
     private static final int NSTEP = 1000;
-    private final RangeSlider slider_;
+    private final JSlider slider_;
     private final JButton resetButton_;
     private final JTextField loField_;
     private final JTextField hiField_;
@@ -44,13 +46,7 @@ public class UnitRangeSpecifier extends SpecifierPanel<Subrange> {
      */
     public UnitRangeSpecifier( final Subrange reset ) {
         super( true );
-        slider_ = new RangeSlider( 0, NSTEP ) {
-            @Override
-            public Dimension getMinimumSize() {
-                Dimension s = super.getMinimumSize();
-                return new Dimension( Math.max( s.width, 128 ), s.height );
-            }
-        };
+        slider_ = RangeSliderUtil.createRangeSlider( 0, NSTEP );
         setSliderRange( reset );
         Action resetAct = new AbstractAction( null, ResourceIcon.ZERO ) {
             public void actionPerformed( ActionEvent evt ) {
@@ -81,9 +77,18 @@ public class UnitRangeSpecifier extends SpecifierPanel<Subrange> {
     }
 
     public JComponent createComponent() {
+        JComponent sliderHolder = new JPanel() {
+            @Override
+            public Dimension getMinimumSize() {
+                Dimension s = super.getMinimumSize();
+                return new Dimension( Math.max( s.width, 128 ), s.height );
+            }
+        };
+        sliderHolder.setLayout( new BoxLayout( sliderHolder, BoxLayout.X_AXIS ) );
+        sliderHolder.add( slider_ );
         JComponent line = Box.createHorizontalBox();
         line.add( sliderButton_ );
-        line.add( slider_ );
+        line.add( sliderHolder );
         line.add( Box.createHorizontalStrut( 5 ) );
         line.add( txtButton_ );
         line.add( loField_ );
@@ -184,8 +189,8 @@ public class UnitRangeSpecifier extends SpecifierPanel<Subrange> {
      * @return   subrange according to slider
      */
     private Subrange getSliderValue() {
-        return new Subrange( scale( slider_.getLowValue() ),
-                             scale( slider_.getHighValue() ) );
+        int[] range = RangeSliderUtil.getSliderRange( slider_ );
+        return new Subrange( scale( range[ 0 ] ), scale( range[ 1 ] ) );
     }
 
     /**
@@ -217,8 +222,8 @@ public class UnitRangeSpecifier extends SpecifierPanel<Subrange> {
      * @param  range  range value
      */
     private void setSliderRange( Subrange range ) {
-        slider_.setLowValue( unscale( range.getLow() ) );
-        slider_.setHighValue( unscale( range.getHigh() ) );
+        RangeSliderUtil.setSliderRange( slider_, unscale( range.getLow() ),
+                                                 unscale( range.getHigh() ) );
     }
 
     /**

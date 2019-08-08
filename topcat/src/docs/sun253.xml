@@ -28669,6 +28669,9 @@ introduced since the last version:
         <ref id="BrowserActivationType">View in Web Browser</ref>
         activation action.  This is like the existing Basic Browser,
         but more capable (e.g. can render JavaScript).</li>
+    <li>Fix Quantile plot form bug (no non-JIDE RangeSlider fallback)
+        that stopped it working in some environments
+        such as Java 10 on OSX and Nimbus L&amp;F.</li>
     </ul>
     </p></dd>
 
