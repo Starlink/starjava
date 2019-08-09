@@ -1561,8 +1561,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 approxSurfs[ iz ] = approxSurf;
                 auxDataSpanMaps.add( auxDataSpanMap );
                 auxClipSpanMaps.add( auxClipSpanMap );
-                assert auxDataSpanMaps.size() == iz;
-                assert auxClipSpanMaps.size() == iz;
+                assert auxDataSpanMaps.size() == iz + 1;
+                assert auxClipSpanMaps.size() == iz + 1;
             }
             PlotUtil.logTimeFromStart( logger_, "AuxRange", startAux );
 
