@@ -26,7 +26,6 @@ import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
-import uk.ac.starlink.ttools.plot2.data.EmptyTupleSequence;
 import uk.ac.starlink.ttools.plot2.data.SkyCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.data.WrapperTupleSequence;
@@ -335,7 +334,7 @@ public class SkySurfaceFactory
             }
             public TupleSequence getTupleSequence( DataSpec dataSpec ) {
                 if ( isFullSky() ) {
-                    return new EmptyTupleSequence();
+                    return PlotUtil.EMPTY_TUPLE_SEQUENCE;
                 }
                 else {
                     final TupleSequence baseSeq =
