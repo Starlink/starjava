@@ -1,10 +1,12 @@
 package uk.ac.starlink.topcat.plot2;
 
+import java.util.function.BooleanSupplier;
 import javax.swing.BoundedRangeModel;
+import uk.ac.starlink.ttools.plot2.data.AbortTupleSequence;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
-import uk.ac.starlink.ttools.plot2.data.WrapperTupleSequence;
+import uk.ac.starlink.ttools.plot2.data.WrapperTuple;
 
 /**
  * DataStore wrapper implementation suitable for use from a GUI application.
@@ -70,46 +72,74 @@ public class GuiDataStore implements DataStore {
             }
             isInit_ = true;
         }
-        final TupleSequence baseSeq = base_.getTupleSequence( dataSpec );
-        if ( progresser_ == null ) {
-            return new WrapperTupleSequence( baseSeq ) {
-                @Override
-                public boolean next() {
-                    if ( baseSeq.next() ) {
-                        if ( Thread.interrupted() ) {
-                            Thread.currentThread().interrupt();
-                            return false;
-                        }
-                        else {
-                            return true;
-                        }
-                    }
-                    else {
-                        return false;
-                    }
+        AbortTupleSequence tseq =
+            new AbortTupleSequence( base_.getTupleSequence( dataSpec ),
+                                    GuiDataStore::isInterrupted );
+        return progresser_ == null
+             ? tseq
+             : new ProgressTupleSequence( tseq, progresser_ );
+    }
+
+    /**
+     * TupleSequence that updates a progresser during iteration.
+     */
+    private static class ProgressTupleSequence
+            extends WrapperTuple
+            implements TupleSequence {
+        private final AbortTupleSequence baseSeq_;
+        private final Progresser progresser_;
+
+        /**
+         * Constructor.
+         *
+         * @param  baseSeq  base sequence
+         * @param  progresser   progress indication control
+         */
+        ProgressTupleSequence( AbortTupleSequence baseSeq,
+                               Progresser progresser ) {
+            super( baseSeq );
+            baseSeq_ = baseSeq;
+            progresser_ = progresser;
+        }
+
+        public boolean next() {
+            if ( baseSeq_.next() ) {
+                progresser_.increment();
+                return true;
+            }
+            else {
+                if ( baseSeq_.isAborted() ) {
+                    progresser_.reset();
                 }
-            };
+                return false;
+            }
+        }
+
+        public TupleSequence split() {
+            AbortTupleSequence splitSeq = baseSeq_.split();
+            return splitSeq == null
+                 ? null
+                 : new ProgressTupleSequence( splitSeq, progresser_ );
+        }
+
+        public long splittableSize() {
+            return baseSeq_.splittableSize();
+        }
+    }
+
+    /**
+     * Checks for interruption status of the current thread.
+     * If detected, the status is reset to its state on entry.
+     *
+     * @return  true iff current thread is interrupted
+     */
+    private static boolean isInterrupted() {
+        if ( Thread.interrupted() ) {
+            Thread.currentThread().interrupt();
+            return true;
         }
         else {
-            return new WrapperTupleSequence( baseSeq ) {
-                @Override
-                public boolean next() {
-                    if ( baseSeq.next() ) {
-                        if ( Thread.interrupted() ) {
-                            Thread.currentThread().interrupt();
-                            progresser_.reset();
-                            return false;
-                        }
-                        else {
-                            progresser_.increment();
-                            return true;
-                        }
-                    }
-                    else {
-                        return false;
-                    }
-                }
-            };
+            return false;
         }
     }
 }

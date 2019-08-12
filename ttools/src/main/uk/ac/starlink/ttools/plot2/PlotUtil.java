@@ -52,6 +52,12 @@ public class PlotUtil {
         public boolean next() {
             return false;
         }
+        public TupleSequence split() {
+            return null;
+        }
+        public long splittableSize() {
+            return 0L;
+        }
         public long getRowIndex() {
             return -1L;
         }

@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot2;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.data.WrapperTuple;
 
 /**
  * Wrapper data store implementation used only for counting the number
@@ -67,7 +68,9 @@ public class CountDataStore implements DataStore {
      * TupleSequence wrapper implementation which limits the number of
      * tuples dispensed to some given number.
      */
-    private static class TruncatedTupleSequence implements TupleSequence {
+    private static class TruncatedTupleSequence
+            extends WrapperTuple
+            implements TupleSequence {
         private final TupleSequence base_;
         private final int maxCount_;
         private int index_;
@@ -80,6 +83,7 @@ public class CountDataStore implements DataStore {
          *                   from tuplesequences acquired from this store
          */
         TruncatedTupleSequence( TupleSequence base, int maxCount ) {
+            super( base );
             base_ = base;
             maxCount_ = maxCount;
         }
@@ -88,28 +92,14 @@ public class CountDataStore implements DataStore {
             return index_++ < maxCount_ && base_.next();
         }
 
-        public long getRowIndex() {
-            return base_.getRowIndex();
+        public TupleSequence split() {
+            return null;
         }
 
-        public boolean getBooleanValue( int icol ) {
-            return base_.getBooleanValue( icol );
-        }
-
-        public int getIntValue( int icol ) {
-            return base_.getIntValue( icol );
-        }
-
-        public long getLongValue( int icol ) {
-            return base_.getLongValue( icol );
-        }
-
-        public double getDoubleValue( int icol ) {
-            return base_.getDoubleValue( icol );
-        }
-
-        public Object getObjectValue( int icol ) {
-            return base_.getObjectValue( icol );
+        public long splittableSize() {
+            long baseSize = base_.splittableSize();
+            return baseSize >= 0 ? Math.min( maxCount_, baseSize )
+                                 : maxCount_;
         }
     }
 }

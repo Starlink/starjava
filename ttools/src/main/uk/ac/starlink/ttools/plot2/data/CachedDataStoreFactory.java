@@ -575,24 +575,41 @@ public class CachedDataStoreFactory implements DataStoreFactory {
      */
     private static class CachedTupleSequence implements TupleSequence {
 
-        private final int ncol_;
-        private final long nrow_;
+        private final CachedColumn mask_;
+        private final CachedColumn[] cols_;
         private final CachedReader maskRdr_;
         private final CachedReader[] colRdrs_;
-        private long irow_ = -1;
+        private long irow_;
+        private long nrow_;
 
         /**
-         * Constructor.
+         * Public constructor.
          *
          * @param  mask  boolean-typed column providing inclusion flags per row
          * @param  cols  array of columns providing data cells per row
          */
-        CachedTupleSequence( CachedColumn mask, CachedColumn[] cols ) {
-            ncol_ = cols.length;
-            nrow_ = mask.getRowCount();
+        public CachedTupleSequence( CachedColumn mask, CachedColumn[] cols ) {
+            this( mask, cols, -1L, mask.getRowCount() );
+        }
+
+        /**
+         * Constructor for internal use (recursion).
+         *
+         * @param  mask  boolean-typed column providing inclusion flags per row
+         * @param  cols  array of columns providing data cells per row
+         * @param  irow   row index immediately before start of iteration range
+         * @param  nrow   row index immediately after end of iteration range
+         */
+        private CachedTupleSequence( CachedColumn mask, CachedColumn[] cols,
+                                     long irow, long nrow ) {
+            mask_ = mask;
+            cols_ = cols;
+            irow_ = irow;
+            nrow_ = nrow;
             maskRdr_ = mask.createReader();
-            colRdrs_ = new CachedReader[ ncol_ ];
-            for ( int ic = 0; ic < ncol_; ic++ ) {
+            int ncol = cols.length;
+            colRdrs_ = new CachedReader[ ncol ];
+            for ( int ic = 0; ic < ncol; ic++ ) {
                 colRdrs_[ ic ] = cols[ ic ].createReader();
             }
         }
@@ -604,6 +621,23 @@ public class CachedDataStoreFactory implements DataStoreFactory {
                 }
             }
             return false;
+        }
+
+        public TupleSequence split() {
+            if ( nrow_ - irow_ > 2 ) {
+                long mid = ( irow_ + nrow_ ) / 2;
+                TupleSequence split =
+                    new CachedTupleSequence( mask_, cols_, irow_, mid );
+                irow_ = mid - 1;
+                return split;
+            }
+            else {
+                return null;
+            }
+        }
+
+        public long splittableSize() {
+            return nrow_ - irow_;
         }
 
         public long getRowIndex() {

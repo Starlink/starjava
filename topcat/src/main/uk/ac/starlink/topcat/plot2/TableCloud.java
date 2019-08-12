@@ -412,6 +412,24 @@ public abstract class TableCloud {
             return true;
         }
 
+        /**
+         * This is difficult to split, because we need to avoid dispensing
+         * the same row from different upstream sequences, which requires
+         * coordination between instances/threads.
+         * For now just don't do it, which means certain operations will
+         * not be done in parallel for multi-subset plots.
+         * These do not include the actual plotting operations,
+         * but are mostly interactive things like identifying
+         * a row index point from a click.
+         */
+        public TupleSequence split() {
+            return null;
+        }
+
+        public long splittableSize() {
+            return -1L;
+        }
+
         private boolean skipNext( TupleSequence tseq ) {
             while ( true ) {
                 if ( ! tseq.next() ) {

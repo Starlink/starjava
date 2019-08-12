@@ -24,11 +24,11 @@ import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.data.AbortTupleSequence;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.SkyCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
-import uk.ac.starlink.ttools.plot2.data.WrapperTupleSequence;
 
 /**
  * Surface factory for plotting on the surface of the celestial sphere.
@@ -337,17 +337,9 @@ public class SkySurfaceFactory
                     return PlotUtil.EMPTY_TUPLE_SEQUENCE;
                 }
                 else {
-                    final TupleSequence baseSeq =
-                         dataStore.getTupleSequence( dataSpec );
-                    return new WrapperTupleSequence( baseSeq ) {
-                        int ip = 0;
-                        @Override
-                        public boolean next() {
-                            return ( ip++ % 10000 == 0 && isFullSky() )
-                                 ? false
-                                 : baseSeq.next();
-                        }
-                    };
+                    TupleSequence base = dataStore.getTupleSequence( dataSpec );
+                    return new AbortTupleSequence( base, this::isFullSky,
+                                                   10_000 );
                 }
             }
             private boolean isFullSky() {

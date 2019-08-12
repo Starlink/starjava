@@ -26,38 +26,54 @@ public class StepDataStore implements DataStore {
     }
 
     public TupleSequence getTupleSequence( DataSpec spec ) {
-        final TupleSequence baseSeq = baseStore_.getTupleSequence( spec );
-        return new TupleSequence() {
-            public boolean next() {
-                for ( int i = 0; i < step_; i++ ) {
-                    if ( ! baseSeq.next() ) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            public long getRowIndex() {
-                return baseSeq.getRowIndex();
-            }
-            public Object getObjectValue( int icol ) {
-                return baseSeq.getObjectValue( icol );
-            }
-            public double getDoubleValue( int icol ) {
-                return baseSeq.getDoubleValue( icol );
-            }
-            public int getIntValue( int icol ) {
-                return baseSeq.getIntValue( icol );
-            }
-            public long getLongValue( int icol ) {
-                return baseSeq.getLongValue( icol );
-            }
-            public boolean getBooleanValue( int icol ) {
-                return baseSeq.getBooleanValue( icol );
-            }
-        };
+        return new StepTupleSequence( baseStore_.getTupleSequence( spec ),
+                                      step_ );
     }
 
     public boolean hasData( DataSpec spec ) {
         return baseStore_.hasData( spec );
+    }
+
+    /**
+     * TupleSequence implementation for StepDataStore.
+     */
+    private static class StepTupleSequence
+            extends WrapperTuple
+            implements TupleSequence {
+
+        private final TupleSequence baseSeq_;
+        private final int step_;
+
+        /**
+         * Constructor.
+         *
+         * @param  baseSeq   base sequence
+         * @param  step     step
+         */
+        StepTupleSequence( TupleSequence baseSeq, int step ) {
+            super( baseSeq );
+            baseSeq_ = baseSeq;
+            step_ = step;
+        }
+
+        public boolean next() {
+            for ( int i = 0; i < step_; i++ ) {
+                if ( ! baseSeq_.next() ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public TupleSequence split() {
+            TupleSequence splitSeq = baseSeq_.split();
+            return splitSeq == null
+                 ? null
+                 : new StepTupleSequence( splitSeq, step_ );
+        }
+
+        public long splittableSize() {
+            return baseSeq_.splittableSize() / step_;
+        }
     }
 }

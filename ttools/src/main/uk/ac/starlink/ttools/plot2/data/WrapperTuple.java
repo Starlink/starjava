@@ -1,26 +1,22 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 /**
- * TupleSequence implementation that delegates all methods to a base instance.
+ * Tuple implementation that delegates all methods to a base instance.
  *
  * @author   Mark Taylor
  * @since    18 Nov 2013
  */
-public class WrapperTupleSequence implements TupleSequence {
+public class WrapperTuple implements Tuple {
 
-    private final TupleSequence base_;
+    private final Tuple base_;
 
     /**
      * Constructor.
      *
-     * @param   base   sequence to which all methods are delegated
+     * @param   base   tuple to which all methods are delegated
      */
-    public WrapperTupleSequence( TupleSequence base ) {
+    public WrapperTuple( Tuple base ) {
         base_ = base;
-    }
-
-    public boolean next() {
-        return base_.next();
     }
 
     public long getRowIndex() {
