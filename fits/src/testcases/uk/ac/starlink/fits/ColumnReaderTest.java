@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
+import java.math.BigInteger;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,7 +14,9 @@ import nom.tam.fits.HeaderCardException;
 import nom.tam.util.BufferedDataOutputStream;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
@@ -136,23 +139,38 @@ public class ColumnReaderTest extends TestCase {
         int ncol = table.getColumnCount();
         assertTrue( nrow > 2 );
         assertTrue( ncol > 10 );
-        for ( int irow = 0; irow < nrow; irow++ ) {
-            for ( int icol = 0; icol < ncol; icol++ ) {
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnInfo info = table.getColumnInfo( icol );
+            DescribedValue longOff =
+               info.getAuxDatum( BintableStarTable.LONGOFF_INFO );
+            if ( longOff != null ) {
+                Class<?> clazz = info.getContentClass();
+                assert String.class.equals( clazz )
+                    || String[].class.equals( clazz );
+                assert ! new BigInteger( (String) longOff.getValue() )
+                        .equals( BigInteger.ZERO );
+            }
+            boolean isString = longOff != null;
+            for ( int irow = 0; irow < nrow; irow++ ) {
                 Object oval = table.getCell( irow, icol );
-                if ( oval instanceof Number ) {
-                    assertEquals( (double) irow,
-                                  ((Number) oval).doubleValue() );
+                if ( ! oval.getClass().isArray() ) {
+                    assertEqualValue( irow, oval, isString );
                 }
                 else {
                     int nel = Array.getLength( oval );
                     for ( int iel = 0; iel < nel; iel++ ) {
-                        assertEquals( (double) irow,
-                                      ((Number) Array.get( oval, iel ))
-                                               .doubleValue() );
+                        assertEqualValue( irow, Array.get( oval, iel ),
+                                          isString );
                     }
                 }
             }
         }
+    }
+
+    private void assertEqualValue( int irow, Object oval, boolean isString ) {
+        double num = isString ? Double.parseDouble( (String) oval )
+                              : ((Number) oval).doubleValue();
+        assertEquals( (double) irow, num );
     }
 
     /**

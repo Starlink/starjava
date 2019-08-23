@@ -93,9 +93,17 @@ public abstract class BintableStarTable extends AbstractStarTable
         String.class,
         "Data type code (TFORMn card)" );
 
+    /** Column aux metadata key for stringified longs offset. */
+    public final static ValueInfo LONGOFF_INFO = new DefaultValueInfo(
+        "LONG_OFFSET",
+        String.class,
+        "Offset value added when turning 64-bit integer into string; " +
+        "only present for stringified long values with non-zero offset" );
+
     /** Known aux data infos. */
     private static final ValueInfo[] AUX_DATA_INFOS = new ValueInfo[] {
         TNULL_INFO, TSCAL_INFO, TZERO_INFO, TDISP_INFO, TBCOL_INFO, TFORM_INFO,
+        LONGOFF_INFO,
     };
 
     /** BigInteger equal to 2^63 (== Long.MAX_VALUE + 1). */
@@ -337,6 +345,12 @@ public abstract class BintableStarTable extends AbstractStarTable
             if ( reader.isUnsignedByte() ) {
                 cinfo.setAuxDatum( new DescribedValue( Tables.UBYTE_FLAG_INFO,
                                                        Boolean.TRUE ) );
+            }
+            BigInteger longOff = reader.getLongOffset();
+            if ( longOff != null ) {
+                assert ! BigInteger.ZERO.equals( longOff );
+                cinfo.setAuxDatum( new DescribedValue( LONGOFF_INFO,
+                                                       longOff.toString() ) );
             }
             colReaders_[ icol ] = reader;
         }

@@ -26,6 +26,9 @@ abstract class ColumnReader {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
 
+    /** Policy for dealing with offset long values. */
+    static final boolean OFFSET_LONG_TO_STRING = true;
+
     /**
      * Constructs a new reader with a given content class, shape and length.
      *
@@ -115,6 +118,19 @@ abstract class ColumnReader {
      */
     boolean isUnsignedByte() {
         return flags_.isUnsignedByte_;
+    }
+
+    /**
+     * If this reader represents a long value (or array of long values)
+     * with a non-zero integer offset (TZEROn integer and non-zero,
+     * TSCALn zero) that is represented by a String, this gives the
+     * integer offset which has been applied.
+     * If that's not the case, the return value is null.
+     *
+     * @return   offset for stringified long integers, or null
+     */
+    BigInteger getLongOffset() {
+        return flags_.longOffset_;
     }
 
     /**
@@ -531,48 +547,74 @@ abstract class ColumnReader {
 
             /* Long. */
             case 'K':
-                if ( zeroNum.equals( BintableStarTable.TWO63 ) &&
-                     scale == 1.0 ) {
-                    long lMin = Long.MIN_VALUE;
-                    long lMax = -1L;
-                    final LongRanger ranger =
-                        new LongRanger( lMin, lMax, zeroNum, "null" );
-                    reader = new ColumnReader( Long.class, 8, ColFlags.NONE ) {
-                        Object readValue( BasicInput stream )
-                                throws IOException {
-                            long val = stream.readLong();
-                            if ( hasBlank && val == (long) blank ) {
-                                return null;
+                boolean isUnsignedLong =
+                    zeroNum.equals( BintableStarTable.TWO63 ) && scale == 1.0;
+                if ( intOffset || isUnsignedLong ) {
+                    if ( OFFSET_LONG_TO_STRING ) {
+                        final BigInteger bigZero =
+                              zeroNum instanceof BigInteger
+                            ? (BigInteger) zeroNum
+                            : BigInteger.valueOf( zeroNum.longValue() );
+                        ColFlags flags = ColFlags.createLongOffset( bigZero );
+                        reader = new ColumnReader( String.class, 8, flags ) {
+                            Object readValue( BasicInput stream )
+                                    throws IOException {
+                                long val = stream.readLong();
+                                if ( hasBlank && val == (long) blank ) {
+                                    return null;
+                                }
+                                else {
+                                    return BigInteger.valueOf( val )
+                                                     .add( bigZero )
+                                                     .toString();
+                                }
                             }
-                            else {
-                                return ranger.inRange( val )
-                                     ? new Long( val + Long.MAX_VALUE + 1L )
-                                     : null;
+                        };
+                    }
+                    else if ( isUnsignedLong ) {
+                        long lMin = Long.MIN_VALUE;
+                        long lMax = -1L;
+                        final LongRanger ranger =
+                            new LongRanger( lMin, lMax, zeroNum, "null" );
+                        reader = new ColumnReader( Long.class, 8,
+                                                   ColFlags.NONE ) {
+                            Object readValue( BasicInput stream )
+                                    throws IOException {
+                                long val = stream.readLong();
+                                if ( hasBlank && val == (long) blank ) {
+                                    return null;
+                                }
+                                else {
+                                    return ranger.inRange( val )
+                                         ? new Long( val + Long.MAX_VALUE + 1L )
+                                         : null;
+                                }
                             }
-                        }
-                    };
-                }
-                else if ( intOffset ) {
-                    long lMin = lZero < 0 ? Long.MIN_VALUE - lZero
-                                          : Long.MIN_VALUE;
-                    long lMax = lZero > 0 ? Long.MAX_VALUE - lZero
-                                          : Long.MAX_VALUE;
-                    final LongRanger ranger =
-                       new LongRanger( lMin, lMax, zeroNum, "null" );
-                    reader = new ColumnReader( Long.class, 8, ColFlags.NONE ) {
-                        Object readValue( BasicInput stream )
-                                throws IOException {
-                            long val = stream.readLong();
-                            if ( hasBlank && val == (long) blank ) {
-                                return null;
+                        };
+                    }
+                    else {
+                        long lMin = lZero < 0 ? Long.MIN_VALUE - lZero
+                                              : Long.MIN_VALUE;
+                        long lMax = lZero > 0 ? Long.MAX_VALUE - lZero
+                                              : Long.MAX_VALUE;
+                        final LongRanger ranger =
+                           new LongRanger( lMin, lMax, zeroNum, "null" );
+                        reader = new ColumnReader( Long.class, 8,
+                                                   ColFlags.NONE ) {
+                            Object readValue( BasicInput stream )
+                                    throws IOException {
+                                long val = stream.readLong();
+                                if ( hasBlank && val == (long) blank ) {
+                                    return null;
+                                }
+                                else {
+                                    return ranger.inRange( val )
+                                         ? new Long( val + lZero )
+                                         : null;
+                                }
                             }
-                            else {
-                                return ranger.inRange( val )
-                                     ? new Long( val + lZero )
-                                     : null;
-                            }
-                        }
-                    };
+                        };
+                    }
                 }
                 else if ( isScaled ) {
                     reader = new ColumnReader( Double.class, 8,
@@ -930,50 +972,76 @@ abstract class ColumnReader {
 
             /* Long. */
             case 'K':
-                if ( zeroNum.equals( BintableStarTable.TWO63 ) &&
-                     scale == 1.0 ) {
-                    long lMin = Long.MIN_VALUE;
-                    long lMax = -1L;
-                    final LongRanger ranger =
-                        new LongRanger( lMin, lMax, zeroNum,
-                                        Long.toString( Long.MIN_VALUE ) );
-                    reader = new ArrayReader( long[].class, dims, 8,
-                                              ColFlags.NONE ) {
-                        Object readArray( BasicInput stream, int count )
-                                throws IOException {
-                            long[] value = new long[ count ];
-                            for ( int i = 0; i < count; i++ ) {
-                                long val = stream.readLong();
-                                value[ i ] = ranger.inRange( val )
-                                           ? val + Long.MAX_VALUE + 1L
-                                           : Long.MIN_VALUE;
+                boolean isUnsignedLong =
+                    zeroNum.equals( BintableStarTable.TWO63 ) && scale == 1.0; 
+                if ( intOffset || isUnsignedLong ) {
+                    if ( OFFSET_LONG_TO_STRING ) {
+                        final BigInteger bigZero =
+                              zeroNum instanceof BigInteger
+                            ? (BigInteger) zeroNum
+                            : BigInteger.valueOf( zeroNum.longValue() );
+                        ColFlags flags = ColFlags.createLongOffset( bigZero );
+                        reader = new ArrayReader( String[].class, dims,
+                                                  8, flags ) {
+                            Object readArray( BasicInput stream, int count )
+                                    throws IOException {
+                                String[] value = new String[ count ];
+                                for ( int i = 0; i < count; i++ ) {
+                                    long val = stream.readLong();
+                                    if ( ! hasBlank || val != (long) blank ) {
+                                        value[ i ] = BigInteger.valueOf( val )
+                                                               .add( bigZero )
+                                                               .toString();
+                                    }
+                                }
+                                return value;
                             }
-                            return value;
-                        }
-                    };
-                }
-                else if ( intOffset ) {
-                    long lMax = lZero > 0 ? Long.MAX_VALUE - lZero
-                                          : Long.MAX_VALUE;
-                    long lMin = lZero < 0 ? Long.MIN_VALUE - lZero
-                                          : Long.MIN_VALUE;
-                    final LongRanger ranger =
-                        new LongRanger( lMin, lMax, zeroNum,
-                                        Long.toString( Long.MIN_VALUE ) );
-                    reader = new ArrayReader( long[].class, dims, 8,
-                                              ColFlags.NONE ) {
-                        Object readArray( BasicInput stream, int count )
-                                throws IOException {
-                            long[] value = new long[ count ];
-                            for ( int i = 0; i < count; i++ ) {
-                                long val = stream.readLong();
-                                value[ i ] = ranger.inRange( val )
-                                           ? val + lZero
-                                           : Long.MIN_VALUE;
+                        };
+                    }
+                    else if ( isUnsignedLong ) {
+                        long lMin = Long.MIN_VALUE;
+                        long lMax = -1L;
+                        final LongRanger ranger =
+                            new LongRanger( lMin, lMax, zeroNum,
+                                            Long.toString( Long.MIN_VALUE ) );
+                        reader = new ArrayReader( long[].class, dims,
+                                                  8, ColFlags.NONE ) {
+                            Object readArray( BasicInput stream, int count )
+                                    throws IOException {
+                                long[] value = new long[ count ];
+                                for ( int i = 0; i < count; i++ ) {
+                                    long val = stream.readLong();
+                                    value[ i ] = ranger.inRange( val )
+                                               ? val + Long.MAX_VALUE + 1L
+                                               : Long.MIN_VALUE;
+                                }
+                                return value;
                             }
-                            return value;
-                        }
-                    };
+                        };
+                    }
+                    else {
+                        long lMax = lZero > 0 ? Long.MAX_VALUE - lZero
+                                              : Long.MAX_VALUE;
+                        long lMin = lZero < 0 ? Long.MIN_VALUE - lZero
+                                              : Long.MIN_VALUE;
+                        final LongRanger ranger =
+                            new LongRanger( lMin, lMax, zeroNum,
+                                            Long.toString( Long.MIN_VALUE ) );
+                        reader = new ArrayReader( long[].class, dims,
+                                                  8, ColFlags.NONE ) {
+                            Object readArray( BasicInput stream, int count )
+                                    throws IOException {
+                                long[] value = new long[ count ];
+                                for ( int i = 0; i < count; i++ ) {
+                                    long val = stream.readLong();
+                                    value[ i ] = ranger.inRange( val )
+                                               ? val + lZero
+                                               : Long.MIN_VALUE;
+                                }
+                                return value;
+                            }
+                        };
+                    }
                 }
                 else if ( isScaled ) {
                     reader = new ArrayReader( double[].class, dims, 8,
@@ -1371,21 +1439,33 @@ abstract class ColumnReader {
      */
     private static class ColFlags {
         final boolean isUnsignedByte_;
+        final BigInteger longOffset_;
 
         /** Instance indicating no flags set. */
-        final static ColFlags NONE = new ColFlags( false );
+        final static ColFlags NONE = new ColFlags( false, null );
 
         /** Instance indicating unsigned byte. */
-        final static ColFlags UNSIGNED_BYTE = new ColFlags( true );
+        final static ColFlags UNSIGNED_BYTE = new ColFlags( true, null );
 
         /**
          * Constructor.
          *
          * @param  isUnsignedByte  true to indicate reads that are in the
          *                         unsigned byte range, 0..255
+         * @param  longOffset   offset value for offset stringified long values
          */
-        ColFlags( boolean isUnsignedByte ) {
+        ColFlags( boolean isUnsignedByte, BigInteger longOffset ) {
             isUnsignedByte_ = isUnsignedByte;
+            longOffset_ = longOffset;
+        }
+
+        /**
+         * Creates an instance indicating stringified offset long values.
+         *
+         * @param  off  offset value
+         */
+        static ColFlags createLongOffset( BigInteger off ) {
+            return new ColFlags( false, off );
         }
     }
 }
