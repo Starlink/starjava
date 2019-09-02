@@ -22,7 +22,7 @@ abstract class ColumnReader {
     private final Class<?> clazz_;
     private final int[] shape_;
     private final int length_;
-    private final boolean isUnsignedByte_;
+    private final ColFlags flags_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
 
@@ -35,14 +35,13 @@ abstract class ColumnReader {
      *               returns a scalar
      * @param length  the number of bytes <tt>readValue</tt> reads from
      *                the stream
-     * @param  isUnsignedByte  true iff data represents unsigned bytes
+     * @param flags  additional information
      */
-    ColumnReader( Class<?> clazz, int[] shape, int length,
-                  boolean isUnsignedByte ) {
+    ColumnReader( Class<?> clazz, int[] shape, int length, ColFlags flags ) {
         clazz_ = clazz;
         shape_ = shape;
         length_ = length;
-        isUnsignedByte_ = isUnsignedByte;
+        flags_ = flags;
     }
 
     /**
@@ -52,10 +51,10 @@ abstract class ColumnReader {
      *               (shouldn't be an array)
      * @param length  the number of bytes <tt>readValue</tt> reads from
      *                the stream
-     * @param  isUnsignedByte  true iff data represents unsigned bytes
+     * @param flags  additional information
      */
-    ColumnReader( Class<?> clazz, int length, boolean isUnsignedByte ) {
-        this( clazz, null, length, isUnsignedByte );
+    ColumnReader( Class<?> clazz, int length, ColFlags flags ) {
+        this( clazz, null, length, flags );
     }
 
     /**
@@ -115,7 +114,7 @@ abstract class ColumnReader {
      *           unsigned byte values
      */
     boolean isUnsignedByte() {
-        return isUnsignedByte_;
+        return flags_.isUnsignedByte_;
     }
 
     /**
@@ -204,7 +203,7 @@ abstract class ColumnReader {
                                        hasBlank, blank, dims );
                 return new ColumnReader( aReader.getContentClass(),
                                          aReader.getShape(), 8,
-                                         aReader.isUnsignedByte() ) {
+                                         aReader.flags_ ) {
                     Object readValue( BasicInput stream ) throws IOException {
                         int nel = stream.readInt();
                         int heapOffset = stream.readInt();
@@ -231,7 +230,7 @@ abstract class ColumnReader {
                                + "variable length arrays not supported "
                                + "in sequential mode" );
                 final String value = "?";
-                return new ColumnReader( String.class, 8, false ) {
+                return new ColumnReader( String.class, 8, ColFlags.NONE ) {
                     Object readValue( BasicInput stream ) throws IOException {
                         int nel = stream.readInt();
                         int offset = stream.readInt();
@@ -252,7 +251,7 @@ abstract class ColumnReader {
                                        hasBlank, blank, dims );
                 return new ColumnReader( aReader.getContentClass(),
                                          aReader.getShape(), 16,
-                                         aReader.isUnsignedByte() ) {
+                                         aReader.flags_ ) {
                     Object readValue( BasicInput stream ) throws IOException {
                         long lnel = stream.readLong();
                         long heapOffset = stream.readLong();
@@ -278,7 +277,7 @@ abstract class ColumnReader {
                                + "variable length arrays not supported "
                                + "in sequential mode" );
                 final String value = "?";
-                return new ColumnReader( String.class, 16, false ) {
+                return new ColumnReader( String.class, 16, ColFlags.NONE ) {
                     Object readValue( BasicInput stream ) throws IOException {
                         long nel = stream.readLong();
                         long offset = stream.readLong();
@@ -320,7 +319,7 @@ abstract class ColumnReader {
             return new ColumnReader( aReader.getContentClass(),
                                      aReader.getShape(),
                                      aReader.getByteCount( primCount ),
-                                     aReader.isUnsignedByte() ) {
+                                     aReader.flags_ ) {
                 Object readValue( BasicInput stream ) throws IOException {
                     return aReader.readArray( stream, primCount );
                 }
@@ -356,7 +355,7 @@ abstract class ColumnReader {
 
             /* Logical. */
             case 'L':
-                reader = new ColumnReader( Boolean.class, 1, false ) {
+                reader = new ColumnReader( Boolean.class, 1, ColFlags.NONE ) {
                     Object readValue( BasicInput stream )
                             throws IOException {    
                         switch ( stream.readByte() ) {
@@ -373,7 +372,7 @@ abstract class ColumnReader {
 
             /* Bit vector (1-element). */
             case 'X':
-                reader = new ColumnReader( Boolean.class, 1, false ) {
+                reader = new ColumnReader( Boolean.class, 1, ColFlags.NONE ) {
                     Object readValue( BasicInput stream )
                             throws IOException {
                         int b = stream.readByte();
@@ -393,7 +392,7 @@ abstract class ColumnReader {
                 boolean shortable = intOffset && dZero >= Short.MIN_VALUE
                                               && dZero < Short.MAX_VALUE - 256;
                 if ( dZero == -128.0 && scale == 1.0 ) {
-                    reader = new ColumnReader( Byte.class, 1, false ) {
+                    reader = new ColumnReader( Byte.class, 1, ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             byte val = stream.readByte();
@@ -406,7 +405,7 @@ abstract class ColumnReader {
                 }
                 else if ( shortable ) {
                     final short sZero = (short) lZero;
-                    reader = new ColumnReader( Short.class, 1, false ) {
+                    reader = new ColumnReader( Short.class, 1, ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             byte val = stream.readByte();
@@ -419,7 +418,7 @@ abstract class ColumnReader {
                     };
                 }
                 else if ( isScaled ) {
-                    reader = new ColumnReader( Float.class, 1, false ) {
+                    reader = new ColumnReader( Float.class, 1, ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             byte val = stream.readByte();
@@ -431,7 +430,8 @@ abstract class ColumnReader {
                     };
                 }
                 else {
-                    reader = new ColumnReader( Short.class, 1, true ) {
+                    reader = new ColumnReader( Short.class, 1,
+                                               ColFlags.UNSIGNED_BYTE ) {
                         Object readValue( BasicInput stream )  
                                 throws IOException {
                             byte val = stream.readByte();
@@ -451,7 +451,8 @@ abstract class ColumnReader {
                                && dZero < Integer.MAX_VALUE - Short.MAX_VALUE;
                 if ( intable ) {
                     final int iZero = (int) lZero;
-                    reader = new ColumnReader( Integer.class, 2, false ) {
+                    reader = new ColumnReader( Integer.class, 2,
+                                               ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             short val = stream.readShort();
@@ -462,7 +463,7 @@ abstract class ColumnReader {
                     };
                 }
                 else if ( isScaled ) {
-                    reader = new ColumnReader( Float.class, 2, false ) {
+                    reader = new ColumnReader( Float.class, 2, ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             short val = stream.readShort();
@@ -474,7 +475,7 @@ abstract class ColumnReader {
                     };
                 }
                 else {
-                    reader = new ColumnReader( Short.class, 2, false ) {
+                    reader = new ColumnReader( Short.class, 2, ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             short val = stream.readShort();
@@ -492,7 +493,7 @@ abstract class ColumnReader {
                                 && dZero > Long.MIN_VALUE - Integer.MIN_VALUE
                                 && dZero < Long.MAX_VALUE - Integer.MAX_VALUE;
                 if ( longable ) {
-                    reader = new ColumnReader( Long.class, 4, false ) {
+                    reader = new ColumnReader( Long.class, 4, ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             long val = stream.readInt();
@@ -503,7 +504,8 @@ abstract class ColumnReader {
                     };
                 }
                 else if ( isScaled ) {
-                    reader = new ColumnReader( Double.class, 4, false ) {
+                    reader = new ColumnReader( Double.class, 4,
+                                               ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             int val = stream.readInt();
@@ -514,7 +516,8 @@ abstract class ColumnReader {
                     };
                 }
                 else {
-                    reader = new ColumnReader( Integer.class, 4, false ) {
+                    reader = new ColumnReader( Integer.class, 4,
+                                               ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             int val = stream.readInt();
@@ -534,7 +537,7 @@ abstract class ColumnReader {
                     long lMax = -1L;
                     final LongRanger ranger =
                         new LongRanger( lMin, lMax, zeroNum, "null" );
-                    reader = new ColumnReader( Long.class, 8, false ) {
+                    reader = new ColumnReader( Long.class, 8, ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             long val = stream.readLong();
@@ -556,7 +559,7 @@ abstract class ColumnReader {
                                           : Long.MAX_VALUE;
                     final LongRanger ranger =
                        new LongRanger( lMin, lMax, zeroNum, "null" );
-                    reader = new ColumnReader( Long.class, 8, false ) {
+                    reader = new ColumnReader( Long.class, 8, ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             long val = stream.readLong();
@@ -572,7 +575,8 @@ abstract class ColumnReader {
                     };
                 }
                 else if ( isScaled ) {
-                    reader = new ColumnReader( Double.class, 8, false ) {
+                    reader = new ColumnReader( Double.class, 8,
+                                               ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             long val = stream.readLong();
@@ -583,7 +587,7 @@ abstract class ColumnReader {
                     };
                 }
                 else {
-                    reader = new ColumnReader( Long.class, 8, false ) {
+                    reader = new ColumnReader( Long.class, 8, ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             long val = stream.readLong();
@@ -597,7 +601,7 @@ abstract class ColumnReader {
 
             /* Character. */
             case 'A':
-                reader = new ColumnReader( Character.class, 1, false ) {
+                reader = new ColumnReader( Character.class, 1, ColFlags.NONE ) {
                     Object readValue( BasicInput stream )
                             throws IOException {
                         char c = (char) ( stream.readByte() & 0xff );
@@ -609,7 +613,7 @@ abstract class ColumnReader {
             /* Floating point. */
             case 'E':
                 if ( isScaled ) {
-                    reader = new ColumnReader( Float.class, 4, false ) {
+                    reader = new ColumnReader( Float.class, 4, ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             float val = stream.readFloat();
@@ -618,7 +622,7 @@ abstract class ColumnReader {
                     };
                 }
                 else {
-                    reader = new ColumnReader( Float.class, 4, false ) {
+                    reader = new ColumnReader( Float.class, 4, ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             float val = stream.readFloat();
@@ -631,7 +635,8 @@ abstract class ColumnReader {
             /* Double precision. */
             case 'D':
                 if ( isScaled ) {
-                    reader = new ColumnReader( Double.class, 8, false ) {
+                    reader = new ColumnReader( Double.class, 8,
+                                               ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             double val = stream.readDouble();
@@ -640,7 +645,8 @@ abstract class ColumnReader {
                     };
                 }
                 else {
-                    reader = new ColumnReader( Double.class, 8, false ) {
+                    reader = new ColumnReader( Double.class, 8,
+                                               ColFlags.NONE ) {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             double val = stream.readDouble();
@@ -661,7 +667,7 @@ abstract class ColumnReader {
                 return new ColumnReader( complexReader.getContentClass(),
                                          complexDims,
                                          complexReader.getByteCount( 2 ),
-                                         false ) {
+                                         ColFlags.NONE ) {
                     Object readValue( BasicInput stream ) throws IOException {
                         return complexReader.readArray( stream, 2 );
                     }
@@ -704,7 +710,8 @@ abstract class ColumnReader {
 
             /* Logical. */
             case 'L':
-                reader = new ArrayReader( boolean[].class, dims, 1, false ) {
+                reader = new ArrayReader( boolean[].class, dims, 1,
+                                          ColFlags.NONE ) {
                     Object readArray( BasicInput stream, int count )
                             throws IOException {
                         boolean[] value = new boolean[ count ];
@@ -718,7 +725,8 @@ abstract class ColumnReader {
 
             /* Bits. */
             case 'X':
-                reader = new ArrayReader( boolean[].class, dims, -1, false ) {
+                reader = new ArrayReader( boolean[].class, dims, -1,
+                                          ColFlags.NONE ) {
                     Object readArray( BasicInput stream, int count )
                             throws IOException {
                         boolean[] value = new boolean[ count ];
@@ -752,7 +760,8 @@ abstract class ColumnReader {
                 boolean shortable = intOffset && dZero >= Short.MIN_VALUE
                                               && dZero < Short.MAX_VALUE - 256;
                 if ( dZero == -128.0 && scale == 1.0 ) {
-                    reader = new ArrayReader( byte[].class, dims, 1, false ) {
+                    reader = new ArrayReader( byte[].class, dims, 1,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             byte[] value = new byte[ count ];
@@ -766,7 +775,8 @@ abstract class ColumnReader {
                 }
                 else if ( shortable ) {
                     final short sZero = (short) lZero;
-                    reader = new ArrayReader( short[].class, dims, 1, false ) {
+                    reader = new ArrayReader( short[].class, dims, 1,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             short[] value = new short[ count ];
@@ -779,7 +789,8 @@ abstract class ColumnReader {
                     };
                 }
                 else if ( isScaled ) {
-                    reader = new ArrayReader( float[].class, dims, 1, false ) {
+                    reader = new ArrayReader( float[].class, dims, 1,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             float[] value = new float[ count ];
@@ -796,7 +807,8 @@ abstract class ColumnReader {
                     };
                 }
                 else {
-                    reader = new ArrayReader( short[].class, dims, 1, true ) {
+                    reader = new ArrayReader( short[].class, dims, 1,
+                                              ColFlags.UNSIGNED_BYTE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             short[] value = new short[ count ];
@@ -817,7 +829,8 @@ abstract class ColumnReader {
                                && dZero < Integer.MAX_VALUE - Short.MAX_VALUE;
                 if ( intable ) {
                     final int iZero = (int) lZero;
-                    reader = new ArrayReader( int[].class, dims, 2, false ) {
+                    reader = new ArrayReader( int[].class, dims, 2,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             int[] value = new int[ count ];
@@ -830,7 +843,8 @@ abstract class ColumnReader {
                     };
                 }
                 else if ( isScaled ) {
-                    reader = new ArrayReader( float[].class, dims, 2, false ) {
+                    reader = new ArrayReader( float[].class, dims, 2,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             float[] value = new float[ count ];
@@ -846,7 +860,8 @@ abstract class ColumnReader {
                     };
                 }
                 else {
-                    reader = new ArrayReader( short[].class, dims, 2, false ) {
+                    reader = new ArrayReader( short[].class, dims, 2,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             short[] value = new short[ count ];
@@ -866,7 +881,8 @@ abstract class ColumnReader {
                                 && dZero > Long.MIN_VALUE - Integer.MIN_VALUE
                                 && dZero < Long.MAX_VALUE - Integer.MAX_VALUE;
                 if ( longable ) {
-                    reader = new ArrayReader( long[].class, dims, 4, false ) {
+                    reader = new ArrayReader( long[].class, dims, 4,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             long[] value = new long[ count ];
@@ -879,7 +895,8 @@ abstract class ColumnReader {
                     };
                 }
                 else if ( isScaled ) {
-                    reader = new ArrayReader( double[].class, dims, 4, false ) {
+                    reader = new ArrayReader( double[].class, dims, 4,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             double[] value = new double[ count ];
@@ -895,7 +912,8 @@ abstract class ColumnReader {
                     };
                 }
                 else {
-                    reader = new ArrayReader( int[].class, dims, 4, false ) {
+                    reader = new ArrayReader( int[].class, dims, 4,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             int[] value = new int[ count ];
@@ -919,7 +937,8 @@ abstract class ColumnReader {
                     final LongRanger ranger =
                         new LongRanger( lMin, lMax, zeroNum,
                                         Long.toString( Long.MIN_VALUE ) );
-                    reader = new ArrayReader( long[].class, dims, 8, false ) {
+                    reader = new ArrayReader( long[].class, dims, 8,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             long[] value = new long[ count ];
@@ -941,7 +960,8 @@ abstract class ColumnReader {
                     final LongRanger ranger =
                         new LongRanger( lMin, lMax, zeroNum,
                                         Long.toString( Long.MIN_VALUE ) );
-                    reader = new ArrayReader( long[].class, dims, 8, false ) {
+                    reader = new ArrayReader( long[].class, dims, 8,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             long[] value = new long[ count ];
@@ -956,7 +976,8 @@ abstract class ColumnReader {
                     };
                 }
                 else if ( isScaled ) {
-                    reader = new ArrayReader( double[].class, dims, 8, false ) {
+                    reader = new ArrayReader( double[].class, dims, 8,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             double[] value = new double[ count ];
@@ -972,7 +993,8 @@ abstract class ColumnReader {
                     };
                 }
                 else {
-                    reader = new ArrayReader( long[].class, dims, 8, false ) {
+                    reader = new ArrayReader( long[].class, dims, 8,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             long[] value = new long[ count ];
@@ -990,7 +1012,8 @@ abstract class ColumnReader {
             /* Characters. */
             case 'A':
                 if ( dims.length == 1 ) {
-                    reader = new ArrayReader( String.class, null, 1, false ) {
+                    reader = new ArrayReader( String.class, null, 1,
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             return readString( stream, count );
@@ -1010,7 +1033,7 @@ abstract class ColumnReader {
                     int[] shape = new int[ dims.length - 1 ];
                     System.arraycopy( dims, 1, shape, 0, dims.length - 1 );
                     reader = new ArrayReader( String[].class, shape, 1,
-                                              false ) {
+                                              ColFlags.NONE ) {
                         Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             int nString =
@@ -1069,7 +1092,7 @@ abstract class ColumnReader {
                                                         final double zero ) {
         final boolean isScaled = scale != 1.0 || zero != 0.0;
         if ( isScaled ) {
-            return new ArrayReader( float[].class, shape, 4, false ) {
+            return new ArrayReader( float[].class, shape, 4, ColFlags.NONE ) {
                 Object readArray( BasicInput stream, int count ) 
                         throws IOException {
                     float[] value = new float[ count ];
@@ -1082,7 +1105,7 @@ abstract class ColumnReader {
             };
         }
         else {
-            return new ArrayReader( float[].class, shape, 4, false ) {
+            return new ArrayReader( float[].class, shape, 4, ColFlags.NONE ) {
                 Object readArray( BasicInput stream, int count )
                         throws IOException {
                     float[] value = new float[ count ];
@@ -1109,7 +1132,7 @@ abstract class ColumnReader {
                                                          final double zero ) {
         final boolean isScaled = scale != 1.0 || zero != 0.0;
         if ( isScaled ) {
-            return new ArrayReader( double[].class, shape, 8, false ) {
+            return new ArrayReader( double[].class, shape, 8, ColFlags.NONE ) {
                 Object readArray( BasicInput stream, int count )
                         throws IOException {
                     double[] value = new double[ count ];
@@ -1122,7 +1145,7 @@ abstract class ColumnReader {
             };
         }
         else {
-            return new ArrayReader( double[].class, shape, 8, false ) {
+            return new ArrayReader( double[].class, shape, 8, ColFlags.NONE ) {
                 Object readArray( BasicInput stream, int count )
                         throws IOException {
                     double[] value = new double[ count ];
@@ -1232,7 +1255,7 @@ abstract class ColumnReader {
          * @param   lMin  minimum permitted value
          * @param   lMax  maximum permitted value
          * @param   zeroNum   offset value (used in log messages)
-         * @param   failRetrun  substitute value in case of range miss
+         * @param   failReturn  substitute value in case of range miss
          *                      (used in log messages)
          */
         LongRanger( long lMin, long lMax, Number zeroNum, String failReturn  ) {
@@ -1276,7 +1299,7 @@ abstract class ColumnReader {
         private final Class<?> clazz_;
         private final int[] shape_;
         private final int elBytes_;
-        private final boolean isUnsignedByte_;
+        private final ColFlags flags_;
 
         /**
          * Constructor.
@@ -1284,14 +1307,14 @@ abstract class ColumnReader {
          * @param   clazz  class of values read by this reader
          * @param   shape  shape of values read by this reader
          * @param   elBytes  number of bytes read from stream for each element
-         * @parma   isUnsignedByte  special flag indicating unsigned byte data
+         * @param   flags  additional information
          */
         ArrayReader( Class<?> clazz, int[] shape, int elBytes,
-                     boolean isUnsignedByte ) {
+                     ColFlags flags ) {
             clazz_ = clazz;
             shape_ = shape;
             elBytes_ = elBytes;
-            isUnsignedByte_ = isUnsignedByte;
+            flags_ = flags;
         }
 
         /**
@@ -1341,17 +1364,28 @@ abstract class ColumnReader {
         int getByteCount( int count ) {
             return elBytes_ * count;
         }
+    }
+
+    /**
+     * Represents miscellaneous information about a column reader.
+     */
+    private static class ColFlags {
+        final boolean isUnsignedByte_;
+
+        /** Instance indicating no flags set. */
+        final static ColFlags NONE = new ColFlags( false );
+
+        /** Instance indicating unsigned byte. */
+        final static ColFlags UNSIGNED_BYTE = new ColFlags( true );
 
         /**
-         * Indicates whether this reader reads array values that
-         * are in the unsigned byte range, 0..255.  This usually returns false,
-         * but may be true in some cases for short integer values.
+         * Constructor.
          *
-         * @return   true iff short int values have been deserialized from
-         *           unsigned byte values
+         * @param  isUnsignedByte  true to indicate reads that are in the
+         *                         unsigned byte range, 0..255
          */
-        boolean isUnsignedByte() {
-            return isUnsignedByte_;
+        ColFlags( boolean isUnsignedByte ) {
+            isUnsignedByte_ = isUnsignedByte;
         }
     }
 }
