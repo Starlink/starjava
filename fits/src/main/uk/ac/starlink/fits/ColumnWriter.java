@@ -2,6 +2,7 @@ package uk.ac.starlink.fits;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.math.BigDecimal;
 
 /**
  * Writes the data for a single column of a FITS BINTABLE.
@@ -55,7 +56,7 @@ interface ColumnWriter {
      *
      * @param  zero value
      */
-    double getZero();
+    BigDecimal getZero();
 
     /**
      * Returns the scale factor to be used for interpreting values this

@@ -3,6 +3,7 @@ package uk.ac.starlink.fits;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -469,10 +470,10 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         }
 
         /* Scaling. */
-        double zero = colwriter.getZero();
+        BigDecimal zero = colwriter.getZero();
         double scale = colwriter.getScale();
-        if ( zero != 0.0 ) {
-            hdr.addValue( colhead.getKeyName( "TZERO" ), zero,
+        if ( zero != null && ! BigDecimal.ZERO.equals( zero ) ) {
+            hdr.addValue( colhead.getKeyName( "TZERO" ), zero.toString(),
                           "base" + forcol );
         }
         if ( scale != 1.0 ) {
@@ -635,8 +636,8 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 public int[] getDims() {
                     return dims;
                 }
-                public double getZero() {
-                    return 0.0;
+                public BigDecimal getZero() {
+                    return BigDecimal.ZERO;
                 }
                 public double getScale() {
                     return 1.0;
@@ -692,8 +693,8 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 public int[] getDims() {
                     return charDims;
                 }
-                public double getZero() {
-                    return 0.0;
+                public BigDecimal getZero() {
+                    return BigDecimal.ZERO;
                 }
                 public double getScale() {
                     return 1.0;
@@ -876,7 +877,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             return shape_;
         }
 
-        public double getZero() {
+        public BigDecimal getZero() {
             return arrayWriter_.getZero();
         }
 

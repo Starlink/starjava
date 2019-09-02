@@ -3,6 +3,7 @@ package uk.ac.starlink.fits;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.Tables;
@@ -75,7 +76,7 @@ abstract class ArrayWriter {
      *
      * @return BZERO value
      */
-    public abstract double getZero();
+    public abstract BigDecimal getZero();
 
     /**
      * Constructs a new ArrayWriter for a given array class.
@@ -120,13 +121,14 @@ abstract class ArrayWriter {
                 public void writePad( DataOutput out ) throws IOException {
                     out.writeByte( (byte) 0 );
                 }
-                public double getZero() {
-                    return 0.0;
+                public BigDecimal getZero() {
+                    return BigDecimal.ZERO;
                 }
             };
         }
         else if ( clazz == byte[].class ) {
             if ( allowSignedByte ) {
+                final BigDecimal zeroByte = new BigDecimal( -128 );
                 return new NormalArrayWriter( 'B', 1,
                                               new byte[] { (byte) 0 } ) {
                     public void writeElement( DataOutput out, Object array,
@@ -134,8 +136,8 @@ abstract class ArrayWriter {
                             throws IOException {
                         out.writeByte( ((byte[]) array)[ ix ] ^ (byte) 0x80 );
                     }
-                    public double getZero() {
-                        return -128.0;
+                    public BigDecimal getZero() {
+                        return zeroByte;
                     }
                 };
             }
@@ -223,8 +225,8 @@ abstract class ArrayWriter {
             writeElement( out, pad1_, 0 );
         }
 
-        public double getZero() {
-            return 0.0;
+        public BigDecimal getZero() {
+            return BigDecimal.ZERO;
         }
     }
 }

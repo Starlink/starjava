@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import nom.tam.fits.Header;
@@ -293,7 +294,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
             return new int[] { -1 };
         }
 
-        public double getZero() {
+        public BigDecimal getZero() {
             return arrayWriter_.getZero();
         }
 

@@ -2,6 +2,7 @@ package uk.ac.starlink.fits;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -53,8 +54,8 @@ abstract class ScalarColumnWriter implements ColumnWriter {
         return null;
     }
 
-    public double getZero() {
-        return 0.0;
+    public BigDecimal getZero() {
+        return BigDecimal.ZERO;
     }
 
     public double getScale() {
@@ -136,6 +137,7 @@ abstract class ScalarColumnWriter implements ColumnWriter {
                 final byte[] buf = new byte[ 1 ];
                 final byte badVal = blankNum == null ? (byte) 0
                                                      : blankNum.byteValue();
+                final BigDecimal zeroByte = new BigDecimal( -128 );
                 return new ScalarColumnWriter( 'B', 1,
                                                nullableInt ? new Byte( badVal )
                                                            : null ) {
@@ -146,8 +148,8 @@ abstract class ScalarColumnWriter implements ColumnWriter {
                         buf[ 0 ] = (byte) ( b ^ (byte) 0x80 );
                         stream.write( buf );
                     }
-                    public double getZero() {
-                        return -128.0;
+                    public BigDecimal getZero() {
+                        return zeroByte;
                     }
                 };
             }
