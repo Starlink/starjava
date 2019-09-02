@@ -4,6 +4,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.Tables;
@@ -94,6 +95,8 @@ abstract class ArrayWriter {
             Boolean.TRUE
            .equals( cinfo.getAuxDatumValue( Tables.UBYTE_FLAG_INFO,
                                             Boolean.class ) );
+        final BigInteger longOffset =
+            ScalarColumnWriter.getLongOffset( cinfo );
 
         if ( isUbyte ) {
             if ( clazz == short[].class ) {
@@ -109,6 +112,33 @@ abstract class ArrayWriter {
             else {
                 logger_.warning( "Ignoring " + Tables.UBYTE_FLAG_INFO
                                + " on non-short[] column " + cinfo );
+            }
+        }
+        if ( longOffset != null ) {
+            if ( clazz == String[].class ) {
+                final BigDecimal zeroNum = new BigDecimal( longOffset );
+                final long badVal = Long.MIN_VALUE;
+                return new ArrayWriter( 'K', 8 ) {
+                    public void writeElement( DataOutput out, Object array,
+                                              int ix )
+                            throws IOException {
+                        String sval = ((String[]) array)[ ix ];
+                        long lval =
+                            ScalarColumnWriter
+                           .getOffsetLongValue( sval, longOffset, badVal );
+                        out.writeLong( lval );
+                    }
+                    public void writePad( DataOutput out ) throws IOException {
+                        out.writeLong( 0L );
+                    }
+                    public BigDecimal getZero() {
+                        return zeroNum;
+                    }
+                };
+            }
+            else {
+                logger_.warning( "Ignoring " + BintableStarTable.LONGOFF_INFO
+                               + " on non-String[] column " + cinfo );
             }
         }
         if ( clazz == boolean[].class ) {

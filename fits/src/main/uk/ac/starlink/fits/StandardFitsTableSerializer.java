@@ -4,6 +4,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -597,7 +598,8 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                                      final int maxEls, long totalEls,
                                      boolean nullableInt ) {
         Class<?> clazz = cinfo.getContentClass();
-        if ( clazz == String.class ) {
+        BigInteger longOffset = ScalarColumnWriter.getLongOffset( cinfo );
+        if ( clazz == String.class && longOffset == null ) {
             final int maxChars = eSize;
             final int[] dims = new int[] { maxChars };
             final byte[] buf = new byte[ maxChars ];
@@ -647,7 +649,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 }
             };
         }
-        else if ( clazz == String[].class ) {
+        else if ( clazz == String[].class && longOffset == null ) {
             final int maxChars = eSize;
             final int[] charDims = new int[ shape.length + 1 ];
             charDims[ 0 ] = maxChars;

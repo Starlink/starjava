@@ -3,6 +3,7 @@ package uk.ac.starlink.fits;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -95,6 +96,7 @@ abstract class ScalarColumnWriter implements ColumnWriter {
             Boolean.TRUE
            .equals( cinfo.getAuxDatumValue( Tables.UBYTE_FLAG_INFO,
                                             Boolean.class ) );
+        final BigInteger longOffset = getLongOffset( cinfo );
 
         if ( isUbyte && clazz == Short.class ) {
             final short badVal = blankNum == null ? (short) 0xff
@@ -110,6 +112,27 @@ abstract class ScalarColumnWriter implements ColumnWriter {
                     stream.writeByte( bval );
                 }
             }; 
+        }
+        else if ( longOffset != null && clazz == String.class ) {
+            final long badVal = blankNum == null ? Long.MIN_VALUE
+                                                 : blankNum.longValue();
+            final BigDecimal zeroNum = new BigDecimal( longOffset );
+            return new ScalarColumnWriter( 'K', 8,
+                                           nullableInt ? new Long( badVal )
+                                                       : null ) {
+                @Override
+                public BigDecimal getZero() {
+                    return zeroNum;
+                }
+                public void writeValue( DataOutput stream, Object value )
+                        throws IOException {
+                    long lval = value instanceof String
+                              ? getOffsetLongValue( (String) value, longOffset,
+                                                    badVal )
+                              : badVal;
+                    stream.writeLong( lval );
+                }
+            };
         }
         else if ( clazz == Boolean.class ) {
             return new ScalarColumnWriter( 'L', 1, null ) {
@@ -250,6 +273,64 @@ abstract class ScalarColumnWriter implements ColumnWriter {
         }
         else {
             return null;
+        }
+    }
+
+    /**
+     * Acquires the long offset value for a column as a big integer,
+     * if it has one.
+     *
+     * @param  cinfo   column metadata
+     * @return  BigInteger representation of long offset, or null
+     */
+    static BigInteger getLongOffset( ColumnInfo cinfo ) {
+        Class<?> clazz = cinfo.getContentClass();
+        if ( String.class.equals( clazz ) ||
+             String[].class.equals( clazz ) ) {
+            String longoffTxt =
+                (String) cinfo.getAuxDatumValue( BintableStarTable.LONGOFF_INFO,
+                                                 String.class );
+            if ( longoffTxt != null ) {
+                try {
+                    return new BigInteger( longoffTxt );
+                }
+                catch ( NumberFormatException e ) {
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Offsets a string value representing an integer by a given
+     * BigInteger offset to give a long result.
+     * If the string is unsuitable or the result is out of range
+     * for a long, a supplied bad value is returned instead.
+     *
+     * @param  txt  string representation of value
+     * @param  longOffset  offset value
+     * @param  badVal   result for case of error
+     * @return   long representation of offset result, or <code>badVal</code>
+     */
+    static long getOffsetLongValue( String txt, BigInteger longOffset,
+                                    long badVal ) {
+        if ( txt == null ) {
+            return badVal;
+        }
+
+        /* This could be coded more efficiently (exceptions are expensive),
+         * but it's not expected that the conversion will fail under
+         * the most common circumstances (FITS table column round-tripping). */
+        try {
+            return new BigInteger( txt )
+                  .subtract( longOffset )
+                  .longValueExact();
+        }
+        catch ( NumberFormatException e ) {  // not numeric string
+            return badVal;
+        }
+        catch ( ArithmeticException e ) {    // out of range for long
+            return badVal;
         }
     }
 }

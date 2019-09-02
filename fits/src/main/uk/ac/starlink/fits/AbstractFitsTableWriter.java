@@ -37,6 +37,14 @@ import uk.ac.starlink.util.IOUtils;
  *     <code>Short</code> or <code>short[]</code>, the data will be written
  *     as unsigned bytes (<code>TFORMn='B'</code>)
  *     not 16-bit signed integers (<code>TFORMn='I'</code>).</li>
+ * <li>{@link BintableStarTable#LONGOFF_INFO}:
+ *     if this is set to a string representation of an integer value,
+ *     and the column has content class String or String[],
+ *     then the data will be written as long integers (<code>TFORMn='K'</code>)
+ *     with the given offset (<code>TZEROn=...</code>).
+ *     This option supports round-tripping of offset long values
+ *     (typically representing unsigned longs) which are converted to
+ *     strings on read.</li>
  * </ul>
  *
  * @author   Mark Taylor
