@@ -12250,6 +12250,19 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Erratum #1 (multiple security methods) has been applied.</li>
     <li>More taplint tests added for TAP 1.1-style capabilities
         document.</li>
+    <li>Modified behaviour for offset (e.g. unsigned) longs in FITS files.
+        64-bit integer columns (<code>TFORMn='K'</code>)
+        with non-zero integer offsets
+        (<code>TSCALn=1</code>, <code>TZEROn&lt;&gt;0</code>)
+        are now represented internally as Strings;
+        previously they were represented as Long integers,
+        but values out of the possible range appeared as null
+        (with a warning written through the logging system).
+        Such columns are most commonly seen representing
+        unsigned long values.
+        If written back out to FITS, the offset long value will be
+        reinstated, but other output formats cannot encode
+        unsigned longs, so they will stay as strings.</li>
     </ul>
     </p></dd>
 
