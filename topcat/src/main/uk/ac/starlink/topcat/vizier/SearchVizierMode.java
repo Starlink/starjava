@@ -80,7 +80,7 @@ public abstract class SearchVizierMode implements VizierMode {
         name_ = name; 
         tld_ = tld;
         useSplit_ = useSplit;
-        tModel_ = new ArrayTableModel<Queryable>();
+        tModel_ = new ArrayTableModel<Queryable>( new Queryable[ 0 ] );
         tModel_.setColumns( createCatalogColumns( false ) );
         table_ = new JTable( tModel_ );
         table_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
@@ -476,7 +476,8 @@ public abstract class SearchVizierMode implements VizierMode {
                         if ( sorter_ != null ) {
                             sorter_.uninstall( table_.getTableHeader() );
                         }
-                        tModel_ = new ArrayTableModel<Queryable>();
+                        tModel_ = new ArrayTableModel<Queryable>
+                                                     ( new Queryable[ 0 ] );
                         tModel_
                        .setColumns( createCatalogColumns( includeSubTables_ ) );
                         tModel_.setItems( qcats );

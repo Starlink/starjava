@@ -25,16 +25,16 @@ public class ArrayTableModel<R> extends AbstractTableModel {
     private R[] items_;
 
     /**
-     * Constructs a model with no columns or rows.
+     * Constructor.
+     *
+     * @param  items  initial list of items
      */
-    public ArrayTableModel() {
+    public ArrayTableModel( R[] items ) {
+        items_ = items;
         @SuppressWarnings("unchecked")
         ArrayTableColumn<R,?>[] columns =
             (ArrayTableColumn<R,?>[]) new ArrayTableColumn<?,?>[ 0 ];
-        @SuppressWarnings("unchecked")
-        R[] items = (R[]) new Object[ 0 ];
         columns_ = columns;
-        items_ = items;
     }
 
     /**

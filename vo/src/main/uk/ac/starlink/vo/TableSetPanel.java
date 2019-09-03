@@ -188,7 +188,7 @@ public class TableSetPanel extends JPanel {
         useNameButt_.addActionListener( findParamListener );
         useDescripButt_.addActionListener( findParamListener );
 
-        colTableModel_ = new ArrayTableModel<ColumnMeta>();
+        colTableModel_ = new ArrayTableModel<ColumnMeta>( new ColumnMeta[ 0 ] );
         colTableModel_.setColumns( colMetaColumns_ );
         colTable_ = new JTable( colTableModel_ );
         colTable_.setColumnSelectionAllowed( false );
@@ -204,7 +204,8 @@ public class TableSetPanel extends JPanel {
         } );
         selectedColumns_ = new ColumnMeta[ 0 ];
 
-        foreignTableModel_ = new ArrayTableModel<ForeignMeta>();
+        foreignTableModel_ =
+            new ArrayTableModel<ForeignMeta>( new ForeignMeta[ 0 ] );
         foreignTableModel_.setColumns( createForeignMetaColumns() );
         foreignTable_ = new JTable( foreignTableModel_ );
         foreignTable_.setColumnSelectionAllowed( false );

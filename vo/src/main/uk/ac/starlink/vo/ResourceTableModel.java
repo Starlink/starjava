@@ -35,7 +35,7 @@ public class ResourceTableModel extends ArrayTableModel<RegResource> {
      * @param   includeAcref  true if the access ref column is to be included
      */
     public ResourceTableModel( boolean includeAcref ) {
-        super();
+        super( new RegResource[ 0 ] );
         List<StringColumn> colList = new ArrayList<StringColumn>();
         colList.add( new StringColumn( "Short Name" ) {
             public String getValue( RegResource res ) {

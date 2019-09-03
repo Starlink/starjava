@@ -44,7 +44,7 @@ public abstract class BasicVizierMode implements VizierMode {
                                    <? extends Queryable,?>> columns ) {
         name_ = name;
         panel_ = new JPanel( new BorderLayout() );
-        tModel_ = new ArrayTableModel<Queryable>();
+        tModel_ = new ArrayTableModel<Queryable>( new Queryable[ 0 ] );
         tModel_.setColumns( columns );
         table_ = new JTable( tModel_ );
         table_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );

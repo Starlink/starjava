@@ -28685,6 +28685,9 @@ introduced since the last version:
         If written back out to FITS, the offset long value will be
         reinstated, but other output formats cannot encode
         unsigned longs, so they will stay as strings.</li>
+    <li>Fix load error encountered when specifying a Cone Search
+        service by URL rather than selecting from a registry query list.
+        This was a regression error since v4.6-2.</li>
     </ul>
     </p></dd>
 
