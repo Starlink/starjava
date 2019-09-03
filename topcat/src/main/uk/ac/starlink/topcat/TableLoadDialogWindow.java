@@ -6,11 +6,11 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JMenu;
-import javax.swing.JOptionPane;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Window to contain a single TableLoadDialog.
@@ -97,15 +97,7 @@ public class TableLoadDialogWindow extends AuxWindow {
             loader = tld_.createTableLoader();
         }
         catch ( RuntimeException e ) {
-            Object msg = e.getMessage();
-            if ( msg == null || ((String) msg).trim().length() == 0 ) {
-                msg = new String[] {
-                   "Can't attempt load",
-                   e.toString()
-                };
-            }
-            JOptionPane.showMessageDialog( this, msg, "Can't Load Table",
-                                           JOptionPane.ERROR_MESSAGE );
+            ErrorDialog.showError( this, "Can't Load Table", e );
             return;
         }
         if ( loader == null ) {
