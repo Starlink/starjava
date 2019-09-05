@@ -28694,6 +28694,8 @@ introduced since the last version:
         which is the recommended pattern for RegTAP 1.1,
         and believed to work for current contents of known
         searchable registries.</li>
+    <li>Eliminate unnecessary "(no position)" text in Display Image
+        activation action log message.</li>
     </ul>
     </p></dd>
 

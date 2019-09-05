@@ -318,11 +318,17 @@ public class GenericViewImageActivationType implements ActivationType {
                             imwin.setImagePoint( image, point );
                         }
                     } );
-                    String msg = ( point == null
-                                   ? "(no position)"
-                                   : "(" + point.x + ", " + point.y + ")" )
-                               + ": " + loc;
-                    return Outcome.success( msg );
+                    StringBuffer sbuf = new StringBuffer();
+                    if ( point != null ) {
+                        sbuf.append( "(" )
+                            .append( point.x )
+                            .append( ", " )
+                            .append( point.y )
+                            .append( ")" )
+                            .append( ": " );
+                    }
+                    sbuf.append( loc );
+                    return Outcome.success( sbuf.toString() );
                 }
             };
         }
