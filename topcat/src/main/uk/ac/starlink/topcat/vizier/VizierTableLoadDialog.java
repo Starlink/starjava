@@ -98,7 +98,10 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
      *         >http://vizier.u-strasbg.fr/vizier/mirrors.gml</a>.
      */
     public static final String[] SERVER_URLS = new String[] {
+        // Default site.
         "http://vizier.u-strasbg.fr/",
+
+        // Mirrors.
         "http://vizier.nao.ac.jp/",
         "http://vizier.hia.nrc.ca/",
         "http://vizier.ast.cam.ac.uk/",
@@ -107,6 +110,10 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         "http://vizier.iucaa.in/",
         "http://vizier.china-vo.org/",
         "http://viziersaao.chpc.ac.za/",
+
+        // Experimental/beta services (no guarantees).
+        "http://viz-beta.u-strasbg.fr/",
+        "http://cdsarc.u-strasbg.fr/",
     };
 
     /**
