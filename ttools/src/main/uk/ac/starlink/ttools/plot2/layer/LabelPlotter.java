@@ -6,7 +6,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -45,6 +45,7 @@ import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Plotter that writes a text label at each graphics position.
@@ -193,7 +194,8 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
      * label object stored; it differs according to plot (PaperType)
      * dimensionality.
      */
-    private static abstract class LabelDrawing<T> implements Drawing {
+    private static abstract class LabelDrawing<T extends Comparable<T>>
+            implements Drawing {
         final DataSpec dataSpec_;
         final LabelStyle style_;
         final Surface surface_;
@@ -229,7 +231,17 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
          * @param  mask  indicates at which positions labels may appear
          * @return   position label map
          */
-        abstract Map<Point,T> createMap( DataStore dataStore, GridMask mask );
+        Map<Point,T> createMap( DataStore dataStore, GridMask mask ) {
+            return PlotUtil.tupleCollect( createLabelCollector( mask ),
+                                          dataSpec_, dataStore );
+        }
+
+        /**
+         * Returns a LabelCollector instance suitable for this drawing.
+         *
+         * @param  mask  indicates at which positions labels may appear
+         */
+        abstract LabelCollector<T> createLabelCollector( GridMask mask );
 
         /**
          * Renders the contents of the label map to the paper.
@@ -393,26 +405,30 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         }
 
         @Override
-        Map<Point,String> createMap( DataStore dataStore, GridMask gridMask ) {
-            Map<Point,String> map = new LinkedHashMap<Point,String>();
-            double[] dpos = new double[ surface_.getDataDimCount() ];
-            Point2D.Double gp = new Point2D.Double();
-            Point gpi = new Point();
-            TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
-            while ( tseq.next() ) {
-                if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
-                     surface_.dataToGraphics( dpos, true, gp ) ) {
-                    PlotUtil.quantisePoint( gp, gpi );
-                    if ( gridMask.isFree( gpi ) ) {
-                        String label =
-                            LABEL_COORD.readStringCoord( tseq, icLabel_ );
-                        if ( label != null && label.trim().length() > 0 ) {
-                            map.put( new Point( gpi ), label );
+        LabelCollector<String> createLabelCollector( final GridMask gridMask ) {
+            return new LabelCollector<String>() {
+                public void accumulate( TupleSequence tseq,
+                                        Map<Point,String> map ) {
+                    double[] dpos = new double[ surface_.getDataDimCount() ];
+                    Point2D.Double gp = new Point2D.Double();
+                    Point gpi = new Point();
+                    while ( tseq.next() ) {
+                        if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
+                             surface_.dataToGraphics( dpos, true, gp ) ) {
+                            PlotUtil.quantisePoint( gp, gpi );
+                            if ( gridMask.isFree( gpi ) ) {
+                                String label =
+                                    LABEL_COORD
+                                   .readStringCoord( tseq, icLabel_ );
+                                if ( label != null &&
+                                     label.trim().length() > 0 ) {
+                                    map.put( new Point( gpi ), label );
+                                }
+                            }
                         }
                     }
                 }
-            }
-            return map;
+            };
         }
 
         @Override
@@ -454,33 +470,38 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         }
 
         @Override
-        Map<Point,DepthString> createMap( DataStore dataStore,
-                                          GridMask gridMask ) {
-            Map<Point,DepthString> map = new LinkedHashMap<Point,DepthString>();
-            double[] dpos = new double[ surface_.getDataDimCount() ];
-            GPoint3D gp = new GPoint3D();
-            Point gpi = new Point();
-            CubeSurface surf = (CubeSurface) surface_;
-            TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
-            while ( tseq.next() ) {
-                if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
-                     surf.dataToGraphicZ( dpos, true, gp ) ) {
-                    PlotUtil.quantisePoint( gp, gpi );
-                    if ( gridMask.isFree( gpi ) ) {
-                        String label =
-                            LABEL_COORD.readStringCoord( tseq, icLabel_ );
-                        if ( label != null && label.trim().length() > 0 ) {
-                            double depth = gp.z;
-                            if ( ! map.containsKey( gp ) ||
-                                 depth < map.get( gpi ).depth_ ) {
-                                map.put( new Point( gpi ),
-                                         new DepthString( label, depth ) );
+        LabelCollector<DepthString>
+                createLabelCollector( final GridMask gridMask ) {
+            return new LabelCollector<DepthString>() {
+                public void accumulate( TupleSequence tseq,
+                                        Map<Point,DepthString> map ) {
+                    double[] dpos = new double[ surface_.getDataDimCount() ];
+                    GPoint3D gp = new GPoint3D();
+                    Point gpi = new Point();
+                    CubeSurface surf = (CubeSurface) surface_;
+                    while ( tseq.next() ) {
+                        if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
+                             surf.dataToGraphicZ( dpos, true, gp ) ) {
+                            PlotUtil.quantisePoint( gp, gpi );
+                            if ( gridMask.isFree( gpi ) ) {
+                                String label =
+                                    LABEL_COORD
+                                   .readStringCoord( tseq, icLabel_ );
+                                if ( label != null &&
+                                     label.trim().length() > 0 ) {
+                                    double depth = gp.z;
+                                    if ( ! map.containsKey( gp ) ||
+                                         depth < map.get( gpi ).depth_ ) {
+                                        map.put( new Point( gpi ),
+                                                 new DepthString( label,
+                                                                  depth ) );
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-            return map;
+            };
         }
 
         @Override
@@ -500,7 +521,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
     /**
      * Aggregates a text string and a Z coordinate.
      */
-    private static class DepthString {
+    private static class DepthString implements Comparable<DepthString> {
         final String label_;
         final float depth_;
 
@@ -513,6 +534,66 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         DepthString( String label, double depth ) {
             label_ = label;
             depth_ = (float) depth;
+        }
+
+        public int compareTo( DepthString other ) {
+            int cmp = Float.compare( this.depth_, other.depth_ );
+            return cmp == 0 ? this.label_.compareTo( other.label_ )
+                            : cmp;
+        }
+    }
+
+    /**
+     * Partial SplitCollector implementation for use with LabelPlotter.
+     * This just deals with creating and merging Map objects for use
+     * as accumulators.
+     */
+    private static abstract class LabelCollector<T extends Comparable<T>>
+            implements SplitCollector<TupleSequence,Map<Point,T>> {
+
+        public Map<Point,T> createAccumulator() {
+            return new HashMap<Point,T>();
+        }
+
+        public Map<Point,T> combine( Map<Point,T> map1, Map<Point,T> map2 ) {
+
+            /* Merge the smaller into the larger map for efficiency.
+             * Do it in a deterministic way, so taht when you're plotting
+             * similar scenes as part of a navigation, the points that
+             * are prlotted are generally the same ones rather than
+             * changing unpredictably between frames. */
+            if ( map1.size() < map2.size() ) {
+                addAllLower( map2, map1 );
+                return map2;
+            }
+            else {
+                addAllLower( map1, map2 );
+                return map1;
+            }
+        }
+
+        /**
+         * Merges the contents of a source map into a destination map.
+         * This is like Map.addAll, but it's deterministic;
+         * lower values will not be replaced by higher ones (according to
+         * Comparable).
+         *
+         * @param  dest  destination map, possibly augmented on exit
+         * @param  src   source map, unaffected on exit
+         */
+        private static <T extends Comparable<T>>
+                void addAllLower( Map<Point,T> dest, Map<Point,T> src ) {
+            for ( Map.Entry<Point,T> entry : src.entrySet() ) {
+                Point key = entry.getKey();
+                T srcValue = entry.getValue();
+                if ( srcValue != null ) {
+                    T destValue = dest.get( key );
+                    if ( destValue == null ||
+                         srcValue.compareTo( destValue ) < 0 ) {
+                        dest.put( key, srcValue );
+                    }
+                }
+            }
         }
     }
 

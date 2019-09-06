@@ -34,6 +34,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Abstract superclass for histogram-like plotters that have pixel-sized
@@ -364,36 +365,53 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      * @param  dataSpec  specification for frequency data values
      * @param  dataStore  data storage
      */
-    public BinArray readBins( Axis xAxis, int padPix, Combiner combiner,
+    public BinArray readBins( final Axis xAxis, int padPix,
+                              final Combiner combiner,
                               DataSpec dataSpec, DataStore dataStore ) {
 
         /* Work out the pixel limits over which we need to accumulate counts. */
         int[] glimits = xAxis.getGraphicsLimits();
-        int ilo = glimits[ 0 ] - padPix;
-        int ihi = glimits[ 1 ] + padPix;
+        final int ilo = glimits[ 0 ] - padPix;
+        final int ihi = glimits[ 1 ] + padPix;
+        final boolean isUnweighted =
+            weightCoord_ == null || dataSpec.isCoordBlank( icWeight_ );
 
         /* Accumulate the counts into a suitable results object (BinArray)
          * and return them. */
-        BinAccumulator binAcc = new BinAccumulator( ilo, ihi, combiner );
-        TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        if ( weightCoord_ == null | dataSpec.isCoordBlank( icWeight_ ) ) {
-            while ( tseq.next() ) {
-                double dx = xCoord_.readDoubleCoord( tseq, icX_ );
-                double gx = xAxis.dataToGraphics( dx );
-                binAcc.submitToBin( gx, 1 );
+        SplitCollector<TupleSequence,BinAccumulator> collector =
+                new SplitCollector<TupleSequence,BinAccumulator>() {
+            public BinAccumulator createAccumulator() {
+                return new BinAccumulator( ilo, ihi, combiner );
             }
-        }
-        else {
-            while ( tseq.next() ) {
-                double w = weightCoord_.readDoubleCoord( tseq, icWeight_ );
-                if ( PlotUtil.isFinite( w ) ) {
-                    double dx = xCoord_.readDoubleCoord( tseq, icX_ );
-                    double gx = xAxis.dataToGraphics( dx );
-                    binAcc.submitToBin( gx, w );
+            public void accumulate( TupleSequence tseq,
+                                    BinAccumulator binAcc ) {
+                if ( isUnweighted ) {
+                    while ( tseq.next() ) {
+                        double dx = xCoord_.readDoubleCoord( tseq, icX_ );
+                        double gx = xAxis.dataToGraphics( dx );
+                        binAcc.submitToBin( gx, 1 );
+                    }
+                }
+                else {
+                    while ( tseq.next() ) {
+                        double w =
+                            weightCoord_.readDoubleCoord( tseq, icWeight_ );
+                        if ( PlotUtil.isFinite( w ) ) {
+                            double dx = xCoord_.readDoubleCoord( tseq, icX_ );
+                            double gx = xAxis.dataToGraphics( dx );
+                            binAcc.submitToBin( gx, w );
+                        }
+                    }
                 }
             }
-        }
-        return binAcc.getResult();
+            public BinAccumulator combine( BinAccumulator acc1,
+                                           BinAccumulator acc2 ) {
+                acc1.add( acc2 );
+                return acc1;
+            }
+        };
+        return PlotUtil.tupleCollect( collector, dataSpec, dataStore )
+              .getResult();                      
     }
 
     /**
@@ -776,6 +794,21 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
             }
             else if ( dx >= bins_.length ) {
                 hiBin_.submit( inc );
+            }
+        }
+
+        /**
+         * Merges the contents of another compatible BinAccumulator
+         * with this one.
+         *
+         * @param  other  compatible accumulator
+         */
+        void add( BinAccumulator other ) {
+            loBin_.add( other.loBin_ );
+            hiBin_.add( other.hiBin_ );
+            midBin_.add( other.midBin_ );
+            for ( int i = 0; i < bins_.length; i++ ) {
+                bins_[ i ].add( other.bins_[ i ] );
             }
         }
 

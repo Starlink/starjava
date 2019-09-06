@@ -246,6 +246,38 @@ public class BinBag {
     }
 
     /**
+     * Returns the number of non-empty bins in this bag.
+     *
+     * @return   bin count
+     */
+    public int getBinCount() {
+        return valueMap_.size();
+    }
+
+    /**
+     * Adds the contents of another compatible BinBag to this one.
+     * The effect is as if all the data submitted to the other bag
+     * had been submitted to this one as well.
+     * The effect on the supplied <code>other</code> is undefined.
+     *
+     * @param   other   compatible accumulator
+     */
+    public void add( BinBag other ) {
+        for ( Map.Entry<Integer,Combiner.Container> entry :
+              other.valueMap_.entrySet() ) {
+            Integer key = entry.getKey();
+            Combiner.Container otherContainer = entry.getValue();
+            Combiner.Container thisContainer = valueMap_.get( key );
+            if ( thisContainer == null ) {
+                valueMap_.put( key, otherContainer );
+            }
+            else {
+                thisContainer.add( otherContainer );
+            }
+        }
+    }
+
+    /**
      * Indicates whether the bin boundaries and aggregation mode
      * used by this object are the same as a given bin set specification.
      *

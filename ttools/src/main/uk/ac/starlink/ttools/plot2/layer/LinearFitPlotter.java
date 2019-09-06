@@ -37,6 +37,7 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Fits a set of 2-d points to a linear equation, and plots the line.
@@ -213,13 +214,10 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
             }
 
             /* Otherwise, accumulate statistics and return the result. */
-            WXYStats stats = new WXYStats();
-            Point2D.Double gp = new Point2D.Double();
-            boolean visibleOnly = false;
-            boolean xlog = logFlags[ 0 ];
-            boolean ylog = logFlags[ 1 ];
-            TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
-            int icPos = cgrp_.getPosCoordIndex( 0, geom_ );
+            final boolean visibleOnly = false;
+            final boolean xlog = logFlags[ 0 ];
+            final boolean ylog = logFlags[ 1 ];
+            final int icPos = cgrp_.getPosCoordIndex( 0, geom_ );
             final boolean hasWeight;
             final int icWeight;
             if ( cgrp_.getExtraCoords().length > 0 ) {
@@ -230,22 +228,37 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
                 icWeight = -1;
                 hasWeight = false;
             }
-            double[] dpos = new double[ geom_.getDataDimCount() ];
-            while ( tseq.next() ) {
-                if ( geom_.readDataPos( tseq, icPos, dpos ) &&
-                     surface_.dataToGraphics( dpos, visibleOnly, gp ) &&
-                     PlotUtil.isPointFinite( gp ) ) {
-                    double x = xlog ? log( dpos[ 0 ] ) : dpos[ 0 ];
-                    double y = ylog ? log( dpos[ 1 ] ) : dpos[ 1 ];
-                    if ( hasWeight ) {
-                        double w = tseq.getDoubleValue( icWeight );
-                        stats.addPoint( x, y, w );
-                    }
-                    else {
-                        stats.addPoint( x, y );
+            SplitCollector<TupleSequence,WXYStats> collector =
+                    new SplitCollector<TupleSequence,WXYStats>() {
+                public WXYStats createAccumulator() {
+                    return new WXYStats();
+                }
+                public void accumulate( TupleSequence tseq, WXYStats stats ) {
+                    Point2D.Double gp = new Point2D.Double();
+                    double[] dpos = new double[ geom_.getDataDimCount() ];
+                    while ( tseq.next() ) {
+                        if ( geom_.readDataPos( tseq, icPos, dpos ) &&
+                             surface_.dataToGraphics( dpos, visibleOnly, gp ) &&
+                             PlotUtil.isPointFinite( gp ) ) {
+                            double x = xlog ? log( dpos[ 0 ] ) : dpos[ 0 ];
+                            double y = ylog ? log( dpos[ 1 ] ) : dpos[ 1 ];
+                            if ( hasWeight ) {
+                                double w = tseq.getDoubleValue( icWeight );
+                                stats.addPoint( x, y, w );
+                            }
+                            else {
+                                stats.addPoint( x, y );
+                            }
+                        }
                     }
                 }
-            }
+                public WXYStats combine( WXYStats stats1, WXYStats stats2 ) {
+                    stats1.add( stats2 );
+                    return stats1;
+                }
+            };
+            WXYStats stats =
+                PlotUtil.tupleCollect( collector, dataSpec_, dataStore );
             return new LinearFitPlan( stats, dataSpec_, logFlags );
         }
 
@@ -418,6 +431,22 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
             swXX_ += x * x;
             swYY_ += y * y;
             swXY_ += x * y;
+        }
+
+        /**
+         * Merges the contents of a second instance into this one.
+         * The effect is as if all the points that have been added to the
+         * other one are added to this.
+         *
+         * @param  other  other stats
+         */
+        public void add( WXYStats other ) {
+            sw_ += other.sw_;
+            swX_ += other.swX_;
+            swY_ += other.swY_;
+            swXX_ += other.swXX_;
+            swYY_ += other.swYY_;
+            swXY_ += other.swXY_;
         }
 
         /**

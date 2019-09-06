@@ -7,6 +7,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import javax.swing.Icon;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -124,22 +125,26 @@ public class SpotPlotter extends AbstractPlotter<SpotPlotter.SpotStyle> {
      * @param  paperType  2D paper type
      * @param  paper   paper appropriate for paperType
      */
-    private void paintSpots2D( SpotStyle style, Surface surface,
-                               DataGeom geom, DataSpec dataSpec,
-                               DataStore dataStore,
-                               PaperType2D paperType, Paper paper ) {
-        Glyph spotGlyph = createSpotGlyph();
-        Color spotColor = style.color_;
-        int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
-        double[] dpos = new double[ surface.getDataDimCount() ];
-        Point2D.Double gp = new Point2D.Double();
-        TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        while ( tseq.next() ) {
-            if ( geom.readDataPos( tseq, icPos, dpos ) &&
-                 surface.dataToGraphics( dpos, true, gp ) ) {
-                paperType.placeGlyph( paper, gp.x, gp.y, spotGlyph, spotColor );
+    private void paintSpots2D( SpotStyle style, final Surface surface,
+                               final DataGeom geom,
+                               DataSpec dataSpec, DataStore dataStore,
+                               final PaperType2D paperType, Paper paper ) {
+        final Glyph spotGlyph = createSpotGlyph();
+        final Color spotColor = style.color_;
+        final int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
+        BiConsumer<TupleSequence,Paper> tuplePainter = (tseq, p) -> {
+            double[] dpos = new double[ surface.getDataDimCount() ];
+            Point2D.Double gp = new Point2D.Double();
+            while ( tseq.next() ) {
+                if ( geom.readDataPos( tseq, icPos, dpos ) &&
+                     surface.dataToGraphics( dpos, true, gp ) ) {
+                    paperType.placeGlyph( p, gp.x, gp.y,
+                                          spotGlyph, spotColor );
+                }
             }
-        }
+        };
+        dataStore.getTupleRunner()
+                 .paintData( tuplePainter, paper, dataSpec, dataStore );
     }
 
     /**
@@ -153,23 +158,26 @@ public class SpotPlotter extends AbstractPlotter<SpotPlotter.SpotStyle> {
      * @param  paperType  3D paper type
      * @param  paper   paper appropriate for paperType
      */
-    private void paintSpots3D( SpotStyle style, CubeSurface surface,
-                               DataGeom geom, DataSpec dataSpec,
-                               DataStore dataStore,
-                               PaperType3D paperType, Paper paper ) {
-        Glyph spotGlyph = createSpotGlyph();
-        Color spotColor = style.getColor();
-        int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
-        double[] dpos = new double[ surface.getDataDimCount() ];
-        GPoint3D gp = new GPoint3D();
-        TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        while ( tseq.next() ) {
-            if ( geom.readDataPos( tseq, icPos, dpos ) &&
-                 surface.dataToGraphicZ( dpos, true, gp ) ) {
-                paperType.placeGlyph( paper, gp.x, gp.y, gp.z,
-                                      spotGlyph, spotColor );
+    private void paintSpots3D( SpotStyle style, final CubeSurface surface,
+                               final DataGeom geom,
+                               DataSpec dataSpec, DataStore dataStore,
+                               final PaperType3D paperType, Paper paper ) {
+        final Glyph spotGlyph = createSpotGlyph();
+        final Color spotColor = style.getColor();
+        final int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
+        BiConsumer<TupleSequence,Paper> tuplePainter = (tseq, p) -> {
+            double[] dpos = new double[ surface.getDataDimCount() ];
+            GPoint3D gp = new GPoint3D();
+            while ( tseq.next() ) {
+                if ( geom.readDataPos( tseq, icPos, dpos ) &&
+                     surface.dataToGraphicZ( dpos, true, gp ) ) {
+                    paperType.placeGlyph( p, gp.x, gp.y, gp.z,
+                                          spotGlyph, spotColor );
+                }
             }
-        }
+        };
+        dataStore.getTupleRunner()
+                 .paintData( tuplePainter, paper, dataSpec, dataStore );
     }
 
     /**

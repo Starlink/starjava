@@ -605,21 +605,24 @@ public class HealpixPlotter
                                          DataStore dataStore ) {
             int degrade = dataLevel_ - viewLevel_;
             assert degrade >= 0;
-            int shift = degrade * 2;
+            final int shift = degrade * 2;
             long nbin = 12 * ( 1L << ( 2 * viewLevel_ ) );
             Combiner combiner = hstyle_.combiner_;
-            BinList binList =
-                BinListCollector.createDefaultBinList( combiner, nbin );
-            TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-            while ( tseq.next() ) {
-                double value = tseq.getDoubleValue( icValue_ );
-                if ( ! Double.isNaN( value ) ) {
-                    long hpx = indexReader_.getHealpixIndex( tseq );
-                    long ibin = hpx >> shift;
-                    binList.submitToBin( ibin, value );
+            BinListCollector collector =
+                    new BinListCollector( combiner, nbin ) {
+                public void accumulate( TupleSequence tseq, BinList binList ) {
+                    while ( tseq.next() ) {
+                        double value = tseq.getDoubleValue( icValue_ );
+                        if ( ! Double.isNaN( value ) ) {
+                            long hpx = indexReader_.getHealpixIndex( tseq );
+                            long ibin = hpx >> shift;
+                            binList.submitToBin( ibin, value );
+                        }
+                    }
                 }
-            }
-            return binList.getResult();
+            };
+            return PlotUtil.tupleCollect( collector, dataSpec, dataStore )
+                  .getResult();
         }
 
         /**

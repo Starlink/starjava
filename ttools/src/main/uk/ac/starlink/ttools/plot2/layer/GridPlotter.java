@@ -55,6 +55,7 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Plotter that plots a genuine density map (2-d histogram) on a regular grid.
@@ -670,42 +671,12 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
          */
         private BinList readBins( GridPixer pixer, DataSpec dataSpec,
                                   DataStore dataStore ) {
-            int nbin = pixer.getBinCount();
             Combiner combiner = gstyle_.combiner_;
-            BinList binList = combiner.createArrayBinList( nbin );
-            TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-            Point2D.Double gp = new Point2D.Double();
             DataGeom geom = getDataGeom();
-            double[] dpos = new double[ geom.getDataDimCount() ];
-
-            /* Unweighted. */
-            if ( dataSpec.isCoordBlank( icWeight_ ) ) {
-                while ( tseq.next() ) {
-                    if ( geom.readDataPos( tseq, icPos_, dpos ) ) {
-                        int ibin = pixer.getBinIndex( dpos );
-                        if ( ibin >= 0 ) {
-                            binList.submitToBin( ibin, 1 );
-                        }
-                    }
-                }
-            }
-
-            /* Weighted. */
-            else {
-                while ( tseq.next() ) {
-                    if ( geom.readDataPos( tseq, icPos_, dpos ) ) {
-                        int ibin = pixer.getBinIndex( dpos );
-                        if ( ibin >= 0 ) {
-                            double w = WEIGHT_COORD
-                                      .readDoubleCoord( tseq, icWeight_ );
-                            if ( ! Double.isNaN( w ) ) {
-                                binList.submitToBin( ibin, w );
-                            }
-                        }
-                    }
-                }
-            }
-            return binList;
+            int icw = dataSpec.isCoordBlank( icWeight_ ) ? -1 : icWeight_;
+            BinCollector collector =
+                new BinCollector( combiner, pixer, geom, icPos_, icw );
+            return PlotUtil.tupleCollect( collector, dataSpec, dataStore );
         }
 
         /**
@@ -857,6 +828,82 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                             new Double( pixer.ygrid_.binWidth_ ) );
                 return report;
             }
+        }
+    }
+
+    /**
+     * Collector implementation for accumulating bins.
+     */
+    private static class BinCollector
+            implements SplitCollector<TupleSequence,ArrayBinList> {
+
+        private final Combiner combiner_;
+        private final GridPixer pixer_;
+        private final DataGeom geom_;
+        private final int icPos_;
+        private final int icWeight_;
+
+       /**
+         * Constructor.
+         *
+         * @param  combiner  combination mode
+         * @param  pixer      grid definition
+         * @param  geom     datageom
+         * @param  icPos    column index for positional coordinate
+         * @param  icWeight   column index for weight coordinate,
+         *                    or -1 for unweighted
+         */
+        BinCollector( Combiner combiner, GridPixer pixer, DataGeom geom,
+                      int icPos, int icWeight ) {
+            combiner_ = combiner;
+            pixer_ = pixer;
+            geom_ = geom;
+            icPos_ = icPos;
+            icWeight_ = icWeight;
+        }
+
+        public ArrayBinList createAccumulator() {
+            return combiner_.createArrayBinList( pixer_.getBinCount() );
+        }
+
+        public void accumulate( TupleSequence tseq, ArrayBinList binList ) {
+            double[] dpos = new double[ geom_.getDataDimCount() ];
+
+            /* Unweighted. */
+            if ( icWeight_ < 0 ) {
+                while ( tseq.next() ) {
+                    if ( geom_.readDataPos( tseq, icPos_, dpos ) ) {
+                        int ibin = pixer_.getBinIndex( dpos );
+                        if ( ibin >= 0 ) {
+                            binList.submitToBin( ibin, 1 );
+                        }
+                    }
+                }
+            }
+
+            /* Weighted. */
+            else {
+                while ( tseq.next() ) {
+                    if ( geom_.readDataPos( tseq, icPos_, dpos ) ) {
+                        int ibin = pixer_.getBinIndex( dpos );
+                        if ( ibin >= 0 ) {
+                            double w = WEIGHT_COORD
+                                      .readDoubleCoord( tseq, icWeight_ );
+                            if ( ! Double.isNaN( w ) ) {
+                                binList.submitToBin( ibin, w );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public ArrayBinList combine( ArrayBinList binList1,
+                                     ArrayBinList binList2 ) {
+            // This seems to be a pretty fast operation,
+            // no requirement to pool bins.
+            binList1.addBins( binList2 );
+            return binList1;
         }
     }
 

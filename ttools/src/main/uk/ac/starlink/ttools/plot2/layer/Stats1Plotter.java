@@ -45,6 +45,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Plotter to calculate and display univariate statistics
@@ -317,7 +318,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
 
         public Object calculatePlan( Object[] knownPlans,
                                      DataStore dataStore ) {
-            boolean isLog = surface_.getLogFlags()[ 0 ];
+            final boolean isLog = surface_.getLogFlags()[ 0 ];
 
             /* If one of the known plans matches the one we're about
              * to calculate, just return that. */
@@ -329,28 +330,42 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             }
 
             /* Otherwise, accumulate statistics and return the result. */
-            WStats stats = new WStats();
-            TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
-            if ( weightCoord_ == null || dataSpec_.isCoordBlank( icWeight_ ) ) {
-                while ( tseq.next() ) {
-                    double x = xCoord_.readDoubleCoord( tseq, icX_ );
-                    double s = isLog ? log( x ) : x;
-                    if ( PlotUtil.isFinite( s ) ) {
-                        stats.addPoint( s );
+            final boolean isUnweighted = weightCoord_ == null
+                                      || dataSpec_.isCoordBlank( icWeight_ );
+            SplitCollector<TupleSequence,WStats> collector =
+                    new SplitCollector<TupleSequence,WStats>() {
+                public WStats createAccumulator() {
+                    return new WStats();
+                }
+                public void accumulate( TupleSequence tseq, WStats stats ) {
+                    if ( isUnweighted ) {
+                        while ( tseq.next() ) {
+                            double x = xCoord_.readDoubleCoord( tseq, icX_ );
+                            double s = isLog ? log( x ) : x;
+                            if ( PlotUtil.isFinite( s ) ) {
+                                stats.addPoint( s );
+                            }
+                        }
+                    }
+                    else {
+                        while ( tseq.next() ) {
+                            double x = xCoord_.readDoubleCoord( tseq, icX_ );
+                            double s = isLog ? log( x ) : x;
+                            if ( PlotUtil.isFinite( s ) ) {
+                                double w = weightCoord_
+                                          .readDoubleCoord( tseq, icWeight_ );
+                                stats.addPoint( s, w );
+                            }
+                        } 
                     }
                 }
-            }
-            else {
-                while ( tseq.next() ) {
-                    double x = xCoord_.readDoubleCoord( tseq, icX_ );
-                    double s = isLog ? log( x ) : x;
-                    if ( PlotUtil.isFinite( s ) ) {
-                        double w =
-                            weightCoord_.readDoubleCoord( tseq, icWeight_ );
-                        stats.addPoint( s, w );
-                    }
-                } 
-            }
+                public WStats combine( WStats stats1, WStats stats2 ) {
+                    stats1.add( stats2 );
+                    return stats1;
+                }
+            };
+            WStats stats =
+                PlotUtil.tupleCollect( collector, dataSpec_, dataStore );
             return new StatsPlan( isLog, stats, dataSpec_ );
         }
 
@@ -559,6 +574,19 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             sw_ += 1;
             swX_ += x;
             swXX_ += x * x;
+        }
+
+        /**
+         * Merges the contents of a second instance into this one.
+         * The effect is as if all the points that have been added to the
+         * other one are added to this.
+         *
+         * @param  other  other stats
+         */
+        public void add( WStats other ) {
+            sw_ += other.sw_;
+            swX_ += other.swX_;
+            swXX_ += other.swXX_;
         }
 
         /**

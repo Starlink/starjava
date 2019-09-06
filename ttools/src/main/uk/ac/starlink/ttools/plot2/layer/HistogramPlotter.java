@@ -27,8 +27,8 @@ import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
-import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
@@ -54,6 +54,7 @@ import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.TimeDataGeom;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Plotter for 1-dimensional histograms.
@@ -451,28 +452,48 @@ public class HistogramPlotter
      * @param   dataSpec  specification for histogram data values
      * @param   dataStore  data storage
      */
-    private BinBag readBins( boolean xlog, double binWidth, double binPhase,
-                             Combiner combiner, double xlo, double xhi,
+    private BinBag readBins( final boolean xlog, final double binWidth,
+                             final double binPhase, final Combiner combiner,
+                             double xlo, double xhi,
                              DataSpec dataSpec, DataStore dataStore ) {
-        double point = PlotUtil.scaleValue( xlo, xhi, 0.5, xlog );
-        BinBag binBag = new BinBag( xlog, binWidth, binPhase, combiner, point );
-        TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        if ( weightCoord_ == null || dataSpec.isCoordBlank( icWeight_ ) ) {
-            while ( tseq.next() ) {
-                double x = xCoord_.readDoubleCoord( tseq, icX_ );
-                binBag.submitToBin( x, 1 );
+        final double point = PlotUtil.scaleValue( xlo, xhi, 0.5, xlog );
+        final boolean isUnweighted =
+            weightCoord_ == null || dataSpec.isCoordBlank( icWeight_ );
+        SplitCollector<TupleSequence,BinBag> collector =
+                new SplitCollector<TupleSequence,BinBag>() {
+            public BinBag createAccumulator() {
+                return new BinBag( xlog, binWidth, binPhase, combiner, point );
             }
-        }
-        else {
-            while ( tseq.next() ) {
-                double x = xCoord_.readDoubleCoord( tseq, icX_ );
-                double w = weightCoord_.readDoubleCoord( tseq, icWeight_ );
-                if ( ! Double.isNaN( w ) ) {
-                    binBag.submitToBin( x, w );
+            public void accumulate( TupleSequence tseq, BinBag binBag ) {
+                if ( isUnweighted ) {
+                    while ( tseq.next() ) {
+                        double x = xCoord_.readDoubleCoord( tseq, icX_ );
+                        binBag.submitToBin( x, 1 );
+                    }
+                }
+                else {
+                    while ( tseq.next() ) {
+                        double x = xCoord_.readDoubleCoord( tseq, icX_ );
+                        double w =
+                            weightCoord_.readDoubleCoord( tseq, icWeight_ );
+                        if ( ! Double.isNaN( w ) ) {
+                            binBag.submitToBin( x, w );
+                        }
+                    }
                 }
             }
-        }
-        return binBag;
+            public BinBag combine( BinBag bag1, BinBag bag2 ) {
+                if ( bag1.getBinCount() > bag2.getBinCount() ) {
+                    bag1.add( bag2 );
+                    return bag1;
+                }
+                else {
+                    bag2.add( bag1 ); 
+                    return bag2;
+                }
+            }
+        };
+        return PlotUtil.tupleCollect( collector, dataSpec, dataStore );
     }
 
     /**

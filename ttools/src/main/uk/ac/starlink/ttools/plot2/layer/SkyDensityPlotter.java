@@ -35,6 +35,7 @@ import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.ReportKey;
@@ -553,38 +554,40 @@ public class SkyDensityPlotter
          */
         private BinList readBins( SkySurface surface, DataSpec dataSpec,
                                   DataStore dataStore ) {
-            int level = getLevel( surface );
-            SkyPixer skyPixer = new SkyPixer( level );
-            long npix = skyPixer.getPixelCount();
-            Combiner combiner = dstyle_.combiner_;
-            BinList binList =
-                BinListCollector.createDefaultBinList( combiner, npix );
-            TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-            int icPos = coordGrp_.getPosCoordIndex( 0, geom_ );
-            double[] v3 = new double[ 3 ];
-
-            /* Unweighted. */
-            if ( icWeight_ < 0 || dataSpec.isCoordBlank( icWeight_ ) ) {
-                while ( tseq.next() ) {
-                    if ( geom_.readDataPos( tseq, icPos, v3 ) ) {
-                        binList.submitToBin( skyPixer.getIndex( v3 ), 1 );
+            final int level = getLevel( surface );
+            final long npix = new SkyPixer( level ).getPixelCount();
+            final Combiner combiner = dstyle_.combiner_;
+            final int icPos = coordGrp_.getPosCoordIndex( 0, geom_ );
+            final boolean isUnweighted =
+                icWeight_ < 0 || dataSpec.isCoordBlank( icWeight_ );
+            BinListCollector collector =
+                    new BinListCollector( combiner, npix ) {
+                public void accumulate( TupleSequence tseq, BinList binList ) {
+                    SkyPixer skyPixer = new SkyPixer( level );
+                    double[] v3 = new double[ 3 ];
+                    if ( isUnweighted ) {
+                        while ( tseq.next() ) {
+                            if ( geom_.readDataPos( tseq, icPos, v3 ) ) {
+                                long ihpx = skyPixer.getIndex( v3 );
+                                binList.submitToBin( ihpx, 1 );
+                            }
+                        }
                     }
-                }
-            }
-
-            /* Weighted. */
-            else {
-                while ( tseq.next() ) {
-                    if ( geom_.readDataPos( tseq, icPos, v3 ) ) {
-                        double w = weightCoord_
-                                  .readDoubleCoord( tseq, icWeight_ );
-                        if ( ! Double.isNaN( w ) ) {
-                            binList.submitToBin( skyPixer.getIndex( v3 ), w );
+                    else {
+                        while ( tseq.next() ) {
+                            if ( geom_.readDataPos( tseq, icPos, v3 ) ) {
+                                double w = weightCoord_
+                                          .readDoubleCoord( tseq, icWeight_ );
+                                if ( ! Double.isNaN( w ) ) {
+                                    long ihpx = skyPixer.getIndex( v3 );
+                                    binList.submitToBin( ihpx, w );
+                                }
+                            }
                         }
                     }
                 }
-            }
-            return binList;
+            };
+            return PlotUtil.tupleCollect( collector, dataSpec, dataStore );
         }
 
         /**

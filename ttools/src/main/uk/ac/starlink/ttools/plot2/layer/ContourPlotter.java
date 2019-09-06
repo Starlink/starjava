@@ -38,6 +38,7 @@ import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Plotter implementation that draws contours for a density map of points.
@@ -354,51 +355,65 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
          */
         private NumberGrid readBinGrid( DataStore dataStore, int pad ) {
             Rectangle bounds = surface_.getPlotBounds();
-            int nx = bounds.width + 2 * pad;
-            int ny = bounds.height + 2 * pad;
-            Gridder gridder = new Gridder( nx, ny );
-            int xoff = bounds.x - pad;
-            int yoff = bounds.y - pad;
-            int nbin = gridder.getLength();
-            TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
-            double[] dpos = new double[ surface_.getDataDimCount() ];
-            Point2D.Double gp = new Point2D.Double();
-            final BinList binList;
-            if ( hasWeight_ ) {
-                binList = style_.getCombiner().createArrayBinList( nbin );
-                while ( tseq.next() ) {
-                    double w = WEIGHT_COORD.readDoubleCoord( tseq, icWeight_ );
-                    if ( ! Double.isNaN( w ) &&
-                         geom_.readDataPos( tseq, icPos_, dpos ) &&
-                         surface_.dataToGraphics( dpos, false, gp ) ) {
-                        int gx = PlotUtil.ifloor( gp.x ) - xoff;
-                        if ( gx >= 0 && gx < nx ) {
-                            int gy = PlotUtil.ifloor( gp.y ) - yoff;
-                            if ( gy >= 0 && gy < ny ) {
-                                int ibin = gridder.getIndex( gx, gy );
-                                binList.submitToBin( ibin, w );
+            final int nx = bounds.width + 2 * pad;
+            final int ny = bounds.height + 2 * pad;
+            final Gridder gridder = new Gridder( nx, ny );
+            final int xoff = bounds.x - pad;
+            final int yoff = bounds.y - pad;
+            final int nbin = gridder.getLength();
+            SplitCollector<TupleSequence,ArrayBinList> collector =
+                    new SplitCollector<TupleSequence,ArrayBinList>() {
+                public ArrayBinList createAccumulator() {
+                    return (hasWeight_ ? style_.getCombiner() : Combiner.COUNT)
+                          .createArrayBinList( nbin );
+                }
+                public void accumulate( TupleSequence tseq,
+                                        ArrayBinList binList ) {
+                    double[] dpos = new double[ surface_.getDataDimCount() ];
+                    Point2D.Double gp = new Point2D.Double();
+                    if ( hasWeight_ ) {
+                        while ( tseq.next() ) {
+                            double w = WEIGHT_COORD
+                                      .readDoubleCoord( tseq, icWeight_ );
+                            if ( ! Double.isNaN( w ) &&
+                                 geom_.readDataPos( tseq, icPos_, dpos ) &&
+                                 surface_.dataToGraphics( dpos, false, gp ) ) {
+                                int gx = PlotUtil.ifloor( gp.x ) - xoff;
+                                if ( gx >= 0 && gx < nx ) {
+                                    int gy = PlotUtil.ifloor( gp.y ) - yoff;
+                                    if ( gy >= 0 && gy < ny ) {
+                                        int ibin = gridder.getIndex( gx, gy );
+                                        binList.submitToBin( ibin, w );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        while ( tseq.next() ) {
+                            if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
+                                 surface_.dataToGraphics( dpos, false, gp ) ) {
+                                int gx = PlotUtil.ifloor( gp.x ) - xoff;
+                                if ( gx >= 0 && gx < nx ) {
+                                    int gy = PlotUtil.ifloor( gp.y ) - yoff;
+                                    if ( gy >= 0 && gy < ny ) {
+                                        int ibin = gridder.getIndex( gx, gy );
+                                        binList.submitToBin( ibin, 1 );
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-            else {
-                binList = Combiner.COUNT.createArrayBinList( nbin );
-                while ( tseq.next() ) {
-                    if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
-                         surface_.dataToGraphics( dpos, false, gp ) ) {
-                        int gx = PlotUtil.ifloor( gp.x ) - xoff;
-                        if ( gx >= 0 && gx < nx ) {
-                            int gy = PlotUtil.ifloor( gp.y ) - yoff;
-                            if ( gy >= 0 && gy < ny ) {
-                                int ibin = gridder.getIndex( gx, gy );
-                                binList.submitToBin( ibin, 1 );
-                            }
-                        }
-                    }
+                public ArrayBinList combine( ArrayBinList acc1,
+                                             ArrayBinList acc2 ) {
+                    acc1.addBins( acc2 );
+                    return acc1;
                 }
-            }
-            final BinList.Result binResult = binList.getResult();
+            };
+            final BinList.Result binResult =
+               PlotUtil.tupleCollect( collector, dataSpec_, dataStore )
+              .getResult();
             return new NumberGrid( gridder ) {
                 public double getValue( int index ) {
                     return binResult.getBinValue( index );
