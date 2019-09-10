@@ -93,6 +93,8 @@ public class GuiDataStore implements DataStore {
             implements TupleSequence {
         private final AbortTupleSequence baseSeq_;
         private final Progresser progresser_;
+        private final int step_;
+        private int count_;
 
         /**
          * Constructor.
@@ -105,16 +107,24 @@ public class GuiDataStore implements DataStore {
             super( baseSeq );
             baseSeq_ = baseSeq;
             progresser_ = progresser;
+            step_ = progresser.getStep();
+            count_ = 0;
         }
 
         public boolean next() {
             if ( baseSeq_.next() ) {
-                progresser_.increment();
+                if ( ++count_ % step_ == 0 ) {
+                    progresser_.add( count_ );
+                    count_ = 0;
+                } 
                 return true;
             }
             else {
                 if ( baseSeq_.isAborted() ) {
                     progresser_.reset();
+                }
+                else {
+                    progresser_.add( count_ );
                 }
                 return false;
             }

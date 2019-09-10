@@ -15,7 +15,7 @@ public class Progresser {
 
     private final BoundedRangeModel progModel_;
     private final long count_;
-    private final long step_;
+    private final int step_;
     private final long countScale_;
     private final long minStartMillis_;
     private final long minUpdateMillis_;
@@ -52,7 +52,8 @@ public class Progresser {
                        long minStartMillis, long minUpdateMillis ) {
         progModel_ = progModel;
         count_ = count;
-        step_ = Math.max( count / maxStepCount, minStepSize );
+        step_ = (int) Math.min( Math.max( count / maxStepCount, minStepSize ),
+                                Integer.MAX_VALUE );
         countScale_ = 1 + ( count / Integer.MAX_VALUE );
         minStartMillis_ = minStartMillis;
         minUpdateMillis_ = minUpdateMillis;
@@ -77,6 +78,16 @@ public class Progresser {
     }
 
     /**
+     * Returns the number of increments between each attempted update of
+     * the GUI.
+     *
+     * @return   step count
+     */
+    public int getStep() {
+        return step_;
+    }
+
+    /**
      * Records a single increment contributing to the progress.
      */
     public void increment() {
@@ -90,21 +101,52 @@ public class Progresser {
 
         /* Perform a GUI update only once every few increments. */
         if ( ix % step_ == 0 ) {
-            long now = System.currentTimeMillis();
-            if ( start_ == Long.MIN_VALUE ) {
-                throw new IllegalStateException( "Not initialised" );
-            }
-            if ( ( now - start_ > minStartMillis_ &&
-                   now - lastUpdate_ >= minUpdateMillis_ )
-                 || ix == 0 ) {
-                lastUpdate_ = now;
-                final int value = getProgValue( ix );
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        progModel_.setValue( value );
-                    }
-                } );
-            }
+            updateIfNotRecent( ix );
+        }
+    }
+
+    /**
+     * Records a number of increments contributing to the progress.
+     * This is suitable for use if a significant number of increments
+     * have taken place.
+     *
+     * @param  count  number of counts to register;
+     *                should normally be significantly larger than 1
+     */
+    public void add( int count ) {
+        long ix0 = index_.getAndAdd( count );
+        long ix1 = ( ix0 + count ) % count_;
+        if ( ix1 < ix0 || ix1 / step_ > ix0 / step_ ) {
+            updateIfNotRecent( ix1 );
+        }
+    }
+
+    /**
+     * Schedules an update to the GUI progress display
+     * if a decent delay has expired since the last such update.
+     *
+     * <p>This method should not be called indiscriminately,
+     * since it makes timing calls that have non-negligable cost.
+     *
+     * @param  ix   current value of the index count;
+     *              the update will however be made to the index value
+     *              current at the time of that update
+     */
+    private void updateIfNotRecent( long ix ) {
+        long now = System.currentTimeMillis();
+        if ( start_ == Long.MIN_VALUE ) {
+            throw new IllegalStateException( "Not initialised" );
+        }
+        if ( ( now - start_ > minStartMillis_ &&
+               now - lastUpdate_ >= minUpdateMillis_ )
+             || ix == 0 ) {
+            lastUpdate_ = now;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    int value = getProgValue( index_.longValue() );
+                    progModel_.setValue( value );
+                }
+            } );
         }
     }
 
