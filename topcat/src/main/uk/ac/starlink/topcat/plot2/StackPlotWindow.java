@@ -1414,7 +1414,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private static void updateMasks( Map<TopcatModel,BitSet> maskMap,
                                      Inclusion inclusion ) {
         GuiPointCloud pointCloud = inclusion.pointCloud_;
-        PositionCriterion criterion = inclusion.createCriterion();
         TableCloud[] tclouds = pointCloud.getTableClouds();
         DataStore dataStore = pointCloud.createGuiDataStore();
         int nc = tclouds.length;
@@ -1423,28 +1422,17 @@ public class StackPlotWindow<P,A> extends AuxWindow {
               ic++ ) {
             TableCloud tcloud = tclouds[ ic ];
             TopcatModel tcModel = tcloud.getTopcatModel();
-            DataGeom geom = tcloud.getDataGeom();
-            int icPos = tcloud.getPosCoordIndex();
-
-            /* Get the row mask for the table correspoinding to the current
-             * table cloud.  If no such entry is present in the map, add one. */
-            if ( ! maskMap.containsKey( tcModel ) ) {
-                long nr = tcModel.getDataModel().getRowCount();
-                maskMap.put( tcModel,
-                             new BitSet( Tables.checkedLongToInt( nr ) ) );
+            int nr =
+                Tables.checkedLongToInt( tcModel.getDataModel().getRowCount() );
+            BitSet cloudMask =
+                dataStore.getTupleRunner()
+               .collectPool( new InclusionMasker( tcloud, inclusion, nr ),
+                             () -> tcloud.createTupleSequence( dataStore ) );
+            if ( maskMap.containsKey( tcModel ) ) {
+                maskMap.get( tcModel ).or( cloudMask );
             }
-            BitSet mask = maskMap.get( tcModel );
-
-            /* Iterate over the points in the cloud, testing inclusion and
-             * updating this table's mask accordingly. */
-            double[] dpos = new double[ geom.getDataDimCount() ];
-            TupleSequence tseq = tcloud.createTupleSequence( dataStore );
-            while ( tseq.next() ) {
-                if ( geom.readDataPos( tseq, icPos, dpos ) &&
-                     criterion.isIncluded( dpos ) ) {
-                    long ix = tseq.getRowIndex();
-                    mask.set( Tables.checkedLongToInt( ix ) );
-                }
+            else {
+                maskMap.put( tcModel, cloudMask );
             }
         }
     }
@@ -2051,6 +2039,54 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         public long[] combine( long[] acc1, long[] acc2 ) {
             return new long[] { acc1[ 0 ] + acc2[ 0 ] };
+        }
+    }
+
+    /**
+     * SplitCollector that populates a row index mask with those points
+     * within a given inclusion.
+     */
+    private static class InclusionMasker
+            implements SplitCollector<TupleSequence,BitSet> {
+
+        private final TableCloud tcloud_;
+        private final Inclusion inclusion_;
+        private final int nrow_;
+
+        /**
+         * Constructor.
+         *
+         * @param  tcloud  table cloud
+         * @param  inclusion  inclusion criterion
+         * @param  nrow   size of complete BitSet
+         */
+        InclusionMasker( TableCloud tcloud, Inclusion inclusion, int nrow ) {
+            tcloud_ = tcloud;
+            inclusion_ = inclusion;
+            nrow_ = nrow;
+        }
+
+        public BitSet createAccumulator() {
+            return new BitSet( nrow_ );
+        }
+
+        public void accumulate( TupleSequence tseq, BitSet mask ) {
+            DataGeom geom = tcloud_.getDataGeom();
+            int iPosCoord = tcloud_.getPosCoordIndex();
+            double[] dpos = new double[ geom.getDataDimCount() ];
+            PositionCriterion criterion = inclusion_.createCriterion();
+            while ( tseq.next() ) {
+                if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
+                     criterion.isIncluded( dpos ) ) {
+                    long ix = tseq.getRowIndex();
+                    mask.set( Tables.checkedLongToInt( ix ) );
+                }
+            }
+        }
+
+        public BitSet combine( BitSet mask1, BitSet mask2 ) {
+            mask1.or( mask2 );
+            return mask1;
         }
     }
 
