@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot2;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -82,7 +83,7 @@ public abstract class PositionCriterion {
      * @return  new criterion
      */
     public static PositionCriterion
-            createBlobCriterion( final Surface surface, final Shape blob ) {
+            createBlobCriterion( final Surface surface, Shape blob ) {
 
         /* Test for inclusion within the shape bounding box before testing
          * the shape itself.  This does not change the result, it's an
@@ -90,7 +91,16 @@ public abstract class PositionCriterion {
          * be fast and may throw out a high proportion of points.
          * I haven't tested to see whether this actually does speed things up, 
          * but at least I can't see it slowing things down significantly. */
-        final Rectangle blobBounds = blob.getBounds();
+        final Rectangle blobBounds = new Rectangle( blob.getBounds() );
+
+        /* Create a new Shape which is a Path2D.Double instance.
+         * An earlier attempt used an Area, but the Area implementation
+         * in at least the Oracle Java 8 implementation uses a Vector which
+         * can end up shared between instances (e.g. for new Area(blob));
+         * since Vector has synchronized methods, this performs very poorly
+         * under concurrent access.  The Path2D.Double constructor
+         * seems to clone state properly, so concurrent access is fine. */
+        final Shape blobShape = new Path2D.Double( blob );
         return new PositionCriterion() {
             final Point2D.Double gp = new Point2D.Double();
             final Point gpi = new Point();
@@ -98,7 +108,7 @@ public abstract class PositionCriterion {
                 if ( surface.dataToGraphics( dpos, true, gp ) ) {
                     PlotUtil.quantisePoint( gp, gpi );
                     return blobBounds.contains( gpi )
-                        && blob.contains( gpi );
+                        && blobShape.contains( gpi );
                 }
                 else {
                     return false;
