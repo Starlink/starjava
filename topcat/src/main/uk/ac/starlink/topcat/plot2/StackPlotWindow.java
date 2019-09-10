@@ -1344,23 +1344,27 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         List<Inclusion> list = new ArrayList<Inclusion>();
         int nz = plotPanel_.getZoneCount();
         for ( int iz = 0; iz < nz; iz++ ) {
-            Surface surface = plotPanel_.getSurface( iz );
+            final Surface surface = plotPanel_.getSurface( iz );
             if ( surface != null ) {
                 GuiPointCloud fullCloud = plotPanel_.createGuiPointCloud( iz );
                 if ( fullCloud.getTableClouds().length > 0 ) {
-                    PositionCriterion fullCriterion =
-                        PositionCriterion.createBoundsCriterion( surface );
-                    list.add( new Inclusion( fullCloud, fullCriterion ) );
+                    list.add( new Inclusion( fullCloud ) {
+                        public PositionCriterion createCriterion() {
+                            return PositionCriterion
+                                  .createBoundsCriterion( surface );
+                        }
+                    } );
                 }
                 if ( includePartial ) {
                     GuiPointCloud partialCloud =
                         plotPanel_.createPartialGuiPointCloud( iz );
                     if ( partialCloud.getTableClouds().length > 0 ) {
-                        PositionCriterion partialCriterion =
-                            PositionCriterion
-                           .createPartialBoundsCriterion( surface );
-                        list.add( new Inclusion( partialCloud,
-                                                 partialCriterion ) );
+                        list.add( new Inclusion( partialCloud ) {
+                            public PositionCriterion createCriterion() {
+                                return PositionCriterion
+                                      .createPartialBoundsCriterion( surface );
+                            }
+                        } );
                     }
                 }
             }
@@ -1377,18 +1381,20 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param   blob  graphical region of interest
      * @return  array of inclusion objects describing points within blob
      */
-    private Inclusion[] getBlobInclusions( Shape blob ) {
+    private Inclusion[] getBlobInclusions( final Shape blob ) {
         int nz = plotPanel_.getZoneCount();
         List<Inclusion> inclusions = new ArrayList<Inclusion>();
         for ( int iz = 0; iz < nz; iz++ ) {
-            Surface surface = plotPanel_.getSurface( iz );
+            final Surface surface = plotPanel_.getSurface( iz );
             if ( surface != null &&
                  blob.intersects( surface.getPlotBounds() ) ) {
                 inclusions.add( new Inclusion( plotPanel_
-                                              .createGuiPointCloud( iz ),
-                                               PositionCriterion
-                                              .createBlobCriterion( surface,
-                                                                    blob ) ) );
+                                              .createGuiPointCloud( iz ) ) {
+                    public PositionCriterion createCriterion() {
+                        return PositionCriterion
+                              .createBlobCriterion( surface, blob );
+                    }
+                } );
             }
         }
         return inclusions.toArray( new Inclusion[ 0 ] );
@@ -1407,7 +1413,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private static void updateMasks( Map<TopcatModel,BitSet> maskMap,
                                      Inclusion inclusion ) {
         GuiPointCloud pointCloud = inclusion.pointCloud_;
-        PositionCriterion criterion = inclusion.criterion_;
+        PositionCriterion criterion = inclusion.createCriterion();
         TableCloud[] tclouds = pointCloud.getTableClouds();
         DataStore dataStore = pointCloud.createGuiDataStore();
         int nc = tclouds.length;
@@ -1500,7 +1506,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private static long[] countPoints( Inclusion inclusion,
                                        DataStore dataStore ) {
         TableCloud[] tclouds = inclusion.pointCloud_.getTableClouds();
-        PositionCriterion criterion = inclusion.criterion_;
+        PositionCriterion criterion = inclusion.createCriterion();
         long count = 0;
         long total = 0;
         for ( int ic = 0; ic < tclouds.length; ic++ ) {
@@ -2010,22 +2016,27 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     /**
      * Characterises a set of included points within a plot zone,
      * by aggregating a description of the set of points, and a
-     * criterion for whether a point is included in the set.
+     * factory for the criterion of whether a point is included in the set.
      */
-    private static class Inclusion {
+    private static abstract class Inclusion {
         final GuiPointCloud pointCloud_;
-        final PositionCriterion criterion_;
 
         /**
          * Constructor.
          *
          * @param  pointCloud  set of data points
-         * @param  criterion  inclusion criterion
          */
-        Inclusion( GuiPointCloud pointCloud, PositionCriterion criterion ) {
+        Inclusion( GuiPointCloud pointCloud ) {
             pointCloud_ = pointCloud;
-            criterion_ = criterion;
         }
+
+        /**
+         * Returns an instance of the inclusion criterion for this object.
+         * Each instance may be used from a single thread.
+         *
+         * @return  inclusion criterion
+         */
+        abstract PositionCriterion createCriterion();
     }
 
     /**
