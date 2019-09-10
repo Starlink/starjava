@@ -106,6 +106,7 @@ import uk.ac.starlink.ttools.plot2.data.SmartColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Window for all plots.
@@ -1511,16 +1512,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         long total = 0;
         for ( int ic = 0; ic < tclouds.length; ic++ ) {
             TableCloud tcloud = tclouds[ ic ];
-            DataGeom geom = tcloud.getDataGeom();
-            int iPosCoord = tcloud.getPosCoordIndex();
-            double[] dpos = new double[ geom.getDataDimCount() ];
-            TupleSequence tseq = tcloud.createTupleSequence( dataStore );
-            while ( tseq.next() ) {
-                if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
-                     criterion.isIncluded( dpos ) ) {
-                    count++;
-                }
-            }
+            long[] acc =
+                dataStore.getTupleRunner()
+               .collect( new InclusionCounter( tcloud, inclusion ),
+                         () -> tcloud.createTupleSequence( dataStore ) );
+            count += acc[ 0 ];
             total += tcloud.getTopcatModel().getDataModel().getRowCount();
         }
         return new long[] { count, total };
@@ -2010,6 +2006,51 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     .append( limits[ 1 ] );
             }
             return sbuf.toString();
+        }
+    }
+
+    /**
+     * SplitCollector implementation that counts tuples in a given
+     * inclusion.  The accumulator is a one-element array whose
+     * single element gives the inclusion count.
+     */
+    private static class InclusionCounter
+            implements SplitCollector<TupleSequence,long[]> {
+        private final TableCloud tcloud_;
+        private final Inclusion inclusion_;
+
+        /**
+         * Constructor.
+         *
+         * @param  tcloud  point cloud to count
+         * @param  inclusion   inclusion criterion
+         */
+        InclusionCounter( TableCloud tcloud, Inclusion inclusion ) {
+            tcloud_ = tcloud;
+            inclusion_ = inclusion;
+        }
+
+        public long[] createAccumulator() {
+            return new long[] { 0 };
+        }
+
+        public void accumulate( TupleSequence tseq, long[] acc ) {
+            DataGeom geom = tcloud_.getDataGeom();
+            int iPosCoord = tcloud_.getPosCoordIndex();
+            double[] dpos = new double[ geom.getDataDimCount() ];
+            PositionCriterion criterion = inclusion_.createCriterion();
+            long count = 0;
+            while ( tseq.next() ) {
+                if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
+                     criterion.isIncluded( dpos ) ) {
+                    count++;
+                }
+            }
+            acc[ 0 ] += count;
+        }
+
+        public long[] combine( long[] acc1, long[] acc2 ) {
+            return new long[] { acc1[ 0 ] + acc2[ 0 ] };
         }
     }
 
