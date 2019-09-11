@@ -116,6 +116,12 @@ public abstract class QuantileCombiner extends Combiner {
         public void submit( double datum ) {
             dlist_.add( datum );
         }
+        public void add( Container other ) {
+            DoubleList dlist1 = ((QuantileContainer) other).dlist_;
+            if ( dlist1 != null ) {
+                dlist_.addAll( dlist1 );
+            }
+        }
         public double getCombinedValue() {
             return calculateQuantile( dlist_ );
         }

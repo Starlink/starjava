@@ -342,6 +342,17 @@ public abstract class Combiner {
         void submit( double datum );
 
         /**
+         * Combines the content of a given container with this one.
+         * The effect is the same as if all the data submitted to the
+         * supplied container had in fact been submitted to this one.
+         * The other container is assumed to be of the same type as this one;
+         * if not, a ClassCastException is likely to occur.
+         *
+         * @param   container  other container, of the same type as this one
+         */
+        void add( Container container );
+
+        /**
          * Returns the combined result of all the values submitted so far.
          * In general, if no values have been submitted,
          * a NaN should be returned.
@@ -425,6 +436,11 @@ public abstract class Combiner {
             public void submit( double datum ) {
                 count_++;
                 sum_ += datum;
+            }
+            public void add( Container other ) {
+                MeanContainer meanOther = (MeanContainer) other;
+                count_ += meanOther.count_;
+                sum_ += meanOther.sum_;
             }
             public double getCombinedValue() {
                 return count_ == 0 ? Double.NaN : sum_ / (double) count_;
@@ -562,6 +578,12 @@ public abstract class Combiner {
                 sum1_ += datum;
                 sum2_ += datum * datum;
             }
+            public void add( Container other ) {
+                StdevContainer stdevOther = (StdevContainer) other;
+                count_ += stdevOther.count_;
+                sum1_ += stdevOther.sum1_;
+                sum2_ += stdevOther.sum2_;
+            }
         }
 
         /**
@@ -670,6 +692,10 @@ public abstract class Combiner {
             int count_;
             public void submit( double datum ) {
                 count_++;
+            }
+            public void add( Container other ) {
+                CountContainer countOther = (CountContainer) other;
+                count_ += countOther.count_;
             }
             public double getCombinedValue() {
                 return count_ == 0 ? Double.NaN : count_;
@@ -792,6 +818,12 @@ public abstract class Combiner {
             double sum_ = Double.NaN;
             public void submit( double datum ) {
                 sum_ = combineSum( sum_, datum );
+            }
+            public void add( Container other ) {
+                double otherSum = ((SumContainer) other).sum_;
+                if ( ! Double.isNaN( otherSum ) ) {
+                    sum_ = combineSum( sum_, otherSum );
+                }
             }
             public double getCombinedValue() {
                 return sum_;
@@ -929,6 +961,12 @@ public abstract class Combiner {
             public void submit( double datum ) {
                 min_ = combineMin( min_, datum );
             }
+            public void add( Container other ) {
+                double otherMin = ((MinContainer) other).min_;
+                if ( ! Double.isNaN( otherMin ) ) {
+                    min_ = combineMin( min_, otherMin );
+                }
+            }
             public double getCombinedValue() {
                 return min_;
             }
@@ -1019,6 +1057,12 @@ public abstract class Combiner {
             public void submit( double datum ) {
                 max_ = combineMax( max_, datum );
             }
+            public void add( Container other ) {
+                double otherMax = ((MaxContainer) other).max_;
+                if ( ! Double.isNaN( otherMax ) ) {
+                    max_ = combineMax( max_, otherMax );
+                }
+            }
             public double getCombinedValue() {
                 return max_;
             }
@@ -1083,6 +1127,12 @@ public abstract class Combiner {
             boolean hit_;
             public void submit( double datum ) {
                 hit_ = true;
+            }
+            public void add( Container other ) {
+                boolean otherHit = ((HitContainer) other).hit_;
+                if ( otherHit ) {
+                    hit_ = true;
+                }
             }
             public double getCombinedValue() {
                 return hit_ ? 1 : Double.NaN;
