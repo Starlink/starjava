@@ -97,6 +97,18 @@ public abstract class ArrayBinList implements BinList {
         };
     }
 
+    public Combiner.Container getBinContainer( long index ) {
+        int ix = (int) index;
+        if ( mask_.get( ix ) && ix == index ) {
+            Combiner.Container container = combiner_.createContainer();
+            copyBin( ix, container );
+            return container;
+        }
+        else {
+            return null;
+        }
+    }
+
     /**
      * Accumulates all the data from another BinList into this one.
      * The effect is the same as if all the data submitted to <code>other</code>

@@ -37,15 +37,15 @@ public class AdaptiveBinList implements BinList {
         hlist_ = new HashBinList( size, combiner );
         base_ = hlist_;
         binThresh_ = size / factThresh;
-    }                                        
+    }
 
     public Combiner getCombiner() {
         return combiner_;
-    }       
+    }
 
     public long getSize() {
         return size_;
-    }   
+    }
 
     public void submitToBin( long index, double datum ) {
 
@@ -61,6 +61,10 @@ public class AdaptiveBinList implements BinList {
             }
         }
         base_.submitToBin( index, datum );
+    }
+
+    public Combiner.Container getBinContainer( long index ) {
+        return base_.getBinContainer( index );
     }
 
     public BinList.Result getResult() {

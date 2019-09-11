@@ -62,6 +62,20 @@ public interface BinList {
     Result getResult();
 
     /**
+     * Returns a container representing the current contents of a given bin.
+     * This is only intended for reading; the effect of submitting
+     * additional data to the returned container is not defined.
+     *
+     * <p>This method is here to support conversion between different
+     * BinList implementations.
+     *
+     * @param  index   bin index
+     * @return   container instance reporting the current state of the bin;
+     *           may be null if the bin is not populated
+     */
+    Combiner.Container getBinContainer( long index );
+
+    /**
      * Accessor for the results of accumulating values in a bit list.
      */
     interface Result {

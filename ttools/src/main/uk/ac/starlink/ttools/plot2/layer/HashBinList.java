@@ -48,6 +48,10 @@ public class HashBinList implements BinList {
         container.submit( value );
     }
 
+    public Combiner.Container getBinContainer( long index ) {
+        return map_.get( new Long( index ) );
+    }
+
     public Result getResult() {
         return new Result() {
             public double getBinValue( long index ) {
