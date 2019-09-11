@@ -72,6 +72,16 @@ public class AdaptiveBinList implements BinList {
     }
 
     /**
+     * Returns the bin list to which this one is currently delegating
+     * its operations.
+     *
+     * @return   base bin list
+     */
+    public BinList getBaseBinList() {
+        return base_;
+    }
+
+    /**
      * Indicates which underlying BinList implementation is currently in use.
      * It starts off true at object construction time, but may turn false
      * if enough data are submitted.  It will never change back again.

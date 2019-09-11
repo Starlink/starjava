@@ -608,7 +608,8 @@ public class HealpixPlotter
             int shift = degrade * 2;
             long nbin = 12 * ( 1L << ( 2 * viewLevel_ ) );
             Combiner combiner = hstyle_.combiner_;
-            BinList binList = Combiner.createDefaultBinList( combiner, nbin );
+            BinList binList =
+                BinListCollector.createDefaultBinList( combiner, nbin );
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             while ( tseq.next() ) {
                 double value = tseq.getDoubleValue( icValue_ );

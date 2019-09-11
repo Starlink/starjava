@@ -195,30 +195,6 @@ public abstract class Combiner {
     }
 
     /**
-     * Returns a BinList implementation suitable for a given number of
-     * bins and a given combiner.
-     * This may return an implementation based on a hash, or an array,
-     * or some combination.
-     *
-     * @param  combiner  combiner
-     * @param  size    maximum number of bins
-     */
-    public static BinList createDefaultBinList( Combiner combiner, long size ) {
-        if ( size < 1e6 ) {
-            BinList binList = combiner.createArrayBinList( (int) size );
-            if ( binList != null ) {
-                return binList;
-            }
-        }
-        if ( size < Integer.MAX_VALUE ) {
-            return new AdaptiveBinList( (int) size, combiner, 8 );
-        }
-        else {
-            return new HashBinList( size, combiner );
-        }
-    }
-
-    /**
      * Utility method to return a string describing the content of a ValueInfo.
      * It will come up with something, even if the description member is empty.
      *

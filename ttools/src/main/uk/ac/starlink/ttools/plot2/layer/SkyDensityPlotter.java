@@ -557,7 +557,8 @@ public class SkyDensityPlotter
             SkyPixer skyPixer = new SkyPixer( level );
             long npix = skyPixer.getPixelCount();
             Combiner combiner = dstyle_.combiner_;
-            BinList binList = Combiner.createDefaultBinList( combiner, npix );
+            BinList binList =
+                BinListCollector.createDefaultBinList( combiner, npix );
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             int icPos = coordGrp_.getPosCoordIndex( 0, geom_ );
             double[] v3 = new double[ 3 ];

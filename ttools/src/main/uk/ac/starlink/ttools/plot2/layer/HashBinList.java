@@ -52,6 +52,34 @@ public class HashBinList implements BinList {
         return map_.get( new Long( index ) );
     }
 
+    /**
+     * Accumulates all the data from another BinList into this one.
+     * The effect is the same as if all the data submitted to <code>other</code>
+     * had been submitted to this.
+     *
+     * <p>The other list must be of the same type (have the same combiner)
+     * as this one.
+     *
+     * @param  other   second BinList compatible with this one
+     * @throws   ClassCastException   if <code>other</code>'s type
+     *                                does not match this one
+     */
+    public void addBins( BinList other ) {
+        for ( Iterator<Long> it = other.getResult().indexIterator();
+              it.hasNext(); ) {
+            Long key = it.next();
+            Combiner.Container container1 =
+                other.getBinContainer( key.longValue() );
+            Combiner.Container container0 = map_.get( key );
+            if ( container0 == null ) {
+                map_.put( key, container1 );
+            }
+            else {
+                container0.add( container1 );
+            }
+        }
+    }
+
     public Result getResult() {
         return new Result() {
             public double getBinValue( long index ) {

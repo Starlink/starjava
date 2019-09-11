@@ -32,6 +32,7 @@ import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
 import uk.ac.starlink.ttools.plot2.layer.BinList;
+import uk.ac.starlink.ttools.plot2.layer.BinListCollector;
 import uk.ac.starlink.ttools.plot2.layer.BinResultColumnData;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.ttools.plot2.layer.SolidAngleUnit;
@@ -350,7 +351,7 @@ public class SkyDensityMap extends SingleMapperTask {
                 String expr = aq.expr_;
                 SolidAngleUnit unit = aq.unit_;
                 BinList binList =
-                    Combiner.createDefaultBinList( combiner, npix );
+                    BinListCollector.createDefaultBinList( combiner, npix );
                 JELQuantity jq;
                 try {
                     jq = JELUtils.compileQuantity( lib, jelReader, expr,
