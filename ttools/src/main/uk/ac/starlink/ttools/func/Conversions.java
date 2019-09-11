@@ -5,6 +5,8 @@
 
 package uk.ac.starlink.ttools.func;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.Tables;
@@ -187,6 +189,55 @@ public class Conversions {
      */
     public static double parseDouble( String str ) {
         return Double.parseDouble( str.trim() );
+    }
+
+    /**
+     * Attempts to interpret a string as a "BigInteger" value.
+     * This can be used for working with string representations of
+     * integers that can't be stored as an unsigned 64-bit value.
+     *
+     * <p>The result is a <code>BigInteger</code> object,
+     * which can't be used in normal numeric expressions, but has a number
+     * of methods defined on it for comparison, arithmetic,
+     * bit manipulation etc.
+     * See the
+     * <a href="https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html"
+     *    >java.math.BigInteger</a> javadocs for details.
+     *
+     * @example <code>parseBigInteger("-20000000000000000023").doubleValue()
+     *                = -2e19</code>
+     * @example <code>parseBigInteger("18446744073709551616").testBit(64)
+     *                = true</code>
+     *
+     * @param  str  string containing numeric representation
+     * @return  BigInteger value of <code>str</code>
+     */
+    public static BigInteger parseBigInteger( String str ) {
+        return new BigInteger( str.trim() );
+    }
+
+    /**
+     * Attempts to interpret a string as a "BigDecimal" value.
+     * This can be used for working with string representations of
+     * non-integer values that require more precision or range than
+     * is possible in a 64-bit IEEE-754 double precision variable.
+     *
+     * <p>The result is a <code>BigDecimal</code> object,
+     * which can't be used in normal numeric expressions, but has a number
+     * of methods defined on it for comparison, arithmetic,
+     * bit manipulation etc.
+     * See the
+     * <a href="https://docs.oracle.com/javase/8/docs/api/java/math/BigDecimal.html"
+     *    >java.math.BigDecimal</a> javadocs for details.
+     *
+     * @example  <code>parseBigDecimal("101").compareTo(parseBigDecimal("102"))
+     *                 = -1</code>
+     *
+     * @param  str  string contining numeric representation
+     * @return  BigDecimal value of <code>str</code>
+     */
+    public static BigDecimal parseBigDecimal( String str ) {
+        return new BigDecimal( str );
     }
 
     /**

@@ -28696,6 +28696,9 @@ introduced since the last version:
         searchable registries.</li>
     <li>Eliminate unnecessary "(no position)" text in Display Image
         activation action log message.</li>
+    <li>New functions 
+        <code>parseBigInteger</code> and <code>parseBigDecimal</code>
+        in class <ref id="Conversions">Conversions</ref>.</li>
     </ul>
     </p></dd>
 

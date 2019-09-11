@@ -12263,6 +12263,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         If written back out to FITS, the offset long value will be
         reinstated, but other output formats cannot encode
         unsigned longs, so they will stay as strings.</li>
+    <li>New functions
+        <code>parseBigInteger</code> and <code>parseBigDecimal</code>
+        in class
+        <ref id="uk.ac.starlink.ttools.func.Conversions"
+             >Conversions</ref>.</li>
     </ul>
     </p></dd>
 

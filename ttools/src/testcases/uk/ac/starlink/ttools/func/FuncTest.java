@@ -398,7 +398,7 @@ public class FuncTest extends TestCase {
         }
         catch ( NumberFormatException e ) {
         }
-        
+
         assertEquals( 2.75f, Conversions.toFloat( 2.75 ) );
 
         assertEquals( -Math.PI, Conversions.toDouble( -Math.PI ) );
@@ -415,6 +415,18 @@ public class FuncTest extends TestCase {
         assertEquals( 42, Conversions.fromHex( "2A" ) );
         assertEquals( 42, Conversions.fromHex( " 2a" ) );
         assertEquals( 42, Conversions.fromHex( "2a " ) );
+
+        assertEquals( 101, Conversions.parseBigDecimal( "101" ).doubleValue() );
+        assertEquals( 101, Conversions.parseBigInteger( "101" )
+                                      .intValueExact() );
+        assertEquals( -2e19,
+                      Conversions
+                     .parseBigInteger("-20000000000000000023").doubleValue() );
+        assertTrue( Conversions.parseBigInteger("18446744073709551616")
+                               .testBit(64) );
+
+        assertEquals( -1, Conversions.parseBigDecimal("101")
+                         .compareTo(Conversions.parseBigDecimal("102")) );
     }
 
     public void testDistances() {
