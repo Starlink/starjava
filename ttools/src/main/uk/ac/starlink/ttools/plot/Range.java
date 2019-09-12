@@ -72,7 +72,7 @@ public class Range {
      * @param  datum  value to accommodate in this range
      */
     public void submit( double datum ) {
-        if ( ! Double.isNaN( datum ) && ! Double.isInfinite( datum ) ) {
+        if ( isFinite( datum ) ) {
             if ( ! ( lo_ <= datum ) ) {
                lo_ = datum;
             }
@@ -233,7 +233,7 @@ public class Range {
 
     /**
      * Limits the bounds of this range.  If either of the submitted 
-     * bounds is finite (not inifinite and not NaN) then the corresponding
+     * bounds is finite (not infinite and not NaN) then the corresponding
      * bound of this range will be replaced by it.
      *
      * @param  lo  new lower bound, or NaN
@@ -244,7 +244,7 @@ public class Range {
             throw new IllegalArgumentException( "Bad range: "
                                               + lo + " .. " + hi );
         }
-        if ( ! Double.isNaN( lo ) && ! Double.isInfinite( lo ) ) {
+        if ( isFinite( lo ) ) {
             lo_ = lo;
             if ( ! ( lo <= 0.0 ) ) {
                 loPos_ = lo;
@@ -254,7 +254,7 @@ public class Range {
                 hiPos_ = loPos_;
             }
         }
-	if ( ! Double.isNaN( hi ) && ! Double.isInfinite( hi ) && hi >= lo_ ) {
+	if ( isFinite( hi ) && hi >= lo_ ) {
             hi_ = hi;
             if ( ! ( hi <= 0.0 ) ) {
                 hiPos_ = hi;
@@ -291,6 +291,28 @@ public class Range {
         limit( boundRange.getBounds() );
     }
 
+    /**
+     * Extends this range by another one.
+     * The effect is as if all the data that has been submitted to
+     * the other range has been submitted to this one.
+     *
+     * @param  other  other range
+     */
+    public void extend( Range other ) {
+        if ( isFinite( other.lo_ ) && ! ( lo_ < other.lo_ ) ) {
+            lo_ = other.lo_;
+        }
+        if ( isFinite( other.hi_ ) && ! ( hi_ > other.hi_ ) ) {
+            hi_ = other.hi_;
+        }
+        if ( isFinite( other.loPos_ ) && ! ( loPos_ < other.loPos_ ) ) {
+            loPos_ = other.loPos_;
+        }
+        if ( isFinite( other.hiPos_ ) && ! ( hiPos_ > other.hiPos_ ) ) {
+            hiPos_ = other.hiPos_;
+        }
+    }
+
     @Override
     public boolean equals( Object o ) {
         return o instanceof Range
@@ -314,5 +336,15 @@ public class Range {
      */
     private double[] stateArray() {
         return new double[] { lo_, hi_, loPos_, hiPos_ };
+    }
+
+    /**
+     * Indicates whether the given value is a finite real value.
+     *
+     * @param   value  value to test
+     * @return  true iff value is non-infinite and non-NaN
+     */
+    private static boolean isFinite( double value ) {
+        return ! Double.isNaN( value ) && ! Double.isInfinite( value );
     }
 }
