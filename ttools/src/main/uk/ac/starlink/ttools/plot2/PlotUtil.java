@@ -514,15 +514,14 @@ public class PlotUtil {
                          SubCloud.createPartialSubClouds( layers, true ) );
         PointCloud cloud = new PointCloud( subClouds );
 
-        /* Iterate over the represented points to mark out the basic
+        /* Collect values for the represented points to mark out the basic
          * range of data positions covered by the layers. */
-        CoordSequence cseq = cloud.createDataPosSupplier( dataStore ).get();
-        double[] dpos = cseq.getCoords();
-        while ( cseq.next() ) {
-            for ( int idim = 0; idim < nDataDim; idim++ ) {
-                ranges[ idim ].submit( dpos[ idim ] );
-            }
-        }
+        RangeCollector rangeCollector = new RangeCollector( nDataDim );
+        Range[] cloudRanges =
+            dataStore.getTupleRunner().coordRunner()
+                     .collect( rangeCollector, 
+                               cloud.createDataPosSupplier( dataStore ) );
+        rangeCollector.mergeRanges( ranges, cloudRanges );
 
         /* If any of the layers wants to supply non-data-position points
          * to mark out additional space, take account of those too. */
@@ -1110,5 +1109,58 @@ public class PlotUtil {
                               base.y + insets.top,
                               base.width - insets.left - insets.right,
                               base.height - insets.top - insets.bottom );
+    }
+
+    /**
+     * SplitCollector implementation that can accumulate range information
+     * from a CoordSequence.
+     */
+    private static class RangeCollector
+            implements SplitCollector<CoordSequence,Range[]> {
+
+        private final int ndim_;
+
+        /**
+         * Constructor.
+         *
+         * @param  ndim  number of range objects (data dimensions)
+         */
+        public RangeCollector( int ndim ) {
+            ndim_ = ndim;
+        }
+
+        public Range[] createAccumulator() {
+            Range[] ranges = new Range[ ndim_ ];
+            for ( int i = 0; i < ndim_; i++ ) {
+                ranges[ i ] = new Range();
+            }
+            return ranges;
+        }
+
+        public void accumulate( CoordSequence cseq, Range[] ranges ) {
+            double[] dpos = cseq.getCoords();
+            while ( cseq.next() ) {
+                for ( int idim = 0; idim < ndim_; idim++ ) {
+                    ranges[ idim ].submit( dpos[ idim ] );
+                }
+            }
+        }
+
+        public Range[] combine( Range[] ranges1, Range[] ranges2 ) {
+            mergeRanges( ranges1, ranges2 );
+            return ranges1;
+        }
+
+        /**
+         * Merges the content of the second range into the first one.
+         *
+         * @param  ranges0  first input range, modified on exit
+         * @param  ranges1  second input range, unmodified on exit
+         */
+        public void mergeRanges( Range[] ranges0, Range[] ranges1 ) {
+            for ( int i = 0; i < ndim_; i++ ) {
+                ranges0[ i ].extend( ranges1[ i ] );
+            }
+        }
     }
 }
