@@ -8,10 +8,12 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.Arrays;
+import java.util.function.Supplier;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Tick;
@@ -139,7 +141,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
         return dataToGraphics( dpos1, visibleOnly, gpos1 );
     }
 
-    public double[] graphicsToData( Point2D gp, Iterable<double[]> dposIt ) {
+    public double[] graphicsToData( Point2D gp,
+                                    Supplier<CoordSequence> dposSupplier ) {
         return new double[] { xAxis_.graphicsToData( gp.getX() ),
                               yAxis_.graphicsToData( gp.getY() ) };
     }

@@ -9,6 +9,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.function.Supplier;
 import javax.swing.Timer;
 
 /**
@@ -78,7 +79,7 @@ public abstract class NavigationListener<A>
      * @return   iterable over data positions, may be null
      * @see   Navigator#click
      */
-    public abstract Iterable<double[]> createDataPosIterable( Point pos );
+    public abstract Supplier<CoordSequence> createDataPosSupplier( Point pos );
 
     /**
      * Receives a new aspect requested by user interface actions in
@@ -215,7 +216,7 @@ public abstract class NavigationListener<A>
             Navigator<A> navigator = getNavigator( isurf );
             if ( navigator != null ) {
                 handleClick( navigator, isurf, pos, ibutt,
-                             createDataPosIterable( pos ) );
+                             createDataPosSupplier( pos ) );
             }
         }
     }
@@ -232,13 +233,14 @@ public abstract class NavigationListener<A>
      * @param   isurf   surface numeric label
      * @param   pos   mouse position
      * @param   ibutt  logical mouse button index
-     * @param   dposIt  iterable over points if available
+     * @param   dposSupplier  iterable over points if available
      */
     protected void handleClick( Navigator<A> navigator, int isurf,
                                 Point pos, int ibutt,
-                                Iterable<double[]> dposIt ) {
+                                Supplier<CoordSequence> dposSupplier ) {
         Surface surface = getSurface( isurf );
-        NavAction<A> navact = navigator.click( surface, pos, ibutt, dposIt );
+        NavAction<A> navact =
+            navigator.click( surface, pos, ibutt, dposSupplier );
         if ( navact != null ) {
             updateDecoration( navact.getDecoration(), true );
             A aspect = navact.getAspect();

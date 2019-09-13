@@ -1,12 +1,9 @@
 package uk.ac.starlink.ttools.plot2;
 
-import java.awt.Point;
-import java.lang.Iterable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.function.Supplier;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
@@ -58,21 +55,36 @@ public class PointCloud {
 
     /**
      * Returns an iterable over data positions.
-     * Iteration is over <code>dataDimCount</code>-element arrays
-     * giving position in data space.  The same <code>double[]</code>
-     * array object is returned each time with different contents,
-     * so beware of storing it between iterations.
+     * Iteration is over <code>dataDimCount</code>-element coordinate arrays
+     * giving position in data space.
      *
-     * @param   dataStore  data storage object
-     * @return  iterable over data positions
+     * @param  dataStore  data storage object
+     * @return   iterable over usable data positions
      */
-    public Iterable<double[]>
-           createDataPosIterable( final DataStore dataStore ) {
-        return new Iterable<double[]>() {
-            public Iterator<double[]> iterator() {
-                return new DataPosIterator( dataStore );
-            }
-        };
+    public Supplier<CoordSequence>
+            createDataPosSupplier( DataStore dataStore ) {
+        int nc = subClouds_.length;
+        DataPosSequence.PositionCloud[] pclouds =
+            new DataPosSequence.PositionCloud[ nc ];
+        for ( int ic = 0; ic < nc; ic++ ) {
+            final SubCloud subCloud = subClouds_[ ic ];
+            final DataSpec dataSpec = subCloud.getDataSpec();
+            pclouds[ ic ] = new DataPosSequence.PositionCloud() {
+                public int getPosCoordIndex() {
+                    return subCloud.getPosCoordIndex();
+                }
+                public DataGeom getDataGeom() {
+                    return subCloud.getDataGeom();
+                }
+                public TupleSequence createTupleSequence( DataStore dstore ) {
+                    return dstore.getTupleSequence( dataSpec );
+                }
+                public long getTupleCount() {
+                    return dataSpec.getSourceTable().getRowCount();
+                }
+            };
+        }
+        return () -> new DataPosSequence( ndim_, pclouds, dataStore );
     }
 
     /**
@@ -144,74 +156,6 @@ public class PointCloud {
             assert l2.isEmpty();
             assert unorderedHashCode( array1 ) == unorderedHashCode( array2 );
             return true;
-        }
-    }
-
-    /**
-     * Iterator over data positions.
-     */
-    private class DataPosIterator implements Iterator<double[]> {
-        private final DataStore dataStore_;
-        private final Iterator<SubCloud> cloudIt_;
-        private final double[] dpos_;
-        private final double[] dpos1_;
-        private final Point gp_;
-        private DataGeom geom_;
-        private int iPosCoord_;
-        private TupleSequence tseq_;
-        private boolean hasNext_;
-
-        /**
-         * Constructor.
-         *
-         * @param   dataStore  data storage object
-         */
-        DataPosIterator( DataStore dataStore ) {
-            dataStore_ = dataStore;
-            cloudIt_ = Arrays.asList( subClouds_ ).iterator();
-            dpos_ = new double[ ndim_ ];
-            dpos1_ = new double[ ndim_ ];
-            gp_ = new Point();
-            tseq_ = PlotUtil.EMPTY_TUPLE_SEQUENCE;
-            hasNext_ = advance();
-        }
-
-        public boolean hasNext() {
-            return hasNext_;
-        }
-
-        public double[] next() {
-            if ( hasNext_ ) {
-                System.arraycopy( dpos_, 0, dpos1_, 0, ndim_ );
-                hasNext_ = advance();
-                return dpos1_;
-            }
-            else {
-                throw new NoSuchElementException();
-            }
-        }
-
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Does work for the next iteration.
-         */
-        private boolean advance() {
-            while ( tseq_.next() ) {
-                if ( geom_.readDataPos( tseq_, iPosCoord_, dpos_ ) ) {
-                    return true;
-                }
-            }
-            while ( cloudIt_.hasNext() ) {
-                SubCloud cloud = cloudIt_.next();
-                geom_ = cloud.getDataGeom();
-                iPosCoord_ = cloud.getPosCoordIndex();
-                tseq_ = dataStore_.getTupleSequence( cloud.getDataSpec() );
-                return advance();
-            }
-            return false;
         }
     }
 }

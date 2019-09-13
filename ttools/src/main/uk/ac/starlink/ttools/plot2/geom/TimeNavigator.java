@@ -4,6 +4,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
+import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.NavAction;
@@ -127,7 +129,7 @@ public class TimeNavigator implements Navigator<TimeAspect> {
     }
 
     public NavAction<TimeAspect> click( Surface surface, Point pos, int ibutt,
-                                        Iterable<double[]> dposIt ) {
+                                        Supplier<CoordSequence> dposSupplier ) {
         return null;
     }
 

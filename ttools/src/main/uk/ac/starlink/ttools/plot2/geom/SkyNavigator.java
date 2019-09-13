@@ -4,6 +4,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
+import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Gesture;
@@ -99,7 +101,7 @@ public class SkyNavigator implements Navigator<SkyAspect> {
     }
 
     public NavAction<SkyAspect> click( Surface surface, Point pos, int ibutt,
-                                       Iterable<double[]> dposIt ) {
+                                       Supplier<CoordSequence> dposSupplier ) {
         return null;
     }
 

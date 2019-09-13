@@ -5,6 +5,8 @@ import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
+import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.NavAction;
@@ -131,7 +133,7 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
     }
 
     public NavAction<PlaneAspect> click( Surface surface, Point pos, int ibutt,
-                                         Iterable<double[]> dposIt ) {
+                                         Supplier<CoordSequence> dposSup ) {
         return null;
     }
 

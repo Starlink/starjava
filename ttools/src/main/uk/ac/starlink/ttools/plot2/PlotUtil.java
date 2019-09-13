@@ -516,7 +516,9 @@ public class PlotUtil {
 
         /* Iterate over the represented points to mark out the basic
          * range of data positions covered by the layers. */
-        for ( double[] dpos : cloud.createDataPosIterable( dataStore ) ) {
+        CoordSequence cseq = cloud.createDataPosSupplier( dataStore ).get();
+        double[] dpos = cseq.getCoords();
+        while ( cseq.next() ) {
             for ( int idim = 0; idim < nDataDim; idim++ ) {
                 ranges[ idim ].submit( dpos[ idim ] );
             }

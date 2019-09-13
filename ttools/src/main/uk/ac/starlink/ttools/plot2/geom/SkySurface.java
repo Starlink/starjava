@@ -19,6 +19,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import skyview.geometry.Projecter;
 import skyview.geometry.Rotater;
@@ -27,6 +28,7 @@ import skyview.geometry.TransformationException;
 import uk.ac.starlink.ttools.func.CoordsRadians;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.LabelledLine;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -612,7 +614,8 @@ public class SkySurface implements Surface {
                                    ( gpos.getY() - gYoff_ ) / -gZoom_ );
     }
 
-    public double[] graphicsToData( Point2D gpos, Iterable<double[]> dposIt ) {
+    public double[] graphicsToData( Point2D gpos,
+                                    Supplier<CoordSequence> dposSupplier ) {
         Point2D.Double ppos = graphicsToProjected( gpos );
         if ( projection_.getProjectionShape().contains( ppos ) ) {
             double[] dpos = new double[ 3 ];

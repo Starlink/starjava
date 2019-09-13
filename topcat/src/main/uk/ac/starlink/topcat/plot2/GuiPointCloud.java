@@ -1,15 +1,10 @@
 package uk.ac.starlink.topcat.plot2;
 
-import java.awt.Point;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.function.Supplier;
 import javax.swing.BoundedRangeModel;
+import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.DataGeom;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.PointCloud;
-import uk.ac.starlink.ttools.plot2.SubCloud;
+import uk.ac.starlink.ttools.plot2.DataPosSequence;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
@@ -86,83 +81,28 @@ public class GuiPointCloud {
      * @param  dataStore  data store
      * @return   iterable over data positions
      */
-    public Iterable<double[]>
-            createDataPosIterable( final DataStore dataStore ) {
-        return new Iterable<double[]>() {
-            public Iterator<double[]> iterator() {
-                return new DataPosIterator( dataStore );
-            }
-        };
-    }
-
-    /**
-     * Iterator over data positions in this cloud.
-     *
-     * <p>This implementation is mostly copied from PointCloud, it would
-     * be quite fiddly to subclass from the same code.
-     */
-    private class DataPosIterator implements Iterator<double[]> {
-        private final DataStore dataStore_;
-        private final Iterator<TableCloud> cloudIt_;
-        private final double[] dpos_;
-        private final double[] dpos1_;
-        private final Point gp_;
-        private DataGeom geom_;
-        private int iPosCoord_;
-        private TupleSequence tseq_;
-        private boolean hasNext_;
-
-        /**
-         * Constructor.
-         *
-         * @param  dataStore  data storage object
-         */
-        DataPosIterator( DataStore dataStore ) {
-            dataStore_ = dataStore;
-            cloudIt_ = Arrays.asList( tclouds_ ).iterator();
-            dpos_ = new double[ ndim_ ];
-            dpos1_ = new double[ ndim_ ];
-            gp_ = new Point();
-            tseq_ = PlotUtil.EMPTY_TUPLE_SEQUENCE;
-            hasNext_ = advance();
-        }
-
-        public boolean hasNext() {
-            return hasNext_;
-        }
-
-        public double[] next() {
-            if ( hasNext_ ) {
-                System.arraycopy( dpos_, 0, dpos1_, 0, ndim_ );
-                hasNext_ = advance();
-                return dpos1_;
-            }
-            else {
-                throw new NoSuchElementException();
-            }
-        }
-
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Does work for the next iteration.
-         */
-        private boolean advance() {
-            while ( tseq_.next() ) {
-                if ( geom_.readDataPos( tseq_, iPosCoord_, dpos_ ) ) {
-                    return true;
+    public Supplier<CoordSequence>
+            createDataPosSupplier( DataStore dataStore ) {
+        int nc = tclouds_.length;
+        DataPosSequence.PositionCloud[] clouds =
+            new DataPosSequence.PositionCloud[ nc ];
+        for ( int i = 0; i < nc; i++ ) {
+            final TableCloud tcloud = tclouds_[ i ];
+            clouds[ i ] = new DataPosSequence.PositionCloud() {
+                public int getPosCoordIndex() {
+                    return tcloud.getPosCoordIndex();
                 }
-            }
-            while ( cloudIt_.hasNext() ) {
-                TableCloud tcloud = cloudIt_.next();
-                geom_ = tcloud.getDataGeom();
-                iPosCoord_ = tcloud.getPosCoordIndex();
-                tseq_ = tcloud.createTupleSequence( dataStore_ );
-                return advance();
-            }
-            return false;
+                public DataGeom getDataGeom() {
+                    return tcloud.getDataGeom();
+                }
+                public TupleSequence createTupleSequence( DataStore dstore ) {
+                    return tcloud.createTupleSequence( dstore );
+                }
+                public long getTupleCount() {
+                    return tcloud.getReadRowCount();
+                }
+            };
         }
+        return () -> new DataPosSequence( ndim_, clouds, dataStore );
     }
 }

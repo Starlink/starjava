@@ -16,12 +16,14 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gang;
@@ -152,13 +154,14 @@ public class PlotDisplay<P,A> extends JComponent {
                 public Navigator<A> getNavigator( int isurf ) {
                     return navigator;
                 }
-                public Iterable<double[]> createDataPosIterable( Point pos ) {
+                public Supplier<CoordSequence>
+                        createDataPosSupplier( Point pos ) {
                     int iz = getZoneIndex( pos );
                     if ( iz >= 0 ) {
                         PlotLayer[] layers = zones_[ iz ].content_.getLayers();
                         return new PointCloud( SubCloud
                                               .createSubClouds( layers, true ) )
-                              .createDataPosIterable( dataStore_ );
+                              .createDataPosSupplier( dataStore_ );
                     }
                     else {
                         return null;

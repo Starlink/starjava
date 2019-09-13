@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Point;
+import java.util.function.Supplier;
 import javax.swing.SwingUtilities;
+import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.NavAction;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
@@ -59,7 +61,7 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
     @Override
     protected void handleClick( final Navigator<A> navigator, final int isurf,
                                 final Point pos, final int ibutt,
-                                final Iterable<double[]> dposIt ) {
+                                final Supplier<CoordSequence> dposSupplier ) {
         final Surface surface = getSurface( isurf );
         if ( surface != null ) {
 
@@ -70,7 +72,7 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
             plotPanel_.submitPlotAnnotator( new Runnable() {
                 public void run() {
                     NavAction<A> navact =
-                        navigator.click( surface, pos, ibutt, dposIt );
+                        navigator.click( surface, pos, ibutt, dposSupplier );
                     updateDecoration( navact.getDecoration(), true );
                     final A aspect = navact == null ? null
                                                     : navact.getAspect();
@@ -87,7 +89,7 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
         }
     }
 
-    public Iterable<double[]> createDataPosIterable( Point pos ) {
+    public Supplier<CoordSequence> createDataPosSupplier( Point pos ) {
 
         /* Handles progress reporting and thread interruption. */
         int iz = getSurfaceIndex( pos );
@@ -95,7 +97,7 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
         if ( surf != null && surf.getPlotBounds().contains( pos ) ) {
             GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud( iz );
             return pointCloud
-                  .createDataPosIterable( pointCloud.createGuiDataStore() );
+                  .createDataPosSupplier( pointCloud.createGuiDataStore() );
         }
         else {
             return null;

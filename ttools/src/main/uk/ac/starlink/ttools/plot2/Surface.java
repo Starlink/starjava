@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.util.function.Supplier;
 import java.awt.geom.Point2D;
 
 /**
@@ -139,13 +140,14 @@ public interface Surface {
      * not run slowly.
      *
      * @param   gPos   graphics point
-     * @param   dposIt  iterable over dataDimCount-element arrays
-     *                  representing all the data space positions plotted,
-     *                  or null
+     * @param   dposSupplier iterable over dataDimCount-element arrays
+     *                       representing all the data space positions plotted,
+     *                       or null
      * @return   dataDimCount-element array giving data space position for
      *           <code>gPos</code>, or null if it cannot be determined
      */
-    double[] graphicsToData( Point2D gPos, Iterable<double[]> dposIt );
+    double[] graphicsToData( Point2D gPos,
+                             Supplier<CoordSequence> dposSupplier );
 
     /**
      * Indicates whether a line in graphics space between

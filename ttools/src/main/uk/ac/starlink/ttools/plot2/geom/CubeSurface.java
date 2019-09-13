@@ -13,12 +13,14 @@ import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.Arrays;
+import java.util.function.Supplier;
 import uk.ac.starlink.ttools.plot.Corner;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot.Plot3D;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -387,11 +389,12 @@ public class CubeSurface implements Surface {
      * the Z coordinate is determined as the average Z coordinate of
      * all data points that fall near to the indicated graphics position.
      */
-    public double[] graphicsToData( Point2D gpos0, Iterable<double[]> dposIt ) {
+    public double[] graphicsToData( Point2D gpos0,
+                                    Supplier<CoordSequence> dposSupplier ) {
 
         /* We can only work out the position if there are data points supplied,
          * since the third dimension means the 2d->3d mapping is degenerate. */
-        if ( dposIt == null ) {
+        if ( dposSupplier == null ) {
             return null;
         }
 
@@ -419,8 +422,10 @@ public class CubeSurface implements Surface {
         double maxThresh2 = thresh2s[ nth - 1 ];
 
         /* Iterate over each known data point. */
+        CoordSequence dposSeq = dposSupplier.get();
+        double[] dpos = dposSeq.getCoords();
         Point2D.Double gp = new Point2D.Double();
-        for ( double[] dpos : dposIt ) {
+        while ( dposSeq.next() ) {
             if ( dataToGraphics( dpos, true, gp ) ) {
                 double d2 = gpos0.distanceSq( gp );
 

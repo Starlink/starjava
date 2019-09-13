@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * A navigator controls how user gestures affect a plot surface.
@@ -88,14 +89,14 @@ public interface Navigator<A> {
      * @param   surface   initial plot surface
      * @param   pos     current mouse position
      * @param   ibutton  logical mouse button index
-     * @param   dposIt  iterable over dataDimCount-element arrays
+     * @param   dposSupplier iterable over dataDimCount-element arrays
      *                  representing all the data space positions plotted,
      *                  or null
      * @return  navigation action indicated by the gesture,
      *          or null for no change
      */
     NavAction<A> click( Surface surface, Point pos, int ibutton,
-                        Iterable<double[]> dposIt );
+                        Supplier<CoordSequence> dposSupplier );
 
     /**
      * Returns a description of the available navigation gestures and the

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -131,9 +133,9 @@ public class CubeNavigator implements Navigator<CubeAspect> {
     }
 
     public NavAction<CubeAspect> click( Surface surface, Point pos, int ibutt,
-                                        Iterable<double[]> dposIt ) {
+                                        Supplier<CoordSequence> dposSupplier ) {
         CubeSurface csurf = (CubeSurface) surface;
-        double[] dpos = surface.graphicsToData( pos, dposIt );
+        double[] dpos = surface.graphicsToData( pos, dposSupplier );
         if ( dpos == null ) {
             return null;
         }
