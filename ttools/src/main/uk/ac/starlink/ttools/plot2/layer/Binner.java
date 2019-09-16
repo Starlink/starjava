@@ -74,4 +74,22 @@ public class Binner {
     public long getTotal() {
         return total_;
     }
+
+    /**
+     * Adds the contents of another binner to this one.
+     * The effect is as if all the increments made to the other bin
+     * were made to this one as well.
+     *
+     * @param  other  other binner, expected to be the same size as this
+     */
+    public void add( Binner other ) {
+        int n = Math.min( this.n_, other.n_ );
+        int[] otherArray = other.array_;
+        for ( int i = 0; i < n; i++ ) {
+            long sum = array_[ i ] + otherArray[ i ];
+            array_[ i ] = sum < Integer.MAX_VALUE ? (int) sum
+                                                  : Integer.MAX_VALUE;
+        }
+        total_ += other.total_;
+    }
 }

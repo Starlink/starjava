@@ -7,6 +7,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Drawing plan object for counting the number of hits to each bin in
@@ -68,7 +69,7 @@ public class BinPlan {
      *                      returned without any calculations being performed
      */
     public static BinPlan calculatePointCloudPlan( PointCloud pointCloud,
-                                                   Surface surface,
+                                                   final Surface surface,
                                                    DataStore dataStore,
                                                    Object[] knownPlans ) {
         for ( int ip = 0; ip < knownPlans.length; ip++ ) {
@@ -80,21 +81,33 @@ public class BinPlan {
             }
         }
         Rectangle bounds = surface.getPlotBounds();
-        int xoff = bounds.x;
-        int yoff = bounds.y;
-        Gridder gridder = new Gridder( bounds.width, bounds.height );
-        Binner binner = new Binner( gridder.getLength() );
-        Point2D.Double gp = new Point2D.Double();
-        CoordSequence cseq =
-            pointCloud.createDataPosSupplier( dataStore ).get();
-        double[] dpos = cseq.getCoords();
-        while ( cseq.next() ) {
-            if ( surface.dataToGraphics( dpos, true, gp ) ) {
-                int gx = PlotUtil.ifloor( gp.x ) - xoff;
-                int gy = PlotUtil.ifloor( gp.y ) - yoff;
-                binner.increment( gridder.getIndex( gx, gy ) );
+        final int xoff = bounds.x;
+        final int yoff = bounds.y;
+        final Gridder gridder = new Gridder( bounds.width, bounds.height );
+        SplitCollector<CoordSequence,Binner> collector =
+                new SplitCollector<CoordSequence,Binner>() {
+            public Binner createAccumulator() {
+                return new Binner( gridder.getLength() );
             }
-        }
+            public void accumulate( CoordSequence cseq, Binner binner ) {
+                Point2D.Double gp = new Point2D.Double();
+                double[] dpos = cseq.getCoords();
+                while ( cseq.next() ) {
+                    if ( surface.dataToGraphics( dpos, true, gp ) ) {
+                        int gx = PlotUtil.ifloor( gp.x ) - xoff;
+                        int gy = PlotUtil.ifloor( gp.y ) - yoff;
+                        binner.increment( gridder.getIndex( gx, gy ) );
+                    }
+                }
+            }
+            public Binner combine( Binner binner1, Binner binner2 ) {
+                binner1.add( binner2 );
+                return binner1;
+            }
+        };
+        Binner binner =
+            dataStore.getTupleRunner().coordRunner()
+           .collect( collector, pointCloud.createDataPosSupplier( dataStore ) );
         return new PointCloudBinPlan( binner, gridder, pointCloud, surface );
     }
 
