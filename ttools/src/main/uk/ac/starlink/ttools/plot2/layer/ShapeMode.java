@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import javax.swing.Icon;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
@@ -64,6 +66,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 import uk.ac.starlink.util.IconUtils;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Defines how outlines defined by a ShapeForm are coloured in a plot.
@@ -433,13 +436,16 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             }
 
             public void paintData( Paper paper, DataStore dataStore ) {
-                ShapePainter painter = drawSpec_.painter_;
-                TupleSequence tseq =
-                    dataStore.getTupleSequence( drawSpec_.dataSpec_ );
-                while ( tseq.next() ) {
-                    painter.paintPoint( tseq, color_, paper );
-                }
-            };
+                BiConsumer<TupleSequence,Paper> tuplePainter = (tseq, p) -> {
+                    ShapePainter painter = drawSpec_.createPainter();
+                    while ( tseq.next() ) {
+                        painter.paintPoint( tseq, color_, p );
+                    }
+                };
+                dataStore.getTupleRunner()
+                         .paintData( tuplePainter, paper,
+                                     drawSpec_.dataSpec_, dataStore );
+            }
         }
 
         /**
@@ -667,14 +673,17 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                    DataStore dataStore ) {
                 int[] counts = drawSpec_.outliner_.getBinCounts( plan );
                 float alpha = (float) getAlpha( counts, level_ );
-                Color color =
+                final Color color =
                     new Color( rgb_[ 0 ], rgb_[ 1 ], rgb_[ 2 ], alpha );
-                ShapePainter painter = drawSpec_.painter_;
-                TupleSequence tseq =
-                    dataStore.getTupleSequence( drawSpec_.dataSpec_ );
-                while ( tseq.next() ) {
-                    painter.paintPoint( tseq, color, paper );
-                }
+                BiConsumer<TupleSequence,Paper> tuplePainter = ( tseq, p ) -> {
+                    ShapePainter painter = drawSpec_.createPainter();
+                    while ( tseq.next() ) {
+                        painter.paintPoint( tseq, color, p );
+                    }
+                };
+                dataStore.getTupleRunner()
+                         .paintData( tuplePainter, paper,
+                                     drawSpec_.dataSpec_, dataStore );
             }
 
             public ReportMap getReport( Object plan ) {
@@ -1141,11 +1150,19 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 public Drawing createDrawing( Surface surface,
                                               Map<AuxScale,Span> auxSpans,
                                               PaperType paperType ) {
-                    Span shadeSpan = auxSpans.get( SCALE );
-                    Scaler scaler = shadeSpan.createScaler( scaling, dataclip );
+                    final Span shadeSpan = auxSpans.get( SCALE );
                     DrawSpec drawSpec =
                         new DrawSpec( surface, geom, dataSpec, outliner,
                                       auxSpans, paperType );
+                    Supplier<ColorKit> kitFact = new Supplier<ColorKit>() {
+                        public ColorKit get() {
+                            Scaler scaler =
+                                shadeSpan.createScaler( scaling, dataclip );
+                            return new AuxColorKit( iShadeCoord, shader, scaler,
+                                                    baseColor, nullColor,
+                                                    scaleAlpha );
+                        }
+                    };
 
                     // A possible optimisation would be in the case that we
                     // have an opaque 2D plot to return a planned drawing,
@@ -1161,10 +1178,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     //                                  shader, scaler,
                     //                                  baseColor, nullColor );
                     // }
-                    ColorKit kit =
-                        new AuxColorKit( iShadeCoord, shader, scaler,
-                                         baseColor, nullColor, scaleAlpha );
-                    return drawSpec.createDrawing( kit );
+                    return drawSpec.createDrawing( kitFact );
                 }
             };
         }
@@ -1425,7 +1439,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param  surface  plot surface
              * @param  dataSpec  data specification
              * @param  dataStore  data storage
-             * @param  tseq    point sequence
              * @param  auxSpans   aux data range map
              * @return  bin list that does not require scaling
              */
@@ -1433,40 +1446,14 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                          DataStore dataStore,
                                          Map<AuxScale,Span> auxSpans ) {
                 DataGeom geom = getDataGeom();
+                int icw = dataSpec.isCoordBlank( icWeight_ ) ? -1 : icWeight_;
+                WeightCollector collector =
+                    new WeightCollector( surface, icw, wstamper_.combiner_,
+                                         outliner_, geom, auxSpans );
                 WeightPaper wpaper =
-                    new WeightPaper( surface.getPlotBounds(),
-                                     wstamper_.combiner_ );
-                GlyphPaper.GlyphPaperType ptype = wpaper.getPaperType();
-                ShapePainter painter =
-                      surface instanceof CubeSurface
-                    ? outliner_.create3DPainter( (CubeSurface) surface, geom,
-                                                 auxSpans, ptype )
-                    : outliner_.create2DPainter( surface, geom,
-                                                 auxSpans, ptype );
-                TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-
-                /* Under normal circumstances, use the submitted combiner
-                 * to construct a bin list to order. */
-                boolean hasWeight = ! dataSpec.isCoordBlank( icWeight_ );
-                if ( hasWeight ) {
-                    while ( tseq.next() ) {
-                        double w =
-                            WEIGHT_COORD.readDoubleCoord( tseq, icWeight_ );
-                        if ( ! Double.isNaN( w ) ) {
-                            wpaper.setWeight( w );
-                            painter.paintPoint( tseq, null, wpaper );
-                        }
-                    }
-                }
-
-                /* If no weight coordinate has been supplied,
-                 * assume a weighting of unity. */
-                else {
-                    wpaper.setWeight( 1 );
-                    while ( tseq.next() ) {
-                        painter.paintPoint( tseq, null, wpaper );
-                    }
-                }
+                    dataStore.getTupleRunner()
+                   .collectPool( collector,
+                                 () -> dataStore.getTupleSequence( dataSpec ) );
 
                 /* We have excluded density-like combiners because it's
                  * hard to know what to use as a bin size, so no scaling
@@ -1741,6 +1728,89 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 }
             }
         }
+
+        /**
+         * SplitCollector implementation for use with WeightedDensityMode.
+         */
+        private static class WeightCollector
+                implements SplitCollector<TupleSequence,WeightPaper> {
+
+            private final Surface surface_;
+            private final int icWeight_;
+            private final Combiner combiner_;
+            private final Outliner outliner_;
+            private final DataGeom geom_;
+            private final Map<AuxScale,Span> auxSpans_;
+
+            /**
+             * Constructor.
+             *
+             * @param  surface  plot surface
+             * @param  icWeight   weight coordinate index, or -1 for unit weight
+             * @param  combiner   combination mode
+             * @param  outliner   outliner
+             * @param  geom    data geom
+             * @param  auxSpans   aux data range map
+             */
+            WeightCollector( Surface surface, int icWeight, Combiner combiner,
+                             Outliner outliner, DataGeom geom,
+                             Map<AuxScale,Span> auxSpans ) {
+                surface_ = surface;
+                icWeight_ = icWeight;
+                combiner_ = combiner;
+                outliner_ = outliner;
+                geom_ = geom;
+                auxSpans_ = auxSpans;
+            }
+
+            public WeightPaper createAccumulator() {
+                return new WeightPaper( surface_.getPlotBounds(), combiner_ );
+            }
+
+            public void accumulate( TupleSequence tseq, WeightPaper wpaper ) {
+                GlyphPaper.GlyphPaperType ptype = wpaper.getPaperType();
+                ShapePainter painter =
+                      surface_ instanceof CubeSurface
+                    ? outliner_.create3DPainter( (CubeSurface) surface_, geom_,
+                                                 auxSpans_, ptype )
+                    : outliner_.create2DPainter( surface_, geom_,
+                                                 auxSpans_, ptype );
+                if ( icWeight_ >= 0 ) {
+                    while ( tseq.next() ) {
+                        double w =
+                            WEIGHT_COORD.readDoubleCoord( tseq, icWeight_ );
+                        if ( ! Double.isNaN( w ) ) {
+                            wpaper.setWeight( w );
+                            painter.paintPoint( tseq, null, wpaper );
+                        }
+                    }
+                }
+                else {
+                    wpaper.setWeight( 1 );
+                    while ( tseq.next() ) {
+                        painter.paintPoint( tseq, null, wpaper );
+                    }
+                }
+            }
+
+            public WeightPaper combine( WeightPaper wpaper1,
+                                        WeightPaper wpaper2 ) {
+                BinList bl1 = wpaper1.binList_;
+                BinList bl2 = wpaper2.binList_;
+                if ( bl1 instanceof ArrayBinList ) {
+                    assert bl2 instanceof ArrayBinList;
+                    ((ArrayBinList) bl1).addBins( (ArrayBinList) bl2 );
+                }
+                else if ( bl1 instanceof HashBinList ) {
+                    assert bl2 instanceof HashBinList;
+                    ((HashBinList) bl1).addBins( bl2 );
+                }
+                else {
+                    throw new AssertionError();
+                }
+                return wpaper1;
+            }
+        }
     }
 
     /**
@@ -1905,7 +1975,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         final Outliner outliner_;
         final Map<AuxScale,Span> auxSpans_;
         final PaperType paperType_;
-        final ShapePainter painter_;
 
         /**
          * Constructor.
@@ -1926,14 +1995,23 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             outliner_ = outliner;
             auxSpans_ = auxSpans;
             paperType_ = paperType;
-            if ( paperType instanceof PaperType2D ) {
-                painter_ = outliner.create2DPainter( surface, geom, auxSpans,
-                                                     (PaperType2D) paperType );
+        }
+
+        /**
+         * Returns a ShapePainter for use with this DrawSpec.
+         * ShapePainter instances are not thread-safe.
+         *
+         * @return  new shape painter
+         */
+        public ShapePainter createPainter() {
+            if ( paperType_ instanceof PaperType2D ) {
+                return outliner_.create2DPainter( surface_, geom_, auxSpans_,
+                                                  (PaperType2D) paperType_ );
             }
-            else if ( paperType instanceof PaperType3D ) {
-                painter_ = outliner.create3DPainter( (CubeSurface) surface,
-                                                     geom, auxSpans,
-                                                     (PaperType3D) paperType );
+            else if ( paperType_ instanceof PaperType3D ) {
+                return outliner_.create3DPainter( (CubeSurface) surface_,
+                                                  geom_, auxSpans_,
+                                                  (PaperType3D) paperType_ );
             }
             else {
                 throw new IllegalArgumentException( "paper type" );
@@ -1959,20 +2037,25 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * using this spec's state where points are coloured
          * from the data in accordance with a supplied ColorKit.
          *
-         * @param  kit  maps data points to data colour
+         * @param  kitFact  factory for object that maps
+         *                  data points to data colour
          * @return new drawing
          */
-        public Drawing createDrawing( final ColorKit kit ) {
+        public Drawing createDrawing( final Supplier<ColorKit> kitFact ) {
+            final BiConsumer<TupleSequence,Paper> tuplePainter = (tseq, p) -> {
+                ShapePainter painter = createPainter();
+                ColorKit kit = kitFact.get();
+                while ( tseq.next() ) {
+                    Color color = kit.readColor( tseq );
+                    if ( color != null ) {
+                        painter.paintPoint( tseq, color, p );
+                    }
+                }
+            };
             return new UnplannedDrawing() {
                 public void paintData( Paper paper, DataStore dataStore ) {
-                    TupleSequence tseq =
-                        dataStore.getTupleSequence( dataSpec_ );
-                    while ( tseq.next() ) {
-                        Color color = kit.readColor( tseq );
-                        if ( color != null ) {
-                            painter_.paintPoint( tseq, color, paper );
-                        }
-                    }
+                    dataStore.getTupleRunner()
+                   .paintData( tuplePainter, paper, dataSpec_, dataStore );
                 }
             };
         }
