@@ -12,6 +12,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Partial Outliner implementation which calculates its bin plan
@@ -40,16 +41,10 @@ public abstract class PixOutliner implements Outliner {
 
         /* Otherwise set up a limited PaperType implementation that takes
          * glyphs and turns them into a bit map, and plot the glyphs on it. */
-        BinPaper paper = new BinPaper( surface.getPlotBounds() );
-        GlyphPaper.GlyphPaperType ptype = paper.getPaperType();
-        ShapePainter painter =
-              surface instanceof CubeSurface
-            ? create3DPainter( (CubeSurface) surface, geom, auxRanges, ptype )
-            : create2DPainter( surface, geom, auxRanges, ptype );
-        TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        while( tseq.next() ) {
-            painter.paintPoint( tseq, null, paper );
-        }
+        BinPaper paper =
+            dataStore.getTupleRunner()
+           .collectPool( new BinCollector( surface, geom, auxRanges ),
+                         () -> dataStore.getTupleSequence( dataSpec ) );
 
         /* Extract the result as a bin plan. */
         return new PixBinPlan( paper.counts_, paper.pointCount_,
@@ -62,6 +57,52 @@ public abstract class PixOutliner implements Outliner {
 
     public long getPointCount( Object binPlan ) {
         return ((PixBinPlan) binPlan).pointCount_;
+    }
+
+    /**
+     * Collector implementation for accumulating to BinPaper.
+     */
+    private class BinCollector
+            implements SplitCollector<TupleSequence,BinPaper> {
+
+        private final Surface surface_;
+        private final DataGeom geom_;
+        private final Map<AuxScale,Span> auxRanges_;
+
+        /**
+         * Constructor.
+         *
+         * @param  surface  plot surface
+         * @param  geom   data geom
+         * @param  auxRanges   range bounds
+         */
+        BinCollector( Surface surface, DataGeom geom,
+                      Map<AuxScale,Span> auxRanges ) {
+            surface_ = surface;
+            geom_ = geom;
+            auxRanges_ = auxRanges;
+        }
+
+        public BinPaper createAccumulator() {
+            return new BinPaper( surface_.getPlotBounds() );
+        }
+
+        public void accumulate( TupleSequence tseq, BinPaper paper ) {
+            GlyphPaper.GlyphPaperType ptype = paper.getPaperType();
+            ShapePainter painter =
+                  surface_ instanceof CubeSurface
+                ? create3DPainter( (CubeSurface) surface_, geom_, auxRanges_,
+                                   ptype )
+                : create2DPainter( surface_, geom_, auxRanges_, ptype );
+            while ( tseq.next() ) {
+                painter.paintPoint( tseq, null, paper );
+            }
+        }
+
+        public BinPaper combine( BinPaper paper1, BinPaper paper2 ) {
+            paper1.add( paper2 );
+            return paper1;
+        }
     }
 
     /**
@@ -98,6 +139,22 @@ public abstract class PixOutliner implements Outliner {
                 counts_[ gridder_.getIndex( px - xoff_, py - yoff_ ) ]++;
             }
             pointCount_++;
+        }
+
+        /**
+         * Merges the contents of another BinPaper instance into this one.
+         * The effect is as if all the glyphs that have been drawn on
+         * the other one have been drawn to this one too.
+         *
+         * @param  other  other paper instance
+         */
+        void add( BinPaper other ) {
+            pointCount_ += other.pointCount_;
+            int n = Math.min( counts_.length, other.counts_.length );
+            int[] otherCounts = other.counts_;
+            for ( int i = 0; i < n; i++ ) {
+                counts_[ i ] += otherCounts[ i ];
+            }
         }
     }
 
