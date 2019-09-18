@@ -6,9 +6,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import org.w3c.dom.Element;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.vo.AdqlVersion;
 import uk.ac.starlink.vo.OutputFormat;
 import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TapCapability;
@@ -30,7 +34,6 @@ public class CapabilityStage implements Stage {
 
     private final CapabilityHolder capHolder_;
 
-    private static final String ADQL2_ID = "ivo://ivoa.net/std/ADQL#v2.0";
     private static final Pattern UDF_FORM_REGEX =
         Pattern.compile( "([A-Za-z][A-Za-z0-9_]*)"
                        + "\\s*\\((.*)\\)\\s*->\\s*(.*)" );
@@ -160,19 +163,20 @@ public class CapabilityStage implements Stage {
                 return;
             }
 
-            /* Go through each language and locate the ADQL2 one if present. */
-            boolean hasAdql2 = false;
+            /* Go through each language and locate ADQL2 ones if present. */
             boolean hasAdql = false;
+            boolean hasAdql2 = false;
+            SortedSet<AdqlVersion> adqlVersions = new TreeSet<AdqlVersion>();
             for ( int il = 0; il < languages.length; il++ ) {
                 TapLanguage lang = languages[ il ];
                 String langName = lang.getName();
-                boolean isAdql2 = false;
                 if ( "ADQL".equals( langName ) ) {
                     hasAdql = true;
                     int nvers = lang.getVersions().length;
                     assert nvers == lang.getVersionIds().length;
                     for ( int iv = 0; iv < nvers; iv++ ) {
                         String vname = lang.getVersions()[ iv ];
+                        String vid = lang.getVersionIds()[ iv ];
                         if ( vname == null || vname.trim().length() == 0 ) {
                             String msg = new StringBuffer()
                                .append( "Language " )
@@ -181,11 +185,15 @@ public class CapabilityStage implements Stage {
                                .toString();
                             reporter_.report( FixedCode.W_LVAN, msg );
                         }
-                        String vid = lang.getVersionIds()[ iv ];
-                        boolean isNumber2 = "2.0".equals( vname );
-                        boolean hasId2 = ADQL2_ID.equals( vid );
-                        isAdql2 = isNumber2 || hasId2;
-                        if ( isNumber2 && 
+                        AdqlVersion nameVers = AdqlVersion.byNumber( vname );
+                        AdqlVersion idVers = AdqlVersion.byIvoid( vid );
+                        if ( nameVers != null ) {
+                            adqlVersions.add( nameVers );
+                        }
+                        if ( idVers != null ) {
+                            adqlVersions.add( idVers );
+                        }
+                        if ( nameVers != null && 
                              ( vid == null || vid.trim().length() == 0 ) ) {
                             String msg = new StringBuffer()
                                .append( "Language " )
@@ -193,12 +201,12 @@ public class CapabilityStage implements Stage {
                                .append( " has version " )
                                .append( vname )
                                .append( " without ivo-id=\"" )
-                               .append( ADQL2_ID )
+                               .append( nameVers.getIvoid() )
                                .append( "\"" )
                                .toString();
                             reporter_.report( FixedCode.W_A2MN, msg );
                         }
-                        else if ( isNumber2 && ! hasId2 ) {
+                        else if ( nameVers != null && idVers == null ) {
                             String msg = new StringBuffer()
                                .append( "Language " )
                                .append( langName )
@@ -208,12 +216,13 @@ public class CapabilityStage implements Stage {
                                .append( vid )
                                .append( "\"" )
                                .append( " != \"" )
-                               .append( ADQL2_ID )
+                               .append( nameVers.getIvoid() )
                                .append( "\"" )
                                .toString();
                             reporter_.report( FixedCode.W_A2MX, msg );
                         }
-                        else if ( ! isNumber2 && hasId2 ) {
+                        else if ( nameVers != null && idVers != null &&
+                                  ! nameVers.equals( idVers ) ) {
                             String msg = new StringBuffer()
                                .append( "Language Version with ivo-id=\"" )
                                .append( vid )
@@ -222,16 +231,20 @@ public class CapabilityStage implements Stage {
                                .append( "-" )
                                .append( vname )
                                .append( " not " )
-                               .append( "ADQL-2.0" )
+                               .append( "ADQL " + idVers )
                                .toString();
                             reporter_.report( FixedCode.E_A2XI, msg );
                         }
                     }
                 }
-                hasAdql2 = hasAdql2 || isAdql2;
 
                 /* Check non-standard/optional features of this language. */
-                checkFeatures( lang, isAdql2 );
+                if ( adqlVersions.size() > 0 ) {
+                    hasAdql2 = true;
+                    AdqlVersion highestVersion = adqlVersions.last();
+                    checkAdqlFeatures( lang, highestVersion );
+                }
+
             }
 
             /* Report on presence of (required) ADQL 2. */
@@ -246,17 +259,21 @@ public class CapabilityStage implements Stage {
         }
 
         /**
-         * Checks that language feature declarations are correct.
+         * Checks that ADQL language feature declarations are correct.
          *
          * @param  language   language declaration object
-         * @param  isAdql2   true iff <code>language</code> represents ADQL v2.0
+         * @param  highestVersion highest declared ADQL2.x version, not null
          */
-        private void checkFeatures( TapLanguage language, boolean isAdql2 ) {
+        private void checkAdqlFeatures( TapLanguage language,
+                                        AdqlVersion version ) {
             String langName = language.getName();
             String[] versions = language.getVersions();
             if ( versions.length == 1 ) {
                 langName += "-" + versions[ 0 ];
             }
+            Set<String> versionFeatures =
+                new HashSet<String>( Arrays
+                                    .asList( version.getFeatureUris() ) );
             Map<String,TapLanguageFeature[]> featuresMap =
                 language.getFeaturesMap();
             for ( String ftype : featuresMap.keySet() ) {
@@ -269,13 +286,15 @@ public class CapabilityStage implements Stage {
                 }
                 else if ( ftype.startsWith( TapCapability
                                            .TAPREGEXT_STD_URI ) ) {
-                    String msg = new StringBuffer()
-                       .append( "Unknown standard feature key \"" )
-                       .append( ftype )
-                       .append( "\" for language " )
-                       .append( langName )
-                       .toString();
-                    reporter_.report( FixedCode.E_KEYX, msg );
+                    if ( ! versionFeatures.contains( ftype ) ) {
+                        String msg = new StringBuffer()
+                           .append( "Unknown standard feature key \"" )
+                           .append( ftype )
+                           .append( "\" for language " )
+                           .append( langName )
+                           .toString();
+                        reporter_.report( FixedCode.E_KEYX, msg );
+                    }
                 }
                 else {
                     String msg = new StringBuffer()

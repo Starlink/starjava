@@ -12268,6 +12268,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in class
         <ref id="uk.ac.starlink.ttools.func.Conversions"
              >Conversions</ref>.</li>
+    <li>Taplint now recognises ADQL 2.1 language features
+        (as listed in PR-ADQL-2.1-20180112),
+        avoiding some <code>E_KEYX</code> errors.</li>
     </ul>
     </p></dd>
 
