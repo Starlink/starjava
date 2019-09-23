@@ -242,7 +242,7 @@ public abstract class WebMapper {
         final Pattern post07Regex = Pattern.compile(
             "(?:ar[xX]iv:)?"
           + "[0-" + maxDecade + "][0-9]"  // YY
-          + "(0[1-9]|1[1-2])"             // MM
+          + "(0[1-9]|1[0-2])"             // MM
           + "[.]"
           + "[0-9]{4,5}"                  // number
           + "(v[1-9][0-9]*)?"             // vV
@@ -255,7 +255,7 @@ public abstract class WebMapper {
           + "([.][A-Z][A-Z])?"                   // subject-class
           + "/"
           + "[09][0-9]"                          // year
-          + "(0[0-9]|1[1-2])"                    // month
+          + "(0[0-9]|1[0-2])"                    // month
           + "[0-9][0-9][0-9]"                    // number
         );
         return new WebMapper( name ) {

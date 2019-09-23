@@ -665,6 +665,8 @@ public class FuncTest extends TestCase {
                       Strings.arxivUrl( "1804.09379" ) );
         assertEquals( "https://arxiv.org/abs/1804.09379",
                       Strings.arxivUrl( "arXiv:1804.09379" ) );
+        assertEquals( "https://arxiv.org/abs/1110.0528",
+                      Strings.arxivUrl( "arxiv:1110.0528" ) );
         assertNull( Strings.arxivUrl( null ) );
         assertNull( Strings.arxivUrl( "Fredor" ) );
 
