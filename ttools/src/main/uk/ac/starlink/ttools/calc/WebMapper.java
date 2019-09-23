@@ -255,7 +255,7 @@ public abstract class WebMapper {
           + "([.][A-Z][A-Z])?"                   // subject-class
           + "/"
           + "[09][0-9]"                          // year
-          + "(0[0-9]|1[0-2])"                    // month
+          + "(0[1-9]|1[0-2])"                    // month
           + "[0-9][0-9][0-9]"                    // number
         );
         return new WebMapper( name ) {
