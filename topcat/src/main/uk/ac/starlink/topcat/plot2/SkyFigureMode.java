@@ -15,6 +15,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LabelledLine;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.geom.HealpixDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.Projection;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SkySurface;
@@ -358,20 +359,48 @@ public abstract class SkyFigureMode implements FigureMode {
         public String createExpression( TableCloud cloud ) {
             TopcatModel tcModel = cloud.getTopcatModel();
             GuiCoordContent skyCont = cloud.getGuiCoordContent( 0 );
+            DataGeom cloudGeom = cloud.getDataGeom();
             String[] labels =
                 TopcatJELUtils.getDataExpressions( tcModel, skyCont );
             if ( labels.length == 2 &&
                  labels[ 0 ] != null && labels[ 1 ] != null ) {
-                DataGeom cloudGeom = cloud.getDataGeom();
                 assert cloudGeom instanceof SkyDataGeom;
                 SkyDataGeom varGeom = cloudGeom instanceof SkyDataGeom
                                     ? (SkyDataGeom) cloudGeom
                                     : SkyDataGeom.GENERIC;
                 return createSkyExpression( labels[ 0 ], labels[ 1 ], varGeom );
             }
+            else if ( labels.length == 1 && labels[ 0 ] != null &&
+                      cloudGeom instanceof HealpixDataGeom ) {
+                return createHealpixExpression( labels[ 0 ],
+                                                (HealpixDataGeom) cloudGeom );
+            }
             else {
                 return null;
             }
+        }
+
+        /**
+         * Returns a JEL expression defining the area in data space
+         * defined by a set of graphics points, given the HEALPix index
+         * variable expression.
+         *
+         * <p>Currently returns null.
+         *
+         * @param   hpxVar  JEL-friendly expression naming HEALPix index
+         * @param   varGeom  HEALPix geometry applying to the variable
+         * @return   boolean JEL inclusion expression, or null
+         */
+        public String createHealpixExpression( String hpxVar,
+                                               HealpixDataGeom varGeom ) {
+
+            /* Placeholder implementation.  This could construct an expression
+             * based on converting healpix index (hpxVar) to lon/lat and
+             * then call createSkyExpression, or use healpix-specific
+             * expressions based on the hpxVar itself.  Other classes
+             * currently are missing various methods required to get either
+             * of these working, but it wouldn't really be hard to do. */
+            return null;
         }
 
         public String getExpression() {
