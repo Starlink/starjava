@@ -581,11 +581,13 @@ public class PlotDisplay<P,A> extends JComponent {
         for ( SubCloud cloud : cloudMap.keySet() ) {
             DataGeom geom = cloud.getDataGeom();
             int iPosCoord = cloud.getPosCoordIndex();
-            TupleSequence tseq =
-                dataStore_.getTupleSequence( cloud.getDataSpec() );
+            Supplier<TupleSequence> tupleSupplier =
+                () -> dataStore_.getTupleSequence( cloud.getDataSpec() );
             cloudMap.put( cloud,
                           PlotUtil.getClosestRow( surface, geom, iPosCoord,
-                                                  tseq, point ) );
+                                                  tupleSupplier,
+                                                  dataStore_.getTupleRunner(),
+                                                  point ) );
         }
 
         /* Go back to the list of clouds per layer and work out the closest

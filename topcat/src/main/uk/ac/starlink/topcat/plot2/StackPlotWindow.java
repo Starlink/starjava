@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -1196,9 +1197,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             TableCloud tcloud = tclouds[ ic ];
             DataGeom geom = tcloud.getDataGeom();
             int iPosCoord = tcloud.getPosCoordIndex();
-            TupleSequence tseq = tcloud.createTupleSequence( dataStore );
+            Supplier<TupleSequence> tupleSupplier =
+                () -> tcloud.createTupleSequence( dataStore );
             IndicatedRow indicated =
-                PlotUtil.getClosestRow( surface, geom, iPosCoord, tseq, pos );
+                PlotUtil
+               .getClosestRow( surface, geom, iPosCoord, tupleSupplier,
+                               dataStore.getTupleRunner(), pos );
             if ( indicated != null ) {
                 long index = indicated.getIndex();
                 double distance = indicated.getDistance();

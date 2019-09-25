@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
@@ -30,6 +31,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.util.SplitCollector;
@@ -639,32 +641,26 @@ public class PlotUtil {
      * @param  surface  plot surface
      * @param  geom     maps data positions to graphics positions
      * @param  iPosCoord   coordinate index of positional coords in tseq
-     * @param  tseq     tuple sequence positioned at start
+     * @param  tupleSupplier    iterable over tuples
+     * @param  runner    manages tuple iteration
      * @param  point    reference graphics position
      * @return   object giving row index and distance;
      *           null is returned if no points are present
      */
     @Slow
-    public static IndicatedRow getClosestRow( Surface surface, DataGeom geom,
-                                              int iPosCoord, TupleSequence tseq,
-                                              Point2D point ) {
-        double[] dpos = new double[ surface.getDataDimCount() ];
-        Point2D.Double gp = new Point2D.Double();
-        long bestIndex = -1;
-        double bestDist2 = Double.POSITIVE_INFINITY;
-        while ( tseq.next() ) {
-            if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
-                 surface.dataToGraphics( dpos, true, gp ) ) {
-                double dist2 = gp.distanceSq( point );
-                if ( dist2 < bestDist2 ) {
-                    bestDist2 = dist2;
-                    bestIndex = tseq.getRowIndex();
-                }
-            }
-        }
-        return Thread.currentThread().isInterrupted() || bestIndex < 0
+    public static IndicatedRow
+            getClosestRow( Surface surface, DataGeom geom, int iPosCoord,
+                           Supplier<TupleSequence> tupleSupplier,
+                           TupleRunner runner, Point2D point ) {
+        IndexDist ixdist = 
+            runner
+           .collect( new ClosestCollector( surface, geom, iPosCoord, point ),
+                     tupleSupplier );
+        return ixdist.bestIndex_ < 0 ||
+               Thread.currentThread().isInterrupted()
              ? null
-             : new IndicatedRow( bestIndex, Math.sqrt( bestDist2 ) );
+             : new IndicatedRow( ixdist.bestIndex_,
+                                 Math.sqrt( ixdist.bestDist2_ ) );
     }
 
     /**     
@@ -1165,6 +1161,68 @@ public class PlotUtil {
             for ( int i = 0; i < ndim_; i++ ) {
                 ranges0[ i ].extend( ranges1[ i ] );
             }
+        }
+    }
+
+    /**
+     * Accumulator class for use with ClosestCollector.
+     * Aggregates the index of the current best row with its distance
+     * from the target position.
+     */
+    private static class IndexDist {
+        long bestIndex_ = -1;
+        double bestDist2_ = Double.POSITIVE_INFINITY;
+    }
+
+    /**
+     * SplitCollector implementation for determining the closest row
+     * to a given graphics position on a plotting surface.
+     */
+    private static class ClosestCollector
+            implements SplitCollector<TupleSequence,IndexDist> {
+
+        private final Surface surface_;
+        private final DataGeom geom_;
+        private final int iPosCoord_;
+        private final Point2D point_;
+
+        /**
+         * Constructor.
+         *
+         * @param  surface  plot surface
+         * @param  geom     maps data positions to graphics positions
+         * @param  iPosCoord   coordinate index of positional coords in tseq
+         * @param  point    reference graphics position
+         */
+        public ClosestCollector( Surface surface, DataGeom geom, int iPosCoord,
+                                 Point2D point ) {
+            surface_ = surface;
+            geom_ = geom;
+            iPosCoord_ = iPosCoord;
+            point_ = point;
+        }
+
+        public IndexDist createAccumulator() {
+            return new IndexDist();
+        }
+
+        public void accumulate( TupleSequence tseq, IndexDist acc ) {
+            double[] dpos = new double[ surface_.getDataDimCount() ];
+            Point2D.Double gp = new Point2D.Double();
+            while ( tseq.next() ) {
+                if ( geom_.readDataPos( tseq, iPosCoord_, dpos ) &&
+                     surface_.dataToGraphics( dpos, true, gp ) ) {
+                    double dist2 = gp.distanceSq( point_ );
+                    if ( dist2 < acc.bestDist2_ ) {
+                        acc.bestDist2_ = dist2;
+                        acc.bestIndex_ = tseq.getRowIndex();
+                    }
+                }
+            }
+        }
+
+        public IndexDist combine( IndexDist acc1, IndexDist acc2 ) {
+            return acc1.bestDist2_ <= acc2.bestDist2_ ? acc1 : acc2;
         }
     }
 }
