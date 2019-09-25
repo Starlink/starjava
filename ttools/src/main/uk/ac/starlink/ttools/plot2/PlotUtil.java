@@ -113,6 +113,10 @@ public class PlotUtil {
     /** Level at which plot reports are logged. */
     private static final Level REPORT_LEVEL = Level.INFO;
 
+     /** Default SplitRunner for CoordSequences. */
+     public static SplitRunner<CoordSequence> COORD_RUNNER =
+         SplitRunner.createDefaultRunner();
+
     /**
      * Private constructor prevents instantiation.
      */

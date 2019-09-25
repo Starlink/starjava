@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Tick;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Surface implementation for 3-d plotting.
@@ -397,78 +398,23 @@ public class CubeSurface implements Surface {
         if ( dposSupplier == null ) {
             return null;
         }
+        else {
 
-        /* Assuming we have data points, go through each of them and find
-         * out which ones are near the indicated point.  If there are several,
-         * average over them all.  We actually try this for several different
-         * proximity thresholds. */
+            /* First, set up a list of proximity thresholds.  Points within
+             * these number of pixels will be searched for.   If any are found
+             * within the smaller threshold, the average of those is used;
+             * if not, try the next smaller etc. */
+            int[] thresh1s = { 2, 4, 8, 16 };
+            Arrays.sort( thresh1s );
 
-        /* First, set up a list of proximity thresholds.  Points within
-         * these number of pixels will be searched for.   If any are found
-         * within the smaller threshold, the average of those is used;
-         * if not, try the next smaller etc. */
-        int[] thresh1s = { 2, 4, 8, 16 };
-        Arrays.sort( thresh1s );
-        int nth = thresh1s.length;
-        double[] thresh2s = new double[ nth ];
-        double[][] dposTots = new double[ nth ][ 3 ];
-        long[] counts = new long[ nth ];
-        double[] dp0 = new double[ 3 ];
-
-        /* Calculate lookup table of square distances. */
-        for ( int ith = 0; ith < nth; ith++ ) {
-            thresh2s[ ith ] = thresh1s[ ith ] * thresh1s[ ith ];
+            /* Go through all the points and find the mean of ones
+             * near the test position. */
+            NeighbourCollector collector =
+                new NeighbourCollector( this, gpos0, thresh1s );
+            NeighbourData ndata =
+                PlotUtil.COORD_RUNNER.collect( collector, dposSupplier );
+            return collector.getMeanPosition( ndata );
         }
-        double maxThresh2 = thresh2s[ nth - 1 ];
-
-        /* Iterate over each known data point. */
-        CoordSequence dposSeq = dposSupplier.get();
-        double[] dpos = dposSeq.getCoords();
-        Point2D.Double gp = new Point2D.Double();
-        while ( dposSeq.next() ) {
-            if ( dataToGraphics( dpos, true, gp ) ) {
-                double d2 = gpos0.distanceSq( gp );
-
-                /* If any are nearby. */
-                if ( d2 <= maxThresh2 ) {
-
-                    /* Work out position values that can be combined linearly
-                     * (totalled and averaged). */
-                    for ( int idim = 0; idim < 3; idim++ ) {
-                        double d = dpos[ idim ];
-                        dp0[ idim ] = logFlags_[ idim ] ? Math.log( d ) : d;
-                    }
-
-                    /* Accumulate for each threshold. */
-                    for ( int ith = 0; ith < nth; ith++ ) {
-                        if ( d2 <= thresh2s[ ith ] ) {
-                            for ( int idim = 0; idim < 3; idim++ ) {
-                                dposTots[ ith ][ idim ] += dp0[ idim ];
-                            }
-                            counts[ ith ]++;
-                        }
-                    }
-                }
-            }
-        }
-
-        /* Assess starting from the nearest threshold. */
-        for ( int ith = 0; ith < nth; ith++ ) {
-
-            /* If this one hit any nearby points, return the average. */
-            if ( counts[ ith ] > 0 ) {
-                double c1 = 1.0 / counts[ ith ];
-                double[] dposMean = new double[ 3 ];
-                for ( int idim = 0; idim < 3; idim++ ) {
-                    double d = c1 * dposTots[ ith ][ idim ];
-                    dposMean[ idim ] = logFlags_[ idim ] ? Math.exp( d ) : d;
-                }
-                return dposMean;
-            }
-        }
-
-        /* If no data points within any threshold, return null. */
-        return null;
     }
 
     public boolean isContinuousLine( double[] dpos0, double[] dpos1 ) {
@@ -1248,5 +1194,138 @@ public class CubeSurface implements Surface {
         double[] rotA = Plot3D.rotate( base, new double[] { 0, 0, 1 }, phi );
         double[] rotB = Plot3D.rotate( base, new double[] { 1, 0, 0 }, psi );
         return Matrices.mmMult( Matrices.mmMult( base, rotB ), rotA );
+    }
+
+    /**
+     * Utility class for aggregating information about groups of
+     * positions in the proximity of each other.
+     */
+    private static class NeighbourData {
+
+        final long[] counts_;        // number of points per group
+        final double[][] dposTots_;  // running totals of x,y,z values per group
+
+        /**
+         * Constructor.
+         *
+         * @param  ngrp   number of groups of points
+         */
+        NeighbourData( int ngrp ) {
+            counts_ = new long[ ngrp ];
+            dposTots_ = new double[ ngrp ][ 3 ];
+        }
+    }
+
+    /**
+     * SplitCollector implementation for gathering information about
+     * positions of nearby data points.
+     */
+    private static class NeighbourCollector
+            implements SplitCollector<CoordSequence,NeighbourData> {
+
+        private final CubeSurface surf_;
+        private final Point2D gpos0_;
+        private final int nthresh_;
+        private final int[] thresh2s_;
+        private final double maxThresh2_;
+        private final boolean[] logFlags_;
+
+        /**
+         * Constructor.
+         * The supplied list of thresholds gives different pixel distances
+         * defining what counts as "near" over which different answers
+         * will be accumulated.
+         *
+         * @param  surf  plot surface
+         * @param  gpos0   test point; graphics positions near this are
+         *                 accumulated while others are ignored
+         * @param  thresh1s  pixel distance thresholds; this must be an 
+         *                   array in ascending order defining "near"-ness
+         */
+        NeighbourCollector( CubeSurface surf, Point2D gpos0, int[] thresh1s ) {
+            surf_ = surf;
+            gpos0_ = gpos0;
+            nthresh_ = thresh1s.length;
+            logFlags_ = surf.logFlags_;
+
+            /* Set up a lookup table of square distances for efficiency. */
+            thresh2s_ = new int[ nthresh_ ];
+            Arrays.setAll( thresh2s_, i -> thresh1s[ i ] * thresh1s[ i ] );
+            maxThresh2_ = thresh2s_[ nthresh_ - 1 ];
+        }
+
+        public NeighbourData createAccumulator() {
+            return new NeighbourData( nthresh_ );
+        }
+
+        public void accumulate( CoordSequence cseq, NeighbourData acc ) {
+            double[] dpos = cseq.getCoords();
+            double[] dp0 = new double[ 3 ];
+            Point2D.Double gp = new Point2D.Double();
+            while ( cseq.next() ) {
+                if ( surf_.dataToGraphics( dpos, true, gp ) ) {
+                    double d2 = gpos0_.distanceSq( gp );
+
+                    /* If any are nearby. */
+                    if ( d2 <= maxThresh2_ ) {
+
+                        /* Work out position values that can be combined
+                         * linearly (totalled and averaged). */
+                        for ( int idim = 0; idim < 3; idim++ ) {
+                            double d = dpos[ idim ];
+                            dp0[ idim ] = logFlags_[ idim ] ? Math.log( d ) : d;
+                        }
+
+                        /* Accumulate for each threshold. */
+                        for ( int ith = 0; ith < nthresh_; ith++ ) {
+                            if ( d2 <= thresh2s_[ ith ] ) {
+                                for ( int idim = 0; idim < 3; idim++ ) {
+                                    acc.dposTots_[ ith ][ idim ] += dp0[ idim ];
+                                }
+                                acc.counts_[ ith ]++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public NeighbourData combine( NeighbourData acc1, NeighbourData acc2 ) {
+            for ( int ith = 0; ith < nthresh_; ith++ ) {
+                acc1.counts_[ ith ] += acc2.counts_[ ith ];
+                for ( int id = 0; id < 3; id++ ) {
+                    acc1.dposTots_[ ith ][ id ] += acc2.dposTots_[ ith ][ id ];
+                }
+            }
+            return acc1;
+        }
+
+        /**
+         * Returns the 'best' average position of the near neighbours
+         * accumulated into a NeighbourData object.
+         *
+         * @param  acc  accumulator produced by this collector
+         */
+        public double[] getMeanPosition( NeighbourData acc ) {
+
+            /* Assess starting from the nearest threshold. */
+            for ( int ith = 0; ith < nthresh_; ith++ ) {
+                long count = acc.counts_[ ith ];
+
+                /* If this one hit any nearby points, return the average. */
+                if ( count > 0 ) {
+                    double c1 = 1.0 / count;
+                    double[] dposMean = new double[ 3 ];
+                    for ( int id = 0; id < 3; id++ ) {
+                        double d = c1 * acc.dposTots_[ ith ][ id ];
+                        dposMean[ id ] = logFlags_[ id ] ? Math.exp( d ) : d;
+                    }
+                    return dposMean;
+                }
+            }
+
+            /* If no data points within any threshold, return null. */
+            return null;
+        }
     }
 }
