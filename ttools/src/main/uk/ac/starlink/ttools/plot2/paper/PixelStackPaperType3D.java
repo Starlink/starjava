@@ -101,6 +101,7 @@ public class PixelStackPaperType3D extends RgbPaperType3D {
      */
     private static class PixelStackPaper extends RgbPaper3D {
 
+        private final PixelStackPaperType3D psPaperType_;
         private final Compositor compositor_;
         private final FloatPacker alphaPacker_;
         private final PixelStack[] stacks_;
@@ -117,10 +118,35 @@ public class PixelStackPaperType3D extends RgbPaperType3D {
          */
         PixelStackPaper( PixelStackPaperType3D paperType, Rectangle bounds ) {
             super( paperType, bounds );
+            psPaperType_ = paperType;
             compositor_ = paperType.compositor_;
             alphaPacker_ = paperType.alphaPacker_;
             stacks_ = new PixelStack[ bounds.width * bounds.height ];
             frgba_ = new float[ 4 ];
+        }
+
+        public boolean canMerge() {
+            return true;
+        }
+
+        public Paper createSheet() {
+            return new PixelStackPaper( psPaperType_, getBounds() );
+        }
+
+        public void mergeSheet( Paper other ) {
+            PixelStack[] stacks1 = ((PixelStackPaper) other).stacks_;
+            int n = stacks_.length;
+            for ( int i = 0; i < n; i++ ) {
+                PixelStack stack1 = stacks1[ i ];
+                if ( stack1 != null ) {
+                    if ( stacks_[ i ] == null ) {
+                        stacks_[ i ] = stack1;
+                    }
+                    else {
+                        stacks_[ i ].mergeStack( stack1 );
+                    }
+                }
+            }
         }
 
         protected void placePixels( int xoff, int yoff, double dz,
@@ -200,6 +226,15 @@ public class PixelStackPaperType3D extends RgbPaperType3D {
          */
         public void addPixel( double dz, int rgb, float alpha ) {
             list_.add( pack( dz, rgb, alpha ) );
+        }
+
+        /**
+         * Merges the content of another compatible stack with this one.
+         *
+         * @param   other  compatible stack
+         */
+        public void mergeStack( PixelStack other ) {
+            list_.addAll( other.list_ );
         }
 
         /**

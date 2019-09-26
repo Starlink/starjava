@@ -99,5 +99,17 @@ public abstract class PaintPaperType2D extends PaintPaperType
         public PaperType getPaperType() {
             return paperType_;
         }
+
+        public boolean canMerge() {
+            return false;
+        }
+
+        public Paper createSheet() {
+            throw new UnsupportedOperationException();
+        }
+
+        public void mergeSheet( Paper other ) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

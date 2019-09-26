@@ -60,9 +60,10 @@ public class SortedPaperType3D extends PaintPaperType
     private static class SortedPaper3D implements Paper {
         final PaperType paperType_;
         final Graphics2D graphics_;
+        final Rectangle bounds_;
         final Packer xPacker_;
         final Packer yPacker_;
-        List<PlacedGlyph> list_;
+        final List<PlacedGlyph> list_;
         int iseq_;
 
         /**
@@ -76,6 +77,7 @@ public class SortedPaperType3D extends PaintPaperType
                        Rectangle bounds ) {
             paperType_ = paperType;
             graphics_ = graphics;
+            bounds_ = bounds;
             xPacker_ = new Packer( bounds.x, bounds.width );
             yPacker_ = new Packer( bounds.y, bounds.height );
             list_ = new ArrayList<PlacedGlyph>();
@@ -83,6 +85,31 @@ public class SortedPaperType3D extends PaintPaperType
 
         public PaperType getPaperType() {
             return paperType_;
+        }
+
+        public boolean canMerge() {
+            return true;
+        }
+
+        public Paper createSheet() {
+
+            /* Note: in the case of split/merged sheets, the point sequence
+             * index iseq will no longer be unique over all the recorded points.
+             * This may result in some indeterminacy of the plotting
+             * (z-order of plotted points may be inconsistent between
+             * different invocations) but not much: for any given pair of
+             * points at the same Z value, it's not likely that they will
+             * have the same sequence value.  It would be possible to get
+             * round this by using a shared AtomicInteger between different
+             * sheets of the same original Paper, but I doubt if the expense
+             * is worth the benefit. */
+            return new SortedPaper3D( getPaperType(), graphics_, bounds_ );
+        }
+
+        public void mergeSheet( Paper other ) {
+            SortedPaper3D sOther = (SortedPaper3D) other;
+            list_.addAll( sOther.list_ );
+            iseq_ = Math.max( iseq_, sOther.iseq_ );
         }
 
         void placeGlyph( double gx, double gy, double dz,

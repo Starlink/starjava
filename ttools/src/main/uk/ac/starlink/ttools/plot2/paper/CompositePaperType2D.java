@@ -58,6 +58,18 @@ public class CompositePaperType2D extends RgbPaperType2D {
                         .createBuffer( bounds.width * bounds.height );
         }
 
+        public boolean canMerge() {
+            return false;
+        }
+
+        public Paper createSheet() {
+            throw new UnsupportedOperationException();
+        }
+
+        public void mergeSheet( Paper other ) {
+            throw new UnsupportedOperationException();
+        }
+
         /**
          * Override this method so that the decal painting is captured,
          * painted to a temporary buffer, and composited with the 

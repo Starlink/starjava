@@ -68,6 +68,28 @@ public class ZBufferPaperType3D extends RgbPaperType3D {
             }
         }
 
+        public boolean canMerge() {
+            return true;
+        }
+
+        public Paper createSheet() {
+            return new ZBufferPaper( getPaperType(), getBounds() );
+        }
+
+        public void mergeSheet( Paper other ) {
+            ZBufferPaper zbOther = (ZBufferPaper) other;
+            int[] rgbs1 = zbOther.rgbs_;
+            float[] zs1 = zbOther.zs_;
+            int n = rgbs_.length;
+            for ( int i = 0; i < n; i++ ) {
+                float z1 = zs1[ i ];
+                if ( z1 < zs_[ i ] ) {
+                    zs_[ i ] = z1;
+                    rgbs_[ i ] = rgbs1[ i ];
+                }
+            }
+        }
+
         public void flush() {
         }
     }

@@ -59,6 +59,22 @@ public abstract class GlyphPaper implements Paper {
     }
 
     /**
+     * Returns false.  Use of this paper type is expected to be parallel
+     * already, so parallelising paint operations is not necessary.
+     */
+    public boolean canMerge() {
+        return false;
+    }
+
+    public Paper createSheet() {
+        throw new UnsupportedOperationException();
+    }
+
+    public void mergeSheet( Paper other ) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Type of paper used by this object.  It implements both PaperType2D
      * and PaperType3D, but does not support the full contract of PaperType;
      * The methods not concerned with painting glyphs may throw

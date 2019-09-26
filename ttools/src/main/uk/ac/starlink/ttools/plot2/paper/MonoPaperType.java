@@ -64,6 +64,7 @@ public class MonoPaperType extends RgbPaperType
      */
     private static class MonoPaper extends RgbPaper {
 
+        private final MonoPaperType monoPaperType_;
         private final int x0_;
         private final int y0_;
         private final Rectangle clip_;
@@ -82,6 +83,7 @@ public class MonoPaperType extends RgbPaperType
          */
         MonoPaper( MonoPaperType paperType, Rectangle bounds ) {
             super( paperType, bounds );
+            monoPaperType_ = paperType;
             rgb_ = paperType.rgb_;
             x0_ = bounds.x;
             y0_ = bounds.y;
@@ -89,6 +91,22 @@ public class MonoPaperType extends RgbPaperType
             compositor_ = paperType.compositor_;
             alphas_ = new float[ bounds.width * bounds.height ];
             frgba_ = new float[ 4 ];
+        }
+
+        public boolean canMerge() {
+            return true;
+        }
+
+        public Paper createSheet() {
+            return new MonoPaper( monoPaperType_, getBounds() );
+        }
+
+        public void mergeSheet( Paper other ) {
+            float[] alphas1 = ((MonoPaper) other).alphas_;
+            int n = alphas_.length;
+            for ( int i = 0; i < n; i++ ) {
+                alphas_[ i ] += alphas1[ i ];
+            }
         }
 
         /**

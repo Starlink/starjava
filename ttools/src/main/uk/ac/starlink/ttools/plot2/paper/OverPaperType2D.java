@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.paper;
 
 import java.awt.Color;
 import java.awt.Rectangle;
+import java.util.BitSet;
 import uk.ac.starlink.ttools.plot2.Pixer;
 
 /**
@@ -32,6 +33,7 @@ public class OverPaperType2D extends RgbPaperType2D {
         private Color lastColor_;
         private int lastRgb_;
         private final int[] rgbs_;
+        private final BitSet mask_;
 
         /**
          * Constructor.
@@ -42,6 +44,28 @@ public class OverPaperType2D extends RgbPaperType2D {
         public OverPaper( PaperType paperType, Rectangle bounds ) {
             super( paperType, bounds );
             rgbs_ = getRgbImage().getBuffer();
+            mask_ = new BitSet( rgbs_.length );
+        }
+
+        public boolean canMerge() {
+            return true;
+        }
+
+        public Paper createSheet() {
+            return new OverPaper( getPaperType(), getBounds() );
+        }
+
+        public void mergeSheet( Paper other ) {
+            OverPaper paper1 = (OverPaper) other;
+            int[] rgbs1 = paper1.rgbs_;
+            BitSet mask1 = paper1.mask_;
+            int n = rgbs_.length;
+            for ( int i = 0; i < n; i++ ) {
+                if ( mask1.get( i ) ) {
+                    rgbs_[ i ] = rgbs1[ i ];
+                    mask_.set( i );
+                }
+            }
         }
 
         protected void placePixels( int xoff, int yoff, Pixer pixer,
@@ -54,6 +78,7 @@ public class OverPaperType2D extends RgbPaperType2D {
             while ( pixer.next() ) {
                 int index = getPixelIndex( xoff, yoff, pixer );
                 rgbs_[ index ] = rgb;
+                mask_.set( index );
             }
         }
 
