@@ -8,6 +8,7 @@ import java.awt.GraphicsConfiguration;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.image.BufferedImage;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import uk.ac.starlink.ttools.plot.MarkShape;
@@ -44,6 +45,8 @@ public abstract class PaintPaperType implements PaperType {
 
     private static final GraphicsConfiguration HEADLESS_GC =
         createHeadlessGraphicsConfig( BufferedImage.TYPE_INT_RGB );
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2.paper" );
 
     /**
      * Constructor.
@@ -160,7 +163,9 @@ public abstract class PaintPaperType implements PaperType {
                                              : nlayer - 1 - il;
                 drawings_[ jl ].paintData( plans_[ jl ], paper, dataStore_ );
             }
+            long startFlush = System.currentTimeMillis();
             paperType_.flushPaper( paper );
+            PlotUtil.logTimeFromStart( logger_, "Flush", startFlush );
         }
     }
 

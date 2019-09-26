@@ -4,10 +4,12 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.Pixer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 
@@ -25,6 +27,9 @@ public abstract class RgbPaperType implements PaperType {
 
     private final String name_;
     private final boolean upLayer_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.paper" );
 
     /**
      * Constructor.
@@ -69,7 +74,9 @@ public abstract class RgbPaperType implements PaperType {
             int jl = upLayer_ ? il : nlayer - 1 - il;
             drawings[ jl ].paintData( plans[ jl ], paper, dataStore );
         }
+        long startFlush = System.currentTimeMillis();
         paper.flush();
+        PlotUtil.logTimeFromStart( logger_, "Flush", startFlush );
 
         /* Return an icon based on the drawn-on paper. */
         return new Icon() {
