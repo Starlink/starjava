@@ -69,6 +69,18 @@ public class BasicRanger implements Ranger {
         }
     }
 
+    public void add( Ranger other ) {
+        BasicRanger bother = (BasicRanger) other;
+        submitDatum( bother.lo_ );
+        submitDatum( bother.hi_ );
+        submitDatum( bother.loPos_ );
+        submitDatum( bother.hiPos_ );
+    }
+
+    public Ranger createCompatibleRanger() {
+        return new BasicRanger( isBestEfforts_ );
+    }
+
     public Span createSpan() {
         return new BasicSpan( isBestEfforts_, lo_, hi_, loPos_, hiPos_ );
     }

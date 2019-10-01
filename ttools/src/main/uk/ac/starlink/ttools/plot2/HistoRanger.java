@@ -1,12 +1,23 @@
 package uk.ac.starlink.ttools.plot2;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Histogram-capable Ranger implementation.
  * Evenly sampled values from the input data stream are stored so that
  * scaling based on the detailed distribution of the data, rather than just
  * its minimum and maximum values, can be achieved.
+ *
+ * <p>This ranger is not intended to calculate arithmetically accurate
+ * quantile values, but it's hopefully good enough to come up with colour maps.
+ * The current implementation does a reasonable job of adaptive sampling,
+ * but for large datasets (greater than the storage capacity)
+ * it may be biassed, especially the {@link #add} method required for
+ * range calculation in parallel.
  *
  * @author   Mark Taylor
  * @since    21 Mar 2019
@@ -42,6 +53,16 @@ public class HistoRanger implements Ranger {
         if ( PlotUtil.isFinite( d ) ) {
             distributor_.submit( d );
         }
+    }
+
+    @Override
+    public void add( Ranger other ) {
+        distributor_.add( ((HistoRanger) other).distributor_ );
+    }
+
+    @Override
+    public Ranger createCompatibleRanger() {
+        return new HistoRanger( nStore_, nQuantile_ );
     }
 
     @Override
@@ -133,35 +154,8 @@ public class HistoRanger implements Ranger {
      * @param  array   fixed length storage array
      * @return  new distributor (one use only)
      */
-    static Distributor createDistributor( final double[] array ) {
-        final int nStore = array.length;
-
-        /* This implementation stores every sample for the first nStore
-         * submitted values, every other sample for the second nStore values,
-         * and in general every N'th sample for the Nth nStore values.
-         * For fewer than nStore samples, coverage is complete.
-         * There are probably better algorithms (ones with more uniform
-         * coverage) but this is simple and doesn't do too badly. */
-        return new Distributor() {
-            int iData_ = 0;
-            int iStore_ = 0;
-            int iStep_ = 1;
-            public void submit( double val ) {
-                if ( iData_++ % iStep_ == 0 ) {
-                    if ( iStore_ < nStore ) {
-                        array[ iStore_ ] = val;
-                        iStore_ += iStep_;
-                    }
-                    else {
-                        iStep_++;
-                        iStore_ = iStep_ / 2;
-                    }
-                }
-            }
-            public int getSampleCount() {
-                return Math.min( iData_, nStore );
-            }
-        };
+    static Distributor createDistributor( double[] array ) {
+        return new DefaultDistributor( array );
     }
 
     /**
@@ -183,6 +177,13 @@ public class HistoRanger implements Ranger {
         void submit( double val );
 
         /**
+         * Merges the contents of another compatible distributor into this one.
+         *
+         * @param  other  other compatible distributor
+         */
+        void add( Distributor other );
+
+        /**
          * Indicates the number of array elements that have been filled.
          * All array elements from 0 to the return value of this method
          * should be considered as samples, and others should be ignored.
@@ -190,6 +191,166 @@ public class HistoRanger implements Ranger {
          * @return  number of contiguous samples currently in output array
          */
         int getSampleCount();
+    }
+
+    /**
+     * Distributor implementation used here.
+     * This implementation stores every sample for the first nStore
+     * submitted values, every other sample for the second nStore values,
+     * and in general every N'th sample for the Nth nStore values.
+     * For fewer than nStore samples, coverage is complete.
+     * There are probably better algorithms (ones with more uniform
+     * coverage) but this is simple and doesn't do too badly.
+     *
+     * <p>The add method is fairly sloppy.
+     */
+    private static class DefaultDistributor implements Distributor {
+
+        private final double[] array_;
+        private final int nStore_;
+        private long iData_;
+        private int iStore_;
+        private int iStep_;
+        private static final int NF = 100;
+
+        /**
+         * Constructor.
+         *
+         * @param  array  sample storage array
+         */
+        DefaultDistributor( double[] array ) {
+            array_ = array;
+            nStore_ = array.length;
+            iStep_ = 1;
+        }
+
+        public void submit( double val ) {
+            if ( iData_++ % iStep_ == 0 ) {
+                if ( iStore_ < nStore_ ) {
+                    array_[ iStore_ ] = val;
+                    iStore_ += iStep_;
+                }
+                else {
+                    iStep_++;
+                    iStore_ = iStep_ / 2;
+                }
+            }
+        }
+
+        public int getSampleCount() {
+            return iData_ < nStore_ ? (int) iData_ : nStore_;
+        }
+
+
+        /* Because of the statistical nature of the work and the
+         * number of possibilities, it would be a lot of effort to
+         * write tests for this method.  It has not been well tested.
+         * I hope it works. */
+        public void add( Distributor otherDist ) {
+            DefaultDistributor other = (DefaultDistributor) otherDist;
+            if ( other.nStore_ != nStore_ ) {
+                throw new IllegalArgumentException( "Incompatible" );
+            }
+            long nd0 = iData_;
+            long nd1 = other.iData_;
+
+            /* No data in other, no work required. */
+            if ( nd1 == 0 ) {
+                return;
+            }
+
+            /* No data in this, just copy state of other to this one. */
+            else if ( nd0 == 0 ) {
+                iData_ = other.iData_;
+                iStore_ = other.iStore_;
+                iStep_ = other.iStep_;
+                System.arraycopy( other.array_, 0, array_, 0,
+                                  other.getSampleCount() );
+                return;
+            }
+
+            /* The sample array has enough space to store all the data
+             * from both distributors.  Copy all the data into this one. */
+            else if ( nd0 + nd1 < nStore_ ) {
+                assert iStep_ == 1 && other.iStep_ == 1;
+                iStore_ += other.iStore_;
+                iData_ += other.iData_;
+                System.arraycopy( other.array_, 0, array_, iStore_,
+                                  other.iStore_ );
+                return;
+            }
+
+            /* Otherwise, it's more complicated; we have to copy a
+             * fraction of the samples from the other distributor to
+             * this one, in general overwriting part of this one's
+             * sample array. */
+            else {
+
+                /* First work out what fraction of the other distributor's
+                 * samples should be used. */
+                int nf = NF;
+                double frac1 = nd1 / (double) ( nd0 + nd1 );
+
+                /* Define a random mask with a proportion of true elements 
+                 * corresponding to the amount of samples to be copied.
+                 * If all the elements are going to be false, don't do any 
+                 * more work. */
+                if ( nf * frac1 < 1 ) {
+                    return;
+                }
+                boolean[] mask = createRandomMask( nf, frac1 );
+
+                /* If there's enough empty space in this distributor's
+                 * sample array to copy all the subsample from the other one's,
+                 * then just add it at the end. */
+                if ( frac1 * nd1 < nStore_ - nd0 ) {
+                    int ns = other.getSampleCount();
+                    for ( int i = 0; i < ns && iStore_ < nStore_; i++ ) {
+                        if ( mask[ i % nf ] ) {
+                            array_[ iStore_++ ] = other.array_[ i ];
+                        }
+                    }
+                }
+
+                /* Otherwise, overwrite this one's sample array with
+                 * a proportion of the values from the other one.
+                 * The implementation is sloppy here - it doesn't get
+                 * the proportion right for the (normal) case in which
+                 * the sample array has not been filled an exact number
+                 * of times. */
+                else {
+                    int ns = Math.min( getSampleCount(),
+                                       other.getSampleCount() );
+                    for ( int i = 0; i < ns; i++ ) {
+                        if ( mask[ i % nf ] ) {
+                            array_[ i ] = other.array_[ i ];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Produces a boolean array with a given proportion of the elements
+     * set to true.  The true values are scattered randomly.
+     *
+     * @param  nf  required array size; not expected to be huge
+     * @param  p   proportion of true values
+     * @return  nf-element mask array
+     */
+    private static boolean[] createRandomMask( int nf, double p ) {
+        List<Integer> ilist = new ArrayList<Integer>();
+        for ( int i = 0; i < nf; i++ ) {
+            ilist.add( Integer.valueOf( i ) );
+        }
+        Collections.shuffle( ilist,
+                             new Random( Double.doubleToLongBits( p ) ) );
+        boolean[] mask = new boolean[ nf ];
+        for ( int i = 0; i < p * nf; i++ ) {
+            mask[ i ] = true;
+        }
+        return mask;
     }
 
     /**
