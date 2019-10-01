@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import javax.swing.Icon;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -605,14 +606,22 @@ public abstract class MultiPointForm implements ShapeForm {
                 public Scaling getScaling() {
                     return null;
                 }
-                public void adjustAuxRange( Surface surface, DataSpec dataSpec,
+                public void adjustAuxRange( final Surface surface,
+                                            DataSpec dataSpec,
                                             DataStore dataStore, Object[] plans,
                                             Ranger ranger ) {
+                    BiConsumer<TupleSequence,Ranger> rangeFiller =
+                        (tseq, r) -> fillRange( tseq, r, surface );
+                    dataStore.getTupleRunner()
+                             .rangeData( rangeFiller, ranger,
+                                         dataSpec, dataStore );
+                }
+                private void fillRange( TupleSequence tseq, Ranger ranger,
+                                        Surface surface ) {
                     double[] dpos0 = new double[ ndim ];
                     double[][] dposExtras = new double[ nextra ][ ndim ];
                     Point2D.Double gpos0 = new Point2D.Double();
                     Point2D.Double gpos1 = new Point2D.Double();
-                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
                     while ( tseq.next() ) {
                         if ( geom.readDataPos( tseq, 0, dpos0 ) &&
                              surface.dataToGraphics( dpos0, scaleFromVisible_,

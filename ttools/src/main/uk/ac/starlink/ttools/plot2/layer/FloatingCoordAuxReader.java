@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.geom.Point2D;
+import java.util.function.BiConsumer;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -65,27 +66,30 @@ public class FloatingCoordAuxReader implements AuxReader {
     public void adjustAuxRange( Surface surface, DataSpec dataSpec,
                                 DataStore dataStore, Object[] plans,
                                 Ranger ranger ) {
-        TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-
-        /* If no positional coordinates, just submit every value. */
-        if ( geom_ == null ) {
-            while ( tseq.next() ) {
-                ranger.submitDatum( coord_.readDoubleCoord( tseq, icol_ ) );
-            }
-        }
-
-        /* If there are positional coordinates, check each value to see
-         * whether it is plottable, and only submit the ones that are. */
-        else {
-            double[] dpos = new double[ geom_.getDataDimCount() ];
-            Point2D.Double gpos = new Point2D.Double();
-            while ( tseq.next() ) {
-                if ( geom_.readDataPos( tseq, 0, dpos ) &&
-                     surface.dataToGraphics( dpos, visibleOnly_, gpos ) &&
-                     ( visibleOnly_ || PlotUtil.isPointFinite( gpos ) ) ) {
-                    ranger.submitDatum( coord_.readDoubleCoord( tseq, icol_ ) );
+        BiConsumer<TupleSequence,Ranger> rangeFiller = (tseq, r) -> {
+            
+            /* If no positional coordinates, just submit every value. */
+            if ( geom_ == null ) {
+                while ( tseq.next() ) {
+                    r.submitDatum( coord_.readDoubleCoord( tseq, icol_ ) );
                 }
             }
-        }
+
+            /* If there are positional coordinates, check each value to see
+             * whether it is plottable, and only submit the ones that are. */
+            else {
+                double[] dpos = new double[ geom_.getDataDimCount() ];
+                Point2D.Double gpos = new Point2D.Double();
+                while ( tseq.next() ) {
+                    if ( geom_.readDataPos( tseq, 0, dpos ) &&
+                         surface.dataToGraphics( dpos, visibleOnly_, gpos ) &&
+                         ( visibleOnly_ || PlotUtil.isPointFinite( gpos ) ) ) {
+                        r.submitDatum( coord_.readDoubleCoord( tseq, icol_ ) );
+                    }
+                }
+            }
+        };
+        dataStore.getTupleRunner()
+                 .rangeData( rangeFiller, ranger, dataSpec, dataStore );
     }
 }
