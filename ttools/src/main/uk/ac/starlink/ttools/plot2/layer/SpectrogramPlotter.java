@@ -275,8 +275,12 @@ public class SpectrogramPlotter
                                                     DataStore dataStore,
                                                     Object[] plans,
                                                     Ranger ranger ) {
-                            TupleSequence tseq =
-                                dataStore.getTupleSequence( dataSpec );
+                            dataStore.getTupleRunner()
+                                     .rangeData( this::fillRange, ranger,
+                                                 dataSpec, dataStore );
+                        }
+                        private void fillRange( TupleSequence tseq,
+                                                Ranger ranger ) {
                             while ( tseq.next() ) {
                                 double[] spectrum =
                                     spectrumCoord_
