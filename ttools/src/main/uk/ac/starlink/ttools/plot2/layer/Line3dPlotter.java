@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Shader;
@@ -39,6 +41,7 @@ import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Plots lines joining data points in three dimensions.
@@ -217,10 +220,9 @@ public class Line3dPlotter extends AbstractPlotter<AuxLineStyle> {
                 Stroke stroke = style.getStroke();
                 LineTracer3D tracer =
                     LineTracer3D.createTracer( ptype, paper, surf, stroke );
-                TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
                 final int ndim = surf.getDataDimCount();
                 assert ndim == 3;
-                final ColorKit colorKit;
+                final Supplier<ColorKit> ckitFact;
                 if ( hasAux ) {
                     Shader shader = style.getShader();
                     Scaling scaling = style.getScaling();
@@ -228,16 +230,18 @@ public class Line3dPlotter extends AbstractPlotter<AuxLineStyle> {
                     Scaler scaler = auxSpan.createScaler( scaling, dataclip );
                     Color nullColor = style.getNullColor();
                     float scaleAlpha = 1;
-                    colorKit = new AuxColorKit( icAux, shader, scaler,
-                                                baseColor, nullColor,
-                                                scaleAlpha );
+                    ckitFact = () -> new AuxColorKit( icAux, shader, scaler,
+                                                      baseColor, nullColor,
+                                                      scaleAlpha );
                 }
                 else {
-                    colorKit = new FixedColorKit( baseColor );
+                    ckitFact = () -> new FixedColorKit( baseColor );
                 }
 
                 /* No sorting, natural order. */
                 if ( ! hasSort ) {
+                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
+                    ColorKit colorKit = ckitFact.get();
                     double[] dpos = new double[ ndim ];
                     while ( tseq.next() ) {
                         if ( geom.readDataPos( tseq, icPos, dpos ) ) {
@@ -251,38 +255,71 @@ public class Line3dPlotter extends AbstractPlotter<AuxLineStyle> {
                 else {
 
                     /* First acquire the 3d data position and sort coordinate
-                     * for each valid point. */
-                    List<Vertex> vlist = new ArrayList<Vertex>();
-                    double[] dpos = new double[ ndim ];
-                    while ( tseq.next() ) {
-                        double dsort = tseq.getDoubleValue( icSort );
-                        if ( PlotUtil.isFinite( dsort ) &&
-                             geom.readDataPos( tseq, icPos, dpos ) ) {
-                            Color color = colorKit.readColor( tseq );
-                            if ( color != null ) {
-                                Vertex vertex =
-                                    new Vertex( dpos[ 0 ], dpos[ 1 ], dpos[ 2 ],
-                                                color, dsort );
-                                vlist.add( vertex );
-                            }
-                        }
-                    }
+                     * for each valid point, in a sorted list. */
+                    List<Vertex> vlist =
+                        PlotUtil
+                       .tupleCollect( sortingVertexCollector( ckitFact ),
+                                      dataSpec, dataStore );
 
-                    /* Then sort them by the chosen coordinate.
-                     * Note that Collections.sort is, according to its
-                     * documentation, less efficient than explicitly
-                     * converting to an array here. */
-                    Vertex[] varray = vlist.toArray( new Vertex[ 0 ] );
-                    Arrays.sort( varray );
-
-                    /* Finally hand the points off in order to the tracer. */
-                    for ( Vertex v : varray ) {
+                    /* Then hand the points off in order to the tracer. */
+                    double[] dpos = new double[ 3 ];
+                    for ( Vertex v : vlist ) {
                         dpos[ 0 ] = v.dx_;
                         dpos[ 1 ] = v.dy_;
                         dpos[ 2 ] = v.dz_;
                         tracer.addPoint( dpos, v.color_ );
                     }
                 }
+            }
+
+            /**
+             * Returns a collector that can accumulate a sorted list of
+             * vertices for plotting.
+             *
+             * @param   ckitFact  colouring policy
+             * @return  vertex collector
+             */
+            private SplitCollector<TupleSequence,List<Vertex>>
+                    sortingVertexCollector( final Supplier<ColorKit> ckitFact ){
+                return new SplitCollector<TupleSequence,List<Vertex>>() {
+                    public List<Vertex> createAccumulator() {
+                        return new ArrayList<Vertex>();
+                    }
+                    public void accumulate( TupleSequence tseq,
+                                            List<Vertex> vlist ) {
+                        ColorKit colorKit = ckitFact.get();
+                        double[] dpos = new double[ geom.getDataDimCount() ];
+                        while ( tseq.next() ) {
+                            double dsort = tseq.getDoubleValue( icSort );
+                            if ( PlotUtil.isFinite( dsort ) &&
+                                 geom.readDataPos( tseq, icPos, dpos ) ) {
+                                Color color = colorKit.readColor( tseq );
+                                if ( color != null ) {
+                                    Vertex vertex =
+                                        new Vertex( dpos[ 0 ], dpos[ 1 ],
+                                                    dpos[ 2 ], color,
+                                                    dsort );
+                                    vlist.add( vertex );
+                                }
+                            }
+                        }
+
+                        /* Perform intermediate sorts at the end of the
+                         * accumulation phase.  This is not required for
+                         * correctness, since the combined list will be
+                         * sorted during combination, but combination will
+                         * be faster with pre-sorted input lists, and
+                         * the accumulation work is distributed better
+                         * between threads. */
+                        vlist.sort( null );
+                    }
+                    public List<Vertex> combine( List<Vertex> vlist1,
+                                                 List<Vertex> vlist2 ) {
+                        vlist1.addAll( vlist2 );
+                        vlist1.sort( null );
+                        return vlist1;
+                    }
+                };
             }
 
             /**
@@ -298,17 +335,20 @@ public class Line3dPlotter extends AbstractPlotter<AuxLineStyle> {
              * @param  dataStore   data store
              * @param  ranger   ranger object to update with aux values
              */
-            private void rangeAux3d( CubeSurface surf, DataStore dataStore,
-                                     Ranger ranger ) {
+            private void rangeAux3d( final CubeSurface surf,
+                                     DataStore dataStore, Ranger ranger ) {
                 final int ndim = surf.getDataDimCount();
-                double[] dpos = new double[ ndim ];
-                TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-                while ( tseq.next() ) {
-                    if ( geom.readDataPos( tseq, icPos, dpos ) &&
-                         surf.inRange( dpos ) ) {
-                        ranger.submitDatum( tseq.getDoubleValue( icAux ) );
+                BiConsumer<TupleSequence,Ranger> rangeFiller = ( tseq, r ) -> {
+                    double[] dpos = new double[ ndim ];
+                    while ( tseq.next() ) {
+                        if ( geom.readDataPos( tseq, icPos, dpos ) &&
+                             surf.inRange( dpos ) ) {
+                            r.submitDatum( tseq.getDoubleValue( icAux ) );
+                        }
                     }
-                }
+                };
+                dataStore.getTupleRunner()
+                         .rangeData( rangeFiller, ranger, dataSpec, dataStore );
             }
         };
     }

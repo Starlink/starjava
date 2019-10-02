@@ -8,8 +8,11 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Shader;
@@ -42,6 +45,7 @@ import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
+import uk.ac.starlink.util.SplitCollector;
 
 
 /**
@@ -188,7 +192,7 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
                                           final PaperType paperType ) {
                 final Span auxSpan = auxSpans.get( SCALE );
                 Color baseColor = style.getColor();
-                final ColorKit colorKit;
+                final Supplier<ColorKit> ckitFact;
                 if ( hasAux ) {
                     Shader shader = style.getShader();
                     Scaling scaling = style.getScaling();
@@ -196,19 +200,19 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
                     Scaler scaler = auxSpan.createScaler( scaling, dataclip );
                     Color nullColor = style.getNullColor();
                     float scaleAlpha = 1;
-                    colorKit = new AuxColorKit( icAux, shader, scaler,
-                                                baseColor, nullColor,
-                                                scaleAlpha );
+                    ckitFact = () -> new AuxColorKit( icAux, shader, scaler,
+                                                      baseColor, nullColor,
+                                                      scaleAlpha );
                 }
                 else {
-                    colorKit = new FixedColorKit( baseColor );
+                    ckitFact = () -> new FixedColorKit( baseColor );
                 }
                 return new UnplannedDrawing() {
                     protected void paintData( Paper paper,
                                               final DataStore dataStore ) {
                         paperType.placeDecal( paper, new Decal() {
                             public void paintDecal( Graphics g ) {
-                                paintLines( surface, dataStore, colorKit,
+                                paintLines( surface, dataStore, ckitFact,
                                             g, paperType );
                             }
                             public boolean isOpaque() {
@@ -252,22 +256,23 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
              *
              * @param  surface  plot surface
              * @param  dataStore  data store
-             * @param  colorKit  colouring
+             * @param  ckitFact  colouring policy
              * @param  g   graphics context
              * @param  paperType  paper type
              */
             private void paintLines( Surface surface, DataStore dataStore,
-                                     ColorKit colorKit, Graphics g,
+                                     Supplier<ColorKit> ckitFact, Graphics g,
                                      PaperType paperType ) {
                 LineTracer tracer =
                     new LineTracer( g, surface.getPlotBounds(),
                                     style.getStroke(), style.getAntialias(),
                                     10240, paperType.isBitmap() );
                 AxisOpt sortaxis = style.sortaxis_;
-                double[] dpos = new double[ surface.getDataDimCount() ];
-                Point2D.Double gp = new Point2D.Double();
-                TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
                 if ( sortaxis == null ) {
+                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
+                    ColorKit colorKit = ckitFact.get();
+                    double[] dpos = new double[ surface.getDataDimCount() ];
+                    Point2D.Double gp = new Point2D.Double();
                     while ( tseq.next() ) {
                         if ( geom.readDataPos( tseq, icPos, dpos ) &&
                              surface.dataToGraphics( dpos, false, gp ) &&
@@ -278,21 +283,68 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
                     }
                 }
                 else {
-                    List<CPoint> plist = new ArrayList<CPoint>();
-                    while ( tseq.next() ) {
-                        if ( geom.readDataPos( tseq, icPos, dpos ) &&
-                             surface.dataToGraphics( dpos, false, gp ) &&
-                             PlotUtil.isPointReal( gp ) ) {
-                            Color color = colorKit.readColor( tseq );
-                            plist.add( new CPoint( gp.x, gp.y, color ) );
-                        }
-                    }
-                    Collections.sort( plist, sortaxis.pointComparator() );
+                    SplitCollector<TupleSequence,List<CPoint>> collector =
+                        sortingPointCollector( ckitFact, sortaxis, surface );
+                    List<CPoint> plist =
+                        PlotUtil.tupleCollect( collector, dataSpec, dataStore );
                     for ( CPoint p : plist ) {
                         tracer.addVertex( p.getX(), p.getY(), p.color_ );
                     }
                 }
                 tracer.flush();
+            }
+
+            /**
+             * Returns a collector that can accumulate a sorted list of
+             * points for plotting.
+             *
+             * @param   ckitFact  colouring policy
+             * @param   sortaxis   axis defining sort order
+             * @param   surface    plot surface
+             * @return  point collector
+             */
+            private SplitCollector<TupleSequence,List<CPoint>>
+                    sortingPointCollector( final Supplier<ColorKit> ckitFact,
+                                           AxisOpt sortaxis,
+                                           final Surface surface ) {
+                final Comparator<Point2D> comparator =
+                    sortaxis.pointComparator();
+                final int ndim = surface.getDataDimCount();
+                return new SplitCollector<TupleSequence,List<CPoint>> () {
+                    public List<CPoint> createAccumulator() {
+                        return new ArrayList<CPoint>();
+                    }
+                    public void accumulate( TupleSequence tseq,
+                                            List<CPoint> plist ) {
+                        ColorKit colorKit = ckitFact.get();
+                        double[] dpos = new double[ ndim ];
+                        Point2D.Double gp = new Point2D.Double();
+                        while ( tseq.next() ) {
+                            if ( geom.readDataPos( tseq, icPos, dpos ) &&
+                                 surface.dataToGraphics( dpos, false, gp ) &&
+                                 PlotUtil.isPointReal( gp ) ) {
+                                Color color = colorKit.readColor( tseq );
+                                plist.add( new CPoint( gp.x, gp.y,
+                                                       color ) );
+                            }
+                        }
+
+                        /* Perform intermediate sorts at the end of the
+                         * accumulation phase.  This is not required for
+                         * correctness, since the combined list will be
+                         * sorted during combination, but combination will
+                         * be faster with pre-sorted input lists, and
+                         * the accumulation work is distributed better
+                         * between threads. */
+                        plist.sort( comparator );
+                    }
+                    public List<CPoint> combine( List<CPoint> list1,
+                                                 List<CPoint> list2 ) {
+                        list1.addAll( list2 );
+                        list1.sort( comparator );
+                        return list1;
+                    }
+                };
             }
 
             /**
@@ -311,15 +363,18 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
             private void rangeAux( Surface surf, DataStore dataStore,
                                    Ranger ranger ) {
                 final int ndim = surf.getDataDimCount();
-                double[] dpos = new double[ ndim ];
-                Point2D.Double gpos = new Point2D.Double();
-                TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-                while ( tseq.next() ) {
-                    if ( geom.readDataPos( tseq, icPos, dpos ) &&
-                         surf.dataToGraphics( dpos, true, gpos ) ) {
-                        ranger.submitDatum( tseq.getDoubleValue( icAux ) );
+                BiConsumer<TupleSequence,Ranger> rangeFiller = ( tseq, r ) -> {
+                    double[] dpos = new double[ ndim ];
+                    Point2D.Double gpos = new Point2D.Double();
+                    while ( tseq.next() ) {
+                        if ( geom.readDataPos( tseq, icPos, dpos ) &&
+                             surf.dataToGraphics( dpos, true, gpos ) ) {
+                            r.submitDatum( tseq.getDoubleValue( icAux ) );
+                        }
                     }
-                }
+                };
+                dataStore.getTupleRunner()
+                         .rangeData( rangeFiller, ranger, dataSpec, dataStore );
             }
         };
     }
