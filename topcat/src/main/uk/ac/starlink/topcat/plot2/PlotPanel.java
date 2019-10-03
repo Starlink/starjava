@@ -347,7 +347,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public void submitExtraAnnotator( Runnable annotator ) {
         extraNoteRunner_.cancel( true );
-        extraNoteRunner_ = new Cancellable( noteExec_.submit( annotator ) );
+        extraNoteRunner_ = submitCancellable( noteExec_, annotator );
     }
 
     /**
@@ -364,7 +364,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public void submitPlotAnnotator( Runnable annotator ) {
         plotNoteRunner_.cancel( true );
-        plotNoteRunner_ = new Cancellable( plotExec_.submit( annotator ) );
+        plotNoteRunner_ = submitCancellable( plotExec_, annotator );
     }
 
     /**
@@ -1005,6 +1005,43 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                new ZoneSpec[ 0 ], new LayerSpec[ 0 ] );
         return new Workings<P,A>( gang, zones, bounds, (DataStore) null, 1, 0L,
                                   plotSpec );
+    }
+
+    /**
+     * Submits a Runnable to an ExecutorService, and returns the
+     * corresponding Cancellable.
+     * Since the Cancellable has way to access the outcome,
+     * there's nowhere to catch any uncaught exceptions thrown while
+     * executing the Runnable, so they would just get swallowed by the
+     * executor service and never seen.
+     * So this method makes sure it catches such exceptions and logs
+     * them through the logging system.
+     * Thus this method should be used rather than submitting such jobs
+     * directly.
+     *
+     * @param  execService  executor service
+     * @param  runnable     runnable
+     * @return   cancellable future
+     */
+    private static Cancellable submitCancellable( ExecutorService execService,
+                                                  final Runnable runnable ) {
+        return new Cancellable( execService.submit( new Runnable() {
+            public void run() {
+                try {
+                    runnable.run();
+                }
+                catch ( Error e ) {
+                    logger_.log( Level.WARNING,
+                                 "Uncaught Error?: " + e, e );
+                    throw e;
+                }
+                catch ( RuntimeException e ) {
+                    logger_.log( Level.WARNING,
+                                 "Uncaught RuntimeException?: " + e, e );
+                    throw e;
+                }
+            }
+        } ) );
     }
 
     /**
@@ -2247,9 +2284,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             /* Submit one or both for execution. */
             if ( rowStep_ > 1 ) {
                 logger_.info( "Intermediate plot with row step " + rowStep_ );
-                stepCanceler_ = new Cancellable( plotExec_.submit( stepJob ) );
+                stepCanceler_ = submitCancellable( plotExec_, stepJob );
             }
-            fullCanceler_ = new Cancellable( plotExec_.submit( fullJob ) );
+            fullCanceler_ = submitCancellable( plotExec_, fullJob );
         }
 
         /**
