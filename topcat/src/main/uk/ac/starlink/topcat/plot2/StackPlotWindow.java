@@ -1538,17 +1538,21 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                  final Runnable completionCallback ) {
         plotPanel_.submitPlotAnnotator( new Runnable() {
             public void run() {
-                final Map<TopcatModel,BitSet> maskMap = getMaskMap();
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        if ( maskMap != null ) {
-                            applyMasks( maskMap );
-                        }
-                        if ( completionCallback != null ) {
-                            completionCallback.run();
-                        }
+                try {
+                    final Map<TopcatModel,BitSet> maskMap = getMaskMap();
+                    if ( maskMap != null ) {
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                applyMasks( maskMap );
+                            }
+                        } );
                     }
-                } );
+                }
+                finally {
+                    if ( completionCallback != null ) {
+                        SwingUtilities.invokeLater( completionCallback );
+                    }
+                }
             }
             @Slow
             private Map<TopcatModel,BitSet> getMaskMap() {
@@ -1643,7 +1647,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 new MultiSubsetQueryWindow( "Add Figure Subset(s)",
                                             this, entries, fig.getExpression(),
                                             fig.getAdql() );
-            qw.setVisible( true );
             if ( completionCallback != null ) {
                 qw.addWindowListener( new WindowAdapter() {
                     @Override
@@ -1652,6 +1655,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     }
                 } );
             }
+            qw.setVisible( true );
         }
         else {
             if ( completionCallback != null ) {
