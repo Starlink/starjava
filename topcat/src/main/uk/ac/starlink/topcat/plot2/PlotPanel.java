@@ -2269,15 +2269,19 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 public void run() {
                     Workings<P,A> workings =
                         plotJob.calculateWorkings( 1, progModel );
-                    fullPlotMillis_ = workings.plotMillis_;
-                    submitWorkings( workings );
+                    if ( workings != null ) {
+                        fullPlotMillis_ = workings.plotMillis_;
+                        submitWorkings( workings );
+                    }
                 }
             };
             Runnable stepJob = new Runnable() {
                 public void run() {
                     Workings<P,A> workings =
                         plotJob.calculateWorkings( rowStep_, null );
-                    submitWorkings( workings );
+                    if ( workings != null ) {
+                        submitWorkings( workings );
+                    }
                 }
             };
 
