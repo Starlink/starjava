@@ -90,16 +90,17 @@ public class FileDataSource extends DataSource {
     public URL getURL() {
         URI baseURI = file.toURI();
         URI withfrag;
+        String pos = getPosition();
         try {
             withfrag = new URI( baseURI.getScheme(),
-                                baseURI.getSchemeSpecificPart(),
-                                getPosition() );
+                                baseURI.getRawSchemeSpecificPart(), pos );
         }
         catch ( URISyntaxException e ) {
-            throw new AssertionError( "What's wrong with URI " +
-                                      baseURI.getScheme() + ':' +
-                                      baseURI.getSchemeSpecificPart() + '#' +
-                                      getPosition() + " ?" );
+            throw new AssertionError( "What's wrong with URI "
+                                    + baseURI.getScheme() + ':'
+                                    + baseURI.getRawSchemeSpecificPart()
+                                    + ( pos == null || pos.trim().length() == 0
+                                        ? "" : ( '#' + pos ) ) + " ?", e );
         }
         try {
             return withfrag.toURL();
