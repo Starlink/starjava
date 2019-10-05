@@ -3,6 +3,8 @@ package uk.ac.starlink.topcat.plot2;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -11,7 +13,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.AbstractListModel;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -25,6 +29,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.CheckBoxList;
+import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.util.gui.ConstrainedViewportLayout;
 
@@ -70,6 +75,12 @@ public class SubsetStack {
             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
         configScroller.getVerticalScrollBar().setUnitIncrement( 32 );
 
+        /* Prepare a small component with buttons to check or uncheck all
+         * the subsets at once. */
+        JComponent listButtonBox = new JPanel( new GridLayout( 1, 0 ) );
+        listButtonBox.add( createCheckAllButton( subList_, true ) );
+        listButtonBox.add( createCheckAllButton( subList_, false ) );
+
         /* When a subset is selected in the list, display its configuration
          * component in the other panel. */
         subList_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
@@ -89,7 +100,10 @@ public class SubsetStack {
 
         /* Place components. */
         panel_ = new JPanel( new BorderLayout() );
-        panel_.add( listScroller, BorderLayout.WEST );
+        JComponent listHolder = new JPanel( new BorderLayout() );
+        listHolder.add( listScroller, BorderLayout.CENTER );
+        listHolder.add( listButtonBox, BorderLayout.SOUTH );
+        panel_.add( listHolder, BorderLayout.WEST );
         panel_.add( configScroller, BorderLayout.CENTER );
     }
 
@@ -182,6 +196,32 @@ public class SubsetStack {
             }
         }
         return entries;
+    }
+
+    /**
+     * Prepare a button which will either check or uncheck all the
+     * subsets at once.  The button is customised a bit, in particular
+     * to make it as small as possible, since it's rather special
+     * interest and does not need to be prominent.
+     *
+     * @param  subList  subset list
+     * @param  isCheck   true to check all, false to uncheck all
+     * @return   new button
+     */
+    private static JButton createCheckAllButton( SubsetList subList,
+                                                 boolean isCheck ) {
+        Action act = subList.createCheckAllAction( isCheck );
+        act.putValue( Action.SMALL_ICON,
+                      isCheck ? ResourceIcon.REVEAL_ALL_TINY
+                              : ResourceIcon.HIDE_ALL_TINY );
+        String actVerb = isCheck ? "Show" : "Hide";
+        act.putValue( Action.NAME, actVerb + " All" );
+        act.putValue( Action.SHORT_DESCRIPTION,
+                      actVerb + " all listed subsets" );
+        JButton butt = new JButton( act );
+        butt.setHideActionText( true );
+        butt.setMargin( new Insets( 2, 2, 2, 2 ) );
+        return butt;
     }
 
     /**
@@ -333,6 +373,19 @@ public class SubsetStack {
                 new ArrayList<RowSubset>( Arrays.asList( checked1 ) );
             check1List.retainAll( getEntries( permModel_ ) );
             checked_.addAll( check1List );
+            fireActionEvent();
+            repaint();
+        }
+
+        /**
+         * Overridden for efficiency.
+         */
+        @Override
+        public void setCheckedAll( boolean isChecked ) {
+            checked_.clear();
+            if ( isChecked ) {
+                checked_.addAll( getEntries( permModel_ ) );
+            }
             fireActionEvent();
             repaint();
         }

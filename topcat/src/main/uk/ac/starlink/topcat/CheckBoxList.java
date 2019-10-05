@@ -8,12 +8,14 @@ import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JCheckBox;
@@ -169,6 +171,23 @@ public abstract class CheckBoxList<T> extends JList {
     @Override
     public T getSelectedValue() {
         return getTypedValue( super.getSelectedValue() );
+    }
+
+    /**
+     * Programmatically sets the checkbox status for all the items in the list.
+     *
+     * <p>The default implementation calls {@link #setChecked setChecked}
+     * for each item in the list, but subclasses may be able to
+     * override this for improved efficiency.
+     *
+     * @param  isChecked   true to check all, false to uncheck all
+     */
+    public void setCheckedAll( boolean isChecked ) {
+        ListModel model = getModel();
+        int nItem = model.getSize();
+        for ( int i = 0; i < nItem; i++ ) {
+            setChecked( (T) model.getElementAt( i ), isChecked );
+        }
     }
 
     /**
@@ -480,5 +499,23 @@ public abstract class CheckBoxList<T> extends JList {
             paintChildren( g );
             g.translate( -bounds.x, -bounds.y );
         }
+    }
+
+    /**
+     * Returns a new action that can be used to check or uncheck all
+     * the items in the list at once.
+     *
+     * @param  isChecked   true to check all, false to uncheck all
+     */
+    public Action createCheckAllAction( final boolean isChecked ) {
+        String act = isChecked ? "Select" : "Unselect";
+        return new BasicAction( act + " All",
+                                isChecked ? ResourceIcon.REVEAL_ALL
+                                          : ResourceIcon.HIDE_ALL,
+                                act + " all the listed items" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                setCheckedAll( isChecked );
+            }
+        };
     }
 }

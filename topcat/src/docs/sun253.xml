@@ -7850,6 +7850,10 @@ by clicking on it.
 Although you can select plotting colours in the <label>Form</label> tab as well,
 it's generally better to do it here since this changes the colour of
 all the forms plotted for a given subset, rather than one form at a time.
+The little <label>Show</label>/<label>Hide All</label>
+(&IMG.REVEAL_ALL_TINY;/&IMG.HIDE_ALL_TINY;) buttons at the bottom of the list
+can be used as a convenience to make all the subsets visible or invisible
+at once (which might be useful if you have lots of subsets).
 </p>
 
 <figure>
@@ -28701,6 +28705,10 @@ introduced since the last version:
         in class <ref id="Conversions">Conversions</ref>.</li>
     <li>JSAMP to version 1.3.6.</li>
     <li>Add new colour map Cividis.</li>
+    <li>Add tiny <label>Show</label>/<label>Hide All</label>
+        buttons at the bottom of the subset list in the
+        <ref id="tableDataControl">Data Layer Control</ref>
+        Subsets tab.</li>
     </ul>
     </p></dd>
 

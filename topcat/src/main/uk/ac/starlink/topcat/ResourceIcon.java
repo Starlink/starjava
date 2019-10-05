@@ -109,6 +109,8 @@ public class ResourceIcon implements Icon {
         REVEAL = makeIcon( "true.png" ),
         HIDE_ALL = makeIcon( "falseAll2.png" ),
         REVEAL_ALL = makeIcon( "trueAll2.png" ),
+        HIDE_ALL_TINY = makeIcon( "falseAllTiny.png" ),
+        REVEAL_ALL_TINY = makeIcon( "trueAllTiny.png" ),
         MODIFY = makeIcon( "redo3.png" ),
         SEARCH = makeIcon( "search2.png" ),
         LOG = makeIcon( "book3.png" ),
