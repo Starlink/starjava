@@ -232,6 +232,9 @@ public class Shaders {
     /** Diverging hot-cold shader provided by Daniel Michalik. */
     public static final Shader LUT_HOTCOLD;
 
+    /** Cividis shader derived from DOI:10.1371/journal.pone.0199239. */
+    public static final Shader LUT_CIVIDIS;
+
     /** Selection of lookup table-based shaders. */
     public final static Shader[] LUT_SHADERS = new Shader[] {
         LUT_AIPS0 = new ResourceLutShader( "AIPS0", "aips0.lut" ),
@@ -267,6 +270,7 @@ public class Shaders {
         LUT_MPL2PLASMA = new ResourceLutShader( "Plasma", "mpl2_plasma.lut" ),
         LUT_MPL2VIRIDIS = new ResourceLutShader( "Viridis",
                                                  "mpl2_viridis.lut" ),
+        LUT_CIVIDIS = new ResourceLutShader( "Cividis", "cividis.lut" ),
         LUT_HOTCOLD = new ResourceLutShader( "HotCold", "hotcold.lut" ),
     };
 
