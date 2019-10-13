@@ -1235,7 +1235,7 @@ while the tabular data which can be encoded is by design close to
 what FITS allows, it provides for much richer encoding of structure 
 and metadata.
 TOPCAT is believed to read any table which conforms to the
-VOTable 1.0, 1.1, 1.2 1.3 or (draft) 1.4
+VOTable 1.0, 1.1, 1.2 1.3 or 1.4
 <webref plaintextref="yes" url="&URL.VOTABLE;">specifications</webref>.
 This includes tables in which the cell data are
 included in-line as XML elements (VOTable/TABLEDATA format),
@@ -28638,11 +28638,8 @@ introduced since the last version:
         HEALPix rather than scatter plot.
         </p></dd>
     <dt>VOTable 1.4 support</dt>
-    <dd><p>Experimental support is introduced for version 1.4
+    <dd><p>Support is introduced for version 1.4
         of the VOTable format and its new <code>TIMESYS</code> element.
-        This support corresponds to WD-VOTable-1.4-20190403.
-        The functionality may be modified in future releases depending
-        on how the VOTable 1.4 specification evolves.
         <ul>
         <li>For VOTable columns that reference TIMESYS elements,
             the relevant information is now visible

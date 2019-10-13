@@ -9044,7 +9044,7 @@ Contact the author if this seems to be a serious issue for you.
 
 <p>Votlint checks that the XML input is well-formed, and, unless the
 <code>valid=false</code> parameter is supplied, that it validates against the
-1.0 DTD or 1.1, 1.2, 1.3 or (draft) 1.4 schema as appropriate.
+1.0 DTD or 1.1, 1.2, 1.3 or 1.4 schema as appropriate.
 Some of the validity checks are also done by
 <code>votlint</code> internally, so that some validity-type 
 errors may give rise to more than one warning.  
@@ -9106,16 +9106,6 @@ wise at least to take a look at the input which caused them:
     same <code>name</code> attributes</li>
 <li><code>TIMESYS</code> elements never referenced.</li>
 </ul>
-</p>
-
-<p>Note: In this version,
-the VOTable 1.4 specification is still under discussion; 
-the version used for validation currently corresponds to
-WD-VOTable-1.4-20190403, with the correction that
-the RDF vocabularies for TIMESYS
-<code>timeframe</code> and <code>refposition</code> attributes
-have URIs using the authority
-"<code>www.ivoa.net</code>" and not "<code>ivoa.net</code>".
 </p>
 
 </subsubsect>
@@ -12086,19 +12076,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         column variant is not understood.
         </p></dd>
     <dt>VOTable 1.4 support</dt>
-    <dd><p>Experimental support has been introduced for version 1.4
+    <dd><p>Support has been introduced for version 1.4
         of the VOTable format and its new <code>TIMESYS</code> element.
-        This support corresponds to WD-VOTable-1.4-20190403,
-        with the correction that the RDF vocabularies for TIMESYS
-        <code>timeframe</code> and <code>refposition</code> attributes
-        have URIs using the authority "www.ivoa.net" and not "ivoa.net".
-        The functionality may be modified in future releases depending
-        on how the VOTable 1.4 specification evolves.
         <ul>
         <li><ref id="votlint"><code>votlint</code></ref>
             (and hence <ref id="taplint"><code>taplint</code></ref>)
             now supports Version 1.4 VOTables:
-            the 1.4 draft schema is used for XSD validation,
+            the 1.4 schema is used for XSD validation,
             and the TIMESYS element is checked
             for attribute content and suitable referencing.</li>
         <li>For VOTable columns that reference TIMESYS elements,
