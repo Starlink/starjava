@@ -388,35 +388,48 @@ public class SplatRegistryQuery implements RegistryQuery {
             String email = getString( row, "emails" ).replace("<", "&lt;").replace(">", "&gt;"); // replace needed if information is displayed in html
             String contact = "";
             String publisher = "";
-           
+
             if (baseRoles!= null && roleNames!=null) {
-                String[] roles = baseRoles.split("#");
-                String[] names = roleNames.split("#");
-                for (int b=0;b<roles.length;b++) {
-                    if (  roles[b].equalsIgnoreCase("publisher") )
-                        publisher=names[b];   
-                    else if (  roles[b].equalsIgnoreCase("contact") )
-                        contact=names[b];   
-                }  
-                if (email != null)
-                    contact += " ("+ email +") ";
+            	String[] roles = baseRoles.split("#");
+            	String[] names = roleNames.split("#");
+
+            	for (int b=0;b<roles.length;b++) {
+            		try {
+            			if (  roles[b].equalsIgnoreCase("publisher") )
+            				publisher=names[b];   
+            			else if (  roles[b].equalsIgnoreCase("contact") )
+            				contact=names[b];   
+
+            		} catch (Exception e) {
+            			logger_.warning ( shortName+" "+refUrl+" : number of role and names does not match");
+            		}
+            		if (email != null)
+            			contact += " ("+ email +") ";
+            	}
             }
-            
-           String dataSource = "";
-           String creationType = "";
-           
+
+            String dataSource = "";
+            String creationType = "";
+
             if (cappaths != null && capvals != null) {
-                String [] paths = cappaths.split("#");
-                String [] vals = capvals.split("#");
-                for (int k=0;k<paths.length; k++) {
-                    if (paths[k].contains("/capability/dataSource")) 
-                        dataSource = vals[k];
-                    if (paths[k].contains("capability/creationType")) 
-                        creationType = vals[k];
-                }
+            	String [] paths = cappaths.split("#");
+            	String [] vals = capvals.split("#");
+
+            	for (int k=0;k<paths.length; k++) {
+            		try {
+
+            			if (paths[k].contains("/capability/dataSource")) 
+            				dataSource = vals[k];
+            			if (paths[k].contains("capability/creationType")) 
+            				creationType = vals[k];
+            		} catch (Exception e) {
+            			logger_.warning ( shortName+": number of capabilities and values does not match");
+            		}
+            	}
+
             } 
-            
-           
+
+
             /* Update this object's data structures in accordance with the
              * information received from this row. */
             if ( ! resMap_.containsKey( ivoid ) ) {
@@ -435,24 +448,20 @@ public class SplatRegistryQuery implements RegistryQuery {
            //     res.capMap = new LinkedHashMap<Integer, SSAPRegCapability>();
                 resMap_.put( ivoid, res );
             }
+
             SSAPRegResource resource = resMap_.get(ivoid);
 
-           // if ( intfIndex != null ) {
-               
-               // Integer ix = new Integer( intfIndex.intValue() );
-              //  if ( ! resource.capMap.containsKey( ix ) ) {
-                    SSAPRegCapability cap = new SSAPRegCapability("", accessUrl );
-              //      cap.setIntfIndex(ix);
-                    cap.setCreationType(creationType);
-                    cap.setDataSource(dataSource);
-                    cap.setStandardId(standardId);
-                    
-              //      resource.capMap.put( ix, cap ); 
-                    SSAPRegCapability [] caps = new SSAPRegCapability[1];
-                    caps[0] = cap;
-                    resource.setCapabilities(caps);
-                //}
-         //   }
+            SSAPRegCapability cap = new SSAPRegCapability("", accessUrl );
+
+            cap.setCreationType(creationType);
+            cap.setDataSource(dataSource);
+            cap.setStandardId(standardId);
+
+
+            SSAPRegCapability [] caps = new SSAPRegCapability[1];
+            caps[0] = cap;
+            resource.setCapabilities(caps);
+           
         }
 
         /**
