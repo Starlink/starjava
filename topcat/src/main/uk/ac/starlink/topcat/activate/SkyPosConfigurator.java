@@ -141,6 +141,7 @@ public abstract class SkyPosConfigurator extends AbstractActivatorConfigurator {
         private final ColumnData raData_;
         private final ColumnData decData_;
         private final boolean invokeOnEdt_;
+        private final boolean includePostxt_;
 
         /**
          * Constructor.
@@ -148,12 +149,15 @@ public abstract class SkyPosConfigurator extends AbstractActivatorConfigurator {
          * @param  raData  right ascension column data in radians
          * @param  decData  declination column data in radians
          * @param  invokeOnEdt  true to invoke on EDT, false on another thread
+         * @param  includePosTxt  true to include the position information
+         *                        in the successful Outcome message
          */
         SkyPosActivator( ColumnData raData, ColumnData decData,
-                         boolean invokeOnEdt ) {
+                         boolean invokeOnEdt, boolean includePostxt ) {
             raData_ = raData;
             decData_ = decData;
             invokeOnEdt_ = invokeOnEdt;
+            includePostxt_ = includePostxt;
         }
 
         /**
@@ -162,9 +166,11 @@ public abstract class SkyPosConfigurator extends AbstractActivatorConfigurator {
          *
          * @param  raDeg  right ascension in degrees
          * @param  decDeg  declination in degrees
+         * @param  lrow   row index
          * @return  outcome, may have null message if nothing interesting to say
          */
-        protected abstract Outcome useSkyPos( double raDeg, double decDeg );
+        protected abstract Outcome useSkyPos( double raDeg, double decDeg,
+                                              long lrow );
 
         public boolean invokeOnEdt() {
             return invokeOnEdt_;
@@ -186,22 +192,26 @@ public abstract class SkyPosConfigurator extends AbstractActivatorConfigurator {
                 if ( ! Double.isNaN( raRad ) && ! Double.isNaN( decRad ) ) {
                     double raDeg = Math.toDegrees( raRad );
                     double decDeg = Math.toDegrees( decRad );
-                    String posTxt = new StringBuffer()
-                        .append( "(" )
-                        .append( (float) raDeg )
-                        .append( ", " )
-                        .append( (float) decDeg )
-                        .append( ")" )
-                        .toString();
-                    Outcome resultOutcome = useSkyPos( raDeg, decDeg );
+                    Outcome resultOutcome = useSkyPos( raDeg, decDeg, lrow );
                     if ( ! resultOutcome.isSuccess() ) {
                         return resultOutcome;
                     }
                     String resultTxt = resultOutcome.getMessage();
                     StringBuffer outTxt = new StringBuffer();
-                    outTxt.append( posTxt );
+                    if ( includePostxt_ ) {
+                        String posTxt = new StringBuffer()
+                            .append( "(" )
+                            .append( (float) raDeg )
+                            .append( ", " )
+                            .append( (float) decDeg )
+                            .append( ")" )
+                            .toString();
+                        outTxt.append( posTxt );
+                    }
                     if ( resultTxt != null && resultTxt.trim().length() > 0 ) {
-                        outTxt.append( " " );
+                        if ( outTxt.length() > 0 ) {
+                            outTxt.append( " " );
+                        }
                         outTxt.append( resultTxt );
                     }
                     return Outcome.success( outTxt.toString() );

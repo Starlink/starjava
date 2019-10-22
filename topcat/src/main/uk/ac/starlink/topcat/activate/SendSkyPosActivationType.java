@@ -67,8 +67,9 @@ public class SendSkyPosActivationType implements ActivationType {
         public Activator createActivator( ColumnData raData,
                                           ColumnData decData ) {
             if ( clientListModel_.getSize() > 0 ) {
-                return new SkyPosActivator( raData, decData, false ) {
-                    protected Outcome useSkyPos( double raDeg, double decDeg ) {
+                return new SkyPosActivator( raData, decData, false, true ) {
+                    protected Outcome useSkyPos( double raDeg, double decDeg,
+                                                 long lrow ) {
                         Message msg = new Message( SKY_MTYPE );
                         msg.addParam( "ra", SampUtils.encodeFloat( raDeg ) );
                         msg.addParam( "dec", SampUtils.encodeFloat( decDeg ) );

@@ -120,8 +120,9 @@ public class CutoutActivationType implements ActivationType {
             final CutoutService serv = getSelectedService();
             final int npix = npixSelector_.getValue();
             final int tableId = tcModel_.getID();
-            return new SkyPosActivator( raData, decData, false ) {
-                protected Outcome useSkyPos( double raDeg, double decDeg ) {
+            return new SkyPosActivator( raData, decData, false, true ) {
+                protected Outcome useSkyPos( double raDeg, double decDeg,
+                                             long lrow ) {
                     serv.displayCutout( tableId, raDeg, decDeg, npix );
                     return Outcome.success();
                 }

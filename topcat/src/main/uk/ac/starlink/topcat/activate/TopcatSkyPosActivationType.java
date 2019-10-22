@@ -41,8 +41,9 @@ public class TopcatSkyPosActivationType implements ActivationType {
         return new SkyPosConfigurator( tinfo ) {
             public Activator createActivator( ColumnData raData,
                                               ColumnData decData ) {
-                return new SkyPosActivator( raData, decData, true ) {
-                    protected Outcome useSkyPos( double raDeg, double decDeg ) {
+                return new SkyPosActivator( raData, decData, true, true ) {
+                    protected Outcome useSkyPos( double raDeg, double decDeg,
+                                                 long lrow ) {
                         controlWin_.acceptSkyPosition( raDeg, decDeg );
                         return Outcome.success();
                     }
