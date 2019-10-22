@@ -297,7 +297,7 @@ public class GenericViewImageActivationType implements ActivationType {
                     final ImageWindow imwin = getImageWindow( label );
                     final BufferedImage image;
                     try {
-                        image = imwin.createImage( loc, allowSystem_ );
+                        image = ImageWindow.createImage( loc, allowSystem_ );
                     }
                     catch ( IOException e ) {
                         return Outcome.failure( e );

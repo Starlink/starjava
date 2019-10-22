@@ -74,7 +74,8 @@ public class ImageWindow extends AuxWindow {
      *                      specification - has security implications
      * @return  image
      */
-    public BufferedImage createImage( String location, boolean allowSystem )
+    public static BufferedImage createImage( String location,
+                                             boolean allowSystem )
             throws IOException {
         return ImageIO
               .read( DataSource.getInputStream( location, allowSystem ) );
