@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import uk.ac.starlink.ttools.calc.WebMapper;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.util.CgiQuery;
 
 /**
@@ -28,6 +29,14 @@ public class URLs {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
         "0123456789" +
         "-_.~";
+
+    /** Base URL for CDS hips2fits service. */
+    public static final String HIPS2FITS_BASE =
+        "http://alasky.u-strasbg.fr/hips-image-services/hips2fits";
+
+    /** Alternative base URL for CDS hips2fits service. */
+    public static final String HIPS2FITS_BASE2 =
+        "http://alaskybis.u-strasbg.fr/hips-image-services/hips2fits";
 
     /**
      * Private constructor prevents instantiation.
@@ -296,6 +305,49 @@ public class URLs {
     }
 
     /**
+     * Returns the URL of a cutout from the Hips2Fits service operated
+     * by CDS.  The result will be the URL of a FITS or image file
+     * resampled to order from one of the HiPS surveys available at CDS.
+     *
+     * <p>This function requests a square cutout using the SIN projection,
+     * which is suitable for small cutouts.
+     * If the details of this function don't suit your purposes,
+     * you can construct the URL yourself.
+     *
+     * @see <a href="http://alasky.u-strasbg.fr/hips-image-services/hips2fits"
+     *            >http://alasky.u-strasbg.fr/hips-image-services/hips2fits</a>
+     * @param  hipsId  identifier or partial identifier for the HiPS survey
+     * @param  fmt    required output format, for instance
+     *                "<code>fits</code>", "<code>png</code>",
+     *                "<code>jpeg</code>"
+     * @param  raDeg  central Right Ascension (longitude) in degrees
+     * @param  decDeg  central Declination (latitude) in degrees
+     * @param  fovDeg  field of view; extent of the cutout in degrees
+     * @param  npix    extent of the cutout in pixels (width=height=npix)
+     * @return   URL of the required cutout
+     */
+    public static String hips2fitsUrl( String hipsId, String fmt,
+                                       double raDeg, double decDeg,
+                                       double fovDeg, int npix ) {
+        double pixSizeDeg = fovDeg / npix;
+        int decPlaces = - (int) Math.floor( Maths.log10( pixSizeDeg ) );
+        int ndp = Math.max( decPlaces + 1, 0 );
+        double fovEps = fovDeg / npix;
+        Map<String,String> pmap = new LinkedHashMap<String,String>();
+        pmap.put( "hips", hipsId );
+        pmap.put( "format", fmt );
+        pmap.put( "ra", Formats.formatDecimal( raDeg, ndp )
+                               .replaceFirst( "0+$", "" ) );
+        pmap.put( "dec", Formats.formatDecimal( decDeg, ndp )
+                                .replaceFirst( "0+$", "" ) );
+        pmap.put( "fov", PlotUtil.formatNumber( fovDeg, fovEps ) );
+        pmap.put( "width", Integer.toString( npix ) );
+        pmap.put( "height", Integer.toString( npix ) );
+        pmap.put( "projection", "SIN" );
+        return paramsUrl( HIPS2FITS_BASE, pmap );
+    }
+
+    /**
      * Uses a WebMapper to turn an input reference to a URL string.
      * 
      * @param  mapper  mapper
@@ -310,5 +362,5 @@ public class URLs {
             URL url = mapper.toUrl( txt );
             return url == null ? null : url.toString();
         }
-    }
+     }
 }
