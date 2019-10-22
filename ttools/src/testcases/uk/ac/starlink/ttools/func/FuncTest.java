@@ -681,6 +681,12 @@ public class FuncTest extends TestCase {
         assertNull( Strings.nedUrl( "    " ) );
     }
 
+    public void testURLs() {
+        assertEquals( "http://x.org/?a=1&b=two&c=3%264",
+                      URLs.paramsUrl( "http://x.org/",
+                                      "a", "1", "b", "two", "c", "3&4" ) );
+    }
+
     private void checkDesig( String raSex, String decSex, String desig ) {
         assertEquals( raSex,
                       CoordsDegrees
