@@ -9,7 +9,6 @@ import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
-import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -44,7 +43,6 @@ public class SendImageActivationType implements ActivationType {
      */
     @SuppressWarnings({"unchecked","rawtypes"})
     private static class ImageColumnConfigurator extends UrlColumnConfigurator {
-        final TopcatModel tcModel_;
         final SampSender imageSender_;
         final ListModel clientListModel_;
 
@@ -58,7 +56,6 @@ public class SendImageActivationType implements ActivationType {
         ImageColumnConfigurator( TopcatModelInfo tinfo ) {
             super( tinfo, "Image",
                    new ColFlag[] { ColFlag.IMAGE, ColFlag.URL, } );
-            tcModel_ = tinfo.getTopcatModel();
             imageSender_ = new SampSender( IMAGE_MTYPE );
             ActionForwarder forwarder = getActionForwarder();
             clientListModel_ = imageSender_.getClientListModel();
