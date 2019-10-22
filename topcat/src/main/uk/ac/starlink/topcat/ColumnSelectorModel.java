@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import gnu.jel.CompilationException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -152,6 +153,52 @@ public class ColumnSelectorModel {
         return item instanceof ColumnData
              ? new ConvertedColumnData( (ColumnData) item, getConverter() )
              : null;
+    }
+
+    /**
+     * Sets the content of this model given textual values for the 
+     * column specification and for the converter.
+     * This is done on a best-efforts basis; the return status indicates
+     * whether it worked.
+     *
+     * @param  colTxt   text content for column specification
+     * @param  convTxt   name of converter required; may be null
+     * @return   true iff configuration was successful
+     */
+    public boolean setTextValue( String colTxt, String convTxt ) {
+        if ( colChooser_ instanceof ColumnDataComboBoxModel ) {
+            ColumnData cdata;
+            try {
+                cdata = ((ColumnDataComboBoxModel) colChooser_)
+                       .stringToColumnData( colTxt );
+            }
+            catch ( CompilationException e ) {
+                return false;
+            }
+            colChooser_.setSelectedItem( cdata );
+            if ( convTxt != null ) {
+                Object convItem = null;
+                for ( int i = 0; i < convChooser_.getSize(); i++ ) {
+                    Object item = convChooser_.getElementAt( i );
+                    if ( item.toString().equals( convTxt ) ) {
+                        convItem = item;
+                    }
+                }
+                if ( convItem != null ) {
+                    convChooser_.setSelectedItem( convItem );
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                return true;
+            }
+        }
+        else {
+            return false;
+        }
     }
 
     /**
