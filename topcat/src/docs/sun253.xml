@@ -22382,11 +22382,10 @@ web server which provides these images, retrieve the image, and
 display it in one of the internal <ref id="imageViewers">image viewers</ref>.
 </p>
 
-<p>Note: the options provided here are not very extensive;
-the list of image services is rather limited and the image viewer
-is not configurable.
-This action may be replaced or enhanced in future releases to provide
-a more capable image cutout display action.
+<p><strong>Note:</strong> the list of image services provided by this action
+is very limited.
+In most cases, you will be better off using the
+<ref id="ViewHips2fitsActivationType">Display HiPS cutout</ref> action.
 </p>
 
 <p>Configuration:
@@ -28862,6 +28861,10 @@ introduced since the last version:
         <ref id="ViewHips2fitsActivationType">Display HiPS Cutout</ref>
         and
         <ref id="SendHips2fitsActivationType">Send HiPS Cutout</ref>.</li>
+    <li>Deprecate
+        <ref id="CutoutActivationType">Display Cutout Image</ref>
+        activation action;
+        Display HiPS Cutout is usually a better choice.</li>
     </ul>
     </p></dd>
 

@@ -65,7 +65,7 @@ public class CutoutActivationType implements ActivationType {
     }
 
     public Suitability getSuitability( TopcatModelInfo tinfo ) {
-        return tinfo.getSkySuitability();
+        return Suitability.AVAILABLE;
     }
 
     public ActivatorConfigurator createConfigurator( TopcatModelInfo tinfo ) {
