@@ -93,6 +93,17 @@ public class ImageWindow extends AuxWindow {
     }
 
     /**
+     * Resizes this window so that it's the right size to display
+     * the current image without scrolling.
+     */
+    public void resizeToFitImage() {
+        scroller_.getViewport().setPreferredSize( label_.getPreferredSize() );
+        getMainArea().setPreferredSize( null );
+        getMainArea().revalidate();
+        pack();
+    }
+
+    /**
      * Synchronously configures this window to display an image and
      * indicate a given X,Y point on it.
      *

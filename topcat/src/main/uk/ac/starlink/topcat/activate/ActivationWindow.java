@@ -899,6 +899,8 @@ public class ActivationWindow extends AuxWindow {
             NopActivationType.INSTANCE,
             new TopcatSkyPosActivationType(),
             new SendSkyPosActivationType(),
+            new ViewHips2fitsActivationType(),
+            new SendHips2fitsActivationType(),
             new InvokeDatalinkActivationType(),
             new ViewDatalinkActivationType(),
             new ViewImageActivationType(),

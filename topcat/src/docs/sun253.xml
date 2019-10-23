@@ -247,6 +247,10 @@
   <!ENTITY FIG.TopcatSkyPosActivationType
            '&figs;TopcatSkyPosActivationType.png'>
   <!ENTITY FIG.SendSkyPosActivationType '&figs;SendSkyPosActivationType.png'>
+  <!ENTITY FIG.ViewHips2fitsActivationType
+           '&figs;ViewHips2fitsActivationType.png'>
+  <!ENTITY FIG.SendHips2fitsActivationType
+           '&figs;SendHips2fitsActivationType.png'>
   <!ENTITY FIG.ViewImageActivationType '&figs;ViewImageActivationType.png'>
   <!ENTITY FIG.RegionViewImageActivationType
            '&figs;RegionViewImageActivationType.png'>
@@ -3886,8 +3890,9 @@ unless you are a tool developer you can probably ignore these.
     </dd>
 
 <dt>Transmit Image</dt>
-<dd><p>The <ref id="SendImageActivationType">Send FITS Image</ref>
-    activation action can send the contents of a nominated URL column
+<dd><p>The <ref id="SendImageActivationType">Send FITS Image</ref> and
+    <ref id="SendHips2fitsActivationType">Send HiPS Cutout</ref>
+    activation actions can send a URL representing a FITS image
     to a suitable image analysis application for loading or display.
     </p>
     <p>The (old-style, somewhat deprecated)
@@ -21381,6 +21386,147 @@ to show imagery at the sky coordinates corresponding to that row.
 
 </subsubsubsect>
 
+<subsubsubsect id="ViewHips2fitsActivationType">
+<subhead><title>Display HiPS Cutout</title></subhead>
+
+<figure>
+<caption><px>Configuration for Display HiPS Cutout action</px></caption>
+<figureimage src="&FIG.ViewHips2fitsActivationType;"/>
+<!-- J/ApJS/237/36 -->
+</figure>
+
+<p>The <label>Display HiPS Cutout</label> action uses the
+<webref url="http://alasky.u-strasbg.fr/hips-image-services/hips2fits"
+        >hips2fits</webref>
+service at CDS to acquire a resampled image at the activated row's
+sky position and displays it in a no-frills image viewer window.
+The data is taken from a Hierarchical Progressive Survey (HiPS),
+an all-sky image data set.
+</p>
+
+<p>If this doesn't invoke the hips2fits service in exactly the way
+you want it to, you can customise the behaviour by using the
+<ref id="ViewImageActivationType">Display Image</ref> action
+constructing your own custom hips2fits URL,
+perhaps by using the <code>hips2fitsUrl</code> function from the
+<ref id="URLs">URLs</ref> class.
+You can also use the
+<ref id="SendHips2fitsActivationType">Send HiPS Cutout</ref> action
+if you want to view the image in an external viewer such as Aladin or ds9.
+If you want to be able to zoom around the HiPS image however,
+the best thing might be to open the HiPS in
+<webref url="http://aladin.u-strasbg.fr/">Aladin</webref> and use the
+<ref id="SendSkyPosActivationType">Send Sky Coordinates</ref> action
+to communicate with it.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>RA Column</dt>
+<dt>Dec Column</dt>
+<dd><p>Identifies the table columns representing coordinates.
+    For sky data, these are in ICRS, but in the case of planetary data
+    they just represent longitude and latitude.
+    </p></dd>
+<dt>Field of View</dt>
+<dd><p>Gives the angular size of the cutout on the sky.
+    In most cases this will be a fixed value such as 1 degree or 45 arcsec,
+    but you can choose a table <ref id="jel">expression</ref> instead,
+    for instance the name of a column giving the source radius.
+    </p></dd>
+<dt>HiPS Survey</dt>
+<dd><p>Selects the survey from which the cutout is taken.
+    The <label>Select</label> button on the right opens a menu
+    with a hierarchical list of available surveys,
+    including numerous sky and planetary/solar system object datasets.
+    A little icon is displayed next to each survey in the menu
+    indicating fractional sky coverage - a filled in circle indicates
+    that the whole sky (or planet) is covered.
+    If a HiPS has been selected from the menu, its full identifier
+    and coverage icon is displayed below the entry field.
+    It is also possible to type the full or partial survey name
+    directly into the entry field.
+    </p></dd>
+<dt>Size in Pixels</dt>
+<dd><p>The width of the acquired image in pixels.
+    The image is square, so this is also its height.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="SendHips2fitsActivationType">
+<subhead><title>Send HiPS Cutout</title></subhead>
+
+<figure>
+<caption><px>Configuration for Send HiPS Cutout action</px></caption>
+<figureimage src="&FIG.SendHips2fitsActivationType;"/>
+<!-- mars1k.fits -->
+</figure>
+
+<p>The <label>Send HiPS Cutout</label> action uses the
+<webref url="http://alasky.u-strasbg.fr/hips-image-services/hips2fits"
+        >hips2fits</webref>
+service at CDS to get the URL of a resampled image at the activated row's
+sky position and asks an external image viewer application to load it
+via <ref id="interop">SAMP</ref>.
+The data is taken from a Hierarchical Progressive Survey (HiPS),
+an all-sky image data set.
+</p>
+
+<p>Since the <webref url="http://aladin.u-strasbg.fr/">Aladin</webref>
+viewer already has all-sky viewing of HiPS datasets built in,
+you may find it better to load the HiPS directly into Aladin and use the
+<ref id="SendSkyPosActivationType">Send Sky Coordinates</ref> action
+to communicate with it.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>RA Column</dt>
+<dt>Dec Column</dt>
+<dd><p>Identifies the table columns representing coordinates.
+    For sky data, these are in ICRS, but in the case of planetary data
+    they just represent longitude and latitude.
+    </p></dd>
+<dt>Field of View</dt>
+<dd><p>Gives the angular size of the cutout on the sky.
+    In most cases this will be a fixed value such as 1 degree or 45 arcsec,
+    but you can choose a table <ref id="jel">expression</ref> instead,
+    for instance the name of a column giving the source radius.
+    </p></dd>
+<dt>HiPS Survey</dt>
+<dd><p>Selects the survey from which the cutout is taken.
+    The <label>Select</label> button on the right opens a menu
+    with a hierarchical list of available surveys,
+    including numerous sky and planetary/solar system object datasets;
+    note this only includes surveys with FITS (rather than just image) content.
+    A little icon is displayed next to each survey in the menu
+    indicating fractional sky coverage - a filled in circle indicates
+    that the whole sky (or planet) is covered.
+    If a HiPS has been selected from the menu, its full identifier
+    and coverage icon is displayed below the entry field.
+    It is also possible to type the full or partial survey name
+    directly into the entry field.
+    </p></dd>
+<dt>Size in Pixels</dt>
+<dd><p>The width of the acquired image in pixels.
+    The image is square, so this is also its height.
+    </p></dd>
+<dt>Image Viewer</dt>
+<dd><p>Determines which external client(s) to send the image URLs to.
+    The default is "All Clients" which will send it to all eligible
+    applications, but you can select just one.  Clicking the selector
+    also serves to indicate which clients capable of acting on this
+    message type are currently registered.  If there are none,
+    the action will be disabled.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="ViewImageActivationType">
 <subhead><title>Display Image</title></subhead>
 
@@ -28712,6 +28858,10 @@ introduced since the last version:
     <li>Move some URL-related expression language functions from
         <ref id="Strings">Strings</ref> to new class
         <ref id="URLs">URLs</ref>.</li>
+    <li>New activation actions
+        <ref id="ViewHips2fitsActivationType">Display HiPS Cutout</ref>
+        and
+        <ref id="SendHips2fitsActivationType">Send HiPS Cutout</ref>.</li>
     </ul>
     </p></dd>
 
