@@ -12273,6 +12273,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         avoiding some <code>E_KEYX</code> errors.</li>
     <li>JSAMP to version 1.3.6.</li>
     <li>Add new colour map Cividis.</li>
+    <li>Move some URL-related expression language functions from
+        <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>
+        to new class
+        <ref id="uk.ac.starlink.ttools.func.URLs">URLs</ref>.</li>
     </ul>
     </p></dd>
 

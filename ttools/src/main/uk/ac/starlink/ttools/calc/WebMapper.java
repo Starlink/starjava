@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.GregorianCalendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import uk.ac.starlink.ttools.func.Strings;
+import uk.ac.starlink.ttools.func.URLs;
 import uk.ac.starlink.util.URLUtils;
 
 /**
@@ -183,7 +183,7 @@ public abstract class WebMapper {
         return new WebMapper( name ) {
             public URL toUrl( String txt ) {
                 return bibcodeRegex.matcher( txt ).matches()
-                     ? stringToUrl( urlPrefix + Strings.urlEncode( txt ) )
+                     ? stringToUrl( urlPrefix + URLs.urlEncode( txt ) )
                      : null;
             }
         };
@@ -214,7 +214,7 @@ public abstract class WebMapper {
                        .append( urlPrefix )
                        .append( doiPrefix )
                        .append( '/' )
-                       .append( Strings.urlEncode( doiSuffix ) )
+                       .append( URLs.urlEncode( doiSuffix ) )
                        .toString() );
                 }
                 else {
@@ -290,7 +290,7 @@ public abstract class WebMapper {
             public URL toUrl( String txt ) {
                 return txt == null || txt.trim().length() == 0
                      ? null
-                     : stringToUrl( urlPrefix + Strings.urlEncode( txt ) );
+                     : stringToUrl( urlPrefix + URLs.urlEncode( txt ) );
             } 
         };
     }

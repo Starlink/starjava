@@ -28709,6 +28709,9 @@ introduced since the last version:
         buttons at the bottom of the subset list in the
         <ref id="tableDataControl">Data Layer Control</ref>
         Subsets tab.</li>
+    <li>Move some URL-related expression language functions from
+        <ref id="Strings">Strings</ref> to new class
+        <ref id="URLs">URLs</ref>.</li>
     </ul>
     </p></dd>
 

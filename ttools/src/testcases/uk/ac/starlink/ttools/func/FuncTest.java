@@ -631,8 +631,8 @@ public class FuncTest extends TestCase {
         assertEquals( "some text", Strings.trim( "  some text  " ) );
         assertEquals( "some text", Strings.trim( "some text" ) );
 
-        assertEquals( "RR%20Lyr", Strings.urlEncode( "RR Lyr" ) );
-        assertEquals( "RR Lyr", Strings.urlDecode( "RR%20Lyr" ) );
+        assertEquals( "RR%20Lyr", URLs.urlEncode( "RR Lyr" ) );
+        assertEquals( "RR Lyr", URLs.urlDecode( "RR%20Lyr" ) );
 
         // These examples from sec 3.5.1 of IAU-endorsed document
         // "Specifications concerning designations" at
@@ -652,33 +652,33 @@ public class FuncTest extends TestCase {
         assertTrue( Double.isNaN( Strings.desigToDec( "TYC J190012230210" ) ) );
 
         assertEquals( "https://ui.adsabs.harvard.edu/abs/2018A%26A...616A...2L",
-                      Strings.bibcodeUrl( "2018A&A...616A...2L" ) );
-        assertNull( Strings.bibcodeUrl( null ) );
-        assertNull( Strings.bibcodeUrl( "Fredor" ) );
+                      URLs.bibcodeUrl( "2018A&A...616A...2L" ) );
+        assertNull( URLs.bibcodeUrl( null ) );
+        assertNull( URLs.bibcodeUrl( "Fredor" ) );
         assertEquals( "https://doi.org/10.3390/informatics4030018",
-                      Strings.doiUrl( "10.3390/informatics4030018" ) );
+                      URLs.doiUrl( "10.3390/informatics4030018" ) );
         assertEquals( "https://doi.org/10.3390/informatics4030018",
-                      Strings.doiUrl( "doi:10.3390/informatics4030018" ) );
-        assertNull( Strings.doiUrl( "Fredor" ) );
-        assertNull( Strings.doiUrl( null ) );
+                      URLs.doiUrl( "doi:10.3390/informatics4030018" ) );
+        assertNull( URLs.doiUrl( "Fredor" ) );
+        assertNull( URLs.doiUrl( null ) );
         assertEquals( "https://arxiv.org/abs/1804.09379",
-                      Strings.arxivUrl( "1804.09379" ) );
+                      URLs.arxivUrl( "1804.09379" ) );
         assertEquals( "https://arxiv.org/abs/1804.09379",
-                      Strings.arxivUrl( "arXiv:1804.09379" ) );
+                      URLs.arxivUrl( "arXiv:1804.09379" ) );
         assertEquals( "https://arxiv.org/abs/1110.0528",
-                      Strings.arxivUrl( "arxiv:1110.0528" ) );
-        assertNull( Strings.arxivUrl( null ) );
-        assertNull( Strings.arxivUrl( "Fredor" ) );
+                      URLs.arxivUrl( "arxiv:1110.0528" ) );
+        assertNull( URLs.arxivUrl( null ) );
+        assertNull( URLs.arxivUrl( "Fredor" ) );
 
         assertEquals( "http://simbad.u-strasbg.fr/simbad/sim-id?Ident="
                     + "Beta%20Pictoris",
-                      Strings.simbadUrl( "Beta Pictoris" ) );
-        assertNull( Strings.simbadUrl( null ) );
-        assertNull( Strings.simbadUrl( " " ) );
+                      URLs.simbadUrl( "Beta Pictoris" ) );
+        assertNull( URLs.simbadUrl( null ) );
+        assertNull( URLs.simbadUrl( " " ) );
         assertEquals( "http://ned.ipac.caltech.edu/byname?objname=NGC%203952",
-                      Strings.nedUrl( "NGC 3952" ) );
-        assertNull( Strings.nedUrl( null ) );
-        assertNull( Strings.nedUrl( "    " ) );
+                      URLs.nedUrl( "NGC 3952" ) );
+        assertNull( URLs.nedUrl( null ) );
+        assertNull( URLs.nedUrl( "    " ) );
     }
 
     public void testURLs() {
