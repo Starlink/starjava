@@ -80,7 +80,7 @@ public class LabelledComponentStack extends JPanel {
         }
 
         /* Add the name. */
-        JLabel nameComp = new JLabel( name + ":  " );
+        JLabel nameComp = new JLabel( name == null ? null : ( name + ":  " ) );
         GridBagConstraints cons1 = (GridBagConstraints) cons_.clone();
         cons1.gridx = 0;
         cons1.anchor = GridBagConstraints.EAST;
