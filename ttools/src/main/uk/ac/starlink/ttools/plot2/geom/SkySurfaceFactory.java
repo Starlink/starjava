@@ -28,6 +28,7 @@ import uk.ac.starlink.ttools.plot2.data.AbortTupleSequence;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.SkyCoord;
+import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
@@ -331,6 +332,9 @@ public class SkySurfaceFactory
         DataStore lazyStore = new DataStore() {
             public boolean hasData( DataSpec dataSpec ) {
                 return dataStore.hasData( dataSpec );
+            }
+            public TupleRunner getTupleRunner() {
+                return dataStore.getTupleRunner();
             }
             public TupleSequence getTupleSequence( DataSpec dataSpec ) {
                 if ( isFullSky() ) {

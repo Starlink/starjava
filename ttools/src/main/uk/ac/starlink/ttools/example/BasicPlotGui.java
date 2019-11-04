@@ -52,6 +52,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.SimpleDataStoreFactory;
+import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
@@ -132,7 +133,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
         /* Note a CachedDataStoreFactory or some other implementation
          * could be more appropriate here depending on performance
          * and scalability constraints etc. */
-        dstoreFact_ = new SimpleDataStoreFactory();
+        dstoreFact_ = new SimpleDataStoreFactory( TupleRunner.DEFAULT );
 
         /* Prepare GUI. */
         inputPanel_ = createInputPanel( plotter, geom_, sfact_, table );

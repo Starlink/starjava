@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.SimpleDataStoreFactory;
+import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
@@ -136,7 +137,8 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         for ( int il = 0; il < nl; il++ ) {
             dataSpecs[ il ] = layers[ il ].getDataSpec();
         }
-        DataStoreFactory storeFact = new SimpleDataStoreFactory();
+        TupleRunner tupleRunner = TupleRunner.DEFAULT;
+        DataStoreFactory storeFact = new SimpleDataStoreFactory( tupleRunner );
         DataStore dataStore = storeFact.readDataStore( dataSpecs, null );
 
         /* Rendering details. */

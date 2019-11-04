@@ -6,6 +6,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.MemoryColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.SmartColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.SimpleDataStoreFactory;
+import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 
 /**
  * Parameter to control the way that plot data is cached prior to
@@ -16,19 +17,22 @@ import uk.ac.starlink.ttools.plot2.data.SimpleDataStoreFactory;
  */
 public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
 
+    /** TupleRunner instance used for DataStoreFactories. */
+    private static final TupleRunner TUPLE_RUNNER = TupleRunner.DEFAULT;
+
     /** Simple storage: data is read on demand from table every time. */
     public static final DataStoreFactory SIMPLE =
-        new SimpleDataStoreFactory();
+        new SimpleDataStoreFactory( TUPLE_RUNNER );
 
     /** Cached storage: data is first read into arrays in memory. */
     public static final DataStoreFactory BASIC_CACHE =
-        new CachedDataStoreFactory( new MemoryColumnFactory() );
+        new CachedDataStoreFactory( new MemoryColumnFactory(), TUPLE_RUNNER );
 
     /** Smart cached storage: like BASIC_CACHE but tries to spot
      * non-varying columns etc for more efficient storage. */
     public static final DataStoreFactory SMART_CACHE =
         new CachedDataStoreFactory(
-            new SmartColumnFactory( new MemoryColumnFactory() ) );
+            new SmartColumnFactory( new MemoryColumnFactory() ), TUPLE_RUNNER );
 
     /**
      * Constructor.

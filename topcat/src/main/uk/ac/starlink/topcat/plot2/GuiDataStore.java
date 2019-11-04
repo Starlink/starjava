@@ -5,6 +5,7 @@ import javax.swing.BoundedRangeModel;
 import uk.ac.starlink.ttools.plot2.data.AbortTupleSequence;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.data.WrapperTuple;
 
@@ -78,6 +79,10 @@ public class GuiDataStore implements DataStore {
         return progresser_ == null
              ? tseq
              : new ProgressTupleSequence( tseq, progresser_ );
+    }
+
+    public TupleRunner getTupleRunner() {
+        return base_.getTupleRunner();
     }
 
     /**

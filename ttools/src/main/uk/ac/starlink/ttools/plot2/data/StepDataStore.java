@@ -34,6 +34,10 @@ public class StepDataStore implements DataStore {
         return baseStore_.hasData( spec );
     }
 
+    public TupleRunner getTupleRunner() {
+        return baseStore_.getTupleRunner();
+    }
+
     /**
      * TupleSequence implementation for StepDataStore.
      */

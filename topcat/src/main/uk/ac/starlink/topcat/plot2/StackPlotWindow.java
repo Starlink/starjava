@@ -103,6 +103,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.MemoryColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.SmartColumnFactory;
+import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 
@@ -205,7 +206,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         surfFact_ = plotType_.getSurfaceFactory();
         DataStoreFactory storeFact =
             new CachedDataStoreFactory(
-                new SmartColumnFactory( new MemoryColumnFactory() ) );
+                new SmartColumnFactory( new MemoryColumnFactory() ),
+                TupleRunner.DEFAULT );
         sketchModel_ =
             new ToggleButtonModel( "Sketch Frames", ResourceIcon.SKETCH,
                                    "Draw intermediate frames from subsampled "

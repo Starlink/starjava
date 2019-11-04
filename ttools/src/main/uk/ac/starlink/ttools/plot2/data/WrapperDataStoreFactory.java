@@ -104,6 +104,10 @@ public abstract class WrapperDataStoreFactory implements DataStoreFactory {
         public boolean hasData( DataSpec spec ) {
             return baseStore_.hasData( new WrapperDataSpec( spec ) );
         }
+
+        public TupleRunner getTupleRunner() {
+            return baseStore_.getTupleRunner();
+        }
     }
 
     /**

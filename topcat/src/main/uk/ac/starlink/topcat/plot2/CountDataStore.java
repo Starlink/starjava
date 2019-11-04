@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot2;
 
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.data.WrapperTuple;
 
@@ -51,6 +52,10 @@ public class CountDataStore implements DataStore {
                                  : -1;
         return new TruncatedTupleSequence( base_.getTupleSequence( spec ),
                                            maxCount_ );
+    }
+
+    public TupleRunner getTupleRunner() {
+        return base_.getTupleRunner();
     }
 
     /**

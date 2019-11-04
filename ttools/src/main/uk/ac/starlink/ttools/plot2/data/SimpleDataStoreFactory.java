@@ -21,8 +21,19 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
  */
 public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
 
+    private final TupleRunner runner_;
+
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
+
+    /**
+     * Constructor.
+     *
+     * @param  runner  tuple runner dispensed with DataStores
+     */
+    public SimpleDataStoreFactory( TupleRunner runner ) {
+        runner_ = runner;
+    }
 
     public boolean hasData( DataSpec spec ) {
         return true;
@@ -50,6 +61,10 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
                 return PlotUtil.EMPTY_TUPLE_SEQUENCE;
             }
         }
+    }
+
+    public TupleRunner getTupleRunner() {
+        return runner_;
     }
 
     /**

@@ -1,7 +1,5 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import java.util.Iterator;
-
 /**
  * Contains all the actual data required for a plot.
  * To extract usable data for a plot, a suitable {@link DataSpec} object
@@ -16,6 +14,11 @@ import java.util.Iterator;
  * destroyed as required.
  * As a rule therefore, DataStore objects should be managed by a single class,
  * and references not kept to them by any other potentially long-lived objects.
+ *
+ * <p>This class also contains a TupleRunner, which manages how TupleSequences
+ * acquired from it are used.  Although the TupleRunner is not part of
+ * the stored data, it is always used in the same places as a DataStore,
+ * so it is convenient to carry it around in the same object.
  *
  * <p>Obtain an instance of this class from a {@link DataStoreFactory}.
  * 
@@ -42,4 +45,15 @@ public interface DataStore {
      * @return  sequence of values which can be used to perform a plot
      */
     TupleSequence getTupleSequence( DataSpec spec );
+
+    /**
+     * Returns an object that manages iteration over tuples.
+     * Where possible, the returned TupleRunner should be used for iteration
+     * when using this DataStore, since it contains the chosen policy for
+     * parallel execution.  If only sequential processing is supported
+     * however, TupleSequences acquired from this store can be used directly.
+     *
+     * @return   tuple runner
+     */
+    TupleRunner getTupleRunner();
 }

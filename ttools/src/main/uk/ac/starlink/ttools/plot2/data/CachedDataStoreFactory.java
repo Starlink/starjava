@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.Slow;
 public class CachedDataStoreFactory implements DataStoreFactory {
 
     private final CachedColumnFactory colFact_;
+    private final TupleRunner runner_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -34,9 +35,12 @@ public class CachedDataStoreFactory implements DataStoreFactory {
      *
      * @param   colFact  object which provides the storage for caching
      *                   arrays of typed data
+     * @param   runner  tuple runner dispensed with DataStores
      */
-    public CachedDataStoreFactory( CachedColumnFactory colFact ) {
+    public CachedDataStoreFactory( CachedColumnFactory colFact,
+                                   TupleRunner runner ) {
         colFact_ = colFact;
+        runner_ = runner;
     }
 
     // how about weak links for all known columns, new methods
@@ -54,14 +58,14 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         CacheSpec needSpec = createCacheSpec( dataSpecs );
         CacheData gotData = prevStore instanceof CacheData
                           ? ((CacheData) prevStore)
-                          : new CacheData();
+                          : new CacheData( runner_ );
         CacheSpec makeSpec = needSpec.subtract( gotData.getSpec() );
         if ( makeSpec.isEmpty() ) {
             return prevStore;
         }
         else {
             CacheData oldData = gotData.retain( needSpec );
-            CacheData makeData = makeSpec.readData( colFact_ );
+            CacheData makeData = makeSpec.readData( colFact_, runner_ );
             CacheData useData = makeData.add( oldData );
             return useData;
         }
@@ -97,13 +101,15 @@ public class CachedDataStoreFactory implements DataStoreFactory {
      * @param   maskSet  required masks
      * @param   coordSet  required coordinates
      * @param   colFact   supplies data storage objects
+     * @param   runner  tuple runner dispensed with DataStores
      * @return   data object containing required data
      */
     @Slow
     private static CacheData readCacheData( StarTable table,
                                             Set<MaskSpec> maskSet,
                                             Set<CoordSpec> coordSet,
-                                            CachedColumnFactory colFact )
+                                            CachedColumnFactory colFact,
+                                            TupleRunner runner )
             throws IOException, InterruptedException {
         MaskSpec[] masks = maskSet.toArray( new MaskSpec[ 0 ] );
         CoordSpec[] coords = coordSet.toArray( new CoordSpec[ 0 ] );
@@ -155,7 +161,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         for ( int ic = 0; ic < nc; ic++ ) {
             cMap.put( coords[ ic ], coordCols[ ic ] );
         }
-        return new CacheData( mMap, cMap );
+        return new CacheData( runner, mMap, cMap );
     }
 
     /**
@@ -226,10 +232,11 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          * CacheData.
          *
          * @param   colFact  factory supplying actual column data storage
+         * @param   runner  tuple runner dispensed with DataStores
          * @return  data object containing all data specified by this object
          */
         @Slow
-        CacheData readData( CachedColumnFactory colFact )
+        CacheData readData( CachedColumnFactory colFact, TupleRunner runner )
                 throws IOException, InterruptedException {
             Level level = Level.INFO;
             if ( logger_.isLoggable( level ) ) {
@@ -243,11 +250,11 @@ public class CachedDataStoreFactory implements DataStoreFactory {
                     .toString();
                 logger_.log( level, msg );
             }
-            CacheData data = new CacheData();
+            CacheData data = new CacheData( runner );
             for ( StarTable table : getTables() ) {
                 CacheData tData =
                     readCacheData( table, getMasks( table ), getCoords( table ),
-                                   colFact );
+                                   colFact, runner );
                 data = data.add( tData );
             }
             return data;
@@ -317,15 +324,19 @@ public class CachedDataStoreFactory implements DataStoreFactory {
     private static class CacheData implements DataStore {
         private final Map<MaskSpec,CachedColumn> mMap_;
         private final Map<CoordSpec,CachedColumn> cMap_;
+        private final TupleRunner runner_;
  
         /**
          * Constructs a CacheData from data maps.
          *
+         * @param   runner  tuple runner
          * @param   mMap  map of mask data, keyed by mask spec
          * @param   cMap  map of coordinate data, keyed by coord spec
          */
-        CacheData( Map<MaskSpec,CachedColumn> mMap,
+        CacheData( TupleRunner runner,
+                   Map<MaskSpec,CachedColumn> mMap,
                    Map<CoordSpec,CachedColumn> cMap ) {
+            runner_ = runner;
             mMap_ = new HashMap<MaskSpec,CachedColumn>( mMap );
             cMap_ = new HashMap<CoordSpec,CachedColumn>( cMap );
         }
@@ -333,18 +344,21 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         /**
          * Clone constructor.
          *
+         * @param   runner  tuple runner
          * @param  cloned   object whos data is to be copied (by reference)
          */
-        CacheData( CacheData cloned ) {
-            this( cloned.mMap_, cloned.cMap_ );
+        CacheData( TupleRunner runner, CacheData cloned ) {
+            this( cloned.runner_, cloned.mMap_, cloned.cMap_ );
         }
 
         /**
          * Constructs a CacheData with no data.
+         *
+         * @param   runner  tuple runner
          */
-        CacheData() {
-            this( new HashMap<MaskSpec,CachedColumn>(),
-                  new HashMap<CoordSpec,CachedColumn>() );
+        CacheData( TupleRunner runner ) {
+            this( runner, new HashMap<MaskSpec,CachedColumn>(),
+                          new HashMap<CoordSpec,CachedColumn>() );
         }
 
         /**
@@ -363,7 +377,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          * @return   new data object containing union
          */
         CacheData add( CacheData other ) {
-            CacheData result = new CacheData( this.mMap_, this.cMap_ );
+            CacheData result = new CacheData( runner_, this.mMap_, this.cMap_ );
             result.mMap_.putAll( other.mMap_ );
             result.cMap_.putAll( other.cMap_ );
             return result;
@@ -377,7 +391,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          * @return  new intersection data object
          */
         CacheData retain( CacheSpec spec ) {
-            CacheData result = new CacheData( this.mMap_, this.cMap_ );
+            CacheData result = new CacheData( runner_, this.mMap_, this.cMap_ );
             result.mMap_.keySet().retainAll( spec.mSet_ );
             result.cMap_.keySet().retainAll( spec.cSet_ );
             return result;
@@ -433,6 +447,10 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         public TupleSequence getTupleSequence( DataSpec spec ) {
             return new CachedTupleSequence( getMask( spec ),
                                             getColumns( spec ) );
+        }
+
+        public TupleRunner getTupleRunner() {
+            return runner_;
         }
     }
 

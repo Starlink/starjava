@@ -28,9 +28,11 @@ import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
  * Miscellaneous utilities for use with the plotting classes.
@@ -459,6 +461,24 @@ public class PlotUtil {
             }
         };
     }
+
+    /**
+     * Convenience TupleRunner collection method using a DataStore and DataSpec.
+     * Default accumulator pooling policy is used (no pool).
+     *
+     * @param   collector  collector
+     * @param   dataSpec   data spec
+     * @param   dataStore   data store, supplying both the data and the runner
+     * @return   collected result
+     */
+    @Slow
+    public static <A> A tupleCollect( SplitCollector<TupleSequence,A> collector,
+                                      DataSpec dataSpec, DataStore dataStore ) {
+        return dataStore.getTupleRunner()
+              .collect( collector,
+                        () -> dataStore.getTupleSequence( dataSpec ) );
+    }
+
 
     /**
      * Extends existing range objects using range information
