@@ -32,6 +32,7 @@ import javax.swing.JLabel;
 import javax.swing.KeyStroke;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.task.InvokeUtils;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
@@ -40,6 +41,10 @@ import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.PictureImageIcon;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.SplitRunner;
+import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
+import uk.ac.starlink.ttools.plot2.data.SimpleDataStoreFactory;
+import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
 import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.MapEnvironment;
@@ -47,6 +52,8 @@ import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.ObjectFactory;
+import uk.ac.starlink.util.SplitPolicy;
+import uk.ac.starlink.util.SplitProcessor;
 import uk.ac.starlink.util.XmlWriter;
 
 /**
@@ -1287,6 +1294,19 @@ public class Plot2Example {
     }
 
     /**
+     * Returns a DataStoreFactory that will effectively force parallel
+     * execution of plots in most cases.  This is done by setting the
+     * minTaskSize to a low value (100).
+     *
+     * @return   DataStoreFactory favouring parallel execution
+     */
+    private static DataStoreFactory createForceParallelStorage() {
+        SplitPolicy policy = new SplitPolicy( null, 100, (short) 16 );
+        SplitRunner<?> splitRunner = SplitRunner.createStandardRunner( policy );
+        return new SimpleDataStoreFactory( new TupleRunner( splitRunner ) );
+    }
+
+    /**
      * Main method.  This is intended for invocation from the stilts/topcat
      * build systems.
      *
@@ -1306,6 +1326,8 @@ public class Plot2Example {
             .append( " [-dataDir <dir>]" )
             .append( " [-outDir <dir>]" )
             .append( " [-dataUrl <url>]" )
+            .append( " [-forceParallel]" )
+            .append( " [-verbose ...]" )
             .append( " [-help]" )
             .append( " [label ...]" )
             .toString();
@@ -1316,6 +1338,8 @@ public class Plot2Example {
         String outDir = ".";
         String dataUrl = null;
         Mode mode = Mode.swing;
+        boolean forceParallel = false;
+        int verbosity = -1;
         for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
             String arg = it.next();
             if ( "-mode".equalsIgnoreCase( arg ) ) {
@@ -1339,6 +1363,14 @@ public class Plot2Example {
                 dataUrl = it.next();
                 it.remove();
             }
+            else if ( arg.toLowerCase().startsWith( "-forcepar" ) ) {
+                it.remove();
+                forceParallel = true;
+            }
+            else if ( "-verbose".equalsIgnoreCase( arg ) ) {
+                it.remove();
+                verbosity++;
+            }
             else if ( arg.toLowerCase().startsWith( "-h" ) ) {
                 System.err.println( usage );
                 return;
@@ -1346,10 +1378,13 @@ public class Plot2Example {
         }
 
         /* Set up list of known examples and execution context. */
-        Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.SEVERE );
+        InvokeUtils.configureLogging( verbosity, false );
         Context context =
             new Context( new File( dataDir ), TName.NAMES,
                          new File( outDir ), toContextUrl( dataUrl ) );
+        if ( forceParallel ) {
+            context.envDefaults_.put( "storage", createForceParallelStorage() );
+        }
         Map<String,Plot2Example> exampleMap =
             new LinkedHashMap<String,Plot2Example>();
         for ( Plot2Example ex : createExamples( context ) ) {

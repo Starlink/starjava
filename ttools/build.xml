@@ -1343,6 +1343,33 @@
   </target>
 
   <!--
+   !  This does the same as plot2-examples but forces (most of) the plotting
+   !  execution to be done in parallel - in most cases it's done sequentially
+   !  by default because the example plots are non-huge.
+   !  This may produce slightly different results for some,
+   !  but (unless there is a problem) not most of the plot examples.
+   !-->
+  <target name="plot2-examples-par"
+        description="-> generate example graphics for plot2 commands (parallel)"
+          depends="build,plot2-figdata">
+    <echo message="Writing plot2 example files to ${src.docs.examp}"/>
+    <echo message="Input data from ${plot2.figdata.dir}"/>
+    <java classpathref="classpath"
+          classname="uk.ac.starlink.ttools.build.Plot2Example"
+          failonerror="yes"
+          fork="yes">
+      <arg value="-forceParallel"/>
+      <arg value="-dataDir"/>
+      <arg value="${plot2.figdata.dir}"/>
+      <arg value="-outDir"/>
+      <arg value="${src.docs.examp}"/>
+      <arg value="-mode"/>
+      <arg value="png"/>
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
+  </target>
+
+  <!--
    !   =====================================
    !   Acquires data files for example plots
    !   =====================================
