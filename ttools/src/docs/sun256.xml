@@ -959,6 +959,15 @@ on the command line is equivalent to having the following in your
     specified (see <ref id="stilts-flags"/>).
     </p></dd>
 
+<dt><code>java.util.concurrent.ForkJoinPool.common.parallelism</code></dt>
+<dd><p>Controls the level of parallelisation done by certain processing,
+    currently mainly visualisation.  By default it is typically set to
+    one less than the number of processing cores on the current machine.
+    To inhibit parallelisation (e.g. if you suspect that the parallel
+    output is giving different results to sequential processing)
+    you can set this to 1.
+    </p></dd>
+
 <dt><code>jdbc.drivers</code></dt>
 <dd><p>Can be set to a (colon-separated) list of JDBC driver classes
     using which SQL databases can be accessed
@@ -12261,6 +12270,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>
         to new class
         <ref id="uk.ac.starlink.ttools.func.URLs">URLs</ref>.</li>
+    <li>Most plot layer types, though not the intial data preparation,
+        will now run in parallel for large datasets.
+        This should make slow plots faster on multi-core machines.
+        In rare cases this multi-threading might cause problems with 
+        memory usage; it can be effectively turned off if required
+        by using the <ref id="sysProperties">system property</ref>
+        <code>java.util.concurrent.ForkJoinPool.common.parallelism</code>.
+        </li>
+    <li>Target platform is now Java 8.</li>
     </ul>
     </p></dd>
 
