@@ -21408,25 +21408,14 @@ to show imagery at the sky coordinates corresponding to that row.
 <webref url="http://alasky.u-strasbg.fr/hips-image-services/hips2fits"
         >hips2fits</webref>
 service at CDS to acquire a resampled image at the activated row's
-sky position and displays it in a no-frills image viewer window.
+sky (or planetary) position and displays it in a no-frills image
+viewer window.
 The data is taken from a Hierarchical Progressive Survey (HiPS),
 an all-sky image data set.
-</p>
-
-<p>If this doesn't invoke the hips2fits service in exactly the way
-you want it to, you can customise the behaviour by using the
-<ref id="ViewImageActivationType">Display Image</ref> action
-constructing your own custom hips2fits URL,
-perhaps by using the <code>hips2fitsUrl</code> function from the
-<ref id="URLs">URLs</ref> class.
-You can also use the
-<ref id="SendHips2fitsActivationType">Send HiPS Cutout</ref> action
-if you want to view the image in an external viewer such as Aladin or ds9.
-If you want to be able to zoom around the HiPS image however,
-the best thing might be to open the HiPS in
-<webref url="http://aladin.u-strasbg.fr/">Aladin</webref> and use the
-<ref id="SendSkyPosActivationType">Send Sky Coordinates</ref> action
-to communicate with it.
+There are several hundred HiPS available providing imagery for
+many important sky and planetary survey datasets, so this easy
+to use activation action is often a good option for viewing
+imagery associated with activated positions.
 </p>
 
 <p>Configuration:
@@ -21449,10 +21438,11 @@ to communicate with it.
     with a hierarchical list of available surveys,
     including numerous sky and planetary/solar system object datasets.
     A little icon is displayed next to each survey in the menu
-    indicating fractional sky coverage - a filled in circle indicates
+    indicating fractional sky coverage - a filled in ellipse indicates
     that the whole sky (or planet) is covered.
     If a HiPS has been selected from the menu, its full identifier
-    and coverage icon is displayed below the entry field.
+    and coverage icon is displayed below the entry field;
+    hovering over these with the mouse gives a bit more information.
     It is also possible to type the full or partial survey name
     directly into the entry field.
     </p></dd>
@@ -21461,6 +21451,24 @@ to communicate with it.
     The image is square, so this is also its height.
     </p></dd>
 </dl>
+</p>
+
+<p><em>Alternatives:</em>
+The hips2fits service is very flexible.
+If this action doesn't invoke it in exactly the way
+you want it to, you can customise the behaviour by using the
+<ref id="ViewImageActivationType">Display Image</ref> action instead
+constructing your own custom hips2fits URL,
+perhaps by using the <code>hips2fitsUrl</code> function from the
+<ref id="URLs">URLs</ref> class.
+You can also use the
+<ref id="SendHips2fitsActivationType">Send HiPS Cutout</ref> action
+if you want to view the image in an external viewer such as Aladin or ds9.
+If you want to be able to zoom around the HiPS image however,
+the best thing might be to open the HiPS in
+<webref url="http://aladin.u-strasbg.fr/">Aladin</webref> and use the
+<ref id="SendSkyPosActivationType">Send Sky Coordinates</ref> action
+to communicate with it.
 </p>
 
 </subsubsubsect>
@@ -21512,10 +21520,11 @@ to communicate with it.
     including numerous sky and planetary/solar system object datasets;
     note this only includes surveys with FITS (rather than just image) content.
     A little icon is displayed next to each survey in the menu
-    indicating fractional sky coverage - a filled in circle indicates
+    indicating fractional sky coverage - a filled in ellipse indicates
     that the whole sky (or planet) is covered.
     If a HiPS has been selected from the menu, its full identifier
-    and coverage icon is displayed below the entry field.
+    and coverage icon is displayed below the entry field;
+    hovering over these with the mouse gives a bit more information.
     It is also possible to type the full or partial survey name
     directly into the entry field.
     </p></dd>

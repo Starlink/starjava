@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -387,11 +388,16 @@ public class HipsSelector extends JPanel {
      * Returns a little icon that conveys the impression of fractional
      * coverage of the sky.
      *
-     * @param   fraction  fraction, may be NaN
+     * @param   fraction  coverage fraction; if not in range 0..1,
+     *                    the output icon has no visible content
      * @return  icon
      */
     private static Icon createCoverageIcon( final double fraction ) {
-        final int size = 10;
+        final int fullHeight = 10;
+        final int off = 1;
+        final int h = fullHeight - 2 * off;
+        final int w = h * 2;
+        final int fullWidth = w + 2 * off;
         if ( fraction >= 0 && fraction <= 1 ) {
             final Map<RenderingHints.Key,Object> hints =
                 new HashMap<RenderingHints.Key,Object>();
@@ -399,29 +405,34 @@ public class HipsSelector extends JPanel {
                        RenderingHints.VALUE_ANTIALIAS_ON );
             hints.put( RenderingHints.KEY_RENDERING,
                        RenderingHints.VALUE_RENDER_QUALITY );
-            final int off = 1;
-            final int s1 = size - 2 * off;
-            final int s2 = s1 / 2;
             return new Icon() {
                 public int getIconWidth() {
-                    return size;
+                    return fullWidth;
                 }
                 public int getIconHeight() {
-                    return size;
+                    return fullHeight;
                 }
                 public void paintIcon( Component c, Graphics g, int x, int y ) {
                     Graphics2D g2 = (Graphics2D) g.create();
                     int x0 = x + off;
                     int y0 = y + off;
                     g2.addRenderingHints( hints );
-                    g2.drawLine( x0 + s2, y0 + s2, x0 + s2, y0 );
-                    g2.fillArc( x0, y0, s1, s1, 90, (int) ( fraction * -360 ) );
-                    g2.drawArc( x0, y0, s1, s1, 90, 360 );
+                    g2.drawOval( x0, y0, w, h );
+                    g2.clip( new Ellipse2D.Double( x0, y0, w + 1, h + 1 ) );
+
+                    /* Fill the ellipse up from the left to indicate the
+                     * amount of coverage.  This is currently just done
+                     * linearly in X, so the proportion of filled pixels
+                     * in the ellipse does not correspond very accurately
+                     * to the coverage area, but it's enough to get the idea.
+                     * If you want to do the (simple) maths to get it right,
+                     * please go ahead. */
+                    g2.fillRect( x0, y0, (int) Math.ceil( w * fraction ), h );
                 }
             };
         }
         else {
-            return IconUtils.emptyIcon( size, size );
+            return IconUtils.emptyIcon( fullWidth, fullHeight );
         }
     }
 
