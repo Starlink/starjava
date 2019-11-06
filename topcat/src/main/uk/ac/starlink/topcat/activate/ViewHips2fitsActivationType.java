@@ -53,7 +53,7 @@ public class ViewHips2fitsActivationType implements ActivationType {
                 if ( imwin_ == null ) {
                     imwin_ = new ImageWindow( null );
                 }
-                String url = URLs.hips2fitsUrl( hipsId, "png", raDeg, decDeg,
+                String url = URLs.hips2fitsUrl( hipsId, "jpg", raDeg, decDeg,
                                                 fovDeg, npix );
                 logger_.info( "View image " + url );
                 final BufferedImage image;
