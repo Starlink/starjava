@@ -185,8 +185,13 @@ public class HipsSelector extends JPanel {
         }
         idField_.setText( survey == null ? null : survey.getCreatorDid() );
         idField_.setCaretPosition( 0 );
-        iconLabel_.setIcon( survey == null ? null
-                                           : createCoverageIcon( survey ) );
+        idField_.setToolTipText( survey == null ? null : survey.getObsTitle() );
+        double frac = survey == null ? Double.NaN : survey.getMocSkyFraction();
+        iconLabel_.setIcon( createCoverageIcon( frac ) );
+        iconLabel_.setToolTipText( frac >= 0 && frac <= 1
+                                 ? "Sky Coverage: " + ((int) (100 * frac)) + "%"
+                                 : null );
+                             
         forwarder_.actionPerformed( new ActionEvent( this, 0, "select" ) );
     }
 
@@ -206,7 +211,9 @@ public class HipsSelector extends JPanel {
             assert nchild == 0;
             String displayName = survey.getShortName();
             String descrip = survey.getObsTitle();
-            Icon icon = createCoverageIcon( survey );
+            double frac = survey == null ? Double.NaN
+                                         : survey.getMocSkyFraction();
+            Icon icon = createCoverageIcon( frac );
             return new JMenuItem( new BasicAction( displayName,
                                                    icon, descrip ) {
                 public void actionPerformed( ActionEvent evt ) {
@@ -378,18 +385,14 @@ public class HipsSelector extends JPanel {
 
     /**
      * Returns a little icon that conveys the impression of fractional
-     * coverage of the sky for a given HiPS.
+     * coverage of the sky.
      *
-     * @param   survey  hips
+     * @param   fraction  fraction, may be NaN
      * @return  icon
      */
-    private static Icon createCoverageIcon( HipsSurvey survey ) {
+    private static Icon createCoverageIcon( final double fraction ) {
         final int size = 10;
-        if ( survey == null ) {
-            return IconUtils.emptyIcon( size, size );
-        }
-        else {
-            final double fraction = survey.getMocSkyFraction();
+        if ( fraction >= 0 && fraction <= 1 ) {
             final Map<RenderingHints.Key,Object> hints =
                 new HashMap<RenderingHints.Key,Object>();
             hints.put( RenderingHints.KEY_ANTIALIASING,
@@ -416,6 +419,9 @@ public class HipsSelector extends JPanel {
                     g2.drawArc( x0, y0, s1, s1, 90, 360 );
                 }
             };
+        }
+        else {
+            return IconUtils.emptyIcon( size, size );
         }
     }
 
