@@ -31,11 +31,11 @@ public class URLs {
         "-_.~";
 
     /** Base URL for CDS hips2fits service. */
-    public static final String HIPS2FITS_BASE =
+    private static final String HIPS2FITS_BASE =
         "http://alasky.u-strasbg.fr/hips-image-services/hips2fits";
 
     /** Alternative base URL for CDS hips2fits service. */
-    public static final String HIPS2FITS_BASE2 =
+    private static final String HIPS2FITS_BASE2 =
         "http://alaskybis.u-strasbg.fr/hips-image-services/hips2fits";
 
     /**
@@ -319,7 +319,7 @@ public class URLs {
      * @param  hipsId  identifier or partial identifier for the HiPS survey
      * @param  fmt    required output format, for instance
      *                "<code>fits</code>", "<code>png</code>",
-     *                "<code>jpeg</code>"
+     *                "<code>jpg</code>"
      * @param  raDeg  central Right Ascension (longitude) in degrees
      * @param  decDeg  central Declination (latitude) in degrees
      * @param  fovDeg  field of view; extent of the cutout in degrees
@@ -333,18 +333,31 @@ public class URLs {
         int decPlaces = - (int) Math.floor( Maths.log10( pixSizeDeg ) );
         int ndp = Math.max( decPlaces + 1, 0 );
         double fovEps = fovDeg / npix;
-        Map<String,String> pmap = new LinkedHashMap<String,String>();
-        pmap.put( "hips", hipsId );
-        pmap.put( "format", fmt );
-        pmap.put( "ra", Formats.formatDecimal( raDeg, ndp )
-                               .replaceFirst( "0+$", "" ) );
-        pmap.put( "dec", Formats.formatDecimal( decDeg, ndp )
-                                .replaceFirst( "0+$", "" ) );
-        pmap.put( "fov", PlotUtil.formatNumber( fovDeg, fovEps ) );
-        pmap.put( "width", Integer.toString( npix ) );
-        pmap.put( "height", Integer.toString( npix ) );
-        pmap.put( "projection", "SIN" );
-        return paramsUrl( HIPS2FITS_BASE, pmap );
+
+        /* Assemble this by hand because the URL-encoding of HIPS ID
+         * is not necessary for the Hips2fits service and it makes
+         * the URL less human-readable.  The other fields are not
+         * going to need URL-encoding anyway. */
+        return new StringBuffer()
+           .append( HIPS2FITS_BASE )
+           .append( "?hips=" )
+           .append( hipsId )
+           .append( "&format=" )
+           .append( fmt )
+           .append( "&ra=" )
+           .append( Formats.formatDecimal( raDeg, ndp )
+                           .replaceFirst( "0+$", "" ) )
+           .append( "&dec=" )
+           .append( Formats.formatDecimal( decDeg, ndp )
+                           .replaceFirst( "0+$", "" ) )
+           .append( "&fov=" )
+           .append( PlotUtil.formatNumber( fovDeg, fovEps ) )
+           .append( "&width=" )
+           .append( npix )
+           .append( "&height=" )
+           .append( npix )
+           .append( "&projection=SIN" )
+           .toString();
     }
 
     /**

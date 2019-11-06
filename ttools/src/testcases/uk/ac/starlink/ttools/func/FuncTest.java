@@ -679,6 +679,13 @@ public class FuncTest extends TestCase {
                       URLs.nedUrl( "NGC 3952" ) );
         assertNull( URLs.nedUrl( null ) );
         assertNull( URLs.nedUrl( "    " ) );
+
+        assertEquals( "http://alasky.u-strasbg.fr/hips-image-services/hips2fits"
+                    + "?hips=CDS/P/DSS2/color&format=png"
+                    + "&ra=56.75&dec=24.1125"
+                    + "&fov=1.50&width=300&height=300&projection=SIN",
+                      URLs.hips2fitsUrl( "CDS/P/DSS2/color", "png",
+                                         56.75, 24.1125, 1.5, 300 ) );
     }
 
     public void testURLs() {
