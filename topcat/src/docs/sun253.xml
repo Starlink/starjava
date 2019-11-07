@@ -28889,6 +28889,8 @@ introduced since the last version:
         <code>java.util.concurrent.ForkJoinPool.common.parallelism</code>.
         </li>
     <li>Target platform is now Java 8.</li>
+    <li>The front page screenshot montage (which was very out of date)
+        is replaced by one with up-to-date screenshots.</li>
     </ul>
     </p></dd>
 
