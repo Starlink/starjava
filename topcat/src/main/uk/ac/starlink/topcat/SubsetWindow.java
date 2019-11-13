@@ -437,7 +437,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 }
                 subsetCounts.remove( rset );
                 subsets.set( irow, rset );
-                tcModel.getViewModel().fireTableDataChanged();
+                if ( tcModel.getSubsetSelectionModel().getSelectedItem()
+                     == rset ) {
+                    tcModel.getViewModel().setSubset( rset );
+                }
             }
         };
 
