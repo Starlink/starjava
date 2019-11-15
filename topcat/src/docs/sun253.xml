@@ -4731,7 +4731,7 @@ The following ones have special significance within TOPCAT:
     will conform to by default.
     May take the values "<code>1.0</code>", "<code>1.1</code>", 
     "<code>1.2</code>", "<code>1.3</code>" or "<code>1.4</code>".
-    By default, version 1.3 VOTables are written.
+    By default, version 1.4 VOTables are written.
     </p></dd>
 
 </dl>
@@ -28894,6 +28894,7 @@ introduced since the last version:
     <li>Fix GUI updates when current subset expression is edited:
         data window view and apparent row count are now updated
         accordingly.</li>
+    <li>VOTable output is VOTable version 1.4 by default.</li>
     </ul>
     </p></dd>
 

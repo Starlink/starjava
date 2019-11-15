@@ -1078,7 +1078,7 @@ on the command line is equivalent to having the following in your
     will conform to by default.
     May take the values "<code>1.0</code>", "<code>1.1</code>",
     "<code>1.2</code>", "<code>1.3</code>" or "<code>1.4</code>".
-    By default, version 1.3 VOTables are written.
+    By default, version 1.4 VOTables are written.
     </p></dd>
 
 </dl>
@@ -2254,7 +2254,7 @@ Matching is case-insensitive.
     <code>STREAM</code> element.
     This option is only available if VOTable output version is
     VOTable 1.3 or later.
-    VOTable 1.3 is the default;
+    VOTable 1.4 is the default;
     see the <code>votable.version</code>
     <ref id="sysProperties">system property</ref>.
     </p></dd>
@@ -2264,7 +2264,7 @@ Matching is case-insensitive.
     (only if not writing to a stream).
     This option is only available if VOTable output version is
     VOTable 1.3 or later.
-    VOTable 1.3 is the default;
+    VOTable 1.4 is the default;
     see the <code>votable.version</code>
     <ref id="sysProperties">system property</ref>.
     </p></dd>
@@ -12279,6 +12279,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>java.util.concurrent.ForkJoinPool.common.parallelism</code>.
         </li>
     <li>Target platform is now Java 8.</li>
+    <li>VOTable output is VOTable version 1.4 by default.</li>
     </ul>
     </p></dd>
 

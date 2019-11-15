@@ -75,12 +75,12 @@ public class CoosysTest extends TestCase {
         checkMeta( roundTripFile( t1, cfpWriter, cfpBuilder ) );
 
         VOTableWriter vWriter = new VOTableWriter();
-        assertEquals( 0, countTimesys( roundTrip( t1, vWriter, votBuilder ) ) );
-        assertEquals( 0, countElements( t1, "TIMESYS", vWriter ) );
-        assertEquals( 3, countElements( t1, "COOSYS", vWriter ) );
-        vWriter.setVotableVersion( VOTableVersion.V14 );
         assertEquals( 3, countTimesys( roundTrip( t1, vWriter, votBuilder ) ) );
         assertEquals( 2, countElements( t1, "TIMESYS", vWriter ) );
+        assertEquals( 3, countElements( t1, "COOSYS", vWriter ) );
+        vWriter.setVotableVersion( VOTableVersion.V13 );
+        assertEquals( 0, countTimesys( roundTrip( t1, vWriter, votBuilder ) ) );
+        assertEquals( 0, countElements( t1, "TIMESYS", vWriter ) );
         assertEquals( 3, countElements( t1, "COOSYS", vWriter ) );
     }
 
