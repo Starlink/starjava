@@ -141,12 +141,8 @@ public class Progresser {
                now - lastUpdate_ >= minUpdateMillis_ )
              || ix == 0 ) {
             lastUpdate_ = now;
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    int value = getProgValue( index_.longValue() );
-                    progModel_.setValue( value );
-                }
-            } );
+            final int iprog = getProgValue( ix );
+            SwingUtilities.invokeLater( () -> progModel_.setValue( iprog ) );
         }
     }
 
