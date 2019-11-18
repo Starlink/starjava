@@ -9241,7 +9241,8 @@ the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
     (from PPARC/STFC),
 the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
             >AIDA</webref> project (from EU FP7),
-grants ST/H008470/1, ST/I00176X/1, ST/J001414/1 and ST/L002388/1
+grants ST/H008470/1, ST/I00176X/1, ST/J001414/1, ST/L002388/1,
+ST/M000907/1, ST/R000700/1 and ST/S001980/1
 from the UK's Science and Technology Facilities Council (STFC),
 the <webref url="http://www.g-vo.org/">GAVO</webref> project
 (BMBF Bewilligungsnummer 05A08VHA),
@@ -9286,15 +9287,8 @@ of Fermilab for writing the PixTools specially for use in STIL.
 </p>
 
 <p>Many people have contributed ideas and advice to the development of
-STILTS and its related products.  I can't list all of them here,
-but my thanks are especially due to the following:
-<ul>
-<li>Malcolm Currie (Starlink, RAL)</li>
-<li>Clive Davenhall (Royal Observatory Edinburgh)</li>
-<li>Peter Draper (Starlink, Durham)</li>
-<li>David Giaretta (Starlink, RAL)</li>
-<li>Clive Page (AstroGrid, Leicester)</li>
-</ul>
+STILTS and its related products.
+A list of some of them can be found in the TOPCAT user document, SUN/253.
 </p>
 
 <p>If you use this software in published work, the following citation
