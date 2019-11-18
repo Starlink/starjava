@@ -314,7 +314,7 @@
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/VOTable/">
   <!ENTITY URL.DATALINK "http://www.ivoa.net/Documents/DataLink/">
-  <!ENTITY URL.J2SE_DOCS "http://docs.oracle.com/javase/6/docs/">
+  <!ENTITY URL.J2SE_DOCS "https://docs.oracle.com/javase/8/docs/">
   <!ENTITY URL.HEALPIX_FITS
          "https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf">
 
@@ -28777,125 +28777,160 @@ introduced since the last version:
 
 <dt>Next Version</dt>
 <dd><p>
-    <ul>
-    <li>Fix one RegTAP example query in accordance with
-        RegTAP-1.0 Erratum #1.</li>
-    <li>Upgraded ADQL parser from 1.4 to VOLLT 1.5.
-        Should result in minor improvements to TAP ADQL
-        syntax highlighting.</li>
-    <li>Fix TAP window to avoid locking up GUI
-        in case of slow loading service logo image.</li>
-    <li>Add Pause Sequence action to
-        <ref id="ActivationWindow">Activation Window</ref>.</li>
-    <li>Activation Window sequence actions now update activated row
-        (display highlight in table viewer and plots)
-        as they progress.</li>
-    <li>Fix <ref id="JelActivationType">Execute Code</ref>
-        activation action so that the Synchronous option is
-        set false by default (this was a bug - true can cause
-        responsiveness problems for slow commands).</li>
-    <li>New <ref id="DelayActivationType">Delay</ref>
-        activation action added as a convenience for use with
-        "slideshows".</li>
-    <li>Avoid sometimes losing precision when reading ASCII/CSV values
-        in the range +/-(1e-38..1e-45).</li>
-    <li>Add new Use Position configuration option to
-        <ref id="form-polygon">polygon</ref> plot form
-        to toggle inclusion of reference position 
-        in polygon vertex list.</li>
-    <li>Modified plot legend display so that small markers are displayed
-        a bit bigger in the legend than on the plot for readability.</li>
-    <li>Add new <label>Fix Errors</label> button for common ADQL errors
-        in the <ref id="TapTableLoadDialog_query">TAP Window</ref>.</li>
-    <li>Add more detail (response content) to certain bad response
-        TAP error messages.</li>
-    <li>Permit FITS and VOTable files with zero-length string columns.
-        Previously all-null or zero-length string columns were
-        sometimes forced to single-character values.</li>
-    <li>Update mapped file unmapping implementation to work 
-        for java9+.</li>
-    <li>Minor changes to behaviour when querying TAP 1.1 services
-        (REQUEST parameter is omitted).</li>
-    <li>Fix plot axis ranging bug: padding was not always applied
-        properly for logarithmic axes.</li>
-    <li>JEL bug fix update, to avoid unwanted debugging output for
-        String function null returns.</li>
-    <li>New functions <code>bibcodeUrl</code>, <code>doiUrl</code>,
-        <code>arxivUrl</code>, <code>simbadUrl</code> and
-        <code>nedUrl</code>
-        in class <ref id="Strings">Strings</ref>.</li>
-    <li>Rework the
-        <ref id="BrowserActivationType">View in Web Browser</ref>
-        activation action so that it can show web pages for not only
-        URLs and filenames, but things like DOIs, bibcodes and
-        arXiv identifiers too.</li>
-    <li>New <label>JavaFX</label> browser option in the
-        <ref id="BrowserActivationType">View in Web Browser</ref>
-        activation action.  This is like the existing Basic Browser,
-        but more capable (e.g. can render JavaScript).</li>
-    <li>Fix Quantile plot form bug (no non-JIDE RangeSlider fallback)
-        that stopped it working in some environments
-        such as Java 10 on OSX and Nimbus L&amp;F.</li>
-    <li>Modified behaviour for offset (e.g. unsigned) longs in FITS files.
-        64-bit integer columns (<code>TFORMn='K'</code>) 
-        with non-zero integer offsets
-        (<code>TSCALn=1</code>, <code>TZEROn&lt;&gt;0</code>)
-        are now represented internally as Strings;
-        previously they were represented as Long integers, 
-        but values out of the possible range appeared as null 
-        (with a warning written through the logging system).  
-        Such columns are most commonly seen representing 
-        unsigned long values.
-        If written back out to FITS, the offset long value will be
-        reinstated, but other output formats cannot encode
-        unsigned longs, so they will stay as strings.</li>
-    <li>Fix load error encountered when specifying a Cone Search
-        service by URL rather than selecting from a registry query list.
-        This was a regression error since v4.6-2.</li>
-    <li>Registry queries for standard services now search for
-        <code>intf_role='std'</code> instead of
-        <code>intf_type='vs:paramhttp'</code>,
-        which is the recommended pattern for RegTAP 1.1,
-        and believed to work for current contents of known
-        searchable registries.</li>
-    <li>Eliminate unnecessary "(no position)" text in Display Image
-        activation action log message.</li>
-    <li>New functions 
-        <code>parseBigInteger</code> and <code>parseBigDecimal</code>
-        in class <ref id="Conversions">Conversions</ref>.</li>
-    <li>JSAMP to version 1.3.7.</li>
-    <li>Add new colour map Cividis.</li>
-    <li>Add tiny <label>Show</label>/<label>Hide All</label>
-        buttons at the bottom of the subset list in the
-        <ref id="tableDataControl">Data Layer Control</ref>
-        Subsets tab.</li>
-    <li>Move some URL-related expression language functions from
-        <ref id="Strings">Strings</ref> to new class
-        <ref id="URLs">URLs</ref>.</li>
-    <li>New activation actions
-        <ref id="ViewHips2fitsActivationType">Display HiPS Cutout</ref>
-        and
-        <ref id="SendHips2fitsActivationType">Send HiPS Cutout</ref>.</li>
-    <li>Deprecate
-        <ref id="CutoutActivationType">Display Cutout Image</ref>
-        activation action;
-        Display HiPS Cutout is usually a better choice.</li>
-    <li>Most of the plotting, though not the intial data preparation,
-        will now run in parallel for large datasets.
-        This should make slow plots faster on multi-core machines.
-        In rare cases this multi-threading might cause problems with
-        memory usage; it can be effectively turned off if required
-        by using the <ref id="jvmProperties">system property</ref>
-        <code>java.util.concurrent.ForkJoinPool.common.parallelism</code>.
-        </li>
-    <li>Target platform is now Java 8.</li>
-    <li>The front page screenshot montage (which was very out of date)
-        is replaced by one with up-to-date screenshots.</li>
-    <li>Fix GUI updates when current subset expression is edited:
-        data window view and apparent row count are now updated
-        accordingly.</li>
-    <li>VOTable output is VOTable version 1.4 by default.</li>
-    </ul>
+    <dl>
+    <dt>Runtime environment: Java 8</dt>
+    <dd><p>From this release, <strong>TOPCAT requires Java 8</strong>
+        (a.k.a. Java 1.8) or greater to run,
+        rather than Java 6 as for previous releases.
+        Java 8 has been around since 2014, so it should be available
+        on all but very ancient platforms.
+        If startup fails with a
+        <code>java.lang.UnsupportedClassVersionError</code>
+        then you need to upgrade.
+        </p></dd>
+    <dt>New or enhanced funcationality:</dt>
+    <dd><p>
+        <ul>
+        <li>Most of the plotting, though not the intial data preparation,
+            will now run in parallel for large (&gt;1e5 row) datasets.
+            This should make interacting (e.g. pan, zoom, change settings)
+            with slow plots faster on multi-core machines.
+            (In rare cases this multi-threading might cause problems with
+            memory usage; it can be effectively turned off if required
+            by using the <ref id="jvmProperties">system property</ref>
+            <code>java.util.concurrent.ForkJoinPool.common.parallelism</code>.)
+            </li>
+        <li>New activation actions
+            <ref id="ViewHips2fitsActivationType">Display HiPS Cutout</ref>
+            and
+            <ref id="SendHips2fitsActivationType">Send HiPS Cutout</ref>;
+            these make it easy to access imagery for many surveys
+            using the excellent
+            <webref
+             url="http://alasky.u-strasbg.fr/hips-image-services/hips2fits"
+             >hips2fits</webref> service from CDS.</li>
+        <li>New class <ref id="URLs">URLs</ref>
+            contains expression language utility functions
+            for constructing certain service URLs:
+            <code>hips2fitsUrl</code>, <code>bibcodeUrl</code>,
+            <code>doiUrl</code>, <code>arxivUrl</code>,
+            <code>simbadUrl</code> and <code>nedUrl</code>.
+            Existing functions <code>urlEncode</code> and
+            <code>urlDecode</code> have been moved to <code>URLs</code>
+            from class <ref id="Strings">Strings</ref>.</li>
+        <li>Rework the
+            <ref id="BrowserActivationType">View in Web Browser</ref>
+            activation action so that it can show web pages for not only
+            URLs and filenames, but things like DOIs, bibcodes and
+            arXiv identifiers too.</li>
+        <li>New <label>JavaFX</label> browser option in the
+            <ref id="BrowserActivationType">View in Web Browser</ref>
+            activation action.  This is like the existing Basic Browser,
+            but more capable, e.g. it can render JavaScript.
+            Note JavaFX is not available with all Java installations.</li>
+        <li>Add <label>Pause Sequence</label> action to
+            <ref id="ActivationWindow">Activation Window</ref>.</li>
+        <li>Activation Window sequence actions now update activated row
+            (display highlight in table viewer and plots)
+            as they progress.</li>
+        <li>New <ref id="DelayActivationType">Delay</ref>
+            activation action added as a convenience for use with
+            "slideshows".</li>
+        <li>Add tiny <label>Show</label>/<label>Hide All</label>
+            buttons at the bottom of the subset list in the
+            <ref id="tableDataControl">Data Layer Control</ref>
+            Subsets tab.</li>
+        <li>Add new <label>Use Position</label> configuration option to
+            <ref id="form-polygon">polygon</ref> plot form
+            to toggle inclusion of reference position 
+            in polygon vertex list.</li>
+        <li>Add new <label>Fix Errors</label> button for common ADQL errors
+            in the <ref id="TapTableLoadDialog_query">TAP Window</ref>.</li>
+        <li>Modified behaviour for offset (e.g. unsigned) longs in FITS files.
+            64-bit integer columns (<code>TFORMn='K'</code>) 
+            with non-zero integer offsets
+            (<code>TSCALn=1</code>, <code>TZEROn&lt;&gt;0</code>)
+            are now represented internally as Strings;
+            previously they were represented as Long integers, 
+            but values out of the possible range appeared as null 
+            (with a warning written through the logging system).  
+            Such columns are most commonly seen representing 
+            unsigned long values.
+            If written back out to FITS, the offset long value will be
+            reinstated, but other output formats cannot encode
+            unsigned longs, so they will stay as strings.</li>
+        <li>New functions 
+            <code>parseBigInteger</code> and <code>parseBigDecimal</code>
+            in class <ref id="Conversions">Conversions</ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>VOTable output now writes VOTable version 1.4 by default
+            (was 1.3).</li>
+        <li>Modified plot legend display so that small markers are displayed
+            a bit bigger in the legend than on the plot for readability.</li>
+        <li>Add new colour map Cividis.</li>
+        <li>Upgraded ADQL parser from 1.4 to VOLLT 1.5-1.
+            Should result in minor improvements to TAP ADQL
+            syntax highlighting.</li>
+        <li>Permit FITS and VOTable files with zero-length string columns.
+            Previously all-null or zero-length string columns were
+            sometimes forced to single-character values.</li>
+        <li>Fix one RegTAP example query in accordance with
+            RegTAP-1.0 Erratum #1.</li>
+        <li>Add more detail (response content) to certain bad response
+            TAP error messages.</li>
+        <li>Update mapped file unmapping implementation to work 
+            for java9+.</li>
+        <li>Minor changes to behaviour when querying TAP 1.1 services
+            (REQUEST parameter is omitted).</li>
+        <li>Deprecate
+            <ref id="CutoutActivationType">Display Cutout Image</ref>
+            activation action;
+            <ref id="ViewHips2fitsActivationType">Display HiPS Cutout</ref>
+            is usually a better choice.</li>
+        <li>The front page screenshot montage (which was very out of date)
+            is replaced by one with up-to-date screenshots.</li>
+        <li>Registry queries for standard services now search for
+            <code>intf_role='std'</code> instead of
+            <code>intf_type='vs:paramhttp'</code>,
+            which is the recommended pattern for RegTAP 1.1,
+            and believed to work for current contents of known
+            searchable registries.</li>
+        <li>Eliminate unnecessary "(no position)" text in Display Image
+            activation action log message.</li>
+        <li>JSAMP to version 1.3.7.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Avoid sometimes losing precision when reading ASCII/CSV values
+            in the range +/-(1e-45..1e-38).</li>
+        <li>Fix TAP window to avoid locking up GUI
+            in case of slow loading service logo image.</li>
+        <li>Fix <ref id="JelActivationType">Execute Code</ref>
+            activation action so that the Synchronous option is
+            set false by default (this was a bug - true can cause
+            responsiveness problems for slow commands).</li>
+        <li>JEL bug fix update, to avoid unwanted debugging output for
+            String function null returns.</li>
+        <li>Fix Quantile plot form bug (no non-JIDE RangeSlider fallback)
+            that stopped it working in some environments
+            such as Java 10 on OSX and Nimbus L&amp;F.</li>
+        <li>Fix load error encountered when specifying a Cone Search
+            service by URL rather than selecting from a registry query list.
+            This was a regression error since v4.6-2.</li>
+        <li>Fix GUI updates when current subset expression is edited:
+            data window view and apparent row count are now updated
+            accordingly.</li>
+        <li>Fix plot axis ranging bug: padding was not always applied
+            properly for logarithmic axes.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
