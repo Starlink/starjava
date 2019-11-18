@@ -415,7 +415,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>9 May 2019</docdate>
+<docdate>18 November 2019</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -28775,7 +28775,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 4.7 (18 November 2019)</dt>
 <dd><p>
     <dl>
     <dt>Runtime environment: Java 8</dt>
