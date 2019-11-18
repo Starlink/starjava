@@ -28863,7 +28863,7 @@ introduced since the last version:
     <li>New functions 
         <code>parseBigInteger</code> and <code>parseBigDecimal</code>
         in class <ref id="Conversions">Conversions</ref>.</li>
-    <li>JSAMP to version 1.3.6.</li>
+    <li>JSAMP to version 1.3.7.</li>
     <li>Add new colour map Cividis.</li>
     <li>Add tiny <label>Show</label>/<label>Hide All</label>
         buttons at the bottom of the subset list in the
