@@ -12,14 +12,14 @@
   <!ENTITY jel.func.docs SYSTEM "jel-javadocs.xml">
 
   <!-- Define external URLs. -->
-  <!ENTITY URL.J2SE_DOCS "http://docs.oracle.com/javase/6/docs/">
+  <!ENTITY URL.J2SE_DOCS "https://docs.oracle.com/javase/8/docs/">
   <!ENTITY URL.STIL_JAVADOCS
            "http://www.starlink.ac.uk/stil/javadocs/uk/ac/starlink/table/">
   <!ENTITY URL.HEALPIX_FITS
           "https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf">
 
   <!-- Define javadoc base URLs. -->
-  <!ENTITY corejavadocs "http://docs.oracle.com/javase/6/docs/api/">
+  <!ENTITY corejavadocs "http://docs.oracle.com/javase/8/docs/api/">
   <!ENTITY stiljavadocs "http://www.starlink.ac.uk/stil/javadocs/">
   <!ENTITY stiltsjavadocs "http://andromeda.star.bris.ac.uk/starjavadocs/">
   <!ENTITY starjavasrc "https://github.com/Starlink/starjava/blob/master/">
@@ -12189,92 +12189,122 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 
 <dt>Next Version</dt>
 <dd><p>
-    <ul>
-    <li>Updated <code>taplint</code> OBS stage according to
-        ObsCore-1.1 Erratum #1 (corrected UCDs).
-        No code changes required for ObsCore-1.1 Erratum #2.</li>
-    <li>Fix regression issues introduced at v3.1-6 relating to
-        <ref id="pixsample"><code>pixsample</code></ref> command;
-        it now reads HEALPix metadata from headers correctly again.</li>
-    <li>Avoid sometimes losing precision when reading ASCII/CSV values
-        in the range +/-(1e-38..1e-45).</li>
-    <li>Add new parameter <code>usepos</code> to
-        <ref id="layer-polygon"><code>polygon</code></ref> plot layer,
-        to toggle inclusion of reference position
-        in polygon vertex list.</li>
-    <li>Modified plot legend display so that small markers are displayed
-        a bit bigger in the legend than on the plot for readability.</li>
-    <li>Adopt VOTable-1.3 Erratum #3 in
-        <ref id="votlint"><code>votlint</code></ref>;
-        <code>arraysize="1"</code> now provokes a Warning.</li>
-    <li>Updates to <ref id="meta"><code>meta</code></ref>
-        filter documentation.</li>
-    <li>Permit FITS and VOTable files with zero-length string columns.
-        Previously all-null or zero-length string columns were 
-        sometimes forced to single-character values.</li>
-    <li>Update mapped file unmapping implementation to work
-        for java9+.</li>
-    <li>Some <code>taplint</code> enhancements: add some new general tests,
-        and some only used when testing TAP 1.1 services.</li>
-    <li>Minor changes to behaviour when querying TAP 1.1 services
-        (REQUEST parameter is omitted).</li>
-    <li>New parameter <code>interface</code> added to TAP query tasks
-        <code>tapquery</code>, <code>tapskymatch</code> and
-        <code>taplint</code>.  This can control how TAP version
-        is determined.</li>
-    <li>New <ref id="cone"><code>cone</code></ref> command to execute
-        simple spatial DAL queries (SCS, SIA, SSA).</li>
-    <li>Fix plot axis ranging bug: padding was not always applied 
-        properly for logarithmic axes.</li>
-    <li>JEL bug fix update, to avoid unwanted debugging output for
-        String function null returns.</li>
-    <li>New functions <code>bibcodeUrl</code>, <code>doiUrl</code>,
-        <code>arxivUrl</code>, <code>simbadUrl</code> and
-        <code>nedUrl</code> in class
-        <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>.</li>
-    <li>VOResource validation in <code>taplint</code> now uses
-        VOResource v1.1 not v1.0.
-        Erratum #1 (multiple security methods) has been applied.</li>
-    <li>More taplint tests added for TAP 1.1-style capabilities
-        document.</li>
-    <li>Modified behaviour for offset (e.g. unsigned) longs in FITS files.
-        64-bit integer columns (<code>TFORMn='K'</code>)
-        with non-zero integer offsets
-        (<code>TSCALn=1</code>, <code>TZEROn&lt;&gt;0</code>)
-        are now represented internally as Strings;
-        previously they were represented as Long integers,
-        but values out of the possible range appeared as null
-        (with a warning written through the logging system).
-        Such columns are most commonly seen representing
-        unsigned long values.
-        If written back out to FITS, the offset long value will be
-        reinstated, but other output formats cannot encode
-        unsigned longs, so they will stay as strings.</li>
-    <li>New functions
-        <code>parseBigInteger</code> and <code>parseBigDecimal</code>
-        in class
-        <ref id="uk.ac.starlink.ttools.func.Conversions"
-             >Conversions</ref>.</li>
-    <li>Taplint now recognises ADQL 2.1 language features
-        (as listed in PR-ADQL-2.1-20180112),
-        avoiding some <code>E_KEYX</code> errors.</li>
-    <li>JSAMP to version 1.3.7.</li>
-    <li>Add new colour map Cividis.</li>
-    <li>Move some URL-related expression language functions from
-        <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>
-        to new class
-        <ref id="uk.ac.starlink.ttools.func.URLs">URLs</ref>.</li>
-    <li>Most plot layer types, though not the intial data preparation,
-        will now run in parallel for large datasets.
-        This should make slow plots faster on multi-core machines.
-        In rare cases this multi-threading might cause problems with 
-        memory usage; it can be effectively turned off if required
-        by using the <ref id="sysProperties">system property</ref>
-        <code>java.util.concurrent.ForkJoinPool.common.parallelism</code>.
-        </li>
-    <li>Target platform is now Java 8.</li>
-    <li>VOTable output is VOTable version 1.4 by default.</li>
-    </ul>
+    <dl>
+    <dt>Runtime environment: Java 8</dt>
+    <dd><p>From this release, <strong>STILTS requires Java 8</strong>
+        (a.k.a. Java 1.8) or greater to run,
+        rather than Java 6 as for previous releases.
+        Java 8 has been around since 2014, so it should be available 
+        on all but very ancient platforms.
+        If execution fails with a
+        <code>java.lang.UnsupportedClassVersionError</code>
+        then you need to upgrade.
+        </p></dd>
+    <dt>New or enhanced functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>New <ref id="cone"><code>cone</code></ref> command to execute
+            simple spatial DAL queries (Cone Search, SIA, SSA).</li>
+        <li>Most plot layer types, though not the intial data preparation,
+            will now run in parallel for large datasets.
+            When using one of the <ref id="plot2"><code>plot2*</code></ref>
+            commands interactively (<code>omode=swing</code>), this should make
+            interacting with slow plots faster on multi-core machines.
+            (In rare cases this multi-threading might cause problems with
+            memory usage; it can be effectively turned off if required
+            by using the <ref id="sysProperties">system property</ref>
+            <code>java.util.concurrent.ForkJoinPool.common.parallelism</code>.)
+            </li>
+        <li>New class <ref id="uk.ac.starlink.ttools.func.URLs">URLs</ref>
+            contains expression language utility functions
+            for constructing certain service URLs:
+            <code>hips2fitsUrl</code>, <code>bibcodeUrl</code>,
+            <code>doiUrl</code>, <code>arxivUrl</code>,
+            <code>simbadUrl</code> and <code>nedUrl</code>.
+            Existing functions <code>urlEncode</code> and
+            <code>urlDecode</code> have been moved to <code>URLs</code>
+            from class
+            <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>.</li>
+        <li>New functions
+            <code>parseBigInteger</code> and <code>parseBigDecimal</code>
+            in class
+            <ref id="uk.ac.starlink.ttools.func.Conversions"
+                 >Conversions</ref>.</li>
+        <li>Add new parameter <code>usepos</code> to
+            <ref id="layer-polygon"><code>polygon</code></ref> plot layer,
+            to toggle inclusion of reference position
+            in polygon vertex list.</li>
+        <li>Add parameter <code>interface</code> added to TAP query tasks
+            <code>tapquery</code>, <code>tapskymatch</code> and
+            <code>taplint</code>.  This can control how TAP version
+            is determined.</li>
+        <li>Modified behaviour for offset (e.g. unsigned) longs in FITS files.
+            64-bit integer columns (<code>TFORMn='K'</code>)
+            with non-zero integer offsets
+            (<code>TSCALn=1</code>, <code>TZEROn&lt;&gt;0</code>)
+            are now represented internally as Strings;
+            previously they were represented as Long integers,
+            but values out of the possible range appeared as null
+            (with a warning written through the logging system).
+            Such columns are most commonly seen representing
+            unsigned long values.
+            If written back out to FITS, the offset long value will be
+            reinstated, but other output formats cannot encode
+            unsigned longs, so they will stay as strings.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>VOTable output now writes VOTable version 1.4 by default
+            (was 1.3).</li>
+        <li>Modified plot legend display so that small markers are displayed
+            a bit bigger in the legend than on the plot for readability.</li>
+        <li>Add new colour map Cividis.</li>
+        <li>Permit FITS and VOTable files with zero-length string columns.
+            Previously all-null or zero-length string columns were 
+            sometimes forced to single-character values.</li>
+        <li>Update mapped file unmapping implementation to work
+            for java9+.</li>
+        <li>Updated <code>taplint</code> OBS stage according to
+            ObsCore-1.1 Erratum #1 (corrected UCDs).
+            No code changes required for ObsCore-1.1 Erratum #2.</li>
+        <li>More taplint tests added for TAP 1.1-style capabilities
+            document.</li>
+        <li>Taplint now recognises ADQL 2.1 language features
+            (as listed in PR-ADQL-2.1-20180112),
+            avoiding some <code>E_KEYX</code> errors.</li>
+        <li>VOResource validation in <code>taplint</code> now uses
+            VOResource v1.1 not v1.0.
+            Erratum #1 (multiple security methods) has been applied.</li>
+        <li>Some <code>taplint</code> enhancements: add some new general tests,
+            and some only used when testing TAP 1.1 services.</li>
+        <li>Adopt VOTable-1.3 Erratum #3 in
+            <ref id="votlint"><code>votlint</code></ref>;
+            <code>arraysize="1"</code> now provokes a Warning.</li>
+        <li>Updates to <ref id="meta"><code>meta</code></ref>
+            filter documentation.</li>
+        <li>Minor changes to behaviour when querying TAP 1.1 services
+            (REQUEST parameter is omitted).</li>
+        <li>JSAMP to version 1.3.7.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix regression issues introduced at v3.1-6 relating to
+            <ref id="pixsample"><code>pixsample</code></ref> command;
+            it now reads HEALPix metadata from headers correctly again.</li>
+        <li>Avoid sometimes losing precision when reading ASCII/CSV values
+            in the range +/-(1e-45..1e-38).</li>
+        <li>Fix plot axis ranging bug: padding was not always applied 
+            properly for logarithmic axes.</li>
+        <li>JEL bug fix update, to avoid unwanted debugging output for
+            String function null returns.</li>
+        </ul>
+        </p></dd>
+    </dl>
+
     </p></dd>
 
 </dl>
