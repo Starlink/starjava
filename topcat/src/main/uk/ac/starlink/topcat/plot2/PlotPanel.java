@@ -75,6 +75,8 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.StepDataStore;
+import uk.ac.starlink.ttools.plot2.data.TupleRunner;
+import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
@@ -1000,10 +1002,21 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         List<Workings.ZoneWork<A>> zones = Collections.singletonList(
             createDummyZoneWork( plotType.getSurfaceFactory() )
         );
+        DataStore dataStore = new DataStore() {
+            public boolean hasData( DataSpec spec ) {
+                return false;
+            }
+            public TupleSequence getTupleSequence( DataSpec spec ) {
+                throw new IllegalArgumentException();
+            }
+            public TupleRunner getTupleRunner() {
+                return TupleRunner.SEQUENTIAL;
+            }
+        };
         PlotSpec<P,A> plotSpec =
             new PlotSpec<P,A>( plotType, bounds.getSize(), new Padding(),
                                new ZoneSpec[ 0 ], new LayerSpec[ 0 ] );
-        return new Workings<P,A>( gang, zones, bounds, (DataStore) null, 1, 0L,
+        return new Workings<P,A>( gang, zones, bounds, dataStore, 1, 0L,
                                   plotSpec );
     }
 

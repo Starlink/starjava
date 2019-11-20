@@ -28936,6 +28936,9 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Fix fairly harmless NullPointerException report when
+        displaying a blank plot with too few auto-selected axes
+        (regression).</li>
     </ul>
     </p></dd>
 
