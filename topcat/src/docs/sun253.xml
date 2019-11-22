@@ -19981,6 +19981,11 @@ may be left blank, in which case the service "should supply a default
 value intended to find nearby objects".
 However, experience shows that this doesn't always work, so it may be
 best to fill this in.
+It is also permitted to leave the <label>RA</label> and <label>Dec</label>
+fields blank, if you don't want to restrict the search by sky position.
+That may be a reasonable thing to do, for example, for services providing
+theoretical rather than observed spectra, or if you want all the data
+(subject to possible service restrictions).
 There is additionally a <label>Spectrum Format</label> selector which
 allows you to restrict the result to contain only spectra in certain
 formats.  By default, the service chooses which formats to return.
@@ -28939,6 +28944,10 @@ introduced since the last version:
     <li>Fix fairly harmless NullPointerException report when
         displaying a blank plot with too few auto-selected axes
         (regression).</li>
+    <li>It is now permitted to provide blank RA/Dec entries in the
+        <ref id="SsapTableLoadDialog">SSA Query</ref> window.
+        This is legal according to the SSA standard and reasonable for
+        e.g. theory services.</li>
     </ul>
     </p></dd>
 

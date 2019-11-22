@@ -75,9 +75,20 @@ public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
     public TableLoader createTableLoader() {
         String serviceUrl = getServiceUrl();
         checkUrl( serviceUrl );
-        double ra = raField_.getValue();
-        double dec = decField_.getValue();
+        String raString = raField_.getEntryField().getText();
+        String decString = decField_.getEntryField().getText();
         String sizeString = sizeField_.getEntryField().getText();
+        double ra;
+        double dec;
+        if ( ( raString == null || raString.trim().length() == 0 ) &&
+             ( decString == null || decString.trim().length() == 0 ) ) {
+            ra = Double.NaN;
+            dec = Double.NaN;
+        }
+        else {
+            ra = raField_.getValue();
+            dec = decField_.getValue();
+        }
         double size = sizeString == null || sizeString.trim().length() == 0
                     ? Double.NaN
                     : sizeField_.getValue();

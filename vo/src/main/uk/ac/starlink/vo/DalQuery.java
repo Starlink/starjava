@@ -75,8 +75,10 @@ public class DalQuery {
         name_ = baseURL;
         serviceType_ = serviceType;
         coding_ = coding;
-        addArgument( "POS", doubleToString( raPos ) + "," 
-                          + doubleToString( decPos ) );
+        if ( !Double.isNaN( raPos ) || !Double.isNaN( decPos ) ) {
+            addArgument( "POS", doubleToString( raPos ) + "," 
+                              + doubleToString( decPos ) );
+        }
         if ( ! Double.isNaN( size ) ) {
             addArgument( "SIZE", doubleToString( size ) );
         }
