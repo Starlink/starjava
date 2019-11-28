@@ -12309,6 +12309,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Slightly improve plot axis labelling for small numbers;
+        remove unnecessary decimal point in scientific notation
+        in some cases.</li>
     </ul>
     </p></dd>
 

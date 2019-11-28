@@ -334,10 +334,13 @@ public abstract class BasicTicker implements Ticker {
                     .append( digits );
             }
             else if ( pexp < -sciLimit ) {
-                sbuf.append( digits.charAt( 0 ) )
-                    .append( "." )
-                    .append( digits.substring( 1 ) )
-                    .append( "e" )
+                sbuf.append( digits.charAt( 0 ) );
+                int postDigit = ndigit - 1;
+                if ( postDigit > 0 ) {
+                    sbuf.append( "." )
+                        .append( digits.substring( 1 ) );
+                }
+                sbuf.append( "e" )
                     .append( Integer.toString( pexp - 1 ) );
             }
             else {

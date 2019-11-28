@@ -28948,6 +28948,9 @@ introduced since the last version:
         <ref id="SsapTableLoadDialog">SSA Query</ref> window.
         This is legal according to the SSA standard and reasonable for
         e.g. theory services.</li>
+    <li>Slightly improve plot axis labelling for small numbers;
+        remove unnecessary decimal point in scientific notation
+        in some cases.</li>
     </ul>
     </p></dd>
 
