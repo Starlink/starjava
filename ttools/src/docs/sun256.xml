@@ -12312,6 +12312,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Slightly improve plot axis labelling for small numbers;
         remove unnecessary decimal point in scientific notation
         in some cases.</li>
+    <li>Provide more options for the <label>shapeN</label> parameter
+        of the plot <ref id="layer-mark">mark</ref> layer type:
+        <code>fat_circle</code> etc using thicker lines.</li>
     </ul>
     </p></dd>
 

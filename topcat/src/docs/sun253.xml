@@ -28954,6 +28954,9 @@ introduced since the last version:
     <li>Maximum marker <label>Size</label> in
         <ref id="form-mark">Mark</ref> plot form
         is increased from 5 to 9.</li>
+    <li>Provide more options in the <label>Shape</label> selector
+        for the <ref id="form-mark">Mark</ref> plot form:
+        versions of circle, cross etc with thicker lines.</li>
     </ul>
     </p></dd>
 

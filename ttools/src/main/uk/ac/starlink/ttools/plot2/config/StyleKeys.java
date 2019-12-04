@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.FatMarkShapes;
 import uk.ac.starlink.ttools.plot2.layer.FillMode;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
@@ -57,9 +58,9 @@ public class StyleKeys {
             return null;
         }
         public Specifier<MarkShape> createSpecifier() {
-            return new ComboBoxSpecifier<MarkShape>( MarkShape.class,
-                                                     MarkStyleSelectors
-                                                    .createShapeSelector() );
+            return new ComboBoxSpecifier<MarkShape>(
+                           MarkShape.class,
+                           MarkStyleSelectors.createShapeSelector( SHAPES ) );
         }
     }.setOptionUsage()
      .addOptionsXml();
@@ -783,6 +784,13 @@ public class StyleKeys {
             MarkShape.OPEN_DIAMOND,
             MarkShape.OPEN_TRIANGLE_UP,
             MarkShape.OPEN_TRIANGLE_DOWN,
+            FatMarkShapes.FAT_CIRCLE,
+            FatMarkShapes.FAT_CROSS,
+            FatMarkShapes.FAT_CROXX,
+            FatMarkShapes.FAT_SQUARE,
+            FatMarkShapes.FAT_DIAMOND,
+            FatMarkShapes.FAT_TRIANGLE_UP,
+            FatMarkShapes.FAT_TRIANGLE_DOWN,
             MarkShape.FILLED_SQUARE,
             MarkShape.FILLED_DIAMOND,
             MarkShape.FILLED_TRIANGLE_UP,
