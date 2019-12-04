@@ -56,13 +56,24 @@ public class MarkStyleSelectors {
     }
 
     /**
-     * Returns a new JComboBox which will contain a standard set of
-     * MarkShape objects.
+     * Returns a new JComboBox for marker shape selection
+     * with a default list of shapes.
      *
      * @return  new shape selection combo box
      */
     public static JComboBox createShapeSelector() {
-        final JComboBox selector = new JComboBox( SHAPES );
+        return createShapeSelector( SHAPES );
+    }
+
+    /**
+     * Returns a new JComboBox for marker shape selection
+     * with specified list of shapes.
+     *
+     * @param  shapes  shape options
+     * @return  new shape selection combo box
+     */
+    public static JComboBox createShapeSelector( MarkShape[] shapes ) {
+        final JComboBox selector = new JComboBox( shapes );
         selector.setRenderer( new MarkRenderer() {
             public MarkShape getMarkShape( int index ) {
                 return (MarkShape) selector.getItemAt( index );
@@ -81,14 +92,25 @@ public class MarkStyleSelectors {
     }
 
     /**
-     * Returns a new JComboBox which will contain a standard set of integers
-     * for specifying marker size (0..MAX_SIZE).
+     * Returns a new JComboBox for selecting symbol sizes,
+     * using the default maximum size ({@link #MAX_SIZE}).
      *
      * @return  new size selection combo box
      */
     public static JComboBox createSizeSelector() {
+        return createSizeSelector( MAX_SIZE );
+    }
+
+    /**
+     * Returns a new JComboBox for selecting symbol sizes,
+     * using a specified maximum size.
+     *
+     * @param  maxSize  maximum size
+     * @return  new size selection combo box
+     */
+    public static JComboBox createSizeSelector( int maxSize ) {
         final JComboBox selector =
-            new JComboBox( createNumberedModel( MAX_SIZE + 1 ) );
+            new JComboBox( createNumberedModel( maxSize + 1 ) );
         selector.setRenderer( new MarkRenderer( true ) {
             public int getMarkSize( int index ) {
                 return index;
