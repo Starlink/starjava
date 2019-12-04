@@ -122,7 +122,21 @@ public abstract class MarkStyle extends DefaultStyle {
      * @param   g  graphics context
      */
     public void drawLegendShape( Graphics g ) {
-        drawShape( g );
+
+        /* Since the bit patterns are hand crafted for some of these marker
+         * shapes, we get better results using the bitmaps directly than
+         * leaving it to the graphics context rendering in some cases.
+         * Using drawShape on a bitmapped surface can give wonky/ugly
+         * renderings. */
+        if ( TablePlot.isVectorContext( g ) ) {
+            drawShape( g );
+        }
+        else {
+            Pixellator pixer = getPixelOffsets();
+            for ( pixer.start(); pixer.next(); ) {
+                g.fillRect( pixer.getX(), pixer.getY(), 1, 1 );
+            }
+        }
     }
 
     /**

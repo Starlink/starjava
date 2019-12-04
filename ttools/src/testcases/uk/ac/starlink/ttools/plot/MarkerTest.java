@@ -60,7 +60,8 @@ public class MarkerTest extends TestCase {
             JFrame toplev = new JFrame();
             Container panel = toplev.getContentPane();
             panel.setLayout( new FlowLayout() );
-            panel.add( new MarkSamples() );
+            panel.add( new MarkSamples( false ) );
+            panel.add( new MarkSamples( true ) );
             panel.add( new ProfileSamples() );
             toplev.pack();
             toplev.setVisible( true );
@@ -75,6 +76,7 @@ public class MarkerTest extends TestCase {
 
 
 class MarkSamples extends JPanel {
+    private final boolean asLegend_;
     final static int STEP = 16;
     final static int SIZES = 8;
 
@@ -93,7 +95,8 @@ class MarkSamples extends JPanel {
         MarkShape.CROXX,
     };
 
-    MarkSamples() {
+    MarkSamples( boolean asLegend ) {
+        asLegend_ = asLegend;
         setBackground( Color.WHITE );
         setPreferredSize( new Dimension( STEP * ( SIZES + 2 ) + 1,
                                          STEP * ( SHAPES.length + 2 ) + 1 ) );
@@ -118,8 +121,19 @@ class MarkSamples extends JPanel {
                 MarkStyle style = SHAPES[ j ].getStyle( color, size );
                 TestCase.assertEquals( style,
                                        SHAPES[ j ].getStyle( color, size ) );
-                style.drawMarker( g2, ( i + 1 ) * STEP,
-                                      ( j + 1 ) * STEP );
+                int px = ( i + 1 ) * STEP;
+                int py = ( j + 1 ) * STEP;
+                if ( asLegend_ ) {
+                    Color color0 = g2.getColor();
+                    g2.setColor( color );
+                    g2.translate( px, py );
+                    style.drawLegendShape( g2 );
+                    g2.translate( -px, -py );
+                    g2.setColor( color0 );
+                }
+                else {
+                    style.drawMarker( g2, px, py );
+                }
             }
         }
     }
