@@ -11,6 +11,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import junit.framework.TestCase;
+import uk.ac.starlink.ttools.plot2.layer.FatMarkShapes;
 
 public class MarkerTest extends TestCase {
 
@@ -93,6 +94,13 @@ class MarkSamples extends JPanel {
         MarkShape.FILLED_TRIANGLE_DOWN,
         MarkShape.CROSS,
         MarkShape.CROXX,
+        FatMarkShapes.FAT_CIRCLE,
+        FatMarkShapes.FAT_SQUARE,
+        FatMarkShapes.FAT_DIAMOND,
+        FatMarkShapes.FAT_TRIANGLE_UP,
+        FatMarkShapes.FAT_TRIANGLE_DOWN,
+        FatMarkShapes.FAT_CROSS,
+        FatMarkShapes.FAT_CROXX,
     };
 
     MarkSamples( boolean asLegend ) {
