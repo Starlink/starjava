@@ -80,7 +80,7 @@ public class StyleKeys {
         public Specifier<Integer> createSpecifier() {
             return new ComboBoxSpecifier<Integer>( Integer.class,
                                                    MarkStyleSelectors
-                                                  .createSizeSelector() );
+                                                  .createSizeSelector( 9 ) );
         }
     };
 

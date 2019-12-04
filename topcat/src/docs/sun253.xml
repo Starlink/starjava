@@ -28951,6 +28951,9 @@ introduced since the last version:
     <li>Slightly improve plot axis labelling for small numbers;
         remove unnecessary decimal point in scientific notation
         in some cases.</li>
+    <li>Maximum marker <label>Size</label> in
+        <ref id="form-mark">Mark</ref> plot form
+        is increased from 5 to 9.</li>
     </ul>
     </p></dd>
 
