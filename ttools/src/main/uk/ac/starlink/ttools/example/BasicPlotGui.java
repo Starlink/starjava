@@ -34,6 +34,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Padding;
+import uk.ac.starlink.ttools.plot2.PlotCaching;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
@@ -60,7 +61,6 @@ import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.task.CoordValue;
 import uk.ac.starlink.ttools.plot2.task.JELDataSpec;
-import uk.ac.starlink.ttools.plot2.task.PlotCaching;
 import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 import uk.ac.starlink.ttools.plot2.task.PointSelectionEvent;
 import uk.ac.starlink.ttools.plot2.task.PointSelectionListener;
@@ -245,7 +245,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
         String txt = irow >= 0 ? ( "Point #" + irow ) : "(no point)";
         Point gpos = evt.getPoint();
         int isurf = evt.getSurfaceIndex();
-        Surface surface = plotDisplay_.getSurfaces()[ isurf ];
+        Surface surface = plotDisplay_.getScene().getSurfaces()[ isurf ];
         if ( surface != null ) {
             double[] dpos = surface.graphicsToData( gpos, null );
             if ( dpos != null ) {

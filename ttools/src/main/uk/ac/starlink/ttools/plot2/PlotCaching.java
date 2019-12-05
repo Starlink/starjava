@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.plot2.task;
+package uk.ac.starlink.ttools.plot2;
 
 /**
  * Encapsulates some choices about what caching is performed when

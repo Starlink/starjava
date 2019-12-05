@@ -9,7 +9,9 @@ import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Padding;
+import uk.ac.starlink.ttools.plot2.PlotCaching;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotScene;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
@@ -22,7 +24,6 @@ import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
-import uk.ac.starlink.ttools.plot2.task.PlotCaching;
 import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 
 /**
@@ -130,12 +131,14 @@ public class PlotGenerator<P,A> {
         cachePolicy.setReuseRanges( ! surfaceAuxRange );
         cachePolicy.setCacheImage( cacheImage );
         cachePolicy.setUsePlans( true );
+        PlotScene<P,A> scene =
+            new PlotScene<>( surfFact_, layers_, profile_, legend_,
+                             legPos_, title_, aspect_,
+                             shadeFact_, shadeFixSpan_,
+                             ptSel_, compositor_, padding_,
+                             cachePolicy );
         PlotDisplay<P,A> display =
-            new PlotDisplay<P,A>( surfFact_, layers_, profile_, legend_,
-                                  legPos_, title_, aspect_,
-                                  shadeFact_, shadeFixSpan_,
-                                  navigator, ptSel_, compositor_, padding_,
-                                  dataStore_, cachePolicy );
+            new PlotDisplay<>( scene, navigator, dataStore_ );
         display.setPreferredSize( new Dimension( xpix_, ypix_ ) );
         return display;
     }

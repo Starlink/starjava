@@ -67,8 +67,10 @@ import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Padding;
+import uk.ac.starlink.ttools.plot2.PlotCaching;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
+import uk.ac.starlink.ttools.plot2.PlotScene;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
@@ -1357,12 +1359,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 Navigator<A> navigator = navigable
                                        ? surfFact.createNavigator( navConfig )
                                        : null;
+                PlotScene<P,A> scene =
+                    PlotScene
+                   .createGangScene( ganger, surfFact, nz, contents,
+                                     profiles, aspectConfigs,
+                                     shadeFacts, shadeFixSpans,
+                                     ptSel, compositor, dataStore, caching );
                 PlotDisplay<P,A> panel =
-                    PlotDisplay
-                   .createGangDisplay( ganger, surfFact, nz, contents,
-                                       profiles, aspectConfigs,
-                                       shadeFacts, shadeFixSpans, navigator,
-                                       ptSel, compositor, dataStore, caching );
+                    new PlotDisplay<>( scene, navigator, dataStore );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
                 return panel;
             }
@@ -2707,9 +2711,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 surfFact.createSurface( approxGang.getZonePlotBounds( iz ),
                                         profiles[ iz ], aspects[ iz ] );
             Map<AuxScale,Span> auxSpans =
-                PlotDisplay.getAuxSpans( content.getLayers(), approxSurf,
-                                         shadeFixSpans[ iz ], shadeFact,
-                                         planArray, dataStore );
+                PlotScene.getAuxSpans( content.getLayers(), approxSurf,
+                                       shadeFixSpans[ iz ], shadeFact,
+                                       planArray, dataStore );
             auxSpanList.add( auxSpans );
             Span shadeSpan = auxSpans.get( AuxScale.COLOR );
             if ( shadeFact != null && shadeSpan != null ) {
