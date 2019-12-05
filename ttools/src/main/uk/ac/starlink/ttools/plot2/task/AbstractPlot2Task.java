@@ -2632,7 +2632,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
                     PaperType paperType =
                           forceBitmap
-                        ? ptSel.getPixelPaperType( opts, compositor, null )
+                        ? ptSel.getPixelPaperType( opts, compositor )
                         : ptSel.getVectorPaperType( opts );
                     if ( clip != null &&
                          ! clip.intersects( surface.getPlotBounds() ) ) {

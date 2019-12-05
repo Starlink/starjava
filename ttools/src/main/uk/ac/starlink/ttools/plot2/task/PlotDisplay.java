@@ -394,7 +394,7 @@ public class PlotDisplay<P,A> extends JComponent {
                 /* Get rendering implementation. */
                 LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
                 PaperType paperType =
-                    ptSel_.getPixelPaperType( opts, compositor_, this );
+                    ptSel_.getPixelPaperType( opts, compositor_ );
 
                 /* Create the plot icon. */
                 zone.icon_ =

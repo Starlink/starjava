@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.plot2.paper;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.util.Set;
 import java.util.HashSet;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
@@ -38,23 +37,13 @@ public abstract class PaperTypeSelector {
      * Supplies a PaperType appropriate for rendering to a bitmap
      * (pixellated) output medium.
      *
-     * <p>If a component is supplied, it indicates the component on which this
-     * paper will be rendered.  It is legal to supply a null component if
-     * the destination component is unavailable (including if it is headless).
-     * Note the supplied component need not be the actual one it's going to be
-     * rendered on, but it should be similar in terms of graphics configuration,
-     * background colour etc.
-     *
      * @param  opts  layer options
      * @param  compositor  compositor for combining colours (relevant only
      *                     if some transparency is present)
-     * @param  component  destination component, or component similar to
-     *                    destination component, or null
      * @return  paper type
      */
     public abstract PaperType getPixelPaperType( LayerOpt[] opts,
-                                                 Compositor compositor,
-                                                 Component component );
+                                                 Compositor compositor );
 
     /**
      * Constructs the default selector for 2D plots.
@@ -104,8 +93,7 @@ public abstract class PaperTypeSelector {
                 return ptype;
             }
             public PaperType getPixelPaperType( LayerOpt[] opts,
-                                                Compositor compositor,
-                                                Component component ) {
+                                                Compositor compositor ) {
                 return ptype;
             }
         };
@@ -186,8 +174,8 @@ public abstract class PaperTypeSelector {
             return vector_;
         }
 
-        public PaperType getPixelPaperType( LayerOpt[] opts, Compositor compos,
-                                            Component component ) {
+        public PaperType getPixelPaperType( LayerOpt[] opts,
+                                            Compositor compos ) {
             if ( isOpaque( opts ) ) {
                 return pixelOpaque_;
             }

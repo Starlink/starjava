@@ -642,8 +642,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             float[] legpos = zoneDef.getLegendPosition();
             String title = zoneDef.getTitle();
             LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
-            PaperType paperType =
-                ptSel_.getPixelPaperType( opts, compositor_, this );
+            PaperType paperType = ptSel_.getPixelPaperType( opts, compositor_ );
             ZoneId zid = zoneDef.getZoneId();
             PlotJob.Zone<P,A> zone =
                 new PlotJob.Zone<P,A>( layers, profile, fixAspect,
@@ -2431,7 +2430,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
                 PaperType paperType =
                       forceBitmap_
-                    ? ptSel_.getPixelPaperType( opts, compositor_, c )
+                    ? ptSel_.getPixelPaperType( opts, compositor_ )
                     : ptSel_.getVectorPaperType( opts );
                 if ( clip != null &&
                      ! clip.intersects( placer.getSurface()
