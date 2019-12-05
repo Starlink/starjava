@@ -1,10 +1,10 @@
 package uk.ac.starlink.ttools.example;
 
-import java.awt.Insets;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.task.PlanePlot2Task;
 import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 import uk.ac.starlink.ttools.task.MapEnvironment;
@@ -75,7 +75,7 @@ public class EnvPlanePlotter implements SinePlot.PlanePlotter {
 
         /* Global parameters for the plot. */
         env.setValue( "type", "plane" );           // required
-        env.setValue( "insets", new Insets( 10 , 30, 30, 8 ) );   
+        env.setValue( "insets", new Padding( 10, 30, 30, 8 ) );
 
         /* Parameters for the first (in this case, only) layer;
          * the parameter names have a trailing (arbitrary) label "_1".
