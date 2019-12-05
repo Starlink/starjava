@@ -841,19 +841,22 @@ public class FITSSpecDataImpl
     		//  SDSS format, in fact these may just need CTYPE1=WAVE-LOG
     		//  but that didn't seem to work (presumably conflict with
     		//  another header).
-    	
+    		HeaderCard cpix = header.findCard("CRPIX1");
     		HeaderCard c0 = header.findCard( "COEFF0" );
     		HeaderCard c1 = header.findCard( "COEFF1" );
+    		String cp1 = cpix==null?"0":cpix.getValue();
+    		
     		if ( c0 != null && c1 != null ) {
     			String c0s = c0.getValue();
     			String c1s = c1.getValue();
+    			
 
     			//  Formulae are w = 10**(c0+c1*i)
     			//               i = (log(w)-c0)/c1
     			String fwd[] = {
-    					"w = 10**(" + c0s + " + ( i * " + c1s + " ) )" };
+    					"w = 10**(" + c0s + " + ( (i -"+cp1+") * " + c1s + " ) )" };
     			String inv[] = {
-    					"i = ( log10( w ) - " + c0s + ")/" + c1s };
+    					"i = ( log10( w ) - " + c0s + ")/" + c1s + "+" + cp1 };
 
   			
     			MathMap logMap = new MathMap( 1, 1 , fwd, inv );
@@ -883,7 +886,8 @@ public class FITSSpecDataImpl
     public static boolean isSDSSFITSHeader(Header header) {
     	HeaderCard testCard = header.findCard( "TELESCOP" );
         if ( testCard != null ) {
-            if ( testCard.getValue().startsWith( "SDSS" ) ) 
+            if ( testCard.getValue().startsWith( "SDSS" )) 
+           
             	return true;
         }
         return false;
