@@ -2,14 +2,17 @@ package uk.ac.starlink.ttools;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.logging.Level;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
+import uk.ac.starlink.ttools.plot2.task.TypedPlot2Task;
 import uk.ac.starlink.ttools.task.LineInvoker;
 import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.ObjectFactory;
+import uk.ac.starlink.util.Pair;
 import uk.ac.starlink.util.PropertyAuthenticator;
 import uk.ac.starlink.util.URLUtils;
 
@@ -23,6 +26,7 @@ import uk.ac.starlink.util.URLUtils;
 public class Stilts {
 
     private static ObjectFactory<Task> taskFactory_;
+    private static ObjectFactory<TypedPlot2Task<?,?>> plot2TaskFactory_;
     private static ObjectFactory<ProcessingMode> modeFactory_;
     static { init(); }
 
@@ -70,6 +74,15 @@ public class Stilts {
     }
 
     /**
+     * Returns the factory which can create plot2 tasks.
+     *
+     * @return  plot2 task factory
+     */
+    public static ObjectFactory<TypedPlot2Task<?,?>> getPlot2TaskFactory() {
+        return plot2TaskFactory_;
+    }
+
+    /**
      * Returns the version number for the STILTS package.
      *
      * @return  version string
@@ -93,7 +106,18 @@ public class Stilts {
      * Initialises factories.
      */
     private static void init() {
-        taskFactory_ = new ObjectFactory<Task>( Task.class );
+
+        /* Set up task factories.
+         * I feel like it should be possible to do this without suppressing
+         * warnings, but I can't work out how. */
+        taskFactory_ = new ObjectFactory<>( Task.class );
+        @SuppressWarnings({"unchecked","rawtypes"})
+        ObjectFactory<TypedPlot2Task<?,?>> p2fact =
+            (ObjectFactory<TypedPlot2Task<?,?>>)
+            new ObjectFactory( TypedPlot2Task.class );
+
+        /* Populate main task factory with non-plot tasks. */
+        plot2TaskFactory_ = p2fact;
         String taskPkg = "uk.ac.starlink.ttools.task.";
         taskFactory_.register( "calc", taskPkg + "Calc" );
         taskFactory_.register( "cdsskymatch", taskPkg + "CdsUploadSkyMatch" );
@@ -132,13 +156,25 @@ public class Stilts {
         taskFactory_.register( "votcopy", taskPkg + "VotCopy" );
         taskFactory_.register( "votlint", taskPkg + "VotLint" );
 
+        /* Add entries for plot2 tasks to both the generic factory and
+         * the plot2-specific one. */
         String plot2Pkg = "uk.ac.starlink.ttools.plot2.task.";
-        taskFactory_.register( "plot2plane", plot2Pkg + "PlanePlot2Task" );
-        taskFactory_.register( "plot2sky", plot2Pkg + "SkyPlot2Task" );
-        taskFactory_.register( "plot2cube", plot2Pkg + "CubePlot2Task" );
-        taskFactory_.register( "plot2sphere", plot2Pkg + "SpherePlot2Task" );
-        taskFactory_.register( "plot2time", plot2Pkg + "TimePlot2Task" );
+        for ( Pair<String> pair :
+              Arrays.asList(
+                  new Pair<String>( "plot2plane", plot2Pkg + "PlanePlot2Task" ),
+                  new Pair<String>( "plot2sky", plot2Pkg + "SkyPlot2Task" ),
+                  new Pair<String>( "plot2cube", plot2Pkg + "CubePlot2Task" ),
+                  new Pair<String>( "plot2sphere",
+                                    plot2Pkg + "SpherePlot2Task" ),
+                  new Pair<String>( "plot2time", plot2Pkg + "TimePlot2Task" )
+              ) ) {
+            String name = pair.getItem1(); 
+            String clazzName = pair.getItem2();
+            taskFactory_.register( name, clazzName );
+            plot2TaskFactory_.register( name, clazzName );
+        }
 
+        /* Create and populate output mode factory. */
         modeFactory_ =
             new ObjectFactory<ProcessingMode>( ProcessingMode.class );
         String modePkg = "uk.ac.starlink.ttools.mode.";
