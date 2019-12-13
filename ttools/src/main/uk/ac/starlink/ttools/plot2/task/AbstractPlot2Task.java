@@ -503,13 +503,13 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Single frame: prepare operation and return an executable that
          * has no reference to the environment. */
         if ( ! isAnimate ) {
-            final PlotExecutor<?,?> executor =
-                createPlotExecutor( env, context );
+            final PlotConfiguration<?,?> plotConfig =
+                createPlotConfiguration( env, context );
             return new Executable() {
                 public void execute() throws IOException {
                     DataStore dataStore;
                     try {
-                        dataStore = executor.createDataStore( null );
+                        dataStore = plotConfig.createDataStore( null );
                     }
                     catch ( InterruptedException e ) {
                         Thread.currentThread().isInterrupted();
@@ -522,8 +522,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     if ( isSwing ) {
                         PlotCaching caching = PlotCaching.createFullyCached();
                         final JComponent panel =
-                            executor.createPlotComponent( dataStore,
-                                                          true, caching );
+                            createPlotComponent( plotConfig, dataStore,
+                                                 caching );
                         SwingUtilities.invokeLater( new Runnable() {
                             public void run() {
                                 ((SwingPainter) painter).postComponent( panel );
@@ -534,7 +534,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     /* For a static plot, generate and plot
                      * the fixed icon here. */
                     else {
-                        Icon plot = executor.createPlotIcon( dataStore );
+                        Icon plot = plotConfig.createPlotIcon( dataStore );
                         painter.paintPicture( PlotUtil.toPicture( plot ) );
                     }
                 }
@@ -573,7 +573,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             }
 
             /* This line prepares to paint a dummy frame, but doesn't do it
-             * (the created executor is just discarded).
+             * (the created configuration is just discarded).
              * The purpose of this is to read the variables from the execution
              * environment whose values are required to specify a frame of
              * the animation.  In this way, any parameter errors can be
@@ -581,7 +581,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
              * showing up during the actual execution.  For related reasons,
              * if we didn't do this, the parameter system would complain
              * that there are unused parameters in the environment. */
-            createPlotExecutor( env0, context );
+            createPlotConfiguration( env0, context );
 
             /* Screen animation. */
             if ( isSwing ) {
@@ -740,16 +740,16 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 Environment frameEnv =
                     createFrameEnvironment( baseEnv, infos, aseq.getRow(),
                                             irow, nrow );
-                final PlotExecutor<?,?> executor =
-                    createPlotExecutor( frameEnv, context );
+                final PlotConfiguration<?,?> plotConfig =
+                    createPlotConfiguration( frameEnv, context );
                 final Painter painter = getPainter( frameEnv );
                 final DataStore dstore =
-                    executor.createDataStore( lastDataStore );
+                    plotConfig.createDataStore( lastDataStore );
                 final String outName = getPainterOutputName( frameEnv );
                 paintService.submit( new Callable<Void>() {
                     public Void call() throws IOException {
                         long start = System.currentTimeMillis();
-                        Icon plot = executor.createPlotIcon( dstore );
+                        Icon plot = plotConfig.createPlotIcon( dstore );
                         painter.paintPicture( PlotUtil.toPicture( plot ) );
                         PlotUtil.logTimeFromStart( logger_, "Plot " + outName,
                                                    start );
@@ -807,11 +807,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 Environment frameEnv =
                     createFrameEnvironment( baseEnv, infos, aseq.getRow(),
                                             irow, nrow );
-                PlotExecutor<?,?> executor =
-                    createPlotExecutor( frameEnv, context );
-                dataStore = executor.createDataStore( dataStore );
+                PlotConfiguration<?,?> plotConfig =
+                    createPlotConfiguration( frameEnv, context );
+                dataStore = plotConfig.createDataStore( dataStore );
                 final JComponent panel =
-                    executor.createPlotComponent( dataStore, true, caching );
+                    createPlotComponent( plotConfig, dataStore, caching );
                 final boolean init = irow == 0;
 
                 /* It's necessary to use invokeAndWait here, since the
@@ -907,9 +907,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     public Icon createPlotIcon( Environment env )
             throws TaskException, IOException, InterruptedException {
         dstoreParam_.setDefaultCaching( false );
-        PlotExecutor<?,?> executor =
-            createPlotExecutor( env, getPlotContext( env ) );
-        return executor.createPlotIcon( executor.createDataStore( null ) );
+        PlotConfiguration<?,?> plotConfig =
+            createPlotConfiguration( env, getPlotContext( env ) );
+        return plotConfig.createPlotIcon( plotConfig.createDataStore( null ) );
     }
 
     /**
@@ -922,7 +922,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @throws   TaskException   in case of error
      */
     public void testEnv( Environment env ) throws TaskException {
-        createPlotExecutor( env, getPlotContext( env ) );
+        createPlotConfiguration( env, getPlotContext( env ) );
     }
 
     /**
@@ -940,12 +940,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                                  boolean caching )
             throws TaskException, IOException, InterruptedException {
         dstoreParam_.setDefaultCaching( caching );
-        PlotExecutor<?,?> executor =
-            createPlotExecutor( env, getPlotContext( env ) );
+        PlotConfiguration<?,?> plotConfig =
+            createPlotConfiguration( env, getPlotContext( env ) );
         PlotCaching plotCaching = caching ? PlotCaching.createFullyCached()
                                           : PlotCaching.createUncached();
-        return executor.createPlotComponent( executor.createDataStore( null ),
-                                             true, plotCaching );
+        DataStore dataStore = plotConfig.createDataStore( null );
+        return createPlotComponent( plotConfig, dataStore, plotCaching );
     }
 
     public Parameter<?>[] getContextParameters( Environment env )
@@ -1194,14 +1194,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
     /**
      * Turns an execution environment (containing value-bearing parameters)
-     * into an object capable of performing a static or interactive plot.
+     * into an object with all the required plot configuration information.
      *
      * @param  env  execution environment
      * @param  context   plot context
-     * @return   plot executor
+     * @return   plot configuration
      */
-    private <P,A> PlotExecutor<P,A>
-            createPlotExecutor( Environment env, PlotContext<P,A> context )
+    private <P,A> PlotConfiguration<P,A>
+            createPlotConfiguration( Environment env, PlotContext<P,A> context )
             throws TaskException {
 
         /* What kind of plot? */
@@ -1342,7 +1342,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* We have all we need.  Construct and return the object
          * that can do the plot. */
-        return new PlotExecutor<P,A>() {
+        return new PlotConfiguration<P,A>() {
 
             public DataStore createDataStore( DataStore prevStore )
                     throws IOException, InterruptedException {
@@ -1353,22 +1353,21 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 return store;
             }
 
-            public PlotDisplay<P,A> createPlotComponent( DataStore dataStore,
-                                                         boolean navigable,
-                                                         PlotCaching caching ) {
-                Navigator<A> navigator = navigable
-                                       ? surfFact.createNavigator( navConfig )
-                                       : null;
-                PlotScene<P,A> scene =
-                    PlotScene
-                   .createGangScene( ganger, surfFact, nz, contents,
-                                     profiles, aspectConfigs,
-                                     shadeFacts, shadeFixSpans,
-                                     ptSel, compositor, dataStore, caching );
-                PlotDisplay<P,A> panel =
-                    new PlotDisplay<>( scene, navigator, dataStore );
-                panel.setPreferredSize( new Dimension( xpix, ypix ) );
-                return panel;
+            public Dimension getPlotSize() {
+                return new Dimension( xpix, ypix );
+            }
+
+            public Navigator<A> createNavigator() {
+                return surfFact.createNavigator( navConfig );
+            }
+
+            public PlotScene<P,A> createPlotScene( DataStore dataStore,
+                                                   PlotCaching caching ) {
+                return PlotScene
+                      .createGangScene( ganger, surfFact, nz, contents,
+                                        profiles, aspectConfigs,
+                                        shadeFacts, shadeFixSpans,
+                                        ptSel, compositor, dataStore, caching );
             }
 
             public Icon createPlotIcon( DataStore dataStore ) {
@@ -1677,6 +1676,25 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             }
         }
         return map;
+    }
+
+    /**
+     * Creates a GUI component capable of displaying a live plot
+     * from a PlotConfiguration.
+     *
+     * @param  plotConfig  configuration
+     * @param  dataStore   data storage
+     * @param  caching  caching policy
+     */
+    private static <P,A> PlotDisplay<P,A>
+            createPlotComponent( PlotConfiguration<P,A> plotConfig,
+                                 DataStore dataStore, PlotCaching caching ) {
+        PlotScene<P,A> scene = plotConfig.createPlotScene( dataStore, caching );
+        Navigator<A> navigator = plotConfig.createNavigator();
+        PlotDisplay<P,A> panel =
+            new PlotDisplay<>( scene, navigator, dataStore );
+        panel.setPreferredSize( plotConfig.getPlotSize() );
+        return panel;
     }
 
     /**
@@ -2892,41 +2910,5 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 };
             }
         }
-    }
-
-    /**
-     * Object capable of executing a static or interactive plot.
-     * All configuration options are contained.
-     */
-    private interface PlotExecutor<P,A> {
-
-        /**
-         * Creates a data store suitable for use with this object.
-         *
-         * @param     prevStore  previously obtained data store, may be null
-         * @return    object containing plot data
-         */
-        DataStore createDataStore( DataStore prevStore )
-                throws IOException, InterruptedException;
-
-        /**
-         * Generates an interactive plot component.
-         *
-         * @param  dataStore  object containing plot data
-         * @param  navigable  if true, standard pan/zoom mouse listeners
-         *                   will be installed
-         * @param  caching   plot caching policy
-         */
-        PlotDisplay<P,A> createPlotComponent( DataStore dataStore,
-                                              boolean navigable,
-                                              PlotCaching caching );
-
-        /**
-         * Generates an icon which will draw the plot.
-         * This may be slow to paint.
-         *
-         * @param  dataStore  object containing plot data
-         */
-        Icon createPlotIcon( DataStore dataStore );
     }
 }
