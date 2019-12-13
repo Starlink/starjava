@@ -518,6 +518,9 @@ public class PlotUtil {
         SubCloud[] subClouds =
             arrayConcat( SubCloud.createSubClouds( layers, true ),
                          SubCloud.createPartialSubClouds( layers, true ) );
+        if ( subClouds.length == 0 ) {
+            return;
+        }
         PointCloud cloud = new PointCloud( subClouds );
 
         /* Collect values for the represented points to mark out the basic

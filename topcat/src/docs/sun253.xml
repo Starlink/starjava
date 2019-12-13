@@ -28957,6 +28957,8 @@ introduced since the last version:
     <li>Provide more options in the <label>Shape</label> selector
         for the <ref id="form-mark">Mark</ref> plot form:
         versions of circle, cross etc with thicker lines.</li>
+    <li>Fix regression bug since last release that refused to make
+        dataless plots.</li>
     </ul>
     </p></dd>
 
