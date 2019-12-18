@@ -40,12 +40,57 @@ abstract class Codec {
             throws IOException;
 
     /**
-     * Deserializes an object from a stream.
+     * Deserializes an item from a stream.
      *
-     * @param  in  source stream, positioned at start of object
-     * @return  deserialized object
+     * @param  in  source stream, positioned at start of item
+     * @return  deserialized item
      */
-    abstract public Object decode( ByteStoreAccess in ) throws IOException;
+    abstract public Object decodeObject( ByteStoreAccess in )
+            throws IOException;
+
+    /**
+     * Deserialises an item from a stream, and presents it as an integer
+     * if possible.  If the stream does not contain integer-like items,
+     * the result may not be useful.
+     *
+     * @param  in  source stream, positioned at start of item
+     * @return  best-effort integer equivalent of deserialised item
+     */
+    abstract public int decodeInt( ByteStoreAccess in )
+            throws IOException;
+
+    /**
+     * Deserialises an item from a stream, and presents it as a long integer
+     * if possible.  If the stream does not contain integer-like items,
+     * the result may not be useful.
+     *
+     * @param  in  source stream, positioned at start of item
+     * @return  best-effort long equivalent of deserialised item
+     */
+    abstract public long decodeLong( ByteStoreAccess in )
+            throws IOException;
+
+    /**
+     * Deserialises an item from a stream, and presents it as a double
+     * if possible.  If the stream does not contain numeric items,
+     * the result may not be useful.
+     *
+     * @param  in  source stream, positioned at start of item
+     * @return  best-effort double equivalent of deserialised item
+     */
+    abstract public double decodeDouble( ByteStoreAccess in )
+            throws IOException;
+
+    /**
+     * Deserialises an item from a stream, and presents it as a boolean
+     * if possible.  If the stream does not contain boolean-like items,
+     * the result may not be useful.
+     *
+     * @param  in  source stream, positioned at start of item
+     * @return  best-effort boolean equivalent of deserialised item
+     */
+    abstract public boolean decodeBoolean( ByteStoreAccess in )
+            throws IOException;
 
     /**
      * Returns the number of bytes a call to <tt>encode</tt> will write.
@@ -165,8 +210,20 @@ abstract class Codec {
             out.writeByte( ((Byte) value).byteValue() );
             return 1;
         }
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             return new Byte( in.readByte() );
+        }
+        public int decodeInt( ByteStoreAccess in ) throws IOException {
+            return in.readByte();
+        }
+        public long decodeLong( ByteStoreAccess in ) throws IOException {
+            return in.readByte();
+        }
+        public double decodeDouble( ByteStoreAccess in ) throws IOException {
+            return in.readByte();
+        }
+        public boolean decodeBoolean( ByteStoreAccess in ) throws IOException {
+            return in.readByte() != 0;
         }
         public int getItemSize() {
             return 1;
@@ -178,8 +235,20 @@ abstract class Codec {
             out.writeShort( ((Short) value).shortValue() );
             return 2;
         }
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             return new Short( in.readShort() );
+        }
+        public int decodeInt( ByteStoreAccess in ) throws IOException {
+            return in.readShort();
+        }
+        public long decodeLong( ByteStoreAccess in ) throws IOException {
+            return in.readShort();
+        }
+        public double decodeDouble( ByteStoreAccess in ) throws IOException {
+            return in.readShort();
+        }
+        public boolean decodeBoolean( ByteStoreAccess in ) throws IOException {
+            return in.readShort() != 0;
         }
         public int getItemSize() {
             return 2;
@@ -191,8 +260,20 @@ abstract class Codec {
             out.writeInt( ((Integer) value).intValue() );
             return 4;
         }
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             return new Integer( in.readInt() );
+        }
+        public int decodeInt( ByteStoreAccess in ) throws IOException {
+            return in.readInt();
+        }
+        public long decodeLong( ByteStoreAccess in ) throws IOException {
+            return in.readInt();
+        }
+        public double decodeDouble( ByteStoreAccess in ) throws IOException {
+            return in.readInt();
+        }
+        public boolean decodeBoolean( ByteStoreAccess in ) throws IOException {
+            return in.readInt() != 0;
         }
         public int getItemSize() {
             return 4;
@@ -204,8 +285,20 @@ abstract class Codec {
             out.writeLong( ((Long) value).longValue() );
             return 8;
         }
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             return new Long( in.readLong() );
+        }
+        public int decodeInt( ByteStoreAccess in ) throws IOException {
+            return (int) in.readLong();
+        }
+        public long decodeLong( ByteStoreAccess in ) throws IOException {
+            return in.readLong();
+        }
+        public double decodeDouble( ByteStoreAccess in ) throws IOException {
+            return in.readLong();
+        }
+        public boolean decodeBoolean( ByteStoreAccess in ) throws IOException {
+            return in.readLong() != 0;
         }
         public int getItemSize() {
             return 8;
@@ -217,8 +310,20 @@ abstract class Codec {
             out.writeChar( ((Character) value).charValue() );
             return 2;
         }
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             return new Character( in.readChar() );
+        }
+        public int decodeInt( ByteStoreAccess in ) throws IOException {
+            return (int) in.readChar();
+        }
+        public long decodeLong( ByteStoreAccess in ) throws IOException {
+            return (long) in.readChar();
+        }
+        public double decodeDouble( ByteStoreAccess in ) throws IOException {
+            return (double) in.readChar();
+        }
+        public boolean decodeBoolean( ByteStoreAccess in ) throws IOException {
+            return in.readChar() != '\0';
         }
         public int getItemSize() {
             return 2;
@@ -231,8 +336,20 @@ abstract class Codec {
                                           : ((Float) value).floatValue() );
             return 4;
         }
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             return new Float( in.readFloat() );
+        }
+        public int decodeInt( ByteStoreAccess in ) throws IOException {
+            return (int) in.readFloat();
+        }
+        public long decodeLong( ByteStoreAccess in ) throws IOException {
+            return (long) in.readFloat();
+        }
+        public double decodeDouble( ByteStoreAccess in ) throws IOException {
+            return in.readFloat();
+        }
+        public boolean decodeBoolean( ByteStoreAccess in ) throws IOException {
+            return ! ( in.readFloat() == 0 );
         }
         public int getItemSize() {
             return 4;
@@ -245,8 +362,20 @@ abstract class Codec {
                                            : ((Double) value).doubleValue() );
             return 8;
         }
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             return new Double( in.readDouble() );
+        }
+        public int decodeInt( ByteStoreAccess in ) throws IOException {
+            return (int) in.readDouble();
+        }
+        public long decodeLong( ByteStoreAccess in ) throws IOException {
+            return (long) in.readDouble();
+        }
+        public double decodeDouble( ByteStoreAccess in ) throws IOException {
+            return in.readDouble();
+        }
+        public boolean decodeBoolean( ByteStoreAccess in ) throws IOException {
+            return ! ( in.readDouble() == 0 );
         }
         public int getItemSize() {
             return 8;
@@ -262,7 +391,7 @@ abstract class Codec {
             out.writeByte( brep );
             return 1;
         }
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Boolean decodeObject( ByteStoreAccess in ) throws IOException {
             switch ( in.readByte() ) {
                 case (byte) 'T':
                     return Boolean.TRUE;
@@ -273,6 +402,27 @@ abstract class Codec {
             }
             this.warnCorrupt();
             return null;
+        }
+        public int decodeInt( ByteStoreAccess in ) throws IOException {
+            return decodeBoolean( in ) ? 1 : 0;
+        }
+        public long decodeLong( ByteStoreAccess in ) throws IOException {
+            return decodeBoolean( in ) ? 1 : 0;
+        }
+        public double decodeDouble( ByteStoreAccess in ) throws IOException {
+            switch ( in.readByte() ) {
+                case (byte) 'T':
+                    return 1.0;
+                case (byte) 'F':
+                    return 0.0;
+                case (byte) ' ':
+                    return Double.NaN;
+            }
+            this.warnCorrupt();
+            return Double.NaN;
+        }
+        public boolean decodeBoolean( ByteStoreAccess in ) throws IOException {
+            return in.readByte() == 'T';
         }
         public int getItemSize() {
             return 1;
@@ -308,17 +458,74 @@ abstract class Codec {
             return itemSize_;
         }
 
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             byte flag = in.readByte();
             switch ( flag ) {
                 case OK:
-                    return baseCodec_.decode( in );
+                    return baseCodec_.decodeObject( in );
                 case BAD: 
                     in.skip( itemSize_ - 1 );
                     return null;
+                default:
+                    this.warnCorrupt();
+                    return null;
             }
-            this.warnCorrupt();
-            return null;
+        }
+
+        public int decodeInt( ByteStoreAccess in ) throws IOException {
+            byte flag = in.readByte();
+            switch ( flag ) {
+                case OK:
+                    return baseCodec_.decodeInt( in );
+                case BAD:
+                    in.skip( itemSize_ - 1 );
+                    return 0;
+                default:
+                    this.warnCorrupt();
+                    return 0;
+            }
+        }
+
+        public long decodeLong( ByteStoreAccess in ) throws IOException {
+            byte flag = in.readByte();
+            switch ( flag ) {
+                case OK:
+                    return baseCodec_.decodeLong( in );
+                case BAD:
+                    in.skip( itemSize_ - 1 );
+                    return 0;
+                default:
+                    this.warnCorrupt();
+                    return 0;
+            }
+        }
+
+        public double decodeDouble( ByteStoreAccess in ) throws IOException {
+            byte flag = in.readByte();
+            switch ( flag ) {
+                case OK:
+                    return baseCodec_.decodeDouble( in );
+                case BAD:
+                    in.skip( itemSize_ - 1 );
+                    return Double.NaN;
+                default:
+                    this.warnCorrupt();
+                    return Double.NaN;
+            }
+        }
+
+        public boolean decodeBoolean( ByteStoreAccess in ) throws IOException {
+            byte flag = in.readByte();
+            switch ( flag ) {
+                case OK:
+                    return baseCodec_.decodeBoolean( in );
+                case BAD:
+                    in.skip( itemSize_ - 1 );
+                    return false;
+                default:
+                    this.warnCorrupt();
+                    return false;
+            }
         }
 
         public int getItemSize() {
@@ -327,9 +534,32 @@ abstract class Codec {
     }
 
     /**
+     * Partial Codec implementation for codecs that are dealing with objects
+     * that have no reasonable primitive interpretation.
+     */
+    private static abstract class ObjectCodec extends Codec {
+        public int decodeInt( ByteStoreAccess in ) throws IOException {
+            decodeObject( in );
+            return 0;
+        }
+        public long decodeLong( ByteStoreAccess in ) throws IOException {
+            decodeObject( in );
+            return 0;
+        }
+        public double decodeDouble( ByteStoreAccess in ) throws IOException {
+            decodeObject( in );
+            return Double.NaN;
+        }
+        public boolean decodeBoolean( ByteStoreAccess in ) throws IOException {
+            decodeObject( in );
+            return false;
+        }
+    }
+
+    /**
      * Codec which de/serialises fixed-length arrays.
      */
-    private static class FixedArrayCodec extends Codec {
+    private static class FixedArrayCodec extends ObjectCodec {
         final int nel_;
         final Codec1 codec1_;
         final int itemSize_;
@@ -347,7 +577,7 @@ abstract class Codec {
             return itemSize_;
         }
 
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             Object value = codec1_.getBuffer( nel_ );
             for ( int i = 0; i < nel_; i++ ) {
                 codec1_.decode1( value, i, in );
@@ -365,7 +595,7 @@ abstract class Codec {
      * elements is written as an integer value ahead of the data bytes
      * themselves.
      */
-    private static class VariableArrayCodec extends Codec {
+    private static class VariableArrayCodec extends ObjectCodec {
         final Codec1 codec1_;
 
         VariableArrayCodec( Codec1 codec1 ) {
@@ -381,7 +611,7 @@ abstract class Codec {
             return 4 + nel * codec1_.getItemSize1();
         }
 
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             int nel = in.readInt();
             if ( nel < 0 ) {
                 this.warnCorrupt();
@@ -404,7 +634,7 @@ abstract class Codec {
         }
     }
 
-    private static class FixedStringCodec extends Codec {
+    private static class FixedStringCodec extends ObjectCodec {
 
         final int nchar_;
         final char[] cbuf_;
@@ -429,7 +659,7 @@ abstract class Codec {
             return nchar_ * 2;
         }
 
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             int lastNonZero = -1;
             for ( int ic = 0; ic < nchar_; ic++ ) {
                 char c = in.readChar();
@@ -455,14 +685,14 @@ abstract class Codec {
                                         : ((String) value).toCharArray();
             return super.encode( cval, out );
         }
-        public Object decode( ByteStoreAccess in ) throws IOException {
-            char[] cval = (char[]) super.decode( in );
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
+            char[] cval = (char[]) super.decodeObject( in );
             return cval == null ? null
                                 : new String( cval );
         }
     }
 
-    private static class StringArrayCodec extends Codec {
+    private static class StringArrayCodec extends ObjectCodec {
         public int encode( Object value, DataOutput out ) throws IOException {
             int count = 0;
             String[] strings = value == null ? new String[ 0 ] 
@@ -482,7 +712,7 @@ abstract class Codec {
             }
             return count;
         }
-        public Object decode( ByteStoreAccess in ) throws IOException {
+        public Object decodeObject( ByteStoreAccess in ) throws IOException {
             int nstr = in.readInt();
             if ( nstr < 0 ) {
                 warnCorrupt();
@@ -514,7 +744,7 @@ abstract class Codec {
     }
 
     /**
-     * Abstract helper class defining an object which cn serialize
+     * Abstract helper class defining an object which can serialize
      * and deserialize elements of an array.
      */
     private static abstract class Codec1 {

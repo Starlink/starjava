@@ -45,7 +45,7 @@ class MappedColumnStore implements ColumnStore {
 
     public synchronized Object readCell( long lrow ) throws IOException {
         access_.seek( lrow * itemSize_ );
-        return codec_.decode( access_ );
+        return codec_.decodeObject( access_ );
     }
 
     public void dispose() {

@@ -210,7 +210,7 @@ public class ByteStoreRowStore implements RowStore {
             synchronized ( access_ ) {
                 access_.seek( offsets_.getRowOffset( lrow ) );
                 for ( int icol = 0; icol < ncol_; icol++ ) {
-                    row[ icol ] = codecs_[ icol ].decode( access_ );
+                    row[ icol ] = codecs_[ icol ].decodeObject( access_ );
                 }
             }
             return row;
@@ -220,7 +220,7 @@ public class ByteStoreRowStore implements RowStore {
             final Object cell;
             synchronized ( access_ ) {
                 access_.seek( offsets_.getCellOffset( lrow, icol ) );
-                cell = codecs_[ icol ].decode( access_ );
+                cell = codecs_[ icol ].decodeObject( access_ );
             }
             return cell;
         }

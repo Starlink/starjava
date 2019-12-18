@@ -76,7 +76,7 @@ class IndexedStreamColumnStore implements ColumnStore {
 
     public synchronized Object readCell( long lrow ) throws IOException {
         dataIn_.seek( indexIn_.get( Tables.checkedLongToInt( lrow ) ) );
-        return codec_.decode( dataIn_ );
+        return codec_.decodeObject( dataIn_ );
     }
 
     public void dispose() {

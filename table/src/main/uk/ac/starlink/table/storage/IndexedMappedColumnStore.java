@@ -58,7 +58,7 @@ class IndexedMappedColumnStore implements ColumnStore {
 
     public synchronized Object readCell( long lrow ) throws IOException {
         auxAccess_.seek( indexBuf_.get( Tables.checkedLongToInt( lrow ) ) );
-        return codec_.decode( auxAccess_ );
+        return codec_.decodeObject( auxAccess_ );
     }
 
     public void dispose() {
