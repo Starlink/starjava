@@ -64,6 +64,22 @@ abstract class NioByteStoreAccess implements ByteStoreAccess {
     }
 
     /**
+     * Utility method to make a deep copy of an array of ByteBuffers.
+     *
+     * @param  bufs  input buffers
+     * @return  matching array with buffers that are duplicates of the input
+     *          elements
+     */
+    public static ByteBuffer[] copyBuffers( ByteBuffer[] bufs ) {
+        int nbuf = bufs.length;
+        ByteBuffer[] bufs1 = new ByteBuffer[ nbuf ];
+        for ( int i = 0; i < nbuf; i++ ) {
+            bufs1[ i ] = bufs[ i ].duplicate();
+        }
+        return bufs1;
+    }
+
+    /**
      * Returns a reader implementation for an array of ByteBuffers.
      *
      * @param  bbufs  buffer array
