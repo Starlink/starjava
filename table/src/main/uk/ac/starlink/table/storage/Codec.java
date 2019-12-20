@@ -10,10 +10,11 @@ import uk.ac.starlink.table.ValueInfo;
  * Serializes and deserializes objects to/from a data stream.
  * A given instance of this class is only able to de/serialize 
  * an object of one class.  Obtain an instance from the
- * static {@link #getCodec} method.
+ * static {@link #getCodec} method, or use one of the static members.
+ * The static members are all safe for concurrent use from multiple threads.
  * 
  * <p>This is (supposed to be) considerably more lightweight than 
- * all the {@link java.lang.Serializable} business - for one thing
+ * all the {@link java.io.Serializable} business - for one thing
  * there's no way to tell from the stream what kind of item has been
  * serialized, you have to make sure the right Codec instance is on
  * hand.  In general it deals with primitive wrapper objects and
@@ -23,11 +24,62 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor (Starlink)
  * @since    3 Aug 2004
  */
-abstract class Codec {
+public abstract class Codec {
 
     private int warnings_;
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.storage" );
+
+    /** Codec for 8-bit byte, no null handling. */
+    public static final Codec BYTE = new ByteCodec();
+
+    /** Codec for 16-bit integer, no null handling. */
+    public static final Codec SHORT = new ShortCodec();
+
+    /** Codec for 32-bit integer, no null handling. */
+    public static final Codec INT = new IntCodec();
+
+    /** Codec for 64-bit integer, no null handling. */
+    public static final Codec LONG = new LongCodec();
+
+    /** Codec for 32-bit floating point, nulls treated like NaN. */
+    public static final Codec FLOAT = new FloatCodec();
+
+    /** Codec for 64-bit floating point, nulls treated like NaN. */
+    public static final Codec DOUBLE = new DoubleCodec();
+
+    /** Codec for 16-bit character, no null handling. */
+    public static final Codec CHAR = new CharCodec();
+
+    /** Codec for byte-serialized boolean values, null handled. */
+    public static final Codec BOOLEAN = new BooleanCodec();
+
+    /** Codec for variable-length array of 8-bit bytes. */
+    public static final Codec BYTE_ARRAY =
+        new VariableArrayCodec( new ByteCodec1() );
+
+    /** Codec for variable-length array of 16-bit integers. */
+    public static final Codec SHORT_ARRAY =
+        new VariableArrayCodec( new ShortCodec1() );
+
+    /** Codec for variable-length array of 32-bit integers. */
+    public static final Codec INT_ARRAY =
+        new VariableArrayCodec( new IntCodec1() );
+
+    /** Codec for variable-length array of 64-bit integers. */
+    public static final Codec LONG_ARRAY =
+        new VariableArrayCodec( new LongCodec1() );
+
+    /** Codec for variable-length array of 32-bit floats. */
+    public static final Codec FLOAT_ARRAY =
+        new VariableArrayCodec( new FloatCodec1() );
+
+    /** Codec for variable-length array of 64-bit doubles. */
+    public static final Codec DOUBLE_ARRAY =
+        new VariableArrayCodec( new DoubleCodec1() );
+
+    /** Codec for variable-length string. */
+    public static final Codec STRING = new VariableStringCodec();
 
     /**
      * Serializes an object to a stream.
@@ -96,9 +148,9 @@ abstract class Codec {
      * Returns the number of bytes a call to <tt>encode</tt> will write.
      * If this value may vary, -1 is returned.
      *
-     * @param  size in bytes of serialized items, or -1
+     * @return  size in bytes of serialized items, or -1
      */
-    abstract int getItemSize();
+    abstract public int getItemSize();
 
     /**
      * Returns a codec suitable for serializing/deserializing the contents
@@ -112,28 +164,28 @@ abstract class Codec {
     public static Codec getCodec( ValueInfo info ) {
         Class<?> clazz = info.getContentClass();
         if ( clazz == Byte.class ) {
-            return new FlaggedCodec( new ByteCodec() );
+            return new FlaggedCodec( BYTE );
         }
         else if ( clazz == Short.class ) {
-            return new FlaggedCodec( new ShortCodec() );
+            return new FlaggedCodec( SHORT );
         }
         else if ( clazz == Integer.class ) {
-            return new FlaggedCodec( new IntCodec() );
+            return new FlaggedCodec( INT );
         }
         else if ( clazz == Long.class ) {
-            return new FlaggedCodec( new LongCodec() );
+            return new FlaggedCodec( LONG );
         }
         else if ( clazz == Character.class ) {
-            return new FlaggedCodec( new CharCodec() );
+            return new FlaggedCodec( CHAR );
         }
         else if ( clazz == Float.class ) {
-            return new FloatCodec();
+            return FLOAT;
         }
         else if ( clazz == Double.class ) {
-            return new DoubleCodec();
+            return DOUBLE;
         }
         else if ( clazz == Boolean.class ) {
-            return new BooleanCodec();
+            return BOOLEAN;
         }
         else if ( clazz == String.class ) {
             int esize = info.getElementSize();
@@ -207,7 +259,7 @@ abstract class Codec {
 
     private static class ByteCodec extends Codec {
         public int encode( Object value, DataOutput out ) throws IOException {
-            out.writeByte( ((Byte) value).byteValue() );
+            out.writeByte( ((Number) value).byteValue() );
             return 1;
         }
         public Object decodeObject( ByteStoreAccess in ) throws IOException {
@@ -232,7 +284,7 @@ abstract class Codec {
 
     private static class ShortCodec extends Codec {
         public int encode( Object value, DataOutput out ) throws IOException {
-            out.writeShort( ((Short) value).shortValue() );
+            out.writeShort( ((Number) value).shortValue() );
             return 2;
         }
         public Object decodeObject( ByteStoreAccess in ) throws IOException {
@@ -257,7 +309,7 @@ abstract class Codec {
 
     private static class IntCodec extends Codec {
         public int encode( Object value, DataOutput out ) throws IOException {
-            out.writeInt( ((Integer) value).intValue() );
+            out.writeInt( ((Number) value).intValue() );
             return 4;
         }
         public Object decodeObject( ByteStoreAccess in ) throws IOException {
@@ -282,7 +334,7 @@ abstract class Codec {
 
     private static class LongCodec extends Codec {
         public int encode( Object value, DataOutput out ) throws IOException {
-            out.writeLong( ((Long) value).longValue() );
+            out.writeLong( ((Number) value).longValue() );
             return 8;
         }
         public Object decodeObject( ByteStoreAccess in ) throws IOException {
@@ -333,7 +385,7 @@ abstract class Codec {
     private static class FloatCodec extends Codec {
         public int encode( Object value, DataOutput out ) throws IOException {
             out.writeFloat( value == null ? Float.NaN
-                                          : ((Float) value).floatValue() );
+                                          : ((Number) value).floatValue() );
             return 4;
         }
         public Object decodeObject( ByteStoreAccess in ) throws IOException {
@@ -359,7 +411,7 @@ abstract class Codec {
     private static class DoubleCodec extends Codec {
         public int encode( Object value, DataOutput out ) throws IOException {
             out.writeDouble( value == null ? Double.NaN
-                                           : ((Double) value).doubleValue() );
+                                           : ((Number) value).doubleValue() );
             return 8;
         }
         public Object decodeObject( ByteStoreAccess in ) throws IOException {

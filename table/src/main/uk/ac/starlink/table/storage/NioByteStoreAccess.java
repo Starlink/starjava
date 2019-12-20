@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
  * @author   Mark Taylor
  * @since    20 Aug 2010
  */
-abstract class NioByteStoreAccess implements ByteStoreAccess {
+public abstract class NioByteStoreAccess implements ByteStoreAccess {
 
     /**
      * Returns a buffer with at least the requested number of bytes

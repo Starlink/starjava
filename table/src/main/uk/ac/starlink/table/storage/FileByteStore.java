@@ -107,7 +107,7 @@ public class FileByteStore implements ByteStore {
      * @param  file  file
      * @param  out  destination stream
      */
-    static void copy( File file, OutputStream out ) throws IOException {
+    public static void copy( File file, OutputStream out ) throws IOException {
         FileInputStream in = new FileInputStream( file );
         long size = file.length();
         FileChannel inChannel = in.getChannel();
@@ -132,7 +132,7 @@ public class FileByteStore implements ByteStore {
      * @param  file  file
      * @return   mapped byte buffers
      */
-    static ByteBuffer[] toByteBuffers( File file ) throws IOException {
+    public static ByteBuffer[] toByteBuffers( File file ) throws IOException {
 
         /* Maximum buffer length has to be <= Integer.MAX_VALUE.
          * Integer.MAX_VALUE is odd, so might possibly introduce
