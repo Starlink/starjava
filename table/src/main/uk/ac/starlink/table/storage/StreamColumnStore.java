@@ -5,9 +5,7 @@ import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 
 /**
  * ColumnStore implementation which uses a streamed file to store a 
@@ -23,7 +21,7 @@ class StreamColumnStore implements ColumnStore {
     private final DataOutputStream dataOut_;
     private final int itemSize_;
     private long nrow_;
-    private ByteStoreAccess dataIn_;
+    private ByteBuffer[] bbufs_;
 
     /**
      * Constructor.
@@ -53,23 +51,17 @@ class StreamColumnStore implements ColumnStore {
 
     public void endCells() throws IOException {
         dataOut_.close();
-        ByteBuffer bbuf = new RandomAccessFile( dataFile_, "r" )
-                         .getChannel()
-                         .map( FileChannel.MapMode.READ_ONLY, 0,
-                               itemSize_ * nrow_ );
-        dataIn_ = new SingleNioAccess( bbuf );
+        bbufs_ = FileByteStore.toByteBuffers( dataFile_ );
     }
 
-    public synchronized Object readCell( long lrow ) throws IOException {
-        dataIn_.seek( lrow * itemSize_ );
-        return codec_.decodeObject( dataIn_ );
-    }
-
-    public void dispose() {
-        try {
-            dataOut_.close();
-        }
-        catch ( IOException e ) {
-        }
+    public ColumnReader createReader() {
+        ByteStoreAccess access =
+            NioByteStoreAccess
+           .createAccess( NioByteStoreAccess.copyBuffers( bbufs_ ) );
+        return new ByteStoreColumnReader( codec_, access, nrow_ ) {
+            public long getAccessOffset( long ix ) {
+                return ix * itemSize_;
+            }
+        };
     }
 }

@@ -1,11 +1,11 @@
 package uk.ac.starlink.table.storage;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
-import java.nio.channels.FileChannel;
 import uk.ac.starlink.table.Tables;
 
 /**
@@ -18,11 +18,12 @@ import uk.ac.starlink.table.Tables;
 class IndexedMappedColumnStore implements ColumnStore {
 
     private final Codec codec_;
-    private final RandomAccessFile auxRaf_;
-    private final LongBuffer indexBuf_;
+    private final File auxFile_;
+    private final DataOutputStream auxOut_;
+    private ByteBuffer indexBuf_;
     private long auxOffset_;
     private long nrow_;
-    private ByteStoreAccess auxAccess_;
+    private ByteBuffer[] auxBufs_;
 
     /**
      * Constructor.
@@ -39,33 +40,34 @@ class IndexedMappedColumnStore implements ColumnStore {
                                      File auxFile )
             throws IOException {
         codec_ = codec;
-        indexBuf_ = bbuf.asLongBuffer();
-        auxRaf_ = new RandomAccessFile( auxFile, "rw" );
+        indexBuf_ = bbuf;
+        auxFile_ = auxFile;
+        auxOut_ = new DataOutputStream(
+                          new BufferedOutputStream(
+                              new FileOutputStream( auxFile ) ) );
     }
 
     public void acceptCell( Object value ) throws IOException {
-        indexBuf_.put( auxOffset_ );
-        auxOffset_ += codec_.encode( value, auxRaf_ );
+        indexBuf_.putLong( auxOffset_ );
+        auxOffset_ += codec_.encode( value, auxOut_ );
         nrow_++;
     }
 
     public void endCells() throws IOException {
-        ByteBuffer auxBuf = auxRaf_.getChannel()
-                           .map( FileChannel.MapMode.READ_ONLY, 0, auxOffset_ );
-        auxAccess_ = new SingleNioAccess( auxBuf );
-        auxRaf_.close();
+        auxOut_.close();
+        indexBuf_ = indexBuf_.asReadOnlyBuffer();
+        auxBufs_ = FileByteStore.toByteBuffers( auxFile_ );
     }
 
-    public synchronized Object readCell( long lrow ) throws IOException {
-        auxAccess_.seek( indexBuf_.get( Tables.checkedLongToInt( lrow ) ) );
-        return codec_.decodeObject( auxAccess_ );
-    }
-
-    public void dispose() {
-        try {
-            auxRaf_.close();
-        }
-        catch ( IOException e ) {
-        }
+    public ColumnReader createReader() {
+        final ByteBuffer ixBuf = indexBuf_.duplicate();
+        ByteStoreAccess auxAccess =
+            NioByteStoreAccess
+           .createAccess( NioByteStoreAccess.copyBuffers( auxBufs_ ) );
+        return new ByteStoreColumnReader( codec_, auxAccess, nrow_ ) {
+            public long getAccessOffset( long ix ) {
+                return ixBuf.getLong( Tables.checkedLongToInt( 8 * ix ) );
+            }
+        };
     }
 }

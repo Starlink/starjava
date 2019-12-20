@@ -224,17 +224,6 @@ public class SidewaysRowStore implements RowStore {
                 }
             }
         }
-
-        /* Perform additional housekeeping on owned ColumnStores as
-         * avaailable. */
-        if ( colStores_ != null ) {
-            for ( int icol = 0; icol < ncol_; icol++ ) {
-                ColumnStore cs = colStores_[ icol ];
-                if ( cs != null ) {
-                    cs.dispose();
-                }
-            }
-        }
     }
 
     protected void finalize() throws Throwable {

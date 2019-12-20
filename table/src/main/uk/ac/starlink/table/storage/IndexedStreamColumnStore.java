@@ -5,11 +5,7 @@ import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
-import java.nio.channels.FileChannel;
-import uk.ac.starlink.table.Tables;
 
 /**
  * ColumnStore implementation which uses two streamed files to store a 
@@ -27,8 +23,8 @@ class IndexedStreamColumnStore implements ColumnStore {
     private final DataOutputStream indexOut_;
     private long dataOffset_;
     private long nrow_;
-    private ByteStoreAccess dataIn_;
-    private LongBuffer indexIn_;
+    private ByteBuffer[] dataBufs_;
+    private ByteBuffer[] indexBufs_;
 
     /**
      * Constructor.
@@ -62,29 +58,22 @@ class IndexedStreamColumnStore implements ColumnStore {
     public void endCells() throws IOException {
         dataOut_.close();
         indexOut_.close();
-        ByteBuffer dataBuf = new RandomAccessFile( dataFile_, "r" )
-                            .getChannel()
-                            .map( FileChannel.MapMode.READ_ONLY,
-                                  0, dataOffset_ );
-        dataIn_ = new SingleNioAccess( dataBuf );
-        ByteBuffer indexBuf = new RandomAccessFile( indexFile_, "r" )
-                             .getChannel()
-                             .map( FileChannel.MapMode.READ_ONLY,
-                                   0, 8 * nrow_ );
-        indexIn_ = indexBuf.asLongBuffer();
+        dataBufs_ = FileByteStore.toByteBuffers( dataFile_ );
+        indexBufs_ = FileByteStore.toByteBuffers( indexFile_ );
     }
 
-    public synchronized Object readCell( long lrow ) throws IOException {
-        dataIn_.seek( indexIn_.get( Tables.checkedLongToInt( lrow ) ) );
-        return codec_.decodeObject( dataIn_ );
-    }
-
-    public void dispose() {
-        try {
-            dataOut_.close();
-            indexOut_.close();
-        }
-        catch ( IOException e ) {
-        }
+    public ColumnReader createReader() {
+        final ByteStoreAccess dataAccess =
+            NioByteStoreAccess
+           .createAccess( NioByteStoreAccess.copyBuffers( dataBufs_ ) );
+        final ByteStoreAccess indexAccess =
+            NioByteStoreAccess
+           .createAccess( NioByteStoreAccess.copyBuffers( indexBufs_ ) );
+        return new ByteStoreColumnReader( codec_, dataAccess, nrow_ ) {
+            public long getAccessOffset( long ix ) throws IOException {
+                indexAccess.seek( 8 * ix );
+                return indexAccess.readLong();
+            }
+        };
     }
 }

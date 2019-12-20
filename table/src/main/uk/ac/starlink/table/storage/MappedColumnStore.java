@@ -16,7 +16,9 @@ class MappedColumnStore implements ColumnStore {
 
     private final Codec codec_;
     private final int itemSize_;
+    private final ByteBuffer bbuf_;
     private final BufferIOAccess access_;
+    private long nrow_;
 
     /**
      * Constructor.
@@ -29,6 +31,7 @@ class MappedColumnStore implements ColumnStore {
     public MappedColumnStore( Codec codec, ByteBuffer bbuf ) {
         codec_ = codec;
         itemSize_ = codec.getItemSize();
+        bbuf_ = bbuf;
         access_ = new BufferIOAccess( bbuf );
         if ( itemSize_ < 0 ) {
             throw new IllegalArgumentException( "Must have fixed size codec" );
@@ -36,6 +39,7 @@ class MappedColumnStore implements ColumnStore {
     }
 
     public void acceptCell( Object value ) throws IOException {
+        nrow_++;
         int nbyte = codec_.encode( value, access_ );
         assert nbyte == itemSize_;
     }
@@ -43,12 +47,14 @@ class MappedColumnStore implements ColumnStore {
     public void endCells() {
     }
 
-    public synchronized Object readCell( long lrow ) throws IOException {
-        access_.seek( lrow * itemSize_ );
-        return codec_.decodeObject( access_ );
-    }
-
-    public void dispose() {
+    public ColumnReader createReader() {
+        ByteStoreAccess roAccess =
+            new SingleNioAccess( bbuf_.asReadOnlyBuffer() );
+        return new ByteStoreColumnReader( codec_, roAccess, nrow_ ) {
+            public long getAccessOffset( long ix ) {
+                return ix * itemSize_;
+            }
+        };
     }
 
     /**

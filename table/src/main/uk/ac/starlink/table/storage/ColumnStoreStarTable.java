@@ -1,7 +1,6 @@
 package uk.ac.starlink.table.storage;
 
 import java.io.IOException;
-import uk.ac.starlink.table.RandomRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
@@ -18,6 +17,7 @@ class ColumnStoreStarTable extends WrapperStarTable {
     private final long nrow_;
     private final int ncol_;
     private final ColumnStore[] colStores_;
+    private final ThreadLocal<ColumnReader>[] colReaders_;
 
     /**
      * Constructor.
@@ -33,6 +33,22 @@ class ColumnStoreStarTable extends WrapperStarTable {
         nrow_ = nrow;
         ncol_ = template.getColumnCount();
         colStores_ = colStores;
+
+        /* Prepare ThreadLocals to service the thread-safe table
+         * random access methods. */
+        @SuppressWarnings({"unchecked","rawtypes"})
+        ThreadLocal<ColumnReader>[] colReaders =
+            (ThreadLocal<ColumnReader>[]) new ThreadLocal[ ncol_ ];
+        colReaders_ = colReaders;
+        for ( int ic = 0; ic < ncol_; ic++ ) {
+            final ColumnStore colStore = colStores[ ic ];
+            colReaders_[ ic ] = new ThreadLocal<ColumnReader>() {
+                @Override
+                protected ColumnReader initialValue() {
+                    return colStore.createReader();
+                }
+            };
+        }
     }
 
     public boolean isRandom() {
@@ -44,7 +60,7 @@ class ColumnStoreStarTable extends WrapperStarTable {
     }
 
     public Object getCell( long lrow, int icol ) throws IOException {
-        return colStores_[ icol ].readCell( lrow );
+        return colReaders_[ icol ].get().getObjectValue( lrow );
     }
 
     public Object[] getRow( long lrow ) throws IOException {
@@ -56,6 +72,37 @@ class ColumnStoreStarTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        return new RandomRowSequence( this );
+        final ColumnReader[] readers = new ColumnReader[ ncol_ ];
+        for ( int ic = 0; ic < ncol_; ic++ ) {
+            readers[ ic ] = colStores_[ ic ].createReader();
+        }
+        return new RowSequence() {
+            long irow = -1;
+            public boolean next() {
+                return ++irow < nrow_;
+            }
+            public Object getCell( int icol ) throws IOException {
+                if ( irow >= 0 ) {
+                    return readers[ icol ].getObjectValue( irow );
+                }
+                else {
+                    throw new IllegalStateException();
+                }
+            }
+            public Object[] getRow() throws IOException {
+                if ( irow >= 0 ) {
+                    Object[] row = new Object[ ncol_ ];
+                    for ( int ic = 0; ic < ncol_; ic++ ) {
+                        row[ ic ] = readers[ ic ].getObjectValue( irow );
+                    }
+                    return row;
+                }
+                else {
+                    throw new IllegalStateException();
+                }
+            }
+            public void close() {
+            }
+        };
     }
 }
