@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RandomRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
@@ -138,9 +137,8 @@ public class ByteStoreRowStore implements RowStore {
             nbyte += bbufs[ ib ].limit();
         }
         logger_.config( nrow_ + " rows stored in " + nbyte + " bytes" );
-        ByteStoreAccess access = NioByteStoreAccess.createAccess( bbufs );
         storedTable_ = new ByteStoreStarTable( template_, nrow_, codecs_,
-                                               offsets_, access );
+                                               offsets_, bbufs );
     }
 
     public StarTable getStarTable() {
@@ -171,7 +169,8 @@ public class ByteStoreRowStore implements RowStore {
      * StarTable implementation based on a ByteBuffer.
      */
     private static class ByteStoreStarTable extends WrapperStarTable {
-        private final ByteStoreAccess access_;
+        private final ByteBuffer[] bbufs_;
+        private final ThreadLocal<ByteStoreAccess> accessLocal_;
         private final long nrow_;
         private final int ncol_;
         private final Codec[] codecs_;
@@ -188,13 +187,18 @@ public class ByteStoreRowStore implements RowStore {
          * @param  bbufs   buffers holding byte data
          */
         ByteStoreStarTable( StarTable template, long nrow, Codec[] codecs,
-                            Offsets offsets, ByteStoreAccess access ) {
+                            Offsets offsets, ByteBuffer[] bbufs ) {
             super( template );
             nrow_ = nrow;
             ncol_ = template.getColumnCount();
             codecs_ = codecs;
             offsets_ = offsets;
-            access_ = access;
+            bbufs_ = bbufs;
+            accessLocal_ = new ThreadLocal<ByteStoreAccess>() {
+                public ByteStoreAccess initialValue() {
+                    return createAccess();
+                }
+            };
         }
 
         public boolean isRandom() {
@@ -206,27 +210,65 @@ public class ByteStoreRowStore implements RowStore {
         }
 
         public Object[] getRow( long lrow ) throws IOException {
+            ByteStoreAccess access = accessLocal_.get();
             Object[] row = new Object[ ncol_ ];
-            synchronized ( access_ ) {
-                access_.seek( offsets_.getRowOffset( lrow ) );
-                for ( int icol = 0; icol < ncol_; icol++ ) {
-                    row[ icol ] = codecs_[ icol ].decodeObject( access_ );
-                }
+            access.seek( offsets_.getRowOffset( lrow ) );
+            for ( int icol = 0; icol < ncol_; icol++ ) {
+                row[ icol ] = codecs_[ icol ].decodeObject( access );
             }
             return row;
         }
 
         public Object getCell( long lrow, int icol ) throws IOException {
-            final Object cell;
-            synchronized ( access_ ) {
-                access_.seek( offsets_.getCellOffset( lrow, icol ) );
-                cell = codecs_[ icol ].decodeObject( access_ );
-            }
-            return cell;
+            ByteStoreAccess access = accessLocal_.get();
+            access.seek( offsets_.getCellOffset( lrow, icol ) );
+            return codecs_[ icol ].decodeObject( access );
         }
 
         public RowSequence getRowSequence() throws IOException {
-            return new RandomRowSequence( this );
+            final ByteStoreAccess access = createAccess();
+            return new RowSequence() {
+                long irow = -1;
+                public boolean next() {
+                    return ++irow < nrow_;
+                }
+                public Object getCell( int icol ) throws IOException {
+                    if ( irow >= 0 ) {
+                        access.seek( offsets_.getCellOffset( irow, icol ) );
+                        return codecs_[ icol ].decodeObject( access );
+                    }
+                    else {
+                        throw new IllegalStateException();
+                    }
+                }
+                public Object[] getRow() throws IOException {
+                    if ( irow >= 0 ) {
+                        access.seek( offsets_.getRowOffset( irow ) );
+                        Object[] row = new Object[ ncol_ ];
+                        for ( int icol = 0; icol < ncol_; icol++ ) {
+                            row[ icol ] =
+                                codecs_[ icol ].decodeObject( access );
+                        }
+                        return row;
+                    }
+                    else {
+                        throw new IllegalStateException();
+                    }
+                }
+                public void close() {
+                }
+            };
+        }
+
+        /**
+         * Creates a ByteStoreAccess that can access the data
+         * for this row store.
+         *
+         * @return  new  ByteStoreAccess
+         */
+        private ByteStoreAccess createAccess() {
+            return NioByteStoreAccess
+                  .createAccess( NioByteStoreAccess.copyBuffers( bbufs_ ) );
         }
     }
 }
