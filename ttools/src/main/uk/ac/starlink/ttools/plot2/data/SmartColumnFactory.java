@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.data;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -141,7 +142,7 @@ public class SmartColumnFactory implements CachedColumnFactory {
             constCol_ = singleColumnFactory_.createColumn( type, 1 );
         }
 
-        public void add( Object value ) {
+        public void add( Object value ) throws IOException {
             count_++;
 
             /* Have already had varying values.  Delegate to a column capable
@@ -183,7 +184,7 @@ public class SmartColumnFactory implements CachedColumnFactory {
             }
         }
 
-        public void endAdd() {
+        public void endAdd() throws IOException {
             ( bulkCol_ != null ? bulkCol_ : constCol_ ).endAdd();
             assert constCol_ == null || nrow_ < 0 || constCount_ == nrow_;
         }

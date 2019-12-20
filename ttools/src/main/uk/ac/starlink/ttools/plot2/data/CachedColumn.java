@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
+import java.io.IOException;
+
 /**
  * Defines storage for a vector of data.
  *
@@ -22,12 +24,12 @@ public interface CachedColumn {
      *
      * @param   value  non-null value to store
      */
-    void add( Object value );
+    void add( Object value ) throws IOException;
 
     /**
      * Indicates that no more calls to {@link #add} will be made
      */
-    void endAdd();
+    void endAdd() throws IOException;
 
     /**
      * Returns the number of values added so far.
