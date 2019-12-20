@@ -45,7 +45,6 @@ public class AdaptiveByteStore implements ByteStore {
      */
 
     private final int memLimit_;
-    private final int bufLimit_;
     private AdaptiveOutputStream out_;
     private OutputStream baseOut_;
     private int count_;
@@ -78,7 +77,6 @@ public class AdaptiveByteStore implements ByteStore {
             baseOut_ = new FileOutputStream( file_ );
         }
         memLimit_ = memLimit;
-        bufLimit_ = Integer.MAX_VALUE;
         out_ = new AdaptiveOutputStream();
     }
 
@@ -126,7 +124,7 @@ public class AdaptiveByteStore implements ByteStore {
             return new ByteBuffer[] { bbuf };
         }
         else {
-            return FileByteStore.toByteBuffers( file_, bufLimit_ );
+            return FileByteStore.toByteBuffers( file_ );
         }
     }
 

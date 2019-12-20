@@ -23,7 +23,6 @@ public class FileByteStore implements ByteStore {
 
     private final File file_;
     private final OutputStream out_;
-    private final int maxBufLen_;
     private long length_;
     private final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.storage" );
@@ -54,7 +53,6 @@ public class FileByteStore implements ByteStore {
                 length_ += len;
             }
         };
-        maxBufLen_ = Integer.MAX_VALUE;
     }
 
     /**
@@ -99,7 +97,7 @@ public class FileByteStore implements ByteStore {
 
     public ByteBuffer[] toByteBuffers() throws IOException {
         out_.flush();
-        return toByteBuffers( file_, maxBufLen_ );
+        return toByteBuffers( file_ );
     }
 
     /**
@@ -125,7 +123,31 @@ public class FileByteStore implements ByteStore {
     }
 
     /**
-     * Utility method to return a ByteBuffer backed by a file.
+     * Returns a read-only ByteBuffer array representing the contents
+     * of a file, with default maximum buffer length.
+     * If the file can be represented in a single ByteBuffer the result will be
+     * a single-element array; otherwise the concatenation of the buffers
+     * in the result gives the file content.
+     *
+     * @param  file  file
+     * @return   mapped byte buffers
+     */
+    static ByteBuffer[] toByteBuffers( File file ) throws IOException {
+
+        /* Maximum buffer length has to be <= Integer.MAX_VALUE.
+         * Integer.MAX_VALUE is odd, so might possibly introduce
+         * unnecessary alignment issues, so use a nearby value that's
+         * a round number.  It's still around 2 billion. */
+        return toByteBuffers( file, 0x7f000000 );
+    }
+
+    /**
+     * Returns a read-only ByteBuffer array representing the contents
+     * of a file, with configurable maximum buffer length.
+     * If the file can be represented in a single ByteBuffer
+     * of up to <code>maxLen</code> bytes the result will be
+     * a single-element array; otherwise the concatenation of the buffers
+     * in the result gives the file content.
      *
      * @param  file  file
      * @param  maxLen  maximum length of a single buffer
