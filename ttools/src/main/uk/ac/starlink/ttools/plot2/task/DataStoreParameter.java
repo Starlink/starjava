@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.plot2.task;
 
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.ChoiceParameter;
+import uk.ac.starlink.ttools.plot2.data.ByteStoreColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.CachedDataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.MemoryColumnFactory;
@@ -24,13 +26,33 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
     public static final DataStoreFactory SIMPLE =
         new SimpleDataStoreFactory( TUPLE_RUNNER );
 
-    /** Cached storage: data is first read into arrays in memory. */
+    /** Memory-cached storage: data is first read into arrays in memory. */
     public static final DataStoreFactory BASIC_CACHE =
         new CachedDataStoreFactory( new MemoryColumnFactory(), TUPLE_RUNNER );
 
-    /** Smart cached storage: like BASIC_CACHE but tries to spot
+    /** Smart memory-cached storage: like BASIC_CACHE but tries to spot
      * non-varying columns etc for more efficient storage. */
-    public static final DataStoreFactory SMART_CACHE =
+    public static final DataStoreFactory MEMORY_CACHE =
+        new CachedDataStoreFactory(
+            new SmartColumnFactory( new MemoryColumnFactory() ), TUPLE_RUNNER );
+
+    /** Smart disk-cached storage. */
+    public static final DataStoreFactory DISK_CACHE =
+        new CachedDataStoreFactory(
+                new SmartColumnFactory(
+                    new ByteStoreColumnFactory( StoragePolicy.PREFER_DISK ) ),
+                TUPLE_RUNNER );
+
+    /** Smart cached storage based on the default Storage Policy. */
+    public static final DataStoreFactory POLICY_CACHE =
+        new CachedDataStoreFactory(
+                new SmartColumnFactory(
+                    new ByteStoreColumnFactory( StoragePolicy
+                                               .getDefaultPolicy() ) ),
+                TUPLE_RUNNER );
+
+    /** Copy of MEMORY_CACHE. */
+    private static final DataStoreFactory MEMORY1_CACHE =
         new CachedDataStoreFactory(
             new SmartColumnFactory( new MemoryColumnFactory() ), TUPLE_RUNNER );
 
@@ -42,7 +64,10 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
     public DataStoreParameter( String name ) {
         super( name, DataStoreFactory.class );
         addOption( SIMPLE, "simple" );
-        addOption( SMART_CACHE, "cache" );
+        addOption( MEMORY_CACHE, "memory" );
+        addOption( DISK_CACHE, "disk" );
+        addOption( POLICY_CACHE, "policy" );
+        addOption( MEMORY1_CACHE, "cache" );
         addOption( BASIC_CACHE, "basic-cache" );
         setDefaultOption( SIMPLE );
 
@@ -51,24 +76,47 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
             "<p>Determines the way that data is accessed when constructing",
             "the plot.",
             "There are two basic options, cached or not.",
-            "</p>",
-            "<p>If no caching is used (<code>" + getName( SIMPLE ) + "</code>)",
+            "If no caching is used",
             "then rows are read sequentially from the specified input table(s)",
             "every time they are required.",
-            "This generally requires a small memory footprint",
+            "This generally requires a small resource footprint",
             "(though that can depend on how the table is specified)",
             "and makes sense if the data only needs to be scanned once",
             "or perhaps if the table is very large.",
-            "</p>",
-            "<p>If caching is used",
-            "(<code>" + getName( SMART_CACHE ) + "</code>)",
+            "If caching is used",
             "then the required data is read once",
-            "from the specified input table(s) and cached",
+            "from the specified input table(s), then prepared and cached",
             "before any plotting is performed,",
             "and plots are done using this cached data.",
-            "This may use a significant amount of memory for large tables",
+            "This may use a significant amount of storage for large tables",
             "but it's usually more sensible (faster)",
             "if the data will need to be scanned multiple times.",
+            "There are various options for cache storage.",
+            "</p>",
+            "<p>The options are:",
+            "<ul>",
+            "<li><code>simple</code>: ",
+                "no caching, data read directly from input table",
+                "</li>",
+            "<li><code>memory</code>: ",
+                "cached to memory; OutOfMemoryError possible",
+                "for very large plots",
+                "</li>",
+            "<li><code>disk</code>: ",
+                "cached to disk",
+                "</li>",
+            "<li><code>policy</code>: ",
+                "cached using application-wide default storage policy,",
+                "which is usually <em>adaptive</em> (memory/disk hybrid)",
+                "</li>",
+            "<li><code>cache</code>: ",
+                "synonym for <code>memory</code> (backward compatibility)",
+                "</li>",
+            "<li><code>basic-cache</code>: ",
+                "dumber version of <code>memory</code>",
+                "(no optimisation for constant-valued columns)",
+                "</li>",
+            "</ul>",
             "</p>",
         } );
     }
@@ -92,6 +140,6 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
      * @return  best default option
      */
     public DataStoreFactory getDefaultForCaching( boolean isCachingSensible ) {
-        return isCachingSensible ? SMART_CACHE : SIMPLE;
+        return isCachingSensible ? MEMORY_CACHE : SIMPLE;
     }
 }

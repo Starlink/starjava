@@ -12366,6 +12366,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add <ref id="inFormats">input</ref>
         and <ref id="outFormats">output</ref> support
         for the Feather disk storage format.</li>
+    <li>Plot <code>storage</code> parameter has new options
+        <code>disk</code> and <code>policy</code>.
+        These allow off-heap plot data caching, so that interactive
+        plots for very large data sets may be made without running
+        of of memory.</li>
     </ul>
     </p></dd>
 
