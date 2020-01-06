@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.DomainMapper;
@@ -445,8 +446,19 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         }
 
         public TupleSequence getTupleSequence( DataSpec spec ) {
-            return new CachedTupleSequence( getMask( spec ),
-                                            getColumns( spec ) );
+            final CachedColumn mask = getMask( spec );
+            long nrow = mask.getRowCount();
+            Supplier<CachedReader> maskSupplier = mask::createReader;
+            final CachedColumn[] cols = getColumns( spec );
+            final int ncol = cols.length;
+            Supplier<CachedReader[]> colsSupplier = () -> {
+                CachedReader[] rdrs = new CachedReader[ ncol ];
+                for ( int ic = 0; ic < ncol; ic++ ) {
+                    rdrs[ ic ] = cols[ ic ].createReader();
+                }
+                return rdrs;
+            };
+            return new CachedTupleSequence( maskSupplier, colsSupplier, nrow );
         }
 
         public TupleRunner getTupleRunner() {
@@ -585,101 +597,6 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         @Override
         public String toString() {
             return String.valueOf( coordId_ );
-        }
-    }
-
-    /**
-     * TupleSequence implementation based on CachedColumns.
-     */
-    private static class CachedTupleSequence implements TupleSequence {
-
-        private final CachedColumn mask_;
-        private final CachedColumn[] cols_;
-        private final CachedReader maskRdr_;
-        private final CachedReader[] colRdrs_;
-        private long irow_;
-        private long nrow_;
-
-        /**
-         * Public constructor.
-         *
-         * @param  mask  boolean-typed column providing inclusion flags per row
-         * @param  cols  array of columns providing data cells per row
-         */
-        public CachedTupleSequence( CachedColumn mask, CachedColumn[] cols ) {
-            this( mask, cols, -1L, mask.getRowCount() );
-        }
-
-        /**
-         * Constructor for internal use (recursion).
-         *
-         * @param  mask  boolean-typed column providing inclusion flags per row
-         * @param  cols  array of columns providing data cells per row
-         * @param  irow   row index immediately before start of iteration range
-         * @param  nrow   row index immediately after end of iteration range
-         */
-        private CachedTupleSequence( CachedColumn mask, CachedColumn[] cols,
-                                     long irow, long nrow ) {
-            mask_ = mask;
-            cols_ = cols;
-            irow_ = irow;
-            nrow_ = nrow;
-            maskRdr_ = mask.createReader();
-            int ncol = cols.length;
-            colRdrs_ = new CachedReader[ ncol ];
-            for ( int ic = 0; ic < ncol; ic++ ) {
-                colRdrs_[ ic ] = cols[ ic ].createReader();
-            }
-        }
-
-        public boolean next() {
-            while ( ++irow_ < nrow_ ) {
-                if ( maskRdr_.getBooleanValue( irow_ ) ) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public TupleSequence split() {
-            if ( nrow_ - irow_ > 2 ) {
-                long mid = ( irow_ + nrow_ ) / 2;
-                TupleSequence split =
-                    new CachedTupleSequence( mask_, cols_, irow_, mid );
-                irow_ = mid - 1;
-                return split;
-            }
-            else {
-                return null;
-            }
-        }
-
-        public long splittableSize() {
-            return nrow_ - irow_;
-        }
-
-        public long getRowIndex() {
-            return irow_;
-        }
-
-        public Object getObjectValue( int icol ) {
-            return colRdrs_[ icol ].getObjectValue( irow_ );
-        }
-
-        public double getDoubleValue( int icol ) {
-            return colRdrs_[ icol ].getDoubleValue( irow_ );
-        }
-
-        public int getIntValue( int icol ) {
-            return colRdrs_[ icol ].getIntValue( irow_ );
-        }
-
-        public long getLongValue( int icol ) {
-            return colRdrs_[ icol ].getLongValue( irow_ );
-        }
-
-        public boolean getBooleanValue( int icol ) {
-            return colRdrs_[ icol ].getBooleanValue( irow_ );
         }
     }
 }
