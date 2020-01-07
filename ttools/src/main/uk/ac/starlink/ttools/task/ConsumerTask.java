@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -81,6 +82,8 @@ public abstract class ConsumerTask implements Task {
     /**
      * Returns an object which can produce the effective output table which
      * will be consumed by this task.
+     * The table produced by the resulting producer can be fed to
+     * the {@link #getIdentity} method.
      *
      * @param   env  execution environment
      * @return  table producer
@@ -182,10 +185,11 @@ public abstract class ConsumerTask implements Task {
         final ProcessingStep[] steps = filterParam == null
                                      ? new ProcessingStep[ 0 ]
                                      : filterParam.stepsValue( env );
-        final String[] identity = new String[] {
-            inParam.stringValue( env ),
+        URL turl = inTable.getURL();
+        final String identity = Arrays.toString( new String[] {
+            turl == null ? inParam.stringValue( env ) : turl.toString(),
             filterParam.stringValue( env ),
-        };
+        } );
         return new TableProducer() {
             public StarTable getTable() throws IOException {
                 StarTable table = inTable;
@@ -198,31 +202,47 @@ public abstract class ConsumerTask implements Task {
     }
 
     /**
+     * Returns an identification string for a table that has been produced
+     * by the TableProducer from this class's {@link #createProducer} method.
+     * This string amalgamates the table location and any filters applied
+     * to produce it, so it should be usable elsewhere, including
+     * in unrelated JVMs, to identify a table.
+     *
+     * @param   table  input table produced by this task
+     * @return   unique table identifier
+     */
+    public static String getIdentity( StarTable table ) {
+        return table instanceof IdentifiedStarTable
+             ? ((IdentifiedStarTable) table).identity_
+             : null;
+    }
+
+    /**
      * Wrapper table which is capable of marking different table instances
      * as equal.
      */
     private static class IdentifiedStarTable extends WrapperStarTable {
-        private final Object[] identity_;
+
+        private final String identity_;
 
         /**
          * Constructor.
          *
          * @param  baseTable  table to which table methods are delegated
-         * @param  identity   ordered array of objects which define equality
+         * @param  identity   text which defines identity
          */
-        IdentifiedStarTable( StarTable baseTable, Object[] identity ) {
+        IdentifiedStarTable( StarTable baseTable, String identity ) {
             super( baseTable );
-            identity_ = identity.clone();
+            identity_ = identity;
         }
         @Override
         public int hashCode() {
-            return Arrays.hashCode( identity_ );
+            return identity_.hashCode();
         }
         @Override
         public boolean equals( Object o ) {
             return o instanceof IdentifiedStarTable
-                && Arrays.equals( this.identity_,
-                                  ((IdentifiedStarTable) o).identity_ );
+                && this.identity_.equals( ((IdentifiedStarTable) o).identity_ );
         }
     }
 }
