@@ -482,5 +482,10 @@ public class JELDataSpec extends AbstractDataSpec {
         public int hashCode() {
             return Arrays.hashCode( exprs_ );
         }
+
+        @Override
+        public String toString() {
+            return Arrays.toString( exprs_ );
+        }
     }
 }
