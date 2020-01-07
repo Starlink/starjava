@@ -53,12 +53,12 @@ public class GuiDataSpec extends AbstractDataSpec {
         return contents_[ ic ].getCoord();
     }
 
-    public Object getCoordId( int ic ) {
-        return Arrays.asList( contents_[ ic ].getDataLabels() );
+    public String getCoordId( int ic ) {
+        return Arrays.toString( contents_[ ic ].getDataLabels() );
     }
 
-    public Object getMaskId() {
-        return subset_;
+    public String getMaskId() {
+        return subset_.toString();
     }
 
     public ValueInfo[] getUserCoordInfos( int ic ) {

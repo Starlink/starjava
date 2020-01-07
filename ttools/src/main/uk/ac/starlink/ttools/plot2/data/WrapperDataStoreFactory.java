@@ -157,11 +157,11 @@ public abstract class WrapperDataStoreFactory implements DataStoreFactory {
             return baseSpec_.getCoordCount();
         }
 
-        public Object getMaskId() {
+        public String getMaskId() {
             return baseSpec_.getMaskId();
         }
 
-        public Object getCoordId( int icoord ) {
+        public String getCoordId( int icoord ) {
             return baseSpec_.getCoordId( icoord );
         }
 

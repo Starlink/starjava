@@ -49,18 +49,22 @@ public interface DataSpec {
 
     /**
      * Returns an identifier for the row mask for this object.
+     * Masks with the same identifier must mean the same thing,
+     * and preferably vice versa.
      *
-     * @return   mask identifier, should implement equals sensibly
+     * @return   mask identifier
      */
-    Object getMaskId();
+    String getMaskId();
 
     /**
      * Returns an identifier for one of the the columns produced by this object.
+     * Coords with the same identifier must mean the same thing,
+     * and preferably vice versa.
      *
      * @param  icoord  column index
-     * @return   column identifier, should implement equals sensibly
+     * @return   column identifier
      */
-    Object getCoordId( int icoord );
+    String getCoordId( int icoord );
 
     /**
      * Returns the coord reader that can read the data for one of this

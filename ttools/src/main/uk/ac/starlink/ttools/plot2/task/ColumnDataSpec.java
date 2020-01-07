@@ -1,8 +1,6 @@
 package uk.ac.starlink.ttools.plot2.task;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
@@ -23,7 +21,7 @@ public class ColumnDataSpec extends AbstractDataSpec {
     private final int nCoord_;
     private final Coord[] coords_;
     private final int[][] userCoordColIndices_;
-    private static final Object ALL_MASK = new String( "ALL" );
+    private static final String ALL_MASK = "ALL";
 
     /**
      * Constructor.
@@ -54,20 +52,23 @@ public class ColumnDataSpec extends AbstractDataSpec {
         return coords_.length;
     }
 
-    public Object getCoordId( int ic ) {
+    public String getCoordId( int ic ) {
+        StringBuffer sbuf = new StringBuffer();
         int[] icols = userCoordColIndices_[ ic ];
-        List<Integer> iclist = new ArrayList<Integer>( icols.length );
         for ( int iu = 0; iu < icols.length; iu++ ) {
-            iclist.add( icols[ iu ] );
+            if ( iu > 0 ) {
+                sbuf.append( "," );
+            }
+            sbuf.append( Integer.toString( icols[ iu ] ) );
         }
-        return iclist;
+        return sbuf.toString();
     }
 
     public Coord getCoord( int ic ) {
         return coords_[ ic ];
     }
 
-    public Object getMaskId() {
+    public String getMaskId() {
         return ALL_MASK;
     }
 

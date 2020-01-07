@@ -91,16 +91,16 @@ public class JELDataSpec extends AbstractDataSpec {
         return coordValues_.length;
     }
 
-    public Object getCoordId( int ic ) {
-        return coordIds_[ ic ];
+    public String getCoordId( int ic ) {
+        return coordIds_[ ic ].toText();
     }
 
     public Coord getCoord( int ic ) {
         return coordValues_[ ic ].getCoord();
     }
 
-    public Object getMaskId() {
-        return maskId_;
+    public String getMaskId() {
+        return maskId_.toText();
     }
 
     public ValueInfo[] getUserCoordInfos( int ic ) {
@@ -461,6 +461,15 @@ public class JELDataSpec extends AbstractDataSpec {
          */
         JELKey( String[] exprs ) {
             exprs_ = exprs.clone();
+        }
+
+        /**
+         * Represents this key as a string.
+         *
+         * @return  string with equality semantics for this key
+         */
+        public String toText() {
+            return Arrays.toString( exprs_ );
         }
 
         @Override
