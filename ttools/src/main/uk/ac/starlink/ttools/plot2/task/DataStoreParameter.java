@@ -5,7 +5,9 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.ttools.plot2.data.ByteStoreColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.CachedDataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
+import uk.ac.starlink.ttools.plot2.data.DiskCache;
 import uk.ac.starlink.ttools.plot2.data.MemoryColumnFactory;
+import uk.ac.starlink.ttools.plot2.data.PersistentDataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.SmartColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.SimpleDataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.TupleRunner;
@@ -51,6 +53,10 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
                                                .getDefaultPolicy() ) ),
                 TUPLE_RUNNER );
 
+    /** Persistent cached storage in default scratch directory. */
+    public static final DataStoreFactory PERSISTENT_CACHE =
+        new PersistentDataStoreFactory( (DiskCache) null, TUPLE_RUNNER );
+
     /** Copy of MEMORY_CACHE. */
     private static final DataStoreFactory MEMORY1_CACHE =
         new CachedDataStoreFactory(
@@ -69,13 +75,14 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
         addOption( POLICY_CACHE, "policy" );
         addOption( MEMORY1_CACHE, "cache" );
         addOption( BASIC_CACHE, "basic-cache" );
+        addOption( PERSISTENT_CACHE, "persistent" );
         setDefaultOption( SIMPLE );
 
         setPrompt( "Data storage policy" );
         setDescription( new String[] {
             "<p>Determines the way that data is accessed when constructing",
             "the plot.",
-            "There are two basic options, cached or not.",
+            "There are two main options, cached or not.",
             "If no caching is used",
             "then rows are read sequentially from the specified input table(s)",
             "every time they are required.",
@@ -108,6 +115,16 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
             "<li><code>policy</code>: ",
                 "cached using application-wide default storage policy,",
                 "which is usually <em>adaptive</em> (memory/disk hybrid)",
+                "</li>",
+            "<li><code>persistent</code>: ",
+                "cached to persistent files on disk,",
+                "in the system temporary directory",
+                "(defined by system property <code>java.io.tmpdir</code>).",
+                "If this is used, plot data will be stored on disk in a way",
+                "that means they can be re-used between STILTS invocations,",
+                "so data preparation can be avoided on subsequent runs.",
+                "Note however it can leave potentially large files",
+                "in your temporary directory.",
                 "</li>",
             "<li><code>cache</code>: ",
                 "synonym for <code>memory</code> (backward compatibility)",
