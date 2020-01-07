@@ -9,10 +9,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.Slow;
 
 /**
@@ -270,10 +268,10 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         private Set<StarTable> getTables() {
             Set<StarTable> tSet = new HashSet<StarTable>();
             for ( MaskSpec mask : mSet_ ) {
-                tSet.add( mask.table_ );
+                tSet.add( mask.getTable() );
             }
             for ( CoordSpec coord : cSet_ ) {
-                tSet.add( coord.table_ );
+                tSet.add( coord.getTable() );
             }
             return tSet;
         }
@@ -288,7 +286,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         private Set<MaskSpec> getMasks( StarTable table ) {
             Set<MaskSpec> tmSet = new HashSet<MaskSpec>();
             for ( MaskSpec mask : mSet_ ) {
-                if ( mask.table_.equals( table ) ) {
+                if ( mask.getTable().equals( table ) ) {
                     tmSet.add( mask );
                 }
             }
@@ -305,7 +303,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         private Set<CoordSpec> getCoords( StarTable table ) {
             Set<CoordSpec> tcSet = new HashSet<CoordSpec>();
             for ( CoordSpec coord : cSet_ ) {
-                if ( coord.table_.equals( table ) ) {
+                if ( coord.getTable().equals( table ) ) {
                     tcSet.add( coord );
                 }
             }
@@ -463,140 +461,6 @@ public class CachedDataStoreFactory implements DataStoreFactory {
 
         public TupleRunner getTupleRunner() {
             return runner_;
-        }
-    }
-
-    /**
-     * Characterises information about a data inclusion mask.
-     * It aggregates a table and a maskId, and provides the capability of
-     * reading the corresponding inclusion data from a RowSequence.
-     */
-    @Equality
-    private static class MaskSpec {
-        final UserDataReader dataReader_;
-        final StarTable table_;
-        final Object maskId_;
-
-        /**
-         * Constructor.
-         *
-         * @param   dataSpec   specification from which the mask information
-         *                     is taken
-         */
-        MaskSpec( DataSpec dataSpec ) {
-            dataReader_ = dataSpec.createUserDataReader();
-            table_ = dataSpec.getSourceTable();
-            maskId_ = dataSpec.getMaskId();
-        }
-
-        /**
-         * Reads inclusion flag from a row sequence.
-         *
-         * @param   rseq   row sequence of this data spec's table
-         * @param   irow   row index
-         * @return  inclusion mask for current row
-         */
-        boolean readFlag( RowSequence rseq, long irow ) throws IOException {
-            return dataReader_.getMaskFlag( rseq, irow );
-        }
-
-        @Override
-        public boolean equals( Object o ) {
-            if ( o instanceof MaskSpec ) {
-                MaskSpec other = (MaskSpec) o;
-                return other.table_.equals( this.table_ )
-                    && other.maskId_.equals( this.maskId_ );
-            }
-            else {
-                return false;
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            return this.table_.hashCode() * 23 + maskId_.hashCode();
-        }
-
-        @Override
-        public String toString() {
-            return String.valueOf( maskId_ );
-        }
-    }
-
-    /**
-     * Characterises information about a coordinate value.
-     * It aggregates a table and a coordId, and provides the capability of
-     * reading the corresponding value data from a row sequence.
-     */
-    @Equality
-    private static class CoordSpec {
-        final UserDataReader dataReader_;
-        final StarTable table_;
-        final int icoord_;
-        final Coord coord_;
-        final Object coordId_;
-        final DomainMapper[] mappers_;
-
-        /**
-         * Constructor.
-         *
-         * @param  dataSpec  data specification
-         * @param  icoord  coordinate index within dataSpec
-         */
-        CoordSpec( DataSpec dataSpec, int icoord ) {
-            dataReader_ = dataSpec.createUserDataReader();
-            icoord_ = icoord;
-            table_ = dataSpec.getSourceTable();
-            coordId_ = dataSpec.getCoordId( icoord );
-            coord_ = dataSpec.getCoord( icoord );
-            mappers_ = SimpleDataStoreFactory
-                      .getUserCoordMappers( dataSpec, icoord );
-        }
-
-        /**
-         * Returns the storage type for this column.
-         *
-         * @return  storage type
-         */
-        StorageType getStorageType() {
-            return coord_.getStorageType();
-        }
-
-        /**
-         * Reads the user for this coordinate from a row sequence.
-         *
-         * @param   rseq   row sequence of this data spec's table
-         * @param   irow   row index
-         * @param   coordinate stored value for this column at current row
-         */
-        Object readValue( RowSequence rseq, long irow ) throws IOException {
-            Object[] userCoords =
-                dataReader_.getUserCoordValues( rseq, irow, icoord_ );
-            Object value = coord_.inputToStorage( userCoords, mappers_ );
-            assert value != null;
-            return value;
-        }
-
-        @Override
-        public boolean equals( Object o ) {
-            if ( o instanceof CoordSpec ) {
-                CoordSpec other = (CoordSpec) o;
-                return other.table_.equals( this.table_ )
-                    && other.coordId_.equals( this.coordId_ );
-            }
-            else {
-                return false;
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            return this.table_.hashCode() * 37 + coordId_.hashCode();
-        }
-
-        @Override
-        public String toString() {
-            return String.valueOf( coordId_ );
         }
     }
 }
