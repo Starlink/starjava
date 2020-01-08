@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -38,6 +36,7 @@ import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
+import uk.ac.starlink.task.InvokeUtils;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -352,7 +351,7 @@ public class Driver {
         }
 
         /* Configure logging. */
-        configureLogging( verbosity, debug );
+        InvokeUtils.configureLogging( verbosity, debug );
 
         /* Check JRE vendor and report on concerns. */
         Loader.checkJ2seVendor();
@@ -771,60 +770,6 @@ public class Driver {
                     e.printStackTrace();
                 }
             }
-        }
-    }
-
-    /**
-     * Sets up the logging system.
-     *
-     * @param  verbosity  number of levels greater than default to set
-     */
-    private static void configureLogging( int verbosity, boolean debug ) {
-
-        /* Try to acquire a custom log handler - may fail for security
-         * reasons. */
-        LogHandler customHandler = LogHandler.getInstance();
-	if ( customHandler == null ) {
-            return;
-        }
-        try {
-
-            /* Add a custom log handler. */
-            Logger rootLogger = Logger.getLogger( "" );
-            rootLogger.addHandler( customHandler );
-
-            /* Work out the logging level to which the requested verbosity 
-             * corresponds. */
-            int verbInt = Math.max( Level.ALL.intValue(),
-                                    Level.WARNING.intValue()
-                                    - verbosity * 
-                                      ( Level.WARNING.intValue() -
-                                        Level.INFO.intValue() ) );
-            Level verbLevel = Level.parse( Integer.toString( verbInt ) );
-
-            /* Get the root logger's console handler.  By default
-             * it has one of these; if it doesn't then some custom 
-             * logging is in place and we won't mess about with it. */
-            Handler[] rootHandlers = rootLogger.getHandlers();
-            if ( rootHandlers.length > 0 &&
-                 rootHandlers[ 0 ] instanceof ConsoleHandler ) {
-                rootHandlers[ 0 ].setLevel( verbLevel );
-                rootHandlers[ 0 ].setFormatter( new LineFormatter( debug ) );
-            }
-            rootLogger.setLevel( verbLevel );
-
-            /* Filter out an annoying message that Axis issues. */
-            Logger.getLogger( "org.apache.axis.utils.JavaUtils" )
-                  .setLevel( Level.SEVERE );
-        }
-
-        /* I don't think this should happen, since the earlier test should
-         * already have failed if we don't have permission to muck about
-         * with logging configuration.  However, I don't fully understand
-         * the logging security model, so maybe it could. */
-        catch ( SecurityException e ) {
-            logger.warning( "Logging configuration failed" +
-                            " - security exception" );
         }
     }
 
