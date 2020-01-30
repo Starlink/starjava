@@ -70,5 +70,17 @@ public class IntegerCoord extends SingleCoord {
             stype_ = stype;
             badval_ = badval;
         }
+
+        /**
+         * Returns the in-band numeric value which is used to represent
+         * null values from the user input data.  Note the presence of
+         * this value in the stored data might be either because the
+         * input data had this value, or because it was null.
+         *
+         * @return  bad value
+         */
+        public Number getBadValue() {
+            return badval_;
+        }
     }
 }
