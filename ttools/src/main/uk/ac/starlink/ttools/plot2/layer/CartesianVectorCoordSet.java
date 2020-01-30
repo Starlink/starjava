@@ -41,7 +41,12 @@ public class CartesianVectorCoordSet implements MultiPointCoordSet {
     }
 
     public Coord[] getCoords() {
-        return componentCoords_;
+        int nc = componentCoords_.length;
+        Coord[] coords = new Coord[ nc ];
+        for ( int ic = 0; ic < nc; ic++ ) {
+            coords[ ic ] = componentCoords_[ ic ];
+        }
+        return coords;
     }
 
     public int getPointCount() {
