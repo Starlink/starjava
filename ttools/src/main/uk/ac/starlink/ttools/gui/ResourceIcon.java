@@ -71,6 +71,7 @@ public class ResourceIcon {
         MODE_ALPHA_FIX = readIcon( "mode-transparent-lock.png" ),
         MODE_AUX = readIcon( "mode-aux.png" ),
         MODE_WEIGHT = readIcon( "mode-weight.png" ),
+        MODE_RGB = readIcon( "mode-rgb.png" ),
         DRAG1 = readIcon( "drag1.png" ),
         DRAG2 = readIcon( "drag2.png" ),
         DRAG3 = readIcon( "drag3.png" ),

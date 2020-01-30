@@ -56,6 +56,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
+import uk.ac.starlink.ttools.plot2.data.IntegerCoord;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
@@ -125,6 +126,12 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
     /** Weighted density mode. */
     public static final ShapeMode WEIGHTED = new WeightedDensityMode( false );
+
+    /** Flat RGB mode. */
+    // For now this is not offered as one of the shading modes for 2D or 3D
+    // plots.  I'm not sure if it's useful enough to include in the
+    // visible list.  But it's available in principle.
+    public static final ShapeMode IRGB = new RgbFlatMode( true );
 
     /** List of modes suitable for use with 2D plotting. */
     public static final ShapeMode[] MODES_2D = new ShapeMode[] {
@@ -535,6 +542,158 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
             public ReportMap getReport( Object plan ) {
                 return null;
+            }
+        }
+    }
+
+    /**
+     * Mode for painting shapes according to a supplied RGB integer coordinate.
+     */
+    private static class RgbFlatMode extends ShapeMode {
+
+        private final boolean transparent_;
+        private static final ConfigKey<Color> RGB_NULLCOLOR_KEY =
+            StyleKeys.createNullColorKey( "rgb", "RGB" );
+        private static final ConfigKey<Double> RGB_OPAQUE_KEY =
+            StyleKeys.createOpaqueKey( 1 );
+        private static final IntegerCoord.IntType INT_TYPE =
+            IntegerCoord.IntType.INT;
+        private static final int BAD_RGB = INT_TYPE.getBadValue().intValue();
+        private static final IntegerCoord RGB_COORD = new IntegerCoord(
+            new InputMeta( "rgb", "RGB" )
+           .setShortDescription( "RGB coordinate for shading; "
+                               + "bits 0-7 give Red, 8-15 give Green, "
+                               + "16-23 give Blue" ),
+            false, INT_TYPE );
+
+        /**
+         * Constructor.
+         *
+         * @param  transparent  if true, there is the option to supply
+         *                      a fixed opacity for the painted shapes
+         */
+        RgbFlatMode( boolean transparent ) {
+            super( "RGB", ResourceIcon.MODE_RGB,
+                   new Coord[] { RGB_COORD }, false );
+            transparent_ = transparent;
+        }
+
+        public String getModeDescription() {
+            StringBuffer sbuf = new StringBuffer()
+               .append( "<p>Paints markers in the RGB colour\n" )
+               .append( "explicitly given by a supplied integer coordinate.\n" )
+               .append( "The RGB coordinate contains the Red, Green and Blue " )
+               .append( "components of the plotted colour\n" )
+               .append( "in bytes 2, 1 and 0, so for instance 0xff0040\n" )
+               .append( "would represent a slighly bluish red.\n" )
+               .append( "The highest order byte is ignored." );
+            if ( transparent_ ) {
+                sbuf.append( "You can also adjust the transparency\n" )
+                    .append( "of the colours used.\n" );
+            }
+            sbuf.append( "</p>\n" );
+            return sbuf.toString();
+        }
+
+        public ConfigKey<?>[] getConfigKeys() {
+            List<ConfigKey<?>> list = new ArrayList<>();
+            if ( transparent_ ) {
+                list.add( RGB_OPAQUE_KEY );
+            }
+            list.add( RGB_NULLCOLOR_KEY );
+            return list.toArray( new ConfigKey<?>[ 0 ] );
+        }
+
+        public Stamper createStamper( ConfigMap config ) {
+            Color nullColor = config.get( RGB_NULLCOLOR_KEY );
+            double opaque = transparent_ ? config.get( RGB_OPAQUE_KEY ) : 1;
+            float alpha = 1f / (float) opaque;
+            return new RgbStamper( alpha, nullColor );
+        }
+
+        public PlotLayer createLayer( ShapePlotter plotter,
+                                      ShapeForm form,
+                                      DataGeom geom,
+                                      DataSpec dataSpec,
+                                      Outliner outliner,
+                                      Stamper stamper ) {
+            int icRgb = plotter.getModeCoordsIndex( geom );
+            RgbStamper rgbStamper = (RgbStamper) stamper;
+            final float alpha = rgbStamper.alpha_;
+            final Color nullColor = rgbStamper.nullColor_;
+            Style style = new ShapeStyle( outliner, stamper );
+            boolean isOpaque = alpha == 1f;
+            LayerOpt opt = isOpaque ? LayerOpt.OPAQUE : LayerOpt.NO_SPECIAL;
+            final Supplier<ColorKit> kitFact;
+            if ( isOpaque ) {
+                kitFact = () -> new ColorKit() {
+                    public Color readColor( Tuple tuple ) {
+                        int rgb = tuple.getIntValue( icRgb );
+                        return rgb == BAD_RGB ? nullColor : new Color( rgb );
+                    }
+                };
+            }
+            else {
+                final int alphaMask =
+                   ( (int) Math.min( 255, Math.max( 0, alpha * 256 ) ) ) << 24;
+                kitFact = () -> new ColorKit() {
+                    public Color readColor( Tuple tuple ) {
+                        int rgb = tuple.getIntValue( icRgb );
+                        return rgb == BAD_RGB
+                             ? nullColor
+                             : new Color( rgb | alphaMask, true );
+                    }
+                };
+            }
+            return new ShapePlotLayer( plotter, geom, dataSpec, style, opt,
+                                       outliner ) {
+                Drawing createDrawing( DrawSpec drawSpec ) {
+                    return drawSpec.createDrawing( kitFact );
+                }
+            };
+        }
+
+        /**
+         * Stamper for use with RGB shading mode.
+         */
+        public static class RgbStamper implements Stamper {
+
+            final float alpha_;
+            final Color nullColor_;
+
+            /**
+             * Constructor.
+             *
+             * @param   alpha   alpha channel for painted colours
+             * @parma   nullColor  colour to paint for blank RGB coordinate
+             */
+            public RgbStamper( float alpha, Color nullColor ) {
+                alpha_ = alpha;
+                nullColor_ = nullColor;
+            }
+
+            public Icon createLegendIcon( Outliner outliner ) {
+                return outliner.getLegendIcon();
+            }
+
+            @Override
+            public int hashCode() {
+                int code = 813771;
+                code = 23 * code + Float.floatToIntBits( alpha_ );
+                code = 23 * code + PlotUtil.hashCode( nullColor_ );
+                return code;
+            }
+
+            @Override
+            public boolean equals( Object o ) {
+                if ( o instanceof RgbStamper ) {
+                    RgbStamper other = (RgbStamper) o;
+                    return this.alpha_ == other.alpha_
+                        && PlotUtil.equals( this.nullColor_, other.nullColor_ );
+                }
+                else {
+                    return false;
+                }
             }
         }
     }
