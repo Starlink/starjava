@@ -12317,6 +12317,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>fat_circle</code> etc using thicker lines.</li>
     <li>Fix regression bug since last release that refused to make
         dataless plots.</li>
+    <li>FITS ASCII table extensions with TFORM values of <code>In</code>
+        are now treated as 64-bit integers for <code>n&gt;=10</code>
+        rather than <code>n&gt;10</code>.</li>
     </ul>
     </p></dd>
 

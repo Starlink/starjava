@@ -78,7 +78,7 @@ public class AsciiTable extends Data implements TableData {
 		types[i] = String.class;
 		break;
 	     case 'I':
-		if (lengths[i] > 10) {
+		if (lengths[i] >= 10) {
 		    types[i] = long.class;
 		} else {
 		    types[i] = int.class;
