@@ -121,21 +121,6 @@ public class StyleKeys {
                            .createColorMeta( "color", "Color", "plotted data" ),
                             ColorConfigKey.COLORNAME_RED, false );
 
-    /** Config key for the opacity limit of transparent plots.
-     *  This is the number of times a point has to be hit to result in
-     *  a saturated (opaque) pixel. */
-    public static final ConfigKey<Double> OPAQUE =
-        DoubleConfigKey.createSliderKey(
-            new ConfigMeta( "opaque", "Opaque limit" )
-           .setShortDescription( "Fraction of fully opaque" )
-           .setXmlDescription( new String[] {
-                "<p>The opacity of plotted points.",
-                "The value is the number of points which have to be",
-                "overplotted before the background is fully obscured.",
-                "</p>",
-            } )
-        , 4, 1, 10000, true );
-
     /** Config key for the opacity limit of auxiliary shaded plots. */
     public static final ConfigKey<Double> AUX_OPAQUE =
         DoubleConfigKey.createSliderKey(
@@ -700,6 +685,28 @@ public class StyleKeys {
                 "</p>",
             } )
             , ColorConfigKey.COLORNAME_GREY, true );
+    }
+
+    /**
+     * Returns a key for acquiring an opacity value; the value is the
+     * number of pixels that have to be overplotted on a given position
+     * to completely obscure the background.
+     *
+     * @param  dfltValue  default opacity; the lowest sensible value is 1
+     *                    (no transparency)
+     * @return   new key
+     */
+    public static ConfigKey<Double> createOpaqueKey( int dfltValue ) {
+        return DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "opaque", "Opaque limit" )
+           .setShortDescription( "Fraction of fully opaque" )
+           .setXmlDescription( new String[] {
+                "<p>The opacity of plotted points.",
+                "The value is the number of points which have to be",
+                "overplotted before the background is fully obscured.",
+                "</p>",
+            } )
+        , dfltValue, 1, 10000, true );
     }
 
     /**

@@ -317,6 +317,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     private static class FlatMode extends ShapeMode {
         private final int binThresh_;
         private final boolean transparent_;
+        private static final ConfigKey<Double> OPAQUE_KEY =
+            StyleKeys.createOpaqueKey( 4 );
 
         /**
          * Constructor.
@@ -363,7 +365,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
             keyList.add( StyleKeys.COLOR );
             if ( transparent_ ) {
-                keyList.add( StyleKeys.OPAQUE );
+                keyList.add( OPAQUE_KEY );
             }
             return keyList.toArray( new ConfigKey<?>[ 0 ] );
         }
@@ -372,7 +374,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             final Color color;
             Color baseColor = config.get( StyleKeys.COLOR );
             if ( transparent_ ) {
-                int opaque = config.get( StyleKeys.OPAQUE ).intValue();
+                int opaque = config.get( OPAQUE_KEY ).intValue();
                 float[] rgba = baseColor
                               .getRGBColorComponents( new float[ 4 ] );
                 rgba[ 3 ] = 1f / opaque;
