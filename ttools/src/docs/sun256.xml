@@ -6254,6 +6254,19 @@ As currently implemented it lacks some important features.
 The interface may be changed in a future version.
 </em></p>
 
+<p>One reason that this window is marked experimental is that
+determination of time coordinate values is not always done well.
+If the table has sufficient metadata, it will work out whether a
+specified time coordinate is in decimal year, MJD, ISO-8601 or whatever.
+However, if the data is not marked up well enough (e.g. for CSV files)
+it falls back to the "default" time value mapping, in which
+time axis values are interpreted as "Unix seconds"
+(seconds since the Unix epoch, 1970-01-01T00:00).
+You can convert your time values to the required form explicitly
+by using one of the <code>*ToUnixSec</code> functions in the
+<ref id="uk.ac.starlink.ttools.func.Times">Times</ref> class.
+</p>
+
 &plot2time-layers;
 
 &plot2time-summary;
@@ -6277,7 +6290,7 @@ stilts plot2time xpix=1000 ypix=300
 
 <dt><verbatim>
 stilts plot2time xpix=1000 ypix=1000
-                 in=ACE_data.vot t=epoch
+                 in=ACE_data.vot t=decYearToUnixSec(fp_year)
                  layer.r=line y.r=Br zone.r=ZR
                  layer.t=line y.t=Bt zone.t=ZT
                  layer.n=line y.n=Bn zone.n=ZN
@@ -6288,6 +6301,9 @@ stilts plot2time xpix=1000 ypix=1000
     The default colour is used for each line.
     Each plot is given a different title; note the <code>title</code>
     parameter suffixes refer to the zone identifiers not the layer identifiers.
+    The time coordinate in this case is supplied as a decimal year column
+    which does not have sufficient metadata to identify it as such,
+    so we force the conversion to Unix seconds.
     </p></dd>
 
 <dt><verbatim>
@@ -12320,6 +12336,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>FITS ASCII table extensions with TFORM values of <code>In</code>
         are now treated as 64-bit integers for <code>n&gt;=10</code>
         rather than <code>n&gt;10</code>.</li>
+    <li>Add new conversion functions <code>*ToUnixSec</code> to
+        <ref id="uk.ac.starlink.ttools.func.Times">Times</ref> class
+        for convenience when specifying time coordinate to
+        <ref id="plot2time"><code>plot2time</code></ref>.</li>
     </ul>
     </p></dd>
 

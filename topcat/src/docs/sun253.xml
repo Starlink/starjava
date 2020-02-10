@@ -14365,6 +14365,20 @@ stacked vertically on top of each other, so that different plots
 share a time axis but have their own Y axis.
 </p>
 
+<p><strong>Note:</strong>
+One reason that this window is marked experimental is that
+determination of time coordinate values is not always done well.
+If the table has sufficient metadata, it will work out whether a
+specified time coordinate is in decimal year, MJD, ISO-8601 or whatever.
+However, if the data is not marked up well enough (e.g. for CSV files)
+it falls back to the "default" time value mapping, in which
+time axis values are interpreted as "Unix seconds"
+(seconds since the Unix epoch, 1970-01-01T00:00).
+You can convert your time values to the required form explicitly
+by using one of the <code>*ToUnixSec</code> functions listed in
+<ref id="Times">Times</ref>.
+</p>
+
 <p>The Time Plot offers the following plot controls:
 <ul>
 <li>&CONTROL.single;, with these form options:
@@ -28962,6 +28976,9 @@ introduced since the last version:
     <li>FITS ASCII table extensions with TFORM values of <code>In</code>
         are now treated as 64-bit integers for <code>n&gt;=10</code>
         rather than <code>n&gt;10</code>.</li>
+    <li>Add new conversion functions <code>*ToUnixSec</code> to
+        <ref id="Times">Times</ref> class for convenience when working
+        with <ref id="TimePlotWindow">Time plots</ref>.</li>
     </ul>
     </p></dd>
 

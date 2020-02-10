@@ -122,6 +122,11 @@ public class TimesTest extends TestCase {
         assertEquals( 51544.5, Times.julianToMjd( 2000.0 ) );
         assertEquals( 1858.87711, Times.mjdToBesselian( 0.0 ), 1e-5 );
         assertEquals( 33281.92346, Times.besselianToMjd( 1950.0 ), 1e-5 );
+
+        assertEquals( 1098727200, Times.isoToUnixSec("2004-10-25T18:00:00") );
+        assertEquals( 0, Times.isoToUnixSec( "1970-01-01" ) );
+        assertEquals( 946684800, Times.decYearToUnixSec( 2000.0 ) );
+        assertEquals( 0, Times.decYearToUnixSec( 1970 ) );
     }
 
     private static double rnd() {

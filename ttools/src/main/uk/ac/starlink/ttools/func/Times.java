@@ -91,6 +91,9 @@ public class Times {
     /** Number of milliseconds per day. */
     private final static double MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
 
+    /** Number of seconds per day. */
+    private final static double SEC_PER_DAY = 60 * 60 * 24;
+
     /**
      * Thread-local copy of a DateKit object.
      * It would be expensive to create new Calendar and DateFormat objects 
@@ -233,6 +236,68 @@ public class Times {
         long y1 = cal.getTimeInMillis();
         long t = y0 + Math.round( frac * ( y1 - y0 ) );
         return unixMillisToMjd( t );
+    }
+
+    /**
+     * Converts an ISO8601 date string to seconds since 1970-01-01.
+     * The basic format of the <code>isoDate</code> argument is
+     * <code>yyyy-mm-ddThh:mm:ss.s</code>, though some deviations
+     * from this form are permitted:
+     * <ul>
+     * <li>The '<code>T</code>' which separates date from time 
+     *     can be replaced by a space</li>
+     * <li>The seconds, minutes and/or hours can be omitted</li>
+     * <li>The decimal part of the seconds can be any length, 
+     *     and is optional</li>
+     * <li>A '<code>Z</code>' (which indicates UTC) may be appended
+     *     to the time</li>
+     * </ul>
+     * Some legal examples are therefore:
+     * "<code>1994-12-21T14:18:23.2</code>",
+     * "<code>1968-01-14</code>", and
+     * "<code>2112-05-25 16:45Z</code>".
+     *
+     * @example   <code>isoToUnixSec("2004-10-25T18:00:00") =  1098727200</code>
+     * @example   <code>isoToMjd("1970-01-01") = 0</code>
+     * 
+     * @param  isoDate  date in ISO 8601 format
+     * @return  seconds since the Unix epoch
+     */
+    public static double isoToUnixSec( String isoDate ) {
+        return mjdToUnixSec( isoToMjd( isoDate ) );
+    }
+
+    /**
+     * Converts a Decimal Year to seconds since 1970-01-01.
+     * 
+     * @example   <code>decYearToUnixSec(2000.0) = 946684800</code>
+     * @example   <code>decYearToUnixSec(1970) = 0</code>
+     *
+     * @param    decYear  decimal year
+     * @return   seconds since the Unix epoch
+     */
+    public static double decYearToUnixSec( double decYear ) {
+        return mjdToUnixSec( decYearToMjd( decYear ) );
+    }
+
+    /**
+     * Converts a Modified Julian Date to seconds since 1970-01-01.
+     *
+     * @param  mjd  modified Julian date
+     * @return  seconds since the Unix epoch
+     */
+    public static double mjdToUnixSec( double mjd ) {
+        return ( mjd - MJD_EPOCH ) * SEC_PER_DAY;
+    }
+
+    /**
+     * Converts a Julian day to seconds since 1970-01-01.
+     *
+     * @param  jd  Julian day
+     * @return   seconds since the Unix epoch
+     */
+    public static double julianToUnixSec( double jd ) {
+        return mjdToUnixSec( julianToMjd( jd ) );
     }
 
     /**
