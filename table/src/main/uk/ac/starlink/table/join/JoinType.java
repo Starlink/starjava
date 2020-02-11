@@ -298,7 +298,7 @@ public abstract class JoinType {
      * @return   new link set
      */
     private static LinkSet createLinkSet() {
-        return new TreeSetLinkSet();
+        return new HashSetLinkSet();
     }
 
     /**

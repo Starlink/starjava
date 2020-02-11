@@ -12342,6 +12342,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="plot2time"><code>plot2time</code></ref>.</li>
     <li>Add line thickness parameter <code>thick</code> to
         <ref id="layer-contour">contour</ref> plot.</li>
+    <li>Modify a detail of the crossmatching algorithm:
+        rows are now binned using a HashSet rather than a TreeSet.
+        This may make some large matches noticeably faster;
+        it should have no effect on results.</li>
     </ul>
     </p></dd>
 

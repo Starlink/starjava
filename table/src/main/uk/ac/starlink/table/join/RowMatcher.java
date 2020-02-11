@@ -83,7 +83,7 @@ public class RowMatcher {
      * @return  new LinkSet
      */
     public LinkSet createLinkSet() {
-        return new TreeSetLinkSet();
+        return new HashSetLinkSet();
     }
 
     /**
