@@ -1591,7 +1591,7 @@ public class RowMatcher {
         }
 
         /* Don't use Collections.sort, it's evil. */
-        Arrays.sort( links, comparator );
+        Arrays.parallelSort( links, comparator );
         return Arrays.asList( links );
     }
 
