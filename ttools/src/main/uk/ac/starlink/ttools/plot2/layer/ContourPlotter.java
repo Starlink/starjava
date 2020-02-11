@@ -84,6 +84,10 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
             } )
         , 5, 1, 100 );
 
+    /** Config key for the plotted line thickness. */
+    public static final ConfigKey<Integer> THICKNESS_KEY =
+        StyleKeys.createThicknessKey( 1 );
+
     /** Config key for the contour zero level. */
     public static final ConfigKey<Double> OFFSET_KEY =
         DoubleConfigKey.createSliderKey(
@@ -222,6 +226,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
         }
         keys.add( NLEVEL_KEY );
         keys.add( SMOOTH_KEY );
+        keys.add( THICKNESS_KEY );
         keys.add( StyleKeys.LEVEL_MODE );
         keys.add( OFFSET_KEY );
         return keys.toArray( new ConfigKey<?>[ 0 ] );
@@ -233,12 +238,13 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
         double offset = config.get( OFFSET_KEY );
         int nsmooth = config.get( SMOOTH_KEY );
+        int thickness = config.get( THICKNESS_KEY );
         LevelMode levMode = config.get( StyleKeys.LEVEL_MODE );
         Combiner combiner = weightCoord_ == null
                           ? Combiner.COUNT
                           : config.get( COMBINER_KEY );
-        return new ContourStyle( color, nlevel, offset, nsmooth, levMode,
-                                 combiner );
+        return new ContourStyle( color, nlevel, offset, nsmooth, thickness,
+                                 levMode, combiner );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
@@ -497,7 +503,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
             /* For the contour generation, set up a grid which treats
              * bad values as simply very low values.  This has the effect
-             * of making blanke regions fall below the lowest contour. */
+             * of making blank regions fall below the lowest contour. */
             final NumberGrid smoothGrid = cplan.smoothGrid_;
             assert gridder.equals( smoothGrid.gridder_ );
             NumberGrid plotGrid = new NumberGrid( smoothGrid.gridder_ ) {
@@ -510,13 +516,14 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
             /* For each pixel, see whether the next one along (+1 in X/Y
              * direction) is in a different level.  If so, paint a
-             * contour pixel.  Note that really there is a systematic
-             * positional offset of these contour pixels of +0.5 in
-             * both directions.
+             * contour pixel.  Note that in the case of odd line widths
+             * there is a systematic positional offset of these contour
+             * pixels of +0.5.
              * Sweep in both directions (X,Y, then Y,X).  This paints some
              * contour pixels twice, but if you don't then lines that
              * are too steep miss pixels. */
-            int lw = 1; // line width
+            int lw = style_.getThickness();
+            int ioff = ( lw + 1 ) / 2;
             int ix0 = Math.max( 0, pad - lw );
             int ix1 = Math.min( nx + pad + 2 * lw, gridder.getWidth() );
             int iy0 = Math.max( 0, pad - lw );
@@ -526,7 +533,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 for ( int iy = iy0 + 1; iy < iy1; iy++ ) {
                     int lev1 = leveller.getLevel( plotGrid.getValue( ix, iy ) );
                     if ( lev1 != lev0 ) {
-                        g.fillRect( xoff + ix, yoff + iy - 1, 1, 1 );
+                        g.fillRect( xoff + ix, yoff + iy - ioff, lw, lw );
                     }
                     lev0 = lev1;
                 }
@@ -536,7 +543,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                 for ( int ix = ix0 + 1; ix < ix1; ix++ ) {
                     int lev1 = leveller.getLevel( plotGrid.getValue( ix, iy ) );
                     if ( lev1 != lev0 ) {
-                        g.fillRect( xoff + ix - 1, yoff + iy, 1, 1 );
+                        g.fillRect( xoff + ix - ioff, yoff + iy, lw, lw );
                     }
                     lev0 = lev1;
                 }

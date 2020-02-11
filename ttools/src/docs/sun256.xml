@@ -12340,6 +12340,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="uk.ac.starlink.ttools.func.Times">Times</ref> class
         for convenience when specifying time coordinate to
         <ref id="plot2time"><code>plot2time</code></ref>.</li>
+    <li>Add line thickness parameter <code>thick</code> to
+        <ref id="layer-contour">contour</ref> plot.</li>
     </ul>
     </p></dd>
 

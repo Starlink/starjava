@@ -11049,6 +11049,9 @@ so they don't look very beautiful in exported vector output formats
     performing the contour determination.  If set too low the contours
     will be too crinkly, and if too high they will lose definition.
     </p></dd>
+<dt>Thickness</dt>
+<dd><p>The thickness in pixels of contour lines.
+    </p></dd>
 <dt>Scaling</dt>
 <dd><p>How the smoothed density is treated before the contours levels
     are determined.  Options are linear, logarithmic and equal area.
@@ -24237,6 +24240,7 @@ Some of the notable contributers are these:
 <li>Tim Jenness (JACH)</li>
 <li>JJ Kavelaars (NRC)</li>
 <li>Grant Kennedy (IoA)</li>
+<li>Marina Kounkel (WWU)</li>
 <li>Gerard Lemson (MPE Garching)</li>
 <li>Mark Mahabir (Leicester)</li>
 <li>Brian Major (CADC)</li>
@@ -28979,6 +28983,8 @@ introduced since the last version:
     <li>Add new conversion functions <code>*ToUnixSec</code> to
         <ref id="Times">Times</ref> class for convenience when working
         with <ref id="TimePlotWindow">Time plots</ref>.</li>
+    <li>Add line thickness control to the
+        <ref id="form-contour">contour</ref> plot.</li>
     </ul>
     </p></dd>
 
