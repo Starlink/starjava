@@ -1378,10 +1378,33 @@ public class PlotControl
                            double y )
     {
     	recordOrigin( x, y );
-
+    //	float xs = Math.max( getXScale() + xIncrement, 1.0F );
+    //  float ys = Math.max( getYScale() + yIncrement, 1.0F );
+    	
+        float xs = getXScale() + xIncrement;
+        float ys = getYScale() + yIncrement;
         //  Scale the plot by the increment.
-        float xs = Math.max( getXScale() + xIncrement, 1.0F );
-        float ys = Math.max( getYScale() + yIncrement, 1.0F );
+        if (xIncrement != 0 && (xs<1.0F && xs > -2.0F))
+			xs=(xIncrement>0?Math.max(xs, 1.0F):Math.min(xs, -2.0F));
+        if (yIncrement != 0&& (xs<1.0F && xs > -2.0F) )
+			ys=(xIncrement>0?Math.max(ys, 1.0F):Math.min(ys, -2.0F));
+        /*
+    	if (xs > 0.0F) {
+    		xs = Math.max(xs, 1.0F);
+    	} else if (xs < 0.0F) {
+    		xs = Math.min(xs, -2.0F);
+    	} else 
+    		if (xIncrement != 0)
+    			xs=(XIncrement>0?1.0F:-2.0F)
+    	}
+    	 //  Scale the plot by the increment.
+    	if (ys > 0.0F) {
+    		ys = Math.max(ys, 1.0F);
+    	} else if (ys <= 0.0F) {
+    		ys = Math.min(ys, -2.0F);
+    	} 
+    	 //  Scale the plot by the increment.*/
+    	
         setScale( xs, ys );
     }
 
