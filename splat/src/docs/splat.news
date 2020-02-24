@@ -1,5 +1,9 @@
 1 Starlink SPLAT news.
 
+   3.15.1
+   ========
+   - catch error so that querying registry does not fail because of bad registry entries
+
    3.15
    ========
    - A bug extracting the lines from 2D input data has been fixed. Previously
