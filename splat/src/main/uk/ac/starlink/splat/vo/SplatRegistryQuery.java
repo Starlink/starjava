@@ -378,6 +378,7 @@ public class SplatRegistryQuery implements RegistryQuery {
             final String stdVersion = getString( row, "std_version" );
            
             final String subjectTxt = getString( row, "res_subjects" );
+           
             final String [] waveBand = getString( row, "waveband" ).split("#");
             
             String cappaths = getString( row, "cappaths" );
@@ -388,6 +389,7 @@ public class SplatRegistryQuery implements RegistryQuery {
             String email = getString( row, "emails" ).replace("<", "&lt;").replace(">", "&gt;"); // replace needed if information is displayed in html
             String contact = "";
             String publisher = "";
+            
 
             if (baseRoles!= null && roleNames!=null) {
             	String[] roles = baseRoles.split("#");
@@ -401,7 +403,8 @@ public class SplatRegistryQuery implements RegistryQuery {
             				contact=names[b];   
 
             		} catch (Exception e) {
-            			logger_.warning ( shortName+" "+refUrl+" : number of role and names does not match");
+            			
+            			logger_.info ( shortName+" "+refUrl+" : number of role and names does not match");
             		}
             		if (email != null)
             			contact += " ("+ email +") ";
@@ -423,7 +426,7 @@ public class SplatRegistryQuery implements RegistryQuery {
             			if (paths[k].contains("capability/creationType")) 
             				creationType = vals[k];
             		} catch (Exception e) {
-            			logger_.warning ( shortName+": number of capabilities and values does not match");
+            			logger_.info ( shortName+": number of capabilities and values does not match");
             		}
             	}
 
@@ -484,7 +487,8 @@ public class SplatRegistryQuery implements RegistryQuery {
          * @return   value of cell in column with name <code>rrName</code>
          */
         private static String getString( Object[] row, String rrName ) {
-            return (String) getEntry( row, rrName );
+        	String str = (String) getEntry( row, rrName );
+            return (str==null?"":str);
         }
     }
 
