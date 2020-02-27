@@ -201,6 +201,9 @@
     <echo message="Executing CDF target: ${what}"/>
     <ant dir="./cdf" target="${what}"/>
 
+    <echo message="Excecuting FEATHER target: ${what}"/>
+    <ant dir="./feather" target="${what}"/>
+
     <echo message="Executing GBIN target: ${what}"/>
     <ant dir="./gbin" target="${what}"/>
 
@@ -468,6 +471,10 @@
       </packageset>
 
       <packageset dir="cdf/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="feather/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 

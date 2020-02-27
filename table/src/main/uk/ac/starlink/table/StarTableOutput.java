@@ -44,6 +44,7 @@ import uk.ac.starlink.util.Loader;
  * <li> {@link uk.ac.starlink.fits.VariableFitsTableWriter}
  * <li> {@link uk.ac.starlink.fits.HealpixFitsTableWriter}
  * <li> {@link uk.ac.starlink.votable.VOTableWriter}
+ * <li> {@link uk.ac.starlink.feather.FeatherTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.TextTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.AsciiTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.CsvTableWriter}
@@ -75,6 +76,7 @@ public class StarTableOutput {
         "uk.ac.starlink.votable.ColFitsPlusTableWriter",
         "uk.ac.starlink.fits.ColFitsTableWriter",
         "uk.ac.starlink.votable.VOTableWriter",
+        "uk.ac.starlink.feather.FeatherTableWriter",
         TextTableWriter.class.getName(),
         AsciiTableWriter.class.getName(),
         CsvTableWriter.class.getName(),

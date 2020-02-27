@@ -17,6 +17,8 @@ import java.util.logging.Logger;
 import junit.framework.AssertionFailedError;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.feather.FeatherTableBuilder;
+import uk.ac.starlink.feather.FeatherTableWriter;
 import uk.ac.starlink.fits.AbstractWideFits;
 import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.ColFitsTableWriter;
@@ -44,6 +46,7 @@ import uk.ac.starlink.table.formats.TstTableBuilder;
 import uk.ac.starlink.table.formats.TstTableWriter;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.IntList;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.DataFormat;
@@ -87,6 +90,7 @@ public class FormatsTest extends TableCase {
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.SEVERE );
         Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.feather" ).setLevel( Level.SEVERE );
 
         FitsConstants.configureHierarch();
     }
@@ -218,6 +222,7 @@ public class FormatsTest extends TableCase {
             "FITS",
             "VOTable",
             "CDF",
+            "feather",
             "GBIN",
         };
         String[] knownFormats = new String[] {
@@ -227,6 +232,7 @@ public class FormatsTest extends TableCase {
             "FITS",
             "VOTable",
             "CDF",
+            "feather",
             "GBIN",
             "ASCII",
             "CSV",
@@ -284,6 +290,7 @@ public class FormatsTest extends TableCase {
             "votable-binary-href",
             "votable-binary2-href",
             "votable-fits-inline",
+            "feather",
             "text",
             "ascii",
             "csv",
@@ -483,6 +490,12 @@ public class FormatsTest extends TableCase {
         }
         exerciseReadWrite( new VOTableWriter(),
                            new VOTableBuilder(), "votable" );
+        exerciseReadWrite(
+            new FeatherTableWriter( false, StoragePolicy.PREFER_MEMORY ),
+            new FeatherTableBuilder(), "feather" );
+        exerciseReadWrite(
+            new FeatherTableWriter( true, StoragePolicy.PREFER_MEMORY ),
+            new FeatherTableBuilder(), "feather" );
         exerciseReadWrite( new AsciiTableWriter(),
                            new AsciiTableBuilder(), "text" );
         exerciseReadWrite( new CsvTableWriter( true ),
@@ -539,6 +552,9 @@ public class FormatsTest extends TableCase {
         }
         else if ( "ipac".equals( equalMethod ) ) {
             assertIpacTableEquals( t1, t2 );
+        }
+        else if ( "feather".equals( equalMethod ) ) {
+            assertFeatherTableEquals( t1, t2 );
         }
         else if ( "exact".equals( equalMethod ) ) {
             assertTableEquals( t1, t2 );
@@ -789,6 +805,29 @@ public class FormatsTest extends TableCase {
         rseq2.close();
     }
 
+    private void assertFeatherTableEquals( StarTable t1, StarTable t2 )
+            throws IOException {
+        IntList icols = new IntList();
+        int nc = t1.getColumnCount();
+        for ( int ic = 0; ic < nc; ic++ ) {
+            Class<?> clazz = t1.getColumnInfo( ic ).getContentClass();
+            if ( clazz.equals( byte[].class ) ||
+                 clazz.getComponentType() == null ) { 
+                icols.add( ic );
+            }
+        }
+        StarTable t1a = new ColumnPermutedStarTable( t1, icols.toIntArray() );
+        int ncol = t1a.getColumnCount();
+        assertEquals( ncol, t2.getColumnCount() );
+        assertEquals( t1a.getName(), t2.getName() );
+        assertEquals( t1a.getURL() + "", t2.getURL() + "" );
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            assertValueInfoEquals( t1a.getColumnInfo( ic ),
+                                   t2.getColumnInfo( ic ) );
+        }
+        assertRowSequenceEquals( t1a, t2 );
+    }
+
     /**
      * Checks table invariants.  Any StarTable should be able to run
      * through these tests without errors.
@@ -851,5 +890,4 @@ public class FormatsTest extends TableCase {
             lrow++;
         }
     }
-
 }
