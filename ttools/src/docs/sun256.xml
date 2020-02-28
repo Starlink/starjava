@@ -1462,7 +1462,8 @@ the location, but be aware that this may be less efficient on memory.
 As with command-line STILTS, the <code>fmt</code> argument
 is one of the options in <ref id="inFormats"/>, but may be
 left as the default if the format auto-detectable,
-which currently means if the file is in VOTable, FITS, CDF or GBIN format.
+which currently means if the file is in
+VOTable, FITS, CDF, Feather or GBIN format.
 The <code>random</code> argument can be used to ensure that the returned file
 has random (i.e. not sequential-only) access;
 for some table formats the default way of reading them in means that
@@ -2134,6 +2135,18 @@ The following list gives the values usually allowed for this
     CDF is described at <webref url="http://cdf.gsfc.nasa.gov/"/>.
     </p></dd>
 
+<dt><code>feather</code></dt>
+<dd><p>Feather file format is a column-oriented binary disk-based format
+     based on Apache Arrow and supported by (at least) Python, R and Julia.
+     Some description of it is available at
+     <webref url="https://github.com/wesm/feather"/> and
+     <webref url="https://blog.rstudio.com/2016/03/29/feather/"/>.
+     It can be used for large datasets, but it does not support
+     array-valued columns.
+     It can be a useful format to use for exchanging data with R,
+     for which FITS I/O is reported to be slow.
+     </p></dd>
+
 <dt><code>ascii</code></dt>
 <dd><p>Plain text file with one row per column 
     in which columns are separated by whitespace.
@@ -2172,7 +2185,8 @@ For more details on these formats, see the descriptions in
 <docxref doc="sun253" loc="inFormats"/>.
 </p>
 
-<p>In some cases (when using VOTable, FITS, CDF or GBIN format tables) the 
+<p>In some cases
+(when using VOTable, FITS, CDF, Feather or GBIN format tables) the 
 tools can detect the table format automatically, and no explicit 
 specification is necessary.  If this isn't the case and you omit
 the format specification, the tool will fail with a suitable error
@@ -2276,6 +2290,9 @@ Matching is case-insensitive.
 <dt><code>votable-fits-inline</code></dt>
 <dd><p>VOTable document with FITS-encoded data inline within a 
     <code>STREAM</code> element</p></dd>
+
+<dt><code>feather</code></dt>
+<dd><p>Feather format.</p></dd>
 
 <dt><code>ascii</code></dt>
 <dd><p>Simple space-separated ASCII file format</p></dd>
@@ -12346,6 +12363,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         rows are now binned using a HashSet rather than a TreeSet.
         This may make some large matches noticeably faster;
         it should have no effect on results.</li>
+    <li>Add <ref id="inFormats">input</ref>
+        and <ref id="outFormats">output</ref> support
+        for the Feather disk storage format.</li>
     </ul>
     </p></dd>
 

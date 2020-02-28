@@ -615,7 +615,7 @@ something like
 <code>java -jar topcat-full.jar</code> (see <ref id="invoke"/> for
 more detail).  To view a table that you have on disk, you can either
 give its name on the command line or load it using the <label>Load</label>
-button from the GUI.  FITS, VOTable, CDF and GBIN files
+button from the GUI.  FITS, VOTable, CDF, feather and GBIN files
 are recognised automatically;
 if your data is in another format such as ASCII (see <ref id="inFormats"/>)
 you need to tell the program (e.g. <code>-f ascii</code> on the command line).
@@ -1101,7 +1101,7 @@ supported input formats have matching output formats and vice versa.
 <p>Loading tables into TOPCAT is done either from the command line
 when you start the program up or
 using the <ref id="LoadWindow">Load Table</ref> dialogue.
-For FITS, VOTable, CDF and GBIN formats
+For FITS, VOTable, CDF, feather and GBIN formats
 the file format can be detected automatically
 (note this is done by looking at the file content, it has nothing
 to do with filename extensions).
@@ -1283,6 +1283,30 @@ Since v4.0-1 TOPCAT is capable of reading CDF files, though it can't
 write them.
 Currently, no attempt is made to represent values representing
 times in a human-friendly fashion.  This may change in future releases.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="inFeather">
+<subhead><title>Feather</title></subhead>
+
+<p>The Feather file format is a column-oriented binary disk-based format
+based on Apache Arrow and supported by (at least) Python, R and Julia.
+Some description of it is available at
+<webref url="https://github.com/wesm/feather"/> and
+<webref url="https://blog.rstudio.com/2016/03/29/feather/"/>.
+It can be used for large datasets, but it does not support
+array-valued columns.
+It can be a useful format to use for exchanging data with R,
+for which FITS I/O is reported to be slow.
+</p>
+
+<p>At present CATEGORY type columns are not supported,
+and metadata associated with TIME, DATE and TIMESTAMP
+columns is not retrieved.
+</p>
+
+<p>Feather can only read files that are on disk, not streamed.
 </p>
 
 </subsubsubsect>
@@ -1818,6 +1842,21 @@ They can all be read by the
 <ref id="inVotable">VOTable input handler</ref>.
 </p>
 
+</subsubsubsect>
+
+<subsubsubsect id="outFeather">
+<subhead><title>Feather</title></subhead>
+
+<p>The Feather format is described in <ref id="inFeather"/>.
+Not all column types are supported by feather,
+in particular if you attempt to write a table containing
+array-valued columns (except for byte arrays),
+those columns will be omitted from the output.
+</p>
+
+<p>This writer is currently somewhat experimental;
+please report problems if you experience them.
+</p>
 
 </subsubsubsect>
 
@@ -4924,7 +4963,8 @@ so it's not restricted to using files which fit into the java virtual
 machine's 'heap memory' or into the physical memory of the machine.
 As a rule of thumb, the program will work at reasonable speed
 with tables up to about 1-10 million rows, depending on the machine
-it's running on.
+it's running on.  It may well work work with hundreds of millions
+of rows, but performance may be more sluggish.
 The number of columns is less of an issue,
 though see below concerning performance.
 </p>
@@ -4941,12 +4981,13 @@ report on the console), and there are some things you can do about this:
 <dt>Increase Java's heap memory</dt>
 <dd><p>When a Java program runs, it has a fixed maximum amount of memory
     that it will use; Java does not really make use of virtual memory.
-    The default maximum is typically 64Mb, though that depends on your
-    java setup.  You can increase this by
+    The default amount depends on your machine and java implementation.
+    You can increase this by
     using the <code>-Xmx</code> flag, followed by the maximum heap memory,
-    for instance "<code>topcat -Xmx256M</code>" or 
-    "<code>java -Xmx256M -jar topcat-full.jar</code>".
-    Don't forget the "<code>M</code>" to indicate megabytes.
+    for instance "<code>topcat -Xmx1000M</code>" or 
+    "<code>java -Xmx1000M -jar topcat-full.jar</code>".
+    Don't forget the "<code>M</code>" to indicate megabytes
+    or "<code>G</code>" for gigabytes.
     It's generally reasonable to increase this value up to nearly the
     amount of free physical memory in your machine if you need to
     (taking account of the needs of other processes running at the same time)
@@ -4973,6 +5014,7 @@ report on the console), and there are some things you can do about this:
     (see <ref id="outFits"/>).
     As well as speeding things up, using FITS files will 
     also reduce the need to use <code>-Xmx</code> flags as above.
+    Feather format also has the same advantages.
     </p></dd>
 
 <dt>Run in 64-bit mode</dt>
@@ -4997,6 +5039,7 @@ report on the console), and there are some things you can do about this:
     which require all the cells in all the rows
     (for instance, calculating <ref id="StatsWindow">row statistics</ref>) 
     may be somewhat slower using this format.
+    Feather format is also column-oriented.
     </p>
     <p>It is also possible to use column-oriented storage for non-FITS
     files by specifying the flag <code>-Dstartable.storage=sideways</code>.
@@ -5037,7 +5080,7 @@ column-oriented storage can help a lot in that case.
 </p>
 
 </subsect>
-    
+
 
 <subsect id="invokeExamples">
 <subhead><title>Examples</title></subhead>
@@ -21912,7 +21955,7 @@ and loads that into TOPCAT as a new table.
 <dt>Table Format:</dt>
 <dd><p>Selects the file format of the table to load.
     If the table is in one of the formats that TOPCAT is able to
-    auto-detect (VOTable, FITS, CDF) then the default value
+    auto-detect (VOTable, FITS, CDF, Feather) then the default value
     <code>(auto)</code> may be used, otherwise the correct format
     must be chosen from the list.
     </p></dd>
@@ -22003,7 +22046,7 @@ are not included when a session is saved.
 <dt>Table Format:</dt>
 <dd><p>Selects the file format of the table to load.
     If the table is in one of the formats that TOPCAT is able to
-    auto-detect (VOTable, FITS, CDF) then the default value
+    auto-detect (VOTable, FITS, CDF, Feather) then the default value
     <code>(auto)</code> may be used, otherwise the correct format
     must be chosen from the list.
     </p></dd>
@@ -28989,6 +29032,9 @@ introduced since the last version:
         rows are now binned using a HashSet rather than a TreeSet.
         This may make some large matches noticeably faster; 
         it should have no effect on results.</li>
+    <li>Add <ref id="inFeather">input</ref>
+        and <ref id="outFeather">output</ref> support
+        for the Feather disk storage format.</li>
     </ul>
     </p></dd>
 
