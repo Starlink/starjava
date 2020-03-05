@@ -343,7 +343,10 @@ public abstract class VotLintTapRunner extends TapRunner {
         }
 
         /* Check pre-table status INFO. */
+        boolean overflow = false;
+        final String preStatus;
         if ( preStatusInfo == null ) {
+            preStatus = null;
             if ( doChecks_ ) {
                 reporter.report( FixedCode.E_NOST,
                                  "Missing <INFO name='QUERY_STATUS'> element "
@@ -351,7 +354,7 @@ public abstract class VotLintTapRunner extends TapRunner {
             }
         }
         else {
-            String preStatus = preStatusInfo.getAttribute( "value" );
+            preStatus = preStatusInfo.getAttribute( "value" );
             if ( "ERROR".equals( preStatus ) ) {
                 String err = DOMUtils.getTextContent( preStatusInfo );
                 if ( err == null || err.trim().length() == 0 ) {
@@ -365,6 +368,9 @@ public abstract class VotLintTapRunner extends TapRunner {
                 }
                 throw new IOException( "Service error: \"" + err + "\"" );
             }
+            else if ( "OVERFLOW".equals( preStatus ) ) {
+                overflow = true;
+            }
             else if ( "OK".equals( preStatus ) ) {
                 // ok
             }
@@ -374,7 +380,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                         .append( "Pre-table QUERY_STATUS INFO " )
                         .append( "has unknown value " )
                         .append( preStatus )
-                        .append( " is not OK/ERROR" )
+                        .append( " is not OK/ERROR/OVERFLOW" )
                         .toString();
                     reporter.report( FixedCode.E_DQUS, msg );
                 }
@@ -382,7 +388,6 @@ public abstract class VotLintTapRunner extends TapRunner {
         }
 
         /* Check post-table status INFO. */
-        boolean overflow = false;
         if ( postStatusInfo != null ) {
             String postStatus = postStatusInfo.getAttribute( "value" );
             if ( "ERROR".equals( postStatus ) ) {
@@ -398,8 +403,22 @@ public abstract class VotLintTapRunner extends TapRunner {
                 }
                 throw new IOException( err );
             }
-            else if ( "OVERFLOW".equals( postStatus ) ) {
-                overflow = true;
+            else if ( "OVERFLOW".equals( postStatus ) ||
+                      "OK".equals( postStatus ) ) {
+                boolean isOver = "OVERFLOW".equals( postStatus );
+                if ( doChecks_ ) {
+                    if ( postStatus.equals( preStatus ) ) {
+                        reporter.report( FixedCode.I_DQUR,
+                                         "Redundant post-table repetition of "
+                                       + "pre-table " + preStatus + " status" );
+                    }
+                    if ( !isOver && "OVERFLOW".equals( preStatus ) ) {
+                        reporter.report( FixedCode.E_DQUM,
+                                         "Pre-table status OVERFLOW "
+                                       + "contradicts post-table status OK" );
+                    }
+                }
+                overflow = overflow || isOver;
             }
             else {
                 if ( doChecks_ ) {
@@ -407,7 +426,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                         .append( "Post-table QUERY_STATUS INFO " )
                         .append( "has unknown value " )
                         .append( postStatus )
-                        .append( " is not ERROR/OVERFLOW" )
+                        .append( " is not OK/ERROR/OVERFLOW" )
                         .toString();
                     reporter.report( FixedCode.W_DQU2, msg );
                 }

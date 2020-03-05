@@ -12375,6 +12375,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         The <code>persistent</code> option additionally means that
         results of expensive data read operations can be cached
         between invocations.</li>
+    <li>Modify <code>taplint</code> processing of
+        <code>QUERY_STATUS</code> declarations;
+        overflow may now be declared before,
+        as well as after, the table.</li>
     </ul>
     </p></dd>
 
