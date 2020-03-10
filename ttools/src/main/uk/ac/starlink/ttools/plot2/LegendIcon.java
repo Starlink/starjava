@@ -48,7 +48,8 @@ public class LegendIcon implements Icon {
         /* Work out geometry. */
         for ( int ie = 0; ie < entries_.length; ie++ ) {
             LegendEntry entry = entries_[ ie ];
-            Rectangle bounds = captioner.getCaptionBounds( entry.getLabel() );
+            Rectangle bounds =
+                captioner.getCaptionBounds( getEntryCaption( entry ) );
             maxHeight = Math.max( bounds.height, maxHeight );
             maxIconWidth = Math.max( entry.getIcon().getIconWidth(),
                                      maxIconWidth );
@@ -123,7 +124,7 @@ public class LegendIcon implements Icon {
             int lxp = x0 + gap + iconWidth_ + gap;
             int lyp = y0 + ( gap + lineHeight_ ) * ( ie + 1 );
             g.translate( lxp, lyp );
-            captioner_.drawCaption( entry.getLabel(), g );
+            captioner_.drawCaption( getEntryCaption( entry ), g );
             g.translate( -lxp, -lyp );
         }
         g.setColor( color0 );
@@ -151,5 +152,15 @@ public class LegendIcon implements Icon {
         code = 23 * code + ( border_ ? 5 : 1 );
         code = 23 * code + PlotUtil.hashCode( bgColor_ );
         return code;
+    }
+
+    /**
+     * Returns a caption for labelling a given entry.
+     *
+     * @param  entry  entry
+     * @return   caption
+     */
+    private static Caption getEntryCaption( LegendEntry entry ) {
+        return Caption.createCaption( entry.getLabel() );
     }
 }

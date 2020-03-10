@@ -249,9 +249,10 @@ public class PlotPlacement {
             Captioner captioner =
                 surfFact.createSurface( extBounds, profile, aspect )
                         .getCaptioner();
+            Caption caption = Caption.createCaption( title );
             decInsets.top =
                 Math.max( decInsets.top,
-                          captioner.getCaptionBounds( title ).height
+                          captioner.getCaptionBounds( caption ).height
                           + captioner.getPad() );
         }
 
@@ -438,7 +439,7 @@ public class PlotPlacement {
      */
     @Equality
     private static class CaptionIcon implements Icon {
-        private final String text_;
+        private final Caption caption_;
         private final Captioner captioner_;
         private final int width_;
         private final int height_;
@@ -452,9 +453,9 @@ public class PlotPlacement {
          * @param  captioner   caption painter
          */ 
         CaptionIcon( String text, Captioner captioner ) {
-            text_ = text;
+            caption_ = Caption.createCaption( text );
             captioner_ = captioner;
-            Rectangle bounds = captioner.getCaptionBounds( text );
+            Rectangle bounds = captioner.getCaptionBounds( caption_ );
             x_ = 0;
             y_ = - bounds.y;
             width_ = bounds.width;
@@ -475,7 +476,7 @@ public class PlotPlacement {
             Color color0 = g.getColor();
             g.setColor( Color.BLACK );
             g.translate( xoff, yoff );
-            captioner_.drawCaption( text_, g );
+            captioner_.drawCaption( caption_, g );
             g.translate( -xoff, -yoff );
             g.setColor( color0 );
         }
@@ -483,7 +484,7 @@ public class PlotPlacement {
         @Override
         public int hashCode() {
             int code = 4432;
-            code = 23 * text_.hashCode();
+            code = 23 * caption_.hashCode();
             code = 23 * captioner_.hashCode();
             return code;
         }
@@ -492,7 +493,7 @@ public class PlotPlacement {
         public boolean equals( Object o ) {
             if ( o instanceof CaptionIcon ) {
                 CaptionIcon other = (CaptionIcon) o;
-                return this.text_.equals( other.text_ )
+                return this.caption_.equals( other.caption_ )
                     && this.captioner_.equals( other.captioner_ );
             }
             else {

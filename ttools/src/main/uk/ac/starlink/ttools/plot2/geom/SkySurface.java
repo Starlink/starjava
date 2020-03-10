@@ -27,6 +27,7 @@ import skyview.geometry.Scaler;
 import skyview.geometry.TransformationException;
 import uk.ac.starlink.ttools.func.CoordsRadians;
 import uk.ac.starlink.ttools.plot.Matrices;
+import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.LabelledLine;
@@ -306,7 +307,7 @@ public class SkySurface implements Surface {
         g2.drawLine( gp2.x, gp0.y - 3, gp2.x, gp0.y + 3 );
 
         /* Paint the caption with background for contrast. */
-        String caption = dist.getCaption();
+        Caption caption = dist.getCaption();
         g2.setColor( new Color( 0xa0ffffff, true ) );
         int tx = gp0.x + 5 + captioner_.getPad();
         int ty = gp0.y - captioner_.getPad();

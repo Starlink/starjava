@@ -67,7 +67,7 @@ public abstract class Anchor {
      * @param   captioner  object that can turn text into graphics
      * @return   plotted text bounding box
      */
-    public abstract Rectangle getCaptionBounds( String label, int px, int py,
+    public abstract Rectangle getCaptionBounds( Caption label, int px, int py,
                                                 Captioner captioner );
 
     /**
@@ -79,7 +79,7 @@ public abstract class Anchor {
      * @param   captioner  object that can turn text into graphics
      * @param   g  graphics context
      */
-    public abstract void drawCaption( String label, int px, int py,
+    public abstract void drawCaption( Caption label, int px, int py,
                                       Captioner captioner, Graphics g );
 
     /**
@@ -99,7 +99,7 @@ public abstract class Anchor {
      */
     public static abstract class HorizontalAnchor extends Anchor {
 
-        public Rectangle getCaptionBounds( String label, int px, int py,
+        public Rectangle getCaptionBounds( Caption label, int px, int py,
                                            Captioner captioner ) {
             Rectangle cbox = captioner.getCaptionBounds( label );
             int[] offset = getOffset( cbox, captioner.getPad() );
@@ -107,7 +107,7 @@ public abstract class Anchor {
             return cbox;
         }
 
-        public void drawCaption( String label, int px, int py,
+        public void drawCaption( Caption label, int px, int py,
                                  Captioner captioner, Graphics g ) {
             Rectangle cbox = captioner.getCaptionBounds( label );
             int[] offset = getOffset( cbox, captioner.getPad() );
@@ -148,7 +148,7 @@ public abstract class Anchor {
             baseAnchor_ = baseAnchor;
         }
 
-        public Rectangle getCaptionBounds( String label, int px, int py,
+        public Rectangle getCaptionBounds( Caption label, int px, int py,
                                            Captioner captioner ) {
             Rectangle baseBounds =
                 baseAnchor_.getCaptionBounds( label, px, py, captioner );
@@ -166,7 +166,7 @@ public abstract class Anchor {
             return b1.getBounds();
         }
 
-        public void drawCaption( String label, int px, int py,
+        public void drawCaption( Caption label, int px, int py,
                                  Captioner captioner, Graphics g ) {
             Graphics2D g2 = (Graphics2D) g;
             AffineTransform trans0 = g2.getTransform();

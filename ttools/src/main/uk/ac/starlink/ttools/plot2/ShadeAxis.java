@@ -28,6 +28,7 @@ public class ShadeAxis {
     private final double crowding_;
     private final int rampWidth_;
     private static final Orientation ORIENTATION = Orientation.ANTI_Y;
+    private static final Caption PAD_CAPTION = Caption.createCaption( "0" );
 
     /**
      * Constructor.
@@ -88,7 +89,7 @@ public class ShadeAxis {
      * @return   ramp icon vertical padding for labels
      */
     public int getEndPadding() {
-        return ( captioner_.getCaptionBounds( "0" ).height + 1 ) / 2;
+        return ( captioner_.getCaptionBounds( PAD_CAPTION ).height + 1 ) / 2;
     }
 
     /**

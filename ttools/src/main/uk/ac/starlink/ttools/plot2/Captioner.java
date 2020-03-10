@@ -4,7 +4,7 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 
 /**
- * Can paint a text string onto a graphics context in horizontal orientation.
+ * Can paint a text caption onto a graphics context in horizontal orientation.
  *
  * <p>It might be better to rework this interface so that the reference
  * position is the origin of the bounding box rather than the start of
@@ -23,10 +23,10 @@ public interface Captioner {
      * Draws a caption such that the left end of the text baseline is at
      * the origin of the supplied graphics context.
      *
-     * @param  label  caption text
+     * @param  label   caption text
      * @param  g  graphics context
      */
-    void drawCaption( String label, Graphics g );
+    void drawCaption( Caption label, Graphics g );
 
     /**
      * Returns a bounding box for the caption drawn by a corresponding call
@@ -35,7 +35,7 @@ public interface Captioner {
      * @param  label  caption text
      * @return  bounding box for caption drawn at the origin
      */
-    Rectangle getCaptionBounds( String label );
+    Rectangle getCaptionBounds( Caption label );
 
     /**
      * Returns a suitable padding value for separating captions from

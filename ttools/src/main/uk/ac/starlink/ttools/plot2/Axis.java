@@ -172,7 +172,7 @@ public abstract class Axis {
         int tickUnit = orient.isDown() ? -2 : +2;
         for ( int it = 0; it < ticks.length; it++ ) {
             Tick tick = ticks[ it ];
-            String label = tick.getLabel();
+            Caption label = tick.getLabel();
             int gx = (int) dataToGraphics( tick.getValue() );
             double tx = invert ? ghi_ - gx : gx - glo_;
             AffineTransform tTrans =
@@ -212,7 +212,8 @@ public abstract class Axis {
  
         /* Place title. */
         if ( title != null && title.length() > 0 ) {
-            Rectangle cbounds = captioner.getCaptionBounds( title );
+            Caption titleCap = Caption.createCaption( title );
+            Rectangle cbounds = captioner.getCaptionBounds( titleCap );
             int tx = ( ghi_ - glo_ ) / 2 - cbounds.width / 2;
             int ty = orient.isDown()
                    ? + tickBounds.height + cpad - cbounds.y
@@ -221,7 +222,7 @@ public abstract class Axis {
                 AffineTransform.getTranslateInstance( tx, ty );
             if ( hasGraphics ) {
                 g2.setTransform( combineTrans( trans0, tTrans ) );
-                captioner.drawCaption( title, g2 );
+                captioner.drawCaption( titleCap, g2 );
                 g2.setTransform( trans0 );
             }
             Rectangle titleBounds =

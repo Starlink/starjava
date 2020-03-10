@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.BasicTicker;
 
 /**
@@ -11,21 +12,28 @@ import uk.ac.starlink.ttools.plot2.BasicTicker;
 public class SkyDistance {
 
     private final double radians_;
-    private final String caption_;
+    private final Caption caption_;
     private static final int[] SEX_NUMBERS =
         { 1, 2, 3, 4, 5, 10, 15, 20, 30, 40, 45, 50, 60, 90, 120, 180 };
     private static final int[] DEC_NUMBERS =
         { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-    private static final String DEG_UNIT = "\u00b0";
-    private static final String MIN_UNIT = "'";
-    private static final String SEC_UNIT = "\"";
-    private static final String MAS_UNIT = "mas";
+    private static final Caption DEG_UNIT =
+        Caption.createCaption( "\u00b0", "^\\circ" );
+    private static final Caption MIN_UNIT =
+        Caption.createCaption( "'", "^\\prime" );
+    private static final Caption SEC_UNIT =
+        Caption.createCaption( "\"", "^{\\prime\\prime}" );
+    private static final Caption MAS_UNIT =
+        Caption.createCaption( "mas" );
     private static final SkyDistance DEG_DISTANCE =
-        new SkyDistance( Math.PI / 180., "1" + DEG_UNIT );
+        new SkyDistance( Math.PI / 180.,
+                         unitCaption( 1, DEG_UNIT ) );
     private static final SkyDistance MIN_DISTANCE =
-        new SkyDistance( DEG_DISTANCE.radians_ / 60., "1" + MIN_UNIT );
+        new SkyDistance( DEG_DISTANCE.radians_ / 60.,
+                         unitCaption( 1, MIN_UNIT ) );
     private static final SkyDistance SEC_DISTANCE =
-        new SkyDistance( MIN_DISTANCE.radians_ / 60., "1" + SEC_UNIT );
+        new SkyDistance( MIN_DISTANCE.radians_ / 60.,
+                         unitCaption( 1, SEC_UNIT ) );
 
     /**
      * Constructor.
@@ -33,7 +41,7 @@ public class SkyDistance {
      * @param  radians  distance in radians
      * @param  caption  annotation giving distance as a human-readable string
      */
-    public SkyDistance( double radians, String caption ) {
+    public SkyDistance( double radians, Caption caption ) {
         radians_ = radians;
         caption_ = caption;
     }
@@ -50,15 +58,15 @@ public class SkyDistance {
     /**
      * Returns the description of this distance.
      *
-     * @return   human-readable string indicating distance
+     * @return   human-readable label indicating distance
      */
-    public String getCaption() {
+    public Caption getCaption() {
         return caption_;
     }
 
     @Override
     public String toString() {
-        return "\"" + caption_ + "\""
+        return "\"" + caption_.toText() + "\""
              + "(" + Float.toString( (float) Math.toDegrees( radians_ ) )
              + "deg)";
     }
@@ -102,7 +110,7 @@ public class SkyDistance {
      * @return   round number distance near the guide distance
      */
     private static SkyDistance fixedRoundDistance( double rad, double quant,
-                                                   String unit,
+                                                   Caption unit,
                                                    int[] numbers,
                                                    SkyDistance maxDist ) {
         for ( int num : numbers ) {
@@ -110,7 +118,7 @@ public class SkyDistance {
                 double d = num / quant * rad;
                 return maxDist != null && d / maxDist.radians_ > 0.999
                      ? maxDist
-                     : new SkyDistance( d, Integer.toString( num ) + unit );
+                     : new SkyDistance( d, unitCaption( num, unit ) );
             }
         }
         return null;
@@ -129,7 +137,7 @@ public class SkyDistance {
      * @return   round number distance near the guide distance
      */
     private static SkyDistance floatRoundDistance( double rad, double quant,
-                                                   String unit,
+                                                   Caption unit,
                                                    int[] mantissas,
                                                    SkyDistance maxDist ) {
         int exp = (int) Math.floor( Math.log10( quant ) );
@@ -141,9 +149,22 @@ public class SkyDistance {
                      ? maxDist
                      : new SkyDistance( d,
                                         BasicTicker.linearLabel( mantissa, exp )
-                                        + unit );
+                                       .append( unit ) );
             }
         }
         return null;
+    }
+
+    /**
+     * Concatenates a number and a unit caption to provide a caption
+     * giving the result.
+     *
+     * @param   quantity  numeric quantity
+     * @param   unit  unit representation
+     * @return   labelled representation of the quantity
+     */
+    private static Caption unitCaption( int quantity, Caption unit ) {
+        return Caption.createCaption( Integer.toString( quantity ) )
+              .append( unit );
     }
 }

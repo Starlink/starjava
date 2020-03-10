@@ -134,7 +134,8 @@ public abstract class PrefixTicker implements Ticker {
      */
     private Tick[] getMajorTicks( Rule rule, double dlo, double dhi ) {
         List<Tick> list = new ArrayList<Tick>();
-        String lastPrefix = "";
+        final Caption noPrefix = Caption.createCaption( "" );
+        Caption lastPrefix = noPrefix;
         boolean usedPrefix = false;
 
         /* Go through each major tick, labelling it with at least the suffix.
@@ -143,13 +144,15 @@ public abstract class PrefixTicker implements Ticker {
         for ( long index = rule.floorIndex( dlo ) - 1;
               rule.indexToValue( index ) <= dhi; index++ ) {
             double major = rule.indexToValue( index );
-            String prefix = rule.indexToPrefix( index );
-            prefix = prefix == null ? "" : prefix;
+            Caption prefix = rule.indexToPrefix( index );
+            prefix = prefix == null ? noPrefix : prefix;
             if ( major >= dlo && major <= dhi ) {
-                String suffix = rule.indexToLabel( index );
+                Caption suffix = rule.indexToSuffix( index );
                 boolean pre = ! prefix.equals( lastPrefix );
                 usedPrefix = usedPrefix || pre;
-                list.add( new Tick( major, pre ? prefix + suffix : suffix ) );
+                Caption caption = pre ? prefix.append( suffix )
+                                      : suffix;
+                list.add( new Tick( major, caption ) );
             }
             lastPrefix = prefix;
         }
@@ -157,11 +160,11 @@ public abstract class PrefixTicker implements Ticker {
 
         /* If none of the labels included the prefix, pick one and add it on. 
          * Otherwise there is no absolute context. */
-        if ( lastPrefix.length() > 0 && ! usedPrefix && ticks.length > 0 ) {
+        if ( lastPrefix != noPrefix && ! usedPrefix && ticks.length > 0 ) {
             int imid = 0;
             Tick tick = ticks[ imid ];
-            ticks[ imid ] =
-                new Tick( tick.getValue(), lastPrefix + tick.getLabel() );
+            ticks[ imid ] = new Tick( tick.getValue(),
+                                      lastPrefix.append( tick.getLabel() ) );
         }
         return ticks;
     }
@@ -181,7 +184,7 @@ public abstract class PrefixTicker implements Ticker {
          * @param  index   major tick index
          * @return   prefix part of label
          */
-        String indexToPrefix( long index );
+        Caption indexToPrefix( long index );
 
         /**
          * Returns the suffix part only for labelling the major tick
@@ -190,6 +193,6 @@ public abstract class PrefixTicker implements Ticker {
          * @param  index   major tick index
          * @return   suffix part of label
          */
-        String indexToLabel( long index );
+        Caption indexToSuffix( long index );
     }
 }

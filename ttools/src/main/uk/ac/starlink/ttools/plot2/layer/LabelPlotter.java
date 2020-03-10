@@ -12,6 +12,7 @@ import java.util.Map;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.Anchor;
 import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Drawing;
@@ -689,14 +690,15 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         }
 
         public void paintGlyph( Graphics g ) {
-            style_.drawLabel( g, label_ );
+            style_.drawLabel( g, Caption.createCaption( label_ ) );
         }
 
         public Pixer createPixer( Rectangle clip ) {
             Anchor anchor = style_.getAnchor();
             Captioner captioner = style_.getCaptioner();
+            Caption caption = Caption.createCaption( label_ );
             Rectangle labelBox =
-                anchor.getCaptionBounds( label_, 0, 0, captioner );
+                anchor.getCaptionBounds( caption, 0, 0, captioner );
             Rectangle drawBox = labelBox.intersection( clip );
             if ( drawBox.isEmpty() ) {
                 return null;
@@ -706,7 +708,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
 
             /* We don't do anything clever with antialiased text. */
             Graphics g = bitmap.getImage().createGraphics();
-            anchor.drawCaption( label_, -labelBox.x, -labelBox.y,
+            anchor.drawCaption( caption, -labelBox.x, -labelBox.y,
                                 captioner, g );
             return Pixers.translate( bitmap.createPixer(),
                                      drawBox.x, drawBox.y );

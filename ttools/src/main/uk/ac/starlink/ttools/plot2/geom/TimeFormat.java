@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.ttools.plot2.BasicTicker;
+import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PrefixTicker;
@@ -206,6 +207,20 @@ public abstract class TimeFormat {
     }
 
     /**
+     * Turns an ISO-8601 string into a Caption object.
+     * Some manipulation of the LaTeX is done to improve rendering.
+     *
+     * @param  iso8601Text   ISO8601-like text string
+     * @return   caption to represent text
+     */
+    private static Caption createTimeCaption( String iso8601Text ) {
+        return Caption.createCaption(
+            iso8601Text,
+            txt -> txt.replaceAll( "([:-])", "\\\\text{$1}" )
+        );
+    }
+
+    /**
      * Partial time format implementation for formats that are essentially
      * numeric.
      */
@@ -226,8 +241,8 @@ public abstract class TimeFormat {
                                         double approxMajorCount, int adjust ) {
                     final Rule rule =
                         LINEAR.createRule( fromUnixSeconds( dlo ),
-                                            fromUnixSeconds( dhi ),
-                                            approxMajorCount, adjust );
+                                           fromUnixSeconds( dhi ),
+                                           approxMajorCount, adjust );
                     return new Rule() {
                         public long floorIndex( double value ) {
                             return rule
@@ -243,7 +258,7 @@ public abstract class TimeFormat {
                         public double indexToValue( long index ) {
                             return toUnixSeconds( rule.indexToValue( index ) );
                         }
-                        public String indexToLabel( long index ) {
+                        public Caption indexToLabel( long index ) {
                             return rule.indexToLabel( index );
                         }
                     };
@@ -417,8 +432,12 @@ public abstract class TimeFormat {
                     decimalYear_.ticker_
                    .createRule( dlo, dhi, approxMajorCount, adjust );
                 return new PrefixRuleAdapter( yearRule ) {
-                    public String indexToPrefix( long index ) {
+                    public Caption indexToPrefix( long index ) {
                         return null;
+                    }
+                    public Caption indexToSuffix( long index ) {
+                        return createTimeCaption( yearRule.indexToLabel( index )
+                                                 .toText() );
                     }
                 };
             }
@@ -450,23 +469,25 @@ public abstract class TimeFormat {
                     secondRule.indexToValue( 1 ) - secondRule.indexToValue( 0 );
                 final long indexPerSec = Math.round( 1.0 / secPerIndex );
                 return new PrefixRuleAdapter( secondRule ) {
-                    @Override
-                    public String indexToLabel( long index ) {
+                    public Caption indexToSuffix( long index ) {
                         long minFloorIndex = getMinuteFloorIndex( index );
                         int addSecIndex = (int) ( index - minFloorIndex );
-                        String label = secondRule.indexToLabel( addSecIndex );
-                        double labelValue = Double.parseDouble( label );
-                        assert labelValue >= 0 && labelValue < 60 : label;
+                        String txt =
+                            secondRule.indexToLabel( addSecIndex ).toText();
+                        double labelValue = Double.parseDouble( txt );
+                        assert labelValue >= 0 && labelValue < 60 : txt;
                         if ( labelValue >= 0 && labelValue < 10 ) {
-                            label = "0" + label;
+                            txt = "0" + txt;
                         }
-                        return label;
+                        return createTimeCaption( txt );
                     }
-                    public String indexToPrefix( long index ) {
+                    public Caption indexToPrefix( long index ) {
                         double minFloorSec =
                             getMinuteFloorIndex( index ) * secPerIndex;
-                        return secondDateRule
-                              .formatUnixSeconds( minFloorSec, true, false );
+                        String txt =
+                            secondDateRule
+                           .formatUnixSeconds( minFloorSec, true, false );
+                        return createTimeCaption( txt );
                     }
                     private long getMinuteFloorIndex( long index ) {
                         long indexPerMin = 60 * indexPerSec;
@@ -517,12 +538,19 @@ public abstract class TimeFormat {
             calendar_.clear();
         }
 
-        public String indexToLabel( long index ) {
-            return formatUnixSeconds( indexToValue( index ), false, true );
+        public Caption indexToLabel( long index ) {
+            return createTimeCaption( formatUnixSeconds( indexToValue( index ),
+                                                         true, true ) );
         }
 
-        public String indexToPrefix( long index ) {
-            return formatUnixSeconds( indexToValue( index ), true, false );
+        public Caption indexToSuffix( long index ) {
+            return createTimeCaption( formatUnixSeconds( indexToValue( index ),
+                                                         false, true ) );
+        }
+
+        public Caption indexToPrefix( long index ) {
+            return createTimeCaption( formatUnixSeconds( indexToValue( index ),
+                                                         true, false ) );
         }
 
         public long floorIndex( double value ) {
@@ -613,7 +641,7 @@ public abstract class TimeFormat {
         public double indexToValue( long index ) {
             return basicRule_.indexToValue( index );
         }
-        public String indexToLabel( long index ) {
+        public Caption indexToLabel( long index ) {
             return basicRule_.indexToLabel( index );
         }
     }

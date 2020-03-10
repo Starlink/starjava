@@ -29035,6 +29035,8 @@ introduced since the last version:
     <li>Add <ref id="inFeather">input</ref>
         and <ref id="outFeather">output</ref> support
         for the Feather disk storage format.</li>
+    <li>Improved plot axis labelling in LaTeX mode, e.g. in LaTeX write 
+        "3x10<sup>6</sup>" not "<code>3e6</code>".</li>
     </ul>
     </p></dd>
 

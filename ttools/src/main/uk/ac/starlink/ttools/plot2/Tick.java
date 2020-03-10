@@ -12,7 +12,7 @@ package uk.ac.starlink.ttools.plot2;
 public class Tick {
 
     private final double value_;
-    private final String label_;
+    private final Caption label_;
 
     /**
      * Constructs a minor tick.
@@ -29,9 +29,9 @@ public class Tick {
      * As long as the label is non-null, this is considered a major tick.
      * 
      * @param  value  numeric value
-     * @param  label  text label
+     * @param  label  tick label
      */
-    public Tick( double value, String label ) {
+    public Tick( double value, Caption label ) {
         value_ = value;
         label_ = label;
     }
@@ -48,9 +48,9 @@ public class Tick {
     /**
      * Returns this tick's text label.
      *
-     * @return   text label
+     * @return   tick label
      */
-    public String getLabel() {
+    public Caption getLabel() {
         return label_;
     }
 
@@ -74,6 +74,6 @@ public class Tick {
 
     @Override
     public String toString() {
-        return value_ + "->\"" + label_ + "\"";
+        return value_ + "->\"" + label_.toText() + "\"";
     }
 }

@@ -88,14 +88,15 @@ public class LatexCaptioner implements Captioner {
         style_ = style;
     }
 
-    public void drawCaption( String label, Graphics g ) {
+    public void drawCaption( Caption label, Graphics g ) {
+        String latex = label.toLatex();
         TeXIcon ti;
         try {
-            ti = createTeXIcon( label, g.getColor() );
+            ti = createTeXIcon( latex, g.getColor() );
         }
         catch ( ParseException e ) {
-            getErrorCaptioner().drawCaption( getErrorText( label, e ), g );
-            logger_.log( Level.WARNING, "Bad LaTeX: \"" + label + "\" ("
+            getErrorCaptioner().drawCaption( getErrorCaption( latex, e ), g );
+            logger_.log( Level.WARNING, "Bad LaTeX: \"" + latex + "\" ("
                        + e.getMessage() + ")", e );
             return;
         }
@@ -104,14 +105,15 @@ public class LatexCaptioner implements Captioner {
                       -insets.left, -ti.getIconHeight() + insets.top );
     }
 
-    public Rectangle getCaptionBounds( String label ) {
+    public Rectangle getCaptionBounds( Caption label ) {
+        String latex = label.toLatex();
         TeXIcon ti;
         try {
-            ti = createTeXIcon( label, Color.BLACK );
+            ti = createTeXIcon( latex, Color.BLACK );
         }
         catch ( ParseException e ) {
             return getErrorCaptioner()
-                  .getCaptionBounds( getErrorText( label, e ) );
+                  .getCaptionBounds( getErrorCaption( latex, e ) );
         }
         Insets insets = ti.getInsets();
         Rectangle bounds =
@@ -129,13 +131,13 @@ public class LatexCaptioner implements Captioner {
     /**
      * Constructs a TeXIcon object from the given text.
      *
-     * @param   label  label text
+     * @param   latex  label source code
      * @param   color  paint colour
      * @return   icon
      */
-    private TeXIcon createTeXIcon( String label, Color color )
+    private TeXIcon createTeXIcon( String latex, Color color )
             throws ParseException {
-        return new TeXFormula( adjustLabel( label ) )
+        return new TeXFormula( adjustLabel( latex ) )
               .createTeXIcon( style_, size_, type_, color );
     }
 
@@ -153,12 +155,12 @@ public class LatexCaptioner implements Captioner {
     /**
      * Text used as display in case of a LaTeX parse error.
      *
-     * @param  label  input label text
+     * @param  latex  input latex source
      * @param  err  latex parse error
      * @retrun   error message string
      */
-    private String getErrorText( String label, ParseException err ) {
-        return "Bad TeX: " + label;
+    private Caption getErrorCaption( String latex, ParseException err ) {
+        return Caption.createCaption( "Bad TeX: " + latex );
     }
 
     /**

@@ -7,6 +7,7 @@ import java.awt.Rectangle;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.Anchor;
+import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Equality;
 
@@ -97,9 +98,9 @@ public class LabelStyle implements Style {
      * The drawing is therefore in the default colour of the graphics context.
      *
      * @param   g  graphics context
-     * @param  label  text string
+     * @param  label  text content
      */
-    public void drawLabel( Graphics g, String label ) {
+    public void drawLabel( Graphics g, Caption label ) {
         anchor_.drawCaption( label, 0, 0, captioner_, g );
     }
 
@@ -137,15 +138,15 @@ public class LabelStyle implements Style {
         private final int height_;
         private final int xoff_;
         private final int yoff_;
-        private final String text_;
+        private final Caption label_;
 
         /**
          * Constructor.
          */
         LabelStyleIcon() {
-            text_ = "a";
+            label_ = Caption.createCaption( "a" );
             Rectangle box0 =
-                anchor_.getCaptionBounds( text_, 0, 0, captioner_ );
+                anchor_.getCaptionBounds( label_, 0, 0, captioner_ );
             int w = Math.max( -box0.x, box0.x + box0.width );
             int h = Math.max( -box0.y, box0.y + box0.height );
             int size = Math.max( w, h );
@@ -170,7 +171,7 @@ public class LabelStyle implements Style {
             int gx = x + xoff_;
             int gy = y + yoff_;
             g.translate( x, y );
-            LabelStyle.this.drawLabel( g, text_ );
+            LabelStyle.this.drawLabel( g, label_ );
             g.translate( -x, -y );
             g.setColor( color0 );
         }

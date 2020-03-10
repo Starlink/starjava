@@ -25,8 +25,8 @@ public abstract class BasicTicker implements Ticker {
                                 double approxMajorCount, int adjust ) {
             return new CheckRule( createRawRule( dlo, dhi, approxMajorCount,
                                                  adjust, false ) ) {
-                boolean checkLabel( String label, double value ) {
-                    double diff = Double.parseDouble( label ) - value;
+                boolean checkLabel( Caption label, double value ) {
+                    double diff = Double.parseDouble( label.toText() ) - value;
                     return diff == 0 || Math.abs( diff / value ) < 1e-10;
                 }
             };
@@ -42,8 +42,9 @@ public abstract class BasicTicker implements Ticker {
             }
             return new CheckRule( createRawRule( dlo, dhi, approxMajorCount,
                                                  adjust, true ) ) {
-                boolean checkLabel( String label, double value ) {
-                   return Math.abs( Double.parseDouble( label ) / value - 1 )
+                boolean checkLabel( Caption label, double value ) {
+                   return Math.abs( Double.parseDouble( label.toText() )
+                                    / value - 1 )
                         < 1e-10;
                 }
             };
@@ -146,7 +147,7 @@ public abstract class BasicTicker implements Ticker {
               rule.indexToValue( index ) <= dhi; index++ ) {
             double major = rule.indexToValue( index );
             if ( major >= dlo && major <= dhi ) {
-                String label = rule.indexToLabel( index );
+                Caption label = rule.indexToLabel( index );
                 list.add( new Tick( major, label ) );
             }
         }
@@ -263,31 +264,31 @@ public abstract class BasicTicker implements Ticker {
      * @param  exp  power of 10
      * @return  tick label text
      */
-    public static String linearLabel( long mantissa, int exp ) {
+    public static Caption linearLabel( long mantissa, int exp ) {
         boolean minus = mantissa < 0;
         String sign = minus ? "-" : "";
         String digits = Long.toString( minus ? -mantissa : mantissa );
         int ndigit = digits.length();
         int sciLimit = 3;
         if ( mantissa == 0 ) {
-            return "0";
+            return Caption.createCaption( "0" );
         }
         else if ( exp >= 0 && exp <= sciLimit ) {
-            return new StringBuffer()
-                  .append( sign )
-                  .append( digits )
-                  .append( zeros( exp ) )
-                  .toString();
+            return Caption.createCaption( new StringBuffer()
+                                         .append( sign )
+                                         .append( digits )
+                                         .append( zeros( exp ) )
+                                         .toString() );
         }
         else if ( exp < 0 && exp >= -sciLimit ) {
             int pointPos = ndigit + exp;
             if ( pointPos <= 0 ) {
-                return new StringBuffer()
-                      .append( sign )
-                      .append( "0." )
-                      .append( zeros( -pointPos ) )
-                      .append( digits )
-                      .toString();
+                return Caption.createCaption( new StringBuffer()
+                                             .append( sign )
+                                             .append( "0." )
+                                             .append( zeros( -pointPos ) )
+                                             .append( digits )
+                                             .toString() );
             }
             else {
                 StringBuffer sbuf = new StringBuffer();
@@ -297,7 +298,7 @@ public abstract class BasicTicker implements Ticker {
                     sbuf.append( "." )
                         .append( digits.substring( pointPos ) );
                 }
-                return sbuf.toString();
+                return Caption.createCaption( sbuf.toString() );
             }
         }
         else if ( exp > sciLimit ) {
@@ -311,13 +312,12 @@ public abstract class BasicTicker implements Ticker {
             }
             int pexp = exp + postDigit;
             if ( pexp > sciLimit ) {
-                sbuf.append( "e" )
-                    .append( Integer.toString( pexp ) );
+                return createSciCaption( sbuf.toString(), pexp );
             }
             else {
                 sbuf.append( zeros( pexp ) );
+                return Caption.createCaption( sbuf.toString() );
             }
-            return sbuf.toString();
         }
         else if ( exp < -sciLimit ) {
             StringBuffer sbuf = new StringBuffer();
@@ -327,11 +327,13 @@ public abstract class BasicTicker implements Ticker {
                 sbuf.append( digits.substring( 0, pexp ) )
                     .append( "." )
                     .append( digits.substring( pexp ) );
+                return Caption.createCaption( sbuf.toString() );
             }
             else if ( pexp <= 0 && pexp >= -sciLimit ) {
                 sbuf.append( "0." )
                     .append( zeros( -pexp ) )
                     .append( digits );
+                return Caption.createCaption( sbuf.toString() );
             }
             else if ( pexp < -sciLimit ) {
                 sbuf.append( digits.charAt( 0 ) );
@@ -340,18 +342,16 @@ public abstract class BasicTicker implements Ticker {
                     sbuf.append( "." )
                         .append( digits.substring( 1 ) );
                 }
-                sbuf.append( "e" )
-                    .append( Integer.toString( pexp - 1 ) );
+                return createSciCaption( sbuf.toString(), pexp - 1 );
             }
             else {
                 assert false;
-                sbuf.append( "??" );
+                return Caption.createCaption( "??" );
             }
-            return sbuf.toString();
         }
         else {
             assert false;
-            return "??";
+            return Caption.createCaption( "??" );
         }
     }
 
@@ -362,7 +362,7 @@ public abstract class BasicTicker implements Ticker {
      * @param  exponent  power of 10
      * @return  tick label text
      */
-    private static String logLabel( long mantissa, int exponent ) {
+    private static Caption logLabel( long mantissa, int exponent ) {
         assert mantissa > 0 && mantissa < 10;
         double value = mantissa * exp10( exponent );
 
@@ -371,17 +371,41 @@ public abstract class BasicTicker implements Ticker {
          * Double.toString() is not good enough. */
         String smantissa = Long.toString( mantissa );
         if ( exponent == 0 ) {
-            return smantissa;
+            return Caption.createCaption( smantissa );
         }
         else if ( exponent > -4 && exponent < 0 ) {
-            return "0." + zeros( - exponent - 1 ) + smantissa;
+            return Caption
+                  .createCaption( "0." + zeros( - exponent - 1 ) + smantissa );
         }
         else if ( exponent < 4 && exponent > 0 ) {
-            return smantissa + zeros( exponent );
+            return Caption.createCaption( smantissa + zeros( exponent ) );
         }
         else {
-            return smantissa + "e" + exponent;
+            return createSciCaption( mantissa == 1 ? null : smantissa,
+                                     exponent );
         }
+    }
+
+    /**
+     * Returns a caption representing a number in scientific notation.
+     *
+     * @param  mantissa  mantissa string; if null, no mantissa will be rendered,
+     *                   meaning that it is considered to be unity
+     * @param  exponent  decimal exponent value as an integer
+     */
+    private static Caption createSciCaption( String mantissa, int exponent ) {
+        String txt = new StringBuffer()
+            .append( mantissa == null ? "1" : mantissa )
+            .append( "e" )
+            .append( Integer.toString( exponent ) )
+            .toString();
+        String latex = new StringBuffer()
+            .append( mantissa == null ? "" : mantissa + "\\!\\times\\!" )
+            .append( "10^{" )
+            .append( Integer.toString( exponent ) )
+            .append( "}" )
+            .toString();
+        return Caption.createCaption( txt, latex );
     }
 
     /**
@@ -401,7 +425,7 @@ public abstract class BasicTicker implements Ticker {
         Rectangle lastBox = null;
         for ( int i = 0; i < ticks.length; i++ ) {
             Tick tick = ticks[ i ];
-            String label = tick.getLabel();
+            Caption label = tick.getLabel();
             if ( label != null ) {
                 int gx = (int) axis.dataToGraphics( tick.getValue() );
                 Rectangle cbounds = captioner.getCaptionBounds( label );
@@ -509,7 +533,7 @@ public abstract class BasicTicker implements Ticker {
          * @param  index  major tick index
          * @return  label string for major tick
          */
-        String indexToLabel( long index );
+        Caption indexToLabel( long index );
     }
 
     /**
@@ -637,7 +661,7 @@ public abstract class BasicTicker implements Ticker {
             return minors;
         }
 
-        public String indexToLabel( long index ) {
+        public Caption indexToLabel( long index ) {
             long mantissa = index * spacer_.major_;
             return linearLabel( mantissa, exp_ );
         }
@@ -707,7 +731,7 @@ public abstract class BasicTicker implements Ticker {
             return minors;
         }
 
-        public String indexToLabel( long index ) {
+        public Caption indexToLabel( long index ) {
             return logLabel( 1, (int) index * nDecade_ );
         }
 
@@ -776,7 +800,7 @@ public abstract class BasicTicker implements Ticker {
             return minors;
         }
 
-        public String indexToLabel( long index ) {
+        public Caption indexToLabel( long index ) {
             int[] div = divFloor( (int) index, majors_.length );
             int exp = div[ 0 ];
             int ik = div[ 1 ];
@@ -809,12 +833,13 @@ public abstract class BasicTicker implements Ticker {
          * @param   value  major tick value
          * @return   true iff the label correctly represents the value
          */
-        abstract boolean checkLabel( String label, double value );
+        abstract boolean checkLabel( Caption label, double value );
 
-        public String indexToLabel( long index ) {
-            String label = base_.indexToLabel( index );
+        public Caption indexToLabel( long index ) {
+            Caption label = base_.indexToLabel( index );
             assert checkLabel( label, base_.indexToValue( index ) )
-                 : '"' + label + '"' + " != " + base_.indexToValue( index );
+                 : '"' + label.toText() + '"' +
+                   " != " + base_.indexToValue( index );
             return label;
         }
 

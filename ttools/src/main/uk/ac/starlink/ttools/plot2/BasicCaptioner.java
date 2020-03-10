@@ -38,7 +38,7 @@ public class BasicCaptioner implements Captioner {
         antialias_ = antialias;
     }
 
-    public void drawCaption( String label, Graphics g ) {
+    public void drawCaption( Caption label, Graphics g ) {
         Graphics2D g2 = (Graphics2D) g;
         Font font0 = g2.getFont();
         Object aaHint0 =
@@ -52,12 +52,12 @@ public class BasicCaptioner implements Captioner {
                                ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
                                : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF );
         }
-        g2.drawString( label, 0, 0 );
+        g2.drawString( label.toText(), 0, 0 );
         g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, aaHint0 );
         g2.setFont( font0 );
     }
 
-    public Rectangle getCaptionBounds( String label ) {
+    public Rectangle getCaptionBounds( Caption label ) {
 
         /* This follows the FontMetrics documentation to find the bounding box.
          * However, it seems to overestimate the required height by several
@@ -67,7 +67,7 @@ public class BasicCaptioner implements Captioner {
         FontMetrics fm = getFontMetrics();
         int descent = fm.getDescent();
         int ascent = fm.getAscent();
-        return new Rectangle( 0, -ascent, fm.stringWidth( label ),
+        return new Rectangle( 0, -ascent, fm.stringWidth( label.toText() ),
                               ascent + descent );
     }
 

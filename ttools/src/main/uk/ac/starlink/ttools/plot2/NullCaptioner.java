@@ -21,10 +21,10 @@ public class NullCaptioner implements Captioner {
     private NullCaptioner() {
     }
 
-    public void drawCaption( String label, Graphics g ) {
+    public void drawCaption( Caption label, Graphics g ) {
     }
 
-    public Rectangle getCaptionBounds( String label ) {
+    public Rectangle getCaptionBounds( Caption label ) {
         return new Rectangle( 0, 0, 0, 0 );
     }
 

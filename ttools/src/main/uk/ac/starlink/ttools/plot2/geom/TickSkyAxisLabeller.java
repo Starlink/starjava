@@ -4,10 +4,13 @@ import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import uk.ac.starlink.ttools.plot2.Anchor;
+import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.Captioner;
 
 /**
@@ -45,9 +48,12 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
 
     public AxisAnnotation createAxisAnnotation( GridLiner gridLiner,
                                                 Captioner captioner ) {
-        SkyTick[] ticks =
-            calculateTicks( gridLiner.getLines(), gridLiner.getLabels(),
-                            gridLiner.getBounds() );
+        Caption[] labels = Arrays.stream( gridLiner.getLabels() )
+                                 .map( SkyAxisLabellers::labelCaption )
+                                 .collect( Collectors.toList() )
+                                 .toArray( new Caption[ 0 ] );
+        SkyTick[] ticks = calculateTicks( gridLiner.getLines(), labels,
+                                          gridLiner.getBounds() );
         ticks = removeOverlaps( ticks, captioner );
         return new TickAxisAnnotation( ticks, gridLiner.getBounds(),
                                        captioner );
@@ -63,7 +69,7 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
      * @see  GridLiner
      */
     protected abstract SkyTick[] calculateTicks( double[][][] lines,
-                                                 String[] labels,
+                                                 Caption[] labels,
                                                  Rectangle plotBounds );
 
     /**
@@ -111,10 +117,10 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
      * @param  line   grid line coordinates - array of (x,y) arrays
      * @param  bounds   plot region bounds
      */
-    public static SkyTick createExternalTick( String label, double[][] line,
+    public static SkyTick createExternalTick( Caption label, double[][] line,
                                               Rectangle bounds ) {
 
-        /* Iterate over line segements in this grid line. */
+        /* Iterate over line segments in this grid line. */
         for ( int is = 0; is < line.length; is++ ) {
 
             /* Work out whether the line segment should have a label on the
@@ -169,7 +175,7 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
      * @param  label  tick text
      * @param  line   grid line coordinates - array of (x,y) arrays
      */
-    public static SkyTick createInternalTick( String label, double[][] line ) {
+    public static SkyTick createInternalTick( Caption label, double[][] line ) {
         int nseg = line.length;
 
         /* Work out running cumulative line lengths for each segment of the
@@ -337,7 +343,7 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
      * Aggregates a line label, graphics position and text anchor.
      */
     public static class SkyTick {
-        private final String label_;
+        private final Caption label_;
         private final int px_;
         private final int py_;
         private final Anchor anchor_;
@@ -350,7 +356,7 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
          * @param  py  graphics Y coordinate
          * @param  anchor  text anchor (includes baseline angle)
          */
-        public SkyTick( String label, int px, int py, Anchor anchor ) {
+        public SkyTick( Caption label, int px, int py, Anchor anchor ) {
             label_ = label;
             px_ = px;
             py_ = py;

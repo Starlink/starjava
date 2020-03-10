@@ -12379,6 +12379,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>QUERY_STATUS</code> declarations;
         overflow may now be declared before,
         as well as after, the table.</li>
+    <li>Improved plot axis labelling in LaTeX mode, e.g. in LaTeX write
+        "3x10<sup>6</sup>" not "<code>3e6</code>".</li>
     </ul>
     </p></dd>
 

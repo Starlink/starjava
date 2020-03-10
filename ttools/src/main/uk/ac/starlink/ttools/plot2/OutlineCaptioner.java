@@ -28,11 +28,11 @@ public class OutlineCaptioner implements Captioner {
         color_ = color;
     }
 
-    public Rectangle getCaptionBounds( String label ) {
+    public Rectangle getCaptionBounds( Caption label ) {
         return base_.getCaptionBounds( label );
     }
 
-    public void drawCaption( String label, Graphics g ) {
+    public void drawCaption( Caption label, Graphics g ) {
         base_.drawCaption( label, g );
         Color color0 = g.getColor();
         g.setColor( color_ );

@@ -6,6 +6,7 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.Captioner;
 
 /**
@@ -20,6 +21,20 @@ public class SkyAxisLabellers {
      * Private constructor prevents instantiation.
      */
     private SkyAxisLabellers() {
+    }
+
+    /**
+     * Turns a sky grid line label into a Caption.
+     * Some manipulation of the text for better LaTeX rendering is done.
+     *
+     * @param  label  grid line label
+     * @return  caption object
+     */
+    public static Caption labelCaption( String label ) {
+        return Caption.createCaption(
+            label,
+            txt -> txt.replaceAll( "([hms])", "^{\\\\text{$1}}" )
+        );
     }
 
     /** Labeller implentation that does no drawing. */
@@ -72,7 +87,7 @@ public class SkyAxisLabellers {
                         double px = seg0[ 0 ];
                         double py = seg0[ 1 ];
                         g2.translate( px, py );
-                        captioner.drawCaption( label, g2 );
+                        captioner.drawCaption( labelCaption( label ), g2 );
                         g2.translate( -px, -py );
                     }
                 }
@@ -85,7 +100,8 @@ public class SkyAxisLabellers {
             new TickSkyAxisLabeller( "External",
                                      "Labels are drawn"
                                    + " outside the plot bounds" ) {
-        protected SkyTick[] calculateTicks( double[][][] lines, String[] labels,
+        protected SkyTick[] calculateTicks( double[][][] lines,
+                                            Caption[] labels,
                                             Rectangle plotBounds ) {
             List<SkyTick> tickList = new ArrayList<SkyTick>();
             int nl = labels.length;
@@ -105,7 +121,8 @@ public class SkyAxisLabellers {
             new TickSkyAxisLabeller( "Internal",
                                      "Labels are drawn"
                                    + " inside the plot bounds" ) {
-        protected SkyTick[] calculateTicks( double[][][] lines, String[] labels,
+        protected SkyTick[] calculateTicks( double[][][] lines,
+                                            Caption[] labels,
                                             Rectangle plotBounds ) {
             List<SkyTick> tickList = new ArrayList<SkyTick>();
             int nl = labels.length;
@@ -132,12 +149,13 @@ public class SkyAxisLabellers {
                                    + "be invisible" ) {
  
 
-        protected SkyTick[] calculateTicks( double[][][] lines, String[] labels,
+        protected SkyTick[] calculateTicks( double[][][] lines,
+                                            Caption[] labels,
                                             Rectangle plotBounds ) {
             List<SkyTick> tickList = new ArrayList<SkyTick>();
             int nl = labels.length;
             for ( int il = 0; il < nl; il++ ) {
-                String label = labels[ il ];
+                Caption label = labels[ il ];
                 double[][] line = lines[ il ];
                 SkyTick tick = createExternalTick( label, line, plotBounds );
                 if ( tick == null ) {

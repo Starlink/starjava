@@ -6,6 +6,7 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import uk.ac.starlink.ttools.plot2.Axis;
+import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.NullCaptioner;
 import uk.ac.starlink.ttools.plot2.Orientation;
@@ -188,9 +189,9 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         Rectangle bounds = new Rectangle( 0, 0, 0, 0 );
         for ( int it = 0; it < ticks.length; it++ ) {
             Tick tick = ticks[ it ];
-            String label = tick.getLabel();
+            Caption label = tick.getLabel();
             if ( label != null ) {
-                Rectangle b0 = captioner_.getCaptionBounds( tick.getLabel() );
+                Rectangle b0 = captioner_.getCaptionBounds( label );
                 AffineTransform trans = new AffineTransform( axisTrans );
                 trans.concatenate( orient.captionTransform( b0, cpad ) );
                 bounds.add( trans.createTransformedShape( b0 ).getBounds() );
