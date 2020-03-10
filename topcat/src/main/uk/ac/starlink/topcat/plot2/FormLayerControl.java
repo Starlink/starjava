@@ -366,20 +366,16 @@ public abstract class FormLayerControl
      */
     private static Map<RowSubset,List<Style>>
                    getStylesBySubset( TopcatLayer[] tcLayers ) {
-        Map<RowSubset,List<Style>> map =
-            new LinkedHashMap<RowSubset,List<Style>>();
+        Map<RowSubset,List<Style>> map = new LinkedHashMap<>();
         for ( TopcatLayer tcLayer : tcLayers ) {
             PlotLayer layer = tcLayer.getPlotLayer();
             DataSpec dspec = layer.getDataSpec();
             if ( dspec != null ) {
-                Object mask = dspec.getMaskId();
-                assert mask instanceof RowSubset;
-                if ( mask instanceof RowSubset ) {
-                    RowSubset rset = (RowSubset) mask;
-                    if ( ! map.containsKey( rset ) ) {
-                        map.put( rset, new ArrayList<Style>() );
-                    }
-                    map.get( rset ).add( layer.getStyle() );
+                assert dspec instanceof GuiDataSpec;
+                if ( dspec instanceof GuiDataSpec ) {
+                    map.computeIfAbsent( ((GuiDataSpec) dspec).getRowSubset(),
+                                         m -> new ArrayList<Style>() )
+                       .add( layer.getStyle() );
                 }
             }
         }
