@@ -1041,7 +1041,8 @@ public class Plot2Example {
             } ),
             new Plot2Example( "layer-fill", c, PlotTask.TIME, new String[] {
                 "*layer1=fill", "*in1=" + TName.IERS,
-                "*t1=decYear", "*y1=lodErr", "ylog=true",
+                "*t1=decYear", "*y1=lodErr", "ylog=true", null,
+                "texttype=latex", "fontsize=16",
             } ),
             new Plot2Example( "layer-quantile", c, PlotTask.PLANE,
                               new String[] {
