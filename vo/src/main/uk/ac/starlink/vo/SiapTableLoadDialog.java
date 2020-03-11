@@ -28,14 +28,13 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @since    5 Dec 2005
  * @see      <a href="http://www.ivoa.net/Documents/latest/SIA.html">SIA</a>
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
 
     private final ContentCoding coding_;
     private DoubleValueField raField_;
     private DoubleValueField decField_;
     private DoubleValueField sizeField_;
-    private JComboBox formatSelector_;
+    private JComboBox<String> formatSelector_;
     private static final ValueInfo SIZE_INFO =
         new DefaultValueInfo( "Angular Size", Double.class,
                               "Angular size of the search region"
@@ -63,7 +62,7 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
 
         /* Add a selector for image format. */
         JComponent formatLine = Box.createHorizontalBox();
-        formatSelector_ = new JComboBox( getFormatOptions() );
+        formatSelector_ = new JComboBox<String>( getFormatOptions() );
         formatSelector_.setEditable( true );
         formatSelector_.setSelectedIndex( 0 );
         formatLine.add( new JLabel( "Image Format: " ) );
@@ -83,7 +82,8 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
         final DalQuery query =
             new DalQuery( serviceUrl, "SIA", ra, dec, size, coding_ );
         Object format = formatSelector_.getSelectedItem();
-        if ( format != null && format.toString().trim().length() > 0 ) {
+        if ( format instanceof String &&
+             format.toString().trim().length() > 0 ) {
             query.addArgument( "FORMAT", format.toString() );
         }
         final List<DescribedValue> metadata = new ArrayList<DescribedValue>();
