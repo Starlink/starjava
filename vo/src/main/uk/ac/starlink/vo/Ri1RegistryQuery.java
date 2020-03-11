@@ -220,9 +220,17 @@ public class Ri1RegistryQuery implements RegistryQuery {
         if ( abuf.length() > 0 ) {
             abuf.append( " OR " );
         }
-        abuf.append( "( capability/@standardID = '" )
-            .append( cap.getStandardId() )
-            .append( "' )" );
+        abuf.append( "(" );
+        String[] stdIds = cap.getStandardIds();
+        for ( int is = 0; is < stdIds.length; is++ ) {
+            if ( is > 0 ) {
+                abuf.append( " OR " );
+            }
+            abuf.append( "capability/@standardID = '" )
+                .append( stdIds[ is ] )
+                .append( "'" );
+        }
+        abuf.append( ")" );
         nterm++;
 
         /* Some say that matching the xsiType is a good way to spot a

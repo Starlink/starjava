@@ -3,6 +3,7 @@ package uk.ac.starlink.vo;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -235,8 +236,8 @@ public abstract class RegistryProtocol {
             String resType = resCap.getXsiType();
             String stdTypeTail = stdCap.getXsiTypeTail();
             String resId = resCap.getStandardId();
-            String stdId = stdCap.getStandardId();
-            return ( stdId != null && stdId.equals( resId ) )
+            String[] stdIds = stdCap.getStandardIds();
+            return Arrays.asList( stdIds ).contains( resId ) 
                 || ( resType != null && stdTypeTail != null
                                      && resType.endsWith( stdTypeTail ) );
         }
@@ -288,8 +289,7 @@ public abstract class RegistryProtocol {
             String idsWhere = sbuf.toString();
             TapService service = TapServices.createDefaultTapService( regUrl );
             return new RegTapRegistryQuery( service,
-                                            capability.getStandardId()
-                                                      .toLowerCase(),
+                                            capability.getStandardIds(),
                                             idsWhere );
         }
 
@@ -335,16 +335,19 @@ public abstract class RegistryProtocol {
             String keywordWhere = sbuf.toString();
             TapService service = TapServices.createDefaultTapService( regUrl );
             return new RegTapRegistryQuery( service,
-                                            capability.getStandardId()
-                                                      .toLowerCase(),
+                                            capability.getStandardIds(),
                                             keywordWhere );
         }
 
         public boolean hasCapability( Capability stdCap,
                                       RegCapabilityInterface resCap ) {
             String resId = resCap.getStandardId();
-            String stdId = stdCap.getStandardId();
-            return stdId != null && stdId.equalsIgnoreCase( resId );
+            for ( String stdId : stdCap.getStandardIds() ) {
+                if ( stdId.equalsIgnoreCase( resId ) ) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

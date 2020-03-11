@@ -117,12 +117,13 @@ public class RegTapRegistryQuery implements RegistryQuery {
      * what columns are available.
      *
      * @param  tapService  TAP service hosting relational registry
-     * @param  standardId  required value of RR <code>standard_id</code> field,
-     *                     or null if not resricted by service
+     * @param  standardIds  possible case-insensitive values for RR
+     *                      <code>standard_id</code> field,
+     *                      or null if not restricted by service
      * @param   adqlWhere  text to be ANDed with existing ADQL WHERE clause,
      *                     or null for no further restriction
      */
-    public RegTapRegistryQuery( TapService tapService, String standardId,
+    public RegTapRegistryQuery( TapService tapService, String[] standardIds,
                                 String adqlWhere ) {
         tapService_ = tapService;
         coding_ = ContentCoding.GZIP;
@@ -155,7 +156,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
 
        /* FROM clause.  Join all the tables we're going to need. */
        abuf.append( " FROM rr.resource AS res" );
-       if ( standardId != null && standardId.trim().length() > 0 ) {
+       if ( standardIds != null && standardIds.length > 0 ) {
            abuf.append( " NATURAL JOIN rr.interface" )
                .append( " NATURAL JOIN rr.capability" );
        }
@@ -180,11 +181,18 @@ public class RegTapRegistryQuery implements RegistryQuery {
        abuf.append( " WHERE (base_role='contact'" )
            .append( " OR base_role='publisher'" )
            .append( " OR base_role IS NULL)" );
-       if ( standardId != null && standardId.trim().length() > 0 ) {
+       if ( standardIds != null && standardIds.length > 0 ) {
            abuf.append( " AND" )
-               .append( " standard_id='" )
-               .append( standardId.toLowerCase() )
-               .append( "'" )
+               .append( " standard_id IN (" );
+           for ( int is = 0; is < standardIds.length; is++ ) {
+               if ( is > 0 ) {
+                   abuf.append( ", " );
+               }
+               abuf.append( "'" )
+                   .append( standardIds[ is ].toLowerCase() )
+                   .append( "'" );
+           }
+           abuf.append( ")" )
                .append( AND_IS_STANDARD );
         }
 

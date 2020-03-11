@@ -8,7 +8,7 @@ package uk.ac.starlink.vo;
  */
 public class Capability {
 
-    private final String standardId_;
+    private final String[] standardIds_;
     private final String xsiTypeTail_;
 
     /** Cone search capability. */
@@ -28,14 +28,27 @@ public class Capability {
         new Capability( "ivo://ivoa.net/std/TAP", "TableAccess" );
 
     /**
-     * Constructor.
+     * Constructs a capability with a unique standardID.
      *
-     * @param  standardId  capability/@standardID for the capability
+     * @param  standardId  capability/@standardID value
+     *                     identifying the capability
      * @param  xsiTypeTail  trailing part of the capability/@xsi:type for
      *         the capability
      */
     public Capability( String standardId, String xsiTypeTail ) {
-        standardId_ = standardId;
+        this( new String[] { standardId }, xsiTypeTail );
+    }
+
+    /**
+     * Constructs a capability with multiple alternative standardIDs.
+     *
+     * @param  standardIds  array of capability/@standardID values
+     *                      identifying the capability
+     * @param  xsiTypeTail  trailing part of the capability/@xsi:type for
+     *         the capability
+     */
+    public Capability( String[] standardIds, String xsiTypeTail ) {
+        standardIds_ = standardIds.clone();
         xsiTypeTail_ = xsiTypeTail;
     }
 
@@ -44,8 +57,8 @@ public class Capability {
      *
      * @return  ivorn for standard
      */
-    public String getStandardId() {
-        return standardId_;
+    public String[] getStandardIds() {
+        return standardIds_.clone();
     }
 
     /**
