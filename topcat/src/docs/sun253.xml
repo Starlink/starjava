@@ -20015,6 +20015,19 @@ to configure an <ref id="activation">activation action</ref> of
 <ref id="SendImageActivationType">Send FITS Image</ref>.
 </p>
 
+<p>TOPCAT supports two different (and incompatible)
+major versions of the SIA protocol, SIA version 1 and version 2.
+When you have selected a service to use, its protocol version number
+is displayed in the <label>SIA Version</label> indicator next to
+the <label>SIA URL</label> display.
+If you have entered the URL manually, you will need to make sure
+this is set to the appropriate value.
+Note that, although SIAv2 allows a number of query
+possibilities not offered by SIAv1,
+at present TOPCAT does not support this additional functionality
+for SIAv2 services.
+</p>
+
 </subsubsect>
 
 <subsubsect id="SsapTableLoadDialog">
@@ -20187,6 +20200,19 @@ Having done this you might want to configure an
 <ref id="activation">activation action</ref> for the resulting table of
 <ref id="ViewImageActivationType">Display Image</ref> or
 <ref id="SendImageActivationType">Send FITS Image</ref>.
+</p>
+
+<p>TOPCAT supports two different (and incompatible)
+major versions of the SIA protocol, SIA version 1 and version 2.
+When you have selected a service to use, its protocol version number
+is displayed in the <label>SIA Version</label> indicator next to
+the <label>SIA URL</label> display.
+If you have entered the URL manually, you will need to make sure
+this is set to the appropriate value.
+Note that, although SIAv2 allows a number of query
+possibilities not offered by SIAv1,
+at present TOPCAT does not support this additional functionality
+for SIAv2 services.
 </p>
 
 </subsubsect>
@@ -29037,6 +29063,9 @@ introduced since the last version:
         for the Feather disk storage format.</li>
     <li>Improved plot axis labelling in LaTeX mode, e.g. in LaTeX write 
         "3x10<sup>6</sup>" not "<code>3e6</code>".</li>
+    <li>Basic support for SIA version 2 as well as version 1 in the
+        <ref id="SiapTableLoadDialog">SIA Query</ref> and
+        <ref id="SiaMultiWindow">Multiple SIA Query</ref> windows.</li>
     </ul>
     </p></dd>
 

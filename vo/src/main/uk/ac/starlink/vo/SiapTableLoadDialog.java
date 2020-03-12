@@ -9,6 +9,8 @@ import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
@@ -34,7 +36,8 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
     private DoubleValueField raField_;
     private DoubleValueField decField_;
     private DoubleValueField sizeField_;
-    private JComboBox<String> formatSelector_;
+    private JComboBox<Object> formatSelector_;
+    private JComboBox<SiaVersion> versionSelector_;
     private static final ValueInfo SIZE_INFO =
         new DefaultValueInfo( "Angular Size", Double.class,
                               "Angular size of the search region"
@@ -60,9 +63,35 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
         sizeField_.getEntryField().setText( "0" );
         skyEntry.addField( sizeField_ );
 
+        /* Version selector. */
+        versionSelector_ = new JComboBox<>( SiaVersion.values() );
+        final RegistryPanel regPanel = getRegistryPanel();
+        ListSelectionListener serviceListener = new ListSelectionListener() {
+            public void valueChanged( ListSelectionEvent evt ) {
+                RegCapabilityInterface[] intfs =
+                    regPanel.getSelectedCapabilities();
+                if ( intfs.length == 1 ) {
+                    SiaVersion version = SiaVersion.forInterface( intfs[ 0 ] );
+                    if ( version != null ) {
+                        versionSelector_.setSelectedItem( version );
+                    }
+                }
+            }
+        };
+        regPanel.getResourceSelectionModel()
+                .addListSelectionListener( serviceListener );
+        regPanel.getCapabilitySelectionModel()
+                .addListSelectionListener( serviceListener );
+        JComponent versionLine = Box.createHorizontalBox();
+        versionLine.add( Box.createHorizontalStrut( 10 ) );
+        versionLine.add( new JLabel( "SIA Version: " ) );
+        versionLine.add( new ShrinkWrapper( versionSelector_ ) );
+        getServiceUrlBox().add( versionLine );
+
         /* Add a selector for image format. */
         JComponent formatLine = Box.createHorizontalBox();
-        formatSelector_ = new JComboBox<String>( getFormatOptions() );
+        formatSelector_ =
+            new JComboBox<Object>( SiaFormatOption.getStandardOptions() );
         formatSelector_.setEditable( true );
         formatSelector_.setSelectedIndex( 0 );
         formatLine.add( new JLabel( "Image Format: " ) );
@@ -74,18 +103,16 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
     }
 
     public TableLoader createTableLoader() {
-        String serviceUrl = getServiceUrl();
+        final String serviceUrl = getServiceUrl();
         checkUrl( serviceUrl );
-        double ra = raField_.getValue();
-        double dec = decField_.getValue();
-        double size = sizeField_.getValue();
-        final DalQuery query =
-            new DalQuery( serviceUrl, "SIA", ra, dec, size, coding_ );
-        Object format = formatSelector_.getSelectedItem();
-        if ( format instanceof String &&
-             format.toString().trim().length() > 0 ) {
-            query.addArgument( "FORMAT", format.toString() );
-        }
+        final double ra = raField_.getValue();
+        final double dec = decField_.getValue();
+        final double size = sizeField_.getValue();
+        final SiaVersion siaVersion =
+            versionSelector_.getItemAt( versionSelector_.getSelectedIndex() );
+        final SiaFormatOption format =
+            SiaFormatOption.fromObject( formatSelector_.getSelectedItem() );
+
         final List<DescribedValue> metadata = new ArrayList<DescribedValue>();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
             raField_.getDescribedValue(),
@@ -97,31 +124,15 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
         return new TableLoader() {
             public TableSequence loadTables( StarTableFactory factory )
                     throws IOException {
-                StarTable st = query.execute( factory );
+                StarTable st =
+                    siaVersion.executeQuery( serviceUrl, ra, dec, size, format,
+                                             factory, coding_ );
                 st.getParameters().addAll( metadata );
                 return Tables.singleTableSequence( st );
             }
             public String getLabel() {
                 return summary;
             }
-        };
-    }
-
-    /**
-     * Returns the list of standard options provided by the Format selector.
-     * These are taken from the SIA standard; they are not exhaustive, but
-     * represent some of the more useful options.  The user is able to
-     * enter custom items as an alternative.
-     * The first element in the returned list is a reasonable default.
-     *
-     * @return  format option strings
-     */
-    public static String[] getFormatOptions() {
-        return new String[] {
-            "image/fits",
-            "GRAPHIC",
-            "ALL",
-            "",
         };
     }
 }

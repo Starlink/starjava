@@ -8,6 +8,8 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
@@ -18,6 +20,7 @@ import uk.ac.starlink.ttools.cone.SiaConeSearcher;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
+import uk.ac.starlink.vo.RegCapabilityInterface;
 import uk.ac.starlink.vo.RegistryPanel;
 import uk.ac.starlink.vo.SiaFormatOption;
 import uk.ac.starlink.vo.SiaVersion;
@@ -46,18 +49,21 @@ public class SiaMultiWindow extends DalMultiWindow {
      */
     private static class SiaMultiService implements DalMultiService {
 
-        @SuppressWarnings({"unchecked","rawtypes"})
-        private final JComboBox formatSelector_
-            = new JComboBox( SiapTableLoadDialog.getFormatOptions() );
-
+        private final JComboBox<Object> formatSelector_;
+        private final JComboBox<SiaVersion> versionSelector_;
         private final JComponent controlBox_;
+        private final JComponent versionBox_;
 
         /**
          * Constructor.
          */
         SiaMultiService() {
+            formatSelector_ =
+                new JComboBox<Object>( SiaFormatOption.getStandardOptions() );
             formatSelector_.setSelectedIndex( 0 );
             formatSelector_.setEditable( true );
+
+            versionSelector_ = new JComboBox<>( SiaVersion.values() );
 
             final JLabel formatLabel = new JLabel( "Image Format: " );
             controlBox_ = new JPanel() {
@@ -74,6 +80,10 @@ public class SiaMultiWindow extends DalMultiWindow {
             line.add( new ShrinkWrapper( formatSelector_ ) );
             line.add( Box.createHorizontalGlue() );
             controlBox_.add( line );
+
+            versionBox_ = Box.createHorizontalBox();
+            versionBox_.add( new JLabel( "SIA Version: " ) );
+            versionBox_.add( new ShrinkWrapper( versionSelector_ ) );
         }
 
         public String getName() {
@@ -116,15 +126,33 @@ public class SiaMultiWindow extends DalMultiWindow {
         }
 
         public JComponent getVersionComponent() {
-            return null;
+            return versionBox_;
         }
 
-        public void init( RegistryPanel regPanel ) {
+        public void init( final RegistryPanel regPanel ) {
+            ListSelectionListener servListener = new ListSelectionListener() {
+                public void valueChanged( ListSelectionEvent evt ) {
+                    RegCapabilityInterface[] intfs =
+                        regPanel.getSelectedCapabilities();
+                    if ( intfs.length == 1 ) {
+                        SiaVersion vers = SiaVersion.forInterface( intfs[ 0 ] );
+                        if ( vers != null ) {
+                            versionSelector_.setSelectedItem( vers );
+                        }   
+                    }
+                }
+            };
+            regPanel.getResourceSelectionModel()
+                    .addListSelectionListener( servListener );
+            regPanel.getCapabilitySelectionModel()
+                    .addListSelectionListener( servListener );
         }
 
         public ConeSearcher createSearcher( URL url, StarTableFactory tfact,
                                             ContentCoding coding ) {
-            SiaVersion version = SiaVersion.V10;
+            SiaVersion version = 
+                versionSelector_
+               .getItemAt( versionSelector_.getSelectedIndex() );
             SiaFormatOption format =
                 SiaFormatOption.fromObject( formatSelector_.getSelectedItem() );
             return new SiaConeSearcher( url.toString(), version, format,

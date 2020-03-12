@@ -17,7 +17,11 @@ public class Capability {
 
     /** Simple Image Access capability. */
     public static final Capability SIA =
-        new Capability( "ivo://ivoa.net/std/SIA", "SimpleImageAccess" );
+        new Capability( new String[] {
+                           SiaVersion.V10.getStandardId(),
+                           SiaVersion.V20.getStandardId(),
+                        },
+                        "SimpleImageAccess" );
 
     /** Simple Spectral Access capability. */
     public static final Capability SSA =

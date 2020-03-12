@@ -42,6 +42,7 @@ public abstract class DalTableLoadDialog
     private final boolean autoQuery_;
     private final RegistryQueryFactory queryFactory_;
     private JTextField urlField_;
+    private JComponent urlBox_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -84,10 +85,10 @@ public abstract class DalTableLoadDialog
          * registry search, but it may alternatively be filled by the
          * user typing (or cut'n'pasting) into it. */
         urlField_ = new JTextField();
-        JComponent urlBox = Box.createHorizontalBox();
-        urlBox.add( new JLabel( protoName_ + " URL: " ) );
-        urlBox.add( urlField_ );
-        getControlBox().add( urlBox );
+        urlBox_ = Box.createHorizontalBox();
+        urlBox_.add( new JLabel( protoName_ + " URL: " ) );
+        urlBox_.add( urlField_ );
+        getControlBox().add( urlBox_ );
         getControlBox().add( Box.createVerticalStrut( 5 ) );
 
         /* Fix it so that a resource selection populates the service
@@ -192,6 +193,15 @@ public abstract class DalTableLoadDialog
      */
     public JTextField getServiceUrlField() {
         return urlField_;
+    }
+
+    /**
+     * Returns the component in which the URL selector is located.
+     *
+     * @return  URL selector container
+     */
+    public JComponent getServiceUrlBox() {
+        return urlBox_;
     }
 
     /**
