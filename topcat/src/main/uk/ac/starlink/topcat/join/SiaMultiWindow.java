@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.cone.SiaConeSearcher;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
+import uk.ac.starlink.vo.RegistryPanel;
 import uk.ac.starlink.vo.SiaFormatOption;
 import uk.ac.starlink.vo.SiaVersion;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
@@ -112,6 +113,13 @@ public class SiaMultiWindow extends DalMultiWindow {
 
         public JComponent getControlPanel() {
             return controlBox_;
+        }
+
+        public JComponent getVersionComponent() {
+            return null;
+        }
+
+        public void init( RegistryPanel regPanel ) {
         }
 
         public ConeSearcher createSearcher( URL url, StarTableFactory tfact,

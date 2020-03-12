@@ -21,6 +21,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
 import uk.ac.starlink.vo.ConeSearch;
 import uk.ac.starlink.vo.ConeVerbosity;
+import uk.ac.starlink.vo.RegistryPanel;
 
 /**
  * DalMultiWindow subclass for Cone Search services.
@@ -107,6 +108,13 @@ public class ConeMultiWindow extends DalMultiWindow {
 
         public JComponent getControlPanel() {
             return controlBox_;
+        }
+
+        public JComponent getVersionComponent() {
+            return null;
+        }
+
+        public void init( RegistryPanel regPanel ) {
         }
 
         public ConeSearcher createSearcher( URL url, StarTableFactory tfact,

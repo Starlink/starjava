@@ -98,6 +98,7 @@ public class DalMultiPanel extends JPanel {
     private final JComponent[] components_;
     private final TopcatListener tcListener_;
     private final ToggleButtonModel coverageModel_;
+    private final JComponent urlLine_;
     private Coverage lastCoverage_;
     private URL lastCoverageUrl_;
     private TopcatModel tcModel_;
@@ -133,12 +134,12 @@ public class DalMultiPanel extends JPanel {
         /* Field for service URL. */
         urlField_ = new JTextField();
         JLabel urlLabel = new JLabel( service.getName() + " URL: " );
-        Box urlLine = Box.createHorizontalBox();
+        urlLine_ = Box.createHorizontalBox();
         cList.add( urlField_ );
         cList.add( urlLabel );
-        urlLine.add( urlLabel );
-        urlLine.add( urlField_ );
-        main.add( urlLine );
+        urlLine_.add( urlLabel );
+        urlLine_.add( urlField_ );
+        main.add( urlLine_ );
         main.add( Box.createVerticalStrut( 10 ) );
 
         /* Field for input table. */
@@ -243,8 +244,8 @@ public class DalMultiPanel extends JPanel {
                 public void focusGained( FocusEvent evt ) {
                 }
             } );
-            urlLine.add( Box.createHorizontalStrut( 5 ) );
-            urlLine.add( serviceCoverageView_ );
+            urlLine_.add( Box.createHorizontalStrut( 5 ) );
+            urlLine_.add( serviceCoverageView_ );
 
             /* Table coverage icon. */
             queryCoverageView_ = new CoverageView( "table" );
@@ -356,6 +357,15 @@ public class DalMultiPanel extends JPanel {
         urlField_.setText( url );
         urlField_.setCaretPosition( 0 );
         updateServiceCoverage();
+    }
+
+    /**
+     * Returns the component in which the URL selector is located.
+     *
+     * @return  URL selector container
+     */
+    public JComponent getServiceUrlBox() {
+        return urlLine_;
     }
 
     /**

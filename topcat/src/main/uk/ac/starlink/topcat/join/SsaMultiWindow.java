@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.cone.SsaConeSearcher;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
+import uk.ac.starlink.vo.RegistryPanel;
 import uk.ac.starlink.vo.SsapTableLoadDialog;
 
 /**
@@ -110,6 +111,13 @@ public class SsaMultiWindow extends DalMultiWindow {
 
         public JComponent getControlPanel() {
             return controlBox_;
+        }
+
+        public JComponent getVersionComponent() {
+            return null;
+        }
+
+        public void init( RegistryPanel regPanel ) {
         }
 
         public ConeSearcher createSearcher( URL url, StarTableFactory tfact,

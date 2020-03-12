@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
@@ -84,6 +85,12 @@ public class DalMultiWindow extends AuxWindow {
          * service. */
         final DalMultiPanel multiPanel =
             new DalMultiPanel( service, placeProgressBar() );
+        JComponent versionBox = service.getVersionComponent();
+        if ( versionBox != null ) {
+            JComponent urlBox = multiPanel.getServiceUrlBox();
+            urlBox.add( Box.createHorizontalStrut( 10 ) );
+            urlBox.add( versionBox );
+        }
 
         /* Arrange for the multiquery panel to get updated when a service
          * is selected from the registry panel. */
@@ -104,6 +111,7 @@ public class DalMultiWindow extends AuxWindow {
                  .addListSelectionListener( serviceSelListener );
         regPanel_.getCapabilitySelectionModel()
                  .addListSelectionListener( serviceSelListener );
+        service.init( regPanel_ );
 
         /* Cosmetics. */
         regPanel_.setBorder(

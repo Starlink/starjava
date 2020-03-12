@@ -10,6 +10,7 @@ import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.Capability;
+import uk.ac.starlink.vo.RegistryPanel;
 
 /**
  * Defines service-type-specific aspects of how to do a multiple query 
@@ -79,6 +80,21 @@ public interface DalMultiService {
      * @return   custom component container, or null
      */
     JComponent getControlPanel();
+
+    /**
+     * Returns a panel used for protocol version selection, if available.
+     *
+     * @return  version selector component, or null
+     */
+    JComponent getVersionComponent();
+
+    /**
+     * Performs any required initialisation based on the registry panel
+     * that will be associated with this service.
+     *
+     * @param   regPanel  panel used for service selection
+     */
+    void init( RegistryPanel regPanel );
 
     /**
      * Constructs a cone searcher object for this service type.
