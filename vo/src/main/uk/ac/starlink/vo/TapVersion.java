@@ -13,7 +13,7 @@ public enum TapVersion {
     V10( "1.0" ),
 
     /** TAP version 1.1. */
-    V11( "1.1-PR" );
+    V11( "1.1" );
 
     private final String number_;
 
