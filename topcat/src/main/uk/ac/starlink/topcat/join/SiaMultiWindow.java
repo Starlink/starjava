@@ -18,6 +18,8 @@ import uk.ac.starlink.ttools.cone.SiaConeSearcher;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
+import uk.ac.starlink.vo.SiaFormatOption;
+import uk.ac.starlink.vo.SiaVersion;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
 
 /**
@@ -114,9 +116,11 @@ public class SiaMultiWindow extends DalMultiWindow {
 
         public ConeSearcher createSearcher( URL url, StarTableFactory tfact,
                                             ContentCoding coding ) {
-            String format = (String) formatSelector_.getSelectedItem();
-            return new SiaConeSearcher( url.toString(), format, false, tfact,
-                                        coding );
+            SiaVersion version = SiaVersion.V10;
+            SiaFormatOption format =
+                SiaFormatOption.fromObject( formatSelector_.getSelectedItem() );
+            return new SiaConeSearcher( url.toString(), version, format,
+                                        false, tfact, coding );
         }
 
         public boolean hasCoverages() {

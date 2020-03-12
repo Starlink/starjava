@@ -12381,6 +12381,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         as well as after, the table.</li>
     <li>Improved plot axis labelling in LaTeX mode, e.g. in LaTeX write
         "3x10<sup>6</sup>" not "<code>3e6</code>".</li>
+    <li>Basic support for SIA version 2 as well as version 1 in
+        <ref id="cone"><code>cone</code></ref> and
+        <ref id="coneskymatch"><code>coneskymatch</code></ref> commands
+        (new option <code>servicetype=sia2</code>).</li>
     </ul>
     </p></dd>
 

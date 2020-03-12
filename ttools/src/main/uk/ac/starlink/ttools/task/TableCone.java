@@ -19,6 +19,8 @@ import uk.ac.starlink.ttools.cone.SsaConeSearcher;
 import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.ConeSearch;
+import uk.ac.starlink.vo.SiaFormatOption;
+import uk.ac.starlink.vo.SiaVersion;
 
 /**
  * Executes a single cone-search-like query to an external DAL service.
@@ -44,8 +46,19 @@ public class TableCone extends ConsumerTask {
         final String sysParamName = "skysys";
         ServiceType[] serviceTypes = new ServiceType[] {
             new ConeServiceType(),
-            new SiaServiceType(),
             new SsaServiceType(),
+            new SiaServiceType( SiaVersion.V10 ),
+            new SiaServiceType( SiaVersion.V20 ),
+            new SiaServiceType( SiaVersion.V10 ) {
+                @Override
+                public String toString() {
+                    return "sia";
+                }
+                @Override
+                public String getDescription() {
+                    return "alias for <code>" + super.toString() + "</code>";
+                }
+            },
         };
 
         urlParam_ = new URLParameter( "serviceurl" );
@@ -349,27 +362,45 @@ public class TableCone extends ConsumerTask {
      * ServiceType implementation for Simple Image Access.
      */
     private class SiaServiceType extends ServiceType {
-        SiaServiceType() {
-            super( "sia" );
+        final SiaVersion version_;
+
+        /**
+         * Constructor.
+         *
+         * @param  version   version of SIA protocol to use
+         */
+        SiaServiceType( SiaVersion version ) {
+            super( "sia" + version.getMajorVersion() );
+            version_ = version;
         }
 
         String getDescription() {
             return new StringBuffer()
-               .append( "Simple Image Access protocol " )
-               .append( "- returns a table of images near each location.\n" )
+               .append( "Simple Image Access protocol version " )
+               .append( version_.getMajorVersion() )
+               .append( " - returns a table of images near each location.\n" )
                .append( "See <webref url='" )
-               .append( "http://www.ivoa.net/Documents/latest/SIA.html" )
-               .append( "'>SIA standard</webref>." )
+               .append( version_.getDocumentUrl() )
+               .append( "'>SIA " )
+               .append( version_ )
+               .append( " standard</webref>." )
                .toString();
         }
 
         String getFormatDescription() {
-            return new StringBuffer()
-               .append( "gives the MIME type of images referenced in the " )
-               .append( "output table, also special values " )
-               .append( "\"<code>GRAPHIC</code>\" and \"<code>ALL</code>\"." )
-               .append( "(value of the SIA FORMAT parameter)" )
-               .toString();
+            StringBuffer sbuf = new StringBuffer()
+               .append( "gives the MIME type required for images/resources\n" )
+               .append( "referenced in the output table,\n" )
+               .append( "corresponding to the SIA FORMAT parameter.\n" )
+               .append( "The special values " )
+               .append( "\"<code>GRAPHIC</code>\" (all graphics formats) and " )
+               .append( "\"<code>ALL</code>\" (no restriction)\n" )
+               .append( "as defined by SIAv1 are also permissible.\n" );
+            if ( version_.getMajorVersion() == 1 ) {
+                sbuf.append( "For SIA version 1 only, this defaults to" )
+                    .append( "<code>\"image/fits\"</code>." );
+            }
+            return sbuf.toString();
         }
 
         public void configureParams( Parameter<?> srParam ) {
@@ -385,9 +416,13 @@ public class TableCone extends ConsumerTask {
                                             StarTableFactory tfact,
                                             ContentCoding coding )
                 throws TaskException {
-            formatParam_.setStringDefault( "image/fits" );
-            String format = formatParam_.stringValue( env );
-            return new SiaConeSearcher( url, format, true, tfact, coding );
+            if ( version_.getMajorVersion() == 1 ) {
+                formatParam_.setStringDefault( "image/fits" );
+            }
+            String formatTxt = formatParam_.stringValue( env );
+            SiaFormatOption format = SiaFormatOption.fromObject( formatTxt );
+            return new SiaConeSearcher( url, version_, format, true,
+                                        tfact, coding );
         }
     }
 

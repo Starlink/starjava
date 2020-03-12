@@ -7,7 +7,10 @@ import junit.framework.TestCase;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.vo.SiaFormatOption;
+import uk.ac.starlink.vo.SiaVersion;
 
 public class SearcherTest extends TestCase {
 
@@ -61,7 +64,11 @@ public class SearcherTest extends TestCase {
     public void testDalGuess() {
         workConeSearcherGuess( new ServiceConeSearcher( null, 0,
                                                         false, null ) );
-        workConeSearcherGuess( new SiaConeSearcher( null, null, false, null,
+        workConeSearcherGuess( new SiaConeSearcher( (String) null,
+                                                    SiaVersion.V10,
+                                                    (SiaFormatOption) null,
+                                                    false,
+                                                    (StarTableFactory) null,
                                                     ContentCoding.NONE ) );
     }
 
