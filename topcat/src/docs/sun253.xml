@@ -29066,6 +29066,11 @@ introduced since the last version:
     <li>Basic support for SIA version 2 as well as version 1 in the
         <ref id="SiapTableLoadDialog">SIA Query</ref> and
         <ref id="SiaMultiWindow">Multiple SIA Query</ref> windows.</li>
+    <li>Reorder registry service URLs for the (largely obsolete)
+        RI1.0-mode registry search in the
+        <ref id="RegistryPanel">Registry Search Panel</ref>.
+        Default is now Euro-VO, which still offers a working RI1.0
+        service; the (moribund?) AstroGrid services are demoted.</li>
     </ul>
     </p></dd>
 
