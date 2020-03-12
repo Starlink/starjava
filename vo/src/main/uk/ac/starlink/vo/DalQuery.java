@@ -106,17 +106,7 @@ public class DalQuery {
      * @throws   IOException  in absence of good data
      */
     public StarTable execute( StarTableFactory tfact ) throws IOException {
-
-        /* Submit the CGI query and create a DOM from the resulting stream. */
-        URL qurl = cgi_.toURL();
-        logger_.info( "Submitting query: " + qurl );
-        VOElementFactory vofact =
-            new VOElementFactory( tfact.getStoragePolicy() );
-        URLConnection conn = coding_.openConnection( qurl );
-        conn = URLUtils.followRedirects( conn, null );
-        InputSource inSrc = new InputSource( coding_.getInputStream( conn ) );
-        inSrc.setSystemId( qurl.toString() );
-        return DalResultXMLFilter.getDalResultTable( vofact, inSrc );
+        return executeQuery( cgi_.toURL(), tfact, coding_ );
     }
 
     public String toString() {
@@ -136,5 +126,27 @@ public class DalQuery {
      */
     public String doubleToString( double value ) {
         return CgiQuery.formatDouble( value );
+    }
+
+    /**
+     * Submits a synchronous query to a URL and retrieves the result
+     * as a StarTable following standard DAL conventions.
+     *
+     * @param  qurl  query URL
+     * @param  tfact   table factory
+     * @param  coding   encoding to use for communications
+     * @return   table included in DAL result resource
+     */
+    public static StarTable executeQuery( URL qurl, StarTableFactory tfact,
+                                          ContentCoding coding )
+            throws IOException {
+        logger_.info( "Submitting query: " + qurl );
+        VOElementFactory vofact =
+            new VOElementFactory( tfact.getStoragePolicy() );
+        URLConnection conn = coding.openConnection( qurl );
+        conn = URLUtils.followRedirects( conn, null );
+        InputSource inSrc = new InputSource( coding.getInputStream( conn ) );
+        inSrc.setSystemId( qurl.toString() );
+        return DalResultXMLFilter.getDalResultTable( vofact, inSrc );
     }
 }
