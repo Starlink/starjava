@@ -9,11 +9,10 @@ import javax.swing.DefaultComboBoxModel;
  * @author   Mark Taylor
  * @since    9 Apr 2014
  */
-@SuppressWarnings({"rawtypes","unchecked"})
 public class RegistrySelectorModel {
 
     private final RegistryProtocol proto_;
-    private final ComboBoxModel selectionModel_;
+    private final ComboBoxModel<String> selectionModel_;
 
     /**
      * Constructor.
@@ -23,7 +22,7 @@ public class RegistrySelectorModel {
     public RegistrySelectorModel( RegistryProtocol proto ) {
         proto_ = proto;
         selectionModel_ =
-            new DefaultComboBoxModel( proto.getDefaultRegistryUrls() );
+            new DefaultComboBoxModel<String>( proto.getDefaultRegistryUrls() );
         selectionModel_.setSelectedItem( selectionModel_.getElementAt( 0 ) );
     }
 
@@ -39,9 +38,9 @@ public class RegistrySelectorModel {
     /**
      * Returns the model used for selection of the registry endpoint URL.
      *
-     * @return  selection model; elements will be strings
+     * @return  selection model
      */
-    public ComboBoxModel getUrlSelectionModel() {
+    public ComboBoxModel<String> getUrlSelectionModel() {
         return selectionModel_;
     }
 }

@@ -28,6 +28,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
@@ -41,11 +42,10 @@ import javax.swing.event.ListSelectionListener;
  * @author   Mark Taylor
  * @since    25 Feb 2011
  */
-@SuppressWarnings({"rawtypes","unchecked"})
 public class UwsJobListPanel extends JPanel {
 
-    private final DefaultListModel listModel_;
-    private final JList jlist_;
+    private final DefaultListModel<UwsJob> listModel_;
+    private final JList<UwsJob> jlist_;
     private final UwsJobPanel detail_;
     private final JTextField urlField_;
     private final Action deleteAction_;
@@ -60,11 +60,11 @@ public class UwsJobListPanel extends JPanel {
      */
     public UwsJobListPanel() {
         super( new BorderLayout() );
-        listModel_ = new DefaultListModel();
+        listModel_ = new DefaultListModel<UwsJob>();
         jobWatcherMap_ = new HashMap<UwsJob,UwsJob.JobWatcher>();
 
         /* Set up JList of jobs. */
-        jlist_ = new JList( listModel_ );
+        jlist_ = new JList<UwsJob>( listModel_ );
         jlist_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         jlist_.setCellRenderer( new UwsJobCellRenderer() );
 
@@ -76,7 +76,7 @@ public class UwsJobListPanel extends JPanel {
         /* Fix it so the detail panel responds to selections in the list. */
         jlist_.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
-                UwsJob job = (UwsJob) jlist_.getSelectedValue();
+                UwsJob job = jlist_.getSelectedValue();
                 detail_.setJob( job );
                 urlField_.setText( job == null ? null
                                                : job.getJobUrl().toString() );
@@ -218,10 +218,7 @@ public class UwsJobListPanel extends JPanel {
     public UwsJob[] getJobs() {
         List<UwsJob> jobList = new ArrayList<UwsJob>();
         for ( int i = 0; i < listModel_.getSize(); i++ ) {
-            Object item = listModel_.getElementAt( i );
-            if ( item instanceof UwsJob ) {
-                jobList.add( (UwsJob) item );
-            }
+            jobList.add( listModel_.getElementAt( i ) );
         }
         return jobList.toArray( new UwsJob[ 0 ] );
     }
@@ -308,7 +305,7 @@ public class UwsJobListPanel extends JPanel {
     private static class UwsJobCellRenderer extends DefaultListCellRenderer {
         private Color basicColor_;
         private Color finishedColor_;
-        public Component getListCellRendererComponent( JList jlist,
+        public Component getListCellRendererComponent( JList<?> jlist,
                                                        Object value, int ix,
                                                        boolean isSel,
                                                        boolean hasFocus ) {

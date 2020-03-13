@@ -24,13 +24,12 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor (Starlink)
  * @since    21 Dec 2004
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class DoubleValueField {
 
     private final DefaultValueInfo info_;
     private final JLabel label_;
     private final JTextField entryField_;
-    private final JComboBox convSelector_;
+    private final JComboBox<ValueConverter> convSelector_;
 
     /**
      * Constructs a value field given its name.
@@ -61,7 +60,7 @@ public class DoubleValueField {
                 return new Dimension( 32, super.getPreferredSize().height );
             }
         };
-        convSelector_ = new JComboBox( convs );
+        convSelector_ = new JComboBox<>( convs );
         convSelector_.setSelectedIndex( 0 );
         String description = info.getDescription();
         if ( description != null ) {
@@ -131,7 +130,7 @@ public class DoubleValueField {
      *
      * @return   format selector
      */
-    public JComboBox getConverterSelector() {
+    public JComboBox<ValueConverter> getConverterSelector() {
         return convSelector_;
     }
 
@@ -145,7 +144,8 @@ public class DoubleValueField {
      *          entry field don't make sense to the current format selector
      */
     public double getValue() {
-        ValueConverter vc = (ValueConverter) convSelector_.getSelectedItem();
+        ValueConverter vc =
+            convSelector_.getItemAt( convSelector_.getSelectedIndex() );
         try {
             return vc.convertValue( getEntryField().getText() );
         }
@@ -162,7 +162,8 @@ public class DoubleValueField {
      * @param  value  value to display
      */
     public void setValue( double value ) {
-        ValueConverter vc = (ValueConverter) convSelector_.getSelectedItem();
+        ValueConverter vc =
+            convSelector_.getItemAt( convSelector_.getSelectedIndex() );
         try {
             getEntryField().setText( vc.unconvertValue( new Double( value ) ) );
         }

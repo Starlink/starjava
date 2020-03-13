@@ -26,7 +26,6 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    19 Dec 2008
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class KeywordServiceQueryFactory implements RegistryQueryFactory {
 
     private final Capability capability_;
@@ -49,10 +48,10 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         regSelector_ = new RegistrySelector();
 
         /* Registry protocol selector. */
-        final JComboBox protoSelector = new RenderingComboBox() {
-            protected String getRendererText( Object item ) {
-                return ((RegistrySelectorModel) item).getProtocol()
-                                                     .getShortName();
+        final JComboBox<RegistrySelectorModel> protoSelector =
+                new RenderingComboBox<RegistrySelectorModel>() {
+            protected String getRendererText( RegistrySelectorModel item ) {
+                return item.getProtocol().getShortName();
             }
         };
         for ( RegistryProtocol proto :

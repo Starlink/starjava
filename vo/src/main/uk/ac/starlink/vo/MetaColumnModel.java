@@ -22,10 +22,9 @@ import javax.swing.table.TableModel;
  * or not shown (don't appear in this ColumnModel).
  * It does this by using an associated ListModel and ListSelectionModel.
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class MetaColumnModel extends DefaultTableColumnModel {
 
-    private DefaultListModel listModel;
+    private DefaultListModel<TableColumn> listModel;
     private ListSelectionModel visibleModel;
     private TableModel tableModel;
     private BitSet purgedColumns = new BitSet();
@@ -57,7 +56,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
 
         /* Create and initialise a ListModel representing all the columns
          * in the original column model. */
-        listModel = new DefaultListModel();
+        listModel = new DefaultListModel<TableColumn>();
         for ( int ipos = 0; ipos < baseColumnModel.getColumnCount(); ipos++ ) {
             listModel.addElement( baseColumnModel.getColumn( ipos ) );
         }
@@ -90,12 +89,11 @@ public class MetaColumnModel extends DefaultTableColumnModel {
 
     /**
      * Returns the ListModel representing all the columns in the 
-     * original TableColumnModel.  Every entry in this ListModel will be
-     * a {@link javax.swing.table.TableColumn}.
+     * original TableColumnModel.
      * 
      * @return  the list model 
      */
-    public ListModel getListModel() {
+    public ListModel<TableColumn> getListModel() {
         return listModel;
     }
 
@@ -162,7 +160,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
      * @param  ipos  position of the column to remove
      */
     public void removeColumn( int ipos ) {
-        removeColumn( (TableColumn) listModel.get( ipos ) );
+        removeColumn( listModel.get( ipos ) );
     }
 
     /**
@@ -175,7 +173,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
     public void purgeEmptyColumns() {
         int nrow = tableModel.getRowCount();
         for ( int ipos = 0; ipos < listModel.getSize(); ipos++ ) {
-            TableColumn tcol = (TableColumn) listModel.get( ipos );
+            TableColumn tcol = listModel.get( ipos );
             int modelIndex = tcol.getModelIndex();
             boolean stillBlank = true;
             for ( int irow = 0; irow < nrow && stillBlank; irow++ ) {
@@ -201,7 +199,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
     public JMenu makeCheckBoxMenu( String name ) {
         CheckBoxMenu menu = new CheckBoxMenu( name );
         for ( int i = 0; i < listModel.getSize(); i++ ) {
-            TableColumn tcol = (TableColumn) listModel.getElementAt( i );
+            TableColumn tcol = listModel.getElementAt( i );
             Object title = tcol.getHeaderValue();
             menu.addMenuItem( title == null ? null : title.toString() );
         }
@@ -228,7 +226,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
              * column model. */
             if ( ! visibleModel.isSelectedIndex( i ) && 
                  isVisible( i ) ) {
-                TableColumn tcol = (TableColumn) listModel.get( i );
+                TableColumn tcol = listModel.get( i );
                 removeColumn( tcol );
             }
 
@@ -237,7 +235,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
             else if ( visibleModel.isSelectedIndex( i ) && ! isVisible( i ) ) {
 
                 /* Add the column in question. */
-                TableColumn tcol = (TableColumn) listModel.get( i );
+                TableColumn tcol = listModel.get( i );
                 addColumn( tcol );
 
                 /* Try to place it in the order of the original
@@ -274,7 +272,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
         for ( int ipos = 0; ipos < listModel.size(); ipos++ ) {
             if ( purgedColumns.get( ipos ) ) {
                 for ( int irow = first; irow <= last; irow++ ) {
-                    TableColumn tcol = (TableColumn) listModel.get( ipos );
+                    TableColumn tcol = listModel.get( ipos );
                     int modelIndex = tcol.getModelIndex();
                     Object val = tableModel.getValueAt( irow, modelIndex );
                     if ( ! isVisible( ipos ) &&

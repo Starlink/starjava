@@ -27,11 +27,10 @@ import javax.swing.MutableComboBoxModel;
  * @see   <a href="http://www.ivoa.net/documents/RegistryInterface/20091104/"
  *           >Registry Interface 1.0</a>
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class Ri1RegistryQueryPanel extends JPanel {
 
     private RegistrySelector urlSelector_;
-    private JComboBox querySelector_;
+    private JComboBox<String> querySelector_;
 
     /**
      * Constructor.
@@ -50,7 +49,7 @@ public class Ri1RegistryQueryPanel extends JPanel {
 
         /* Query text selector. */
         JComponent queryLine = Box.createHorizontalBox();
-        querySelector_ = new JComboBox();
+        querySelector_ = new JComboBox<String>();
         querySelector_.setEditable( true );
         queryLine.add( new JLabel( "Query: " ) );
         queryLine.add( querySelector_ );
@@ -65,7 +64,7 @@ public class Ri1RegistryQueryPanel extends JPanel {
      * @param  queries  list of query strings
      */
     public void setPresetQueries( String[] queries ) {
-        querySelector_.setModel( new DefaultComboBoxModel( queries ) );
+        querySelector_.setModel( new DefaultComboBoxModel<String>( queries ) );
         querySelector_.setSelectedIndex( 0 );
     }
 
@@ -95,7 +94,7 @@ public class Ri1RegistryQueryPanel extends JPanel {
         }
 
         /* If this query looks OK, add it to the combo box model. */
-        ComboBoxModel qModel = querySelector_.getModel();
+        ComboBoxModel<String> qModel = querySelector_.getModel();
         if ( qModel instanceof MutableComboBoxModel ) {
             boolean present = false;
             for ( int i = 0; ! present && i < qModel.getSize(); i++ ) {
@@ -104,7 +103,7 @@ public class Ri1RegistryQueryPanel extends JPanel {
                 }
             }
             if ( ! present ) {
-                ((MutableComboBoxModel) qModel).addElement( query );
+                ((MutableComboBoxModel<String>) qModel).addElement( query );
             }
         }
         return new Ri1RegistryQuery( regURL.toString(), query );

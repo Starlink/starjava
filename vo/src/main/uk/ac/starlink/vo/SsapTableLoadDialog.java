@@ -28,14 +28,13 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @since    2 Feb 2009
  * @see      <a href="http://www.ivoa.net/Documents/latest/SSA.html">SSA</a>
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
 
     private final ContentCoding coding_;
     private DoubleValueField raField_;
     private DoubleValueField decField_;
     private DoubleValueField sizeField_;
-    private JComboBox formatSelector_;
+    private JComboBox<String> formatSelector_;
     private static final ValueInfo SIZE_INFO =
         new DefaultValueInfo( "Diameter", Double.class,
                               "Angular diameter of the search region" );
@@ -61,7 +60,7 @@ public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
 
         /* Add a selector for spectrum format. */
         JComponent formatLine = Box.createHorizontalBox();
-        formatSelector_ = new JComboBox( getFormatOptions() );
+        formatSelector_ = new JComboBox<String>( getFormatOptions() );
         formatSelector_.setEditable( true );
         formatSelector_.setSelectedIndex( 0 );
         formatLine.add( new JLabel( "Spectrum Format: " ) );

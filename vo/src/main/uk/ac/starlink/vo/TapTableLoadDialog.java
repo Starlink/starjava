@@ -67,7 +67,6 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @since    18 Jan 2011
  * @see <a href="http://www.ivoa.net/Documents/TAP/">IVOA TAP Recommendation</a>
  */
-@SuppressWarnings({"rawtypes","unchecked"})
 public class TapTableLoadDialog extends AbstractTableLoadDialog
                                 implements DalLoader {
 
@@ -81,7 +80,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     private Action reloadAct_;
     private JMenu editMenu_;
     private ProxyAction[] proxyActs_;
-    private ComboBoxModel runModeModel_;
+    private ComboBoxModel<TapRunMode> runModeModel_;
     private TapMetaPolicy metaPolicy_;
     private String ofmtName_;
     private VOTableWriter vowriter_;
@@ -212,7 +211,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         sfootBox.add( buttLine );
 
         /* Set up TAP run modes. */
-        runModeModel_ = new DefaultComboBoxModel( createRunModes() );
+        runModeModel_ = new DefaultComboBoxModel<>( createRunModes() );
 
         /* Arrange that the TAP query submit action's enabledness status
          * can be sensitive to the content of the ADQL entry field. */
@@ -724,7 +723,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
                     JComponent modeLine = Box.createHorizontalBox();
                     modeLine.add( new JLabel( "Mode: " ) );
                     modeLine.add( new ShrinkWrapper(
-                                      new JComboBox( runModeModel_ ) ) );
+                                      new JComboBox<>( runModeModel_ ) ) );
                     modeLine.add( Box.createHorizontalStrut( 5 ) );
                     tqPanel.addControl( modeLine );
                 }

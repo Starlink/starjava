@@ -37,10 +37,9 @@ import uk.ac.starlink.util.gui.Downloader;
  * @author   Mark Taylor
  * @since    9 Feb 2009
  */
-@SuppressWarnings({"rawtypes","unchecked"})
 public class RegistrySelector extends JPanel {
 
-    private final JComboBox comboBox_;
+    private final JComboBox<String> comboBox_;
     private final Action updateAction_;
     private final EndpointDownloader endpointDownloader_;
     private RegistrySelectorModel model_;
@@ -62,13 +61,13 @@ public class RegistrySelector extends JPanel {
     public RegistrySelector( RegistrySelectorModel model ) {
 
         /* Set up a selector box. */
-        comboBox_ = new JComboBox() {
+        comboBox_ = new JComboBox<String>() {
             public Dimension getPreferredSize() {
                 Dimension size = new Dimension( super.getPreferredSize() );
                 size.width = Math.min( size.width, 400 );
                 return size;
             }
-            public void configureEditor( ComboBoxEditor editor, Object item ) {
+            public void configureEditor( ComboBoxEditor editor, String item ) {
                 super.configureEditor( editor, item );
                 Component comp = editor.getEditorComponent();
                 if ( comp instanceof JTextComponent ) {
@@ -133,7 +132,7 @@ public class RegistrySelector extends JPanel {
      */
     public void setModel( RegistrySelectorModel model ) {
         model_ = model;
-        ComboBoxModel urlModel = model.getUrlSelectionModel();
+        ComboBoxModel<String> urlModel = model.getUrlSelectionModel();
         comboBox_.setModel( urlModel );
         updateAction_.setEnabled( urlModel instanceof MutableComboBoxModel );
         endpointDownloader_.setQuery( getRegKey() );
@@ -192,12 +191,12 @@ public class RegistrySelector extends JPanel {
      * @param  acurls  new access URLs
      */
     private void updateSelector( String[] acurls ) {
-        ComboBoxModel model = comboBox_.getModel();
+        ComboBoxModel<String> model = comboBox_.getModel();
 
         /* Work out which entries need to be added (not already present). */
         Set<String> values = new HashSet<String>();
         for ( int i = 0; i < model.getSize(); i++ ) {
-            values.add( (String) model.getElementAt( i ) );
+            values.add( model.getElementAt( i ) );
         }
         List<String> addUrls = new ArrayList<String>();
         for ( int i = 0; i < acurls.length; i++ ) {
@@ -210,7 +209,8 @@ public class RegistrySelector extends JPanel {
         /* Add them. */
         if ( addUrls.size() > 0 ) {
             if ( model instanceof MutableComboBoxModel ) {
-                MutableComboBoxModel mmodel = (MutableComboBoxModel) model;
+                MutableComboBoxModel<String> mmodel =
+                    (MutableComboBoxModel<String>) model;
                 for ( String url : addUrls ) {
                     mmodel.addElement( url );
                 }

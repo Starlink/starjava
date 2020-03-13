@@ -27,14 +27,13 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor (Starlink)
  * @since    21 Dec 2004
  */
-@SuppressWarnings({"rawtypes","unchecked"})
 public class ConeSearchDialog extends SkyDalTableLoadDialog {
 
     private final ContentCoding coding_;
     private DoubleValueField raField_;
     private DoubleValueField decField_;
     private DoubleValueField srField_;
-    private JComboBox verbSelector_;
+    private JComboBox<ConeVerbosity> verbSelector_;
     private static final ValueInfo SR_INFO =
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
 
@@ -59,10 +58,9 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
 
         /* Add selector for verbosity. */
         JComponent verbLine = Box.createHorizontalBox();
-        verbSelector_ = new JComboBox( ConeVerbosity.getOptions() );
+        verbSelector_ = new JComboBox<>( ConeVerbosity.getOptions() );
         verbSelector_.setSelectedIndex( 1 );
-        assert ((ConeVerbosity) verbSelector_.getSelectedItem()).getLevel()
-               == 2;
+        assert getVerbosity().getLevel() == 2;
         verbLine.add( new JLabel( "Verbosity: " ) );
         verbLine.add( new ShrinkWrapper( verbSelector_ ) );
         verbLine.add( Box.createHorizontalGlue() );
@@ -78,8 +76,7 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
         final double ra = raField_.getValue();
         final double dec = decField_.getValue();
         final double sr = srField_.getValue();
-        final int verb = ((ConeVerbosity) verbSelector_.getSelectedItem())
-                        .getLevel();
+        final int verb = getVerbosity().getLevel();
         final List<DescribedValue> metadata = new ArrayList<DescribedValue>();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
             raField_.getDescribedValue(),
@@ -100,5 +97,14 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
                 return summary;
             }
         };
+    }
+
+    /**
+     * Returns the currently selected verbosity level.
+     *
+     * @return  verbosity, not null
+     */
+    private ConeVerbosity getVerbosity() {
+        return verbSelector_.getItemAt( verbSelector_.getSelectedIndex() );
     }
 }

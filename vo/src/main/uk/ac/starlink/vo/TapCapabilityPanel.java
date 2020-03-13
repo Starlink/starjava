@@ -21,13 +21,12 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    8 Mar 2011
  */
-@SuppressWarnings({"rawtypes","unchecked"})
 public class TapCapabilityPanel extends JPanel {
 
     private TapCapability capability_;
-    private final JComboBox langSelector_;
+    private final JComboBox<VersionedLanguage> langSelector_;
     private final JTextField uploadField_;
-    private final JComboBox maxrecSelector_;
+    private final JComboBox<Object> maxrecSelector_;
     private static final VersionedLanguage ADQL = createDefaultAdqlLanguage();
 
     /**
@@ -35,7 +34,7 @@ public class TapCapabilityPanel extends JPanel {
      */
     public TapCapabilityPanel() {
         super( new BorderLayout() );
-        langSelector_ = new JComboBox();
+        langSelector_ = new JComboBox<>();
         langSelector_.setToolTipText( "Selects which supported query "
                                     + "language/version to use" );
         uploadField_ = new JTextField();
@@ -43,7 +42,7 @@ public class TapCapabilityPanel extends JPanel {
         uploadField_.setToolTipText( "Indicates whether the service supports "
                                    + "table uploads and if so "
                                    + "what limits apply" );
-        maxrecSelector_ = new JComboBox();
+        maxrecSelector_ = new JComboBox<Object>();
         maxrecSelector_.setEditable( true );
         maxrecSelector_.setToolTipText( "Indicates and allows to set MAXREC, "
                                       + "the maximum row count for result "
@@ -69,31 +68,34 @@ public class TapCapabilityPanel extends JPanel {
      */
     public void setCapability( TapCapability capability ) {
         capability_ = capability;
-        final DefaultComboBoxModel maxrecModel;
+        final DefaultComboBoxModel<Object> maxrecModel;
 
         /* No capability to display. */
         if ( capability == null ) {
-            langSelector_.setModel( new DefaultComboBoxModel() );
+            langSelector_.setModel(
+                 new DefaultComboBoxModel<VersionedLanguage>() );
             uploadField_.setText( null );
             langSelector_.setEnabled( false );
-            maxrecModel = new DefaultComboBoxModel( new String[ 1 ] );
+            maxrecModel = new DefaultComboBoxModel<>( new String[ 1 ] );
         }
 
         /* Capability object exists, but looks like it is very sparsely
          * populated (missing mandatory elements). */
         else if ( capability.getLanguages().length == 0 ) {
             VersionedLanguage[] vlangs = new VersionedLanguage[] { ADQL };
-            langSelector_.setModel( new DefaultComboBoxModel( vlangs ) );
+            langSelector_.setModel( new DefaultComboBoxModel<VersionedLanguage>
+                                                            ( vlangs ) );
             langSelector_.setSelectedIndex( 0 );
             uploadField_.setText( null );
             langSelector_.setEnabled( false );
-            maxrecModel = new DefaultComboBoxModel( new String[ 1 ] );
+            maxrecModel = new DefaultComboBoxModel<>( new String[ 1 ] );
         }
 
         /* Apparently healthy capability object. */
         else {
             VersionedLanguage[] vlangs = getVersionedLanguages( capability );
-            langSelector_.setModel( new DefaultComboBoxModel( vlangs ) );
+            langSelector_.setModel( new DefaultComboBoxModel<VersionedLanguage>
+                                                            ( vlangs ) );
             langSelector_.setSelectedItem( getDefaultLanguage( vlangs ) );
             langSelector_.setEnabled( true );
 
@@ -111,7 +113,7 @@ public class TapCapabilityPanel extends JPanel {
             }
 
             TapLimit[] outLimits = capability.getOutputLimits();
-            maxrecModel = new DefaultComboBoxModel();
+            maxrecModel = new DefaultComboBoxModel<>();
             maxrecModel.addElement( "" );
             for ( int il = 0; il < outLimits.length; il++ ) {
                 final TapLimit limit = outLimits[ il ];
@@ -153,11 +155,7 @@ public class TapCapabilityPanel extends JPanel {
      * @return  selected query language
      */
     public TapLanguage getQueryLanguage() {
-        Object selected = langSelector_.getSelectedItem();
-        VersionedLanguage vlang = selected instanceof VersionedLanguage
-                                ? (VersionedLanguage) selected
-                                : ADQL;
-        return vlang.lang_;
+        return getSelectedLanguage().lang_;
     }
 
     /**
@@ -169,11 +167,7 @@ public class TapCapabilityPanel extends JPanel {
      * @return   formatted language name
      */
     public String getQueryLanguageName() {
-        Object selected = langSelector_.getSelectedItem();
-        VersionedLanguage vlang = selected instanceof VersionedLanguage
-                                ? (VersionedLanguage) selected
-                                : ADQL;
-        return vlang.toString();
+        return getSelectedLanguage().toString();
     }
 
     /**
@@ -227,6 +221,17 @@ public class TapCapabilityPanel extends JPanel {
             }
         }
         return -1;
+    }
+
+    /**
+     * Returns the currently selected VersionedLanguage.
+     *
+     * @return  selected language, not null
+     */
+    private VersionedLanguage getSelectedLanguage() {
+        VersionedLanguage selected =
+            langSelector_.getItemAt( langSelector_.getSelectedIndex() );
+        return selected == null ? ADQL : selected;
     }
 
     /**
