@@ -235,8 +235,7 @@ public class SkyColumnQueryWindow extends QueryWindow {
         private LabelledComponentStack createQueryStack() {
             LabelledComponentStack stack = new LabelledComponentStack();
             sysChooser_ = new JComboBox( SkySystem.getKnownSystems() );
-            sysChooser_.setRenderer(
-                    new CustomComboBoxRenderer<SkySystem>( SkySystem.class ) {
+            sysChooser_.setRenderer( new CustomComboBoxRenderer<SkySystem>() {
                 @Override
                 protected String mapValue( SkySystem skysys ) {
                     return skysys.getDescription();

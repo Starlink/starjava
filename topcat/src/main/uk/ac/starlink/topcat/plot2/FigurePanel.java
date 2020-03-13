@@ -445,7 +445,7 @@ public abstract class FigurePanel extends JComponent {
             setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
             modeSelector_ = new JComboBox( figureModes_ );
             modeSelector_.setRenderer(
-                    new CustomComboBoxRenderer<FigureMode>( FigureMode.class ) {
+                    new CustomComboBoxRenderer<FigureMode>() {
                 @Override
                 protected String mapValue( FigureMode figmode ) {
                     return figmode.getName();

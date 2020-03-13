@@ -162,8 +162,7 @@ public class OptionsListModel<T> extends AbstractList<T> implements ListModel {
             public void intervalRemoved( ListDataEvent evt ) {}
             public void contentsChanged( ListDataEvent evt ) {}
         } );
-        box.setRenderer(
-                new CustomComboBoxRenderer<RowSubset>( RowSubset.class ) {
+        box.setRenderer( new CustomComboBoxRenderer<RowSubset>() {
             @Override
             protected String mapValue( RowSubset rset ) {
                 return rset.getName();

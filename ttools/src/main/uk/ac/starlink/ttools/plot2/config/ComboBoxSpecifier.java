@@ -24,7 +24,8 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 @SuppressWarnings({"unchecked","rawtypes"})
 public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
 
-    private final JComboBox comboBox_;
+    private final Class<V> clazz_;
+    private final JComboBox<V> comboBox_;
     private final boolean allowAny_;
 
     private static final Logger logger_ =
@@ -43,14 +44,15 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      *                    method is allowed to set any value; otherwise,
      *                    it is restricted to the options in the combo box
      */
-    public ComboBoxSpecifier( Class<V> clazz, JComboBox comboBox,
+    public ComboBoxSpecifier( Class<V> clazz, JComboBox<V> comboBox,
                               boolean customStringify, boolean allowAny ) {
         super( comboBox.isEditable() );
+        clazz_ = clazz;
         comboBox_ = comboBox;
         allowAny_ = allowAny;
         if ( customStringify ) {
             comboBox_.setRenderer(
-                    new CustomComboBoxRenderer<V>( clazz, stringify( null ) ) {
+                    new CustomComboBoxRenderer<V>( stringify( null ) ) {
                 @Override
                 protected String mapValue( V value ) {
                     return stringify( value );
@@ -66,7 +68,7 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      * @param  comboBox  combo box instance with appropriate options
      *                   (must all be assignable from V)
      */
-    public ComboBoxSpecifier( Class<V> clazz, JComboBox comboBox ) {
+    public ComboBoxSpecifier( Class<V> clazz, JComboBox<V> comboBox ) {
         this( clazz, comboBox, false, true );
     }
 
@@ -77,7 +79,7 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      * @param  options   options
      */
     public ComboBoxSpecifier( Class<V> clazz, Collection<V> options ) {
-        this( clazz, new JComboBox( new Vector<V>( options ) ), true, true );
+        this( clazz, new JComboBox<V>( new Vector<V>( options ) ), true, true );
         comboBox_.setSelectedIndex( 0 );
     }
 
@@ -86,6 +88,7 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      *
      * @param  options   options
      */
+    @SuppressWarnings("unchecked")
     public ComboBoxSpecifier( V[] options ) {
         this( (Class<V>) options.getClass().getComponentType(),
               Arrays.asList( options ) );
@@ -121,9 +124,14 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
     }
 
     public V getSpecifiedValue() {
+
+        /* Note that the selected item is not typed and may or, conceivably,
+         * may not be the appropriate type for this value, so we have to
+         * test and cast it explicitly. */
+        Object selObj = comboBox_.getSelectedItem();
         @SuppressWarnings("unchecked")
-        V value = (V) comboBox_.getSelectedItem();
-        return value;
+        V selValue = clazz_.isInstance( selObj ) ? clazz_.cast( selObj ) : null;
+        return selValue;
     }
 
     public void setSpecifiedValue( V value ) {

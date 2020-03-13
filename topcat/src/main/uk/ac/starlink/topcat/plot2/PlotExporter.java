@@ -46,8 +46,7 @@ public class PlotExporter {
         formatSelector_ = new JComboBox( EXPORTERS );
         bitmapButton_ = new JCheckBox( "Force Bitmap" );
         formatSelector_.setRenderer(
-                new CustomComboBoxRenderer<GraphicExporter>
-                                          ( GraphicExporter.class, "(auto)" ) {
+                new CustomComboBoxRenderer<GraphicExporter>( "(auto)" ) {
             @Override
             protected String mapValue( GraphicExporter exporter ) {
                 return exporter.getName();

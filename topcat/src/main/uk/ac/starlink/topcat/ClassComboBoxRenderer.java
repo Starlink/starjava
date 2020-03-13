@@ -8,8 +8,7 @@ import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
  * @author   Mark Taylor (Starlink)
  * @since    17 Aug 2004
  */
-@SuppressWarnings("rawtypes")
-public class ClassComboBoxRenderer extends CustomComboBoxRenderer<Class> {
+public class ClassComboBoxRenderer extends CustomComboBoxRenderer<Class<?>> {
 
     /**
      * Constructs a renderer with a given null representation.
@@ -17,11 +16,11 @@ public class ClassComboBoxRenderer extends CustomComboBoxRenderer<Class> {
      * @param  nullTxt   representation of a null class
      */
     public ClassComboBoxRenderer( String nullTxt ) {
-        super( Class.class, nullTxt );
+        super( nullTxt );
     }
 
     @Override
-    protected String mapValue( Class clazz ) {
+    protected String mapValue( Class<?> clazz ) {
         String rep = clazz.getName();
         return rep.substring( rep.lastIndexOf( '.' ) + 1 );
     }

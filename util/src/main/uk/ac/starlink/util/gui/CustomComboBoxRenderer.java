@@ -17,49 +17,34 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
  *
  * @author   Mark Taylor (Starlink)
  */
-@SuppressWarnings({"unchecked","rawtypes"})
-public class CustomComboBoxRenderer<T> implements ListCellRenderer {
+public class CustomComboBoxRenderer<T> implements ListCellRenderer<T> {
 
-    private final Class<T> clazz_;
     private final String nullTxt_;
 
     /* Should I be getting this from the PLAF somehow? */
-    private static ListCellRenderer baseRenderer_ = new BasicComboBoxRenderer();
+    private BasicComboBoxRenderer baseRenderer_ = new BasicComboBoxRenderer();
 
     /**
      * Constructs a renderer for which nulls are represented as blank.
-     *
-     * @param  clazz  type of object to be rendered
      */
-    public CustomComboBoxRenderer( Class<T> clazz ) {
-        this( clazz, null );
+    public CustomComboBoxRenderer() {
+        this( null );
     }
 
     /**
      * Constructs a renderer with a custom null representation.
      *
-     * @param  clazz  type of object to be rendered
      * @param  nullTxt  text to be displayed for null values
      */
-    public CustomComboBoxRenderer( Class<T> clazz, String nullTxt ) {
-        clazz_ = clazz;
+    public CustomComboBoxRenderer( String nullTxt ) {
         nullTxt_ = nullTxt;
     }
 
-    public Component getListCellRendererComponent( JList list, Object value,
-                                                   int index,
+    public Component getListCellRendererComponent( JList<? extends T> list,
+                                                   T value, int index,
                                                    boolean isSelected,
                                                    boolean hasFocus ) {
-        final String txt;
-        if ( value == null ) {
-            txt = nullTxt_;
-        }
-        else if ( clazz_.isInstance( value ) ) {
-            txt = mapValue( clazz_.cast( value ) );
-        }
-        else {
-            txt = "??";
-        }
+        String txt = value == null ? nullTxt_ : mapValue( value );
         return baseRenderer_
               .getListCellRendererComponent( list, txt, index,
                                              isSelected, hasFocus );
