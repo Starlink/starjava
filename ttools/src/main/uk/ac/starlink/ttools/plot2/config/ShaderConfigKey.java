@@ -62,9 +62,8 @@ public class ShaderConfigKey extends ChoiceConfigKey<Shader> {
                     .replaceFirst( "^-", "" );
     }
 
-    @SuppressWarnings({"unchecked","rawtypes"})
     public Specifier<Shader> createSpecifier() {
-        JComboBox comboBox = new JComboBox( shaders_ );
+        JComboBox<Shader> comboBox = new JComboBox<>( shaders_ );
         comboBox.setSelectedItem( getDefaultValue() );
         comboBox.setRenderer( new ShaderListCellRenderer( comboBox ) );
         return new ComboBoxSpecifier<Shader>( Shader.class, comboBox );

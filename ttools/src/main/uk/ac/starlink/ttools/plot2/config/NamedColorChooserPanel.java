@@ -48,14 +48,13 @@ public class NamedColorChooserPanel extends AbstractColorChooserPanel {
         chooser_ = chooser;
     }
 
-    @SuppressWarnings({"unchecked","rawtypes"})
     protected void buildChooser() {
-        final JList list =
-            new JList( colorMap_.keySet().toArray( new String[ 0 ] ) );
+        final JList<String> list =
+            new JList<>( colorMap_.keySet().toArray( new String[ 0 ] ) );
         final ColorIcon icon = new ColorIcon( 24, 12 );
         list.setCellRenderer( new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent( JList list,
+            public Component getListCellRendererComponent( JList<?> list,
                                                            Object value,
                                                            int index,
                                                            boolean isSelected,

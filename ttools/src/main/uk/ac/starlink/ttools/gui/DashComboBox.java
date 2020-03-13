@@ -20,7 +20,7 @@ import uk.ac.starlink.util.gui.RenderingComboBox;
  * @see   java.awt.BasicStroke
  * @see   uk.ac.starlink.ttools.plot.DefaultStyle
  */
-public class DashComboBox extends RenderingComboBox {
+public class DashComboBox extends RenderingComboBox<float[]> {
 
     private static final int LINE_LENGTH = 48;
     private static final int LINE_THICKNESS = 2;
@@ -39,10 +39,9 @@ public class DashComboBox extends RenderingComboBox {
      * @param  dashes  dash patterns for selection; 
      *                 null is OK for a solid line.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     public DashComboBox( float[][] dashes ) {
         dashes = dashes.clone();
-        setModel( new DefaultComboBoxModel( dashes ) );
+        setModel( new DefaultComboBoxModel<float[]>( dashes ) );
     }
 
     /**
@@ -51,7 +50,7 @@ public class DashComboBox extends RenderingComboBox {
      * @return   selected dash array
      */
     public float[] getSelectedDash() {
-        return normaliseDash( (float[]) getSelectedItem() );
+        return normaliseDash( getItemAt( getSelectedIndex() ) );
     }
 
     /**
@@ -65,8 +64,7 @@ public class DashComboBox extends RenderingComboBox {
         dash = normaliseDash( dash );
         int nitem = getItemCount();
         for ( int i = 0; i < nitem; i++ ) {
-            if ( Arrays.equals( dash,
-                                normaliseDash( (float[]) getItemAt( i ) ) ) ) {
+            if ( Arrays.equals( dash, normaliseDash( getItemAt( i ) ) ) ) {
                 setSelectedIndex( i );
                 return;
             }
@@ -74,12 +72,12 @@ public class DashComboBox extends RenderingComboBox {
         super.setSelectedItem( dash );
     }
 
-    protected String getRendererText( Object d ) {
+    protected String getRendererText( float[] d ) {
         return null;
     }
 
-    protected Icon getRendererIcon( Object d ) {
-        final float[] dash = normaliseDash( (float[]) d );
+    protected Icon getRendererIcon( float[] d ) {
+        final float[] dash = normaliseDash( d );
         return new Icon() {
             public int getIconHeight() {
                 return LINE_THICKNESS;

@@ -138,9 +138,8 @@ public class PolygonForms {
                 return polyMode.getDescription();
             }
             @Override
-            @SuppressWarnings({"unchecked","rawtypes"})
             public Specifier<PolygonMode> createSpecifier() {
-                JComboBox comboBox = new JComboBox( modes );
+                JComboBox<PolygonMode> comboBox = new JComboBox<>( modes );
                 comboBox.setRenderer( new PolygonModeRenderer() );
                 return new ComboBoxSpecifier<PolygonMode>( PolygonMode.class,
                                                            comboBox );
@@ -190,8 +189,8 @@ public class PolygonForms {
         }
 
         @Override
-        @SuppressWarnings("rawtypes")
-        public Component getListCellRendererComponent( JList list, Object value,
+        public Component getListCellRendererComponent( JList<?> list,
+                                                       Object value,
                                                        int index, boolean isSel,
                                                        boolean hasFocus ) {
             Component c =

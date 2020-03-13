@@ -65,8 +65,7 @@ public class MultiPointConfigKey extends OptionConfigKey<ErrorRenderer> {
                 }
             };
         }
-        @SuppressWarnings("rawtypes")
-        JComboBox rendererComboBox =
+        JComboBox<ErrorRenderer> rendererComboBox =
             MarkStyleSelectors.createErrorSelector( renderers_,
                                                     getDefaultValue(),
                                                     modeSelections );

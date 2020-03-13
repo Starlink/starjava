@@ -21,7 +21,6 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    5 Mar 2013
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
 
     private final Class<V> clazz_;
@@ -37,7 +36,6 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      *
      * @param  clazz     value type for this specifier
      * @param  comboBox  combo box instance with appropriate options
-     *                   (must all be assignable from V)
      * @param  customStringify  if true, this object's <code>stringify</code>
      *                          method is used to provide combo box text
      * @param  allowAny   if true, then the <code>setSpecifiedValue</code>
@@ -66,7 +64,6 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      *
      * @param  clazz     value type for this specifier
      * @param  comboBox  combo box instance with appropriate options
-     *                   (must all be assignable from V)
      */
     public ComboBoxSpecifier( Class<V> clazz, JComboBox<V> comboBox ) {
         this( clazz, comboBox, false, true );
@@ -158,7 +155,7 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      *
      * @return   combo box doing the work
      */
-    public JComboBox getComboBox() {
+    public JComboBox<V> getComboBox() {
         return comboBox_;
     }
 }

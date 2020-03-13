@@ -16,7 +16,7 @@ import uk.ac.starlink.util.gui.RenderingComboBox;
  * @author   Mark Taylor
  * @since    12 Jan 2006
  */
-public class ThicknessComboBox extends RenderingComboBox {
+public class ThicknessComboBox extends RenderingComboBox<Integer> {
 
     private static final int LINE_LENGTH = 48;
 
@@ -25,13 +25,12 @@ public class ThicknessComboBox extends RenderingComboBox {
      *
      * @param   maxThick   maximum line width
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     public ThicknessComboBox( int maxThick ) {
         Integer[] numbers = new Integer[ maxThick ];
         for ( int i = 0; i < maxThick; i++ ) {
             numbers[ i ] = new Integer( i + 1 );
         }
-        setModel( new DefaultComboBoxModel( numbers ) );
+        setModel( new DefaultComboBoxModel<Integer>( numbers ) );
     }
 
     /**
@@ -52,8 +51,8 @@ public class ThicknessComboBox extends RenderingComboBox {
         setSelectedIndex( Math.max( thick - 1, 0 ) );
     }
 
-    public Icon getRendererIcon( Object obj ) {
-        final int thick = ((Integer) obj).intValue();
+    public Icon getRendererIcon( Integer thickObj ) {
+        final int thick = thickObj.intValue();
         return new Icon() {
             public int getIconHeight() {
                 return thick;

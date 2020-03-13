@@ -401,8 +401,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
             CoordValue[] cvals = new CoordValue[ nc ];
             for ( int ic = 0; ic < nc; ic++ ) {
                 CoordInput cinput = clist_.get( ic );
-                @SuppressWarnings("rawtypes")
-                JComboBox[] entryBoxes = cinput.entryBoxes_;
+                JComboBox<?>[] entryBoxes = cinput.entryBoxes_;
                 int nin = entryBoxes.length;
                 String[] inExprs = new String[ nin ];
                 for ( int ii = 0; ii < nin; ii++ ) {
@@ -478,11 +477,10 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
          * Aggregates a coordinate description and a GUI component
          * that can acquire a value for it in the context of a given table.
          */
-        @SuppressWarnings({"unchecked","rawtypes"})
         private static class CoordInput {
             final StarTable table_;
             final Coord coord_;
-            final JComboBox[] entryBoxes_;
+            final JComboBox<?>[] entryBoxes_;
 
             /**
              * Constructor.
@@ -494,7 +492,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
                 coord_ = coord;
                 table_ = table;
                 Input[] inputs = coord.getInputs();
-                entryBoxes_ = new JComboBox[ inputs.length ];
+                entryBoxes_ = new JComboBox<?>[ inputs.length ];
                 for ( int i = 0; i < inputs.length; i++ ) {
                     entryBoxes_[ i ] =
                         createColumnEntryBox( table,
@@ -509,8 +507,8 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
              * @param   table  table supplying data
              * @param   clazz   requierd class for data column entries
              */
-            private static JComboBox createColumnEntryBox( StarTable table,
-                                                           Class<?> clazz ) {
+            private static JComboBox<?> createColumnEntryBox( StarTable table,
+                                                              Class<?> clazz ) {
 
                 /* Add an item to the combo box for each column with a
                  * value of the right type.  But you can also type in
@@ -524,8 +522,9 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
                         cnameList.add( info.getName() );
                     }
                 }
-                JComboBox combo =
-                    new JComboBox( cnameList.toArray( new String[ 0 ] ) );
+                JComboBox<?> combo =
+                    new JComboBox<Object>( cnameList
+                                          .toArray( new String[ 0 ] ) );
                 combo.setEditable( true );
                 combo.setSelectedItem( null );
                 return combo;

@@ -29,7 +29,6 @@ import uk.ac.starlink.util.IconUtils;
  * @author   Mark Taylor
  * @since    6 Mar 2013
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class MarkStyleSelectors {
 
     private static final int MAX_SIZE = 5;
@@ -61,7 +60,7 @@ public class MarkStyleSelectors {
      *
      * @return  new shape selection combo box
      */
-    public static JComboBox createShapeSelector() {
+    public static JComboBox<MarkShape> createShapeSelector() {
         return createShapeSelector( SHAPES );
     }
 
@@ -72,14 +71,15 @@ public class MarkStyleSelectors {
      * @param  shapes  shape options
      * @return  new shape selection combo box
      */
-    public static JComboBox createShapeSelector( MarkShape[] shapes ) {
-        final JComboBox selector = new JComboBox( shapes );
-        selector.setRenderer( new MarkRenderer() {
+    public static JComboBox<MarkShape>
+            createShapeSelector( MarkShape[] shapes ) {
+        final JComboBox<MarkShape> selector = new JComboBox<>( shapes );
+        selector.setRenderer( new MarkRenderer<MarkShape>() {
             public MarkShape getMarkShape( int index ) {
-                return (MarkShape) selector.getItemAt( index );
+                return selector.getItemAt( index );
             }
             public MarkShape getMarkShape() {
-                return (MarkShape) selector.getSelectedItem();
+                return selector.getItemAt( selector.getSelectedIndex() );
             }
             public Color getMarkColor() {
                 return Color.BLACK;
@@ -97,7 +97,7 @@ public class MarkStyleSelectors {
      *
      * @return  new size selection combo box
      */
-    public static JComboBox createSizeSelector() {
+    public static JComboBox<Integer> createSizeSelector() {
         return createSizeSelector( MAX_SIZE );
     }
 
@@ -108,10 +108,10 @@ public class MarkStyleSelectors {
      * @param  maxSize  maximum size
      * @return  new size selection combo box
      */
-    public static JComboBox createSizeSelector( int maxSize ) {
-        final JComboBox selector =
-            new JComboBox( createNumberedModel( maxSize + 1 ) );
-        selector.setRenderer( new MarkRenderer( true ) {
+    public static JComboBox<Integer> createSizeSelector( int maxSize ) {
+        final JComboBox<Integer> selector =
+            new JComboBox<>( createNumberedModel( maxSize + 1 ) );
+        selector.setRenderer( new MarkRenderer<Integer>( true ) {
             public int getMarkSize( int index ) {
                 return index;
             }
@@ -138,16 +138,16 @@ public class MarkStyleSelectors {
      * @param    errorModeSelections error mode selection models, one per axis
      * @return   new error renderer combo box
      */
-    public static JComboBox createErrorSelector(
+    public static JComboBox<ErrorRenderer> createErrorSelector(
             ErrorRenderer[] errorRenderers,
             ErrorRenderer defaultRenderer,
             ErrorModeSelection[] errorModeSelections ) {
-        ComboBoxModel model =
+        ComboBoxModel<ErrorRenderer> model =
             new ErrorRendererComboBoxModel( errorRenderers, defaultRenderer,
                                             errorModeSelections );
-        ListCellRenderer renderer =
+        ListCellRenderer<ErrorRenderer> renderer =
             new ErrorRendererRenderer( errorModeSelections );
-        JComboBox errorSelector = new JComboBox( model );
+        JComboBox<ErrorRenderer> errorSelector = new JComboBox<>( model );
         errorSelector.setRenderer( renderer );
         return errorSelector;
     }
@@ -157,9 +157,9 @@ public class MarkStyleSelectors {
      * The contents of the model may change according to the {@link ErrorMode}
      * values currently in force.
      */
-    private static class ErrorRendererComboBoxModel extends AbstractListModel
-                                                    implements ComboBoxModel,
-                                                               ActionListener {
+    private static class ErrorRendererComboBoxModel
+            extends AbstractListModel<ErrorRenderer>
+            implements ComboBoxModel<ErrorRenderer>, ActionListener {
 
         private final ErrorRenderer[] allRenderers_;
         private final ErrorRenderer defaultRenderer_;
@@ -192,7 +192,7 @@ public class MarkStyleSelectors {
             }
         }
 
-        public Object getElementAt( int index ) {
+        public ErrorRenderer getElementAt( int index ) {
             return activeRendererList_.get( index );
         }
 
@@ -205,7 +205,8 @@ public class MarkStyleSelectors {
         }
 
         public void setSelectedItem( Object item ) {
-            if ( activeRendererList_.contains( item ) ) {
+            if ( activeRendererList_.contains( item ) &&
+                 item instanceof ErrorRenderer ) {
                 selected_ = (ErrorRenderer) item;
             }
             else {
@@ -259,32 +260,31 @@ public class MarkStyleSelectors {
     /**
      * Class which performs rendering of ErrorRenderer objects in a JComboBox.
      */
-    private static class ErrorRendererRenderer extends BasicComboBoxRenderer {
+    private static class ErrorRendererRenderer
+            implements ListCellRenderer<ErrorRenderer> {
         private final ErrorModeSelection[] errModeSelections_;
+        private final BasicComboBoxRenderer baseRenderer_;
         ErrorRendererRenderer( ErrorModeSelection[] errorModeSelections ) {
             errModeSelections_ = errorModeSelections;
+            baseRenderer_ = new BasicComboBoxRenderer();
         }
-        public Component getListCellRendererComponent( JList list, Object value,
-                                                       int index,
-                                                       boolean isSelected,
-                                                       boolean hasFocus ) {
+        public Component getListCellRendererComponent(
+                JList<? extends ErrorRenderer> list, ErrorRenderer er,
+                int index, boolean isSelected, boolean hasFocus ) {
             Component c =
-                super.getListCellRendererComponent( list, value, index,
-                                                    isSelected, hasFocus );
+                baseRenderer_
+               .getListCellRendererComponent( list, er, index,
+                                              isSelected, hasFocus );
             if ( c instanceof JLabel ) {
                 JLabel label = (JLabel) c;
                 Icon icon = null;
-                if ( value instanceof ErrorRenderer ) {
-                    ErrorRenderer er = (ErrorRenderer) value;
-                    ErrorMode[] modes =
-                        new ErrorMode[ errModeSelections_.length ];
-                    for ( int imode = 0; imode < modes.length; imode++ ) {
-                        modes[ imode ] = errModeSelections_[ imode ]
-                                        .getErrorMode();
-                    }
-                    icon = er.getLegendIcon( modes, 40, 15, 5, 1 );
-                    icon = IconUtils.colorIcon( icon, c.getForeground() );
+                ErrorMode[] modes = new ErrorMode[ errModeSelections_.length ];
+                for ( int imode = 0; imode < modes.length; imode++ ) {
+                    modes[ imode ] = errModeSelections_[ imode ]
+                                    .getErrorMode();
                 }
+                icon = er.getLegendIcon( modes, 40, 15, 5, 1 );
+                icon = IconUtils.colorIcon( icon, c.getForeground() );
                 label.setText( icon == null ? "??" : null );
                 label.setIcon( icon );
             }
@@ -299,12 +299,12 @@ public class MarkStyleSelectors {
      * @param   count  number of entries in the model
      * @return  new ComboBoxModel filled with Integers
      */
-    public static ComboBoxModel createNumberedModel( int count ) {
-        Object[] items = new Object[ count ];
+    public static ComboBoxModel<Integer> createNumberedModel( int count ) {
+        Integer[] items = new Integer[ count ];
         for ( int i = 0; i < count; i++ ) {
             items[ i ] = new Integer( i );
         }
-        return new DefaultComboBoxModel( items );
+        return new DefaultComboBoxModel<Integer>( items );
     }
 
     /**
@@ -341,13 +341,16 @@ public class MarkStyleSelectors {
     /**
      * ComboBoxRenderer class suitable for rendering MarkStyles.
      */
-    private static abstract class MarkRenderer extends BasicComboBoxRenderer {
+    private static abstract class MarkRenderer<E>
+            implements ListCellRenderer<E> {
         private boolean useText_;
+        private final BasicComboBoxRenderer baseRenderer_;
         MarkRenderer() {
             this( false );
         }
         MarkRenderer( boolean useText ) {
             useText_ = useText;
+            baseRenderer_ = new BasicComboBoxRenderer();
         }
         MarkShape getMarkShape( int itemIndex ) {
             return getMarkShape();
@@ -361,17 +364,17 @@ public class MarkStyleSelectors {
             return getMarkColor();
         }
         abstract Color getMarkColor();
-        public Component getListCellRendererComponent( JList list, Object value,
-                                                       int index,
+        public Component getListCellRendererComponent( JList<? extends E> list,
+                                                       E value, int index,
                                                        boolean isSelected,
                                                        boolean hasFocus ) {
-            Component c =
-                super.getListCellRendererComponent( list, value, index,
-                                                    isSelected, hasFocus );
+            Component c = baseRenderer_
+                         .getListCellRendererComponent( list, value, index,
+                                                        isSelected, hasFocus );
             if ( c instanceof JLabel ) {
                 JLabel label = (JLabel) c;
                 if ( ! useText_ ) {
-                    setText( null );
+                    label.setText( null );
                 }
                 MarkStyle style = index >= 0
                                 ? getStyle( getMarkShape( index ),

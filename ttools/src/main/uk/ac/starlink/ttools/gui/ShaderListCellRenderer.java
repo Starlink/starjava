@@ -22,10 +22,11 @@ import uk.ac.starlink.util.IconUtils;
  * @author   Mark Taylor
  * @since    3 Apr 2008
  */
-public class ShaderListCellRenderer extends BasicComboBoxRenderer {
+public class ShaderListCellRenderer implements ListCellRenderer<Shader> {
 
     private static final Map<Shader,Icon> rendererIconMap_ =
         new HashMap<Shader,Icon>();
+    private BasicComboBoxRenderer baseRenderer_;
 
     /**
      * Constructs a renderer suitable for use with a combo box containing
@@ -35,8 +36,8 @@ public class ShaderListCellRenderer extends BasicComboBoxRenderer {
      *
      * @param  comboBox  combo box to contain renderer
      */
-    @SuppressWarnings("rawtypes")
-    public ShaderListCellRenderer( final JComboBox comboBox ) {
+    public ShaderListCellRenderer( final JComboBox<Shader> comboBox ) {
+        baseRenderer_ = new BasicComboBoxRenderer();
 
         /* Message the renderer when the combo box is enabled/disabled,
          * which does not happen by default (though you might expect it to).
@@ -45,22 +46,21 @@ public class ShaderListCellRenderer extends BasicComboBoxRenderer {
         comboBox.addPropertyChangeListener( new PropertyChangeListener() {
             public void propertyChange( PropertyChangeEvent evt ) {
                 if ( "enabled".equals( evt.getPropertyName() ) ) {
-                    setEnabled( comboBox.isEnabled() );
+                    baseRenderer_.setEnabled( comboBox.isEnabled() );
                 }
             }
         } );
     }
 
-    @SuppressWarnings("rawtypes")
-    public Component getListCellRendererComponent( JList list, Object value,
-                                                   int index, boolean isSel,
+    public Component getListCellRendererComponent( JList<? extends Shader> list,
+                                                   Shader shader, int index,
+                                                   boolean isSel,
                                                    boolean hasFocus ) {
         Component comp =
-            super.getListCellRendererComponent( list, value, index, isSel,
-                                                hasFocus );
-        if ( comp instanceof JLabel && value instanceof Shader ) {
+            baseRenderer_.getListCellRendererComponent( list, shader, index,
+                                                        isSel, hasFocus );
+        if ( comp instanceof JLabel ) {
             JLabel label = (JLabel) comp;
-            Shader shader = (Shader) value;
             String text = shader.getName();
             if ( ! shader.isAbsolute() ) {
                 text = "* " + text ;

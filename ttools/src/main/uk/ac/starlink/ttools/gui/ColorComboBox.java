@@ -14,7 +14,7 @@ import uk.ac.starlink.util.gui.RenderingComboBox;
  * @author   Mark Taylor
  * @since    12 Jan 2006
  */
-public class ColorComboBox extends RenderingComboBox {
+public class ColorComboBox extends RenderingComboBox<Color> {
 
     private static final int ICON_WIDTH = 24;
     private static final int ICON_HEIGHT = 12;
@@ -54,12 +54,12 @@ public class ColorComboBox extends RenderingComboBox {
         return (Color) getSelectedItem();
     }
 
-    protected String getRendererText( Object obj ) {
+    protected String getRendererText( Color obj ) {
         return null;
     }
 
-    protected Icon getRendererIcon( Object obj ) {
-        final Color color = ColorComboBox.this.isEnabled() ? (Color) obj
+    protected Icon getRendererIcon( Color obj ) {
+        final Color color = ColorComboBox.this.isEnabled() ? obj
                                                            : Color.LIGHT_GRAY;
         return new Icon() {
             public int getIconHeight() {

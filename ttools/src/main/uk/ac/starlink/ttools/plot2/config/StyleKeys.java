@@ -99,13 +99,13 @@ public class StyleKeys {
             return null;
         }
         public Specifier<XYShape> createSpecifier() {
-            @SuppressWarnings("rawtypes")
-            JComboBox shapeSelector = new RenderingComboBox( XYSHAPES ) {
+            JComboBox<XYShape> shapeSelector =
+                    new RenderingComboBox<XYShape>( XYSHAPES ) {
                 @Override
-                protected Icon getRendererIcon( Object shape ) {
-                    return XYShape.createIcon( (XYShape) shape, 20, 12, true );
+                protected Icon getRendererIcon( XYShape shape ) {
+                    return XYShape.createIcon( shape, 20, 12, true );
                 }
-                protected String getRendererText( Object shape ) {
+                protected String getRendererText( XYShape shape ) {
                     return null;
                 }
             };
@@ -214,10 +214,10 @@ public class StyleKeys {
                 return null;
             }
             public Specifier<BarStyle.Form> createSpecifier() {
-                @SuppressWarnings("rawtypes")
-                JComboBox formSelector = new RenderingComboBox( BARFORMS ) {
-                    protected Icon getRendererIcon( Object form ) {
-                        return BarStyles.getIcon( (BarStyle.Form) form );
+                JComboBox<BarStyle.Form> formSelector =
+                        new RenderingComboBox<BarStyle.Form>( BARFORMS ) {
+                    protected Icon getRendererIcon( BarStyle.Form form ) {
+                        return BarStyles.getIcon( form );
                     }
                 };
                 return
@@ -250,10 +250,10 @@ public class StyleKeys {
                 return fillMode.getDescription();
             }
             public Specifier<FillMode> createSpecifier() {
-                @SuppressWarnings("rawtypes")
-                JComboBox fillSelector = new RenderingComboBox( FILLMODES ) {
-                    protected Icon getRendererIcon( Object fillmode ) {
-                        return ((FillMode) fillmode)
+                JComboBox<FillMode> fillSelector =
+                        new RenderingComboBox<FillMode>( FILLMODES ) {
+                    protected Icon getRendererIcon( FillMode fillmode ) {
+                        return fillmode
                               .createIcon( FILLMODE_ICON_DATA, Color.BLACK,
                                            new BasicStroke(), 2 );
                     }
