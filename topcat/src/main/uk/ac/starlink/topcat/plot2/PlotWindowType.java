@@ -2,9 +2,9 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
 import javax.swing.Icon;
+import javax.swing.ListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 
 /**
  * Enum defining the different plot window types.
@@ -20,8 +20,7 @@ public enum PlotWindowType {
                "Plane plotting window configured for convenience "
              + "when plotting histograms") {
         public StackPlotWindow<?,?>
-                createWindow( Component parent,
-                              TypedListModel<TopcatModel> tm ) {
+                createWindow( Component parent, ListModel<TopcatModel> tm ) {
             return new HistogramPlotWindow( parent, tm );
         }
     },
@@ -29,8 +28,7 @@ public enum PlotWindowType {
     /** Plane. */
     PLANE( "Plane", ResourceIcon.PLOT2_PLANE, "Plane plotting window" ) {
         public StackPlotWindow<?,?>
-                createWindow( Component parent,
-                              TypedListModel<TopcatModel> tm ) {
+                createWindow( Component parent, ListModel<TopcatModel> tm ) {
             return new PlanePlotWindow( parent, tm );
         }
     },
@@ -38,8 +36,7 @@ public enum PlotWindowType {
     /** Sky. */
     SKY( "Sky", ResourceIcon.PLOT2_SKY, "Sky plotting window" ) {
         public StackPlotWindow<?,?>
-                createWindow( Component parent,
-                              TypedListModel<TopcatModel> tm ) {
+                createWindow( Component parent, ListModel<TopcatModel> tm ) {
             return new SkyPlotWindow( parent, tm );
         }
     },
@@ -48,8 +45,7 @@ public enum PlotWindowType {
     CUBE( "Cube", ResourceIcon.PLOT2_CUBE,
           "3D plotting window using Cartesian coordinates") {
         public StackPlotWindow<?,?>
-                createWindow( Component parent,
-                              TypedListModel<TopcatModel> tm ) {
+                createWindow( Component parent, ListModel<TopcatModel> tm ) {
             return new CubePlotWindow( parent, tm );
         }
     },
@@ -58,8 +54,7 @@ public enum PlotWindowType {
     SPHERE( "Sphere", ResourceIcon.PLOT2_SPHERE,
             "3D plotting window using spherical polar coordinates" ) {
         public StackPlotWindow<?,?>
-                createWindow( Component parent,
-                              TypedListModel<TopcatModel> tm ) {
+                createWindow( Component parent, ListModel<TopcatModel> tm ) {
             return new SpherePlotWindow( parent, tm );
         }
     },
@@ -67,8 +62,7 @@ public enum PlotWindowType {
     /** Time. */
     TIME( "Time", ResourceIcon.PLOT2_TIME, "Time series plotting window" ) {
         public StackPlotWindow<?,?>
-                createWindow( Component parent,
-                              TypedListModel<TopcatModel> tm ) {
+                createWindow( Component parent, ListModel<TopcatModel> tm ) {
             return new TimePlotWindow( parent, tm );
         }
     };
@@ -125,7 +119,7 @@ public enum PlotWindowType {
      */
     public abstract StackPlotWindow<?,?>
             createWindow( Component parent,
-                          TypedListModel<TopcatModel> tablesModel );
+                          ListModel<TopcatModel> tablesModel );
 
     @Override
     public String toString() {

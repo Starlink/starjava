@@ -45,11 +45,10 @@ public class BrowserActivationType implements ActivationType {
     /**
      * Implementation that displays a URL in a general purpose web browser.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class BrowserColumnConfigurator
                          extends UrlColumnConfigurator {
-        private final JComboBox mapperChooser_;
-        private final JComboBox browserChooser_;
+        private final JComboBox<WebMapper> mapperChooser_;
+        private final JComboBox<Browser> browserChooser_;
         private static final String WEBMAPPER_KEY = "webMapper";
         private static final String BROWSER_KEY = "browser";
 
@@ -64,13 +63,13 @@ public class BrowserActivationType implements ActivationType {
                    new ColFlag[] { ColFlag.HTML, ColFlag.WEBREF,
                                    ColFlag.URL, } );
             setLocationLabel( "Resource Identifier" );
-            mapperChooser_ = new JComboBox();
+            mapperChooser_ = new JComboBox<>();
             for ( WebMapper mapper : WebMapper.getMappers() ) {
                 mapperChooser_.addItem( mapper );
             }
             mapperChooser_.addActionListener( getActionForwarder() );
 
-            browserChooser_ = new JComboBox();
+            browserChooser_ = new JComboBox<>();
             for ( Browser b : browsers ) {
                 browserChooser_.addItem( b );
             }
@@ -84,9 +83,9 @@ public class BrowserActivationType implements ActivationType {
 
         protected Activator createActivator( ColumnData cdata ) {
             final WebMapper mapper =
-                (WebMapper) mapperChooser_.getSelectedItem();
+                mapperChooser_.getItemAt( mapperChooser_.getSelectedIndex() );
             final Browser browser =
-                (Browser) browserChooser_.getSelectedItem();
+                browserChooser_.getItemAt( browserChooser_.getSelectedIndex() );
             final String label = getWindowLabel( cdata );
             return new LocationColumnActivator( cdata, false ) {
                 protected Outcome activateLocation( String loc, long lrow ) {

@@ -32,7 +32,6 @@ import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
  * @author   Mark Taylor
  * @since    30 Apr 2018
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ConfigState {
 
     private final Map<String,String> map_;
@@ -153,7 +152,7 @@ public class ConfigState {
      * @param  key  entry key
      * @param  selector   selection component containing state
      */
-    public void saveSelection( String key, JComboBox selector ) {
+    public void saveSelection( String key, JComboBox<?> selector ) {
         String sval = getStringValue( selector );
         if ( sval != null ) {
             map_.put( key, getStringValue( selector ) );
@@ -166,7 +165,7 @@ public class ConfigState {
      * @param  key  entry key
      * @param  selector  selection component to be updated with state
      */
-    public void restoreSelection( String key, JComboBox selector ) {
+    public void restoreSelection( String key, JComboBox<?> selector ) {
         if ( map_.containsKey( key ) ) {
             String value = map_.get( key );
             int ix = getSelectorIndex( selector, value );
@@ -203,7 +202,7 @@ public class ConfigState {
      * @param  selector  combo box
      * @return  string representation of current selection, or null
      */
-    private static String getStringValue( JComboBox selector ) {
+    private static String getStringValue( JComboBox<?> selector ) {
         Object item = selector.getSelectedItem();
         if ( item == null ) {
             return "";
@@ -212,8 +211,10 @@ public class ConfigState {
             return (String) item;
         }
         int index = selector.getSelectedIndex();
-        ListCellRenderer renderer = selector.getRenderer();
-        JList jlist = new JList();
+        @SuppressWarnings("unchecked")
+        ListCellRenderer<Object> renderer =
+            (ListCellRenderer<Object>) selector.getRenderer();
+        JList<Object> jlist = new JList<Object>();
         Component rendered =
             renderer.getListCellRendererComponent( jlist, item, index,
                                                    false, false );
@@ -233,7 +234,8 @@ public class ConfigState {
      * @param  svalue    required string value
      * @return  index of selection in combo box, or -1 if not found
      */
-    private static int getSelectorIndex( JComboBox selector, String svalue ) {
+    private static int getSelectorIndex( JComboBox<?> selector,
+                                         String svalue ) {
         int nitem = selector.getItemCount();
         if ( svalue == null || svalue.length() == 0 ) {
             for ( int i = 0; i < nitem; i++ ) {
@@ -247,8 +249,10 @@ public class ConfigState {
                 return i;
             }
         }
-        ListCellRenderer renderer = selector.getRenderer();
-        JList jlist = new JList();
+        @SuppressWarnings("unchecked")
+        ListCellRenderer<Object> renderer =
+            (ListCellRenderer<Object>) selector.getRenderer();
+        JList<Object> jlist = new JList<Object>();
         for ( int i = 0; i < nitem; i++ ) {
             Object item = selector.getItemAt( i );
             Component rendered =

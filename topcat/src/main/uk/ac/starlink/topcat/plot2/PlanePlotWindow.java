@@ -2,8 +2,8 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
 import java.awt.Rectangle;
+import javax.swing.ListModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -39,7 +39,7 @@ public class PlanePlotWindow
      * @param  tablesModel  list of available tables
      */
     public PlanePlotWindow( Component parent,
-                            TypedListModel<TopcatModel> tablesModel ) {
+                            ListModel<TopcatModel> tablesModel ) {
         super( "Plane Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );
         getToolBar().addSeparator();
         addHelp( "PlanePlotWindow" );

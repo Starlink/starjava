@@ -29,10 +29,9 @@ import uk.ac.starlink.util.gui.SizingScrollPane;
  * @author   Mark Taylor
  * @since    18 Sep 2018
  */
-@SuppressWarnings("rawtypes")
 public class MultiSubsetQueryWindow extends QueryWindow {
 
-    private final JComboBox nameSelector_;
+    private final JComboBox<String> nameSelector_;
     private final JTable jtable_;
     private final Entry[] entries_;
     private static final Color ENABLE_COLOR =
@@ -148,15 +147,7 @@ public class MultiSubsetQueryWindow extends QueryWindow {
      */
     private String getSubsetName() {
         Object nameObj = nameSelector_.getSelectedItem();
-        if ( nameObj instanceof RowSubset ) {
-            return ((RowSubset) nameObj).getName();
-        }
-        else if ( nameObj instanceof String ) {
-            return (String) nameObj;
-        }
-        else {
-            return null;
-        }
+        return nameObj == null ? null : nameObj.toString();
     }
 
     protected boolean perform() {

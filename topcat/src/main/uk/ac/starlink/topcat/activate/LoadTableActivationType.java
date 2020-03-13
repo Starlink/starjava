@@ -59,8 +59,7 @@ public class LoadTableActivationType implements ActivationType {
      */
     private static class TableColumnConfigurator extends UrlColumnConfigurator {
         private final ControlWindow controlWindow_;
-        @SuppressWarnings("rawtypes")
-        private final JComboBox formatSelector_;
+        private final JComboBox<String> formatSelector_;
         private final JCheckBox multipleSelector_;
         private final JCheckBox paramsSelector_;
         private final JCheckBox allowsysSelector_;
@@ -118,7 +117,8 @@ public class LoadTableActivationType implements ActivationType {
 
         protected Activator createActivator( ColumnData cdata ) {
             final StarTableFactory tfact = controlWindow_.getTableFactory();
-            final String format = (String) formatSelector_.getSelectedItem();
+            final String format =
+                formatSelector_.getItemAt( formatSelector_.getSelectedIndex() );
             final boolean isSelect = false;
             final boolean isMultiple = multipleSelector_.isSelected();
             final boolean importParams = paramsSelector_.isSelected();

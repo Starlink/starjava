@@ -20,7 +20,6 @@ import uk.ac.starlink.table.gui.UCDSelector;
  * A dialogue window which queries the user for the characteristics of a
  * new column and then appends it to the table.
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class SyntheticColumnQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel;
@@ -29,7 +28,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
     private JTextField unitField;
     private JTextField descriptionField;
     private JTextField expressionField;
-    private JComboBox typeField;
+    private JComboBox<Class<?>> typeField;
     private UCDSelector ucdField;
     private ColumnIndexSpinner indexSpinner;
 
@@ -67,7 +66,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         stack.addLine( "Description", descriptionField );
 
         /* Class selector. */
-        typeField = new JComboBox();
+        typeField = new JComboBox<Class<?>>();
         typeField.addItem( null );
         typeField.addItem( byte.class );
         typeField.addItem( short.class );

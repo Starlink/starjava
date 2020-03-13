@@ -30,7 +30,6 @@ import uk.ac.starlink.votable.VOTableBuilder;
  * @author   Mark Taylor
  * @since    14 Oct 2005
  */
-@SuppressWarnings("rawtypes")
 public class TopcatExtApp implements ExtApp {
 
     private final ControlWindow cwin_;
@@ -104,10 +103,9 @@ public class TopcatExtApp implements ExtApp {
         /* A set invisible request currently hides all the view windows. */
         else {
             logger_.info( "ExtApp setVisible(false) received" );
-            ListModel tcList = cwin_.getTablesListModel();
+            ListModel<TopcatModel> tcList = cwin_.getTablesListModel();
             for ( int i = 0; i < tcList.getSize(); i++ ) {
-                cwin_.setViewsVisible( ((TopcatModel) tcList.getElementAt( i )),
-                                       false );
+                cwin_.setViewsVisible( tcList.getElementAt( i ), false );
             }
         }
     }
@@ -146,9 +144,9 @@ public class TopcatExtApp implements ExtApp {
         }
 
         /* Look at each of the known TopcatModels. */
-        ListModel tcList = cwin_.getTablesListModel();
+        ListModel<TopcatModel> tcList = cwin_.getTablesListModel();
         for ( int i = 0; i < tcList.getSize(); i++ ) {
-            TopcatModel tcModel = (TopcatModel) tcList.getElementAt( i );
+            TopcatModel tcModel = tcList.getElementAt( i );
             RowSubset rset = locateSubset( tcModel, oidSet );
             if ( rset != null && apply ) {
                 // tcModel.getSubsetAction().getWindow( cwin_ ).toFront();

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.BitSet;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -33,10 +34,9 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor
  * @since    11 Dec 2008
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class SubsetConsumerDialog extends JPanel {
 
-    private final JComboBox nameSelector_;
+    private final JComboBox<String> nameSelector_;
     private JDialog dialog_;
     private SubsetConsumer consumer_;
 
@@ -117,8 +117,11 @@ public class SubsetConsumerDialog extends JPanel {
                 }
             };
             JComponent transmitLine = Box.createHorizontalBox();
-            final JComboBox targetSelector =
-                new JComboBox( subsetActivity.getTargetSelector() );
+            @SuppressWarnings("unchecked")
+            ComboBoxModel<Object> targetModel =
+                (ComboBoxModel<Object>) subsetActivity.getTargetSelector();
+            final JComboBox<Object> targetSelector =
+                new JComboBox<Object>( targetModel );
             if ( subsetActivity != null ) {
                 transmitLine.add( new JButton( transmitAction ) );
             }

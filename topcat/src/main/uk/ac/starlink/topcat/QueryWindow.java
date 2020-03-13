@@ -211,7 +211,6 @@ public abstract class QueryWindow extends AuxWindow {
      * Do configuration of keys for the input fields in the stack.
      * We configure the Enter key to close the window.
      */
-    @SuppressWarnings("rawtypes")
     private void configureKeys() {
         Object okKey = new Object();
         KeyStroke hitEnter = KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 );
@@ -225,7 +224,7 @@ public abstract class QueryWindow extends AuxWindow {
              * combo box has its value set (at least at Sun's J2SE1.4.2 - 
              * Swing misfeature?), so we have to work round this. */
             if ( fields[ i ] instanceof JComboBox ) {
-                final JComboBox cbox = (JComboBox) fields[ i ];
+                final JComboBox<?> cbox = (JComboBox<?>) fields[ i ];
                 if ( cbox.isEditable() &&
                      cbox.getEditor().getEditorComponent()
                      instanceof JTextField ) {

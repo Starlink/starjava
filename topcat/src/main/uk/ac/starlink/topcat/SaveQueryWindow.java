@@ -15,6 +15,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.connect.Branch;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.gui.FilestoreTableSaveDialog;
@@ -30,7 +31,6 @@ import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
  * @author   Mark Taylor
  * @since    15 Jul 2010
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class SaveQueryWindow extends QueryWindow {
 
     private final TableSaveChooser chooser_;
@@ -54,7 +54,7 @@ public class SaveQueryWindow extends QueryWindow {
         /* Construct and configure the main table chooser widget.
          * Make sure it has the same directory model as the load window,
          * so the user will see the same directory in both. */
-        ComboBoxModel dirModel =
+        ComboBoxModel<Branch> dirModel =
             ((FilestoreTableLoadDialog)
              loadWindow.getKnownDialog( FilestoreTableLoadDialog.class ))
            .getChooser().getModel();

@@ -52,12 +52,11 @@ public class SendSpectrumActivationType implements ActivationType {
     /**
      * Configurator implementation for URLs pointing to (SSA) spectra.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class SpectrumColumnConfigurator extends
             UrlColumnConfigurator {
         final TopcatModel tcModel_;
         final SampSender specSender_;
-        final ListModel clientListModel_;
+        final ListModel<?> clientListModel_;
 
         private static final String SPECTRUM_MTYPE =
             "spectrum.load.ssa-generic";
@@ -79,8 +78,8 @@ public class SendSpectrumActivationType implements ActivationType {
             specSender_.getConnector().addConnectionListener( forwarder );
 
             /* Set up a selector for the spectrum viewer. */
-            JComboBox viewerSelector =
-                new JComboBox( specSender_.getClientSelectionModel() );
+            JComboBox<?> viewerSelector =
+                new JComboBox<Object>( specSender_.getClientSelectionModel() );
             viewerSelector.addActionListener( forwarder );
             getQueryPanel()
            .add( new LineBox( "Spectrum Viewer",

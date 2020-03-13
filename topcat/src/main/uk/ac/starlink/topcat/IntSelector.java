@@ -17,10 +17,9 @@ import javax.swing.JPanel;
  * @author   Mark Taylor (Starlink)
  * @since    7 Oct 2004
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class IntSelector extends JPanel implements ItemListener {
 
-    private final JComboBox cbox_;
+    private final JComboBox<Integer> cbox_;
     private int selected_;
 
     /**
@@ -33,14 +32,14 @@ public class IntSelector extends JPanel implements ItemListener {
         super( new BorderLayout() );
         if ( options != null ) {
             int nopt = options.length;
-            Object[] items = new Object[ nopt ];
+            Integer[] items = new Integer[ nopt ];
             for ( int i = 0; i < nopt; i++ ) {
                 items[ i ] = new Integer( options[ i ] );
             }
-            cbox_ = new JComboBox( items );
+            cbox_ = new JComboBox<Integer>( items );
         }
         else {
-            cbox_ = new JComboBox();
+            cbox_ = new JComboBox<Integer>();
         }
         cbox_.setEditable( true );
         cbox_.addItemListener( this );
@@ -76,7 +75,7 @@ public class IntSelector extends JPanel implements ItemListener {
      *
      * @return  combo box
      */
-    public JComboBox getComboBox() {
+    public JComboBox<Integer> getComboBox() {
         return cbox_;
     }
 

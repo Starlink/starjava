@@ -2,9 +2,9 @@ package uk.ac.starlink.topcat.plot2;
 
 import javax.swing.Icon;
 import javax.swing.JScrollPane;
+import javax.swing.ListModel;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -39,7 +39,7 @@ public class SingleFormLayerControl extends FormLayerControl {
      *                        options
      */
     public SingleFormLayerControl( PositionCoordPanel posCoordPanel,
-                                   TypedListModel<TopcatModel> tablesModel,
+                                   ListModel<TopcatModel> tablesModel,
                                    Specifier<ZoneId> zsel, boolean autoPopulate,
                                    NextSupplier nextSupplier,
                                    TopcatListener tcListener, Icon controlIcon,

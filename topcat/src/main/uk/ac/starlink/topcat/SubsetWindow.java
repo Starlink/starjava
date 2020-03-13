@@ -250,9 +250,6 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 if ( rset != null ) {
                     selectionModel.setValueIsAdjusting( true );
                     selectionModel.clearSelection();
-                    @SuppressWarnings("rawtypes")
-                    ComboBoxModel tcSelModel = 
-                        tcModel.getSubsetSelectionModel();
                     for ( int irow = 0; irow < subsetsTableModel.getRowCount();
                           irow++ ) {
                         if ( getSubset( toUnsortedIndex( irow ) ) == rset ) {

@@ -13,7 +13,8 @@ import uk.ac.starlink.plastic.HubManager;
 
 /**
  * Implements a ListModel based on an existing ListModel which is taken to
- * contain (PLASTIC) {@link uk.ac.starlink.plastic.ApplicationItem} objects.
+ * contain (PLASTIC) {@link uk.ac.starlink.plastic.ApplicationItem} objects,
+ * and optionally the {@link #ALL_LISTENERS} string.
  * The purpose of this class is to give you the subset of the applications
  * which support a given PLASTIC message ID.
  * Applications which support all messages are included.
@@ -24,12 +25,11 @@ import uk.ac.starlink.plastic.HubManager;
  * @author   Mark Taylor
  * @since    22 Apr 2006
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class SelectivePlasticListModel
-        extends AbstractListModel
-        implements ListDataListener, ComboBoxModel {
+        extends AbstractListModel<Object>
+        implements ListDataListener, ComboBoxModel<Object> {
 
-    private final ListModel base_;
+    private final ListModel<ApplicationItem> base_;
     private final URI messageId_;
     private List<Object> appList_;
     private boolean includeAll_;
@@ -51,8 +51,8 @@ public class SelectivePlasticListModel
      *          excluded from the list (typically represents the 
      *          sender application)
      */
-    public SelectivePlasticListModel( ListModel base, URI messageId,
-                                      boolean includeAll,
+    public SelectivePlasticListModel( ListModel<ApplicationItem> base,
+                                      URI messageId, boolean includeAll,
                                       HubManager excludeApp ) {
         base_ = base;
         messageId_ = messageId;
@@ -70,7 +70,7 @@ public class SelectivePlasticListModel
      * Updates state to match that of the base model.
      */
     private void updateItems() {
-        List<Object> list = new ArrayList<Object>();
+        List<Object> list = new ArrayList<>();
 
         /* Optionally include an entry representing a full broadcast. */
         if ( includeAll_ ) {

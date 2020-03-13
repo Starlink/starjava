@@ -42,7 +42,6 @@ import uk.ac.starlink.util.gui.ConstrainedViewportLayout;
  * @author   Mark Taylor
  * @since    14 Mar 2013
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class SubsetStack {
 
     private final PermutedListModel model_;
@@ -57,7 +56,8 @@ public class SubsetStack {
      * @param   baseModel   list model containing RowSubset objects
      * @param   subManager  provides per-subset configuration components
      */
-    public SubsetStack( ListModel baseModel, SubsetConfigManager subManager ) {
+    public SubsetStack( ListModel<RowSubset> baseModel,
+                        SubsetConfigManager subManager ) {
         model_ = new PermutedListModel( baseModel );
         subManager_ = subManager;
         subList_ = new SubsetList( model_ );
@@ -128,7 +128,7 @@ public class SubsetStack {
         if ( subList_.getSelectedValue() == null && rsets.length > 0 ) {
             RowSubset rset = rsets.length == 1
                            ? rsets[ 0 ]
-                           : (RowSubset) subList_.getModel().getElementAt( 0 );
+                           : subList_.getModel().getElementAt( 0 );
             subList_.setSelectedValue( rset, true );
         }
     }
@@ -185,15 +185,11 @@ public class SubsetStack {
      * @param  model  list model
      * @return  typed list of <code>model</code> entries
      */
-    private static List<RowSubset> getEntries( ListModel model ) {
+    private static List<RowSubset> getEntries( ListModel<RowSubset> model ) {
         int count = model.getSize();
         List<RowSubset> entries = new ArrayList<RowSubset>( count );
         for ( int i = 0; i < count; i++ ) {
-            Object element = model.getElementAt( i );
-            assert element instanceof RowSubset;
-            if ( element instanceof RowSubset ) {
-                entries.add( (RowSubset) element );
-            }
+            entries.add( model.getElementAt( i ) );
         }
         return entries;
     }
@@ -229,9 +225,9 @@ public class SubsetStack {
      * It is backed by a base model, and any insertions or deletions to
      * that model are tracked.
      */
-    private class PermutedListModel extends AbstractListModel {
+    private class PermutedListModel extends AbstractListModel<RowSubset> {
 
-        final ListModel baseModel_;
+        final ListModel<RowSubset> baseModel_;
         final List<RowSubset> entries_;
 
         /**
@@ -239,7 +235,7 @@ public class SubsetStack {
          *
          * @param   baseModel  list model backing this one
          */
-        PermutedListModel( ListModel baseModel ) {
+        PermutedListModel( ListModel<RowSubset> baseModel ) {
             baseModel_ = baseModel;
             entries_ = new ArrayList<RowSubset>();
 
@@ -258,7 +254,7 @@ public class SubsetStack {
             updateFromModel();
         }
 
-        public Object getElementAt( int index ) {
+        public RowSubset getElementAt( int index ) {
             return entries_.get( index );
         }
 
@@ -293,7 +289,8 @@ public class SubsetStack {
 
             /* Ensure that the identity of the selected entry, if any,
              * is preserved. */
-            Object sel = subList_ == null ? null : subList_.getSelectedValue();
+            RowSubset sel = subList_ == null ? null
+                                             : subList_.getSelectedValue();
             List<RowSubset> entries1 = getEntries( baseModel_ );
             boolean reselect = sel != null
                             && entries_.contains( sel )
@@ -336,7 +333,7 @@ public class SubsetStack {
          * @param  permModel  list model containing RowSubsets
          */
         public SubsetList( PermutedListModel permModel ) {
-            super( RowSubset.class, permModel, true, new JLabel() );
+            super( permModel, true, new JLabel() );
             permModel_ = permModel;
             checked_ = new HashSet<RowSubset>();
             permModel_.addListDataListener( new ListDataListener() {

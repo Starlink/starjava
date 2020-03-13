@@ -34,14 +34,13 @@ import uk.ac.starlink.topcat.interop.TopcatSampControl;
  * @author   Mark Taylor
  * @since    27 Mar 2018
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class SampSender {
 
     private final String mtype_;
     private final SampCommunicator communicator_;
     private final GuiHubConnector connector_;
     private final SendManager sendManager_;
-    private final ListModel clientListModel_;
+    private final ListModel<Client> clientListModel_;
     private int timeoutSec_;
 
     /**
@@ -66,11 +65,11 @@ public class SampSender {
             communicator_ = null;
             connector_ = null;
             sendManager_ = null;
-            clientListModel_ = new AbstractListModel() {
+            clientListModel_ = new AbstractListModel<Client>() {
                 public int getSize() {
                     return 0;
                 }
-                public Object getElementAt( int i ) {
+                public Client getElementAt( int i ) {
                     throw new IllegalArgumentException();
                 }
             };
@@ -95,17 +94,18 @@ public class SampSender {
      *
      * @return   listmodel containing appropriately-subscribed clients
      */
-    public ListModel getClientListModel() {
+    public ListModel<Client> getClientListModel() {
         return clientListModel_;
     }
 
     /**
      * Returns a ComboBoxModel listing clients that are subscribed to
-     * this sender's MType.
+     * this sender's MType.  It may also contain an object representing
+     * broadcast.
      *
      * @return  client selection list
      */
-    public ComboBoxModel getClientSelectionModel() {
+    public ComboBoxModel<Object> getClientSelectionModel() {
         return sendManager_.getComboBoxModel();
     }
 

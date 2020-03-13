@@ -25,12 +25,11 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor (Starlink)
  * @since    20 Mar 2004
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ParameterEditor extends JComponent {
 
     private final DescribedValue dval_;
     private final JTextField field_;
-    private final JComboBox conversionChooser_;
+    private final JComboBox<ValueCodec> conversionChooser_;
     private final ValueCodec codec0_;
     private final List<ChangeListener> listenerList_;
 
@@ -70,7 +69,7 @@ public class ParameterEditor extends JComponent {
         ValueCodec[] codecs = ValueCodec.getCodecs( info );
         if ( codecs.length > 1 ) {
             codec0_ = null;
-            conversionChooser_ = new JComboBox( codecs );
+            conversionChooser_ = new JComboBox<ValueCodec>( codecs );
             conversionChooser_.setSelectedIndex( 0 );
             conversionChooser_.addActionListener( updateListener );
             conversionChooser_.setToolTipText( "Units for " + info.getName() );
@@ -116,7 +115,8 @@ public class ParameterEditor extends JComponent {
             return codec0_;
         }
         else {
-            return (ValueCodec) conversionChooser_.getSelectedItem();
+            return conversionChooser_
+                  .getItemAt( conversionChooser_.getSelectedIndex() );
         }
     }
 

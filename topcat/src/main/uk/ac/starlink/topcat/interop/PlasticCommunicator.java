@@ -46,7 +46,6 @@ import uk.ac.starlink.vo.RegistryPanel;
  * @author   Mark Taylor
  * @since    4 Sep 2008
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class PlasticCommunicator implements TopcatCommunicator {
 
     private final ControlWindow control_;
@@ -142,10 +141,10 @@ public class PlasticCommunicator implements TopcatCommunicator {
     }
 
     public SkyPointActivity createSkyPointActivity() {
-        final ComboBoxModel selector =
+        final ComboBoxModel<?> selector =
             plasticServer_.createPlasticComboBoxModel( MessageId.SKY_POINT );
         return new SkyPointActivity() {
-            public ComboBoxModel getTargetSelector() {
+            public ComboBoxModel<?> getTargetSelector() {
                 return selector;
             }
             public void pointAtSky( double ra, double dec ) throws IOException {
@@ -160,11 +159,11 @@ public class PlasticCommunicator implements TopcatCommunicator {
     }
 
     public RowActivity createRowActivity() {
-        final ComboBoxModel selector =
+        final ComboBoxModel<?> selector =
             plasticServer_
            .createPlasticComboBoxModel( MessageId.VOT_HIGHLIGHTOBJECT );
         return new RowActivity() {
-            public ComboBoxModel getTargetSelector() {
+            public ComboBoxModel<?> getTargetSelector() {
                 return selector;
             }
             public void highlightRow( TopcatModel tcModel, long lrow )
@@ -180,11 +179,11 @@ public class PlasticCommunicator implements TopcatCommunicator {
     }
 
     public SubsetActivity createSubsetActivity() {
-        final ComboBoxModel selector =
+        final ComboBoxModel<?> selector =
             plasticServer_
            .createPlasticComboBoxModel( MessageId.VOT_SHOWOBJECTS );
         return new SubsetActivity() {
-            public ComboBoxModel getTargetSelector() {
+            public ComboBoxModel<?> getTargetSelector() {
                 return selector;
             }
             public void selectSubset( TopcatModel tcModel, RowSubset rset )
@@ -201,10 +200,10 @@ public class PlasticCommunicator implements TopcatCommunicator {
 
     public SpectrumActivity createSpectrumActivity() {
         final URI msgId = MessageId.SPECTRUM_LOADURL;
-        final ComboBoxModel selector =
+        final ComboBoxModel<?> selector =
             plasticServer_.createPlasticComboBoxModel( msgId );
         return new SpectrumActivity() {
-            public ComboBoxModel getTargetSelector() {
+            public ComboBoxModel<?> getTargetSelector() {
                 return selector;
             }
             public void displaySpectrum( String location, Map<?,?> metadata )
@@ -214,13 +213,13 @@ public class PlasticCommunicator implements TopcatCommunicator {
                     item instanceof ApplicationItem
                          ? new URI[] { ((ApplicationItem) item).getId() }
                          : null;
-                List argList =
+                List<Object> argList =
                     Arrays.asList( new Object[] { location, location,
                                                   metadata } );
                 plasticServer_.register();
                 PlasticHubListener hub = plasticServer_.getHub();
                 URI plasticId = plasticServer_.getRegisteredId();
-                Map responses = ( recipients == null )
+                Map<?,?> responses = ( recipients == null )
                     ? hub.request( plasticId, msgId, argList )
                     : hub.requestToSubset( plasticId, msgId, argList,
                                            Arrays.asList( recipients ) );
@@ -313,9 +312,10 @@ public class PlasticCommunicator implements TopcatCommunicator {
          * the GUI. */
         new Thread( "FITS broadcast" ) {
             public void run() {
-                List argList = Arrays.asList( new Object[] { tmpUrl, tmpUrl } );
+                List<Object> argList =
+                    Arrays.asList( new Object[] { tmpUrl, tmpUrl } );
                 URI msgId = MessageId.FITS_LOADIMAGE;
-                Map responses = recipients == null
+                Map<?,?> responses = recipients == null
                     ? hub.request( plasticId, msgId, argList )
                     : hub.requestToSubset( plasticId, msgId, argList,
                                            Arrays.asList( recipients ) );

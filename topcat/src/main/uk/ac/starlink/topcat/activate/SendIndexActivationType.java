@@ -51,7 +51,6 @@ public class SendIndexActivationType implements ActivationType {
                                : Suitability.SUGGESTED;
     }
 
-    @SuppressWarnings({"unchecked","rawtypes"})
     public ActivatorConfigurator createConfigurator( TopcatModelInfo tinfo ) {
         final SampSender rowSender = new SampSender( "table.highlight.row" );
         final TopcatModel tcModel = tinfo.getTopcatModel();
@@ -64,8 +63,9 @@ public class SendIndexActivationType implements ActivationType {
             /** Constructor. */ {
                 ActionForwarder forwarder = getActionForwarder();
                 if ( isSelectTarget_ ) {
-                    JComboBox clientSelector =
-                        new JComboBox( rowSender.getClientSelectionModel() );
+                    JComboBox<?> clientSelector =
+                        new JComboBox<Object>( rowSender
+                                              .getClientSelectionModel() );
                     stack.addLine( "Target Client", clientSelector );
                     clientSelector.addActionListener( forwarder );
                     rowSender.getConnector().addConnectionListener( forwarder );
@@ -158,9 +158,8 @@ public class SendIndexActivationType implements ActivationType {
          *
          * @return  true iff the table has an ID or URL
          */
-        @SuppressWarnings("rawtypes")
         public boolean hasPublicIdentifier() {
-            ListModel tableIdListModel =
+            ListModel<TopcatModel> tableIdListModel =
                 sampControl_.getIdentifiableTableListModel();
             int n = tableIdListModel.getSize();
             for ( int i = 0; i < n; i++ ) {

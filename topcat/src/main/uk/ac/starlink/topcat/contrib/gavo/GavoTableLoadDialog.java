@@ -50,7 +50,6 @@ import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.Base64OutputStream;
 
-@SuppressWarnings({"unchecked","rawtypes"})
 public class GavoTableLoadDialog extends AbstractTableLoadDialog {
 
     private int nquery = 0;
@@ -81,7 +80,7 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
     private static final Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.topcat.contrib" );
 
-    private JComboBox urlField_;
+    private JComboBox<Database> urlField_;
     private JTextField userField_;
     private JPasswordField passField_;
     private JTextArea sqlField_;
@@ -100,7 +99,7 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
     protected Component createQueryComponent() {
 
         /* Set up fields for user interaction. */
-        urlField_ = new JComboBox(DATABASES);
+        urlField_ = new JComboBox<Database>(DATABASES);
         urlField_.setEditable(true);
         userField_ = new JTextField();
         passField_ = new JPasswordField();

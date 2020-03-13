@@ -76,7 +76,6 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    29 Sep 2009
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class DalMultiPanel extends JPanel {
 
     private final DalMultiService service_;
@@ -90,9 +89,9 @@ public class DalMultiPanel extends JPanel {
     private final ColumnSelector raSelector_;
     private final ColumnSelector decSelector_;
     private final ColumnSelector srSelector_;
-    private final JComboBox modeSelector_;
+    private final JComboBox<MulticoneMode> modeSelector_;
     private final SpinnerNumberModel parallelModel_;
-    private final JComboBox erractSelector_;
+    private final JComboBox<ConeErrorPolicy> erractSelector_;
     private final Action startAction_;
     private final Action stopAction_;
     private final JComponent[] components_;
@@ -143,10 +142,12 @@ public class DalMultiPanel extends JPanel {
         main.add( Box.createVerticalStrut( 10 ) );
 
         /* Field for input table. */
-        final JComboBox tableSelector = new TablesListComboBox( 250 );
+        final JComboBox<TopcatModel> tableSelector =
+            new TablesListComboBox( 250 );
         tableSelector.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
-                setInputTable( (TopcatModel) tableSelector.getSelectedItem() );
+                setInputTable( tableSelector
+                              .getItemAt( tableSelector.getSelectedIndex() ) );
             }
         } );
         JLabel tableLabel = new JLabel( "Input Table: " );
@@ -212,7 +213,7 @@ public class DalMultiPanel extends JPanel {
 
         /* Multicone output mode selector. */
         main.add( Box.createVerticalStrut( 10 ) );
-        modeSelector_ = new JComboBox( getMulticoneModes() );
+        modeSelector_ = new JComboBox<MulticoneMode>( getMulticoneModes() );
         Box modeLine = Box.createHorizontalBox();
         JLabel modeLabel = new JLabel( "Output Mode: " );
         modeLine.add( modeLabel );
@@ -313,7 +314,8 @@ public class DalMultiPanel extends JPanel {
         JSpinner parallelSpinner = new JSpinner( parallelModel_ );
         cList.add( parallelLabel );
         cList.add( parallelSpinner );
-        erractSelector_ = new JComboBox( getConeErrorPolicies( service ) );
+        erractSelector_ =
+            new JComboBox<ConeErrorPolicy>( getConeErrorPolicies( service ) );
         JLabel erractLabel = new JLabel( ERRACT_LABEL + ": " );
         cList.add( erractLabel );
         cList.add( erractSelector_ );
@@ -533,7 +535,8 @@ public class DalMultiPanel extends JPanel {
             Object conv = srSelector_.getModel().getConverterModel()
                                                 .getSelectedItem();
             srSelector_.setTable( tcModel );
-            ComboBoxModel srColModel = srSelector_.getModel().getColumnModel();
+            ComboBoxModel<ColumnData> srColModel =
+                srSelector_.getModel().getColumnModel();
             assert srColModel instanceof ColumnDataComboBoxModel;
             if ( srColModel instanceof ColumnDataComboBoxModel ) {
                 try {
@@ -623,7 +626,7 @@ public class DalMultiPanel extends JPanel {
                  .initCause( e );
         }
         ConeErrorPolicy erract =
-            (ConeErrorPolicy) erractSelector_.getSelectedItem();
+            erractSelector_.getItemAt( erractSelector_.getSelectedIndex() );
         TopcatModel tcModel = tcModel_;
         if ( tcModel == null ) {
             throw new NullPointerException( "No table selected" );
@@ -646,7 +649,8 @@ public class DalMultiPanel extends JPanel {
         }
         Number parNum = parallelModel_.getNumber();
         int parallelism = parNum == null ? 1 : parNum.intValue();
-        MulticoneMode mcMode = (MulticoneMode) modeSelector_.getSelectedItem();
+        MulticoneMode mcMode =
+            modeSelector_.getItemAt( modeSelector_.getSelectedIndex() );
         StarTableFactory tfact = ControlWindow.getInstance().getTableFactory();
 
         /* Assemble objects based on this information. */

@@ -13,12 +13,12 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.ListModel;
 import uk.ac.starlink.topcat.AlignedBox;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -36,7 +36,6 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    25 Nov 2013
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class BasicCoordLayerControl extends ConfigControl
                                     implements LayerControl {
 
@@ -45,8 +44,8 @@ public class BasicCoordLayerControl extends ConfigControl
     private final PositionCoordPanel coordPanel_;
     private final Configger baseConfigger_;
     private final boolean autoPopulate_;
-    private final JComboBox subsetSelector_;
-    private final ComboBoxModel dummyComboBoxModel_;
+    private final JComboBox<RowSubset> subsetSelector_;
+    private final ComboBoxModel<RowSubset> dummyComboBoxModel_;
     private final ConfigStyler styler_;
     private final Specifier<ZoneId> zsel_;
     private TopcatModel tcModel_;
@@ -66,7 +65,7 @@ public class BasicCoordLayerControl extends ConfigControl
      */
     public BasicCoordLayerControl( Plotter<?> plotter, Specifier<ZoneId> zsel,
                                    PositionCoordPanel coordPanel,
-                                   TypedListModel<TopcatModel> tablesModel,
+                                   ListModel<TopcatModel> tablesModel,
                                    Configger baseConfigger,
                                    boolean autoPopulate ) {
         super( null, plotter.getPlotterIcon() );
@@ -79,7 +78,7 @@ public class BasicCoordLayerControl extends ConfigControl
 
         /* Create data selection components. */
         tableSelector_ = new TablesListComboBox( tablesModel, 250 );
-        subsetSelector_ = new JComboBox();
+        subsetSelector_ = new JComboBox<RowSubset>();
         dummyComboBoxModel_ = subsetSelector_.getModel();
 
         /* Ensure listeners are notified. */
@@ -135,7 +134,8 @@ public class BasicCoordLayerControl extends ConfigControl
     }
 
     public TopcatLayer[] getLayers() {
-        RowSubset subset = (RowSubset) subsetSelector_.getSelectedItem();
+        RowSubset subset =
+            subsetSelector_.getItemAt( subsetSelector_.getSelectedIndex() );
         GuiCoordContent[] coordContents = coordPanel_.getContents();
         if ( tcModel_ == null || coordContents == null || subset == null ) {
             return new TopcatLayer[ 0 ];
@@ -224,7 +224,7 @@ public class BasicCoordLayerControl extends ConfigControl
         coordPanel_.setTable( tcModel, autoPopulate_ );
 
         /* Set up subset selector. */
-        final ComboBoxModel subselModel;
+        final ComboBoxModel<RowSubset> subselModel;
         if ( tcModel == null ) {
             subselModel = dummyComboBoxModel_;
         }

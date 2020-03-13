@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.Icon;
+import javax.swing.ListModel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.topcat.BasicAction;
@@ -19,7 +20,6 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -50,7 +50,7 @@ public class GroupControlManager<P,A> implements ControlManager {
     private final ControlStack stack_;
     private final PlotType<P,A> plotType_;
     private final PlotTypeGui<P,A> plotTypeGui_;
-    private final TypedListModel<TopcatModel> tablesModel_;
+    private final ListModel<TopcatModel> tablesModel_;
     private final ZoneFactory zfact_;
     private final MultiConfigger baseConfigger_;
     private final TopcatListener tcListener_;
@@ -86,7 +86,7 @@ public class GroupControlManager<P,A> implements ControlManager {
      */
     public GroupControlManager( ControlStack stack, PlotType<P,A> plotType,
                                 PlotTypeGui<P,A> plotTypeGui,
-                                TypedListModel<TopcatModel> tablesModel,
+                                ListModel<TopcatModel> tablesModel,
                                 ZoneFactory zfact, MultiConfigger baseConfigger,
                                 TopcatListener tcListener ) {
         stack_ = stack;

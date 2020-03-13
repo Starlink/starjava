@@ -246,10 +246,9 @@ public class ServiceActivationType implements ActivationType {
     /**
      * Panel for selecting a URL Invoker.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class InvokePanel extends LabelledComponentStack {
         private final UrlOptions urlopts_;
-        final JComboBox invokeSelector_;
+        final JComboBox<UrlInvoker> invokeSelector_;
 
         /**
          * Constructor.
@@ -259,7 +258,7 @@ public class ServiceActivationType implements ActivationType {
         InvokePanel( UrlOptions urlopts ) {
             urlopts_ = urlopts;
             UrlInvoker[] invokers = urlopts.getInvokers();
-            invokeSelector_ = new JComboBox( invokers );
+            invokeSelector_ = new JComboBox<>( invokers );
             addLine( "Action", invokeSelector_ );
         }
 
@@ -269,7 +268,8 @@ public class ServiceActivationType implements ActivationType {
          * @return  invoker
          */
         public UrlInvoker getUrlInvoker() {
-            return (UrlInvoker) invokeSelector_.getSelectedItem();
+            return invokeSelector_.getItemAt( invokeSelector_
+                                             .getSelectedIndex() );
         }
 
         /**
@@ -289,9 +289,8 @@ public class ServiceActivationType implements ActivationType {
     /**
      * Panel for selecting, and displaying details of, a service.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class ServicePanel extends JPanel {
-        final JComboBox serviceSelector_;
+        final JComboBox<ServiceDescriptor> serviceSelector_;
         final JTextField urlField_;
         final JTextField nameField_;
         final JTextField descripField_;
@@ -306,10 +305,10 @@ public class ServiceActivationType implements ActivationType {
          */
         ServicePanel( ServiceDescriptor[] sds ) {
             super( new BorderLayout() );
-            serviceSelector_ = new RenderingComboBox( sds ) {
+            serviceSelector_ = new RenderingComboBox<ServiceDescriptor>( sds ) {
                 @Override
-                protected String getRendererText( Object item ) {
-                    return getServiceLabel( (ServiceDescriptor) item );
+                protected String getRendererText( ServiceDescriptor sd ) {
+                    return getServiceLabel( sd );
                 }
             };
             if ( sds.length > 0 ) {

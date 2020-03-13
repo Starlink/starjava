@@ -34,8 +34,7 @@ public interface ImageActivity extends Activity {
      *
      * @return  format selector
      */
-    @SuppressWarnings("rawtypes")
-    JComboBox getFormatSelector();
+    JComboBox<String> getFormatSelector();
 
     /**
      * Displays an image according to the current selections of the 

@@ -1,13 +1,13 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
+import javax.swing.ListModel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -35,7 +35,7 @@ public class TimePlotWindow
      * @param  tablesModel  list of available tables
      */
     public TimePlotWindow( Component parent,
-                           TypedListModel<TopcatModel> tablesModel ) {
+                           ListModel<TopcatModel> tablesModel ) {
         super( "Time Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );
         getToolBar().addSeparator();
         addHelp( "TimePlotWindow" );

@@ -41,10 +41,9 @@ public class SendImageActivationType implements ActivationType {
     /**
      * Configurator implementation for URLs pointing to FITS images.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class ImageColumnConfigurator extends UrlColumnConfigurator {
         final SampSender imageSender_;
-        final ListModel clientListModel_;
+        final ListModel<?> clientListModel_;
 
         private static final String IMAGE_MTYPE = "image.load.fits";
 
@@ -61,8 +60,9 @@ public class SendImageActivationType implements ActivationType {
             clientListModel_ = imageSender_.getClientListModel();
             clientListModel_.addListDataListener( forwarder );
             imageSender_.getConnector().addConnectionListener( forwarder );
-            JComboBox viewerSelector =
-                 new JComboBox( imageSender_.getClientSelectionModel() );
+            JComboBox<?> viewerSelector =
+                 new JComboBox<Object>( imageSender_
+                                       .getClientSelectionModel() );
             viewerSelector.addActionListener( forwarder );
             getQueryPanel()
            .add( new LineBox( "Image Viewer",

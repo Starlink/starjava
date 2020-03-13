@@ -46,10 +46,8 @@ import javax.swing.event.MouseInputAdapter;
  * @author   Mark Taylor
  * @since    13 Mar 2013
  */
-@SuppressWarnings({"unchecked","rawtypes"})
-public abstract class CheckBoxList<T> extends JList {
+public abstract class CheckBoxList<T> extends JList<T> {
 
-    private final Class<T> clazz_;
     private final boolean canSelect_;
     private final CheckBoxCellRenderer renderer_;
     private final DragListener dragger_;
@@ -61,16 +59,14 @@ public abstract class CheckBoxList<T> extends JList {
      * A renderer component is supplied; when entries need to be displayed
      * the <code>configureEntryRenderer</code> method is called.
      *
-     * @param   clazz  supertype for each entry in the list
      * @param   model  list model
      * @param   canSelect   true if list item selection is permitted
      * @param   entryRenderer   renderer for list entry contents
      *                          (excluding drag and checkbox decorations)
      */
-    public CheckBoxList( Class<T> clazz, ListModel model, boolean canSelect,
+    public CheckBoxList( ListModel<T> model, boolean canSelect,
                          JComponent entryRenderer ) {
         super( model );
-        clazz_ = clazz;
         canSelect_ = canSelect;
 
         /* Arrange to forward ListDataEvents from the base list model to
@@ -158,22 +154,6 @@ public abstract class CheckBoxList<T> extends JList {
     public abstract void moveItem( int ifrom, int ito );
 
     /**
-     * Returns a list cell entry cast to the entry type of this list,
-     * or null if it can't be done.
-     *
-     * @param  value   list entry
-     * @return  typed list entry, or null
-     */
-    public T getTypedValue( Object value ) {
-        return clazz_.isInstance( value ) ? clazz_.cast( value ) : null;
-    }
-
-    @Override
-    public T getSelectedValue() {
-        return getTypedValue( super.getSelectedValue() );
-    }
-
-    /**
      * Programmatically sets the checkbox status for all the items in the list.
      *
      * <p>The default implementation calls {@link #setChecked setChecked}
@@ -183,10 +163,10 @@ public abstract class CheckBoxList<T> extends JList {
      * @param  isChecked   true to check all, false to uncheck all
      */
     public void setCheckedAll( boolean isChecked ) {
-        ListModel model = getModel();
+        ListModel<T> model = getModel();
         int nItem = model.getSize();
         for ( int i = 0; i < nItem; i++ ) {
-            setChecked( (T) model.getElementAt( i ), isChecked );
+            setChecked( model.getElementAt( i ), isChecked );
         }
     }
 
@@ -232,7 +212,6 @@ public abstract class CheckBoxList<T> extends JList {
         if ( dragItem != null ) {
             int fromIndex = dragger_.fromIndex_;
             CheckBoxCellRenderer dragComp =
-                (CheckBoxCellRenderer)
                 renderer_.getListCellRendererComponent(
                     this, dragItem, fromIndex, isSelectedIndex( fromIndex ),
                     hasFocus() );
@@ -293,7 +272,7 @@ public abstract class CheckBoxList<T> extends JList {
             Point point = evt.getPoint();
             if ( isCheckbox( point ) ) {
                 int index = locationToIndex( point );
-                T item = getTypedValue( getModel().getElementAt( index ) );
+                T item = getModel().getElementAt( index );
                 if ( item != null ) {
                     setChecked( item, ! isChecked( item ) );
                     ListDataEvent devt =
@@ -392,7 +371,7 @@ public abstract class CheckBoxList<T> extends JList {
 
         @Override
         public void mouseDragged( MouseEvent evt ) {
-            dragItem_ = getTypedValue( getModel().getElementAt( fromIndex_ ) );
+            dragItem_ = getModel().getElementAt( fromIndex_ );
             dragPoint_ = evt.getPoint();
             CheckBoxList.this.repaint();
         }
@@ -402,7 +381,7 @@ public abstract class CheckBoxList<T> extends JList {
      * Custom ListCellRenderer implementation for a CheckBoxList.
      */
     private class CheckBoxCellRenderer extends JPanel
-                                       implements ListCellRenderer {
+                                       implements ListCellRenderer<T> {
 
         private final JComponent entryRenderer_;
         private final JCheckBox checkBox_;
@@ -428,15 +407,16 @@ public abstract class CheckBoxList<T> extends JList {
             add( entryRenderer_ );
         }
 
-        public Component getListCellRendererComponent( JList list, Object value,
-                                                       int index, boolean isSel,
-                                                       boolean hasFocus ) {
-            dfltRenderer_.getListCellRendererComponent( list, value, index,
+        public CheckBoxCellRenderer
+                getListCellRendererComponent( JList<? extends T> list,
+                                              T item, int index,
+                                              boolean isSel,
+                                              boolean hasFocus ) {
+            dfltRenderer_.getListCellRendererComponent( list, item, index,
                                                         isSel, hasFocus );
             setBackground( dfltRenderer_.getBackground() );
             setForeground( dfltRenderer_.getForeground() );
             setBorder( dfltRenderer_.getBorder() );
-            T item = getTypedValue( value );
             final int itemWidth;
             if ( item != null ) {
                 checkBox_.setSelected( isChecked( item ) );

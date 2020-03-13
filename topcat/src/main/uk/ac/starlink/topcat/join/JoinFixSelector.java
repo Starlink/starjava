@@ -16,17 +16,16 @@ import uk.ac.starlink.table.JoinFixAction;
  * @author   Mark Taylor
  * @since    16 Jun 2014
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class JoinFixSelector extends JPanel {
 
-    private final JComboBox scopeSelector_;
+    private final JComboBox<Scope> scopeSelector_;
     private final JTextField suffixField_;
 
     /**
      * Constructor.
      */
     JoinFixSelector() {
-        scopeSelector_ = new JComboBox( Scope.values() );
+        scopeSelector_ = new JComboBox<Scope>( Scope.values() );
         scopeSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 Scope scope = (Scope) scopeSelector_.getSelectedItem();
@@ -48,7 +47,8 @@ public class JoinFixSelector extends JPanel {
      * @return  join fix action
      */
     public JoinFixAction getJoinFixAction() {
-        Scope scope = (Scope) scopeSelector_.getSelectedItem();
+        Scope scope =
+            scopeSelector_.getItemAt( scopeSelector_.getSelectedIndex() );
         String suffix = suffixField_.getText();
         return scope.createFixAct( suffix );
     }

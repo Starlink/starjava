@@ -52,7 +52,6 @@ import uk.ac.starlink.util.gui.SizingScrollPane;
  *
  * @author   Mark Taylor (Starlink)
  */
-@SuppressWarnings("rawtypes")
 public class StatsWindow extends AuxWindow {
 
     private final TopcatModel tcModel_;
@@ -62,7 +61,7 @@ public class StatsWindow extends AuxWindow {
     private final Map<RowSubset,StatsCalculator> calcMap_;
     private final JTable jtab_;
     private final JProgressBar progBar_;
-    private final JComboBox subSelector_;
+    private final JComboBox<RowSubset> subSelector_;
     private final MetaColumnTableModel statsTableModel_;
     private final BitSet hideColumns_ = new BitSet();
     private final Action recalcAct_;

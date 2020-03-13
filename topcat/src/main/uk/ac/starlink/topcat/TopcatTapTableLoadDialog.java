@@ -429,12 +429,12 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
      *
      * @return   array of currently loaded TopcatModels
      */
-    @SuppressWarnings("rawtypes")
     private TopcatModel[] getTopcatModels() {
-        ListModel tcList = ControlWindow.getInstance().getTablesListModel();
+        ListModel<TopcatModel> tcList =
+            ControlWindow.getInstance().getTablesListModel();
         TopcatModel[] tcModels = new TopcatModel[ tcList.getSize() ];
         for ( int it = 0; it < tcModels.length; it++ ) {
-            tcModels[ it ] = (TopcatModel) tcList.getElementAt( it );
+            tcModels[ it ] = tcList.getElementAt( it );
         }
         return tcModels;
     }

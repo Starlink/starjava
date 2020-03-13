@@ -30,12 +30,11 @@ import uk.ac.starlink.util.URLUtils;
  * @author   Mark Taylor
  * @since    18 Sep 2008
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class SampImageActivity implements ImageActivity {
 
     private final GuiHubConnector connector_;
     private final SubscribedClientListModel clientModel_;
-    private final JComboBox formatSelector_;
+    private final JComboBox<String> formatSelector_;
     private final ViewerComboBoxModel viewerModel_;
     private static final Map<String,MessageFactory> mfactMap_ =
         createMessageFactoryMap();
@@ -47,11 +46,11 @@ public class SampImageActivity implements ImageActivity {
      */
     public SampImageActivity( GuiHubConnector connector ) {
         connector_ = connector;
-        formatSelector_ = new JComboBox( KNOWN_FORMATS );
+        formatSelector_ = new JComboBox<String>( KNOWN_FORMATS );
         formatSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
-                setFormat( String.valueOf( formatSelector_
-                                          .getSelectedItem() ) );
+                setFormat( formatSelector_
+                          .getItemAt( formatSelector_.getSelectedIndex() ) );
             }
         } );
         clientModel_ =
@@ -62,11 +61,11 @@ public class SampImageActivity implements ImageActivity {
         setFormat( format );
     }
 
-    public ComboBoxModel getTargetSelector() {
+    public ComboBoxModel<ImageViewer> getTargetSelector() {
         return viewerModel_;
     }
 
-    public JComboBox getFormatSelector() {
+    public JComboBox<String> getFormatSelector() {
         return formatSelector_;
     }
 
@@ -123,8 +122,8 @@ public class SampImageActivity implements ImageActivity {
      * ComboBoxModel which displays available viewers.
      * Elements are all instances of {@link ImageViewer}.
      */
-    private class ViewerComboBoxModel extends AbstractListModel
-                                      implements ComboBoxModel {
+    private class ViewerComboBoxModel extends AbstractListModel<ImageViewer>
+                                      implements ComboBoxModel<ImageViewer> {
         private ImageViewer[] baseViewers_;
         private Object selectedItem_;
 
@@ -233,7 +232,7 @@ public class SampImageActivity implements ImageActivity {
             return baseViewers_.length + clientModel_.getSize();
         }
 
-        public Object getElementAt( int index ) {
+        public ImageViewer getElementAt( int index ) {
             int nb = baseViewers_.length;
             if ( index < nb ) {
                 return baseViewers_[ index ];

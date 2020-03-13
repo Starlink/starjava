@@ -24,7 +24,6 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor (Starlink)
  * @since    17 Mar 2004
  */
-@SuppressWarnings("rawtypes")
 public class TupleSelector extends JPanel {
 
     private final ColumnSelector[] colSelectors_;
@@ -45,7 +44,8 @@ public class TupleSelector extends JPanel {
         add( main, BorderLayout.NORTH );
 
         /* Set up a table selection box. */
-        final JComboBox tableSelector = new TablesListComboBox( 250 );
+        final JComboBox<TopcatModel> tableSelector =
+            new TablesListComboBox( 250 );
         tableSelector.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 setTable( (TopcatModel) tableSelector.getSelectedItem() );

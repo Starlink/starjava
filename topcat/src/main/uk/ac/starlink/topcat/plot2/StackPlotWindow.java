@@ -46,6 +46,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
+import javax.swing.ListModel;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -67,7 +68,6 @@ import uk.ac.starlink.topcat.TopcatJELUtils;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.topcat.WindowToggle;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -176,7 +176,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     public StackPlotWindow( String name, Component parent,
                             PlotType<P,A> plotType,
                             PlotTypeGui<P,A> plotTypeGui,
-                            TypedListModel<TopcatModel> tablesModel ) {
+                            ListModel<TopcatModel> tablesModel ) {
         super( name, parent );
         plotType_ = plotType;
         plotTypeGui_ = plotTypeGui;

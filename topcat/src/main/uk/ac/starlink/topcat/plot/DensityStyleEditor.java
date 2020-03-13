@@ -20,7 +20,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  */
 public class DensityStyleEditor extends StyleEditor {
 
-    final RenderingComboBox styleSelector_;
+    final RenderingComboBox<DensityStyle> styleSelector_;
 
     /**
      * Constructor.
@@ -35,9 +35,9 @@ public class DensityStyleEditor extends StyleEditor {
                                final ToggleButtonModel rgbModel ) {
 
         Box colorBox = Box.createHorizontalBox();
-        styleSelector_ = new RenderingComboBox( styles ) {
-            protected Icon getRendererIcon( Object item ) {
-                return ((Style) item).getLegendIcon();
+        styleSelector_ = new RenderingComboBox<DensityStyle>( styles ) {
+            protected Icon getRendererIcon( DensityStyle style ) {
+                return style.getLegendIcon();
             };
         };
         styleSelector_.addActionListener( this );

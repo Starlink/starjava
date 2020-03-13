@@ -25,13 +25,12 @@ import uk.ac.starlink.topcat.func.Sog;
  * @author   Mark Taylor
  * @since    18 Sep 2008
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class PlasticImageActivity implements ImageActivity {
 
     private final TopcatPlasticListener plasticServer_;
-    private final JComboBox formatSelector_;
+    private final JComboBox<String> formatSelector_;
     private final ViewerComboBoxModel viewerModel_;
-    private final ComboBoxModel fitsAppModel_;
+    private final ComboBoxModel<Object> fitsAppModel_;
 
     /**
      * Constructor.
@@ -40,7 +39,7 @@ public class PlasticImageActivity implements ImageActivity {
      */
     public PlasticImageActivity( TopcatPlasticListener plasticServer ) {
         plasticServer_ = plasticServer;
-        formatSelector_ = new JComboBox( KNOWN_FORMATS );
+        formatSelector_ = new JComboBox<String>( KNOWN_FORMATS );
         formatSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 setFormat( String.valueOf( formatSelector_
@@ -55,11 +54,11 @@ public class PlasticImageActivity implements ImageActivity {
         setFormat( format );
     }
 
-    public ComboBoxModel getTargetSelector() {
+    public ComboBoxModel<?> getTargetSelector() {
         return viewerModel_;
     }
 
-    public JComboBox getFormatSelector() {
+    public JComboBox<String> getFormatSelector() {
         return formatSelector_;
     }
 
@@ -87,8 +86,8 @@ public class PlasticImageActivity implements ImageActivity {
      * ComboBoxModel which displays available viewers.
      * Elements are all instances of {@link ImageViewer}.
      */
-    private class ViewerComboBoxModel extends AbstractListModel
-                                      implements ComboBoxModel {
+    private class ViewerComboBoxModel extends AbstractListModel<ImageViewer>
+                                      implements ComboBoxModel<ImageViewer> {
         private ImageViewer[] baseViewers_;
         private boolean isFits_;
         private Object selectedItem_;
@@ -149,7 +148,7 @@ public class PlasticImageActivity implements ImageActivity {
                  + ( isFits_ ? fitsAppModel_.getSize() : 0 );
         }
 
-        public Object getElementAt( int index ) {
+        public ImageViewer getElementAt( int index ) {
             if ( index < baseViewers_.length ) {
                 return baseViewers_[ index ];
             }

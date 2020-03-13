@@ -25,7 +25,6 @@ import uk.ac.starlink.votable.VOTableWriter;
  * @author   Mark Taylor
  * @since    4 Aug 2010
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class SessionSavePanel extends SavePanel {
 
     private final TopcatModelSelectionTable tSelector_;
@@ -36,7 +35,8 @@ public class SessionSavePanel extends SavePanel {
      * Constructor.
      */
     public SessionSavePanel() {
-        super( "Session", new DefaultComboBoxModel( createFormatList() ) );
+        super( "Session",
+               new DefaultComboBoxModel<String>( createFormatList() ) );
         tSelector_ = new TopcatModelSelectionTable( "Save", true );
 
         /* Listener to ensure that chooser enabledness is set right. */

@@ -20,7 +20,6 @@ import uk.ac.starlink.table.gui.TableSaveChooser;
  *
  * @author   Mark Taylor
  */
-@SuppressWarnings("rawtypes")
 public class CurrentSavePanel extends SavePanel {
 
     private final JLabel nameField_;
@@ -42,14 +41,13 @@ public class CurrentSavePanel extends SavePanel {
         super( "Current Table",
                TableSaveChooser.makeFormatBoxModel( sto, false ) );
         setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
-        final JList tablesList =
+        final JList<TopcatModel> tablesList =
             ControlWindow.getInstance().getTablesList();
 
         /* Ensure displayed table is always the TOPCAT current table. */
         tablesList.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
-                setDisplayedTable( (TopcatModel)
-                                   tablesList.getSelectedValue() );
+                setDisplayedTable( tablesList.getSelectedValue() );
             }
         } );
 
@@ -111,7 +109,7 @@ public class CurrentSavePanel extends SavePanel {
             stack.addLine( "Columns", colsField_ );
             stack.addLine( "Rows", rowsField_ );
         }
-        setDisplayedTable( (TopcatModel) tablesList.getSelectedValue() );
+        setDisplayedTable( tablesList.getSelectedValue() );
     }
 
     public StarTable[] getTables() {

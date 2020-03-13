@@ -22,7 +22,6 @@ import uk.ac.starlink.topcat.func.TwoMass;
  * of cutout services.
  * This is primitive: the data services are old, there are not many
  * of them, and the viewing application is not configurable.
- * It should be replaced (by something SkyView-based?).
  *
  * @author   Mark Taylor
  * @since    29 Mar 2018
@@ -75,11 +74,10 @@ public class CutoutActivationType implements ActivationType {
     /**
      * Configurator for use with CutoutActivationType.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class CutoutConfigurator extends SkyPosConfigurator {
 
         private final TopcatModel tcModel_;
-        private final JComboBox serviceSelector_;
+        private final JComboBox<CutoutService> serviceSelector_;
         private final IntSelector npixSelector_;
         private final JLabel pixsizeLabel_;
         private static final String SERVICE_KEY = "service";
@@ -94,7 +92,7 @@ public class CutoutActivationType implements ActivationType {
             super( tinfo );
             tcModel_ = tinfo.getTopcatModel();
             ActionForwarder forwarder = getActionForwarder();
-            serviceSelector_ = new JComboBox( SERVICES );
+            serviceSelector_ = new JComboBox<>( SERVICES );
             serviceSelector_.addActionListener( forwarder );
             npixSelector_ = new IntSelector( new int[] {
                 25, 50, 75, 100, 150, 200, 300, 400, 500,
@@ -165,7 +163,8 @@ public class CutoutActivationType implements ActivationType {
          * Returns the currently selected cutout service.
          */
         private CutoutService getSelectedService() {
-            return (CutoutService) serviceSelector_.getSelectedItem();
+            return serviceSelector_
+                  .getItemAt( serviceSelector_.getSelectedIndex() );
         }
     }
 

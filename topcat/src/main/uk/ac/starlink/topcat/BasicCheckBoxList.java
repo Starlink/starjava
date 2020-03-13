@@ -18,22 +18,30 @@ import javax.swing.ListModel;
  * @author   Mark Taylor
  * @since    21 Dec 2017
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class BasicCheckBoxList<T> extends CheckBoxList<T> {
 
-    private final Class<T> clazz_;
     private final Set<T> activeSet_;
 
     /**
      * Constructor.
      *
-     * @param   clazz  supertype for each entry in the list
      * @param   canSelect   true if list item selection is permitted
      */
-    public BasicCheckBoxList( Class<T> clazz, boolean canSelect ) {
-        super( clazz, new DefaultListModel(), canSelect, new JLabel() );
-        clazz_ = clazz;
+    public BasicCheckBoxList( boolean canSelect ) {
+        super( new DefaultListModel<T>(), canSelect, new JLabel() );
         activeSet_ = new HashSet<T>();
+    }
+
+    @Override
+    public DefaultListModel<T> getModel() {
+        @SuppressWarnings("unchecked")
+        DefaultListModel<T> model = (DefaultListModel<T>) super.getModel();
+        return model;
+    }
+
+    @Override
+    public void setModel( ListModel<T> model ) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -43,18 +51,9 @@ public class BasicCheckBoxList<T> extends CheckBoxList<T> {
      */
     public List<T> getItems() {
         List<T> list = new ArrayList<T>();
-        ListModel listModel = getModel();
+        ListModel<T> listModel = getModel();
         for ( int i = 0; i < listModel.getSize(); i++ ) {
-            Object item = listModel.getElementAt( i );
-            if ( item == null ) {
-                list.add( null );
-            }
-            else {
-                T titem = getTypedValue( listModel.getElementAt( i ) );
-                if ( titem != null ) {
-                    list.add( titem );
-                }
-            }
+            list.add( listModel.getElementAt( i ) );
         }
         return list;
     }
@@ -89,7 +88,7 @@ public class BasicCheckBoxList<T> extends CheckBoxList<T> {
     }
 
     public void moveItem( int ifrom, int ito ) {
-        DefaultListModel listModel = (DefaultListModel) getModel();
+        DefaultListModel<T> listModel = getModel();
         listModel.add( ito, listModel.remove( ifrom ) );
     }
 

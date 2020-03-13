@@ -16,12 +16,11 @@ import uk.ac.starlink.util.gui.WeakListDataListener;
  * @author   Mark Taylor
  * @since    31 Aug 2010
  */
-@SuppressWarnings({"unchecked","rawtypes"})
-public class TablesListComboBox extends JComboBox {
+public class TablesListComboBox extends JComboBox<TopcatModel> {
 
-    private final TypedListModel<TopcatModel> tablesList_;
+    private final ListModel<TopcatModel> tablesList_;
     private final int maxWidth_;
-    private final BasicComboBoxModel comboBoxModel_;
+    private final BasicComboBoxModel<TopcatModel> comboBoxModel_;
 
     /**
      * Constructs a combo box with a maximum width,
@@ -52,11 +51,11 @@ public class TablesListComboBox extends JComboBox {
      * @param  maxWidth  absolute maximum of component size in pixels;
      *                   if non-positive, there is no maximum
      */
-    public TablesListComboBox( TypedListModel<TopcatModel> tablesList,
+    public TablesListComboBox( ListModel<TopcatModel> tablesList,
                                int maxWidth ) {
         tablesList_ = tablesList;
         maxWidth_ = maxWidth;
-        comboBoxModel_ = new BasicComboBoxModel( tablesList );
+        comboBoxModel_ = new BasicComboBoxModel<TopcatModel>( tablesList );
         final Object src = TablesListComboBox.this;
         tablesList_.addListDataListener( new ListDataListener() {
             public void contentsChanged( ListDataEvent evt ) {
@@ -125,9 +124,9 @@ public class TablesListComboBox extends JComboBox {
     /**
      * ComboBoxModel implementation based on a given ListModel.
      */
-    private static class BasicComboBoxModel extends AbstractListModel
-                                            implements ComboBoxModel {
-        private final ListModel listModel_;
+    private static class BasicComboBoxModel<E> extends AbstractListModel<E>
+                                            implements ComboBoxModel<E> {
+        private final ListModel<E> listModel_;
         private Object selected_;
 
         /**
@@ -135,7 +134,7 @@ public class TablesListComboBox extends JComboBox {
          *
          * @param   listModel   list containing combo box contents
          */
-        BasicComboBoxModel( ListModel listModel ) {
+        BasicComboBoxModel( ListModel<E> listModel ) {
             listModel_ = listModel;
         }
 
@@ -148,7 +147,7 @@ public class TablesListComboBox extends JComboBox {
         public int getSize() {
             return listModel_.getSize();
         }
-        public Object getElementAt( int ix ) {
+        public E getElementAt( int ix ) {
             return listModel_.getElementAt( ix );
         }
         public void fireContentsChanged( Object src, int index0, int index1 ) {

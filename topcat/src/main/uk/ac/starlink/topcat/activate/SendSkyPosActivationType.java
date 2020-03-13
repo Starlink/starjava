@@ -38,11 +38,10 @@ public class SendSkyPosActivationType implements ActivationType {
     /**
      * Configurator implementation for use with this activation type.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class SendConfigurator extends SkyPosConfigurator {
 
         private final SampSender skySender_;
-        private final ListModel clientListModel_;
+        private final ListModel<?> clientListModel_;
 
         private static final String SKY_MTYPE = "coord.pointAt.sky";
      
@@ -55,8 +54,8 @@ public class SendSkyPosActivationType implements ActivationType {
             super( tinfo );
             skySender_ = new SampSender( SKY_MTYPE );
             clientListModel_ = skySender_.getClientListModel();
-            JComboBox appSelector =
-                new JComboBox( skySender_.getClientSelectionModel() );
+            JComboBox<?> appSelector =
+                new JComboBox<Object>( skySender_.getClientSelectionModel() );
             getStack().addLine( "Target Application", appSelector );
             ActionForwarder forwarder = getActionForwarder();
             clientListModel_.addListDataListener( forwarder );

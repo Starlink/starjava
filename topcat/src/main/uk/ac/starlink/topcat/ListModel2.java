@@ -12,11 +12,10 @@ import javax.swing.event.ListDataListener;
  * @author   Mark Taylor
  * @since    10 May 2018
  */
-@SuppressWarnings("rawtypes")
-public class ListModel2 extends AbstractListModel {
+public class ListModel2<E> extends AbstractListModel<E> {
 
-    private final ListModel model1_;
-    private final ListModel model2_;
+    private final ListModel<E> model1_;
+    private final ListModel<E> model2_;
 
     /**
      * Constructor.
@@ -24,7 +23,7 @@ public class ListModel2 extends AbstractListModel {
      * @param  model1  first constituent model
      * @param  model2  second constituend model
      */
-    public ListModel2( ListModel model1, ListModel model2 ) {
+    public ListModel2( ListModel<E> model1, ListModel<E> model2 ) {
         model1_ = model1;
         model2_ = model2;
         model1.addListDataListener( new OffsetListDataListener() {
@@ -44,7 +43,7 @@ public class ListModel2 extends AbstractListModel {
      *
      * @return   model 1
      */
-    public ListModel getModel1() {
+    public ListModel<E> getModel1() {
         return model1_;
     }
 
@@ -53,11 +52,11 @@ public class ListModel2 extends AbstractListModel {
      *
      * @return  model 2
      */
-    public ListModel getModel2() {
+    public ListModel<E> getModel2() {
         return model2_;
     }
 
-    public Object getElementAt( int ix ) {
+    public E getElementAt( int ix ) {
         int ix2 = ix - model1_.getSize();
         return ix2 >= 0 ? model2_.getElementAt( ix2 )
                         : model1_.getElementAt( ix );

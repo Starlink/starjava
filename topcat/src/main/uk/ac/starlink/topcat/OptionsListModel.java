@@ -28,8 +28,8 @@ import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
  *
  * @author   Mark Taylor (Starlink)
  */
-@SuppressWarnings({"unchecked","rawtypes"})
-public class OptionsListModel<T> extends AbstractList<T> implements ListModel {
+public class OptionsListModel<T> extends AbstractList<T>
+                                 implements ListModel<T> {
 
     private final List<Entry<T>> entryList_;
     private final BasicListModel bmodel_;
@@ -41,7 +41,9 @@ public class OptionsListModel<T> extends AbstractList<T> implements ListModel {
     }
 
     public T get( int index ) {
-        return entryList_.get( index ).obj_;
+        return index >= 0 && index < entryList_.size()
+             ? entryList_.get( index ).obj_
+             : null;
     }
 
     public T getElementAt( int index ) {
@@ -114,9 +116,9 @@ public class OptionsListModel<T> extends AbstractList<T> implements ListModel {
      *
      * @see  #makeComboBox
      */
-    public ComboBoxModel makeComboBoxModel() {
-        class ListComboBoxModel extends BasicListModel 
-                                implements ComboBoxModel, ListDataListener {
+    public ComboBoxModel<T> makeComboBoxModel() {
+        class ListComboBoxModel extends BasicListModel
+                                implements ComboBoxModel<T>, ListDataListener {
             private Object selected_;
             public void setSelectedItem( Object item ) {
                 if ( ( selected_ != null && ! selected_.equals( item ) ) ||
@@ -148,25 +150,21 @@ public class OptionsListModel<T> extends AbstractList<T> implements ListModel {
      * Makes a new JComboBox from this model.  This adds to the functionality
      * of {@link #makeComboBoxModel} by ensuring that the box is 
      * revalidated when new items are added to the model; otherwise the
-     * box can end up too small.  It also ensures that the box is
-     * rendered by using the name of the RowSubset is written.
+     * box can end up too small.
+     *
+     * <p>Note however that no renderer is installed, so custom
+     * rendering must be as required handled by client code.
      *
      * @return  a combo box from which items in this model can be selected
      */
-    public JComboBox makeComboBox() {
-        final JComboBox box = new JComboBox( makeComboBoxModel() );
+    public JComboBox<T> makeComboBox() {
+        final JComboBox<T> box = new JComboBox<T>( makeComboBoxModel() );
         addListDataListener( new ListDataListener() {
             public void intervalAdded( ListDataEvent evt ) {
                 box.revalidate();
             }
             public void intervalRemoved( ListDataEvent evt ) {}
             public void contentsChanged( ListDataEvent evt ) {}
-        } );
-        box.setRenderer( new CustomComboBoxRenderer<RowSubset>() {
-            @Override
-            protected String mapValue( RowSubset rset ) {
-                return rset.getName();
-            }
         } );
         return box;
     }
@@ -286,8 +284,8 @@ public class OptionsListModel<T> extends AbstractList<T> implements ListModel {
     /**
      * ListModel adapter.
      */
-    private class BasicListModel extends AbstractListModel {
-        public Object getElementAt( int index ) {
+    private class BasicListModel extends AbstractListModel<T> {
+        public T getElementAt( int index ) {
             return get( index );
         }
         public int getSize() {

@@ -48,10 +48,9 @@ import uk.ac.starlink.util.gui.WeakTableColumnModelListener;
  * @author   Mark Taylor
  * @since    23 Jan 2005
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ColumnDataComboBoxModel
-        extends AbstractListModel
-        implements TableColumnModelListener, ComboBoxModel {
+        extends AbstractListModel<ColumnData>
+        implements TableColumnModelListener, ComboBoxModel<ColumnData> {
 
     private final TopcatModel tcModel_;
     private final Filter filter_;
@@ -146,7 +145,7 @@ public class ColumnDataComboBoxModel
         this( tcModel, dataClazz, hasNone, false );
     }
 
-    public Object getElementAt( int index ) {
+    public ColumnData getElementAt( int index ) {
         return activeColumns_.get( index );
     }
 
@@ -451,9 +450,9 @@ public class ColumnDataComboBoxModel
      *
      * @return   new custom combo box
      */
-    public static JComboBox createComboBox() {
-        JComboBox comboBox = new JComboBox() {
-            public void setModel( ComboBoxModel model ) {
+    public static JComboBox<ColumnData> createComboBox() {
+        JComboBox<ColumnData> comboBox = new JComboBox<ColumnData>() {
+            public void setModel( ComboBoxModel<ColumnData> model ) {
                 super.setModel( model );
                 if ( model instanceof ColumnDataComboBoxModel ) {
                     ColumnDataComboBoxModel emodel =
@@ -545,7 +544,7 @@ public class ColumnDataComboBoxModel
                                  Component parent ) {
             model_ = model;
             parent_ = parent;
-            base_ = new JComboBox().getEditor();
+            base_ = new JComboBox<Object>().getEditor();
             okColor_ = UIManager.getColor( "ComboBox.foreground" );
             errColor_ = UIManager.getColor( "ComboBox.disabledForeground" );
         }

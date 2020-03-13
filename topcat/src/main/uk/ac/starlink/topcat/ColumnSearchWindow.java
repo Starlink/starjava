@@ -45,12 +45,11 @@ import uk.ac.starlink.util.gui.ValueButtonGroup;
  * @author   Mark Taylor
  * @since    28 Jun 2018
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ColumnSearchWindow extends AuxDialog {
 
     private final TableViewerWindow viewWindow_;
     private final TopcatModel tcModel_;
-    private final JComboBox colSelector_;
+    private final JComboBox<TableColumn> colSelector_;
     private final ValueButtonGroup<SearchSyntax> syntaxGroup_;
     private final ValueButtonGroup<SearchScope> scopeGroup_;
     private final JCheckBox caseToggle_;
@@ -83,7 +82,7 @@ public class ColumnSearchWindow extends AuxDialog {
                 return canSearchColumn( info );
             }
         };
-        colSelector_ = new JComboBox( colselModel );
+        colSelector_ = new JComboBox<TableColumn>( colselModel );
         colSelector_.setRenderer( new ColumnCellRenderer( colSelector_ ) );
         colSelector_.addActionListener( forwarder );
         JComponent colselLine = Box.createHorizontalBox();

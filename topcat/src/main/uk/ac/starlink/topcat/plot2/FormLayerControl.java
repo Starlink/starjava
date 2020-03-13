@@ -37,7 +37,6 @@ import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 
 /**
  * Plot layer control which manages coordinates and subsets in a common way
@@ -55,7 +54,7 @@ public abstract class FormLayerControl
     private final PositionCoordPanel posCoordPanel_;
     private final boolean autoPopulate_;
     private final TablesListComboBox tableSelector_;
-    private final WrapperListModel subListModel_;
+    private final WrapperListModel<RowSubset> subListModel_;
     private final SubsetConfigManager subsetManager_;
     private final TopcatListener tcListener_;
     private final SubsetStack subStack_;
@@ -79,7 +78,7 @@ public abstract class FormLayerControl
      * @param  controlIcon  icon for control stack
      */
     protected FormLayerControl( PositionCoordPanel posCoordPanel,
-                                TypedListModel<TopcatModel> tablesModel,
+                                ListModel<TopcatModel> tablesModel,
                                 Specifier<ZoneId> zsel, boolean autoPopulate,
                                 NextSupplier nextSupplier,
                                 TopcatListener tcListener, Icon controlIcon ) {
@@ -125,7 +124,7 @@ public abstract class FormLayerControl
          * the table changes, other components in this control can just
          * listen for changes to the wrapper model, they don't have to be
          * messaged explicitly when the underlying model changes. */
-        subListModel_ = new WrapperListModel();
+        subListModel_ = new WrapperListModel<RowSubset>();
         subStack_ = new SubsetStack( subListModel_, subsetManager_ );
         subStack_.addActionListener( forwarder );
 
@@ -419,7 +418,6 @@ public abstract class FormLayerControl
      * is changed.  Usually this will be because the user has selected
      * a new one from the table selector.
      */
-    @SuppressWarnings("rawtypes")
     private void tableChanged() {
 
         /* Reassign the listener to listen to the new current model
@@ -444,7 +442,7 @@ public abstract class FormLayerControl
          * and the set of selected subsets. */
         if ( tcModel_ == null ) {
             subStack_.setSelectedSubsets( new RowSubset[ 0 ] );
-            subListModel_.setBaseModel( new DefaultListModel() );
+            subListModel_.setBaseModel( new DefaultListModel<RowSubset>() );
         }
 
         /* Otherwise, configure the subset list to be as much like the
@@ -462,7 +460,7 @@ public abstract class FormLayerControl
             }
             Set<RowSubset> oldSubsets = new HashSet<RowSubset>();
             for ( int i = 0; i < subListModel_.getSize(); i++ ) {
-                oldSubsets.add( (RowSubset) subListModel_.getElementAt( i ) );
+                oldSubsets.add( subListModel_.getElementAt( i ) );
             }
 
             /* Clear the selections while we do some manipulations so that
@@ -522,11 +520,10 @@ public abstract class FormLayerControl
      * and not to have to worry about keeping changing the target of their
      * listeners when state of the layer control changes.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
-    private static class WrapperListModel implements ListModel {
+    private static class WrapperListModel<T> implements ListModel<T> {
         private final List<ListDataListener> listenerList_;
         private final ListDataListener listDataForwarder_;
-        private ListModel baseModel_;
+        private ListModel<T> baseModel_;
 
         /**
          * Constructor.
@@ -557,7 +554,7 @@ public abstract class FormLayerControl
          *
          * @param  baseModel  base list model
          */
-        public void setBaseModel( ListModel baseModel ) {
+        public void setBaseModel( ListModel<T> baseModel ) {
             int imax = 0;
             if ( baseModel_ != null ) {
                 baseModel_.removeListDataListener( listDataForwarder_ );
@@ -576,7 +573,7 @@ public abstract class FormLayerControl
             }
         } 
 
-        public Object getElementAt( int index ) {
+        public T getElementAt( int index ) {
             return baseModel_ == null ? null : baseModel_.getElementAt( index );
         }
 

@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.AbstractListModel;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
@@ -13,6 +15,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import javax.swing.table.TableColumn;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -31,7 +34,6 @@ import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
  * @author   Mark Taylor
  * @since    12 Oct 2005
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class SkyColumnQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel_;
@@ -171,8 +173,8 @@ public class SkyColumnQueryWindow extends QueryWindow {
      */
     private abstract class CoordSelector {
         LabelledComponentStack stack_;
-        JComboBox sysChooser_;
-        JComboBox unitChooser_;
+        JComboBox<SkySystem> sysChooser_;
+        JComboBox<SkyUnits> unitChooser_;
         JLabel c1label_;
         JLabel c2label_;
 
@@ -203,7 +205,7 @@ public class SkyColumnQueryWindow extends QueryWindow {
          * @return  system
          */
         SkySystem getSystem() {
-            return (SkySystem) sysChooser_.getSelectedItem();
+            return sysChooser_.getItemAt( sysChooser_.getSelectedIndex() );
         }
 
         /**
@@ -212,7 +214,7 @@ public class SkyColumnQueryWindow extends QueryWindow {
          * @return  units
          */
         SkyUnits getUnits() {
-            return (SkyUnits) unitChooser_.getSelectedItem();
+            return unitChooser_.getItemAt( unitChooser_.getSelectedIndex() );
         }
 
         /**
@@ -234,14 +236,15 @@ public class SkyColumnQueryWindow extends QueryWindow {
          */
         private LabelledComponentStack createQueryStack() {
             LabelledComponentStack stack = new LabelledComponentStack();
-            sysChooser_ = new JComboBox( SkySystem.getKnownSystems() );
+            sysChooser_ =
+                new JComboBox<SkySystem>( SkySystem.getKnownSystems() );
             sysChooser_.setRenderer( new CustomComboBoxRenderer<SkySystem>() {
                 @Override
                 protected String mapValue( SkySystem skysys ) {
                     return skysys.getDescription();
                 }
             } );
-            unitChooser_ = new JComboBox( SkyUnits.getKnownUnits() );
+            unitChooser_ = new JComboBox<SkyUnits>( SkyUnits.getKnownUnits() );
             JComponent[] coordChoosers = getCoordChoosers();
             stack.addLine( "System", sysChooser_ );
             stack.addLine( "Units", unitChooser_ );
@@ -279,37 +282,39 @@ public class SkyColumnQueryWindow extends QueryWindow {
      */
     private class InCoordSelector extends CoordSelector {
 
-        private JComboBox[] coordChoosers_;
+        private List<JComboBox<TableColumn>> coordChoosers_;
 
         /**
          * Produce combo boxes for selecting coordinates.
          */
-        private JComboBox[] createCoordChoosers() {
-            final JComboBox[] coordChoosers = new JComboBox[ 2 ];
+        private List<JComboBox<TableColumn>> createCoordChoosers() {
+            final List<JComboBox<TableColumn>> coordChoosers =
+                new ArrayList<>();
             for ( int i = 0; i < 2; i++ ) {
-                JComboBox box = new JComboBox();
+                JComboBox<TableColumn> box = new JComboBox<>();
                 box.setRenderer( new ColumnCellRenderer( box ) );
-                coordChoosers[ i ] = box;
+                coordChoosers.add( box );
             }
 
             /* Make sure that the selections change appropriately with the
              * units.  If sexagesimal is chosen, then string-type columns
              * will be selected, otherwise numeric ones. */
             unitChooser_.addItemListener( new ItemListener() {
-                private ComboBoxModel dummyModel = new DefaultComboBoxModel();
                 public void itemStateChanged( ItemEvent evt ) {
                     int state = evt.getStateChange();
                     if ( state == ItemEvent.SELECTED ) {
-                        ComboBoxModel[] models = getColumnModels();
+                        List<ComboBoxModel<TableColumn>> models =
+                            getColumnModels();
                         for ( int i = 0; i < 2; i++ ) {
-                            coordChoosers[ i ].setModel( models[ i ] );
+                            coordChoosers.get( i ).setModel( models.get( i ) );
                         }
                     }
                 }
             } );
 
             /* Make sure it gets set up correctly for the default values. */
-            SkyUnits dunit = (SkyUnits) unitChooser_.getSelectedItem();
+            SkyUnits dunit =
+                unitChooser_.getItemAt( unitChooser_.getSelectedIndex() );
             unitChooser_.setSelectedItem( null );
             unitChooser_.setSelectedItem( dunit );
 
@@ -320,16 +325,17 @@ public class SkyColumnQueryWindow extends QueryWindow {
          * Returns appropriate combo box models for coodinate column selection
          * according to the current state of this component.
          */
-        private ComboBoxModel[] getColumnModels() {
-            SkyUnits units = (SkyUnits) unitChooser_.getSelectedItem();
+        private List<ComboBoxModel<TableColumn>> getColumnModels() {
+            SkyUnits units =
+                unitChooser_.getItemAt( unitChooser_.getSelectedIndex() );
             Class<?> okClass = ( units == SkyUnits.SEXAGESIMAL ) ? String.class
                                                                  : Number.class;
-            ComboBoxModel[] models = new ComboBoxModel[ 2 ];
+            List<ComboBoxModel<TableColumn>> models = new ArrayList<>();
             for ( int i = 0; i < 2; i++ ) {
-                models[ i ] = RestrictedColumnComboBoxModel
-                             .makeClassColumnComboBoxModel( tcModel_
-                                                           .getColumnModel(),
-                                                           false, okClass );
+                models
+               .add( RestrictedColumnComboBoxModel
+                    .makeClassColumnComboBoxModel( tcModel_.getColumnModel(),
+                                                   false, okClass ) );
             }
             return models;
         }
@@ -341,7 +347,7 @@ public class SkyColumnQueryWindow extends QueryWindow {
             if ( coordChoosers_ == null ) {
                 coordChoosers_ = createCoordChoosers();
             }
-            return coordChoosers_;
+            return coordChoosers_.toArray( new JComponent[ 0 ] );
         }
 
         /**
@@ -351,8 +357,8 @@ public class SkyColumnQueryWindow extends QueryWindow {
          */
         StarTableColumn[] getCoordColumns() {
             return new StarTableColumn[] {
-                (StarTableColumn) coordChoosers_[ 0 ].getSelectedItem(),
-                (StarTableColumn) coordChoosers_[ 1 ].getSelectedItem(),
+                (StarTableColumn) coordChoosers_.get( 0 ).getSelectedItem(),
+                (StarTableColumn) coordChoosers_.get( 1 ).getSelectedItem(),
             };
         }
     }

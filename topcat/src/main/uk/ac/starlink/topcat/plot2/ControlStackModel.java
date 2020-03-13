@@ -20,8 +20,7 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
  * @author   Mark Taylor
  * @since    13 Mar 2013
  */
-@SuppressWarnings({"unchecked","rawtypes"})
-public class ControlStackModel extends AbstractListModel {
+public class ControlStackModel extends AbstractListModel<Control> {
 
     private final List<Control> list_;
     private final Map<Control,ToggleButtonModel> activeMap_;
@@ -56,7 +55,7 @@ public class ControlStackModel extends AbstractListModel {
         } );
     }
 
-    public Object getElementAt( int ix ) {
+    public Control getElementAt( int ix ) {
         return getControlAt( ix );
     }
 

@@ -44,9 +44,8 @@ public class SsaMultiWindow extends DalMultiWindow {
      */
     private static class SsaMultiService implements DalMultiService {
 
-        @SuppressWarnings({"unchecked","rawtypes"})
-        private final JComboBox formatSelector_
-            = new JComboBox( SsapTableLoadDialog.getFormatOptions() );
+        private final JComboBox<String> formatSelector_
+            = new JComboBox<String>( SsapTableLoadDialog.getFormatOptions() );
 
         private final JComponent controlBox_;
 

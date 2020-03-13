@@ -16,12 +16,11 @@ import uk.ac.starlink.table.gui.UCDSelector;
  * @author   Mark Taylor (Starlink)
  * @since    17 Aug 2004
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ParameterQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel_;
     private final JTextField nameField_;
-    private final JComboBox typeBox_;
+    private final JComboBox<Class<?>> typeBox_;
     private final JTextField valueField_;
     private final JTextField unitsField_;
     private final JTextField descField_;
@@ -44,7 +43,7 @@ public class ParameterQueryWindow extends QueryWindow {
         stack.addLine( "Parameter Name", nameField_ );
 
         /* Type field. */
-        typeBox_ = new JComboBox();
+        typeBox_ = new JComboBox<Class<?>>();
         typeBox_.addItem( String.class );
         typeBox_.addItem( Byte.class );
         typeBox_.addItem( Short.class );

@@ -67,7 +67,6 @@ import uk.ac.starlink.ttools.convert.ValueConverter;
  * @author   Mark Taylor (Starlink)
  * @since    18 Feb 2004
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class TopcatModel {
 
     private final PlasticStarTable dataModel_;
@@ -76,8 +75,8 @@ public class TopcatModel {
     private final ColumnList columnList_;
     private final OptionsListModel<RowSubset> subsets_;
     private final Map<RowSubset,Long> subsetCounts_;
-    private final ComboBoxModel sortSelectionModel_;
-    private final ComboBoxModel subsetSelectionModel_;
+    private final ComboBoxModel<SortOrder> sortSelectionModel_;
+    private final ComboBoxModel<RowSubset> subsetSelectionModel_;
     private final SortSenseModel sortSenseModel_;
     private final Collection<TopcatListener> listeners_;
     private final Map<ValueInfo,ColumnSelectorModel> columnSelectorMap_;
@@ -368,7 +367,7 @@ public class TopcatModel {
      *
      * @return sort selection model
      */
-    public ComboBoxModel getSortSelectionModel() {
+    public ComboBoxModel<SortOrder> getSortSelectionModel() {
         return sortSelectionModel_;
     }
 
@@ -391,7 +390,7 @@ public class TopcatModel {
      *
      * @return  active row selection model
      */
-    public ComboBoxModel getSubsetSelectionModel() {
+    public ComboBoxModel<RowSubset> getSubsetSelectionModel() {
         return subsetSelectionModel_;
     }
 
@@ -730,40 +729,34 @@ public class TopcatModel {
      *
      * @return  a selector to determine the name of a new RowSubset
      */
-    public JComboBox createNewSubsetNameSelector() {
+    public JComboBox<String> createNewSubsetNameSelector() {
 
-        /* Get a selector containing the names of all existing subsets. */
-        JComboBox selector = subsets_.makeComboBox();
-
-        /* Doctor its model so that it excludes RowSubset.ALL. */
-        final ComboBoxModel baseModel = selector.getModel();
-        Object item0 = baseModel.getElementAt( 0 );
-        if ( item0 == RowSubset.ALL ) {
-            selector.setModel( new ComboBoxModel() {
-                public int getSize() {
-                    return baseModel.getSize() - 1;
-                }
-                public Object getElementAt( int index ) {
-                    return baseModel.getElementAt( index >= 0 ? index + 1
-                                                              : index );
-                }
-                public Object getSelectedItem() {
-                    return baseModel.getSelectedItem();
-                }
-                public void setSelectedItem( Object item ) {
-                    baseModel.setSelectedItem( item );
-                }
-                public void addListDataListener( ListDataListener lr ) {
-                    baseModel.addListDataListener( lr );
-                }
-                public void removeListDataListener( ListDataListener lr ) {
-                    baseModel.removeListDataListener( lr );
-                }
-            } );
-        }
-        else {
-            assert false;
-        }
+        /* Get a selector containing the names of all existing subsets,
+         * and doctor its model so that it excludes RowSubset.ALL. */
+        final ComboBoxModel<RowSubset> rsetModel = subsets_.makeComboBoxModel();
+        final int nskip = rsetModel.getElementAt( 0 ) == RowSubset.ALL ? 1 : 0;
+        ComboBoxModel<String> nameModel = new ComboBoxModel<String>() {
+            private Object selected;
+            public int getSize() {
+                return rsetModel.getSize() - nskip;
+            }
+            public String getElementAt( int index ) {
+                return rsetModel.getElementAt( index + nskip ).getName();
+            }
+            public Object getSelectedItem() {
+                return selected;
+            }
+            public void setSelectedItem( Object item ) {
+                selected = item;
+            }
+            public void addListDataListener( ListDataListener lr ) {
+                rsetModel.addListDataListener( lr );
+            }
+            public void removeListDataListener( ListDataListener lr ) {
+                rsetModel.removeListDataListener( lr );
+            }
+        };
+        JComboBox<String> selector = new JComboBox<String>( nameModel );
 
         /* Set it editable. */
         selector.setEditable( true );
@@ -1126,27 +1119,39 @@ public class TopcatModel {
      * ComboBoxModel used for storing the available and last-invoked
      * sort orders.
      */
-    private class SortSelectionModel extends RestrictedColumnComboBoxModel {
+    private class SortSelectionModel implements ComboBoxModel<SortOrder> {
 
-        private SortOrder lastSort_ = SortOrder.NONE;
+        private final ColumnComboBoxModel sortColModel_;
+        private SortOrder lastSort_;
 
         SortSelectionModel() {
-            super( columnModel_, true );
+            sortColModel_ =
+                    new RestrictedColumnComboBoxModel( columnModel_, true ) {
+                public boolean acceptColumn( ColumnInfo cinfo ) {
+                    return Comparable.class
+                          .isAssignableFrom( cinfo.getContentClass() );
+                }
+            };
+            lastSort_ = SortOrder.NONE;
         }
 
         /**
          * Turns a column identifier into a sort order definition.
          */
-        public Object getElementAt( int index ) {
-            return new SortOrder( (TableColumn) super.getElementAt( index ) );
+        public SortOrder getElementAt( int index ) {
+            return new SortOrder( sortColModel_.getElementAt( index ) );
         }
 
-        /**
-         * Defines which columns can be sorted on - only the comparable ones.
-         */
-        public boolean acceptColumn( ColumnInfo cinfo ) {
-            Class<?> clazz = cinfo.getContentClass();
-            return Comparable.class.isAssignableFrom( clazz );
+        public int getSize() {
+            return sortColModel_.getSize();
+        }
+
+        public void addListDataListener( ListDataListener l ) {
+            sortColModel_.addListDataListener( l );
+        }
+
+        public void removeListDataListener( ListDataListener l ) {
+            sortColModel_.removeListDataListener( l );
         }
 
         /**
@@ -1201,10 +1206,6 @@ public class TopcatModel {
             /* Store the selected value. */
             lastSort_ = order;
 
-            /* Make sure any component displaying this model is
-             * updated (this call copied from Swing source). */
-            fireContentsChanged( this, -1, -1 );
-
             /* Inform TopcatListeners. */
             fireModelChanged( TopcatEvent.CURRENT_ORDER, null );
         }
@@ -1214,8 +1215,8 @@ public class TopcatModel {
     /**
      * ComboBoxModel used for storing the last-invoked subset selection.
      */
-    private class SubsetSelectionModel extends AbstractListModel
-                                       implements ComboBoxModel, 
+    private class SubsetSelectionModel extends AbstractListModel<RowSubset>
+                                       implements ComboBoxModel<RowSubset>, 
                                                   ListDataListener {
         private RowSubset lastSubset_ = RowSubset.ALL;
 
@@ -1269,7 +1270,7 @@ public class TopcatModel {
             fireModelChanged( TopcatEvent.CURRENT_SUBSET, null );
         }
 
-        public Object getElementAt( int index ) {
+        public RowSubset getElementAt( int index ) {
             return subsets_.getElementAt( index );
         }
 

@@ -28,11 +28,10 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    12 Mar 2013
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class PlotExporter {
 
     private final JFileChooser saveChooser_;
-    private final JComboBox formatSelector_;
+    private final JComboBox<GraphicExporter> formatSelector_;
     private final JCheckBox bitmapButton_;
     private static final GraphicExporter[] EXPORTERS = createExporters();
     private static PlotExporter instance_;
@@ -43,7 +42,7 @@ public class PlotExporter {
     public PlotExporter() {
         saveChooser_ = new JFileChooser( "." );
         saveChooser_.setDialogTitle( "Export Plot" );
-        formatSelector_ = new JComboBox( EXPORTERS );
+        formatSelector_ = new JComboBox<GraphicExporter>( EXPORTERS );
         bitmapButton_ = new JCheckBox( "Force Bitmap" );
         formatSelector_.setRenderer(
                 new CustomComboBoxRenderer<GraphicExporter>( "(auto)" ) {
@@ -143,11 +142,11 @@ public class PlotExporter {
      * @return   appropriate exporter, or null
      */
     private GraphicExporter getExporter( File file ) {
-        Object fmtobj = formatSelector_.getSelectedItem();
-        if ( fmtobj instanceof GraphicExporter ) {
-            return (GraphicExporter) fmtobj;
+        GraphicExporter format =
+            formatSelector_.getItemAt( formatSelector_.getSelectedIndex() );
+        if ( format != null ) {
+            return format;
         }
-        assert fmtobj == null;
         String fname = file.getName();
         for ( int ie = 0; ie < EXPORTERS.length; ie++ ) {
             GraphicExporter exporter = EXPORTERS[ ie ];

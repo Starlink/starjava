@@ -305,13 +305,14 @@ public class ModeFormControl extends FormControl {
      * @param   modes   mode list
      * @return  new specifier
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static Specifier<ModePlotter.Mode>
             createPlotterModeSpecifier( Collection<ModePlotter.Mode> modes ) {
-        JComboBox comboBox = new JComboBox( modes.toArray() );
+        JComboBox<ModePlotter.Mode> comboBox =
+            new JComboBox<ModePlotter.Mode>(
+                modes.toArray( new ModePlotter.Mode[ 0 ] ) );
         comboBox.setSelectedIndex( 0 );
         comboBox.setRenderer( new DefaultListCellRenderer() {
-            public Component getListCellRendererComponent( JList list,
+            public Component getListCellRendererComponent( JList<?> list,
                                                            Object value,
                                                            int index,
                                                            boolean isSelected,

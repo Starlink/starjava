@@ -54,12 +54,12 @@ import uk.ac.starlink.votable.VOTableWriter;
  * @since    8 Feb 2006
  * @see      <a href="http://plastic.sourceforge.net/">PLASTIC</a>
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class TopcatPlasticListener extends HubManager {
 
     private final ControlWindow controlWindow_;
     private final Map<String,TableWithRows> idMap_;
     private final Map<TopcatModel,Long> highlightMap_;
+    private final ListModel<ApplicationItem> appList_;
 
     private static final URI[] SUPPORTED_MESSAGES = new URI[] {
         MessageId.VOT_LOAD,
@@ -83,6 +83,10 @@ public class TopcatPlasticListener extends HubManager {
         idMap_ = Collections
                 .synchronizedMap( new HashMap<String,TableWithRows>() );
         highlightMap_ = new HashMap<TopcatModel,Long>();
+        @SuppressWarnings("unchecked")
+        ListModel<ApplicationItem> typedAppList =
+            (ListModel<ApplicationItem>) getApplicationListModel();
+        appList_ = typedAppList;
     }
 
     /**
@@ -93,6 +97,7 @@ public class TopcatPlasticListener extends HubManager {
      * @param  args     message argument list
      * @return  return value requested by message
      */
+    @SuppressWarnings("rawtypes")
     public Object doPerform( URI sender, URI message, List args )
             throws IOException {
 
@@ -163,9 +168,8 @@ public class TopcatPlasticListener extends HubManager {
      * @param   messageId  message which must be supported
      * @return   selection model
      */
-    public ComboBoxModel createPlasticComboBoxModel( URI messageId ) {
-        return new SelectivePlasticListModel( getApplicationListModel(),
-                                              messageId, true, this );
+    public ComboBoxModel<Object> createPlasticComboBoxModel( URI messageId ) {
+        return new SelectivePlasticListModel( appList_, messageId, true, this );
     }
 
     /**
@@ -759,11 +763,10 @@ public class TopcatPlasticListener extends HubManager {
             return tr;
         }
         else {
-            ListModel tablesList =
+            ListModel<TopcatModel> tablesList =
                 ControlWindow.getInstance().getTablesListModel();
             for ( int i = 0; i < tablesList.getSize(); i++ ) {
-                TopcatModel tcModel =
-                    (TopcatModel) tablesList.getElementAt( i );
+                TopcatModel tcModel = tablesList.getElementAt( i );
                 URL url = tcModel.getDataModel().getBaseTable().getURL();
                 if ( URLUtils.sameResource( url,
                                             URLUtils.makeURL( tableId ) ) ) {
@@ -773,6 +776,7 @@ public class TopcatPlasticListener extends HubManager {
         }
         return null;
     }
+
 
     /**
      * Returns the name of a registered application which has a given ID.
@@ -784,9 +788,8 @@ public class TopcatPlasticListener extends HubManager {
      */
     private String getAppName( URI id ) {
         String name = null;
-        ListModel appList = getApplicationListModel();
-        for ( int i = 0; i < appList.getSize(); i++ ) {
-            ApplicationItem app = (ApplicationItem) appList.getElementAt( i );
+        for ( int i = 0; i < appList_.getSize(); i++ ) {
+            ApplicationItem app = appList_.getElementAt( i );
             if ( app.getId().equals( id ) ) {
                 return app.getName();
             }

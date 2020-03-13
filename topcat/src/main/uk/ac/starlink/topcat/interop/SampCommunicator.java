@@ -54,7 +54,6 @@ import uk.ac.starlink.vo.RegistryPanel;
  * @author   Mark Taylor
  * @since    4 Sep 2008
  */
-@SuppressWarnings("rawtypes")
 public class SampCommunicator implements TopcatCommunicator {
 
     private final ClientProfile clientProfile_;
@@ -144,7 +143,7 @@ public class SampCommunicator implements TopcatCommunicator {
         final SendManager pointSender =
             new SendManager( hubConnector_, "coord.pointAt.sky" );
         return new SkyPointActivity() {
-            public ComboBoxModel getTargetSelector() {
+            public ComboBoxModel<?> getTargetSelector() {
                 return pointSender.getComboBoxModel();
             }
             public void pointAtSky( double ra, double dec ) throws IOException {
@@ -160,7 +159,7 @@ public class SampCommunicator implements TopcatCommunicator {
         final SendManager rowSender =
             new SendManager( hubConnector_, "table.highlight.row" );
         return new RowActivity() {
-            public ComboBoxModel getTargetSelector() {
+            public ComboBoxModel<?> getTargetSelector() {
                 return rowSender.getComboBoxModel();
             }
             public void highlightRow( TopcatModel tcModel, long lrow )
@@ -177,7 +176,7 @@ public class SampCommunicator implements TopcatCommunicator {
         final SendManager subsetSender =
             new SendManager( hubConnector_, "table.select.rowList" );
         return new SubsetActivity() {
-            public ComboBoxModel getTargetSelector() {
+            public ComboBoxModel<?> getTargetSelector() {
                 return subsetSender.getComboBoxModel();
             }
             public void selectSubset( TopcatModel tcModel, RowSubset rset )
@@ -195,7 +194,7 @@ public class SampCommunicator implements TopcatCommunicator {
         final SendManager spectrumSender =
             new SendManager( hubConnector_, "spectrum.load.ssa-generic" );
         return new SpectrumActivity() {
-            public ComboBoxModel getTargetSelector() {
+            public ComboBoxModel<?> getTargetSelector() {
                 return spectrumSender.getComboBoxModel();
             }
             public void displaySpectrum( String location, Map<?,?> metadata )

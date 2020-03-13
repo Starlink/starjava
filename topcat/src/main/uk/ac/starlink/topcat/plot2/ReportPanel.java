@@ -37,13 +37,12 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    11 Dec 2014
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ReportPanel extends JPanel {
 
     private final Factory<Plotter<?>> plotterFact_;
-    private final JComboBox subsetSelector_;
+    private final JComboBox<RowSubset> subsetSelector_;
     private final Map<ReportKey<?>,JComponent> boxMap_;
-    private final DefaultComboBoxModel subsetSelModel_;
+    private final DefaultComboBoxModel<RowSubset> subsetSelModel_;
     private final JPanel reportHolder_;
     private Map<RowSubset,ReportMap> reports_;
 
@@ -56,8 +55,8 @@ public class ReportPanel extends JPanel {
     public ReportPanel( Factory<Plotter<?>> plotterFact ) {
         super( new BorderLayout() );
         plotterFact_ = plotterFact;
-        subsetSelModel_ = new DefaultComboBoxModel();
-        subsetSelector_ = new JComboBox( subsetSelModel_ );
+        subsetSelModel_ = new DefaultComboBoxModel<RowSubset>();
+        subsetSelector_ = new JComboBox<RowSubset>( subsetSelModel_ );
         subsetSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 updateDisplay();

@@ -125,14 +125,13 @@ public class StiltsControl extends TabberControl {
     /**
      * Panel that displays command format configuration options.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class FormatPanel extends LabelledComponentStack {
-        private final JComboBox invokerSelector_;
-        private final JComboBox zoneSuffixSelector_;
-        private final JComboBox layerSuffixSelector_;
-        private final JComboBox tableNamerSelector_;
+        private final JComboBox<StiltsInvoker> invokerSelector_;
+        private final JComboBox<Suffixer> zoneSuffixSelector_;
+        private final JComboBox<Suffixer> layerSuffixSelector_;
+        private final JComboBox<TableNamer> tableNamerSelector_;
         private final JCheckBox dfltsButton_;
-        private final JComboBox lineEnderSelector_;
+        private final JComboBox<LineEnder> lineEnderSelector_;
         private final SpinnerNumberModel indentSpinner_;
         private final ActionForwarder forwarder_;
 
@@ -146,23 +145,23 @@ public class StiltsControl extends TabberControl {
 
             /* Set up controls. */
             invokerSelector_ =
-                new JComboBox( StiltsInvoker.INVOKERS );
+                new JComboBox<StiltsInvoker>( StiltsInvoker.INVOKERS );
             invokerSelector_
                .setSelectedItem( StiltsInvoker.TOPCAT );
             zoneSuffixSelector_ =
-                new JComboBox( StiltsPlotFormatter.ZONE_SUFFIXERS );
+                new JComboBox<Suffixer>( StiltsPlotFormatter.ZONE_SUFFIXERS );
             zoneSuffixSelector_
                .setSelectedItem( zoneSuffixSelector_.getItemAt( 0 ) );
             layerSuffixSelector_ =
-                new JComboBox( StiltsPlotFormatter.LAYER_SUFFIXERS );
+                new JComboBox<Suffixer>( StiltsPlotFormatter.LAYER_SUFFIXERS );
             layerSuffixSelector_
                .setSelectedItem( layerSuffixSelector_.getItemAt( 0 ) );
             tableNamerSelector_ =
-                new JComboBox( TopcatLayer.getLayerTableNamers() );
+                new JComboBox<TableNamer>( TopcatLayer.getLayerTableNamers() );
             tableNamerSelector_
                .setSelectedItem( tableNamerSelector_.getItemAt( 0 ) );
             dfltsButton_ = new JCheckBox();
-            lineEnderSelector_ = new JComboBox( LineEnder.OPTIONS );
+            lineEnderSelector_ = new JComboBox<LineEnder>( LineEnder.OPTIONS );
             lineEnderSelector_.setSelectedItem( LineEnder.BACKSLASH );
             indentSpinner_ =
                 new SpinnerNumberModel( 3, 0, 8, 1 );
@@ -196,18 +195,23 @@ public class StiltsControl extends TabberControl {
          */
         void updateFormatter( StiltsMonitor monitor ) {
             CredibleString invocation =
-                ((StiltsInvoker) invokerSelector_.getSelectedItem())
-                                .getInvocation();
+                invokerSelector_
+               .getItemAt( invokerSelector_.getSelectedIndex() )
+               .getInvocation();
             Suffixer zoneSuffixer =
-                (Suffixer) zoneSuffixSelector_.getSelectedItem();
+                zoneSuffixSelector_
+               .getItemAt( zoneSuffixSelector_.getSelectedIndex() );
             Suffixer layerSuffixer =
-                (Suffixer) layerSuffixSelector_.getSelectedItem();
+                layerSuffixSelector_
+               .getItemAt( layerSuffixSelector_.getSelectedIndex() );
             TableNamer namer =
-                (TableNamer) tableNamerSelector_.getSelectedItem();
+                tableNamerSelector_
+               .getItemAt( tableNamerSelector_.getSelectedIndex() );
             boolean includeDflts =
                 dfltsButton_.isSelected();
             LineEnder lineEnder =
-                (LineEnder) lineEnderSelector_.getSelectedItem();
+                lineEnderSelector_
+               .getItemAt( lineEnderSelector_.getSelectedIndex() );
             int indent =
                 indentSpinner_.getNumber().intValue();
             int cwidth = monitor.getWidthCharacters();
@@ -224,7 +228,7 @@ public class StiltsControl extends TabberControl {
          * @param  combo  unadorned JComboBox
          * @return  component containing combobox + bumper
          */
-        private static JComponent withBumper( JComboBox combo ) {
+        private static JComponent withBumper( JComboBox<?> combo ) {
             JComponent line = Box.createHorizontalBox();
             line.add( combo );
             line.add( Box.createHorizontalStrut( 5 ) );

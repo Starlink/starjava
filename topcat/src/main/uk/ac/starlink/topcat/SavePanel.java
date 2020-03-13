@@ -13,20 +13,18 @@ import uk.ac.starlink.table.gui.TableSaveChooser;
  * @author   Mark Taylor
  * @since    15 Jul 2010
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public abstract class SavePanel extends JPanel {
 
     private final String title_;
-    private final ComboBoxModel formatBoxModel_;
+    private final ComboBoxModel<String> formatBoxModel_;
 
     /**
      * Constructor.
      *
      * @param   title   short component name for use in tabber
-     * @param   formatBoxModel  selector model for table output format;
-     *          the model contents are Strings
+     * @param   formatBoxModel  selector model for table output format
      */
-    protected SavePanel( String title, ComboBoxModel formatBoxModel ) {
+    protected SavePanel( String title, ComboBoxModel<String> formatBoxModel ) {
         title_ = title;
         formatBoxModel_ = formatBoxModel;
     }
@@ -53,11 +51,10 @@ public abstract class SavePanel extends JPanel {
 
     /**
      * Returns a selector for table output formats.
-     * The contents of the model are Strings.
      *
      * @return   format selector model
      */
-    public ComboBoxModel getFormatBoxModel() {
+    public ComboBoxModel<String> getFormatBoxModel() {
         return formatBoxModel_;
     }
 

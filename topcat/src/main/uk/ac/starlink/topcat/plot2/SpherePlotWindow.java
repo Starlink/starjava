@@ -1,8 +1,8 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
+import javax.swing.ListModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.geom.CubeAspect;
@@ -28,7 +28,7 @@ public class SpherePlotWindow
      * @param  tablesModel  list of available tables
      */
     public SpherePlotWindow( Component parent,
-                             TypedListModel<TopcatModel> tablesModel ) {
+                             ListModel<TopcatModel> tablesModel ) {
         super( "Sphere Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );
         getToolBar().addSeparator();
         addHelp( "SpherePlotWindow" );

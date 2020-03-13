@@ -70,15 +70,14 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  * @author   Thomas Boch
  * @since    19 Oct 2009
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class VizierTableLoadDialog extends AbstractTableLoadDialog {
 
     private final ContentCoding coding_;
-    private JComboBox serverSelector_;
+    private JComboBox<String> serverSelector_;
     private SkyPositionEntry skyEntry_;
     private DoubleValueField srField_;
-    private JComboBox colSelector_;
-    private JComboBox maxSelector_;
+    private JComboBox<Object> colSelector_;
+    private JComboBox<String> maxSelector_;
     private VizierMode[] vizModes_;
     private JTabbedPane tabber_;
     private JRadioButton allButt_;
@@ -132,7 +131,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         /* Server panel. */
         JComponent serverBox = Box.createHorizontalBox();
         serverBox.add( new JLabel( "Server: " ) );
-        serverSelector_ = new JComboBox( SERVER_URLS );
+        serverSelector_ = new JComboBox<>( SERVER_URLS );
         serverSelector_.setSelectedIndex( 0 );
         serverSelector_.setEditable( true );
         serverBox.add( new ShrinkWrapper( serverSelector_ ) );
@@ -173,7 +172,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         coneButt_.addActionListener( rowsListener );
         allButt_.addActionListener( rowsListener );
         coneButt_.setSelected( true );
-        maxSelector_ = new JComboBox( new String[] {
+        maxSelector_ = new JComboBox<>( new String[] {
             "10000", "50000", "100000", "unlimited",
         } );
         maxSelector_.setEditable( true );
@@ -188,7 +187,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         JComponent colsBox = Box.createVerticalBox();
         Box colLine = Box.createHorizontalBox();
         colLine.add( new JLabel( "Output Columns: " ) );
-        colSelector_ = new JComboBox( new Object[] {
+        colSelector_ = new JComboBox<>( new ColsSpec[] {
             new ColsSpec( "standard", encodeArg( "-out.add", "_RAJ,_DEJ,_r" ),
                                       encodeArg( "-out.add", "_RAJ,_DEJ" ) ),
             new ColsSpec( "default", encodeArg( "-out", "*" ) ),
@@ -397,7 +396,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         }
         else if ( colsSpec instanceof String ) {
             String txt = ((String) colsSpec);
-            ComboBoxModel colModel = colSelector_.getModel();
+            ComboBoxModel<?> colModel = colSelector_.getModel();
             assert colModel instanceof DefaultComboBoxModel;
             if ( colModel instanceof DefaultComboBoxModel &&
                  ((DefaultComboBoxModel) colModel).getIndexOf( txt ) < 0 ) {
@@ -411,7 +410,8 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
                 ubuf.append( txt );
             }
         }
-        String maxrows = maxSelector_.getSelectedItem().toString();
+        String maxrows =
+            maxSelector_.getItemAt( maxSelector_.getSelectedIndex() );
         ubuf.append( encodeArg( "-out.max", maxrows ) );
         final URL url;
         try {

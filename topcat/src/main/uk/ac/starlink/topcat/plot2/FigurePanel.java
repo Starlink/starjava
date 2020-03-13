@@ -434,16 +434,15 @@ public abstract class FigurePanel extends JComponent {
      * and provides a selector which the user can use to choose
      * which FigureMode will be used.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private class ModeEnquiryPanel extends JPanel {
-        private final JComboBox modeSelector_;
+        private final JComboBox<FigureMode> modeSelector_;
 
         /**
          * Constructor.
          */
         ModeEnquiryPanel() {
             setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
-            modeSelector_ = new JComboBox( figureModes_ );
+            modeSelector_ = new JComboBox<FigureMode>( figureModes_ );
             modeSelector_.setRenderer(
                     new CustomComboBoxRenderer<FigureMode>() {
                 @Override
@@ -471,7 +470,7 @@ public abstract class FigurePanel extends JComponent {
          * @return  selected mode (not null)
          */
         public FigureMode getSelectedMode() {
-            return (FigureMode) modeSelector_.getSelectedItem();
+            return modeSelector_.getItemAt( modeSelector_.getSelectedIndex() );
         }
 
         /**

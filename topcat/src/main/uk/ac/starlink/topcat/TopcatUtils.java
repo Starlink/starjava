@@ -632,13 +632,12 @@ public class TopcatUtils {
      * @param  msgLines  lines of text to appear in dialogue window
      * @param  title   dialogue window title
      */
-    @SuppressWarnings("rawtypes")
     public static void addSubset( JComponent parent, TopcatModel tcModel,
                                   BitSet matchMask, String dfltName,
                                   String[] msgLines, String title ) {
         int nmatch = matchMask.cardinality();
         Box nameLine = Box.createHorizontalBox();
-        JComboBox nameSelector = tcModel.createNewSubsetNameSelector();
+        JComboBox<String> nameSelector = tcModel.createNewSubsetNameSelector();
         nameSelector.setSelectedItem( dfltName );
         nameLine.add( new JLabel( "Subset name: " ) );
         nameLine.add( nameSelector );
@@ -695,22 +694,18 @@ public class TopcatUtils {
      * Returns the subset name corresponding to the currently
      * selected value of a row subset selector box.
      *
-     * @param rsetSelector  combo box returned by
+     * @param rsetNameSelector  combo box returned by
      *        TopcatModel.createNewSubsetNameSelector
      * @return   subset name as string, or null
      */
-    @SuppressWarnings("rawtypes")
-    private static String getSubsetName( JComboBox rsetSelector ) {
-        Object item = rsetSelector.getSelectedItem();
+    private static String getSubsetName( JComboBox<String> rsetNameSelector ) {
+        Object item = rsetNameSelector.getSelectedItem();
         if ( item == null ) {
             return null;
         }
         else if ( item instanceof String ) {
             String name = (String) item;
             return name.trim().length() > 0 ? name : null;
-        }
-        else if ( item instanceof RowSubset ) {
-            return ((RowSubset) item).getName();
         }
         else {
             assert false;

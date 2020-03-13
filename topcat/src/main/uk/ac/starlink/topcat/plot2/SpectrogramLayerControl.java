@@ -1,9 +1,9 @@
 package uk.ac.starlink.topcat.plot2;
 
+import javax.swing.ListModel;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
@@ -27,7 +27,7 @@ public class SpectrogramLayerControl extends BasicCoordLayerControl {
      * @param   baseConfigger   provides global configuration info
      */
     public SpectrogramLayerControl( SpectrogramPlotter plotter,
-                                    TypedListModel<TopcatModel> tablesModel,
+                                    ListModel<TopcatModel> tablesModel,
                                     Specifier<ZoneId> zsel,
                                     Configger baseConfigger ) {
         super( plotter, zsel,

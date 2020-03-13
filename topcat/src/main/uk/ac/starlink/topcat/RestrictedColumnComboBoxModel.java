@@ -63,7 +63,7 @@ public abstract class RestrictedColumnComboBoxModel
             && acceptColumn( ((StarTableColumn) tcol).getColumnInfo() );
     }
 
-    public Object getElementAt( int index ) {
+    public TableColumn getElementAt( int index ) {
         return activeColumns.get( index );
     }
 

@@ -4,13 +4,13 @@ import gnu.jel.CompilationException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.ListModel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
@@ -42,7 +42,7 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
      * @param   baseConfigger   provides global configuration info
      */
     public HealpixLayerControl( HealpixPlotter plotter,
-                                TypedListModel<TopcatModel> tablesModel,
+                                ListModel<TopcatModel> tablesModel,
                                 Specifier<ZoneId> zsel,
                                 Configger baseConfigger ) {
         super( plotter, zsel, new HealpixCoordPanel( baseConfigger ),

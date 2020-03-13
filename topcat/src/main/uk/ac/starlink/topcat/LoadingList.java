@@ -19,15 +19,14 @@ import javax.swing.JList;
  * @author   Mark Taylor
  * @since    9 April 2009
  */
-@SuppressWarnings({"unchecked","rawtypes"})
-public class LoadingList extends JList {
+public class LoadingList extends JList<LoadingToken> {
 
     /**
      * Constructor.
      *
      * @param   model  list model
      */
-    public LoadingList( ListModel model ) {
+    public LoadingList( ListModel<LoadingToken> model ) {
         super( model );
         setCellRenderer( new LoadingRenderer() );
     }
@@ -50,7 +49,8 @@ public class LoadingList extends JList {
     private static class LoadingRenderer extends DefaultListCellRenderer {
         private Color fg_;
         private Font font_;
-        public Component getListCellRendererComponent( JList list, Object value,
+        public Component getListCellRendererComponent( JList<?> list,
+                                                       Object value,
                                                        int index, boolean isSel,
                                                        boolean hasFocus ) {
             Component comp = 

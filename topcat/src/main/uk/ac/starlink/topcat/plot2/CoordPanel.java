@@ -36,13 +36,12 @@ import uk.ac.starlink.util.gui.ComboBoxBumper;
  * @author   Mark Taylor
  * @since    13 Mar 2013
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class CoordPanel {
 
     private final Coord[] coords_;
     private final ConfigSpecifier cspec_;
     private final ActionForwarder forwarder_;
-    private final JComboBox[][] colSelectors_;
+    private final List<List<JComboBox<ColumnData>>> colSelectors_;
     private final JComponent panel_;   
     private TopcatModel tcModel_;
 
@@ -76,16 +75,17 @@ public class CoordPanel {
 
         /* Place entry components for each required coordinate. */
         int nc = coords.length;
-        colSelectors_ = new JComboBox[ nc ][];
+        colSelectors_ = new ArrayList<List<JComboBox<ColumnData>>>();
         LabelledComponentStack stack = new LabelledComponentStack();
         for ( int ic = 0; ic < nc; ic++ ) {
             Input[] inputs = coords[ ic ].getInputs();
             int ni = inputs.length;
-            colSelectors_[ ic ] = new JComboBox[ ni ];
+            colSelectors_.add( new ArrayList<JComboBox<ColumnData>>() );
             for ( int ii = 0; ii < ni; ii++ ) {
                 InputMeta meta = inputs[ ii ].getMeta();
-                final JComboBox cs = ColumnDataComboBoxModel.createComboBox();
-                colSelectors_[ ic ][ ii ] = cs;
+                final JComboBox<ColumnData> cs =
+                    ColumnDataComboBoxModel.createComboBox();
+                colSelectors_.get( ic ).add( cs );
                 cs.addActionListener( forwarder_ );
                 JComponent line = Box.createHorizontalBox();
                 line.add( cs );
@@ -220,17 +220,17 @@ public class CoordPanel {
         int ninRequired = 0;
         int ninPopulated = 0;
         for ( int ic = 0; ic < coords_.length; ic++ ) {
-            JComboBox[] colsels = colSelectors_[ ic ];
+            List<JComboBox<ColumnData>> colsels = colSelectors_.get( ic );
             Coord coord = coords_[ ic ];
             boolean isReq = coord.isRequired();
             Input[] inputs = coord.getInputs();
-            int ni = colsels.length;
+            int ni = colsels.size();
             if ( isReq ) {
                 ninRequired += ni;
             }
             for ( int ii = 0; ii < ni; ii++ ) {
                 InputMeta meta = inputs[ ii ].getMeta();
-                JComboBox cs = colsels[ ii ];
+                JComboBox<ColumnData> cs = colsels.get( ii );
                 Object sel0 = cs.getSelectedItem();
                 String str0 = sel0 instanceof ColumnData
                             ? sel0.toString()
@@ -286,9 +286,7 @@ public class CoordPanel {
         int is = 1;
         for ( int ic = 0; ic < coords_.length; ic++ ) {
             if ( coords_[ ic ].isRequired() ) {
-                JComboBox[] colsels = colSelectors_[ ic ];
-                for ( int iu = 0; iu < colsels.length; iu++ ) {
-                    JComboBox cs = colsels[ iu ];
+                for ( JComboBox<ColumnData> cs : colSelectors_.get( ic ) ) {
                     if ( is < cs.getItemCount() ) {
                         cs.setSelectedIndex( is++ );
                     }
@@ -321,12 +319,12 @@ public class CoordPanel {
         GuiCoordContent[] contents = new GuiCoordContent[ npc ];
         for ( int ic = 0; ic < npc; ic++ ) {
             Coord coord = coords_[ ic ];
-            JComboBox[] colsels = colSelectors_[ ic ];
-            int nu = colsels.length;
+            List<JComboBox<ColumnData>> colsels = colSelectors_.get( ic );
+            int nu = colsels.size();
             ColumnData[] coldats = new ColumnData[ nu ];
             String[] datlabs = new String[ nu ];
             for ( int iu = 0; iu < nu; iu++ ) {
-                Object colitem = colsels[ iu ].getSelectedItem();
+                Object colitem = colsels.get( iu ).getSelectedItem();
                 if ( colitem instanceof ColumnData ) {
                     coldats[ iu ] = (ColumnData) colitem;
                     datlabs[ iu ] = colitem.toString();
@@ -358,7 +356,8 @@ public class CoordPanel {
      * @return   selector model, or null
      */
     public ColumnDataComboBoxModel getColumnSelector( int ic, int iu ) {
-        ComboBoxModel model = colSelectors_[ ic ][ iu ].getModel();
+        ComboBoxModel<ColumnData> model =
+            colSelectors_.get( ic ).get( iu ).getModel();
         return model instanceof ColumnDataComboBoxModel
              ? (ColumnDataComboBoxModel) model
              : null;
@@ -373,7 +372,7 @@ public class CoordPanel {
      */
     public void setColumnSelector( int ic, int iu,
                                    ColumnDataComboBoxModel model ) {
-        colSelectors_[ ic ][ iu ].setModel( model );
+        colSelectors_.get( ic ).get( iu ).setModel( model );
     }
 
     /**

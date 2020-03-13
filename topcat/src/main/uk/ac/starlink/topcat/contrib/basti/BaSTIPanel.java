@@ -33,7 +33,6 @@ import javax.swing.table.TableModel;
  *
  * @author molinaro
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class BaSTIPanel {
 
     //static String[] OutPutTables = null;
@@ -59,7 +58,7 @@ public class BaSTIPanel {
     /* Data Type Selection */
     static JLabel DataTypeLabel = new JLabel("Data Type");
     static JCheckBox DataTypeCheck = new JCheckBox();
-    static JComboBox DataType = new JComboBox();
+    static JComboBox<String> DataType = new JComboBox<String>();
     static String[] DataTypeChoice = {"",
                             "Isochrone",
                             "Track",
@@ -100,28 +99,28 @@ public class BaSTIPanel {
     /* SCENARIO */
     static JLabel ScenarioLabel = new JLabel("Scenario");
     static JCheckBox ScenarioCheck = new JCheckBox();
-    static JComboBox Scenario = new JComboBox();
+    static JComboBox<String> Scenario = new JComboBox<String>();
     static String[] ScenarioChoice = {"",
                                     "Canonical",
                                     "Overshooting"};
     /* TYPE */
     static JLabel TypeLabel = new JLabel("Type");
     static JCheckBox TypeCheck = new JCheckBox();
-    static JComboBox Type = new JComboBox();
+    static JComboBox<String> Type = new JComboBox<String>();
     static String[] TypeChoice = {"",
                                 "Normal",
                                 "AGB Extended"};
     /* Mass Loss */
     static JLabel MassLossLabel = new JLabel("Mass Loss");
     static JCheckBox MassLossCheck = new JCheckBox();
-    static JComboBox MassLoss = new JComboBox();
+    static JComboBox<String> MassLoss = new JComboBox<String>();
     static String[] MassLossChoice = {"",
                                     "0.2",
                                     "0.4"};
     /* Photometric System */
     static JLabel PhotometryLabel = new JLabel("Photometric System");
     static JCheckBox PhotometryCheck = new JCheckBox();
-    static JComboBox Photometry = new JComboBox();
+    static JComboBox<String> Photometry = new JComboBox<String>();
     static String[] PhotometryChoice = {"",
                                     "ACS",
                                     "Johnson Castelli",
@@ -133,7 +132,7 @@ public class BaSTIPanel {
     /* Mixture */
     static JLabel MixtureLabel = new JLabel("Mixture");
     static JCheckBox MixtureCheck = new JCheckBox();
-    static JComboBox Mixture = new JComboBox();
+    static JComboBox<String> Mixture = new JComboBox<String>();
     static String[] MixtureChoice = {"",
                                     "Scaled Solar Model",
                                     "Alpha Enhanced"};
@@ -176,12 +175,13 @@ public class BaSTIPanel {
          * every token has its own label and its checkbox 
          */
         /* setting dropdowns' content */
-        DataType.setModel( new DefaultComboBoxModel( DataTypeChoice ) );
-        Scenario.setModel( new DefaultComboBoxModel( ScenarioChoice ) );
-        Type.setModel( new DefaultComboBoxModel( TypeChoice ) );
-        MassLoss.setModel( new DefaultComboBoxModel( MassLossChoice ) );
-        Photometry.setModel( new DefaultComboBoxModel( PhotometryChoice ) );
-        Mixture.setModel( new DefaultComboBoxModel( MixtureChoice ) );
+        DataType.setModel( new DefaultComboBoxModel<String>( DataTypeChoice ) );
+        Scenario.setModel( new DefaultComboBoxModel<String>( ScenarioChoice ) );
+        Type.setModel( new DefaultComboBoxModel<String>( TypeChoice ) );
+        MassLoss.setModel( new DefaultComboBoxModel<String>( MassLossChoice ) );
+        Photometry.setModel( new DefaultComboBoxModel<String>
+                                                     ( PhotometryChoice ) );
+        Mixture.setModel( new DefaultComboBoxModel<String>( MixtureChoice ) );
         /* setting (default) starting values for the query */
         BaSTIPanelActions.ResetQuery();
         /* Results Tab Components */

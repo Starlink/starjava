@@ -37,14 +37,13 @@ import javax.swing.event.ListSelectionListener;
  *
  * @author   Mark Taylor (Starlink)
  */
-@SuppressWarnings({"unchecked","rawtypes"})
-public class CheckBoxStack extends JPanel
-                           implements ListSelectionListener,
-                                      ListDataListener,
-                                      Scrollable {
+public class CheckBoxStack<T> extends JPanel
+                              implements ListSelectionListener,
+                                         ListDataListener,
+                                         Scrollable {
 
     private DefaultListSelectionModel selModel_;
-    private ListModel listModel_;
+    private ListModel<T> listModel_;
     private List<JCheckBox> entries_;
     private final Annotator annotator_;
 
@@ -55,7 +54,7 @@ public class CheckBoxStack extends JPanel
      * @param  listModel the model
      * @param  annotator  object to generate annotations for each check box
      */
-    public CheckBoxStack( ListModel listModel, Annotator annotator ) {
+    public CheckBoxStack( ListModel<T> listModel, Annotator annotator ) {
         super( new GridBagLayout() );
         annotator_ = annotator;
         setListModel( listModel );
@@ -67,7 +66,7 @@ public class CheckBoxStack extends JPanel
      *
      * @param  listModel the model
      */
-    public CheckBoxStack( ListModel listModel ) {
+    public CheckBoxStack( ListModel<T> listModel ) {
         this( listModel, null );
     }
 
@@ -75,7 +74,7 @@ public class CheckBoxStack extends JPanel
      * Constructs a new CheckBoxStack from a default list model.
      */
     public CheckBoxStack() {
-        this( new DefaultListModel() );
+        this( new DefaultListModel<T>() );
         revalidate();
         repaint();
     }
@@ -167,11 +166,11 @@ public class CheckBoxStack extends JPanel
         selModel_.addListSelectionListener( this );
     }
 
-    public ListModel getListModel() {
+    public ListModel<T> getListModel() {
         return listModel_;
     }
 
-    public void setListModel( ListModel listModel ) {
+    public void setListModel( ListModel<T> listModel ) {
         if ( listModel_ != null ) {
             listModel_.removeListDataListener( this );
         }

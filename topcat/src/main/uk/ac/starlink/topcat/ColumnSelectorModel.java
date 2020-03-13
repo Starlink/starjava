@@ -24,17 +24,16 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  * @author   Mark Taylor (Starlink)
  * @since    6 Oct 2004
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ColumnSelectorModel {
 
     private final ValueInfo info_;
-    private final ComboBoxModel convChooser_;
+    private final ComboBoxModel<ColumnConverter> convChooser_;
     private final ColumnConverter converter0_;
     private final Map<ColumnData,ColumnConverter> convMap_ =
         new HashMap<ColumnData,ColumnConverter>();
     private final SelectionListener selectionListener_;
     private TopcatModel tcModel_;
-    private ComboBoxModel colChooser_;
+    private ComboBoxModel<ColumnData> colChooser_;
 
     /**
      * Constructs a new model for a given table and value type.
@@ -52,7 +51,8 @@ public class ColumnSelectorModel {
         ColumnConverter[] converters = ColumnConverter.getConverters( info );
         if ( converters.length > 1 ) {
             converter0_ = null;
-            convChooser_ = new DefaultComboBoxModel( converters );
+            convChooser_ =
+                new DefaultComboBoxModel<ColumnConverter>( converters );
             convChooser_.addListDataListener( selectionListener_ );
         }
         else {
@@ -121,7 +121,7 @@ public class ColumnSelectorModel {
      *
      * @return  columns combo box model
      */
-    public ComboBoxModel getColumnModel() {
+    public ComboBoxModel<ColumnData> getColumnModel() {
         return colChooser_;
     }
 
@@ -131,7 +131,7 @@ public class ColumnSelectorModel {
      *
      * @return  converter combo box model, or null
      */
-    public ComboBoxModel getConverterModel() {
+    public ComboBoxModel<ColumnConverter> getConverterModel() {
         return convChooser_;
     }
 
@@ -177,11 +177,11 @@ public class ColumnSelectorModel {
             }
             colChooser_.setSelectedItem( cdata );
             if ( convTxt != null ) {
-                Object convItem = null;
+                ColumnConverter convItem = null;
                 for ( int i = 0; i < convChooser_.getSize(); i++ ) {
-                    Object item = convChooser_.getElementAt( i );
-                    if ( item.toString().equals( convTxt ) ) {
-                        convItem = item;
+                    ColumnConverter conv = convChooser_.getElementAt( i );
+                    if ( conv.toString().equals( convTxt ) ) {
+                        convItem = conv;
                     }
                 }
                 if ( convItem != null ) {
@@ -267,8 +267,7 @@ public class ColumnSelectorModel {
             if ( units.equals( "radian" ) || units.equals( "radians" ) ) {
                 if ( cunits.startsWith( "rad" ) ) {
                     for ( int i = 0; i < nconv; i++ ) {
-                        ColumnConverter conv =
-                            (ColumnConverter) convChooser_.getElementAt( i );
+                        ColumnConverter conv = convChooser_.getElementAt( i );
                         if ( conv.toString().toLowerCase()
                                             .startsWith( "rad" ) ) {
                             return conv;
@@ -277,8 +276,7 @@ public class ColumnSelectorModel {
                 }
                 else if ( cunits.startsWith( "deg" ) ) {
                     for ( int i = 0; i < nconv; i++ ) {
-                        ColumnConverter conv =
-                            (ColumnConverter) convChooser_.getElementAt( i );
+                        ColumnConverter conv = convChooser_.getElementAt( i );
                         if ( conv.toString().toLowerCase()
                                             .startsWith( "deg" ) ) {
                             return conv;
@@ -288,8 +286,7 @@ public class ColumnSelectorModel {
                 else if ( cunits.startsWith( "hour" ) ||
                           cunits.equals( "hr" ) || cunits.equals( "hrs" ) ) {
                     for ( int i = 0; i < nconv; i++ ) {
-                        ColumnConverter conv =
-                            (ColumnConverter) convChooser_.getElementAt( i );
+                        ColumnConverter conv = convChooser_.getElementAt( i );
                         if ( conv.toString().toLowerCase()
                                             .startsWith( "hour" ) ) {
                             return conv;
@@ -298,8 +295,7 @@ public class ColumnSelectorModel {
                 }
                 else if ( cunits.startsWith( "arcmin" ) ) {
                     for ( int i = 0; i < nconv; i++ ) {
-                        ColumnConverter conv = 
-                            (ColumnConverter) convChooser_.getElementAt( i );
+                        ColumnConverter conv = convChooser_.getElementAt( i );
                         if ( conv.toString().toLowerCase()
                                             .startsWith( "arcmin" ) ) {
                             return conv;
@@ -308,8 +304,7 @@ public class ColumnSelectorModel {
                 }
                 else if ( cunits.startsWith( "arcsec" ) ) {
                     for ( int i = 0; i < nconv; i++ ) {
-                        ColumnConverter conv =
-                            (ColumnConverter) convChooser_.getElementAt( i );
+                        ColumnConverter conv = convChooser_.getElementAt( i );
                         if ( conv.toString().toLowerCase()
                                             .startsWith( "arcsec" ) ) {
                             return conv;
@@ -329,16 +324,16 @@ public class ColumnSelectorModel {
      * The elements of the model are instances of
      * ColumnData (or null).
      */
-    private static ComboBoxModel makeColumnModel( TopcatModel tcModel,
-                                                  ValueInfo argInfo ) {
+    private static ComboBoxModel<ColumnData>
+            makeColumnModel( TopcatModel tcModel, ValueInfo argInfo ) {
 
         /* With no table, the model is empty. */
         if ( tcModel == null ) {
-            return new DefaultComboBoxModel( new Object[ 1 ] );
+            return new DefaultComboBoxModel<ColumnData>( new ColumnData[ 1 ] );
         }
 
         /* Make the model. */
-        ComboBoxModel model = 
+        ComboBoxModel<ColumnData> model = 
             new ColumnDataComboBoxModel( tcModel, argInfo.getContentClass(),
                                          argInfo.isNullable() );
 

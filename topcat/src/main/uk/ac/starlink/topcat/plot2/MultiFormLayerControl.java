@@ -19,13 +19,13 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatListener;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -74,7 +74,7 @@ public class MultiFormLayerControl extends FormLayerControl {
      *                        options
      */
     public MultiFormLayerControl( PositionCoordPanel posCoordPanel,
-                                  TypedListModel<TopcatModel> tablesModel,
+                                  ListModel<TopcatModel> tablesModel,
                                   Specifier<ZoneId> zsel, boolean autoPopulate,
                                   NextSupplier nextSupplier,
                                   TopcatListener tcListener, Icon controlIcon,

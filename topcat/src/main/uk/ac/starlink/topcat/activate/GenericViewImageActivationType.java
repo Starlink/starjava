@@ -74,12 +74,11 @@ public class GenericViewImageActivationType implements ActivationType {
     /**
      * Configurator implementation for URLs pointing to images.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class ImageColumnConfigurator extends UrlColumnConfigurator {
         final TopcatModel tcModel_;
         final boolean isRegion_;
         final boolean hasViewerChoice_;
-        final JComboBox viewerSelector_;
+        final JComboBox<Viewer> viewerSelector_;
         final NumberSelector xoffSelector_;
         final NumberSelector yoffSelector_;
 
@@ -104,7 +103,7 @@ public class GenericViewImageActivationType implements ActivationType {
             JComponent queryPanel = getQueryPanel();
             ActionListener forwarder = getActionForwarder();
 
-            viewerSelector_ = new JComboBox( viewers );
+            viewerSelector_ = new JComboBox<Viewer>( viewers );
             viewerSelector_.addActionListener( forwarder );
             xoffSelector_ = new NumberSelector( tcModel_, "X Offset" );
             xoffSelector_.comboBox_.addActionListener( forwarder );
@@ -164,7 +163,8 @@ public class GenericViewImageActivationType implements ActivationType {
             return getViewer().getSafety();
         }
         private Viewer getViewer() {
-            return (Viewer) viewerSelector_.getSelectedItem();
+            return viewerSelector_
+                  .getItemAt( viewerSelector_.getSelectedIndex() );
         }
     }
 
@@ -473,11 +473,10 @@ public class GenericViewImageActivationType implements ActivationType {
     /**
      * Component for choosing a numeric table column.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class NumberSelector {
         final String label_;
         final ColumnDataComboBoxModel model_;
-        final JComboBox comboBox_;
+        final JComboBox<ColumnData> comboBox_;
 
         /**
          * Constructor.

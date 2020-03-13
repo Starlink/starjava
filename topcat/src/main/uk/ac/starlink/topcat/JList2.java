@@ -19,13 +19,14 @@ import javax.swing.Scrollable;
 
 /**
  * Contains two adjacent vertical JLists in the same component.  
+ * This is a presentation component, not concerned with access to
+ * the data in the contained lists.
  * Scrolling is taken care of.
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class JList2 extends JPanel implements Scrollable {
 
-    private final JList list1_;
-    private final JList list2_;
+    private final JList<?> list1_;
+    private final JList<?> list2_;
 
     /**
      * Constructor.
@@ -33,7 +34,7 @@ public class JList2 extends JPanel implements Scrollable {
      * @param  list1  first list
      * @param  list2  second list
      */
-    public JList2( JList list1, JList list2 ) {
+    public JList2( JList<?> list1, JList<?> list2 ) {
         super( new GridBagLayout() );
         list1_ = list1;
         list2_ = list2;

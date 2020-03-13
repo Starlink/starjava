@@ -18,12 +18,11 @@ import javax.swing.SwingUtilities;
  * @author   Mark Taylor
  * @since    19 Oct 2009
  */
-@SuppressWarnings({"unchecked","rawtypes","deprecation"})
 public class CategoryVizierMode extends SearchVizierMode {
 
-    private final JList lambdaList_;
-    private final JList missionList_;
-    private final JList astroList_;
+    private final JList<String> lambdaList_;
+    private final JList<String> missionList_;
+    private final JList<String> astroList_;
 
     /**
      * Constructor.
@@ -32,9 +31,9 @@ public class CategoryVizierMode extends SearchVizierMode {
      */
     public CategoryVizierMode( VizierTableLoadDialog tld ) {
         super( "By Category", tld, true );
-        lambdaList_ = new JList();
-        missionList_ = new JList();
-        astroList_ = new JList();
+        lambdaList_ = new JList<>();
+        missionList_ = new JList<>();
+        astroList_ = new JList<>();
     }
 
     protected Component createSearchComponent() {
@@ -100,17 +99,11 @@ public class CategoryVizierMode extends SearchVizierMode {
      * @param   name  VizieR server tag for the category type
      * @param   list  JList containing items in category <code>name</code>
      */
-    private static String getKwArgs( String name, JList list ) {
-        Object[] selections = list.getSelectedValues();
+    private static String getKwArgs( String name, JList<String> list ) {
         String key = "-kw." + name;
         StringBuffer sbuf = new StringBuffer();
-        for ( int i = 0; i < selections.length; i++ ) {
-            Object sel = selections[ i ];
-            assert sel instanceof String;
-            if ( sel instanceof String ) {
-                sbuf.append( VizierTableLoadDialog
-                            .encodeArg( key, (String) sel ) );
-            }
+        for ( String selection : list.getSelectedValuesList() ) {
+            sbuf.append( VizierTableLoadDialog.encodeArg( key, selection ) );
         }
         return sbuf.toString();
     }
@@ -123,7 +116,8 @@ public class CategoryVizierMode extends SearchVizierMode {
      * @param  list   list object
      * @return   component for display
      */
-    private static JComponent createListBox( String name, final JList list ) {
+    private static JComponent createListBox( String name,
+                                             final JList<String> list ) {
         final JLabel label = new JLabel( name );
         final JScrollPane scroller =
             new JScrollPane( list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,

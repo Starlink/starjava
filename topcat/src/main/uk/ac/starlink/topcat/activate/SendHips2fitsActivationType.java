@@ -45,11 +45,10 @@ public class SendHips2fitsActivationType implements ActivationType {
     /**
      * Configurator for use with this class.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class SendConfigurator extends Hips2fitsConfigurator {
 
         final SampSender imageSender_;
-        final ListModel clientListModel_;
+        final ListModel<?> clientListModel_;
 
         /**
          * Constructor.
@@ -67,8 +66,8 @@ public class SendHips2fitsActivationType implements ActivationType {
             clientListModel_ = imageSender_.getClientListModel();
             clientListModel_.addListDataListener( forwarder );
             imageSender_.getConnector().addConnectionListener( forwarder );
-            JComboBox viewerSelector =
-                 new JComboBox( imageSender_.getClientSelectionModel() );
+            JComboBox<Object> viewerSelector =
+                 new JComboBox<>( imageSender_.getClientSelectionModel() );
             viewerSelector.addActionListener( forwarder );
             getStack().addLine( "Image Viewer",
                                 new ShrinkWrapper( viewerSelector ) );

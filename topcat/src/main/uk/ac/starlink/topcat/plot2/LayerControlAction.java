@@ -3,11 +3,11 @@ package uk.ac.starlink.topcat.plot2;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
 import javax.swing.Icon;
+import javax.swing.ListModel;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -97,7 +97,7 @@ public abstract class LayerControlAction extends BasicAction {
      */
     public static LayerControlAction
             createPlotterAction( final Plotter<?> plotter, ControlStack stack,
-                                 final TypedListModel<TopcatModel> tablesModel,
+                                 final ListModel<TopcatModel> tablesModel,
                                  final ZoneFactory zfact,
                                  final NextSupplier nextSupplier,
                                  final TopcatListener tcListener,

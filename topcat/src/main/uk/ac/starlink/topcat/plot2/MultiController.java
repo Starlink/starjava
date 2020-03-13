@@ -173,12 +173,11 @@ public class MultiController<C> {
      *
      * @return  renderer
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
-    private final ListCellRenderer createZoneRenderer() {
+    private final ListCellRenderer<Object> createZoneRenderer() {
         final Dimension size = new Dimension( 24, 16 );
         return new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent( JList list,
+            public Component getListCellRendererComponent( JList<?> list,
                                                            Object value,
                                                            int index,
                                                            boolean isSel,
@@ -204,12 +203,11 @@ public class MultiController<C> {
      * Control that manages a single control from this class's controller
      * (C) type, by allowing the user to work with multiple zones.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private class MultiControl implements Control {
         final int iControl_;
         final JComponent panel_;
         final JComponent zoneLine_;
-        final JComboBox zoneSelector_;
+        final JComboBox<ZoneId> zoneSelector_;
         Control zoneControl_;
 
         /**
@@ -220,7 +218,7 @@ public class MultiController<C> {
         MultiControl( int iControl ) {
             iControl_ = iControl;
             panel_ = new JPanel( new BorderLayout() );
-            zoneSelector_ = new JComboBox();
+            zoneSelector_ = new JComboBox<ZoneId>();
             zoneSelector_.setRenderer( createZoneRenderer() );
             zoneSelector_.addItemListener( new ItemListener() {
                 public void itemStateChanged( ItemEvent evt ) {
@@ -263,11 +261,12 @@ public class MultiController<C> {
          * current selection is maintained if possible.
          */
         public void updateZones() {
-            ZoneId selection = (ZoneId) zoneSelector_.getSelectedItem();
+            ZoneId selection =
+                zoneSelector_.getItemAt( zoneSelector_.getSelectedIndex() );
             if ( ! Arrays.asList( zones_ ).contains( selection ) ) {
                 selection = zones_.length > 0 ? zones_[ 0 ] : null;
             }
-            zoneSelector_.setModel( new DefaultComboBoxModel( zones_ ) );
+            zoneSelector_.setModel( new DefaultComboBoxModel<ZoneId>( zones_ ));
             zoneSelector_.setSelectedItem( selection );
         }
 

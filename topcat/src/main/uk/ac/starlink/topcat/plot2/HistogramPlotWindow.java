@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.swing.Action;
 import javax.swing.JMenu;
+import javax.swing.ListModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.ColumnData;
@@ -27,7 +28,6 @@ import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -83,7 +83,7 @@ public class HistogramPlotWindow
      * @param  tablesModel  list of available tables
      */
     public HistogramPlotWindow( Component parent,
-                                TypedListModel<TopcatModel> tablesModel ) {
+                                ListModel<TopcatModel> tablesModel ) {
         super( "Histogram Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );
 
         /* This window currently works with a single plot zone, with index zero.

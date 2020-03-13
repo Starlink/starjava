@@ -149,7 +149,6 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  * @author   Mark Taylor (Starlink)
  * @since    9 Mar 2004
  */
-@SuppressWarnings({"unchecked","rawtypes","deprecation"})
 public class ControlWindow extends AuxWindow
                            implements ListSelectionListener, 
                                       ListDataListener,
@@ -170,9 +169,9 @@ public class ControlWindow extends AuxWindow
      */
     public static String TOPCAT_TOOLS_PROP = "topcat.exttools";
 
-    private final JList tablesList_;
-    private final TablesListModel tablesModel_;
-    private final DefaultListModel loadingModel_;
+    private final JList<TopcatModel> tablesList_;
+    private final DefaultListModel<TopcatModel> tablesModel_;
+    private final DefaultListModel<LoadingToken> loadingModel_;
     private final TableModelListener tableWatcher_ = this;
     private final TopcatListener topcatWatcher_ = this;
     private final ListSelectionListener selectionWatcher_ = this;
@@ -189,8 +188,6 @@ public class ControlWindow extends AuxWindow
     private final TransferHandler bothTransferHandler_ =
         new ControlTransferHandler( true, true );
     private final Window window_ = this;
-    private final ComboBoxModel dummyComboBoxModel_ =
-        new DefaultComboBoxModel();
     private final ButtonModel dummyButtonModel_ = new DefaultButtonModel();
     private StarTableFactory tabfact_ = new StarTableFactory( true );
     private final boolean showListToolBar_ = false;
@@ -212,8 +209,8 @@ public class ControlWindow extends AuxWindow
     private final JLabel rowsLabel_ = new JLabel();
     private final JLabel qstatusLabel_ = new JLabel();
     private final JLabel colsLabel_ = new JLabel();
-    private final JComboBox subsetSelector_ = new JComboBox();
-    private final JComboBox sortSelector_ = new JComboBox();
+    private final JComboBox<RowSubset> subsetSelector_ = new JComboBox<>();
+    private final JComboBox<SortOrder> sortSelector_ = new JComboBox<>();
     private final JToggleButton sortSenseButton_ = new UpDownButton();
     private final JLabel activatorLabel_ = new JLabel();
     private final TopcatCommunicator communicator_;
@@ -251,9 +248,9 @@ public class ControlWindow extends AuxWindow
         taboutput_.setJDBCHandler( tabfact_.getJDBCHandler() );
 
         /* Set up a list of the known tables. */
-        tablesModel_ = new TablesListModel();
-        loadingModel_ = new DefaultListModel();
-        tablesList_ = new JList( tablesModel_ );
+        tablesModel_ = new DefaultListModel<TopcatModel>();
+        loadingModel_ = new DefaultListModel<LoadingToken>();
+        tablesList_ = new JList<TopcatModel>( tablesModel_ );
 
         /* Watch the list. */
         tablesList_.addListSelectionListener( selectionWatcher_ );
@@ -294,7 +291,7 @@ public class ControlWindow extends AuxWindow
 
         /* Set up a split pane in the main panel. */
         JSplitPane splitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
-        JList loadingList = new LoadingList( loadingModel_ );
+        JList<LoadingToken> loadingList = new LoadingList( loadingModel_ );
         JScrollPane listScroller =
             new JScrollPane( new JList2( tablesList_, loadingList ) );
         JPanel listPanel = new JPanel( new BorderLayout() );
@@ -970,12 +967,8 @@ public class ControlWindow extends AuxWindow
      * @return   array of selected tables
      */
     private TopcatModel[] getSelectedModels() {
-        Object[] selObjs = tablesList_.getSelectedValues();
-        TopcatModel[] selModels = new TopcatModel[ selObjs.length ];
-        for ( int i = 0; i < selObjs.length; i++ ) {
-            selModels[ i ] = (TopcatModel) selObjs[ i ];
-        }
-        return selModels;
+        return tablesList_.getSelectedValuesList()
+                          .toArray( new TopcatModel[ 0 ] );
     }
 
     /**
@@ -984,7 +977,7 @@ public class ControlWindow extends AuxWindow
      *
      * @return  list model of {@link TopcatModel} objects
      */
-    public TypedListModel<TopcatModel> getTablesListModel() {
+    public ListModel<TopcatModel> getTablesListModel() {
         return tablesModel_;
     }
 
@@ -993,7 +986,7 @@ public class ControlWindow extends AuxWindow
      *
      * @return  list of {@link TopcatModel} objects
      */
-    public JList getTablesList() {
+    public JList<TopcatModel> getTablesList() {
         return tablesList_;
     }
 
@@ -1304,8 +1297,8 @@ public class ControlWindow extends AuxWindow
             rowsLabel_.setText( null );
             colsLabel_.setText( null );
 
-            sortSelector_.setModel( dummyComboBoxModel_ );
-            subsetSelector_.setModel( dummyComboBoxModel_ );
+            sortSelector_.setModel( new DefaultComboBoxModel<SortOrder>() );
+            subsetSelector_.setModel( new DefaultComboBoxModel<RowSubset>() );
             sortSenseButton_.setModel( dummyButtonModel_ );
             activatorLabel_.setText( null );
         }
@@ -1370,7 +1363,7 @@ public class ControlWindow extends AuxWindow
      */
 
     public void valueChanged( ListSelectionEvent evt ) {
-        TopcatModel nextModel = (TopcatModel) tablesList_.getSelectedValue();
+        TopcatModel nextModel = tablesList_.getSelectedValue();
         if ( nextModel != currentModel_ ) {
             if ( currentModel_ != null ) {
                 currentModel_.removeTopcatListener( topcatWatcher_ );
@@ -2277,18 +2270,6 @@ public class ControlWindow extends AuxWindow
             c1.weighty = 1.0;
             layer.setConstraints( filler, c1 );
             add( filler );
-        }
-    }
-
-    /**
-     * ListModel for holding TopcatModels.
-     */
-    private static class TablesListModel
-                         extends DefaultListModel
-                         implements TypedListModel<TopcatModel> {
-        @Override
-        public TopcatModel getElementAt( int index ) {
-             return (TopcatModel) super.getElementAt( index );
         }
     }
 }

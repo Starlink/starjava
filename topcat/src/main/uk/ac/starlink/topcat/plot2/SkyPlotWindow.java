@@ -5,10 +5,10 @@ import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.ListModel;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -40,7 +40,7 @@ public class SkyPlotWindow
      * @param  tablesModel  list of available tables
      */
     public SkyPlotWindow( Component parent,
-                          TypedListModel<TopcatModel> tablesModel ) {
+                          ListModel<TopcatModel> tablesModel ) {
         super( "Sky Plot", parent, PLOT_TYPE, new SkyPlotTypeGui(),
                tablesModel );
         getToolBar().addSeparator();

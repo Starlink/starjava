@@ -28,12 +28,11 @@ import uk.ac.starlink.util.URLUtils;
  * @author   Mark Taylor
  * @since    21 Dec 2017
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public abstract class UrlColumnConfigurator
                 extends AbstractActivatorConfigurator {
 
     private final TopcatModel tcModel_;
-    private final JComboBox colSelector_;
+    private final JComboBox<ColumnData> colSelector_;
     private final Box queryPanel_;
     private final JLabel colLabel_;
     private static final String URLCOL_KEY = "url";

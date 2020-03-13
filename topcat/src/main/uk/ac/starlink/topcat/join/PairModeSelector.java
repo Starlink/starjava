@@ -7,6 +7,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.ListCellRenderer;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.ttools.Formatter;
@@ -18,31 +19,32 @@ import uk.ac.starlink.ttools.join.FindModeParameter;
  * @author   Mark Taylor
  * @since    17 Apr 2009
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class PairModeSelector extends Box {
 
     private final JLabel label_;
-    private final JComboBox comboBox_;
+    private final JComboBox<PairMode> comboBox_;
 
     /**
      * Constructor.
      */
     public PairModeSelector() {
         super( BoxLayout.X_AXIS );
-        comboBox_ = new JComboBox( PairMode.values() );
-        comboBox_.setRenderer( new DefaultListCellRenderer() {
+        comboBox_ = new JComboBox<PairMode>( PairMode.values() );
+        final DefaultListCellRenderer baseRenderer =
+            new DefaultListCellRenderer();
+        comboBox_.setRenderer( new ListCellRenderer<PairMode>() {
             Formatter formatter_ = new Formatter();
-            public Component getListCellRendererComponent( JList list,
-                                                           Object value, int ix,
-                                                           boolean isSel,
-                                                           boolean hasFocus ) {
+            public Component getListCellRendererComponent(
+                    JList<? extends PairMode> list, PairMode mode, int ix,
+                    boolean isSel, boolean hasFocus ) {
                 Component c =
-                    super.getListCellRendererComponent( list, value, ix, isSel,
-                                                        hasFocus );
+                    baseRenderer
+                   .getListCellRendererComponent( list, mode, ix, isSel,
+                                                  hasFocus );
                 String ttip = null;
-                if ( value instanceof PairMode ) {
-                    PairMode mode = (PairMode) value;
-                    setText( mode.getSummary() );
+                if ( c instanceof JLabel) {
+                    JLabel label = (JLabel) c;
+                    label.setText( mode.getSummary() );
                     String desc = FindModeParameter.getModeDescription( mode );
                     try {
                         ttip = "<html>"
@@ -53,8 +55,8 @@ public class PairModeSelector extends Box {
                     catch ( SAXException e ) {
                         ttip = null;
                     }
+                    label.setToolTipText( ttip );
                 }
-                setToolTipText( ttip );
                 return c;
             }
         } );
@@ -70,7 +72,7 @@ public class PairModeSelector extends Box {
      * @return  mode
      */
     public PairMode getMode() {
-        return (PairMode) comboBox_.getSelectedItem();
+        return comboBox_.getItemAt( comboBox_.getSelectedIndex() );
     }
 
     @Override

@@ -2,12 +2,12 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
 import javax.swing.DefaultListModel;
+import javax.swing.ListModel;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.ListModel2;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TypedListModel;
 
 /**
  * Opens a plot window with access to a table that can be supplied
@@ -124,25 +124,23 @@ public class TablePlotDisplay {
      * ListModel&lt;TopcatModel&gt; implementation that combines a base model
      * and a new model that can contain extra TableModels.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class ExtraTablesListModel
-                         extends ListModel2
-                         implements TypedListModel<TopcatModel> {
-        private final DefaultListModel extraModel_;
+                         extends ListModel2<TopcatModel> {
+        private final DefaultListModel<TopcatModel> extraModel_;
 
         /**
          * Constructor.
          *
          * @param  baseModel  main list model for tables
          */
-        ExtraTablesListModel( TypedListModel<TopcatModel> baseModel ) {
-            super( new DefaultListModel(), baseModel );
-            extraModel_ = (DefaultListModel) getModel1();
+        ExtraTablesListModel( ListModel<TopcatModel> baseModel ) {
+            super( new DefaultListModel<TopcatModel>(), baseModel );
+            extraModel_ = (DefaultListModel<TopcatModel>) getModel1();
         }
 
         @Override
         public TopcatModel getElementAt( int ix ) {
-            return (TopcatModel) super.getElementAt( ix );
+            return super.getElementAt( ix );
         }
 
         /**
@@ -152,7 +150,7 @@ public class TablePlotDisplay {
          */
         TopcatModel getExtra0() {
             return extraModel_.getSize() > 0
-                 ? (TopcatModel) extraModel_.getElementAt( 0 )
+                 ? extraModel_.getElementAt( 0 )
                  : null;
         }
 
@@ -173,7 +171,7 @@ public class TablePlotDisplay {
          */
         void purgeExtrasExcept( TopcatModel tcModel ) {
             for ( int i = extraModel_.getSize() - 1; i >= 0; i-- ) {
-                Object item = extraModel_.getElementAt( i );
+                TopcatModel item = extraModel_.getElementAt( i );
                 if ( item != tcModel ) {
                     extraModel_.removeElementAt( i );
                 }

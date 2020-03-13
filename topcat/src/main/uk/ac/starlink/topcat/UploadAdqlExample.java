@@ -23,10 +23,9 @@ import uk.ac.starlink.vo.TapCapabilityPanel;
  * @author   Mark Taylor
  * @since    9 May 2011
  */
-@SuppressWarnings("rawtypes")
 public abstract class UploadAdqlExample extends AbstractAdqlExample {
 
-    private final JList tcList_;
+    private final JList<TopcatModel> tcList_;
 
     private static final Pattern[] RADEC_UCD_REGEXES = new Pattern[] {
         Pattern.compile( "^pos.eq.ra[_;.]?(.*)", Pattern.CASE_INSENSITIVE ),
@@ -44,7 +43,8 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
      * @param   description  example description
      * @param   tcList  JList of known TopcatModels
      */
-    public UploadAdqlExample( String name, String description, JList tcList ) {
+    public UploadAdqlExample( String name, String description,
+                              JList<TopcatModel> tcList ) {
         super( name, description );
         tcList_ = tcList;
     }
@@ -55,7 +55,8 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
      *
      * @param   tcList  JList of known TopcatModels
      */
-    public static AdqlExample[] createSomeExamples( final JList tcList ) {
+    public static AdqlExample[]
+            createSomeExamples( final JList<TopcatModel> tcList ) {
         return new AdqlExample[] {
             new UploadAdqlExample( "Trivial Upload",
                                    "Upload a table and query all its columns; "
@@ -101,15 +102,11 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
      */
     private static String getTrivialText( boolean lineBreaks, String lang,
                                           TableMeta[] tables, TableMeta table,
-                                          JList tcList ) {
-        Object item = tcList.getSelectedValue();
-        if ( item == null ) {
-            item = tcList.getModel().getElementAt( 0 );
-        }
-        if ( ! ( item instanceof TopcatModel ) ) {
+                                          JList<TopcatModel> tcList ) {
+        TopcatModel tcModel = tcList.getSelectedValue();
+        if ( tcModel == null ) {
             return null;
         }
-        TopcatModel tcModel = (TopcatModel) item;
         int tcid = tcModel.getID();
         StringBuffer sbuf = new StringBuffer();
         Breaker breaker = createBreaker( lineBreaks );
@@ -137,7 +134,7 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
      */
     private static String getJoinText( boolean lineBreaks, String lang,
                                        TableMeta[] tables, TableMeta table,
-                                       JList tcJlist ) {
+                                       JList<TopcatModel> tcJlist ) {
         AdqlSyntax syntax = AdqlSyntax.getInstance();
         TableWithCols[] rdRemotes =
             getRaDecTables( toTables( table, tables ), 1 );
@@ -145,17 +142,16 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
             return null;
         }
         TableWithCols rdRemote = rdRemotes[ 0 ];
-        ListModel tcListModel = tcJlist.getModel();
-        List<TopcatModel> tcList = new ArrayList<TopcatModel>();
-        Object selItem = tcJlist.getSelectedValue();
-        if ( selItem instanceof TopcatModel ) {
-            tcList.add( (TopcatModel) selItem );
+        ListModel<TopcatModel> tcListModel = tcJlist.getModel();
+        List<TopcatModel> tcList = new ArrayList<>();
+        TopcatModel selItem = tcJlist.getSelectedValue();
+        if ( selItem != null ) {
+            tcList.add( selItem );
         }
         for ( int i = 0; i < tcListModel.getSize(); i++ ) {
-            Object item = tcListModel.getElementAt( i );
-            if ( item instanceof TopcatModel &&
-                 item != selItem ) {
-                tcList.add( (TopcatModel) item );
+            TopcatModel item = tcListModel.getElementAt( i );
+            if ( item != null && item != selItem ) {
+                tcList.add( item );
             }
         }
         TopcatModel[] tcs = tcList.toArray( new TopcatModel[ 0 ] );

@@ -33,10 +33,9 @@ import javax.swing.event.ListSelectionListener;
  * @author   Mark Taylor
  * @since    13 Mar 2013
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ControlStackPanel extends JPanel {
 
-    private final DefaultListModel fixListModel_;
+    private final DefaultListModel<Control> fixListModel_;
 
     /**
      * Constructor.
@@ -50,13 +49,14 @@ public class ControlStackPanel extends JPanel {
         detailHolder.setMinimumSize( new Dimension( 200, 100 ) );
 
         /* Set up a list for the fixed controls. */
-        fixListModel_ = new DefaultListModel();
-        JList fixList = new JList( fixListModel_ );
+        fixListModel_ = new DefaultListModel<>();
+        JList<Control> fixList = new JList<Control>( fixListModel_ );
         fixList.setCellRenderer( new FixRenderer() );
 
         /* Set up an object which keeps track of when a control has been
          * newly added to the stack. */
-        Spotter controlSpotter = new Spotter( stack.getStackModel() );
+        Spotter<Control> controlSpotter =
+            new Spotter<Control>( stack.getStackModel() );
         stack.getStackModel().addListDataListener( controlSpotter );
 
         /* Set up selection listeners.  Only one item from either list
@@ -138,8 +138,8 @@ public class ControlStackPanel extends JPanel {
      * Selection listener for changes to the selected control.
      */
     private static class ControlListener implements ListSelectionListener {
-        private final JList list1_;
-        private final JList list2_;
+        private final JList<Control> list1_;
+        private final JList<Control> list2_;
         private final JComponent controlHolder_;
 
         /**
@@ -154,7 +154,8 @@ public class ControlStackPanel extends JPanel {
          *                        on selection this will be populated with
          *                        the content panel for the selected control
          */
-        ControlListener( JList list1, JList list2, JComponent controlHolder ) {
+        ControlListener( JList<Control> list1, JList<Control> list2,
+                         JComponent controlHolder ) {
             list1_ = list1;
             list2_ = list2;
             controlHolder_ = controlHolder;
@@ -162,7 +163,7 @@ public class ControlStackPanel extends JPanel {
 
         public void valueChanged( ListSelectionEvent evt ) {
             if ( ! evt.getValueIsAdjusting() ) {
-                Control control = (Control) list1_.getSelectedValue();
+                Control control = list1_.getSelectedValue();
                 if ( control != null ) {
                     list2_.clearSelection();
                     adjustControl( control );
@@ -194,7 +195,7 @@ public class ControlStackPanel extends JPanel {
      */
     private static class LayerControlListener extends ControlListener {
 
-        final Spotter spotter_;
+        final Spotter<Control> spotter_;
         Control lastControl_;
 
         /**
@@ -206,8 +207,8 @@ public class ControlStackPanel extends JPanel {
          * @param  spotter  object that keeps track of when a control has
          *                  been just added
          */
-        LayerControlListener( JList list1, JList list2, JComponent holder,
-                              Spotter spotter ) {
+        LayerControlListener( JList<Control> list1, JList<Control> list2,
+                              JComponent holder, Spotter<Control> spotter ) {
             super( list1, list2, holder );
             spotter_ = spotter;
         }
@@ -226,18 +227,18 @@ public class ControlStackPanel extends JPanel {
     /**
      * Listener that keeps track of when a control is first added to the stack.
      */
-    private static class Spotter implements ListDataListener {
-        private final ListModel model_;
-        private final Map<Object,Boolean> items_;
+    private static class Spotter<T> implements ListDataListener {
+        private final ListModel<T> model_;
+        private final Map<T,Boolean> items_;
 
         /**
          * Constructor.
          *
          * @param  model  stack model
          */
-        Spotter( ListModel model ) {
+        Spotter( ListModel<T> model ) {
             model_ = model;
-            items_ = new HashMap<Object,Boolean>();
+            items_ = new HashMap<T,Boolean>();
             update();
         }
 
@@ -249,7 +250,7 @@ public class ControlStackPanel extends JPanel {
          * @return   true iff this method has never been called
          *                on <code>item</code> before
          */
-        public boolean isNew( Object item ) {
+        public boolean isNew( T item ) {
             Boolean isNew = items_.get( item );
             if ( Boolean.FALSE.equals( isNew ) ) {
                 return false;
@@ -262,7 +263,7 @@ public class ControlStackPanel extends JPanel {
         }
 
         private void update() {
-            Set<Object> itemSet = new HashSet<Object>();
+            Set<T> itemSet = new HashSet<T>();
             for ( int i = 0; i < model_.getSize(); i++ ) {
                 itemSet.add( model_.getElementAt( i ) );
             }
@@ -272,7 +273,7 @@ public class ControlStackPanel extends JPanel {
 
             /* Work out which ones we haven't seen before. */
             itemSet.removeAll( items_.keySet() );
-            for ( Object item : itemSet ) {
+            for ( T item : itemSet ) {
                 items_.put( item, Boolean.TRUE );
             }
         }
@@ -292,7 +293,8 @@ public class ControlStackPanel extends JPanel {
      * List cell renderer for the fixed control items.
      */
     private static class FixRenderer extends DefaultListCellRenderer {
-        public Component getListCellRendererComponent( JList list, Object value,
+        public Component getListCellRendererComponent( JList<?> list,
+                                                       Object value,
                                                        int index, boolean isSel,
                                                        boolean hasFocus ) {
             super.getListCellRendererComponent( list, value, index, isSel,

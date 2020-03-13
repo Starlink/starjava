@@ -40,7 +40,7 @@ public class ControlStack extends CheckBoxList<Control> {
      * @param  stackModel   stack model
      */
     public ControlStack( ControlStackModel stackModel ) {
-        super( Control.class, stackModel, true, new JLabel() );
+        super( stackModel, true, new JLabel() );
         stackModel_ = stackModel;
     }
 

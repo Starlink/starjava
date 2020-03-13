@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Map;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
+import javax.swing.ListModel;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
@@ -22,7 +23,6 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TupleSelector;
-import uk.ac.starlink.topcat.TypedListModel;
 import uk.ac.starlink.topcat.plot2.ControlManager;
 import uk.ac.starlink.topcat.plot2.CubePlotWindow;
 import uk.ac.starlink.topcat.plot2.LayerCommand;
@@ -95,7 +95,7 @@ public abstract class MatchPlotter {
      * @return  match plotter instance, or null if we don't know how to do it
      */
     public static MatchPlotter getMatchPlotter( MatchEngine engine ) {
-        final TypedListModel<TopcatModel> tablesModel =
+        final ListModel<TopcatModel> tablesModel =
             ControlWindow.getInstance().getTablesListModel();
 
         /* Get the names of the coordinates which are required by the

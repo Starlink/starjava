@@ -40,12 +40,11 @@ public class SendTableActivationType implements ActivationType {
     /**
      * Configurator implementation for URLs pointing to VOTables.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class SendTableColumnConfigurator
             extends UrlColumnConfigurator {
         final TopcatModel tcModel_;
         final SampSender votableSender_;
-        final ListModel clientListModel_;
+        final ListModel<?> clientListModel_;
 
         private static final String VOTABLE_MTYPE = "table.load.votable";
 
@@ -64,8 +63,9 @@ public class SendTableActivationType implements ActivationType {
             clientListModel_ = votableSender_.getClientListModel();
             clientListModel_.addListDataListener( forwarder );
             votableSender_.getConnector().addConnectionListener( forwarder );
-            JComboBox viewerSelector =
-                new JComboBox( votableSender_.getClientSelectionModel() );
+            JComboBox<?> viewerSelector =
+                new JComboBox<Object>( votableSender_
+                                      .getClientSelectionModel() );
             viewerSelector.addActionListener( forwarder );
             getQueryPanel()
            .add( new LineBox( "Table Viewer",

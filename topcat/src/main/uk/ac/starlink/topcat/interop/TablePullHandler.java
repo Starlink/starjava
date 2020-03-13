@@ -139,12 +139,10 @@ public abstract class TablePullHandler extends AbstractMessageHandler {
             return cwin.getCurrentModel();
         }
         else {
-            @SuppressWarnings("rawtypes")
-            ListModel listModel = cwin.getTablesListModel();
+            ListModel<TopcatModel> listModel = cwin.getTablesListModel();
             int nt = listModel.getSize();
             for ( int it = 0; it < nt; it++ ) {
-                TopcatModel tcModel =
-                    (TopcatModel) listModel.getElementAt( it );
+                TopcatModel tcModel = listModel.getElementAt( it );
                 if ( tcModel.getID() == id ) {
                     return tcModel;
                 }

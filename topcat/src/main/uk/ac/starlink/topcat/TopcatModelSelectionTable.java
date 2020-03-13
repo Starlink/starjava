@@ -17,11 +17,10 @@ import javax.swing.event.ListDataListener;
  * @author    Mark Taylor
  * @since     3 Aug 2010
  */
-@SuppressWarnings("rawtypes")
 public class TopcatModelSelectionTable {
 
     private final boolean defaultSelected_;
-    private final ListModel tableList_;
+    private final ListModel<TopcatModel> tableList_;
     private final Set<TopcatModel> selectedSet_;
     private final TopcatListener tcListener_;
     private final MetaColumnTableModel tModel_;
@@ -168,8 +167,7 @@ public class TopcatModelSelectionTable {
         for ( int irow = 0; irow < tableList_.getSize(); irow++ ) {
             if ( Boolean.TRUE
                 .equals( tModel_.getValueAt( irow, icolFlag_ ) ) ) {
-                selectedList.add( (TopcatModel)
-                                  tableList_.getElementAt( irow ) );
+                selectedList.add( tableList_.getElementAt( irow ) );
             }
         }
         return selectedList.toArray( new TopcatModel[ 0 ] );
@@ -182,7 +180,7 @@ public class TopcatModelSelectionTable {
      * @return  table
      */
     public TopcatModel getTable( int irow ) {
-        return (TopcatModel) tableList_.getElementAt( irow );
+        return tableList_.getElementAt( irow );
     }
 
     /**
@@ -210,7 +208,7 @@ public class TopcatModelSelectionTable {
         /* Find out which tables are currently displayed. */
         Set<TopcatModel> allSet = new HashSet<TopcatModel>();
         for ( int i = 0; i < tableList_.getSize(); i++ ) {
-            allSet.add( (TopcatModel) tableList_.getElementAt( i ) );
+            allSet.add( tableList_.getElementAt( i ) );
         }
 
         /* Compare this with the set we had from last time to find out which

@@ -43,11 +43,10 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor (Starlink)
  * @since    25 Mar 2004
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ConcatWindow extends AuxWindow {
 
-    private final JComboBox t1selector;
-    private final JComboBox t2selector;
+    private final JComboBox<TopcatModel> t1selector;
+    private final JComboBox<TopcatModel> t2selector;
     private final JScrollPane colScroller;
     private final Action goAct;
     private ColumnDataComboBoxModel[] colSelectorModels_;
@@ -200,7 +199,8 @@ public class ConcatWindow extends AuxWindow {
                     new ColumnDataComboBoxModel( tc2, clazz, true );
                 comboModel.setSelectedItem( comboModel.getElementAt( 0 ) );
                 colSelectorModels_[ icol ] = comboModel;
-                JComboBox comboBox = ColumnDataComboBoxModel.createComboBox();
+                JComboBox<ColumnData> comboBox =
+                    ColumnDataComboBoxModel.createComboBox();
                 comboBox.setModel( comboModel );
                 colPanel.add( comboBox );
             }

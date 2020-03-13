@@ -24,13 +24,12 @@ import uk.ac.starlink.table.ValueInfo;
  * @since    6 Oct 2004
  * @see      ColumnSelectorModel
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ColumnSelector extends JComponent {
 
     private ColumnSelectorModel model_;
     private final ValueInfo info_;
-    private final JComboBox colComboBox_;
-    private final JComboBox convComboBox_;
+    private final JComboBox<ColumnData> colComboBox_;
+    private final JComboBox<ColumnConverter> convComboBox_;
     private final Component[] components_;
     private final JLabel label_;
 
@@ -57,7 +56,7 @@ public class ColumnSelector extends JComponent {
         /* Set up converter selector box if necessary. */
         ColumnConverter[] converters = ColumnConverter.getConverters( info_ );
         if ( converters.length > 1 ) {
-            convComboBox_ = new JComboBox( converters );
+            convComboBox_ = new JComboBox<ColumnConverter>( converters );
             convComboBox_.setSelectedIndex( 0 );
             convComboBox_.setToolTipText( "Units for column " + 
                                           info_.getName() );
@@ -119,10 +118,10 @@ public class ColumnSelector extends JComponent {
         model_ = model;
         if ( model == null ) {
             setEnabled( false );
-            ComboBoxModel dummy = new DefaultComboBoxModel();
-            colComboBox_.setModel( dummy );
+            colComboBox_.setModel( new DefaultComboBoxModel<ColumnData>() );
             if ( convComboBox_ != null ) {
-                convComboBox_.setModel( dummy );
+                convComboBox_
+               .setModel( new DefaultComboBoxModel<ColumnConverter>() );
             }
         }
         else {
@@ -215,7 +214,7 @@ public class ColumnSelector extends JComponent {
      *
      * @return   column selection component
      */
-    public JComboBox getColumnComponent() {
+    public JComboBox<ColumnData> getColumnComponent() {
         return colComboBox_;
     }
 
@@ -224,7 +223,7 @@ public class ColumnSelector extends JComponent {
      *
      * @return  converter selection component
      */
-    public JComboBox getUnitComponent() {
+    public JComboBox<ColumnConverter> getUnitComponent() {
         return convComboBox_;
     }
 

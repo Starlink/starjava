@@ -14,11 +14,10 @@ import javax.swing.JTextField;
  * @author   Mark Taylor
  * @since    28 Sep 2006
  */
-@SuppressWarnings("rawtypes")
 public abstract class AbstractSubsetQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel_;
-    private final JComboBox nameSelector_;
+    private final JComboBox<String> nameSelector_;
     private final JTextField exprField_;
 
     /**
@@ -62,14 +61,6 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
      * @param   name   subset name
      */
     public void setSelectedName( String name ) {
-        for ( int i = 0; i < nameSelector_.getItemCount(); i++ ) {
-            Object item = nameSelector_.getItemAt( i );
-            RowSubset rset = (RowSubset) item;
-            if ( rset.getName().equals( name ) ) {
-                nameSelector_.setSelectedItem( rset );
-                return;
-            }
-        }
         nameSelector_.setSelectedItem( name );
     }
 
@@ -101,14 +92,7 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
                                            JOptionPane.ERROR_MESSAGE );
             return false;
         }
-
-        /* The item selected in the name selector will either be a string
-         * or an existing RowSubset from the subsets list belonging to 
-         * the tcModel.  Get the name as a string either way. */
-        assert selected instanceof RowSubset || selected instanceof String;
-        String name = selected instanceof RowSubset
-                    ? ((RowSubset) selected).getName()
-                    : selected.toString();
+        String name = selected.toString();
 
         /* Try to construct a synthetic row subset as requested. */
         SyntheticRowSubset exprSubset;

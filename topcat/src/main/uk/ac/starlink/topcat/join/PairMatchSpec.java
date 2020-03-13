@@ -242,18 +242,17 @@ public class PairMatchSpec extends MatchSpec {
                         tcModels[ 1 ].toString() ) );
     }
 
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class JoinSelector extends Box {
-        final JComboBox jCombo_;
+        final JComboBox<JoinType> jCombo_;
         JoinSelector() {
             super( BoxLayout.X_AXIS );
-            jCombo_ = new JComboBox( JoinType.getPairTypes() );
+            jCombo_ = new JComboBox<JoinType>( JoinType.getPairTypes() );
             jCombo_.setSelectedItem( JoinType._1AND2 );
             add( new JLabel( "Join Type: " ) );
             add( jCombo_ );
         }
         JoinType getJoinType() {
-            return (JoinType) jCombo_.getSelectedItem();
+            return jCombo_.getItemAt( jCombo_.getSelectedIndex() );
         }
     }
 }

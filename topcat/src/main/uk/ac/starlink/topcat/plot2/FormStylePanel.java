@@ -51,7 +51,6 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    15 Mar 2013
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class FormStylePanel extends JPanel {
 
     private final Configger plotConfigger_;
@@ -64,7 +63,7 @@ public class FormStylePanel extends JPanel {
     private final Map<RowSubset,ConfigMap> subsetConfigs_;
     private final JLabel iconLabel_;
     private final JComponent subsetSpecifierHolder_;
-    private final JComboBox subsetSelector_;
+    private final JComboBox<RowSubset> subsetSelector_;
     private final ConfigSpecifier subsetSpecifier_;
 
     /**
@@ -123,7 +122,8 @@ public class FormStylePanel extends JPanel {
 
         /* Set up a selector which will allow access to per-subset configs. */
         subsetSelector_ =
-            new JComboBox( new Plus1ListModel( tcModel.getSubsets(), null ) );
+            new JComboBox<RowSubset>(
+                new Plus1ListModel<RowSubset>( tcModel.getSubsets(), null ) );
         subsetSelector_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 RowSubset subset = getSelectedSubset();
@@ -353,8 +353,7 @@ public class FormStylePanel extends JPanel {
      * @return  selected subset, may be null
      */
     private RowSubset getSelectedSubset() {
-        Object item = subsetSelector_.getSelectedItem();
-        return item instanceof RowSubset ? (RowSubset) item : null;
+        return subsetSelector_.getItemAt( subsetSelector_.getSelectedIndex() );
     }
 
     /**
@@ -549,10 +548,10 @@ public class FormStylePanel extends JPanel {
      * existing ones.  It is backed by a live base model, and any changes
      * to that will be reflected here.
      */
-    private static class Plus1ListModel extends AbstractListModel
-                                        implements ComboBoxModel {
-        private final ListModel baseModel_;
-        private final Object item0_;
+    private static class Plus1ListModel<T> extends AbstractListModel<T>
+                                           implements ComboBoxModel<T> {
+        private final ListModel<T> baseModel_;
+        private final T item0_;
         private Object selectedItem_;
 
         /**
@@ -561,7 +560,7 @@ public class FormStylePanel extends JPanel {
          * @param  baseModel   base list model
          * @param  item0  entry to insert first in the list
          */
-        Plus1ListModel( ListModel baseModel, Object item0 ) {
+        Plus1ListModel( ListModel<T> baseModel, T item0 ) {
             baseModel_ = baseModel;
             item0_ = item0;
             baseModel.addListDataListener( new ListDataListener() {
@@ -584,7 +583,7 @@ public class FormStylePanel extends JPanel {
             return baseModel_.getSize() + 1;
         }
 
-        public Object getElementAt( int ix ) {
+        public T getElementAt( int ix ) {
             return ix == 0 ? item0_ : baseModel_.getElementAt( ix - 1 );
         }
 

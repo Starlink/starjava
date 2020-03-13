@@ -274,8 +274,6 @@ public class TopcatSampControl {
      * be used in SAMP messages that reference a table using the
      * <code>table-id</code>/<code>url</code> message parameter
      * (<code>table.highlight.row</code>, <code>table.select.rowList</code>).
-     * Elements of the returned list are
-     * {@link uk.ac.starlink.topcat.TopcatModel}s.
      *
      * TopcatModels may be added to this list when they have been involved
      * in a relevant SAMP message (usually <code>table.load.*</code>).
@@ -284,8 +282,7 @@ public class TopcatSampControl {
      *
      * @return  listmodel of identifiable tables 
      */
-    @SuppressWarnings("rawtypes")
-    public ListModel getIdentifiableTableListModel() {
+    public ListModel<TopcatModel> getIdentifiableTableListModel() {
         return idListModel_;
     }
 
@@ -575,13 +572,11 @@ public class TopcatSampControl {
 
         /* If that fails, examine the URL. */
         else if ( url != null ) {
-            @SuppressWarnings("rawtypes")
-            ListModel tablesList =
+            ListModel<TopcatModel> tablesList =
                 ControlWindow.getInstance().getTablesListModel();
             URL u = new URL( url );
             for ( int i = 0; i < tablesList.getSize(); i++ ) {
-                TopcatModel tcModel =
-                    (TopcatModel) tablesList.getElementAt( i );
+                TopcatModel tcModel = tablesList.getElementAt( i );
                 if ( URLUtils.sameResource( u, tcModel.getDataModel()
                                               .getBaseTable().getURL() ) ) {
                     return new TableWithRows( tcModel, null );
@@ -1036,8 +1031,7 @@ public class TopcatSampControl {
      * Listeners to this list will be notified when the contents
      * may have changed.
      */
-    @SuppressWarnings("rawtypes")
-    private class TableIdListModel extends AbstractListModel {
+    private class TableIdListModel extends AbstractListModel<TopcatModel> {
         volatile TopcatModel[] list_;
 
         TableIdListModel() {
@@ -1073,9 +1067,9 @@ public class TopcatSampControl {
             for ( TableWithRows twr : idMap_.values() ) {
                 set.add( twr.getTable() );
             }
-            ListModel tlist = controlWindow_.getTablesListModel();
+            ListModel<TopcatModel> tlist = controlWindow_.getTablesListModel();
             for ( int i = 0; i < tlist.getSize(); i++ ) {
-                TopcatModel tcm = (TopcatModel) tlist.getElementAt( i );
+                TopcatModel tcm = tlist.getElementAt( i );
                 if ( ! set.contains( tcm ) &&
                      tcm.getViewModel().getRowMap() == null &&
                      tcm.getDataModel().getBaseTable().getURL() != null ) {

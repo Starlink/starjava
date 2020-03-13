@@ -30,13 +30,12 @@ import javax.swing.SwingUtilities;
  * @author   Mark Taylor
  * @since    6 Feb 2018
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class UrlPanel extends JPanel {
 
     private final UrlOptions urlopts_;
     private final JTextField urlField_;
-    private final JComboBox typeSelector_;
-    private final JComboBox invokeSelector_;
+    private final JComboBox<ResourceType> typeSelector_;
+    private final JComboBox<UrlInvoker> invokeSelector_;
     private final ToggleButtonModel guessTypeModel_;
     private final Action invokeAct_;
     private final JLabel statusLabel_;
@@ -75,7 +74,7 @@ public class UrlPanel extends JPanel {
         add( vbox, BorderLayout.NORTH );
         urlField_ = new JTextField();
         urlField_.setEditable( false );
-        typeSelector_ = new NonShrinkingComboBox( ResourceType.values() );
+        typeSelector_ = new NonShrinkingComboBox<>( ResourceType.values() );
         typeSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 ResourceType rtype = getResourceType();
@@ -86,7 +85,7 @@ public class UrlPanel extends JPanel {
                 updateState();
             }
         } );
-        invokeSelector_ = new NonShrinkingComboBox( urlopts_.getInvokers() );
+        invokeSelector_ = new NonShrinkingComboBox<>( urlopts_.getInvokers() );
         invokeSelector_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 ResourceType rtype = getResourceType();
@@ -187,7 +186,7 @@ public class UrlPanel extends JPanel {
      * @return  resource type
      */
     public ResourceType getResourceType() {
-        return (ResourceType) typeSelector_.getSelectedItem();
+        return typeSelector_.getItemAt( typeSelector_.getSelectedIndex() );
     }
 
     /**
@@ -196,7 +195,7 @@ public class UrlPanel extends JPanel {
      * @return   invoker
      */
     public UrlInvoker getUrlInvoker() {
-        return (UrlInvoker) invokeSelector_.getSelectedItem();
+        return invokeSelector_.getItemAt( invokeSelector_.getSelectedIndex() );
     }
 
     /**
@@ -277,7 +276,7 @@ public class UrlPanel extends JPanel {
      * but will not resize itself smaller.
      * This reduces the amount of jumping around in the GUI.
      */
-    private static class NonShrinkingComboBox extends JComboBox {
+    private static class NonShrinkingComboBox<T> extends JComboBox<T> {
         private int width_;
 
         /**
@@ -285,7 +284,7 @@ public class UrlPanel extends JPanel {
          *
          * @param  options  initial combobox contents
          */
-        public NonShrinkingComboBox( Object[] options ) {
+        public NonShrinkingComboBox( T[] options ) {
             super( options );
         }
         @Override

@@ -76,11 +76,10 @@ import uk.ac.starlink.util.Loader;
  * @author   Mark Taylor
  * @since    21 Dec 2017
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ActivationWindow extends AuxWindow {
 
     private final TopcatModel tcModel_;
-    private final DefaultListModel listModel_;
+    private final DefaultListModel<ActivationEntry> listModel_;
     private final BasicCheckBoxList<ActivationEntry> list_;
     private final JComponent configContainer_;
     private final JComponent outputContainer_;
@@ -143,8 +142,7 @@ public class ActivationWindow extends AuxWindow {
         final Color enabledFg = UIManager.getColor( "Label.foreground" );
         final Color disabledFg =
             UIManager.getColor( "Label.disabledForeground" );
-        list_ = new BasicCheckBoxList<ActivationEntry>( ActivationEntry.class,
-                                                        true ) {
+        list_ = new BasicCheckBoxList<ActivationEntry>( true ) {
             @Override
             protected void configureEntryRenderer( JComponent entryRenderer,
                                                    ActivationEntry item,
@@ -177,7 +175,7 @@ public class ActivationWindow extends AuxWindow {
                 updateActivations();
             }
         };
-        listModel_ = (DefaultListModel) list_.getModel();
+        listModel_ = list_.getModel();
 
         list_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         JComponent listContainer = new JPanel( new BorderLayout() );
@@ -536,8 +534,7 @@ public class ActivationWindow extends AuxWindow {
         int nEnabled = 0;
         int nActive = 0;
         for ( int i = 0; i < listModel_.getSize(); i++ ) {
-            ActivationEntry entry =
-                (ActivationEntry) listModel_.getElementAt( i );
+            ActivationEntry entry = listModel_.getElementAt( i );
             if ( entry.getConfigurator().getActivator() != null ) {
                 nEnabled++;
                 if ( list_.isChecked( entry ) ) {
@@ -625,7 +622,7 @@ public class ActivationWindow extends AuxWindow {
             }
         }
         if ( selected == null && listModel_.getSize() == 0 ) {
-            selected = (ActivationEntry) listModel_.getElementAt( 0 );
+            selected = listModel_.getElementAt( 0 );
         }
         list_.setSelectedValue( selected, true );
         updateSelection();
@@ -720,7 +717,8 @@ public class ActivationWindow extends AuxWindow {
      * @return   index of <code>entry</code> in <code>model</code>,
      *           or -1 if not found
      */
-    private int getEntryIndex( ListModel model, ActivationEntry entry ) {
+    private int getEntryIndex( ListModel<ActivationEntry> model,
+                               ActivationEntry entry ) {
         int n = model.getSize();
         for ( int i = 0; i < n; i++ ) {
             if ( model.getElementAt( i ) == entry ) {

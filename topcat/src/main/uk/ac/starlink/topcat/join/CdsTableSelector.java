@@ -38,10 +38,9 @@ import uk.ac.starlink.util.gui.Downloader;
  * @author   Mark Taylor
  * @since    15 May 2014
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class CdsTableSelector extends JPanel {
 
-    private final JComboBox nameSelector_;
+    private final JComboBox<String> nameSelector_;
     private final VizierMetaDownloader metaDownloader_;
     private final MocDownloader mocDownloader_;
     private final JTextField nameField_;
@@ -66,7 +65,7 @@ public class CdsTableSelector extends JPanel {
         setLayout( new BorderLayout() );
 
         /* Add selector component. */
-        nameSelector_ = new JComboBox() {
+        nameSelector_ = new JComboBox<String>() {
 
             /* If the catalogue names when they are eventually downloaded
              * are too long for the width of the window, make sure that
@@ -208,7 +207,8 @@ public class CdsTableSelector extends JPanel {
      * Must be invoked from the Event Dispatch Thread.
      */
     private void updateTableName() {
-        String tableName = (String) nameSelector_.getSelectedItem();
+        String tableName =
+            nameSelector_.getItemAt( nameSelector_.getSelectedIndex() );
         tableName_ = tableName;
         setMetadata( null );
         setMoc( null );

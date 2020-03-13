@@ -37,11 +37,10 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor
  * @since    3 Feb 2015
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ClassifyWindow extends AuxWindow {
 
     private final TopcatModel tcModel_;
-    private final JComboBox colSelector_;
+    private final JComboBox<ColumnData> colSelector_;
     private final Action startAct_;
     private final Action stopAct_;
     private final Action subsetsAct_;

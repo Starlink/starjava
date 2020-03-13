@@ -46,9 +46,8 @@ public class ConeMultiWindow extends DalMultiWindow {
      */
     private static class ConeMultiService implements DalMultiService {
 
-        @SuppressWarnings({"unchecked","rawtypes"})
-        private final JComboBox verbSelector_ =
-            new JComboBox( ConeVerbosity.getOptions() );
+        private final JComboBox<ConeVerbosity> verbSelector_ =
+            new JComboBox<>( ConeVerbosity.getOptions() );
 
         private final JComponent controlBox_;
 
@@ -119,7 +118,8 @@ public class ConeMultiWindow extends DalMultiWindow {
 
         public ConeSearcher createSearcher( URL url, StarTableFactory tfact,
                                             ContentCoding coding ) {
-            int verb = ((ConeVerbosity) verbSelector_.getSelectedItem())
+            int verb = verbSelector_
+                      .getItemAt( verbSelector_.getSelectedIndex() )
                       .getLevel();
             return new ServiceConeSearcher( new ConeSearch( url.toString(),
                                                             coding ),

@@ -26,11 +26,10 @@ import org.astrogrid.samp.gui.SubscribedClientListModel;
  * @author   Mark Taylor
  * @since    17 Sep 2008
  */
-@SuppressWarnings("rawtypes")
 public class SendManager {
 
     private final GuiHubConnector connector_;
-    private final ListModel clientListModel_;
+    private final ListModel<Client> clientListModel_;
     private final SendComboBoxModel comboBoxModel_;
     private final String mtype_;
 
@@ -46,7 +45,10 @@ public class SendManager {
     public SendManager( GuiHubConnector connector, String mtype ) {
         connector_ = connector;
         mtype_ = mtype;
-        clientListModel_ = new SubscribedClientListModel( connector, mtype );
+        @SuppressWarnings("unchecked")
+        ListModel<Client> clientListModel =
+            new SubscribedClientListModel( connector, mtype );
+        clientListModel_ = clientListModel;
         comboBoxModel_ = new SendComboBoxModel( clientListModel_ );
     }
 
@@ -56,7 +58,7 @@ public class SendManager {
      *
      * @return   combo box model
      */
-    public ComboBoxModel getComboBoxModel() {
+    public ComboBoxModel<Object> getComboBoxModel() {
         return comboBoxModel_;
     }
 
@@ -70,7 +72,7 @@ public class SendManager {
      *
      * @return  list with only <code>Client</code> entries
      */
-    public ListModel getClientListModel() {
+    public ListModel<Client> getClientListModel() {
         return clientListModel_;
     }
 
@@ -132,9 +134,9 @@ public class SendManager {
      * It essentially mirrors an existing client model but prepends a 
      * broadcast option.
      */
-    private static class SendComboBoxModel extends AbstractListModel
-                                           implements ComboBoxModel {
-        private final ListModel clientListModel_;
+    private static class SendComboBoxModel extends AbstractListModel<Object>
+                                           implements ComboBoxModel<Object> {
+        private final ListModel<Client> clientListModel_;
         private final Object broadcast_;
         private Object selectedItem_;
 
@@ -144,7 +146,7 @@ public class SendManager {
          * @param  clientListModel  list model containing suitable 
          *                          {@link org.astrogrid.samp.Client}s
          */
-        SendComboBoxModel( ListModel clientListModel ) {
+        SendComboBoxModel( ListModel<Client> clientListModel ) {
             clientListModel_ = clientListModel;
             broadcast_ = new Object() {
                 @Override

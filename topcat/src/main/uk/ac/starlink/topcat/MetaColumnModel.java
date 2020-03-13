@@ -22,13 +22,12 @@ import javax.swing.table.TableModel;
  * or not shown (don't appear in this ColumnModel).
  * It does this by using an associated ListModel and ListSelectionModel.
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class MetaColumnModel extends DefaultTableColumnModel {
 
-    private DefaultListModel listModel;
-    private ListSelectionModel visibleModel;
-    private TableModel tableModel;
-    private BitSet purgedColumns = new BitSet();
+    private final DefaultListModel<TableColumn> listModel_;
+    private final ListSelectionModel visibleModel_;
+    private final TableModel tableModel_;
+    private final BitSet purgedColumns_;
 
     /**
      * Constructs a new MetaColumnModel from a base ColumnModel and a
@@ -44,7 +43,8 @@ public class MetaColumnModel extends DefaultTableColumnModel {
      */
     public MetaColumnModel( TableColumnModel baseColumnModel,
                             TableModel tableModel ) {
-        this.tableModel = tableModel;
+        tableModel_ = tableModel;
+        purgedColumns_ = new BitSet();
 
         /* Initialise state of this ColumnModel from the base column model. */
         for ( int ipos = 0; ipos < baseColumnModel.getColumnCount(); ipos++ ) {
@@ -57,23 +57,23 @@ public class MetaColumnModel extends DefaultTableColumnModel {
 
         /* Create and initialise a ListModel representing all the columns
          * in the original column model. */
-        listModel = new DefaultListModel();
+        listModel_ = new DefaultListModel<TableColumn>();
         for ( int ipos = 0; ipos < baseColumnModel.getColumnCount(); ipos++ ) {
-            listModel.addElement( baseColumnModel.getColumn( ipos ) );
+            listModel_.addElement( baseColumnModel.getColumn( ipos ) );
         }
 
         /* Create and initialise a ListSelectionModel representing 
          * which columns appear in this ColumnModel. */
-        visibleModel = new DefaultListSelectionModel();
-        for ( int i = 0; i < listModel.getSize(); i++ ) {
+        visibleModel_ = new DefaultListSelectionModel();
+        for ( int i = 0; i < listModel_.getSize(); i++ ) {
             if ( isVisible( i ) ) {
-                visibleModel.addSelectionInterval( i, i );
+                visibleModel_.addSelectionInterval( i, i );
             }
         }
 
         /* Make sure that this column model reflects any changes to the
          * visible model. */
-        visibleModel.addListSelectionListener( new ListSelectionListener() {
+        visibleModel_.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 handleSelectionChange( evt );
             }
@@ -81,7 +81,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
 
         /* Make sure that if the table model changes so that something
          * interesting comes up, the relevant column is displayed. */
-        tableModel.addTableModelListener( new TableModelListener() {
+        tableModel_.addTableModelListener( new TableModelListener() {
             public void tableChanged( TableModelEvent evt ) {
                 handleTableChange( evt );
             }
@@ -90,13 +90,12 @@ public class MetaColumnModel extends DefaultTableColumnModel {
 
     /**
      * Returns the ListModel representing all the columns in the 
-     * original TableColumnModel.  Every entry in this ListModel will be
-     * a {@link javax.swing.table.TableColumn}.
+     * original TableColumnModel.
      * 
      * @return  the list model 
      */
-    public ListModel getListModel() {
-        return listModel;
+    public ListModel<TableColumn> getListModel() {
+        return listModel_;
     }
 
     /**
@@ -108,7 +107,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
      * @return  the selection model
      */
     public ListSelectionModel getVisibleModel() {
-        return visibleModel;
+        return visibleModel_;
     }
 
     /**
@@ -123,7 +122,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
 
         /* Use DefaultTableColumnModel's protected tableColumns Vector to
          * answer the question. */
-        return tableColumns.contains( listModel.get( i ) );
+        return tableColumns.contains( listModel_.get( i ) );
     }
 
     /**
@@ -132,11 +131,11 @@ public class MetaColumnModel extends DefaultTableColumnModel {
      */
     public void addColumn( TableColumn tcol ) {
         super.addColumn( tcol );
-        if ( ! listModel.contains( tcol ) ) {
-            int insertPos = listModel.getSize();
-            listModel.addElement( tcol );
-            visibleModel.addSelectionInterval( insertPos, insertPos );
-            purgedColumns.clear( insertPos );
+        if ( ! listModel_.contains( tcol ) ) {
+            int insertPos = listModel_.getSize();
+            listModel_.addElement( tcol );
+            visibleModel_.addSelectionInterval( insertPos, insertPos );
+            purgedColumns_.clear( insertPos );
         }
     }
 
@@ -146,10 +145,10 @@ public class MetaColumnModel extends DefaultTableColumnModel {
      */
     public void removeColumn( TableColumn tcol ) {
         super.removeColumn( tcol );
-        int ipos = listModel.indexOf( tcol );
+        int ipos = listModel_.indexOf( tcol );
         if ( ipos >= 0 ) {
-            visibleModel.removeSelectionInterval( ipos, ipos );
-            purgedColumns.clear( ipos );
+            visibleModel_.removeSelectionInterval( ipos, ipos );
+            purgedColumns_.clear( ipos );
         }
     }
 
@@ -162,7 +161,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
      * @param  ipos  position of the column to remove
      */
     public void removeColumn( int ipos ) {
-        removeColumn( (TableColumn) listModel.get( ipos ) );
+        removeColumn( listModel_.get( ipos ) );
     }
 
     /**
@@ -173,20 +172,20 @@ public class MetaColumnModel extends DefaultTableColumnModel {
      * non-blank entry.
      */
     public void purgeEmptyColumns() {
-        int nrow = tableModel.getRowCount();
-        for ( int ipos = 0; ipos < listModel.getSize(); ipos++ ) {
-            TableColumn tcol = (TableColumn) listModel.get( ipos );
+        int nrow = tableModel_.getRowCount();
+        for ( int ipos = 0; ipos < listModel_.getSize(); ipos++ ) {
+            TableColumn tcol = listModel_.get( ipos );
             int modelIndex = tcol.getModelIndex();
             boolean stillBlank = true;
             for ( int irow = 0; irow < nrow && stillBlank; irow++ ) {
-                Object val = tableModel.getValueAt( irow, modelIndex );
+                Object val = tableModel_.getValueAt( irow, modelIndex );
                 stillBlank = stillBlank
                           && ( val == null || 
                                val.toString().trim().length() == 0 );
             }
             if ( stillBlank ) {
                 removeColumn( tcol );
-                purgedColumns.set( ipos );
+                purgedColumns_.set( ipos );
             }
         }
     }
@@ -200,12 +199,12 @@ public class MetaColumnModel extends DefaultTableColumnModel {
      */
     public JMenu makeCheckBoxMenu( String name ) {
         CheckBoxMenu menu = new CheckBoxMenu( name );
-        for ( int i = 0; i < listModel.getSize(); i++ ) {
-            TableColumn tcol = (TableColumn) listModel.getElementAt( i );
+        for ( int i = 0; i < listModel_.getSize(); i++ ) {
+            TableColumn tcol = listModel_.getElementAt( i );
             Object title = tcol.getHeaderValue();
             menu.addMenuItem( title == null ? null : title.toString() );
         }
-        menu.setSelectionModel( visibleModel );
+        menu.setSelectionModel( visibleModel_ );
         return menu;
     }
 
@@ -226,28 +225,28 @@ public class MetaColumnModel extends DefaultTableColumnModel {
 
             /* If a column has turned invisible, remove it from this
              * column model. */
-            if ( ! visibleModel.isSelectedIndex( i ) && 
+            if ( ! visibleModel_.isSelectedIndex( i ) && 
                  isVisible( i ) ) {
-                TableColumn tcol = (TableColumn) listModel.get( i );
+                TableColumn tcol = listModel_.get( i );
                 removeColumn( tcol );
             }
 
             /* If a column has turned visible, add it to this 
              * column model. */
-            else if ( visibleModel.isSelectedIndex( i ) && ! isVisible( i ) ) {
+            else if ( visibleModel_.isSelectedIndex( i ) && ! isVisible( i ) ) {
 
                 /* Add the column in question. */
-                TableColumn tcol = (TableColumn) listModel.get( i );
+                TableColumn tcol = listModel_.get( i );
                 addColumn( tcol );
 
                 /* Try to place it in the order of the original
                  * column model, though if the columns have been
                  * moved around by the user it might end up somewhere
                  * funny. */
-                int colPos = listModel.indexOf( tcol );
+                int colPos = listModel_.indexOf( tcol );
                 int ipos = 0;
                 while ( ipos < getColumnCount() && 
-                        listModel.indexOf( getColumn( ipos ) ) < colPos ) {
+                        listModel_.indexOf( getColumn( ipos ) ) < colPos ) {
                     ipos++;
                 }
                 int from = getColumnCount() - 1;
@@ -268,19 +267,19 @@ public class MetaColumnModel extends DefaultTableColumnModel {
         if ( evt.getType() == TableModelEvent.DELETE ) {
             return;
         }
-        TableModel tableModel = (TableModel) evt.getSource();
+        TableModel tableModel_ = (TableModel) evt.getSource();
         int first = Math.max( evt.getFirstRow(), 0 );
-        int last = Math.min( evt.getLastRow(), tableModel.getRowCount() - 1 );
-        for ( int ipos = 0; ipos < listModel.size(); ipos++ ) {
-            if ( purgedColumns.get( ipos ) ) {
+        int last = Math.min( evt.getLastRow(), tableModel_.getRowCount() - 1 );
+        for ( int ipos = 0; ipos < listModel_.size(); ipos++ ) {
+            if ( purgedColumns_.get( ipos ) ) {
                 for ( int irow = first; irow <= last; irow++ ) {
-                    TableColumn tcol = (TableColumn) listModel.get( ipos );
+                    TableColumn tcol = listModel_.get( ipos );
                     int modelIndex = tcol.getModelIndex();
-                    Object val = tableModel.getValueAt( irow, modelIndex );
+                    Object val = tableModel_.getValueAt( irow, modelIndex );
                     if ( ! isVisible( ipos ) &&
                          ( val != null && 
                            val.toString().trim().length() > 0 ) ) {
-                        visibleModel.addSelectionInterval( ipos, ipos );
+                        visibleModel_.addSelectionInterval( ipos, ipos );
                     }
                 }
             }

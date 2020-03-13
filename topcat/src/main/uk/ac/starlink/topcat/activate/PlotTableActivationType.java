@@ -9,6 +9,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import uk.ac.starlink.table.ColumnData;
@@ -57,12 +58,11 @@ public class PlotTableActivationType implements ActivationType {
     /**
      * Configurator for use with this class.
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private static class PlotColumnConfigurator extends UrlColumnConfigurator {
         private final StarTableFactory tfact_;
         private TablePlotDisplay plotDisplay_;
-        private final JComboBox formatSelector_;
-        private final JComboBox ptypeSelector_;
+        private final JComboBox<String> formatSelector_;
+        private final JComboBox<PlotWindowType> ptypeSelector_;
         private final JCheckBox paramsSelector_;
         private final JCheckBox allowsysSelector_;
         private static final String FORMAT_KEY = "format";
@@ -80,22 +80,23 @@ public class PlotTableActivationType implements ActivationType {
             tfact_ = ControlWindow.getInstance().getTableFactory();
             JComponent queryPanel = getQueryPanel();
             ActionForwarder forwarder = getActionForwarder();
-            ptypeSelector_ = new JComboBox( PlotWindowType.values() );
+            ptypeSelector_ = new JComboBox<>( PlotWindowType.values() );
             ptypeSelector_.setSelectedItem( PlotWindowType.PLANE );
-            ptypeSelector_.setRenderer( new BasicComboBoxRenderer() {
+            final BasicComboBoxRenderer baseRenderer =
+                new BasicComboBoxRenderer();
+            ptypeSelector_.setRenderer( new ListCellRenderer<PlotWindowType>() {
                 @Override
-                public Component
-                        getListCellRendererComponent( JList list, Object value,
-                                                      int index, boolean isSel,
-                                                      boolean hasFocus ) {
+                public Component getListCellRendererComponent(
+                        JList<? extends PlotWindowType> list,
+                        PlotWindowType value,
+                        int index, boolean isSel, boolean hasFocus ) {
                     Component c =
-                        super.getListCellRendererComponent( list, value, index,
-                                                            isSel, hasFocus );
-                    if ( c instanceof JLabel &&
-                         value instanceof PlotWindowType  ) {
+                        baseRenderer
+                       .getListCellRendererComponent( list, value, index,
+                                                      isSel, hasFocus );
+                    if ( c instanceof JLabel ) {
                         JLabel label = (JLabel) c;
-                        ((JLabel) c).setIcon( ((PlotWindowType) value)
-                                             .getIcon() );
+                        ((JLabel) c).setIcon( value.getIcon() );
                     }
                     return c;
                 }
@@ -125,7 +126,8 @@ public class PlotTableActivationType implements ActivationType {
         }
 
         protected Activator createActivator( ColumnData cdata ) {
-            final String format = (String) formatSelector_.getSelectedItem();
+            final String format =
+                formatSelector_.getItemAt( formatSelector_.getSelectedIndex() );
             final boolean importParams = paramsSelector_.isSelected();
             final boolean allowSystem = allowsysSelector_.isSelected();
             PlotWindowType ptype =

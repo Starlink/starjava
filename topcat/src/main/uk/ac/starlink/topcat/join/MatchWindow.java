@@ -55,11 +55,10 @@ import uk.ac.starlink.ttools.func.CoordsRadians;
  *
  * @author   Mark Taylor (Starlink)
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class MatchWindow extends AuxWindow implements ItemListener {
 
     private final int nTable;
-    private final JComboBox engineSelector;
+    private final JComboBox<MatchEngine> engineSelector;
     private final Map<MatchEngine,MatchSpec> matchSpecs;
     private final CardLayout paramCards;
     private final JComponent paramContainer;
@@ -98,7 +97,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         }
 
         /* Prepare a combo box which can select the engines. */
-        engineSelector = new JComboBox( engines );
+        engineSelector = new JComboBox<MatchEngine>( engines );
         engineSelector.addItemListener( this );
 
         /* Set up an action to start the match. */
@@ -204,7 +203,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * @return  match engine
      */
     private MatchEngine getMatchEngine() {
-        return (MatchEngine) engineSelector.getSelectedItem();
+        return engineSelector.getItemAt( engineSelector.getSelectedIndex() );
     }
 
     /**

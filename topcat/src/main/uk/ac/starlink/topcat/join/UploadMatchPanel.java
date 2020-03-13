@@ -66,7 +66,6 @@ import uk.ac.starlink.vo.DoubleValueField;
  *
  * @author   Mark Taylor
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class UploadMatchPanel extends JPanel {
 
     private final JProgressBar progBar_;
@@ -74,8 +73,8 @@ public class UploadMatchPanel extends JPanel {
     private final ColumnSelector raSelector_;
     private final ColumnSelector decSelector_;
     private final DoubleValueField srField_;
-    private final JComboBox blockSelector_;
-    private final JComboBox modeSelector_;
+    private final JComboBox<String> blockSelector_;
+    private final JComboBox<UploadFindMode> modeSelector_;
     private final JoinFixSelector fixSelector_;
     private final JComponent[] components_;
     private final Action startAction_;
@@ -144,10 +143,12 @@ public class UploadMatchPanel extends JPanel {
         main.add( paramBox );
 
         /* Field for input table. */
-        final JComboBox tableSelector = new TablesListComboBox( 200 );
+        final JComboBox<TopcatModel> tableSelector =
+            new TablesListComboBox( 200 );
         tableSelector.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
-                setInputTable( (TopcatModel) tableSelector.getSelectedItem() );
+                setInputTable( tableSelector
+                              .getItemAt( tableSelector.getSelectedIndex() ) );
             }
         } );
         cList.add( tableSelector );
@@ -205,7 +206,7 @@ public class UploadMatchPanel extends JPanel {
 
         /* Find mode selector. */
         Box modeLine = Box.createHorizontalBox();
-        modeSelector_ = new JComboBox( UploadFindMode.getInstances() );
+        modeSelector_ = new JComboBox<>( UploadFindMode.getInstances() );
         modeLine.add( new JLabel( "Find mode: " ) );
         modeLine.add( new ShrinkWrapper( modeSelector_ ) );
         modeLine.add( Box.createHorizontalGlue() );
@@ -226,7 +227,7 @@ public class UploadMatchPanel extends JPanel {
 
         /* Block size selector. */
         Box blockLine = Box.createHorizontalBox();
-        blockSelector_ = new JComboBox();
+        blockSelector_ = new JComboBox<String>();
         for ( int i = 0; i < BLOCK_SIZES.length; i++ ) {
             blockSelector_.addItem( Integer.toString( BLOCK_SIZES[ i ] ) );
         }
@@ -425,7 +426,7 @@ public class UploadMatchPanel extends JPanel {
             throw new IllegalArgumentException( "Bad blocksize: " + bfTxt );
         }
         UploadFindMode upMode =
-            (UploadFindMode) modeSelector_.getSelectedItem();
+            modeSelector_.getItemAt( modeSelector_.getSelectedIndex() );
         ServiceFindMode serviceMode = upMode.getServiceMode();
         long maxrec = MAXREC;
         String surl = CdsUploadMatcher.XMATCH_URL;
