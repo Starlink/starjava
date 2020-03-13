@@ -39,7 +39,6 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor (Starlink)
  * @since    25 Feb 2005
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class FilestoreTableSaveDialog implements TableSaveDialog {
 
     private final FilestoreChooser chooser_;
@@ -80,7 +79,7 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
     }
 
     public boolean showSaveDialog( Component parent, StarTableOutput sto,
-                                   ComboBoxModel formatModel, 
+                                   ComboBoxModel<String> formatModel, 
                                    StarTable[] tables ) {
         if ( popup_ != null ) {
             throw new IllegalStateException( "Dialogue already visible" );
@@ -125,7 +124,7 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
         final JProgressBar progBar_;
         final StarTableOutput sto_;
         final StarTable[] tables_;
-        final ComboBoxModel formatModel_;
+        final ComboBoxModel<String> formatModel_;
 
         /**
          * Constructs a new popup.
@@ -136,7 +135,7 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
          * @param  formatModel  comboboxmodel for selecting output format
          */
         FilestorePopup( Frame frame, StarTableOutput sto, StarTable[] tables,
-                        ComboBoxModel formatModel ) {
+                        ComboBoxModel<String> formatModel ) {
             super( frame, "Save Table", true );
             sto_ = sto;
             tables_ = tables;
@@ -168,7 +167,8 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
 
             JComponent formatBox = Box.createHorizontalBox();
             formatBox.add( new JLabel( "Output Format: " ) );
-            formatBox.add( new ShrinkWrapper( new JComboBox( formatModel ) ) );
+            formatBox.add( new ShrinkWrapper(
+                               new JComboBox<String>( formatModel ) ) );
             formatBox.add( Box.createHorizontalGlue() );
 
             JComponent controlBox = Box.createHorizontalBox();

@@ -20,10 +20,9 @@ import uk.ac.starlink.table.UCD;
  *
  * @author   Mark Taylor (Starlink)
  */
-@SuppressWarnings({"rawtypes","unchecked"})
 public class UCDSelector extends JPanel implements ItemListener {
 
-    private JComboBox comboBox;
+    private JComboBox<String> comboBox;
     private JLabel descriptionLabel;
 
     /**
@@ -35,7 +34,7 @@ public class UCDSelector extends JPanel implements ItemListener {
         descriptionLabel = new JLabel();
 
         /* Construct the JComboBox widget. */
-        comboBox = new JComboBox();
+        comboBox = new JComboBox<>();
         comboBox.setEditable( true );
         comboBox.addItem( null );
         for ( Iterator<UCD> it = UCD.getUCDs(); it.hasNext(); ) {
@@ -61,17 +60,7 @@ public class UCDSelector extends JPanel implements ItemListener {
      * ID into a UCD.
      */
     public String getID() {
-        Object item = comboBox.getSelectedItem();
-        if ( item == null ) {
-            return null;
-        }
-        else if ( item instanceof String ) {
-            return (String) item;
-        }
-        else {
-            throw new AssertionError( "Wasn't expecting a " +
-                                      item.getClass() + " (" + item + ")" );
-        }
+        return comboBox.getItemAt( comboBox.getSelectedIndex() );
     }
 
     /**

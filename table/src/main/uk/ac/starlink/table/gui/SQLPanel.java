@@ -31,12 +31,11 @@ import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
  *
  * @author   Mark Taylor (Starlink)
  */
-@SuppressWarnings({"rawtypes","unchecked"})
 public class SQLPanel extends JPanel {
 
     private LabelledComponentStack stack;
-    private JComboBox protoField;
-    private JComboBox hostField;
+    private JComboBox<String> protoField;
+    private JComboBox<String> hostField;
     private JTextField dbField;
     private JTextComponent refField;
     private JTextField tableField;
@@ -61,7 +60,7 @@ public class SQLPanel extends JPanel {
         Font inputFont = stack.getInputFont();
 
         /* Protocol input field. */
-        protoField = new JComboBox();
+        protoField = new JComboBox<String>();
         protoField.addItem( "" );
         protoField.addItem( "mysql" );
         protoField.addItem( "postgresql" );
@@ -70,7 +69,7 @@ public class SQLPanel extends JPanel {
         stack.addLine( "Protocol", "jdbc:", protoField );
         
         /* Host input field. */
-        hostField = new JComboBox();
+        hostField = new JComboBox<String>();
         hostField.addItem( "" );
         hostField.addItem( "localhost" );
         hostField.setEditable( true );

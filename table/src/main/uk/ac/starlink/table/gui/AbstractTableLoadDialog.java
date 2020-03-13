@@ -24,7 +24,6 @@ import uk.ac.starlink.table.StarTableFactory;
  * @author   Mark Taylor
  * @since    13 Sept 2010
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public abstract class AbstractTableLoadDialog implements TableLoadDialog {
 
     private final String name_;
@@ -162,8 +161,8 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
      *
      * @return  table format combo box
      */
-    public JComboBox createFormatSelector() {
-        return new JComboBox( formatSelectorModel_ );
+    public JComboBox<String> createFormatSelector() {
+        return new JComboBox<String>( formatSelectorModel_ );
     }
 
     /**
@@ -255,10 +254,10 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
      * ComboBoxModel for selecting table formats from the list of those known
      * by this dialogue.
      */
-    private class FormatComboBoxModel extends AbstractListModel
-                                      implements ComboBoxModel {
+    private class FormatComboBoxModel extends AbstractListModel<String>
+                                      implements ComboBoxModel<String> {
         private Object selected_;
-        public Object getElementAt( int ix ) {
+        public String getElementAt( int ix ) {
             return ix == 0 ? StarTableFactory.AUTO_HANDLER
                            : formats_[ ix - 1 ];
         }

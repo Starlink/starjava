@@ -46,10 +46,9 @@ import uk.ac.starlink.table.StarTableWriter;
  *
  * @author   Mark Taylor (Starlink)
  */
-@SuppressWarnings({"rawtypes","unchecked"})
 public abstract class TableSaveChooser extends JPanel {
 
-    private final JComboBox formatSelector_;
+    private final JComboBox<String> formatSelector_;
     private final JComponent[] activeComponents_;
     private final FilestoreChooser filestoreChooser_;
     private final List<Action> activeActionList_;
@@ -91,7 +90,7 @@ public abstract class TableSaveChooser extends JPanel {
         /* Construct and place format selector. */
         JComponent formatBox = Box.createHorizontalBox();
         formatBox.add( new JLabel( "Output Format: " ) );
-        formatSelector_ = new JComboBox() {
+        formatSelector_ = new JComboBox<String>() {
             public Dimension getMaximumSize() {
                 return getPreferredSize();
             }
@@ -207,11 +206,11 @@ public abstract class TableSaveChooser extends JPanel {
 
     /**
      * Returns the selector which chooses table output formats.
-     * Its model contains strings; it may be replaced.
+     * It may be replaced.
      *
      * @return  format selector
      */
-    public JComboBox getFormatSelector() {
+    public JComboBox<String> getFormatSelector() {
         return formatSelector_;
     }
 
@@ -445,9 +444,9 @@ public abstract class TableSaveChooser extends JPanel {
      *                false if only a single table will be written
      * @return   format combo box model
      */
-    public static ComboBoxModel makeFormatBoxModel( StarTableOutput sto,
-                                                    boolean multi ) {
-        DefaultComboBoxModel model = new DefaultComboBoxModel();
+    public static ComboBoxModel<String> makeFormatBoxModel( StarTableOutput sto,
+                                                            boolean multi ) {
+        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
         model.addElement( StarTableOutput.AUTO_HANDLER );
         for ( StarTableWriter handler : sto.getHandlers() ) {
             if ( ! multi || handler instanceof MultiStarTableWriter ) {

@@ -21,12 +21,11 @@ import uk.ac.starlink.table.jdbc.WriteMode;
  * A popup dialog for querying the user about the location of a new
  * JDBC table to write.
  */
-@SuppressWarnings({"rawtypes","unchecked"})
 public class SQLWriteDialog extends JPanel implements TableSaveDialog {
 
     private SQLPanel sqlPanel_;
     private JDialog dialog_; 
-    private JComboBox modeSelector_;
+    private JComboBox<WriteMode> modeSelector_;
     private static Icon icon_;
 
     /**
@@ -36,7 +35,7 @@ public class SQLWriteDialog extends JPanel implements TableSaveDialog {
         super( new BorderLayout() );
         sqlPanel_ = new SQLPanel( "Write New SQL Table", false );
         add( sqlPanel_, BorderLayout.CENTER );
-        modeSelector_ = new JComboBox( WriteMode.getAllModes() );
+        modeSelector_ = new JComboBox<WriteMode>( WriteMode.getAllModes() );
         modeSelector_.setSelectedItem( WriteMode.CREATE );
         sqlPanel_.getStack().addLine( "Write Mode", null, modeSelector_ );
     }
@@ -61,7 +60,7 @@ public class SQLWriteDialog extends JPanel implements TableSaveDialog {
     }
 
     public boolean showSaveDialog( Component parent, StarTableOutput sto,
-                                   ComboBoxModel formatModel,
+                                   ComboBoxModel<String> formatModel,
                                    StarTable[] tables ) {
         if ( tables.length != 1 ) {
             String[] msg = new String[] {
@@ -90,7 +89,8 @@ public class SQLWriteDialog extends JPanel implements TableSaveDialog {
                         assert tables.length == 1;
                         StarTable table = tables[ 0 ];
                         WriteMode mode =
-                            (WriteMode) modeSelector_.getSelectedItem();
+                            modeSelector_.getItemAt( modeSelector_
+                                                    .getSelectedIndex() );
                         Connection conn = null;
                         try {
                             conn = sqlPanel_.getConnector().getConnection();
