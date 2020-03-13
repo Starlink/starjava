@@ -39,7 +39,6 @@ import javax.swing.SwingConstants;
  * @author Peter W. Draper
  * @version $Id$
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class BasicFontChooser
     extends JDialog
 {
@@ -71,17 +70,17 @@ public class BasicFontChooser
     /**
      * List of possible styles.
      */
-    protected JComboBox styleBox = new JComboBox();
+    protected JComboBox<String> styleBox = new JComboBox<String>();
 
     /**
      * List of pre-selected sizes.
      */
-    protected JComboBox sizeBox = new JComboBox();
+    protected JComboBox<Integer> sizeBox = new JComboBox<Integer>();
 
     /**
      * List of all available fonts.
      */
-    protected JComboBox fontBox = new JComboBox();
+    protected JComboBox<String> fontBox = new JComboBox<String>();
 
     /**
      * Display of the currently selected font.

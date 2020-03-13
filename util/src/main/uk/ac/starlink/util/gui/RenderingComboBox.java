@@ -20,19 +20,19 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
  * @author   Mark Taylor
  * @since    12 Jan 2006
  */
-@SuppressWarnings({"rawtypes","unchecked"})
-public class RenderingComboBox extends JComboBox implements ListCellRenderer {
+public class RenderingComboBox<E> extends JComboBox<E>
+                                  implements ListCellRenderer<E> {
 
-    private final ListCellRenderer renderer_;
+    private final BasicComboBoxRenderer basicRenderer_;
 
     /**
      * Constructs a new combo box with a given model.
      *
      * @param  model   data model
      */
-    protected RenderingComboBox( ComboBoxModel model ) {
+    protected RenderingComboBox( ComboBoxModel<E> model ) {
         super( model );
-        renderer_ = new BasicComboBoxRenderer();
+        basicRenderer_ = new BasicComboBoxRenderer();
         setRenderer( this );
     }
 
@@ -41,15 +41,15 @@ public class RenderingComboBox extends JComboBox implements ListCellRenderer {
      *
      * @param  items  initial selection of items
      */
-    protected RenderingComboBox( Object[] items ) {
-        this( new DefaultComboBoxModel( items ) );
+    protected RenderingComboBox( E[] items ) {
+        this( new DefaultComboBoxModel<E>( items ) );
     }
 
     /**
      * Constructs a new combo box with a default data model.
      */
     protected RenderingComboBox() {
-        this( new DefaultComboBoxModel() );
+        this( new DefaultComboBoxModel<E>() );
     }
 
     /**
@@ -59,7 +59,7 @@ public class RenderingComboBox extends JComboBox implements ListCellRenderer {
      * @param  item  item
      * @return  textual label for item
      */
-    protected String getRendererText( Object item ) {
+    protected String getRendererText( E item ) {
         return item == null ? null : item.toString();
     }
 
@@ -70,19 +70,19 @@ public class RenderingComboBox extends JComboBox implements ListCellRenderer {
      * @param   item   item
      * @return   graphic label for item
      */
-    protected Icon getRendererIcon( Object item ) {
+    protected Icon getRendererIcon( E item ) {
         return null;
     }
 
     /**
      * Implements ListCellRenderer.
      */
-    public Component getListCellRendererComponent( JList list, Object value,
-                                                   int index,
+    public Component getListCellRendererComponent( JList<? extends E> list,
+                                                   E value, int index,
                                                    boolean isSelected,
                                                    boolean hasFocus ) {
-        Component c =
-            renderer_.getListCellRendererComponent( list, value, index,
+        Component c = basicRenderer_
+                     .getListCellRendererComponent( list, value, index,
                                                     isSelected, hasFocus );
         if ( c instanceof JLabel ) {
             ((JLabel) c).setText( getRendererText( value ) );

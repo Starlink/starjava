@@ -22,11 +22,10 @@ import javax.swing.UIManager;
  * @author   Mark Taylor
  * @since    14 Jul 2015
  */
-@SuppressWarnings({"unchecked","rawtypes"})
 public class ExampleSelectField extends JPanel {
 
     private final String exampleText_;
-    private final JComboBox comboBox_;
+    private final JComboBox<String> comboBox_;
     private final ComboBoxEditor editor_;
     private FocusListener focusListener_;
 
@@ -38,7 +37,7 @@ public class ExampleSelectField extends JPanel {
     public ExampleSelectField( String exampleText ) {
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
         exampleText_ = exampleText;
-        comboBox_ = new JComboBox();
+        comboBox_ = new JComboBox<String>();
         editor_ = comboBox_.getEditor();
         comboBox_.setEditable( true );
         comboBox_.addItem( "" );

@@ -23,10 +23,9 @@ import uk.ac.starlink.util.images.ImageHolder;
  * @author   Mark Taylor
  * @since    10 Nov 2005
  */
-@SuppressWarnings("rawtypes")
 public class ComboBoxBumper extends JPanel {
 
-    private final JComboBox comboBox_;
+    private final JComboBox<?> comboBox_;
     private final Action[] bumpActions_;
 
     /** Icon for decrement button. */
@@ -42,7 +41,7 @@ public class ComboBoxBumper extends JPanel {
      *
      * @param   comboBox  the combo box this will operate on
      */
-    public ComboBoxBumper( JComboBox comboBox ) {
+    public ComboBoxBumper( JComboBox<?> comboBox ) {
         comboBox_ = comboBox;
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
 

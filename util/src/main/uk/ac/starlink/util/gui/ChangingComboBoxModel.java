@@ -3,7 +3,10 @@ package uk.ac.starlink.util.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Vector;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -15,8 +18,7 @@ import javax.swing.event.ChangeListener;
  * @author   Mark Taylor
  * @since    6 Jun 2007
  */
-@SuppressWarnings({"unchecked","rawtypes"})
-public class ChangingComboBoxModel extends DefaultComboBoxModel {
+public class ChangingComboBoxModel<E> extends DefaultComboBoxModel<E> {
 
     private final Collection<ChangeListener> changeListeners_;
     private final Collection<ActionListener> actionListeners_;
@@ -25,7 +27,16 @@ public class ChangingComboBoxModel extends DefaultComboBoxModel {
      * Constructs an empty model.
      */
     public ChangingComboBoxModel() {
-        this( new Object[ 0 ] );
+        this( Collections.emptyList() );
+    }
+
+    /**
+     * Constructs a model with a given initial array of items.
+     *
+     * @param   items  initial list of items in the model
+     */
+    public ChangingComboBoxModel( E[] items ) {
+        this( Arrays.asList( items ) );
     }
 
     /**
@@ -33,8 +44,8 @@ public class ChangingComboBoxModel extends DefaultComboBoxModel {
      *
      * @param   items  initial list of items in the model
      */
-    public ChangingComboBoxModel( Object[] items ) {
-        super( items );
+    public ChangingComboBoxModel( Collection<E> items ) {
+        super( new Vector<E>( items ) );
         changeListeners_ = new ArrayList<ChangeListener>();
         actionListeners_ = new ArrayList<ActionListener>();
     }

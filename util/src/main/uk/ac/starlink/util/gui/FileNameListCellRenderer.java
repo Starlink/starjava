@@ -35,14 +35,13 @@ import javax.swing.JList;
  * @author Peter W. Draper
  * @version $Id$
  */
-@SuppressWarnings("rawtypes")
 public class FileNameListCellRenderer
     extends DefaultListCellRenderer
 {
     /**
      * The JComboBox hosting these rendering instances, if used.
      */
-    protected JComboBox parent = null;
+    protected JComboBox<?> parent = null;
 
     /**
      * Create an instance with default behaviour.
@@ -58,7 +57,7 @@ public class FileNameListCellRenderer
      * drop-down menu can be made the same size (otherwise long names are
      * allowed to extend past the visible right of the list).
      */
-    public FileNameListCellRenderer( JComboBox parent )
+    public FileNameListCellRenderer( JComboBox<?> parent )
     {
         super();
         this.parent = parent;
@@ -74,7 +73,7 @@ public class FileNameListCellRenderer
      * @param isSelected true if the specified cell was selected.
      * @param cellHasFocus true if the specified cell has the focus.
      */
-    public Component getListCellRendererComponent( JList list,
+    public Component getListCellRendererComponent( JList<?> list,
                                                    Object value,
                                                    int index,
                                                    boolean isSelected,
