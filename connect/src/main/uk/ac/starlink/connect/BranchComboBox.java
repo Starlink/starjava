@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
@@ -26,13 +27,12 @@ import javax.swing.filechooser.FileView;
  * JComboBox which allows selection of {@link Branch} objects.
  * For any branch in the box's model, all its ancestors are automatically
  * in the model too (this behaviour is inspired by widgets like
- * {@link javax.swing.JFileChooser}.
+ * {@link javax.swing.JFileChooser}).
  *
  * @author   Mark Taylor (Starlink)
  * @since    18 Feb 2005
  */
-@SuppressWarnings({"rawtypes","unchecked"})
-public class BranchComboBox extends JComboBox {
+public class BranchComboBox extends JComboBox<Branch> {
 
     private BranchComboBoxModel model_;
     private static FileView fileView_;
@@ -43,7 +43,7 @@ public class BranchComboBox extends JComboBox {
     public BranchComboBox() {
         super( new BranchComboBoxModel() );
         assert model_ instanceof BranchComboBoxModel;
-        setRenderer( new WrapperCellRenderer( getRenderer() ) );
+        setRenderer( new BranchCellRenderer() );
     }
 
     /**
@@ -53,7 +53,7 @@ public class BranchComboBox extends JComboBox {
      * @param  model  model
      * @throws  ClassCastException  if it's the wrong type
      */
-    public void setModel( ComboBoxModel model ) {
+    public void setModel( ComboBoxModel<Branch> model ) {
         model_ = (BranchComboBoxModel) model;
         super.setModel( model );
         Object selected = model.getSelectedItem();
@@ -139,8 +139,8 @@ public class BranchComboBox extends JComboBox {
     /**
      * Model for the combo box.
      */
-    private static class BranchComboBoxModel extends AbstractListModel
-                                             implements ComboBoxModel {
+    private static class BranchComboBoxModel extends AbstractListModel<Branch>
+                                             implements ComboBoxModel<Branch> {
 
         /* The basic data structure in which the model's data is held is
          * an array of N BranchHolder objects.
@@ -162,7 +162,7 @@ public class BranchComboBox extends JComboBox {
             return size;
         }
 
-        public Object getElementAt( int index ) {
+        public Branch getElementAt( int index ) {
             for ( int i = 0; i < holders_.length; i++ ) {
                 BranchHolder holder = holders_[ i ];
                 int depth = holder.getDepth();
@@ -280,19 +280,20 @@ public class BranchComboBox extends JComboBox {
     /**
      * Renderer used for a BranchComboBox.
      */
-    private static class WrapperCellRenderer implements ListCellRenderer {
+    private static class BranchCellRenderer
+            implements ListCellRenderer<Object> {
 
-        final ListCellRenderer baseRenderer_;
+        final DefaultListCellRenderer baseRenderer_;
         final static Icon FOLDER_ICON = UIManager.getIcon( "Tree.closedIcon" );
         final Icon ROOT_ICON =
             new ImageIcon( BranchComboBox.class.getResource( "disk.gif" ) );
 
-        public WrapperCellRenderer( ListCellRenderer base ) {
-            baseRenderer_ = base;
+        public BranchCellRenderer() {
+            baseRenderer_ = new DefaultListCellRenderer();
         }
 
-        public Component getListCellRendererComponent( JList list, Object value,
-                                                       int index,
+        public Component getListCellRendererComponent( JList<?> list,
+                                                       Object value, int index,
                                                        boolean isSelected,
                                                        boolean hasFocus ) {
             int depth = 0;
@@ -305,7 +306,7 @@ public class BranchComboBox extends JComboBox {
                     depth++;
                 }
 
-                ListModel model = list.getModel();
+                ListModel<?> model = list.getModel();
                 if ( model instanceof BranchComboBoxModel ) {
                     Icon icon = ((BranchComboBoxModel) model)
                                .getCustomIcon( branch );
@@ -508,6 +509,5 @@ public class BranchComboBox extends JComboBox {
             return getName();
         }
     }
-
 }
 

@@ -22,18 +22,20 @@ public class FileNodeTest extends TestCase {
         assertEquals( branch.getName(), dir.getName() );
         assertEquals( -1, branch.getName().indexOf( '/' ) );
         assertEquals( branch.toString(), dir.getCanonicalPath() );
-        Set fchildren = new HashSet( Arrays.asList( dir.listFiles() ) );
-        for ( Iterator it = fchildren.iterator(); it.hasNext(); ) {
-            if ( ((File) it.next()).isHidden() ) {
+        Set<File> fchildren =
+            new HashSet<File>( Arrays.asList( dir.listFiles() ) );
+        for ( Iterator<File> it = fchildren.iterator(); it.hasNext(); ) {
+            if ( it.next().isHidden() ) {
                 it.remove();
             }
         }
-        Set nchildren = new HashSet( Arrays.asList( branch.getChildren() ) );
+        Set<Node> nchildren =
+            new HashSet<Node>( Arrays.asList( branch.getChildren() ) );
         assertEquals( fchildren.size(), nchildren.size() );
         assertTrue( "Please run in a non-empty directory",
                     fchildren.size() > 0 );
-        for ( Iterator it = fchildren.iterator(); it.hasNext(); ) {
-            File f = (File) it.next();
+        for ( Iterator<File> it = fchildren.iterator(); it.hasNext(); ) {
+            File f = it.next();
             Node n = FileNode.createNode( f );
             assertTrue( nchildren.remove( n ) );
         }

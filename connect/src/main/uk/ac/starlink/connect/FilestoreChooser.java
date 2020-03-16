@@ -57,11 +57,10 @@ import javax.swing.event.ListSelectionListener;
  * @author   Mark Taylor (Starlink)
  * @since    18 Feb 2005
  */
-@SuppressWarnings({"unchecked","rawtypes","deprecation"})
 public class FilestoreChooser extends JPanel {
 
     private final BranchComboBox branchSelector_;
-    private final JList nodeList_;
+    private final JList<Node> nodeList_;
     private final JScrollPane scroller_;
     private final JTextField nameField_;
     private final JButton logButton_;
@@ -197,7 +196,7 @@ public class FilestoreChooser extends JPanel {
         main.add( logBox_, BorderLayout.NORTH );
 
         /* Main JList containing nodes in the current branch. */
-        nodeList_ = new JList();
+        nodeList_ = new JList<Node>();
         nodeList_.setCellRenderer( new NodeRenderer() );
         scroller_ = new JScrollPane( nodeList_ );
         scroller_.setBorder( BorderFactory.createCompoundBorder( gapBorder,
@@ -249,10 +248,10 @@ public class FilestoreChooser extends JPanel {
          * selected node, and vice versa. */
         nodeList_.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
-                Object[] selected = nodeList_.getSelectedValues();
+                List<Node> selected = nodeList_.getSelectedValuesList();
                 String text = null;
-                if ( selected.length == 1 ) {
-                    text = ((Node) selected[ 0 ]).getName();
+                if ( selected.size() == 1 ) {
+                    text = selected.get( 0 ).getName();
                     nameField_.setText( text );
                 }
             }
@@ -467,8 +466,7 @@ public class FilestoreChooser extends JPanel {
      * @return  array of selected nodes
      */
     public Node[] getSelectedNodes() {
-        return Arrays.asList( nodeList_.getSelectedValues() )
-                     .toArray( new Node[ 0 ] );
+        return nodeList_.getSelectedValuesList().toArray( new Node[ 0 ] );
     }
 
     /**
@@ -550,7 +548,7 @@ public class FilestoreChooser extends JPanel {
      *
      * @return   data model for this chooser
      */
-    public ComboBoxModel getModel() {
+    public ComboBoxModel<Branch> getModel() {
         return branchSelector_.getModel();
     }
 
@@ -558,13 +556,13 @@ public class FilestoreChooser extends JPanel {
      * Sets the model which contains the state of this chooser.
      * The object is the ComboBoxModel which defines the state of the
      * selector at the top of the window which selects the current branch.
-     * Note you can't just bung any old CombBoxModel in here; it must
+     * Note you can't just bung any old ComboBoxModel in here; it must
      * be one obtained from a {@link #getModel} call on another
      * <tt>FilestoreChooser</tt>.
      *
      * @param  model   data model to use
      */
-    public void setModel( ComboBoxModel model ) {
+    public void setModel( ComboBoxModel<Branch> model ) {
         branchSelector_.setModel( model );
     }
 
@@ -604,7 +602,8 @@ public class FilestoreChooser extends JPanel {
     private static class NodeRenderer extends DefaultListCellRenderer {
         private Icon branchIcon = UIManager.getIcon( "Tree.closedIcon" );
         private Icon leafIcon = UIManager.getIcon( "Tree.leafIcon" );
-        public Component getListCellRendererComponent( JList list, Object value,
+        public Component getListCellRendererComponent( JList<?> list,
+                                                       Object value,
                                                        int index, 
                                                        boolean isSelected,
                                                        boolean hasFocus ) {
