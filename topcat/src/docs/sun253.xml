@@ -389,7 +389,7 @@
   <!ENTITY FORM.poly4 '&IMG.FORM_POLYLINE; <ref id="form-poly4">Poly4</ref>'>
   <!ENTITY FORM.mark4 '&IMG.FORM_MARKS4; <ref id="form-mark4">Mark4</ref>'>
   <!ENTITY FORM.polygon '&IMG.FORM_POLYLINE;
-                         <ref id="form-polygon">Polgon</ref>'>
+                         <ref id="form-polygon">Polygon</ref>'>
   <!ENTITY GESTURE.DRAG1 '&IMG.DRAG1; Left drag'>
   <!ENTITY GESTURE.DRAG2 '&IMG.DRAG2; Center drag (SHIFT-drag)'>
   <!ENTITY GESTURE.DRAG3 '&IMG.DRAG3; Right drag (CTRL-drag)'>
