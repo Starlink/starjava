@@ -21,6 +21,7 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
     private final FloatingCoord dlonCoord_;
     private final FloatingCoord dlatCoord_;
     private final boolean preMultCosLat_;
+    private static final String DELTA = "Delta";
 
     /**
      * Constructor.
@@ -31,7 +32,9 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
     public SkyVectorCoordSet( boolean preMultCosLat ) {
         preMultCosLat_ = preMultCosLat;
         dlonCoord_ = FloatingCoord.createCoord(
-            new InputMeta( "dlon", "Delta Longitude" )
+            new InputMeta( "dlon",
+                           ( preMultCosLat ? DELTA + " Lon(*)"
+                                           : DELTA + " Lon" ) )
            .setShortDescription( "Change in longitude coordinate "
                                + ( preMultCosLat ? "" : "NOT " )
                                + "premultiplied by cos(lat)" )
@@ -46,7 +49,7 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
             } )
         , true );
         dlatCoord_ = FloatingCoord.createCoord(
-            new InputMeta( "dlat", "Delta Latitude" )
+            new InputMeta( "dlat", DELTA + " Lat" )
            .setShortDescription( "Change in latitude coordinate" )
            .setXmlDescription( new String[] {
                 "<p>Change in the latitude coordinate represented by",

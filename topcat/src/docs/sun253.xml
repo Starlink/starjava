@@ -10240,12 +10240,12 @@ This scaling can be adjusted or turned off using the
 <dt>Shading Mode</dt>
 <dd><p>See <ref id="ShapeMode"/>.
     </p></dd>
-<dt>Delta Longitude</dt>
+<dt>Delta Lon(*)</dt>
 <dd><p>Change in the longitude coordinate represented by the plotted vector.
     The supplied value is (if not auto-scaled) an angle in degrees,
     and <strong>is</strong> considered to be premultiplied by cos(Latitude).
     </p></dd>
-<dt>Delta Latitude</dt>
+<dt>Delta Lat</dt>
 <dd><p>Change in the latitude coordinate represented by the plotted vector.
     The supplied value is (if not auto-scaled) an angle in degrees.
     </p></dd>
@@ -29071,6 +29071,10 @@ introduced since the last version:
         <ref id="RegistryPanel">Registry Search Panel</ref>.
         Default is now Euro-VO, which still offers a working RI1.0
         service; the (moribund?) AstroGrid services are demoted.</li>
+    <li>Adjust coordinate labels for
+        <ref id="form-skyvector">SkyVector</ref> plot form,
+        to make it more obvious that cos(lat) premultiplication
+        is required for Delta Lon.</li>
     </ul>
     </p></dd>
 
