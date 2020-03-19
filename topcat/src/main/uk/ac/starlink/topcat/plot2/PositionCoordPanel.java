@@ -2,7 +2,8 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.util.ArrayList;
 import java.util.List;
-import uk.ac.starlink.table.DomainMapper;
+import java.util.function.Function;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -99,9 +100,8 @@ public abstract class PositionCoordPanel extends CoordPanel {
             public StorageType getStorageType() {
                 return baseCoord.getStorageType();
             }
-            public Object inputToStorage( Object[] userCoords,
-                                          DomainMapper[] userMappers ) {
-                return baseCoord.inputToStorage( userCoords, userMappers );
+            public Function<Object[],?> inputStorage( ValueInfo[] infos ) {
+                return baseCoord.inputStorage( infos );
             }
         };
     }

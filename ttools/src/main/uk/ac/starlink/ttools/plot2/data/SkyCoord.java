@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import uk.ac.starlink.table.DomainMapper;
+import java.util.function.Function;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
@@ -124,9 +125,8 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Object inputToStorage( Object[] values,
-                                      DomainMapper[] mappers ) {
-            return variant_.inputToDouble3( values );
+        public Function<Object[],double[]> inputStorage( ValueInfo[] infos ) {
+            return values -> variant_.inputToDouble3( values );
         }
 
         public boolean readSkyCoord( Tuple tuple, int icol, double[] v3 ) {
@@ -161,13 +161,14 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Object inputToStorage( Object[] values,
-                                      DomainMapper[] mappers ) {
-            double[] d3 = variant_.inputToDouble3( values );
-            return new float[] {
-                (float) d3[ 0 ],
-                (float) d3[ 1 ],
-                (float) d3[ 2 ],
+        public Function<Object[],float[]> inputStorage( ValueInfo[] infos ) {
+            return values -> {
+                double[] d3 = variant_.inputToDouble3( values );
+                return new float[] {
+                    (float) d3[ 0 ],
+                    (float) d3[ 1 ],
+                    (float) d3[ 2 ],
+                };
             };
         }
 
@@ -207,22 +208,23 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Object inputToStorage( Object[] values,
-                                      DomainMapper[] mappers ) {
-            double[] v3 = variant_.inputToDouble3( values );
-            if ( v3 == NO_SKY ) {
-                return ZERO3;
-            }
-            else {
-                /* out of range values are just pinned at
-                 * Integer.MIN/MAX_VALUE, which is OK -
-                 * a tiny error from 2^31-1 ~= 2^31 is acceptable. */
-                return new int[] {
-                    (int) ( SCALE * v3[ 0 ] ),
-                    (int) ( SCALE * v3[ 1 ] ),
-                    (int) ( SCALE * v3[ 2 ] ),
-                };
-            }
+        public Function<Object[],int[]> inputStorage( ValueInfo[] infos ) {
+            return values -> {
+                double[] v3 = variant_.inputToDouble3( values );
+                if ( v3 == NO_SKY ) {
+                    return ZERO3;
+                }
+                else {
+                    /* out of range values are just pinned at
+                     * Integer.MIN/MAX_VALUE, which is OK -
+                     * a tiny error from 2^31-1 ~= 2^31 is acceptable. */
+                    return new int[] {
+                        (int) ( SCALE * v3[ 0 ] ),
+                        (int) ( SCALE * v3[ 1 ] ),
+                        (int) ( SCALE * v3[ 2 ] ),
+                    };
+                }
+            };
         }
 
         public boolean readSkyCoord( Tuple tuple, int icol, double[] v3 ) {

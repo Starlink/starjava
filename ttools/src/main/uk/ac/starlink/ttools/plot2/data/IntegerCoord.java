@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import uk.ac.starlink.table.DomainMapper;
+import java.util.function.Function;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Coord implementation for integer values.
@@ -25,10 +26,11 @@ public class IntegerCoord extends SingleCoord {
         badval_ = itype.badval_;
     }
 
-    public Object inputToStorage( Object[] userValues,
-                                  DomainMapper[] mappers ) {
-        Object c = userValues[ 0 ];
-        return c instanceof Number ? ((Number) c) : badval_;
+    public Function<Object[],Number> inputStorage( ValueInfo[] infos ) {
+        return userValues -> {
+            Object c = userValues[ 0 ];
+            return c instanceof Number ? ((Number) c) : badval_;
+        };
     }
 
     /**

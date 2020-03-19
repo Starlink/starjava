@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import uk.ac.starlink.table.DomainMapper;
+import java.util.function.Function;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Coord implementation for String values.
@@ -20,9 +21,11 @@ public class StringCoord extends SingleCoord {
         super( meta, isRequired, Object.class, StorageType.STRING, null );
     }
 
-    public Object inputToStorage( Object[] values, DomainMapper[] mappers ) {
-        Object c = values[ 0 ];
-        return c == null ? "" : c.toString();
+    public Function<Object[],String> inputStorage( ValueInfo[] infos ) {
+        return values -> {
+            Object c = values[ 0 ];
+            return c == null ? "" : c.toString();
+        };
     }
 
     /**

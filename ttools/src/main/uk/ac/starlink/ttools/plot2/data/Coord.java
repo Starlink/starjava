@@ -1,12 +1,12 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import java.util.List;
-import uk.ac.starlink.table.DomainMapper;
+import java.util.function.Function;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Defines a coordinate quantity in terms of both the user's view of it
  * and its representation for use in plotting.
- * The {@link #inputToStorage} method translates between these
+ * The {@link #inputStorage} method provides translation between these
  * two representations.
  *
  * <p>An implementation of this class defines an additional
@@ -53,26 +53,18 @@ public interface Coord {
     StorageType getStorageType();
 
     /**
-     * Turns a quantity in the user view to a plotting view object.
-     * The return value is never null.
+     * Provides a function to turn a quantity in the user view to
+     * a plotting view object.
      *
-     * <p>The supplied parameters both correspond (have the same length as)
+     * <p>The supplied infos array corresponds to (has the same length as)
      * this object's Inputs array.
-     * For each Input, the corresponding element of the
-     * <code>inputValues</code> array gives the value obtained from
-     * the user-supplied data (matching {@link Input#getValueClass}),
-     * and the corresponding element of the <code>inputMappers</code>
-     * array gives a DomainMapper object
-     * (consistent with {@link Input#getDomain}).
-     * InputMappers may be null however, and in many cases,
-     * coordinates are not sensitive to domains,
-     * and for those cases implementations will ignore
-     * <code>inputMappers</code>.
+     * The returned function converts an array of per-input user values
+     * to a storable object of the type corresponding to the result of
+     * {@link #getStorageType}; the return value of the returned function
+     * is never null.
      *
-     * @param   inputValues  per-input values
-     * @param   inputMappers  per-input domain mappers, each may be null
-     * @return  object of the type corresponding to the result of
-     *          {@link #getStorageType}; not null
+     * @param   infos  per-input array of column input metadata
+     * @return   input values to storage object conversion function
      */
-    Object inputToStorage( Object[] inputValues, DomainMapper[] inputMappers );
+    Function<Object[],?> inputStorage( ValueInfo[] infos );
 }

@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import uk.ac.starlink.table.DomainMapper;
+import java.util.function.Function;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
@@ -77,59 +78,108 @@ public abstract class FloatingArrayCoord extends SingleCoord {
         if ( PlotUtil.storeFullPrecision() ) {
 
             /* Double precision implementation. */
+            final double[] d0 = new double[ 0 ];
             return new FloatingArrayCoord( meta, isRequired, true ) {
-
-                public Object inputToStorage( Object[] values,
-                                              DomainMapper[] mappers ) {
-                    Object a = values[ 0 ];
-                    final double[] da;
-                    if ( a instanceof double[] ) {
-                        da = (double[]) a;
+                public Function<Object[],double[]>
+                       inputStorage( ValueInfo[] infos ) {
+                    Class<?> clazz = infos[ 0 ].getContentClass();
+                    if ( double[].class.equals( clazz ) ) {
+                        return values -> {
+                            Object array = values[ 0 ];
+                            return array instanceof double[]
+                                 ? (double[]) array
+                                 : d0;
+                        };
                     }
-                    else if ( a instanceof float[] ) {
-                        float[] fa = (float[]) a;
-                        int n = fa.length;
-                        da = new double[ n ];
-                        for ( int i = 0; i < n; i++ ) {
-                            da[ i ] = fa[ i ];
-                        }
+                    else if ( float[].class.equals( clazz ) ) {
+                        return values -> {
+                            Object array = values[ 0 ];
+                            if ( array instanceof float[] ) {
+                                float[] fa = (float[]) array;
+                                int n = fa.length;
+                                double[] da = new double[ n ];
+                                for ( int i = 0; i < n; i++ ) {
+                                    da[ i ] = fa[ i ];
+                                }
+                                return da;
+                            }
+                            else {
+                                return d0;
+                            }
+                        };
                     }
-                    else if ( a instanceof long[] ) {
-                        long[] la = (long[]) a;
-                        int n = la.length;
-                        da = new double[ n ];
-                        for ( int i = 0; i < n; i++ ) {
-                            da[ i ] = la[ i ];
-                        }
+                    else if ( long[].class.equals( clazz ) ) {
+                        return values -> {
+                            Object array = values[ 0 ];
+                            if ( array instanceof long[] ) {
+                                long[] la = (long[]) array;
+                                int n = la.length;
+                                double[] da = new double[ n ];
+                                for ( int i = 0; i < n; i++ ) {
+                                    da[ i ] = (double) la[ i ];
+                                }
+                                return da;
+                            }
+                            else {
+                                return d0;
+                            }
+                        };
                     }
-                    else if ( a instanceof int[] ) {
-                        int[] ia = (int[]) a;
-                        int n = ia.length;
-                        da = new double[ n ];
-                        for ( int i = 0; i < n; i++ ) {
-                            da[ i ] = ia[ i ];
-                        }
+                    else if ( int[].class.equals( clazz ) ) { 
+                        return values -> {
+                            Object array = values[ 0 ];
+                            if ( array instanceof int[] ) {
+                                int[] ia = (int[]) array;
+                                int n = ia.length;
+                                double[] da = new double[ n ];
+                                for ( int i = 0; i < n; i++ ) {
+                                    da[ i ] = ia[ i ];
+                                }
+                                return da;
+                            }
+                            else {
+                                return d0;
+                            }
+                        };
                     }
-                    else if ( a instanceof short[] ) {
-                        short[] sa = (short[]) a;
-                        int n = sa.length;
-                        da = new double[ n ];
-                        for ( int i = 0; i < n; i++ ) {
-                            da[ i ] = sa[ i ];
-                        }
+                    else if ( short[].class.equals( clazz ) ) {
+                        return values -> {
+                            Object array = values[ 0 ];
+                            if ( array instanceof short[] ) {
+                                short[] sa = (short[]) array;
+                                int n = sa.length;
+                                double[] da = new double[ n ];
+                                for ( int i = 0; i < n; i++ ) {
+                                    da[ i ] = sa[ i ];
+                                }
+                                return da;
+                            }
+                            else {
+                                return d0;
+                            }
+                        };
                     }
-                    else if ( a instanceof byte[] ) {
-                        byte[] ba = (byte[]) a;
-                        int n = ba.length;
-                        da = new double[ n ];
-                        for ( int i = 0; i < n; i++ ) {
-                            da[ i ] = ba[ i ];
-                        }
+                    else if ( byte[].class.equals( clazz ) ) {
+                        return values -> {
+                            Object array = values[ 0 ];
+                            if ( array instanceof byte[] ) {
+                                byte[] ba = (byte[]) array;
+                                int n = ba.length;
+                                double[] da = new double[ n ];
+                                for ( int i = 0; i < n; i++ ) {
+                                    da[ i ] = ba[ i ];
+                                }
+                                return da;
+                            }
+                            else {
+                                return d0;
+                            }
+                        };
                     }
                     else {
-                        da = new double[ 0 ];
+                        assert false;
+                        return values -> d0;
                     }
-                    return da;
                 }
 
                 public int getArrayCoordLength( Tuple tuple, int icol ) {
@@ -145,58 +195,108 @@ public abstract class FloatingArrayCoord extends SingleCoord {
         else {
 
             /* Single precision implementation. */
-            return new FloatingArrayCoord( meta, isRequired, true ) {
-                public Object inputToStorage( Object[] values,
-                                              DomainMapper[] mappers ) {
-                    Object a = values[ 0 ];
-                    final float[] fa;
-                    if ( a instanceof float[] ) {
-                        fa = (float[]) a;
+            final float[] f0 = new float[ 0 ];
+            return new FloatingArrayCoord( meta, isRequired, false ) {
+                public Function<Object[],float[]>
+                        inputStorage( ValueInfo[] infos ) {
+                    Class<?> clazz = infos[ 0 ].getContentClass();
+                    if ( float[].class.equals( clazz ) ) {
+                        return values -> {
+                            Object array = values[ 0 ];
+                            return array instanceof float[]
+                                 ? (float[]) array
+                                 : f0;
+                        };
                     }
-                    else if ( a instanceof double[] ) {
-                        double[] da = (double[]) a;
-                        int n = da.length;
-                        fa = new float[ n ];
-                        for ( int i = 0; i < n; i++ ) {
-                            fa[ i ] = (float) da[ i ];
-                        }
+                    else if ( double[].class.equals( clazz ) ) {
+                        return values -> {
+                            Object array = values[ 0 ];
+                            if ( array instanceof double[] ) {
+                                double[] da = (double[]) array;
+                                int n = da.length;
+                                float[] fa = new float[ n ];
+                                for ( int i = 0; i < n; i++ ) {
+                                    fa[ i ] = (float) da[ i ];
+                                }
+                                return fa;
+                            }
+                            else {
+                                return f0;
+                            }
+                        };
                     }
-                    else if ( a instanceof long[] ) {
-                        long[] la = (long[]) a;
-                        int n = la.length;
-                        fa = new float[ n ];
-                        for ( int i = 0; i < n; i++ ) {
-                            fa[ i ] = (float) la[ i ];
-                        }
+                    else if ( long[].class.equals( clazz ) ) {
+                        return values -> {
+                            Object array = values[ 0 ];
+                            if ( array instanceof long[] ) {
+                                long[] la = (long[]) array;
+                                int n = la.length;
+                                float[] fa = new float[ n ];
+                                for ( int i = 0; i < n; i++ ) {
+                                    fa[ i ] = (float) la[ i ];
+                                }
+                                return fa;
+                            }
+                            else {
+                                return f0;
+                            }
+                        };
                     }
-                    else if ( a instanceof int[] ) {
-                        int[] ia = (int[]) a;
-                        int n = ia.length;
-                        fa = new float[ n ];
-                        for ( int i = 0; i < n; i++ ) {
-                            fa[ i ] = (float) ia[ i ];
-                        }
+                    else if ( int[].class.equals( clazz ) ) {
+                        return values -> {
+                            Object array = values[ 0 ];
+                            if ( array instanceof int[] ) {
+                                int[] ia = (int[]) array;
+                                int n = ia.length;
+                                float[] fa = new float[ n ];
+                                for ( int i = 0; i < n; i++ ) {
+                                    fa[ i ] = (float) ia[ i ];
+                                }
+                                return fa;
+                            }
+                            else {
+                                return f0;
+                            }
+                        };
                     }
-                    else if ( a instanceof short[] ) {
-                        short[] sa = (short[]) a;
-                        int n = sa.length;
-                        fa = new float[ n ];
-                        for ( int i = 0; i < n; i++ ) {
-                            fa[ i ] = (float) sa[ i ];
-                        }
+                    else if ( short[].class.equals( clazz ) ) {
+                        return values -> {
+                            Object array = values[ 0 ];
+                            if ( array instanceof short[] ) {
+                                short[] sa = (short[]) array;
+                                int n = sa.length;
+                                float[] fa = new float[ n ];
+                                for ( int i = 0; i < n; i++ ) {
+                                    fa[ i ] = sa[ i ];
+                                }
+                                return fa;
+                            }
+                            else {
+                                return f0;
+                            }
+                        };
                     }
-                    else if ( a instanceof byte[] ) {
-                        byte[] ba = (byte[]) a;
-                        int n = ba.length;
-                        fa = new float[ n ];
-                        for ( int i = 0; i < n; i++ ) {
-                            fa[ i ] = (float) ba[ i ];
-                        }
+                    else if ( byte[].class.equals( clazz ) ) {
+                        return values -> {
+                            Object array = values[ 0 ];
+                            if ( array instanceof byte[] ) {
+                                byte[] ba = (byte[]) array;
+                                int n = ba.length;
+                                float[] fa = new float[ n ];
+                                for ( int i = 0; i < n; i++ ) {
+                                    fa[ i ] = ba[ i ];
+                                }
+                                return fa;
+                            }
+                            else {
+                                return f0;
+                            }
+                        };
                     }
                     else {
-                        fa = new float[ 0 ];
+                        assert false;
+                        return values -> f0;
                     }
-                    return fa;
                 }
 
                 public int getArrayCoordLength( Tuple tuple, int icol ) {

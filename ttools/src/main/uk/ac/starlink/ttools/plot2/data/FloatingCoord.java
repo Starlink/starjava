@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.plot2.data;
 
+import java.util.function.Function;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.TimeMapper;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
@@ -55,10 +57,11 @@ public class FloatingCoord extends SingleCoord {
         nan_ = isDouble ? new Double( Double.NaN ) : new Float( Float.NaN );
     }
 
-    public Object inputToStorage( Object[] userValues,
-                                  DomainMapper[] mappers ) {
-        Object c = userValues[ 0 ];
-        return c instanceof Number ? ((Number) c) : nan_;
+    public Function<Object[],Number> inputStorage( ValueInfo[] infos ) {
+        return userValues -> {
+            Object c = userValues[ 0 ];
+            return c instanceof Number ? ((Number) c) : nan_;
+        };
     }
 
     /**
@@ -104,18 +107,18 @@ public class FloatingCoord extends SingleCoord {
         return new FloatingCoord( meta, isRequired, true,
                                   Object.class, TimeMapper.class ) {
             @Override
-            public Object inputToStorage( Object[] userValues,
-                                          DomainMapper[] mappers ) {
-                DomainMapper mapper = mappers[ 0 ];
-                Object userValue = userValues[ 0 ];
-                if ( mapper instanceof TimeMapper ) {
-                    return ((TimeMapper) mapper).toUnixSeconds( userValue );
+            public Function<Object[],Number> inputStorage( ValueInfo[] infos ) {
+                for ( DomainMapper mapper : infos[ 0 ].getDomainMappers() ) {
+                    if ( mapper instanceof TimeMapper ) {
+                        final TimeMapper tMapper = (TimeMapper) mapper;
+                        return userValues
+                               -> tMapper.toUnixSeconds( userValues[ 0 ] );
+                    }
                 }
-                else {
-                    return userValue instanceof Number
-                         ? ((Number) userValue)
-                         : nan;
-                }
+                return userValues -> {
+                    Object c = userValues[ 0 ];
+                    return c instanceof Number ? (Number) c : nan;
+                };
             }
         };
     }

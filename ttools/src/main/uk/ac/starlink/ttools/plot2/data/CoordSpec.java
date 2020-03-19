@@ -1,9 +1,10 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.io.IOException;
-import uk.ac.starlink.table.DomainMapper;
+import java.util.function.Function;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.Equality;
 
 /**
@@ -20,9 +21,9 @@ public class CoordSpec {
     private final UserDataReader dataReader_;
     private final StarTable table_;
     private final int icoord_;
-    private final Coord coord_;
     private final String coordId_;
-    private final DomainMapper[] mappers_;
+    private final StorageType storageType_;
+    private final Function<Object[],?> inputStorage_;
 
     /**
      * Constructor.
@@ -35,9 +36,10 @@ public class CoordSpec {
         icoord_ = icoord;
         table_ = dataSpec.getSourceTable();
         coordId_ = dataSpec.getCoordId( icoord );
-        coord_ = dataSpec.getCoord( icoord );
-        mappers_ = SimpleDataStoreFactory
-                  .getUserCoordMappers( dataSpec, icoord );
+        Coord coord = dataSpec.getCoord( icoord );
+        storageType_ = coord.getStorageType();
+        ValueInfo[] infos = dataSpec.getUserCoordInfos( icoord );
+        inputStorage_ = coord.inputStorage( infos );
     }
 
     /**
@@ -55,7 +57,7 @@ public class CoordSpec {
      * @return  storage type
      */
     public StorageType getStorageType() {
-        return coord_.getStorageType();
+        return storageType_;
     }
 
     /**
@@ -77,7 +79,7 @@ public class CoordSpec {
     public Object readValue( RowSequence rseq, long irow ) throws IOException {
         Object[] userCoords =
             dataReader_.getUserCoordValues( rseq, irow, icoord_ );
-        Object value = coord_.inputToStorage( userCoords, mappers_ );
+        Object value = inputStorage_.apply( userCoords );
         assert value != null;
         return value;
     }
