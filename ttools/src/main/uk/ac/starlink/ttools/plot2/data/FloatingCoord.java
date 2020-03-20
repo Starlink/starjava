@@ -47,13 +47,11 @@ public class FloatingCoord extends SingleCoord {
      * @param   isRequired  true if this coordinate is required for plotting
      * @param   isDouble  true for double precision, false for single
      * @param   inputClass   class of input coordinate quantity
-     * @param   domain  DomainMapper subtype for this coord, or null
      */
     private FloatingCoord( InputMeta meta, boolean isRequired,
-                           boolean isDouble, Class<?> inputClass,
-                           Class<? extends DomainMapper> domain ) {
+                           boolean isDouble, Class<?> inputClass ) {
         super( meta, isRequired, inputClass,
-               isDouble ? StorageType.DOUBLE : StorageType.FLOAT, domain );
+               isDouble ? StorageType.DOUBLE : StorageType.FLOAT );
         nan_ = isDouble ? new Double( Double.NaN ) : new Float( Float.NaN );
     }
 
@@ -88,8 +86,7 @@ public class FloatingCoord extends SingleCoord {
     public static FloatingCoord createCoord( InputMeta meta,
                                              boolean isRequired ) {
         return new FloatingCoord( meta, isRequired,
-                                  PlotUtil.storeFullPrecision(),
-                                  Number.class, null );
+                                  PlotUtil.storeFullPrecision(), Number.class );
     }
 
     /**
@@ -104,8 +101,7 @@ public class FloatingCoord extends SingleCoord {
     public static FloatingCoord createTimeCoord( InputMeta meta,
                                                  boolean isRequired ) {
         final Double nan = new Double( Double.NaN );
-        return new FloatingCoord( meta, isRequired, true,
-                                  Object.class, TimeMapper.class ) {
+        return new FloatingCoord( meta, isRequired, true, Object.class ) {
             @Override
             public Function<Object[],Number> inputStorage( ValueInfo[] infos ) {
                 for ( DomainMapper mapper : infos[ 0 ].getDomainMappers() ) {

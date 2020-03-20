@@ -280,8 +280,8 @@ public abstract class SkyCoord implements Coord {
                 new InputMeta( "lat", "Lat" )
                .setShortDescription( "Latitude in decimal degrees" )
                .setValueUsage( "deg" );
-            lonInput_ = new Input( lonMeta, Number.class, null );
-            latInput_ = new Input( latMeta, Number.class, null );
+            lonInput_ = new Input( lonMeta, Number.class );
+            latInput_ = new Input( latMeta, Number.class );
         }
 
         /**
@@ -343,7 +343,7 @@ public abstract class SkyCoord implements Coord {
             InputMeta meta =
                 new InputMeta( "r", "Radius" )
                .setShortDescription( "Radial distance" );
-            radiusInput_ = new Input( meta, Number.class, null );
+            radiusInput_ = new Input( meta, Number.class );
         }
         public Input[] getInputs() {
             return new Input[] { lonInput_, latInput_, radiusInput_ };

@@ -27,8 +27,7 @@ public abstract class FloatingArrayCoord extends SingleCoord {
     private FloatingArrayCoord( InputMeta meta, boolean isRequired,
                                 boolean isDouble ) {
         super( meta, isRequired, Object.class,
-               isDouble ? StorageType.DOUBLE_ARRAY : StorageType.FLOAT_ARRAY,
-               null );
+               isDouble ? StorageType.DOUBLE_ARRAY : StorageType.FLOAT_ARRAY );
     }
 
     /**

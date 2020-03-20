@@ -20,7 +20,7 @@ public class LongCoord extends SingleCoord {
      * @param   isRequired  true if this coordinate is required for plotting
      */
     public LongCoord( InputMeta meta, boolean isRequired ) {
-        super( meta, isRequired, Number.class, StorageType.LONG, null );
+        super( meta, isRequired, Number.class, StorageType.LONG );
         badval_ = Long.MIN_VALUE;
     }
 

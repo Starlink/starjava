@@ -18,7 +18,7 @@ public class BooleanCoord extends SingleCoord {
      * @param   isRequired  true if this coordinate is required for plotting
      */
     public BooleanCoord( InputMeta meta, boolean isRequired ) {
-        super( meta, isRequired, Boolean.class, StorageType.BOOLEAN, null );
+        super( meta, isRequired, Boolean.class, StorageType.BOOLEAN );
     }
 
     public Function<Object[],Boolean> inputStorage( ValueInfo[] infos ) {

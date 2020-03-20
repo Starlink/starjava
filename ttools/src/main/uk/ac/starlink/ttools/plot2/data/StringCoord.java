@@ -18,7 +18,7 @@ public class StringCoord extends SingleCoord {
      * @param   isRequired  true if this coordinate is required for plotting
      */
     public StringCoord( InputMeta meta, boolean isRequired ) {
-        super( meta, isRequired, Object.class, StorageType.STRING, null );
+        super( meta, isRequired, Object.class, StorageType.STRING );
     }
 
     public Function<Object[],String> inputStorage( ValueInfo[] infos ) {
