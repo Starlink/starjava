@@ -54,6 +54,7 @@ import uk.ac.starlink.ttools.plot2.layer.ModePlotter;
  */
 public class ModeFormControl extends FormControl {
 
+    private final List<Coord> excludeCoords_;
     private final Map<ModePlotter.Mode,ModeState> modeMap_;
     private final JComponent panel_;
     private final Specifier<ModePlotter.Mode> modeSpecifier_;
@@ -74,15 +75,20 @@ public class ModeFormControl extends FormControl {
      *                   for which this control gathers configuration
      * @param  subsetKeys  config keys which are managed on a per-subset
      *                     basis by some other component
+     * @param  excludeCoords  coordinates that may belong to the plotters but
+     *                        are taken care of elsewhere, and so should not
+     *                        be presented in this control
      */
     public ModeFormControl( Configger baseConfigger, ModePlotter<?>[] plotters,
-                            ConfigKey<?>[] subsetKeys ) {
+                            ConfigKey<?>[] subsetKeys, Coord[] excludeCoords ) {
         super( baseConfigger );
+        excludeCoords_ = Arrays.asList( excludeCoords );
         final ActionListener forwarder = getActionForwarder();
 
         /* Work out non-positional coordinates common to all modes
          * and prepare a panel for entering them. */
         List<Coord> commonExtraCoordList = getCommonCoords( plotters );
+        commonExtraCoordList.removeAll( excludeCoords_ );
         commonExtraCoordPanel_ =
             new CoordPanel( commonExtraCoordList.toArray( new Coord[ 0 ] ) );
         if ( ! commonExtraCoordList.isEmpty() ) {
@@ -104,6 +110,7 @@ public class ModeFormControl extends FormControl {
                 new ArrayList<Coord>( Arrays.asList( plotter.getCoordGroup()
                                                     .getExtraCoords() ) );
             coordList.removeAll( commonExtraCoordList );
+            coordList.removeAll( excludeCoords_ );
             Coord[] modeCoords = coordList.toArray( new Coord[ 0 ] );
 
             /* Get all config keys specific to this mode. */

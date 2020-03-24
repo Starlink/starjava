@@ -352,7 +352,8 @@ public class MultiFormLayerControl extends FormLayerControl {
      */
     private ModeFormControl createModeFormControl( ModePlotter<?>[] plotters ) {
         ModeFormControl fc =
-            new ModeFormControl( baseConfigger_, plotters, subsetKeys_ );
+            new ModeFormControl( baseConfigger_, plotters, subsetKeys_,
+                                 getPositionCoordPanel().getCoords() );
         fc.setTable( getTopcatModel(), getSubsetManager(), getSubsetStack() );
         return fc;
     }
