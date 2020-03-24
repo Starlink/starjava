@@ -79,8 +79,7 @@ public class VOStarTable extends AbstractStarTable {
                             + " (ties value to an external data model)" );
 
     /** ValueInfo for VOTable <tt>xtype</tt> attribute. */
-    public final static ValueInfo XTYPE_INFO = new DefaultValueInfo(
-        "xtype", String.class, "VOTable xtype attribute" );
+    public final static ValueInfo XTYPE_INFO = Tables.XTYPE_INFO;
 
     /** ValueInfo for VOTable <tt>width</tt> attribute. */
     public final static ValueInfo WIDTH_INFO = new DefaultValueInfo(

@@ -56,6 +56,10 @@ public class Tables {
         new DefaultValueInfo( "UBYTE_FLAG", Boolean.class,
                               "If true, data represents unsigned byte values" );
 
+    /** ValueInfo for Extended Type (VOTable <code>xtype</code>) attribute. */
+    public static final ValueInfo XTYPE_INFO = new DefaultValueInfo(
+        "xtype", String.class, "Extended type information" );
+
     /**
      * ValueInfo representing Right Ascension. 
      * The units are radians and it is non-nullable.
@@ -473,6 +477,22 @@ public class Tables {
     @Deprecated
     public static String getUtype( ValueInfo info ) {
         return info.getUtype();
+    }
+
+    /**
+     * Returns the extended type value associated with a given metadata item.
+     * The XType corresponds to the <code>xtype</code> attribute of
+     * the VOTable format.  Other table formats may or may not be able
+     * to represent it.
+     *
+     * @param  info  metadata item
+     * @return   xtype string, or null if none is available
+     */
+    public static String getXtype( ValueInfo info ) {
+        return info instanceof ColumnInfo
+             ? (String) ((ColumnInfo) info)
+                       .getAuxDatumValue( XTYPE_INFO, String.class )
+             : null;
     }
 
     /**

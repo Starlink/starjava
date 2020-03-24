@@ -1,9 +1,8 @@
 package uk.ac.starlink.ttools.convert;
 
 import java.util.regex.Pattern;
-import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.votable.VOStarTable;
 
 /**
  * Utility functions for converting between value types.
@@ -63,11 +62,7 @@ public class Conversions {
     public static ValueConverter getNumericConverter( final ValueInfo info ) {
         String units = info.getUnitString();
         String ucd = info.getUCD();
-        String xtype = info instanceof ColumnInfo
-                     ? (String) ((ColumnInfo) info)
-                               .getAuxDatumValue( VOStarTable.XTYPE_INFO,
-                                                  String.class )
-                     : null;
+        String xtype = Tables.getXtype( info );
         Class<?> clazz = info.getContentClass();
 
         /* If it's numeric, no problem. */
