@@ -240,10 +240,17 @@ public class CoordPanel {
                     cs.setEnabled( false );
                 }
                 else {
+                    final Input input = inputs[ ii ];
+                    ColumnDataComboBoxModel.Filter filter =
+                            new ColumnDataComboBoxModel.Filter() {
+                        public boolean acceptColumn( ValueInfo info ) {
+                            return input
+                                  .isClassAcceptable( info.getContentClass() );
+                        }
+                    };
                     ColumnDataComboBoxModel model =
-                        new ColumnDataComboBoxModel( tcModel,
-                                                     inputs[ ii ]
-                                                    .getValueClass(), true );
+                        new ColumnDataComboBoxModel( tcModel, filter, true,
+                                                     false );
                     cs.setModel( model );
                     cs.setEnabled( true );
 

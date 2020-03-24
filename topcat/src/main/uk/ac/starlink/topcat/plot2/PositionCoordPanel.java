@@ -87,7 +87,7 @@ public abstract class PositionCoordPanel extends CoordPanel {
             meta.setXmlDescription( meta0.getXmlDescription()
                                   + ( "<p>Applies to point "
                                     + iptxt + ".</p>" ) );
-            inputs[ ii ] = new Input( meta, input0.getValueClass() );
+            inputs[ ii ] = input0.withMeta( meta );
         }
         return new Coord() {
             public Input[] getInputs() {
