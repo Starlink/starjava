@@ -135,9 +135,10 @@ public class SubCloud {
                 assert ! cgrp.isSinglePartialPosition();
 
                 /* Add an entry. */
-                subClouds.addAll( Arrays
-                                 .asList( createSubClouds( geom, spec, npos,
-                                                           deduplicate ) ) );
+                for ( int ipos = 0; ipos < npos; ipos++ ) {
+                    int icPos = cgrp.getPosCoordIndex( ipos, geom );
+                    subClouds.add( new SubCloud( geom, spec, icPos ) );
+                }
 
                 /* Check consistency. */
                 int ndim = geom.getDataDimCount();
