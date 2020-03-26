@@ -1,11 +1,13 @@
 package uk.ac.starlink.topcat.plot2;
 
+import gnu.jel.CompilationException;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.ListModel;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -280,7 +282,54 @@ public class SkyPlotWindow
                     }
                 }
             }
+
+            /* If no success, try EPN-TAP convention. */
+            ColumnData[] epnCoords = getEpnCoords();
+            if ( epnCoords != null ) {
+                lonModel_.setSelectedItem( epnCoords[ 0 ] );
+                latModel_.setSelectedItem( epnCoords[ 1 ] );
+                return null;
+            }
             return null;
+        }
+
+        /**
+         * Attempts to return a lon/lat coordinate pair corresponding
+         * to the sky/planetary coordinates as per the EPN-TAP convention:
+         * the c1min, c1max, c2min and c2max columns give the lon/lat
+         * bounding box.
+         *
+         * @return  pair of lon/lat coordinate values corresponding to EPN-TAP
+         *          position, or null if they are not available
+         */
+        public ColumnData[] getEpnCoords() {
+
+            /* See whether the required columns are present. */
+            List<String> epnReqs =
+                    new ArrayList<>( Arrays.asList( new String[] {
+                "c1min", "c1max", "c2min", "c2max",
+            } ) );
+            for ( ValueInfo info : infos_ ) {
+                epnReqs.remove( info.getName() );
+            }
+
+            /* If so, attempt to return columns with expressions that
+             * correspond to the midpoint of the lon/lat bounding box. */
+            if ( epnReqs.size() == 0 ) {
+                try {
+                    return new ColumnData[] {
+                        lonModel_.stringToColumnData( "midLon(c1min, c1max)" ),
+                        latModel_.stringToColumnData( "midLat(c2min, c2max)" ),
+                    };
+                }
+                catch ( CompilationException e ) {
+                    assert false;
+                    return null;
+                }
+            }
+            else {
+                return null;
+            }
         }
 
         /**

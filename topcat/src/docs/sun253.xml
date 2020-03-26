@@ -29077,6 +29077,10 @@ introduced since the last version:
         is required for Delta Lon.</li>
     <li>Add new functions <code>midLon</code> and <code>midLat</code>
         to <ref id="Sky">Sky</ref> class.</li>
+    <li>The <ref id="SkyPlotWindow">Sky Plot</ref> position layer control
+        now automatically selects lon/lat coordinates for EPN-TAP tables
+        (<code>midLon(c1min,c1max)</code>,
+         <code>midLat(c2min,c2max)</code>) where available.</li>
     </ul>
     </p></dd>
 
