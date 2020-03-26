@@ -782,11 +782,7 @@ public class PlotUtil {
         else if ( iButt == MouseEvent.BUTTON2 ) {
             return 2;
         }
-        else if ( iButt == MouseEvent.NOBUTTON ) {
-            return 0;
-        }
-        else {
-            assert iButt == MouseEvent.BUTTON1;
+        else if ( iButt == MouseEvent.BUTTON1 ) {
             if ( ( exmods & InputEvent.CTRL_DOWN_MASK ) != 0 ) {
                 return 3;
             }
@@ -796,6 +792,13 @@ public class PlotUtil {
             else {
                 return 1;
             }
+        }
+        else if ( iButt == MouseEvent.NOBUTTON ) {
+            return 0;
+        }
+        else {
+            // non-standard button - ignore it
+            return 0;
         }
     }
 
