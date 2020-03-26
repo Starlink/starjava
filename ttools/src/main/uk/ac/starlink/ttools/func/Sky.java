@@ -39,6 +39,47 @@ public class Sky {
     }
 
     /**
+     * Determines the longitude mid-way between two given longitudes.
+     * In most cases this is just the mean of the two values,
+     * but this function copes correctly with the case where the
+     * given values straddle the lon=0 line.
+     *
+     * @example  <code>midLon(204.0, 203.5) = 203.75</code>
+     * @example  <code>midLon(2, 359) = 0.5</code>
+     *
+     * @param  lon1  first longitude in degrees
+     * @param  lon2  second longitude in degrees
+     * @return   longitude midway between the given values
+     */
+    public static double midLon( double lon1, double lon2 ) {
+        if ( Math.abs( lon2 - lon1 ) < 180 ) {
+            return 0.5 * ( lon1 + lon2 );
+        }
+        else {
+            double lon1a = ( ( lon1 + 180 ) % 360 ) - 180;
+            double lon2a = ( ( lon2 + 180 ) % 360 ) - 180;
+            assert Math.abs( lon2a - lon1a ) < 180;
+            return 0.5 * ( lon1a + lon2a );
+        }
+    }
+
+    /**
+     * Determines the latitude midway between two given latitudes.
+     * This simply returns the mean of the two values,
+     * but is supplied for convenience to use alongside
+     * the <code>midLon</code> function.
+     *
+     * @example  <code>midLat(23.5, 24.0) = 23.75</code>
+     *
+     * @param  lat1  first latitude in degrees
+     * @param  lat2  second latitude in degrees
+     * @return   latitude midway between the given values
+     */
+    public static double midLat( double lat1, double lat2 ) {
+        return 0.5 * ( lat1 + lat2 );
+    }
+
+    /**
      * Tests whether a given sky position is inside the polygon defined
      * by a given set of vertices.  The bounding lines of the polygon
      * are the minor arcs of great circles between adjacent vertices,

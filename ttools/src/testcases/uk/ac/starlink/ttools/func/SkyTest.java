@@ -28,6 +28,13 @@ public class SkyTest extends TableTestCase {
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
+    public void testMid() {
+        assertEquals( 203.75, Sky.midLon(204.0, 203.5) );
+        assertEquals( 0.5, Sky.midLon( 2, 359 ) );
+        assertEquals( 0.5, Sky.midLon( 359, 2 ) );
+        assertEquals( 23.75, Sky.midLat( 23.5, 24.0 ) );
+    }
+
     public void testSingles() {
         assertTrue( Sky.inSkyPolygon(36,4, 40,7, 36,9, 30,8, 29,2, 39,2) );
         assertFalse( Sky.inSkyPolygon(39,50, 40,7, 36,9, 30,8, 29,2, 39,2) );

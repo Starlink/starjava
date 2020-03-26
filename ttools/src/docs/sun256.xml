@@ -12385,6 +12385,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="cone"><code>cone</code></ref> and
         <ref id="coneskymatch"><code>coneskymatch</code></ref> commands
         (new option <code>servicetype=sia2</code>).</li>
+    <li>Add new functions <code>midLon</code> and <code>midLat</code>
+        to <ref id="uk.ac.starlink.ttools.func.Sky">Sky</ref> class.</li>
     </ul>
     </p></dd>
 

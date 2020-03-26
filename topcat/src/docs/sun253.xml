@@ -29075,6 +29075,8 @@ introduced since the last version:
         <ref id="form-skyvector">SkyVector</ref> plot form,
         to make it more obvious that cos(lat) premultiplication
         is required for Delta Lon.</li>
+    <li>Add new functions <code>midLon</code> and <code>midLat</code>
+        to <ref id="Sky">Sky</ref> class.</li>
     </ul>
     </p></dd>
 
