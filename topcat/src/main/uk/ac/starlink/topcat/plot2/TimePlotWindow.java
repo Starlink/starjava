@@ -116,6 +116,9 @@ public class TimePlotWindow
                 }
             };
         }
+        public PositionCoordPanel createAreaCoordPanel() {
+            throw new UnsupportedOperationException();
+        }
         public boolean hasPositions() {
             return true;
         }

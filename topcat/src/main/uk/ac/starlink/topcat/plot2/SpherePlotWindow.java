@@ -3,8 +3,13 @@ package uk.ac.starlink.topcat.plot2;
 import java.awt.Component;
 import javax.swing.ListModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.data.AreaCoord;
+import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.layer.AreaForm;
 import uk.ac.starlink.ttools.plot2.geom.CubeAspect;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.geom.SpherePlotType;
@@ -47,6 +52,15 @@ public class SpherePlotWindow
             return SimplePositionCoordPanel
                   .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
                                 null );
+        }
+        public PositionCoordPanel createAreaCoordPanel() {
+            return new AreaCoordPanel( AreaCoord.SPHERE_COORD,
+                                       new Coord[] { AreaForm.RADIAL_COORD },
+                                       new ConfigKey<?>[ 0 ] ) {
+                public DataGeom getDataGeom() {
+                    return PLOT_TYPE.getPointDataGeoms()[ 0 ];
+                }
+            };
         }
         public boolean hasPositions() {
             return true;

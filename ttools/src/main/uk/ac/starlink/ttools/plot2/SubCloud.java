@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import uk.ac.starlink.ttools.plot2.data.AreaCoord;
+import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -29,7 +31,7 @@ public class SubCloud {
     private final DataGeom geom_;
     private final DataSpec spec_;
     private final int iPosCoord_;
- 
+
     /**
      * Constructor.
      *
@@ -131,13 +133,22 @@ public class SubCloud {
             DataSpec spec = layer.getDataSpec();
             CoordGroup cgrp = layer.getPlotter().getCoordGroup();
             int npos = cgrp.getPositionCount();
-            if ( geom != null && spec != null && npos > 0 ) {
-                assert ! cgrp.isSinglePartialPosition();
+            Coord[] extraCoords = cgrp.getExtraCoords();
+            if ( geom != null && spec != null ) {
 
-                /* Add an entry. */
-                for ( int ipos = 0; ipos < npos; ipos++ ) {
-                    int icPos = cgrp.getPosCoordIndex( ipos, geom );
-                    subClouds.add( new SubCloud( geom, spec, icPos ) );
+                /* Add entries for layer with normal positional coordinates. */
+                if ( npos > 0 ) {
+                    assert ! cgrp.isSinglePartialPosition();
+                    for ( int ipos = 0; ipos < npos; ipos++ ) {
+                        int icPos = cgrp.getPosCoordIndex( ipos, geom );
+                        subClouds.add( new SubCloud( geom, spec, icPos ) );
+                    }
+                }
+
+                /* Add an entry for layer with an Area coordinate. */
+                else if ( extraCoords.length > 0 &&
+                          extraCoords[ 0 ] instanceof AreaCoord ) {
+                    subClouds.add( new SubCloud( geom, spec, 0 ) );
                 }
 
                 /* Check consistency. */

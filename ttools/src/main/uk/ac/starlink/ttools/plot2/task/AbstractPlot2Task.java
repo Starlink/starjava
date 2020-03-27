@@ -84,6 +84,7 @@ import uk.ac.starlink.ttools.plot2.config.KeySet;
 import uk.ac.starlink.ttools.plot2.config.LoggingConfigMap;
 import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.data.AreaCoord;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -1399,7 +1400,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         for ( Map.Entry<String,Plotter<?>> entry : plotterMap.entrySet() ) {
             String suffix = entry.getKey();
             Plotter<?> plotter = entry.getValue();
-            DataGeom geom = plotter.getCoordGroup().getPositionCount() > 0
+            CoordGroup cgrp = plotter.getCoordGroup();
+            DataGeom geom = cgrp.getPositionCount() > 0 ||
+                            ( cgrp.getExtraCoords().length > 0 &&
+                              cgrp.getExtraCoords()[ 0 ] instanceof AreaCoord )
                           ? context.getGeom( env, suffix )
                           : null;
             PlotLayer layer = createPlotLayer( env, suffix, plotter, geom );

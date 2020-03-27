@@ -486,6 +486,9 @@ public class HistogramPlotWindow
                   .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
                                 null );
         }
+        public PositionCoordPanel createAreaCoordPanel() {
+            throw new UnsupportedOperationException();
+        }
         public GangerFactory<PlaneSurfaceFactory.Profile,PlaneAspect>
                 getGangerFactory() {
             return SingleGanger.createFactory( PLOT_TYPE );

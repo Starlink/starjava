@@ -4,10 +4,14 @@ import java.awt.Component;
 import java.awt.Rectangle;
 import javax.swing.ListModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.PlotType;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.data.AreaCoord;
+import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
@@ -58,6 +62,14 @@ public class PlanePlotWindow
             return SimplePositionCoordPanel
                   .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
                                 XY_SPOTTERS );
+        }
+        public PositionCoordPanel createAreaCoordPanel() {
+            return new AreaCoordPanel( AreaCoord.PLANE_COORD, new Coord[ 0 ],
+                                       new ConfigKey<?>[ 0 ] ) {
+                public DataGeom getDataGeom() {
+                    return PLOT_TYPE.getPointDataGeoms()[ 0 ];
+                }
+            };
         }
         public boolean hasPositions() {
             return true;

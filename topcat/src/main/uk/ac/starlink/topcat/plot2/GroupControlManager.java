@@ -29,6 +29,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.data.AreaCoord;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
@@ -308,7 +309,6 @@ public class GroupControlManager<P,A> implements ControlManager {
             throws LayerException {
 
         /* Create the control. */
-        int npos = lcmd.getPlotter().getCoordGroup().getPositionCount();
         CoordsType ctyp = CoordsType.getInstance( lcmd.getPlotter() );
         MultiFormLayerControl control = createGroupControl( ctyp, false );
 
@@ -406,6 +406,15 @@ public class GroupControlManager<P,A> implements ControlManager {
                     createPositionCoordPanel( PlotType<P,A> plotType,
                                               PlotTypeGui<P,A> plotTypeGui ) {
                 return plotTypeGui.createPositionCoordPanel( 2 );
+            }
+        },
+
+        /** Plotter with shape information but no positional coordinate. */
+        AREA( ResourceIcon.PLOT_AREA, "Area", "area", true ) {
+            public <P,A> PositionCoordPanel
+                    createPositionCoordPanel( PlotType<P,A> plotType,
+                                              PlotTypeGui<P,A> plotTypeGui ) {
+                return plotTypeGui.createAreaCoordPanel();
             }
         },
 
@@ -518,6 +527,7 @@ public class GroupControlManager<P,A> implements ControlManager {
         public static CoordsType getInstance( Plotter<?> plotter ) {
             CoordGroup cgrp = plotter.getCoordGroup();
             int npos = cgrp.getPositionCount();
+            Coord[] extraCoords = cgrp.getExtraCoords();
 
             /* Treat HealpixPlotter as a special case since although it has
              * positional coordinates, they are not the standard coordinates
@@ -534,6 +544,11 @@ public class GroupControlManager<P,A> implements ControlManager {
 
             /* For other layer types, examine their declared characteristics
              * to decide how they are categorised. */
+            else if ( npos == 0 &&
+                      extraCoords.length > 0 &&
+                      extraCoords[ 0 ] instanceof AreaCoord ) {
+                return CoordsType.AREA;
+            }
             else if ( npos == 1 ) {
                 return CoordsType.SINGLE_POS;
             }

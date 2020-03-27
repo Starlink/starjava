@@ -27,6 +27,17 @@ public interface PlotTypeGui<P,A> {
     PositionCoordPanel createPositionCoordPanel( int npos );
 
     /**
+     * Returns a user panel for entering Area coordinates.
+     * If this plot type does not support Area coordinates,
+     * an UnsupportedOperationException may be thrown.
+     *
+     * @return  new area position entry panel for this plot type
+     * @throws  UnsupportedOperationException if plot type doesn't support
+     *                                        area coordinates
+     */
+    PositionCoordPanel createAreaCoordPanel();
+
+    /**
      * Indicates whether this plot type supports selectable point positions.
      * Normally the return is true, but if this plot type never plots
      * points that can be identified by a screen X,Y position, return false.

@@ -58,6 +58,9 @@ public class CubePlotWindow
                   .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
                                 XYZ_SPOTTERS );
         }
+        public PositionCoordPanel createAreaCoordPanel() {
+            throw new UnsupportedOperationException();
+        }
         public boolean hasPositions() {
             return true;
         }

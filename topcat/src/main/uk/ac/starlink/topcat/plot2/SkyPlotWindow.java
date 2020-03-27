@@ -17,6 +17,8 @@ import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
+import uk.ac.starlink.ttools.plot2.data.AreaCoord;
+import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.geom.SkyAspect;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
@@ -72,6 +74,22 @@ public class SkyPlotWindow
             return new SkyPositionCoordPanel( npos ) {
                 SkySys getViewSystem() {
                     return axisController_.getViewSystem();
+                }
+            };
+        }
+
+        public PositionCoordPanel createAreaCoordPanel() {
+            return new AreaCoordPanel( AreaCoord.SKY_COORD, new Coord[ 0 ],
+                                       new ConfigKey<?>[] { DATASYS_KEY } ) {
+                final Specifier<SkySys> dataSysSpecifier_;
+                /* Constructor. */ {
+                    dataSysSpecifier_ = 
+                        getConfigSpecifier().getSpecifier( DATASYS_KEY );
+                }
+                public DataGeom getDataGeom() {
+                    return SkyDataGeom
+                          .createGeom( dataSysSpecifier_.getSpecifiedValue(),
+                                       axisController_.getViewSystem() );
                 }
             };
         }

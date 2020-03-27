@@ -11,6 +11,7 @@ import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.layer.AreaForm;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.CartesianVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
@@ -131,6 +132,7 @@ public class PlanePlotType
             PolygonForms.QUAD,
             MarkForm.QUAD,
             PolygonForms.ARRAY,
+            AreaForm.PLANE_INSTANCE,
         };
         Plotter<?>[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
