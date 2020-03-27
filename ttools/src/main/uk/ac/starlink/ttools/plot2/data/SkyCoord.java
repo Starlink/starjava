@@ -108,6 +108,16 @@ public abstract class SkyCoord implements Coord {
     }
 
     /**
+     * Returns an InputMeta for acquiring a radial distance.
+     *
+     * @return  new radial distance input metadata object
+     */
+    public static InputMeta createRadiusInputMeta() {
+        return new InputMeta( "r", "Radius" )
+              .setShortDescription( "Radial distance" );
+    }
+
+    /**
      * SkyCoord implementation that uses a triple of double precision values.
      */
     private static class DoubleSkyCoord extends SkyCoord {
@@ -340,10 +350,7 @@ public abstract class SkyCoord implements Coord {
         private final Input radiusInput_;
         VolumeSkyVariant() {
             super( true );
-            InputMeta meta =
-                new InputMeta( "r", "Radius" )
-               .setShortDescription( "Radial distance" );
-            radiusInput_ = new Input( meta, Number.class );
+            radiusInput_ = new Input( createRadiusInputMeta(), Number.class );
         }
         public Input[] getInputs() {
             return new Input[] { lonInput_, latInput_, radiusInput_ };

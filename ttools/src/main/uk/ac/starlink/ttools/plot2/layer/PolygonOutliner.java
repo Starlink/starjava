@@ -16,7 +16,10 @@ import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.data.Area;
+import uk.ac.starlink.ttools.plot2.data.AreaCoord;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.CubeDataGeom;
@@ -43,6 +46,34 @@ public class PolygonOutliner extends PixOutliner {
     private final PolygonMode.Glypher polyGlypher_;
     private final VertexReaderFactory vrfact_;
     private final Icon icon_;
+
+    /* Set up lookup tables for plotting circles. */
+    private static final int NVERTEX_CIRCLE = 36;
+    private static final double[] COSS;
+    private static final double[] SINS;
+    static {
+        COSS = new double[ NVERTEX_CIRCLE ];
+        SINS = new double[ NVERTEX_CIRCLE ];
+        double thetaFact = 2 * Math.PI / NVERTEX_CIRCLE;
+        for ( int iv = 0; iv < NVERTEX_CIRCLE; iv++ ) {
+            double theta = iv * thetaFact;
+            COSS[ iv ] = Math.cos( theta );
+            SINS[ iv ] = Math.sin( theta );
+        }
+    }
+
+    /** VertexData instance with no content. */
+    private static final VertexData NO_VERTEX_DATA = new VertexData() {
+        public int getVertexCount() {
+            return 0;
+        }
+        public boolean readDataPos( int ivert, double[] dpos ) {
+            return false;
+        }
+        public boolean isBreak( int ivert ) {
+            return false;
+        }
+    };
 
     /**
      * Constructor.
@@ -90,7 +121,6 @@ public class PolygonOutliner extends PixOutliner {
         int ndim = surf.getDataDimCount();
         final double[] dpos0 = new double[ ndim ];
         final double[] dpos = new double[ ndim ];
-        final Point2D.Double gpos0 = new Point2D.Double();
         final Point2D.Double gpos = new Point2D.Double();
         final Point igpos = new Point();
         final Glyph pointGlyph = XYShape.POINT;
@@ -101,67 +131,114 @@ public class PolygonOutliner extends PixOutliner {
                 /* Get the position of the first vertex in integer
                  * (rounded) graphics coordinates. */
                 if ( vdata.readDataPos( 0, dpos0 ) &&
-                     surf.dataToGraphics( dpos0, false, gpos0 ) &&
-                     PlotUtil.isPointFinite( gpos0 ) ) {
+                     surf.dataToGraphics( dpos0, false, gpos ) &&
+                     PlotUtil.isPointFinite( gpos ) ) {
                     int np = vdata.getVertexCount();
+                    int jp = 0;
                     if ( np > 0 ) {
                         int[] gxs = new int[ np ];
                         int[] gys = new int[ np ];
-                        PlotUtil.quantisePoint( gpos0, igpos );
-                        gxs[ 0 ] = igpos.x;
-                        gys[ 0 ] = igpos.y;
+                        PlotUtil.quantisePoint( gpos, igpos );
+                        gxs[ jp ] = igpos.x;
+                        gys[ jp ] = igpos.y;
+                        jp++;
 
-                        /* Get the graphics positions of the other vertices.
-                         * Reject the polygon if there is no continuous line
-                         * between the first vertex and each of the others.
-                         * This is to defend against drawing polygons going the
-                         * wrong way around the sphere in sky plots. */
+                        /* Get the graphics positions of the other vertices. */
                         for ( int ip = 1; ip < np; ip++ ) {
-                            if ( vdata.readDataPos( ip, dpos ) &&
-                                 surf.dataToGraphics( dpos, false, gpos ) &&
-                                 surf.isContinuousLine( dpos0, dpos ) &&
-                                 PlotUtil.isPointFinite( gpos ) ) {
+
+                            /* If this vertex is a break, draw what we have
+                             * and prepare to accumulate vertices for
+                             * the next one. */
+                            if ( vdata.isBreak( ip ) ) {
+                                paintPoly( gxs, gys, jp, color, paper );
+                                ip++;
+                                if ( ip < np &&
+                                     vdata.readDataPos( ip, dpos0 ) &&
+                                     surf.dataToGraphics( dpos0, false, gpos )&&
+                                     PlotUtil.isPointFinite( gpos ) ) {
+                                    jp = 0;
+                                    PlotUtil.quantisePoint( gpos, igpos );
+                                    gxs[ jp ] = igpos.x;
+                                    gys[ jp ] = igpos.y;
+                                    jp++;
+                                }
+                                else {
+                                    return;
+                                }
+                            }
+
+                            /* Get the next graphics position.
+                             * Reject the polygon if there is no continuous
+                             * line between the first vertex and each
+                             * of the others.  This is to defend against
+                             * drawing polygons going the wrong way around
+                             * the sphere in sky plots. */
+                            else if ( vdata.readDataPos( ip, dpos )
+                                   && surf.dataToGraphics( dpos, false, gpos )
+                                   && surf.isContinuousLine( dpos0, dpos )
+                                   && PlotUtil.isPointFinite( gpos ) ) {
                                 PlotUtil.quantisePoint( gpos, igpos );
-                                gxs[ ip ] = igpos.x;
-                                gys[ ip ] = igpos.y;
+                                gxs[ jp ] = igpos.x;
+                                gys[ jp ] = igpos.y;
+                                jp++;
                             }
                             else {
                                 return;
                             }
                         }
 
-                        /* Work out the bounds of the graphics rectangle
-                         * enclosing the polygon. */
-                        int gxMin = bxMax;
-                        int gxMax = bxMin;
-                        int gyMin = byMax;
-                        int gyMax = byMin;
-                        for ( int ip = 0; ip < np; ip++ ) {
-                            int gx = gxs[ ip ];
-                            int gy = gys[ ip ];
-                            gxMin = Math.min( gxMin, gx );
-                            gxMax = Math.max( gxMax, gx );
-                            gyMin = Math.min( gyMin, gy );
-                            gyMax = Math.max( gyMax, gy );
+                        /* We have the vertices in graphics space,
+                         * paint a figure as appropriate. */
+                        if ( jp > 0 ) {
+                            paintPoly( gxs, gys, jp, color, paper );
                         }
+                    }
+                }
+            }
 
-                        /* If the bounds are outside the plot, do nothing.
-                         * If the bounds are all the same (in integer
-                         * graphics coordinates), the polygon can be
-                         * represented cheaply as a single point.
-                         * Otherwise, draw it properly. */
-                        if ( gxMax >= bxMin && gxMin <= bxMax &&
-                             gyMax >= byMin && gyMin <= byMax ) {
-                            if ( gxMin == gxMax && gyMin == gyMax ) {
-                                paperType.placeGlyph( paper, gxMin, gyMin,
-                                                      pointGlyph, color );
-                            }
-                            else {
-                                polyGlypher_.placeGlyphs2D( paperType, paper,
-                                                            gxs, gys, np,
-                                                            color );
-                            }
-                        }
+            /**
+             * Does the painting of a single polygon given its vertices
+             * in graphics coordinates.
+             *
+             * @param  gxs  graphics X coordinates
+             * @param  gys  graphics Y coordinates
+             * @param  np  number of vertices forming closed polygon
+             * @param  color  plotting colour
+             * @param  paper  paper
+             */
+            private void paintPoly( int[] gxs, int[] gys, int np,
+                                    Color color, Paper paper ) {
+
+                /* Work out the bounds of the graphics rectangle
+                 * enclosing the polygon. */
+                int gxMin = bxMax;
+                int gxMax = bxMin;
+                int gyMin = byMax;
+                int gyMax = byMin;
+                for ( int ip = 0; ip < np; ip++ ) {
+                    int gx = gxs[ ip ];
+                    int gy = gys[ ip ];
+                    gxMin = Math.min( gxMin, gx );
+                    gxMax = Math.max( gxMax, gx );
+                    gyMin = Math.min( gyMin, gy );
+                    gyMax = Math.max( gyMax, gy );
+                }
+
+                /* If the bounds are outside the plot, do nothing.
+                 * If the bounds are all the same (in integer
+                 * graphics coordinates), the polygon can be
+                 * represented cheaply as a single point.
+                 * Otherwise, draw it properly. */
+                if ( gxMax >= bxMin && gxMin <= bxMax &&
+                     gyMax >= byMin && gyMin <= byMax ) {
+                    if ( gxMin == gxMax && gyMin == gyMax ) {
+                        paperType.placeGlyph( paper, gxMin, gyMin,
+                                              pointGlyph, color );
+                    }
+                    else {
+                        polyGlypher_.placeGlyphs2D( paperType, paper,
+                                                    gxs, gys, np,
+                                                    color );
                     }
                 }
             }
@@ -189,23 +266,35 @@ public class PolygonOutliner extends PixOutliner {
                 if ( np > 0 ) {
                     int[] gxs = new int[ np ];
                     int[] gys = new int[ np ];
-                    double sz = 0;
 
-                    /* Read all the vertex positions in graphics space.
-                     * In this case we only accept polygons for which all
-                     * vertices are visible within the 3d plot bounds,
-                     * because of the difficulty of partially clipping
-                     * polygons in 3d.  This means that polygons near the
-                     * edge of the visible cube may not be painted.
-                     * 3d plots don't have the possibility of discontinuous
-                     * lines, so we don't need to defend against that here. */
+                    /* Read all the vertex positions in graphics space. */
+                    int jp = 0;
+                    double sz = 0;
                     for ( int ip = 0; ip < np; ip++ ) {
-                        if ( vdata.readDataPos( ip, dpos ) &&
-                             surf.dataToGraphicZ( dpos, true, gpos ) &&
-                             PlotUtil.isPointFinite( gpos ) ) {
+
+                        /* If this vertex is a break, draw what we have and
+                         * prepare to accumulate vertices for the next one. */
+                        if ( vdata.isBreak( ip ) ) {
+                            double gz = sz / np;
+                            paintPoly( gxs, gys, jp, gz, color, paper );
+                            jp = 0;
+                            sz = 0;
+                        }
+
+                        /* For 3d we only accept polygons for which all
+                         * vertices are visible within the 3d plot bounds,
+                         * because of the difficulty of partially clipping
+                         * polygons in 3d.  This means that polygons near the
+                         * edge of the visible cube may not be painted.
+                         * 3d plots don't have the possibility of discontinuous
+                         * lines, so we don't need to defend against that. */
+                        else if ( vdata.readDataPos( ip, dpos ) &&
+                                  surf.dataToGraphicZ( dpos, true, gpos ) &&
+                                  PlotUtil.isPointFinite( gpos ) ) {
                             PlotUtil.quantisePoint( gpos, igpos );
-                            gxs[ ip ] = igpos.x;
-                            gys[ ip ] = igpos.y;
+                            gxs[ jp ] = igpos.x;
+                            gys[ jp ] = igpos.y;
+                            jp++;
                             sz += gpos.z;
                         }
                         else {
@@ -213,37 +302,59 @@ public class PolygonOutliner extends PixOutliner {
                         }
                     }
 
-                    /* Work out the bounding box in the two graphics dimensions
-                     * for the polygon. */
-                    int gxMin = bxMax;
-                    int gxMax = bxMin;
-                    int gyMin = byMax;
-                    int gyMax = byMin;
-                    for ( int ip = 0; ip < np; ip++ ) {
-                        int gx = gxs[ ip ];
-                        int gy = gys[ ip ];
-                        gxMin = Math.min( gxMin, gx );
-                        gxMax = Math.max( gxMax, gx );
-                        gyMin = Math.min( gyMin, gy );
-                        gyMax = Math.max( gyMax, gy );
+                    /* We have the vertices in graphics space,
+                     * paint a figure as appropriate. */
+                    if ( jp > 0 ) {
+                        double gz = sz / jp;
+                        paintPoly( gxs, gys, jp, gz, color, paper );
                     }
+                }
+            }
 
-                    /* If it falls within the graphics bounds, plot it at the
-                     * mean Z coordinate of all the vertices.  This is a fudge,
-                     * but it's the best we can easily do.  Take a short cut
-                     * if it's a point. */
-                    if ( gxMax >= bxMin && gxMin <= bxMax &&
-                         gyMax >= byMin && gyMin <= byMax ) {
-                        double gz = sz / np;
-                        if ( gxMin == gxMax && gyMin == gyMax ) {
-                            paperType.placeGlyph( paper, gxMin, gyMin, gz,
-                                                  pointGlyph, color );
-                        }
-                        else {
-                            polyGlypher_.placeGlyphs3D( paperType, paper,
-                                                        gxs, gys, np, gz,
-                                                        color );
-                        }
+            /**
+             * Does the painting of a single polygon given its vertices
+             * in graphics coordinates.
+             *
+             * @param  gxs  graphics X coordinates
+             * @param  gys  graphics Y coordinates
+             * @param  np  number of vertices forming closed polygon
+             * @param  gz   representative Z coordinate for the polygon;
+             *              using the same Z for all the vertices is a fudge,
+             *              but it's the best we can do
+             * @param  color  plotting colour
+             * @param  paper  paper
+             */
+            private void paintPoly( int[] gxs, int[] gys, int np, double gz,
+                                    Color color, Paper paper ) {
+                /* Work out the bounding box in the two graphics dimensions
+                 * for the polygon. */
+                int gxMin = bxMax;
+                int gxMax = bxMin;
+                int gyMin = byMax;
+                int gyMax = byMin;
+                for ( int ip = 0; ip < np; ip++ ) {
+                    int gx = gxs[ ip ];
+                    int gy = gys[ ip ];
+                    gxMin = Math.min( gxMin, gx );
+                    gxMax = Math.max( gxMax, gx );
+                    gyMin = Math.min( gyMin, gy );
+                    gyMax = Math.max( gyMax, gy );
+                }
+
+                /* If it falls within the graphics bounds, plot it at the
+                 * mean Z coordinate of all the vertices.  This is a fudge,
+                 * but it's the best we can easily do.  Take a short cut
+                 * if it's a point. */
+                if ( gxMax >= bxMin && gxMin <= bxMax &&
+                     gyMax >= byMin && gyMin <= byMax ) {
+                    if ( gxMin == gxMax && gyMin == gyMax ) {
+                        paperType.placeGlyph( paper, gxMin, gyMin, gz,
+                                              pointGlyph, color );
+                    }
+                    else {
+                        polyGlypher_.placeGlyphs3D( paperType, paper,
+                                                    gxs, gys, np, gz,
+                                                    color );
                     }
                 }
             }
@@ -284,6 +395,59 @@ public class PolygonOutliner extends PixOutliner {
     }
 
     /**
+     * Returns an outliner for drawing Area objects to a Plane plot.
+     *
+     * @param  coord  coordinate for reading area objects
+     * @param  icArea   coordinate index in tuple for area coordinate
+     * @param  polyGlypher  polygon painter
+     * @return  outliner
+     */
+    public static PolygonOutliner
+            createPlaneAreaOutliner( AreaCoord<PlaneDataGeom> coord, int icArea,
+                                     PolygonMode.Glypher polyGlypher ) {
+        return new PolygonOutliner( polyGlypher,
+                                    new PlaneAreaVertexReaderFactory( coord,
+                                                                      icArea ));
+    }
+
+    /**
+     * Returns an outliner for drawing Area objects to a Sky plot.
+     *
+     * @param  coord  coordinate for reading area objects
+     * @param  icArea   coordinate index in tuple for area coordinate
+     * @param  polyGlypher  polygon painter
+     * @return  outliner
+     */
+    public static PolygonOutliner
+           createSkyAreaOutliner( AreaCoord<SkyDataGeom> coord, int icArea,
+                                  PolygonMode.Glypher polyGlypher ) {
+        return new PolygonOutliner( polyGlypher,
+                                    new SkyAreaVertexReaderFactory( coord,
+                                                                    icArea ) );
+    }
+
+    /**
+     * Returns an outliner for drawing Area objects to a Sphere plot.
+     *
+     * @param  areaCoord  coordinate for reading area objects
+     * @param  icArea   coordinate index in tuple for area coordinate
+     * @param  radialCoord  coordinate for reading radial distance of area
+     * @param  icRadial  coordinate index in tuple for radial coordinate
+     * @param  polyGlypher  polygon painter
+     * @return  outliner
+     */
+    public static PolygonOutliner
+            createSphereAreaOutliner( AreaCoord<SphereDataGeom> areaCoord,
+                                      int icArea,
+                                      FloatingCoord radialCoord, int icRadial,
+                                      PolygonMode.Glypher polyGlypher ) {
+        return new PolygonOutliner(
+                polyGlypher,
+                new SphereAreaVertexReaderFactory( areaCoord, icArea,
+                                                   radialCoord, icRadial ) );
+    }
+
+    /**
      * Returns an outliner for polygons defined by an array-valued coordinate
      * providing interleaved coordinates in user data space.
      * Each array instance may be of length N*D, where D is the number of
@@ -306,6 +470,61 @@ public class PolygonOutliner extends PixOutliner {
         return new PolygonOutliner( polyGlypher,
                                     new ArrayVertexReaderFactory( arrayCoord,
                                                                   includePos ));
+    }
+
+    /**
+     * Converts longitude/latitude coordinates to sky data coordinates
+     * (3d unit vector).
+     *
+     * @param  lonDeg  longitude in degrees
+     * @param  latDeg  latitude in degrees
+     * @param  geom   sky DataGeom, possibly containing rotation information
+     * @param  dpos  array into which 3-element unit vector will be written
+     * @return  true iff conversion has been successful
+     */
+    private static boolean toSky( double lonDeg, double latDeg,
+                                  SkyDataGeom geom, double[] dpos ) {
+        if ( Math.abs( latDeg ) <= 90 && PlotUtil.isFinite( lonDeg ) ) {
+            double theta = Math.toRadians( 90 - latDeg );
+            double phi = Math.toRadians( lonDeg % 360. );
+            double sd = Math.sin( theta );
+            dpos[ 0 ] = Math.cos( phi ) * sd;
+            dpos[ 1 ] = Math.sin( phi ) * sd;
+            dpos[ 2 ] = Math.cos( theta );
+            geom.rotate( dpos );
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Converts longitude/latitude/radius coordinates to sphere
+     * data coordinates (3d vector).
+     *
+     * @param  lonDeg  longitude in degrees
+     * @param  latDeg  latitude in degrees
+     * @param  radius  radial distance
+     * @param  dpos  array into which 3-element unit vector will be written
+     * @return  true iff conversion has been successful
+     */
+    private static boolean toSphere( double lonDeg, double latDeg,
+                                     double radius, double[] dpos ) {
+        if ( radius >= 0 &&
+             Math.abs( latDeg ) <= 90 &&
+             PlotUtil.isFinite( lonDeg ) ) {
+            double theta = Math.toRadians( 90 - latDeg );
+            double phi = Math.toRadians( lonDeg % 360 );
+            double sd = Math.sin( theta );
+            dpos[ 0 ] = radius * Math.cos( phi ) * sd;
+            dpos[ 1 ] = radius * Math.sin( phi ) * sd;
+            dpos[ 2 ] = radius * Math.cos( theta );
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
@@ -358,6 +577,20 @@ public class PolygonOutliner extends PixOutliner {
          *           vertex position on exit
          */
         boolean readDataPos( int ivert, double[] dpos );
+
+        /**
+         * Indicates whether the given index corresponds to a delimiter
+         * between disjoint shapes rather than an actual vertex position.
+         * If true, then readDataPos will not give a useful result.
+         *
+         * <p>Only certain VertexData types (currently Areas with type POLYGON)
+         * ever return true from this method.
+         *
+         * @param  ivert  vertex index
+         * @return   true iff this entry corresponds to a break between
+         *           disjoint shapes
+         */
+        boolean isBreak( int ivert );
     }
 
     /**
@@ -391,6 +624,9 @@ public class PolygonOutliner extends PixOutliner {
                         public boolean readDataPos( int ipos, double[] dpos ) {
                             return geom
                                   .readDataPos( tuple, icPos[ ipos ], dpos );
+                        }
+                        public boolean isBreak( int ipos ) {
+                            return false;
                         }
                     };
                 }
@@ -496,23 +732,10 @@ public class PolygonOutliner extends PixOutliner {
                 return new ArrayVertexReader( arrayCoord_, geom, includePos_ ) {
                     boolean readArrayPos( double[] array, int icPos,
                                           double[] dpos ) {
+                        double lonDeg = array[ icPos + 0 ];
                         double latDeg = array[ icPos + 1 ];
-                        if ( Math.abs( latDeg ) <= 90 ) {
-                            double lonDeg = array[ icPos + 0 ];
-                            if ( PlotUtil.isFinite( lonDeg ) ) {
-                                double r = array[ icPos + 2 ];
-                                if ( r >= 0 ) {
-                                    double theta = Math.toRadians( 90 - latDeg);
-                                    double phi = Math.toRadians( lonDeg % 360 );
-                                    double sd = Math.sin( theta );
-                                    dpos[ 0 ] = r * Math.cos( phi ) * sd;
-                                    dpos[ 1 ] = r * Math.sin( phi ) * sd;
-                                    dpos[ 2 ] = r * Math.cos( theta );
-                                    return true;
-                                }
-                            }
-                        }
-                        return false;
+                        double radius = array[ icPos + 2 ];
+                        return toSphere( lonDeg, latDeg, radius, dpos );
                     }
                 };
             }
@@ -521,24 +744,8 @@ public class PolygonOutliner extends PixOutliner {
                 return new ArrayVertexReader( arrayCoord_, geom, includePos_ ) {
                     boolean readArrayPos( double[] array, int icPos,
                                           double[] dpos ) {
-                        double latDeg = array[ icPos + 1 ];
-                        if ( Math.abs( latDeg ) <= 90 ) {
-                            double lonDeg = array[ icPos ];
-                            if ( PlotUtil.isFinite( lonDeg ) ) {
-                                double theta = Math.toRadians( 90 - latDeg );
-                                double phi = Math.toRadians( lonDeg % 360. );
-                                double z = Math.cos( theta );
-                                double sd = Math.sin( theta );
-                                double x = Math.cos( phi ) * sd;
-                                double y = Math.sin( phi ) * sd;
-                                dpos[ 0 ] = x;
-                                dpos[ 1 ] = y;
-                                dpos[ 2 ] = z;
-                                skyGeom.rotate( dpos );
-                                return true;
-                            }
-                        }
-                        return false;
+                        return toSky( array[ icPos ], array[ icPos + 1 ],
+                                      skyGeom, dpos );
                     }
                 };
             }
@@ -631,6 +838,9 @@ public class PolygonOutliner extends PixOutliner {
                              ? geom_.readDataPos( tuple, icPos0_, dpos )
                              : readArrayPos( array, ( ipos - 1 ) * nuc_, dpos );
                     }
+                    public boolean isBreak( int ipos ) {
+                        return false;
+                    }
                 };
             }
             else {
@@ -640,6 +850,9 @@ public class PolygonOutliner extends PixOutliner {
                     }
                     public boolean readDataPos( int ipos, double[] dpos ) {
                         return readArrayPos( array, ipos * nuc_, dpos );
+                    }
+                    public boolean isBreak( int ipos ) {
+                        return false;
                     }
                 };
             }
@@ -658,5 +871,491 @@ public class PolygonOutliner extends PixOutliner {
          */
         abstract boolean readArrayPos( double[] array, int icPos,
                                        double[] dpos );
+    }
+
+    /**
+     * VertexReaderFactory implementation for use with Plane AreaCoord.
+     */
+    private static class PlaneAreaVertexReaderFactory
+            implements VertexReaderFactory {
+
+        private final AreaCoord<PlaneDataGeom> coord_;
+        private final int icArea_;
+ 
+        /**
+         * Constructor.
+         *
+         * @param  coord   area coordinate
+         * @param  icArea   index within tuple of area coordinate value
+         */
+        PlaneAreaVertexReaderFactory( AreaCoord<PlaneDataGeom> coord,
+                                      int icArea ) {
+            coord_ = coord;
+            icArea_ = icArea;
+        }
+
+        public VertexReader createVertexReader( DataGeom geom0 ) {
+            PlaneDataGeom planeGeom =
+                coord_.getAreaDataGeom( (PlaneDataGeom) geom0 );
+            return new AreaVertexReader( coord_, icArea_ ) {
+                public VertexData createVertexData( Area area ) {
+                    switch ( area.getType() ) {
+                        case POLYGON:
+                            final double[] vertices = area.getDataArray();
+                            return new VertexData() {
+                                public int getVertexCount() {
+                                    return vertices.length / 2;
+                                }
+                                public boolean readDataPos( int ivert,
+                                                            double[] dpos ){
+                                    dpos[ 0 ] = vertices[ ivert * 2 + 0 ];
+                                    dpos[ 1 ] = vertices[ ivert * 2 + 1 ];
+                                    return true;
+                                }
+                                public boolean isBreak( int ivert ) {
+                                    int iv2 = ivert * 2;
+                                    if ( Double.isNaN( vertices[ iv2 ] ) ) {
+                                        assert Double
+                                              .isNaN( vertices[ iv2 + 1 ] );
+                                        return true;
+                                    }
+                                    else {
+                                        return false;
+                                    }
+                                }
+                            };
+                        case CIRCLE:
+                            double[] circle = area.getDataArray();
+                            final double cx = circle[ 0 ];
+                            final double cy = circle[ 1 ];
+                            final double r = circle[ 2 ];
+                            return new VertexData() {
+                                public int getVertexCount() {
+                                    return NVERTEX_CIRCLE;
+                                }
+                                public boolean readDataPos( int ivert,
+                                                            double[] dpos ){
+                                    dpos[ 0 ] = cx + r * COSS[ ivert ];
+                                    dpos[ 1 ] = cy - r * SINS[ ivert ];
+                                    return true;
+                                }
+                                public boolean isBreak( int ivert ) {
+                                    return false;
+                                }
+                            };
+                        case POINT:
+                            double[] point = area.getDataArray();
+                            double[] dpos =
+                                new double[] { point[ 0 ], point[ 1 ] };
+                            return createPointVertexData( dpos );
+                        default:
+                            assert false;
+                            return NO_VERTEX_DATA;
+                    }
+                }
+            };
+        }
+        @Override
+        public int hashCode() {
+            int code = 812312;
+            code = 23 * code + coord_.hashCode();
+            code = 23 * code + icArea_;
+            return code;
+        }
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof PlaneAreaVertexReaderFactory ) {
+                PlaneAreaVertexReaderFactory other =
+                    (PlaneAreaVertexReaderFactory) o;
+                return this.coord_.equals( other.coord_ )
+                    && this.icArea_ == other.icArea_;
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * VertexReaderFactory for use with Sky AreaCoord.
+     */
+    private static class SkyAreaVertexReaderFactory
+            implements VertexReaderFactory {
+        private final AreaCoord<SkyDataGeom> coord_;
+        private final int icArea_;
+
+        /**
+         * Constructor.
+         *
+         * @param  coord   area coordinate
+         * @param  icArea   index within tuple of area coordinate value
+         */
+        SkyAreaVertexReaderFactory( AreaCoord<SkyDataGeom> coord, int icArea ) {
+            coord_ = coord;
+            icArea_ = icArea;
+        }
+
+        public VertexReader createVertexReader( DataGeom geom0 ) {
+            SkyDataGeom skyGeom = coord_.getAreaDataGeom( (SkyDataGeom) geom0 );
+            return new AreaVertexReader( coord_, icArea_ ) {
+                public VertexData createVertexData( Area area ) {
+                    switch ( area.getType() ) {
+                        case POLYGON:
+                            final double[] vertices = area.getDataArray();
+                            return new VertexData() {
+                                public int getVertexCount() {
+                                    return vertices.length / 2;
+                                }
+                                public boolean readDataPos( int ivert,
+                                                            double[] dpos ) {
+                                    int iv2 = ivert * 2;
+                                    return toSky( vertices[ iv2 ],
+                                                  vertices[ iv2 + 1 ],
+                                                  skyGeom, dpos );
+                                }
+                                public boolean isBreak( int ivert ) {
+                                    int iv2 = ivert * 2;
+                                    if ( Double.isNaN( vertices[ iv2 ] ) ) {
+                                        assert Double
+                                              .isNaN( vertices[ iv2 + 1 ] );
+                                        return true;
+                                    }
+                                    else {
+                                        return false;
+                                    }
+                                }
+                            };
+                        case CIRCLE:
+                            double[] circle = area.getDataArray();
+                            double lonDeg = circle[ 0 ];
+                            double latDeg = circle[ 1 ];
+                            double rDeg = circle[ 2 ];
+                            return createSkyCircleVertexData( lonDeg, latDeg,
+                                                              rDeg, skyGeom );
+                        case POINT:
+                            double[] point = area.getDataArray();
+                            double[] dpos = new double[ 3 ];
+                            return toSky( point[ 0 ], point[ 1 ], skyGeom, dpos)
+                                 ? createPointVertexData( dpos )
+                                 : NO_VERTEX_DATA;
+                        default:
+                            assert false;
+                            return NO_VERTEX_DATA;
+                    }
+                }
+            };
+        }
+        @Override
+        public int hashCode() {
+            int code = 3188803;
+            code = 23 * code + coord_.hashCode();
+            code = 23 * code + icArea_;
+            return code;
+        }
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof SkyAreaVertexReaderFactory ) {
+                SkyAreaVertexReaderFactory other =
+                    (SkyAreaVertexReaderFactory) o;
+                return this.coord_.equals( other.coord_ )
+                    && this.icArea_ == other.icArea_;
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * VertexReaderFactory for use with Sphere AreaCoord.
+     */
+    private static class SphereAreaVertexReaderFactory
+            implements VertexReaderFactory {
+        private final AreaCoord<SphereDataGeom> areaCoord_;
+        private final int icArea_;
+        private final FloatingCoord radialCoord_;
+        private final int icRadial_;
+
+        /**
+         * Constructor.
+         *
+         * @param  areaCoord  coordinate for reading area objects
+         * @param  icArea   coordinate index in tuple for area coordinate
+         * @param  radialCoord  coordinate for reading radial distance of area
+         * @param  icRadial  coordinate index in tuple for radial coordinate
+         */
+        SphereAreaVertexReaderFactory( AreaCoord<SphereDataGeom> areaCoord,
+                                       int icArea,
+                                       FloatingCoord radialCoord,
+                                       int icRadial ) {
+            areaCoord_ = areaCoord;
+            icArea_ = icArea;
+            radialCoord_ = radialCoord;
+            icRadial_ = icRadial;
+        }
+
+        public VertexReader createVertexReader( DataGeom geom ) {
+            return new VertexReader() {
+                public VertexData readVertexData( final Tuple tuple ) {
+                    double radius =
+                        radialCoord_.readDoubleCoord( tuple, icRadial_ );
+                    radius = Double.isNaN( radius ) ? 1.0 : radius;
+                    if ( radius > 0 ) {
+                        Area area = areaCoord_.readAreaCoord( tuple, icArea_ );
+                        Area.Type type = area.getType();
+                        if ( type != null ) {
+                            return createSphereAreaVertexData( area, radius );
+                        }
+                        else {
+                            assert false;
+                            return NO_VERTEX_DATA;
+                        }
+                    }
+                    else {
+                        return NO_VERTEX_DATA;
+                    }
+                }
+            };
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 322987;
+            code = 23 * code + areaCoord_.hashCode();
+            code = 23 * code + icArea_;
+            code = 23 * code + radialCoord_.hashCode();
+            code = 23 * code + icRadial_;
+            return code;
+        }
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof SphereAreaVertexReaderFactory ) {
+                SphereAreaVertexReaderFactory other =
+                    (SphereAreaVertexReaderFactory) o;
+                return this.areaCoord_.equals( other.areaCoord_ )
+                    && this.icArea_ == other.icArea_
+                    && this.radialCoord_.equals( other.radialCoord_ )
+                    && this.icRadial_ == other.icRadial_;
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Constructs a VertexData for use with area objects on a sphere plot.
+     *
+     * @param   area   object defining shape projected onto sphere
+     * @param   radius   radial distance of shape from origin
+     * @return   vertex data
+     */
+    private static VertexData createSphereAreaVertexData( Area area,
+                                                          double radius ) {
+        switch ( area.getType() ) {
+            case POLYGON:
+                final double[] vertices = area.getDataArray();
+                return new VertexData() {
+                    public int getVertexCount() {
+                        return vertices.length / 2;
+                    }
+                    public boolean readDataPos( int ivert, double[] dpos ) {
+                        int iv2 = ivert * 2;
+                        return toSphere( vertices[ iv2 ], vertices[ iv2 + 1 ],
+                                         radius, dpos );
+                    }
+                    public boolean isBreak( int ivert ) {
+                        int iv2 = ivert * 2;
+                        if ( Double.isNaN( vertices[ iv2 ] ) ) {
+                            assert Double.isNaN( vertices[ iv2 + 1 ] );
+                            return true;
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                };
+            case CIRCLE:
+                double[] circle = area.getDataArray();
+                double lonDeg = circle[ 0 ];
+                double latDeg = circle[ 1 ];
+                double rDeg = circle[ 2 ];
+                final VertexData unitVertexData =
+                    createSkyCircleVertexData( lonDeg, latDeg, rDeg,
+                                               SkyDataGeom.GENERIC );
+                if ( NO_VERTEX_DATA.equals( unitVertexData ) ) {
+                    return NO_VERTEX_DATA;
+                }
+                else {
+                    return new VertexData() {
+                        public int getVertexCount() {
+                            return unitVertexData.getVertexCount();
+                        }
+                        public boolean readDataPos( int ivert, double[] dpos ) {
+                            if ( unitVertexData.readDataPos( ivert, dpos ) ) {
+                                dpos[ 0 ] *= radius;
+                                dpos[ 1 ] *= radius;
+                                dpos[ 2 ] *= radius;
+                                return true;
+                            }
+                            else {
+                                return false;
+                            }
+                        }
+                        public boolean isBreak( int ivert ) {
+                            return unitVertexData.isBreak( ivert );
+                        }
+                    };
+                }
+            case POINT:
+                double[] point = area.getDataArray();
+                double[] dpos = new double[ 3 ];
+                return toSphere( point[ 0 ], point[ 1 ], radius, dpos )
+                     ? createPointVertexData( dpos )
+                     : NO_VERTEX_DATA;
+            default:
+                assert false;
+                return NO_VERTEX_DATA;
+        }
+    }
+
+    /**
+     * Returns a VertexData instance that yields a single vertex.
+     *
+     * @param  dpos0  data coordinates of sole vertex
+     * @return   new VertexData
+     */
+    private static VertexData createPointVertexData( final double[] dpos0 ) {
+        return new VertexData() {
+            public int getVertexCount() {
+                return 1;
+            }
+            public boolean readDataPos( int ivert, double[] dpos ) {
+                if ( ivert == 0 ) {
+                    System.arraycopy( dpos0, 0, dpos, 0, dpos0.length );
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            public boolean isBreak( int ivert ) {
+                return false;
+            }
+        };
+    }
+
+    /**
+     * Returns a VertexData that yields sky positions (unit 3-vectors)
+     * on a specified small circle.
+     * The small circle does not have to be small :-).
+     *
+     * @param  lonDeg0  central longitude in degrees
+     * @param  latDeg0  central latitude in degrees
+     * @param  rDeg    small circle radius in degrees
+     * @param  skyGeom  geometry optionally specifying sky system rotation
+     */
+    private static VertexData
+            createSkyCircleVertexData( double lonDeg0, double latDeg0,
+                                       double rDeg, SkyDataGeom skyGeom ) {
+
+        /* Convert center to unit vector v0. */
+        double[] vec = new double[ 3 ];
+        if ( ! toSky( lonDeg0, latDeg0, skyGeom, vec ) ) {
+            return NO_VERTEX_DATA;
+        }
+        final double x0 = vec[ 0 ];
+        final double y0 = vec[ 1 ];
+        final double z0 = vec[ 2 ];
+
+        /* Locate a unit vector v1 on the circle circumference;
+         * we go on radius away from the center either up or down a meridian
+         * depending on hemisphere. */
+        double latDeg1 = latDeg0 > 0 ? latDeg0 - rDeg : latDeg0 + rDeg;
+        if ( ! toSky( lonDeg0, latDeg1, skyGeom, vec ) ) {
+            return NO_VERTEX_DATA;
+        }
+        final double x1 = vec[ 0 ];
+        final double y1 = vec[ 1 ];
+        final double z1 = vec[ 2 ];
+
+        /* Return an object that will rotate v1 about v0 for each vertex. */
+        return new VertexData() {
+            public int getVertexCount() {
+                return NVERTEX_CIRCLE;
+            }
+            public boolean readDataPos( int iv, double[] dpos ) {
+
+                /* Calculate an axial rotation matrix which will rotate any
+                 * vector around v0 by the angle 2*PI*iv/NVERTEX_CIRCLE;
+                 * the algebra is from SAL_DAV2M in SLALIB. */
+                double s = SINS[ iv ];
+                double c = COSS[ iv ];
+                double w = 1.0 - c;
+                double r0 = x0 * x0 * w + c;
+                double r1 = x0 * y0 * w + z0 * s;
+                double r2 = x0 * z0 * w - y0 * s;
+                double r3 = x0 * y0 * w - z0 * s;
+                double r4 = y0 * y0 * w + c;
+                double r5 = y0 * z0 * w + x0 * s;
+                double r6 = x0 * z0 * w + y0 * s;
+                double r7 = y0 * z0 * w - x0 * s;
+                double r8 = z0 * z0 * w + c;
+
+                /* Rotate v1 using the axial rotation matrix. */
+                dpos[ 0 ] = r0 * x1 + r1 * y1 + r2 * z1;
+                dpos[ 1 ] = r3 * x1 + r4 * y1 + r5 * z1;
+                dpos[ 2 ] = r6 * x1 + r7 * y1 + r8 * z1;
+                return true;
+            }
+            public boolean isBreak( int iv ) {
+                return false;
+            }
+        };
+    }
+
+    /**
+     * Partial VertexReader implementation for use with VertexReader.
+     */
+    private static abstract class AreaVertexReader implements VertexReader {
+
+        private final AreaCoord<?> coord_;
+        private final int icArea_;
+
+        /**
+         * Constructor.
+         *
+         * @param  coord  coordinate for reading area values
+         * @param  icArea   index in tuple of area value
+         */
+        AreaVertexReader( AreaCoord<?> coord, int icArea ) {
+            coord_ = coord;
+            icArea_ = icArea;
+        }
+
+        public VertexData readVertexData( final Tuple tuple ) {
+            Area area = coord_.readAreaCoord( tuple, icArea_ );
+            if ( area == null ) {
+                return NO_VERTEX_DATA;
+            }
+            else {
+                Area.Type type = area.getType();
+                if ( type == null ) {
+                    assert false;
+                    return NO_VERTEX_DATA;
+                }
+                else {
+                    return createVertexData( area );
+                }
+            }
+        }
+
+        /**
+         * Converts an Area object into a VertexData object.
+         *
+         * @param   area   area object
+         * @return   vertexData object, not null
+         */
+        public abstract VertexData createVertexData( Area area );
     }
 }
