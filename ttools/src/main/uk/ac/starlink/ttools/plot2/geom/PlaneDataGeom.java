@@ -8,12 +8,11 @@ import uk.ac.starlink.ttools.plot2.data.Tuple;
 
 /**
  * Defines positional data coordinates used by a 2-D Cartesian plot.
- * Singleton class.
  *
  * @author   Mark Taylor
  * @since    19 Feb 2013
  */
-public class PlaneDataGeom implements DataGeom {
+public abstract class PlaneDataGeom implements DataGeom {
 
     /** Horizontal coordinate. */
     public static final FloatingCoord X_COORD = FloatingCoord.createCoord(
@@ -27,14 +26,13 @@ public class PlaneDataGeom implements DataGeom {
         .setShortDescription( "Vertical coordinate" )
     , true );
         
-
-    /** Singleton instance. */
-    public static PlaneDataGeom INSTANCE = new PlaneDataGeom();
+    /** Standard instance. */
+    public static PlaneDataGeom INSTANCE = new PlaneDataGeom() {};
 
     /**
-     * Singleton constructor.
+     * Constructor.
      */
-    private PlaneDataGeom() {
+    protected PlaneDataGeom() {
     }
 
     /**

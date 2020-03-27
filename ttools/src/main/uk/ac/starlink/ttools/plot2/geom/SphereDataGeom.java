@@ -8,23 +8,22 @@ import uk.ac.starlink.ttools.plot2.data.Tuple;
 /**
  * Defines positional data coordinates used by an isotropic spherical
  * polar 3-D plot.
- * Singleton class.
  *
  * @author   Mark Taylor
  * @since    20 Feb 2013
  */
-public class SphereDataGeom implements DataGeom {
+public abstract class SphereDataGeom implements DataGeom {
 
     private static final SkyCoord SPHERE_COORD =
         SkyCoord.createCoord( SkyCoord.SkyVariant.VOLUME_OR_NULL, true );
 
-    /** Singleton instance. */
-    public static final SphereDataGeom INSTANCE = new SphereDataGeom();
+    /** Standard instance. */
+    public static final SphereDataGeom INSTANCE = new SphereDataGeom() {};
 
     /**
-     * Private singleton constructor.
+     * Constructor.
      */
-    private SphereDataGeom() {
+    protected SphereDataGeom() {
     }
 
     /**
