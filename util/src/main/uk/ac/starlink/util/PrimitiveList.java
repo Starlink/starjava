@@ -102,11 +102,26 @@ public abstract class PrimitiveList {
      * @return   true iff this collection changed as a result of the call
      */
     boolean addAll( PrimitiveList other ) {
-        int n = other.size();
+        return addArrayElements( other.array_, other.size() );
+    }
+
+    /**
+     * Appends elements from a given array to this list.
+     *
+     * <p>The supplied array's type must match the primitive array type
+     * associated with this list;
+     * that constraint should be enforced by type-specific concrete subclasses
+     * of PrimitiveList.
+     *
+     * @param  other  array from which to copy
+     * @param  n   number of elements (starting at 0) to copy
+     * @return   true iff this collection changed as a result of the call
+     */
+    boolean addArrayElements( Object array, int n ) {
         if ( n > 0 ) {
             int pos = size();
             expandSize( n );
-            System.arraycopy( other.array_, 0, array_, pos, n );
+            System.arraycopy( array, 0, array_, pos, n );
             return true;
         }
         else {

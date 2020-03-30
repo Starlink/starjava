@@ -76,6 +76,16 @@ public class ByteList extends PrimitiveList {
     }
 
     /**
+     * Appends all the elements of a primitive array to this list.
+     *
+     * @param   array  array to append
+     * @return   true iff this collection changed as a result of the call
+     */ 
+    public boolean addAll( byte[] array ) {
+        return super.addArrayElements( array, array.length );
+    }
+
+    /**
      * Returns the contents of this list as an array.
      *
      * @return   copy of list contents

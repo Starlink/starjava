@@ -74,29 +74,47 @@ public class PrimitiveListTest extends TestCase {
 
     public void testAddAll() {
         assertArrayEquals( new byte[] { 0, 0, 1, 2, 3 },
-                           addArray( new ByteList( new byte[ 2 ] ),
-                                     new ByteList( new byte[] { 1, 2, 3 } ) ) );
+                           addList( new ByteList( new byte[ 2 ] ),
+                                    new ByteList( new byte[] { 1, 2, 3 } ) ) );
         assertArrayEquals( new short[] { 0, 0, 1, 2, 3 },
-                           addArray( new ShortList( new short[ 2 ] ),
-                                     new ShortList( new short[] { 1, 2, 3 } )));
+                           addList( new ShortList( new short[ 2 ] ),
+                                    new ShortList( new short[] { 1, 2, 3 } )));
         assertArrayEquals( new int[] { 0, 0, 1, 2, 3 },
-                           addArray( new IntList( new int[ 2 ] ),
-                                     new IntList( new int[] { 1, 2, 3 } ) ) );
+                           addList( new IntList( new int[ 2 ] ),
+                                    new IntList( new int[] { 1, 2, 3 } ) ) );
         assertArrayEquals( new long[] { 0, 0, 1, 2, 3 },
-                           addArray( new LongList( new long[ 2 ] ),
-                                     new LongList( new long[] { 1, 2, 3 } ) ) );
+                           addList( new LongList( new long[ 2 ] ),
+                                    new LongList( new long[] { 1, 2, 3 } ) ) );
         assertArrayEquals( new float[] { 0, 0, 1, 2, 3 },
-                           addArray( new FloatList( new float[ 2 ] ),
-                                     new FloatList( new float[] { 1, 2, 3 } )));
+                           addList( new FloatList( new float[ 2 ] ),
+                                    new FloatList( new float[] { 1, 2, 3 } )));
         assertArrayEquals( new double[] { 0, 0, 1, 2, 3 },
-                           addArray( new DoubleList( new double[ 2 ] ), 
-                                     new DoubleList( new double[] { 1,2,3 } )));
+                           addList( new DoubleList( new double[ 2 ] ), 
+                                    new DoubleList( new double[] { 1,2,3 } )));
 
         assertArrayEquals( new int[ 0 ],
-                           addArray( new IntList(), new IntList() ) );
+                           addList( new IntList(), new IntList() ) );
+
+        ByteList b = new ByteList( new byte[ 2 ] );
+        ShortList s = new ShortList( new short[ 2 ] );
+        IntList i = new IntList( new int[ 2 ] );
+        LongList l = new LongList( new long[ 2 ] );
+        FloatList f = new FloatList( new float[ 2 ] );
+        DoubleList d = new DoubleList( new double[ 2 ] );
+        b.addAll( new byte[] { 1, 2, 3 } );
+        s.addAll( new short[] { 1, 2, 3 } );
+        i.addAll( new int[] { 1, 2, 3 } );
+        l.addAll( new long[] { 1, 2, 3 } );
+        f.addAll( new float[] { 1, 2, 3 } );
+        d.addAll( new double[] { 1, 2, 3 } );
+        assertArrayEquals( new byte[] { 0, 0, 1, 2, 3 }, b.toByteArray() );
+        assertArrayEquals( new short[] { 0, 0, 1, 2, 3 }, s.toShortArray() );
+        assertArrayEquals( new int[] { 0, 0, 1, 2, 3 }, i.toIntArray() );
+        assertArrayEquals( new float[] { 0, 0, 1, 2, 3 }, f.toFloatArray() );
+        assertArrayEquals( new double[] { 0, 0, 1, 2, 3 }, d.toDoubleArray() );
     }
 
-    private Object addArray( PrimitiveList list1, PrimitiveList list2 ) {
+    private Object addList( PrimitiveList list1, PrimitiveList list2 ) {
         boolean changed = list1.addAll( list2 );
         assertTrue( changed ^ list2.size() == 0 );
         return list1.toArray();
