@@ -105,7 +105,6 @@ public class CubeNavigator implements Navigator<CubeAspect> {
             }
         }
         else {
-            assert false;
             return null;
         }
     }
