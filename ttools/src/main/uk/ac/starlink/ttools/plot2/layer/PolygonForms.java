@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.DefaultListCellRenderer;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ComboBoxSpecifier;
@@ -265,6 +266,10 @@ public class PolygonForms {
             return new Coord[ 0 ];
         }
 
+        public DataGeom adjustGeom( DataGeom geom ) {
+            return geom;
+        }
+
         public ConfigKey<?>[] getConfigKeys() {
             return new ConfigKey<?>[] {
                 POLYMODE_KEY,
@@ -326,6 +331,10 @@ public class PolygonForms {
 
         public Coord[] getExtraCoords() {
             return new Coord[] { ARRAY_COORD, };
+        }
+
+        public DataGeom adjustGeom( DataGeom geom ) {
+            return geom;
         }
 
         public ConfigKey<?>[] getConfigKeys() {

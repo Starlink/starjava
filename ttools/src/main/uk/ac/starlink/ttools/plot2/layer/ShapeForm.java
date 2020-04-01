@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Graphics;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -61,4 +62,20 @@ public interface ShapeForm extends ModePlotter.Form {
      * @return  new outliner object
      */
     Outliner createOutliner( ConfigMap config );
+
+    /**
+     * Provides a DataGeom to be used by the layer this form makes,
+     * given a DataGeom that characterises the plotting environment.
+     * The output should be similar to the input, for instance
+     * implementing the same plotType-specific DataGeom subtype.
+     *
+     * <p>In most cases the supplied instance can be returned unchanged,
+     * but instances with special requirements may want to adjust
+     * how the data is interpreted.
+     *
+     * @param  baseGeom   context geom
+     * @return   geom to use for data interpretation,
+     *           the same or similar to the input
+     */
+    DataGeom adjustGeom( DataGeom baseGeom );
 }

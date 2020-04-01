@@ -119,6 +119,10 @@ public class SizeForm implements ShapeForm {
         };
     }
 
+    public DataGeom adjustGeom( DataGeom geom ) {
+        return geom;
+    }
+
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
             StyleKeys.MARK_SHAPE,

@@ -85,6 +85,7 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
                                   ShapeStyle style ) {
         Outliner outliner = style.getOutliner();
         Stamper stamper = style.getStamper();
+        geom = form_.adjustGeom( geom );
         return mode_.createLayer( this, form_, geom, dataSpec,
                                   outliner, stamper );
     }

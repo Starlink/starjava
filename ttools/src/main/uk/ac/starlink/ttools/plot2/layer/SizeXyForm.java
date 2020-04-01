@@ -111,6 +111,10 @@ public class SizeXyForm implements ShapeForm {
         };
     }
 
+    public DataGeom adjustGeom( DataGeom geom ) {
+        return geom;
+    }
+
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
             StyleKeys.XYSHAPE,

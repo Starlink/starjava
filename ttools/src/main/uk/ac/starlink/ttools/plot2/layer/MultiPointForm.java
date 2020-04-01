@@ -132,6 +132,10 @@ public abstract class MultiPointForm implements ShapeForm {
         return extraCoordSet_.getCoords();
     }
 
+    public DataGeom adjustGeom( DataGeom geom ) {
+        return geom;
+    }
+
     public ConfigKey<?>[] getConfigKeys() {
         List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( rendererKey_ );
