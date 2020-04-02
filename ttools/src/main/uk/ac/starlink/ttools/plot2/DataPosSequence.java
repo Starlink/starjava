@@ -109,7 +109,6 @@ public class DataPosSequence implements CoordSequence {
         for ( int i = ic_ + 1; i < icHi_; i++ ) {
             long nrow = clouds_[ i ].getTupleCount();
             if ( nrow < 0 ) {
-                assert false;
                 return -1;
             }
             count += nrow;
