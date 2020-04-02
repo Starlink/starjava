@@ -12387,6 +12387,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (new option <code>servicetype=sia2</code>).</li>
     <li>Add new functions <code>midLon</code> and <code>midLat</code>
         to <ref id="uk.ac.starlink.ttools.func.Sky">Sky</ref> class.</li>
+    <li>Fix bug in <ref id="layer-skygrid">SkyGrid</ref> plot layer
+        that made it ignore the <code>viewsys</code> parameter,
+        always assuming equatorial so plotting the wrong grid lines
+        for non-equatorial view sky systems.  Note this bug applied
+        only to STILTS, not TOPCAT.</li>
     </ul>
     </p></dd>
 

@@ -5,6 +5,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.geom.HealpixDataGeom;
@@ -24,6 +25,8 @@ import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
 public class SkyPlot2Task
         extends TypedPlot2Task<SkySurfaceFactory.Profile,SkyAspect> {
 
+    private final SkyPlotContext skyContext_;
+
     private static final String viewsysName_ =
         SkySurfaceFactory.VIEWSYS_KEY.getMeta().getShortName();
 
@@ -32,6 +35,7 @@ public class SkyPlot2Task
      */
     public SkyPlot2Task() {
         super( SkyPlotType.getInstance(), null, new SkyPlotContext() );
+        skyContext_ = (SkyPlotContext) getPlotContext();
         Parameter<SkySys> viewsysParam = null;
         for ( Parameter<?> param : super.getParameters() ) {
             if ( viewsysName_.equals( param.getName() ) ) {
@@ -45,8 +49,16 @@ public class SkyPlot2Task
 
         /* Initialise the context with this parameter,
          * since it's not possible to do it at construction time. */
-        ((SkyPlotContext) getPlotContext())
-                         .setViewsysParameter( viewsysParam );
+        skyContext_.setViewsysParameter( viewsysParam );
+    }
+
+    @Override
+    public ConfigMap createCustomConfigMap( Environment env )
+            throws TaskException {
+        ConfigMap config = super.createCustomConfigMap( env );
+        config.put( SkySurfaceFactory.VIEWSYS_KEY,
+                    skyContext_.viewsysParam_.objectValue( env ) );
+        return config;
     }
 
     /**

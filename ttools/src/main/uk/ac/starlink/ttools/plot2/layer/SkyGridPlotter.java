@@ -48,6 +48,9 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
  */
 public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
 
+    private static final String VIEWSYS_NAME =
+        SkySurfaceFactory.VIEWSYS_KEY.getMeta().getShortName();
+
     /** Config key for grid line colour. */
     public static final ConfigKey<Color> COLOR_KEY =
         StyleKeys.GRID_COLOR;
@@ -92,6 +95,10 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
            .setXmlDescription( new String[] {
                 "<p>The sky coordinate system used for the additional",
                 "grid axes.",
+                "This is used in conunction with the",
+                "<code>" + VIEWSYS_NAME + "</code> parameter",
+                "defined for the plot as a whole",
+                "to determin what grid lines to plot.",
                 "</p>",
             } )
         , false )
@@ -137,6 +144,9 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
             "This can be overlaid on the default sky axis grid",
             "so that axes for multiple sky coordinate systems",
             "are simultaneously visible.",
+            "The plots are done relative to the View sky system",
+            "(<code>" + VIEWSYS_NAME + "</code> parameter)",
+            "defined for the plot as a whole.",
             "</p>",
             "<p>Note that some of the configuration items for this plotter,",
             "such as grid line antialiasing and the decimal/sexagesimal flag,",
@@ -158,7 +168,12 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
 
     public GridStyle createStyle( ConfigMap config ) {
 
-        /* Acquire config items from global config. */
+        /* Acquire config items from global config.
+         * Note that the plotting UI (STILTS or TOPCAT) has to make
+         * special arrangements to ensure that VIEWSYS_KEY is included
+         * in the config map, since it is a global value for the plot,
+         * not specified per layer, and therefore is not declared
+         * as one of this plotter's style keys. */
         SkySys viewsys = config.get( SkySurfaceFactory.VIEWSYS_KEY );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         boolean antialias =
@@ -174,8 +189,13 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
         double loncrowd = config.get( LONCROWD_KEY ).doubleValue();
         double latcrowd = config.get( LATCROWD_KEY ).doubleValue();
 
-        /* Turn config items into a GridStyle instance. */
-        Rotation rotation = Rotation.createRotation( gridsys, viewsys );
+        /* Turn config items into a GridStyle instance.
+         * Plotting a sky grid only makes sense if both the grid system
+         * and the view system are known, so make sure that the thing
+         * fails if either is undefined (which shouldn't happen). */
+        Rotation rotation = gridsys == null || viewsys == null
+                          ? null
+                          : Rotation.createRotation( gridsys, viewsys );
         return new GridStyle( rotation, color, labeller, captioner,
                               sexagesimal, loncrowd, latcrowd, antialias );
     }

@@ -690,6 +690,20 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     }
 
     /**
+     * Provides any additional config keys (beyond layer style and aux map)
+     * that should be provided for layer creation.
+     * The default implementation returns an empty map,
+     * but this behaviour may be overridden by subclasses.
+     *
+     * @param  env  execution environment
+     * @return   custom config entries
+     */
+    public ConfigMap createCustomConfigMap( Environment env )
+            throws TaskException {
+        return new ConfigMap();
+    }
+
+    /**
      * Paints a sequence of animation frames under control of a parameter
      * table, outputting the result to a sequence of files.
      *
@@ -1801,9 +1815,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         ConfigMap auxConfig =
             createZoneSuffixedConfigMap( env, StyleKeys.AUX_RAMP.getKeys(),
                                          getZoneSuffix( env, suffix ) );
+        ConfigMap otherConfig = createCustomConfigMap( env );
         ConfigMap config = new ConfigMap();
         config.putAll( auxConfig );
         config.putAll( layerConfig );
+        config.putAll( otherConfig );
 
         /* Work out the requested style. */
         S style;
