@@ -24,6 +24,7 @@ import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.geom.GPoint3D;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
+import uk.ac.starlink.ttools.plot2.geom.SphereDataGeom;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
@@ -483,6 +484,30 @@ public class PolygonOutliner extends PixOutliner {
                                     dpos[ 0 ] = x;
                                     dpos[ 1 ] = y;
                                     dpos[ 2 ] = z;
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    }
+                };
+            }
+            else if ( geom instanceof SphereDataGeom ) {
+                return new ArrayVertexReader( arrayCoord_, geom, includePos_ ) {
+                    boolean readArrayPos( double[] array, int icPos,
+                                          double[] dpos ) {
+                        double latDeg = array[ icPos + 1 ];
+                        if ( Math.abs( latDeg ) <= 90 ) {
+                            double lonDeg = array[ icPos + 0 ];
+                            if ( PlotUtil.isFinite( lonDeg ) ) {
+                                double r = array[ icPos + 2 ];
+                                if ( r >= 0 ) {
+                                    double theta = Math.toRadians( 90 - latDeg);
+                                    double phi = Math.toRadians( lonDeg % 360 );
+                                    double sd = Math.sin( theta );
+                                    dpos[ 0 ] = r * Math.cos( phi ) * sd;
+                                    dpos[ 1 ] = r * Math.sin( phi ) * sd;
+                                    dpos[ 2 ] = r * Math.cos( theta );
                                     return true;
                                 }
                             }

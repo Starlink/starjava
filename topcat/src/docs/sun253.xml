@@ -29081,6 +29081,9 @@ introduced since the last version:
         now automatically selects lon/lat coordinates for EPN-TAP tables
         (<code>midLon(c1min,c1max)</code>,
          <code>midLat(c2min,c2max)</code>) where available.</li>
+    <li>Fix <ref id="form-polygon">polygon</ref> plot form in
+        <ref id="SpherePlotWindow">Sphere Plot</ref>; this
+        combination was failing to plot anything, now it works.</li>
     </ul>
     </p></dd>
 
