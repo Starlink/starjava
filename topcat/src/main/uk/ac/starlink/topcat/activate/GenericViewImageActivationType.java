@@ -18,6 +18,7 @@ import uk.ac.starlink.sog.SOG;
 import uk.ac.starlink.sog.SOGNavigatorImageDisplay;
 import uk.ac.starlink.sog.SOGNavigatorImageDisplayFrame;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.topcat.ColumnDataComboBox;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ImageWindow;
 import uk.ac.starlink.topcat.LineBox;
@@ -488,7 +489,7 @@ public class GenericViewImageActivationType implements ActivationType {
             label_ = label;
             model_ =
                 new ColumnDataComboBoxModel( tcModel, Number.class, false );
-            comboBox_ = ColumnDataComboBoxModel.createComboBox();
+            comboBox_ = new ColumnDataComboBox();
             comboBox_.setModel( model_ );
         }
 

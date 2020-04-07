@@ -63,7 +63,7 @@ public class ClassifyWindow extends AuxWindow {
         tcModel_ = tcModel;
 
         /* UI components for acquiring user input. */
-        colSelector_ = ColumnDataComboBoxModel.createComboBox();
+        colSelector_ = new ColumnDataComboBox();
         colSelector_.setModel( new ColumnDataComboBoxModel( tcModel,
                                                             Object.class,
                                                             true ) );

@@ -15,6 +15,7 @@ import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.topcat.ColumnDataComboBox;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -57,7 +58,7 @@ public abstract class UrlColumnConfigurator
         ColumnDataComboBoxModel colModel =
             new ColumnDataComboBoxModel( tcModel_, String.class, true );
         configureDefaultSelection( colModel, tinfo, urlFlags );
-        colSelector_ = ColumnDataComboBoxModel.createComboBox();
+        colSelector_ = new ColumnDataComboBox();
         colSelector_.setModel( colModel );
         colSelector_.addActionListener( getActionForwarder() );
         colLabel_ = new JLabel( urlWord + " Location: " );

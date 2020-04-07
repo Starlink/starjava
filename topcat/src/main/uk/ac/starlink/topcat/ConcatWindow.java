@@ -199,8 +199,7 @@ public class ConcatWindow extends AuxWindow {
                     new ColumnDataComboBoxModel( tc2, clazz, true );
                 comboModel.setSelectedItem( comboModel.getElementAt( 0 ) );
                 colSelectorModels_[ icol ] = comboModel;
-                JComboBox<ColumnData> comboBox =
-                    ColumnDataComboBoxModel.createComboBox();
+                JComboBox<ColumnData> comboBox = new ColumnDataComboBox();
                 comboBox.setModel( comboModel );
                 colPanel.add( comboBox );
             }

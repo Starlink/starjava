@@ -21,6 +21,7 @@ import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
+import uk.ac.starlink.topcat.ColumnDataComboBox;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -85,8 +86,7 @@ public class CoordPanel {
             colSelectors_.add( new ArrayList<JComboBox<ColumnData>>() );
             for ( int ii = 0; ii < ni; ii++ ) {
                 InputMeta meta = inputs[ ii ].getMeta();
-                final JComboBox<ColumnData> cs =
-                    ColumnDataComboBoxModel.createComboBox();
+                final JComboBox<ColumnData> cs = new ColumnDataComboBox();
                 colSelectors_.get( ic ).add( cs );
                 cs.addActionListener( forwarder_ );
                 JComponent line = Box.createHorizontalBox();

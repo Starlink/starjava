@@ -51,7 +51,7 @@ public class ColumnSelector extends JComponent {
         label_.setToolTipText( "Select column for " + info_.getDescription() );
 
         /* Set up column selector box. */
-        colComboBox_ = ColumnDataComboBoxModel.createComboBox();
+        colComboBox_ = new ColumnDataComboBox();
 
         /* Set up converter selector box if necessary. */
         ColumnConverter[] converters = ColumnConverter.getConverters( info_ );

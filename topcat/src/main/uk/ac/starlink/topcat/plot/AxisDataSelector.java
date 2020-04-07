@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.topcat.ActionForwarder;
+import uk.ac.starlink.topcat.ColumnDataComboBox;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -96,10 +97,10 @@ public class AxisDataSelector extends JPanel {
 
         /* Construct all the column selectors which may be needed
          * (though possibly some will never be used). */
-        atSelector_ = ColumnDataComboBoxModel.createComboBox();
-        loSelector_ = ColumnDataComboBoxModel.createComboBox();
-        hiSelector_ = ColumnDataComboBoxModel.createComboBox();
-        lhSelector_ = ColumnDataComboBoxModel.createComboBox();
+        atSelector_ = new ColumnDataComboBox();
+        loSelector_ = new ColumnDataComboBox();
+        hiSelector_ = new ColumnDataComboBox();
+        lhSelector_ = new ColumnDataComboBox();
         JComboBox[] selectors = getSelectors();
         assert selectors.length == 4;
         for ( int i = 0; i < selectors.length; i++ ) {

@@ -7,6 +7,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.topcat.ColumnDataComboBox;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot.ErrorMode;
@@ -39,7 +40,7 @@ public class LabelledAxesSelector implements AxesSelector, Wrapper {
      */
     public LabelledAxesSelector( AxesSelector baseSelector ) {
         baseSelector_ = baseSelector;
-        labelSelector_ = ColumnDataComboBoxModel.createComboBox();
+        labelSelector_ = new ColumnDataComboBox();
         selectorPanel_ = Box.createVerticalBox();
         selectorPanel_.add( baseSelector.getColumnSelectorPanel() );
         labelContainer_ = Box.createVerticalBox();
