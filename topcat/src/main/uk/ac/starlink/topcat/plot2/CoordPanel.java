@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ConstantColumn;
+import uk.ac.starlink.table.Domain;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
@@ -240,12 +241,11 @@ public class CoordPanel {
                     cs.setEnabled( false );
                 }
                 else {
-                    final Input input = inputs[ ii ];
+                    final Domain<?> domain = inputs[ ii ].getDomain();
                     ColumnDataComboBoxModel.Filter filter =
                             new ColumnDataComboBoxModel.Filter() {
                         public boolean acceptColumn( ValueInfo info ) {
-                            return input
-                                  .isClassAcceptable( info.getContentClass() );
+                            return domain.getPossibleMapper( info ) != null;
                         }
                     };
                     ColumnDataComboBoxModel model =
@@ -338,9 +338,11 @@ public class CoordPanel {
                 }
                 else if ( ! coord.isRequired() ) {
                     Input input = coord.getInputs()[ iu ];
+                    // Not very satisfactory but will be fixed in a future
+                    // commit.
+                    Class<?> reqClazz = Object.class;
                     ColumnInfo info =
-                        new ColumnInfo( input.getMeta().getLongName(),
-                                        input.getValueClass(),
+                        new ColumnInfo( input.getMeta().getLongName(), reqClazz,
                                         input.getMeta().getShortDescription() );
                     coldats[ iu ] = new ConstantColumn( info, null );
                     datlabs[ iu ] = null;

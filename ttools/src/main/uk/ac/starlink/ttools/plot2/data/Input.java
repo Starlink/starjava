@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
+import uk.ac.starlink.table.Domain;
+
 /**
  * Characterises a coordinate value as specified by the user.
  * There may be multiple Input values corresponding to a single
@@ -11,18 +13,17 @@ package uk.ac.starlink.ttools.plot2.data;
 public class Input {
 
     private final InputMeta meta_;
-    private final Class<?> valueClazz_;
+    private final Domain<?> domain_;
 
     /**
      * Constructor.
      *
      * @param  meta   user-directed metadata
-     * @param  valueClazz  data value class; all values must be an instance
-     *                     of this type
+     * @param  domain  data value domain
      */
-    public Input( InputMeta meta, Class<?> valueClazz ) {
+    public Input( InputMeta meta, Domain<?> domain ) {
         meta_ = meta;
-        valueClazz_ = valueClazz;
+        domain_ = domain;
     }
 
     /**
@@ -35,25 +36,14 @@ public class Input {
     }
 
     /**
-     * Returns the data (super-)type of values described by this input.
+     * Returns the value domain which this input represents.
+     * This can also be used to determine what input value types are
+     * acceptable.
      *
-     * @return  value data type
+     * @return   value domain
      */
-    public Class<?> getValueClass() {
-        return valueClazz_;
-    }
-
-    /**
-     * Indicates whether a data type is acceptable for this input.
-     * The default implementation tests whether the given class is
-     * assignable from the value class, but subclasses may override
-     * this method to be more specific.
-     *
-     * @param   clazz   candidate value class
-     * @return   true iff input data of the given class is acceptable
-     */
-    public boolean isClassAcceptable( Class<?> clazz ) {
-        return valueClazz_.isAssignableFrom( clazz );
+    public Domain<?> getDomain() {
+        return domain_;
     }
 
     /**
@@ -64,12 +54,6 @@ public class Input {
      * @return   new Input instance with given metadata
      */
     public Input withMeta( InputMeta meta ) {
-        final Input base = this;
-        return new Input( meta, valueClazz_ ) {
-            @Override
-            public boolean isClassAcceptable( Class<?> clazz ) {
-                return base.isClassAcceptable( clazz );
-            }
-        };
+        return new Input( meta, getDomain() );
     }
 }

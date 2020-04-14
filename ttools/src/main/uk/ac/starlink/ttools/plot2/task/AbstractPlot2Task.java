@@ -29,6 +29,8 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.Domain;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -2466,31 +2468,39 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                                        String suffix,
                                                        boolean fullDetail ) {
         InputMeta meta = input.getMeta();
+        Domain<?> domain = input.getDomain();
         boolean hasSuffix = suffix.length() > 0;
         String cName = meta.getShortName();
-        Class<?> cClazz = input.getValueClass();
+        DomainMapper[] mappers = domain.getMappers();
         final String typeTxt;
         final String typeUsage;
-        if ( cClazz.equals( String.class ) ) {
-            typeTxt = "a string";
-            typeUsage = "txt";
-        }
-        else if ( cClazz.equals( Integer.class ) ||
-                  cClazz.equals( Long.class ) ) {
-            typeTxt = "an integer";
-            typeUsage = "int";
-        }
-        else if ( Number.class.isAssignableFrom( cClazz ) ) {
-            typeTxt = "a numeric";
-            typeUsage = "num";
-        }
-        else if ( Object.class.equals( cClazz ) ) {
-            typeTxt = "an";
-            typeUsage = null;
+        if ( mappers.length == 1 ) {
+            Class<?> cClazz = mappers[ 0 ].getSourceClass();
+            if ( cClazz.equals( String.class ) ) {
+                typeTxt = "a string";
+                typeUsage = "txt";
+            }
+            else if ( cClazz.equals( Integer.class ) ||
+                      cClazz.equals( Long.class ) ) {
+                typeTxt = "an integer";
+                typeUsage = "int";
+            }
+            else if ( Number.class.isAssignableFrom( cClazz ) ) {
+                typeTxt = "a numeric";
+                typeUsage = "num";
+            }
+            else if ( Object.class.equals( cClazz ) ) {
+                typeTxt = "an";
+                typeUsage = null;
+            }
+            else {
+                typeTxt = "a <code>" + cClazz.getSimpleName() + "</code>";
+                typeUsage = null;
+            }
         }
         else {
-            typeTxt = "a <code>" + cClazz.getSimpleName() + "</code>";
-            typeUsage = null;
+            typeTxt = "a " + domain.getDomainName() + " value";
+            typeUsage = domain.getDomainName().toLowerCase();
         }
         StringParameter param = new StringParameter( cName + suffix );
         String prompt = meta.getShortDescription();

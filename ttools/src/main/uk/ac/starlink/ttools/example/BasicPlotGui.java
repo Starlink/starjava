@@ -25,6 +25,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.Domain;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
@@ -123,7 +124,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
      * @param  table    table containing input data to plot
      */
     public BasicPlotGui( PlotType<P,A> plotType, Plotter<S> plotter,
-                                 StarTable table ) {
+                         StarTable table ) {
         super( new BorderLayout() );
         plotType_ = plotType;
         sfact_ = plotType.getSurfaceFactory();
@@ -495,8 +496,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
                 entryBoxes_ = new JComboBox<?>[ inputs.length ];
                 for ( int i = 0; i < inputs.length; i++ ) {
                     entryBoxes_[ i ] =
-                        createColumnEntryBox( table,
-                                              inputs[ i ].getValueClass() );
+                        createColumnEntryBox( table, inputs[ i ].getDomain() );
                 }
             }
 
@@ -505,10 +505,10 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
              * context of a given table.
              *
              * @param   table  table supplying data
-             * @param   clazz   requierd class for data column entries
+             * @param   domain   value domain for data column entries
              */
-            private static JComboBox<?> createColumnEntryBox( StarTable table,
-                                                              Class<?> clazz ) {
+            private static JComboBox<?>
+                    createColumnEntryBox( StarTable table, Domain<?> domain ) {
 
                 /* Add an item to the combo box for each column with a
                  * value of the right type.  But you can also type in
@@ -518,7 +518,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
                 cnameList.add( null );
                 for ( int ic = 0; ic < ncol; ic++ ) {
                     ColumnInfo info = table.getColumnInfo( ic );
-                    if ( clazz.isAssignableFrom( info.getContentClass() ) ) {
+                    if ( domain.getPossibleMapper( info ) != null ) {
                         cnameList.add( info.getName() );
                     }
                 }

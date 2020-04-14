@@ -11,6 +11,10 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class StringCoord extends SingleCoord {
 
+    private static final SimpleDomain<String> STRING_DOMAIN =
+        new SimpleDomain<String>( String.class, "String", "string",
+                                  "String value" );
+
     /**
      * Constructor.
      *
@@ -18,7 +22,7 @@ public class StringCoord extends SingleCoord {
      * @param   isRequired  true if this coordinate is required for plotting
      */
     public StringCoord( InputMeta meta, boolean isRequired ) {
-        super( meta, isRequired, Object.class, StorageType.STRING );
+        super( meta, isRequired, STRING_DOMAIN, StorageType.STRING );
     }
 
     public Function<Object[],String> inputStorage( ValueInfo[] infos ) {

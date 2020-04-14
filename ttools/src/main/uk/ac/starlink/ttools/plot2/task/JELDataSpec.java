@@ -194,10 +194,11 @@ public class JELDataSpec extends AbstractDataSpec {
                 userCoordRows_[ ic ] = new Object[ nu ];
                 ValueReader[] vrdrs = new ValueReader[ nu ];
                 for ( int iu = 0; iu < nu; iu++ ) {
+                    // Would be better to restrict this further.
+                    Class<?> reqClazz = Object.class;
                     vrdrs[ iu ] =
                         createValueReader( ucexprs[ iu ], table, evaluator, 
-                                           lib, null,
-                                           inputs[ iu ].getValueClass() );
+                                           lib, null, reqClazz );
                 }
                 userCoordReaders_[ ic ] = vrdrs;
             }

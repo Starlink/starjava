@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.util.function.Function;
+import uk.ac.starlink.table.Domain;
 import uk.ac.starlink.table.DomainMapper;
+import uk.ac.starlink.table.TimeDomain;
 import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -49,8 +51,8 @@ public class FloatingCoord extends SingleCoord {
      * @param   inputClass   class of input coordinate quantity
      */
     private FloatingCoord( InputMeta meta, boolean isRequired,
-                           boolean isDouble, Class<?> inputClass ) {
-        super( meta, isRequired, inputClass,
+                           Domain<?> domain, boolean isDouble ) {
+        super( meta, isRequired, domain,
                isDouble ? StorageType.DOUBLE : StorageType.FLOAT );
         nan_ = isDouble ? new Double( Double.NaN ) : new Float( Float.NaN );
     }
@@ -85,8 +87,8 @@ public class FloatingCoord extends SingleCoord {
      */
     public static FloatingCoord createCoord( InputMeta meta,
                                              boolean isRequired ) {
-        return new FloatingCoord( meta, isRequired,
-                                  PlotUtil.storeFullPrecision(), Number.class );
+        return new FloatingCoord( meta, isRequired, SimpleDomain.NUMERIC_DOMAIN,
+                                  PlotUtil.storeFullPrecision() );
     }
 
     /**
@@ -101,7 +103,7 @@ public class FloatingCoord extends SingleCoord {
     public static FloatingCoord createTimeCoord( InputMeta meta,
                                                  boolean isRequired ) {
         final Double nan = new Double( Double.NaN );
-        return new FloatingCoord( meta, isRequired, true, Object.class ) {
+        return new FloatingCoord( meta, isRequired, TimeDomain.INSTANCE, true ){
             @Override
             public Function<Object[],Number> inputStorage( ValueInfo[] infos ) {
                 for ( DomainMapper mapper : infos[ 0 ].getDomainMappers() ) {

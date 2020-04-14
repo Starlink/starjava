@@ -1,17 +1,11 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SphereDataGeom;
-import uk.ac.starlink.util.DoubleList;
 
 /**
  * Coord implementation for Area (shape) values.
@@ -67,18 +61,6 @@ public abstract class AreaCoord<DG extends DataGeom> implements Coord {
         createSphereCoord( META, true );
 
     private static final double[] NO_AREA = new double[ 0 ];
-    private static final String WORDS_REGEX =
-        "\\s*([A-Za-z]+)\\s+([A-Za-z][A-Za-z0-9]*\\s+)*";
-    private static final String NUMBER_REGEX =
-        "\\s*([-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?)";
-    private static final Pattern WORDS_PATTERN =
-        Pattern.compile( WORDS_REGEX );
-    private static final Pattern NUMBER_PATTERN =
-        Pattern.compile( NUMBER_REGEX );
-    private static final Pattern PARENTHESIS_PATTERN =
-        Pattern.compile( "\\s*\\((.*)\\)\\s*" );
-    private static final Pattern TERM_PATTERN =
-        Pattern.compile( "(" + WORDS_REGEX + ")+" + "(" + NUMBER_REGEX + ")+" );
 
     /**
      * Constructor.
@@ -88,14 +70,7 @@ public abstract class AreaCoord<DG extends DataGeom> implements Coord {
      * @param   nDataDim   dimensionality of data coordinate space
      */
     private AreaCoord( InputMeta meta, boolean isRequired, int nDataDim ) {
-        input_ = new Input( meta, Object.class ) {
-            @Override
-            public boolean isClassAcceptable( Class<?> clazz ) {
-                return String.class.equals( clazz )
-                    || double[].class.equals( clazz )
-                    || float[].class.equals( clazz );
-            }
-        };
+        input_ = new Input( meta, AreaDomain.INSTANCE );
         isRequired_ = isRequired;
         nDataDim_ = nDataDim;
         allowPoint_ = true;
@@ -137,34 +112,20 @@ public abstract class AreaCoord<DG extends DataGeom> implements Coord {
     }
 
     public Function<Object[],double[]> inputStorage( ValueInfo[] infos ) {
-        ValueInfo info = infos[ 0 ];
-        Class<?> clazz = info.getContentClass();
-        String xtype = Tables.getXtype( info );
-
-        /* STC-S - see TAP 1.0 section 6. */
-        if ( clazz.equals( String.class ) ) {
-            return userValues -> {
-                Object c = userValues[ 0 ];
-                return c instanceof String
-                     ? areaStorage( stcsArea( (String) c, allowPoint_ ) )
-                     : NO_AREA;
-            };
+        AreaDomain domain = AreaDomain.INSTANCE;
+        AreaMapper mapper = domain.getProbableMapper( infos[ 0 ] );
+        if ( mapper == null ) {
+           mapper = domain.getPossibleMapper( infos[ 0 ] );
         }
-
-        /* DALI 1.1 section 3.3 */
-        else if ( "circle".equals( xtype ) ) {
-            return daliStorageFunction( Area.Type.CIRCLE, clazz );
+        if ( mapper != null ) {
+            Class<?> clazz = infos[ 0 ].getContentClass();
+            Function<Object,Area> areaFunc = mapper.areaFunction( clazz );
+            return areaFunc == null
+                 ? values -> NO_AREA
+                 : values -> areaStorage( areaFunc.apply( values[ 0 ] ) );
         }
-        else if ( "polygon".equals( xtype ) ) {
-            return daliStorageFunction( Area.Type.POLYGON, clazz );
-        }
-        else if ( allowPoint_ && "point".equals( xtype ) ) {
-            return daliStorageFunction( Area.Type.POINT, clazz );
-        }
-
-        /* Not a known area encoding. */
         else {
-            return values -> NO_AREA;
+            return null;
         }
     }
 
@@ -194,54 +155,6 @@ public abstract class AreaCoord<DG extends DataGeom> implements Coord {
             else {
                 return null;
             }
-        }
-    }
-
-    /**
-     * Returns a function to convert from a user coordinate value
-     * to the serialized data array for a given shape type.
-     * The user coordinate is expected to contain one element,
-     * a floating point array.
-     *
-     * @param  areaType  shape type
-     * @param  clazz   array class of sole user coordinate item
-     *                 (float[] or double[])
-     */
-    private Function<Object[],double[]>
-            daliStorageFunction( Area.Type areaType, Class<?> clazz ) {
-        if ( clazz.equals( double[].class ) ) {
-            return userValues -> {
-                Object c = userValues[ 0 ];
-                if ( c instanceof double[] ) {
-                    double[] data = (double[]) c;
-                    if ( areaType.isLegalArrayLength( data.length ) ) {
-                        return areaStorage( new Area( areaType, data ) );
-                    }
-                }
-                return NO_AREA;
-            };
-        }
-        else if ( clazz.equals( float[].class ) ) {
-            return userValues -> {
-                Object c = userValues[ 0 ];
-                if ( c instanceof float[] ) {
-                    float[] fdata = (float[]) c;
-                    int nd = fdata.length;
-                    if ( areaType.isLegalArrayLength( nd ) ) {
-                        double[] ddata = new double[ nd ];
-                        for ( int i = 0; i < nd; i++ ) {
-                            ddata[ i ] = fdata[ i ];
-                        }
-                        return areaStorage( new Area( areaType, ddata ) );
-                    }
-                }
-                return NO_AREA;
-            };
-        }
-
-        /* Not an area. */
-        else {
-            return userValues -> NO_AREA;
         }
     }
 
@@ -326,108 +239,6 @@ public abstract class AreaCoord<DG extends DataGeom> implements Coord {
                 return geom_;
             }
         };
-    }
-
-    /**
-     * Decodes an STC-S string as an Area object.
-     * Support is not complete: no INTERSECTION, no NOT;
-     * frame, refpos and flavor are ignored;
-     * polygon winding direction is ignored (small polygon is assumed).
-     *
-     * @param   stcs   STC-S string
-     * @param   allowPoint  true if POINT type is acceptable
-     * @return   area specified, or null
-     */
-    private static Area stcsArea( CharSequence stcs, boolean allowPoint ) {
-        Matcher w0matcher = WORDS_PATTERN.matcher( stcs );
-        if ( w0matcher.lookingAt() ) {
-            String word0 = w0matcher.group( 1 ).toUpperCase();
-            CharSequence remainder =
-                stcs.subSequence( w0matcher.end(), stcs.length() );
-            if ( "CIRCLE".equals( word0 ) ) {
-                Area.Type circleType = Area.Type.CIRCLE;
-                double[] numbers = getNumbers( remainder );
-                return circleType.isLegalArrayLength( numbers.length )
-                     ? new Area( circleType, numbers )
-                     : null;
-            }
-            else if ( "POLYGON".equals( word0 ) ) {
-                Area.Type polygonType = Area.Type.POLYGON;
-                double[] numbers = getNumbers( remainder );
-                return polygonType.isLegalArrayLength( numbers.length )
-                     ? new Area( polygonType, numbers )
-                     : null;
-            }
-            else if ( "BOX".equals( word0 ) ) {
-                Area.Type polygonType = Area.Type.POLYGON;
-                double[] numbers = getNumbers( remainder );
-                return numbers.length == 4
-                     ? new Area( polygonType,
-                                 new double[] {
-                                     numbers[ 0 ],
-                                     numbers[ 1 ],
-                                     numbers[ 0 ] + numbers[ 2 ],
-                                     numbers[ 1 ] + numbers[ 3 ],
-                                 } )
-                     : null;
-            }
-            else if ( allowPoint && "POSITION".equals( word0 ) ) {
-                Area.Type pointType = Area.Type.POINT;
-                double[] numbers = getNumbers( remainder );
-                return pointType.isLegalArrayLength( numbers.length )
-                     ? new Area( pointType, numbers )
-                     : null;
-            }
-            else if ( "UNION".equals( word0 ) ) {
-                Matcher parenMatcher = PARENTHESIS_PATTERN.matcher( remainder );
-                if ( ! parenMatcher.matches() ) {
-                    return null;
-                }
-                Matcher termMatcher =
-                    TERM_PATTERN.matcher( parenMatcher.group( 1 ) );
-                List<Area> plist = new ArrayList<Area>();
-                while ( termMatcher.find() ) {
-                    Area termArea = stcsArea( termMatcher.group(), allowPoint );
-                    if ( termArea != null &&
-                         termArea.getType() == Area.Type.POLYGON ) {
-                        plist.add( termArea );
-                    }
-                    else {
-                        return null;
-                    }
-                }
-                DoubleList dlist = new DoubleList();
-                for ( Area poly : plist ) {
-                    if ( dlist.size() > 0 ) {
-                        dlist.add( Double.NaN );
-                        dlist.add( Double.NaN );
-                    }
-                    dlist.addAll( poly.getDataArray() );
-                }
-                return new Area( Area.Type.POLYGON, dlist.toDoubleArray() );
-            }
-            else {
-                return null;
-            }
-        }
-        else {
-            return null;
-        }
-    }
-
-    /**
-     * Parses a whitespace-separated list of floating-point values.
-     *
-     * @param   cseq   input text
-     * @return   array of numeric values parsed from input
-     */
-    private static double[] getNumbers( CharSequence cseq ) {
-        Matcher matcher = NUMBER_PATTERN.matcher( cseq );
-        DoubleList dlist = new DoubleList();
-        while ( matcher.find() ) {
-            dlist.add( Double.parseDouble( matcher.group( 1 ) ) );
-        }
-        return dlist.toDoubleArray();
     }
 
     /**

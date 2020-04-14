@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
+import uk.ac.starlink.table.Domain;
+
 /**
  * Partial Coord implementation for quantities that are represented
  * as scalars both to the user and internally.
@@ -18,12 +20,12 @@ public abstract class SingleCoord implements Coord {
      *
      * @param   meta   descriptive metadata for single user coordinate
      * @param   isRequired  true if this coordinate is required for plotting
-     * @param   valueClass   class of input coordinate quantity
+     * @param   domain  input coordinate domain
      * @param   storageType  storage type object
      */
     protected SingleCoord( InputMeta meta, boolean isRequired,
-                           Class<?> valueClass, StorageType storageType ) {
-        input_ = new Input( meta, valueClass );
+                           Domain<?> domain, StorageType storageType ) {
+        input_ = new Input( meta, domain );
         isRequired_ = isRequired;
         storageType_ = storageType;
     }

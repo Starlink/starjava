@@ -22,7 +22,7 @@ public class IntegerCoord extends SingleCoord {
      * @param   itype   defines integer length used
      */
     public IntegerCoord( InputMeta meta, boolean isRequired, IntType itype ) {
-        super( meta, isRequired, Number.class, itype.stype_ );
+        super( meta, isRequired, SimpleDomain.NUMERIC_DOMAIN, itype.stype_ );
         badval_ = itype.badval_;
     }
 

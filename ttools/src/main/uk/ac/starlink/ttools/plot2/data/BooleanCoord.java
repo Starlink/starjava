@@ -11,6 +11,10 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class BooleanCoord extends SingleCoord {
 
+    private static final SimpleDomain<Boolean> BOOLEAN_DOMAIN =
+        new SimpleDomain<Boolean>( Boolean.class, "Boolean", "boolean",
+                                   "Boolean value" );
+
     /**
      * Constructor.
      *
@@ -18,7 +22,7 @@ public class BooleanCoord extends SingleCoord {
      * @param   isRequired  true if this coordinate is required for plotting
      */
     public BooleanCoord( InputMeta meta, boolean isRequired ) {
-        super( meta, isRequired, Boolean.class, StorageType.BOOLEAN );
+        super( meta, isRequired, BOOLEAN_DOMAIN, StorageType.BOOLEAN );
     }
 
     public Function<Object[],Boolean> inputStorage( ValueInfo[] infos ) {

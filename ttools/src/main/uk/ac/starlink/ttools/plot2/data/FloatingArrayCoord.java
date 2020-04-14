@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.util.function.Function;
+import uk.ac.starlink.table.Domain;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
@@ -26,7 +28,7 @@ public abstract class FloatingArrayCoord extends SingleCoord {
      */
     private FloatingArrayCoord( InputMeta meta, boolean isRequired,
                                 boolean isDouble ) {
-        super( meta, isRequired, Object.class,
+        super( meta, isRequired, ArrayDomain.INSTANCE,
                isDouble ? StorageType.DOUBLE_ARRAY : StorageType.FLOAT_ARRAY );
     }
 
@@ -312,6 +314,62 @@ public abstract class FloatingArrayCoord extends SingleCoord {
                     return dval;
                 }
             };
+        }
+    }
+
+    /**
+     * Domain for numeric array values.
+     */
+    private static class ArrayDomain implements Domain<ArrayMapper> {
+
+        /** Singleton instance. */
+        static final ArrayDomain INSTANCE = new ArrayDomain();
+
+        public String getDomainName() {
+            return "Array";
+        }
+
+        public ArrayMapper[] getMappers() {
+            return new ArrayMapper[] { ArrayMapper.INSTANCE };
+        }
+
+        public ArrayMapper getProbableMapper( ValueInfo info ) {
+            Class<?> clazz = info.getContentClass();
+            for ( Class<?> c : getAcceptableClasses() ) {
+                if ( c.equals( clazz ) ) {
+                    return ArrayMapper.INSTANCE;
+                }
+            }
+            return null;
+        }
+
+        public ArrayMapper getPossibleMapper( ValueInfo info ) {
+            return getProbableMapper( info );
+        }
+    }
+
+    /**
+     * Default mapper for ArrayDomain.
+     */
+    private static class ArrayMapper implements DomainMapper {
+
+        /** Singleton instance. */
+        static final ArrayMapper INSTANCE = new ArrayMapper();
+
+        public ArrayDomain getTargetDomain() {
+            return ArrayDomain.INSTANCE;
+        }
+
+        public Class<?> getSourceClass() {
+            return Object.class;
+        }
+
+        public String getSourceName() {
+            return "array";
+        }
+
+        public String getSourceDescription() {
+            return "array-valued quantity";
         }
     }
 }
