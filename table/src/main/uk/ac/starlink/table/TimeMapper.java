@@ -9,24 +9,6 @@ import java.util.regex.Pattern;
 
 /**
  * DomainMapper for mapping values to epochs in a common time scale.
- * The target domain is doubles giving the number
- * of seconds since the Unix epoch (1970-01-01T00:00:00).  The time scale
- * is generally assumed to be UTC, though conversions may not always be
- * performed, for instance for values in which the intended time scale
- * is not obvious.
- *
- * <p>A java (IEEE 754) double has 52+1 bits of precision, which I make
- * 52*ln(2)/ln(10)=15.65 decimal places, and a year contains 3.15e7 seconds,
- * which gives you the following precisions:
- * <ul>
- * <li>epoch +/- 1.7 months: 1 nanosecond precision
- * <li>epoch +/- 140 years: 1 microsecond precision
- * <li>epoch +/- 140 kyears: 1 millisecond precision
- * <li>epoch +/- 140 Myears: 1 second precision
- * </ul>
- * That means around microsecond precision for values near the current epoch
- * (unless this software proves more long lasting than I anticipate).
- * It should be OK for most purposes.
  *
  * @author   Mark Taylor
  * @since    12 Aug 2013
@@ -36,9 +18,6 @@ public abstract class TimeMapper implements DomainMapper {
     private final Class<?> sourceClass_;
     private final String sourceName_;
     private final String sourceDescription_;
-
-    /** Returns target domain name ({@value}). */
-    public static final String TARGET_NAME = "Time";
 
     /** Mapper for numeric values in decimal year (since 0 AD). */
     public static final TimeMapper DECIMAL_YEAR;
@@ -85,10 +64,10 @@ public abstract class TimeMapper implements DomainMapper {
     }
 
     /**
-     * Returns {@link #TARGET_NAME}.
+     * Returns {@link TimeDomain#INSTANCE}.
      */
-    public final String getTargetName() {
-        return TARGET_NAME;
+    public TimeDomain getTargetDomain() {
+        return TimeDomain.INSTANCE;
     }
 
     public Class<?> getSourceClass() {
@@ -104,7 +83,24 @@ public abstract class TimeMapper implements DomainMapper {
     }
 
     /**
-     * Maps a source value to time in seconds since the Unix epoch.
+     * Maps a source value to time in seconds since the Unix epoch
+     * (1970-01-01T00:00:00).
+     * The time scale is generally assumed to be UTC,
+     * though conversions may not always be performed,
+     * for instance for values in which the intended time scale is not obvious.
+     *
+     * <p>A java (IEEE 754) double has 52+1 bits of precision, which I make
+     * 52*ln(2)/ln(10)=15.65 decimal places, and a year contains 3.15e7 seconds,
+     * which gives you the following precisions:
+     * <ul>
+     * <li>epoch +/- 1.7 months: 1 nanosecond precision
+     * <li>epoch +/- 140 years: 1 microsecond precision
+     * <li>epoch +/- 140 kyears: 1 millisecond precision
+     * <li>epoch +/- 140 Myears: 1 second precision
+     * </ul>
+     * That means around microsecond precision for values near the current epoch
+     * (unless this software proves more long lasting than I anticipate).
+     * It should be OK for most purposes.
      *
      * @param   sourceValue  value in source domain
      * @return   number of seconds since midnight 1 Jan 1970

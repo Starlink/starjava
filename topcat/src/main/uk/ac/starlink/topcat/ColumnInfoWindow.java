@@ -259,7 +259,7 @@ public class ColumnInfoWindow extends AuxWindow {
                         DomainMapper mapper = mappers[ i ];
                         sbuf.append( mapper.getSourceName() )
                             .append( "->" )
-                            .append( mapper.getTargetName() );
+                            .append( mapper.getTargetDomain().getDomainName() );
                     }
                     return sbuf.toString();
                 }
