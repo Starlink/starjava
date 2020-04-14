@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.plot2.task;
 
 import java.io.IOException;
+import uk.ac.starlink.table.Domain;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
@@ -21,10 +23,11 @@ public class ColumnDataSpec extends AbstractDataSpec {
     private final int nCoord_;
     private final Coord[] coords_;
     private final int[][] userCoordColIndices_;
+    private final DomainMapper[][] userCoordMappers_;
     private static final String ALL_MASK = "ALL";
 
     /**
-     * Constructor.
+     * Constructs a ColumnDataSpec with default mappers.
      *
      * @param   table  input table
      * @param  coords  coordinate definitions for which columns are required
@@ -35,13 +38,65 @@ public class ColumnDataSpec extends AbstractDataSpec {
      */
     public ColumnDataSpec( StarTable table, Coord[] coords,
                            int[][] userCoordColIndices ) {
+        this( table, coords, userCoordColIndices, null );
+    }
+
+    /**
+     * Constructs a ColumnDataSpec with supplied mappers.
+     *
+     * @param   table  input table
+     * @param  coords  coordinate definitions for which columns are required
+     * @param  userCoordColIndices  nCoord-element array, each element an
+     *                              array of column indices for the
+     *                              table columns containing user values
+     *                              for the corresponding Coord
+     * @param  userCoordMappers   nCoord-element array, each element an
+     *                            array of domain mappers for the
+     *                            table columns containing domain mappers
+     *                            for the corresponding Coord
+     */
+    public ColumnDataSpec( StarTable table, Coord[] coords,
+                           int[][] userCoordColIndices,
+                           DomainMapper[][] userCoordMappers ) {
         nCoord_ = coords.length;
-        if ( userCoordColIndices.length != nCoord_ ) {
-            throw new IllegalArgumentException( "coord count mismatch" );
-        }
         table_ = table;
         coords_ = coords;
         userCoordColIndices_ = userCoordColIndices;
+
+        /* Ensure we have DomainMappers in place. */
+        userCoordMappers_ = new DomainMapper[ nCoord_ ][];
+        for ( int ic = 0; ic < nCoord_; ic++ ) {
+            final DomainMapper[] dms;
+
+            /* If the user has supplied mappers, make a deep copy of
+             * the list. */
+            if ( userCoordMappers[ ic ] != null ) {
+                dms = userCoordMappers[ ic ].clone();
+            }
+
+            /* Otherwise, use best guess values for each input. */
+            else {
+                int[] icols = userCoordColIndices[ ic ];
+                int nuc = icols.length;
+                dms = new DomainMapper[ nuc ];
+                for ( int iuc = 0; iuc < nuc; iuc++ ) {
+                    ValueInfo info = table.getColumnInfo( icols[ iuc ] );
+                    Domain<?> domain =
+                        coords[ ic ].getInputs()[ iuc ].getDomain();
+                    dms[ iuc ] = domain.getProbableMapper( info );
+                    if ( dms[ iuc ] == null ) {
+                        dms[ iuc ] = domain.getPossibleMapper( info );
+                    }
+                }
+            }
+            userCoordMappers_[ ic ] = dms;
+        }
+
+        /* Check consistency. */
+        if ( userCoordColIndices.length != nCoord_ ||
+             userCoordMappers.length != nCoord_ ) {
+            throw new IllegalArgumentException( "coord count mismatch" );
+        }
     }
 
     public StarTable getSourceTable() {
@@ -55,11 +110,16 @@ public class ColumnDataSpec extends AbstractDataSpec {
     public String getCoordId( int ic ) {
         StringBuffer sbuf = new StringBuffer();
         int[] icols = userCoordColIndices_[ ic ];
+        DomainMapper[] dms = userCoordMappers_[ ic ];
         for ( int iu = 0; iu < icols.length; iu++ ) {
             if ( iu > 0 ) {
                 sbuf.append( "," );
             }
             sbuf.append( Integer.toString( icols[ iu ] ) );
+            if ( dms != null && dms[ iu ] != null ) {
+                sbuf.append( "|" )
+                    .append( dms[ iu ].getSourceName() );
+            }
         }
         return sbuf.toString();
     }
@@ -79,6 +139,10 @@ public class ColumnDataSpec extends AbstractDataSpec {
             infos[ iu ] = table_.getColumnInfo( icols[ iu ] );
         }
         return infos;
+    }
+
+    public DomainMapper[] getUserCoordMappers( int ic ) {
+         return userCoordMappers_[ ic ];
     }
 
     public UserDataReader createUserDataReader() {

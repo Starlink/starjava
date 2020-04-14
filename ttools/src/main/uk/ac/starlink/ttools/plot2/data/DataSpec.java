@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.data;
 
 import java.io.IOException;
 import java.util.Iterator;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
@@ -80,10 +81,23 @@ public interface DataSpec {
      * to provide data for one of this object's output columns.
      *
      * @param  icoord  column index
-     * @return  array of value infos for column data;
+     * @return  array of value infos for column data inputs;
      *          elements may be null if not known
      */
     ValueInfo[] getUserCoordInfos( int icoord );
+
+    /**
+     * Returns the domain mappers to use for the values supplied by the user
+     * to provide data for one of this object's output columns.
+     * These objects define how the input values as supplied by the user
+     * are to be interpreted as the expected input values for this dataspec.
+     * In many cases this mapping is trivial (for instance Y axis coordinate),
+     * but in some (for instance absolute epoch) it may not be.
+     *
+     * @param  icoord  column index
+     * @return   array of DomainMappers for column data inputs
+     */
+    DomainMapper[] getUserCoordMappers( int icoord );
 
     /**
      * Returns an object that can be used to read the mask and coordinate

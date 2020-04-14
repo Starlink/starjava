@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot2;
 import java.io.IOException;
 import java.util.Arrays;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
@@ -69,6 +70,10 @@ public class GuiDataSpec extends AbstractDataSpec {
             infos[ iu ] = colDatas[ iu ].getColumnInfo();
         }
         return infos;
+    }
+
+    public DomainMapper[] getUserCoordMappers( int ic ) {
+        return contents_[ ic ].getDomainMappers();
     }
 
     public UserDataReader createUserDataReader() {

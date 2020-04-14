@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.io.IOException;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
@@ -171,6 +172,10 @@ public abstract class WrapperDataStoreFactory implements DataStoreFactory {
 
         public ValueInfo[] getUserCoordInfos( int icoord ) {
             return baseSpec_.getUserCoordInfos( icoord );
+        }
+
+        public DomainMapper[] getUserCoordMappers( int icoord ) {
+            return baseSpec_.getUserCoordMappers( icoord );
         }
 
         public UserDataReader createUserDataReader() {

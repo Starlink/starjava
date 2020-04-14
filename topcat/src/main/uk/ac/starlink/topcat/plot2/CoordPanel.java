@@ -17,6 +17,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ConstantColumn;
 import uk.ac.starlink.table.Domain;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
@@ -351,7 +352,11 @@ public class CoordPanel {
                     return null;
                 }
             }
-            contents[ ic ] = new GuiCoordContent( coord, datlabs, coldats );
+            // This is not really respectable, but will be fixed
+            // in a future commit.
+            DomainMapper[] dms = new DomainMapper[ nu ];
+            contents[ ic ] =
+                new GuiCoordContent( coord, datlabs, coldats, dms );
         }
         return contents;
     }

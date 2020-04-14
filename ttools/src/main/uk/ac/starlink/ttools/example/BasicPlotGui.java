@@ -26,6 +26,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.Domain;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
@@ -405,10 +406,11 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
                 JComboBox<?>[] entryBoxes = cinput.entryBoxes_;
                 int nin = entryBoxes.length;
                 String[] inExprs = new String[ nin ];
+                DomainMapper[] dms = new DomainMapper[ nin ];
                 for ( int ii = 0; ii < nin; ii++ ) {
                     inExprs[ ii ] = (String) entryBoxes[ ii ].getSelectedItem();
                 }
-                cvals[ ic ] = new CoordValue( cinput.coord_, inExprs );
+                cvals[ ic ] = new CoordValue( cinput.coord_, inExprs, dms );
             }
             StarTable table = clist_.get( 0 ).table_;  // must be same for all
             try {

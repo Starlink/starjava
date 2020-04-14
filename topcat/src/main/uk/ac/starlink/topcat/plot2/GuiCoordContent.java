@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot2;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Input;
@@ -22,6 +23,7 @@ public class GuiCoordContent {
     private final Coord coord_;
     private final String[] dataLabels_;
     private final ColumnData[] colDatas_;
+    private final DomainMapper[] domainMappers_;
 
     /**
      * Constructor.
@@ -32,12 +34,16 @@ public class GuiCoordContent {
      *                      these are typically the values typed in by the user
      * @param  colDatas  array of column data arrays supplying values
      *                   for the user variables constituting the coord value
+     * @param  domainMappers  array of DomainMappers used to decode values
+     *                        from the user variables
      */
     public GuiCoordContent( Coord coord, String[] dataLabels,
-                            ColumnData[] colDatas ) {
+                            ColumnData[] colDatas,
+                            DomainMapper[] domainMappers ) {
         coord_ = coord;
         dataLabels_ = dataLabels;
         colDatas_ = colDatas;
+        domainMappers_ = domainMappers;
     }
 
     /**
@@ -65,6 +71,16 @@ public class GuiCoordContent {
      */
     public ColumnData[] getColDatas() {
         return colDatas_;
+    }
+
+    /**
+     * Returns the domain mapper objects corresponding to the user input
+     * variables.
+     *
+     * @return  nUserInfo-element array of domain mappers
+     */
+    public DomainMapper[] getDomainMappers() {
+        return domainMappers_;
     }
 
     /**

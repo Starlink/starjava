@@ -1889,6 +1889,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         Input[] inputs = coord.getInputs();
         int ni = inputs.length;
         String[] exprs = new String[ ni ];
+        DomainMapper[] dms = new DomainMapper[ ni ];
         for ( int ii = 0; ii < ni; ii++ ) {
             final Input input = inputs[ ii ];
             Parameter<?> param = new ParameterFinder<Parameter<?>>() {
@@ -1899,7 +1900,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             param.setNullPermitted( ! coord.isRequired() );
             exprs[ ii ] = param.stringValue( env );
         }
-        return new CoordValue( coord, exprs );
+        return new CoordValue( coord, exprs, dms );
     }
 
     /**

@@ -6,6 +6,8 @@ import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Arrays;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.Domain;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
@@ -40,7 +42,8 @@ public class JELDataSpec extends AbstractDataSpec {
 
     /** Mask ID corresponding to all rows. */
     private static final JELKey ALL_MASK =
-        new JELKey( new String[] { new String( "true" ) } );
+        new JELKey( new String[] { new String( "true" ) },
+                    new DomainMapper[ 1 ] );
 
     /**
      * Constructor.
@@ -50,21 +53,68 @@ public class JELDataSpec extends AbstractDataSpec {
      *                    null may be used to indicate unconditional inclusion
      * @param  coordValues  coordinate definitions for which columns
      *                      are required, along with the JEL expressions
-     *                      for their values
+     *                      for their values;
+     *                      note that the DomainMapper array is permitted
+     *                      to have missing elements
      */
     public JELDataSpec( StarTable table, String maskExpr,
                         CoordValue[] coordValues )
             throws TaskException {
         table_ = table;
         maskExpr_ = maskExpr;
-        coordValues_ = coordValues;
         int nCoord = coordValues.length;
         maskId_ = maskExpr == null || "true".equals( maskExpr.trim() )
                 ? ALL_MASK
-                : new JELKey( new String[] { maskExpr } );
-        coordIds_ = new JELKey[ nCoord ];
+                : new JELKey( new String[] { maskExpr },
+                              new DomainMapper[ 1 ] );
+
+        /* Ensure we have a valid DomainMapper for each expression;
+         * if one has been supplied use that, otherwise get a default one
+         * based on the expressions compiled value type.
+         * If no mapping to the target domain exists, bail out. */
+        coordValues_ = new CoordValue[ nCoord ];
+        RowSequenceEvaluator preEvaluator = new RowSequenceEvaluator( table );
+        Library preLib = JELUtils.getLibrary( preEvaluator );
         for ( int ic = 0; ic < nCoord; ic++ ) {
-            coordIds_[ ic ] = new JELKey( coordValues[ ic ].getExpressions() );
+            CoordValue cval0 = coordValues[ ic ];
+            Input[] inputs = cval0.getCoord().getInputs();
+            String[] exprs = cval0.getExpressions();
+            int nu = exprs.length;
+            DomainMapper[] dms0 = cval0.getDomainMappers();
+            DomainMapper[] dms = new DomainMapper[ nu ];
+            for ( int iu = 0; iu < nu; iu++ ) {
+                Input input = inputs[ iu ];
+                Domain<?> domain = input.getDomain();
+                String expr = exprs[ iu ];
+                DomainMapper dm = dms0[ iu ];
+                if ( dm == null ) {
+                    ValueReader vrdr =
+                        createValueReader( expr, table, preEvaluator, preLib,
+                                           null, Object.class );
+                    ValueInfo info = vrdr.getValueInfo();
+                    dm = domain.getProbableMapper( info );
+                    if ( dm == null ) {
+                        dm = domain.getPossibleMapper( info );
+                    }
+                    if ( dm == null && domain.getMappers().length > 0 ) {
+                        dm = domain.getMappers()[ 0 ];
+                    }
+                }
+                if ( dm == null ) {
+                    String msg = new StringBuffer()
+                        .append( "Expression \"" )
+                        .append( expr )
+                        .append( "\" not usable as type " )
+                        .append( domain.getDomainName() )
+                        .append( " for " )
+                        .append( input.getMeta().getShortName() )
+                        .toString();
+                    throw new TaskException( msg );
+                }
+                dms[ iu ] = dm;
+            }
+            coordValues_[ ic ] =
+                new CoordValue( cval0.getCoord(), cval0.getExpressions(), dms );
         }
 
         /* Dry run of creating a data reader.  This checks that the JEL
@@ -80,6 +130,14 @@ public class JELDataSpec extends AbstractDataSpec {
                 userCoordInfos_[ ic ][ iu ] =
                     dataRdr.userCoordReaders_[ ic ][ iu ].getValueInfo();
             }
+        }
+
+        /* Prepare stringified state. */
+        coordIds_ = new JELKey[ nCoord ];
+        for ( int ic = 0; ic < nCoord; ic++ ) {
+            CoordValue cv = coordValues[ ic ];
+            coordIds_[ ic ] = new JELKey( cv.getExpressions(),
+                                          cv.getDomainMappers() );
         }
     }
 
@@ -105,6 +163,10 @@ public class JELDataSpec extends AbstractDataSpec {
 
     public ValueInfo[] getUserCoordInfos( int ic ) {
         return userCoordInfos_[ ic ];
+    }
+
+    public DomainMapper[] getUserCoordMappers( int ic ) {
+        return coordValues_[ ic ].getDomainMappers();
     }
 
     public UserDataReader createUserDataReader() {
@@ -190,15 +252,15 @@ public class JELDataSpec extends AbstractDataSpec {
                 CoordValue coordVal = coordValues[ ic ];
                 Input[] inputs = coordVal.getCoord().getInputs();
                 String[] ucexprs = coordVal.getExpressions();
+                DomainMapper[] dms = coordVal.getDomainMappers();
                 int nu = ucexprs.length;
                 userCoordRows_[ ic ] = new Object[ nu ];
                 ValueReader[] vrdrs = new ValueReader[ nu ];
                 for ( int iu = 0; iu < nu; iu++ ) {
-                    // Would be better to restrict this further.
-                    Class<?> reqClazz = Object.class;
                     vrdrs[ iu ] =
-                        createValueReader( ucexprs[ iu ], table, evaluator, 
-                                           lib, null, reqClazz );
+                        createValueReader( ucexprs[ iu ], table, evaluator,
+                                           lib, null,
+                                           dms[ iu ].getSourceClass() );
                 }
                 userCoordReaders_[ ic ] = vrdrs;
             }
@@ -310,14 +372,19 @@ public class JELDataSpec extends AbstractDataSpec {
      */
     private static class FixedValueReader implements ValueReader {
         private final Object value_;
+        private final ValueInfo info_;
         private FixedValueReader( Object value ) {
             value_ = value;
+            info_ = new DefaultValueInfo( "fixed-" + value,
+                                          value == null ? Void.class
+                                                        : value.getClass(),
+                                          "Fixed value" );
         }
         public Object readValue( RowSequence rseq, long irow ) {
             return value_;
         }
         public ValueInfo getValueInfo() {
-            return null;
+            return info_;
         }
     }
 
@@ -454,14 +521,29 @@ public class JELDataSpec extends AbstractDataSpec {
     @Equality
     private static class JELKey {
         private final String[] exprs_;
+        private final String text_;
 
         /**
          * Constructor.
          *
+         * The domainmapper elements can be null if they don't need to be
+         * compared.
+         *
          * @param  exprs   expression strings
          */
-        JELKey( String[] exprs ) {
-            exprs_ = exprs.clone();
+        JELKey( String[] exprs, DomainMapper[] dms ) {
+            exprs_ = exprs;
+            StringBuffer sbuf = new StringBuffer();
+            for ( int i = 0; i < exprs.length; i++ ) {
+                String expr = exprs[ i ];
+                sbuf.append( expr == null ? "null" : expr );
+                DomainMapper dm = dms[ i ];
+                if ( dm != null ) {
+                    sbuf.append( "|" + dm );
+                }
+                sbuf.append( ";" );
+            }
+            text_ = sbuf.toString();
         }
 
         /**
@@ -470,23 +552,23 @@ public class JELDataSpec extends AbstractDataSpec {
          * @return  string with equality semantics for this key
          */
         public String toText() {
-            return Arrays.toString( exprs_ );
+            return text_;
         }
 
         @Override
         public boolean equals( Object other ) {
             return other instanceof JELKey
-                && Arrays.equals( this.exprs_, ((JELKey) other).exprs_ );
+                && this.text_.equals( ((JELKey) other).text_ );
         }
 
         @Override
         public int hashCode() {
-            return Arrays.hashCode( exprs_ );
+            return text_.hashCode();
         }
 
         @Override
         public String toString() {
-            return Arrays.toString( exprs_ );
+            return text_;
         }
     }
 }
