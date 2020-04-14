@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.util.function.Function;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -56,15 +57,24 @@ public interface Coord {
      * Provides a function to turn a quantity in the user view to
      * a plotting view object.
      *
-     * <p>The supplied infos array corresponds to (has the same length as)
-     * this object's Inputs array.
-     * The returned function converts an array of per-input user values
+     * <p>The supplied <code>infos</code> and <code>domainMappers</code>
+     * arrays correspond to
+     * (have the same length as) this object's Inputs array,
+     * and may influence the return values.  However, Coord instances
+     * that always behave the same way (for instance whose Input Domains
+     * have fixed DomainMappers) are free to ignore these arguments.
+     *
+     * <p>The returned function converts an array of per-input user values
      * to a storable object of the type corresponding to the result of
      * {@link #getStorageType}; the return value of the returned function
      * is never null.
      *
      * @param   infos  per-input array of column input metadata
-     * @return   input values to storage object conversion function
+     * @param   domainMappers  per-input array of input value-&gt;domain value
+     *                         mappers
+     * @return   input values to storage object conversion function,
+     *           or null if such conversions will never be possible
      */
-    Function<Object[],?> inputStorage( ValueInfo[] infos );
+    Function<Object[],?> inputStorage( ValueInfo[] infos,
+                                       DomainMapper[] domainMappers );
 }

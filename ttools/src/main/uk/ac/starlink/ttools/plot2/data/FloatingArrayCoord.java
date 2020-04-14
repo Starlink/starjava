@@ -82,7 +82,7 @@ public abstract class FloatingArrayCoord extends SingleCoord {
             final double[] d0 = new double[ 0 ];
             return new FloatingArrayCoord( meta, isRequired, true ) {
                 public Function<Object[],double[]>
-                       inputStorage( ValueInfo[] infos ) {
+                       inputStorage( ValueInfo[] infos, DomainMapper[] dms ) {
                     Class<?> clazz = infos[ 0 ].getContentClass();
                     if ( double[].class.equals( clazz ) ) {
                         return values -> {
@@ -199,7 +199,7 @@ public abstract class FloatingArrayCoord extends SingleCoord {
             final float[] f0 = new float[ 0 ];
             return new FloatingArrayCoord( meta, isRequired, false ) {
                 public Function<Object[],float[]>
-                        inputStorage( ValueInfo[] infos ) {
+                        inputStorage( ValueInfo[] infos, DomainMapper[] dms ) {
                     Class<?> clazz = infos[ 0 ].getContentClass();
                     if ( float[].class.equals( clazz ) ) {
                         return values -> {

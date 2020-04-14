@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
@@ -94,7 +95,9 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
             inputStorages_ = new ArrayList<Function<Object[],?>>();
             for ( int ic = 0; ic < spec.getCoordCount(); ic++ ) {
                 ValueInfo[] infos = spec.getUserCoordInfos( ic );
-                inputStorages_.add( spec.getCoord( ic ).inputStorage( infos ) );
+                DomainMapper[] dms = spec.getUserCoordMappers( ic );
+                inputStorages_.add( spec.getCoord( ic )
+                                        .inputStorage( infos, dms ) );
             }
             irow_ = -1;
         }

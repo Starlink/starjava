@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.util.function.Function;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
@@ -135,7 +136,8 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Function<Object[],double[]> inputStorage( ValueInfo[] infos ) {
+        public Function<Object[],double[]> inputStorage( ValueInfo[] infos,
+                                                         DomainMapper[] dms ) {
             return values -> variant_.inputToDouble3( values );
         }
 
@@ -171,7 +173,8 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Function<Object[],float[]> inputStorage( ValueInfo[] infos ) {
+        public Function<Object[],float[]> inputStorage( ValueInfo[] infos,
+                                                        DomainMapper[] dms ) {
             return values -> {
                 double[] d3 = variant_.inputToDouble3( values );
                 return new float[] {
@@ -218,7 +221,8 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Function<Object[],int[]> inputStorage( ValueInfo[] infos ) {
+        public Function<Object[],int[]> inputStorage( ValueInfo[] infos,
+                                                      DomainMapper[] dms ) {
             return values -> {
                 double[] v3 = variant_.inputToDouble3( values );
                 if ( v3 == NO_SKY ) {

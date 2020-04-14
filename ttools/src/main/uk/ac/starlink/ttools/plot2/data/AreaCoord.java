@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.util.function.Function;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
@@ -111,13 +112,10 @@ public abstract class AreaCoord<DG extends DataGeom> implements Coord {
         return isRequired_;
     }
 
-    public Function<Object[],double[]> inputStorage( ValueInfo[] infos ) {
-        AreaDomain domain = AreaDomain.INSTANCE;
-        AreaMapper mapper = domain.getProbableMapper( infos[ 0 ] );
-        if ( mapper == null ) {
-           mapper = domain.getPossibleMapper( infos[ 0 ] );
-        }
-        if ( mapper != null ) {
+    public Function<Object[],double[]> inputStorage( ValueInfo[] infos,
+                                                     DomainMapper[] dms ) {
+        if ( dms[ 0 ] instanceof AreaMapper ) {
+            AreaMapper mapper = (AreaMapper) dms[ 0 ];
             Class<?> clazz = infos[ 0 ].getContentClass();
             Function<Object,Area> areaFunc = mapper.areaFunction( clazz );
             return areaFunc == null
@@ -125,6 +123,7 @@ public abstract class AreaCoord<DG extends DataGeom> implements Coord {
                  : values -> areaStorage( areaFunc.apply( values[ 0 ] ) );
         }
         else {
+            assert false;
             return null;
         }
     }

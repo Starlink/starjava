@@ -57,7 +57,8 @@ public class FloatingCoord extends SingleCoord {
         nan_ = isDouble ? new Double( Double.NaN ) : new Float( Float.NaN );
     }
 
-    public Function<Object[],Number> inputStorage( ValueInfo[] infos ) {
+    public Function<Object[],Number> inputStorage( ValueInfo[] infos,
+                                                   DomainMapper[] dms ) {
         return userValues -> {
             Object c = userValues[ 0 ];
             return c instanceof Number ? ((Number) c) : nan_;
@@ -105,18 +106,15 @@ public class FloatingCoord extends SingleCoord {
         final Double nan = new Double( Double.NaN );
         return new FloatingCoord( meta, isRequired, TimeDomain.INSTANCE, true ){
             @Override
-            public Function<Object[],Number> inputStorage( ValueInfo[] infos ) {
-                for ( DomainMapper mapper : infos[ 0 ].getDomainMappers() ) {
-                    if ( mapper instanceof TimeMapper ) {
-                        final TimeMapper tMapper = (TimeMapper) mapper;
-                        return userValues
-                               -> tMapper.toUnixSeconds( userValues[ 0 ] );
-                    }
+            public Function<Object[],Number>
+                    inputStorage( ValueInfo[] infos, DomainMapper[] dms ) {
+                if ( dms[ 0 ] instanceof TimeMapper ) {
+                    final TimeMapper tMap = (TimeMapper) dms[ 0 ];
+                    return userValues -> tMap.toUnixSeconds( userValues[ 0 ] );
                 }
-                return userValues -> {
-                    Object c = userValues[ 0 ];
-                    return c instanceof Number ? (Number) c : nan;
-                };
+                else {
+                    return userValues -> Double.NaN;
+                }
             }
         };
     }

@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.data;
 
 import java.io.IOException;
 import java.util.function.Function;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
@@ -39,7 +40,8 @@ public class CoordSpec {
         Coord coord = dataSpec.getCoord( icoord );
         storageType_ = coord.getStorageType();
         ValueInfo[] infos = dataSpec.getUserCoordInfos( icoord );
-        inputStorage_ = coord.inputStorage( infos );
+        DomainMapper[] dms = dataSpec.getUserCoordMappers( icoord );
+        inputStorage_ = coord.inputStorage( infos, dms );
     }
 
     /**

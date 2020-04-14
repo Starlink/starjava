@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.util.function.Function;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -25,10 +26,11 @@ public class BooleanCoord extends SingleCoord {
         super( meta, isRequired, BOOLEAN_DOMAIN, StorageType.BOOLEAN );
     }
 
-    public Function<Object[],Boolean> inputStorage( ValueInfo[] infos ) {
+    public Function<Object[],Boolean> inputStorage( ValueInfo[] infos,
+                                                    DomainMapper[] dms ) {
         return userValues -> {
-           Object c = userValues[ 0 ];
-           return c instanceof Boolean ? (Boolean) c : Boolean.FALSE;
+            Object c = userValues[ 0 ];
+            return c instanceof Boolean ? (Boolean) c : Boolean.FALSE;
         };
     }
 

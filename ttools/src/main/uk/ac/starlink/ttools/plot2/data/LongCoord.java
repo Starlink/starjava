@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.util.function.Function;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -25,7 +26,8 @@ public class LongCoord extends SingleCoord {
         badval_ = Long.MIN_VALUE;
     }
 
-    public Function<Object[],Number> inputStorage( ValueInfo[] infos ) {
+    public Function<Object[],Number> inputStorage( ValueInfo[] infos,
+                                                   DomainMapper[] dms ) {
         return userValues -> {
             Object c = userValues[ 0 ];
             return c instanceof Number ? ((Number) c) : badval_;
