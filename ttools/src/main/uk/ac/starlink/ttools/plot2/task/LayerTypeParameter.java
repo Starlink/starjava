@@ -329,6 +329,11 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                    .createDataParameter( input, suffix, fullDetail );
                 param.setNullPermitted( ! coord.isRequired() );
                 paramList.add( param );
+                if ( AbstractPlot2Task.hasDomainMappers( input ) ) {
+                    paramList.add( AbstractPlot2Task
+                                  .createDomainMapperParameter( input,
+                                                                suffix ) );
+                }
             }
         }
         return paramList.toArray( new Parameter<?>[ 0 ] );

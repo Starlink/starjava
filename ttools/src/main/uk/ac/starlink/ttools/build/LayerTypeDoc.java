@@ -144,6 +144,11 @@ public class LayerTypeDoc {
                             posParamList.add( AbstractPlot2Task
                                              .createDataParameter( input, sfix,
                                                                    false ) );
+                            if ( AbstractPlot2Task.hasDomainMappers( input ) ) {
+                                posParamList.add( AbstractPlot2Task
+                                                 .createDomainMapperParameter(
+                                                      input, sfix ) );
+                            }
                         }
                     }
                 }

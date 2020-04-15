@@ -37,6 +37,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
+import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
@@ -145,6 +146,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     public static final String ZONE_PREFIX = "zone";
     private static final String TABLE_PREFIX = "in";
     private static final String FILTER_PREFIX = "icmd";
+    private static final String DOMAINMAPPER_SUFFIX = "type";
     public static final String EXAMPLE_LAYER_SUFFIX = "N";
     public static final String EXAMPLE_ZONE_SUFFIX = "Z";
     public static final String DOC_ZONE_SUFFIX = "";
@@ -1059,6 +1061,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                                         true );
                         }
                     } );
+                    if ( hasDomainMappers( input ) ) {
+                        finderList.add( new ParameterFinder<Parameter<?>>() {
+                            public Parameter<?> createParameter( String sfix ) {
+                                return createDomainMapperParameter(
+                                           input, posSuffix + sfix );
+                            }
+                        } );
+                    }
                 }
             }
         }
@@ -1083,6 +1093,13 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                         return createDataParameter( input, sfix, true );
                     }
                 } );
+                if ( hasDomainMappers( input ) ) {
+                    finderList.add( new ParameterFinder<Parameter<?>>() {
+                        public Parameter<?> createParameter( String sfix ) {
+                            return createDomainMapperParameter( input, sfix );
+                        }
+                    } );
+                }
             }
         }
 
@@ -1892,13 +1909,29 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         DomainMapper[] dms = new DomainMapper[ ni ];
         for ( int ii = 0; ii < ni; ii++ ) {
             final Input input = inputs[ ii ];
-            Parameter<?> param = new ParameterFinder<Parameter<?>>() {
-                public Parameter<?> createParameter( String sfix ) {
+            Parameter<String> exprParam =
+                    new ParameterFinder<Parameter<String>>() {
+                public Parameter<String> createParameter( String sfix ) {
                     return createDataParameter( input, sfix, true );
                 }
             }.getParameter( env, suffix );
-            param.setNullPermitted( ! coord.isRequired() );
-            exprs[ ii ] = param.stringValue( env );
+            exprParam.setNullPermitted( ! coord.isRequired() );
+            exprs[ ii ] = exprParam.stringValue( env );
+            final DomainMapper dm;
+            if ( hasDomainMappers( input ) ) {
+                Parameter<DomainMapper> mapperParam =
+                        new ParameterFinder<Parameter<DomainMapper>>() {
+                    public Parameter<DomainMapper>
+                            createParameter( String sfix ) {
+                        return createDomainMapperParameter( input, sfix );
+                    }
+                }.getParameter( env, suffix );
+                dm = mapperParam.objectValue( env );
+            }
+            else {
+                dm = null;
+            }
+            dms[ ii ] = dm;
         }
         return new CoordValue( coord, exprs, dms );
     }
@@ -2418,6 +2451,16 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     }
 
     /**
+     * Indicates whether a DomainMapper should be sought for a given Input.
+     *
+     * @param  input   input specifier
+     * @return  true iff input's Domain supports multiple known mappers
+     */
+    public static boolean hasDomainMappers( Input input ) {
+        return input.getDomain().getMappers().length > 1;
+    }
+
+    /**
      * Returns a parameter for acquiring a plotter.
      *
      * @param   suffix  parameter name suffix
@@ -2541,6 +2584,53 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }
         param.setUsage( vUsage == null ? "<expr>"
                                        : "<" + vUsage + "-expr>" );
+        return param;
+    }
+
+    /**
+     * Returns a parameter for specifying the DomainMapper associated
+     * with a given Input.
+     *
+     * @param  input   coordinate specifier
+     * @param  suffix  layer suffix
+     * @return  domain mapper selection parameter
+     */
+    public static Parameter<DomainMapper>
+            createDomainMapperParameter( Input input, String suffix ) {
+        InputMeta meta = input.getMeta();
+        Domain<?> domain = input.getDomain();
+        DomainMapper[] dms = domain.getMappers();
+        boolean hasSuffix = suffix.length() > 0;
+        String cName = meta.getShortName() + DOMAINMAPPER_SUFFIX;
+        ChoiceParameter<DomainMapper> param =
+                new ChoiceParameter<DomainMapper>( cName + suffix, dms ) {
+            public String getName( DomainMapper dm ) {
+                return dm.getSourceName();
+            }
+        };
+        param.setNullPermitted( true );
+        String dataParamName = meta.getShortName() + suffix;
+        param.setPrompt( "value type for parameter " + dataParamName );
+        StringBuffer dbuf = new StringBuffer()
+            .append( "<p>Selects the form in which the " )
+            .append( domain.getDomainName() )
+            .append( " value for parameter\n" )
+            .append( "<code>" + dataParamName + "</code> is supplied.\n" )
+            .append( "Options are:\n" )
+            .append( "<ul>\n" );
+        for ( DomainMapper dm : dms ) {
+            dbuf.append( "<li><code>" )
+                .append( dm.getSourceName() )
+                .append( "</code>: " )
+                .append( dm.getSourceDescription() )
+                .append( "</li>\n" );
+        }
+        dbuf.append( "</ul>\n" )
+            .append( "If left blank, a guess will be taken depending on\n" )
+            .append( "the data type of the value supplied for the\n" )
+            .append( "<code>" + dataParamName + "</code> value.\n" )
+            .append( "</p>\n" );
+        param.setDescription( dbuf.toString() );
         return param;
     }
 

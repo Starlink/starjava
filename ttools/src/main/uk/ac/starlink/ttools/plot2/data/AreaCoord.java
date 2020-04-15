@@ -43,11 +43,18 @@ public abstract class AreaCoord<DG extends DataGeom> implements Coord {
     private final int nDataDim_;
     private final boolean allowPoint_;
 
-    private static final InputMeta META =
-         new InputMeta( "area", "Area" )
-        .setShortDescription( "Specifies a 2D plot region; "
-                            + "may be an STC-S string "
-                            + "or a DALI geometry array" );
+    private static final InputMeta META;
+    static {
+        META = new InputMeta( "area", "Area" );
+        META.setShortDescription( "Specifies a 2D plot region" );
+        META.setXmlDescription( new String[] {
+            "<p>Expression giving the geometry of a 2D region on the plot.",
+            "It may be a string- or array-valued expression,",
+            "and its interpretation depends on the value of the corresponding",
+            "<code>" + META.getShortName() + "type</code> parameter.",
+            "</p>",
+        } );
+    }
 
     /** Instance for use with Plane plot type. */
     public static final AreaCoord<PlaneDataGeom> PLANE_COORD =
