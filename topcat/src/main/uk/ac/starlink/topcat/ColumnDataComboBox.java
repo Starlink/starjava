@@ -12,6 +12,9 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.Domain;
+import uk.ac.starlink.table.DomainMapper;
 
 /**
  * JComboBox suitable for use with a ColumnComboBoxModel.
@@ -28,19 +31,84 @@ import uk.ac.starlink.table.ColumnData;
  */
 public class ColumnDataComboBox extends JComboBox<ColumnData> {
 
+    private final Domain<?> domain_;
+    private final DomainMapperComboBox mapperSelector_;
+
     /**
-     * Constructor.
+     * Constructs a domain-less selector.
      */
     public ColumnDataComboBox() {
+        this( null );
+    }
+
+    /**
+     * Constructs a selector with a given target value domain.
+     *
+     * @param  domain   required value domain
+     */
+    public ColumnDataComboBox( Domain<?> domain ) {
+        domain_ = domain;
+        mapperSelector_ = domain == null
+                        ? null
+                        : new DomainMapperComboBox( domain, this );
         setEditable( true );
     }
 
+    /**
+     * Returns a component that should be presented to the user for
+     * selecting domain mapper alongside the input value selector.
+     * This method returns non-null only if there is a material
+     * choice to be made; if there's only one option, null is returned.
+     *
+     * @return  domain mapper selector component, or null
+     */
+    public DomainMapperComboBox getDomainMapperSelector() {
+        return mapperSelector_ != null && mapperSelector_.getItemCount() > 1
+             ? mapperSelector_
+             : null;
+    }
+
+    @Override
     public void setModel( ComboBoxModel<ColumnData> model ) {
         super.setModel( model );
         if ( model instanceof ColumnDataComboBoxModel ) {
             ColumnDataComboBoxModel emodel =
                 (ColumnDataComboBoxModel) model;
             setEditor( new ColumnDataEditor( emodel, this ) );
+        }
+    }
+
+    /**
+     * Returns the currently selected DomainMapper.
+     * This may have been actively selected by the user, or may be the
+     * only option.  If no guess can be made about what mapper to use,
+     * including if no domain has been specified, the return value may be null.
+     *
+     * @return   selected domain mapper
+     */
+    public DomainMapper getDomainMapper() {
+        if ( mapperSelector_ != null ) {
+            return mapperSelector_
+                  .getItemAt( mapperSelector_.getSelectedIndex() );
+        }
+        else {
+            return null;
+        }
+    }
+
+    @Override
+    public void addActionListener( ActionListener listener ) {
+        super.addActionListener( listener );
+        if ( mapperSelector_ != null ) {
+            mapperSelector_.addActionListener( listener );
+        }
+    }
+
+    @Override
+    public void removeActionListener( ActionListener listener ) {
+        super.removeActionListener( listener );
+        if ( mapperSelector_ != null ) {
+            mapperSelector_.removeActionListener( listener );
         }
     }
 

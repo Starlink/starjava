@@ -55,7 +55,20 @@ public class GuiDataSpec extends AbstractDataSpec {
     }
 
     public String getCoordId( int ic ) {
-        return Arrays.toString( contents_[ ic ].getDataLabels() );
+        String[] dataLabels = contents_[ ic ].getDataLabels();
+        DomainMapper[] dms = contents_[ ic ].getDomainMappers();
+        StringBuffer sbuf = new StringBuffer();
+        int nu = dataLabels.length;
+        for ( int iu = 0; iu < nu; iu++ ) {
+            sbuf.append( dataLabels[ iu ] );
+            DomainMapper dm = dms[ iu ];
+            if ( dm != null ) {
+                sbuf.append( "|" )
+                    .append( dm.getSourceName() );
+            }
+            sbuf.append( ";" );
+        }
+        return sbuf.toString();
     }
 
     public String getMaskId() {

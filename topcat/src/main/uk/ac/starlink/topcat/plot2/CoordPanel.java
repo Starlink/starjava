@@ -23,6 +23,7 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ColumnDataComboBox;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
+import uk.ac.starlink.topcat.DomainMapperComboBox;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -32,6 +33,7 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * GUI component for entry of Coord values as table column expressions.
@@ -44,7 +46,7 @@ public class CoordPanel {
     private final Coord[] coords_;
     private final ConfigSpecifier cspec_;
     private final ActionForwarder forwarder_;
-    private final List<List<JComboBox<ColumnData>>> colSelectors_;
+    private final List<List<ColumnDataComboBox>> colSelectors_;
     private final JComponent panel_;   
     private TopcatModel tcModel_;
 
@@ -78,21 +80,28 @@ public class CoordPanel {
 
         /* Place entry components for each required coordinate. */
         int nc = coords.length;
-        colSelectors_ = new ArrayList<List<JComboBox<ColumnData>>>();
+        colSelectors_ = new ArrayList<List<ColumnDataComboBox>>();
         LabelledComponentStack stack = new LabelledComponentStack();
         for ( int ic = 0; ic < nc; ic++ ) {
             Input[] inputs = coords[ ic ].getInputs();
             int ni = inputs.length;
-            colSelectors_.add( new ArrayList<JComboBox<ColumnData>>() );
+            colSelectors_.add( new ArrayList<ColumnDataComboBox>() );
             for ( int ii = 0; ii < ni; ii++ ) {
                 InputMeta meta = inputs[ ii ].getMeta();
-                final JComboBox<ColumnData> cs = new ColumnDataComboBox();
+                Domain<?> domain = inputs[ ii ].getDomain();
+                final ColumnDataComboBox cs = new ColumnDataComboBox( domain );
                 colSelectors_.get( ic ).add( cs );
                 cs.addActionListener( forwarder_ );
                 JComponent line = Box.createHorizontalBox();
                 line.add( cs );
                 line.add( Box.createHorizontalStrut( 5 ) );
                 line.add( new ComboBoxBumper( cs ) );
+                DomainMapperComboBox dmSelector = cs.getDomainMapperSelector();
+                if ( dmSelector != null ) {
+                    dmSelector.addActionListener( forwarder_ );
+                    line.add( Box.createHorizontalStrut( 10 ) );
+                    line.add( dmSelector.getComponent() );
+                }
 
                 /* Set the width to a small value, but add it to the stack
                  * with xfill true.  This has the effect of making it 
@@ -222,7 +231,7 @@ public class CoordPanel {
         int ninRequired = 0;
         int ninPopulated = 0;
         for ( int ic = 0; ic < coords_.length; ic++ ) {
-            List<JComboBox<ColumnData>> colsels = colSelectors_.get( ic );
+            List<ColumnDataComboBox> colsels = colSelectors_.get( ic );
             Coord coord = coords_[ ic ];
             boolean isReq = coord.isRequired();
             Input[] inputs = coord.getInputs();
@@ -327,34 +336,34 @@ public class CoordPanel {
         GuiCoordContent[] contents = new GuiCoordContent[ npc ];
         for ( int ic = 0; ic < npc; ic++ ) {
             Coord coord = coords_[ ic ];
-            List<JComboBox<ColumnData>> colsels = colSelectors_.get( ic );
+            List<ColumnDataComboBox> colsels = colSelectors_.get( ic );
             int nu = colsels.size();
             ColumnData[] coldats = new ColumnData[ nu ];
             String[] datlabs = new String[ nu ];
+            DomainMapper[] dms = new DomainMapper[ nu ];
             for ( int iu = 0; iu < nu; iu++ ) {
-                Object colitem = colsels.get( iu ).getSelectedItem();
+                ColumnDataComboBox colsel = colsels.get( iu );
+                Object colitem = colsel.getSelectedItem();
+                DomainMapper dm = colsel.getDomainMapper();
                 if ( colitem instanceof ColumnData ) {
                     coldats[ iu ] = (ColumnData) colitem;
                     datlabs[ iu ] = colitem.toString();
+                    dms[ iu ] = dm;
                 }
                 else if ( ! coord.isRequired() ) {
                     Input input = coord.getInputs()[ iu ];
-                    // Not very satisfactory but will be fixed in a future
-                    // commit.
-                    Class<?> reqClazz = Object.class;
                     ColumnInfo info =
-                        new ColumnInfo( input.getMeta().getLongName(), reqClazz,
+                        new ColumnInfo( input.getMeta().getLongName(),
+                                        dm.getSourceClass(),
                                         input.getMeta().getShortDescription() );
                     coldats[ iu ] = new ConstantColumn( info, null );
                     datlabs[ iu ] = null;
+                    dms[ iu ] = dm;
                 }
                 else {
                     return null;
                 }
             }
-            // This is not really respectable, but will be fixed
-            // in a future commit.
-            DomainMapper[] dms = new DomainMapper[ nu ];
             contents[ ic ] =
                 new GuiCoordContent( coord, datlabs, coldats, dms );
         }
