@@ -115,6 +115,9 @@
   <!ENTITY plot3d-examples SYSTEM 'plot3d-examples.xml'>
   <!ENTITY plothist-examples SYSTEM 'plothist-examples.xml'>
 
+  <!-- Miscellaneous text -->
+  <!ENTITY ttypeN-param SYSTEM 'ttypeN-param.xml'>
+
   <!-- Automatically generated plot2 figures. -->
   <!ENTITY figs './'>
   <!ENTITY % plot2-defs SYSTEM 'plot2-figdefs.xml'>
@@ -3600,11 +3603,13 @@ their corresponding positional coordinates.
     (ISO-8601 dates, decimal year, MJD etc). 
     Positional coordinates are supplied as
     <code>t</code>, <code>y</code> pairs.
-    How to provide a data value representing a time is somewhat
-    under-documented, but reading data from a time-sensitive format
-    such as CDF will give column values that can be used as times.
-    This surface type is somewhat experimental, and the
-    <code>plot2time</code> command currently lacks some important features.
+    Time can be represented in input data in various ways;
+    if sufficient metadata is provided in the input format
+    the epoch can be determined automatically,
+    otherwise it may be necessary to specify the time representation
+    being used.
+    This plot type is somewhat experimental, and the
+    <code>plot2time</code> command currently lacks some features.
     </p></dd>
 </dl>
 </p>
@@ -6236,10 +6241,34 @@ MJD, decimal year and ISO-8601 form.
 </p>
 
 <p>Positional coordinates are specified as <code>t</code>, <code>y</code> pairs,
+with an optional <code>ttype</code> specifier to indicate how the
+input value is to be interpreted,
 e.g.:
 <verbatim>
-   plot2time in1=series.cdf layer1=line t1=EPOCH y1=ENERGY
+   plot2time in1=series.fits layer1=line t1=EPOCH ttype1=MJD y1=ENERGY
 </verbatim>
+</p>
+
+<p>Time values can be represented in various ways in input data,
+for instance as Julian Day, Modified Julian Date, decimal years
+since 0AD, Unix seconds, ISO-8601, or variants of some of the
+above with additional offsets.
+In some cases the input format contains enough metadata to
+determine how the values should be mapped to a common timescale
+(so for instance they can be plotted as MJD or Year/Month/Day),
+and in other cases they do not.
+For example CDF files and VOTable 1.4 files with <code>TIMESYS</code>
+markup contain sufficient metadata, and text inputs using the
+ISO-8601 format can usually be identified and understood,
+but there's no way to tell automatically whether a numeric column
+in a CSV file represents MJD, seconds since a known epoch,
+decimal years, or anything else.
+For this reason the <code>ttypeN</code> parameter is provided
+for all the layer types with a <code>tN</code> coordinate,
+as follows:
+<dl>
+&ttypeN-param;
+</dl>
 </p>
 
 <p>This command,
@@ -6267,22 +6296,9 @@ what this looks like in practice.
 
 <p><em><strong>Note:</strong> this plot type, and the multi-zone feature,
 is experimental.
-As currently implemented it lacks some important features.
+As currently implemented it lacks some features.
 The interface may be changed in a future version.
 </em></p>
-
-<p>One reason that this window is marked experimental is that
-determination of time coordinate values is not always done well.
-If the table has sufficient metadata, it will work out whether a
-specified time coordinate is in decimal year, MJD, ISO-8601 or whatever.
-However, if the data is not marked up well enough (e.g. for CSV files)
-it falls back to the "default" time value mapping, in which
-time axis values are interpreted as "Unix seconds"
-(seconds since the Unix epoch, 1970-01-01T00:00).
-You can convert your time values to the required form explicitly
-by using one of the <code>*ToUnixSec</code> functions in the
-<ref id="uk.ac.starlink.ttools.func.Times">Times</ref> class.
-</p>
 
 &plot2time-layers;
 
@@ -6302,12 +6318,13 @@ stilts plot2time xpix=1000 ypix=300
                  layer.n=line y.n=Bn color.n=pink
 </verbatim></dt>
 <dd><p>Three time series are plotted on the same axes as lines in different
-    colours.
+    colours.  In this case we trust the markup in the VOTable input
+    to describe the format of the <code>epoch</code> column.
     </p></dd>
 
 <dt><verbatim>
 stilts plot2time xpix=1000 ypix=1000
-                 in=ACE_data.vot t=decYearToUnixSec(fp_year)
+                 in=ACE_data.vot t=fp_year ttype=decyear
                  layer.r=line y.r=Br zone.r=ZR
                  layer.t=line y.t=Bt zone.t=ZT
                  layer.n=line y.n=Bn zone.n=ZN
@@ -6320,7 +6337,7 @@ stilts plot2time xpix=1000 ypix=1000
     parameter suffixes refer to the zone identifiers not the layer identifiers.
     The time coordinate in this case is supplied as a decimal year column
     which does not have sufficient metadata to identify it as such,
-    so we force the conversion to Unix seconds.
+    so we specify the time format explicitly as <code>decyear</code>.
     </p></dd>
 
 <dt><verbatim>
@@ -12402,6 +12419,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New <ref id="layer-area"><code>area</code></ref> plot layer type
         added for showing regions for in STC-S, DALI or ASCII-MOC values
         in Plane, Sky and Sphere plots</li>
+    <li>Add <code>ttypeN</code> parameter to
+        <ref id="plot2time"><code>plot2time</code></ref>
+        to allow explicit specification of time mapping from input data
+        (MJD, JD, ISO-8601 etc).
+        Numeric time values without such explicit specification
+        are now interpreted as MJD rather than Unix seconds.</li>
     </ul>
     </p></dd>
 

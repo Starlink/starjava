@@ -1221,6 +1221,12 @@
           output="${build.docs}/shapemode-docs.xml"
           logerror="yes"
           classpathref="classpath"/>
+    <java classname="uk.ac.starlink.ttools.build.MiscDoc"
+          failonerror="yes"
+          fork="yes"
+          dir="${build.docs}"
+          logerror="yes"
+          classpathref="classpath"/>
 
     <!-- Write XML files containing MatchEngine usage information
      !   for inclusion in the user document. -->
