@@ -156,7 +156,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private static final boolean WITH_SCROLL = true;
     private static final Icon HIGHLIGHTER = new HighlightIcon();
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
+        Logger.getLogger( "uk.ac.starlink.topcat.plot2" );
 
     /**
      * Constructor.  Factories to gather various information required
@@ -1277,6 +1277,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             }
             catch ( IOException e ) {
                 logger_.log( Level.WARNING, "Plot data error: " + e, e );
+                e.printStackTrace();
                 return null;
             }
             catch ( OutOfMemoryError e ) {
@@ -1285,6 +1286,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             }
             catch ( Throwable e ) {
                 logger_.log( Level.WARNING, "Plot data error: " + e, e );
+                e.printStackTrace();
                 return null;
             }
         }
