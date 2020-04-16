@@ -1,5 +1,8 @@
 package uk.ac.starlink.ttools.plot2.data;
 
+import gov.fnal.eag.healpix.PixTools;
+import javax.vecmath.Vector3d;
+
 /**
  * Coordinate value representing a two-dimensional shaped area.
  * Instances of this class can be serialized to a plot tuple element.
@@ -174,6 +177,47 @@ public class Area {
             }
             public void writeSkyCoords3( double[] data, double[] buffer ) {
                 writeLonLatSky3( data[ 0 ], data[ 1 ], buffer );
+            }
+        },
+
+        /**
+         * Multi-Order Coverage map;
+         * each array element contains 64-bit NUNIQ bit pattern equivalenced
+         * to the double value.
+         */
+        MOC() {
+            public boolean isLegalArrayLength( int n ) {
+                return n > 0;
+            }
+            public void writePlaneCoords2( double[] data, double[] buffer ) {
+                double[] r3 = new double[ 3 ];
+                writeSkyCoords3( data, r3 );
+                double lat = 90 - Math.toDegrees( Math.acos( r3[ 2 ] ) );
+                double lon = Math.toDegrees( Math.atan2( r3[ 1 ], r3[ 0 ] ) );
+                buffer[ 0 ] = lon;
+                buffer[ 1 ] = lat;
+            }
+            public void writeSkyCoords3( double[] data, double[] buffer ) {
+                int nd = data.length;
+                double tx = 0;
+                double ty = 0;
+                double tz = 0;
+                PixTools pixTools = new PixTools();
+                for ( int i = 0; i < nd; i++ ) {
+                    long uniq = Double.doubleToRawLongBits( data[ i ] );
+                    long order = ( 61 - Long.numberOfLeadingZeros( uniq ) ) >>1;
+                    long ipix = uniq - ( 4L << ( 2 * order ) );
+                    long nside = 1L << order;
+                    Vector3d vec3 = pixTools.pix2vect_nest( nside, ipix );
+                    double factor = 1.0 / ( nside * nside );
+                    tx += factor * vec3.x;
+                    ty += factor * vec3.y;
+                    tz += factor * vec3.z;
+                }
+                double scale = 1.0 / Math.sqrt( tx * tx + ty * ty + tz * tz );
+                buffer[ 0 ] = tx * scale;
+                buffer[ 1 ] = ty * scale;
+                buffer[ 2 ] = tz * scale;
             }
         };
 

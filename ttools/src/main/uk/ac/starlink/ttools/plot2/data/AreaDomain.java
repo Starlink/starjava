@@ -10,6 +10,7 @@ import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DoubleList;
+import uk.ac.starlink.util.LongList;
 
 /**
  * Domain representing two-dimensional regions on a common surface.
@@ -49,6 +50,9 @@ public class AreaDomain implements Domain<AreaMapper> {
         createDaliMapper( Area.Type.POINT,
                           "2-element array (<code>x</code>,<code>y</code>)" );
 
+    /** Mapper for ASCII format MOCs. */
+    public static final AreaMapper ASCIIMOC_MAPPER = createAsciiMocMapper();
+
     private static final String WORDS_REGEX =
         "\\s*([A-Za-z]+)\\s+([A-Za-z][A-Za-z0-9]*\\s+)*";
     private static final String NUMBER_REGEX =
@@ -61,6 +65,8 @@ public class AreaDomain implements Domain<AreaMapper> {
         Pattern.compile( "\\s*\\((.*)\\)\\s*" );
     private static final Pattern TERM_PATTERN =
         Pattern.compile( "(" + WORDS_REGEX + ")+" + "(" + NUMBER_REGEX + ")+" );
+    private static final Pattern MOC_PATTERN =
+        Pattern.compile( "\\s*(?:([0-9]+)/)?([0-9]+)(?:-([0-9]+))?" );
 
     /**
      * Private sole constructor prevents external instantiation.
@@ -78,6 +84,7 @@ public class AreaDomain implements Domain<AreaMapper> {
             POLYGON_MAPPER,
             CIRCLE_MAPPER,
             POINT_MAPPER,
+            ASCIIMOC_MAPPER,
         };
     }
 
@@ -202,6 +209,35 @@ public class AreaDomain implements Domain<AreaMapper> {
                 if ( String.class.equals( clazz ) ) {
                     return obj -> obj instanceof String
                                 ? stcsArea( (String) obj, true )
+                                : null;
+                }
+                else {
+                    return null;
+                }
+            }
+        };
+    }
+
+    /**
+     * Returns a mapper that can turn ASCII MOC serializations
+     * into areas.
+     *
+     * @return   MOC mapper instance
+     */
+    private static AreaMapper createAsciiMocMapper() {
+        String descrip = new StringBuffer()
+            .append( "Region description using ASCII MOC syntax;\n" )
+            .append( "see <webref " )
+            .append( "url='http://www.ivoa.net/documents/MOC/index.html'>" )
+            .append( "MOC 1.1</webref> 2.3.2.\n" )
+            .append( "Note there are currently a few issues\n" )
+            .append( "with MOC plotting, especially for large pixels." )
+            .toString();
+        return new AreaMapper( "MOC-ASCII", descrip, String.class ) {
+            public Function<Object,Area> areaFunction( Class<?> clazz ) {
+                if ( String.class.equals( clazz ) ) {
+                    return obj -> obj instanceof String
+                                ? mocArea( (String) obj )
                                 : null;
                 }
                 else {
@@ -358,6 +394,47 @@ public class AreaDomain implements Domain<AreaMapper> {
             else {
                 return null;
             }
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Decodes an ASCII MOC string as an Area object.
+     *
+     * @param   txt  MOC ASCII serialization string
+     * @return  area specified, or null
+     */
+    private static Area mocArea( CharSequence txt ) {
+        LongList list = new LongList();
+        Area.Type mocType = Area.Type.MOC;
+        Matcher matcher = MOC_PATTERN.matcher( txt );
+        long order = -1;
+        long kOrder = Integer.MIN_VALUE;
+        while ( matcher.find() ) {
+            String orderTxt = matcher.group( 1 );
+            String ipix0Txt = matcher.group( 2 );
+            String ipixnTxt = matcher.group( 3 );
+            if ( orderTxt != null ) {
+                order = Long.parseLong( orderTxt );
+                kOrder = 4L << ( 2 * order );
+            }
+            assert order >= 0;
+            long ipix0 = Long.parseLong( ipix0Txt );
+            long ipixn = ipixnTxt == null ? ipix0 : Long.parseLong( ipixnTxt );
+            for ( long ipix = ipix0; ipix <= ipixn; ipix++ ) {
+                long nuniq = kOrder + ipix;
+                list.add( nuniq );
+            }
+        }
+        int n = list.size();
+        if ( n > 0 ) {
+            double[] data = new double[ n ];
+            for ( int i = 0; i < n; i++ ) {
+                data[ i ] = Double.longBitsToDouble( list.get( i ) );
+            }
+            return new Area( Area.Type.MOC, data );
         }
         else {
             return null;

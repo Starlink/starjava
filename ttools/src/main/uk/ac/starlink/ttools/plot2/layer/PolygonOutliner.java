@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import gov.fnal.eag.healpix.PixTools;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -30,7 +31,9 @@ import uk.ac.starlink.ttools.plot2.geom.CubeDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.geom.GPoint3D;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
+import uk.ac.starlink.ttools.plot2.geom.Rotation;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
+import uk.ac.starlink.ttools.plot2.geom.SkySys;
 import uk.ac.starlink.ttools.plot2.geom.SphereDataGeom;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
@@ -1020,6 +1023,19 @@ public class PolygonOutliner extends PixOutliner {
                             double[] dpos =
                                 new double[] { point[ 0 ], point[ 1 ] };
                             return createPointVertexData( dpos );
+                        case MOC:
+                            double[] duniqs = area.getDataArray();
+                            return new MocVertexData( duniqs ) {
+                                void copyVector( double vx, double vy,
+                                                 double vz, double[] dpos ) {
+                                    double latDeg =
+                                        90 - Math.toDegrees( Math.acos( vz ) );
+                                    double lonDeg =
+                                        Math.toDegrees( Math.atan2( vy, vx ) );
+                                    dpos[ 0 ] = lonDeg;
+                                    dpos[ 1 ] = latDeg;
+                                }
+                            };
                         default:
                             assert false;
                             return NO_VERTEX_DATA;
@@ -1110,6 +1126,22 @@ public class PolygonOutliner extends PixOutliner {
                             return toSky( point[ 0 ], point[ 1 ], skyGeom, dpos)
                                  ? createPointVertexData( dpos )
                                  : NO_VERTEX_DATA;
+                        case MOC:
+                            double[] duniqs = area.getDataArray();
+                            // MOCs are always equatorial.
+                            final Rotation rotation =
+                                Rotation
+                               .createRotation( SkySys.EQUATORIAL,
+                                                skyGeom.getViewSystem() );
+                            return new MocVertexData( duniqs ) {
+                                void copyVector( double vx, double vy,
+                                                 double vz, double[] dpos ) {
+                                    dpos[ 0 ] = vx;
+                                    dpos[ 1 ] = vy;
+                                    dpos[ 2 ] = vz;
+                                    rotation.rotate( dpos );
+                                }
+                            };
                         default:
                             assert false;
                             return NO_VERTEX_DATA;
@@ -1384,6 +1416,82 @@ public class PolygonOutliner extends PixOutliner {
                 return false;
             }
         };
+    }
+
+    /**
+     * VertexData implementation for MOC areas.
+     */
+    private static abstract class MocVertexData implements VertexData {
+        private final double[] duniqs_;
+        private final PixTools pixTools_;
+        private int iuniq_;
+        private double[][] tileVerts_;
+
+        /**
+         * Constructor.
+         *
+         * @param  duniqs   array of double values that need to be equivalenced
+         *                  to longs in order to yield MOC NUNIQ tile indices
+         */
+        MocVertexData( double[] duniqs ) {
+            duniqs_ = duniqs;
+            pixTools_ = new PixTools();
+            iuniq_ = -1;
+        }
+
+        public int getVertexCount() {
+
+            /* There are four vertices per tile, plus a break vertex
+             * between each pair (but not after the last one). */
+            return duniqs_.length * 5 - 1;
+        }
+
+        public boolean isBreak( int ivert ) {
+
+            /* Every fifth vertex is a break. */
+            return ivert % 5 == 4;
+        }
+
+        public boolean readDataPos( int ivert, double[] dpos ) {
+            int irot = ivert % 5;
+            if ( irot < 4 ) {
+                int iuniq = ivert / 5;
+
+                /* First time we see a tile index, calculate and save
+                 * its vertices.  Most likely after the first one,
+                 * the next three vertices to be requested will be the
+                 * othet three for the same tile. */
+                if ( iuniq != iuniq_ ) {
+                    iuniq_ = iuniq;
+                    long uniq = Double.doubleToRawLongBits( duniqs_[ iuniq ] );
+                    long order = ( 61 - Long.numberOfLeadingZeros( uniq ) ) >>1;
+                    long ipix = uniq - ( 1L << ( 2 + 2 * order ) );
+                    long nside = 1L << order;
+                    tileVerts_ = pixTools_.pix2vertex_nest( nside, ipix );
+                }
+                copyVector( tileVerts_[ 0 ][ irot ],
+                            tileVerts_[ 1 ][ irot ],
+                            tileVerts_[ 2 ][ irot ], dpos );
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        /**
+         * Populates the geometry-specific data-space position array
+         * given the elements of a unit vector giving a vertex position
+         * on the unit sphere.
+         *
+         * @param   vx   unit vector X component
+         * @param   vx   unit vector Y component
+         * @param   vx   unit vector Z component
+         * @param  dpos  geometry-specific data-space position array,
+         *               to be populated on output
+         */
+        abstract void copyVector( double vx, double vy, double vz,
+                                  double[] dpos );
     }
 
     /**
