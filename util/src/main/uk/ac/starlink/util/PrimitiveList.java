@@ -45,6 +45,14 @@ public abstract class PrimitiveList {
     }
 
     /**
+     * Removes all of the elements from this list (optional operation).
+     * The list will be empty after this call returns.
+     */
+    public void clear() {
+        size_ = 0;
+    }
+
+    /**
      * Creates and returns a copy of the contents of this list, in the
      * form of a primitive array of the right length to hold all the
      * elements it currently contains.

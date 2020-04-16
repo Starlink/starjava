@@ -95,6 +95,11 @@ public class PrimitiveListTest extends TestCase {
         assertArrayEquals( new int[ 0 ],
                            addList( new IntList(), new IntList() ) );
 
+        IntList il1 = new IntList( new int[] { 5, 10, 16, 23 } );
+        il1.clear();
+        assertArrayEquals( new int[ 0 ],
+                           addList( il1, new IntList() ) );
+
         ByteList b = new ByteList( new byte[ 2 ] );
         ShortList s = new ShortList( new short[ 2 ] );
         IntList i = new IntList( new int[ 2 ] );
