@@ -217,11 +217,11 @@ public class PolygonOutliner extends PixOutliner {
                             }
 
                             /* Get the next graphics position.
-                             * Reject the polygon if there is no continuous
-                             * line between the first vertex and each
-                             * of the others.  This is to defend against
-                             * drawing polygons going the wrong way around
-                             * the sphere in sky plots. */
+                             * Reject the vertex if there is no continuous
+                             * line from the first vertex to it.
+                             * This is to defend against drawing polygons
+                             * going the wrong way around the sphere in
+                             * sky plots. */
                             else if ( vdata.readDataPos( ip, dpos )
                                    && surf.dataToGraphics( dpos, false, gpos )
                                    && surf.isContinuousLine( dpos0, dpos )
@@ -230,9 +230,6 @@ public class PolygonOutliner extends PixOutliner {
                                 gxs[ jp ] = igpos.x;
                                 gys[ jp ] = igpos.y;
                                 jp++;
-                            }
-                            else {
-                                return;
                             }
                         }
 
