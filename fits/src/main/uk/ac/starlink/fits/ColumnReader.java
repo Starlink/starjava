@@ -3,6 +3,7 @@ package uk.ac.starlink.fits;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +26,7 @@ abstract class ColumnReader {
     private final ColFlags flags_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
+    private static final Charset US_ASCII = Charset.forName( "US-ASCII" );
 
     /** Policy for dealing with offset long values. */
     static final boolean OFFSET_LONG_TO_STRING = true;
@@ -1238,24 +1240,24 @@ abstract class ColumnReader {
      */
     private static String readString( BasicInput stream, int count )
             throws IOException {
-        char[] letters = new char[ count ];
+        byte[] bbuf = new byte[ count ];
+        stream.readBytes( bbuf );
         int last = -1;
         boolean end = false;
-        for ( int i = 0; i < count; i++ ) {
-            char letter = (char) ( stream.readByte() & 0xff );
-            if ( letter == 0 ) {
-                end = true;
-            }
-            if ( ! end ) {
-                letters[ i ] = letter;
-                if ( letter != ' ' ) {
+        for ( int i = 0; i < count && !end; i++ ) {
+            switch ( bbuf[ i ] ) {
+                case 0:
+                    end = true;
+                    break;
+                case (byte) ' ':
+                    break;
+                default:
                     last = i;
-                }
             }
         }
         int leng = last + 1;
         return leng == 0 ? null
-                         : new String( letters, 0, leng );
+                         : new String( bbuf, 0, leng, US_ASCII );
     }
 
     /**

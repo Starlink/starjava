@@ -12395,6 +12395,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix <ref id="layer-polygon"><code>polygon</code></ref> plots in
         <ref id="plot2sphere"><code>plot2sphere</code></ref> - this
         combination was failing to plot anything, now it works.</li>
+    <li>Improve performance when reading long String values
+        from FITS files.</li>
     </ul>
     </p></dd>
 
