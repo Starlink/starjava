@@ -45,45 +45,26 @@ public class StyleKeys {
 
     /** Config key for marker shape. */
     public static final ConfigKey<MarkShape> MARK_SHAPE =
-        new OptionConfigKey<MarkShape>(
-            new ConfigMeta( "shape", "Shape" )
-           .setShortDescription( "Marker shape" )
-           .setXmlDescription( new String[] {
-                "<p>Sets the shape of markers that are plotted at each",
-                "position of the scatter plot.",
-                "</p>",
-            } )
-        , MarkShape.class, SHAPES, MarkShape.FILLED_CIRCLE ) {
-        public String getXmlDescription( MarkShape shape ) {
-            return null;
-        }
-        public Specifier<MarkShape> createSpecifier() {
-            return new ComboBoxSpecifier<MarkShape>(
-                           MarkShape.class,
-                           MarkStyleSelectors.createShapeSelector( SHAPES ) );
-        }
-    }.setOptionUsage()
-     .addOptionsXml();
+        createMarkShapeKey( new ConfigMeta( "shape", "Shape" )
+                           .setShortDescription( "Marker shape" )
+                           .setXmlDescription( new String[] {
+                                "<p>Sets the shape of markers that are plotted",
+                                "at each position of the scatter plot.",
+                                "</p>", } ),
+                            MarkShape.FILLED_CIRCLE );
 
     /** Config key for marker size. */
     public static final ConfigKey<Integer> SIZE =
-        new IntegerConfigKey(
-            new ConfigMeta( "size", "Size" )
-           .setStringUsage( "<pixels>" )
-           .setShortDescription( "Marker size in pixels" )
-           .setXmlDescription( new String[] {
-                "<p>Size of the scatter plot markers.",
-                "The unit is pixels, in most cases the marker is approximately",
-                "twice the size of the supplied value.",
-                "</p>",
-            } )
-        , 1 ) {
-        public Specifier<Integer> createSpecifier() {
-            return new ComboBoxSpecifier<Integer>( Integer.class,
-                                                   MarkStyleSelectors
-                                                  .createSizeSelector( 9 ) );
-        }
-    };
+        createMarkSizeKey( new ConfigMeta( "size", "Size" )
+                          .setStringUsage( "<pixels>" )
+                          .setShortDescription( "Marker size in pixels" )
+                          .setXmlDescription( new String[] {
+                               "<p>Size of the scatter plot markers.",
+                               "The unit is pixels, in most cases the marker",
+                               "is approximately twice the size",
+                               "of the supplied value.",
+                               "</p>" } ),
+                           1 );
 
     private static final XYShape[] XYSHAPES = XYShapes.getXYShapes();
 
@@ -631,6 +612,50 @@ public class StyleKeys {
             }
         }
         return new BasicStroke( thick, cap, join, 10f, dash, 0f );
+    }
+
+    /**
+     * Returns a config key for choosing marker shape.
+     *
+     * @param   meta   metadata
+     * @param   dflt  default shape value
+     * @return  new key
+     */
+    public static ConfigKey<MarkShape> createMarkShapeKey( ConfigMeta meta,
+                                                           MarkShape dflt ) {
+        OptionConfigKey<MarkShape> key =
+                new OptionConfigKey<MarkShape>( meta, MarkShape.class,
+                                                SHAPES, dflt ) {
+            public String getXmlDescription( MarkShape shape ) {
+                return null;
+            }
+            public Specifier<MarkShape> createSpecifier() {
+                return new ComboBoxSpecifier<MarkShape>(
+                           MarkShape.class,
+                           MarkStyleSelectors.createShapeSelector( SHAPES ) );
+            }
+        };
+        key.setOptionUsage();
+        key.addOptionsXml();
+        return key;
+    }
+
+    /**
+     * Returns a config key for choosing marker size in pixels.
+     *
+     * @param   meta   metadata
+     * @param   dflt  default size value
+     * @return  new key
+     */
+    public static ConfigKey<Integer> createMarkSizeKey( ConfigMeta meta,
+                                                        int dflt ){
+        return new IntegerConfigKey( meta, dflt ) {
+            public Specifier<Integer> createSpecifier() {
+                return new ComboBoxSpecifier<Integer>( Integer.class,
+                                                       MarkStyleSelectors
+                                                      .createSizeSelector( 9 ));
+            }
+        };
     }
 
     /**
