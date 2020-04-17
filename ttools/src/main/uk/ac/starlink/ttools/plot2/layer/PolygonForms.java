@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.DefaultListCellRenderer;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
@@ -255,6 +256,11 @@ public class PolygonForms {
                 "<code>" + POLYMODE_KEY.getMeta().getShortName() + "</code>",
                 "option.",
                 "</p>",
+                "<p>Polygons smaller than a configurable threshold size",
+                "in pixels are by default represented by a replacement marker,",
+                "so the position of even a very small polygon",
+                "is still visible on the screen.",
+                "</p>",
             } );
         }
 
@@ -274,14 +280,19 @@ public class PolygonForms {
             return new ConfigKey<?>[] {
                 POLYMODE_KEY,
                 ISFAST_KEY,
+                PolygonOutliner.MINSIZE_KEY,
+                PolygonOutliner.MINSHAPE_KEY,
             };
         }
 
         public Outliner createOutliner( ConfigMap config ) {
             PolygonMode polyMode = config.get( POLYMODE_KEY );
             boolean isFast = config.get( ISFAST_KEY ).booleanValue();
+            int minSize = config.get( PolygonOutliner.MINSIZE_KEY );
+            MarkShape minShape = config.get( PolygonOutliner.MINSHAPE_KEY );
             PolygonMode.Glypher polyGlypher = polyMode.getGlypher( isFast );
-            return PolygonOutliner.createFixedOutliner( np_, polyGlypher );
+            return PolygonOutliner
+                  .createFixedOutliner( np_, polyGlypher, minSize, minShape );
         }
     }
 

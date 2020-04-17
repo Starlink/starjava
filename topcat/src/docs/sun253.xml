@@ -12375,6 +12375,22 @@ are available.
     It may be necessary to unset it when filling polygons that
     may be re-entrant.
     </p></dd>
+<dt>Minimal Size</dt>
+<dd><p>Defines a threshold size in pixels below which,
+    instead of the shape defined by the polygon coordinates,
+    a replacement marker will be painted instead.
+    If this is set to zero, then only the shape itself
+    will be plotted, which may mean it appears as only a single pixel.
+    By setting a larger value, you can ensure that
+    the position of even small polygons is easily visible,
+    at the expense of giving them an artificial shape and size.
+    This value also defines the size of the replacement markers.
+    </p></dd>
+<dt>Minimal Shape</dt>
+<dd><p>Selects the shape of replacement markers that get plotted
+    instead of very small polygons, as controlled by the
+    <label>Minimal Size</label> setting.
+    </p></dd>
 </dl>
 </p>
 
@@ -29098,6 +29114,9 @@ introduced since the last version:
         combination was failing to plot anything, now it works.</li>
     <li>Improve performance when reading long String values
         from FITS files.</li>
+    <li>Add replacement marker functionality (Minimal Size/Shape options)
+        to <ref id="form-poly4">Poly4</ref> form,
+        so that small polygons aren't too small to see.</li>
     </ul>
     </p></dd>
 

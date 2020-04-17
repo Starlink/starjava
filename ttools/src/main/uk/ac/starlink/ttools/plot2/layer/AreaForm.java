@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -32,18 +33,24 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
     /** Instance for use with Plane plot. */
     public static final AreaForm<PlaneDataGeom> PLANE_INSTANCE =
             new AreaForm<PlaneDataGeom>( AreaCoord.PLANE_COORD, new Coord[0] ) {
-        protected PolygonOutliner createOutliner( PolygonMode.Glypher pg ) {
+        protected PolygonOutliner createOutliner( PolygonMode.Glypher pg,
+                                                  int minSize,
+                                                  MarkShape minShape ) {
             return PolygonOutliner
-                  .createPlaneAreaOutliner( getAreaCoord(), 0, pg );
+                  .createPlaneAreaOutliner( getAreaCoord(), 0, pg,
+                                            minSize, minShape );
         }
     };
 
     /** Instance for use with Sky plot. */
     public static final AreaForm<SkyDataGeom> SKY_INSTANCE =
             new AreaForm<SkyDataGeom>( AreaCoord.SKY_COORD, new Coord[ 0 ] ) {
-        protected PolygonOutliner createOutliner( PolygonMode.Glypher pg ) {
+        protected PolygonOutliner createOutliner( PolygonMode.Glypher pg,
+                                                  int minSize,
+                                                  MarkShape minShape ) {
             return PolygonOutliner
-                  .createSkyAreaOutliner( getAreaCoord(), 0, pg );
+                  .createSkyAreaOutliner( getAreaCoord(), 0, pg,
+                                          minSize, minShape );
         }
     };
 
@@ -51,10 +58,12 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
     public static final AreaForm<SphereDataGeom> SPHERE_INSTANCE =
             new AreaForm<SphereDataGeom>( AreaCoord.SPHERE_COORD,
                                           new Coord[] { RADIAL_COORD } ) {
-        protected PolygonOutliner createOutliner( PolygonMode.Glypher pg ) {
+        protected PolygonOutliner createOutliner( PolygonMode.Glypher pg,
+                                                  int minSize,
+                                                  MarkShape minShape ) {
             return PolygonOutliner
                   .createSphereAreaOutliner( getAreaCoord(), 0, RADIAL_COORD, 1,
-                                             pg );
+                                             pg, minSize, minShape );
         }
     };
 
@@ -96,6 +105,11 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
             "polygon, circle or point as flagged using the DALI/VOTable",
             "extended type (xtype) marker.",
             "</p>",
+            "<p>Areas smaller than a configurable threshold size",
+            "in pixels are by default represented by a replacement marker,",
+            "so the position of even a very small area",
+            "is still visible on the screen.",
+            "</p>",
         } );
     }
 
@@ -111,23 +125,31 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
         return new ConfigKey<?>[] {
             POLYMODE_KEY,
             ISFAST_KEY,
+            PolygonOutliner.MINSIZE_KEY,
+            PolygonOutliner.MINSHAPE_KEY,
         };
     }
 
     public Outliner createOutliner( ConfigMap config ) {
         PolygonMode polyMode = config.get( POLYMODE_KEY );
         boolean isFast = config.get( ISFAST_KEY ).booleanValue();
-        return createOutliner( polyMode.getGlypher( isFast ) );
+        int minSize = config.get( PolygonOutliner.MINSIZE_KEY );
+        MarkShape minShape = config.get( PolygonOutliner.MINSHAPE_KEY );
+        PolygonMode.Glypher polyGlypher = polyMode.getGlypher( isFast );
+        return createOutliner( polyGlypher, minSize, minShape );
     }
 
     /**
      * Constructs a PolygonOutliner from a glypher for this form.
      *
      * @param  polyGlypher  glyph painter
+     * @param  minSize   threshold size for replacment markers
+     * @param  minShape   shape for replacement markers
      * @return   new outliner
      */
     protected abstract PolygonOutliner
-            createOutliner( PolygonMode.Glypher polyGlypher );
+            createOutliner( PolygonMode.Glypher polyGlypher,
+                            int minSize, MarkShape minShape );
 
     /**
      * Returns the coordinate associated with this form.
