@@ -190,7 +190,7 @@ public class SkyPlotWindow
                 ColumnDataComboBoxModel latModel = getColumnSelector( 0, 1 );
                 SkySys currentSys = dataSysSpecifier_.getSpecifiedValue();
                 SkySys sys = new ColPopulator( lonModel, latModel )
-                            .attemptPopulate( currentSys );
+                            .attemptPopulate1( currentSys );
                 if ( sys != null && sys != currentSys ) {
                     dataSysSpecifier_.setSpecifiedValue( sys );
                 }
@@ -212,6 +212,61 @@ public class SkyPlotWindow
                                   lonlatInfos[ ipos * 2 + 1 ] );
                     }
                 }
+                else if ( npos_ == 4 ) {
+                    attemptPopulateEpn4();
+                }
+            }
+        }
+
+        /**
+         * Tries to find 4 lon/lat bounding box coordinate pairs
+         * in a way that will work for EPN-TAP tables.
+         * The implementation is hacky and looks at EPN-TAP-defined
+         * column names. 
+         * Really I should be looking for UCDs with ;stat.min/;stat.max
+         * modifiers, but I expect that the large majority of cases
+         * where information in this form is available will be from
+         * EPN-TAP tables with these known column names, so just do it
+         * the dumb way for now until it becomes clear that it's
+         * worth the effort to be smarter.
+         */
+        private boolean attemptPopulateEpn4() {
+            ValueInfo[] infos = CoordPanel.getInfos( getColumnSelector( 0, 0 ));
+            ValueInfo c1minInfo = null;
+            ValueInfo c1maxInfo = null;
+            ValueInfo c2minInfo = null;
+            ValueInfo c2maxInfo = null;
+            for ( ValueInfo info : infos ) {
+                String name = info.getName();
+                if ( "c1min".equals( name ) ) {
+                    c1minInfo = info;
+                }
+                else if ( "c1max".equals( name ) ) {
+                    c1maxInfo = info;
+                }
+                else if ( "c2min".equals( name ) ) {
+                    c2minInfo = info;
+                }
+                else if ( "c2max".equals( name ) ) {
+                    c2maxInfo = info;
+                }
+            }
+            if ( c1minInfo != null && c1maxInfo != null &&
+                 c2minInfo != null && c2maxInfo != null ) {
+                boolean success =
+                    populate( getColumnSelector( 0, 0 ), c1minInfo ) &
+                    populate( getColumnSelector( 0, 1 ), c2minInfo ) &
+                    populate( getColumnSelector( 1, 0 ), c1maxInfo ) &
+                    populate( getColumnSelector( 1, 1 ), c2minInfo ) &
+                    populate( getColumnSelector( 2, 0 ), c1maxInfo ) &
+                    populate( getColumnSelector( 2, 1 ), c2maxInfo ) &
+                    populate( getColumnSelector( 3, 0 ), c1minInfo ) &
+                    populate( getColumnSelector( 3, 1 ), c2maxInfo );
+                assert success;
+                return success;
+            }
+            else {
+                return false;
             }
         }
     }
@@ -255,7 +310,7 @@ public class SkyPlotWindow
          * @return  sky system for which population was successfully performed,
          *          or null
          */
-        public SkySys attemptPopulate( SkySys preferredSys ) {
+        public SkySys attemptPopulate1( SkySys preferredSys ) {
 
             /* Get a list of known sky systems in order of preference;
              * use the order it comes in with the preferred one inserted
@@ -284,7 +339,7 @@ public class SkyPlotWindow
             }
 
             /* If no success, try EPN-TAP convention. */
-            ColumnData[] epnCoords = getEpnCoords();
+            ColumnData[] epnCoords = getEpnCoords1();
             if ( epnCoords != null ) {
                 lonModel_.setSelectedItem( epnCoords[ 0 ] );
                 latModel_.setSelectedItem( epnCoords[ 1 ] );
@@ -302,7 +357,7 @@ public class SkyPlotWindow
          * @return  pair of lon/lat coordinate values corresponding to EPN-TAP
          *          position, or null if they are not available
          */
-        public ColumnData[] getEpnCoords() {
+        public ColumnData[] getEpnCoords1() {
 
             /* See whether the required columns are present. */
             List<String> epnReqs =

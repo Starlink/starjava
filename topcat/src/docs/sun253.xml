@@ -9327,6 +9327,11 @@ while the Cube plot has
 for the 3-dimensional Cartesian triples.
 </p>
 
+<p>In some cases, for instance EPN-TAP tables with bounding boxes
+in sky plots, positions will be filled in automatically.
+You can of course change these default selections.
+</p>
+
 <figure>
 <caption><px>Form tab of Quad Position layer control</px></caption>
 <figureimage src="&FIG.GangLayerControl_quad_form;"/>
@@ -29080,7 +29085,14 @@ introduced since the last version:
     <li>The <ref id="SkyPlotWindow">Sky Plot</ref> position layer control
         now automatically selects lon/lat coordinates for EPN-TAP tables
         (<code>midLon(c1min,c1max)</code>,
-         <code>midLat(c2min,c2max)</code>) where available.</li>
+         <code>midLat(c2min,c2max)</code>) where available.
+        Similarly,
+        <code>c</code>{<code>1</code>,<code>2</code
+                    >}{<code>min</code>,<code>max</code>} values
+        are automatically used for the sky plot
+        <ref id="GangLayerControl_quad">Quad Position Layer Control</ref>,
+        so that EPN-TAP-style bounding boxes
+        are displayed by default.</li>
     <li>Fix <ref id="form-polygon">polygon</ref> plot form in
         <ref id="SpherePlotWindow">Sphere Plot</ref>; this
         combination was failing to plot anything, now it works.</li>
