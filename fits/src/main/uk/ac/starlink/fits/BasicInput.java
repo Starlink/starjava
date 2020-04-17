@@ -80,6 +80,15 @@ public interface BasicInput {
     double readDouble() throws IOException;
 
     /**
+     * Reads bytes into an array from the stream.
+     * The current position is advanced.
+     *
+     * @param  buf   array into which the bytes are read;
+     *               the number of bytes read is the length of the array
+     */
+    void readBytes( byte[] buf ) throws IOException;
+
+    /**
      * Skips a given number of bytes forwards through the stream.
      * An exception is thrown if there are not enough bytes left.
      * 

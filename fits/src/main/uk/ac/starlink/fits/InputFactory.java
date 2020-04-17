@@ -194,6 +194,9 @@ public abstract class InputFactory implements Closeable {
             public double readDouble() throws IOException {
                 return in.readDouble();
             }
+            public void readBytes( byte[] bbuf ) throws IOException {
+                in.readFully( bbuf );
+            }
             public void skip( long nbyte ) throws IOException {
                 IOUtils.skipBytes( in, nbyte );
             }

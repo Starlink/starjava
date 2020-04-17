@@ -130,6 +130,15 @@ public class SimpleMappedInput implements BasicInput {
         }
     }
 
+    public void readBytes( byte[] bbuf ) throws EOFException {
+        try {
+            niobuf_.get( bbuf );
+        }
+        catch ( BufferUnderflowException e ) {
+            throw (EOFException) new EOFException().initCause( e );
+        }
+    }
+
     public void close() {
         MappedByteBuffer niobuf = niobuf_;
         niobuf_ = null;

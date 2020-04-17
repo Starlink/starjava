@@ -12,19 +12,21 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import junit.framework.TestCase;
 import nom.tam.util.BufferedDataInputStream;
 import nom.tam.util.BufferedFile;
+import uk.ac.starlink.util.TestCase;
 
 public class BasicInputTest extends TestCase {
 
-    private final int isiz = 37;
+    private final int isiz = 44;
     private final int count = 23;
+    private final int arrsiz = 7;
 
     public BasicInputTest() {
         Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
@@ -44,6 +46,7 @@ public class BasicInputTest extends TestCase {
             out.writeLong( longFor( i ) );
             out.writeFloat( floatFor( i ) );
             out.writeDouble( doubleFor( i ) );
+            out.write( byteArrayFor( i ), 0, arrsiz );
         } // isiz bytes
         out.close();
         int leng = (int) file.length();
@@ -93,6 +96,9 @@ public class BasicInputTest extends TestCase {
             assertEquals( longFor( i ), in.readLong() );
             assertEquals( floatFor( i ), in.readFloat() );
             assertEquals( doubleFor( i ), in.readDouble() );
+            byte[] barr = new byte[ arrsiz ];
+            in.readBytes( barr );
+            assertArrayEquals( byteArrayFor( i ), barr );
             ixList.add( new Integer( i ) );
         }
         try {
@@ -152,5 +158,10 @@ public class BasicInputTest extends TestCase {
     }
     private static double doubleFor( int i ) {
         return 100 + i + 0.25;
+    }
+    private byte[] byteArrayFor( int i ) {
+        byte[] barr = new byte[ arrsiz ];
+        Arrays.fill( barr, (byte) i );
+        return barr;
     }
 }

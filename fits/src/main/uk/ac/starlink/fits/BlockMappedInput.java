@@ -132,6 +132,15 @@ public abstract class BlockMappedInput implements BasicInput {
         }
     }
 
+    public void readBytes( byte[] bbuf ) throws IOException {
+        try {
+            buffer_.get( bbuf );
+        }
+        catch ( BufferUnderflowException e ) {
+            getAssuredBuffer( bbuf.length ).get( bbuf );
+        }
+    }
+
     public boolean isRandom() {
         return true;
     }

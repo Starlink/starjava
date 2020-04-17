@@ -83,6 +83,10 @@ public class BufferedRandomInput implements BasicInput {
         return getAssuredBuffer( 8 ).getDouble();
     }
 
+    public void readBytes( byte[] bbuf ) throws IOException {
+        getAssuredBuffer( bbuf.length ).get( bbuf );
+    }
+
     public boolean isRandom() {
         return true;
     }

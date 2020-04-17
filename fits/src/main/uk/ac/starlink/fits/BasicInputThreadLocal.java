@@ -106,6 +106,9 @@ public class BasicInputThreadLocal extends ThreadLocal<BasicInput>
         public double readDouble() throws IOException {
             throw failure();
         }
+        public void readBytes( byte[] bbuf ) throws IOException {
+            throw failure();
+        }
         public void skip( long nbyte ) throws IOException {
             throw failure();
         }
