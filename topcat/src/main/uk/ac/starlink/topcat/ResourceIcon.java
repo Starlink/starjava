@@ -723,6 +723,7 @@ public class ResourceIcon implements Icon {
         putMap( nameMap, "ADD_PLOT_DATA", toAddIcon( PLOT_DATA ) );
         putMap( nameMap, "ADD_PLOT_PAIR", toAddIcon( PLOT_PAIR ) );
         putMap( nameMap, "ADD_PLOT_QUAD", toAddIcon( PLOT_QUAD ) );
+        putMap( nameMap, "ADD_PLOT_AREA", toAddIcon( PLOT_AREA ) );
         putMap( nameMap, "ADD_PLOT_HISTO", toAddIcon( PLOT_HISTO ) );
         putMap( nameMap, "ADD_FORM_MARK", toAddIcon( TTRI.FORM_MARK ) );
         putMap( nameMap, "ADD_FORM_SIZE", toAddIcon( TTRI.FORM_SIZE ) );
