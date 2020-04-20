@@ -12399,6 +12399,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         from FITS files.</li>
     <li>Add parameters <code>minsize</code> and <code>minshape</code>
         to <ref id="layer-poly4"><code>poly4</code></ref> plot layer type.</li>
+    <li>New <ref id="layer-area"><code>area</code></ref> plot layer type
+        added for showing regions for in STC-S, DALI or ASCII-MOC values
+        in Plane, Sky and Sphere plots</li>
     </ul>
     </p></dd>
 

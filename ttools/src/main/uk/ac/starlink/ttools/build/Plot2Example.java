@@ -808,6 +808,13 @@ public class Plot2Example {
         /** Planetary data obtained from Batiste Rousseau. */
         public static final String VIRVIS;
 
+        /**
+         * CRISM table: SELECT * FROM crism.epn_core
+         * from TAP service ivo://jacobsuni/tap
+         * (http://epn1.epn-vespa.jacobs-university.de/tap)
+         */
+        public static final String CRISM;
+
         /** All tables used for these examples. */
         public static final String[] NAMES = {
             RR = "rrlyrae.fits",
@@ -826,6 +833,7 @@ public class Plot2Example {
             NGC346 = "ngc346.fits",
             NGC346_GAIA = "ngc346xGaiadr1.fits",
             VIRVIS = "big_tab_VIR_VIS_CSA_public.fits",
+            CRISM = "crism.fits",
         };
     }
 
@@ -1231,6 +1239,16 @@ public class Plot2Example {
                 "shading=weighted", "weight=IR_TEMPERATURE",
                 "auxmap=plasma", null,
                 "clon=83", "clat=34", "radius=11",
+            } ),
+            new Plot2Example( "layer-area", c, PlotTask.SKY, new String[] {
+                "reflectlon=false", "sex=false", 
+                "clon=348.9", "clat=79.8", "radius=1.0", null,
+                "in=" + TName.CRISM, "icmd='select sensor_id==0x4c'", null,
+                "*area_p=s_region", "*areatype_p=stc-s", null,
+                "*layer_pf=area", "*polymode_pf=fill", "*fast_pf=false",
+                "color_pf=1199ff", "shading_pf=transparent", null,
+                "*layer_pl=area", "*polymode_pl=outline", "color_pl=grey",
+                null,
             } ),
             new Plot2Example( "layer-function", c, PlotTask.PLANE,
                               new String[] {
