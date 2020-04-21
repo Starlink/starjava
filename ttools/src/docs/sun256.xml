@@ -12419,6 +12419,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New <ref id="layer-area"><code>area</code></ref> plot layer type
         added for showing regions for in STC-S, DALI or ASCII-MOC values
         in Plane, Sky and Sphere plots</li>
+    <li>New <ref id="layer-central"><code>central</code></ref> plot layer
+        type for use with area coordinates.</li>
     <li>Add <code>ttypeN</code> parameter to
         <ref id="plot2time"><code>plot2time</code></ref>
         to allow explicit specification of time mapping from input data

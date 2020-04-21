@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.AreaForm;
+import uk.ac.starlink.ttools.plot2.layer.CentralForm;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
@@ -66,6 +67,7 @@ public class SpherePlotType
             MarkForm.QUAD,
             PolygonForms.ARRAY,
             AreaForm.SPHERE_INSTANCE,
+            CentralForm.SPHERE_INSTANCE,
         };
         Plotter<?>[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_3D );

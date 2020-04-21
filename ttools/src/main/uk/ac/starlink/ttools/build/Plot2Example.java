@@ -1250,6 +1250,15 @@ public class Plot2Example {
                 "*layer_pl=area", "*polymode_pl=outline", "color_pl=grey",
                 null,
             } ),
+            new Plot2Example( "layer-central", c, PlotTask.PLANE, new String[] {
+                "xmin=136.7", "xmax=138.5", "ymin=-5.7", "ymax=-4.2", null,
+                "in=" + TName.CRISM, "icmd='select sensor_id==0x53'", null,
+                "*area=s_region", "*areatype=STC-S", null,
+                "layer1=area", "polymode1=fill", "fast1=false",
+                "shading1=density", "densemap1=heat", null,
+                "*layer2=central", "*shape2=fat_circle", "*size2=3",
+                "*color2=black",
+            } ),
             new Plot2Example( "layer-function", c, PlotTask.PLANE,
                               new String[] {
                 "*layer1=function", "*fexpr1=sin(x)/x", "*thick1=3", null,

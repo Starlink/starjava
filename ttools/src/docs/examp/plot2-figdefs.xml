@@ -33,6 +33,7 @@
   <!ENTITY FIG.plot2-layer-mark4 'plot2-layer-mark4.png'>
   <!ENTITY FIG.plot2-layer-polygon 'plot2-layer-polygon.png'>
   <!ENTITY FIG.plot2-layer-area 'plot2-layer-area.png'>
+  <!ENTITY FIG.plot2-layer-central 'plot2-layer-central.png'>
   <!ENTITY FIG.plot2-layer-function 'plot2-layer-function.png'>
   <!ENTITY FIG.plot2-layer-skygrid 'plot2-layer-skygrid.png'>
   <!ENTITY FIG.plot2-layer-spheregrid 'plot2-layer-spheregrid.png'>

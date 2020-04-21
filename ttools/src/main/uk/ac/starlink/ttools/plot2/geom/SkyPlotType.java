@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.AreaForm;
+import uk.ac.starlink.ttools.plot2.layer.CentralForm;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
@@ -72,6 +73,7 @@ public class SkyPlotType
             MarkForm.QUAD,
             PolygonForms.ARRAY,
             AreaForm.SKY_INSTANCE,
+            CentralForm.SKY_INSTANCE,
         };
         Plotter<?>[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
