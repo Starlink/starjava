@@ -180,10 +180,12 @@ public class PolygonForms {
                         int h = getIconHeight();
                         int[] xs = new int[] { x+0, x+w, x+w, x+0 };
                         int[] ys = new int[] { y+0, y+0, y+h, y+h };
+                        int x0 = x + w / 2;
+                        int y0 = y + h / 2;
                         Color color0 = g.getColor();
                         g.setColor( c.getForeground() );
                         polyMode_.getGlypher( false )
-                                 .paintPolygon( g, xs, ys, 4 );
+                                 .paintPolygon( g, x0, y0, xs, ys, 4 );
                         g.setColor( color0 );
                     }
                 }

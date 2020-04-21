@@ -27,17 +27,20 @@ public class PolygonMode {
     private final Glypher carefulGlypher_;
 
     private static final Painter OUTLINE_PAINTER = new Painter() {
-        public void paintPolygon( Graphics g, int[] xs, int[] ys, int np ) {
+        public void paintPolygon( Graphics g, int x0, int y0,
+                                  int[] xs, int[] ys, int np ) {
             g.drawPolygon( xs, ys, np );
         }
     };
     private static final Painter FILL_PAINTER = new Painter() {
-        public void paintPolygon( Graphics g, int[] xs, int[] ys, int np ) {
+        public void paintPolygon( Graphics g, int x0, int y0,
+                                  int[] xs, int[] ys, int np ) {
             g.fillPolygon( xs, ys, np );
         }
     };
     private static final Painter CROSS_PAINTER = new Painter() {
-        public void paintPolygon( Graphics g, int[] xs, int[] ys, int np ) {
+        public void paintPolygon( Graphics g, int x0, int y0,
+                                  int[] xs, int[] ys, int np ) {
             g.drawPolygon( xs, ys, np );
             for ( int ip = 0; ip < np; ip++ ) {
                 for ( int ip2 = ip + 2; ip2 < np; ip2++ ) {
@@ -46,35 +49,59 @@ public class PolygonMode {
             }
         }
     };
+    private static final Painter STAR_PAINTER = new Painter() {
+        public void paintPolygon( Graphics g, int x0, int y0,
+                                  int[] xs, int[] ys, int np ) {
+            g.drawPolygon( xs, ys, np );
+            for ( int ip = 0; ip < np; ip++ ) {
+                g.drawLine( x0, y0, xs[ ip ], ys[ ip ] );
+            }
+        }
+    };
 
     private static final Glypher OUTLINE_CALC_GLYPHER = new LinesGlypher();
     private static final Glypher FILL_CALC_GLYPHER =
             new SingleGlypher( FILL_PAINTER ) {
-        Pixer createPolygonPixer( int[] xs, int[] ys, int np, Rectangle bds ) {
+        Pixer createPolygonPixer( int x0, int y0,
+                                  int[] xs, int[] ys, int np, Rectangle bds ) {
             return createCalcFillPixer( xs, ys, np, bds );
         }
     };
     private static final Glypher OUTLINE_DRAW_GLYPHER =
             new DrawingGlypher( OUTLINE_PAINTER ) {
-        void drawPolygon( Drawing d, int[] xs, int[] ys, int np ) {
+        void drawPolygon( Drawing d, int x0, int y0,
+                          int[] xs, int[] ys, int np ) {
             d.draw( new Polygon( xs, ys, np ) );
         }
     };
     private static final Glypher FILL_DRAW_GLYPHER =
             new DrawingGlypher( FILL_PAINTER ) {
-        void drawPolygon( Drawing d, int[] xs, int[] ys, int np ) {
+        void drawPolygon( Drawing d, int x0, int y0,
+                          int[] xs, int[] ys, int np ) {
             d.fill( new Polygon( xs, ys, np ) );
         }
     };
     private static final Glypher CROSS_DRAW_GLYPHER =
             new DrawingGlypher( CROSS_PAINTER ) {
-        void drawPolygon( Drawing d, int[] xs, int[] ys, int np ) {
+        void drawPolygon( Drawing d, int x0, int y0,
+                          int[] xs, int[] ys, int np ) {
             for ( int ip = 0; ip < np; ip++ ) {
                 int ip1 = ( ip + 1 ) % np;
                 d.drawLine( xs[ ip ], ys[ ip ], xs[ ip1 ], ys[ ip1 ] );
                 for ( int ip2 = ip + 2; ip2 < np; ip2++ ) {
                     d.drawLine( xs[ ip ], ys[ ip ], xs[ ip2 ], ys[ ip2 ] );
                 }
+            }
+        }
+    };
+    private static final Glypher STAR_DRAW_GLYPHER =
+            new DrawingGlypher( STAR_PAINTER ) {
+        void drawPolygon( Drawing d, int x0, int y0,
+                          int[] xs, int[] ys, int np ) {
+            for ( int ip = 0; ip < np; ip++ ) {
+                int ip1 = ( ip + 1 ) % np;
+                d.drawLine( xs[ ip ], ys[ ip ], xs[ ip1 ], ys[ ip1 ] );
+                d.drawLine( xs[ ip ], ys[ ip ], x0, y0 );
             }
         }
     };
@@ -98,9 +125,16 @@ public class PolygonMode {
                        + " and lines between all the vertices",
                           CROSS_DRAW_GLYPHER, CROSS_DRAW_GLYPHER );
 
+    /** Star. */
+    public static final PolygonMode STAR =
+        new PolygonMode( "star",
+                         "draws a line round the outside of the polygon"
+                       + " and lines from the nominal center to each vertex",
+                         STAR_DRAW_GLYPHER, STAR_DRAW_GLYPHER );
+
     /** Available instances. */
     public static final PolygonMode[] MODES = new PolygonMode[] {
-        OUTLINE, FILL, CROSS,
+        OUTLINE, FILL, CROSS, STAR,
     };
 
     /**
@@ -152,10 +186,13 @@ public class PolygonMode {
          * outliner to a graphics context.
          *
          * @param  np  number of vertices
+         * @param  x0  X coordinate of nominal center
+         * @param  y0  Y coordinate of nominal center
          * @param  xs  X coordinates of vertices
          * @param  ys  Y coordinates of vertices
          */
-        void paintPolygon( Graphics g, int[] xs, int[] ys, int np );
+        void paintPolygon( Graphics g, int x0, int y0,
+                           int[] xs, int[] ys, int np );
 
         /**
          * Places zero or more glyphs on a given 2D paper instance
@@ -163,12 +200,15 @@ public class PolygonMode {
          *
          * @param   ptype  paper type
          * @param   paper  paper object
+         * @param   gx0   graphics X coordinate of nominal center
+         * @param   gy0   graphics Y coordinate of nominal center
          * @param   gxs   np-element array giving graphics X vertex coordinates
          * @param   gys   np-element array giving graphics Y vertex coordinates
          * @param   np    number of polygon vertices
          * @param   color   colour with which to place glyph
          */
         public abstract void placeGlyphs2D( PaperType2D ptype, Paper paper,
+                                            int gx0, int gy0,
                                             int[] gxs, int[] gys, int np,
                                             Color color );
 
@@ -178,6 +218,8 @@ public class PolygonMode {
          *
          * @param   ptype  paper type
          * @param   paper  paper object
+         * @param   gx0   graphics X coordinate of nominal center
+         * @param   gy0   graphics Y coordinate of nominal center
          * @param   gxs   np-element array giving graphics X vertex coordinates
          * @param   gys   np-element array giving graphics Y vertex coordinates
          * @param   np    number of polygon vertices
@@ -185,6 +227,7 @@ public class PolygonMode {
          * @param   color   colour with which to place glyph
          */
         public abstract void placeGlyphs3D( PaperType3D ptype, Paper paper,
+                                            int gx0, int gy0,
                                             int[] gxs, int[] gys, int np,
                                             double gz, Color color );
     }
@@ -199,10 +242,13 @@ public class PolygonMode {
          * outliner to a graphics context.
          *
          * @param  np  number of vertices
+         * @param  x0  X coordinate of nominal center
+         * @param  y0  Y coordinate of nominal center
          * @param  xs  X coordinates of vertices
          * @param  ys  Y coordinates of vertices
          */
-        void paintPolygon( Graphics g, int[] xs, int[] ys, int np );
+        void paintPolygon( Graphics g, int x0, int y0,
+                           int[] xs, int[] ys, int np );
     }
 
     /**
@@ -223,8 +269,8 @@ public class PolygonMode {
         private final XYShape lineShape1 = LineXYShape.INSTANCE_SKIP1;
 
         public void placeGlyphs2D( PaperType2D ptype, Paper paper,
-                                   int[] gxs, int[] gys, int np,
-                                   Color color ) {
+                                   int gx0, int gy0,
+                                   int[] gxs, int[] gys, int np, Color color ) {
             for ( int ip = 0; ip < np; ip++ ) {
                 int ip1 = ( ip + 1 ) % np;
                 int gx = gxs[ ip ];
@@ -239,6 +285,7 @@ public class PolygonMode {
         }
 
         public void placeGlyphs3D( PaperType3D ptype, Paper paper,
+                                   int gx0, int gy0,
                                    int[] gxs, int[] gys, int np, double gz,
                                    Color color ) {
             for ( int ip = 0; ip < np; ip++ ) {
@@ -254,8 +301,9 @@ public class PolygonMode {
             }
         }
 
-        public void paintPolygon( Graphics g, int[] xs, int[] ys, int np ) {
-            OUTLINE_PAINTER.paintPolygon( g, xs, ys, np );
+        public void paintPolygon( Graphics g, int x0, int y0,
+                                  int[] xs, int[] ys, int np ) {
+            OUTLINE_PAINTER.paintPolygon( g, x0, y0, xs, ys, np );
         }
     }
 
@@ -277,8 +325,9 @@ public class PolygonMode {
             painter_ = painter;
         }
 
-        public void paintPolygon( Graphics g, int[] xs, int[] ys, int np ) {
-            painter_.paintPolygon( g, xs, ys, np );
+        public void paintPolygon( Graphics g, int x0, int y0,
+                                  int[] xs, int[] ys, int np ) {
+            painter_.paintPolygon( g, x0, y0, xs, ys, np );
         }
 
         /**
@@ -287,6 +336,8 @@ public class PolygonMode {
          * and bounding rectangle.  The supplied bounds can be assumed
          * to be no larger than required.
          *
+         * @param   x0   X coordinate of nominal center
+         * @param   y0   Y coordinate of nominal center
          * @param   xs   np-element array giving X coordinates of polygon
          * @param   ys   np-element array giving X coordinates of polygon
          * @param   np   number of vertices in polygon
@@ -294,27 +345,31 @@ public class PolygonMode {
          *                  no pixels outside this rectangle are permitted
          * @return  new pixer
          */
-        abstract Pixer createPolygonPixer( int[] xs, int[] ys, int np,
+        abstract Pixer createPolygonPixer( int x0, int y0,
+                                           int[] xs, int[] ys, int np,
                                            Rectangle bounds );
 
         public void placeGlyphs2D( PaperType2D ptype, Paper paper,
+                                   int gx0, int gy0,
                                    int[] gxs, int[] gys, int np, Color color ) {
-            Glyph glyph = createGlyph( gxs, gys, np );
+            Glyph glyph = createGlyph( gx0, gy0, gxs, gys, np );
             ptype.placeGlyph( paper, 0, 0, glyph, color );
         }
 
         public void placeGlyphs3D( PaperType3D ptype, Paper paper,
+                                   int gx0, int gy0,
                                    int[] gxs, int[] gys, int np, double gz,
                                    Color color ) {
-            Glyph glyph = createGlyph( gxs, gys, np );
+            Glyph glyph = createGlyph( gx0, gy0, gxs, gys, np );
             ptype.placeGlyph( paper, 0, 0, gz, glyph, color );
         }
 
-        private Glyph createGlyph( final int[] xs, final int[] ys,
+        private Glyph createGlyph( final int x0, final int y0,
+                                   final int[] xs, final int[] ys,
                                    final int np ) {
             return new Glyph() {
                 public void paintGlyph( Graphics g ) {
-                    painter_.paintPolygon( g, xs, ys, np );
+                    painter_.paintPolygon( g, x0, y0, xs, ys, np );
                 }
                 public Pixer createPixer( Rectangle clip ) {
                     int xmin = Integer.MAX_VALUE;
@@ -335,7 +390,7 @@ public class PolygonMode {
                                    ? bounds
                                    : bounds.intersection( clip );
                     return rect.height > 0 && rect.width > 0
-                         ? createPolygonPixer( xs, ys, np, rect )
+                         ? createPolygonPixer( x0, y0, xs, ys, np, rect )
                          : null;
                 }
             };
@@ -361,16 +416,19 @@ public class PolygonMode {
          * Renders the required polygon shape to a Drawing object.
          *
          * @param   d  drawing
+         * @param   x0  X coordinate of nominal center
+         * @param   y0  Y coordinate of nominal center
          * @param   xs  array of vertex X coordinates
          * @param   xs  array of vertex Y coordinates
          * @param   np  number of vertices
          */
-        abstract void drawPolygon( Drawing d, int[] xs, int[] ys, int np );
+        abstract void drawPolygon( Drawing d, int x0, int y0,
+                                   int[] xs, int[] ys, int np );
 
-        Pixer createPolygonPixer( int[] xs, int[] ys, int np,
+        Pixer createPolygonPixer( int x0, int y0, int[] xs, int[] ys, int np,
                                   Rectangle bounds ) {
             final Drawing drawing = new Drawing( bounds );
-            drawPolygon( drawing, xs, ys, np );
+            drawPolygon( drawing, x0, y0, xs, ys, np );
             drawing.start();
             return new Pixer() {
                 public boolean next() {

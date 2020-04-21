@@ -144,11 +144,18 @@ public class PolygonOutliner extends PixOutliner {
                 int np = positions.length;
                 int[] xs = new int[ np ];
                 int[] ys = new int[ np ];
+                int tx = 0;
+                int ty = 0;
                 for ( int i = 0; i < np; i++ ) {
-                    xs[ i ] = positions[ i ].x;
-                    ys[ i ] = positions[ i ].y;
+                    Point p = positions[ i ];
+                    int x = p.x;
+                    int y = p.y;
+                    xs[ i ] = x;
+                    ys[ i ] = y;
+                    tx += x;
+                    ty += y;
                 }
-                polyGlypher_.paintPolygon( g, xs, ys, np );
+                polyGlypher_.paintPolygon( g, tx / np, ty / np, xs, ys, np );
             }
         };
     }
@@ -174,8 +181,12 @@ public class PolygonOutliner extends PixOutliner {
         int ndim = surf.getDataDimCount();
         final double[] dpos0 = new double[ ndim ];
         final double[] dpos = new double[ ndim ];
+        final double[] dposC = new double[ ndim ];
         final Point2D.Double gpos = new Point2D.Double();
+        final Point2D.Double gposC = new Point2D.Double();
         final Point igpos = new Point();
+        final Point igposC = new Point();
+        final int icPos = vertReader.getPosCoordIndex();;
         return new ShapePainter() {
             public void paintPoint( Tuple tuple, Color color, Paper paper ) {
                 VertexData vdata = vertReader.readVertexData( tuple );
@@ -184,10 +195,16 @@ public class PolygonOutliner extends PixOutliner {
                  * (rounded) graphics coordinates. */
                 if ( vdata.readDataPos( 0, dpos0 ) &&
                      surf.dataToGraphics( dpos0, false, gpos ) &&
-                     PlotUtil.isPointFinite( gpos ) ) {
+                     PlotUtil.isPointFinite( gpos ) &&
+                     geom.readDataPos( tuple, icPos, dposC ) &&
+                     surf.dataToGraphics( dposC, false, gposC ) &&
+                     PlotUtil.isPointFinite( gposC ) ) {
                     int np = vdata.getVertexCount();
                     int jp = 0;
                     if ( np > 0 ) {
+                        PlotUtil.quantisePoint( gposC, igposC );
+                        int gxC = igposC.x;
+                        int gyC = igposC.y;
                         int[] gxs = new int[ np ];
                         int[] gys = new int[ np ];
                         PlotUtil.quantisePoint( gpos, igpos );
@@ -202,7 +219,8 @@ public class PolygonOutliner extends PixOutliner {
                              * and prepare to accumulate vertices for
                              * the next one. */
                             if ( vdata.isBreak( ip ) ) {
-                                paintPoly( gxs, gys, jp, color, paper );
+                                paintPoly( gxC, gyC, gxs, gys, jp,
+                                           color, paper );
                                 ip++;
                                 if ( ip < np &&
                                      vdata.readDataPos( ip, dpos0 ) &&
@@ -239,7 +257,7 @@ public class PolygonOutliner extends PixOutliner {
                         /* We have the vertices in graphics space,
                          * paint a figure as appropriate. */
                         if ( jp > 0 ) {
-                            paintPoly( gxs, gys, jp, color, paper );
+                            paintPoly( gxC, gyC, gxs, gys, jp, color, paper );
                         }
                     }
                 }
@@ -249,13 +267,16 @@ public class PolygonOutliner extends PixOutliner {
              * Does the painting of a single polygon given its vertices
              * in graphics coordinates.
              *
+             * @param  gx0  graphics X coordinate of nominal center
+             * @param  gy0  graphics Y coordinate of nominal center
              * @param  gxs  graphics X coordinates
              * @param  gys  graphics Y coordinates
              * @param  np  number of vertices forming closed polygon
              * @param  color  plotting colour
              * @param  paper  paper
              */
-            private void paintPoly( int[] gxs, int[] gys, int np,
+            private void paintPoly( int gx0, int gy0,
+                                    int[] gxs, int[] gys, int np,
                                     Color color, Paper paper ) {
 
                 /* Work out the bounds of the graphics rectangle
@@ -289,7 +310,7 @@ public class PolygonOutliner extends PixOutliner {
                     }
                     else {
                         polyGlypher_.placeGlyphs2D( paperType, paper,
-                                                    gxs, gys, np,
+                                                    gx0, gy0, gxs, gys, np,
                                                     color );
                     }
                 }
@@ -310,11 +331,21 @@ public class PolygonOutliner extends PixOutliner {
         final double[] dpos = new double[ ndim ];
         final GPoint3D gpos = new GPoint3D();
         final Point igpos = new Point();
+        final double[] dposC = new double[ ndim ];
+        final GPoint3D gposC = new GPoint3D();
+        final Point igposC = new Point();
+        final int icPos = vertReader.getPosCoordIndex();
         return new ShapePainter() {
             public void paintPoint( Tuple tuple, Color color, Paper paper ) {
                 VertexData vdata = vertReader.readVertexData( tuple );
                 int np = vdata.getVertexCount();
-                if ( np > 0 ) {
+                if ( np > 0 &&
+                     geom.readDataPos( tuple, icPos, dposC ) &&
+                     surf.dataToGraphicZ( dposC, true, gposC ) &&
+                     PlotUtil.isPointFinite( gposC ) ) {
+                    PlotUtil.quantisePoint( gposC, igposC );
+                    int gxC = igposC.x;
+                    int gyC = igposC.y;
                     int[] gxs = new int[ np ];
                     int[] gys = new int[ np ];
 
@@ -327,7 +358,8 @@ public class PolygonOutliner extends PixOutliner {
                          * prepare to accumulate vertices for the next one. */
                         if ( vdata.isBreak( ip ) ) {
                             double gz = sz / np;
-                            paintPoly( gxs, gys, jp, gz, color, paper );
+                            paintPoly( gxC, gyC, gxs, gys, jp, gz,
+                                       color, paper );
                             jp = 0;
                             sz = 0;
                         }
@@ -357,7 +389,7 @@ public class PolygonOutliner extends PixOutliner {
                      * paint a figure as appropriate. */
                     if ( jp > 0 ) {
                         double gz = sz / jp;
-                        paintPoly( gxs, gys, jp, gz, color, paper );
+                        paintPoly( gxC, gyC, gxs, gys, jp, gz, color, paper );
                     }
                 }
             }
@@ -366,6 +398,8 @@ public class PolygonOutliner extends PixOutliner {
              * Does the painting of a single polygon given its vertices
              * in graphics coordinates.
              *
+             * @param  gx0  graphics X coordinate of nominal center
+             * @param  gy0  graphics Y coordinate of nominal center
              * @param  gxs  graphics X coordinates
              * @param  gys  graphics Y coordinates
              * @param  np  number of vertices forming closed polygon
@@ -375,8 +409,10 @@ public class PolygonOutliner extends PixOutliner {
              * @param  color  plotting colour
              * @param  paper  paper
              */
-            private void paintPoly( int[] gxs, int[] gys, int np, double gz,
+            private void paintPoly( int gx0, int gy0,
+                                    int[] gxs, int[] gys, int np, double gz,
                                     Color color, Paper paper ) {
+
                 /* Work out the bounding box in the two graphics dimensions
                  * for the polygon. */
                 int gxMin = bxMax;
@@ -407,7 +443,7 @@ public class PolygonOutliner extends PixOutliner {
                     }
                     else {
                         polyGlypher_.placeGlyphs3D( paperType, paper,
-                                                    gxs, gys, np, gz,
+                                                    gx0, gy0, gxs, gys, np, gz,
                                                     color );
                     }
                 }
@@ -629,6 +665,14 @@ public class PolygonOutliner extends PixOutliner {
          * @return  polygon vertex information
          */
         VertexData readVertexData( Tuple tuple );
+
+        /**
+         * Returns the index within a tuple at which the data position
+         * can be found.
+         *
+         * @return  position coordinate index
+         */
+        int getPosCoordIndex();
     }
 
     /**
@@ -704,6 +748,9 @@ public class PolygonOutliner extends PixOutliner {
                             return false;
                         }
                     };
+                }
+                public int getPosCoordIndex() {
+                    return icPos[ 0 ];
                 }
             };
         }
@@ -931,6 +978,10 @@ public class PolygonOutliner extends PixOutliner {
                     }
                 };
             }
+        }
+
+        public int getPosCoordIndex() {
+            return icPos0_;
         }
 
         /**
@@ -1218,6 +1269,9 @@ public class PolygonOutliner extends PixOutliner {
                     else {
                         return NO_VERTEX_DATA;
                     }
+                }
+                public int getPosCoordIndex() {
+                    return icArea_;
                 }
             };
         }
@@ -1511,6 +1565,13 @@ public class PolygonOutliner extends PixOutliner {
         AreaVertexReader( AreaCoord<?> coord, int icArea ) {
             coord_ = coord;
             icArea_ = icArea;
+        }
+
+        public int getPosCoordIndex() {
+            // Area coordinate can also be used as a positional coordinate
+            // as far as a suitable DataGeom is concerned,
+            // since the position is stashed at the start of it.
+            return icArea_;
         }
 
         public VertexData readVertexData( final Tuple tuple ) {
