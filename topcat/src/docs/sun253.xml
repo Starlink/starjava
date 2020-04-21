@@ -14702,7 +14702,41 @@ experimental it does not appear in the main toolbar.
 </p>
 
 <p>The horizontal axis represents time, and can be labelled accordingly,
-and the window can display functions of time, scatter plots and spectrograms.
+and the window can display appropriate types of plot including spectrograms.
+</p>
+
+<p>To define the time coordinate, use the <label>Time</label> selector
+in position tabs as usual.
+Note however that this contains a <label>time format</label> selector
+on the right hand side that indicates how the selected quantity
+will be interpreted as a time value.
+The options are:
+<ul>
+<li><label>DecYear</label>:
+    Years since 0AD
+    </li>
+<li><label>MJD</label>:
+    Modified Julian Date (days since 17 Nov 1858)
+    </li>
+<li><label>JD</label>:
+    Julian Day (days since 1 Jan 4713 BC)
+    </li>
+<li><label>Unix</label>:
+    Seconds since midnight 1 Jan 1970
+    </li>
+<li><label>Iso8601</label>:
+    ISO 8601 date-time string
+    </li>
+</ul>
+If the input table contains suitable metadata,
+for instance in a CDF file or a TIMESYS-bearing VOTable 1.4,
+additional options may be available that are taken from
+information in the table.
+TOPCAT will make a guess at the correct format to use,
+but if it gets it wrong you can set the format selector manually.
+The format selector is updated to the best guess when you choose
+a new Time value; if you want to stop it doing that, use the
+Lock button (&IMG.LOCK;).
 </p>
 
 <p>Unlike the other plot windows (at time of writing) the Time plot
@@ -14710,20 +14744,6 @@ can display different data plots in different plot
 <ref id="plotZones" plaintextref="yes">Zones</ref>
 stacked vertically on top of each other, so that different plots
 share a time axis but have their own Y axis.
-</p>
-
-<p><strong>Note:</strong>
-One reason that this window is marked experimental is that
-determination of time coordinate values is not always done well.
-If the table has sufficient metadata, it will work out whether a
-specified time coordinate is in decimal year, MJD, ISO-8601 or whatever.
-However, if the data is not marked up well enough (e.g. for CSV files)
-it falls back to the "default" time value mapping, in which
-time axis values are interpreted as "Unix seconds"
-(seconds since the Unix epoch, 1970-01-01T00:00).
-You can convert your time values to the required form explicitly
-by using one of the <code>*ToUnixSec</code> functions listed in
-<ref id="Times">Times</ref>.
 </p>
 
 <p>The Time Plot offers the following plot controls:
@@ -29406,6 +29426,10 @@ introduced since the last version:
     <li>The default initial layer in the
         <ref id="TimePlotWindow">Time Plot</ref> is now
         Line, not Mark.</li>
+    <li>The <ref id="TimePlotWindow">Time Plot</ref> window now has
+        a time format selector, which makes it much easier to
+        plot time quantities from input tables with insufficient
+        metadata.</li>
     </ul>
     </p></dd>
 
