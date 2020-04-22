@@ -659,7 +659,8 @@ might most often want to do in TOPCAT, and fall into a few groups:
     &IMG.PLOT2_PLANE;
     &IMG.PLOT2_CUBE;
     &IMG.PLOT2_SKY;
-    &IMG.PLOT2_SPHERE;</dt>
+    &IMG.PLOT2_SPHERE;
+    &IMG.PLOT2_TIME;</dt>
 <dd><p>Open plotting/visualisation windows of various kinds.</p></dd>
 
 <dt>&IMG.MATCH2; &IMG.TAP_DIALOG; &IMG.CDSXMATCH;</dt>
@@ -5870,6 +5871,11 @@ functions.  They are grouped as follows:
         on 3D axes using spherical polar coordinates.
         </p></dd>
 
+    <dt>&IMG.PLOT2_TIME; <ref id="TimePlotWindow">Time Plot</ref></dt>
+    <dd><p>Displays a window with special features for plotting
+        data which has a time coordinate.
+        </p></dd>
+
     </dl>
     </p></dd>
 
@@ -6016,15 +6022,7 @@ but this menu contains some actions not available elsewhere.
 The ones marked "(old)" are the plotting windows that were available 
 before TOPCAT version 4; they have a different user interface, are
 generally less powerful, and are somewhat deprecated, but still work.
-The other non-toolbar options are somewhat experimental.
-Items available from this menu and not the toolbar are:
 <dl>
-
-<dt>&IMG.PLOT2_TIME; Time Plot</dt>
-<dd><p>Displays the <ref id="TimePlotWindow">Time Plot window</ref>
-    for plotting time series data.
-    This is currently experimental and lacks some useful features.
-    </p></dd>
 
 <dt>&IMG.HISTOGRAM; Histogram Plot (old)</dt>
 <dd><p>Displays the <ref id="HistogramWindow">old-style Histogram window</ref>
@@ -7352,7 +7350,7 @@ in the first subsection below; the specific windows themselves
 are described in the later subsections.
 </p>
 
-<p>Six plot windows are currently available (one is experimental):
+<p>Six plot windows are currently available:
 <ul>
 <li>&IMG.PLOT2_HISTOGRAM;
     <ref id="HistogramPlotWindow">Histogram Plot</ref></li>
@@ -7360,8 +7358,7 @@ are described in the later subsections.
 <li>&IMG.PLOT2_SKY; <ref id="SkyPlotWindow">Sky Plot</ref></li>
 <li>&IMG.PLOT2_CUBE; <ref id="CubePlotWindow">Cube Plot</ref></li>
 <li>&IMG.PLOT2_SPHERE; <ref id="SpherePlotWindow">Sphere Plot</ref></li>
-<li>&IMG.PLOT2_TIME; <ref id="TimePlotWindow">Time Plot</ref>
-                     (experimental)</li>
+<li>&IMG.PLOT2_TIME; <ref id="TimePlotWindow">Time Plot</ref></li>
 </ul>
 More may be introduced in future releases.
 </p>
@@ -8848,7 +8845,7 @@ but it may be useful for instance to change line ending characters.
     </p></dd>
 <dt>Zone Suffixes</dt>
 <dd><p>Determines how suffixes assigned to different plot zones are labelled.
-    Currently, plot zones are only used in the experimental
+    Currently, plot zones are an experimental feature used only in the
     <ref id="TimePlotWindow">Time Plot Window</ref>, so this option
     does not appear in most plot types.
     The options are as described for the Layer Suffix selector above.
@@ -9841,7 +9838,7 @@ changed in a future version.
 <p>The <label>Spectrogram Layer Control</label> (&IMG.PLOT_SPECTRO;)
 plots a spectrum at successive (usually, but not necessarily,
 regularly-spaced) points in a time series.
-It is only available for the <em>experimental</em>
+It is only available for the
 <ref id="TimePlotWindow">Time Plot Window</ref>.
 </p>
 
@@ -9904,8 +9901,9 @@ use the <ref id="ShaderControl">Aux</ref> &IMG.COLORS; fixed control.
 
 <p>The <label>Function</label> layer control (&IMG.PLOT_FUNCTION;)
 is only available for the 
-<ref id="PlanePlotWindow">Plane</ref> and
-<ref id="HistogramPlotWindow">Histogram</ref> plots.
+<ref id="PlanePlotWindow">Plane</ref>,
+<ref id="HistogramPlotWindow">Histogram</ref> and
+<ref id="TimePlotWindow">Time</ref> plots.
 Use the <label>Layers</label> menu item or corresponding toolbar button to
 add an instance to the control stack.
 </p>
@@ -14706,10 +14704,6 @@ It also affects some other things like the legend.
 <subsubsect id="TimePlotWindow">
 <subhead><title>Time Plot Window</title></subhead>
 
-<p><em>This plot window is experimental and lacks some useful features.
-The details of the user interface may be changed in future versions.
-</em></p>
-
 <figure>
 <caption><px></px></caption>
 <figureimage src="&FIG.TimePlotWindow;"/>
@@ -14717,12 +14711,10 @@ The details of the user interface may be changed in future versions.
 
 <p>The <label>Time Plot</label> (&IMG.PLOT2_TIME;)
 is intended for plotting time series data.
-You can find it in the <ref id="controlMenus">Graphics</ref>
-menu of the main Control Window, but since it is currently
-experimental it does not appear in the main toolbar.
 </p>
 
-<p>The horizontal axis represents time, and can be labelled accordingly,
+<p>The horizontal axis represents time, and can be labelled accordingly
+(for instance in minutes, hours, days, months and years),
 and the window can display appropriate types of plot including spectrograms.
 </p>
 
@@ -14765,6 +14757,8 @@ can display different data plots in different plot
 <ref id="plotZones" plaintextref="yes">Zones</ref>
 stacked vertically on top of each other, so that different plots
 share a time axis but have their own Y axis.
+<em><strong>Note:</strong> This multi-zone feature is somewhat experimental,
+and the user interface may change in future versions.</em>
 </p>
 
 <p>The Time Plot offers the following plot controls:
@@ -29455,6 +29449,9 @@ introduced since the last version:
         Control Window toolbar for reasons of space;
         this option is still available in the <label>Interop</label>
         menu.</li>
+    <li>The <ref id="TimePlotWindow">Time Plot</ref> window
+        is no longer labelled <em>experimental</em>,
+        and now appears on the main control window toolbar.</li>
     </ul>
     </p></dd>
 
