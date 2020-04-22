@@ -3608,8 +3608,6 @@ their corresponding positional coordinates.
     the epoch can be determined automatically,
     otherwise it may be necessary to specify the time representation
     being used.
-    This plot type is somewhat experimental, and the
-    <code>plot2time</code> command currently lacks some features.
     </p></dd>
 </dl>
 </p>
@@ -6294,8 +6292,7 @@ The <ref id="plot2time-examples">examples</ref> section illustrates
 what this looks like in practice.
 </p>
 
-<p><em><strong>Note:</strong> this plot type, and the multi-zone feature,
-is experimental.
+<p><em><strong>Note:</strong> The multi-zone feature is experimental.
 As currently implemented it lacks some features.
 The interface may be changed in a future version.
 </em></p>
@@ -12426,7 +12423,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         to allow explicit specification of time mapping from input data
         (MJD, JD, ISO-8601 etc).
         Numeric time values without such explicit specification
-        are now interpreted as MJD rather than Unix seconds.</li>
+        are now interpreted as MJD rather than Unix seconds.
+        This command is no longer labelled <em>experimental</em>.</li>
     </ul>
     </p></dd>
 
