@@ -29403,6 +29403,9 @@ introduced since the last version:
         <ref id="form-central">Central</ref> ,
         can plot STC-S, DALI-array and MOC-ASCII regions on
         Sky, Plane or Sphere plots.</li>
+    <li>The default initial layer in the
+        <ref id="TimePlotWindow">Time Plot</ref> is now
+        Line, not Mark.</li>
     </ul>
     </p></dd>
 

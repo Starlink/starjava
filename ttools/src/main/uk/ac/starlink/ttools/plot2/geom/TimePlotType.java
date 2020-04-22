@@ -73,13 +73,15 @@ public class TimePlotType
         ShapeForm[] modeForms = new ShapeForm[] { MarkForm.SINGLE };
         List<Plotter<?>> plotters = new ArrayList<Plotter<?>>();
         PerUnitConfigKey<Unit> unitKey = TimeUnit.createHistogramConfigKey();
+        plotters.addAll( Arrays.asList( new Plotter<?>[] {
+            new LinePlotter(),
+            new LinearFitPlotter( true ),
+        } ) );
         plotters.addAll( Arrays
                         .asList( ShapePlotter
                                 .createShapePlotters( modeForms,
                                                       ShapeMode.MODES_2D ) ) );
         plotters.addAll( Arrays.asList( new Plotter<?>[] {
-            new LinePlotter(),
-            new LinearFitPlotter( true ),
             new FillPlotter( false ),
             new TracePlotter( false ),
             new GridPlotter( true ),

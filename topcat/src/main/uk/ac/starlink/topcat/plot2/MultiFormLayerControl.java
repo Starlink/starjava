@@ -185,15 +185,25 @@ public class MultiFormLayerControl extends FormLayerControl {
 
         /* Set up an action for each form-family of plotters, and each
          * standalone plotter. */
-        List<Action> formActionList = new ArrayList<Action>();
+        List<Action> modeFormActList = new ArrayList<>();
         for ( ModePlotter.Form form : modePlotterMap_.keySet() ) {
             ModePlotter<?>[] modePlotters =
                 modePlotterMap_.get( form ).toArray( new ModePlotter<?>[ 0 ] );
-            formActionList.add( new ModeFormAction( modePlotters, form ) );
+            modeFormActList.add( new ModeFormAction( modePlotters, form ) );
         }
+        List<Action> singleFormActList = new ArrayList<>();
         for ( Plotter<?> plotter : singlePlotterList_ ) {
-            formActionList.add( new SingleFormAction( plotter ) );
+            singleFormActList.add( new SingleFormAction( plotter ) );
         }
+        List<Action> formActionList = new ArrayList<>();
+        formActionList.addAll( modeFormActList );
+        formActionList.addAll( singleFormActList );
+
+        /* Somewhat hacky way to fix the default action as the first
+         * plotter in the supplied list. */
+        dfltFormAct_ = plotters[ 0 ] instanceof ModePlotter
+                     ? modeFormActList.get( 0 )
+                     : singleFormActList.get( 0 );
 
         /* Populate a menu with these actions. */
         final JPopupMenu formMenu = new JPopupMenu( "Forms" );
@@ -219,7 +229,6 @@ public class MultiFormLayerControl extends FormLayerControl {
         if ( zsel != null ) {
             addZoneTab( zsel );
         }
-        dfltFormAct_ = formActionList.get( 0 );
     }
 
     protected FormControl[] getFormControls() {
