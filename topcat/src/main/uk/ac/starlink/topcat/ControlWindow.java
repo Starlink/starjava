@@ -579,9 +579,6 @@ public class ControlWindow extends AuxWindow
         toolBar.addSeparator();
 
         /* Add miscellaneous actions to the toolbar. */
-        if ( interopAct != null ) {
-            toolBar.add( interopAct );
-        }
         toolBar.add( MethodWindow.getWindowAction( this, false ) );
         for ( TopcatToolAction tact :
               Loader.getClassInstances( TOPCAT_TOOLS_PROP,

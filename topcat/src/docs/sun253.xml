@@ -5910,13 +5910,6 @@ functions.  They are grouped as follows:
 <dd><p>
     <dl>
 
-    <dt>&IMG.SAMP; <ref id="SampWindow">SAMP Window</ref></dt>
-    <dd><p>Displays a window which displays detail about the current
-        status, and allows configuration, of SAMP messaging
-        (see <ref id="interop"/>).  Note this button will not be
-        visible if TOPCAT is running in PLASTIC mode.
-        </p></dd>
-
     <dt>&IMG.FUNCTION; <ref id="MethodWindow">Available Functions</ref></dt>
     <dd><p>Displays a window containing all the functions which can be used 
         for writing algebraic expressions (see <ref id="jel"/>).
@@ -6168,8 +6161,36 @@ the <label>Joins</label> menu.
 </p>
 
 <p>The <label>Interop</label> menu contains options relevant to 
-tool interoperability (SAMP or PLASTIC).  These items are available
-elsewhere on the toolbar or <label>File</label> menu.
+SAMP (or possibly PLASTIC) tool interoperability;
+see <ref id="interop"/>:
+
+<dl>
+<dt>&IMG.SAMP; SAMP Window</dt>
+<dd><p>Pops up the <ref id="SampWindow">SAMP Window</ref>
+    which displays detail about the current status,
+    and allows configuration, of SAMP messaging.
+    Note this option will not be
+    available if TOPCAT is running in PLASTIC mode.
+    </p></dd>
+
+<dt>&IMG.NO_HUB; Stop Internal Hub</dt>
+<dd><p>By default, when TOPCAT starts up, it will look for a SAMP hub,
+    and if none appears to be running it will start one internally,
+    which will normally run until TOPCAT exits.
+    This is usually not problematic, but if you would prefer to run a
+    hub external to TOPCAT, then you may need to shut down TOPCAT's before 
+    starting a new one.  Using this option shuts down TOPCAT's internal hub.
+    </p></dd>
+
+<dt>&IMG.BROADCAST; Broadcast Table</dt>
+<dd><p>Broadcasts the currently selected table to all listening applications
+    using SAMP.</p></dd>
+
+<dt>&IMG.SEND; Send Table to ...</dt>
+<dd><p>Sends the currently selected table to a selected listening application
+    using SAMP.  Select the desired recipient application from the
+    submenu.</p></dd>
+</dl>
 </p>
 
 </subsubsect>
@@ -29430,6 +29451,10 @@ introduced since the last version:
         a time format selector, which makes it much easier to
         plot time quantities from input tables with insufficient
         metadata.</li>
+    <li>Remove <label>SAMP Window</label> button from main
+        Control Window toolbar for reasons of space;
+        this option is still available in the <label>Interop</label>
+        menu.</li>
     </ul>
     </p></dd>
 
