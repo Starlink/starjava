@@ -201,6 +201,9 @@
     <echo message="Executing CDF target: ${what}"/>
     <ant dir="./cdf" target="${what}"/>
 
+    <echo message="Executing ECSV target: ${what}"/>
+    <ant dir="./ecsv" target="${what}"/>
+
     <echo message="Excecuting FEATHER target: ${what}"/>
     <ant dir="./feather" target="${what}"/>
 
@@ -471,6 +474,10 @@
       </packageset>
 
       <packageset dir="cdf/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="ecsv/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
