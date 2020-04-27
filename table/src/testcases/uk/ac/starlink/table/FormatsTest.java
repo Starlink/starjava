@@ -17,6 +17,8 @@ import java.util.logging.Logger;
 import junit.framework.AssertionFailedError;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.ecsv.EcsvTableBuilder;
+import uk.ac.starlink.ecsv.EcsvTableWriter;
 import uk.ac.starlink.feather.FeatherTableBuilder;
 import uk.ac.starlink.feather.FeatherTableWriter;
 import uk.ac.starlink.fits.AbstractWideFits;
@@ -91,6 +93,7 @@ public class FormatsTest extends TableCase {
         Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.SEVERE );
         Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.feather" ).setLevel( Level.SEVERE );
+        Logger.getLogger( "uk.ac.starlink.ecsv" ).setLevel( Level.SEVERE );
 
         FitsConstants.configureHierarch();
     }
@@ -108,7 +111,7 @@ public class FormatsTest extends TableCase {
 
         List params = new ArrayList();
         params.add( new DescribedValue( NAMES_INFO,
-                                        new String[] { "Test", "Table", "x" } ) );
+                                        new String[] { "Test", "Table", "x" }));
         params.add( new DescribedValue( DRINK_INFO, "Cider" ) );
         params.add( new DescribedValue( MATRIX_INFO, 
                                         new int[] { 4, 5, } ) );
@@ -222,6 +225,7 @@ public class FormatsTest extends TableCase {
             "FITS",
             "VOTable",
             "CDF",
+            "ECSV",
             "feather",
             "GBIN",
         };
@@ -232,6 +236,7 @@ public class FormatsTest extends TableCase {
             "FITS",
             "VOTable",
             "CDF",
+            "ECSV",
             "feather",
             "GBIN",
             "ASCII",
@@ -290,6 +295,7 @@ public class FormatsTest extends TableCase {
             "votable-binary-href",
             "votable-binary2-href",
             "votable-fits-inline",
+            "ecsv",
             "feather",
             "text",
             "ascii",
@@ -490,6 +496,10 @@ public class FormatsTest extends TableCase {
         }
         exerciseReadWrite( new VOTableWriter(),
                            new VOTableBuilder(), "votable" );
+        exerciseReadWrite( new EcsvTableWriter( ' ' ),
+                           new EcsvTableBuilder(), "ecsv" );
+        exerciseReadWrite( new EcsvTableWriter( ',' ),
+                           new EcsvTableBuilder(), "ecsv" );
         exerciseReadWrite(
             new FeatherTableWriter( false, StoragePolicy.PREFER_MEMORY ),
             new FeatherTableBuilder(), "feather" );
@@ -552,6 +562,9 @@ public class FormatsTest extends TableCase {
         }
         else if ( "ipac".equals( equalMethod ) ) {
             assertIpacTableEquals( t1, t2 );
+        }
+        else if ( "ecsv".equals( equalMethod ) ) {
+            assertEcsvTableEquals( t1, t2 );
         }
         else if ( "feather".equals( equalMethod ) ) {
             assertFeatherTableEquals( t1, t2 );
@@ -803,6 +816,26 @@ public class FormatsTest extends TableCase {
         }
         rseq1.close();
         rseq2.close();
+    }
+
+    private void assertEcsvTableEquals( StarTable t1, StarTable t2 )
+            throws IOException {
+        IntList icols = new IntList();
+        int nc = t1.getColumnCount();
+        for ( int ic = 0; ic < nc; ic++ ) {
+            Class<?> clazz = t1.getColumnInfo( ic ).getContentClass();
+            if ( clazz.getComponentType() == null ) {
+                icols.add( ic );
+            }
+        }
+        StarTable t1a = new ColumnPermutedStarTable( t1, icols.toIntArray() );
+        int ncol = t1a.getColumnCount();
+        assertEquals( ncol, t2.getColumnCount() );
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            assertValueInfoEquals( t1a.getColumnInfo( ic ),
+                                   t2.getColumnInfo( ic ) );
+        }
+        assertRowSequenceEquals( t1a, t2 );
     }
 
     private void assertFeatherTableEquals( StarTable t1, StarTable t2 )

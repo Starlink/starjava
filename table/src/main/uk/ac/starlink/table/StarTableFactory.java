@@ -75,6 +75,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="votable")
  * <li> {@link uk.ac.starlink.cdf.CdfTableBuilder}
  *      (format name="cdf")
+ * <li> {@link uk.ac.starlink.ecsv.EcsvTableBuilder}
+ *      (format name="ecsv")
  * <li> {@link uk.ac.starlink.feather.FeatherTableBuilder}
  *      (format name="feather")
  * </ul>
@@ -140,6 +142,7 @@ public class StarTableFactory {
         "uk.ac.starlink.fits.FitsTableBuilder",
         "uk.ac.starlink.votable.VOTableBuilder",
         "uk.ac.starlink.cdf.CdfTableBuilder",
+        "uk.ac.starlink.ecsv.EcsvTableBuilder",
         "uk.ac.starlink.feather.FeatherTableBuilder",
         "uk.ac.starlink.gbin.GbinTableBuilder",
     };
