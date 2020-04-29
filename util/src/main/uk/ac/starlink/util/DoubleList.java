@@ -93,4 +93,15 @@ public class DoubleList extends PrimitiveList {
     public double[] toDoubleArray() {
         return (double[]) toArray();
     }
+
+    /**
+     * Returns the array currently used to store the contents of this list.
+     * Its length will be greater than or equal to the length of this list.
+     * The identity of the returned array may change as this list is mutated.
+     *
+     * @return  storage array
+     */
+    public double[] getDoubleBuffer() {
+        return (double[]) array_;
+    }
 }

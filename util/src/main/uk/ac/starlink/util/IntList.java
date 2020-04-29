@@ -93,4 +93,15 @@ public class IntList extends PrimitiveList {
     public int[] toIntArray() {
         return (int[]) toArray();
     }
+
+    /**
+     * Returns the array currently used to store the contents of this list.
+     * Its length will be greater than or equal to the length of this list.
+     * The identity of the returned array may change as this list is mutated.
+     *
+     * @return  storage array
+     */
+    public int[] getIntBuffer() {
+        return (int[]) array_;
+    }
 }

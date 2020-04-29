@@ -70,6 +70,13 @@ public class PrimitiveListTest extends TestCase {
             flist.add( (float) i );
             dlist.add( (double) i );
         }
+        int k = 23;
+        assertEquals( blist.toByteArray()[ k ], blist.getByteBuffer()[ k ] );
+        assertEquals( slist.toShortArray()[ k ], slist.getShortBuffer()[ k ] );
+        assertEquals( ilist.toIntArray()[ k ], ilist.getIntBuffer()[ k ] );
+        assertEquals( llist.toLongArray()[ k ], llist.getLongBuffer()[ k ] );
+        assertEquals( flist.toFloatArray()[ k ], flist.getFloatBuffer()[ k ] );
+        assertEquals( dlist.toDoubleArray()[ k ], dlist.getDoubleBuffer()[ k ]);
     }
 
     public void testAddAll() {
