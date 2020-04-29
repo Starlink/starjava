@@ -1,0 +1,45 @@
+# %ECSV 0.9
+# ---
+# delimiter: ','
+# datatype:
+# -
+#   name: message
+#   datatype: string
+#   unit: "[Myr]"
+#   description: It's some kind of message, innit.
+#   meta:
+#      ucd: meta.misc
+#      xtype: do what?
+#      dummy: A dummy value.
+# 
+# - {name: log,  datatype:    bool}
+# - {name: txt,  datatype:  string}
+# - {name: iu8,  datatype:   uint8}
+# - {name: iu16, datatype:  uint16}
+# - {name: iu32, datatype:  uint32}
+# - {name: su8,  datatype:    int8}
+# - {name: su16, datatype:   int16}
+# - {name: su32, datatype:   int32}
+# - {name: su64, datatype:   int64}
+# - {name: f32,  datatype: float32}
+# - {name: f64,  datatype: float64}
+# 
+# meta:
+#   author: mbt
+#   query:
+#   |
+#    select top 20 *
+#      from gaiadr2.gaia_source
+#     where parallax > 0.2
+#    
+#     the end.
+#   success: True
+#   number: 99
+#   number2: 2.718281828459
+#   array: [1,2,3,4]
+#   sarray: ["a,b,c", "[abc]", "{abc}"]
+#
+message,log,txt,iu8,iu16,iu32,su8,su16,su32,su64,f32,f64
+msg,false,zero,0,0,0,0,0,0,0,0.5,0.5
+
+msg,true,"one",1,1,1,1,1,1,1,1.5,1.5
