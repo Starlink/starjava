@@ -1466,7 +1466,7 @@ As with command-line STILTS, the <code>fmt</code> argument
 is one of the options in <ref id="inFormats"/>, but may be
 left as the default if the format auto-detectable,
 which currently means if the file is in
-VOTable, FITS, CDF, Feather or GBIN format.
+VOTable, FITS, CDF, ECSV, Feather or GBIN format.
 The <code>random</code> argument can be used to ensure that the returned file
 has random (i.e. not sequential-only) access;
 for some table formats the default way of reading them in means that
@@ -2133,6 +2133,19 @@ The following list gives the values usually allowed for this
     so "table.xml#4" means the fifth <code>TABLE</code> element in the document.
     </p></dd>
 
+<dt><code>ecsv</code></dt>
+<dd><p>Enhanced Character Separated Values format was developed within
+    the <webref url="https://www.astropy.org/">Astropy</webref> project
+    and is described at
+    <webref
+       url="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"/>.
+    It is composed of a YAML header followed by a CSV-like body,
+    and is intended to be a human-readable format with rich metadata.
+    Most of the per-column and per-table metadata used by STILTS
+    is preserved when de/serializing to this format.
+    STILTS currently supports ECSV 0.9.
+    </p></dd>
+
 <dt><code>cdf</code></dt>
 <dd><p>NASA Common Data Format.
     CDF is described at <webref url="http://cdf.gsfc.nasa.gov/"/>.
@@ -2189,7 +2202,7 @@ For more details on these formats, see the descriptions in
 </p>
 
 <p>In some cases
-(when using VOTable, FITS, CDF, Feather or GBIN format tables) the 
+(when using VOTable, FITS, ECSV, CDF, Feather or GBIN format tables) the 
 tools can detect the table format automatically, and no explicit 
 specification is necessary.  If this isn't the case and you omit
 the format specification, the tool will fail with a suitable error
@@ -2293,6 +2306,9 @@ Matching is case-insensitive.
 <dt><code>votable-fits-inline</code></dt>
 <dd><p>VOTable document with FITS-encoded data inline within a 
     <code>STREAM</code> element</p></dd>
+
+<dt><code>ecsv</code></dt>
+<dd><p>Enhanced Character Separated Values format.</p></dd>
 
 <dt><code>feather</code></dt>
 <dd><p>Feather format.</p></dd>
@@ -12425,6 +12441,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Numeric time values without such explicit specification
         are now interpreted as MJD rather than Unix seconds.
         This command is no longer labelled <em>experimental</em>.</li>
+    <li>Add <ref id="inFormats">input</ref>
+        and <ref id="outFormats">output</ref> support
+        for the ECSV (Enhanced Character Separated Values)
+        storage format.</li>
     </ul>
     </p></dd>
 

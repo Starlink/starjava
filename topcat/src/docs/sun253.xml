@@ -628,7 +628,7 @@ something like
 <code>java -jar topcat-full.jar</code> (see <ref id="invoke"/> for
 more detail).  To view a table that you have on disk, you can either
 give its name on the command line or load it using the <label>Load</label>
-button from the GUI.  FITS, VOTable, CDF, feather and GBIN files
+button from the GUI.  FITS, VOTable, ECSV, CDF, feather and GBIN files
 are recognised automatically;
 if your data is in another format such as ASCII (see <ref id="inFormats"/>)
 you need to tell the program (e.g. <code>-f ascii</code> on the command line).
@@ -1115,7 +1115,7 @@ supported input formats have matching output formats and vice versa.
 <p>Loading tables into TOPCAT is done either from the command line
 when you start the program up or
 using the <ref id="LoadWindow">Load Table</ref> dialogue.
-For FITS, VOTable, CDF, feather and GBIN formats
+For FITS, VOTable, ECSV, CDF, feather and GBIN formats
 the file format can be detected automatically
 (note this is done by looking at the file content, it has nothing
 to do with filename extensions).
@@ -1281,6 +1281,22 @@ then loading the document in the usual way from the filestore browser
 or command line will open two new tables in TOPCAT.
 If you just want the Star Catalogue or the Galaxy Catalogue you can 
 use the name "cats.xml#0" or "cats.xml#1" respectively.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="inEcsv">
+<subhead><title>ECSV</title></subhead>
+
+<p>The Enhanced Character Separated Values format was developed within
+the <webref url="https://www.astropy.org/">Astropy</webref> project
+and is described at
+<webref url="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"/>.
+It is composed of a YAML header followed by a CSV-like body,
+and is intended to be a human-readable format with rich metadata.
+Most of the per-column and per-table metadata used by TOPCAT
+is preserved when de/serializing to this format.
+TOPCAT currently supports ECSV 0.9.
 </p>
 
 </subsubsubsect>
@@ -1854,6 +1870,15 @@ See the
 for more explanation of what these variants mean.
 They can all be read by the 
 <ref id="inVotable">VOTable input handler</ref>.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="outEcsv">
+<subhead><title>ECSV</title></subhead>
+
+<p>Tables can be written to the Enhanced Character Separated Values format,
+described in <ref id="inEcsv"/>.
 </p>
 
 </subsubsubsect>
@@ -22317,7 +22342,7 @@ and loads that into TOPCAT as a new table.
 <dt>Table Format:</dt>
 <dd><p>Selects the file format of the table to load.
     If the table is in one of the formats that TOPCAT is able to
-    auto-detect (VOTable, FITS, CDF, Feather) then the default value
+    auto-detect (VOTable, FITS, ECSV, CDF, Feather) then the default value
     <code>(auto)</code> may be used, otherwise the correct format
     must be chosen from the list.
     </p></dd>
@@ -22408,7 +22433,7 @@ are not included when a session is saved.
 <dt>Table Format:</dt>
 <dd><p>Selects the file format of the table to load.
     If the table is in one of the formats that TOPCAT is able to
-    auto-detect (VOTable, FITS, CDF, Feather) then the default value
+    auto-detect (VOTable, FITS, ECSV, CDF, Feather) then the default value
     <code>(auto)</code> may be used, otherwise the correct format
     must be chosen from the list.
     </p></dd>
@@ -24565,6 +24590,8 @@ functionality:
 <li><webref url="http://cds.u-strasbg.fr/resources/doku.php?id=moc"
             >MOC</webref> (CDS)
             Multi-Order Coverage HEALPix maps for footprint manipulation</li>
+<li><webref url="https://bitbucket.org/asomov/snakeyaml"
+            >Snakeyaml</webref> for YAML parsing in ECSV input handler</li>
 <li><webref url="http://www.jidesoft.com/products/oss.htm"
             >JIDE Common Layer</webref> (Jidesoft)
             for double-ended slider controls</li>
@@ -29452,6 +29479,10 @@ introduced since the last version:
     <li>The <ref id="TimePlotWindow">Time Plot</ref> window
         is no longer labelled <em>experimental</em>,
         and now appears on the main control window toolbar.</li>
+    <li>Add <ref id="inEcsv">input</ref>
+        and <ref id="outEcsv">output</ref> support
+        for the ECSV (Enhanced Character Separated Values)
+        storage format.</li>
     </ul>
     </p></dd>
 
