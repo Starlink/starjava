@@ -8,12 +8,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.xml.sax.SAXException;
+import uk.ac.starlink.vo.VocabTerm;
 import uk.ac.starlink.vo.Vocabulary;
 
 /**
@@ -25,8 +27,8 @@ import uk.ac.starlink.vo.Vocabulary;
 public class VocabChecker implements AttributeChecker {
 
     private final URL vocabUrl_;
-    private final Collection<String> fixedValues_;
-    private Collection<String> retrievedValues_;
+    private final Collection<String> fixedTerms_;
+    private Map<String,VocabTerm> retrievedTerms_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.votlint" );
 
@@ -50,47 +52,70 @@ public class VocabChecker implements AttributeChecker {
      * Constructor.
      *
      * @param   vocabUrl  URI/URL for vocabulary document
-     * @param   values    hard-coded values known in vocabulary;
-     *                    other values may be available by resolving
-     *                    the vocabulary URL
+     * @param   fixedTerms    hard-coded non-preliminary, non-deprecated terms
+     *                        known in the vocabulary;
+     *                        other terms may be available by resolving
+     *                        the vocabulary URL
      */
-    private VocabChecker( String vocabUrl, String[] values ) {
+    private VocabChecker( String vocabUrl, String[] fixedTerms ) {
         try {
             vocabUrl_ = new URL( vocabUrl );
         }
         catch ( MalformedURLException e ) {
             throw new IllegalArgumentException( "Not a URL: " + vocabUrl );
         }
-        fixedValues_ = new LinkedHashSet<String>( Arrays.asList( values ) );
+        fixedTerms_ = new LinkedHashSet<String>( Arrays.asList( fixedTerms ) );
     }
 
     public void check( String nameValue, ElementHandler handler ) {
         VotLintContext context = handler.getContext();
 
-        /* Note that short-circuit operator semantics means that terms
-         * are only read from the online vocabulary document if the
-         * test value cannot be found in the hard-coded list. */
-        if ( ! fixedValues_.contains( nameValue ) &&
-             ! getRetrievedValues().contains( nameValue ) ) {
-            StringBuffer sbuf = new StringBuffer()
-                .append( "\"" )
-                .append( nameValue )
-                .append( "\"" )
-                .append( " not known in vocabulary " )
-                .append( vocabUrl_ )
-                .append( " (known:" );
-            Set<String> values = new TreeSet<String>();
-            values.addAll( fixedValues_ );
-            values.addAll( getRetrievedValues() );
-            for ( Iterator<String> it = values.iterator(); it.hasNext(); ) {
-                sbuf.append( " " )
-                    .append( it.next() );
-                if ( it.hasNext() ) {
-                    sbuf.append( "," );
+        /* Note that the online vocabulary document is only consulted
+         * if encountered vocabulary terms are not present in the
+         * hard-coded list. */
+        if ( ! fixedTerms_.contains( nameValue ) ) {
+            VocabTerm term = getRetrievedTerms().get( nameValue );
+            if ( term == null ) {
+                StringBuffer sbuf = new StringBuffer()
+                    .append( "\"" )
+                    .append( nameValue )
+                    .append( "\"" )
+                    .append( " not known in vocabulary " )
+                    .append( vocabUrl_ )
+                    .append( " (known:" );
+                Set<String> terms = new TreeSet<String>();
+                terms.addAll( fixedTerms_ );
+                terms.addAll( getRetrievedTerms().keySet() );
+                for ( Iterator<String> it = terms.iterator(); it.hasNext(); ) {
+                    sbuf.append( " " )
+                        .append( it.next() );
+                    if ( it.hasNext() ) {
+                        sbuf.append( "," );
+                    }
                 }
+                sbuf.append( ")" );
+                context.warning( sbuf.toString() );
             }
-            sbuf.append( ")" );
-            context.warning( sbuf.toString() );
+            else if ( term.isDeprecated() ) {
+                String msg = new StringBuffer()
+                   .append( "\"" )
+                   .append( nameValue )
+                   .append( "\"" )
+                   .append( " is marked *deprecated* in vocabulary " )
+                   .append( vocabUrl_ )
+                   .toString();
+                context.warning( msg );
+            }
+            else if ( term.isPreliminary() ) {
+                String msg = new StringBuffer()
+                   .append( "\"" )
+                   .append( nameValue )
+                   .append( "\"" )
+                   .append( " is marked *preliminary* in vocabulary " )
+                   .append( vocabUrl_ )
+                   .toString();
+                context.info( msg );
+            }
         }
     }
 
@@ -98,20 +123,19 @@ public class VocabChecker implements AttributeChecker {
      * Lazily acquires vocabulary values by reading the resource at the
      * vocabulary URI.
      *
-     * @return   values retrieved from online vocabulary;
+     * @return   term map retrieved from online vocabulary;
      *           in case of a read error this may be empty, but not null
      */
-    public Collection<String> getRetrievedValues() {
-        if ( retrievedValues_ == null ) {
-            String[] rvals;
+    public Map<String,VocabTerm> getRetrievedTerms() {
+        if ( retrievedTerms_ == null ) {
+            Map<String,VocabTerm> terms;
             try {
-                rvals = Vocabulary.readVocabulary( vocabUrl_ ).getTermNames();
-                int nRead = rvals.length;
+                terms = Vocabulary.readVocabulary( vocabUrl_ ).getTerms();
+                int nRead = terms.size();
                 if ( nRead > 0 ) {
-                    Collection<String> set =
-                        new HashSet<String>( Arrays.asList( rvals ) );
-                    set.removeAll( fixedValues_ );
-                    int nNew = set.size();
+                    terms = new LinkedHashMap<>( terms );
+                    terms.keySet().removeAll( fixedTerms_ );
+                    int nNew = terms.size();
                     String msg = new StringBuffer()
                         .append( "Read vocabulary from " )
                         .append( vocabUrl_ )
@@ -129,20 +153,12 @@ public class VocabChecker implements AttributeChecker {
                 }
             }
             catch ( IOException e ) {
-                rvals = new String[ 0 ];
+                terms = Collections.emptyMap();
                 logger_.log( Level.WARNING,
                              "Unable to read vocabulary from " + vocabUrl_, e );
             }
-            catch ( SAXException e ) {
-                rvals = new String[ 0 ];
-                logger_.log( Level.WARNING,
-                             "Unable to parse vocabulary from " + vocabUrl_, e);
-            }
-            retrievedValues_ =
-                Collections
-               .unmodifiableSet( new LinkedHashSet<String>( Arrays
-                                                           .asList( rvals ) ) );
+            retrievedTerms_ = Collections.unmodifiableMap( terms );
         }
-        return retrievedValues_;
+        return retrievedTerms_;
     }
 }

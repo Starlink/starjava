@@ -1,0 +1,31 @@
+{
+  "uri": "http://www.ivoa.net/rdf/example",
+  "flavour": "RDF Class",
+  "terms": {
+    "EQUATORIAL": {
+      "label": "Equatorial",
+      "description": "Umbrella term for all sorts of equatorial frames.",
+      "narrower": ["ICRS", "ICRS2"]
+    },
+    "ICRS": {
+      "label": "ICRS",
+      "description": "As defined by 1998AJ....116..516M.",
+      "wider": ["EQUATORIAL"],
+    },
+    "B1875.0": {
+      "label": "Bonner Durchmusterung System",
+      "description": "Deprecated term for the reference system implied by BD/CD",
+      "deprecated": ""
+     },
+     "BD": {
+      "label": "Bonner Durchmusterung System",
+      "description": "The reference system implied by BD/CD"
+     },
+     "ICRS2": {
+      "label": "ICRS 2",
+      "description": "The reference system defined by 2027A&A..1234...12B",
+      "preliminary": "",
+      "wider": ["EQUATORIAL"],
+     }
+  }
+}
