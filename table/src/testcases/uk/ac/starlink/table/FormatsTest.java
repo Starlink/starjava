@@ -295,7 +295,8 @@ public class FormatsTest extends TableCase {
             "votable-binary-href",
             "votable-binary2-href",
             "votable-fits-inline",
-            "ecsv",
+            "ecsv-space",
+            "ecsv-comma",
             "feather",
             "text",
             "ascii",
@@ -496,9 +497,9 @@ public class FormatsTest extends TableCase {
         }
         exerciseReadWrite( new VOTableWriter(),
                            new VOTableBuilder(), "votable" );
-        exerciseReadWrite( new EcsvTableWriter( ' ' ),
+        exerciseReadWrite( EcsvTableWriter.SPACE_WRITER,
                            new EcsvTableBuilder(), "ecsv" );
-        exerciseReadWrite( new EcsvTableWriter( ',' ),
+        exerciseReadWrite( EcsvTableWriter.COMMA_WRITER,
                            new EcsvTableBuilder(), "ecsv" );
         exerciseReadWrite(
             new FeatherTableWriter( false, StoragePolicy.PREFER_MEMORY ),

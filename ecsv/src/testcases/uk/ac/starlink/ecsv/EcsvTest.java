@@ -53,8 +53,10 @@ public class EcsvTest extends TestCase {
         assertEquals( new Double( 1.5 ), table.getCell( 1, 11 ) );
         assertEquals( "mbt",
                       table.getParameterByName( "author" ).getValue() );
-        StarTable t2 = roundTrip( table );
+        StarTable t2 = roundTrip( table, EcsvTableWriter.SPACE_WRITER );
         assertSameTable( table, t2 );
+        StarTable t3 = roundTrip( table, EcsvTableWriter.COMMA_WRITER );
+        assertSameTable( table, t3 );
     }
 
     private void assertSameTable( StarTable t1, StarTable t2 ) {
@@ -95,9 +97,10 @@ public class EcsvTest extends TestCase {
         }
     }
 
-    private StarTable roundTrip( StarTable table ) throws IOException {
+    private StarTable roundTrip( StarTable table, EcsvTableWriter writer )
+            throws IOException {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        new EcsvTableWriter().writeStarTable( table, bout );
+        writer.writeStarTable( table, bout );
         bout.close();
         return readTable( new ByteArrayDataSource( "x", bout.toByteArray() ) );
     }

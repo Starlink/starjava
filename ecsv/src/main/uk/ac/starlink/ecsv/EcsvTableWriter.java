@@ -13,6 +13,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ByteList;
@@ -37,6 +38,7 @@ import uk.ac.starlink.util.ByteList;
 public class EcsvTableWriter extends StreamStarTableWriter {
 
     private final char delimiter_;
+    private final String formatName_;
     private final String nullRep_;
     private final byte badChar_;
     private final String nl_;
@@ -54,20 +56,30 @@ public class EcsvTableWriter extends StreamStarTableWriter {
     /** Meta map key for Xtype string value. */
     public static final String XTYPE_METAKEY = "xtype";
 
+    /** Instance using spaces for delimiters. */
+    public static final EcsvTableWriter SPACE_WRITER =
+        new EcsvTableWriter( ' ', "-space" );
+
+    /** Instance using commas for delimiters. */
+    public static final EcsvTableWriter COMMA_WRITER =
+        new EcsvTableWriter( ',', "-comma" );
+
     /**
      * Constructs a writer with default characteristics.
      */
     public EcsvTableWriter() {
-        this( ' ' );
+        this( ' ', null );
     }
 
     /**
      * Constructs a writer with a given delimiter character.
      *
      * @param  delimiter  field delimiter character; should be a space or comma
+     * @param  nameSuffix  string to append to "ECSV" to provide the format name
      */
-    public EcsvTableWriter( char delimiter ) {
+    public EcsvTableWriter( char delimiter, String nameSuffix ) {
         delimiter_ = delimiter;
+        formatName_ = "ECSV" + ( nameSuffix == null ? "" : nameSuffix );
         nullRep_ = delimiter == ' ' ? "\"\"" : "";
         badChar_ = (byte) '?';
         nl_ = "\n";
@@ -75,11 +87,8 @@ public class EcsvTableWriter extends StreamStarTableWriter {
         bbuf_ = new ByteList();
     }
 
-    /**
-     * Returns "ECSV".
-     */
     public String getFormatName() {
-        return "ECSV";
+        return formatName_;
     }
 
     /**
@@ -485,5 +494,17 @@ public class EcsvTableWriter extends StreamStarTableWriter {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Returns a list of ECSV writers with variant characteristics.
+     *
+     * @return  variant EcsvTableWriters
+     */
+    public static StarTableWriter[] getStarTableWriters() {
+        return new StarTableWriter[] {
+            SPACE_WRITER,
+            COMMA_WRITER,
+        };
     }
 }

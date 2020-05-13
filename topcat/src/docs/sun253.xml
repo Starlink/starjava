@@ -1879,6 +1879,17 @@ They can all be read by the
 
 <p>Tables can be written to the Enhanced Character Separated Values format,
 described in <ref id="inEcsv"/>.
+Two variants of this format are currently supported,
+depending on the delimiter character you want to use
+(both are legal ECSV):
+<dl>
+<dt>ecsv-space</dt>
+<dd><p>ECSV using the space character as a delimiter
+    </p></dd>
+<dt>ecsv-comma</dt>
+<dd><p>ECSV using the comma character as a delimiter
+    </p></dd>
+</dl>
 </p>
 
 </subsubsubsect>

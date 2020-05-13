@@ -2307,8 +2307,13 @@ Matching is case-insensitive.
 <dd><p>VOTable document with FITS-encoded data inline within a 
     <code>STREAM</code> element</p></dd>
 
-<dt><code>ecsv</code></dt>
-<dd><p>Enhanced Character Separated Values format.</p></dd>
+<dt><code>ecsv-space</code></dt>
+<dd><p>Enhanced Character Separated Values format
+    using a space character as the delimiter</p></dd>
+
+<dt><code>ecsv-comma</code></dt>
+<dd><p>Enhanced Character Separated Values format
+    using a comma character as the delimiter</p></dd>
 
 <dt><code>feather</code></dt>
 <dd><p>Feather format.</p></dd>
