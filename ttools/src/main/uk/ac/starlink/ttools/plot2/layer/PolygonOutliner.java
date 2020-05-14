@@ -190,77 +190,111 @@ public class PolygonOutliner extends PixOutliner {
         return new ShapePainter() {
             public void paintPoint( Tuple tuple, Color color, Paper paper ) {
                 VertexData vdata = vertReader.readVertexData( tuple );
+                int np = vdata.getVertexCount();
 
                 /* Get the position of the first vertex in integer
                  * (rounded) graphics coordinates. */
-                if ( vdata.readDataPos( 0, dpos0 ) &&
-                     surf.dataToGraphics( dpos0, false, gpos ) &&
-                     PlotUtil.isPointFinite( gpos ) &&
-                     geom.readDataPos( tuple, icPos, dposC ) &&
-                     surf.dataToGraphics( dposC, false, gposC ) &&
-                     PlotUtil.isPointFinite( gposC ) ) {
-                    int np = vdata.getVertexCount();
-                    int jp = 0;
-                    if ( np > 0 ) {
+                int ip0 = advanceToPoly( vdata, surf, 0, dpos0, gpos );
+                if ( ip0 < np ) {
+
+                    /* Try to acquire the central position; but if it's
+                     * not possible (e.g. on the other side of the visible
+                     * sphere surface) just use the first vertex instead. */
+                    if ( geom.readDataPos( tuple, icPos, dposC ) &&
+                         surf.dataToGraphics( dposC, false, gposC ) &&
+                         PlotUtil.isPointFinite( gposC ) ) {
                         PlotUtil.quantisePoint( gposC, igposC );
-                        int gxC = igposC.x;
-                        int gyC = igposC.y;
-                        int[] gxs = new int[ np ];
-                        int[] gys = new int[ np ];
-                        PlotUtil.quantisePoint( gpos, igpos );
-                        gxs[ jp ] = igpos.x;
-                        gys[ jp ] = igpos.y;
-                        jp++;
+                    }
+                    else {
+                        PlotUtil.quantisePoint( gpos, igposC );
+                        System.arraycopy( dpos0, 0, dposC, 0, dpos.length );
+                    }
+                    int gxC = igposC.x;
+                    int gyC = igposC.y;
+                    int jp = 0;
+                    int[] gxs = new int[ np ];
+                    int[] gys = new int[ np ];
+                    PlotUtil.quantisePoint( gpos, igpos );
+                    gxs[ jp ] = igpos.x;
+                    gys[ jp ] = igpos.y;
+                    jp++;
 
-                        /* Get the graphics positions of the other vertices. */
-                        for ( int ip = 1; ip < np; ip++ ) {
+                    /* Get the graphics positions of the other vertices. */
+                    for ( int ip = ip0 + 1; ip < np; ip++ ) {
 
-                            /* If this vertex is a break, draw what we have
-                             * and prepare to accumulate vertices for
-                             * the next one. */
-                            if ( vdata.isBreak( ip ) ) {
-                                paintPoly( gxC, gyC, gxs, gys, jp,
-                                           color, paper );
-                                ip++;
-                                if ( ip < np &&
-                                     vdata.readDataPos( ip, dpos0 ) &&
-                                     surf.dataToGraphics( dpos0, false, gpos )&&
-                                     PlotUtil.isPointFinite( gpos ) ) {
-                                    jp = 0;
-                                    PlotUtil.quantisePoint( gpos, igpos );
-                                    gxs[ jp ] = igpos.x;
-                                    gys[ jp ] = igpos.y;
-                                    jp++;
-                                }
-                                else {
-                                    return;
-                                }
-                            }
-
-                            /* Get the next graphics position.
-                             * Reject the vertex if there is no continuous
-                             * line from the first vertex to it.
-                             * This is to defend against drawing polygons
-                             * going the wrong way around the sphere in
-                             * sky plots. */
-                            else if ( vdata.readDataPos( ip, dpos )
-                                   && surf.dataToGraphics( dpos, false, gpos )
-                                   && surf.isContinuousLine( dpos0, dpos )
-                                   && PlotUtil.isPointFinite( gpos ) ) {
+                        /* If this vertex is a break, draw what we have and
+                         * prepare to accumulate vertices for the next one. */
+                        if ( vdata.isBreak( ip ) ) {
+                            paintPoly( gxC, gyC, gxs, gys, jp, color, paper );
+                            ip = advanceToPoly( vdata, surf, ip + 1,
+                                                dpos0, gpos );
+                            if ( ip < np ) {
+                                jp = 0;
                                 PlotUtil.quantisePoint( gpos, igpos );
                                 gxs[ jp ] = igpos.x;
                                 gys[ jp ] = igpos.y;
                                 jp++;
                             }
+                            else {
+                                return;
+                            }
                         }
 
-                        /* We have the vertices in graphics space,
-                         * paint a figure as appropriate. */
-                        if ( jp > 0 ) {
-                            paintPoly( gxC, gyC, gxs, gys, jp, color, paper );
+                        /* Get the next graphics position.
+                         * Reject the vertex if there is no continuous
+                         * line from the first vertex to it.
+                         * This is to defend against drawing polygons
+                         * going the wrong way around the sphere in
+                         * sky plots. */
+                        else if ( vdata.readDataPos( ip, dpos )
+                               && surf.dataToGraphics( dpos, false, gpos )
+                               && surf.isContinuousLine( dpos0, dpos )
+                               && PlotUtil.isPointFinite( gpos ) ) {
+                            PlotUtil.quantisePoint( gpos, igpos );
+                            gxs[ jp ] = igpos.x;
+                            gys[ jp ] = igpos.y;
+                            jp++;
+                        }
+                    }
+
+                    /* We have the vertices in graphics space,
+                     * paint a figure as appropriate. */
+                    if ( jp > 0 ) {
+                        paintPoly( gxC, gyC, gxs, gys, jp, color, paper );
+                    }
+                }
+            }
+
+            /**
+             * Prepare to use the next acceptable polygon in a vertexdata.
+             * From the given point, the first vertex of the next disjoint
+             * polygon whose position can be represented on the surface
+             * is prepared, and the index within the vertex list is returned.
+             *
+             * @param  vdata  vertex data
+             * @param  surf   plot surface
+             * @param  ip     vertex index to start from
+             *                (first acceptable return value)
+             * @param  dpos  on return contains data coordinates of next vertex
+             * @param  gpos  on return contains graphics coords of next vertex
+             * @return   index in vdata of next vertex; if none, a value
+             *           after the end of the vdata is returned
+             */
+            private int advanceToPoly( VertexData vdata, Surface surf, int ip,
+                                       double[] dpos, Point2D.Double gpos ) {
+                int np = vdata.getVertexCount();
+                while ( ip < np ) {
+                    if ( vdata.readDataPos( ip, dpos ) &&
+                         surf.dataToGraphics( dpos, false, gpos ) &&
+                         PlotUtil.isPointFinite( gpos ) ) {
+                        return ip;
+                    }
+                    else {
+                        while ( ip < np && ! vdata.isBreak( ip++ ) ) {
                         }
                     }
                 }
+                return ip;
             }
 
             /**
