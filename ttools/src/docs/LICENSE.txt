@@ -73,6 +73,9 @@ this list up to date, but if there are missing entries please complain.
       org.mortbay.jetty.jar
       snakeyaml-1.25.jar
 
+   BSD 3-clause:
+      cdshealpix.jar
+
    OSI CDDL:
       javax.servlet.jar
 
