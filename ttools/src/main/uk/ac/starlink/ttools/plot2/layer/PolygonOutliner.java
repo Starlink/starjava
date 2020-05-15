@@ -6,7 +6,9 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.MarkShape;
@@ -645,6 +647,123 @@ public class PolygonOutliner extends PixOutliner {
     }
 
     /**
+     * Converts an array of longitude,latitude values representing polygons
+     * to an array of unit vectors representing vertices of the polygons.
+     * As well as the conversion to unit vectors, this also interpolates
+     * along arcs that are long enough for a linear projection to be distorted,
+     * so that straight lines on the screen drawn between the returned
+     * values will provide a reasonable approximation to geodesics.
+     *
+     * @param  lonLatVertices   array of (lon0,lat0,lon1,lat1,..) in degrees,
+     *                          with optional embedded NaN,NaN pairs
+     *                          indicating a break between polygons
+     * @param  skyGeom   sky geom, possibly containing rotation information
+     * @return  array of unit 3-vectors giving sky positions that should
+     *          be plotted to represent the polygon(s);
+     *          null elements indicate a break between polygons
+     */
+    private static double[][] toSkyVertices( double[] lonLatVertices,
+                                             SkyDataGeom skyGeom ) {
+
+        /* Define the longest distance in radians that can be approximated
+         * by a straight line in graphics coordinates.  The ideal value
+         * for this will change somewhat with the projection and image size,
+         * but a one-size-fits all value can do a reasonable job. */
+        final double MAX_LINEAR_DIST = Math.PI / 18;
+
+        /* Iterate over supplied vertices. */
+        int nv = lonLatVertices.length / 2;
+        List<double[]> dps = new ArrayList<double[]>( nv );
+        boolean isStart = true;
+        for ( int iv = 0; iv < nv; iv++ ) {
+            int iv2 = iv * 2;
+            double lon = lonLatVertices[ iv2 + 0 ];
+            double lat = lonLatVertices[ iv2 + 1 ];
+
+            /* If it's a vertex break (border between disjoint polygons),
+             * store a null point. */
+            if ( Double.isNaN( lon ) ) {
+                assert Double.isNaN( lat );
+                dps.add( null );
+                isStart = true;
+            }
+
+            /* Otherwise go ahead and store at least one vertex. */
+            else {
+
+                /* Get the unit 3-vector for the current vertex. */
+                double[] dpos = new double[ 3 ];
+                if ( toSky( lon, lat, skyGeom, dpos ) ) {
+
+                    /* Get the unit 3-vector for the previous vertex;
+                     * in most cases this will be the one we calculated
+                     * in the previous iteration, but if this is the first
+                     * vertex of a new polygon, we need to step forward
+                     * to find the last vertex of the polygon we're just
+                     * starting. */
+                    double[] prevDpos;
+                    if ( isStart ) {
+                        int kv = -1;
+                        for ( int j = iv; kv < 0 && j < nv; j++ ) {
+                            if ( j == nv - 1 ||
+                                 Double.isNaN( lonLatVertices[ j * 2 ] ) ) {
+                                kv = j;
+                            }
+                        }
+                        double prevLon = lonLatVertices[ kv * 2 + 0 ];
+                        double prevLat = lonLatVertices[ kv * 2 + 1 ];
+                        double[] ldp = new double[ 3 ];
+                        prevDpos = toSky( prevLon, prevLat, skyGeom, ldp )
+                                 ? ldp
+                                 : null;
+                    }
+                    else {
+                        prevDpos = dps.get( dps.size() - 1 );
+                    }
+
+                    /* Calculate the distance between this vertex and
+                     * the previous one. */
+                    double dist = prevDpos == null
+                                ? 0
+                                : Math.acos( dpos[ 0 ] * prevDpos[ 0 ]
+                                           + dpos[ 1 ] * prevDpos[ 1 ]
+                                           + dpos[ 2 ] * prevDpos[ 2 ] );
+
+                    /* If they are quite close together, just add the
+                     * current vertex's position to the list. */
+                    if ( dist < MAX_LINEAR_DIST ) {
+                        dps.add( dpos );
+                    }
+
+                    /* Otherwise, interpolate a number of intermediate
+                     * vertices between them to smooth out the plotted line. */
+                    else {
+                        int nstep = (int) Math.ceil( dist / MAX_LINEAR_DIST );
+                        double fstep = 1.0 / nstep;
+                        double x = prevDpos[ 0 ];
+                        double y = prevDpos[ 1 ];
+                        double z = prevDpos[ 2 ];
+                        double dx = fstep * ( dpos[ 0 ] - prevDpos[ 0 ] );
+                        double dy = fstep * ( dpos[ 1 ] - prevDpos[ 1 ] );
+                        double dz = fstep * ( dpos[ 2 ] - prevDpos[ 2 ] );
+                        for ( int is = 0; is < nstep; is++ ) {
+                            x += dx;
+                            y += dy;
+                            z += dz;
+                            double r1 = 1.0 / Math.sqrt( x*x + y*y + z*z );
+                            dps.add( new double[] { r1 * x, r1 * y, r1 * z } );
+                        }
+                    }
+                    isStart = false;
+                }
+            }
+        }
+
+        /* Return the list of positions outlining the polygon(s). */
+        return dps.toArray( new double[ 0 ][] );
+    }
+
+    /**
      * Converts longitude/latitude/radius coordinates to sphere
      * data coordinates (3d vector).
      *
@@ -1174,28 +1293,25 @@ public class PolygonOutliner extends PixOutliner {
                 public VertexData createVertexData( Area area ) {
                     switch ( area.getType() ) {
                         case POLYGON:
-                            final double[] vertices = area.getDataArray();
+                            final double[][] dps =
+                                toSkyVertices( area.getDataArray(), skyGeom );
                             return new VertexData() {
                                 public int getVertexCount() {
-                                    return vertices.length / 2;
+                                    return dps.length;
                                 }
                                 public boolean readDataPos( int ivert,
                                                             double[] dpos ) {
-                                    int iv2 = ivert * 2;
-                                    return toSky( vertices[ iv2 ],
-                                                  vertices[ iv2 + 1 ],
-                                                  skyGeom, dpos );
-                                }
-                                public boolean isBreak( int ivert ) {
-                                    int iv2 = ivert * 2;
-                                    if ( Double.isNaN( vertices[ iv2 ] ) ) {
-                                        assert Double
-                                              .isNaN( vertices[ iv2 + 1 ] );
+                                    double[] dp = dps[ ivert ];
+                                    if ( dp != null ) {
+                                        System.arraycopy( dp, 0, dpos, 0, 3 );
                                         return true;
                                     }
                                     else {
                                         return false;
                                     }
+                                }
+                                public boolean isBreak( int ivert ) {
+                                    return dps[ ivert ] == null;
                                 }
                             };
                         case CIRCLE:
