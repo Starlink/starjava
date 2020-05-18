@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
-import gov.fnal.eag.healpix.PixTools;
+import cds.healpix.CompassPoint;
+import cds.healpix.Healpix;
+import cds.healpix.HealpixNested;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -40,6 +42,7 @@ import uk.ac.starlink.ttools.plot2.geom.SphereDataGeom;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
+import uk.ac.starlink.util.DoubleList;
 
 /**
  * Outliner implementations for plotting shapes defined by listing
@@ -123,6 +126,9 @@ public class PolygonOutliner extends PixOutliner {
             return false;
         }
     };
+
+    /** Minimum interpolation for MOC tile edges. */
+    private static final int HPX_INTERPOLATE_LEVEL = 5;
 
     /**
      * Constructor.
@@ -1229,13 +1235,11 @@ public class PolygonOutliner extends PixOutliner {
                             return createPointVertexData( dpos );
                         case MOC:
                             double[] duniqs = area.getDataArray();
-                            return new MocVertexData( duniqs ) {
-                                void copyVector( double vx, double vy,
-                                                 double vz, double[] dpos ) {
-                                    double latDeg =
-                                        90 - Math.toDegrees( Math.acos( vz ) );
-                                    double lonDeg =
-                                        Math.toDegrees( Math.atan2( vy, vx ) );
+                            return new MocVertexData( duniqs, 0 ) {
+                                void copyLonlat( double lonRad, double latRad,
+                                                 double[] dpos ) {
+                                    double lonDeg = Math.toDegrees( lonRad );
+                                    double latDeg = Math.toDegrees( latRad );
                                     dpos[ 0 ] = lonDeg;
                                     dpos[ 1 ] = latDeg;
                                 }
@@ -1334,12 +1338,11 @@ public class PolygonOutliner extends PixOutliner {
                                 Rotation
                                .createRotation( SkySys.EQUATORIAL,
                                                 skyGeom.getViewSystem() );
-                            return new MocVertexData( duniqs ) {
-                                void copyVector( double vx, double vy,
-                                                 double vz, double[] dpos ) {
-                                    dpos[ 0 ] = vx;
-                                    dpos[ 1 ] = vy;
-                                    dpos[ 2 ] = vz;
+                            return new MocVertexData( duniqs,
+                                                      HPX_INTERPOLATE_LEVEL ) {
+                                void copyLonlat( double lonRad, double latRad,
+                                                 double[] dpos ) {
+                                    lonlatToVector( lonRad, latRad, dpos );
                                     rotation.rotate( dpos );
                                 }
                             };
@@ -1368,6 +1371,26 @@ public class PolygonOutliner extends PixOutliner {
             else {
                 return false;
             }
+        }
+        /**
+         * Converts a longitude, latitude pair to a unit vector suitable for
+         * use as a sky surface data position.  No error checking is done.
+         *
+         * @param   lonRad  longitude in radians
+         * @param   latRad  latitude in radiansl
+         * @param   dpos    3-element vector into which (x,y,z) is written
+         */
+        public static void lonlatToVector( double lonRad, double latRad,
+                                           double[] dpos ) {
+            double theta = 0.5 * Math.PI - latRad;
+            double phi = lonRad;
+            double z = Math.cos( theta );
+            double sd = Math.sin( theta );
+            double x = Math.cos( phi ) * sd;
+            double y = Math.sin( phi ) * sd;
+            dpos[ 0 ] = x;
+            dpos[ 1 ] = y;
+            dpos[ 2 ] = z;
         }
     }
 
@@ -1626,76 +1649,103 @@ public class PolygonOutliner extends PixOutliner {
      * VertexData implementation for MOC areas.
      */
     private static abstract class MocVertexData implements VertexData {
-        private final double[] duniqs_;
-        private final PixTools pixTools_;
-        private int iuniq_;
-        private double[][] tileVerts_;
+        private final DoubleList lonList_;
+        private final DoubleList latList_;
+        private final int nvert_;
 
         /**
-         * Constructor.
+         * Simple constructor.
          *
          * @param  duniqs   array of double values that need to be equivalenced
          *                  to longs in order to yield MOC NUNIQ tile indices
+         * @param  minLevel  minimal HEALPix level for interpolation along
+         *                   the sides of large tiles; if set too low,
+         *                   the fact that HEALPix tile edges are not great
+         *                   circles will mean that the tiles don't butt up
+         *                   against each other properly
          */
-        MocVertexData( double[] duniqs ) {
-            duniqs_ = duniqs;
-            pixTools_ = new PixTools();
-            iuniq_ = -1;
+        MocVertexData( double[] duniqs, int minLevel ) {
+            this( duniqs, minLevel,
+                  new DoubleList( duniqs.length * 5 ),
+                  new DoubleList( duniqs.length * 5 ) );
+        }
+      
+        /**
+         * Constructor with supplied workspace.
+         *
+         * @param  duniqs   array of double values that need to be equivalenced
+         *                  to longs in order to yield MOC NUNIQ tile indices
+         * @param  minLevel  minimal HEALPix level for interpolation along
+         *                   the sides of large tiles; if set too low,
+         *                   the fact that HEALPix tile edges are not great
+         *                   circles will mean that the tiles don't butt up
+         *                   against each other properly
+         * @param  work1  reusable workspace
+         * @param  work2  reusable workspace
+         */
+        MocVertexData( double[] duniqs, int minLevel,
+                       DoubleList work1, DoubleList work2 ) {
+            lonList_ = work1;
+            latList_ = work2;
+            lonList_.clear();
+            latList_.clear();
+            int nuniq = duniqs.length;
+            double[][] vertworks = new double[ 4 << minLevel ][ 2 ];
+            int nvert = 0;
+            for ( int iu = 0; iu < nuniq; iu++ ) {
+                long uniq = Double.doubleToRawLongBits( duniqs[ iu ] );
+                long order = ( 61 - Long.numberOfLeadingZeros( uniq ) ) >> 1;
+                long ipix = uniq - ( 1L << ( 2 + 2 * order ) );
+                int nseg = 1 << Math.max( 0, minLevel - order );
+                Healpix.getNested( (int) order )
+                       .pathAlongCellEdge( ipix, CompassPoint.Cardinal.E,
+                                           true, nseg, vertworks );
+                int nv = 4 * nseg;
+                if ( nvert > 0 ) {
+                    lonList_.add( Double.NaN );
+                    latList_.add( Double.NaN );
+                }
+                for ( int iv = 0; iv < nv; iv++ ) {
+                    double[] lonlat = vertworks[ iv ];
+                    lonList_.add( lonlat[ HealpixNested.LON_INDEX ] );
+                    latList_.add( lonlat[ HealpixNested.LAT_INDEX ] );
+                }
+                nvert += nv;
+            }
+            nvert_ = nvert;
         }
 
         public int getVertexCount() {
-
-            /* There are four vertices per tile, plus a break vertex
-             * between each pair (but not after the last one). */
-            return duniqs_.length * 5 - 1;
+            return nvert_;
         }
 
         public boolean isBreak( int ivert ) {
-
-            /* Every fifth vertex is a break. */
-            return ivert % 5 == 4;
+            return Double.isNaN( lonList_.get( ivert ) );
         }
 
         public boolean readDataPos( int ivert, double[] dpos ) {
-            int irot = ivert % 5;
-            if ( irot < 4 ) {
-                int iuniq = ivert / 5;
-
-                /* First time we see a tile index, calculate and save
-                 * its vertices.  Most likely after the first one,
-                 * the next three vertices to be requested will be the
-                 * othet three for the same tile. */
-                if ( iuniq != iuniq_ ) {
-                    iuniq_ = iuniq;
-                    long uniq = Double.doubleToRawLongBits( duniqs_[ iuniq ] );
-                    long order = ( 61 - Long.numberOfLeadingZeros( uniq ) ) >>1;
-                    long ipix = uniq - ( 1L << ( 2 + 2 * order ) );
-                    long nside = 1L << order;
-                    tileVerts_ = pixTools_.pix2vertex_nest( nside, ipix );
-                }
-                copyVector( tileVerts_[ 0 ][ irot ],
-                            tileVerts_[ 1 ][ irot ],
-                            tileVerts_[ 2 ][ irot ], dpos );
-                return true;
+            double lonRad = lonList_.get( ivert );
+            if ( Double.isNaN( lonRad ) ) {
+                assert Double.isNaN( latList_.get( ivert ) );
+                return false;
             }
             else {
-                return false;
+                double latRad = latList_.get( ivert );
+                copyLonlat( lonRad, latRad, dpos );
+                return true;
             }
         }
 
         /**
          * Populates the geometry-specific data-space position array
-         * given the elements of a unit vector giving a vertex position
-         * on the unit sphere.
+         * given the spherical coordinates of a vertex position.
          *
-         * @param   vx   unit vector X component
-         * @param   vx   unit vector Y component
-         * @param   vx   unit vector Z component
+         * @param   lonRad  longitude in radians
+         * @param   latRad  latitude in radians
          * @param  dpos  geometry-specific data-space position array,
          *               to be populated on output
          */
-        abstract void copyVector( double vx, double vy, double vz,
-                                  double[] dpos );
+        abstract void copyLonlat( double lonRad, double latRad, double[] dpos );
     }
 
     /**
