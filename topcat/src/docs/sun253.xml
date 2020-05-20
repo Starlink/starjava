@@ -1293,10 +1293,51 @@ the <webref url="https://www.astropy.org/">Astropy</webref> project
 and is described at
 <webref url="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"/>.
 It is composed of a YAML header followed by a CSV-like body,
-and is intended to be a human-readable format with rich metadata.
+and is intended to be a human-readable and maybe even human-writable format
+with rich metadata.
 Most of the per-column and per-table metadata used by TOPCAT
 is preserved when de/serializing to this format.
 TOPCAT currently supports ECSV 0.9.
+</p>
+
+<p>There are various ways to format the YAML header,
+but a simple example of an ECSV file looks like this:
+<verbatim>
+# %ECSV 0.9
+# ---
+# delimiter: ','
+# datatype: [
+#   { name: index,   datatype: int32   }, 
+#   { name: Species, datatype: string  },
+#   { name: Name,    datatype: string  },
+#   { name: Legs,    datatype: int32   },
+#   { name: Height,  datatype: float64, unit: m },
+#   { name: Mammal,  datatype: bool    },
+# ]
+index,Species,Name,Legs,Height,Mammal
+1,pig,Bland,4,,True
+2,cow,Daisy,4,2,True
+3,goldfish,Dobbin,,0.05,False
+4,ant,,6,0.001,False
+5,ant,,6,0.001,False
+6,human,Mark,2,1.9,True
+</verbatim>
+If you follow this pattern, it's possible to write your own ECSV files by
+taking an existing <ref id="inCsv">CSV</ref> file
+and decorating it with a header that gives column datatypes,
+and possibly other metadata such as units.
+This allows you to force the datatype of given columns
+(the CSV reader guesses datatype based on content, but can get it wrong)
+and also allows TOPCAT to read the file much more efficiently,
+and to recognise the file format automatically.
+</p>
+
+<p>The datatypes that work well with TOPCAT are
+<code>bool</code>,
+<code>int8</code>, <code>int16</code>, <code>int32</code>, <code>int64</code>,
+<code>float32</code>, <code>float64</code>
+and
+<code>string</code>.
 </p>
 
 </subsubsubsect>
@@ -1528,6 +1569,22 @@ on which it was based was not obtained directly from Microsoft.
 </ul>
 Note that you can <em>not</em> use a "<code>#</code>" character
 (or anything else) to introduce "comment" lines.
+</p>
+
+<p>Because the CSV format contains no metadata beyond column names,
+TOPCAT is forced to guess the datatype of the values in each column.
+It does this by reading the whole file through once and guessing
+on the basis of what it has seen.  This has the disadvantages:
+<ul>
+<li>Sometimes it guesses a different type than what you want
+    (e.g. 32-bit integer rather than 64-bit integer)</li>
+<li>It's slow to read.</li>
+</ul>
+This means that CSV is not generally recommended if you can
+use another format instead.
+If you're stuck with a large CSV file that's misbehaving or slow
+to use, one possibility is to turn it into an
+<ref id="inEcsv">ECSV</ref> file by adding some header lines by hand.
 </p>
 
 <p>This format is not detected automatically - you must specify that
@@ -29493,7 +29550,9 @@ introduced since the last version:
     <li>Add <ref id="inEcsv">input</ref>
         and <ref id="outEcsv">output</ref> support
         for the ECSV (Enhanced Character Separated Values)
-        storage format.</li>
+        storage format.
+        Expand <ref id="inCsv">CSV</ref> documentation to
+        suggest use of ECSV instead.</li>
     </ul>
     </p></dd>
 
