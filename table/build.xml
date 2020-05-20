@@ -94,7 +94,7 @@
   <property name="chmod.fail" value="false"/>
 
   <!-- JUnit test options -->
-  <property name="junit.fork" value="false"/>
+  <property name="junit.fork" value="true"/>
   <property name="junit.filtertrace" value="on"/>
   <property name="junit.summary" value="no"/>
   <property name="junit.assertions" value="-enableassertions"/>
