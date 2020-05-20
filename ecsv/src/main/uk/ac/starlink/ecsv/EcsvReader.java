@@ -170,8 +170,7 @@ public class EcsvReader implements Closeable {
         words_.clear();
         wbuf_.setLength( 0 );
         boolean inQuote = false;
-        for ( String line;
-              ( ! inQuote ) && ( ( line = lineReader.readLine() ) != null ); ) {
+        for ( String line; ( ( line = lineReader.readLine() ) != null ); ) {
             int nc = line.length();
             for ( int i = 0; i < nc; i++ ) {
                 char c = line.charAt( i );
@@ -217,7 +216,6 @@ public class EcsvReader implements Closeable {
                 }
             }
         }
-        assert false;
         return null;
     }
 }
