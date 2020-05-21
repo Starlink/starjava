@@ -5,10 +5,9 @@
 
 package uk.ac.starlink.ttools.func;
 
+import cds.healpix.Healpix;
 import edu.jhu.htm.core.HTMException;
 import edu.jhu.htm.core.HTMfunc;
-import gov.fnal.eag.healpix.PixTools;
-import javax.vecmath.Vector3d;
 
 /**
  * Pixel tiling functions for the celestial sphere.
@@ -24,8 +23,6 @@ import javax.vecmath.Vector3d;
  * @see      <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
  */
 public class Tilings {
-
-    private static final PixTools pixTools_ = PixTools.getInstance();
 
     /** Solid angle in steradians corresponding to 1 square degree. */
     public static final double SQDEG = ( Math.PI * Math.PI ) / ( 180. * 180. );
@@ -66,7 +63,8 @@ public class Tilings {
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static long healpixNestIndex( int k, double lon, double lat ) {
-        return pixTools_.vect2pix_nest( kToNside( k ), toVector( lon, lat ) );
+        return Healpix.getNestedFast( k )
+              .hash( Math.toRadians( lon ), Math.toRadians( lat ) );
     }
 
     /**
@@ -80,7 +78,7 @@ public class Tilings {
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static long healpixRingIndex( int k, double lon, double lat ) {
-        return pixTools_.vect2pix_ring( kToNside( k ), toVector( lon, lat ) );
+        return healpixNestToRing( k, healpixNestIndex( k, lon, lat ) );
     }
 
     /**
@@ -99,7 +97,8 @@ public class Tilings {
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static double healpixNestLon( int k, long index ) {
-        return angToLon( pixTools_.pix2ang_nest( kToNside( k ), index ) );
+        return Math.toDegrees( Healpix.getNestedFast( k )
+                                      .center( index )[ 0 ] );
     }
 
     /**
@@ -118,7 +117,8 @@ public class Tilings {
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static double healpixNestLat( int k, long index ) {
-        return angToLat( pixTools_.pix2ang_nest( kToNside( k ), index ) );
+        return Math.toDegrees( Healpix.getNestedFast( k )
+                                      .center( index )[ 1 ] );
     }
 
     /**
@@ -137,12 +137,12 @@ public class Tilings {
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static double healpixRingLon( int k, long index ) {
-        return angToLon( pixTools_.pix2ang_ring( kToNside( k ), index ) );
+        return healpixNestLon( k, healpixRingToNest( k, index ) );
     }
 
     /**
      * Returns the latitude of the approximate center of the tile
-     * with a given index in the HEALPix NEST scheme.
+     * with a given index in the HEALPix RING scheme.
      *
      * <p>Note: the <code>index</code> parameter is 0-based,
      * unlike the table row index special token <code>$index</code>
@@ -156,11 +156,11 @@ public class Tilings {
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static double healpixRingLat( int k, long index ) {
-        return angToLat( pixTools_.pix2ang_ring( kToNside( k ), index ) );
+        return healpixNestLat( k, healpixRingToNest( k, index ) );
     }
 
     /**
-     * Converts a healpix ring index from the NEST to the RING scheme
+     * Converts a healpix tile index from the NEST to the RING scheme
      * at a given order.
      *
      * <p>Note: the <code>nestIndex</code> parameter is 0-based,
@@ -175,11 +175,11 @@ public class Tilings {
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static long healpixNestToRing( int k, long nestIndex ) {
-        return pixTools_.nest2ring( kToNside( k ), nestIndex );
+        return Healpix.getNested( k ).toRing( nestIndex );
     }
 
     /**
-     * Converts a healpix ring index from the RING to the NEST scheme
+     * Converts a healpix tile index from the RING to the NEST scheme
      * at a given order.
      *
      * <p>Note: the <code>ringIndex</code> parameter is 0-based,
@@ -194,12 +194,13 @@ public class Tilings {
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static long healpixRingToNest( int k, long ringIndex ) {
-        return pixTools_.ring2nest( kToNside( k ), ringIndex );
+        return Healpix.getNested( k ).toNested( ringIndex );
     }
 
     /**
      * Gives the HEALPix resolution parameter suitable for a given pixel size.
-     * This <code>k</code> value is the logarithm to base 2 of the 
+     * This <code>k</code> value (also variously known as order, level, depth)
+     * is the logarithm to base 2 of the 
      * Nside parameter.
      *
      * @param   pixelsize   pixel size in degrees
@@ -207,8 +208,7 @@ public class Tilings {
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static int healpixK( double pixelsize ) {
-        long nside = pixTools_.GetNSide( pixelsize * 60 * 60 );
-        return (int) ( Math.log( nside ) / Math.log( 2 ) );
+        return Healpix.getBestStartingDepth( Math.toRadians( pixelsize ) );
     }
 
     /**
@@ -310,57 +310,5 @@ public class Tilings {
      */
     public static double htmResolution( int level ) {
         return 2.8125 * Math.pow( 2, 5 - level );
-    }
-
-    /**
-     * Converts HEALPix order to Nside.
-     *
-     * @param  k  HEALPix order
-     * @return  HEALPix Nside
-     */
-    private static long kToNside( int k ) {
-        if ( k >= 0 && k <= 29 ) {
-            return 1L << k;
-        }
-        else {
-            throw new IllegalArgumentException( "HEALPix order " + k
-                                              + " out of range 0..29" );
-        }
-    }
-
-    /**
-     * Extracts a longitude in degrees from a PixTools angle pair.
-     *
-     * @param   thetaPhi  2-element array (theta,phi) in radians
-     *          as returned by PixTools
-     * @return  longitude in degrees
-     */
-    private static double angToLon( double[] thetaPhi ) {
-        return Math.toDegrees( thetaPhi[ 1 ] );
-    }
-
-    /**
-     * Extracts a latitude in degrees from a PixTools angle pair.
-     *
-     * @param   thetaPhi  2-element array (theta,phi) in radians
-     *          as returned by PixTools
-     * @return  latitude in degrees
-     */
-    private static double angToLat( double[] thetaPhi ) {
-        return Math.toDegrees( 0.5 * Math.PI - thetaPhi[ 0 ] );
-    }
-
-    /**
-     * Turns an RA, Dec sky position into a Vector3d as used by HEALPix
-     * routines.
-     *
-     * @param   lon  longitude in degrees
-     * @param   lat  latitude in degrees
-     * @return  vector representation of sky position
-     * @see      <a href="http://www.skyserver.org/htm/">HTM web site</a>
-     */
-    private static Vector3d toVector( double lon, double lat ) {
-        double theta = Math.PI * 0.5 - Math.toRadians( lat );
-        return pixTools_.Ang2Vec( theta, Math.toRadians( lon ) );
     }
 }
