@@ -2,12 +2,12 @@ package uk.ac.starlink.ttools.join;
 
 import java.io.PrintStream;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.join.CdsHealpixSkyPixellator;
 import uk.ac.starlink.table.join.FixedSkyMatchEngine;
 import uk.ac.starlink.table.join.HealpixSkyPixellator;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.NullProgressIndicator;
 import uk.ac.starlink.table.join.PairMode;
-import uk.ac.starlink.table.join.PixtoolsHealpixSkyPixellator;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.TextProgressIndicator;
 import uk.ac.starlink.task.DoubleParameter;
@@ -116,7 +116,7 @@ public class SkyMatch2Mapper implements TableMapper {
             throw new ParameterValueException( errorParam_,
                                                "Negative value illegal" );
         }
-        HealpixSkyPixellator pixer = new PixtoolsHealpixSkyPixellator();
+        HealpixSkyPixellator pixer = new CdsHealpixSkyPixellator();
         FixedSkyMatchEngine matcher = new FixedSkyMatchEngine( pixer, error );
         int defk = pixer.getHealpixK();
         if ( defk >= 0 ) {
