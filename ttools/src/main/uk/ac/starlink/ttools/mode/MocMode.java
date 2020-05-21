@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.mode;
 
+import cds.healpix.Healpix;
+import cds.healpix.HealpixNested;
+import cds.healpix.HealpixNestedBMOC;
 import cds.moc.HealpixMoc;
-import cds.moc.HealpixImpl;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.logging.Level;
@@ -17,7 +19,6 @@ import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
-import uk.ac.starlink.ttools.cone.CdsHealpix;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.JELQuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.MocFormat;
@@ -188,31 +189,27 @@ public class MocMode implements ProcessingMode {
         }
         logger_.info( "New MOC order=" + order
                     + ", resolution=" + (float) moc.getAngularRes() + "deg" );
-        HealpixImpl healpix = CdsHealpix.getInstance();
+        HealpixNested hpx = Healpix.getNested( order );
         setChecked( moc, false );
         while ( qseq.next() ) {
-            double ra = qseq.getRa();
-            double dec = qseq.getDec();
-            double radius = qseq.getRadius();
-            if ( ! Double.isNaN( ra ) &&
-                 dec >= -90 && dec <= 90 &&
-                 radius >= 0 ) {
-                try {
-                    if ( radius == 0 ) {
-                        moc.add( order, healpix.ang2pix( order, ra, dec ) );
+            double raRad = Math.toRadians( qseq.getRa() );
+            double decRad = Math.toRadians( qseq.getDec() );
+            double radiusRad = Math.toRadians( qseq.getRadius() );
+            if ( ! Double.isNaN( raRad ) &&
+                 decRad >= -0.5 * Math.PI && decRad <= 0.5 * Math.PI &&
+                 radiusRad >= 0 ) {
+                HealpixNestedBMOC bmoc =
+                    hpx.newConeComputerApprox( radiusRad )
+                       .overlappingCells( raRad, decRad );
+                for ( HealpixNestedBMOC.CurrentValueAccessor vac : bmoc ) {
+                    try {
+                        moc.add( vac.getDepth(), vac.getHash() );
                     }
-                    else {
-                        long[] pixels =
-                            healpix.queryDisc( order, ra, dec, radius );
-                        int npix = pixels.length;
-                        for ( int ipix = 0; ipix < npix; ipix++ ) {
-                            moc.add( order, pixels[ ipix ] );
-                        }
+                    catch ( Exception e ) {
+                        throw (IOException)
+                              new IOException( "HEALPix/MOC error" )
+                             .initCause( e );
                     }
-                }
-                catch ( Exception e ) {
-                    throw (IOException) new IOException( "HEALPix/MOC error" )
-                                       .initCause( e );
                 }
             }
         }

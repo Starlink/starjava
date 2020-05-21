@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.cone;
 
 import cds.healpix.Healpix;
+import cds.healpix.HealpixNestedBMOC;
 import cds.moc.HealpixImpl;
 import cds.moc.HealpixMoc;
 import java.io.IOException;
@@ -75,14 +76,13 @@ public abstract class MocCoverage implements Coverage {
             if ( radiusDeg == 0 ) {
                 return false;
             }
-            int discOrder =
-                Math.min( Healpix
-                         .getBestStartingDepth( Math.toRadians( radiusDeg ) ),
-                          mocOrder );
-            long[] discPixels =
-                hpi_.queryDisc( discOrder, alphaDeg, deltaDeg, radiusDeg );
-            for ( int i = 0; i < discPixels.length; i++ ) {
-                if ( moc_.isIntersecting( discOrder, discPixels[ i ] ) ) {
+            HealpixNestedBMOC bmoc =
+                Healpix.getNested( mocOrder )
+                       .newConeComputerApprox( Math.toRadians( radiusDeg ) )
+                       .overlappingCells( Math.toRadians( alphaDeg ),
+                                          Math.toRadians( deltaDeg ) );
+            for ( HealpixNestedBMOC.CurrentValueAccessor vac : bmoc ) {
+                if ( moc_.isIntersecting( vac.getDepth(), vac.getHash() ) ) {
                     return true;
                 }
             }
