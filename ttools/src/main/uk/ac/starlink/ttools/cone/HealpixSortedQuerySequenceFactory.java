@@ -16,7 +16,7 @@ import uk.ac.starlink.table.Tables;
 public class HealpixSortedQuerySequenceFactory implements QuerySequenceFactory {
 
     private final QuerySequenceFactory baseFact_;
-    private final PixtoolsHealpix hpix_;
+    private final CdsHealpix hpix_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
@@ -30,7 +30,7 @@ public class HealpixSortedQuerySequenceFactory implements QuerySequenceFactory {
      */
     public HealpixSortedQuerySequenceFactory( QuerySequenceFactory baseFact ) {
         baseFact_ = baseFact;
-        hpix_ = PixtoolsHealpix.getInstance();
+        hpix_ = CdsHealpix.getInstance();
     }
 
     public ConeQueryRowSequence createQuerySequence( StarTable table )

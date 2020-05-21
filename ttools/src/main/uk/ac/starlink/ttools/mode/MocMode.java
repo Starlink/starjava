@@ -17,10 +17,10 @@ import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
+import uk.ac.starlink.ttools.cone.CdsHealpix;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.JELQuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.MocFormat;
-import uk.ac.starlink.ttools.cone.PixtoolsHealpix;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.task.SkyCoordParameter;
 import uk.ac.starlink.util.Destination;
@@ -188,7 +188,7 @@ public class MocMode implements ProcessingMode {
         }
         logger_.info( "New MOC order=" + order
                     + ", resolution=" + (float) moc.getAngularRes() + "deg" );
-        HealpixImpl healpix = PixtoolsHealpix.getInstance();
+        HealpixImpl healpix = CdsHealpix.getInstance();
         setChecked( moc, false );
         while ( qseq.next() ) {
             double ra = qseq.getRa();

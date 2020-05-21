@@ -38,7 +38,7 @@ public class UrlMocCoverage extends MocCoverage {
         new HashMap<String,HealpixMoc>();
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
-    private static HealpixImpl defaultHpi_ = PixtoolsHealpix.getInstance();
+    private static HealpixImpl defaultHpi_ = CdsHealpix.getInstance();
 
     /**
      * Constructor.

@@ -17,31 +17,40 @@ public class HealpixImplTest extends TestCase {
         workHealpix( PixtoolsHealpix.getInstance(), false );
     }
 
+    public void testFx() {
+        workHealpix( CdsHealpix.getInstance(), true );
+        workHealpix( CdsHealpix.getInstance(), false );
+    }
+
     public void testGaia() {
         workHealpix( new Healpix(), true );
         workHealpix( new Healpix(), false );
     }
 
     public void testCompatible() throws Exception {
+        checkCompatible( new Healpix(), PixtoolsHealpix.getInstance() );
+        checkCompatible( new Healpix(), CdsHealpix.getInstance() );
+    }
+
+    private void checkCompatible( HealpixImpl hpi0, HealpixImpl hpi1 )
+            throws Exception {
         Random rnd = new Random( 232529L );
-        HealpixImpl pHpi = PixtoolsHealpix.getInstance();
-        HealpixImpl gHpi = new Healpix();
-        int npExtra = 0;
-        int ngExtra = 0;
+        int nExtra1 = 0;
+        int nExtra0 = 0;
         int nCommon = 0;
         for ( int i = 0; i < 30; i++ ) {
             Disc disc = new Disc( rnd );
-            Set<Long> pPixSet = toSet( disc.query( pHpi ) );
-            Set<Long> gPixSet = toSet( disc.query( gHpi ) );
+            Set<Long> pixSet1 = toSet( disc.query( hpi1 ) );
+            Set<Long> pixSet0 = toSet( disc.query( hpi0 ) );
             Set<Long> commonPixSet = new TreeSet<Long>();
-            commonPixSet.addAll( pPixSet );
-            commonPixSet.retainAll( gPixSet );
-            Set<Long> pExtra = new TreeSet<Long>( pPixSet );
-            pExtra.removeAll( commonPixSet );
-            Set<Long> gExtra = new TreeSet<Long>( gPixSet );
-            gExtra.removeAll( commonPixSet );
-            npExtra += pExtra.size();
-            ngExtra += gExtra.size();
+            commonPixSet.addAll( pixSet1 );
+            commonPixSet.retainAll( pixSet0 );
+            Set<Long> extra1 = new TreeSet<Long>( pixSet1 );
+            extra1.removeAll( commonPixSet );
+            Set<Long> extra0 = new TreeSet<Long>( pixSet0 );
+            extra0.removeAll( commonPixSet );
+            nExtra1 += extra1.size();
+            nExtra0 += extra0.size();
             nCommon += commonPixSet.size();
         }
 
@@ -54,17 +63,20 @@ public class HealpixImplTest extends TestCase {
          * know of) to test for false negatives, which would be harmful.
          * So for now, just log them and cross fingers. */
         /* See also class HealpixAnomaly. */
-        if ( npExtra > 0 || ngExtra > 0 ) {
-            System.out.println( "query_disc false positives: "
+        if ( nExtra1 > 0 || nExtra0 > 0 ) {
+            System.out.println( "query_disc false positives: ("
+                              + hpi0.getClass().getName() + " vs. "
+                              + hpi1.getClass().getName() + ") "
                               + "nCommon: " + nCommon + ", "
-                              + "npExtra: " + npExtra + ", "
-                              + "ngExtra: " + ngExtra );
+                              + "nExtra0: " + nExtra0 + ", "
+                              + "nExtra1: " + nExtra1 );
         }
     }
 
     public void testOverlaps() throws Exception {
         checkOverlaps( new Healpix() );
         checkOverlaps( PixtoolsHealpix.getInstance() );
+        checkOverlaps( CdsHealpix.getInstance() );
     }
 
     private void checkOverlaps( HealpixImpl hpi ) throws Exception {

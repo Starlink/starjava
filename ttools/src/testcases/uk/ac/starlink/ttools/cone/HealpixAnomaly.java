@@ -45,7 +45,12 @@ public class HealpixAnomaly {
                                      double radius ) throws Exception {
         HealpixImpl gHpi = new Healpix();
         HealpixImpl pHpi = PixtoolsHealpix.getInstance();
+        HealpixImpl cHpi = CdsHealpix.getInstance();
+        System.out.println( gHpi.getClass().getName() );
         printPixels( gHpi.queryDisc( order, lon, lat, radius ) );
+        System.out.println( cHpi.getClass().getName() );
+        printPixels( cHpi.queryDisc( order, lon, lat, radius ) );
+        System.out.println( pHpi.getClass().getName() );
         printPixels( pHpi.queryDisc( order, lon, lat, radius ) );
     }
 

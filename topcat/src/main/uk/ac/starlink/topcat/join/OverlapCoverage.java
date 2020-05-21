@@ -3,7 +3,7 @@ package uk.ac.starlink.topcat.join;
 import cds.moc.HealpixMoc;
 import java.io.IOException;
 import uk.ac.starlink.ttools.cone.MocCoverage;
-import uk.ac.starlink.ttools.cone.PixtoolsHealpix;
+import uk.ac.starlink.ttools.cone.CdsHealpix;
 
 /**
  * Footprint implementation that represents the overlap of two other
@@ -24,7 +24,7 @@ public class OverlapCoverage extends MocCoverage {
      * @param   coverages whose intersection defines the new coverage
      */
     public OverlapCoverage( MocCoverage[] coverages ) {
-        super( PixtoolsHealpix.getInstance() );
+        super( CdsHealpix.getInstance() );
         coverages_ = coverages;
     }
 

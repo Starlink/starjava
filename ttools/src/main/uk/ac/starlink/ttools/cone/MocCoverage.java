@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.cone;
 
+import cds.healpix.Healpix;
 import cds.moc.HealpixImpl;
 import cds.moc.HealpixMoc;
 import java.io.IOException;
@@ -75,9 +76,8 @@ public abstract class MocCoverage implements Coverage {
                 return false;
             }
             int discOrder =
-                Math.min( PixtoolsHealpix
-                         .nsideToOrder( PixtoolsHealpix.getInstance()
-                                       .sizeToNside( radiusDeg ) ),
+                Math.min( Healpix
+                         .getBestStartingDepth( Math.toRadians( radiusDeg ) ),
                           mocOrder );
             long[] discPixels =
                 hpi_.queryDisc( discOrder, alphaDeg, deltaDeg, radiusDeg );

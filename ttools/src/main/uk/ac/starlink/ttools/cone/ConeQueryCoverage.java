@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.cone;
 
+import cds.healpix.Healpix;
 import cds.moc.HealpixImpl;
 import cds.moc.HealpixMoc;
 import java.io.IOException;
@@ -26,7 +27,7 @@ public class ConeQueryCoverage extends MocCoverage {
      */
     public ConeQueryCoverage( ConeQueryRowSequence qseq,
                               double resolutionDeg ) {
-        super( PixtoolsHealpix.getInstance() );
+        super( CdsHealpix.getInstance() );
         qseq_ = qseq;
         resolutionDeg_ = resolutionDeg;
     }
@@ -50,7 +51,7 @@ public class ConeQueryCoverage extends MocCoverage {
         /* Add coverage for each item in the query sequence. */
         MocMode.setChecked( moc, false );
         try {
-            HealpixImpl healpix = PixtoolsHealpix.getInstance();
+            HealpixImpl healpix = CdsHealpix.getInstance();
             while ( qseq_.next() ) {
                 if ( Thread.interrupted() ) {
                     throw new InterruptedIOException();
@@ -102,7 +103,6 @@ public class ConeQueryCoverage extends MocCoverage {
      * Utility class for HEALPix-related calculations required in the loop.
      */
     private static class Nsider {
-        private final PixtoolsHealpix hpi = PixtoolsHealpix.getInstance();
 
         /**
          * Works out the appropriate HEALPix order for a given resolution.
@@ -110,8 +110,7 @@ public class ConeQueryCoverage extends MocCoverage {
          * @param   sizeDeg   search size in degrees
          */
         synchronized int calcOrder( double sizeDeg ) {
-            int nside = hpi.sizeToNside( sizeDeg );
-            return PixtoolsHealpix.nsideToOrder( nside );
+            return Healpix.getBestStartingDepth( Math.toRadians( sizeDeg ) );
         }
     }
 
