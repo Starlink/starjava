@@ -1,11 +1,14 @@
 package uk.ac.starlink.ttools.task;
 
-import gov.fnal.eag.healpix.PixTools;
+import cds.healpix.FlatHashIterator;
+import cds.healpix.HashComputer;
+import cds.healpix.Healpix;
+import cds.healpix.HealpixNested;
+import cds.healpix.HealpixNestedBMOC;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.vecmath.Vector3d;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.HealpixTableInfo;
@@ -24,10 +27,11 @@ import uk.ac.starlink.table.Tables;
 public class PixSampler {
 
     private final StarTable pixTable_;
-    private final long nside_;
+    private final int order_;
+    private final HashComputer hasher_;
+    private final HealpixNested hnested_;
     private final boolean nested_;
     private final int ncol_;
-    private final PixTools pixTools_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.calc" );
 
@@ -52,15 +56,16 @@ public class PixSampler {
         if ( ! pixTable.isRandom() ) {
             throw new IOException( "Pixel data not random access" );
         }
-        pixTools_ = PixTools.getInstance();
+        order_ = Healpix.depth( Tables.checkedLongToInt( nside ) );
+        hnested_ = Healpix.getNested( order_ );
+        hasher_ = Healpix.getNestedFast( order_ );
         long hasNrow = pixTable.getRowCount();
-        long requireNrow = pixTools_.Nside2Npix( nside );
+        long requireNrow = 12L << ( 2 * order_ );
         if ( hasNrow != requireNrow  ) {
             throw new IOException( "Wrong number of rows for nside " + nside
                                  + " (" + hasNrow + "!=" + requireNrow + ")" );
         }
         pixTable_ = pixTable;
-        nside_ = nside;
         nested_ = nested;
         ncol_ = pixTable.getColumnCount();
     }
@@ -188,10 +193,10 @@ public class PixSampler {
      * @return   table row index
      */
     private long getPixIndex( double alphaDeg, double deltaDeg ) {
-        double phiRad = alphaToPhi( alphaDeg );
-        double thetaRad = deltaToTheta( deltaDeg );
-        return nested_ ? pixTools_.ang2pix_nest( nside_, thetaRad, phiRad )
-                       : pixTools_.ang2pix_ring( nside_, thetaRad, phiRad );
+        long inest = hasher_.hash( Math.toRadians( alphaDeg ),
+                                   Math.toRadians( deltaDeg ) );
+        return nested_ ? inest
+                       : hnested_.toRing( inest );
     }
 
     /**
@@ -205,43 +210,26 @@ public class PixSampler {
      */
     private long[] getPixIndices( double alphaDeg, double deltaDeg,
                                   double radiusDeg ) {
-        double phiRad = alphaToPhi( alphaDeg );
-        double thetaRad = deltaToTheta( deltaDeg );
-        double radiusRad = radiusDeg * Math.PI / 180.;
-        Vector3d vec = pixTools_.Ang2Vec( thetaRad, phiRad );
-        @SuppressWarnings("unchecked")
-        List<Long> pixList =
-            (List<Long>) pixTools_.query_disc( nside_, vec, radiusRad,
-                                               nested_ ? 1 : 0, 0 );
-        long[] pixes = new long[ pixList.size() ];
-        int ip = 0;
-        for ( Number pix : pixList ) {
-            pixes[ ip++ ] = pix.longValue();
+        double alphaRad = Math.toRadians( alphaDeg );
+        double deltaRad = Math.toRadians( deltaDeg );
+        double radiusRad = Math.toRadians( radiusDeg );
+        HealpixNestedBMOC bmoc =
+            hnested_.newConeComputerApprox( Math.toRadians( radiusDeg ) )
+                    .overlappingCenters( Math.toRadians( alphaDeg ),
+                                         Math.toRadians( deltaDeg ) );
+        int npix = Tables.checkedLongToInt( bmoc.computeDeepSize() );
+        long[] pixes = new long[ npix ];
+        FlatHashIterator fhit = bmoc.flatHashIterator();
+        for ( int ip = 0; ip < npix; ip++ ) {
+            pixes[ ip ] = fhit.next();
         }
-        assert ip == pixes.length;
+        assert ! fhit.hasNext();
+        if ( ! nested_ ) {
+            for ( int jp = 0; jp < npix; jp++ ) {
+                pixes[ jp ] = hnested_.toRing( pixes[ jp ] );
+            }
+        }
         return pixes;
-    }
-
-    /**
-     * Converts longitude in degrees to polar coordinate phi in radians.
-     *
-     * @param   longitude measured anticlockwise from meridian in degrees
-     * @return   phi meansured anticlockwise from meridian in radians
-     */
-    private static double alphaToPhi( double alphaDeg ) {
-        double alphaRad = alphaDeg * Math.PI / 180.;
-        return alphaRad;
-    }
-
-    /**
-     * Converts latitude in degrees to polar coordinate theta in radians.
-     *
-     * @param   deltaDeg  latitude measured North from equator in degrees
-     * @return  theta measured South from North pole in radians
-     */
-    private static double deltaToTheta( double deltaDeg ) {
-        double deltaRad = deltaDeg * Math.PI / 180.;
-        return Math.PI * 0.5 - deltaRad;
     }
 
     /**
@@ -307,17 +295,17 @@ public class PixSampler {
             throw new IOException( "Pixel data not random access" );
         }
         long nrow = pixTable.getRowCount();
-        long nside;
-        try {
-            nside = PixTools.getInstance().Npix2Nside( nrow );
+        int level = -1;
+        for ( int l = 0; level < 0 && l < Healpix.DEPTH_MAX; l++ ) {
+            if ( nrow == 12L << ( 2 * l ) ) {
+                level = l;
+            }
         }
-        catch ( RuntimeException e ) {
-            nside = -1;
-        }
-        if ( ! ( nside > 0 ) ) {
+        if ( level < 0 ) {
             throw new IOException( "Unsuitable number of rows for all-sky "
                                  + "HEALPix map (" + nrow + ")" );
         }
+        int nside = 1 << level;
 
         /* Read and check declared nside if present. */
         List<DescribedValue> pixParams = pixTable.getParameters();
@@ -328,8 +316,8 @@ public class PixSampler {
         if ( levelParam != null ) {
             Object levelObj = levelParam.getValue();
             if ( levelObj instanceof Integer || levelObj instanceof Long ) {
-                int level = ((Number) levelObj).intValue();
-                dNside = 1L << level;
+                int lev = ((Number) levelObj).intValue();
+                dNside = 1L << lev;
             }
         }
         if ( dNside >= 0 && dNside != nside ) {
