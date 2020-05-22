@@ -249,7 +249,7 @@ public class PixSample extends MapperTask {
                         throws TaskException, IOException {
                     StarTable baseTable = ins[ 0 ].getWrappedTable();
                     StarTable pixTable = ins[ 1 ].getWrappedTable();
-                    int nside = PixSampler.inferNside( pixTable );
+                    int order = PixSampler.inferOrder( pixTable );
                     final boolean isNested;
                     if ( scheme == HealpixScheme.RING ) {
                         isNested = false;
@@ -274,7 +274,7 @@ public class PixSample extends MapperTask {
                         }
                     }
                     PixSampler pixSampler =
-                        new PixSampler( pixTable, nside, isNested );
+                        new PixSampler( pixTable, isNested, order );
                     ColumnSupplement sampleSup =
                         createSampleSupplement( baseTable, pixSampler, statMode,
                                                 coordReader, lonExpr, latExpr,

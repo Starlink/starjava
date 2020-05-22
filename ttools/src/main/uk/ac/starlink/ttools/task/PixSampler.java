@@ -46,23 +46,23 @@ public class PixSampler {
      *
      * @param   pixTable  random access HEALPix-format table
      *                    (one row per pixel)
-     * @param   nside   HEALPix nside value
      * @param   nested  true for nested pixel order, false for ring
+     * @param   order   HEALPix order
      * @throws  IOException  if the table has the wrong number of rows
      *                       or is not random access
      */
-    public PixSampler( StarTable pixTable, long nside, boolean nested )
+    public PixSampler( StarTable pixTable, boolean nested, int order )
             throws IOException {
         if ( ! pixTable.isRandom() ) {
             throw new IOException( "Pixel data not random access" );
         }
-        order_ = Healpix.depth( Tables.checkedLongToInt( nside ) );
+        order_ = order;
         hnested_ = Healpix.getNested( order_ );
         hasher_ = Healpix.getNestedFast( order_ );
         long hasNrow = pixTable.getRowCount();
         long requireNrow = 12L << ( 2 * order_ );
         if ( hasNrow != requireNrow  ) {
-            throw new IOException( "Wrong number of rows for nside " + nside
+            throw new IOException( "Wrong number of rows for order " + order
                                  + " (" + hasNrow + "!=" + requireNrow + ")" );
         }
         pixTable_ = pixTable;
@@ -235,7 +235,7 @@ public class PixSampler {
     /**
      * Constructs a PixSampler from a given table.
      * The current implementation works with any table having a row count
-     * corresponding to a HEALPix pixel count, the nside is inferred.
+     * corresponding to a HEALPix pixel count, the order is inferred.
      *
      * @param   pixTable   random access table containing HEALPix pixels 
      * @return  PixSampler object taking data from table
@@ -250,7 +250,7 @@ public class PixSampler {
         if ( ! HealpixTableInfo.isHealpix( pixTable.getParameters() ) ) {
             logger_.warning( "Table doesn't look like a HEALPix map" );
         }
-        int nside = inferNside( pixTable );
+        int order = inferOrder( pixTable );
         Boolean isNested = inferNested( pixTable );
         final boolean nested;
         if ( isNested == null ) {
@@ -261,7 +261,7 @@ public class PixSampler {
         else {
             nested = isNested.booleanValue();
         }
-        return new PixSampler( pixTable, nside, nested );
+        return new PixSampler( pixTable, nested, order );
     }
 
     /**
@@ -280,17 +280,17 @@ public class PixSampler {
     }
 
     /**
-     * Tries to work out the HEALPix nside parameter for a pixel data table.
+     * Tries to work out the HEALPix order parameter for a pixel data table.
      * Mainly it looks at the row count, but if the table obeys HEALPix
      * header conventions any discrepancies between declared and apparent
-     * nside result in an error.
+     * order result in an error.
      *
      * @param   pixTable  pixel data table
-     * @return  HEALPix nside
+     * @return  HEALPix order
      */
-    public static int inferNside( StarTable pixTable ) throws IOException {
+    public static int inferOrder( StarTable pixTable ) throws IOException {
 
-        /* Work out nside from row count. */
+        /* Work out order from row count. */
         if ( ! pixTable.isRandom() ) {
             throw new IOException( "Pixel data not random access" );
         }
@@ -305,24 +305,22 @@ public class PixSampler {
             throw new IOException( "Unsuitable number of rows for all-sky "
                                  + "HEALPix map (" + nrow + ")" );
         }
-        int nside = 1 << level;
 
-        /* Read and check declared nside if present. */
+        /* Read and check declared order if present. */
         List<DescribedValue> pixParams = pixTable.getParameters();
         DescribedValue levelParam =
             pixTable.getParameterByName( HealpixTableInfo.HPX_LEVEL_INFO
                                                          .getName() );
-        long dNside = -1;
+        long dLevel = -1;
         if ( levelParam != null ) {
             Object levelObj = levelParam.getValue();
             if ( levelObj instanceof Integer || levelObj instanceof Long ) {
-                int lev = ((Number) levelObj).intValue();
-                dNside = 1L << lev;
+                dLevel = ((Number) levelObj).intValue();
             }
         }
-        if ( dNside >= 0 && dNside != nside ) {
-            String msg = "NSIDE mismatch: declared NSIDE (" + dNside + ")"
-                       + " != count (" + nside + ")";
+        if ( dLevel >= 0 && dLevel != level ) {
+            String msg = "Order mismatch: declared order (" + dLevel + ")"
+                       + " != count (" + level + ")";
             if ( HealpixTableInfo.isHealpix( pixParams ) ) {
                 throw new IOException( msg );
             }
@@ -331,8 +329,8 @@ public class PixSampler {
             }
         }
 
-        /* Return nside. */
-        return Tables.checkedLongToInt( nside );
+        /* Return order. */
+        return level;
     }
 
     /**
