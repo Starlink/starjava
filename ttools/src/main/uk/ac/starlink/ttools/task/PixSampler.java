@@ -5,6 +5,7 @@ import cds.healpix.HashComputer;
 import cds.healpix.Healpix;
 import cds.healpix.HealpixNested;
 import cds.healpix.HealpixNestedBMOC;
+import cds.healpix.VerticesAndPathComputer;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
@@ -14,6 +15,8 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.ttools.func.CoordsRadians;
+import uk.ac.starlink.util.LongList;
 
 /**
  * Interrogates a HEALPix all-sky map to sample pixel data.
@@ -213,20 +216,34 @@ public class PixSampler {
         double alphaRad = Math.toRadians( alphaDeg );
         double deltaRad = Math.toRadians( deltaDeg );
         double radiusRad = Math.toRadians( radiusDeg );
+
+        /* Get the overlapping pixels; this may contain false positives. */
         HealpixNestedBMOC bmoc =
             hnested_.newConeComputerApprox( Math.toRadians( radiusDeg ) )
                     .overlappingCenters( Math.toRadians( alphaDeg ),
                                          Math.toRadians( deltaDeg ) );
-        int npix = Tables.checkedLongToInt( bmoc.computeDeepSize() );
-        long[] pixes = new long[ npix ];
-        FlatHashIterator fhit = bmoc.flatHashIterator();
-        for ( int ip = 0; ip < npix; ip++ ) {
-            pixes[ ip ] = fhit.next();
+
+        /* Convert the result into an array of longs, eliminating false
+         * positives. */
+        LongList pixList = new LongList( (int) bmoc.computeDeepSize() );
+        VerticesAndPathComputer vpc = hnested_.newVerticesAndPathComputer();
+        double[] cpos = new double[ 2 ];
+        for ( FlatHashIterator fhit = bmoc.flatHashIterator();
+              fhit.hasNext(); ) {
+            long lpix = fhit.next();
+            vpc.center( lpix, cpos );
+            if ( CoordsRadians
+                .skyDistanceRadians( alphaRad, deltaRad, cpos[ 0 ], cpos[ 1 ] ) 
+                 <= radiusRad ) {
+                pixList.add( lpix );
+            }
         }
-        assert ! fhit.hasNext();
+        long[] pixes = pixList.toLongArray();
+
+        /* Convert to ring scheme if required. */
         if ( ! nested_ ) {
-            for ( int jp = 0; jp < npix; jp++ ) {
-                pixes[ jp ] = hnested_.toRing( pixes[ jp ] );
+            for ( int ip = 0; ip < pixes.length; ip++ ) {
+                pixes[ ip ] = hnested_.toRing( pixes[ ip ] );
             }
         }
         return pixes;
