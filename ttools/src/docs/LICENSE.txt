@@ -60,7 +60,6 @@ this list up to date, but if there are missing entries please complain.
       adqlParser.jar
       iText_shrunk.jar
       jcdf.jar
-      PixTools.jar
       dpac.jar
 
    Apache license:
@@ -87,7 +86,6 @@ this list up to date, but if there are missing entries please complain.
    Unknown (but probably permissive):
       rmi-lite.jar
       htmIndex.jar
-      vecmath.jar
       skyview-geom.jar
 
 Mark Taylor

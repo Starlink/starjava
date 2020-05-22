@@ -9325,9 +9325,9 @@ functionality:
 <ul>
 <li><webref url="http://www.gnu.org/software/jel/">JEL</webref>
     (GNU) for algebraic expression evaluation</li>
-<li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
-            >PixTools</webref>
-    (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
+<li><webref url="https://github.com/cds-astro/cds-healpix-java"
+            >cds-healpix-java</webref>
+    (CDS) for HEALPix manipulation</li>
 <li><webref url="http://www.1t3xt.com/">iText</webref>
     (1T3XT BVBA) for PDF output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
@@ -12457,6 +12457,18 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         sky plot layers.</li>
     <li>Slightly improve sampling accuracy of
         <ref id="pixsample"><code>pixsample</code></ref> output.</li>
+    <li>Replace the PixTools library with
+        <webref url="https://github.com/cds-astro/cds-healpix-java"
+                >cds-healpix-java</webref> for all HEALPix manipulation.
+        This has resulted amongst other things in significant speedups
+        (typically a factor of 2) on large sky crossmatches.
+        Many thanks to Fran&#x00e7;ois-Xavier Pineau
+        for providing this library and assistance with its use;
+        also to Nikolay Kuropatkin from FermiLab whose
+        PixTools library served this purpose in STILTS up till now.
+        Crossmatching results should be completely unaffected
+        by this change; but if anybody notices anything
+        different or suspicious, please report it.</li>
     </ul>
     </p></dd>
 

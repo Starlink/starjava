@@ -24638,10 +24638,9 @@ functionality:
 <ul>
 <li><webref url="http://www.gnu.org/software/jel/">JEL</webref>
     (Konstantin Metlov, GNU) for algebraic expression evaluation</li>
-<li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
-            >PixTools</webref>
-    (Nikolay Kuropatkin, Fermilab EAG)
-    for HEALPix-based celestial sphere row matching</li>
+<li><webref url="https://github.com/cds-astro/cds-healpix-java"
+            >cds-healpix-java</webref>
+    (F-X Pineau, CDS) for HEALPix manipulation</li>
 <li><webref url="http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java/"
             >nom.tam.fits</webref> (NASA) for parts of FITS I/O</li>
 <li><webref url="http://skyview.gsfc.nasa.gov/jar/jar.html"
@@ -29563,6 +29562,18 @@ introduced since the last version:
         <ref id="form-skydensity">SkyDensity</ref> and
         <ref id="HealpixLayerControl">Healpix</ref>
         sky plot layers.</li>
+    <li>Replace the PixTools library with
+        <webref url="https://github.com/cds-astro/cds-healpix-java"
+                >cds-healpix-java</webref> for all HEALPix manipulation.
+        This has resulted amongst other things in significant speedups
+        (typically a factor of 2) on large sky crossmatches.
+        Many thanks to Fran&#x00e7;ois-Xavier Pineau
+        for providing this library and assistance with its use;
+        also to Nikolay Kuropatkin from FermiLab whose
+        PixTools library served this purpose in TOPCAT up till now.
+        Crossmatching results should be completely unaffected
+        by this change; but if anybody notices anything
+        different or suspicious, please report it.</li>
     </ul>
     </p></dd>
 
