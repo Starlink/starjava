@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
-import gov.fnal.eag.healpix.PixTools;
-import javax.vecmath.Vector3d;
+import cds.healpix.Healpix;
+import cds.healpix.HealpixNested;
+import cds.healpix.VerticesAndPathComputer;
+import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -51,7 +53,9 @@ public abstract class HealpixDataGeom implements DataGeom {
 
     private final String variantName_;
     private final boolean isNest_;
-    private final int nside_;
+    private final int level_;
+    private final VerticesAndPathComputer vpc_;
+    private final HealpixNested ringer_;
     private final long nsky_;
 
     /**
@@ -63,8 +67,10 @@ public abstract class HealpixDataGeom implements DataGeom {
      */
     private HealpixDataGeom( String variantName, int level, boolean isNest ) {
         variantName_ = variantName;
+        level_ = level;
         isNest_ = isNest;
-        nside_ = 1 << level;
+        vpc_ = level >= 0 ? Healpix.getNestedFast( level ) : null;
+        ringer_ = level >= 0 ? Healpix.getNested( level ) : null;
         nsky_ = 12L << 2 * level;
     }
 
@@ -93,13 +99,17 @@ public abstract class HealpixDataGeom implements DataGeom {
          * Long.MIN_VALUE.  That's good, since negative values cannot be
          * HEALPix indices, so we can ignore them without ambiguity. */
         long ipix = tuple.getLongValue( icol );
-        PixTools pt = PixTools.getInstance();
         if ( ipix >= 0 && ipix < nsky_ ) {
-            Vector3d v3 = isNest_ ? pt.pix2vect_nest( nside_, ipix )
-                                  : pt.pix2vect_ring( nside_, ipix );
-            dpos[ 0 ] = v3.x;
-            dpos[ 1 ] = v3.y;
-            dpos[ 2 ] = v3.z;
+            if ( ! isNest_ ) {
+                ipix = ringer_.toNested( ipix );
+            }
+
+            /* Use the supplied dpos array as workspace to avoid
+             * allocating a new one. */
+            vpc_.center( ipix, dpos );
+            double lonRad = dpos[ 0 ];
+            double latRad = dpos[ 1 ];
+            CdsHealpixUtil.lonlatToVector( lonRad, latRad, dpos );
             return true;
         }
         else {
@@ -111,7 +121,7 @@ public abstract class HealpixDataGeom implements DataGeom {
     public boolean equals( Object o ) {
         if ( o instanceof HealpixDataGeom ) {
             HealpixDataGeom other = (HealpixDataGeom) o;
-            return this.nside_ == other.nside_
+            return this.level_ == other.level_
                 && this.isNest_ == other.isNest_;
         }
         else {
@@ -122,7 +132,7 @@ public abstract class HealpixDataGeom implements DataGeom {
     @Override
     public int hashCode() {
         int code = 9932;
-        code = 23 * code + nside_;
+        code = 23 * code + level_;
         code = 23 * code + ( isNest_ ? 11 : 29 );
         return code;
     }

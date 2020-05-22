@@ -1,6 +1,10 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
-import gov.fnal.eag.healpix.PixTools;
+import cds.healpix.Healpix;
+import cds.healpix.HealpixNestedBMOC;
+import cds.healpix.VerticesAndPathComputer;
+import cds.healpix.common.sphgeom.Cone;
+import cds.healpix.common.sphgeom.CooXYZ;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
@@ -11,8 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.TreeSet;
-import javax.vecmath.Vector3d;
+import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.geom.Rotation;
 import uk.ac.starlink.ttools.plot2.geom.SkySurface;
@@ -34,9 +37,9 @@ import uk.ac.starlink.ttools.plot2.geom.SkySurface;
 public class SkySurfaceTiler {
 
     private final SkySurface surf_;
+    private final VerticesAndPathComputer vpc_;
     private final long nside_;
     private final Rotation rotation_;
-    private final PixTools pixTools_;
     private final Set<Long> visiblePixels_;
 
     /**
@@ -50,10 +53,10 @@ public class SkySurfaceTiler {
         surf_ = surf;
         nside_ = 1L << hpxOrder;
         rotation_ = rotation;
-        pixTools_ = new PixTools();
+        vpc_ = Healpix.getNested( hpxOrder ).newVerticesAndPathComputer();
         Set<Long> visPixels =
             calculateVisiblePixels( surf, rotation, hpxOrder,
-                                    PolygonTiler.PIXTOOLS_DISC );
+                                    PolygonTiler.CDS_POLY );
         visiblePixels_ = Collections.unmodifiableSet( visPixels );
     }
 
@@ -96,22 +99,24 @@ public class SkySurfaceTiler {
      *           or null if known to be invisible
      */
     public Polygon getTileShape( long hpxIndex ) {
-        Vector3d v3 = pixTools_.pix2vect_nest( nside_, hpxIndex );
-        double[] dpos0 = { v3.x, v3.y, v3.z };
-        Point2D.Double gpos0 = new Point2D.Double();
+        double[] dpos0 =
+            CdsHealpixUtil.lonlatToVector( vpc_.center( hpxIndex ) );
         rotation_.rotate( dpos0 );
+        Point2D.Double gpos0 = new Point2D.Double();
         if ( surf_.dataToGraphics( dpos0, false, gpos0 ) ) {
-            double[][] vertices = pixTools_.pix2vertex_nest( nside_, hpxIndex );
-            int[] gxs = new int[ 4 ];
-            int[] gys = new int[ 4 ];
+            double[][] lonlatVertices =
+                CdsHealpixUtil
+               .lonlatVertices( vpc_, hpxIndex,
+                                CdsHealpixUtil.DFLT_INTERPOLATE_DEPTH );
+            int nv = lonlatVertices.length;
+            int[] gxs = new int[ nv ];
+            int[] gys = new int[ nv ];
             double[] dpos1 = new double[ 3 ];
             Point2D.Double gpos1 = new Point2D.Double();
             int np = 0;
             int nInvisible = 0;
-            for ( int i = 0; i < 4; i++ ) {
-                dpos1[ 0 ] = vertices[ 0 ][ i ];
-                dpos1[ 1 ] = vertices[ 1 ][ i ];
-                dpos1[ 2 ] = vertices[ 2 ][ i ];
+            for ( int i = 0; i < nv; i++ ) {
+                CdsHealpixUtil.lonlatToVector( lonlatVertices[ i ], dpos1 );
                 rotation_.rotate( dpos1 );
                 if ( surf_.dataToGraphicsOffset( dpos0, gpos0, dpos1,
                                                  false, gpos1 ) ) {
@@ -168,7 +173,7 @@ public class SkySurfaceTiler {
     }
 
     /**
-     * Returns a list of Vector3d objects that outline the area visible
+     * Returns a list of unit vectors that outline the area visible
      * within the plotting bounds of this object's plotting surface.
      *
      * @param  surf   sky surface
@@ -179,7 +184,7 @@ public class SkySurfaceTiler {
                                                         Rotation rotation ) {
         Rectangle bounds = surf.getPlotBounds();
         Rotation unrot = rotation.invert();
-        int nq = 4;
+        int nq = 16;
         double nq1 = 1.0 / nq;
         List<double[]> vertexList = new ArrayList<double[]>( 4 * nq + 1 );
         for ( int is = 0; is < 4; is++ ) {
@@ -195,7 +200,6 @@ public class SkySurfaceTiler {
                 }
             }
         }
-        vertexList.add( vertexList.get( 0 ) );
         return vertexList;
     }
 
@@ -287,99 +291,48 @@ public class SkySurfaceTiler {
     private static abstract class PolygonTiler {
 
         /**
-         * Implementation based on PixTools.query_polygon.
-         * This looks like it should be the right way to do it,
-         * but in practice it's not much use, since it doesn't work well
-         * if the supplied polygon is not convex (it writes to stdout
-         *    The polygon has more than one concave vertex,
-         *    The result is unpredictable
-         * and the results often miss pixels).  In most cases it seems
-         * that concave polygons are what we need to give it.
-         * Note that the JHealpix queryPolygonInclusiveNest implementation
-         * suffers from the same thing (though that just throws an
-         * exception).
+         * PolygonTiler based on CDS Healpix polygon overlap implementation.
+         * This one ought to be most efficient (return fewest tiles outside
+         * the polygon, but it might miss some out for weird projections.
          */
-        public static final PolygonTiler PIXTOOLS_POLY = new PolygonTiler() {
-            private static final long NEST = 1;
-            private static final long INCLUSIVE = 1;
-            Set<Long> queryPolygon( int order, List<double[]> vertices ) {
-                ArrayList<Vector3d> v3list =
-                    new ArrayList<Vector3d>( vertices.size() );
-                for ( double[] p : vertices ) {
-                    v3list.add( new Vector3d( p[ 0 ], p[ 1 ], p[ 2 ] ) );
+        public static PolygonTiler CDS_POLY = new PolygonTiler() {
+            Set<Long> queryPolygon( int order, List<double[]> xyzs ) {
+                int nv = xyzs.size();
+                double[][] lonlatVertices = new double[ nv ][ 2 ];
+                for ( int iv = 0; iv < nv; iv++ ) {
+                    CdsHealpixUtil.vectorToLonlat( xyzs.get( iv ),
+                                                   lonlatVertices[ iv ] );
                 }
-                long nside = 1L << order;
-                final List<?> ixList;
-                try {
-                    ixList = new PixTools()
-                            .query_polygon( nside, v3list, NEST, INCLUSIVE );
-                }
-                catch ( Exception e ) {
-                    return null;
-                }
-                @SuppressWarnings("unchecked")
-                List<Long> indexList = (List<Long>) ixList;
-                return new TreeSet<Long>( indexList );
+                HealpixNestedBMOC bmoc =
+                    Healpix.getNested( order ).newPolygonComputer()
+                           .overlappingCells( lonlatVertices );
+                return CdsHealpixUtil.bmocSet( bmoc );
             }
         };
 
         /**
-         * Implementation based on PixTools.query_disc.
-         * It essentially draws a circle that encloses all the vertices,
-         * and returns the pixels within that.
+         * PolygonTiler based on CDS Healpix cone overlap implementation.
+         * Should be pretty robust, but will pull in a few extra tiles.
          */
-        public static final PolygonTiler PIXTOOLS_DISC = new PolygonTiler() {
-            private static final int NEST = 1;
-            private static final int INCLUSIVE = 1;
-            Set<Long> queryPolygon( int order, List<double[]> vertices ) {
-
-                /* Determine the vector at the center of the polygon.
-                 * This doesn't need to be that accurate; we need a reference
-                 * point that is ideally equidistant from the vertices. */
-                double[] sv = new double[ 3 ];
-                for ( double[] dpos : vertices ) {
-                    for ( int i = 0; i < 3; i++ ) {
-                        sv[ i ] += dpos[ i ];
-                    }
+        public static PolygonTiler CDS_CONE = new PolygonTiler() {
+            Set<Long> queryPolygon( int order, List<double[]> xyzs ) {
+                int nc = xyzs.size();
+                CooXYZ[] coos = new CooXYZ[ nc ];
+                for ( int ic = 0; ic < nc; ic++ ) {
+                    double[] xyz = xyzs.get( ic );
+                    coos[ ic ] = new CooXYZ( xyz[ 0 ], xyz[ 1 ], xyz[ 2 ] );
                 }
-                double fv = 1.0 / Math.sqrt( sv[ 0 ] * sv[ 0 ] +
-                                             sv[ 1 ] * sv[ 1 ] +
-                                             sv[ 2 ] * sv[ 2 ] );
-                double[] c0 = { sv[ 0 ] * fv, sv[ 1 ] * fv, sv[ 2 ] * fv };
-
-                /* Go over each vertex and record the maximum angular distance
-                 * between the center and any of the vertices. */
-                double maxTheta = 0;
-                for ( double[] dpos : vertices ) {
-                    double dotp = c0[ 0 ] * dpos[ 0 ]
-                                + c0[ 1 ] * dpos[ 1 ]
-                                + c0[ 2 ] * dpos[ 2 ];
-                    if ( dotp < 0 ) {
-                        return null;
-                    }
-                    else {
-                        maxTheta = Math.max( maxTheta, Math.acos( dotp ) );
-                    }
+                Cone cone = Cone.mec( coos );
+                if ( cone != null ) {
+                    HealpixNestedBMOC bmoc =
+                        Healpix.getNested( order )
+                       .newConeComputerApprox( cone.radiusRad() )
+                       .overlappingCells( cone.lon(), cone.lat() );
+                    return CdsHealpixUtil.bmocSet( bmoc );
                 }
-
-                /* Then get the pixels for a circle thus defined.
-                 * It must enclose all the supplied vertices (though it
-                 * probably includes quite a bit extra too). */
-                final List<Long> indexList;
-                try {
-                    long nside = 1L << order;
-                    Vector3d cv = new Vector3d( c0[ 0 ], c0[ 1 ], c0[ 2 ] );
-                    @SuppressWarnings("unchecked")
-                    List<Long> il =
-                        (List<Long>)
-                        new PixTools().query_disc( nside, cv, maxTheta,
-                                                   NEST, INCLUSIVE );
-                    indexList = il;
-                }
-                catch ( Exception e ) {
+                else {
                     return null;
                 }
-                return new TreeSet<Long>( indexList );
             }
         };
 

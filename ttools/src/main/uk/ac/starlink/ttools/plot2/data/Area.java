@@ -1,7 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import gov.fnal.eag.healpix.PixTools;
-import javax.vecmath.Vector3d;
+import cds.healpix.Healpix;
+import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
 
 /**
  * Coordinate value representing a two-dimensional shaped area.
@@ -202,17 +202,18 @@ public class Area {
                 double tx = 0;
                 double ty = 0;
                 double tz = 0;
-                PixTools pixTools = new PixTools();
+                double[] lonlat = new double[ 2 ];
+                double[] xyz = new double[ 3 ];
                 for ( int i = 0; i < nd; i++ ) {
                     long uniq = Double.doubleToRawLongBits( data[ i ] );
-                    long order = ( 61 - Long.numberOfLeadingZeros( uniq ) ) >>1;
+                    int order = ( 61 - Long.numberOfLeadingZeros( uniq ) ) >> 1;
                     long ipix = uniq - ( 4L << ( 2 * order ) );
-                    long nside = 1L << order;
-                    Vector3d vec3 = pixTools.pix2vect_nest( nside, ipix );
-                    double factor = 1.0 / ( nside * nside );
-                    tx += factor * vec3.x;
-                    ty += factor * vec3.y;
-                    tz += factor * vec3.z;
+                    Healpix.getNestedFast( order ).center( ipix, lonlat );
+                    CdsHealpixUtil.lonlatToVector( lonlat, xyz );
+                    double factor = 1.0 / ( 1L << ( 2 * order ) );
+                    tx += factor * xyz[ 0 ];
+                    ty += factor * xyz[ 1 ];
+                    tz += factor * xyz[ 2 ];
                 }
                 double scale = 1.0 / Math.sqrt( tx * tx + ty * ty + tz * tz );
                 buffer[ 0 ] = tx * scale;

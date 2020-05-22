@@ -1,8 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
-import cds.healpix.CompassPoint;
 import cds.healpix.Healpix;
-import cds.healpix.HealpixNested;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -16,6 +14,7 @@ import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.Glyph;
@@ -128,7 +127,8 @@ public class PolygonOutliner extends PixOutliner {
     };
 
     /** Minimum interpolation for MOC tile edges. */
-    private static final int HPX_INTERPOLATE_LEVEL = 5;
+    private static final int HPX_INTERPOLATE_LEVEL =
+        CdsHealpixUtil.DFLT_INTERPOLATE_DEPTH;
 
     /**
      * Constructor.
@@ -1342,7 +1342,8 @@ public class PolygonOutliner extends PixOutliner {
                                                       HPX_INTERPOLATE_LEVEL ) {
                                 void copyLonlat( double lonRad, double latRad,
                                                  double[] dpos ) {
-                                    lonlatToVector( lonRad, latRad, dpos );
+                                    CdsHealpixUtil
+                                   .lonlatToVector( lonRad, latRad, dpos );
                                     rotation.rotate( dpos );
                                 }
                             };
@@ -1371,26 +1372,6 @@ public class PolygonOutliner extends PixOutliner {
             else {
                 return false;
             }
-        }
-        /**
-         * Converts a longitude, latitude pair to a unit vector suitable for
-         * use as a sky surface data position.  No error checking is done.
-         *
-         * @param   lonRad  longitude in radians
-         * @param   latRad  latitude in radiansl
-         * @param   dpos    3-element vector into which (x,y,z) is written
-         */
-        public static void lonlatToVector( double lonRad, double latRad,
-                                           double[] dpos ) {
-            double theta = 0.5 * Math.PI - latRad;
-            double phi = lonRad;
-            double z = Math.cos( theta );
-            double sd = Math.sin( theta );
-            double x = Math.cos( phi ) * sd;
-            double y = Math.sin( phi ) * sd;
-            dpos[ 0 ] = x;
-            dpos[ 1 ] = y;
-            dpos[ 2 ] = z;
         }
     }
 
@@ -1694,21 +1675,19 @@ public class PolygonOutliner extends PixOutliner {
             int nvert = 0;
             for ( int iu = 0; iu < nuniq; iu++ ) {
                 long uniq = Double.doubleToRawLongBits( duniqs[ iu ] );
-                long order = ( 61 - Long.numberOfLeadingZeros( uniq ) ) >> 1;
-                long ipix = uniq - ( 1L << ( 2 + 2 * order ) );
-                int nseg = 1 << Math.max( 0, minLevel - order );
-                Healpix.getNested( (int) order )
-                       .pathAlongCellEdge( ipix, CompassPoint.Cardinal.E,
-                                           true, nseg, vertworks );
-                int nv = 4 * nseg;
+                int order = ( 61 - Long.numberOfLeadingZeros( uniq ) ) >> 1;
+                long ipix = uniq - ( 4L << ( 2 * order ) );
+                int nv = CdsHealpixUtil
+                        .lonlatVertices( Healpix.getNestedFast( order ),
+                                         ipix, minLevel, vertworks );
                 if ( nvert > 0 ) {
                     lonList_.add( Double.NaN );
                     latList_.add( Double.NaN );
                 }
                 for ( int iv = 0; iv < nv; iv++ ) {
                     double[] lonlat = vertworks[ iv ];
-                    lonList_.add( lonlat[ HealpixNested.LON_INDEX ] );
-                    latList_.add( lonlat[ HealpixNested.LAT_INDEX ] );
+                    lonList_.add( lonlat[ 0 ] );
+                    latList_.add( lonlat[ 1 ] );
                 }
                 nvert += nv;
             }

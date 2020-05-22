@@ -1,7 +1,8 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
-import gov.fnal.eag.healpix.PixTools;
-import javax.vecmath.Vector3d;
+import cds.healpix.Healpix;
+import cds.healpix.HashComputer;
+import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
 
 /**
  * Maps positions on the unit sphere to pixel indices using a given pixel
@@ -16,10 +17,7 @@ import javax.vecmath.Vector3d;
  */
 public class SkyPixer {
 
-    private final int level_;
-    private final long nside_;
-    private final PixTools pixTools_;
-    private final Vector3d vector3d_;
+    private final HashComputer hasher_;
 
     /**
      * Constructor.
@@ -27,10 +25,7 @@ public class SkyPixer {
      * @param   level  HEALPix level
      */
     public SkyPixer( int level ) {
-        level_ = level;
-        nside_ = 1L << level;
-        pixTools_ = new PixTools();
-        vector3d_ = new Vector3d();
+        hasher_ = Healpix.getNested( level ).newHashComputer();
     }
 
     /**
@@ -39,7 +34,7 @@ public class SkyPixer {
      * @return   HEALPix level
      */
     public int getLevel() {
-        return level_;
+        return hasher_.depth();
     }
 
     /**
@@ -48,7 +43,7 @@ public class SkyPixer {
      * @return   pixel count
      */
     public long getPixelCount() {
-        return 12L << 2 * level_;
+        return 12L << ( 2 * hasher_.depth() );
     }
 
     /**
@@ -61,10 +56,7 @@ public class SkyPixer {
      * @return pixel index
      */
     public long getIndex( double[] v3 ) {
-        vector3d_.x = v3[ 0 ];
-        vector3d_.y = v3[ 1 ];
-        vector3d_.z = v3[ 2 ];
-        return pixTools_.vect2pix_nest( nside_, vector3d_ );
+        return CdsHealpixUtil.vectorToHash( hasher_, v3 );
     }
 
     /**

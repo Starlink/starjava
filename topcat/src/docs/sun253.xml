@@ -29558,6 +29558,11 @@ introduced since the last version:
         <ref id="FigurePanel">Draw Algebraic Subset</ref> action;
         the ellipse was previously defined 2<sup>-0.5</sup>
         smaller than the drawing.</li>
+    <li>Improve accuracy when drawing large HEALPix tile boundaries
+        in some cases for
+        <ref id="form-skydensity">SkyDensity</ref> and
+        <ref id="HealpixLayerControl">Healpix</ref>
+        sky plot layers.</li>
     </ul>
     </p></dd>
 
