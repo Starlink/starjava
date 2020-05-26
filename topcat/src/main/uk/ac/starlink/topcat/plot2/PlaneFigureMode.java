@@ -671,8 +671,8 @@ public abstract class PlaneFigureMode implements FigureMode {
             boolean ylog = logFlags[ 1 ];
             double x0 = xAxis.graphicsToData( p0_.x );
             double y0 = yAxis.graphicsToData( p0_.y );
-            double x1 = xAxis.graphicsToData( p1_.x );
-            double y1 = yAxis.graphicsToData( p1_.y );
+            double x1 = xAxis.graphicsToData( p0_.x + rx );
+            double y1 = yAxis.graphicsToData( p0_.y + ry );
             dx_ = Math.abs( xlog ? Math.log10( x1 / x0 ) : x1 - x0 );
             dy_ = Math.abs( ylog ? Math.log10( y1 / y0 ) : y1 - y0 );
             cx_ = xlog ? Math.log10( x0 ) : x0;

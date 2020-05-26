@@ -24777,6 +24777,7 @@ Some of the notable contributers are these:
 <li>Juande Sandander Vela (IAA-CSIC)</li>
 <li>Benjamin Steltner (MPG)</li>
 <li>Mike Watson (Leicester)</li>
+<li>Ming Yang (Athens)</li>
 <li>Ivan Zolotukhin (SAI MSU)</li>
 <li>Jonathan Zwart (Columbia)</li>
 </ul>
@@ -29553,6 +29554,10 @@ introduced since the last version:
         storage format.
         Expand <ref id="inCsv">CSV</ref> documentation to
         suggest use of ECSV instead.</li>
+    <li>Fix Ellipse mode in the Plane Plot's
+        <ref id="FigurePanel">Draw Algebraic Subset</ref> action;
+        the ellipse was previously defined 2<sup>-0.5</sup>
+        smaller than the drawing.</li>
     </ul>
     </p></dd>
 
