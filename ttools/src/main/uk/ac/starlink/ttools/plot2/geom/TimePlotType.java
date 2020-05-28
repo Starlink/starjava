@@ -74,7 +74,7 @@ public class TimePlotType
         List<Plotter<?>> plotters = new ArrayList<Plotter<?>>();
         PerUnitConfigKey<Unit> unitKey = TimeUnit.createHistogramConfigKey();
         plotters.addAll( Arrays.asList( new Plotter<?>[] {
-            new LinePlotter(),
+            new LinePlotter( LinePlotter.TIME_SORTAXIS_KEY ),
             new LinearFitPlotter( true ),
         } ) );
         plotters.addAll( Arrays

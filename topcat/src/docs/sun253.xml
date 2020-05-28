@@ -29574,6 +29574,8 @@ introduced since the last version:
         Crossmatching results should be completely unaffected
         by this change; but if anybody notices anything
         different or suspicious, please report it.</li>
+    <li>The Sort Axis option for the Line plotter in the Time plot
+        window now presents the option Time rather than X (or Y).</li>
     </ul>
     </p></dd>
 

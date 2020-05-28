@@ -141,7 +141,7 @@ public class PlanePlotType
         list.addAll( Arrays.asList( shapePlotters ) );
         PerUnitConfigKey<Unit> unitKey = null;
         list.addAll( Arrays.asList( new Plotter<?>[] {
-            new LinePlotter(),
+            new LinePlotter( LinePlotter.PLANE_SORTAXIS_KEY ),
             new LinearFitPlotter( true ),
             new LabelPlotter(),
             new ContourPlotter( true ),

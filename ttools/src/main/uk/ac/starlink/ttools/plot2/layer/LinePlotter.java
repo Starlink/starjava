@@ -56,6 +56,8 @@ import uk.ac.starlink.util.SplitCollector;
  */
 public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
 
+    private static final String NOSORT_TXT = "None";
+
     /** Coordinate for aux value. */
     private static final FloatingCoord AUX_COORD =
         FloatingCoord.createCoord(
@@ -68,8 +70,8 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
             } )
         , false );
 
-    /** Config key for point sequence pre-sorting. */
-    public static final ConfigKey<AxisOpt> SORTAXIS_KEY =
+    /** Config key for point sequence pre-sorting in Plane plot. */
+    public static final ConfigKey<AxisOpt> PLANE_SORTAXIS_KEY =
         new OptionConfigKey<AxisOpt>(
             new ConfigMeta( "sortaxis", "Sort Axis" )
            .setShortDescription( "Sort order for plotted points" )
@@ -88,12 +90,13 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
                 "in the sequence in which they appear in the table.",
                 "If the points already appear in the table sorted",
                 "according to the corresponding coordinate,",
-                "this option has no visible effect.",
+                "this option has no visible effect,",
+                "though it may slow things down.",
                 "</p>",
             } ), AxisOpt.class, new AxisOpt[] { null, AxisOpt.X, AxisOpt.Y },
                  (AxisOpt) null, true ) {
                public String valueToString( AxisOpt axis ) {
-                   return axis == null ? "None" : axis.toString();
+                   return axis == null ? NOSORT_TXT : axis.toString();
                }
                public String getXmlDescription( AxisOpt axis ) {
                    if ( axis == null ) {
@@ -106,6 +109,43 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
                }
            };
 
+    /** Config key for point sequence pre-sorting in Time plot. */
+    public static final ConfigKey<AxisOpt> TIME_SORTAXIS_KEY =
+        new OptionConfigKey<AxisOpt>(
+            new ConfigMeta( "sortaxis", "Sort Axis" )
+           .setShortDescription( "Sort order for plotted points" )
+           .setStringUsage( "[" + AxisOpt.TIME.toString()
+                          + "|" + NOSORT_TXT + "]" )
+           .setXmlDescription( new String[] {
+                "<p>May be set to",
+                "\"<code>" + AxisOpt.TIME.toString() + "</code>\"",
+                "to ensure that the points are plotted in ascending order",
+                "on the Time axis.",
+                "By default the points are joined in the sequence in which",
+                "they appear in the table;",
+                "that's fine if the rows are already sorted in time order,",
+                "but may result in a scribble if they are not.",
+                "If the points already appear in the table in time order,",
+                "this option has no visible effect,",
+                "but selecting it may slow things down.",
+                "</p>",
+            } ), AxisOpt.class, new AxisOpt[] { AxisOpt.TIME, null, },
+                 (AxisOpt) null, true ) {
+               public String valueToString( AxisOpt axis ) {
+                   return axis == null ? NOSORT_TXT : axis.toString();
+               }
+               public String getXmlDescription( AxisOpt axis ) {
+                   if ( axis == null ) {
+                       return "No pre-sorting is performed";
+                   }
+                   else {
+                       return "Sorting is performed on the "
+                            + axis.toString() + " axis";
+                   }
+               }
+           };
+
+    private final ConfigKey<AxisOpt> sortaxisKey_;
     private final boolean reportAuxKeys_ = false;
     private static final boolean IS_OPAQUE = true;
     private static final AuxScale SCALE = AuxScale.COLOR;
@@ -114,8 +154,9 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
     /**
      * Constructor.
      */
-    public LinePlotter() {
+    public LinePlotter( ConfigKey<AxisOpt> sortaxisKey ) {
         super( "Line", ResourceIcon.PLOT_LINE, 1, new Coord[] { AUX_COORD } );
+        sortaxisKey_ = sortaxisKey;
     }
 
     public String getPlotterDescription() {
@@ -125,7 +166,7 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
             "up the positions of data points.",
             "There are additional options to pre-sort the points",
             "according to their order on the X or Y axis (using the",
-            "<code>" + SORTAXIS_KEY.getMeta().getShortName() + "</code>",
+            "<code>" + sortaxisKey_.getMeta().getShortName() + "</code>",
             "value),",
             "and to vary the colour of the line along its length (using the",
             "<code>" + AUX_COORD.getInput().getMeta().getShortName()
@@ -148,7 +189,7 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
         List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( StyleKeys.COLOR );
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
-        list.add( SORTAXIS_KEY );
+        list.add( sortaxisKey_ );
         list.add( StyleKeys.ANTIALIAS );
         if ( reportAuxKeys_ ) {
             list.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
@@ -167,7 +208,7 @@ public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
         Scaling scaling = ramp.getScaling();
         Subrange dataclip = ramp.getDataClip();
         Color nullColor = config.get( StyleKeys.AUX_NULLCOLOR );
-        AxisOpt sortaxis = config.get( SORTAXIS_KEY );
+        AxisOpt sortaxis = config.get( sortaxisKey_ );
         return new LinesStyle( color, stroke, antialias, shader, scaling,
                                dataclip, nullColor, sortaxis );
     }

@@ -12469,6 +12469,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Crossmatching results should be completely unaffected
         by this change; but if anybody notices anything
         different or suspicious, please report it.</li>
+    <li>The <code>sortaxisN</code> parameter for the
+        <code>plot2time</code> <code>line</code> layer
+        now accepts the value <code>time</code> 
+        rather than <code>X</code> (or <code>Y</code>).</li>
     </ul>
     </p></dd>
 
