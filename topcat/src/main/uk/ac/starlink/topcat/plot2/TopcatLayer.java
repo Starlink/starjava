@@ -5,7 +5,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.MetaCopyStarTable;
@@ -21,6 +20,7 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.task.CoordSpec;
 import uk.ac.starlink.ttools.plot2.task.LayerSpec;
 import uk.ac.starlink.ttools.task.Credibility;
 import uk.ac.starlink.ttools.task.CredibleString;
@@ -120,12 +120,12 @@ public class TopcatLayer {
             return new LayerSpec( plotter, config_, leglabel_, izone );
         }
         else {
-            Map<String,String> coordMap =
-                GuiCoordContent.getInputValues( contents_ );
+            CoordSpec[] coordSpecs =
+                GuiCoordContent.getCoordSpecs( contents_ );
             CredibleString selectExpr = getSelectExpression( rset_ );
             StarTable table = getLayerTable( tcModel_ );
             return new LayerSpec( plotter, config_, leglabel_, izone,
-                                  table, coordMap, selectExpr );
+                                  table, coordSpecs, selectExpr );
         }
     }
 

@@ -4,6 +4,7 @@ import gnu.jel.CompilationException;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
+import uk.ac.starlink.ttools.plot2.task.CoordSpec;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -260,10 +262,13 @@ public class GroupControlManager<P,A> implements ControlManager {
         /* Must have the same positional coordinates.
          * This test currently requires all the coordinates to be the same,
          * I think that could be relaxed to just the positional ones. */
-        if ( ! lcmd.getInputValues()
-                   .equals( GuiCoordContent
-                           .getInputValues( control.getPositionCoordPanel()
-                                                   .getContents() ) ) ) {
+        Map<String,String> ivals = new HashMap<>();
+        GuiCoordContent[] contents =
+            control.getPositionCoordPanel().getContents();
+        for ( CoordSpec cspec : GuiCoordContent.getCoordSpecs( contents ) ) {
+            ivals.put( cspec.getInputName(), cspec.getValueExpr() );
+        }
+        if ( ! lcmd.getInputValues().equals( ivals ) ) {
             return false;
         }
 

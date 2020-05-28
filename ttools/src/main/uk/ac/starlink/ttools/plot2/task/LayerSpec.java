@@ -1,6 +1,6 @@
 package uk.ac.starlink.ttools.plot2.task;
 
-import java.util.Map;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -21,7 +21,7 @@ public class LayerSpec {
     private final String leglabel_;
     private final int izone_;
     private final StarTable table_;
-    private final Map<String,String> coordMap_;
+    private final CoordSpec[] coordSpecs_;
     private final CredibleString selectExpr_;
 
     /**
@@ -47,22 +47,20 @@ public class LayerSpec {
      * @param   table    table supplying data points;
      *                   where a string representation of the table is required,
      *                   its <code>getName</code> method will generally be used
-     * @param   coordMap  name-value pairs giving data coordinates;
-     *                    values are expressions to be evaluated in
-     *                    the context of the supplied table
+     * @param   coordSpecs  list of coordinate specifications
      * @param   selectExpr  boolean expression evaluated in the context of
      *                      the supplied table; if non-null, only true rows
      *                      are included
      */
     public LayerSpec( Plotter<?> plotter, ConfigMap config, String leglabel,
-                      int izone, StarTable table, Map<String,String> coordMap,
+                      int izone, StarTable table, CoordSpec[] coordSpecs,
                       CredibleString selectExpr ) {
         plotter_ = plotter;
         config_ = config;
         leglabel_ = leglabel;
         izone_ = izone;
         table_ = table;
-        coordMap_ = coordMap;
+        coordSpecs_ = coordSpecs == null ? new CoordSpec[ 0 ] : coordSpecs;
         selectExpr_ = selectExpr;
     }
 
@@ -114,13 +112,12 @@ public class LayerSpec {
     }
 
     /**
-     * Returns the name-value map for coordinate values used by this layer;
-     * values are strings to be evaluated in the context of the table.
+     * Coordinate specifications used by this layer.
      *
-     * @return  coordinate value map, may be null
+     * @return  coordinate specification list, not null
      */
-    public Map<String,String> getCoordMap() {
-        return coordMap_;
+    public CoordSpec[] getCoordSpecs() {
+        return coordSpecs_;
     }
 
     /**

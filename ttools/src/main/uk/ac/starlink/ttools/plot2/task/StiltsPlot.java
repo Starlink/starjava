@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
@@ -681,11 +682,18 @@ public class StiltsPlot {
         List<Setting> settings = new ArrayList<Setting>();
 
         /* Add coordinate values if any. */
-        Map<String,String> coordMap = lspec.getCoordMap();
-        if ( coordMap != null ) {
-            for ( Map.Entry<String,String> entry : coordMap.entrySet() ) {
-                settings.add( new Setting( entry.getKey(), entry.getValue(),
-                                           null ) );
+        for ( CoordSpec cspec : lspec.getCoordSpecs() ) {
+            String inName = cspec.getInputName();
+            settings.add( new Setting( inName, cspec.getValueExpr(), null ) );
+            DomainMapper dm = cspec.getDomainMapper();
+            DomainMapper dfltDm = cspec.getDefaultDomainMapper();
+            if ( dm != null ) {
+                Setting setting =
+                    new Setting( inName + AbstractPlot2Task.DOMAINMAPPER_SUFFIX,
+                                 dm.getSourceName(),
+                                 dfltDm == null ? null
+                                                : dfltDm.getSourceName() );
+                settings.add( setting );
             }
         }
         return settings;

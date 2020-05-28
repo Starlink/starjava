@@ -146,7 +146,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     public static final String ZONE_PREFIX = "zone";
     private static final String TABLE_PREFIX = "in";
     private static final String FILTER_PREFIX = "icmd";
-    private static final String DOMAINMAPPER_SUFFIX = "type";
+    public static final String DOMAINMAPPER_SUFFIX = "type";
     public static final String EXAMPLE_LAYER_SUFFIX = "N";
     public static final String EXAMPLE_ZONE_SUFFIX = "Z";
     public static final String DOC_ZONE_SUFFIX = "";

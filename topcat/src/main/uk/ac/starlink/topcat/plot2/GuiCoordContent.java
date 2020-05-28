@@ -1,12 +1,14 @@
 package uk.ac.starlink.topcat.plot2;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
+import uk.ac.starlink.ttools.plot2.task.CoordSpec;
 
 /**
  * Aggregates user-supplied information about a coordinate value used
@@ -92,21 +94,31 @@ public class GuiCoordContent {
      *          the same information
      * @see   LayerCommand#getInputValues
      */
-    public static Map<String,String>
-            getInputValues( GuiCoordContent[] contents ) {
-        Map<String,String> coordValues = new LinkedHashMap<String,String>();
-        for ( int ic = 0; ic < contents.length; ic++ ) {
-            GuiCoordContent content = contents[ ic ];
+    public static CoordSpec[] getCoordSpecs( GuiCoordContent[] contents ) {
+        List<CoordSpec> cspecs = new ArrayList<>();
+        for ( GuiCoordContent content : contents ) {
             Input[] inputs = content.getCoord().getInputs();
             String[] dataLabels = content.getDataLabels();
+            DomainMapper[] dms = content.getDomainMappers();
+            ColumnData[] colDatas = content.getColDatas();
             int nuc = inputs.length;
             assert dataLabels.length == nuc;
             for ( int iuc = 0; iuc < nuc; iuc++ ) {
-                coordValues.put( LayerCommand.getInputName( inputs[ iuc ] ),
-                                 dataLabels[ iuc ] );
+                Input input = inputs[ iuc ];
+                String inName = LayerCommand.getInputName( input );
+                String valueExpr = dataLabels[ iuc ];
+                DomainMapper dm = AbstractPlot2Task.hasDomainMappers( input )
+                                ? dms[ iuc ]
+                                : null;
+                DomainMapper dfltDm =
+                      dm == null
+                    ? null
+                    : dm.getTargetDomain()
+                        .getProbableMapper( colDatas[ iuc ].getColumnInfo() );
+                cspecs.add( new CoordSpec( inName, valueExpr, dm, dfltDm ) );
             }
         }
-        return coordValues;
+        return cspecs.toArray( new CoordSpec[ 0 ] );
     }
 
     /**
