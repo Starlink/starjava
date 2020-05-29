@@ -1488,7 +1488,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* If no ganging, just group all the layer suffixes under
          * a single key. */
-        if ( ! gangerFact_.isMultiZone() ) {
+        if ( ! gangerFact_.isMultiZone() || layerSuffixes.length == 0 ) {
             Map<String,String[]> map = new HashMap<String,String[]>();
             map.put( "", layerSuffixes );
             return map;
