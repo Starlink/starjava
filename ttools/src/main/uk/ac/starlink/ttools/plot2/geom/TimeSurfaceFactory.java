@@ -133,6 +133,9 @@ public class TimeSurfaceFactory
     public static final ConfigKey<TimeFormat> TFORMAT_KEY =
         createTimeFormatKey();
 
+    /** Default time axis extent in seconds when no range is known. */
+    private static final double DFLT_TIME_RANGE_SEC = 2 * 365.25 * 24 * 60 * 60;
+
     private static final PlotMetric plotMetric_ = new TimePlotMetric();
 
     public Surface createSurface( Rectangle plotBounds, Profile profile,
@@ -195,17 +198,49 @@ public class TimeSurfaceFactory
             return unrangedAspect;
         }
         else {
+
+            /* Determine range on the Time axis.  We need to do this
+             * in a customised way so that we end up with sensible ranges;
+             * the off-the-shelf method from PlaneSurfaceFactory defaults
+             * to a range of 1 (second) in case of no data. */
             Range trange = ranges == null ? new Range() : ranges[ 0 ];
-            Range yrange = ranges == null ? new Range() : ranges[ 1 ];
+            trange = new Range( trange );
+            trange.limit( config.get( TMIN_KEY ), config.get( TMAX_KEY ) );
+            double[] tr0 = trange.getBounds();
+            double tlo0 = tr0[ 0 ];
+            double thi0 = tr0[ 1 ];
+            double nowUnixSec = System.currentTimeMillis() * 0.001;
+            final double tlo1;
+            final double thi1;
+            if ( tlo0 < thi0 ) {
+                tlo1 = tlo0;
+                thi1 = thi0;
+            }
+            else if ( PlotUtil.isFinite(tlo0) && ! PlotUtil.isFinite(thi0) ) {
+                tlo1 = tlo0;
+                thi1 = nowUnixSec > tlo0 ? nowUnixSec
+                                         : tlo0 + DFLT_TIME_RANGE_SEC;
+            }
+            else if ( ! PlotUtil.isFinite(tlo0) && PlotUtil.isFinite(thi0) ) {
+                tlo1 = nowUnixSec < thi0 ? nowUnixSec
+                                         : thi0 - DFLT_TIME_RANGE_SEC;
+                thi1 = thi0;
+            }
+            else {
+                tlo1 = nowUnixSec - DFLT_TIME_RANGE_SEC;
+                thi1 = nowUnixSec;
+            }
             double[] tlimits =
-                PlaneSurfaceFactory
-               .getLimits( config, TMIN_KEY, TMAX_KEY, TSUBRANGE_KEY,
-                           false, trange );
+                PlotUtil.scaleRange( tlo1, thi1, config.get( TSUBRANGE_KEY ),
+                                    false );
+
+            /* Determine range on the Y axis using standard technique. */
+            Range yrange = ranges == null ? new Range() : ranges[ 1 ];
             double[] ylimits =
                 PlaneSurfaceFactory
                .getLimits( config, YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
                            profile.ylog_, yrange );
-                return new TimeAspect( tlimits, ylimits );
+            return new TimeAspect( tlimits, ylimits );
         }
     }
 
@@ -234,7 +269,7 @@ public class TimeSurfaceFactory
 
     public PlotMetric getPlotMetric() {
         return plotMetric_;
-    } 
+    }
 
     /**
      * Attempts to determine an aspect value from profile and configuration,
