@@ -105,9 +105,13 @@ public class AreaDomain implements Domain<AreaMapper> {
             if ( "moc".equalsIgnoreCase( xtype ) ) {
                 return ASCIIMOC_MAPPER;
             }
+            else if ( "stc-s".equalsIgnoreCase( xtype ) ||
+                      "stc".equalsIgnoreCase( xtype ) ) {
+                return STCS_MAPPER;
+            }
             else if ( "s_region".equals( name ) ||
-                 "pos.outline;obs.field".equals( ucd ) ||
-                 ( ucd != null && ucd.startsWith( "pos.outline" ) ) ) {
+                      "pos.outline;obs.field".equals( ucd ) ||
+                      ( ucd != null && ucd.startsWith( "pos.outline" ) ) ) {
                 return STCS_MAPPER;
             }
             else {
