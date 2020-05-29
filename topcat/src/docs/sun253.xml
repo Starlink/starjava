@@ -29576,6 +29576,10 @@ introduced since the last version:
         different or suspicious, please report it.</li>
     <li>The Sort Axis option for the Line plotter in the Time plot
         window now presents the option Time rather than X (or Y).</li>
+    <li>Scatter plot marker size now defaults to a value dependent on
+        the number of rows in the table,
+        so by default large tables have small markers and
+        small tables have larger markers.</li>
     </ul>
     </p></dd>
 

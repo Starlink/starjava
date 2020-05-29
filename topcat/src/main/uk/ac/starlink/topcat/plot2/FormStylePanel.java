@@ -34,6 +34,7 @@ import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.RowSubset;
@@ -58,6 +59,7 @@ public class FormStylePanel extends JPanel {
     private final SubsetConfigManager subManager_;
     private final SubsetStack subStack_;
     private final TopcatModel tcModel_;
+    private final SpecialDefault<?>[] specialDflts_;
     private final OptionalConfigSpecifier globalSpecifier_;
     private final ActionForwarder forwarder_;
     private final Map<RowSubset,ConfigMap> subsetConfigs_;
@@ -87,6 +89,7 @@ public class FormStylePanel extends JPanel {
         subManager_ = subManager;
         subStack_ = subStack;
         tcModel_ = tcModel;
+        specialDflts_ = new SpecialDefault<?>[] { SpecialDefault.SIZE };
         forwarder_ = new ActionForwarder();
 
         /* Set up specifier for global keys. */
@@ -150,6 +153,9 @@ public class FormStylePanel extends JPanel {
         } );
         subsetConfigs_ = new HashMap<RowSubset,ConfigMap>();
         subsetSelector_.setSelectedItem( null );
+
+        /* Apply table-sensitive default values. */
+        applySpecialDefaults();
 
         /* Set up a checkbox to display/control visibility of the selected
          * subset.  This can be controlled elsewhere (the SubsetStack in
@@ -247,6 +253,10 @@ public class FormStylePanel extends JPanel {
                 subsetConfigs_.put( rset, config );
             }
         }
+
+        /* Overwrite options that have table-specific defaults
+         * as appropriate. */
+        applySpecialDefaults();
     }
 
     /**
@@ -427,6 +437,41 @@ public class FormStylePanel extends JPanel {
 
         /* Return the checkbox. */
         return visBox;
+    }
+
+    /**
+     * Customises this panel's specifiers according to table-sensitive
+     * defaulting policies.
+     */
+    private void applySpecialDefaults() {
+        if ( tcModel_ != null ) {
+            for ( SpecialDefault<?> special : specialDflts_ ) {
+                customiseDefault( globalSpecifier_, special, tcModel_ );
+                customiseDefault( subsetSpecifier_, special, tcModel_ );
+            }
+        }
+    }
+
+    /**
+     * Customises a ConfigSpecifier according to a supplied table-sensitive
+     * default policy.
+     *
+     * @param  configSpecifier   specifier that may contain a relevant
+     *                           config item
+     * @param  special  object that applies table-sensitive default values
+     * @param  tcModel   table
+     */
+    private static <T> void customiseDefault( ConfigSpecifier configSpecifier,
+                                              SpecialDefault<T> special,
+                                              TopcatModel tcModel ) {
+        Specifier<T> itemSpecifier =
+            configSpecifier.getSpecifier( special.getKey() );
+        if ( itemSpecifier != null ) {
+            T dflt = special.getDefaultValue( tcModel );
+            if ( dflt != null ) {
+                itemSpecifier.setSpecifiedValue( dflt );
+            }
+        }
     }
 
     /**
