@@ -254,7 +254,7 @@ public class Range {
                 hiPos_ = loPos_;
             }
         }
-	if ( isFinite( hi ) && hi >= lo_ ) {
+	if ( isFinite( hi ) && ! ( hi < lo_ ) ) {
             hi_ = hi;
             if ( ! ( hi <= 0.0 ) ) {
                 hiPos_ = hi;
