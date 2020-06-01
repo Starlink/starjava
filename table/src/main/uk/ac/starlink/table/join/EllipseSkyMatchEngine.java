@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.join;
 
+import cds.healpix.common.math.FastMath;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.pal.AngleDR;
@@ -582,8 +583,8 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
                            pal_.Dcs2c( new AngleDR( alpha, delta ) ) );
 
             /* Work out the angular distances along X and Y axes. */
-            double dm = Math.asin( Math.abs( xyz[ 0 ] ) );
-            double dn = Math.asin( Math.abs( xyz[ 1 ] ) );
+            double dm = FastMath.asin( Math.abs( xyz[ 0 ] ) );
+            double dn = FastMath.asin( Math.abs( xyz[ 1 ] ) );
 
             /* Adjust if the requested point is in the wrong hemisphere. */
             boolean anti = xyz[ 2 ] < 0;

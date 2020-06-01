@@ -12473,6 +12473,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>plot2time</code> <code>line</code> layer
         now accepts the value <code>time</code> 
         rather than <code>X</code> (or <code>Y</code>).</li>
+    <li>Use (Apache via cds-healpix) FastMath
+        implementation of arcsin in crossmatching.</li>
     </ul>
     </p></dd>
 

@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.join;
 
+import cds.healpix.common.math.FastMath;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 
@@ -170,7 +171,7 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
         double sa2 = Math.sin( 0.5 * ( alpha2 - alpha1 ) );
         double a = sd2 * sd2 +
                    sa2 * sa2 * Math.cos( delta1 ) * Math.cos( delta2 );
-        return a < 1.0 ? 2.0 * Math.asin( Math.sqrt( a ) )
+        return a < 1.0 ? 2.0 * FastMath.asin( Math.sqrt( a ) )
                        : Math.PI;
     }
 

@@ -29581,6 +29581,8 @@ introduced since the last version:
         the number of rows in the table,
         so by default large tables have small markers and
         small tables have larger markers.</li>
+    <li>Use (Apache via cds-healpix) FastMath 
+        implementation of arcsin in crossmatching.</li>
     </ul>
     </p></dd>
 
