@@ -9848,6 +9848,7 @@ columns in the table.
     polygon winding direction is ignored (small polygons are assumed)
     and the <code>INTERSECTION</code> and <code>NOT</code>
     constructions are not supported.
+    The non-standard <code>MOC</code> construction is supported.
     </p></dd>
 <dt>POLYGON</dt>
 <dd><p>2<m>N</m>-element array (x1,y1, x2,y2, ..., x<m>N</m>,y<m>N</m>);

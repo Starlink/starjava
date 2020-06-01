@@ -209,7 +209,9 @@ public class AreaDomain implements Domain<AreaMapper> {
             .append( "polygon winding direction is ignored " )
             .append( "(small polygons are assumed)\n" )
             .append( "and the <code>INTERSECTION</code> and <code>NOT</code> " )
-            .append( "constructions are not supported." )
+            .append( "constructions are not supported.\n" )
+            .append( "The non-standard <code>MOC</code> construction " )
+            .append( "is supported." )
             .toString();
         return new AreaMapper( "STC-S", descrip, String.class ) {
             public Function<Object,Area> areaFunction( Class<?> clazz ) {
@@ -377,6 +379,9 @@ public class AreaDomain implements Domain<AreaMapper> {
                     dlist.addAll( poly.getDataArray() );
                 }
                 return new Area( Area.Type.POLYGON, dlist.toDoubleArray() );
+            }
+            else if ( "MOC".equals( word0 ) ) {
+                return mocArea( remainder );
             }
             else {
                 return null;
