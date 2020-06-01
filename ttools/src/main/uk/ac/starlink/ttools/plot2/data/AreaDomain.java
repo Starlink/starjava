@@ -350,26 +350,6 @@ public class AreaDomain implements Domain<AreaMapper> {
                      ? new Area( pointType, numbers )
                      : null;
             }
-            else if ( "BOX".equals( word0 ) ) {
-                Area.Type polygonType = Area.Type.POLYGON;
-                double[] numbers = getNumbers( remainder );
-                return numbers.length == 4
-                     ? new Area( polygonType,
-                                 new double[] {
-                                     numbers[ 0 ],
-                                     numbers[ 1 ],
-                                     numbers[ 0 ] + numbers[ 2 ],
-                                     numbers[ 1 ] + numbers[ 3 ],
-                                 } )
-                     : null;
-            }
-            else if ( allowPoint && "POSITION".equals( word0 ) ) {
-                Area.Type pointType = Area.Type.POINT;
-                double[] numbers = getNumbers( remainder );
-                return pointType.isLegalArrayLength( numbers.length )
-                     ? new Area( pointType, numbers )
-                     : null;
-            }
             else if ( "UNION".equals( word0 ) ) {
                 Matcher parenMatcher = PARENTHESIS_PATTERN.matcher( remainder );
                 if ( ! parenMatcher.matches() ) {
