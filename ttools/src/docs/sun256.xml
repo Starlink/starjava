@@ -12475,6 +12475,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         rather than <code>X</code> (or <code>Y</code>).</li>
     <li>Use (Apache via cds-healpix) FastMath
         implementation of arcsin in crossmatching.</li>
+    <li>Add new option <code>anchorN=center</code> to the
+        <ref id="layer-label">label</ref> plot layer.</li>
     </ul>
     </p></dd>
 

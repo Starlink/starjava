@@ -58,6 +58,19 @@ public abstract class Anchor {
         }
     };
 
+    /** Center - reference point is the center of the text. */
+    public static Anchor C = new HorizontalAnchor() {
+        protected int[] getOffset( Rectangle box, int pad ) {
+            return new int[] { - box.width / 2, box.height / 2 };
+        }
+        public String toString() {
+            return "Center";
+        }
+    };
+
+
+    
+
     /**
      * Returns a rectangle within which all of the given label will fall.
      *

@@ -29583,6 +29583,8 @@ introduced since the last version:
         small tables have larger markers.</li>
     <li>Use (Apache via cds-healpix) FastMath 
         implementation of arcsin in crossmatching.</li>
+    <li>Add Center option to <ref id="form-label">Label</ref>
+        plot form.</li>
     </ul>
     </p></dd>
 

@@ -324,7 +324,8 @@ public class StyleKeys {
                 "Values are points of the compass.",
                 "</p>",
             } )
-        , Anchor.class, new Anchor[] { Anchor.W, Anchor.E, Anchor.N, Anchor.S, }
+        , Anchor.class,
+          new Anchor[] { Anchor.W, Anchor.E, Anchor.N, Anchor.S, Anchor.C, }
         ) {
            public String getXmlDescription( Anchor anchor ) {
                return null;
