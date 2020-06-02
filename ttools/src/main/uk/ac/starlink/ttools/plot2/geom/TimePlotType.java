@@ -93,7 +93,7 @@ public class TimePlotType
             new Stats1Plotter( TimeDataGeom.T_COORD, true, unitKey ),
             ShapePlotter.createFlat2dPlotter( errorForm ),
             new SpectrogramPlotter( TimeDataGeom.T_COORD ),
-            new LabelPlotter(),
+            LabelPlotter.POINT_INSTANCE,
             FunctionPlotter.PLANE,
         } ) );
         return plotters.toArray( new Plotter<?>[ 0 ] );

@@ -143,7 +143,7 @@ public class PlanePlotType
         list.addAll( Arrays.asList( new Plotter<?>[] {
             new LinePlotter( LinePlotter.PLANE_SORTAXIS_KEY ),
             new LinearFitPlotter( true ),
-            new LabelPlotter(),
+            LabelPlotter.POINT_INSTANCE,
             new ContourPlotter( true ),
             new GridPlotter( true ),
             new FillPlotter( true ),

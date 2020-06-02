@@ -73,7 +73,7 @@ public class SpherePlotType
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_3D );
         list.addAll( Arrays.asList( shapePlotters ) );
         list.addAll( Arrays.asList( new Plotter<?>[] {
-            new LabelPlotter(),
+            LabelPlotter.POINT_INSTANCE,
             new Line3dPlotter(),
             new ContourPlotter( true ),
             new SphereGridPlotter(),

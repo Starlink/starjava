@@ -79,7 +79,7 @@ public class SkyPlotType
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
         list.addAll( Arrays.asList( shapePlotters ) );
         list.addAll( Arrays.asList( new Plotter<?>[] {
-            new LabelPlotter(),
+            LabelPlotter.POINT_INSTANCE,
             new ContourPlotter( true ),
             new SkyDensityPlotter( true, true ),
             new HealpixPlotter( true ),

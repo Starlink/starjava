@@ -67,8 +67,6 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
                 "</p>",
             } )
         , true );
-    private static final CoordGroup LABEL_CGRP =
-        CoordGroup.createCoordGroup( 1, new Coord[] { LABEL_COORD } );
     private static final int MAX_CROWDLIMIT = Byte.MAX_VALUE / 2 - 1;
 
     /** Config key to control minimum pixel label spacing. */
@@ -116,11 +114,16 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
     public static final CaptionerKeySet CAPTIONER_KEYSET =
         new CaptionerKeySet();
 
+    /** Instance of this class for plotting with point data. */
+    public static final LabelPlotter POINT_INSTANCE = createPointLabelPlotter();
+
     /**
      * Constructor.
+     *
+     * @param  cgrp  coord group
      */
-    public LabelPlotter() {
-        super( "Label", ResourceIcon.PLOT_LABEL, LABEL_CGRP, false );
+    protected LabelPlotter( CoordGroup cgrp ) {
+        super( "Label", ResourceIcon.PLOT_LABEL, cgrp, false );
     }
 
     public String getPlotterDescription() {
@@ -184,6 +187,25 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
     }
 
     /**
+     * Returns the coordinate index in the DataSpec at which a given
+     * coordinate can be found.
+     *
+     * @param   coordinate to locate
+     * @param   dataSpec  data specification
+     * @return   index in dataSpec and tuples at which coord value is given,
+     *           or -1 if not found
+     */
+    private static int getCoordIndex( Coord coord, DataSpec dataSpec ) {
+        int nc = dataSpec.getCoordCount();
+        for ( int ic = 0; ic < nc; ic++ ) {
+            if ( dataSpec.getCoord( ic ) == coord ) {
+                return ic;
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Abstract Drawing implementation for writing labels.
      * The plan it creates is a map of labels indexed by screen position.
      * The number of entries in this map cannot be greater than the
@@ -221,8 +243,8 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
             style_ = style;
             surface_ = surface;
             clazz_ = clazz;
-            icPos_ = LABEL_CGRP.getPosCoordIndex( 0, geom );
-            icLabel_ = LABEL_CGRP.getExtraCoordIndex( 0, geom );
+            icPos_ = 0;
+            icLabel_ = getCoordIndex( LABEL_COORD, dataSpec );
         }
 
         /**
@@ -381,6 +403,17 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
                      < crowdLimit1;
             }
         };
+    }
+
+    /**
+     * Creates an instance of this class for use with point plotters.
+     *
+     * @return  instance
+     */
+    private static LabelPlotter createPointLabelPlotter() {
+        CoordGroup cgrp = 
+            CoordGroup.createCoordGroup( 1, new Coord[] { LABEL_COORD } );
+        return new LabelPlotter( cgrp );
     }
 
     /**
