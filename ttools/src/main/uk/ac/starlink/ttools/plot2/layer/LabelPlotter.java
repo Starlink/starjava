@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.Anchor;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -33,6 +34,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.data.AreaCoord;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -54,7 +56,9 @@ import uk.ac.starlink.util.SplitCollector;
  * @author   Mark Taylor
  * @since    15 Feb 2013
  */
-public class LabelPlotter extends AbstractPlotter<LabelStyle> {
+public abstract class LabelPlotter extends AbstractPlotter<LabelStyle> {
+
+    private final boolean isArea_;
 
     private static final StringCoord LABEL_COORD =
         new StringCoord(
@@ -114,26 +118,69 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
     public static final CaptionerKeySet CAPTIONER_KEYSET =
         new CaptionerKeySet();
 
-    /** Instance of this class for plotting with point data. */
+    /** Instance of this class for use with point positions. */
     public static final LabelPlotter POINT_INSTANCE = createPointLabelPlotter();
+
+    /** Instance of this class for use with Plane geometry Area positions. */
+    public static final LabelPlotter AREA_PLANE_INSTANCE =
+        createAreaLabelPlotter( AreaCoord.PLANE_COORD, null );
+
+    /** Instance of this class for use with Sky geometry Area positions. */
+    public static final LabelPlotter AREA_SKY_INSTANCE =
+        createAreaLabelPlotter( AreaCoord.SKY_COORD, null);
+
+    /** Instance of this class for use with Sphere geometry Area positions. */
+    public static final LabelPlotter AREA_SPHERE_INSTANCE =
+        createAreaLabelPlotter( AreaCoord.SPHERE_COORD, AreaForm.RADIAL_COORD );
 
     /**
      * Constructor.
      *
      * @param  cgrp  coord group
+     * @param  isArea  true for area coordinates, false for point coords
      */
-    protected LabelPlotter( CoordGroup cgrp ) {
-        super( "Label", ResourceIcon.PLOT_LABEL, cgrp, false );
+    protected LabelPlotter( CoordGroup cgrp, boolean isArea ) {
+        super( isArea ? "AreaLabel" : "Label",
+               isArea ? ResourceIcon.PLOT_AREALABEL : ResourceIcon.PLOT_LABEL,
+               cgrp, false );
+        isArea_ = isArea;
     }
 
+    /**
+     * Provides a DataGeom to be used by the layer this form makes,
+     * given a DataGeom that characterises the plotting environment.
+     * The output should be similar to the input, for instance
+     * implementing the same plotType-specific DataGeom subtype.
+     *
+     * <p>In most cases the supplied instance can be returned unchanged,
+     * but instances with special requirements may want to adjust
+     * how the data is interpreted.
+     *
+     * @param  baseGeom   context geom
+     * @return   geom to use for data interpretation,
+     *           the same or similar to the input
+     */
+    protected abstract DataGeom adjustGeom( DataGeom baseGeom );
+
     public String getPlotterDescription() {
-        return PlotUtil.concatLines( new String[] {
-            "<p>Draws a text label at each position.",
-            "You can select the font,",
-            "where the labels appear in relation to the point positions, and",
-            "how crowded the points have to get before they are suppressed.",
-            "</p>",
-        } );
+        StringBuffer sbuf = new StringBuffer()
+            .append( "<p>Draws a text label " )
+            .append( isArea_ ? "near the center of each area."
+                             : "at each position.\n" )
+            .append( "You can select the font,\n" )
+            .append( "where the labels appear " )
+            .append( "in relation to the point positions, and\n" )
+            .append( "how crowded the points have to get " )
+            .append( "before they are suppressed.\n" )
+            .append( "</p>\n" );
+        if ( isArea_ ) {
+            sbuf.append( "<p>This is just like a normal Label plot,\n" )
+                .append( "but the positions are taken from " )
+                .append( "an Area coordinate\n" )
+                .append( "rather than normal positional coordinates.\n" )
+                .append( "</p>\n" );
+        }
+        return sbuf.toString();
     }
 
     public ConfigKey<?>[] getStyleKeys() {
@@ -163,9 +210,10 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
                                config.get( SPACING_KEY ), crowdLimit );
     }
 
-    public PlotLayer createLayer( final DataGeom geom,
+    public PlotLayer createLayer( DataGeom geom0,
                                   final DataSpec dataSpec,
                                   final LabelStyle style ) {
+        final DataGeom geom = adjustGeom( geom0 );
         LayerOpt opt = new LayerOpt( style.getColor(), true );
         return new AbstractPlotLayer( this, geom, dataSpec, style, opt ) {
             public Drawing createDrawing( Surface surface,
@@ -413,7 +461,41 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
     private static LabelPlotter createPointLabelPlotter() {
         CoordGroup cgrp = 
             CoordGroup.createCoordGroup( 1, new Coord[] { LABEL_COORD } );
-        return new LabelPlotter( cgrp );
+        return new LabelPlotter( cgrp, false ) {
+            protected DataGeom adjustGeom( DataGeom geom ) {
+                return geom;
+            }
+        };
+    }
+
+    /**
+     * Creates an instance of this class for use with Area plotters.
+     * The position is acquired from the area values not explicitly
+     * from position coordinates.
+     *
+     * @param   areaCoord   coord instance for acquiring area values
+     * @param   extraCoord  optional additional positional coordinate, or null
+     * @return  instance
+     */
+    private static <DG extends DataGeom> LabelPlotter
+            createAreaLabelPlotter( AreaCoord<DG> areaCoord,
+                                    Coord extraCoord ) {
+        List<Coord> extraCoords = new ArrayList<Coord>();
+        extraCoords.add( areaCoord );
+        if ( extraCoord != null ) {
+            extraCoords.add( extraCoord );
+        }
+        extraCoords.add( LABEL_COORD );
+        CoordGroup cgrp =
+            CoordGroup
+           .createCoordGroup( 0, extraCoords.toArray( new Coord[ 0 ] ) );
+        return new LabelPlotter( cgrp, true ) {
+            protected DataGeom adjustGeom( DataGeom geom ) {
+                @SuppressWarnings("unchecked")
+                DG tgeom = (DG) geom;
+                return areaCoord.getAreaDataGeom( tgeom );
+            }
+        };
     }
 
     /**

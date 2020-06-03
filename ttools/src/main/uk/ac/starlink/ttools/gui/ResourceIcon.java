@@ -35,6 +35,7 @@ public class ResourceIcon {
         PLOT_CONTOUR = readIcon( "plot-contour.png" ),
         PLOT_LINE = readIcon( "plot-line.png" ),
         PLOT_LABEL = readIcon( "plot-label.png" ),
+        PLOT_AREALABEL = readIcon( "plot-arealabel.png" ),
         PLOT_SPECTRO = readIcon( "plot-spectro.png" ),
         PLOT_HEALPIX = readIcon( "plot-healpix.png" ),
         PLOT_SKYGRID = readIcon( "plot-skygrid.png" ),
