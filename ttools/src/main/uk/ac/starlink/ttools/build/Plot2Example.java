@@ -815,6 +815,12 @@ public class Plot2Example {
          */
         public static final String CRISM;
 
+        /**
+         * Table of national boundaries, converted from GeoJSON at
+         * https://github.com/johan/world.geo.json/countries.geo.json.
+         */
+        public static final String COUNTRIES;
+
         /** All tables used for these examples. */
         public static final String[] NAMES = {
             RR = "rrlyrae.fits",
@@ -834,6 +840,7 @@ public class Plot2Example {
             NGC346_GAIA = "ngc346xGaiadr1.fits",
             VIRVIS = "big_tab_VIR_VIS_CSA_public.fits",
             CRISM = "crism.fits",
+            COUNTRIES = "countries.vot",
         };
     }
 
@@ -1260,13 +1267,17 @@ public class Plot2Example {
                 "*color2=black",
             } ),
             new Plot2Example( "layer-arealabel", c, PlotTask.SKY, new String[] {
-                "clon=-0.6", "clat=2.347", "radius=0.6",
                 "reflectlon=false", "sex=false", null,
-                "in=" + TName.CRISM, "icmd='select sensor_id==0x53'", null,
-                "*area=s_region", "*areatype=STC-S", null,
-                "layer_1=area", null,
-                "*layer_2=arealabel", "*label_2=granule_gid",
-                "*anchor_2=center", "*color_2=grey",
+                "clon=18", "clat=0", "radius=36", "xpix=550", "ypix=600", null, 
+                "in=" + TName.COUNTRIES, null,
+                "*area=shape", "*areatype=STC-S", null,
+                "layer_1=area", "polymode_1=fill", "fast_1=false", null,
+                "shading_1=aux", "aux_1=index", "opaque_1=2",
+                "layer_2=area", "polymode_2=outline", null,
+                "shading_2=flat", "color_2=grey", null,
+                "auxmap=paired", "auxvisible=false", null,
+                "*layer_3=arealabel", "*label_3=name",
+                "*anchor_3=center", "*color_3=black",
             } ),
             new Plot2Example( "layer-function", c, PlotTask.PLANE,
                               new String[] {
