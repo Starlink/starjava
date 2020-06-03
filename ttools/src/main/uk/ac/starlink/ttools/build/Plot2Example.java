@@ -1259,6 +1259,15 @@ public class Plot2Example {
                 "*layer2=central", "*shape2=fat_circle", "*size2=3",
                 "*color2=black",
             } ),
+            new Plot2Example( "layer-arealabel", c, PlotTask.SKY, new String[] {
+                "clon=-0.6", "clat=2.347", "radius=0.6",
+                "reflectlon=false", "sex=false", null,
+                "in=" + TName.CRISM, "icmd='select sensor_id==0x53'", null,
+                "*area=s_region", "*areatype=STC-S", null,
+                "layer_1=area", null,
+                "*layer_2=arealabel", "*label_2=granule_gid",
+                "*anchor_2=center", "*color_2=grey",
+            } ),
             new Plot2Example( "layer-function", c, PlotTask.PLANE,
                               new String[] {
                 "*layer1=function", "*fexpr1=sin(x)/x", "*thick1=3", null,

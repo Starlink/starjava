@@ -311,6 +311,7 @@
   <!ENTITY FIG.plot2-layer-mark4 '&figs;plot2-layer-mark4.png'>
   <!ENTITY FIG.plot2-layer-area '&figs;plot2-layer-area.png'>
   <!ENTITY FIG.plot2-layer-central '&figs;plot2-layer-central.png'>
+  <!ENTITY FIG.plot2-layer-arealabel '&figs;plot2-layer-arealabel.png'>
   <!ENTITY FIG.plot2-shading-flat '&figs;plot2-shading-flat.png'>
   <!ENTITY FIG.plot2-shading-auto '&figs;plot2-shading-auto.png'>
   <!ENTITY FIG.plot2-shading-density '&figs;plot2-shading-density.png'>
@@ -379,7 +380,9 @@
                           <ref id="form-linearfit">Linear Fit</ref>'>
   <!ENTITY FORM.quantile '&IMG.FORM_QUANTILE;
                           <ref id="form-quantile">Quantile</ref>'>
-  <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Text Label</ref>'>
+  <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Label</ref>'>
+  <!ENTITY FORM.arealabel '&IMG.PLOT_AREALABEL;
+                           <ref id="form-arealabel">Area Label</ref>'>
   <!ENTITY FORM.contour '&IMG.PLOT_CONTOUR;
                         <ref id="form-contour">Contour</ref>'>
   <!ENTITY FORM.grid '&IMG.FORM_GRID;
@@ -401,6 +404,8 @@
   <!ENTITY FORM.mark4 '&IMG.FORM_MARKS4; <ref id="form-mark4">Mark4</ref>'>
   <!ENTITY FORM.area '&IMG.FORM_AREA; <ref id="form-area">Area</ref>'>
   <!ENTITY FORM.central '&IMG.FORM_MARK; <ref id="form-central">Central</ref>'>
+  <!ENTITY FORM.areaLabel '&IMG.FORM_AREALABEL;
+                           <ref id="form-arealabel">AreaLabel</ref>'>
   <!ENTITY FORM.polygon '&IMG.FORM_POLYLINE;
                          <ref id="form-polygon">Polygon</ref>'>
   <!ENTITY GESTURE.DRAG1 '&IMG.DRAG1; Left drag'>
@@ -9897,13 +9902,17 @@ currently selected form.
     draws an outlined or filled area</li>
 <li>&IMG.FORM_MARK; <ref id="form-central">Central</ref>:
     plots the central point of an area</li>
+<li>&IMG.PLOT_AREALABEL; <ref id="form-arealabel">AreaLabel</ref>:
+    adds a text label near the center of an area</li>
 </ul>
-The <label>Central</label> form just plots a point in the same way as
-<ref id="form-mark">Mark</ref>,
-but it works with an area coordinate rather than normal positional ones.
 It can be useful to have multiple instances of the <label>Area</label> form,
 for instance to paint the outline and fill the interior separately.
-You can add a new one using the &IMG.ADD; <label>Forms</label> button.
+The <label>Central</label> and <label>AreaLabel</label> forms
+just plot points/text in the same way as
+<ref id="form-mark">Mark</ref>/<ref id="form-label">Label</ref>,
+but they work with an Area coordinate rather than normal positional ones.
+</p>
+<p>You can add a new form using the &IMG.ADD; <label>Forms</label> button.
 Each such form can be configured separately using a panel
 divided into two parts:
 <dl>
@@ -11224,9 +11233,9 @@ in two dimensions.
 </subsubsubsect>
 
 <subsubsubsect id="form-label">
-<subhead><title>Text Label Form</title></subhead>
+<subhead><title>Label Form</title></subhead>
 
-<p>The <label>Text Label</label> form (&IMG.PLOT_LABEL;)
+<p>The <label>Label</label> form (&IMG.PLOT_LABEL;)
 draws a text label by each point position.
 </p>
 
@@ -11236,7 +11245,7 @@ draws a text label by each point position.
 </figure>
 
 <figure>
-<caption><px>Text Label form configuration panel</px></caption>
+<caption><px>Label form configuration panel</px></caption>
 <figureimage src="&FIG.form_label;"/>
 </figure>
 
@@ -12813,6 +12822,76 @@ shape information; it may or may not correspond to the shape's actual center.
 
 </subsubsubsect>
 
+<subsubsubsect id="form-arealabel">
+<subhead><title>AreaLabel Form</title></subhead>
+
+<p>The <label>AreaLabel</label> form (&IMG.PLOT_AREALABEL;)
+is available from the
+<ref id="GangLayerControl_area">Area layer control</ref>,
+and draws a text label near the nominal center of each plotted area.
+The effect is just the same as for the <ref id="form-label">Label</ref> form,
+but it can be used from the Area layer control rather than
+having to specify positional coordinates separately.
+The plotted position is determined by the plotting code from the
+shape information; it may or may not correspond to the shape's actual center.
+</p>
+
+<figure>
+<caption><px>Example AreaLabel plot</px></caption>
+<figureimage src="&FIG.plot2-layer-arealabel;"/>
+</figure>
+
+<figure>
+<caption><px>AreaLabel form configuration panel</px></caption>
+<figureimage src="&FIG.form_label;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Text</dt>
+<dd><p>A column or expression from the table supplying the text to
+    write on the plot.  Any data type (string or numeric) is permitted.
+    </p></dd>
+<dt>Text Syntax</dt>
+<dd><p>How to turn the text into characters on the screen.
+    <label>Plain</label> and <label>Antialias</label> both take the
+    text at face value, but Antialias smooths the characters.
+    Antialiased text usually looks nicer, but can be perceptibly slower to plot.
+    At time of writing, on MacOS antialiased text seems to be required to
+    stop the writing coming out upside-down for non-horizontal text.
+    <label>LaTeX</label> interprets the text as LaTeX source code
+    and typesets it accordingly.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font - standard, serif or monospaced.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is plain, bold or italic.
+    </p></dd>
+<dt>Anchor</dt>
+<dd><p>The position of the text relative to the data position.
+    </p></dd>
+<dt>Spacing Threshold</dt>
+<dt>Crowding Limit</dt>
+<dd><p>These two options control how closely spaced labels can be.
+    Labels which are too closely crowded together will simply not be shown,
+    since overplotting many labels together ends up with them being illegible.
+    The <label>Spacing Threshold</label> slider controls the smallest
+    area that a group of labels can have to themselves - if there are too
+    many in the same area, none will be drawn.  Sliding it left allows more
+    crowding and right allows less.  The <label>Crowding Limit</label>
+    controls the largest number of labels that can be in a group.
+    Setting it to 2 for instance is useful if you want to see pairs of
+    labels, even if the pair is close.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 </subsubsect>
 
 <subsubsect id="ShapeMode">
@@ -13602,6 +13681,7 @@ see the <label>Coords</label> tab of the
     <ul>
     <li>&FORM.area;</li>
     <li>&FORM.central;</li>
+    <li>&FORM.arealabel;</li>
     </ul></li>
 <li>&CONTROL.quad;, with the following plot controls:
     <ul>
@@ -13920,6 +14000,7 @@ values as their default (both Equatorial) and no conversion will be done.
     <ul>
     <li>&FORM.area;</li>
     <li>&FORM.central;</li>
+    <li>&FORM.arealabel;</li>
     </ul></li>
 <li>&CONTROL.quad;, with the following plot controls:
     <ul>
@@ -14556,6 +14637,7 @@ In many respects this works like the
     <ul>
     <li>&FORM.area;</li>
     <li>&FORM.central;</li>
+    <li>&FORM.arealabel;</li>
     </ul></li>
 <li>&CONTROL.quad;, with the following plot controls:
     <ul>
@@ -29530,8 +29612,9 @@ introduced since the last version:
         so that small polygons aren't too small to see.</li>
     <li>New <ref id="GangLayerControl_area">Area Layer Control</ref>,
         offering forms
-        <ref id="form-area">Area</ref> and
-        <ref id="form-central">Central</ref> ,
+        <ref id="form-area">Area</ref>,
+        <ref id="form-central">Central</ref> and
+        <ref id="form-arealabel">AreaLabel</ref>,
         can plot STC-S, DALI-array and MOC-ASCII regions on
         Sky, Plane or Sphere plots.</li>
     <li>The default initial layer in the

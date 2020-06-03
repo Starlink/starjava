@@ -144,6 +144,7 @@ public class PlanePlotType
             new LinePlotter( LinePlotter.PLANE_SORTAXIS_KEY ),
             new LinearFitPlotter( true ),
             LabelPlotter.POINT_INSTANCE,
+            LabelPlotter.AREA_PLANE_INSTANCE,
             new ContourPlotter( true ),
             new GridPlotter( true ),
             new FillPlotter( true ),

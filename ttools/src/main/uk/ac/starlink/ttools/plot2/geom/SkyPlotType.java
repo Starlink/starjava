@@ -80,6 +80,7 @@ public class SkyPlotType
         list.addAll( Arrays.asList( shapePlotters ) );
         list.addAll( Arrays.asList( new Plotter<?>[] {
             LabelPlotter.POINT_INSTANCE,
+            LabelPlotter.AREA_SKY_INSTANCE,
             new ContourPlotter( true ),
             new SkyDensityPlotter( true, true ),
             new HealpixPlotter( true ),

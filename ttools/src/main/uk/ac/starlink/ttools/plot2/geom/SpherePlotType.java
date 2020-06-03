@@ -74,6 +74,7 @@ public class SpherePlotType
         list.addAll( Arrays.asList( shapePlotters ) );
         list.addAll( Arrays.asList( new Plotter<?>[] {
             LabelPlotter.POINT_INSTANCE,
+            LabelPlotter.AREA_SPHERE_INSTANCE,
             new Line3dPlotter(),
             new ContourPlotter( true ),
             new SphereGridPlotter(),

@@ -12477,6 +12477,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         implementation of arcsin in crossmatching.</li>
     <li>Add new option <code>anchorN=center</code> to the
         <ref id="layer-label">label</ref> plot layer.</li>
+    <li>New <ref id="layer-arealabel"><code>arealabel</code></ref>
+        plot layer type for use with area coordinates.</li>
     </ul>
     </p></dd>
 

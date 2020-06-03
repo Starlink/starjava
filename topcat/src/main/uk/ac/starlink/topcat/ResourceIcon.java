@@ -741,6 +741,8 @@ public class ResourceIcon implements Icon {
                          toAddIcon( TTRI.FORM_LINEARFIT ) );
         putMap( nameMap, "ADD_FORM_QUANTILE", toAddIcon( TTRI.FORM_QUANTILE ) );
         putMap( nameMap, "ADD_PLOT_LABEL", toAddIcon( TTRI.PLOT_LABEL ) );
+        putMap( nameMap, "ADD_PLOT_AREALABEL",
+                         toAddIcon( TTRI.PLOT_AREALABEL ) );
         putMap( nameMap, "ADD_PLOT_CONTOUR", toAddIcon( TTRI.PLOT_CONTOUR ) );
         putMap( nameMap, "ADD_FORM_GRID", toAddIcon( TTRI.FORM_GRID ) );
         putMap( nameMap, "ADD_FORM_SKYDENSITY",
