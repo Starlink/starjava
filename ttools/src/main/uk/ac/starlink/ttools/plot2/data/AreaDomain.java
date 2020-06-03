@@ -63,10 +63,16 @@ public class AreaDomain implements Domain<AreaMapper> {
         Pattern.compile( NUMBER_REGEX );
     private static final Pattern PARENTHESIS_PATTERN =
         Pattern.compile( "\\s*\\((.*)\\)\\s*" );
-    private static final Pattern TERM_PATTERN =
-        Pattern.compile( "(" + WORDS_REGEX + ")+" + "(" + NUMBER_REGEX + ")+" );
     private static final Pattern MOC_PATTERN =
         Pattern.compile( "\\s*(?:([0-9]+)/)?([0-9]+)(?:-([0-9]+))?" );
+
+    // Note the use of a possessive quantifier (++) for the number matching
+    // here - this reduces the recursion depth, and hence the chance of
+    // a StackOverflowError which can otherwise happen when looking
+    // at a very long list of numbers.
+    private static final Pattern TERM_PATTERN =
+        Pattern.compile( "(" + WORDS_REGEX + ")+"
+                       + "(" + NUMBER_REGEX + ")++" );
 
     /**
      * Private sole constructor prevents external instantiation.
