@@ -12376,110 +12376,148 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 
 <dt>Next Version</dt>
 <dd><p>
-    <ul>
-    <li>Slightly improve plot axis labelling for small numbers;
-        remove unnecessary decimal point in scientific notation
-        in some cases.</li>
-    <li>Provide more options for the <label>shapeN</label> parameter
-        of the plot <ref id="layer-mark">mark</ref> layer type:
-        <code>fat_circle</code> etc using thicker lines.</li>
-    <li>Fix regression bug since last release that refused to make
-        dataless plots.</li>
-    <li>FITS ASCII table extensions with TFORM values of <code>In</code>
-        are now treated as 64-bit integers for <code>n&gt;=10</code>
-        rather than <code>n&gt;10</code>.</li>
-    <li>Add new conversion functions <code>*ToUnixSec</code> to
-        <ref id="uk.ac.starlink.ttools.func.Times">Times</ref> class
-        for convenience when specifying time coordinate to
-        <ref id="plot2time"><code>plot2time</code></ref>.</li>
-    <li>Add line thickness parameter <code>thick</code> to
-        <ref id="layer-contour">contour</ref> plot.</li>
-    <li>Modify a detail of the crossmatching algorithm:
-        rows are now binned using a HashSet rather than a TreeSet.
-        This may make some large matches noticeably faster;
-        it should have no effect on results.</li>
-    <li>Add <ref id="inFormats">input</ref>
-        and <ref id="outFormats">output</ref> support
-        for the Feather disk storage format.</li>
-    <li>Plot <code>storage</code> parameter has new options
-        <code>disk</code>, <code>policy</code> and
-        <code>persistent</code>.
-        These allow off-heap plot data caching, so that interactive
-        plots for very large data sets may be made without running
-        of of memory.
-        The <code>persistent</code> option additionally means that
-        results of expensive data read operations can be cached
-        between invocations.</li>
-    <li>Modify <code>taplint</code> processing of
-        <code>QUERY_STATUS</code> declarations;
-        overflow may now be declared before,
-        as well as after, the table.</li>
-    <li>Improved plot axis labelling in LaTeX mode, e.g. in LaTeX write
-        "3x10<sup>6</sup>" not "<code>3e6</code>".</li>
-    <li>Basic support for SIA version 2 as well as version 1 in
-        <ref id="cone"><code>cone</code></ref> and
-        <ref id="coneskymatch"><code>coneskymatch</code></ref> commands
-        (new option <code>servicetype=sia2</code>).</li>
-    <li>Add new functions <code>midLon</code> and <code>midLat</code>
-        to <ref id="uk.ac.starlink.ttools.func.Sky">Sky</ref> class.</li>
-    <li>Fix bug in <ref id="layer-skygrid">SkyGrid</ref> plot layer
-        that made it ignore the <code>viewsys</code> parameter,
-        always assuming equatorial so plotting the wrong grid lines
-        for non-equatorial view sky systems.  Note this bug applied
-        only to STILTS, not TOPCAT.</li>
-    <li>Fix <ref id="layer-polygon"><code>polygon</code></ref> plots in
-        <ref id="plot2sphere"><code>plot2sphere</code></ref> - this
-        combination was failing to plot anything, now it works.</li>
-    <li>Improve performance when reading long String values
-        from FITS files.</li>
-    <li>Add parameters <code>minsize</code> and <code>minshape</code>
-        to <ref id="layer-poly4"><code>poly4</code></ref> plot layer type.</li>
-    <li>New <ref id="layer-area"><code>area</code></ref> plot layer type
-        added for showing regions for in STC-S, DALI or ASCII-MOC values
-        in Plane, Sky and Sphere plots</li>
-    <li>New <ref id="layer-central"><code>central</code></ref> plot layer
-        type for use with area coordinates.</li>
-    <li>Add <code>ttypeN</code> parameter to
-        <ref id="plot2time"><code>plot2time</code></ref>
-        to allow explicit specification of time mapping from input data
-        (MJD, JD, ISO-8601 etc).
-        Numeric time values without such explicit specification
-        are now interpreted as MJD rather than Unix seconds.
-        This command is no longer labelled <em>experimental</em>.</li>
-    <li>Add <ref id="inFormats">input</ref>
-        and <ref id="outFormats">output</ref> support
-        for the ECSV (Enhanced Character Separated Values)
-        storage format.</li>
-    <li>Improve accuracy when drawing large HEALPix tile boundaries
-        in some cases for
-        <ref id="layer-skydensity">skydensity</ref> and
-        <ref id="layer-healpix">healpix</ref>
-        sky plot layers.</li>
-    <li>Slightly improve sampling accuracy of
-        <ref id="pixsample"><code>pixsample</code></ref> output.</li>
-    <li>Replace the PixTools library with
-        <webref url="https://github.com/cds-astro/cds-healpix-java"
-                >cds-healpix-java</webref> for all HEALPix manipulation.
-        This has resulted amongst other things in significant speedups
-        (typically a factor of 2) on large sky crossmatches.
-        Many thanks to Fran&#x00e7;ois-Xavier Pineau
-        for providing this library and assistance with its use;
-        also to Nikolay Kuropatkin from FermiLab whose
-        PixTools library served this purpose in STILTS up till now.
-        Crossmatching results should be completely unaffected
-        by this change; but if anybody notices anything
-        different or suspicious, please report it.</li>
-    <li>The <code>sortaxisN</code> parameter for the
-        <code>plot2time</code> <code>line</code> layer
-        now accepts the value <code>time</code> 
-        rather than <code>X</code> (or <code>Y</code>).</li>
-    <li>Use (Apache via cds-healpix) FastMath
-        implementation of arcsin in crossmatching.</li>
-    <li>Add new option <code>anchorN=center</code> to the
-        <ref id="layer-label">label</ref> plot layer.</li>
-    <li>New <ref id="layer-arealabel"><code>arealabel</code></ref>
-        plot layer type for use with area coordinates.</li>
-    </ul>
+    <dl>
+    <dt>File Formats:</dt>
+    <dd><p>
+        <ul>
+        <li>The <label>ECSV</label> (Enhanced Character Separated Values)
+            storage format is now supported for
+            <ref id="inFormats">input</ref> and
+            <ref id="outFormats">output</ref>.</li>
+        <li>The <label>Feather</label>
+            storage format is now supported for
+            <ref id="inFormats">input</ref> and
+            <ref id="outFormats">output</ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>Performance:</dt>
+    <dd><p>A number of implementation changes have been made
+        which may improve performance, particularly for crossmatching
+        (typical improvements for large sky crossmatches are a factor of 2,
+        though YMMV).  These should have no effect on the results,
+        but if anybody notices crossmatching behaviour which is
+        changed since previous versions or otherwise suspicious,
+        please report it.
+        <ul>
+        <li>The HEALPix implementation has been replaced;
+            all HEALPix manipulation is now done using the excellent
+            <webref url="https://github.com/cds-astro/cds-healpix-java"
+                    >cds-healpix-java</webref> library
+            written by Fran&#x00e7;ois-Xavier Pineau from CDS,
+            which speeds up sky crossmatching considerably.
+            Many thanks to Fran&#x00e7;ois-Xavier and to CDS
+            for providing this library and for assistance with its use;
+            thanks also to Nikolay Kuropatkin from FermiLab whose
+            <webref url="https://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
+                    >PixTools</webref> library
+            served this purpose in STILTS up till now.</li>
+        <li>Rows are now binned during crossmatches
+            using a HashSet rather than a TreeSet.</li>
+        <li>Evaluations of the <code>arcsin</code> function in Sky matches
+            now use the (Apache via cds-healpix) FastMath implementation
+            rather than the standard J2SE version.</li>
+        <li>Performance is improved when reading long String values
+            from FITS files.</li>
+        </ul>
+        </p></dd>
+    <dt>Plot commands:</dt>
+    <dd><p>
+        <ul>
+        <li>The new layer types
+            <ref id="layer-area"><code>area</code></ref>,
+            <ref id="layer-central"><code>central</code></ref> and
+            <ref id="layer-arealabel"><code>arealabel</code></ref>
+            can be used for plotting region data supplied as
+            area coordinates in the form of
+            STC-S (e.g. from ObsCore/EPN-TAP <code>s_region</code>),
+            DALI polygon/circle/point, or (ASCII) MOC columns.
+            These layers are available from the
+            <ref id="plot2plane"><code>plot2plane</code></ref>,
+            <ref id="plot2sky"><code>plot2sky</code></ref> and
+            <ref id="plot2sphere"><code>plot2sphere</code></ref> commands.</li>
+        <li>The <ref id="plot2time"><code>plot2time</code></ref> command
+            has been improved,
+            and is no longer considered <em>experimental</em>.
+            A new <code>ttypeN</code> parameter is added,
+            which allows you to explicitly define (as MJD, JD, ISO-8601 etc)
+            how input values are mapped to time. 
+            If no such mapping is specified or can be guessed from
+            the input metadata, time values are now interpreted by default
+            as MJD rather than (as previously) Unix seconds.</li>
+        <li>Provide more options for the <label>shapeN</label> parameter
+            of the plot <ref id="layer-mark"><code>mark</code></ref> layer type:
+            <code>fat_circle</code>, <code>fat_cross</code> etc
+            using thicker lines.</li>
+        <li>Add line thickness parameter <code>thick</code> to
+            <ref id="layer-contour"><code>contour</code></ref> plot.</li>
+        <li>Plot <code>storage</code> parameter has new options
+            <code>disk</code>, <code>policy</code> and
+            <code>persistent</code>.
+            These allow off-heap plot data caching, so that interactive
+            plots for very large data sets may be made without running
+            of of memory.
+            The <code>persistent</code> option additionally means that
+            results of expensive data read operations can be cached
+            between invocations.</li>
+        <li>The <ref id="layer-line"><code>line</code></ref> layer's 
+            <code>sortaxisN</code> parameter now accepts the option
+            <code>time</code> rather than <code>X</code> (or <code>Y</code>)
+            when used with <code>plot2time</code>.</li>
+        <li>Improved plot axis labelling in LaTeX mode, e.g. in LaTeX write
+            "3x10<sup>6</sup>" not "<code>3e6</code>".</li>
+        <li>Add new option <code>anchorN=center</code> to the
+            <ref id="layer-label"><code>label</code></ref> plot layer.</li>
+        <li>Add parameters <code>minsize</code> and <code>minshape</code>
+            to <ref id="layer-poly4"><code>poly4</code></ref>
+            plot layer type.</li>
+        <li>Improve accuracy when drawing large HEALPix tile boundaries
+            in some cases for
+            <ref id="layer-skydensity"><code>skydensity</code></ref> and
+            <ref id="layer-healpix"><code>healpix</code></ref>
+            sky plot layers.</li>
+        </ul>
+        </p></dd>
+    <dt>Other minor enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>Basic support for SIA version 2 as well as version 1 in
+            <ref id="cone"><code>cone</code></ref> and
+            <ref id="coneskymatch"><code>coneskymatch</code></ref> commands
+            (new option <code>servicetype=sia2</code>).</li>
+        <li>Add new conversion functions <code>*ToUnixSec</code> to
+            <ref id="uk.ac.starlink.ttools.func.Times">Times</ref> class.</li>
+        <li>Add new functions <code>midLon</code> and <code>midLat</code>
+            to <ref id="uk.ac.starlink.ttools.func.Sky">Sky</ref> class.</li>
+        <li>Slightly improve sampling accuracy of
+            <ref id="pixsample"><code>pixsample</code></ref> output.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug and misfeature fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix bug in <ref id="layer-skygrid"><code>SkyGrid</code></ref>
+            plot layer that made it ignore the <code>viewsys</code> parameter,
+            always assuming equatorial so plotting the wrong grid lines
+            for non-equatorial view sky systems.  Note this bug applied
+            only to STILTS, not TOPCAT.</li>
+        <li>Fix regression bug since last release that refused to make
+            dataless plots.</li>
+        <li>Fix <ref id="layer-polygon"><code>polygon</code></ref> plots in
+            <ref id="plot2sphere"><code>plot2sphere</code></ref> - this
+            combination was failing to plot anything, now it works.</li>
+        <li>FITS ASCII table extensions with TFORM values of <code>In</code>
+            are now treated as 64-bit integers for <code>n&gt;=10</code>
+            rather than <code>n&gt;10</code>.</li>
+        <li>Modify <code>taplint</code> processing of
+            <code>QUERY_STATUS</code> declarations;
+            overflow may now be declared before,
+            as well as after, the table.</li>
+        <li>Slightly improve plot axis labelling for small numbers;
+            remove unnecessary decimal point in scientific notation
+            in some cases.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
