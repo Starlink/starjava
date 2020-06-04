@@ -29541,134 +29541,166 @@ introduced since the last version:
 
 <dt>Next Version</dt>
 <dd><p>
-    <ul>
-    <li>Fix fairly harmless NullPointerException report when
-        displaying a blank plot with too few auto-selected axes
-        (regression).</li>
-    <li>It is now permitted to provide blank RA/Dec entries in the
-        <ref id="SsapTableLoadDialog">SSA Query</ref> window.
-        This is legal according to the SSA standard and reasonable for
-        e.g. theory services.</li>
-    <li>Slightly improve plot axis labelling for small numbers;
-        remove unnecessary decimal point in scientific notation
-        in some cases.</li>
-    <li>Maximum marker <label>Size</label> in
-        <ref id="form-mark">Mark</ref> plot form
-        is increased from 5 to 9.</li>
-    <li>Provide more options in the <label>Shape</label> selector
-        for the <ref id="form-mark">Mark</ref> plot form:
-        versions of circle, cross etc with thicker lines.</li>
-    <li>Fix regression bug since last release that refused to make
-        dataless plots.</li>
-    <li>FITS ASCII table extensions with TFORM values of <code>In</code>
-        are now treated as 64-bit integers for <code>n&gt;=10</code>
-        rather than <code>n&gt;10</code>.</li>
-    <li>Add new conversion functions <code>*ToUnixSec</code> to
-        <ref id="Times">Times</ref> class for convenience when working
-        with <ref id="TimePlotWindow">Time plots</ref>.</li>
-    <li>Add line thickness control to the
-        <ref id="form-contour">contour</ref> plot.</li>
-    <li>Modify a detail of the crossmatching algorithm: 
-        rows are now binned using a HashSet rather than a TreeSet.
-        This may make some large matches noticeably faster; 
-        it should have no effect on results.</li>
-    <li>Add <ref id="inFeather">input</ref>
-        and <ref id="outFeather">output</ref> support
-        for the Feather disk storage format.</li>
-    <li>Improved plot axis labelling in LaTeX mode, e.g. in LaTeX write 
-        "3x10<sup>6</sup>" not "<code>3e6</code>".</li>
-    <li>Basic support for SIA version 2 as well as version 1 in the
-        <ref id="SiapTableLoadDialog">SIA Query</ref> and
-        <ref id="SiaMultiWindow">Multiple SIA Query</ref> windows.</li>
-    <li>Reorder registry service URLs for the (largely obsolete)
-        RI1.0-mode registry search in the
-        <ref id="RegistryPanel">Registry Search Panel</ref>.
-        Default is now Euro-VO, which still offers a working RI1.0
-        service; the (moribund?) AstroGrid services are demoted.</li>
-    <li>Adjust coordinate labels for
-        <ref id="form-skyvector">SkyVector</ref> plot form,
-        to make it more obvious that cos(lat) premultiplication
-        is required for Delta Lon.</li>
-    <li>Add new functions <code>midLon</code> and <code>midLat</code>
-        to <ref id="Sky">Sky</ref> class.</li>
-    <li>The <ref id="SkyPlotWindow">Sky Plot</ref> position layer control
-        now automatically selects lon/lat coordinates for EPN-TAP tables
-        (<code>midLon(c1min,c1max)</code>,
-         <code>midLat(c2min,c2max)</code>) where available.
-        Similarly,
-        <code>c</code>{<code>1</code>,<code>2</code
-                    >}{<code>min</code>,<code>max</code>} values
-        are automatically used for the sky plot
-        <ref id="GangLayerControl_quad">Quad Position Layer Control</ref>,
-        so that EPN-TAP-style bounding boxes
-        are displayed by default.</li>
-    <li>Fix <ref id="form-polygon">polygon</ref> plot form in
-        <ref id="SpherePlotWindow">Sphere Plot</ref>; this
-        combination was failing to plot anything, now it works.</li>
-    <li>Improve performance when reading long String values
-        from FITS files.</li>
-    <li>Add replacement marker functionality (Minimal Size/Shape options)
-        to <ref id="form-poly4">Poly4</ref> form,
-        so that small polygons aren't too small to see.</li>
-    <li>New <ref id="GangLayerControl_area">Area Layer Control</ref>,
-        offering forms
-        <ref id="form-area">Area</ref>,
-        <ref id="form-central">Central</ref> and
-        <ref id="form-arealabel">AreaLabel</ref>,
-        can plot STC-S, DALI-array and MOC-ASCII regions on
-        Sky, Plane or Sphere plots.</li>
-    <li>The default initial layer in the
-        <ref id="TimePlotWindow">Time Plot</ref> is now
-        Line, not Mark.</li>
-    <li>The <ref id="TimePlotWindow">Time Plot</ref> window now has
-        a time format selector, which makes it much easier to
-        plot time quantities from input tables with insufficient
-        metadata.</li>
-    <li>Remove <label>SAMP Window</label> button from main
-        Control Window toolbar for reasons of space;
-        this option is still available in the <label>Interop</label>
-        menu.</li>
-    <li>The <ref id="TimePlotWindow">Time Plot</ref> window
-        is no longer labelled <em>experimental</em>,
-        and now appears on the main control window toolbar.</li>
-    <li>Add <ref id="inEcsv">input</ref>
-        and <ref id="outEcsv">output</ref> support
-        for the ECSV (Enhanced Character Separated Values)
-        storage format.
-        Expand <ref id="inCsv">CSV</ref> documentation to
-        suggest use of ECSV instead.</li>
-    <li>Fix Ellipse mode in the Plane Plot's
-        <ref id="FigurePanel">Draw Algebraic Subset</ref> action;
-        the ellipse was previously defined 2<sup>-0.5</sup>
-        smaller than the drawing.</li>
-    <li>Improve accuracy when drawing large HEALPix tile boundaries
-        in some cases for
-        <ref id="form-skydensity">SkyDensity</ref> and
-        <ref id="HealpixLayerControl">Healpix</ref>
-        sky plot layers.</li>
-    <li>Replace the PixTools library with
-        <webref url="https://github.com/cds-astro/cds-healpix-java"
-                >cds-healpix-java</webref> for all HEALPix manipulation.
-        This has resulted amongst other things in significant speedups
-        (typically a factor of 2) on large sky crossmatches.
-        Many thanks to Fran&#x00e7;ois-Xavier Pineau
-        for providing this library and assistance with its use;
-        also to Nikolay Kuropatkin from FermiLab whose
-        PixTools library served this purpose in TOPCAT up till now.
-        Crossmatching results should be completely unaffected
-        by this change; but if anybody notices anything
-        different or suspicious, please report it.</li>
-    <li>The Sort Axis option for the Line plotter in the Time plot
-        window now presents the option Time rather than X (or Y).</li>
-    <li>Scatter plot marker size now defaults to a value dependent on
-        the number of rows in the table,
-        so by default large tables have small markers and
-        small tables have larger markers.</li>
-    <li>Use (Apache via cds-healpix) FastMath 
-        implementation of arcsin in crossmatching.</li>
-    <li>Add Center option to <ref id="form-label">Label</ref>
-        plot form.</li>
-    </ul>
+    <dl>
+    <dt>File Formats:</dt>
+    <dd><p>
+        <ul>
+        <li>The <label>ECSV</label> (Enhanced Character Separated Values)
+            storage format is now supported for
+            <ref id="inEcsv">input</ref> and
+            <ref id="outEcsv">output</ref>.</li>
+        <li>The <label>Feather</label>
+            storage format is now supported for
+            <ref id="inFeather">input</ref> and
+            <ref id="outFeather">output</ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>Performance:</dt>
+    <dd><p>A number of implementation changes have been made
+        which may improve performance, particularly for crossmatching
+        (typical improvements for large sky crossmatches are a factor of 2,
+        though YMMV).  These should have no effect on the results,
+        but if anybody notices crossmatching behaviour which is
+        changed since previous versions or otherwise suspicious,
+        please report it.
+        <ul>
+        <li>The HEALPix implementation has been replaced;
+            all HEALPix manipulation is now done using the excellent
+            <webref url="https://github.com/cds-astro/cds-healpix-java"
+                    >cds-healpix-java</webref> library
+            written by Fran&#x00e7;ois-Xavier Pineau from CDS,
+            which speeds up sky crossmatching considerably.
+            Many thanks to Fran&#x00e7;ois-Xavier and to CDS
+            for providing this library and for assistance with its use;
+            thanks also to Nikolay Kuropatkin from FermiLab whose
+            <webref url="https://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
+                    >PixTools</webref> library
+            served this purpose in TOPCAT up till now.</li>
+        <li>Rows are now binned during crossmatches
+            using a HashSet rather than a TreeSet.</li>
+        <li>Evaluations of the <code>arcsin</code> function in Sky matches
+            now use the (Apache via cds-healpix) FastMath implementation
+            rather than the standard J2SE version.</li>
+        <li>Performance is improved when reading long String values
+            from FITS files.</li>
+        </ul>
+        </p></dd>
+    <dt>Visualisation:</dt>
+    <dd><p>
+        <ul>
+        <li>New <ref id="GangLayerControl_area">Area Layer Control</ref>,
+            offering forms
+            <ref id="form-area">Area</ref>,
+            <ref id="form-central">Central</ref> and
+            <ref id="form-arealabel">AreaLabel</ref>,
+            can plot region data supplied as area coordinates in the form of
+            STC-S (e.g. from ObsCore/EPN-TAP <code>s_region</code>),
+            DALI polygon/circle/point or (ASCII) MOC columns
+            on Sky, Plane or Sphere plots.</li>
+        <li>The <ref id="TimePlotWindow">Time Plot</ref> window
+            is no longer labelled <em>experimental</em>,
+            and now appears on the main control window toolbar.
+            When selecting its time coordinate, you can now also select how
+            input values are mapped to time (as MJD, JD, ISO-8601 etc),
+            which makes it much easier to plot time quantities from
+            input tables with insufficient metadata.</li>
+        <li>The default initial layer in the
+            <ref id="TimePlotWindow">Time Plot</ref> is now
+            <ref id="form-line">Line</ref>, not
+            <ref id="form-mark">Mark</ref>.</li>
+        <li>Scatter plot <ref id="form-mark">marker</ref> size
+            now defaults to a value dependent on
+            the number of rows in the table,
+            so by default large tables have small markers and
+            small tables have larger markers.</li>
+        <li>Provide more options in the <label>Shape</label> selector
+            for the <ref id="form-mark">Mark</ref> plot form:
+            versions of circle, cross etc with thicker lines.</li>
+        <li>Maximum marker <label>Size</label> in
+            <ref id="form-mark">Mark</ref> plot form
+            is increased from 5 to 9.</li>
+        <li>Add line thickness control to the
+            <ref id="form-contour">contour</ref> plot.</li>
+        <li>Improved plot axis labelling in LaTeX mode, e.g. in LaTeX write 
+            "3x10<sup>6</sup>" not "<code>3e6</code>".</li>
+        <li>The <ref id="SkyPlotWindow">Sky Plot</ref> position layer control
+            now automatically selects lon/lat coordinates for EPN-TAP tables
+            (<code>midLon(c1min,c1max)</code>,
+             <code>midLat(c2min,c2max)</code>) where available.
+            Similarly,
+            <code>c</code>{<code>1</code>,<code>2</code
+                        >}{<code>min</code>,<code>max</code>} values
+            are automatically used for the sky plot
+            <ref id="GangLayerControl_quad">Quad Position Layer Control</ref>,
+            so that EPN-TAP-style bounding boxes
+            are displayed by default.</li>
+        <li>Add replacement marker functionality (Minimal Size/Shape options)
+            to <ref id="form-poly4">Poly4</ref> form,
+            so that small polygons aren't too small to see.</li>
+        <li>Improve accuracy when drawing large HEALPix tile boundaries
+            in some cases for
+            <ref id="form-skydensity">SkyDensity</ref> and
+            <ref id="HealpixLayerControl">Healpix</ref>
+            sky plot layers.</li>
+        <li>The Sort Axis option for the Line plotter in the Time plot
+            window now presents the option Time rather than X (or Y).</li>
+        <li>Add Center option to the <ref id="form-label">Label</ref>
+            plot Anchor selector.</li>
+        </ul>
+        </p></dd>
+    <dt>Other minor enhancements/changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Basic support for SIA version 2 as well as version 1 in the
+            <ref id="SiapTableLoadDialog">SIA Query</ref> and
+            <ref id="SiaMultiWindow">Multiple SIA Query</ref> windows.</li>
+        <li>It is now permitted to provide blank RA/Dec entries in the
+            <ref id="SsapTableLoadDialog">SSA Query</ref> window.
+            This is legal according to the SSA standard and reasonable for
+            e.g. theory services.</li>
+        <li>Remove <label>SAMP Window</label> button from main
+            Control Window toolbar for reasons of space;
+            this option is still available in the <label>Interop</label>
+            menu.</li>
+        <li>Add new functions <code>midLon</code> and <code>midLat</code>
+            to <ref id="Sky">Sky</ref> class.</li>
+        <li>Add new conversion functions <code>*ToUnixSec</code> to
+            <ref id="Times">Times</ref> class.</li>
+        <li>Adjust coordinate labels for
+            <ref id="form-skyvector">SkyVector</ref> plot form,
+            to make it more obvious that cos(lat) premultiplication
+            is required for Delta Lon.</li>
+        <li>Reorder registry service URLs for the (largely obsolete)
+            RI1.0-mode registry search in the
+            <ref id="RegistryPanel">Registry Search Panel</ref>.
+            Default is now Euro-VO, which still offers a working RI1.0
+            service; the (moribund?) AstroGrid services are demoted.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug and misfeature fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix Ellipse mode in the Plane Plot's
+            <ref id="FigurePanel">Draw Algebraic Subset</ref> action;
+            the ellipse expression was previously covering an area
+            2<sup>-0.5</sup> smaller than the drawing.</li>
+        <li>Fix <ref id="form-polygon">polygon</ref> plot form in
+            <ref id="SpherePlotWindow">Sphere Plot</ref>; this
+            combination was failing to plot anything, now it works.</li>
+        <li>FITS ASCII table extensions with TFORM values of <code>In</code>
+            are now treated as 64-bit integers for <code>n&gt;=10</code>
+            rather than <code>n&gt;10</code>.</li>
+        <li>Fix regression bug since last release that refused to make
+            dataless plots.</li>
+        <li>Slightly improve plot axis labelling for small numbers;
+            remove unnecessary decimal point in scientific notation
+            in some cases.</li>
+        <li>Fix fairly harmless NullPointerException report when
+            displaying a blank plot with too few auto-selected axes
+            (regression).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
