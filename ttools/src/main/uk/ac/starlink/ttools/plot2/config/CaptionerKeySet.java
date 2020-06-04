@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import uk.ac.starlink.ttools.plot2.BasicCaptioner;
 import uk.ac.starlink.ttools.plot2.Captioner;
@@ -21,6 +22,9 @@ public class CaptionerKeySet implements KeySet<Captioner> {
     private final ConfigKey<Integer> fontSizeKey_;
     private final ConfigKey<FontType> fontTypeKey_;
     private final ConfigKey<FontWeight> fontWeightKey_;
+
+    /** True to use Lucida fonts, false to use logical fonts. */
+    public static boolean PREFER_PHYSICAL_FONT = false;
 
     /**
      * Constructor.
@@ -121,24 +125,64 @@ public class CaptionerKeySet implements KeySet<Captioner> {
 
     /**
      * Font type enum for use with captioner configuration.
+     * Physical font family names, used if PREFER_PHYSICAL_FONT is true,
+     * are Lucida fonts, which are present in Oracle JREs and licensed
+     * in other JREs
+     * (see https://docs.oracle.com/javase/tutorial/2d/text/fonts.html,
+     * where it is misspelt "Lucidia").
+     * This guarantees consistent output, though it doesn't support
+     * Unicode characters from Chinese, Japanese and Korean.
      */
     private enum FontType {
-        SANSSERIF( "Standard",  "Dialog", TeXFormula.SANSSERIF ),
-        SERIF( "Serif", "Serif", TeXFormula.ROMAN ),
-        MONO( "Mono", "Monospaced", TeXFormula.TYPEWRITER );
+        SANSSERIF( "Standard", "Dialog", "Lucida Sans", TeXFormula.SANSSERIF ),
+        SERIF( "Serif", "Serif", "Lucida Bright", TeXFormula.ROMAN ),
+        MONO( "Mono", "Monospaced", "Lucida Sans Typewriter",
+              TeXFormula.TYPEWRITER );
 
         private final String name_;
         private final String awtName_;
         private final int texType_;
 
-        FontType( String name, String awtName, int texType ) {
+        /**
+         * Constructor.
+         *
+         * @param  name  font type name
+         * @param  logicalName  AWT font family logical name,
+         *                      guaranteed to exist
+         * @param  physicalName AWT font family physical name,
+         *                      will be used only if it exists and
+         *                      PREFER_PHYSICAL_FONT is true
+         * @param  texType  JLatexMath font type code
+         */
+        FontType( String name, String logicalName, String physicalName,
+                  int texType ) {
             name_ = name;
-            awtName_ = awtName;
+            awtName_ = PREFER_PHYSICAL_FONT && existsFontFamily( physicalName )
+                     ? physicalName
+                     : logicalName;
             texType_ = texType;
         }
 
         public String toString() {
             return name_;
+        }
+
+        /**
+         * Indicates whether the given font family name is supported by
+         * the avaiable graphics environment.
+         *
+         * @param  ffName  font family name
+         * @return  true iff ffName is a locally-known font
+         */
+        private static boolean existsFontFamily( String ffName ) {
+            for ( String name :
+                  GraphicsEnvironment.getLocalGraphicsEnvironment()
+                                     .getAvailableFontFamilyNames() ) {
+                if ( name.equals( ffName ) ) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
