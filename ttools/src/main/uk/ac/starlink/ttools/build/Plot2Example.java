@@ -42,6 +42,7 @@ import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.PictureImageIcon;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.SplitRunner;
+import uk.ac.starlink.ttools.plot2.config.CaptionerKeySet;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.SimpleDataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.TupleRunner;
@@ -74,6 +75,20 @@ public class Plot2Example {
     private final Context context_;
     private final PlotTask task_;
     private final String[] params_;
+
+    /* Use the standard physical fonts (Lucida) for rendering text,
+     * including axis annotations etc.  This means that output graphics
+     * files will be predictable at the pixel level rather than being
+     * at the mercy of JRE-local physical->logical font mappings,
+     * which is important since the outputs will be stored under version
+     * control and compared with outputs that may have been generated
+     * under different JREs.  Note this sets a static member of another class,
+     * which has to be done before that class is used; there's no guarantee
+     * here that this setting will be done early enough, but it currently
+     * works correctly as invoked in the build process. */
+    static {
+        CaptionerKeySet.PREFER_PHYSICAL_FONT = true;
+    }
 
     /**
      * Constructor.
