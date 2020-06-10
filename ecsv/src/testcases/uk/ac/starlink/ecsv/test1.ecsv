@@ -9,7 +9,7 @@
 #   description: It's some kind of message, innit.
 #   meta:
 #      ucd: meta.misc
-#      xtype: do what?
+#      xtype: "'do what?'"
 #      dummy: A dummy value.
 # 
 # - {name: log,  datatype:    bool}

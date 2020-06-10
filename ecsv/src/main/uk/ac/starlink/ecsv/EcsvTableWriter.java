@@ -458,7 +458,7 @@ public class EcsvTableWriter extends StreamStarTableWriter {
     /**
      * Indicates whether a string is suitable for unescaped use as
      * a plain YAML scalar in flow mode.
-     * This is implemented conservatively with referene to YAML 1.1
+     * This is implemented conservatively with reference to YAML 1.1
      * section 9.1.3.
      *
      * @param  txt  unescaped text
@@ -467,6 +467,32 @@ public class EcsvTableWriter extends StreamStarTableWriter {
      */
     private static boolean isPlainScalar( String txt ) {
         int leng = txt.length();
+        if ( leng > 0 ) {
+            switch ( txt.charAt( 0 ) ) {
+                case ' ':
+                case '-':
+                case '?':
+                case ':':
+                case ',':
+                case '[':
+                case ']':
+                case '{':
+                case '}':
+                case '#':
+                case '&':
+                case '*':
+                case '!':
+                case '|':
+                case '>':
+                case '\'':
+                case '"':
+                case '%':
+                case '@':
+                case '`':
+                    return false;
+                default:
+            }
+        }
         for ( int i = 0; i < leng; i++ ) {
             char c = txt.charAt( i );
             if ( c < 0x20 || c > 0x7f ) {
@@ -481,13 +507,6 @@ public class EcsvTableWriter extends StreamStarTableWriter {
                     return false;
                 default:
             }
-        }
-        switch ( txt.charAt( 0 ) ) {
-            case '-':
-            case '?':
-            case ':':
-                return false;
-            default:
         }
         if ( txt.contains( ": " ) ||
              txt.contains( " #" ) ) {

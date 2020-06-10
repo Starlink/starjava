@@ -12523,6 +12523,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Fix ECSV output bug: encoding was incorrect for metadata
+        scalars with certain non-alphanumeric first characters,
+        leading to invalid YAML.</li>
     </ul>
     </p></dd>
 
