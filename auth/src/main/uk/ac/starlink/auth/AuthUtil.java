@@ -102,6 +102,50 @@ public class AuthUtil {
     }
 
     /**
+     * Returns the authenticated user ID recorded in the headers of
+     * a URL connection.
+     * This attempts to read the non-standard header {@value AUTHID_HEADER}.
+     * If the header is absent, some placeholder non-null value is returned.
+     * If the connection does not look like an authenticated one,
+     * null is returned.
+     *
+     * @param  aconn   connection to endpoint expected to yield an auth ID
+     * @return  real or placeholder authenticated user ID, or null
+     */
+    public static String getAuthenticatedId( AuthConnection aconn ) {
+        URLConnection conn = aconn.getConnection();
+        HttpURLConnection hconn =
+            conn instanceof HttpURLConnection ? (HttpURLConnection) conn
+                                              : null;
+        if ( conn == null ) {
+            return null;
+        }
+        int code;
+        try {
+            code = hconn.getResponseCode();
+        }
+        catch ( IOException e ) {
+            return null;
+        }
+        AuthContext context = aconn.getContext();
+        if ( code == 403 || code == 401 ) {
+            return null;
+        }
+        else if ( code == 404 ) {
+            return null;
+        }
+        else if ( context == null || ! context.hasCredentials() ) {
+            return null;
+        }
+        else {
+            String authId = hconn.getHeaderField( AUTHID_HEADER );
+            return authId != null && authId.trim().length() > 0
+                 ? authId
+                 : "authenticated(unknownID)";
+        }
+    }
+
+    /**
      * Prepares a short user-readable message indicating the state of a
      * connection that failed because of auth issues.
      *
