@@ -15,7 +15,6 @@ import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.SourceReader;
 
 /**
  * Implementation of the <tt>TableBuilder</tt> interface which 
