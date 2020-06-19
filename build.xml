@@ -129,6 +129,9 @@
     <echo message="Executing Jetty target: ${what}"/>
     <ant dir="./jetty" target="${what}"/>
 
+    <echo message="Executing AUTH target: ${what}"/>
+    <ant dir="./auth" target="${what}"/>
+
     <echo message="Executing UTIL target: ${what}"/>
     <ant dir="./util" target="${what}"/>
 
@@ -428,6 +431,10 @@
        !   created then this would be unnecessary (TODO: look into
        !   this and maybe create a special type).
        !-->
+      <packageset dir="auth/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
       <packageset dir="util/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
