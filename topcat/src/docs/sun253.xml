@@ -29713,6 +29713,9 @@ introduced since the last version:
         ECSV output.</li>
     <li>Fix Healpix trouble at large angles, e.g. sky crossmatch failure
         with match radius &gt;6 degrees.</li>
+    <li>Improve seeding of the expression language <code>$random</code>
+        special value; 
+        it should now be less dependent on JVM details.</li>
     </ul>
     </p></dd>
 

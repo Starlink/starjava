@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.jel;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
@@ -64,7 +65,7 @@ import uk.ac.starlink.table.Tables;
 public abstract class StarTableJELRowReader extends JELRowReader {
 
     private final StarTable table_;
-    private final long HASH_LONG = System.identityHashCode( this );
+    private static final AtomicInteger seeder_ = new AtomicInteger();
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.jel" );
 
@@ -293,12 +294,13 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         }
         else if ( name.equalsIgnoreCase( "$random" ) ||
                   name.equals( "RANDOM" ) ) {
+            final long seed0 = seeder_.incrementAndGet() * -2323;
             return new Constant() {
                 public Class<?> getContentClass() {
                     return Double.class;
                 }
                 public Object getValue() {
-                    long seed = HASH_LONG + ( getCurrentRow() * 2000000011L );
+                    long seed = seed0 + ( getCurrentRow() * 2000000011L );
                     return new Double( new Random( seed ).nextDouble() );
                 }
             };
