@@ -20,6 +20,9 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import uk.ac.starlink.auth.AuthManager;
+import uk.ac.starlink.auth.Redirector;
+import uk.ac.starlink.auth.UrlConnector;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -57,6 +60,8 @@ public class TapQuery {
     private final Map<String,String> stringMap_;
     private final Map<String,HttpStreamParam> streamMap_;
     private final long uploadLimit_;
+    private static final Redirector redir303_ = 
+        Redirector.createStandardInstance( new int[] { 303 } );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -296,7 +301,19 @@ public class TapQuery {
             return UwsJob.createJob( url.toString(), stringMap_, streamMap_ );
         }
         catch ( UwsJob.UnexpectedResponseException e ) {
-            throw asIOException( e, "Synchronous might work?" );
+            int code;
+            try {
+                code = e.getConnection().getResponseCode();
+            }
+            catch ( Throwable e2 ) {
+                code = -1;
+            }
+            if ( code != 401 && code != 403 ) {
+                throw asIOException( e, "Synchronous might work?" );
+            }
+            else {
+                throw e;
+            }
         }
     }
 
@@ -339,7 +356,8 @@ public class TapQuery {
             URL errUrl = new URL( uwsJob.getJobUrl() + "/error" );
             logger_.info( "Read error VOTable from " + errUrl );
             try {
-                errText = readErrorInfo( errUrl.openStream() );
+                errText = readErrorInfo( AuthManager.getInstance()
+                                                    .openStream( errUrl ) );
             }
             catch ( Throwable e ) {
                 throw (IOException)
@@ -376,8 +394,9 @@ public class TapQuery {
         catch ( UwsJob.UnexpectedResponseException e ) {
             throw asIOException( e, null );
         }
-        return readResultVOTable( coding.openConnection( resultUrl ), coding,
-                                  storage );
+        return readResultVOTable( AuthManager.getInstance()
+                                             .connect( resultUrl, coding ),
+                                  coding, storage );
     }
 
     /**
@@ -396,8 +415,9 @@ public class TapQuery {
                                        StoragePolicy storage )
             throws IOException {
         URL url = new URL( uwsJob.getJobUrl() + "/results/result" );
-        return readResultVOTable( coding.openConnection( url ), coding,
-                                  storage );
+        return readResultVOTable( AuthManager.getInstance()
+                                             .connect( url, coding ),
+                                  coding, storage );
     }
 
     /**
@@ -729,7 +749,8 @@ public class TapQuery {
             throws IOException {
 
         /* Follow 303 redirects as required. */
-        conn = followRedirects( conn );
+        conn = AuthManager.getInstance()
+              .followRedirects( conn, coding, redir303_ );
 
         /* Get an input stream representing the content of the resource.
          * HttpURLConnection may provide this from the getInputStream or
@@ -848,6 +869,7 @@ public class TapQuery {
      */
     public static URLConnection followRedirects( URLConnection conn )
             throws IOException {
-        return URLUtils.followRedirects( conn, new int[] { 303 } );
+        return AuthManager.getInstance() 
+              .followRedirects( conn, (UrlConnector) null, redir303_ );
     }
 }

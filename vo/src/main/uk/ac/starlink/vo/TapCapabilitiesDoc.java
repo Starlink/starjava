@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -22,8 +21,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.DOMUtils;
-import uk.ac.starlink.util.URLUtils;
 
 /**
  * Encapsulates useful information found in the capabilities document
@@ -112,9 +111,10 @@ public class TapCapabilitiesDoc {
      */
     public static TapCapabilitiesDoc readCapabilities( URL capsUrl )
             throws IOException, SAXException {
-        URLConnection conn =
-            URLUtils.followRedirects( capsUrl.openConnection(), null );
-        InputStream in = new BufferedInputStream( conn.getInputStream() );
+
+        /* Read from the URL. */
+        InputStream in = new BufferedInputStream( AuthManager.getInstance()
+                                                 .openStream( capsUrl ) );
 
         /* Parse the XML document to a DOM. */
         Element capsEl;

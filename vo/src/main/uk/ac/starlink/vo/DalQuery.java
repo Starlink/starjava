@@ -1,15 +1,15 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.logging.Logger;
 import org.xml.sax.InputSource;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.util.CgiQuery;
 import uk.ac.starlink.util.ContentCoding;
-import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.VOElementFactory;
 
 /**
@@ -143,9 +143,9 @@ public class DalQuery {
         logger_.info( "Submitting query: " + qurl );
         VOElementFactory vofact =
             new VOElementFactory( tfact.getStoragePolicy() );
-        URLConnection conn = coding.openConnection( qurl );
-        conn = URLUtils.followRedirects( conn, null );
-        InputSource inSrc = new InputSource( coding.getInputStream( conn ) );
+        InputStream in =
+            coding.openStreamAuth( qurl, AuthManager.getInstance() );
+        InputSource inSrc = new InputSource( in );
         inSrc.setSystemId( qurl.toString() );
         return DalResultXMLFilter.getDalResultTable( vofact, inSrc );
     }

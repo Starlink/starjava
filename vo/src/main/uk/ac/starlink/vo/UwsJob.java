@@ -13,6 +13,7 @@ import java.net.URLEncoder;
 import java.net.HttpURLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,12 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthConnection;
+import uk.ac.starlink.auth.AuthContext;
+import uk.ac.starlink.auth.AuthManager;
+import uk.ac.starlink.auth.AuthUtil;
+import uk.ac.starlink.auth.Redirector;
+import uk.ac.starlink.auth.UrlConnector;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.ContentCoding;
@@ -371,14 +378,25 @@ public class UwsJob {
      * @throws  IOException  if job deletion failed for some reason
      */
     public void postDelete() throws IOException {
-        HttpURLConnection hconn = openHttpConnection( jobUrl_ );
-        logger_.info( "DELETE " + jobUrl_ );
-        hconn.setRequestMethod( "DELETE" );
-        hconn.setInstanceFollowRedirects( false );
-        final int response;
-        try {
+        UrlConnector connector = hconn -> {
+            hconn.setRequestMethod( "DELETE" );
+            hconn.setInstanceFollowRedirects( false );
             hconn.connect();
-            response = hconn.getResponseCode();
+        };
+        final int response;
+        logger_.info( "DELETE " + jobUrl_ );
+        try {
+            URLConnection conn = 
+                AuthManager.getInstance()
+               .connect( jobUrl_, connector, Redirector.NO_REDIRECT );
+            if ( conn instanceof HttpURLConnection ) {
+                HttpURLConnection hconn = (HttpURLConnection) conn;
+                response = hconn.getResponseCode();
+            }
+            else {
+                throw new IOException( "Can't POST to non-HTTP URL "
+                                     + jobUrl_ );
+            }
         }
         finally {
             synchronized ( this ) {
@@ -532,6 +550,9 @@ public class UwsJob {
      * It can take zero or more string parameters and zero or more stream
      * parameters, and posts them in an appropriate way.
      *
+     * <p>Authentication may be handled, but there will be no 3xx
+     * redirection.
+     *
      * @param   url   destination URL
      * @param   coding  HTTP content coding; connection output should be
      *                  decoded using the same value
@@ -545,11 +566,6 @@ public class UwsJob {
                             Map<String,String> stringParams,
                             Map<String,HttpStreamParam> streamParams )
             throws IOException {
-        if ( logger_.isLoggable( Level.CONFIG ) ) {
-            logger_.config( "Doing something like: "
-                          + getCurlPostEquivalent( url, coding, stringParams,
-                                                   streamParams ) );
-        }
         return ( streamParams == null || streamParams.isEmpty() )
              ? postUnipartForm( url, coding, stringParams )
              : postMultipartForm( url, coding, stringParams, streamParams,
@@ -560,6 +576,9 @@ public class UwsJob {
      * Performs an HTTP form POST with a name-&gt;value map of parameters.
      * They are posted with MIME type "application/x-www-form-urlencoded".
      *
+     * <p>Authentication may be handled, but there will be no 3xx
+     * redirection.
+     *
      * @param   url  destination URL
      * @param   coding  HTTP content coding; connection output should be
      *                  decoded using the same value
@@ -568,33 +587,47 @@ public class UwsJob {
      * @return   URL connection corresponding to the completed POST
      */
     public static HttpURLConnection
-                  postUnipartForm( URL url, ContentCoding coding,
+                  postUnipartForm( URL url, final ContentCoding coding,
                                    Map<String,String> paramMap )
             throws IOException {
-        HttpURLConnection hconn = openHttpConnection( url );
-        byte[] postBytes = toPostedBytes( paramMap );
-        hconn.setRequestMethod( "POST" );
-        hconn.setRequestProperty( "Content-Type",
-                                  "application/x-www-form-urlencoded" );
-        coding.prepareRequest( hconn );
-        // We could stream this request, which would seem tidier.
-        // However, that inhibits automatic handling of 401 Unauthorized
-        // responses if a java.net.Authenticator is in use, and the
-        // amount of data posted is not likely to be large, so don't do it.
-        // hconn.setFixedLengthStreamingMode( postBytes.length );
-        hconn.setInstanceFollowRedirects( false );
-        hconn.setDoOutput( true );
+        final byte[] postBytes = toPostedBytes( paramMap );
+        UrlConnector connector = hconn -> {
+            hconn.setRequestMethod( "POST" );
+            hconn.setRequestProperty( "Content-Type",
+                                      "application/x-www-form-urlencoded" );
+            coding.prepareRequest( hconn );
+            hconn.setFixedLengthStreamingMode( postBytes.length );
+            hconn.setInstanceFollowRedirects( false );
+            hconn.setDoOutput( true );
+            hconn.connect();
+            OutputStream hout = hconn.getOutputStream();
+            hout.write( postBytes );
+            hout.close();
+        };
         logger_.info( "POST to " + url );
         logger_.config( "POST content: "
                               + ( postBytes.length < 200
                                     ? new String( postBytes, "utf-8" )
                                     : new String( postBytes, 0, 200, "utf-8" )
                                       + "..." ) );
-        hconn.connect();
-        OutputStream hout = hconn.getOutputStream();
-        hout.write( postBytes );
-        hout.close();
-        return hconn;
+        AuthConnection aconn =
+            AuthManager
+           .getInstance()
+           .makeConnection( url, connector, Redirector.NO_REDIRECT );
+        if ( logger_.isLoggable( Level.CONFIG ) ) {
+            logger_
+           .config( "Did something like: "
+                  + getCurlPostEquivalent(
+                        url, coding, aconn.getContext(), AuthUtil.LOG_SECRETS,
+                        paramMap, new HashMap<String,HttpStreamParam>() ) );
+        }
+        URLConnection conn = aconn.getConnection();
+        if ( conn instanceof HttpURLConnection ) {
+            return (HttpURLConnection) conn;
+        }
+        else {
+            throw new IOException( "Can't POST to non-HTTP URL " + url );
+        }
     }
 
     /**
@@ -602,6 +635,9 @@ public class UwsJob {
      * name-&gt;stream map of parameters.
      * The form is written in multipart/form-data format.
      * See <a href="http://www.ietf.org/rfc/rfc2046.txt">RFC 2046</a> Sec 5.1.
+     *
+     * <p>Authentication may be handled, but there will be no 3xx
+     * redirection.
      *
      * @param   url  destination URL
      * @param   coding  HTTP content coding; connection output should be
@@ -612,21 +648,60 @@ public class UwsJob {
      * @return   URL connection corresponding to the completed POST
      */
     public static HttpURLConnection
-                  postMultipartForm( URL url, ContentCoding coding,
-                                     Map<String,String> stringMap,
-                                     Map<String,HttpStreamParam> streamMap,
-                                     String boundary )
+                postMultipartForm( URL url, final ContentCoding coding,
+                                   final Map<String,String> stringMap,
+                                   final Map<String,HttpStreamParam> streamMap,
+                                   String boundary )
             throws IOException {
-        if ( boundary == null ) {
-            boundary = "<<<--------------MULTIPART-BOUNDARY------->>>";
-        }
-        if ( boundary.length() > 70 ) {
+        final String boundary0 =
+            boundary == null ? "<<<--------------MULTIPART-BOUNDARY------->>>"
+                             : boundary;
+        if ( boundary0.length() > 70 ) {
             throw new IllegalArgumentException( "Boundary >70 chars"
                                               + " (see RFC 2046 sec 5.1.1)" );
         }
+        UrlConnector connector = hconn -> {
+            connectMultipartForm( hconn, coding, stringMap, streamMap,
+                                  boundary0 );
+        };
+        AuthConnection aconn =
+            AuthManager
+           .getInstance()
+           .makeConnection( url, connector, Redirector.NO_REDIRECT );
+        if ( logger_.isLoggable( Level.CONFIG ) ) {
+            logger_
+           .config( "Did something like: "
+                  + getCurlPostEquivalent( url, coding, aconn.getContext(),
+                                           AuthUtil.LOG_SECRETS,
+                                           stringMap, streamMap ) );
+        }
+        URLConnection conn = aconn.getConnection();
+        if ( conn instanceof HttpURLConnection ) {
+            return (HttpURLConnection) conn;
+        }
+        else {
+            throw new IOException( "Can't POST to non-HTTP URL " + url );
+        }
+    }
 
-        /* Prepare for multipart/form-data output. */
-        HttpURLConnection hconn = openHttpConnection( url );
+    /**
+     * Opens a connection corresponding to POSTing a multipart/form-data form.
+     *
+     * @param   hconn   unconnected connection ready for configuration,
+     *                  on exit form will have been posted
+     * @param   coding  HTTP content coding; connection output should be
+     *                  decoded using the same value
+     * @param   stringMap   name-&gt;value map of parameters
+     * @param   streamMap   name-&gt;stream map of parameters
+     * @param  boundary  multipart boundary; if null a default value is used
+     */
+    private static void
+                connectMultipartForm( HttpURLConnection hconn,
+                                      ContentCoding coding,
+                                      Map<String,String> stringMap,
+                                      Map<String,HttpStreamParam> streamMap,
+                                      String boundary )
+            throws IOException {
         hconn.setRequestMethod( "POST" );
         hconn.setRequestProperty( "Content-Type",
                                   "multipart/form-data"
@@ -634,7 +709,7 @@ public class UwsJob {
         coding.prepareRequest( hconn );
         hconn.setInstanceFollowRedirects( false );
         hconn.setDoOutput( true );
-        logger_.info( "POST params to " + url );
+        logger_.info( "POST params to " + hconn.getURL() );
 
         /* Open and buffer stream for POST content.  If we simply write to
          * the connection's output stream, the content will be buffered
@@ -687,7 +762,6 @@ public class UwsJob {
         /* Write trailing delimiter. */
         writeBoundary( hout, boundary, true );
         hout.close();
-        return hconn;
     }
 
     /**
@@ -703,6 +777,10 @@ public class UwsJob {
      * @param   url   destination URL
      * @param   coding  HTTP content coding; connection output should be
      *                  decoded using the same value
+     * @param   context  authentication context in use
+     * @param   showSecret  if true, sensitive information like passwords
+     *                      may appear in the output;
+     *                      if false they must be omitted
      * @param   stringParams  name-&gt;value map for POST parameters;
      *          values will be URL encoded as required
      * @param   streamParams  name-&gt;parameter map for POST parameters
@@ -712,6 +790,7 @@ public class UwsJob {
      */
     public static String
             getCurlPostEquivalent( URL url, ContentCoding coding,
+                                   AuthContext context, boolean showSecret,
                                    Map<String,String> stringParams,
                                    Map<String,HttpStreamParam> streamParams ) {
         StringBuffer sbuf = new StringBuffer()
@@ -721,6 +800,12 @@ public class UwsJob {
             .append( " --location " );
         if ( coding == ContentCoding.GZIP ) {
             sbuf.append( " --compressed" );
+        }
+        if ( context != null ) {
+            for ( String carg : context.getCurlArgs( url, showSecret ) ) {
+                sbuf.append( ' ' )
+                    .append( shellEscape( carg ) );
+            }
         }
         for ( Map.Entry<String,String> entry : stringParams.entrySet() ) {
             sbuf.append( " --form " )
@@ -757,25 +842,6 @@ public class UwsJob {
             return '"' + txt + '"';
         }
         return "'" + txt.replaceAll( "'", "'\"'\"'" ) + "'";
-    }
-
-    /**
-     * Opens a URL connection as an HttpURLConnection.
-     * If the connection is not HTTP, an IOException is thrown.
-     *
-     * @param   url   URL
-     * @return   typed connection
-     */
-    private static HttpURLConnection openHttpConnection( URL url )
-            throws IOException {
-        URLConnection connection = url.openConnection();
-        try {
-            return (HttpURLConnection) connection;
-        }
-        catch ( ClassCastException e ) {
-            throw (IOException) new IOException( "Not an HTTP URL? " + url )
-                               .initCause( e );
-        }
     }
 
     /**

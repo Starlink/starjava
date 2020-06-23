@@ -8,6 +8,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.SourceReader;
 
@@ -95,7 +96,8 @@ public class ResolverInfo {
                     + URLEncoder.encode( name, "UTF-8" ) );
             logger_.info( url.toString() );
             Element el = new SourceReader()
-                        .getElement( new StreamSource( url.openStream() ) );
+                        .getElement( new StreamSource( AuthManager.getInstance()
+                                                      .openStream( url ) ) );
             String tag = getTagname( el );
             if ( "Sesame".equals( tag ) ) {
                 return interpretSesame( el );

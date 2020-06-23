@@ -28,6 +28,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.DOMUtils;
 
 /**
@@ -65,7 +66,7 @@ public class DaliExampleReader {
      * @return   list of examples
      */
     public List<Tree<DaliExample>> readExamples( URL url ) throws IOException {
-        InputStream in = url.openStream();
+        InputStream in = AuthManager.getInstance().openStream( url );
         Document doc;
         try {
             DocumentBuilder db =

@@ -1,6 +1,7 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Logger;
@@ -8,6 +9,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
@@ -109,8 +111,9 @@ public class ConeSearch {
                                TableSink sink ) throws IOException {
         URL qurl = getSearchURL( ra, dec, sr, verb );
         logger_.info( "Submitting query: " + qurl );
-        new VOTableBuilder().streamStarTable( coding_.openStream( qurl ),
-                                              sink, null );
+        InputStream in =
+            coding_.openStreamAuth( qurl, AuthManager.getInstance() );
+        new VOTableBuilder().streamStarTable( in, sink, null );
     }
 
     /**
@@ -134,7 +137,9 @@ public class ConeSearch {
         VOElement topEl;
         try {
             topEl = new VOElementFactory( storage )
-                   .makeVOElement( coding_.openStream( qurl ),
+                   .makeVOElement( coding_
+                                  .openStreamAuth( qurl,
+                                                   AuthManager.getInstance() ),
                                    qurl.toString() );
         }
         catch ( SAXException e ) {

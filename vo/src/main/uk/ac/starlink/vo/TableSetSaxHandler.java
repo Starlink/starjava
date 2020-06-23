@@ -23,8 +23,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.ContentCoding;
-import uk.ac.starlink.util.URLUtils;
 
 /**
  * Parses an XML document which describes Tabular Data as prescribed by
@@ -398,9 +398,7 @@ public class TableSetSaxHandler extends DefaultHandler {
             throw (IOException) new IOException( "SAX trouble" ).initCause( e );
         }
         TableSetSaxHandler tsHandler = new TableSetSaxHandler();
-        URLConnection conn = url.openConnection();
-        coding.prepareRequest( conn );
-        conn = URLUtils.followRedirects( conn, null );
+        URLConnection conn = AuthManager.getInstance().connect( url, coding );
         if ( conn instanceof HttpURLConnection ) {
             HttpURLConnection hconn = (HttpURLConnection) conn;
             int code = hconn.getResponseCode();

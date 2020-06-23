@@ -14,6 +14,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.starlink.auth.AuthManager;
 
 /**
  * SAX content handler implementation which can parse one or more
@@ -191,7 +192,7 @@ class JobSaxHandler extends DefaultHandler {
             throw (IOException) new IOException( "SAX trouble" ).initCause( e );
         }
         JobSaxHandler jHandler = new JobSaxHandler();
-        URLConnection conn = url.openConnection();
+        URLConnection conn = AuthManager.getInstance().connect( url );
         if ( conn instanceof HttpURLConnection ) {
             HttpURLConnection hconn = (HttpURLConnection) conn;
             int code = hconn.getResponseCode();
