@@ -14,6 +14,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.ForeignMeta;
@@ -86,17 +87,15 @@ public class TablesEndpointStage extends TableMetadataStage {
         /* Open URL connection. */
         final URLConnection conn;
         try {
-            conn = turl.openConnection();
+            conn = AuthManager.getInstance().connect( turl, coding_ );
         }
         catch ( IOException e ) {
             reporter.report( FixedCode.E_FLIO,
                              "Can't open tables endpoint", e );
             return null;
         }
-        coding_.prepareRequest( conn );
         if ( conn instanceof HttpURLConnection ) {
             HttpURLConnection hconn = (HttpURLConnection) conn;
-            hconn.setInstanceFollowRedirects( true );
             final int code;
             try {
                 code = hconn.getResponseCode();

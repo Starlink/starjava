@@ -19,6 +19,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.w3c.dom.Node;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
@@ -577,7 +578,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                         reporter.report( FixedCode.I_QGET,
                                          "Query GET URL: " + qurl );
                     }
-                    return qurl.openConnection();
+                    return AuthManager.getInstance().connect( qurl );
                 }
                 else {
                     return UwsJob.postForm( syncEndpoint, ContentCoding.NONE,
@@ -624,11 +625,12 @@ public abstract class VotLintTapRunner extends TapRunner {
                 String phase = info.getPhase();
                 if ( "COMPLETED".equals( phase ) ) {
                     uwsJob.setDeleteOnExit( true );
-                    return new URL( jobUrl + "/results/result" )
-                          .openConnection();
+                    return AuthManager.getInstance()
+                          .connect(  new URL( jobUrl + "/results/result" ) );
                 }
                 else if ( "ERROR".equals( phase ) ) {
-                    return new URL( jobUrl + "/error" ).openConnection();
+                    return AuthManager.getInstance()
+                          .connect( new URL( jobUrl + "/error" ) );
                 }
                 else {
                     throw new IOException( "Unexpected UWS phase " + phase );

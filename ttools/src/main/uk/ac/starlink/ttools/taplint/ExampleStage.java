@@ -37,6 +37,7 @@ import org.w3c.dom.Text;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.votlint.VocabChecker;
 import uk.ac.starlink.util.ContentType;
@@ -250,8 +251,7 @@ public class ExampleStage implements Stage {
     private static Document readXml( Reporter reporter, URL url,
                                      ContentTypeOptions reqType )
             throws SAXException, IOException {
-        URLConnection conn = url.openConnection();
-        conn.connect();
+        URLConnection conn = AuthManager.getInstance().connect( url );
         InputStream in = conn.getInputStream();
         if ( reqType != null ) {
             reqType.checkType( reporter, conn.getContentType(), url );

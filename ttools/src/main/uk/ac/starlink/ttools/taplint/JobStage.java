@@ -14,6 +14,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
+import uk.ac.starlink.auth.Redirector;
+import uk.ac.starlink.auth.UrlConnector;
 import uk.ac.starlink.util.ByteList;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.ContentType;
@@ -174,13 +177,20 @@ public class JobStage implements Stage {
             }
             URL jobUrl = job.getJobUrl();
             checkPhase( job, "PENDING" );
+            UrlConnector delConnector = hconn -> {
+                hconn.setRequestMethod( "DELETE" );
+                hconn.setInstanceFollowRedirects( false );
+                hconn.connect();
+            };
             URLConnection conn;
             try {
-                conn = jobUrl.openConnection();
+                conn = AuthManager.getInstance()
+                      .connect( jobUrl, delConnector, Redirector.NO_REDIRECT );
             }
             catch ( IOException e ) {
-                reporter_.report( FixedCode.E_HTOF,
-                                  "Failed to contact " + jobUrl, e );
+                reporter_.report( FixedCode.E_HTDE,
+                                  "Failed to perform HTTP DELETE to " + jobUrl,
+                                  e );
                 return;
             }
             if ( ! ( conn instanceof HttpURLConnection ) ) {
@@ -191,10 +201,8 @@ public class JobStage implements Stage {
             HttpURLConnection hconn = (HttpURLConnection) conn;
             int response;
             try {
-                hconn.setRequestMethod( "DELETE" );
-                hconn.setInstanceFollowRedirects( false );
-                hconn.connect();
                 response = hconn.getResponseCode();
+                hconn.getInputStream().close();
             }
             catch ( IOException e ) {
                 reporter_.report( FixedCode.E_HTDE,
@@ -450,8 +458,7 @@ public class JobStage implements Stage {
             URL jobUrl = job.getJobUrl();
             URLConnection conn;
             try {
-                conn = jobUrl.openConnection();
-                conn.connect();
+                conn = AuthManager.getInstance().connect( jobUrl );
             }
             catch ( IOException e ) {
                 reporter_.report( FixedCode.E_DEOP,

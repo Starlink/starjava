@@ -22,10 +22,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
-import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapabilitiesDoc;
@@ -478,7 +478,7 @@ public class TapLinter {
             String serverHdr;
             try {
                 URLConnection conn =
-                    URLUtils.followRedirects( capUrl.openConnection(), null );
+                    AuthManager.getInstance().connect( capUrl );
                 serverHdr = conn.getHeaderField( "server" );
                 in = new BufferedInputStream( conn.getInputStream() );
                 el = DocumentBuilderFactory.newInstance()

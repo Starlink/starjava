@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
 import org.xml.sax.Locator;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.Base64InputStream;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.PipeReaderThread;
@@ -50,7 +51,7 @@ public class StreamHandler extends ElementHandler {
                 if ( url != null ) {
                     InputStream in = null;
                     try {
-                        in = url.openStream();
+                        in = AuthManager.getInstance().openStream( url );
                         in = new BufferedInputStream( in );
                         in = decodeStream( in );
                         streamer.feed( in );

@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -28,7 +29,6 @@ import uk.ac.starlink.ttools.votlint.VocabChecker;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.util.DOMUtils;
-import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.DatalinkVersion;
 import uk.ac.starlink.vo.Ivoid;
 import uk.ac.starlink.vo.datalink.LinkColMap;
@@ -122,9 +122,7 @@ public class DatalinkValidator {
         URLConnection conn;
         int httpCode;
         try {
-            conn = url.openConnection();
-            conn = URLUtils.followRedirects( conn, null );
-            conn.connect();
+            conn = AuthManager.getInstance().connect( url );
             httpCode = conn instanceof HttpURLConnection
                      ? ((HttpURLConnection) conn).getResponseCode()
                      : -1;

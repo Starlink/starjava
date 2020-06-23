@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
@@ -125,7 +126,7 @@ public class TapUploadMatcher implements UploadMatcher {
                 throw (IOException)
                       new IOException( "Interrupted" ).initCause( e );
             }
-            conn = coding_.openConnection( url );
+            conn = AuthManager.getInstance().connect( url, coding_ );
         }
 
         /* There is, as far as I can tell, no way to write ADQL that gives

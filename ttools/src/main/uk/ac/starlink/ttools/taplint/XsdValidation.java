@@ -14,6 +14,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.starlink.auth.AuthManager;
 
 /**
  * Methods to perform validation against XSD schemas.
@@ -50,7 +51,7 @@ public class XsdValidation {
         /* Open the document. */
         final InputStream docStream;
         try {
-            docStream = docUrl.openStream();
+            docStream = AuthManager.getInstance().openStream( docUrl );
         }
         catch ( FileNotFoundException e ) {
             return Result.NOT_FOUND;
