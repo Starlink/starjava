@@ -3,8 +3,6 @@ package uk.ac.starlink.topcat;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +17,7 @@ import org.astrogrid.samp.Response;
 import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.UtilServer;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.plastic.PlasticHub;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -41,7 +40,6 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.LogUtils;
-import uk.ac.starlink.util.PropertyAuthenticator;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.VOElementFactory;
@@ -375,11 +373,8 @@ public class Driver {
         /* Install custom URL handlers. */
         URLUtils.installCustomHandlers();
 
-        /* Set up an authenticator for HTTP 401s.  If properties are
-         * supplied, use those, otherwise use one which will pop up a window. */
-        if ( ! PropertyAuthenticator.installInstance( false ) ) {
-            Authenticator.setDefault( new SwingHttpAuthenticator( null ) );
-        }
+        /* Configure authentication to use a GUI. */
+        AuthManager.getInstance().setUserInterface( new TopcatAuthUi() );
 
         /* Assemble pairs of (table name, handler name) to be loaded. */
         final List<DataSourceLoader> loaderList =
