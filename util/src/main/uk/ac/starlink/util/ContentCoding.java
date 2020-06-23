@@ -7,6 +7,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.auth.AuthManager;
+import uk.ac.starlink.auth.UrlConnector;
 import uk.ac.starlink.util.CountInputStream;
 
 /**
@@ -39,7 +41,7 @@ import uk.ac.starlink.util.CountInputStream;
  * @see  <a href="http://www.w3.org/Protocols/rfc2616/rfc2616.html"
  *          >RFC 2616 secs 3.5, 14.3, 14.11</a>
  */
-public abstract class ContentCoding {
+public abstract class ContentCoding implements UrlConnector {
 
     /** No encoding is requested. */
     public static final ContentCoding NONE =
@@ -125,6 +127,27 @@ public abstract class ContentCoding {
         URLConnection conn = url.openConnection();
         prepareRequest( conn );
         return getInputStream( conn );
+    }
+
+    /**
+     * Convenience method to return a byte stream from a given URL
+     * in accordance with this object's encoding policy and with
+     * authentication and redirects handled by a given AuthManager
+     * (typically {@link uk.ac.starlink.auth.AuthManager#getInstance}).
+     *
+     * @param  url  target URL
+     * @param  authManager  authentication manager
+     * @return  unencoded stream from the URL
+     */
+    public InputStream openStreamAuth( URL url, AuthManager authManager )
+            throws IOException {
+        return getInputStream( authManager.connect( url, this ) );
+    }
+
+    public void connect( HttpURLConnection hconn ) throws IOException {
+        prepareRequest( hconn );
+        hconn.setInstanceFollowRedirects( false );
+        hconn.connect();
     }
 
     /**

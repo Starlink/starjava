@@ -12,6 +12,7 @@ import java.io.SequenceInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import uk.ac.starlink.auth.AuthManager;
 
 /**
  * Represents a stream-like source of data.
@@ -769,9 +770,7 @@ public abstract class DataSource {
         /* Try it as a URL. */
         try {
             URL url = new URL( location );
-            URLConnection conn = url.openConnection();
-            conn = URLUtils.followRedirects( conn, null );
-            return conn.getInputStream();
+            return AuthManager.getInstance().connect( url ).getInputStream();
         }
         catch ( MalformedURLException e ) {
         }
