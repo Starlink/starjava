@@ -20,6 +20,7 @@ import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
@@ -230,7 +231,7 @@ public class DownloadActivationType implements ActivationType {
         InputStream urlIn = null;
         OutputStream fileOut = null;
         try {
-            urlIn = url.openStream();
+            urlIn = AuthManager.getInstance().openStream( url );
             fileOut = new FileOutputStream( file );
             IOUtils.copy( urlIn, fileOut );
         }

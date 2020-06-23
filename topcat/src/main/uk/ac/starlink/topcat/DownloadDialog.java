@@ -14,6 +14,7 @@ import java.net.URL;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.IOUtils;
 
@@ -72,7 +73,7 @@ public abstract class DownloadDialog {
         /* Prepare to retrieve the remote resource. */
         InputStream in;
         try {
-            in = coding_.openStream( url );
+            in = coding_.openStreamAuth( url, AuthManager.getInstance() );
         }
         catch ( IOException e ) { 
             return Outcome.failure( "URL access failed: " + e 
