@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -121,13 +122,26 @@ public class TopcatUtils {
         /* Get the apparent table. */
         StarTable table =
             new MetaCopyStarTable( tcModel.getApparentStarTable() );
+        int ncol = table.getColumnCount();
+
+        /* Remove metadata that's only intended for internal topcat use. */
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnInfo cinfo = table.getColumnInfo( icol );
+            List<DescribedValue> auxData = cinfo.getAuxData();
+            for ( Iterator<DescribedValue> it = auxData.iterator();
+                  it.hasNext(); ) {
+                DescribedValue dval = it.next();
+                if ( TopcatUtils.COLID_INFO.equals( dval.getInfo() ) ) {
+                    it.remove();
+                }
+            }
+        }
 
         /* Identify synthetic columns, and adjust their column descriptions
          * to include the expression that defines them.
          * Before a table save (though not session save) operation is
          * an appropriate time to do this, since the expression calculation
          * behaviour will be lost following this serialization. */
-        int ncol = table.getColumnCount();
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo cinfo = table.getColumnInfo( icol );
             String expr =
