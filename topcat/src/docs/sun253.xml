@@ -29709,6 +29709,8 @@ introduced since the last version:
     <li>Fix ECSV output bug: encoding was incorrect for metadata
         scalars with certain non-alphanumeric first characters,
         leading to invalid YAML.</li>
+    <li>Remove some unhelpful per-column metadata items from
+        ECSV output.</li>
     </ul>
     </p></dd>
 

@@ -12530,6 +12530,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <em>preliminary</em> or <em>deprecated</em> as well as
         unknown ones (although currently no such terms exist
         in relevant vocabularies).</li>
+    <li>Remove some unhelpful per-column metadata items from
+        ECSV output.</li>
     </ul>
     </p></dd>
 

@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
@@ -63,6 +65,15 @@ public class EcsvTableWriter extends StreamStarTableWriter {
     /** Instance using commas for delimiters. */
     public static final EcsvTableWriter COMMA_WRITER =
         new EcsvTableWriter( ',', "-comma" );
+
+    private static final Collection<String> EXCLUDE_AUXMETAS = 
+            new HashSet<String>( Arrays.asList( new String[] {
+        Tables.UBYTE_FLAG_INFO.getName(),
+        "Datatype",    // VOStarTable.DATATYPE_INFO
+        "VOTable ID",  // VOStarTable.ID_INFO
+        "VOTable ref", // VOStarTable.REF_INFO
+        "Type",        // VOStarTable.TYPE_INFO
+    } ) );
 
     /**
      * Constructs a writer with default characteristics.
@@ -230,14 +241,11 @@ public class EcsvTableWriter extends StreamStarTableWriter {
             map.put( XTYPE_METAKEY, xtype );
         }
 
-        /* Add miscellaneous metadata, but avoid any items that are being
-         * used to inform the writing process itself. */
-        List<DescribedValue> auxItems = new ArrayList<>( colInfo.getAuxData() );
-        for ( Iterator<DescribedValue> dvit = auxItems.iterator();
-              dvit.hasNext(); ) {
-            DescribedValue dval = dvit.next();
-            if ( Tables.UBYTE_FLAG_INFO.equals( dval ) ) {
-                dvit.remove();
+        /* Add miscellaneous metadata, excluding certain items. */
+        List<DescribedValue> auxItems = new ArrayList<>();
+        for ( DescribedValue dval : colInfo.getAuxData() ) {
+            if ( ! EXCLUDE_AUXMETAS.contains( dval.getInfo().getName() ) ) {
+                auxItems.add( dval );
             }
         }
         map.putAll( getMetaMap( auxItems ) );
