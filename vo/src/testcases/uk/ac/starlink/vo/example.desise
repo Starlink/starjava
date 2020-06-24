@@ -10,7 +10,7 @@
     "ICRS": {
       "label": "ICRS",
       "description": "As defined by 1998AJ....116..516M.",
-      "wider": ["EQUATORIAL"],
+      "wider": ["EQUATORIAL"]
     },
     "B1875.0": {
       "label": "Bonner Durchmusterung System",
@@ -25,7 +25,7 @@
       "label": "ICRS 2",
       "description": "The reference system defined by 2027A&A..1234...12B",
       "preliminary": "",
-      "wider": ["EQUATORIAL"],
+      "wider": ["EQUATORIAL"]
      }
   }
 }
