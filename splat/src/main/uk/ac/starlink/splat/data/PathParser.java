@@ -319,24 +319,34 @@ public class PathParser
         File file = new File( specpath );
         String name = file.getName();
         int i1 = name.lastIndexOf( "." ); // Changed: from IndexOf to LastIndexOf MCN 08/2012
-        
+
         if ( i1 > -1 ) {
             if ( ! fitsext_.equals( "") ) {
                 int i2 = name.indexOf( fitsext_ );
                 type_ = name.substring( i1, i2 );
             } else if ( ! slice_.equals( "" ) ) {
                 int i2 = name.indexOf( slice_ );
-                if (i1 < i2)
-                	type_ = name.substring( i1, i2 );
+                if (i1 < i2) {
+                    type_ = name.substring( i1, i2 );
+                    if ( type_.equals("") ) {
+                        // File with slice, but no type is an NDF.
+                        type_ = ".sdf";
+                    }
+                }
                 else {
-                	type_ = name.substring( i1 );  
-                	slice_ = "";
+                    type_ = name.substring( i1 );  
+                    slice_ = "";
                 }
             } else {
                 type_ = name.substring( i1 );
             }
         } else {
-            type_ = "";
+            // File with a slice is an NDF, otherwise we don't care to guess. 
+            if ( ! slice_.equals( "" ) ) {
+                type_ = ".sdf";
+            } else {
+                type_ = "";
+            }
         }
     }
 
