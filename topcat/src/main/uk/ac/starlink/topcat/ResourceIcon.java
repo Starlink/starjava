@@ -261,6 +261,7 @@ public class ResourceIcon implements Icon {
         MEASURE = makeIcon( "measure.png" ),
         LOCK = makeIcon( "lock2.png" ),
         QAPPROX = makeIcon( "qapprox.png" ),
+        RESET_AUTH = makeIcon( "rublock.png" ),
 
         /* Plot2 icons. */
         UP_DOWN = makeIcon( "updown8.png" ),

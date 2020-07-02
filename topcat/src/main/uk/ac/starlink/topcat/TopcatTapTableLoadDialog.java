@@ -78,14 +78,18 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         Component comp = super.createQueryComponent();
         adjuster_.adjustComponent();
 
-        /* Add menu for TAP-specific items. */
+        /* Add menus for TAP-specific items. */
         List<JMenu> menuList =
             new ArrayList<JMenu>( Arrays.asList( super.getMenus() ) );
+        int imenu = 0;
         JMenu tapMenu = new JMenu( "TAP" );
         tapMenu.setMnemonic( KeyEvent.VK_T );
-        menuList.add( 0, tapMenu );
+        menuList.add( imenu++, tapMenu );
+        JMenu authMenu = new JMenu( "Authentication" );
+        authMenu.setMnemonic( KeyEvent.VK_A );
+        menuList.add( imenu++, authMenu );
         JMenu regMenu = new JMenu( "Registry" );
-        menuList.add( 1, regMenu );
+        menuList.add( imenu++, regMenu );
         setMenus( menuList.toArray( new JMenu[ 0 ] ) );
 
         /* Add reload action. */
@@ -236,6 +240,10 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
                                    + " queries" );
         codingButton.setSelected( true );
         tapMenu.add( codingButton );
+
+        /* Add items to authentication menu. */
+        authMenu.add( getAuthenticateAction() );
+        authMenu.add( ControlWindow.getInstance().getAuthResetAction() );
 
         /* Add items to registry menu. */
         RegistryPanel regPanel = getRegistryPanel();

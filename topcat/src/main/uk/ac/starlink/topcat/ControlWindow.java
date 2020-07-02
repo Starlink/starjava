@@ -84,6 +84,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumnModel;
 import org.astrogrid.samp.client.DefaultClientProfile;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowRunner;
@@ -230,6 +231,7 @@ public class ControlWindow extends AuxWindow
     private final Action cdsmatchAct_;
     private final ModelViewAction datalinkAct_;
     private final Action logAct_;
+    private final Action authResetAct_;
     private final Action[] matchActs_;
     private final ShowAction[] showActs_;
     private final ModelViewAction[] viewActs_;
@@ -369,6 +371,11 @@ public class ControlWindow extends AuxWindow
                              + "CDS VizieR or SIMBAD services" );
         logAct_ = new ControlAction( "View Log", ResourceIcon.LOG,
                                      "Display the log of events" );
+        authResetAct_ =
+            new ControlAction( "Reset Authentication", ResourceIcon.RESET_AUTH,
+                               "Clear any authentication credentials "
+                             + "entered so far in the GUI" );
+                                         
         readAct_.setEnabled( canRead_ );
         saveAct_.setEnabled( canWrite_ );
         logAct_.setEnabled( LogHandler.getInstance() != null );
@@ -620,6 +627,7 @@ public class ControlWindow extends AuxWindow
         }
         fileMenu.insertSeparator( fileMenuPos++ );
         fileMenu.insert( logAct_, fileMenuPos++ );
+        fileMenu.insert( authResetAct_, fileMenuPos++ );
         fileMenu.insertSeparator( fileMenuPos++ );
 
         /* Add a menu for the table views. */
@@ -801,6 +809,15 @@ public class ControlWindow extends AuxWindow
      */
     public RowRunner getRowRunner() {
         return runner_;
+    }
+
+    /**
+     * Returns an action that will reset all authentication contexts.
+     *
+     * @return   auth reset action
+     */
+    public Action getAuthResetAction() {
+        return authResetAct_;
     }
 
     /**
@@ -1652,8 +1669,11 @@ public class ControlWindow extends AuxWindow
             else if ( this == logAct_ ) {
                 LogHandler.getInstance().showWindow( ControlWindow.this );
             }
+            else if ( this == authResetAct_ ) {
+                AuthManager.getInstance().clear();
+            }
             else {
-                throw new AssertionError();
+                assert false;
             }
         }
     }
