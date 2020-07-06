@@ -208,7 +208,9 @@ public class Tilings {
      * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static int healpixK( double pixelsize ) {
-        return Healpix.getBestStartingDepth( Math.toRadians( pixelsize ) );
+        return Math.max( 0,
+                         Healpix
+                        .getBestStartingDepth( Math.toRadians( pixelsize ) ) );
     }
 
     /**

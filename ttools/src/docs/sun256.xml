@@ -12532,6 +12532,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in relevant vocabularies).</li>
     <li>Remove some unhelpful per-column metadata items from
         ECSV output.</li>
+    <li>Fix Healpix trouble at large angles, e.g. sky crossmatch failure
+        with match radius &gt;6 degrees.</li>
     </ul>
     </p></dd>
 

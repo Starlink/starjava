@@ -66,6 +66,8 @@ public class CdsHealpixSkyPixellator extends HealpixSkyPixellator {
         /* Calculate the HEALPix map resolution parameter appropriate for
          * the requested scale.  Any value is correct, the scale is just
          * a tuning parameter. */
-        return Healpix.getBestStartingDepth( DEFAULT_SCALE_FACTOR * scale );
+        return Math.max( 0,
+                         Healpix.getBestStartingDepth( DEFAULT_SCALE_FACTOR *
+                                                       scale ) );
     }
 }

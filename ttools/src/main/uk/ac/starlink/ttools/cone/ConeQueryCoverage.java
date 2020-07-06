@@ -110,7 +110,8 @@ public class ConeQueryCoverage extends MocCoverage {
          * @param   sizeDeg   search size in degrees
          */
         synchronized int calcOrder( double sizeDeg ) {
-            return Healpix.getBestStartingDepth( Math.toRadians( sizeDeg ) );
+            return Math.max(
+                0, Healpix.getBestStartingDepth( Math.toRadians( sizeDeg ) ) );
         }
     }
 

@@ -29711,6 +29711,8 @@ introduced since the last version:
         leading to invalid YAML.</li>
     <li>Remove some unhelpful per-column metadata items from
         ECSV output.</li>
+    <li>Fix Healpix trouble at large angles, e.g. sky crossmatch failure
+        with match radius &gt;6 degrees.</li>
     </ul>
     </p></dd>
 
