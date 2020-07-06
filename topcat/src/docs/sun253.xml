@@ -29716,6 +29716,8 @@ introduced since the last version:
     <li>Improve seeding of the expression language <code>$random</code>
         special value; 
         it should now be less dependent on JVM details.</li>
+    <li>TAP <code>curl(1)</code> equivalent logging flag error fixed
+        (write <code>--compressed</code> not <code>--compress</code>).</li>
     </ul>
     </p></dd>
 

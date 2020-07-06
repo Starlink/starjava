@@ -710,7 +710,7 @@ public class UwsJob {
             .append( url )
             .append( " --location " );
         if ( coding == ContentCoding.GZIP ) {
-            sbuf.append( " --compress" );
+            sbuf.append( " --compressed" );
         }
         for ( Map.Entry<String,String> entry : stringParams.entrySet() ) {
             sbuf.append( " --form " )
