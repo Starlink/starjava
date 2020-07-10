@@ -11,11 +11,15 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
+import org.jfree.graphics2d.svg.SVGGraphics2D;
+import org.jfree.graphics2d.svg.SVGUnits;
 import org.jibble.epsgraphics.EpsGraphics2D;
 
 /**
@@ -172,6 +176,24 @@ public abstract class GraphicExporter {
         new ImageIOExporter( "gif", "image/gif", "GIF",
                              new String[] { ".gif" }, "gif", false );
 
+    /** Exports to SVG format. */
+    public static final GraphicExporter SVG =
+            new GraphicExporter( "svg", "image/svg+xml", true,
+                                 "Scalable Vector Graphics",
+                                 new String[] { ".svg", } ) {
+        public void exportGraphic( Picture picture, OutputStream out )
+                throws IOException {
+            SVGGraphics2D g2 =
+                new SVGGraphics2D( picture.getPictureWidth(),
+                                   picture.getPictureHeight(),
+                                   SVGUnits.PX );
+            picture.paintPicture( g2 );
+            Writer writer = new OutputStreamWriter( out, "UTF-8" );
+            writer.write( g2.getSVGDocument() );
+            writer.close();
+        }
+    };
+
     /** Exports to Encapsulated PostScript. */
     public static final GraphicExporter EPS =
             new GraphicExporter( "eps", "application/postscript", true,
@@ -240,6 +262,7 @@ public abstract class GraphicExporter {
         if ( pdfEx != null ) {
             list.add( pdfEx );
         }
+        list.add( GraphicExporter.SVG );
 
         /* Note there is another option for postscript - net.sf.epsgraphics.
          * On brief tests seems to work, may or may not produce more compact

@@ -3783,6 +3783,15 @@ specific to STILTS graphical output as discussed below.
     </ol>
     </p></dd>
 
+<dt><code>svg</code></dt>
+<dd><p>Scalable Vector Graphics.
+    This is an XML-based vector graphics format developed for display
+    in web pages, and
+    <webref url="https://www.w3.org/TR/SVG/">defined by the W3C</webref>.
+    This exporter can generate
+    OutOfMemoryErrors if asked to generate a large output file.
+    </p></dd>
+
 <dt><code>eps</code></dt>
 <dd><p>Encapsulated Postscript.
     This is a vector format which is suitable for printing at high resolution
@@ -9330,6 +9339,8 @@ functionality:
     (CDS) for HEALPix manipulation</li>
 <li><webref url="http://www.1t3xt.com/">iText</webref>
     (1T3XT BVBA) for PDF output</li>
+<li><webref url="http://www.jfree.org/jfreesvg/">JFreeSVG</webref>
+    for SVG output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
 <li><webref url="http://cds.u-strasbg.fr/resources/doku.php?id=moc">MOC</webref>
@@ -12539,6 +12550,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         it should now be less dependent on JVM details.</li>
     <li>TAP <code>curl(1)</code> equivalent logging flag error fixed
         (write <code>--compressed</code> not <code>--compress</code>).</li>
+    <li>SVG (Scalable Vector Graphics) is now one of the supported
+        <ref id="graphicExporter">graphic output formats</ref>
+        for plot export.</li>
     </ul>
     </p></dd>
 

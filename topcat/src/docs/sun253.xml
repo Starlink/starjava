@@ -8441,6 +8441,11 @@ in one of the following graphics formats:
 <dd><p>Portable Document Format; in most cases this vector format
     gives pretty good output, in particular text will be rendered properly.
     </p></dd>
+<dt>svg</dt>
+<dd><p>Scalable Vector Graphics; this XML-based vector format mostly
+    works quite well, but can result in OutOfMemoryErrors for large
+    output files.
+    </p></dd>
 <dt>eps</dt>
 <dd><p>Encapsulated PostScript; PostScript cannot handle transparency,
     which means that in some cases the output will come out wrong.
@@ -8462,7 +8467,7 @@ in one of the following graphics formats:
     </p></dd>
 <dt>Force Bitmap</dt>
 <dd><p>This option only has an effect for vector graphics formats
-    (PDF and PostScript).  If selected, it draws the data contents of the
+    (PDF, SVG and PostScript).  If selected, it draws the data contents of the
     plot as a pixel map and embeds that into the output file rather than
     plotting each point in the output.  This may make the output less
     beautiful (round markers will no longer be perfectly round),
@@ -8488,7 +8493,8 @@ transparency and is lossy, so close inspection of image features
 will reveal blurring.
 </p>
 
-<p>When exporting to Portable Document Format (PDF) or
+<p>When exporting to Portable Document Format (PDF),
+Scalable Vector Graphics (SVG) or
 Encapsulated PostScript (EPS), which are vector graphics formats,
 there are a few things to consider:
 <dl>
@@ -8512,7 +8518,7 @@ there are a few things to consider:
     In future versions the positional resolution of non-pixellated modes
     may be improved.
     In either case, increasing the size of the plot on the screen
-    by resizing the window before performing an export to PDF or EPS
+    by resizing the window before performing an export to PDF, SVG or EPS
     will reduce the effect of the positional quantisation.
     Note it will also have the effect of making the text labels
     proportionally smaller to the graphics, so you may want to
@@ -10073,7 +10079,7 @@ Options are:
 <dt>Antialiasing</dt>
 <dd><p>If true, lines are antialiased, which makes them look smoother
     on the screen or bitmapped export images.
-    Has no effect on vector export images (PDF, EPS).
+    Has no effect on vector export images (PDF, SVG, EPS).
     </p></dd>
 </dl>
 </p>
@@ -11309,7 +11315,7 @@ to visualise the characteristics of overdense regions in a crowded plot.
 
 <p>The contours are currently drawn as pixels rather than lines,
 so they don't look very beautiful in exported vector output formats
-(PDF, PostScript).
+(PDF, SVG, PostScript).
 </p>
 
 <figure>
@@ -12484,7 +12490,7 @@ The mean and standard deviation values are reported by the plot
 <dt>Antialiasing</dt>
 <dd><p>If true, lines are antialiased, which makes them look smoother
     on the screen or bitmapped export images.
-    Has no effect on vector export images (PDF, EPS).
+    Has no effect on vector export images (PDF, SVG, EPS).
     </p></dd>
 </dl>
 And these options appear in the form configuration panel for the Plane window,
@@ -12910,7 +12916,7 @@ data coordinate, or other configuration information.
 </p>
 
 <p>When exporting plots to an external vector graphics format 
-(EPS or PDF), some of the shading modes may not behave the same
+(PDF, SVG or EPS), some of the shading modes may not behave the same
 as in a bitmap (on the screen, or to a bitmapped format such as 
 GIF or PNG).
 Any such anomalies are noted in the in the mode descriptions below.
@@ -15927,7 +15933,8 @@ transparency and is lossy, so close inspection of image features
 will reveal blurring.
 </p>
 
-<p>When exporting to Portable Document Format (PDF) or
+<p>When exporting to Portable Document Format (PDF),
+Scalable Vector Graphics (SVG) or
 Encapsulated PostScript (EPS), which are vector graphics formats,
 there are a few things to consider:
 <dl>
@@ -29720,6 +29727,9 @@ introduced since the last version:
         it should now be less dependent on JVM details.</li>
     <li>TAP <code>curl(1)</code> equivalent logging flag error fixed
         (write <code>--compressed</code> not <code>--compress</code>).</li>
+    <li>SVG (Scalable Vector Graphics) is now one of the supported
+        graphic output formats in the
+        <ref id="plot2-export">Plot Export Window</ref>.</li>
     </ul>
     </p></dd>
 

@@ -609,6 +609,14 @@ public class Plot2Example {
             }
         },
 
+        /** Writes SVG plot files and auxiliary text files to outDir. */
+        svg( true ) {
+            public void execute( Context context, Plot2Example[] examples )
+                    throws Exception {
+                writeExamples( context, examples, GraphicExporter.SVG, ".svg" );
+            }
+        },
+
         /** Copies missing data files from dataUrl to dataDir. */
         copydata( false ) {
             public void execute( Context context, Plot2Example[] examples )
