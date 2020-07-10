@@ -32,6 +32,7 @@ this list up to date, but if there are missing entries please complain.
       epsgraphics_classes.jar
       jel_g.jar
       jlatexmath.jar
+      jfreesvg-3.4.jar
       moc.jar (probably LGPL in future versions)
 
    GPL with classpath exception:
