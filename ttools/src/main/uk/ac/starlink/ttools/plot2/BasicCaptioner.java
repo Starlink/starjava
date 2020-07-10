@@ -39,10 +39,7 @@ public class BasicCaptioner implements Captioner {
     }
 
     public void drawCaption( Caption label, Graphics g ) {
-        Graphics2D g2 = (Graphics2D) g;
-        Font font0 = g2.getFont();
-        Object aaHint0 =
-            g2.getRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING );
+        Graphics2D g2 = (Graphics2D) g.create();
         if ( font_ != null ) {
             g2.setFont( font_ );
         }
@@ -53,8 +50,6 @@ public class BasicCaptioner implements Captioner {
                                : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF );
         }
         g2.drawString( label.toText(), 0, 0 );
-        g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, aaHint0 );
-        g2.setFont( font0 );
     }
 
     public Rectangle getCaptionBounds( Caption label ) {

@@ -422,7 +422,7 @@ public class CubeSurface implements Surface {
     }
 
     public void paintBackground( Graphics g ) {
-        Graphics2D g2 = (Graphics2D) g;
+        Graphics2D g2 = (Graphics2D) g.create();
         Color color0 = g2.getColor();
         g2.setColor( Color.WHITE );
         g2.fillRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
@@ -431,35 +431,27 @@ public class CubeSurface implements Surface {
         /* Paint those parts of the wire frame that are known to fall behind
          * all the data points. */
         if ( frame_ ) {
-            Shape clip0 = g2.getClip();
             g2.clipRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
-            Object aa0 = g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
             g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                                  antialias_
                                      ? RenderingHints.VALUE_ANTIALIAS_ON
                                      : RenderingHints.VALUE_ANTIALIAS_OFF );
             plotFrame( g2, false );
-            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aa0 );
-            g2.setClip( clip0 );
         }
     }
 
     public void paintForeground( Graphics g ) {
-        Graphics2D g2 = (Graphics2D) g;
 
         /* Paint those parts of the wire frame that are known to fall in
          * front of all the data points. */
         if ( frame_ ) {
-            Shape clip0 = g2.getClip();
+            Graphics2D g2 = (Graphics2D) g.create();
             g2.clipRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
-            Object aa0 = g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
             g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                                  antialias_
                                      ? RenderingHints.VALUE_ANTIALIAS_ON
                                      : RenderingHints.VALUE_ANTIALIAS_OFF );
             plotFrame( g2, true );
-            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aa0 );
-            g2.setClip( clip0 );
         }
     }
 

@@ -199,9 +199,7 @@ public class SkySurface implements Surface {
         if ( gl == null ) {
             return;
         }
-        Graphics2D g2 = (Graphics2D) g;
-        Color color0 = g.getColor();
-        Object aa0 = g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
+        Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                              antialias_ ? RenderingHints.VALUE_ANTIALIAS_ON
                                         : RenderingHints.VALUE_ANTIALIAS_OFF );
@@ -228,7 +226,7 @@ public class SkySurface implements Surface {
             g2.draw( getPlotBounds() );
         }
         else {
-            Graphics2D g2a = (Graphics2D) g.create();
+            Graphics2D g2a = (Graphics2D) g2.create();
             g2a.clip( new Rectangle( getPlotBounds() ) );
             g2a.translate( gXoff_, gYoff_ );
             g2a.scale( gZoom_, -gZoom_ );
@@ -244,8 +242,6 @@ public class SkySurface implements Surface {
         if ( scalebarColor_ != null ) {
             paintScaleBar( g2, scalebarColor_ );
         }
-        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aa0 );
-        g2.setColor( color0 );
     }
 
     /**
