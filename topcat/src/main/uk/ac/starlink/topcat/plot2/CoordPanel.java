@@ -344,14 +344,15 @@ public class CoordPanel {
             for ( int iu = 0; iu < nu; iu++ ) {
                 ColumnDataComboBox colsel = colsels.get( iu );
                 Object colitem = colsel.getSelectedItem();
-                DomainMapper dm = colsel.getDomainMapper();
                 if ( colitem instanceof ColumnData ) {
+                    DomainMapper dm = colsel.getDomainMapper();
                     coldats[ iu ] = (ColumnData) colitem;
                     datlabs[ iu ] = colitem.toString();
                     dms[ iu ] = dm;
                 }
                 else if ( ! coord.isRequired() ) {
                     Input input = coord.getInputs()[ iu ];
+                    DomainMapper dm = input.getDomain().getMappers()[ 0 ];
                     ColumnInfo info =
                         new ColumnInfo( input.getMeta().getLongName(),
                                         dm.getSourceClass(),

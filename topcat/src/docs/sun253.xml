@@ -29730,6 +29730,8 @@ introduced since the last version:
     <li>SVG (Scalable Vector Graphics) is now one of the supported
         graphic output formats in the
         <ref id="plot2-export">Plot Export Window</ref>.</li>
+    <li>Fix plot failure when supplying nonexistent columns for
+        optional coordinates.</li>
     </ul>
     </p></dd>
 
