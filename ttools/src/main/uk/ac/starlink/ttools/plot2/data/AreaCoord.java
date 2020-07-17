@@ -130,7 +130,7 @@ public abstract class AreaCoord<DG extends DataGeom> implements Coord {
                  : values -> areaStorage( areaFunc.apply( values[ 0 ] ) );
         }
         else {
-            assert false;
+            assert false : dms[ 0 ];
             return null;
         }
     }

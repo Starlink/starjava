@@ -418,12 +418,14 @@ public class AreaDomain implements Domain<AreaMapper> {
                 order = Long.parseLong( orderTxt );
                 kOrder = 4L << ( 2 * order );
             }
-            assert order >= 0;
-            long ipix0 = Long.parseLong( ipix0Txt );
-            long ipixn = ipixnTxt == null ? ipix0 : Long.parseLong( ipixnTxt );
-            for ( long ipix = ipix0; ipix <= ipixn; ipix++ ) {
-                long nuniq = kOrder + ipix;
-                list.add( nuniq );
+            if ( order >= 0 ) {
+                long ipix0 = Long.parseLong( ipix0Txt );
+                long ipixn = ipixnTxt == null ? ipix0
+                                              : Long.parseLong( ipixnTxt );
+                for ( long ipix = ipix0; ipix <= ipixn; ipix++ ) {
+                    long nuniq = kOrder + ipix;
+                    list.add( nuniq );
+                }
             }
         }
         int n = list.size();
