@@ -1958,15 +1958,20 @@ public class ControlWindow extends AuxWindow
      * @return  possibly shortened version
      */
     private static String shorten( String label ) {
-        int sindex = label.lastIndexOf( '/' );
-        if ( sindex < 0 || sindex == label.length() - 1 ) {
-            sindex = label.lastIndexOf( '\\' );
+        if ( label.matches( ":([a-zA-Z0-9_-]+):(.*)" ) ) {
+            // scheme syntax - leave it alone
         }
-        if ( sindex < 0 || sindex == label.length() - 1 ) {
-            sindex = label.lastIndexOf( ':' );
-        }
-        if ( sindex > 0 && sindex < label.length() - 1 ) {
-            label = label.substring( sindex + 1 );
+        else {
+            int sindex = label.lastIndexOf( '/' );
+            if ( sindex < 0 || sindex == label.length() - 1 ) {
+                sindex = label.lastIndexOf( '\\' );
+            }
+            if ( sindex < 0 || sindex == label.length() - 1 ) {
+                sindex = label.lastIndexOf( ':' );
+            }
+            if ( sindex > 0 && sindex < label.length() - 1 ) {
+                label = label.substring( sindex + 1 );
+            }
         }
         if ( label.length() > 48 ) {
             label = label.substring( 0, 48 ) + "...";

@@ -4,6 +4,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.BufferedInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -11,14 +12,19 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.table.formats.AsciiTableBuilder;
 import uk.ac.starlink.table.formats.CsvTableBuilder;
 import uk.ac.starlink.table.formats.IpacTableBuilder;
 import uk.ac.starlink.table.formats.TstTableBuilder;
 import uk.ac.starlink.table.formats.WDCTableBuilder;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
+import uk.ac.starlink.table.jdbc.JDBCTableScheme;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
@@ -28,11 +34,15 @@ import uk.ac.starlink.util.URLDataSource;
  * Manufactures {@link StarTable} objects from generic inputs.
  * This factory delegates the actual table creation to external
  * {@link TableBuilder} objects, each of which knows how to read a
- * particular table format.  Various <tt>makeStarTable</tt> methods
+ * particular table format from an input data stream.
+ * Various <tt>makeStarTable</tt> methods
  * are offered, which construct <tt>StarTable</tt>s from different
  * types of object, such as {@link java.net.URL} and
  * {@link uk.ac.starlink.util.DataSource}.  Each of these comes in
  * two types: automatic format detection and named format.
+ * Additionally, a list of {@link TableScheme} objects is maintained,
+ * each of which can produce a table from an opaque specification string
+ * of the form <code>:&lt;scheme-name&gt;:&lt;spec&gt;</code>.
  *
  * <p>In the case of a named format, a specifier must be given for the
  * format in which the table to be read is held.  This may be one of
@@ -58,8 +68,8 @@ import uk.ac.starlink.util.URLDataSource;
  * <p>In either case, failure to make a table will usually result in a
  * <tt>TableFormatException</tt>, though if an error in actual I/O is
  * encountered an <tt>IOException</tt> may be thrown instead.
- * <p>
- * By default, if the corresponding classes are present, the following
+ *
+ * <p>By default, if the corresponding classes are present, the following
  * TableBuilders are installed in the <em>default handler list</em>
  * (used by default in automatic format detection):
  * <ul>
@@ -98,12 +108,32 @@ import uk.ac.starlink.util.URLDataSource;
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
  *      (format name="wdc")
  * </ul>
- * Additionally, any classes named in the
+ *
+ * <p>Additionally, any classes named in the
  * <tt>startable.readers</tt> system property (as a colon-separated list)
  * which implement the {@link TableBuilder} interface and have a no-arg
  * constructor will be instantiated and added to the known handler list.
  *
- * <p>The factory has a flag <tt>requireRandom</tt> which determines
+ * <p>Some {@link #makeStarTable(java.lang.String) makeStarTable} methods
+ * take a location String rather than an input stream or DataSource;
+ * these may either give a URL or filename, or a
+ * <em>scheme-based location</em> of the form
+ * <code>:&lt;scheme-name&gt;:&lt;scheme-specification&gt;</code>,
+ * for instance "<code>jdbc://localhost/db1#SELECT id FROM gsc</code>".
+ * There is a theoretical risk of a namespace clash between
+ * input-yielding URLs, or even filenames, and scheme-based locations,
+ * but if scheme names avoid obvious values like "http" and "C"
+ * this is not likely to cause problems in practice.
+ * <p>The following TableSchemes are installed by default:
+ * <ul>
+ * <li>{@link uk.ac.starlink.table.jdbc.JDBCTableScheme} (scheme name="jdbc")
+ * </ul>
+ * <p>Additionally, any classes named in the <code>startable.schemes</code>
+ * system property (as a colon-separated list) which implement the
+ * {@link TableScheme} interface and have a no-arg constructor
+ * will be instantiated and added to the known scheme list.
+ *
+ * <p>The factory has a flag <tt>requireRandom</tt> which determines 
  * whether the <tt>makeStarTable</tt> methods are guaranteed to return
  * tables which provide random access (<tt>StarTable.isRandom()==true</tt>).
  * <strong>NOTE</strong> the meaning (and name) of this flag has changed
@@ -117,24 +147,35 @@ public class StarTableFactory {
 
     private List<TableBuilder> defaultBuilders_;
     private List<TableBuilder> knownBuilders_;
+    private Map<String,TableScheme> schemes_;
     private JDBCHandler jdbcHandler_;
     private boolean requireRandom_;
     private StoragePolicy storagePolicy_;
     private TablePreparation tablePrep_;
 
     /**
-     * System property which can contain a list of {@link TableBuilder} classes
-     * for addition to the known (non-automatically detected) handler list.
+     * System property which can contain a list of {@link TableBuilder}
+     * classnames for addition to the known (non-automatically detected)
+     * handler list.
      */
     public static final String KNOWN_BUILDERS_PROPERTY =
         "startable.readers";
+
+    /**
+     * System property which can contain a list of {@link TableScheme}
+     * classnames for addition to the default list.
+     */
+    public static final String SCHEMES_PROPERTY = "startable.schemes";
 
     /**
      * Special handler identifier which signifies automatic format detection.
      */
     public static final String AUTO_HANDLER = "(auto)";
 
-    private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
+    private static final Logger logger =
+        Logger.getLogger( "uk.ac.starlink.table" );
+    private static final Pattern SCHEME_REGEX =
+        Pattern.compile( ":([a-zA-Z0-9_-]+):(.*)" );
     private static String[] defaultBuilderClasses = {
         "uk.ac.starlink.votable.FitsPlusTableBuilder",
         "uk.ac.starlink.votable.ColFitsPlusTableBuilder",
@@ -152,6 +193,8 @@ public class StarTableFactory {
         TstTableBuilder.class.getName(),
         IpacTableBuilder.class.getName(),
         WDCTableBuilder.class.getName(),
+    };
+    private static TableScheme[] dfltSchemes = {
     };
 
     /**
@@ -216,6 +259,19 @@ public class StarTableFactory {
         knownBuilders_.addAll( Loader
                               .getClassInstances( KNOWN_BUILDERS_PROPERTY,
                                                   TableBuilder.class ) );
+
+        /* Prepare a list of TableSchemes, including one for JDBC
+         * (handled internally by default for historical reasons),
+         * other default instances, and any supplied by system property. */
+        List<TableScheme> schemeList = new ArrayList<TableScheme>();
+        schemeList.add( new JDBCTableScheme( this ) );
+        schemeList.addAll( Arrays.asList( dfltSchemes ) );
+        schemeList.addAll( Loader.getClassInstances( SCHEMES_PROPERTY,
+                                                     TableScheme.class ) );
+        schemes_ = new LinkedHashMap<String,TableScheme>();
+        for ( TableScheme scheme : schemeList ) {
+            addScheme( scheme );
+        }
     }
 
     /**
@@ -227,7 +283,7 @@ public class StarTableFactory {
         this( fact.requireRandom() );
         defaultBuilders_ = new ArrayList<TableBuilder>( fact.defaultBuilders_ );
         knownBuilders_ = new ArrayList<TableBuilder>( fact.knownBuilders_ );
-        jdbcHandler_ = fact.jdbcHandler_;
+        schemes_ = new LinkedHashMap<String,TableScheme>( fact.schemes_ );
         storagePolicy_ = fact.storagePolicy_;
         tablePrep_ = fact.tablePrep_;
     }
@@ -298,6 +354,32 @@ public class StarTableFactory {
             formats.add( b.getFormatName() );
         }
         return formats;
+    }
+
+    /**
+     * Returns a schemeName-&gt;scheme map indicating the TableSchemes
+     * in use by this factory.
+     * This map is mutable, so entries may be added or removed,
+     * but <strong>NOTE</strong> that the map keys are assumed to be
+     * equivalent to the getSchemeName return value for their value,
+     * so modify it with care.
+       Consider using the {@link #addScheme} method for adding entries.
+     *
+     * @return   map of scheme names to schemes
+     */
+    public Map<String,TableScheme> getSchemes() {
+        return schemes_;
+    }
+
+    /**
+     * Safely adds a table scheme for use by this factory.
+     * It is equivalent to
+     * <code>getSchemes().put(scheme.getSchemeName(),scheme)</code>.
+     *
+     * @param  scheme   new scheme for use
+     */
+    public void addScheme( TableScheme scheme ) {
+        schemes_.put( scheme.getSchemeName(), scheme );
     }
 
     /**
@@ -512,9 +594,11 @@ public class StarTableFactory {
 
     /**
      * Constructs a <tt>StarTable</tt> from a location string
-     * using automatic format detection.  The location string
-     * can represent a filename or URL, including a <tt>jdbc:</tt>
-     * protocol URL if an appropriate JDBC driver is installed.
+     * without format specification.
+     * The location string can represent a filename or URL,
+     * or a scheme-based specification of the form
+     * <code>&lt;scheme&gt;:&lt;scheme-spec&gt;</code>
+     * corresponding to one of the installed {@link #getSchemes schemes}.
      *
      * @param  location  the name of the table resource
      * @return a new StarTable view of the resource at <tt>location</tt>
@@ -525,12 +609,15 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( String location )
             throws TableFormatException, IOException {
-        if ( location.startsWith( "jdbc:" ) ) {
-            StarTable table =
-                prepareTable( getJDBCHandler().makeStarTable( location, false ),
-                              null );
-            return requireRandom() ? randomTable( table )
-                                   : table;
+        String[] schemeLoc = parseSchemeLocation( location );
+        if ( schemeLoc != null ) {
+            TableScheme scheme = schemes_.get( schemeLoc[ 0 ] );
+            if ( scheme != null ) {
+                return createSchemeTable( location, scheme );
+            }
+            else {
+                return makeStarTable( schemeSyntaxDataSource( location ) );
+            }
         }
         else {
             return makeStarTable( DataSource.makeDataSource( location ) );
@@ -694,6 +781,10 @@ public class StarTableFactory {
      * supplied for <tt>handler</tt>, it will fall back on automatic
      * format detection.
      *
+     * <p>Alternatively, the location string can be a
+     * scheme-based specification, in which case the <code>handler</code>
+     * is ignored.
+     *
      * @param  location  the name of the table resource
      * @param  handler  specifier for the handler which can handle tables
      *         of the right format
@@ -704,9 +795,17 @@ public class StarTableFactory {
      */
     public TableSequence makeStarTables( String location, String handler )
             throws TableFormatException, IOException {
-        if ( location.startsWith( "jdbc:" ) ) {
-            StarTable table = makeStarTable( location, handler );
-            return Tables.singleTableSequence( table );
+        String[] schemeLoc = parseSchemeLocation( location );
+        if ( schemeLoc != null ) {
+            TableScheme scheme = schemes_.get( schemeLoc[ 0 ] );
+            if ( scheme != null ) {
+                StarTable table = createSchemeTable( location, scheme );
+                return Tables.singleTableSequence( table );
+            }
+            else {
+                return makeStarTables( schemeSyntaxDataSource( location ),
+                                       handler );
+            }
         }
         else {
             return makeStarTables( DataSource.makeDataSource( location ),
@@ -724,8 +823,14 @@ public class StarTableFactory {
      * handler previously.  If <tt>null</tt> or the empty string or
      * the special value {@link #AUTO_HANDLER} is
      * supplied for <tt>handler</tt>, it will fall back on automatic
-     * format detection.  A location of "-" means standard input - in
-     * this case the handler must be specified.
+     * format detection.
+     *
+     * <p>A location of "-" means standard input - in this case
+     * the handler must be specified.
+     *
+     * <p>Alternatively, the location string can be a
+     * scheme-based specification, in which case the <code>handler</code>
+     * is ignored.
      *
      * @param  location  the name of the table resource
      * @param  handler  specifier for the handler which can handle tables
@@ -737,19 +842,25 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( String location, String handler )
             throws TableFormatException, IOException {
-        if ( location.startsWith( "jdbc:" ) ) {
-            StarTable table =
-                prepareTable( getJDBCHandler().makeStarTable( location, false ),
-                              null );
-            return requireRandom() ? randomTable( table )
-                                   : table;
-        }
-        else if ( location.equals( "-" ) ) {
+        if ( "-".equals( location ) ) {
             return makeStarTable( System.in, getTableBuilder( handler ) );
         }
         else {
-            return makeStarTable( DataSource.makeDataSource( location ),
-                                  handler );
+            String[] schemeLoc = parseSchemeLocation( location );
+            if ( schemeLoc != null ) {
+                TableScheme scheme = schemes_.get( schemeLoc[ 0 ] );
+                if ( scheme != null ) {
+                    return createSchemeTable( location, scheme );
+                }
+                else {
+                    return makeStarTable( schemeSyntaxDataSource( location ),
+                                          handler );
+                }
+            }
+            else {
+                return makeStarTable( DataSource.makeDataSource( location ),
+                                      handler );
+            }
         }
     }
 
@@ -1046,5 +1157,103 @@ public class StarTableFactory {
                 }
             }
         };
+    }
+
+    /**
+     * Attempts to turn a location which apparently refers to a table Scheme
+     * into a DataSource.  This will usually fail, since a location with
+     * scheme syntax is presumably supposed to define a scheme-based table,
+     * but this method is provided for those cases where that does not
+     * seem to be the case, just in case the location string instead
+     * refers to a strangely-named file.  This method essensially just
+     * calls <code>DataSource.makeDataSource(location)</code>,
+     * however in (the expected) case of failure it throws an exception with
+     * an informative error message about schemes rather than about files.
+     *
+     * @param  location  full location string, assumed to have scheme syntax
+     * @return  data source referencing actual data
+     * @throws  FileNotFoundException  if no such file/URL
+     */
+    private DataSource schemeSyntaxDataSource( String location )
+            throws IOException {
+        try {
+            return DataSource.makeDataSource( location );
+        }
+        catch ( FileNotFoundException e ) {
+            String msg = new StringBuffer()
+                .append( "No such scheme \"" )
+                .append( parseSchemeLocation( location )[ 0 ] )
+                .append( "\" - known schemes: " )
+                .append( schemes_.keySet() )
+                .toString();
+            throw new FileNotFoundException( msg );
+        }
+    }
+
+    /**
+     * Constructs and prepares a table from a location string using its scheme.
+     *
+     * @param  location  full location string
+     * @param  scheme  non-null scheme which must correspond to the
+     *                 scheme named in the location
+     * @return  table ready for return from this factory
+     */
+    private StarTable createSchemeTable( String location, TableScheme scheme )
+            throws IOException {
+        String schemeName = scheme.getSchemeName();
+        String[] parts = parseSchemeLocation( location );
+        if ( parts == null ) {
+            throw new IllegalArgumentException( "Location \"" + location + "\""
+                                              + " is not of form "
+                                              + ":<scheme-name>:<spec>" );
+        }
+        else if ( ! schemeName.equals( parts[ 0 ] ) ) {
+            throw new IllegalArgumentException( "Location \"" + location + "\""
+                                              + " is not of form "
+                                              + ":" + schemeName + ":<spec>" );
+        }
+        String spec = parts[ 1 ];
+        final StarTable table;
+        try {
+            table = scheme.createTable( spec );
+        }
+        catch ( TableFormatException e ) {
+            String msg = new StringBuffer()
+                .append( "Bad format for " )
+                .append( schemeName )
+                .append( ":" )
+                .append( scheme.getSchemeUsage() )
+                .append( " (was \"" )
+                .append( location )
+                .append( "\"" )
+                .toString();
+            throw new TableFormatException( msg, e );
+        }
+        return prepareTable( table, null );
+    }
+
+    /**
+     * Parses a scheme-format table specification as a scheme name
+     * and a scheme-specific part.
+     * Normally schemes are of the form
+     * ":&lt;scheme-name&gt;:&lt;scheme-specific-part>gt;",
+     * but as a special case the initial colon may be omitted for JDBC
+     * (backward compatibility).
+     *
+     * @param   location  table specification
+     * @return   if the location is syntactically a scheme,
+     *           a 2-element array giving [scheme-name,scheme-specific-part];
+     *           otherwise null
+     */
+    private static String[] parseSchemeLocation( String location ) {
+        if ( location.startsWith( "jdbc:" ) ) {
+            return new String[] { "jdbc", location.substring( 5 ) };
+        }
+        else {
+            Matcher matcher = SCHEME_REGEX.matcher( location );
+            return matcher.matches()
+                 ? new String[] { matcher.group( 1 ), matcher.group( 2 ) }
+                 : null;
+        }
     }
 }
