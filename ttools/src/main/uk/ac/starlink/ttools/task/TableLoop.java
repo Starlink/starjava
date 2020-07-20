@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.task;
 
 import java.util.Arrays;
+import uk.ac.starlink.table.LoopStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.DoubleParameter;

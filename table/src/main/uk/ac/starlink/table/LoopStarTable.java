@@ -1,8 +1,6 @@
-package uk.ac.starlink.ttools.task;
+package uk.ac.starlink.table;
 
-import uk.ac.starlink.table.ColumnData;
-import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.ColumnStarTable;
+import java.util.function.DoubleFunction;
 
 /**
  * Single-column table whose column values are the values of a loop iterator
@@ -18,8 +16,9 @@ public class LoopStarTable extends ColumnStarTable {
     /**
      * Constructs a loop table from values like the initialisers of a for loop.
      * The <code>isInteger</code> parameter may be set True for an
-     * Integer column, False for a Double column, and null if the type is
+     * integer column, False for a Double column, and null if the type is
      * to be determined from the input values (integer if all are integers).
+     * Integer columns are 32-bit if the values permit, otherwise 64-bit.
      * 
      * @param  colName  name of the single column name in the table
      * @param  start    initial (row 0) value of variable
@@ -31,31 +30,38 @@ public class LoopStarTable extends ColumnStarTable {
                           Boolean isInteger ) {
         final boolean isInt = 
             isInteger == null
-                ? start == (int) start && end == (int) end && step == (int) step
+                ? start == (long) start && end == (long) end
+                                        && step == (long) step
                 : isInteger.booleanValue();
         String descrip = "Loop variable";
         final ColumnData colData;
         final long nrow;
+        final DoubleFunction<?> typedValue;
+        final Class<?> clazz;
         if ( isInt ) {
             nrow = ( (long) end - (long) start ) / (long) step;
-            colData = new ColumnData( new ColumnInfo( colName, Integer.class,
-                                                      descrip ) ) {
-                public Object readValue( long irow ) {
-                    return new Integer( (int) ( start + irow * step ) );
-                }
-            };
+            boolean is32bit =
+                start == (int) start && end == (int) end && step == (int) step;
+            if ( is32bit ) {
+                clazz = Integer.class;
+                typedValue = dval -> new Integer( (int) dval );
+            }
+            else {
+                clazz = Long.class;
+                typedValue = dval -> new Long( (long) dval );
+            }
         }
         else {
             nrow = (long) Math.floor( ( end - start ) / step );
-            colData = new ColumnData( new ColumnInfo( colName, Double.class,
-                                                      descrip ) ) {
-                public Object readValue( long irow ) {
-                    return new Double( start + irow * step );
-                }
-            };
+            clazz = Double.class;
+            typedValue = dval -> new Double( dval );
         }
         nrow_ = Math.max( 0, nrow );
-        addColumn( colData );
+        addColumn( new ColumnData( new ColumnInfo( colName, clazz, descrip ) ) {
+            public Object readValue( long irow ) {
+                return typedValue.apply( start + irow * step );
+            }
+        } );
     }
 
     public long getRowCount() {
