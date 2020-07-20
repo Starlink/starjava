@@ -13,7 +13,17 @@ public class SchemeTest extends TestCase {
         StarTableFactory tfact = new StarTableFactory( false );
         tfact.setStoragePolicy( StoragePolicy.PREFER_MEMORY );
 
+        tfact.addScheme( new AttractorScheme() );
+        tfact.addScheme( new AttractorScheme() );
+
         tryScheme( tfact, ":loop:10", 1, 10 );
+
+        tryScheme( tfact,
+                   ":class:" + AttractorScheme.class.getName() + ":10,rampe",
+                   3, 10 );
+
+        tryScheme( tfact, ":attractor:99,clifford", 2, 99 );
+        tryScheme( tfact, ":attractor:101,rampe", 3, 101 );
     }
 
     private void tryScheme( StarTableFactory tfact, String txt,
