@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -154,6 +155,7 @@ public class StarTableFactory {
     private boolean requireRandom_;
     private StoragePolicy storagePolicy_;
     private TablePreparation tablePrep_;
+    private Predicate<DataSource> inputRestriction_;
 
     /**
      * System property which can contain a list of {@link TableBuilder}
@@ -462,6 +464,32 @@ public class StarTableFactory {
     }
 
     /**
+     * Sets an object that can control access to input data.
+     * If a non-null value is set, then any attempt to read a table
+     * from a resource such as a file or URL will first test it
+     * using the supplied predicate.
+     * If its <code>test</code> method returns false,
+     * the table read attempt will fail with an IOException.
+     *
+     * @param  restriction  policy for restricting DataSource access,
+     *                      or null for no restrictions
+     */
+    public void setInputRestriction( Predicate<DataSource> restriction ) {
+        inputRestriction_ = restriction;
+    }
+
+    /**
+     * Returns the object controlling access to input data.
+     * By default this returns null, meaning no access controls.
+     *
+     * @return   policy for restricting DataSource access, or null
+     * @see   #setInputRestriction
+     */
+    public Predicate<DataSource> getInputRestriction() {
+        return inputRestriction_;
+    }
+
+    /**
      * Returns a table based on a given table and guaranteed to have
      * random access.  If the original table <tt>table</tt> has random
      * access then it is returned, otherwise a new random access table
@@ -490,6 +518,7 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
+        checkDataSource( datsrc );
         List<TableBuilder> builders = getTableBuilders( datsrc );
         for ( TableBuilder builder : builders ) {
             try {
@@ -546,6 +575,7 @@ public class StarTableFactory {
      */
     public TableSequence makeStarTables( DataSource datsrc )
             throws TableFormatException, IOException {
+        checkDataSource( datsrc );
         List<TableBuilder> builders = getTableBuilders( datsrc );
         for ( TableBuilder builder : builders ) {
             try {
@@ -669,6 +699,7 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( DataSource datsrc, String handler )
             throws TableFormatException, IOException {
+        checkDataSource( datsrc );
         if ( handler == null || handler.trim().length() == 0 ||
              handler.equals( AUTO_HANDLER ) ) {
             return makeStarTable( datsrc );
@@ -731,6 +762,7 @@ public class StarTableFactory {
      */
     public TableSequence makeStarTables( DataSource datsrc, String handler )
             throws TableFormatException, IOException {
+        checkDataSource( datsrc );
         if ( handler == null || handler.trim().length() == 0 ||
              handler.equals( AUTO_HANDLER ) ) {
             return makeStarTables( datsrc );
@@ -1224,6 +1256,20 @@ public class StarTableFactory {
                 }
             }
         };
+    }
+
+    /**
+     * Ensures that access is permitted to the given data source.
+     * If access has been blocked, an exception will be thrown.
+     *
+     * @param   datsrc  data source to check
+     * @throws  IOException  if access is blocked to <code>datsrc</code>
+     */
+    private void checkDataSource( DataSource datsrc ) throws IOException {
+        if ( inputRestriction_ != null &&
+             ! inputRestriction_.test( datsrc ) ) {
+            throw new IOException( "Access blocked to data at " + datsrc );
+        }
     }
 
     /**
