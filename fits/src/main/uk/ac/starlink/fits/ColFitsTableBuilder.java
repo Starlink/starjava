@@ -55,6 +55,10 @@ public class ColFitsTableBuilder implements TableBuilder {
         return "colfits-basic";
     }
 
+    public boolean looksLikeFile( String location ) {
+        return location.toLowerCase().endsWith( ".colfits" );
+    }
+
     public void streamStarTable( InputStream in, TableSink sink, String pos )
             throws TableFormatException {
         throw new TableFormatException( "Can't stream from colFITS format" );

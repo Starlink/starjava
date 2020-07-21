@@ -23,6 +23,10 @@ public class AsciiTableBuilder implements TableBuilder {
         return "ASCII";
     }
 
+    public boolean looksLikeFile( String location ) {
+        return location.toLowerCase().endsWith( ".txt" );
+    }
+
     public boolean canImport( DataFlavor flavor ) {
         return false;
     }

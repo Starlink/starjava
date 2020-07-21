@@ -108,6 +108,29 @@ public interface TableBuilder {
     boolean canImport( DataFlavor flavor );
 
     /**
+     * Indicates whether the given location string is of a familiar form
+     * for this builder.
+     * Implementations should return <code>true</code> if there is
+     * a good chance that a file with the given <code>location</code>
+     * can be interpreted by this reader, for instance if it has a
+     * suitable file extension.
+     *
+     * <p>This method may be used to guess, on a best-efforts basis,
+     * whether this builder is suitable for reading a file from
+     * a given location.  Attempts may still be made to read inputs
+     * for which this method returns false.
+     * It is less important for builders that can recognise
+     * files by magic number, which is generally preferable to using
+     * filenames.
+     *
+     * @param  location   the location string, such as a filename or URL
+     *                    (not null)
+     * @return  true iff there is a good chance that the named input
+     *          can be interpreted by this reader
+     */
+    boolean looksLikeFile( String location );
+
+    /**
      * Returns the name of the format which can be read by this handler.
      * Matching against this string may be used by callers to identify
      * or select this handler from a list.

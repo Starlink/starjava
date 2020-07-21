@@ -29,6 +29,10 @@ public class TwoMassPscTableBuilder implements TableBuilder {
         return "2mass-psc";
     }
 
+    public boolean looksLikeFile( String location ) {
+        return false;
+    }
+
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storagePolicy )
             throws IOException {

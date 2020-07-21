@@ -36,6 +36,10 @@ public class CoinsTableBuilder implements TableBuilder {
         return "COINS";
     }
 
+    public boolean looksLikeFile( String location ) {
+        return false;
+    }
+
     public boolean canImport( DataFlavor flavor ) {
         return false;
     }

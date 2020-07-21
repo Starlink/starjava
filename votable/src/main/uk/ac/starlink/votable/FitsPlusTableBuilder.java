@@ -83,6 +83,12 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
         return "FITS-plus";
     }
 
+    public boolean looksLikeFile( String location ) {
+        String loc = location.toLowerCase();
+        return loc.endsWith( ".fit" )
+            || loc.endsWith( ".fits" );
+    }
+
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storagePolicy )
             throws IOException {

@@ -65,6 +65,12 @@ public class GeojsonTableBuilder implements TableBuilder {
         return "GeoJSON";
     }
 
+    public boolean looksLikeFile( String location ) {
+        String loc = location.toLowerCase();
+        return loc.endsWith( ".geojson" )
+            || loc.endsWith( ".geo-json" );
+    }
+
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storage )
             throws IOException {

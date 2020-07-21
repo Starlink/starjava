@@ -31,6 +31,17 @@ public class FeatherTableBuilder implements TableBuilder {
         return "feather";
     }
 
+    /**
+     * Returns true for files with extension ".fea" or ".feather".
+     */
+    public boolean looksLikeFile( String loc ) {
+        int idot = loc.lastIndexOf( '.' );
+        String extension = idot >= 0 ? loc.substring( idot ) : "";
+        return extension.equalsIgnoreCase( ".fea" )
+            || extension.equalsIgnoreCase( ".feather" );
+    }
+
+
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storagePolicy )
             throws IOException {

@@ -82,6 +82,12 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
         return "FITS";
     }
 
+    public boolean looksLikeFile( String location ) {
+        String loc = location.toLowerCase();
+        return loc.endsWith( ".fit" )
+            || loc.endsWith( ".fits" );
+    }
+
     /**
      * Creates a StarTable from a DataSource which refers to a FITS
      * file or stream.  If the source has a position attribute, it

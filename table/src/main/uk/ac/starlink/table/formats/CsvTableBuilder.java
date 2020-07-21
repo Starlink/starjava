@@ -24,6 +24,10 @@ public class CsvTableBuilder implements TableBuilder {
         return "CSV";
     }
 
+    public boolean looksLikeFile( String location ) {
+        return location.toLowerCase().endsWith( ".csv" );
+    }
+
     public boolean canImport( DataFlavor flavor ) {
         return false;
     }

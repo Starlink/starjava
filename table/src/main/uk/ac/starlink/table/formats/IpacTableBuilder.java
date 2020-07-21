@@ -46,6 +46,10 @@ public class IpacTableBuilder implements TableBuilder {
         return "IPAC";
     }
 
+    public boolean looksLikeFile( String location ) {
+        return location.endsWith( ".tbl" );
+    }
+
     public boolean canImport( DataFlavor flavor ) {
         return false;
     }

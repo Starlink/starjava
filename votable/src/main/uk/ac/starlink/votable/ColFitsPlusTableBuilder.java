@@ -70,6 +70,10 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
         return "colfits-plus";
     }
 
+    public boolean looksLikeFile( String location ) {
+        return location.toLowerCase().endsWith( ".colfits" );
+    }
+
     public void streamStarTable( InputStream in, TableSink sink, String pos )
             throws TableFormatException {
         throw new TableFormatException( "Can't stream from " + getFormatName()

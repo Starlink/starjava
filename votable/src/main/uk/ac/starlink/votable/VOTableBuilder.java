@@ -57,6 +57,13 @@ public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
         return "VOTable";
     }
 
+    public boolean looksLikeFile( String location ) {
+        String loc = location.toLowerCase();
+        return loc.endsWith( ".xml" )
+            || loc.endsWith( ".vot" )
+            || loc.endsWith( ".votable" );
+    }
+
     /**
      * Makes a StarTable out of a DataSource which points to a VOTable.
      * If the source has a position attribute, it is currently 

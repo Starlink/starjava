@@ -87,6 +87,10 @@ public class GbinTableBuilder implements TableBuilder {
         return "GBIN";
     }
 
+    public boolean looksLikeFile( String location ) {
+        return location.toLowerCase().endsWith( ".gbin" );
+    }
+
     public boolean canImport( DataFlavor flavor ) {
         return false;
     }

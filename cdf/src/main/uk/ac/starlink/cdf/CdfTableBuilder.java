@@ -66,6 +66,10 @@ public class CdfTableBuilder implements TableBuilder {
         return "CDF";
     }
 
+    public boolean looksLikeFile( String location ) {
+        return location.toLowerCase().endsWith( ".cdf" );
+    }
+
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storagePolicy )
             throws IOException {
