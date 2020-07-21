@@ -490,7 +490,8 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
-        for ( TableBuilder builder : defaultBuilders_ ) {
+        List<TableBuilder> builders = getTableBuilders( datsrc );
+        for ( TableBuilder builder : builders ) {
             try {
                 StarTable startab =
                     builder.makeStarTable( datsrc, requireRandom(),
@@ -513,7 +514,7 @@ public class StarTableFactory {
         msg.append( "Can't make StarTable from \"" )
            .append( datsrc.getName() )
            .append( "\"" );
-        Iterator<TableBuilder> it = defaultBuilders_.iterator();
+        Iterator<TableBuilder> it = builders.iterator();
         if ( it.hasNext() ) {
             msg.append( " (tried" );
             while ( it.hasNext() ) {
@@ -545,7 +546,8 @@ public class StarTableFactory {
      */
     public TableSequence makeStarTables( DataSource datsrc )
             throws TableFormatException, IOException {
-        for ( TableBuilder builder : defaultBuilders_ ) {
+        List<TableBuilder> builders = getTableBuilders( datsrc );
+        for ( TableBuilder builder : builders ) {
             try {
                 if ( builder instanceof MultiTableBuilder ) {
                     MultiTableBuilder mbuilder = (MultiTableBuilder) builder;
@@ -578,7 +580,7 @@ public class StarTableFactory {
         msg.append( "Can't make StarTables from \"" )
            .append( datsrc.getName() )
            .append( "\"" );
-        Iterator<TableBuilder> it = defaultBuilders_.iterator();
+        Iterator<TableBuilder> it = builders.iterator();
         if ( it.hasNext() ) {
             msg.append( " (tried" );
             while ( it.hasNext() ) {
@@ -1109,6 +1111,67 @@ public class StarTableFactory {
         /* Failed to find any handler for name. */
         throw new TableFormatException( "No table handler available for "
                                       + name );
+    }
+
+    /**
+     * Returns a list of TableBuilders that are worth trying to read
+     * data from a given DataSource.
+     *
+     * @param  datsrc   data source
+     * @return  list of candidate table builders
+     */
+    private List<TableBuilder> getTableBuilders( DataSource datsrc ) {
+
+        /* Include first of all the default builder list; these can
+         * identify tables by magic number, so will succeed if the
+         * table can be interpreted in their format.
+         * You might think it was a good idea to restrict or reorder this
+         * list on the basis of source name, but it's not, since the
+         * original order of that list means that e.g. a colfits is
+         * interpreted as a colfits even though it's also a FITS.
+         * Hence the looksLikeFile method is never used for builders
+         * in the default list. */ 
+        List<TableBuilder> list =
+            new ArrayList<TableBuilder>( defaultBuilders_ );
+
+        /* Then look at the filename/location indicated by the datasource;
+         * if one of the known handlers recognises the name, try that one too.*/
+        TableBuilder locBuilder =
+            getBuilderByLocation( knownBuilders_, datsrc.getName() );
+        if ( locBuilder == null ) {
+            URL url = datsrc.getURL();
+            if ( url != null ) {
+                locBuilder =
+                    getBuilderByLocation( knownBuilders_, url.toString() );
+            }
+        }
+        if ( locBuilder != null ) {
+            list.add( locBuilder );
+        }
+        return list;
+    }
+
+    /**
+     * Tries to identify a TableBuilder that recognises the given location.
+     * Compression suffixes are stripped from the given location string.
+     *
+     * @param   builders   list of candidate TableBuilders
+     * @param   loc      table location/filename; compression suffixes etc
+     *                   may be included, but will be ignored
+     * @return   a TableBuilder that declares itself (probably) suitable
+     *           for use with the given location, or null if none do
+     */
+    private static TableBuilder
+            getBuilderByLocation( List<TableBuilder> builders, String loc ) {
+        if ( loc != null ) {
+            loc = loc.replaceFirst( "[.](gz|Z|bz2|bzip2|gzip)$", "" );
+            for ( TableBuilder builder : builders ) {
+                if ( builder.looksLikeFile( loc ) ) {
+                    return builder;
+                }
+            }
+        }
+        return null;
     }
 
     /**

@@ -2207,7 +2207,8 @@ For more details on these formats, see the descriptions in
 </p>
 
 <p>In some cases
-(when using VOTable, FITS, ECSV, CDF, Feather or GBIN format tables) the 
+(when using VOTable, FITS, ECSV, CDF, Feather or GBIN format tables,
+and for certain other formats if the filename extension is recognised) the 
 tools can detect the table format automatically, and no explicit 
 specification is necessary.  If this isn't the case and you omit
 the format specification, the tool will fail with a suitable error
@@ -12902,6 +12903,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (<code>dataproduct_type</code> and
          <code>dataproduct_subtype</code> UCDs are now
          <code>meta.code.class</code>).</li>
+    <li>Auto file format detection now examines filenames to help
+        guess format; this means that e.g. for CSV files named
+        with the "<code>.csv</code>" extension, it is no longer
+        necessary to specify <code>ifmt=csv</code>.</li>
     </ul>
     </p></dd>
 

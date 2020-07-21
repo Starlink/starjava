@@ -1121,10 +1121,11 @@ supported input formats have matching output formats and vice versa.
 when you start the program up or
 using the <ref id="LoadWindow">Load Table</ref> dialogue.
 For FITS, VOTable, ECSV, CDF, feather and GBIN formats
-the file format can be detected automatically
-(note this is done by looking at the file content, it has nothing
-to do with filename extensions).
-For other formats though, for instance ASCII or Comma-Separated Values,
+the file format can be detected automatically by looking at
+the content.  For certain other formats, the format can sometimes
+be guessed from the filename (e.g. the comma-separated values
+format is tried for files with the "<code>.csv</code>" extension).
+In other cases though,
 you will have to specify the format that the file is in.
 In the Load Window, there is a selection box from which you can
 choose the format, and from the command line you use the
@@ -17786,10 +17787,14 @@ located; the details of what such fragment identifiers mean can be
 found in the relevant subsection within <ref id="inFormats"/>.
 Allowed URL types are described in <ref id="tableLocation"/>.
 You should select the relevant table format from the 
-<label>Format</label> selector box - you can leave it on 
-<label>(auto)</label> for loading FITS tables or VOTables,
-but for other formats such as ASCII or CSV you must select the right one
-explicitly (again, see <ref id="inFormats"/> for details).
+<label>Format</label> selector box - in many cases
+(file formats that can be recognised by content such as
+FITS or VOTable, or files named in a conventional way
+such as CSV files with the "<code>.csv</code>" extension)
+the default <label>(auto)</label> setting will work,
+but in other cases TOPCAT may not be able to guess the file format,
+and you have to select the right one explicitly
+(again, see <ref id="inFormats"/> for details).
 </p>
 
 <p>There are many other ways of loading tables however,
@@ -29866,6 +29871,12 @@ introduced since the last version:
     <li>Fix up MacOS application packaging issue so that
         <code>topcat</code>/<code>stilts</code> startup scripts work
         on Mac Mini.</li>
+    <li>Auto file format detection now examines filenames to help
+        guess format; this means that e.g. when loading CSV files named
+        with the "<code>.csv</code>" extension, it is no longer
+        necessary to select "CSV" in the
+        <ref id="LoadWindow">Load Window</ref> <label>Format</label>
+        selector.</li>
     </ul>
     </p></dd>
 
