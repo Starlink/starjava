@@ -128,6 +128,7 @@ import uk.ac.starlink.util.URLDataSource;
  * <ul>
  * <li>{@link uk.ac.starlink.table.jdbc.JDBCTableScheme} (scheme name="jdbc")
  * <li>{@link LoopTableScheme} (scheme name="loop")
+ * <li>{@link ClassTableScheme} (scheme name="class")
  * </ul>
  * <p>Additionally, any classes named in the <code>startable.schemes</code>
  * system property (as a colon-separated list) which implement the
@@ -197,6 +198,7 @@ public class StarTableFactory {
     };
     private static TableScheme[] dfltSchemes = {
         new LoopTableScheme(),
+        new ClassTableScheme(),
     };
 
     /**

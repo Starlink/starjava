@@ -11,7 +11,8 @@ public class SchemeTest extends TestCase {
     public void testSchemes() throws IOException {
         StarTableFactory tfact = new StarTableFactory();
         Map<String,TableScheme> schemes = tfact.getSchemes();
-        assertEquals( new HashSet<String>( Arrays.asList( "jdbc", "loop" ) ),
+        assertEquals(
+            new HashSet<String>( Arrays.asList( "jdbc", "class", "loop" ) ),
                       schemes.keySet() );
         failCreateTable( tfact, ":num:10" );
         tfact.addScheme( new NumTableScheme() );
@@ -41,6 +42,19 @@ public class SchemeTest extends TestCase {
         }
         tfact.getSchemes().remove( "loop" );
         failCreateTable( tfact, ":loop:10" );
+    }
+
+    public void testClazz() throws IOException {
+        StarTableFactory tfact = new StarTableFactory();
+        failCreateTable( tfact, ":class:java.lang.String:10" );
+        failCreateTable( tfact,
+                         ":class:uk.ac.starlink.table.LoopTableScheme:do_what");
+        String l10spec = ":class:uk.ac.starlink.table.LoopTableScheme:10";
+        StarTable tcloop = tfact.makeStarTable( l10spec );
+        assertEquals( 1, tcloop.getColumnCount() );
+        assertEquals( 10, tcloop.getRowCount() );
+        tfact.getSchemes().remove( "class" );
+        failCreateTable( tfact, l10spec );
     }
 
     private void failCreateTable( StarTableFactory tfact, String tspec ) {
