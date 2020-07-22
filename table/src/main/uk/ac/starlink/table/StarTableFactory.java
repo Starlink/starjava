@@ -393,7 +393,7 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a readable <tt>StarTable</tt> from a <tt>DataSource</tt>
+     * Constructs a <tt>StarTable</tt> from a <tt>DataSource</tt>
      * object using automatic format detection.
      *
      * @param  datsrc  the data source containing the table data
@@ -511,7 +511,7 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a readable <tt>StarTable</tt> from a location string
+     * Constructs a <tt>StarTable</tt> from a location string
      * using automatic format detection.  The location string
      * can represent a filename or URL, including a <tt>jdbc:</tt>
      * protocol URL if an appropriate JDBC driver is installed.
@@ -538,7 +538,7 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a readable <tt>StarTable</tt> from a URL using
+     * Constructs a <tt>StarTable</tt> from a URL using
      * automatic format detection.
      *
      * @param  url  the URL where the table lives
@@ -555,7 +555,7 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a readable <tt>StarTable</tt> from a <tt>DataSource</tt>
+     * Constructs a <tt>StarTable</tt> from a <tt>DataSource</tt>
      * using a named table input handler.
      * The input handler may be named either using its format name
      * (as returned from the {@link TableBuilder#getFormatName} method)
@@ -715,7 +715,7 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a readable <tt>StarTable</tt> from a location string
+     * Constructs a <tt>StarTable</tt> from a location string
      * using a named table input handler.
      * The input handler may be named either using its format name
      * (as returned from the {@link TableBuilder#getFormatName} method)
@@ -754,7 +754,7 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a readable <tt>StarTable</tt> from a URL
+     * Constructs a <tt>StarTable</tt> from a URL
      * using a named table input handler.
      * The input handler may be named either using its format name
      * (as returned from the {@link TableBuilder#getFormatName} method)
