@@ -26,8 +26,8 @@ import uk.ac.starlink.util.URLDataSource;
 
 /**
  * Manufactures {@link StarTable} objects from generic inputs.
- * This factory delegates the actual table creation to external 
- * {@link TableBuilder} objects, each of which knows how to read a 
+ * This factory delegates the actual table creation to external
+ * {@link TableBuilder} objects, each of which knows how to read a
  * particular table format.  Various <tt>makeStarTable</tt> methods
  * are offered, which construct <tt>StarTable</tt>s from different
  * types of object, such as {@link java.net.URL} and
@@ -39,14 +39,14 @@ import uk.ac.starlink.util.URLDataSource;
  * the following:
  * <ul>
  * <li>The format name - this is a short mnemonic string like "fits"
- *     which is returned by the TableBuilder's <tt>getFormatName</tt> method - 
- *     it is matched case insensitively.  This must be one of the 
+ *     which is returned by the TableBuilder's <tt>getFormatName</tt> method -
+ *     it is matched case insensitively.  This must be one of the
  *     builders known to the factory.
- * <li>The classname of a suitable TableBuilder (the class must 
+ * <li>The classname of a suitable TableBuilder (the class must
  *     implement <tt>TableBuilder</tt> and have no-arg constructor).
- *     Such a class must be on the classpath, but need not have been 
+ *     Such a class must be on the classpath, but need not have been
  *     specified previously to the factory.
- * <li>The empty string or <tt>null</tt> or {@link #AUTO_HANDLER} - 
+ * <li>The empty string or <tt>null</tt> or {@link #AUTO_HANDLER} -
  *     in this case automatic format detection is used.
  * </ul>
  *
@@ -98,17 +98,17 @@ import uk.ac.starlink.util.URLDataSource;
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
  *      (format name="wdc")
  * </ul>
- * Additionally, any classes named in the 
+ * Additionally, any classes named in the
  * <tt>startable.readers</tt> system property (as a colon-separated list)
  * which implement the {@link TableBuilder} interface and have a no-arg
  * constructor will be instantiated and added to the known handler list.
  *
- * <p>The factory has a flag <tt>requireRandom</tt> which determines 
+ * <p>The factory has a flag <tt>requireRandom</tt> which determines
  * whether the <tt>makeStarTable</tt> methods are guaranteed to return
  * tables which provide random access (<tt>StarTable.isRandom()==true</tt>).
  * <strong>NOTE</strong> the meaning (and name) of this flag has changed
  * as of STIL version 2.1.  Previously it was only a hint that random
- * tables were preferred.  Now setting it true guarantees that all 
+ * tables were preferred.  Now setting it true guarantees that all
  * tables returned by the factory are random.
  *
  * @author   Mark Taylor (Starlink)
@@ -130,12 +130,12 @@ public class StarTableFactory {
         "startable.readers";
 
     /**
-     * Special handler identifier which signifies automatic format detection. 
+     * Special handler identifier which signifies automatic format detection.
      */
     public static final String AUTO_HANDLER = "(auto)";
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
-    private static String[] defaultBuilderClasses = { 
+    private static String[] defaultBuilderClasses = {
         "uk.ac.starlink.votable.FitsPlusTableBuilder",
         "uk.ac.starlink.votable.ColFitsPlusTableBuilder",
         "uk.ac.starlink.fits.ColFitsTableBuilder",
@@ -250,7 +250,7 @@ public class StarTableFactory {
      * Builders earlier in the list are given a chance to make the
      * table before ones later in the list.
      *
-     * @param  builders  an array of TableBuilder objects used to 
+     * @param  builders  an array of TableBuilder objects used to
      *         construct <tt>StarTable</tt>s
      */
     public void setDefaultBuilders( TableBuilder[] builders ) {
@@ -260,12 +260,12 @@ public class StarTableFactory {
 
     /**
      * Gets the list of builders which are available for selection by
-     * format name. 
+     * format name.
      * This is initially set to the list of default builders
      * plus a few others.
      * This list can be modified to change the behaviour of the factory.
      *
-     * @return  a mutable list of {@link TableBuilder} objects which may be 
+     * @return  a mutable list of {@link TableBuilder} objects which may be
      *          specified for table building
      */
     public List<TableBuilder> getKnownBuilders() {
@@ -274,11 +274,11 @@ public class StarTableFactory {
 
     /**
      * Sets the list of builders which are available for selection by
-     * format name. 
+     * format name.
      * This is initially set to the list of default builders
      * plus a few others.
-     * 
-     * @param  builders  an array of TableBuilder objects used to 
+     *
+     * @param  builders  an array of TableBuilder objects used to
      *         construct <tt>StarTable</tt>s
      */
     public void setKnownBuilders( TableBuilder[] builders ) {
@@ -289,7 +289,7 @@ public class StarTableFactory {
     /**
      * Returns the list of format names, one for each of the handlers returned
      * by {@link #getKnownBuilders}.
-     * 
+     *
      * @return   list of format name strings
      */
     public List<String> getKnownFormats() {
@@ -303,12 +303,12 @@ public class StarTableFactory {
     /**
      * Sets whether random-access tables will be constructed by this factory.
      * If this flag is set <tt>true</tt> then any table returned by
-     * the various <tt>makeStarTable</tt> methods is guaranteed to 
-     * provide random access (its {@link StarTable#isRandom} method will 
-     * return <tt>true</tt>).  If the flag is false, then returned 
+     * the various <tt>makeStarTable</tt> methods is guaranteed to
+     * provide random access (its {@link StarTable#isRandom} method will
+     * return <tt>true</tt>).  If the flag is false, then returned
      * tables may or may not be random-access.
      *
-     * @param  requireRandom  whether this factory will create 
+     * @param  requireRandom  whether this factory will create
      *         random-access tables
      */
     public void setRequireRandom( boolean requireRandom ) {
@@ -318,9 +318,9 @@ public class StarTableFactory {
     /**
      * Returns the <tt>requireRandom</tt> flag.
      * If this flag is set <tt>true</tt> then any table returned by
-     * the various <tt>makeStarTable</tt> methods is guaranteed to 
-     * provide random access (its {@link StarTable#isRandom} method will 
-     * return <tt>true</tt>).  If the flag is false, then returned 
+     * the various <tt>makeStarTable</tt> methods is guaranteed to
+     * provide random access (its {@link StarTable#isRandom} method will
+     * return <tt>true</tt>).  If the flag is false, then returned
      * tables may or may not be random-access.
      *
      * @return  whether this factory will create random-access tables
@@ -342,7 +342,7 @@ public class StarTableFactory {
     /**
      * Returns the current storage policy.  This may be used to determine
      * what kind of scratch storage is used when constructing tables.
-     * If it has not been set explicitly, the default policy is used 
+     * If it has not been set explicitly, the default policy is used
      * ({@link StoragePolicy#getDefaultPolicy}).
      *
      * @return  storage policy object
@@ -381,7 +381,7 @@ public class StarTableFactory {
      * access then it is returned, otherwise a new random access table
      * is built using its data.
      *
-     * <p>This convenience method is equivalent to 
+     * <p>This convenience method is equivalent to
      * <tt>getStoragePolicy().randomTable(table)</tt>.
      *
      * @param  table  original table
@@ -393,7 +393,7 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a readable <tt>StarTable</tt> from a <tt>DataSource</tt> 
+     * Constructs a readable <tt>StarTable</tt> from a <tt>DataSource</tt>
      * object using automatic format detection.
      *
      * @param  datsrc  the data source containing the table data
@@ -406,7 +406,7 @@ public class StarTableFactory {
             throws TableFormatException, IOException {
         for ( TableBuilder builder : defaultBuilders_ ) {
             try {
-                StarTable startab = 
+                StarTable startab =
                     builder.makeStarTable( datsrc, requireRandom(),
                                            getStoragePolicy() );
                 startab = prepareTable( startab, builder );
@@ -447,7 +447,7 @@ public class StarTableFactory {
 
     /**
      * Constructs a sequence of StarTables from a DataSource using automatic
-     * format detection.  Only certain formats (those whose handlers 
+     * format detection.  Only certain formats (those whose handlers
      * implement {@link MultiTableBuilder} will be capable of returning
      * a sequence having more than one element.
      *
@@ -457,7 +457,7 @@ public class StarTableFactory {
      *         could turn <tt>datsrc</tt> into a table
      * @throws IOException  if an I/O error is encountered
      */
-    public TableSequence makeStarTables( DataSource datsrc ) 
+    public TableSequence makeStarTables( DataSource datsrc )
             throws TableFormatException, IOException {
         for ( TableBuilder builder : defaultBuilders_ ) {
             try {
@@ -562,8 +562,8 @@ public class StarTableFactory {
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
      * handler previously.  If <tt>null</tt> or the empty string or
-     * the special value {@link #AUTO_HANDLER} is 
-     * supplied for <tt>handler</tt>, it will fall back on automatic 
+     * the special value {@link #AUTO_HANDLER} is
+     * supplied for <tt>handler</tt>, it will fall back on automatic
      * format detection.
      *
      * @param  datsrc  the data source containing the table data
@@ -591,7 +591,7 @@ public class StarTableFactory {
         /* If the table handler fails to load the table, rethrow the exception
          * with additional information about the handler that failed. */
         catch ( TableFormatException e ) {
-            String msg = "Can't open " + datsrc.getName() + " as " + 
+            String msg = "Can't open " + datsrc.getName() + " as " +
                          builder.getFormatName();
             String emsg = e.getMessage();
             if ( emsg != null && emsg.trim().length() > 0 ) {
@@ -621,8 +621,8 @@ public class StarTableFactory {
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
      * handler previously.  If <tt>null</tt> or the empty string or
-     * the special value {@link #AUTO_HANDLER} is 
-     * supplied for <tt>handler</tt>, it will fall back on automatic 
+     * the special value {@link #AUTO_HANDLER} is
+     * supplied for <tt>handler</tt>, it will fall back on automatic
      * format detection.
      *
      * <p>If the handler does not implement the {@link MultiTableBuilder}
@@ -647,7 +647,7 @@ public class StarTableFactory {
         try {
             if ( builder instanceof MultiTableBuilder ) {
                 MultiTableBuilder mbuilder = (MultiTableBuilder) builder;
-                TableSequence tseq = 
+                TableSequence tseq =
                     mbuilder
                    .makeStarTables( datsrc, getStoragePolicy() );
                 String nameBase = datsrc.getName() + "-";
@@ -690,8 +690,8 @@ public class StarTableFactory {
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
      * handler previously.  If <tt>null</tt> or the empty string or
-     * the special value {@link #AUTO_HANDLER} is 
-     * supplied for <tt>handler</tt>, it will fall back on automatic 
+     * the special value {@link #AUTO_HANDLER} is
+     * supplied for <tt>handler</tt>, it will fall back on automatic
      * format detection.
      *
      * @param  location  the name of the table resource
@@ -707,7 +707,7 @@ public class StarTableFactory {
         if ( location.startsWith( "jdbc:" ) ) {
             StarTable table = makeStarTable( location, handler );
             return Tables.singleTableSequence( table );
-        }                       
+        }
         else {
             return makeStarTables( DataSource.makeDataSource( location ),
                                    handler );
@@ -722,9 +722,9 @@ public class StarTableFactory {
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
      * handler previously.  If <tt>null</tt> or the empty string or
-     * the special value {@link #AUTO_HANDLER} is 
-     * supplied for <tt>handler</tt>, it will fall back on automatic 
-     * format detection.  A location of "-" means standard input - in 
+     * the special value {@link #AUTO_HANDLER} is
+     * supplied for <tt>handler</tt>, it will fall back on automatic
+     * format detection.  A location of "-" means standard input - in
      * this case the handler must be specified.
      *
      * @param  location  the name of the table resource
@@ -754,15 +754,15 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a readable <tt>StarTable</tt> from a URL 
+     * Constructs a readable <tt>StarTable</tt> from a URL
      * using a named table input handler.
      * The input handler may be named either using its format name
      * (as returned from the {@link TableBuilder#getFormatName} method)
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
      * handler previously.  If <tt>null</tt> or the empty string or
-     * the special value {@link #AUTO_HANDLER} is 
-     * supplied for <tt>handler</tt>, it will fall back on automatic 
+     * the special value {@link #AUTO_HANDLER} is
+     * supplied for <tt>handler</tt>, it will fall back on automatic
      * format detection.
      *
      * @param  url  the URL where the table lives
@@ -772,7 +772,7 @@ public class StarTableFactory {
      * @throws TableFormatException  if the resource at <tt>url</tt> cannot
      *         be turned into a table by <tt>handler</tt>
      * @throws IOException  if an I/O error is encountered
-     * @deprecated  Use 
+     * @deprecated  Use
      *         <code>makeStarTable(new URLDataSource(url),handler)</code>
      */
     @Deprecated
@@ -789,7 +789,7 @@ public class StarTableFactory {
      * be used on a stream).
      * The input stream will be decompressed and buffered if necessary.
      *
-     * @param  in  input stream 
+     * @param  in  input stream
      * @param  builder   handler which understands the data in <tt>in</tt>
      * @return  a table read from the stream if it could be done
      * @see    TableBuilder#streamStarTable
@@ -808,21 +808,21 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a StarTable from a 
-     * {@link java.awt.datatransfer.Transferable} object 
-     * using automatic format detection. 
+     * Constructs a StarTable from a
+     * {@link java.awt.datatransfer.Transferable} object
+     * using automatic format detection.
      * In conjunction with a suitable {@link javax.swing.TransferHandler}
      * this makes it easy to accept drop of an object representing a table
      * which has been dragged from another application.
      * <p>
-     * The implementation of this method currently tries the following 
+     * The implementation of this method currently tries the following
      * on a given transferable to turn it into a table:
      * <ul>
      * <li>If it finds a {@link java.net.URL} object, passes that to the
      *     URL factory method
      * <li>If it finds a transferable that will supply an
-     *     {@link java.io.InputStream}, turns it into a 
-     *     {@link uk.ac.starlink.util.DataSource} and passes that to the 
+     *     {@link java.io.InputStream}, turns it into a
+     *     {@link uk.ac.starlink.util.DataSource} and passes that to the
      *     <tt>DataSource</tt> constructor
      * </ul>
      *
@@ -853,7 +853,7 @@ public class StarTableFactory {
                     }
                 }
                 catch ( UnsupportedFlavorException e ) {
-                    throw new RuntimeException( "DataFlavor " + flavor 
+                    throw new RuntimeException( "DataFlavor " + flavor
                                               + " support withdrawn?" );
                 }
                 catch ( TableFormatException e ) {
@@ -863,7 +863,7 @@ public class StarTableFactory {
 
             /* If we can get a stream, see if any of the builders will
              * take it. */
-            if ( InputStream.class.isAssignableFrom( clazz ) && 
+            if ( InputStream.class.isAssignableFrom( clazz ) &&
                  ! flavor.isFlavorSerializedObjectType() ) {
                 for ( TableBuilder builder : defaultBuilders_ ) {
                     if ( builder.canImport( flavor ) ) {
@@ -873,7 +873,7 @@ public class StarTableFactory {
                         }
                         catch ( UnsupportedFlavorException e ) {
                             throw new RuntimeException(
-                                "DataFlavor " + flavor + 
+                                "DataFlavor " + flavor +
                                 " support withdrawn?" );
                         }
                         if ( data instanceof InputStream ) {
@@ -897,7 +897,7 @@ public class StarTableFactory {
      * is suitable for attempting to turn the <tt>Transferable</tt>
      * into a StarTable.
      * <p>
-     * Each of the builder objects is queried about whether it can 
+     * Each of the builder objects is queried about whether it can
      * import the given flavour, and if one says it can, a true value
      * is returned.  A true value is also returned if one of the flavours
      * has a representation class of {@link java.net.URL}.
@@ -954,7 +954,7 @@ public class StarTableFactory {
      *
      * @param   name  specification of the handler required
      * @return  TableBuilder specified by <tt>name</tt>
-     * @throws  TableFormatException  if <tt>name</tt> doesn't name any 
+     * @throws  TableFormatException  if <tt>name</tt> doesn't name any
      *          available handler
      */
     public TableBuilder getTableBuilder( String name )
@@ -977,7 +977,7 @@ public class StarTableFactory {
                 return (TableBuilder) clazz.newInstance();
             }
             else {
-                throw new TableFormatException( 
+                throw new TableFormatException(
                     "Class " + clazz + " does not implement TableBuilder" );
             }
         }
@@ -992,7 +992,7 @@ public class StarTableFactory {
         }
 
         /* Failed to find any handler for name. */
-        throw new TableFormatException( "No table handler available for " 
+        throw new TableFormatException( "No table handler available for "
                                       + name );
     }
 
