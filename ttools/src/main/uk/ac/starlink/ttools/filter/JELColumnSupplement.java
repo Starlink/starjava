@@ -171,19 +171,7 @@ public class JELColumnSupplement implements ColumnSupplement {
             lrow_ = -1;
             rdata_ = rdata;
             ncol_ = exprs.length;
-            seqCompexs_ = new CompiledExpression[ ncol_ ];
-            Library lib = JELUtils.getLibrary( this );
-            for ( int icol = 0; icol < ncol_; icol++ ) {
-                try {
-                    seqCompexs_[ icol ] =
-                        JELUtils.compile( lib, table, exprs[ icol ] );
-                }
-                catch ( CompilationException e ) {
-                    throw (AssertionError)
-                          new AssertionError( "Well it compiled OK last time" )
-                         .initCause( e );
-                }
-            }
+            seqCompexs_ = JELUtils.compileExpressions( this, exprs );
         }
 
         // JELRowReader method

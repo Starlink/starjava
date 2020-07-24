@@ -138,21 +138,8 @@ public class JELTable extends WrapperStarTable {
     public RowSequence getRowSequence() throws IOException {
         final SequentialJELRowReader seqReader =
             new SequentialJELRowReader( baseTable_ );
-        Library lib = JELUtils.getLibrary( seqReader );
-        final CompiledExpression[] seqCompexs = new CompiledExpression[ ncol_ ];
-        for ( int icol = 0; icol < ncol_; icol++ ) {
-            String expr = exprs_[ icol ];
-            try {
-                seqCompexs[ icol ] = JELUtils.compile( lib, baseTable, expr );
-            }
-            catch ( CompilationException e ) {
-                // This shouldn't really happen since we already tried to
-                // compile it in the constructor to test it.  However, just
-                // rethrow it if it does.
-                throw (IOException) new IOException( "Bad expression: " + expr )
-                                   .initCause( e );
-            }
-        }
+        final CompiledExpression[] seqCompexs =
+            JELUtils.compileExpressions( seqReader, exprs_ );
         return new WrapperRowSequence( seqReader ) {
 
             public Object getCell( int icol ) throws IOException {

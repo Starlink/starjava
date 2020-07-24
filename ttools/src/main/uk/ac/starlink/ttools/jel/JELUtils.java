@@ -313,6 +313,39 @@ public class JELUtils {
     }
 
     /**
+     * Compiles a set of expressions relating to a table.
+     * <p>Any CompilationExceptions are rethrown as IOExceptions;
+     * this method should therefore generally be used only
+     * if the expressions are expected to be free from errors
+     * (have been compiled before).
+     *
+     * @param  reader  table reader
+     * @param  exprs   strings giving JEL expressions to be compiled
+     * @return  array with one compiled expression for each input string
+     * @throws   IOException  in case of any CompilationException
+     */
+    public static CompiledExpression[]
+                  compileExpressions( StarTableJELRowReader reader,
+                                      String[] exprs )
+            throws IOException {
+        StarTable table = reader.getTable();
+        int nexpr = exprs.length;
+        Library lib = JELUtils.getLibrary( reader );
+        CompiledExpression[] compexs = new CompiledExpression[ nexpr ];
+        for ( int icol = 0; icol < nexpr; icol++ ) {
+            String expr = exprs[ icol ];
+            try {
+                compexs[ icol ] = JELUtils.compile( lib, table, expr );
+            }
+            catch ( CompilationException e ) {
+                throw (IOException) new IOException( "Bad expression: " + expr )
+                                   .initCause( e );
+            }
+        }
+        return compexs;
+    }
+
+    /**
      * Utility method to convert a CompilationException into an IOException.
      *
      * @param   e   compilation exception
