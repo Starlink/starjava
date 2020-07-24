@@ -30,10 +30,10 @@ import java.io.IOException;
  *
  * @author   Mark Taylor (Starlink)
  */
-public interface RowSequence extends Closeable {
+public interface RowSequence extends Closeable, RowData {
 
     /**
-     * Attempts to advances the current row to the next one.
+     * Attempts to advance the current row to the next one.
      * If <tt>true</tt> is returned the attempt has been successful,
      * and if <tt>false</tt> is returned there are no more rows in this 
      * sequence.
@@ -56,6 +56,7 @@ public interface RowSequence extends Closeable {
      * An unchecked exception will be thrown if there is no current
      * row (<tt>next</tt> has not yet been called).
      *
+     * @param   icol  column index
      * @return  the contents of cell <tt>icol</tt> in the current row
      * @throws IOException  if there is an error reading the data
      * @throws IllegalStateException if there is no current row (before the
@@ -82,5 +83,4 @@ public interface RowSequence extends Closeable {
      * <code>close</code> is undefined.
      */
     void close() throws IOException;
-
 }
