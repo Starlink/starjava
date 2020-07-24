@@ -13,19 +13,26 @@ import java.util.List;
  * of a given type) for each row; this type can be determined using
  * the {@link ColumnInfo} objects returned by {@link #getColumnInfo}.
  * The first row and the first column are numbered 0.
- * <p>
- * All <tt>StarTable</tt>s allow sequential access, provided by 
+ *
+ * <p>All <tt>StarTable</tt>s allow sequential access, provided by 
  * calling {@link #getRowSequence}.  This may in general be
  * called multiple times so that more than one iteration can be made
  * through the rows of the table from start to finish.
  * Additionally, if the {@link #isRandom} method returns <tt>true</tt>
- * then the random access methods {@link #getRow} and {@link #getCell}
+ * then the random access methods {@link #getRowAccess},
+ * {@link #getRow} and {@link #getCell}
  * may be used to access table contents directly.
- * <p>
- * For random tables, the <tt>getRow</tt> and <tt>getCell</tt> methods
- * should be thread-safe.  Separate <tt>RowSequence</tt> objects obtained
+ *
+ * <p>For random tables, the <tt>getRow</tt> and <tt>getCell</tt> methods
+ * should be thread-safe.  Separate <tt>RowSequence</tt>
+ * and <tt>RowAccess</tt> objects obtained
  * from the same table should be safely usable from different threads, 
- * but a given <tt>RowSequence</tt> in general will not.
+ * but a given <tt>RowSequence</tt>/<tt>RowAccess</tt> in general will not.
+ *
+ * <p>In general it is preferred to use {@link #getRowAccess} than
+ * the equivalent <code>getRow</code>/<code>getCell</code> methods
+ * of the table itself, since the assumption of single-threaded use
+ * may permit more efficient implementation.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -145,16 +152,31 @@ public interface StarTable {
     /**
      * Returns an object which can iterate over all the rows in the table
      * sequentially.
+     * Each such returned object is safe for use within a single thread,
+     * but not in general from multiple threads concurrently.
      * 
-     * @return  an object providing sequential access to the table data
+     * @return  new RowSequence
      * @throws  IOException   if there is an error providing access
      */
     RowSequence getRowSequence() throws IOException;
 
     /**
+     * Returns an object which can provide random access to this
+     * table's data, if random access is implemented.
+     * Each such returned object is safe for use within a single thread,
+     * but not in general from multiple threads concurrently.
+     *
+     * @return   new RowAccess
+     * @throws IOException  if there is an error setting up access
+     * @throws UnsupportedOperationException  if <tt>isRandom</tt> returns
+     *         <tt>false</tt>
+     */
+    RowAccess getRowAccess() throws IOException;
+
+    /**
      * Indicates whether random access is provided by this table.
-     * Only if the result is <tt>true</tt> may the {@link #getRow}
-     * and {@link #getCell} methods be used.
+     * Only if the result is <tt>true</tt> may the {@link #getRowAccess},
+     * {@link #getRow} and {@link #getCell} methods be used.
      *
      * @return  <tt>true</tt> if table random access methods are available
      */
@@ -166,13 +188,16 @@ public interface StarTable {
      * or a subclass of, the class returned by
      * <tt>getColumnInfo(icol).getContentClass()</tt>.
      *
+     * <p>This method is safe for concurrent use from multiple threads,
+     * but in general it is recommended to use a
+     * {@link #getRowAccess RowAccess} instead.
+     *
      * @param  irow  the index of the cell's row
      * @param  icol  the index of the cell's column
      * @return  the contents of this cell
      * @throws IOException  if there is an error reading the data
      * @throws UnsupportedOperationException  if <tt>isRandom</tt> returns
      *         <tt>false</tt>
-     * 
      */
     Object getCell( long irow, int icol ) throws IOException;
 
@@ -181,6 +206,10 @@ public interface StarTable {
      * equivalent to an array formed of all the objects returned by 
      * <tt>getCell(irow,icol)</tt> for all the columns <tt>icol</tt> 
      * in sequence.
+     *
+     * <p>This method is safe for concurrent use from multiple threads,
+     * but in general it is recommended to use a
+     * {@link #getRowAccess RowAccess} instead.
      *
      * @param  irow  the index of the row to retrieve
      * @return  an array of the objects in each cell in row <tt>irow</tt>

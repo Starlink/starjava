@@ -245,6 +245,7 @@ public class TableCase extends TestCase {
         long lrow = 0;
         RowSequence rseq1 = st.getRowSequence();
         RowSequence rseq2 = st.getRowSequence();
+        RowAccess racc = isRandom ? st.getRowAccess() : null;
         while ( rseq1.next() ) {
             assertTrue( rseq2.next() );
             for ( int icol = 0; icol < ncol; icol++ ) {
@@ -253,6 +254,9 @@ public class TableCase extends TestCase {
                 Object cell = row[ icol ];
                 if ( isRandom ) {
                     assertScalarOrArrayEquals( cell, st.getCell( lrow, icol ) );
+                    racc.setRowIndex( lrow );
+                    assertScalarOrArrayEquals( cell, racc.getCell( icol ) );
+                    assertArrayEquals( row, racc.getRow() );
                 }
                 assertScalarOrArrayEquals( cell, rseq1.getCell( icol ) );
                 assertScalarOrArrayEquals( cell, rseq2.getCell( icol ) );

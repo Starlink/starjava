@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.storage;
 
 import java.io.IOException;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
@@ -100,6 +101,31 @@ class ColumnStoreStarTable extends WrapperStarTable {
                 else {
                     throw new IllegalStateException();
                 }
+            }
+            public void close() {
+            }
+        };
+    }
+
+    public RowAccess getRowAccess() throws IOException {
+        final ColumnReader[] readers = new ColumnReader[ ncol_ ];
+        for ( int ic = 0; ic < ncol_; ic++ ) {
+            readers[ ic ] = colStores_[ ic ].createReader();
+        }
+        final Object[] row = new Object[ ncol_ ];
+        return new RowAccess() {
+            long irow_ = -1;
+            public void setRowIndex( long irow ) {
+                irow_ = irow;
+            }
+            public Object getCell( int icol ) throws IOException {
+                return readers[ icol ].getObjectValue( irow_ );
+            }
+            public Object[] getRow() throws IOException {
+                for ( int ic = 0; ic < ncol_; ic++ ) {
+                    row[ ic ] = readers[ ic ].getObjectValue( irow_ );
+                }
+                return row;
             }
             public void close() {
             }

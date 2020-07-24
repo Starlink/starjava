@@ -270,7 +270,8 @@ public class TopcatJELUtils extends JELUtils {
 
         /* Compile the expression using a RowReader that we can later
          * interrogate to find out which symbols the expression referenced. */
-        TopcatJELRowReader rdr = new TopcatJELRowReader( tcModel );
+        TopcatJELRowReader rdr =
+            TopcatJELRowReader.createDummyReader( tcModel );
         Library lib = getLibrary( rdr, false );
         try {
             Evaluator.compile( expr, lib );
@@ -326,7 +327,8 @@ public class TopcatJELUtils extends JELUtils {
 
         /* Compile the expression using a RowReader that we can later
          * interrogate to find out which symbols the expression referenced. */
-        TopcatJELRowReader rdr = new TopcatJELRowReader( tcModel );
+        TopcatJELRowReader rdr =
+            TopcatJELRowReader.createDummyReader( tcModel );
         Library lib = getLibrary( rdr, false );
         try {
             Evaluator.compile( expr, lib );

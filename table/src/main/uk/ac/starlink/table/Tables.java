@@ -201,6 +201,9 @@ public class Tables {
         /* Check a random-access table knows how many rows it has. */
         if ( isRandom ) {
             assertTrue( nrow >= 0 );
+            RowAccess racc = table.getRowAccess();
+            assertTrue( racc != null );
+            racc.close();
         }
 
         /* Check the shape arrays look OK. */
@@ -241,6 +244,7 @@ public class Tables {
 
         /* Read all cells. */
         long lrow = 0L;
+        RowAccess racc = isRandom ? table.getRowAccess() : null;
         while ( rseq.next() ) {
             Object[] row = rseq.getRow();
             for ( int icol = 0; icol < ncol; icol++ ) {
@@ -250,15 +254,19 @@ public class Tables {
                 Object val1 = cell;
                 Object val2 = rseq.getCell( icol );
                 Object val3 = null;
+                Object val4 = null;
                 if ( isRandom ) {
                     val3 = table.getCell( lrow, icol );
+                    racc.setRowIndex( lrow );
+                    val4 = racc.getCell( icol );
                 }
                 boolean isNull = cell == null;
                 if ( isNull ) {
                     assertTrue( colinfos[ icol ].isNullable() );
                     assertTrue( val2 == null );
                     if ( isRandom ) {
-                        assertTrue( val3 == null);
+                        assertTrue( val3 == null );
+                        assertTrue( val4 == null );
                     }
                 }
                 else {
@@ -269,6 +277,9 @@ public class Tables {
                     if ( isRandom ) {
                         assertTrue( s1.equals( colinfos[ icol ]
                                               .formatValue( val3,
+                                                            formatChars ) ) );
+                        assertTrue( s1.equals( colinfos[ icol ]
+                                              .formatValue( val4,
                                                             formatChars ) ) );
                     }
                 }

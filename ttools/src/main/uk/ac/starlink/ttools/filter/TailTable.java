@@ -2,10 +2,12 @@ package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import uk.ac.starlink.table.AccessRowSequence;
 import uk.ac.starlink.table.IteratorRowSequence;
-import uk.ac.starlink.table.RandomRowSequence;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperStarTable;
 
 /**
@@ -48,9 +50,19 @@ public class TailTable extends WrapperStarTable {
         return super.getRowCount() - getRowCount() + irow;
     }
 
+    public RowAccess getRowAccess() throws IOException {
+        final long ioff = super.getRowCount() - getRowCount();
+        return new WrapperRowAccess( super.getRowAccess() ) {
+            @Override
+            public void setRowIndex( long irow ) throws IOException {
+                super.setRowIndex( ioff + irow );
+            }
+        };
+    }
+
     public RowSequence getRowSequence() throws IOException {
         if ( isRandom() ) {
-            return new RandomRowSequence( this );
+            return AccessRowSequence.createInstance( this );
         }
         else {
             long nbase = super.getRowCount();

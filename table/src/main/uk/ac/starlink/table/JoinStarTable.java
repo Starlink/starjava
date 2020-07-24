@@ -212,6 +212,9 @@ public class JoinStarTable extends AbstractStarTable {
         return new JoinRowSequence();
     }
 
+    public RowAccess getRowAccess() throws IOException {
+        return new JoinRowAccess();
+    }
 
     /**
      * Helper class providing the row sequence implementation used by
@@ -265,6 +268,64 @@ public class JoinStarTable extends AbstractStarTable {
         public void close() throws IOException {
             for ( RowSequence rseq : rseqs_ ) {
                 rseq.close();
+            }
+        }
+    }
+
+    /**
+     * RowAccess implementation for use with JoinStarTable.
+     */
+    private class JoinRowAccess implements RowAccess {
+
+        final RowAccess[] raccs_;
+        final RowAccess[] raccsByColumn_;
+        final Object[] row_;
+        long irow_;
+
+        JoinRowAccess() throws IOException {
+            row_ = new Object[ nCol_ ];
+            raccs_ = new RowAccess[ nTab_ ];
+            raccsByColumn_ = new RowAccess[ nCol_ ];
+            int icol = 0;
+            for ( int itab = 0; itab < nTab_; itab++ ) {
+                raccs_[ itab ] = tables_[ itab ].getRowAccess();
+                for ( int ic = 0; ic < nCols_[ itab ]; ic++ ) {
+                    raccsByColumn_[ icol ] = raccs_[ itab ];
+                    assert indicesByColumn_[ icol ] == ic;
+                    icol++;
+                }
+            }
+            assert icol == nCol_;
+        }
+
+        public void setRowIndex( long irow ) throws IOException {
+            for ( int itab = 0; itab < nTab_; itab++ ) {
+                raccs_[ itab ].setRowIndex( irow );
+            }
+        }
+
+        public Object getCell( int icol ) throws IOException {
+            return raccsByColumn_[ icol ].getCell( indicesByColumn_[ icol ] );
+        }
+
+        public Object[] getRow() throws IOException {
+            int icol = 0;
+            for ( int itab = 0; itab < nTab_; itab++ ) {
+                Object[] subrow = raccs_[ itab ].getRow();
+                System.arraycopy( subrow, 0, row_, icol, nCols_[ itab ] );
+                icol += nCols_[ itab ];
+            }
+            assert icol == nCol_;
+            return row_;
+        }
+
+        public void close() throws IOException {
+            for ( RowAccess racc : raccs_ ) {
+                try {
+                    racc.close();
+                }
+                catch ( IOException e ) {
+                }
             }
         }
     }

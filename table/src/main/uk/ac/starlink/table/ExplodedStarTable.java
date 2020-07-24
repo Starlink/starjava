@@ -120,6 +120,20 @@ public class ExplodedStarTable extends WrapperStarTable {
         };
     }
 
+    public RowAccess getRowAccess() throws IOException {
+        RowAccess baseAcc = baseTable.getRowAccess();
+        return new WrapperRowAccess( baseAcc ) {
+            public Object getCell( int icol ) throws IOException {
+                ColPointer pointer = pointers_[ icol ];
+                Object baseCell = baseAcc.getCell( pointer.getBaseIndex() );
+                return translateCell( pointer, baseCell );
+            }
+            public Object[] getRow() throws IOException {
+                return translateRow( baseAcc.getRow() );
+            }
+        };
+    }
+
     /**
      * Translates a base table cell into a cell in this table;
      * may involve dereferencing an array in the base table.

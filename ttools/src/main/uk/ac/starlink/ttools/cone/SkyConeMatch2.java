@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.join.PairMode;
@@ -375,6 +377,15 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                     public RowSequence getRowSequence() throws IOException {
                         return new WrapperRowSequence( baseTable
                                                       .getRowSequence() ) {
+                            public void close() throws IOException {
+                                super.close();
+                                thread.interrupt();
+                            }
+                        };
+                    }
+                    public RowAccess getRowAccess() throws IOException {
+                        return new WrapperRowAccess( baseTable
+                                                    .getRowAccess() ) {
                             public void close() throws IOException {
                                 super.close();
                                 thread.interrupt();

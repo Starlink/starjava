@@ -2,10 +2,12 @@ package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
 import java.util.Iterator;
+import uk.ac.starlink.table.AccessRowSequence;
 import uk.ac.starlink.table.EmptyRowSequence;
-import uk.ac.starlink.table.RandomRowSequence;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 
@@ -132,7 +134,7 @@ public class RangeFilter extends BasicFilter {
                 return EmptyRowSequence.getInstance(); 
             }
             else if ( isRandom() ) {
-                return new RandomRowSequence( this );
+                return AccessRowSequence.createInstance( this );
             }
             else {
                 RowSequence baseSeq = super.getRowSequence();
@@ -141,6 +143,24 @@ public class RangeFilter extends BasicFilter {
                     long nleft = ito_ - ifrom_;
                     public boolean next() throws IOException {
                         return nleft-- > 0 && super.next();
+                    }
+                };
+            }
+        }
+
+        public RowAccess getRowAccess() throws IOException {
+            if ( ! isRandom() ) {
+                throw new UnsupportedOperationException( "Not random" );
+            }
+            else if ( getRowCount() == 0 ) {
+                return EmptyRowSequence.getInstance();
+            }
+            else {
+                final RowAccess baseAcc = super.getRowAccess();
+                return new WrapperRowAccess( baseAcc ) {
+                    @Override
+                    public void setRowIndex( long irow ) throws IOException {
+                        baseAcc.setRowIndex( ifrom_ + irow );
                     }
                 };
             }

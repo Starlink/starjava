@@ -41,6 +41,10 @@ public class EmptyStarTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() {
-        return new RandomRowSequence( this );
+        return EmptyRowSequence.getInstance();
+    }
+
+    public RowAccess getRowAccess() {
+        return EmptyRowSequence.getInstance();
     }
 }

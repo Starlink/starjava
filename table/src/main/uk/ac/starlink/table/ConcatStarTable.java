@@ -118,6 +118,69 @@ public class ConcatStarTable extends WrapperStarTable {
         return new ConcatRowSequence( getTableIterator() );
     }
 
+    public RowAccess getRowAccess() {
+        if ( ! isRandom() ) {
+            throw new UnsupportedOperationException( "No random access" );
+        }
+        final int ntable = tableList_.size();
+        final long[] istarts = new long[ ntable + 1 ];
+        for ( int it = 0; it < ntable; it++ ) {
+            istarts[ it + 1 ] =
+                istarts[ it ] + tableList_.get( it ).getRowCount();
+        }
+        return new RowAccess() {
+            private final RowAccess[] subAccs_ = new RowAccess[ ntable ];
+            private long irow_ = -1;
+            private RowAccess subAcc_;
+            public void setRowIndex( long irow ) throws IOException {
+                if ( irow != irow_ ) {
+                    irow_ = irow;
+                    int ipos = Arrays.binarySearch( istarts, irow );
+                    final int iTable;
+                    final long iSubrow;
+                    if ( ipos >= 0 ) {
+                        while ( ipos < ntable &&
+                                istarts[ ipos + 1 ] == istarts[ ipos ] ) {
+                            ipos++;
+                        }
+                        iTable = ipos;
+                        iSubrow = 0;
+                    }
+                    else {
+                        iTable = -2 - ipos;
+                        iSubrow = irow - istarts[ iTable ];
+                    }
+                    if ( subAccs_[ iTable ] == null ) {
+                        subAccs_[ iTable ] =
+                            tableList_.get( iTable ).getRowAccess();
+                    }
+                    subAcc_ = subAccs_[ iTable ];
+                    boolean hasRow = istarts[ iTable + 1 ] > istarts[ iTable ];
+                    subAcc_.setRowIndex( hasRow ? iSubrow : -1 );
+                }
+            }
+            public Object getCell( int icol ) throws IOException {
+                return subAcc_.getCell( icol );
+            }
+            public Object[] getRow() throws IOException {
+                return subAcc_.getRow();
+            }
+            public void close() {
+                for ( int i = 0; i < ntable; i++ ) {
+                    RowAccess subAcc = subAccs_[ i ];
+                    if ( subAcc != null ) {
+                        try {
+                            subAcc.close();
+                        }
+                        catch ( IOException e ) {
+                        }
+                        subAccs_[ i ] = null;
+                    }
+                }
+            }
+        };
+    }
+
     /**
      * Checks whether a given table is compatible with the metadata of
      * this one.  The main thing to check is that the columns have 

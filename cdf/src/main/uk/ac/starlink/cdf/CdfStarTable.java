@@ -22,6 +22,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.DomainMapper;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -214,6 +215,31 @@ public class CdfStarTable extends AbstractStarTable {
             }
             public Object[] getRow() throws IOException {
                 Object[] row = new Object[ ncol_ ];
+                for ( int icol = 0; icol < ncol_; icol++ ) {
+                    row[ icol ] = getCell( icol );
+                }
+                return row;
+            }
+            public void close() {
+            }
+        };
+    }
+
+    public RowAccess getRowAccess() throws IOException {
+        final VariableReader[] vrdrs = new VariableReader[ ncol_ ];
+        for ( int icol = 0; icol < ncol_; icol++ ) {
+            vrdrs[ icol ] = createVariableReader( vars_[ icol ], blankvalAtt_ );
+        }
+        final Object[] row = new Object[ ncol_ ];
+        return new RowAccess() {
+            private long irow = -1;
+            public void setRowIndex( long ir ) {
+                irow = ir;
+            }
+            public Object getCell( int icol ) throws IOException {
+                return vrdrs[ icol ].readShapedRecord( toRecordIndex( irow ) );
+            }
+            public Object[] getRow() throws IOException {
                 for ( int icol = 0; icol < ncol_; icol++ ) {
                     row[ icol ] = getCell( icol );
                 }

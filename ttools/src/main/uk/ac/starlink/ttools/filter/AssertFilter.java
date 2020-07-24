@@ -5,8 +5,10 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Iterator;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.ttools.jel.JELUtils;
@@ -92,7 +94,8 @@ public class AssertFilter extends BasicFilter {
             super( baseTable );
             baseTable_ = baseTable;
             expr_ = expr;
-            randomReader_ = new RandomJELRowReader( baseTable );
+            randomReader_ =
+                RandomJELRowReader.createConcurrentReader( baseTable );
             Library lib =
                 JELUtils.getLibrary( new DummyJELRowReader( baseTable ) );
             compEx_ = JELUtils.compile( lib, baseTable, expr );
@@ -101,28 +104,23 @@ public class AssertFilter extends BasicFilter {
 
         public Object getCell( long irow, int icol ) throws IOException {
             Object cell = super.getCell( irow, icol );
-            assertAtRow( irow );
+            assertAtRow( randomReader_, irow );
             return cell;
         }
 
         public Object[] getRow( long irow ) throws IOException {
             Object[] row = super.getRow( irow );
-            assertAtRow( irow );
+            assertAtRow( randomReader_, irow );
             return row;
         }
 
-        private void assertAtRow( long irow ) throws IOException {
+        private void assertAtRow( RandomJELRowReader reader, long irow )
+                throws IOException {
             Object result;
             try {
-                result = randomReader_.evaluateAtRow( compEx_, irow );
+                result = reader.evaluateAtRow( compEx_, irow );
             }
-            catch ( IOException e ) {
-                throw e;
-            }
-            catch ( RuntimeException e ) {
-                throw e;
-            }
-            catch ( Error e ) {
+            catch ( IOException | RuntimeException | Error e ) {
                 throw e;
             }
             catch ( Throwable e ) {
@@ -130,6 +128,26 @@ public class AssertFilter extends BasicFilter {
                                    .initCause( e );
             }
             check( result, irow );
+        }
+
+        public RowAccess getRowAccess() throws IOException {
+            final RowAccess baseAcc = super.getRowAccess();
+            final RandomJELRowReader accReader =
+                RandomJELRowReader.createAccessReader( baseTable_, baseAcc );
+            Library lib = JELUtils.getLibrary( accReader );
+            final CompiledExpression compEx;
+            try {
+                compEx = JELUtils.compile( lib, baseTable_, expr_ );
+            }
+            catch ( CompilationException e ) {
+                throw JELUtils.toIOException( e, expr_ );
+            }
+            return new WrapperRowAccess( baseAcc ) {
+                public void setRowIndex( long irow ) throws IOException {
+                    super.setRowIndex( irow );
+                    assertAtRow( accReader, irow );
+                }
+            };
         }
 
         public RowSequence getRowSequence() throws IOException {
@@ -152,13 +170,7 @@ public class AssertFilter extends BasicFilter {
                         try {
                             result = seqReader.evaluate( compEx );
                         }
-                        catch ( IOException e ) {
-                            throw e;
-                        }
-                        catch ( RuntimeException e ) {
-                            throw e;
-                        }
-                        catch ( Error e ) {
+                        catch ( IOException | RuntimeException | Error e ) {
                             throw e;
                         }
                         catch ( Throwable e ) {

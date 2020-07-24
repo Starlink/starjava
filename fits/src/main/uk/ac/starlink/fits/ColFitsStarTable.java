@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import nom.tam.fits.Header;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
@@ -38,6 +39,7 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
     private final long nrow_;
     private final ValueReader[] valReaders_;
     private final InputFactory[] inputFacts_;
+    private final boolean isRandom_;
     private final ColumnReader[] randomColReaders_;
     private final Closeable closer_;
 
@@ -199,7 +201,6 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
 
         /* Prepare an InputFactory for the region of the input file
          * corresponding to each column. */
-        final boolean isRandom;
         inputFacts_ = new InputFactory[ ncol_ ];
 
         /* Use random access if possible. */
@@ -208,7 +209,7 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
              datsrc.getCompression() == Compression.NONE &&
              ( Loader.is64Bit() ||
                ((FileDataSource) datsrc).getFile().length() < 1 << 29 ) ) {
-            isRandom = true;
+            isRandom_ = true;
 
             /* Use a single file channel for all columns, though each will
              * have its own InputFactory. */
@@ -252,7 +253,7 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
                 logger_.warning( "Can't map compressed file " + datsrc.getName()
                                + " - uncompressing may improve performance" );
             }
-            isRandom = false;
+            isRandom_ = false;
             long pos = dataPos;
             for ( int icol = 0; icol < ncol_; icol++ ) {
                 final long offset = pos;
@@ -281,7 +282,7 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
         getParameters().addAll( Arrays.asList( cards.getUnusedParams() ) );
 
         /* Prepare readers for random access. */
-        if ( isRandom ) {
+        if ( isRandom_ ) {
             randomColReaders_ = new ColumnReader[ ncol_ ];
             for ( int icol = 0; icol < ncol_; icol++ ) {
                 final BasicInputThreadLocal bitl =
@@ -311,7 +312,7 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
     }
 
     public boolean isRandom() {
-        return randomColReaders_ != null;
+        return isRandom_;
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
@@ -342,6 +343,15 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
 
     public RowSequence getRowSequence() throws IOException {
         return new ColFitsRowSequence();
+    }
+
+    public RowAccess getRowAccess() throws IOException {
+        if ( isRandom_ ) {
+            return new ColFitsRowAccess();
+        }
+        else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     public void close() throws IOException {
@@ -801,6 +811,53 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
 
         public void close() throws IOException {
             for ( ColumnReader colReader : seqColReaders_ ) {
+                colReader.close();
+            }
+        }
+    }
+
+    /**
+     * RowAccess implementation for this table.
+     */
+    private class ColFitsRowAccess implements RowAccess {
+        private final ColumnReader[] colReaders_;
+        private final Object[] row_;
+        private long irow_;
+
+        ColFitsRowAccess() throws IOException {
+            colReaders_ = new ColumnReader[ ncol_ ];
+            for ( int icol = 0; icol < ncol_; icol++ ) {
+                final BasicInput input =
+                    inputFacts_[ icol ].createInput( false );
+                colReaders_[ icol ] = new ColumnReader( valReaders_[ icol ] ) {
+                    protected BasicInput getInput() {
+                        return input;
+                    }
+                    public void close() throws IOException {
+                        input.close();
+                    }
+                };
+            }
+            row_ = new Object[ ncol_ ];
+        }
+
+        public void setRowIndex( long irow ) {
+            irow_ = irow;
+        }
+
+        public Object getCell( int icol ) throws IOException {
+            return colReaders_[ icol ].readIndexedCell( irow_ );
+        }
+
+        public Object[] getRow() throws IOException {
+            for ( int icol = 0; icol < ncol_; icol++ ) {
+                row_[ icol ] = colReaders_[ icol ].readIndexedCell( irow_ );
+            }
+            return row_;
+        }
+
+        public void close() throws IOException {
+            for ( ColumnReader colReader : colReaders_ ) {
                 colReader.close();
             }
         }

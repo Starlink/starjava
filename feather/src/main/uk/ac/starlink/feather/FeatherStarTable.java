@@ -15,6 +15,7 @@ import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -144,6 +145,24 @@ public class FeatherStarTable extends AbstractStarTable {
                 else {
                     throw new IllegalStateException();
                 }
+            }
+            public void close() {
+            }
+        };
+    }
+
+    public RowAccess getRowAccess() {
+        final RowReader rowReader = new RowReader();
+        return new RowAccess() {
+            long irow_ = -1;
+            public void setRowIndex( long irow ) {
+                irow_ = irow;
+            }
+            public Object getCell( int icol ) throws IOException {
+                return rowReader.getCell( irow_, icol );
+            }
+            public Object[] getRow() throws IOException {
+                return rowReader.getRow( irow_ );
             }
             public void close() {
             }

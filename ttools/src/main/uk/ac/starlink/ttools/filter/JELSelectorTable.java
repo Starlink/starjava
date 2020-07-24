@@ -5,13 +5,13 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.List;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.DummyJELRowReader;
-import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
 
 /**
@@ -42,12 +42,29 @@ public class JELSelectorTable extends WrapperStarTable {
         JELUtils.checkExpressionType( lib, baseTable, expr, boolean.class );
     }
 
+    @Override
     public boolean isRandom() {
         return false;
     }
 
+    @Override
     public long getRowCount() {
         return -1L;
+    }
+
+    @Override
+    public Object getCell( long irow, int icol ) {
+        throw new UnsupportedOperationException( "Not random" );
+    }
+
+    @Override
+    public Object[] getRow( long irow ) {
+        throw new UnsupportedOperationException( "Not random" );
+    }
+
+    @Override
+    public RowAccess getRowAccess() {
+        throw new UnsupportedOperationException( "Not random" );
     }
 
     public RowSequence getRowSequence() throws IOException {

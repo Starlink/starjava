@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.StarTable;
@@ -106,6 +107,9 @@ public class JELUtils {
                     throw new UnsupportedOperationException();
                 }
                 public RowSequence getRowSequence() {
+                    throw new UnsupportedOperationException();
+                }
+                public RowAccess getRowAccess() {
                     throw new UnsupportedOperationException();
                 }
             } );

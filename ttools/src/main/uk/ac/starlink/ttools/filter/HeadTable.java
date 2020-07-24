@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowSequence;
@@ -59,5 +60,9 @@ public class HeadTable extends WrapperStarTable {
                 return nleft-- > 0 && super.next();
             }
         };
+    }
+
+    public RowAccess getRowAccess() throws IOException {
+        return super.getRowAccess();
     }
 }

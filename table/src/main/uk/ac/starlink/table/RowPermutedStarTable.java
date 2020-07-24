@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Wrapper table which provides a view of a base table in which the 
@@ -91,8 +92,36 @@ public class RowPermutedStarTable extends WrapperStarTable {
         return true;
     }
 
-    public RowSequence getRowSequence() {
-        return new RandomRowSequence( this );
+    public RowAccess getRowAccess() throws IOException {
+        final RowAccess baseAcc = baseTable.getRowAccess();
+        final int ncol = baseTable.getColumnCount();
+        final Object[] emptyRow = new Object[ ncol ];
+        return new RowAccess() {
+            private long baseIrow_ = -1;
+            public void setRowIndex( long irow ) throws IOException {
+                baseIrow_ = rowMap[ checkedLongToInt( irow ) ];
+                baseAcc.setRowIndex( baseIrow_ );
+            }
+            public Object getCell( int icol ) throws IOException {
+                return baseIrow_ >= 0 ? baseAcc.getCell( icol )
+                                      : null;
+            }
+            public Object[] getRow() throws IOException {
+                return baseIrow_ >= 0 ? baseAcc.getRow()
+                                      : emptyRow();
+            }
+            public void close() throws IOException {
+                baseAcc.close();
+            }
+            private Object[] emptyRow() {
+                Arrays.fill( emptyRow, null );
+                return emptyRow;
+            }
+        };
+    }
+
+    public RowSequence getRowSequence() throws IOException {
+        return AccessRowSequence.createInstance( this );
     }
 
     public Object getCell( long irow, int icol ) throws IOException {

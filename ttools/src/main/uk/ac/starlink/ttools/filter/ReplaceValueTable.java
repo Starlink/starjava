@@ -5,10 +5,12 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 
@@ -109,6 +111,22 @@ public class ReplaceValueTable extends WrapperStarTable {
 
     public RowSequence getRowSequence() throws IOException {
         return new WrapperRowSequence( super.getRowSequence() ) {
+            public Object getCell( int icol ) throws IOException {
+                return replacers_[ icol ].replaceValue( super.getCell( icol ) );
+            }
+            public Object[] getRow() throws IOException {
+                Object[] row = super.getRow();
+                for ( int icol = 0; icol < row.length; icol++ ) {
+                    row[ icol ] = replacers_[ icol ]
+                                 .replaceValue( row[ icol ] );
+                }
+                return row;
+            }
+        };
+    }
+
+    public RowAccess getRowAccess() throws IOException {
+        return new WrapperRowAccess( super.getRowAccess() ) {
             public Object getCell( int icol ) throws IOException {
                 return replacers_[ icol ].replaceValue( super.getCell( icol ) );
             }

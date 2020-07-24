@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
@@ -254,6 +255,30 @@ public class ByteStoreRowStore implements RowStore {
                     else {
                         throw new IllegalStateException();
                     }
+                }
+                public void close() {
+                }
+            };
+        }
+
+        public RowAccess getRowAccess() throws IOException {
+            final ByteStoreAccess access = createAccess();
+            final Object[] row = new Object[ ncol_ ];
+            return new RowAccess() {
+                long irow_ = -1;
+                public void setRowIndex( long irow ) {
+                    irow_ = irow;
+                }
+                public Object getCell( int icol ) throws IOException {
+                    access.seek( offsets_.getCellOffset( irow_, icol ) );
+                    return codecs_[ icol ].decodeObject( access );
+                }
+                public Object[] getRow() throws IOException {
+                    access.seek( offsets_.getRowOffset( irow_ ) );
+                    for ( int icol = 0; icol < ncol_; icol++ ) {
+                        row[ icol ] = codecs_[ icol ].decodeObject( access );
+                    }
+                    return row;
                 }
                 public void close() {
                 }

@@ -9,8 +9,10 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.JoinStarTable;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.topcat.ToggleButtonModel;
@@ -370,6 +372,40 @@ public class AugmentedAxesSelector implements AxesSelector, Wrapper {
                     return row;
                 }
 
+                public Object getCell( int icol ) throws IOException {
+                    if ( icol < nbase_ ) {
+                        boolean ok = true;
+                        for ( int ireq = 0; ok && ireq < nreq_; ireq++ ) {
+                            int ic = icolReqs_[ ireq ];
+                            ok = ok && notBlank( super.getCell( ic ) );
+                        }
+                        return ok ? super.getCell( icol ) : null;
+                    }
+                    else {
+                        return super.getCell( icol );
+                    }
+                }
+            };
+        }
+
+        public RowAccess getRowAccess() throws IOException {
+            return new WrapperRowAccess( super.getRowAccess() ) {
+                @Override
+                public Object[] getRow() throws IOException {
+                    Object[] row = super.getRow();
+                    boolean ok = true;
+                    for ( int ireq = 0; ok && ireq < nreq_; ireq++ ) {
+                        int ic = icolReqs_[ ireq ];
+                        ok = ok && notBlank( row[ ic ] );
+                    }
+                    if ( ! ok ) {
+                        for ( int ic = 0; ic < nbase_; ic++ ) {
+                            row[ ic ] = null;
+                        }
+                    }
+                    return row;
+                }
+                @Override
                 public Object getCell( int icol ) throws IOException {
                     if ( icol < nbase_ ) {
                         boolean ok = true;

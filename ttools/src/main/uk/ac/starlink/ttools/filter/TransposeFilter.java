@@ -3,8 +3,9 @@ package uk.ac.starlink.ttools.filter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import uk.ac.starlink.table.AccessRowSequence;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RandomRowSequence;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -160,7 +161,7 @@ public class TransposeFilter extends BasicFilter {
             }
             else {
                 Object baseCell = base_.getCell( icol - 1, iBaseCol );
-                return Tables.isBlank( baseCell) 
+                return Tables.isBlank( baseCell ) 
                      ? null
                      : decoders_[ icol - 1 ].decode( asString( baseCell ) );
             }
@@ -175,8 +176,46 @@ public class TransposeFilter extends BasicFilter {
             return row;
         }
 
+        public RowAccess getRowAccess() throws IOException {
+            final RowAccess baseAcc = base_.getRowAccess();
+            final int ncol = getColumnCount();
+            return new RowAccess() {
+                long irow_ = -1;
+                int iBaseCol_ = -1;
+                final Object[] row_ = new Object[ ncol ];
+                public void setRowIndex( long irow ) {
+                    if ( irow != irow_ ) {
+                        irow_ = irow;
+                        iBaseCol_ = getBaseColumnForRow( irow );
+                    }
+                }
+                public Object getCell( int icol ) throws IOException {
+                    if ( icol == 0 ) {
+                        return base_.getColumnInfo( iBaseCol_ ).getName();
+                    }
+                    else {
+                        baseAcc.setRowIndex( icol - 1 );
+                        Object baseCell = baseAcc.getCell( iBaseCol_ );
+                        return Tables.isBlank( baseCell ) 
+                             ? null
+                             : decoders_[ icol - 1 ]
+                              .decode( asString( baseCell ) );
+                    }
+                }
+                public Object[] getRow() throws IOException {
+                    for ( int icol = 0; icol < ncol; icol++ ) {
+                        row_[ icol ] = getCell( icol );
+                    }
+                    return row_;
+                }
+                public void close() throws IOException {
+                    baseAcc.close();
+                }
+            };
+        }
+
         public RowSequence getRowSequence() throws IOException {
-            return new RandomRowSequence( this );
+            return AccessRowSequence.createInstance( this );
         }
 
         /**

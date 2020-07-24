@@ -775,10 +775,16 @@ public class TopcatModel {
      * so it should only be used for preparation of evaluation of expressions
      * at call time, not saved for use in compiling expressions acquired later.
      *
+     * <p>Note this currently returns a one-size-fits-all implementation,
+     * safe for multi-thread use.  But it may not be efficient for
+     * multi-thread use (synchronization, contention).
+     * This should be fixed so that efficient single-threaded access
+     * is possible.
+     *
      * @return  row reader
      */
     public RandomJELRowReader createJELRowReader() {
-        return new TopcatJELRowReader( this );
+        return TopcatJELRowReader.createConcurrentReader( this );
     }
 
     /**

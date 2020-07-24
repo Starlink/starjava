@@ -11,10 +11,13 @@ import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.JoinStarTable;
+import uk.ac.starlink.table.RowData;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.util.IOUtils;
@@ -522,29 +525,57 @@ public class TstTableWriter extends StreamStarTableWriter {
         }
 
         public RowSequence getRowSequence() throws IOException {
-            return new WrapperRowSequence( super.getRowSequence() ) {
+            RowSequence baseSeq = super.getRowSequence();
+            FactorRow frow = new FactorRow( baseSeq, factors_ );
+            return new WrapperRowSequence( baseSeq ) {
                 public Object getCell( int icol ) throws IOException {
-                    Object val = super.getCell( icol );
-                    return ( factors_[ icol ] == 1.0 || val == null )
-                         ? val
-                         : new Double( ((Number) val).doubleValue()
-                                       * factors_[ icol ] );
+                    return frow.getCell( icol );
                 }
                 public Object[] getRow() throws IOException {
-                    Object[] row = super.getRow();
-                    int ncol = row.length;
-                    for ( int icol = 0; icol < ncol; icol++ ) {
-                        Object val = row[ icol ];
-                        double factor = factors_[ icol ];
-                        if ( factor != 1.0 && val != null ) {
-                            row[ icol ] =
-                                new Double( ((Number) val).doubleValue()
-                                            * factor );
-                        }
-                    }
-                    return row;
+                    return frow.getRow();
                 }
             };
+        }
+
+        public RowAccess getRowAccess() throws IOException {
+            RowAccess baseAcc = super.getRowAccess();
+            FactorRow frow = new FactorRow( baseAcc, factors_ );
+            return new WrapperRowAccess( baseAcc ) {
+                public Object getCell( int icol ) throws IOException {
+                    return frow.getCell( icol );
+                }
+                public Object[] getRow() throws IOException {
+                    return frow.getRow();
+                }
+            };
+        }
+    }
+
+    private static class FactorRow implements RowData {
+        private final RowData baseRow_;
+        private final double[] factors_;
+        FactorRow( RowData baseRow, double[] factors ) {
+            baseRow_ = baseRow;
+            factors_ = factors;
+        }
+        public Object getCell( int icol ) throws IOException {
+            Object val = baseRow_.getCell( icol );
+            return ( factors_[ icol ] == 1.0 || val == null )
+                ? val
+                : new Double( ((Number) val).doubleValue() * factors_[ icol ] );
+        }
+        public Object[] getRow() throws IOException {
+            Object[] row = baseRow_.getRow();
+            int ncol = row.length;
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                Object val = row[ icol ];
+                double factor = factors_[ icol ];
+                if ( factor != 1.0 && val != null ) {
+                    row[ icol ] =
+                        new Double( ((Number) val).doubleValue() * factor );
+                }
+            }
+            return row;
         }
     }
 }

@@ -17,6 +17,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.HealpixTableInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
@@ -791,6 +792,28 @@ public abstract class BintableStarTable extends AbstractStarTable
                     else {
                         throw new IllegalStateException();
                     }
+                }
+                public void close() throws IOException {
+                    input.close();
+                }
+            };
+        }
+
+        public RowAccess getRowAccess() throws IOException {
+            final BasicInput input = inputFact_.createInput( false );
+            assert input.isRandom();
+            return new RowAccess() {
+                long irow_ = -1;
+                public void setRowIndex( long irow ) {
+                    irow_ = irow;
+                }
+                public Object getCell( int icol ) throws IOException {
+                    input.seek( irow_ * rowLength_ + colOffsets_[ icol ] );
+                    return readCell( input, icol );
+                }
+                public Object[] getRow() throws IOException {
+                    input.seek( irow_ * rowLength_ );
+                    return readRow( input );
                 }
                 public void close() throws IOException {
                     input.close();

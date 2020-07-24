@@ -10,6 +10,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.EmptyRowSequence;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
@@ -55,6 +56,10 @@ class TableBodies {
 
         public boolean isRandom() {
             return false;
+        }
+
+        public RowAccess getRowAccess() {
+            throw new UnsupportedOperationException( "Not random" );
         }
 
         public Object getCell( long irow, int icol ) {
@@ -109,6 +114,10 @@ class TableBodies {
 
         public boolean isRandom() {
             return startab.isRandom();
+        }
+
+        public RowAccess getRowAccess() throws IOException {
+            return startab.getRowAccess();
         }
  
         public Object getCell( long irow, int icol ) throws IOException {
@@ -199,7 +208,7 @@ class TableBodies {
         }
 
         public Object[] getRow( long irow ) {
-            return getRow( getRows()[ (int) irow ] );
+            return getRowFromTr( getRows()[ (int) irow ] );
         }
 
         public Object getCell( long irow, int icol ) {
@@ -244,7 +253,7 @@ class TableBodies {
                     if ( trEl == null || done ) {
                         throw new IllegalStateException();
                     }
-                    return TabledataTabularData.this.getRow( trEl );
+                    return getRowFromTr( trEl );
                 }
 
                 public Object getCell( int icol ) {
@@ -270,7 +279,52 @@ class TableBodies {
             };
         }
 
-        private Object[] getRow( Element trEl ) {
+        public RowAccess getRowAccess() {
+            return new RowAccess() {
+                long irow_ = -1;
+                Element trEl_;
+                public void setRowIndex( long irow ) {
+                    if ( irow != irow_ ) {
+                        irow_ = irow;
+                        trEl_ = null;
+                    }
+                }
+                public Object getCell( int icol ) {
+                    Element trEl = getRowElement();
+                    int jcol = 0;
+                    // Efficiency could probably be improved; cache a NodeList?
+                    for ( Element tdEl =
+                             firstSibling( "TD", trEl.getFirstChild() );
+                          tdEl != null && icol < ncol;
+                          tdEl = firstSibling( "TD", tdEl.getNextSibling() ) ) {
+                        if ( jcol == icol ) {
+                            String txt = DOMUtils.getTextContent( tdEl );
+                            if ( txt != null && txt.length() > 0 ) {
+                                return decoders[ icol ].decodeString( txt );
+                            }
+                            else {
+                                return null;
+                            }
+                        }
+                        jcol++;
+                    }
+                    return null;
+                }
+                public Object[] getRow() {
+                    return getRowFromTr( getRowElement() );
+                }
+                public void close() {
+                }
+                private Element getRowElement() {  
+                    if ( trEl_ == null ) {
+                        trEl_ = getRows()[ (int) irow_ ];
+                    }
+                    return trEl_;
+                }
+            };
+        }
+
+        private Object[] getRowFromTr( Element trEl ) {
             Object[] row = new Object[ ncol ];
             int icol = 0;
             for ( Element tdEl = firstSibling( "TD", trEl.getFirstChild() );

@@ -12,6 +12,7 @@ import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.HealpixTableInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -657,6 +658,11 @@ public class SkyDensityMap extends SingleMapperTask {
         @Override
         public long getRowCount() {
             return -1;
+        }
+
+        @Override
+        public RowAccess getRowAccess() throws IOException {
+            throw new UnsupportedOperationException( "not random" );
         }
 
         @Override

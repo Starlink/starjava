@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -172,6 +173,10 @@ public class UniqueFilter extends BasicFilter {
                     rseq.close();
                 }
             };
+        }
+
+        public RowAccess getRowAccess() {
+            throw new UnsupportedOperationException( "not random" );
         }
     }
 

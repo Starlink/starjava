@@ -107,6 +107,11 @@ public class JELTest extends TableTestCase {
     }
 
     public void testObject() throws Throwable {
+        testRandom( false );
+        testRandom( true );
+    }
+
+    private void testRandom( boolean isThreadsafe ) throws Throwable {
         byte[] buf = new StringBuffer()
             .append( "a,b,s\n" )
             .append( "1,10,one\n" )
@@ -115,8 +120,9 @@ public class JELTest extends TableTestCase {
         StarTable t2 =
             Tables.randomTable(
                 new CsvStarTable( new ByteArrayDataSource( "buf", buf ) ) );
-        RandomJELRowReader rdr = new RandomJELRowReader( t2 );
-        rdr.setCurrentRow( 0 );
+        RandomJELRowReader rdr =
+            isThreadsafe ? RandomJELRowReader.createConcurrentReader( t2 )
+                         : RandomJELRowReader.createAccessReader( t2 );
         Class[] staticLib = new Class[] { FuncLib.class };
         Class[] dynamicLib = new Class[] { rdr.getClass() };
         Library lib = new Library( staticLib, dynamicLib, new Class[ 0 ],

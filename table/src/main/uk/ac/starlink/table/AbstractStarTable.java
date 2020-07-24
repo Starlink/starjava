@@ -141,6 +141,10 @@ public abstract class AbstractStarTable implements StarTable {
         return false;
     }
 
+    public RowAccess getRowAccess() throws IOException {
+        throw new UnsupportedOperationException( "No random access available" );
+    }
+
     /**
      * The <tt>AbstractStarTable</tt> implementation of this method throws an
      * <tt>UnsupportedOperationException</tt>, since unless otherwise

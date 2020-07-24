@@ -72,7 +72,8 @@ public class TableCalc
         throws SplatException
     {
         // Wrap the table for reading by the JEL utilities.
-        final JELRowReader jelReader = new RandomJELRowReader( table );
+        final JELRowReader jelReader =
+            RandomJELRowReader.createConcurrentReader( table );
 
         // Define library of functions that can be used (Math & specials).
         Library lib = JELUtils.getLibrary( jelReader );

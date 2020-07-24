@@ -103,6 +103,10 @@ public class WrapperStarTable implements StarTable {
         return baseTable.getRowSequence();
     }
 
+    public RowAccess getRowAccess() throws IOException {
+        return baseTable.getRowAccess();
+    }
+
     public boolean isRandom() {
         return baseTable.isRandom();
     }

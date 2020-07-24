@@ -14,6 +14,7 @@ import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -427,6 +428,15 @@ public class VOStarTable extends AbstractStarTable {
 
     public RowSequence getRowSequence() throws IOException {
         return tdata.getRowSequence();
+    }
+
+    public RowAccess getRowAccess() throws IOException {
+        if ( isRandom() ) {
+            return tdata.getRowAccess();
+        }
+        else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     public Object[] getRow( long lrow ) throws IOException {

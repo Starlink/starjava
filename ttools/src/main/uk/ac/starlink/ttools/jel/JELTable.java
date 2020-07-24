@@ -6,9 +6,11 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.ExecutionException;
@@ -59,7 +61,7 @@ public class JELTable extends WrapperStarTable {
         ncol_ = exprs.length;
 
         /* Compile the expressions ready for random evaluation. */
-        randomReader_ = new RandomJELRowReader( baseTable );
+        randomReader_ = RandomJELRowReader.createConcurrentReader( baseTable );
         Library lib = JELUtils.getLibrary( randomReader_ );
         randomCompexs_ = new CompiledExpression[ ncol_ ];
         for ( int i = 0; i < ncol_; i++ ) {
@@ -141,18 +143,11 @@ public class JELTable extends WrapperStarTable {
         final CompiledExpression[] seqCompexs =
             JELUtils.compileExpressions( seqReader, exprs_ );
         return new WrapperRowSequence( seqReader ) {
-
             public Object getCell( int icol ) throws IOException {
                 try {
                     return seqReader.evaluate( seqCompexs[ icol ] );
                 }
-                catch ( IOException e ) {
-                    throw e;
-                }
-                catch ( RuntimeException e ) {
-                    throw e;
-                }
-                catch ( Error e ) {
+                catch ( IOException | RuntimeException | Error e ) {
                     throw e;
                 }
                 catch ( Throwable e ) {
@@ -160,13 +155,41 @@ public class JELTable extends WrapperStarTable {
                                        .initCause( e );
                 }
             }
-
             public Object[] getRow() throws IOException {
                 Object[] row = new Object[ ncol_ ];
                 for ( int icol = 0; icol < ncol_; icol++ ) {
                     row[ icol ] = getCell( icol );
                 }
                 return row;
+            }
+        };
+    }
+
+    public RowAccess getRowAccess() throws IOException {
+        RowAccess baseAcc = baseTable_.getRowAccess();
+        final RandomJELRowReader jelReader =
+            RandomJELRowReader.createAccessReader( baseTable_, baseAcc );
+        final CompiledExpression[] accCompexs =
+            JELUtils.compileExpressions( jelReader, exprs_ );
+        return new WrapperRowAccess( baseAcc ) {
+            final Object[] row_ = new Object[ ncol_ ];
+            public Object getCell( int icol ) throws IOException {
+                try {
+                    return jelReader.evaluate( accCompexs[ icol ] );
+                }
+                catch ( IOException | RuntimeException | Error e ) {
+                    throw e;
+                }
+                catch ( Throwable e ) {
+                    throw (IOException) new IOException( e.getMessage() )
+                                       .initCause( e );
+                }
+            }
+            public Object[] getRow() throws IOException {
+                for ( int icol = 0; icol < ncol_; icol++ ) {
+                    row_[ icol ] = getCell( icol );
+                }
+                return row_;
             }
         };
     }

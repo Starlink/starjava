@@ -1,13 +1,13 @@
 package uk.ac.starlink.table;
 
 /**
- * Row sequence implementation which has no rows.
- * Singleton impelementation.
+ * Implementation of both RowSequence and RowAccess which has no rows.
+ * Singleton class.
  * 
  * @since    28 Oct 2004
  * @author   Mark Taylor (Starlink)
  */
-public class EmptyRowSequence implements RowSequence {
+public class EmptyRowSequence implements RowSequence, RowAccess {
 
     /** Instance. */
     private static final EmptyRowSequence INSTANCE = new EmptyRowSequence();
@@ -23,6 +23,10 @@ public class EmptyRowSequence implements RowSequence {
      */
     public boolean next() {
         return false;
+    }
+
+    public void setRowIndex( long irow ) {
+        throw new IllegalArgumentException( "Out of bounds (no data)" );
     }
 
     /**

@@ -124,7 +124,7 @@ public class SortFilter extends BasicFilter {
             Comparator<Number> keyComparator;
             try {
                 keyComparator = new RowComparator( baseTable, keys_, up_,
-                                                   nullsLast_ );
+                                                   nullsLast_, false );
             }
             catch ( CompilationException e ) {
                 throw (IOException) new IOException( "Bad sort key(s)" )
@@ -153,8 +153,8 @@ public class SortFilter extends BasicFilter {
         final CompiledExpression[] compExs_;
         final int nexpr_;
         final RandomJELRowReader rowReader_;
-        boolean up_;
-        boolean nullsLast_;
+        final boolean up_;
+        final boolean nullsLast_;
 
         /**
          * Constructor.
@@ -167,17 +167,24 @@ public class SortFilter extends BasicFilter {
          * @param   nullsLast  true if blank values should be considered
          *          last in the collation order, false if they should
          *          be considered first
+         * @param   isParallel  must be true if this comparator may be used
+         *                      from multiple threads simultaneously
          */
         public RowComparator( StarTable table, String[] keys, boolean up,
-                              boolean nullsLast )
-                throws CompilationException {
+                              boolean nullsLast, boolean isParallel )
+                throws CompilationException, IOException {
             nexpr_ = keys.length;
             up_ = up;
             nullsLast_ = nullsLast;
 
             /* Prepare compiled expressions for reading the data from 
-             * table rows. */
-            rowReader_ = new RandomJELRowReader( table );
+             * table rows.
+             * Note: sorting in parallel is likely to be slow, unless
+             * the expression evaluation is pretty expensive, because
+             * of contention for the thread-safe row reader. */
+            rowReader_ = isParallel
+                       ? RandomJELRowReader.createConcurrentReader( table )
+                       : RandomJELRowReader.createAccessReader( table );
             Library lib = JELUtils.getLibrary( rowReader_ );
             compExs_ = new CompiledExpression[ nexpr_ ];
             for ( int i = 0; i < nexpr_; i++ ) {

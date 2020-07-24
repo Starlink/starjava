@@ -40,6 +40,30 @@ public abstract class RandomStarTable extends AbstractStarTable {
     }
 
     /**
+     * Returns a <tt>RowAccess</tt> object based on the random data
+     * access methods of this table.
+     *
+     * @return  a row access
+     */
+    public RowAccess getRowAccess() {
+        final StarTable table = RandomStarTable.this;
+        return new RowAccess() {
+            long irow_ = -1;
+            public void setRowIndex( long irow ) {
+                irow_ = irow;
+            }
+            public Object getCell( int icol ) throws IOException {
+                return table.getCell( irow_, icol );
+            }
+            public Object[] getRow() throws IOException {
+                return table.getRow( irow_ );
+            }
+            public void close() {
+            }
+        };
+    }
+
+    /**
      * Implementations must supply a non-negative return value.
      *
      * @return  the number of rows in the table

@@ -102,6 +102,36 @@ public abstract class CalcStarTable<C> extends AbstractStarTable {
         };
     }
 
+    public RowAccess getRowAccess() throws IOException {
+        final RowAccess baseAcc = base_.getRowAccess();
+        return new RowAccess() {
+            private C calc_;
+            private long irow_ = -1;
+            public void setRowIndex( long irow ) throws IOException {
+                if ( irow != irow_ ) {
+                    irow_ = irow;
+                    calc_ = null;
+                    baseAcc.setRowIndex( irow );
+                }
+            }
+            public Object getCell( int icol ) throws IOException {
+                return getCalculatedCell( getCalculation(), icol );
+            }
+            public Object[] getRow() throws IOException {
+                return getCalculatedRow( getCalculation() );
+            }
+            public void close() throws IOException {
+                baseAcc.close();
+            }
+            private C getCalculation() throws IOException {
+                if ( calc_ == null ) {
+                    calc_ = createCalculation( baseAcc );
+                }
+                return calc_;
+            }
+        };
+    }
+
     public Object[] getRow( long irow ) throws IOException {
         return getCalculatedRow( getCalculation( irow ) );
     }

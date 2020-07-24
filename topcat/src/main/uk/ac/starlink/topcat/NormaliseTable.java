@@ -2,9 +2,11 @@ package uk.ac.starlink.topcat;
 
 import java.io.IOException;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperRowSequence;
 
 /**
@@ -49,9 +51,24 @@ public class NormaliseTable extends WrapperStarTable {
 
     public RowSequence getRowSequence() throws IOException {
         return new WrapperRowSequence( super.getRowSequence() ) {
+            @Override
             public Object getCell( int icol ) throws IOException {
                 return converters_[ icol ].convert( super.getCell( icol ) );
             }
+            @Override
+            public Object[] getRow() throws IOException {
+                return convertRow( super.getRow() );
+            }
+        };
+    }
+
+    public RowAccess getRowAccess() throws IOException {
+        return new WrapperRowAccess( super.getRowAccess() ) {
+            @Override
+            public Object getCell( int icol ) throws IOException {
+                return converters_[ icol ].convert( super.getCell( icol ) );
+            }
+            @Override
             public Object[] getRow() throws IOException {
                 return convertRow( super.getRow() );
             }

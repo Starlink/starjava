@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
@@ -145,5 +146,33 @@ public class AddColumnsTable extends WrapperStarTable {
                 baseSeq.close();
             }
         };
+    }
+
+    public RowAccess getRowAccess() throws IOException {
+        if ( isRandom() ) {
+            final RowAccess baseAcc = baseTable_.getRowAccess();
+            final SupplementData sup = colSup_.createSupplementData( baseAcc );
+            return new RowAccess() {
+                long irow_ = -1;
+                public void setRowIndex( long irow ) throws IOException {
+                    irow_ = irow;
+                    baseAcc.setRowIndex( irow );
+                }
+                public Object getCell( int icol ) throws IOException {
+                    int jcol = jcols_[ icol ];
+                    return jtabs_[ icol ] ? sup.getCell( irow_, jcol )
+                                          : baseAcc.getCell( jcol );
+                }
+                public Object[] getRow() throws IOException {
+                    return combineRows( baseAcc.getRow(), sup.getRow( irow_ ) );
+                }
+                public void close() throws IOException {
+                    baseAcc.close();
+                }
+            };
+        }
+        else {
+            throw new UnsupportedOperationException( "Not random" );
+        }
     }
 }

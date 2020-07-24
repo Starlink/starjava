@@ -1,6 +1,7 @@
 package uk.ac.starlink.votable;
 
 import java.io.IOException;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 
 /**
@@ -11,8 +12,8 @@ import uk.ac.starlink.table.RowSequence;
  * this allows you to read all the data from the first row to the last.
  * Multiple <tt>RowSequences</tt> may be simultaneously active.
  * In some cases random access may also be available; if {@link #isRandom}
- * returns true, then the {@link #getRow} and {@link #getCell} methods
- * can be used to retrieve cell values in any order.
+ * returns true, then the {@link #getRowAccess}, {@link #getRow} and
+ * {@link #getCell} methods can be used to retrieve cell values in any order.
  * <p>
  * The objects retrieved from cells in a given column are of course
  * determined by the corresponding FIELD element ({@link FieldElement} object),
@@ -70,6 +71,8 @@ public interface TabularData {
     /**
      * Returns an object which can iterate over all the rows in the
      * table data sequentially.
+     * In general the returned object is only safe
+     * for use within a single thread.
      *
      * @return  an object providing sequential access to the data
      */
@@ -83,6 +86,17 @@ public interface TabularData {
      * @return  <tt>true</tt> iff random access methods are available
      */
     boolean isRandom();
+
+    /**
+     * Returns an object which can provide random access for the table data.
+     * In general the returned object is only safe
+     * for use within a single thread.
+     *
+     * @return  an object providing random access to the data
+     * @throws  IOException  if there is I/O trouble
+     * @throws  UnsupportedOperationException if <tt>isRandom</tt> returns false
+     */
+    RowAccess getRowAccess() throws IOException;
 
     /**
      * Returns the contents of a given table cell (optional).

@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.data;
 import java.io.IOException;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowSequence;
@@ -81,6 +82,18 @@ public abstract class WrapperDataStoreFactory implements DataStoreFactory {
             throws IOException;
 
     /**
+     * Creates a row access from a given table.
+     * <p>The obvious implementation is <code>table.getRowAccess()</code>,
+     * but implementations may decorate that instance to provide
+     * useful functionality.
+     *
+     * @param   table  table providing data
+     * @return   row access which will be used to acquire table data
+     */
+    protected abstract RowAccess createRowAccess( StarTable table )
+            throws IOException;
+
+    /**
      * DataStore wrapper implementation.
      * It is a simple wrapper, except that every DataSpec passed to it
      * is wrapped in a WrapperDataSpec.
@@ -136,6 +149,10 @@ public abstract class WrapperDataStoreFactory implements DataStoreFactory {
                 @Override
                 public RowSequence getRowSequence() throws IOException {
                     return createRowSequence( baseSourceTable );
+                }
+                @Override
+                public RowAccess getRowAccess() throws IOException {
+                    return createRowAccess( baseSourceTable );
                 }
                 @Override
                 public int hashCode() {

@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.io.IOException;
 import javax.swing.BoundedRangeModel;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowSequence;
@@ -57,5 +58,9 @@ public class ProgressDataStoreFactory extends WrapperDataStoreFactory {
                 baseSeq.close();
             }
         };
+    }
+
+    protected RowAccess createRowAccess( StarTable table ) throws IOException {
+        return table.getRowAccess();
     }
 }

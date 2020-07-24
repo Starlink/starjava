@@ -10,6 +10,7 @@ import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.ttools.jel.DummyJELRowReader;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 import uk.ac.starlink.util.TestCase;
 
@@ -25,12 +26,19 @@ public class JELTest extends TestCase {
     }
 
     public void testLibrary() throws Throwable {
+        testRandomLibrary( false );
+        testRandomLibrary( true );
+    }
+
+    private void testRandomLibrary( boolean isThreadsafe ) throws Throwable {
         ColumnStarTable st = ColumnStarTable.makeTableWithRows( 4 );
         st.addColumn( ArrayColumn
                      .makeColumn( "X", new int[] { 0, 1, 2, 3, } ) );
         st.addColumn( ArrayColumn
                      .makeColumn( "Y", new double[] { 0., 1., 4., 9. } ) );
-        RandomJELRowReader jrr = new RandomJELRowReader( st );
+        RandomJELRowReader jrr =
+            isThreadsafe ? RandomJELRowReader.createConcurrentReader( st )
+                         : RandomJELRowReader.createAccessReader( st );
         for ( int i = 0; i < 2; i++ ) {
             Library lib = TopcatJELUtils.getLibrary( jrr, i > 0 );
             CompiledExpression compex =
@@ -39,10 +47,6 @@ public class JELTest extends TestCase {
                 double result = j + j * j;
                 assertEquals( result, 
                               ( (Double) jrr.evaluateAtRow( compex, j ) )
-                             .doubleValue() );
-                jrr.setCurrentRow( j );
-                assertEquals( result,
-                              ( (Double) jrr.evaluate( compex ) )
                              .doubleValue() );
             }
             try {
@@ -69,7 +73,8 @@ public class JELTest extends TestCase {
 
     public void testWeird() throws CompilationException {
         ColumnStarTable st = ColumnStarTable.makeTableWithRows( 4 );
-        RandomJELRowReader rdr0 = new RandomJELRowReader( st );
+        RandomJELRowReader rdr0 =
+            RandomJELRowReader.createConcurrentReader( st );
         st.addColumn( new SyntheticColumn( new ColumnInfo( "ix", Integer.class,
                                                            null ),
                                            "(int)$0", Integer.class, rdr0 ) );
@@ -77,7 +82,7 @@ public class JELTest extends TestCase {
                                                            null ),
                                            "(double)$0", Double.class, rdr0 ) );
         Library lib =
-            TopcatJELUtils.getLibrary( new RandomJELRowReader( st ), false );
+            TopcatJELUtils.getLibrary( new DummyJELRowReader( st ), false );
 
         Evaluator.compile( "dx==1", lib, Boolean.class );
         Evaluator.compile( "ix==1", lib, null );

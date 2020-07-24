@@ -54,7 +54,7 @@ public class JELColumnSupplement implements ColumnSupplement {
         exprs_ = exprs.clone();
 
         /* Compile the expressions ready for random evaluation. */
-        randomReader_ = new RandomJELRowReader( inTable_ );
+        randomReader_ = RandomJELRowReader.createConcurrentReader( inTable_ );
         Library randomLib = JELUtils.getLibrary( randomReader_ );
         randomCompexs_ = new CompiledExpression[ ncol_ ];
         outColInfos_ = new ColumnInfo[ ncol_ ];

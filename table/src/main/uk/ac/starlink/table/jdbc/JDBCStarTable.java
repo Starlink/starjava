@@ -11,6 +11,7 @@ import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowSequence;
@@ -158,6 +159,68 @@ public class JDBCStarTable extends AbstractStarTable {
                 randomSet_.setRowIndex( lrow );
                 return randomSet_.getRow();
             }
+        }
+    }
+
+    public RowAccess getRowAccess() throws IOException {
+        if ( randomSet_ == null ) {
+            throw new UnsupportedOperationException( "No random access" );
+        }
+        else {
+            final StarResultSet rset;
+            Connection conn = null;
+            try {
+                conn = connx_.getConnection();
+                rset = new StarResultSet( makeRandomResultSet( conn, sql_ ) );
+                checkConsistent( rset );
+            }
+            catch ( SQLException e ) {
+                if ( conn != null ) {
+                    try {
+                        conn.close();
+                    }
+                    catch ( SQLException e2) {
+                    }
+                }
+                throw (IOException) new IOException( e.getMessage() )
+                                   .initCause( e );
+            }
+            catch ( OutOfMemoryError e ) {
+                if ( conn != null ) {
+                    try {
+                        conn.close();
+                    }
+                    catch ( SQLException e2) {
+                    }
+                }
+                String msg = "Out of memory during SQL statement execution; "
+                           + "looks like JDBC driver is assembling a read-only "
+                           + "ResultSet in memory on the client, "
+                           + "which is questionable behaviour";
+                throw (OutOfMemoryError)
+                      new OutOfMemoryError( msg ).initCause( e );
+            }
+            final Connection conn0 = conn;
+            return new RowAccess() {
+                public void setRowIndex( long irow ) throws IOException {
+                    rset.setRowIndex( irow );   
+                }
+                public Object getCell( int icol ) throws IOException {
+                    return rset.getCell( icol );
+                }
+                public Object[] getRow() throws IOException {
+                    return rset.getRow();
+                }
+                public void close() throws IOException {
+                    try {
+                        conn0.close();
+                    }
+                    catch ( SQLException e ) {
+                        throw (IOException) new IOException( e.getMessage() )
+                                           .initCause( e );
+                    }
+                }
+            };
         }
     }
 

@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat;
 
+import gnu.jel.CompiledExpression;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -7,6 +9,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.RowAccess;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.jel.Constant;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
@@ -47,7 +51,7 @@ import uk.ac.starlink.ttools.jel.RandomJELRowReader;
  * @author   Mark Taylor (Starlink)
  * @since    8 Feb 2005
  */
-public class TopcatJELRowReader extends RandomJELRowReader {
+public abstract class TopcatJELRowReader extends RandomJELRowReader {
 
     private final TopcatModel tcModel_;
     private final List<RowSubset> rdrSubsets_;
@@ -63,7 +67,7 @@ public class TopcatJELRowReader extends RandomJELRowReader {
      *
      * @param   tcModel   topcat model
      */
-    public TopcatJELRowReader( TopcatModel tcModel ) {
+    protected TopcatJELRowReader( TopcatModel tcModel ) {
         super( tcModel.getDataModel() );
         assert getTable().isRandom();
         tcModel_ = tcModel;
@@ -353,6 +357,83 @@ public class TopcatJELRowReader extends RandomJELRowReader {
             public Object getValue() {
                 Object val = dval.getValue();
                 return Tables.isBlank( val ) ? null : val;
+            }
+        };
+    }
+
+    /**
+     * Returns a reader that uses the threadsafe random access methods
+     * of the TopcatModel's data model.
+     *
+     * @param   tcModel   topcat model
+     * @return   threadsafe row reader
+     */
+    public static TopcatJELRowReader
+            createConcurrentReader( TopcatModel tcModel ) {
+        final StarTable table = tcModel.getDataModel();
+        return new TopcatJELRowReader( tcModel ) {
+            private long lrow_ = -1;
+            public long getCurrentRow() {
+                return lrow_;
+            }
+            public synchronized Object getCell( int icol ) throws IOException {
+                return table.getCell( lrow_, icol );
+            }
+            public synchronized Object evaluateAtRow( CompiledExpression compEx,
+                                                      long lrow )
+                    throws Throwable {
+                lrow_ = lrow;
+                return evaluate( compEx );
+            }
+        };
+    }
+
+    /**
+     * Returns a reader that uses a RowAccess object from the
+     * TopcatModel's data model.
+     *
+     * @param   tcModel   topcat model
+     * @return   row reader suitable for use only within a single thread
+     */
+    public static TopcatJELRowReader createAccessReader( TopcatModel tcModel ) {
+        final RowAccess racc = tcModel.getDataModel().getRowAccess();
+        return new TopcatJELRowReader( tcModel ) {
+            private long lrow_ = -1;
+            public long getCurrentRow() {
+                return lrow_;
+            }
+            public Object getCell( int icol ) throws IOException {
+                return racc.getCell( icol );
+            }
+            public Object evaluateAtRow( CompiledExpression compEx, long lrow )
+                    throws Throwable {
+                if ( lrow != lrow_ ) {
+                    racc.setRowIndex( lrow );
+                    lrow_ = lrow;
+                }
+                return evaluate( compEx );
+            }
+        };
+    }
+
+    /**
+     * Returns a reader that doesn't do any actual data access.
+     * Suitable for testing compilation success etc.
+     *
+     * @param   tcModel   topcat model
+     * @return   row reader that throws UnsupportedOperationException
+     *           for data access methods
+     */
+    public static TopcatJELRowReader createDummyReader( TopcatModel tcModel ) {
+        return new TopcatJELRowReader( tcModel ) {
+            public long getCurrentRow() {
+                throw new UnsupportedOperationException();
+            }
+            public Object getCell( int icol ) {
+                throw new UnsupportedOperationException();
+            }
+            public Object evaluateAtRow( CompiledExpression compEx, long lr ) {
+                throw new UnsupportedOperationException();
             }
         };
     }
