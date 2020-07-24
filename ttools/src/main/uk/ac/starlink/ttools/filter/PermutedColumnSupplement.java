@@ -71,17 +71,17 @@ public class PermutedColumnSupplement implements ColumnSupplement {
         return row;
     }
 
-    public SupplementSequence createSequence( RowData rdata )
+    public SupplementData createSupplementData( RowData rdata )
             throws IOException {
-        final SupplementSequence sseq = baseSup_.createSequence( rdata );
-        return new SupplementSequence() {
+        final SupplementData sdata = baseSup_.createSupplementData( rdata );
+        return new SupplementData() {
             public Object getCell( long irow, int icol ) throws IOException {
-                return sseq.getCell( irow, colMap_[ icol ] );
+                return sdata.getCell( irow, colMap_[ icol ] );
             }
             public Object[] getRow( long irow ) throws IOException {
                 Object[] row = new Object[ ncol_ ]; 
                 for ( int ic = 0; ic < ncol_; ic++ ) {
-                    row[ ic ] = sseq.getCell( irow, colMap_[ ic ] );
+                    row[ ic ] = sdata.getCell( irow, colMap_[ ic ] );
                 }
                 return row;
             }

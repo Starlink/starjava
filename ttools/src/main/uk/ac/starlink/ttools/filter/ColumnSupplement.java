@@ -50,12 +50,12 @@ public interface ColumnSupplement {
     Object[] getRow( long irow ) throws IOException;
 
     /**
-     * Returns a new iterator over the values in the columns defined by
-     * this object.  The supplied row sequence must be from an appropriate
+     * Returns a new accessor for the values in the columns defined by
+     * this object.  The supplied row object must be from an appropriate
      * host table; if not, behaviour is undefined.
      *
      * @param   rdata   row accessor providing data from the host table
-     * @return   iterator over row data from supplementary columns
+     * @return   accessor over row data from supplementary columns
      */
-    SupplementSequence createSequence( RowData rdata ) throws IOException;
+    SupplementData createSupplementData( RowData rdata ) throws IOException;
 }

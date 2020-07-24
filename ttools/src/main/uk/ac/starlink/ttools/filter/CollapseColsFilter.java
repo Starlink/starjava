@@ -347,8 +347,8 @@ public class CollapseColsFilter extends BasicFilter {
             return new Object[] { getCell( irow, 0 ) };
         }
 
-        public SupplementSequence createSequence( final RowData rdata ) {
-            return new SupplementSequence() {
+        public SupplementData createSupplementData( final RowData rdata ) {
+            return new SupplementData() {
                 public Object getCell( long irow, int icol )
                         throws IOException {
                     if ( icol == 0 ) {

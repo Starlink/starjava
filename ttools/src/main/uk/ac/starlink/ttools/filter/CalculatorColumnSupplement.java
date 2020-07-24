@@ -71,10 +71,10 @@ public abstract class CalculatorColumnSupplement implements ColumnSupplement {
         return currentOutRow_[ icol ];
     }
 
-    public SupplementSequence createSequence( RowData rdata )
+    public SupplementData createSupplementData( RowData rdata )
             throws IOException {
-        final SupplementSequence sseq = baseSup_.createSequence( rdata );
-        return new SupplementSequence() {
+        final SupplementData sseq = baseSup_.createSupplementData( rdata );
+        return new SupplementData() {
             private long iSeq_ = -1;
             private Object[] row_;
             public Object[] getRow( long irow ) throws IOException {

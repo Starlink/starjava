@@ -114,9 +114,9 @@ public class JELColumnSupplement implements ColumnSupplement {
         return row;
     }
 
-    public SupplementSequence createSequence( RowData rdata )
+    public SupplementData createSupplementData( RowData rdata )
             throws IOException {
-        return new JELSupplementSequence( inTable_, exprs_, rdata );
+        return new JELSupplementData( inTable_, exprs_, rdata );
     }
 
     /**
@@ -148,10 +148,10 @@ public class JELColumnSupplement implements ColumnSupplement {
     }
 
     /**
-     * JEL row reader which also functions as a SupplementSequence.
+     * JEL row reader which also functions as a SupplementData.
      */
-    private static class JELSupplementSequence extends StarTableJELRowReader
-                                               implements SupplementSequence {
+    private static class JELSupplementData extends StarTableJELRowReader
+                                           implements SupplementData {
         private final RowData rdata_;
         private final CompiledExpression[] seqCompexs_;
         private final int ncol_;
@@ -165,7 +165,7 @@ public class JELColumnSupplement implements ColumnSupplement {
          * @param   rdata  row accessor from <code>table</code> providing
          *                 the base values for this sequence
          */
-        JELSupplementSequence( StarTable table, String[] exprs, RowData rdata )
+        JELSupplementData( StarTable table, String[] exprs, RowData rdata )
                 throws IOException {
             super( table );
             lrow_ = -1;
@@ -196,13 +196,13 @@ public class JELColumnSupplement implements ColumnSupplement {
             return rdata_.getCell( icol );
         }
 
-        // SupplementSequence method
+        // SupplementData method
         public Object getCell( long irow, int icol ) throws IOException {
             lrow_ = irow;
             return evaluateAtCurrentRow( seqCompexs_[ icol ] );
         }
 
-        // SupplementSequence method.
+        // SupplementData method.
         public Object[] getRow( long irow ) throws IOException {
             lrow_ = irow;
             Object[] row = new Object[ ncol_ ];

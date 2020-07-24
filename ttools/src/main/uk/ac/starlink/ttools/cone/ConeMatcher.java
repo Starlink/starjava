@@ -27,7 +27,7 @@ import uk.ac.starlink.ttools.filter.AddColumnsTable;
 import uk.ac.starlink.ttools.filter.CalculatorColumnSupplement;
 import uk.ac.starlink.ttools.filter.ColumnSupplement;
 import uk.ac.starlink.ttools.filter.PermutedColumnSupplement;
-import uk.ac.starlink.ttools.filter.SupplementSequence;
+import uk.ac.starlink.ttools.filter.SupplementData;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 import uk.ac.starlink.ttools.task.TableProducer;
@@ -809,8 +809,8 @@ public class ConeMatcher {
             return row_.clone();
         }
 
-        public SupplementSequence createSequence( RowData rdata ) {
-            return new SupplementSequence() {
+        public SupplementData createSupplementData( RowData rdata ) {
+            return new SupplementData() {
                 public Object getCell( long irow, int icol ) {
                     return row_[ icol ];
                 }

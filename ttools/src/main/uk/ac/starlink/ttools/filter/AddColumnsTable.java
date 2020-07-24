@@ -115,7 +115,7 @@ public class AddColumnsTable extends WrapperStarTable {
 
     public RowSequence getRowSequence() throws IOException {
         final RowSequence baseSeq = baseTable_.getRowSequence();
-        final SupplementSequence supSeq = colSup_.createSequence( baseSeq );
+        final SupplementData supData = colSup_.createSupplementData( baseSeq );
         return new RowSequence() {
             long lrow_ = -1;
             public boolean next() throws IOException {
@@ -130,7 +130,7 @@ public class AddColumnsTable extends WrapperStarTable {
             public Object getCell( int icol ) throws IOException {
                 if ( lrow_ >= 0 ) {
                     int jcol = jcols_[ icol ];
-                    return jtabs_[ icol ] ? supSeq.getCell( lrow_, jcol )
+                    return jtabs_[ icol ] ? supData.getCell( lrow_, jcol )
                                           : baseSeq.getCell( jcol );
                 }
                 else {
@@ -139,7 +139,7 @@ public class AddColumnsTable extends WrapperStarTable {
             }
             public Object[] getRow() throws IOException {
                 return combineRows( baseSeq.getRow(),
-                                    supSeq.getRow( lrow_ ) );
+                                    supData.getRow( lrow_ ) );
             }
             public void close() throws IOException {
                 baseSeq.close();

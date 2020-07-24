@@ -41,9 +41,9 @@ public class UnitColumnSupplement implements ColumnSupplement {
         return table_.getRow( irow );
     }
 
-    public SupplementSequence createSequence( final RowData rdata )
+    public SupplementData createSupplementData( final RowData rdata )
             throws IOException {
-        return new SupplementSequence() {
+        return new SupplementData() {
             public Object getCell( long irow, int icol ) throws IOException {
                 return rdata.getCell( icol );
             }
