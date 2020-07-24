@@ -13,6 +13,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.EmptyStarTable;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.OnceRowPipe;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.RowPipe;
 import uk.ac.starlink.table.RowSequence;
@@ -808,7 +809,7 @@ public class ConeMatcher {
             return row_.clone();
         }
 
-        public SupplementSequence createSequence( RowSequence rseq ) {
+        public SupplementSequence createSequence( RowData rdata ) {
             return new SupplementSequence() {
                 public Object getCell( long irow, int icol ) {
                     return row_[ icol ];

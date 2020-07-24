@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -71,9 +71,9 @@ public class PermutedColumnSupplement implements ColumnSupplement {
         return row;
     }
 
-    public SupplementSequence createSequence( RowSequence rseq )
+    public SupplementSequence createSequence( RowData rdata )
             throws IOException {
-        final SupplementSequence sseq = baseSup_.createSequence( rseq );
+        final SupplementSequence sseq = baseSup_.createSequence( rdata );
         return new SupplementSequence() {
             public Object getCell( long irow, int icol ) throws IOException {
                 return sseq.getCell( irow, colMap_[ icol ] );

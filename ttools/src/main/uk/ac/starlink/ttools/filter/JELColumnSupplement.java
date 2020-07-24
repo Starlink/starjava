@@ -5,7 +5,7 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.Library;
 import java.io.IOException;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
@@ -114,8 +114,9 @@ public class JELColumnSupplement implements ColumnSupplement {
         return row;
     }
 
-    public SupplementSequence createSequence( RowSequence rseq ) {
-        return new JELSupplementSequence( inTable_, exprs_, rseq );
+    public SupplementSequence createSequence( RowData rdata )
+            throws IOException {
+        return new JELSupplementSequence( inTable_, exprs_, rdata );
     }
 
     /**
@@ -151,7 +152,7 @@ public class JELColumnSupplement implements ColumnSupplement {
      */
     private static class JELSupplementSequence extends StarTableJELRowReader
                                                implements SupplementSequence {
-        private final RowSequence rseq_;
+        private final RowData rdata_;
         private final CompiledExpression[] seqCompexs_;
         private final int ncol_;
         private long lrow_;
@@ -161,14 +162,14 @@ public class JELColumnSupplement implements ColumnSupplement {
          *
          * @param   table  table providing JEL context
          * @param   exprs  JEL expressions for columns
-         * @param   rseq   row sequence from <code>table</code> providing
+         * @param   rdata  row accessor from <code>table</code> providing
          *                 the base values for this sequence
          */
-        JELSupplementSequence( StarTable table, String[] exprs,
-                               RowSequence rseq ) {
+        JELSupplementSequence( StarTable table, String[] exprs, RowData rdata )
+                throws IOException {
             super( table );
             lrow_ = -1;
-            rseq_ = rseq;
+            rdata_ = rdata;
             ncol_ = exprs.length;
             seqCompexs_ = new CompiledExpression[ ncol_ ];
             Library lib = JELUtils.getLibrary( this );
@@ -192,7 +193,7 @@ public class JELColumnSupplement implements ColumnSupplement {
 
         // JELRowReader method
         public Object getCell( int icol ) throws IOException {
-            return rseq_.getCell( icol );
+            return rdata_.getCell( icol );
         }
 
         // SupplementSequence method

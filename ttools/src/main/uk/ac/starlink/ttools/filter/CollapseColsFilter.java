@@ -5,7 +5,7 @@ import java.lang.reflect.Array;
 import java.util.Iterator;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 
@@ -347,15 +347,14 @@ public class CollapseColsFilter extends BasicFilter {
             return new Object[] { getCell( irow, 0 ) };
         }
 
-        public SupplementSequence createSequence( final RowSequence rseq ) {
+        public SupplementSequence createSequence( final RowData rdata ) {
             return new SupplementSequence() {
                 public Object getCell( long irow, int icol )
                         throws IOException {
                     if ( icol == 0 ) {
                         A array = createArray();
                         for ( int i = 0; i < ncol_; i++ ) {
-                            Object n = rseq.getCell( icol0_ + i );
-                            setElement( array, i, rseq.getCell( icol0_ + i ) );
+                            setElement( array, i, rdata.getCell( icol0_ + i ) );
                         }
                         return array;
                     }
@@ -368,7 +367,7 @@ public class CollapseColsFilter extends BasicFilter {
                 }
             };
         }
-      
+
         /**
          * Returns an empty array of the type and length returned
          * by this column, ready for populating with values.

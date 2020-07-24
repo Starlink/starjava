@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 
 /**
  * Defines additional column metadata and data for supplementing the
@@ -54,8 +54,8 @@ public interface ColumnSupplement {
      * this object.  The supplied row sequence must be from an appropriate
      * host table; if not, behaviour is undefined.
      *
-     * @param   rseq   row sequence providing data from the host table
+     * @param   rdata   row accessor providing data from the host table
      * @return   iterator over row data from supplementary columns
      */
-    SupplementSequence createSequence( RowSequence rseq ) throws IOException;
+    SupplementSequence createSequence( RowData rdata ) throws IOException;
 }

@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -41,14 +41,14 @@ public class UnitColumnSupplement implements ColumnSupplement {
         return table_.getRow( irow );
     }
 
-    public SupplementSequence createSequence( final RowSequence rseq )
+    public SupplementSequence createSequence( final RowData rdata )
             throws IOException {
         return new SupplementSequence() {
             public Object getCell( long irow, int icol ) throws IOException {
-                return rseq.getCell( icol );
+                return rdata.getCell( icol );
             }
             public Object[] getRow( long irow ) throws IOException {
-                return rseq.getRow();
+                return rdata.getRow();
             }
         };
     }
