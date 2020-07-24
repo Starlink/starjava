@@ -43,9 +43,9 @@ public class CalcStarTableTest extends TableCase {
             double x = ((Number) base_.getCell( irow, 0 )).doubleValue();
             return createPowerStructure( x );
         }
-        public PowerStructure createCalculation( RowSequence baseSeq )
+        public PowerStructure createCalculation( RowData baseRow )
                 throws IOException {
-            double x = ((Number) baseSeq.getCell( 0 )).doubleValue();
+            double x = ((Number) baseRow.getCell( 0 )).doubleValue();
             return createPowerStructure( x );
         }
         private PowerStructure createPowerStructure( double x ) {

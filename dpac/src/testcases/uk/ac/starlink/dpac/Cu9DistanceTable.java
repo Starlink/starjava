@@ -8,7 +8,7 @@ import gaia.cu9.tools.parallax.datamodel.DistanceEstimation;
 import gaia.cu9.tools.parallax.datamodel.StarVariables;
 import uk.ac.starlink.table.CalcStarTable;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 
 public class Cu9DistanceTable extends CalcStarTable<DistanceEstimation> {
@@ -25,9 +25,9 @@ public class Cu9DistanceTable extends CalcStarTable<DistanceEstimation> {
         estimator_ = estimator;
     }
 
-    public DistanceEstimation createCalculation( RowSequence rseq )
+    public DistanceEstimation createCalculation( RowData rdata )
             throws IOException {
-        return createEstimation( rseq.getRow() );
+        return createEstimation( rdata.getRow() );
     }
 
     public DistanceEstimation createCalculation( long lrow )

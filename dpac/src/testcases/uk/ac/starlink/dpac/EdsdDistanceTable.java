@@ -10,7 +10,7 @@ import uk.ac.starlink.dpac.math.Function;
 import uk.ac.starlink.dpac.math.NumericFunction;
 import uk.ac.starlink.table.CalcStarTable;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 
 public class EdsdDistanceTable
@@ -27,9 +27,9 @@ public class EdsdDistanceTable
         lkpc_ = lkpc;
     }
 
-    public EdsdResult createCalculation( RowSequence rseq )
+    public EdsdResult createCalculation( RowData rdata )
             throws IOException {
-        return createResult( rseq.getRow() );
+        return createResult( rdata.getRow() );
     }
 
     public EdsdResult createCalculation( long lrow )

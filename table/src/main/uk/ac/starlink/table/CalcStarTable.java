@@ -35,12 +35,10 @@ public abstract class CalcStarTable<C> extends AbstractStarTable {
     /**
      * Creates the calculation object for the current row of the input table.
      *
-     * @param  baseSeq  row sequence of base table
-     *                  positioned at row of interest
-     * @return  calculation object corresponding to <code>baseSeq</code>
-     *          current row
+     * @param  baseRow  row from base table
+     * @return  calculation object corresponding to <code>baseRow</code>
      */
-    public abstract C createCalculation( RowSequence baseSeq )
+    public abstract C createCalculation( RowData baseRow )
         throws IOException;
 
     /**
