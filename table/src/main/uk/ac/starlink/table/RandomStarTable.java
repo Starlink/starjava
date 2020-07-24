@@ -36,7 +36,38 @@ public abstract class RandomStarTable extends AbstractStarTable {
      * @return  a row iterator
      */
     public RowSequence getRowSequence() {
-        return new RandomRowSequence( this );
+        final StarTable table = this;
+        final long nrow = getRowCount();
+        return new RowSequence() {
+            long irow_ = -1;
+            public boolean next() {
+                if ( irow_ < nrow - 1 ) {
+                    irow_++;
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            public Object getCell( int icol ) throws IOException {
+                if ( irow_ >= 0 ) {
+                    return table.getCell( irow_, icol );
+                }
+                else {
+                    throw new IllegalStateException( "No current row" );
+                }
+            }
+            public Object[] getRow() throws IOException {
+                if ( irow_ >= 0 ) {
+                    return table.getRow( irow_ );
+                }
+                else {
+                    throw new IllegalStateException( "No current row" );
+                }
+            }
+            public void close() {
+            }
+        };
     }
 
     /**
