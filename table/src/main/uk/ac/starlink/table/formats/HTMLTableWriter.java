@@ -1,19 +1,12 @@
 package uk.ac.starlink.table.formats;
 
+import uk.ac.starlink.table.*;
+
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.MultiStarTableWriter;
-import uk.ac.starlink.table.RowSequence;
-import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableOutput;
-import uk.ac.starlink.table.StarTableWriter;
-import uk.ac.starlink.table.StreamStarTableWriter;
-import uk.ac.starlink.table.TableSequence;
-import uk.ac.starlink.table.Tables;
 
 /**
  * A StarTableWriter that outputs text to HTML.
