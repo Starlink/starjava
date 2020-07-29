@@ -33,19 +33,24 @@ public class HTMLTableWriter extends StreamStarTableWriter
 
     private boolean standalone_;
     private boolean useRowGroups_;
+    private int maxWidth_;
 
     /**
      * Constructs a new writer with default characteristics.
      */
     public HTMLTableWriter() {
-        this( true, true  );
+        this( true, true, 200);
+    }
+
+    public HTMLTableWriter(int maxWidth) {
+        this( true, true, maxWidth);
     }
 
     /**
      * Constructs a new writer indicating whether it will produce complete
      * or partial HTML documents.
      */
-    public HTMLTableWriter( boolean standalone, boolean useRowGroups ) {
+    public HTMLTableWriter( boolean standalone, boolean useRowGroups, int maxWidth ) {
         setStandalone( standalone );
         useRowGroups_ = useRowGroups;
     }
@@ -189,7 +194,7 @@ public class HTMLTableWriter extends StreamStarTableWriter
                 String[] cells = new String[ ncol ];
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     cells[ icol ] =
-                        colinfos[ icol ].formatValue( row[ icol ], 200 );
+                        colinfos[ icol ].formatValue( row[ icol ], this.maxWidth_ );
                 }
                 outputRow( ostrm, "TD", null, cells );
             }
