@@ -27,7 +27,7 @@ public class SortFilter extends BasicFilter {
 
     public SortFilter() {
         super( "sort",
-               "[-down] [-nullsfirst] " 
+               "[-down] [-nullsfirst] [-[no]parallel] " 
              + "<key-list>" );
     }
 
@@ -51,6 +51,11 @@ public class SortFilter extends BasicFilter {
             "flag is given then they are considered to come at the start",
             "instead.",
             "</p>",
+            "<p>The <code>-parallel</code> flag may be supplied to perform",
+            "a multi-threaded sort.  However, in the current implementation",
+            "this is usually slower than the default single-threaded sort,",
+            "so this option is not generally recommended.",
+            "</p>",
             explainSyntax( new String[] { "key-list", } ),
         };
     }
@@ -59,6 +64,7 @@ public class SortFilter extends BasicFilter {
             throws ArgException {
         boolean up = true;
         boolean nullsLast = true;
+        boolean isParallel = false;
         String exprs = null;
         while ( argIt.hasNext() && exprs == null ) {
             String arg = argIt.next();
@@ -69,6 +75,14 @@ public class SortFilter extends BasicFilter {
             else if ( arg.equals( "-nullsfirst" ) ) {
                 argIt.remove();
                 nullsLast = false;
+            }
+            else if ( arg.equals( "-parallel" ) ) {
+                argIt.remove();
+                isParallel = true;
+            }
+            else if ( arg.equals( "-noparallel" ) ) {
+                argIt.remove();
+                isParallel = false;
             }
             else if ( exprs == null ) {
                 argIt.remove();
@@ -92,7 +106,7 @@ public class SortFilter extends BasicFilter {
         }
 
         /* Return the appropriate step implementation. */
-        return new SortStep( keys, up, nullsLast );
+        return new SortStep( keys, up, nullsLast, isParallel );
     }
 
     /**
@@ -102,11 +116,14 @@ public class SortFilter extends BasicFilter {
         final String[] keys_;
         final boolean up_;
         final boolean nullsLast_;
+        final boolean isParallel_;
 
-        SortStep( String[] keys, boolean up, boolean nullsLast ) {
+        SortStep( String[] keys, boolean up, boolean nullsLast,
+                  boolean isParallel ) {
             keys_ = keys;
             up_ = up;
             nullsLast_ = nullsLast;
+            isParallel_ = isParallel;
         }
 
         public StarTable wrap( StarTable baseTable ) throws IOException {
@@ -124,14 +141,19 @@ public class SortFilter extends BasicFilter {
             Comparator<Number> keyComparator;
             try {
                 keyComparator = new RowComparator( baseTable, keys_, up_,
-                                                   nullsLast_, false );
+                                                   nullsLast_, isParallel_ );
             }
             catch ( CompilationException e ) {
                 throw (IOException) new IOException( "Bad sort key(s)" )
                                    .initCause( e );
             }
             try {
-                Arrays.sort( rowMap, keyComparator );
+                if ( isParallel_ ) {
+                    Arrays.parallelSort( rowMap, keyComparator );
+                }
+                else {
+                    Arrays.sort( rowMap, keyComparator );
+                }
             }
             catch ( SortException e ) {
                 throw e.asIOException();
@@ -167,8 +189,6 @@ public class SortFilter extends BasicFilter {
          * @param   nullsLast  true if blank values should be considered
          *          last in the collation order, false if they should
          *          be considered first
-         * @param   isParallel  must be true if this comparator may be used
-         *                      from multiple threads simultaneously
          */
         public RowComparator( StarTable table, String[] keys, boolean up,
                               boolean nullsLast, boolean isParallel )
