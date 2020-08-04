@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.DomainMapper;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -52,18 +53,18 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
 
     public TupleSequence getTupleSequence( DataSpec spec ) {
         StarTable table = spec.getSourceTable();
-        if ( table.isRandom() && table.getRowCount() > 2 ) {
-            return new RandomSimpleTupleSequence( spec, table );
-        }
-        else {
-            try {
+        try {
+            if ( table.isRandom() && table.getRowCount() > 2 ) {
+                return new RandomSimpleTupleSequence( spec, table );
+            }
+            else {
                 RowSequence rseq = spec.getSourceTable().getRowSequence();
                 return new SequentialSimpleTupleSequence( spec, rseq );
             }
-            catch ( IOException e ) {
-                logger_.log( Level.WARNING, "Error reading plot data", e );
-                return PlotUtil.EMPTY_TUPLE_SEQUENCE;
-            }
+        }
+        catch ( IOException e ) {
+            logger_.log( Level.WARNING, "Error reading plot data", e );
+            return PlotUtil.EMPTY_TUPLE_SEQUENCE;
         }
     }
 
@@ -79,19 +80,22 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
     private static abstract class SimpleTupleSequence implements TupleSequence {
 
         final DataSpec spec_;
+        final RowData rowdata_;
         final UserDataReader reader_;
         final List<Function<Object[],?>> inputStorages_;
-        RowData rowdata_;
         long irow_;
         boolean failed_;
 
         /**
-         * Constructor.  Subclasses must initialise the rowdata_ member.
+         * Constructor.
          *
          * @param   spec  data specification
+         * @param   rowdata  row data object from which current row data
+         *                   is kept available
          */
-        SimpleTupleSequence( DataSpec spec ) {
+        SimpleTupleSequence( DataSpec spec, RowData rowdata ) {
             spec_ = spec;
+            rowdata_ = rowdata;
             reader_ = spec.createUserDataReader();
             inputStorages_ = new ArrayList<Function<Object[],?>>();
             for ( int ic = 0; ic < spec.getCoordCount(); ic++ ) {
@@ -165,9 +169,8 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
          * @param   rseq  row sequence from spec's source table
          */
         SequentialSimpleTupleSequence( DataSpec spec, RowSequence rseq ) {
-            super( spec );
+            super( spec, rseq );
             rseq_ = rseq;
-            rowdata_ = rseq;
         }
 
         public boolean next() {
@@ -206,7 +209,7 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
     private static class RandomSimpleTupleSequence extends SimpleTupleSequence {
 
         private final StarTable table_;
-        private final RowSequence rseq_;
+        private final RowAccess racc_;
         private long nrow_;
 
         /**
@@ -215,7 +218,8 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
          * @param   spec  data specification
          * @param   table  source table
          */
-        RandomSimpleTupleSequence( DataSpec spec, StarTable table ) {
+        RandomSimpleTupleSequence( DataSpec spec, StarTable table )
+                throws IOException {
             this( spec, table, -1, table.getRowCount() );
         }
 
@@ -228,23 +232,10 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
          * @param   nrow   first index after iteration run
          */
         RandomSimpleTupleSequence( DataSpec spec, StarTable table,
-                                   long irow, long nrow ) {
-            super( spec );
-            rseq_ = new RowSequence() {
-                public Object getCell( int icol ) throws IOException {
-                    return table_.getCell( irow_, icol );
-                }
-                public Object[] getRow() throws IOException {
-                    return table_.getRow( irow_ );
-                }
-                public boolean next() {
-                    return ++irow_ < nrow_;
-                }
-                public void close() {
-                }
-            };
-            rowdata_ = rseq_;
+                                   long irow, long nrow ) throws IOException {
+            super( spec, table.getRowAccess() );
             table_ = table;
+            racc_ = (RowAccess) rowdata_;
             irow_ = irow;
             nrow_ = nrow;
         }
@@ -252,7 +243,8 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
         public boolean next() {
             try {
                 while ( ! failed_ && irow_ < nrow_ - 1 ) {
-                    if ( reader_.getMaskFlag( rseq_, ++irow_ ) ) {
+                    if ( reader_.getMaskFlag( racc_, ++irow_ ) ) {
+                        racc_.setRowIndex( irow_ );
                         return true;
                     }
                 }
@@ -266,8 +258,16 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
         public TupleSequence split() {
             if ( nrow_ - irow_ > 2 ) {
                 long mid = ( irow_ + nrow_ ) / 2;
-                TupleSequence split =
-                    new RandomSimpleTupleSequence( spec_, table_, irow_, mid );
+                TupleSequence split;
+                try {
+                    split = new RandomSimpleTupleSequence( spec_, table_,
+                                                           irow_, mid );
+                }
+                catch ( IOException e ) {
+                    logger_.log( Level.WARNING, "Error re-reading plot data",
+                                 e );
+                    return null;
+                }
                 irow_ = mid - 1;
                 return split;
             }
