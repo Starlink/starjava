@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import uk.ac.starlink.util.SplittableSequence;
+import uk.ac.starlink.util.Sequence;
+import uk.ac.starlink.util.Splittable;
 
 /**
  * Interface for iterating over points to plot.
@@ -19,6 +20,10 @@ import uk.ac.starlink.util.SplittableSequence;
  * @since    6 Feb 2013
  */
 public interface TupleSequence
-        extends Tuple,
-                SplittableSequence<TupleSequence> {
+        extends Tuple, Sequence, Splittable<TupleSequence> {
+
+    /**
+     * Advances to the next entry.  No exception is thrown.
+     */
+    boolean next();
 }

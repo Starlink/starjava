@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2;
 
-import uk.ac.starlink.util.SplittableSequence;
+import uk.ac.starlink.util.Sequence;
+import uk.ac.starlink.util.Splittable;
 
 /**
  * Interface for iterating over coordinates.
@@ -11,7 +12,7 @@ import uk.ac.starlink.util.SplittableSequence;
  * @author   Mark Taylor
  * @since    13 Seb 2019
  */
-public interface CoordSequence extends SplittableSequence<CoordSequence> {
+public interface CoordSequence extends Splittable<CoordSequence>, Sequence {
 
     /**
      * Returns the array used to store the coordinates for the current
@@ -25,4 +26,9 @@ public interface CoordSequence extends SplittableSequence<CoordSequence> {
      * the current state of the iteration.
      */
     double[] getCoords();
+
+    /**
+     * Advances to the next entry.  No exception is thrown.
+     */
+    boolean next();
 }
