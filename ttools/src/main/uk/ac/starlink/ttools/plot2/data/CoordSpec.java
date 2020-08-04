@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.plot2.data;
 import java.io.IOException;
 import java.util.function.Function;
 import uk.ac.starlink.table.DomainMapper;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.Equality;
@@ -74,13 +74,13 @@ public class CoordSpec {
     /**
      * Reads the user value for this coordinate from a row sequence.
      *
-     * @param   rseq   row sequence of this data spec's table
+     * @param   rdata   row data for this data spec's table
      * @param   irow   row index
      * @return   coordinate stored value for this column at current row
      */
-    public Object readValue( RowSequence rseq, long irow ) throws IOException {
+    public Object readValue( RowData rdata, long irow ) throws IOException {
         Object[] userCoords =
-            dataReader_.getUserCoordValues( rseq, irow, icoord_ );
+            dataReader_.getUserCoordValues( rdata, irow, icoord_ );
         Object value = inputStorage_.apply( userCoords );
         assert value != null;
         return value;

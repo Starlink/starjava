@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -247,9 +248,9 @@ public class PersistentDataStoreFactory implements DataStoreFactory {
            .append( DiskCache.hashText( getMaskId( mspec ) ) )
            .toString();
         return new CacheEntry( id, StorageType.BOOLEAN ) {
-            Object getRowObject( RowSequence rseq, long irow )
+            Object getRowObject( RowData rdata, long irow )
                     throws IOException {
-                return Boolean.valueOf( mspec.readFlag( rseq, irow ) );
+                return Boolean.valueOf( mspec.readFlag( rdata, irow ) );
             }
         };
     }
@@ -268,9 +269,9 @@ public class PersistentDataStoreFactory implements DataStoreFactory {
            .append( DiskCache.hashText( getCoordId( cspec ) ) )
            .toString();
         return new CacheEntry( id, cspec.getStorageType() ) {
-            Object getRowObject( RowSequence rseq, long irow )
+            Object getRowObject( RowData rdata, long irow )
                     throws IOException {
-                return cspec.readValue( rseq, irow );
+                return cspec.readValue( rdata, irow );
             }
         };
     }
@@ -552,13 +553,13 @@ public class PersistentDataStoreFactory implements DataStoreFactory {
         }
 
         /**
-         * Acquires the data to be written for this entry for the current
-         * row of a RowSequence obtained from the relevant table.
+         * Acquires the data to be written for this entry for
+         * a RowData obtained from the relevant table.
          *
-         * @param  rseq  row sequence positioned appropriately
+         * @param  rdata  row data object
          * @param  irow  row index
          */
-        abstract Object getRowObject( RowSequence rseq, long irow )
+        abstract Object getRowObject( RowData rdata, long irow )
                 throws IOException;
 
         /**

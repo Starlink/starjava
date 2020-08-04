@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.DomainMapper;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
@@ -106,10 +106,10 @@ public class GuiDataSpec extends AbstractDataSpec {
         /* Different instances of this class need to be usable concurrently,
          * according to the DataSpec contract.  I *think* these are. */
         return new UserDataReader() {
-            public boolean getMaskFlag( RowSequence rseq, long irow ) {
+            public boolean getMaskFlag( RowData rdata, long irow ) {
                 return subset_.isIncluded( irow );
             }
-            public Object[] getUserCoordValues( RowSequence rseq, long irow,
+            public Object[] getUserCoordValues( RowData rdata, long irow,
                                                 int icoord )
                     throws IOException {
                 ColumnData[] cdatas = contents_[ icoord ].getColDatas();

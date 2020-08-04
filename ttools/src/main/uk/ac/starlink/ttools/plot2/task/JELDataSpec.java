@@ -8,7 +8,7 @@ import java.util.Arrays;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.Domain;
 import uk.ac.starlink.table.DomainMapper;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.TaskException;
@@ -73,7 +73,7 @@ public class JELDataSpec extends AbstractDataSpec {
          * based on the expressions compiled value type.
          * If no mapping to the target domain exists, bail out. */
         coordValues_ = new CoordValue[ nCoord ];
-        RowSequenceEvaluator preEvaluator = new RowSequenceEvaluator( table );
+        RowDataEvaluator preEvaluator = new RowDataEvaluator( table );
         Library preLib = JELUtils.getLibrary( preEvaluator );
         for ( int ic = 0; ic < nCoord; ic++ ) {
             CoordValue cval0 = coordValues[ ic ];
@@ -237,7 +237,7 @@ public class JELDataSpec extends AbstractDataSpec {
                 throws TaskException {
 
             /* Set up for JEL compilation against our table. */
-            RowSequenceEvaluator evaluator = new RowSequenceEvaluator( table );
+            RowDataEvaluator evaluator = new RowDataEvaluator( table );
             Library lib = JELUtils.getLibrary( evaluator );
 
             /* Compile mask expression. */
@@ -266,19 +266,19 @@ public class JELDataSpec extends AbstractDataSpec {
             }
         }
 
-        public boolean getMaskFlag( RowSequence rseq, long irow )
+        public boolean getMaskFlag( RowData rdata, long irow )
                 throws IOException {
-            return Boolean.TRUE.equals( maskReader_.readValue( rseq, irow ) );
+            return Boolean.TRUE.equals( maskReader_.readValue( rdata, irow ) );
         }
 
-        public Object[] getUserCoordValues( RowSequence rseq, long irow,
+        public Object[] getUserCoordValues( RowData rdata, long irow,
                                             int icoord )
                 throws IOException {
             ValueReader[] vrdrs = userCoordReaders_[ icoord ];
             int nu = vrdrs.length;
             Object[] userRow = userCoordRows_[ icoord ];
             for ( int iu = 0; iu < nu; iu++ ) {
-                userRow[ iu ] = vrdrs[ iu ].readValue( rseq, irow );
+                userRow[ iu ] = vrdrs[ iu ].readValue( rdata, irow );
             }
             return userRow;
         }
@@ -297,7 +297,7 @@ public class JELDataSpec extends AbstractDataSpec {
      */
     private static ValueReader
                    createValueReader( String expr, StarTable table,
-                                      RowSequenceEvaluator evaluator,
+                                      RowDataEvaluator evaluator,
                                       Library lib, Object fallback,
                                       Class<?> reqClazz )
             throws TaskException {
@@ -350,14 +350,13 @@ public class JELDataSpec extends AbstractDataSpec {
     private interface ValueReader {
 
         /**
-         * Acquires a value from the current row of a given RowSequence.
-         * The redundancy between the two parameters is intentional.
+         * Acquires a value from a given RowData.
          *
-         * @param   rseq   row sequence positioned at the row of interest
-         * @param   irow   index of the row of interest
+         * @param   rdata  row data
+         * @param   irow   row index for rdata
          * @return  expression value
          */
-        Object readValue( RowSequence rseq, long irow ) throws IOException;
+        Object readValue( RowData rdata, long irow ) throws IOException;
 
         /**
          * Returns metadata associated with the column if known.
@@ -380,7 +379,7 @@ public class JELDataSpec extends AbstractDataSpec {
                                                         : value.getClass(),
                                           "Fixed value" );
         }
-        public Object readValue( RowSequence rseq, long irow ) {
+        public Object readValue( RowData rdata, long irow ) {
             return value_;
         }
         public ValueInfo getValueInfo() {
@@ -405,9 +404,9 @@ public class JELDataSpec extends AbstractDataSpec {
             info_ = table.getColumnInfo( icol );
         }
 
-        public Object readValue( RowSequence rseq, long irow )
+        public Object readValue( RowData rdata, long irow )
                 throws IOException {
-            return rseq.getCell( icol_ );
+            return rdata.getCell( icol_ );
         }
 
         public ValueInfo getValueInfo() {
@@ -420,10 +419,9 @@ public class JELDataSpec extends AbstractDataSpec {
      * Not thread-safe.
      */
     private static class JelValueReader implements ValueReader {
-        private final RowSequenceEvaluator evaluator_;
+        private final RowDataEvaluator evaluator_;
         private final CompiledExpression compex_;
         private final ValueInfo info_;
-        private RowSequence rseq_;
         private long irow_;
 
         /**
@@ -433,16 +431,16 @@ public class JELDataSpec extends AbstractDataSpec {
          * @param   compex  expression to evaluate
          * @param   expr  expression text
          */
-        JelValueReader( RowSequenceEvaluator evaluator,
+        JelValueReader( RowDataEvaluator evaluator,
                         CompiledExpression compex, String expr ) {
             evaluator_ = evaluator;
             compex_ = compex;
             info_ = new DefaultValueInfo( expr, compex.getTypeC(), null );
         }
 
-        public Object readValue( RowSequence rseq, long irow )
+        public Object readValue( RowData rdata, long irow )
                 throws IOException {
-            return evaluator_.evaluateObject( compex_, rseq, irow );
+            return evaluator_.evaluateObject( compex_, rdata, irow );
         }
 
         public ValueInfo getValueInfo() {
@@ -451,14 +449,12 @@ public class JELDataSpec extends AbstractDataSpec {
     }
 
     /**
-     * Object which can evaluate expressions at the current row of a given
-     * RowSequence.  The hard work is done by StarTableJELRowReader,
-     * from which it inherits.
-     * Like the RowSequence it uses, instances of this class are not
-     * thread-safe.
+     * Object which can evaluate expressions using a RowData object.
+     * The hard work is done by StarTableJELRowReader, from which it inherits.
+     * Like the RowData it uses, instances of this class are not thread-safe.
      */
-    private static class RowSequenceEvaluator extends StarTableJELRowReader {
-        private RowSequence rseq_;
+    private static class RowDataEvaluator extends StarTableJELRowReader {
+        private RowData rdata_;
         private long irow_;
 
         /**
@@ -467,7 +463,7 @@ public class JELDataSpec extends AbstractDataSpec {
          * @param   table  table for which this row reader reads data,
          *                 used for expression evaluation
          */
-        RowSequenceEvaluator( StarTable table ) {
+        RowDataEvaluator( StarTable table ) {
             super( table );
         }
 
@@ -478,26 +474,25 @@ public class JELDataSpec extends AbstractDataSpec {
 
         @Override
         protected Object getCell( int icol ) throws IOException {
-            return rseq_.getCell( icol );
+            return rdata_.getCell( icol );
         }
 
         /**
-         * Evaluates a compiled expression at the current row of a given
-         * RowSequence.
+         * Evaluates a compiled expression using a given RowData.
          *
          * @param   compex   expression to evaluate
-         * @param   rseq   row sequence positioned at the row of interest
+         * @param   rdata   object supplying row data
          * @param   irow   index of the row of interest
          * @return  expression value
          */
         public Object evaluateObject( CompiledExpression compex,
-                                      RowSequence rseq, long irow )
+                                      RowData rdata, long irow )
                 throws IOException {
 
             /* Set the internal state of this JELRowReader object so that
              * the overridden getCurrentRow and getCell methods will retrieve
              * the right results. */
-            rseq_ = rseq;
+            rdata_ = rdata;
             irow_ = irow;
 
             /* Perform the evaluation. */

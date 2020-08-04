@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.plot2.task;
 import java.io.IOException;
 import uk.ac.starlink.table.Domain;
 import uk.ac.starlink.table.DomainMapper;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.data.AbstractDataSpec;
@@ -152,16 +152,16 @@ public class ColumnDataSpec extends AbstractDataSpec {
             userRows[ ic ] = new Object[ icols.length ];
         }
         return new UserDataReader() {
-            public boolean getMaskFlag( RowSequence rseq, long irow ) {
+            public boolean getMaskFlag( RowData rdata, long irow ) {
                 return true;
             }
-            public Object[] getUserCoordValues( RowSequence rseq, long irow,
+            public Object[] getUserCoordValues( RowData rdata, long irow,
                                                 int icoord )
                     throws IOException {
                 Object[] userRow = userRows[ icoord ];
                 int[] icols = userCoordColIndices_[ icoord ];
                 for ( int iu = 0; iu < userRow.length; iu++ ) {
-                    userRow[ iu ] = rseq.getCell( icols[ iu ] );
+                    userRow[ iu ] = rdata.getCell( icols[ iu ] );
                 }
                 return userRow;
             }

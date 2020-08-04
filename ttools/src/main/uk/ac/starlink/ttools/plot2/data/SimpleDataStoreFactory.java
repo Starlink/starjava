@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.DomainMapper;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
@@ -80,12 +81,12 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
         final DataSpec spec_;
         final UserDataReader reader_;
         final List<Function<Object[],?>> inputStorages_;
-        RowSequence rowseq_;
+        RowData rowdata_;
         long irow_;
         boolean failed_;
 
         /**
-         * Constructor.  Subclasses must initialise the rowseq_ member.
+         * Constructor.  Subclasses must initialise the rowdata_ member.
          *
          * @param   spec  data specification
          */
@@ -109,7 +110,7 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
         public Object getObjectValue( int icol ) {
             try {
                 Object[] userCoords =
-                    reader_.getUserCoordValues( rowseq_, irow_, icol );
+                    reader_.getUserCoordValues( rowdata_, irow_, icol );
                 Object value = inputStorages_.get( icol ).apply( userCoords );
                 assert value != null;
                 return value;
@@ -155,6 +156,7 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
      */
     private static class SequentialSimpleTupleSequence
             extends SimpleTupleSequence {
+        private final RowSequence rseq_;
 
         /**
          * Constructor.
@@ -164,13 +166,14 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
          */
         SequentialSimpleTupleSequence( DataSpec spec, RowSequence rseq ) {
             super( spec );
-            rowseq_ = rseq;
+            rseq_ = rseq;
+            rowdata_ = rseq;
         }
 
         public boolean next() {
             try {
-                while ( ! failed_ && rowseq_.next() ) {
-                    if ( reader_.getMaskFlag( rowseq_, ++irow_ ) ) {
+                while ( ! failed_ && rseq_.next() ) {
+                    if ( reader_.getMaskFlag( rseq_, ++irow_ ) ) {
                         return true;
                     }
                 }
@@ -179,7 +182,7 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
                 logError( e );
             }
             try {
-                rowseq_.close();
+                rseq_.close();
             }
             catch ( IOException e ) {
                 // ignore
@@ -203,6 +206,7 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
     private static class RandomSimpleTupleSequence extends SimpleTupleSequence {
 
         private final StarTable table_;
+        private final RowSequence rseq_;
         private long nrow_;
 
         /**
@@ -226,7 +230,7 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
         RandomSimpleTupleSequence( DataSpec spec, StarTable table,
                                    long irow, long nrow ) {
             super( spec );
-            rowseq_ = new RowSequence() {
+            rseq_ = new RowSequence() {
                 public Object getCell( int icol ) throws IOException {
                     return table_.getCell( irow_, icol );
                 }
@@ -239,6 +243,7 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
                 public void close() {
                 }
             };
+            rowdata_ = rseq_;
             table_ = table;
             irow_ = irow;
             nrow_ = nrow;
@@ -247,7 +252,7 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
         public boolean next() {
             try {
                 while ( ! failed_ && irow_ < nrow_ - 1 ) {
-                    if ( reader_.getMaskFlag( rowseq_, ++irow_ ) ) {
+                    if ( reader_.getMaskFlag( rseq_, ++irow_ ) ) {
                         return true;
                     }
                 }

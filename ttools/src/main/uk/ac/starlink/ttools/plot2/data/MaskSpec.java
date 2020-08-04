@@ -1,14 +1,14 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.io.IOException;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.plot2.Equality;
 
 /**
  * Characterises information about a data inclusion mask.
  * It aggregates a table and a maskId, and provides the capability of
- * reading the corresponding inclusion data from a RowSequence.
+ * reading the corresponding inclusion data from a RowData.
  *
  * @author   Mark Taylor
  * @since    6 Jan 2020
@@ -53,12 +53,12 @@ public class MaskSpec {
     /**
      * Reads inclusion flag from a row sequence.
      *
-     * @param   rseq   row sequence of this data spec's table
+     * @param   rdata   row for this data spec's table
      * @param   irow   row index
      * @return  inclusion mask for current row
      */
-    public boolean readFlag( RowSequence rseq, long irow ) throws IOException {
-        return dataReader_.getMaskFlag( rseq, irow );
+    public boolean readFlag( RowData rdata, long irow ) throws IOException {
+        return dataReader_.getMaskFlag( rdata, irow );
     }
 
     @Override
