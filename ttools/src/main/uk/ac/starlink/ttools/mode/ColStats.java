@@ -117,7 +117,14 @@ public abstract class ColStats {
      *
      * @param   value   data value to be accumulated into totals
      */
-    protected abstract void acceptDatum( Object value );
+    public abstract void acceptDatum( Object value );
+
+    /**
+     * Adds the accumulated content of a second ColStats object to this one.
+     *
+     * @param  other  compatible ColStats object
+     */
+    public abstract void addStats( ColStats other );
 
     /**
      * Returns the mean of the accumulated data.
@@ -182,10 +189,14 @@ public abstract class ColStats {
         public BasicColStats( ColumnInfo colInfo ) {
             super( colInfo );
         }
-        protected void acceptDatum( Object obj ) {
+        public void acceptDatum( Object obj ) {
             if ( ! Tables.isBlank( obj ) ) {
                 ngood_++;
             }
+        }
+        public void addStats( ColStats o ) {
+            BasicColStats other = (BasicColStats) o;
+            ngood_ += other.ngood_;
         }
         protected double getMeanValue() {
             return Double.NaN;
@@ -213,13 +224,18 @@ public abstract class ColStats {
         public BooleanColStats( ColumnInfo colInfo ) {
             super( colInfo );
         }
-        protected void acceptDatum( Object obj ) {
+        public void acceptDatum( Object obj ) {
             if ( obj instanceof Boolean ) {
                 ngood_++;
                 if ( ((Boolean) obj).booleanValue() ) {
                     ntrue_++;
                 }
             }
+        }
+        public void addStats( ColStats o ) {
+            BooleanColStats other = (BooleanColStats) o;
+            ngood_ += other.ngood_;
+            ntrue_ += other.ntrue_;
         }
         protected double getMeanValue() {
             return (double) ntrue_ / (double) ngood_;
@@ -245,7 +261,7 @@ public abstract class ColStats {
             super( colInfo );
         }
 
-        protected void acceptDatum( Object obj ) {
+        public void acceptDatum( Object obj ) {
             if ( obj instanceof Number ) {
                 double dval = ((Number) obj).doubleValue();
                 if ( ! Double.isNaN( dval ) ) {
@@ -261,6 +277,21 @@ public abstract class ColStats {
                         max_ = obj;
                     }
                 }
+            }
+        }
+
+        public void addStats( ColStats o ) {
+            NumberColStats other = (NumberColStats) o;
+            ngood_ += other.ngood_;
+            sum_ += other.sum_;
+            sum2_ += other.sum2_;
+            if ( other.dmin_ < dmin_ ) {
+                dmin_ = other.dmin_;
+                min_ = other.min_;
+            }
+            if ( other.dmax_ > dmax_ ) {
+                dmax_ = other.dmax_;
+                max_ = other.max_;
             }
         }
 

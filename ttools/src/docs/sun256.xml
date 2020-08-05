@@ -12907,6 +12907,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         guess format; this means that e.g. for CSV files named
         with the "<code>.csv</code>" extension, it is no longer
         necessary to specify <code>ifmt=csv</code>.</li>
+    <li>The <ref id="mode-stats">stats</ref> output mode now runs in
+        parallel.</li>
     </ul>
     </p></dd>
 
