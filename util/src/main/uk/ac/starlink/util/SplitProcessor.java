@@ -110,6 +110,29 @@ public abstract class SplitProcessor<S extends Splittable<S>> {
     }
 
     /**
+     * Returns a suitable processor instance.
+     * This will defer to one of
+     * {@link #createSequentialProcessor createSequentialProcessor},
+     * {@link #createBasicParallelProcessor createBasicParallelProcessor} or
+     * {@link #createPoolParallelProcessor createPoolParallelProcessor},
+     * depending on its arguments.
+     *
+     * @param   policy  parallel execution policy, or null for default
+     * @param   isPool   true to prefer pooling
+     * @return  new processor
+     */
+    public static <S extends Splittable<S>> SplitProcessor<S>
+            createStandardProcessor( SplitPolicy policy, boolean isPool ) {
+        if ( policy == null ) {
+            policy = new SplitPolicy();
+        }
+        return policy.getForkJoinPool().getParallelism() > 1
+             ? ( isPool ? createPoolParallelProcessor( policy )
+                        : createBasicParallelProcessor( policy ) )
+             : createSequentialProcessor();
+    }
+
+    /**
      * Attempts to split a splittable if its size is not already too small.
      *
      * @param  content  splittable
