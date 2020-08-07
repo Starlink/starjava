@@ -108,7 +108,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         "http://www.ukirt.hawaii.edu/",
         "http://vizier.iucaa.in/",
         "http://vizier.china-vo.org/",
-        "http://viziersaao.chpc.ac.za/",
+        "http://vizier.idia.ac.za/",
 
         // Experimental/beta services (no guarantees).
         "http://viz-beta.u-strasbg.fr/",
