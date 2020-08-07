@@ -1,16 +1,38 @@
 package uk.ac.starlink.fits;
 
+import java.io.IOException;
+import java.net.URL;
 import junit.framework.TestCase;
 import nom.tam.fits.HeaderCard;
 import nom.tam.fits.HeaderCardException;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.util.URLDataSource;
 
+/**
+ * These tests test bugfixes made to the starjava fork
+ * of nom.tam.fits.  If they fail on other nom.tam.fits
+ * versions, those versions should be fixed.
+ */
 public class TamfitsTest extends TestCase {
+
+    /**
+     * ASCII table extensions with TFORM values of In should be 64-bit
+     * for n>=10, not n>10.
+     */
+    public void testI10() throws IOException {
+        URL i10Url = getClass().getResource( "i10_test.fits" );
+        StarTable i10Table =
+            new FitsTableBuilder()
+           .makeStarTable( new URLDataSource( i10Url ), false,
+                           StoragePolicy.PREFER_MEMORY );
+        assertEquals( "ASCII table I10 should be a long not an int",
+                      Long.class,
+                      i10Table.getColumnInfo( 0 ).getContentClass() );
+    }
 
     public void testString() throws Exception {
 
-        // These tests test bugfixes made to the starjava fork
-        // of nom.tam.fits.  If they fail on other nom.tam.fits
-        // versions, those versions should be fixed.
         String name = "DUMMY";
         String txt = repeat( "1234567890", 8 );
         String comm = null;
