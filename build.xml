@@ -180,6 +180,9 @@
     <echo message="Executing Table target: ${what}"/>
     <ant dir="./table" target="${what}"/>
 
+    <echo message="Executing TJoin target: ${what}"/>
+    <ant dir="./tjoin" target="${what}"/>
+
     <echo message="Executing Mirage target: ${what}"/>
     <ant dir="./mirage" target="${what}"/>
 
@@ -458,6 +461,10 @@
       </packageset>
 
       <packageset dir="table/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="tjoin/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 

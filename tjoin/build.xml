@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 
 <!--
- !   Table build file
+ !   TJoin build file
  !
- !   This file describes how to build and install Table from
- !   source and binary releases. Table is a class library
+ !   This file describes how to build and install TJoin from
+ !   source and binary releases. TJoin is a class library
  !   (i.e. provides an API and related documentation).
  !
  !   The main targets are:
@@ -31,7 +31,7 @@
  !
  !-->
 
-<project name="Build file for Table" default="build" basedir=".">
+<project name="Build file for TJoin" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -77,12 +77,12 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="Table"/>
-  <property name="name" value="table"/>
-  <property name="version" value="4.0-"/>
+  <property name="Name" value="TJoin"/>
+  <property name="name" value="tjoin"/>
+  <property name="version" value="1.0-"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="uk.ac.starlink.table"/>
+  <property name="package.name" value="uk.ac.starlink.table.join"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
@@ -199,6 +199,9 @@
     <!-- UTIL -->
     <pathelement location="${star.jar.dir}/util/util.jar"/>
 
+    <!-- TABLE -->
+    <pathelement location="${star.jar.dir}/table/table.jar"/>
+
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -219,6 +222,7 @@
    !-->
   <extclasspath id="built.jarpath">
     <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
+    <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
   </extclasspath>
 
   <!-- "Local" third party jars. Normally these will be kept in their
@@ -228,11 +232,9 @@
    !   entered into the main jar file manifest.
    !-->
   <path id="package.jars">
-  <!--
-   ! <fileset dir="${src.jars.dir}">
-   !    <include name="*.jar"/>
-   ! </fileset>
-   !-->
+     <fileset dir="${src.jars.dir}">
+        <include name="*.jar"/>
+     </fileset>
   </path>
 
   <path id="built.classpath">
@@ -299,11 +301,17 @@
   <target name="check_packages"
           unless="runonly.install">
 
-    <!-- Need Util -->
+    <!-- UTIL -->
     <available property="util.present"
                classpathref="classpath"
                classname="uk.ac.starlink.util.DataSource"/>
-    <fail message="No Util available" unless="util.present"/>
+    <fail message="No UTIL available" unless="util.present"/>
+
+    <!-- TABLE -->
+    <available property="table.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.table.StarTable"/>
+    <fail message="No TABLE available" unless="table.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -374,22 +382,22 @@
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
-    <copy todir="${build.classes}">
-      <fileset dir="${src.dir}/resources"/>
-    </copy>
+    <!--
+     ! <copy todir="${build.classes}">
+     !   <fileset dir="${src.dir}/resources"/>
+     ! </copy>
+     !-->
 
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
      !   make these available for resolution by other locally built
      !   packages that are using this one -->
-    <!--
-     ! <mkdir dir="${dist.lib.pkg}"/>
-     ! <copy todir="${dist.lib.pkg}">
-     !   <fileset dir="${src.jars.dir}">
-     !     <include name="*.jar"/>
-     !   </fileset>
-     ! </copy>
-     !-->
+    <mkdir dir="${dist.lib.pkg}"/>
+    <copy todir="${dist.lib.pkg}">
+       <fileset dir="${src.jars.dir}">
+          <include name="*.jar"/>
+       </fileset>
+    </copy>
 
   </target>
 
@@ -445,11 +453,11 @@
      <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
            codebase="${webstart.codebase}">
       <information>
-         <title>TABLE - table data access classes</title>
+         <title>TJoin - Table matching classes</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink TABLE - Webstart edition"</description>
+         <description>"Starlink TJoin - Webstart edition"</description>
          <offline_allowed/>
        </information>
        <security>
@@ -459,6 +467,7 @@
          <j2se version="1.8+"/>
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
          <extension name="UTIL" href="util.jnlp"/>
+         <extension name="TABLE" href="table.jnlp"/>
        </resources>
        <component_desc/>
      </jnlp>
@@ -492,9 +501,11 @@
     <mkdir dir="${dist.docs.pkg}"/>
 
     <!-- Copy application scripts. -->
-    <copy todir="${dist.bin.pkg}">
-      <fileset dir="${script.dir}/"/>
-    </copy>
+    <!--
+     ! <copy todir="${dist.bin.pkg}">
+     !   <fileset dir="${script.dir}/"/>
+     ! </copy>
+     !-->
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
