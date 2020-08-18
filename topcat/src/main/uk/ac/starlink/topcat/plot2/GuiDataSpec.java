@@ -72,7 +72,11 @@ public class GuiDataSpec extends AbstractDataSpec {
     }
 
     public String getMaskId() {
-        return subset_.toString();
+        return new StringBuffer()
+            .append( subset_.getClass().getName() )
+            .append( '@' )
+            .append( Integer.toHexString( System.identityHashCode( subset_ ) ) )
+            .toString();
     }
 
     public ValueInfo[] getUserCoordInfos( int ic ) {

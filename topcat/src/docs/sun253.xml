@@ -29732,6 +29732,8 @@ introduced since the last version:
         <ref id="plot2-export">Plot Export Window</ref>.</li>
     <li>Fix plot failure when supplying nonexistent columns for
         optional coordinates.</li>
+    <li>Fix regression bug at v4.7-1 which failed to update subset
+        content in plots when subset name was reused.</li>
     </ul>
     </p></dd>
 
