@@ -29734,6 +29734,18 @@ introduced since the last version:
         optional coordinates.</li>
     <li>Fix regression bug at v4.7-1 which failed to update subset
         content in plots when subset name was reused.</li>
+    <li>Fix some regression bugs at v4.7-1 related to selection boxes
+        with user-entered values:
+        user-entered <em>VizieR Table ID/Alias</em> values in the
+        <ref id="CdsUploadMatchWindow">CDS Upload X-Match</ref>
+        window didn't work;
+        user-entered <em>Maximum Row Count</em> values for the
+        <ref id="VizierTableLoadDialog">VizieR load dialogue</ref>
+        caused the load to fail;
+        and user-entered <em>UCD</em> values in the
+        <ref id="SyntheticColumnQueryWindow"
+             >Synthetic Column window</ref> were ignored.
+        These are all now fixed.</li>
     </ul>
     </p></dd>
 

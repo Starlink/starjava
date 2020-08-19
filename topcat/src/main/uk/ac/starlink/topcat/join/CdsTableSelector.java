@@ -207,8 +207,7 @@ public class CdsTableSelector extends JPanel {
      * Must be invoked from the Event Dispatch Thread.
      */
     private void updateTableName() {
-        String tableName =
-            nameSelector_.getItemAt( nameSelector_.getSelectedIndex() );
+        String tableName = (String) nameSelector_.getSelectedItem();
         tableName_ = tableName;
         setMetadata( null );
         setMoc( null );

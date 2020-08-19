@@ -410,8 +410,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
                 ubuf.append( txt );
             }
         }
-        String maxrows =
-            maxSelector_.getItemAt( maxSelector_.getSelectedIndex() );
+        String maxrows = (String) maxSelector_.getSelectedItem();
         ubuf.append( encodeArg( "-out.max", maxrows ) );
         final URL url;
         try {

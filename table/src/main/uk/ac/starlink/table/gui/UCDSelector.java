@@ -60,7 +60,7 @@ public class UCDSelector extends JPanel implements ItemListener {
      * ID into a UCD.
      */
     public String getID() {
-        return comboBox.getItemAt( comboBox.getSelectedIndex() );
+        return (String) comboBox.getSelectedItem();
     }
 
     /**
