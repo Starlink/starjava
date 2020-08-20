@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,7 @@ public class HipsSelector extends JPanel {
     private final JComponent[] lines_;
     private HipsSurvey[] surveys_;
     private JPopupMenu popupMenu_;
+    private static final int MAX_CHILDREN = 40;
 
     /**
      * Constructor.
@@ -114,6 +116,11 @@ public class HipsSelector extends JPanel {
         /* Compact the tree so that branches with only one sub-branch
          * hide that level of structure (it just makes the UI more fiddly). */
         amalgamateSingles( root );
+
+        /* Ensure that no nodes have too many children.  If they do,
+         * the resulting popup menu can overflow the screen and make
+         * entries at the top and/or bottom impossible to select. */
+        splitOversize( root, MAX_CHILDREN );
 
         /* Turn the tree data structure into a hierarchy of JMenuItems. */
         popupMenu_ = new JPopupMenu( "Select HiPS" );
@@ -268,6 +275,47 @@ public class HipsSelector extends JPanel {
             Map.Entry<String,Node> entry1 =
                 child.children_.entrySet().iterator().next();
             children.put( single + "/" + entry1.getKey(), entry1.getValue() );
+        }
+    }
+
+    /**
+     * Recursively reorganises the tree as required so that no node has
+     * more than a given maximum number of children.
+     *
+     * @param  parent  node whose descendents are to be potentially reorganised
+     * @param  maxChildren   maximum acceptable number of children per node
+     */
+    private static void splitOversize( Node parent, int maxChildren ) {
+
+        /* Recurse. */
+        for ( Node child : parent.children_.values() ) {
+            splitOversize( child, maxChildren );
+        }
+
+        /* Reparent children from oversize families from numbered sub-nodes. */
+        for ( Map.Entry<String,Node> entry : parent.children_.entrySet() ) {
+            String name = entry.getKey();
+            Node node = entry.getValue();
+            Map<String,Node> children = node.children_;
+            int nchild = children.size();
+            int nblock = ( nchild + maxChildren - 1 ) / maxChildren;
+            if ( nblock > 1 ) {
+                Iterator<Map.Entry<String,Node>> childIt =
+                    children.entrySet().iterator();
+                node.children_ = new LinkedHashMap<String,Node>();
+                int blockSize = nchild / nblock;
+                for ( int ib = 0; ib < nblock; ib++ ) {
+                    Node blockNode = new Node();
+                    for ( int ic = 0; childIt.hasNext() && ic < blockSize;
+                          ic++ ) {
+                        Map.Entry<String,Node> childEntry = childIt.next();
+                        blockNode.children_.put( childEntry.getKey(),
+                                                 childEntry.getValue() );
+                    }
+                    String blockName = name + " (" + ( ib + 1 ) + ")";
+                    node.children_.put( blockName, blockNode );
+                }
+            }
         }
     }
 

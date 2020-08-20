@@ -29746,6 +29746,11 @@ introduced since the last version:
         <ref id="SyntheticColumnQueryWindow"
              >Synthetic Column window</ref> were ignored.
         These are all now fixed.</li>
+    <li>Fix HiPS Survey selection in the
+          <ref id="ViewHips2fitsActivationType">View</ref
+        >/<ref id="SendHips2fitsActivationType">Send</ref>
+        HiPS cutout activation actions so that the submenus
+        are not too tall for the screen.</li>
     </ul>
     </p></dd>
 
