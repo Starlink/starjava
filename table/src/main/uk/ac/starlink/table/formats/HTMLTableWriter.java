@@ -33,12 +33,14 @@ public class HTMLTableWriter extends StreamStarTableWriter
 
     private boolean standalone_;
     private boolean useRowGroups_;
+    private int maxWidth_;
+    private static final int DFLT_MAX_WIDTH = 200;
 
     /**
      * Constructs a new writer with default characteristics.
      */
     public HTMLTableWriter() {
-        this( true, true  );
+        this( true, true );
     }
 
     /**
@@ -48,6 +50,7 @@ public class HTMLTableWriter extends StreamStarTableWriter
     public HTMLTableWriter( boolean standalone, boolean useRowGroups ) {
         setStandalone( standalone );
         useRowGroups_ = useRowGroups;
+        maxWidth_ = DFLT_MAX_WIDTH;
     }
 
     /**
@@ -67,6 +70,24 @@ public class HTMLTableWriter extends StreamStarTableWriter
      */
     public boolean isStandalone() {
         return standalone_;
+    }
+
+    /**
+     * Sets the maximum output width in characters for a single cell.
+     *
+     * @param   maxWidth  new maximum cell width
+     */
+    public void setMaxWidth( int maxWidth ) {
+        maxWidth_ = maxWidth;
+    }
+
+    /**
+     * Returns the maximum output width in characters for a single cell.
+     *
+     * @return  maximum cell width
+     */
+    public int getMaxWidth() {
+        return maxWidth_;
     }
 
     public String getFormatName() {
@@ -188,8 +209,8 @@ public class HTMLTableWriter extends StreamStarTableWriter
                 Object[] row = rseq.getRow();
                 String[] cells = new String[ ncol ];
                 for ( int icol = 0; icol < ncol; icol++ ) {
-                    cells[ icol ] =
-                        colinfos[ icol ].formatValue( row[ icol ], 200 );
+                    cells[ icol ] = colinfos[ icol ]
+                                   .formatValue( row[ icol ], getMaxWidth() );
                 }
                 outputRow( ostrm, "TD", null, cells );
             }
