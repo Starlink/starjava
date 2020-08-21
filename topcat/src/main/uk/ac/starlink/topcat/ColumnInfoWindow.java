@@ -298,30 +298,34 @@ public class ColumnInfoWindow extends AuxWindow {
                                                     JOptionPane.ERROR_MESSAGE );
                      return;
                 }
-                try { 
-                    getSyntheticColumn( irow )
-                   .setExpression( expr, null, tcModel.createJELRowReader() );
-                    super.setValue( irow, expr );
-
-                    /* Message the table that its data may have changed.
-                     * Since every cell in one column is changing, 
-                     * potentially any cell in the table could change, since
-                     * it may be in a synthetic column depending on the
-                     * changed one.  Which is just as well, since no event
-                     * is defined to describe all the data in a single
-                     * column changing. */
-                    viewModel.fireTableDataChanged();
-                }
-                catch ( CompilationException e ) {
-                    String[] msg = new String[] {
-                        "Syntax error in synthetic column expression \"" + 
-                        value + "\":",
-                        e.getMessage(),
-                    };
-                    JOptionPane.showMessageDialog( ColumnInfoWindow.this, msg,
-                                                   "Expression Syntax Error",
-                                                   JOptionPane.ERROR_MESSAGE );
-                    return;
+                SyntheticColumn col = getSyntheticColumn( irow );
+                if ( col != null ) {
+                    try { 
+                        col.setExpression( expr, null,
+                                           tcModel.createJELRowReader() );
+                        super.setValue( irow, expr );
+    
+                        /* Message the table that its data may have changed.
+                         * Since every cell in one column is changing, 
+                         * potentially any cell in the table could change, since
+                         * it may be in a synthetic column depending on the
+                         * changed one.  Which is just as well, since no event
+                         * is defined to describe all the data in a single
+                         * column changing. */
+                        viewModel.fireTableDataChanged();
+                    }
+                    catch ( CompilationException e ) {
+                        String[] msg = new String[] {
+                            "Syntax error in synthetic column expression \"" + 
+                            value + "\":",
+                            e.getMessage(),
+                        };
+                        JOptionPane
+                       .showMessageDialog( ColumnInfoWindow.this, msg,
+                                           "Expression Syntax Error",
+                                           JOptionPane.ERROR_MESSAGE );
+                        return;
+                    }
                 }
             }
         } );
