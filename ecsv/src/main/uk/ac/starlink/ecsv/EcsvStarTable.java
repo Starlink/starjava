@@ -103,8 +103,7 @@ public abstract class EcsvStarTable extends AbstractStarTable {
             }
             Object xtypeObj = meta.remove( EcsvTableWriter.XTYPE_METAKEY );
             if ( xtypeObj instanceof String ) {
-                cinfo.setAuxDatum( new DescribedValue( Tables.XTYPE_INFO,
-                                                       (String) xtypeObj ) );
+                cinfo.setXtype( (String) xtypeObj );
             }
             for ( Map.Entry<?,?> entry : meta.entrySet() ) {
                 DescribedValue dval = toDescribedValue( entry );

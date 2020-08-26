@@ -95,6 +95,12 @@ abstract class Encoder {
             putAtt( "utype", utype.trim() );
         }
 
+        /* XType attribute. */
+        String xtype = info.getXtype();
+        if ( xtype != null && xtype.trim().length() > 0 ) {
+            putAtt( "xtype", xtype.trim() );
+        }
+
         /* Column auxiliary metadata items. */
         if ( info instanceof ColumnInfo ) {
             ColumnInfo cinfo = (ColumnInfo) info;
@@ -112,14 +118,6 @@ abstract class Encoder {
                                                           String.class );
             if ( ref != null && ref.trim().length() > 0 ) {
                 putAtt( "ref", ref.trim() );
-            }
-
-            /* XType attribute. */
-            String xtype =
-                (String) cinfo.getAuxDatumValue( VOStarTable.XTYPE_INFO,
-                                                 String.class );
-            if ( xtype != null && xtype.trim().length() > 0 ) {
-                putAtt( "xtype", xtype.trim() );
             }
 
             /* Width attribute. */

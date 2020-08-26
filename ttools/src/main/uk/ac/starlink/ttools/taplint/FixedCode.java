@@ -140,6 +140,7 @@ public enum FixedCode implements ReportCode {
     E_TBIO( "Error reading TAP_SCHEMA.tables table" ),
     E_TMCD( "Upload result column value mismatch" ),
     E_TMCN( "Upload result column name mismatch" ),
+    E_TMCX( "Upload result column xtype mismatch" ),
     E_TMNC( "Upload result column count mismatch" ),
     E_TMNR( "Upload result row count mismatch" ),
     E_TNTN( "Table name not ADQL table_name" ),

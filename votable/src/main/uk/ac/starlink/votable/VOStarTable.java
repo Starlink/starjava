@@ -79,9 +79,6 @@ public class VOStarTable extends AbstractStarTable {
                               "Usage-specific type"
                             + " (ties value to an external data model)" );
 
-    /** ValueInfo for VOTable <tt>xtype</tt> attribute. */
-    public final static ValueInfo XTYPE_INFO = Tables.XTYPE_INFO;
-
     /** ValueInfo for VOTable <tt>width</tt> attribute. */
     public final static ValueInfo WIDTH_INFO = new DefaultValueInfo(
         "VOTable width", Integer.class, "VOTable width attribute" );
@@ -134,7 +131,7 @@ public class VOStarTable extends AbstractStarTable {
 
     private final static List<ValueInfo> auxDataInfos =
             Arrays.asList( new ValueInfo[] {
-        DATATYPE_INFO, nullInfo, XTYPE_INFO,
+        DATATYPE_INFO, nullInfo,
         COOSYS_SYSTEM_INFO, COOSYS_EPOCH_INFO, COOSYS_EQUINOX_INFO,
         TIMESYS_TIMEORIGIN_INFO, TIMESYS_TIMESCALE_INFO,
         TIMESYS_REFPOSITION_INFO,
@@ -253,12 +250,6 @@ public class VOStarTable extends AbstractStarTable {
                     auxdata.add( new DescribedValue( TYPE_INFO, type ) );
                 }
 
-                String xtype = null;
-                if ( field.hasAttribute( "xtype" ) ) {
-                    xtype = field.getAttribute( "xtype" );
-                    auxdata.add( new DescribedValue( XTYPE_INFO, xtype ) );
-                }
-
                 VOElement coosys = field.getCoosys();
                 if ( coosys != null ) {
                     if ( coosys.hasAttribute( "system" ) ) {
@@ -306,7 +297,7 @@ public class VOStarTable extends AbstractStarTable {
                 }
 
                 cinfo.setDomainMappers( VOTableDomainMappers
-                                       .getMappers( cinfo, xtype ) );
+                                       .getMappers( cinfo ) );
 
                 colinfos[ i ] = cinfo;
             }
@@ -603,6 +594,7 @@ public class VOStarTable extends AbstractStarTable {
         info.setUnitString( field.getUnit() );
         info.setUCD( field.getUcd() );
         info.setUtype( field.getUtype() );
+        info.setXtype( field.getXtype() );
         info.setShape( ( shapel == null || shapel.length == 0 ) 
                             ? null
                             : Decoder.longsToInts( shapel ) );

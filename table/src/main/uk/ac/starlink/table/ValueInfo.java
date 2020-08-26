@@ -58,6 +58,18 @@ public interface ValueInfo {
     String getUtype();
 
     /**
+     * Returns the Xtype string applying to the values described by
+     * this object.  The Xtype string is the 'extended type' information
+     * characterising the data type beyond the primitive data type.
+     * It is used within IVOA standards, and a number of standard
+     * values are defined within the
+     * <a href="http://www.ivoa.net/documents/DALI">DALI</a> standard.
+     *
+     * @return  the Xtype, or <code>null</code> if none is known
+     */
+    String getXtype();
+
+    /**
      * Returns a description of the values described by this object.
      * It may contain a short or long textual description of the kind of
      * information represented by the value.

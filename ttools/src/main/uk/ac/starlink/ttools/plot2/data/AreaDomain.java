@@ -7,7 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.Domain;
 import uk.ac.starlink.table.DomainMapper;
-import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DoubleList;
 import uk.ac.starlink.util.LongList;
@@ -105,7 +104,7 @@ public class AreaDomain implements Domain<AreaMapper> {
         }
         Class<?> clazz = info.getContentClass();
         String name = info.getName();
-        String xtype = Tables.getXtype( info );
+        String xtype = info.getXtype();
         String ucd = info.getUCD();
         if ( clazz.equals( String.class ) ) {
             if ( "moc".equalsIgnoreCase( xtype ) ) {

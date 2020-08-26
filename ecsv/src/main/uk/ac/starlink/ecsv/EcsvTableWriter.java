@@ -231,7 +231,7 @@ public class EcsvTableWriter extends StreamStarTableWriter {
         /* Add standard STIL metadata items if present. */
         String ucd = colInfo.getUCD();
         String utype = colInfo.getUtype();
-        String xtype = Tables.getXtype( colInfo );
+        String xtype = colInfo.getXtype();
         if ( ucd != null ) {
             map.put( UCD_METAKEY, ucd );
         }

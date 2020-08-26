@@ -57,7 +57,7 @@ public class TimeDomain implements Domain<TimeMapper> {
         String unit = info.getUnitString();
         String ucd = info.getUCD();
         String utype = info.getUtype();
-        String xtype = Tables.getXtype( info );
+        String xtype = info.getXtype();
         if ( xtype == null ) {
             xtype = "";
         }

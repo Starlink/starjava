@@ -48,6 +48,10 @@ public class URLValueInfo implements ValueInfo {
         return utype_;
     }
 
+    public String getXtype() {
+        return null;
+    }
+
     public Class<?> getContentClass() {
         return URL.class;
     }

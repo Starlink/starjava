@@ -20,6 +20,7 @@ public class DefaultValueInfo implements ValueInfo {
     private String unitString = null;
     private String ucd = null;
     private String utype = null;
+    private String xtype = null;
     private String description = "";
     private Class<?> contentClass = Object.class;
     private DomainMapper[] domainMappers = new DomainMapper[ 0 ];
@@ -88,6 +89,7 @@ public class DefaultValueInfo implements ValueInfo {
         setUnitString( base.getUnitString() );
         setUCD( base.getUCD() );
         setUtype( base.getUtype() );
+        setXtype( base.getXtype() );
         setDescription( base.getDescription() );
         setContentClass( base.getContentClass() );
         setShape( base.getShape() );
@@ -149,6 +151,19 @@ public class DefaultValueInfo implements ValueInfo {
 
     public String getUtype() {
         return utype;
+    }
+
+    /**
+     * Sets the Xtype string applying to values described by this object.
+     *
+     * @param  xtype  the Xtype, or <code>null</code> if none is known
+     */
+    public void setXtype( String xtype ) {
+        this.xtype = xtype;
+    }
+
+    public String getXtype() {
+        return xtype;
     }
 
     /**

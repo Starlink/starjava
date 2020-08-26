@@ -33,11 +33,10 @@ class VOTableDomainMappers {
      * Identifies suitable DomainMapper objects to associate with a column.
      *
      * @param  info  column basic metadata
-     * @param  xtype  column xtype value
      * @return  array of mappers; may be empty
      */
-    public static DomainMapper[] getMappers( ValueInfo info, String xtype ) {
-        TimeMapper tmapper = getTimeMapper( info, xtype );
+    public static DomainMapper[] getMappers( ValueInfo info ) {
+        TimeMapper tmapper = getTimeMapper( info );
         return tmapper == null ? new DomainMapper[ 0 ]
                                : new DomainMapper[] { tmapper };
     }
@@ -46,14 +45,14 @@ class VOTableDomainMappers {
      * Tries to identify a TimeMapper to associated with a column.
      *
      * @param  info  column basic metadata
-     * @param  xtype  column xtype value
      * @return  domain mapper for time data, or null if not successful
      */
-    private static TimeMapper getTimeMapper( ValueInfo info, String xtype ) {
+    private static TimeMapper getTimeMapper( ValueInfo info ) {
         Class<?> clazz = info.getContentClass();
         String units = info.getUnitString();
         String ucd = info.getUCD();
         String utype = info.getUtype();
+        String xtype = info.getXtype();
         if ( xtype == null ) {
             xtype = "";
         }

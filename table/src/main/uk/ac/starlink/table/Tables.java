@@ -61,10 +61,6 @@ public class Tables {
         new DefaultValueInfo( "UBYTE_FLAG", Boolean.class,
                               "If true, data represents unsigned byte values" );
 
-    /** ValueInfo for Extended Type (VOTable <code>xtype</code>) attribute. */
-    public static final ValueInfo XTYPE_INFO = new DefaultValueInfo(
-        "xtype", String.class, "Extended type information" );
-
     /**
      * ValueInfo representing Right Ascension. 
      * The units are radians and it is non-nullable.
@@ -529,22 +525,6 @@ public class Tables {
     }
 
     /**
-     * Returns the extended type value associated with a given metadata item.
-     * The XType corresponds to the <code>xtype</code> attribute of
-     * the VOTable format.  Other table formats may or may not be able
-     * to represent it.
-     *
-     * @param  info  metadata item
-     * @return   xtype string, or null if none is available
-     */
-    public static String getXtype( ValueInfo info ) {
-        return info instanceof ColumnInfo
-             ? (String) ((ColumnInfo) info)
-                       .getAuxDatumValue( XTYPE_INFO, String.class )
-             : null;
-    }
-
-    /**
      * Tries to set the Utype for a given metadata item.
      *
      * @deprecated  use {@link DefaultValueInfo#setUtype} instead
@@ -556,6 +536,36 @@ public class Tables {
     public static void setUtype( ValueInfo info, String utype ) {
         if ( info instanceof DefaultValueInfo ) {
             ((DefaultValueInfo) info).setUtype( utype );
+        }
+    }
+
+    /**
+     * Returns the extended type value associated with a given metadata item.
+     * The XType corresponds to the <code>xtype</code> attribute of
+     * the VOTable format.  Other table formats may or may not be able
+     * to represent it.
+     *
+     * @deprecated  use {@link ValueInfo#getXtype} instead
+     * @param  info  metadata item
+     * @return   xtype string, or null if none is available
+     */
+    @Deprecated
+    public static String getXtype( ValueInfo info ) {
+        return info.getXtype();
+    }
+
+    /**
+     * Tries to set the Xtype for a given metadata item.
+     *
+     * @deprecated  use {@link DefaultValueInfo#setXtype} instead
+     * @param  info  metadata item
+     * @param  xtype  new xtype value
+     * @see   #getXtype
+     */
+    @Deprecated
+    public static void setXtype( ValueInfo info, String xtype ) {
+        if ( info instanceof DefaultValueInfo ) {
+            ((DefaultValueInfo) info).setXtype( xtype );
         }
     }
 

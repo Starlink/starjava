@@ -845,9 +845,9 @@ public abstract class VOSerializer {
                 }
             }
             if ( ! allowXtype ) {
-                DescribedValue xt = cinfo.getAuxDatum( VOStarTable.XTYPE_INFO );
+                String xt = cinfo.getXtype();
                 if ( xt != null ) {
-                    cinfo.getAuxData().remove( xt );
+                    cinfo.setXtype( null );
                     modified++;
                 }
             }

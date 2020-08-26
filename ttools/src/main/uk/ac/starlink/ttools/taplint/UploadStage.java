@@ -206,7 +206,18 @@ public class UploadStage implements Stage {
                     }
                     compareStringAuxMetadata( c1, c2,
                                               VOStarTable.DATATYPE_INFO );
-                    compareStringAuxMetadata( c1, c2, VOStarTable.XTYPE_INFO );
+                    String xtype1 = c1.getXtype();
+                    String xtype2 = c2.getXtype();
+                    if ( ( xtype1 == null && xtype2 != null ) ||
+                         ( xtype1 != null && ! xtype1.equals( xtype2 ) ) ) {
+                        String msg = new StringBuffer()
+                            .append( "Upload result column xtype mismatch " )
+                            .append( xtype2 )
+                            .append( " != " )
+                            .append( xtype1 )
+                            .toString();
+                        reporter_.report( FixedCode.E_TMCX, msg );
+                    }
                 }
             }
 
@@ -228,9 +239,7 @@ public class UploadStage implements Stage {
                         /* Treat non-null time columns specially. */
                         boolean isTimeCol =
                             "adql:TIMESTAMP"
-                           .equals( t1.getColumnInfo( ic )
-                                      .getAuxDatumValue( VOStarTable.XTYPE_INFO,
-                                                         String.class ) );
+                           .equals( t1.getColumnInfo( ic ).getXtype() );
                         if ( isTimeCol && s1.length() > 0 && s2.length() > 0 ) {
 
                             /* See TAP 1.0 sec 2.3.4/2.5; also DALI 1.0
@@ -440,8 +449,7 @@ public class UploadStage implements Stage {
         ColumnData col = ArrayColumn.makeColumn( name, data );
         ColumnInfo cinfo = col.getColumnInfo();
         if ( xtype != null ) {
-            cinfo.setAuxDatum( new DescribedValue( VOStarTable.XTYPE_INFO,
-                                                   xtype ) );
+            cinfo.setXtype( xtype );
         }
         Class<?> clazz = cinfo.getContentClass();
         final boolean nullable;

@@ -13,14 +13,12 @@ import org.json.JSONTokener;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
-import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
-import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -156,8 +154,7 @@ public class GeojsonTableBuilder implements TableBuilder {
          * DALI xtype="polygon" would be more efficient, but at time
          * of writing it does not handle multi-polygons. */
         ColumnInfo geomInfo = new ColumnInfo( shapeColName_, String.class, "" );
-        geomInfo.setAuxDatum( new DescribedValue( Tables.XTYPE_INFO,
-                                                  "stc-s" ) );
+        geomInfo.setXtype( "stc-s" );
         table.addColumn( new ColumnData( geomInfo ) {
             public Object readValue( long irow ) {
                 JSONObject geom = features.getJSONObject( (int) irow )

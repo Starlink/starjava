@@ -39,6 +39,7 @@ public class MetadataFilter extends BasicFilter {
     public static final ValueInfo DESCRIPTION_INFO;
     public static final ValueInfo UCD_INFO;
     public static final ValueInfo UTYPE_INFO;
+    public static final ValueInfo XTYPE_INFO;
 
     /** All known metadata items. */
     public static final ValueInfo[] KNOWN_INFOS = new ValueInfo[] {
@@ -61,7 +62,8 @@ public class MetadataFilter extends BasicFilter {
                                          "Unified Content Descriptor" ),
         UTYPE_INFO = new DefaultValueInfo( "Utype", String.class,
                                            "Type in data model" ),
-        VOStarTable.XTYPE_INFO,
+        XTYPE_INFO = new DefaultValueInfo( "Xtype", String.class,
+                                           "Extended data type" ),
         VOStarTable.COOSYS_SYSTEM_INFO,
         VOStarTable.COOSYS_EPOCH_INFO,
         VOStarTable.COOSYS_EQUINOX_INFO,
@@ -191,9 +193,9 @@ public class MetadataFilter extends BasicFilter {
                 map.put( ELSIZE_INFO, info.getElementSize() );
             }
             map.put( DESCRIPTION_INFO, info.getDescription() );
-            String ucd = info.getUCD();
-            map.put( UCD_INFO, ucd );
+            map.put( UCD_INFO, info.getUCD() );
             map.put( UTYPE_INFO, info.getUtype() );
+            map.put( XTYPE_INFO, info.getXtype() );
 
             /* Add auxiliary items if there are any. */
             if ( ! auxInfos.isEmpty() ) {
