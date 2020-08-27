@@ -77,6 +77,18 @@ public class DescribedValue {
     }
 
     /**
+     * Returns the value content of this object as a specified type.
+     * If the value is an instance of the supplied class, it is returned;
+     * otherwise, null is returned.
+     *
+     * @param  clazz  required return type
+     * @return  value as required type, or null
+     */
+    public <T> T getTypedValue( Class<T> clazz ) {
+        return clazz.isInstance( value ) ? clazz.cast( value ) : null;
+    }
+
+    /**
      * Returns a string representation of the value of this object, 
      * no longer than a given maximum length.
      *
