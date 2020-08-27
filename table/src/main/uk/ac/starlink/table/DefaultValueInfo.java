@@ -3,8 +3,10 @@ package uk.ac.starlink.table;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -30,6 +32,7 @@ public class DefaultValueInfo implements ValueInfo {
     private boolean isNullable_;
     private int[] shape_;
     private int elementSize_;
+    private List<DescribedValue> auxData_;
     private Function<String,?> fromString_;
 
     private static Pattern trailDigits = Pattern.compile( "\\.([0-9]+)$" );
@@ -82,6 +85,7 @@ public class DefaultValueInfo implements ValueInfo {
         isNullable_ = true;
         shape_ = new int[] { -1 };
         elementSize_ = -1;
+        auxData_ = new ArrayList<DescribedValue>();
         configureContentClass( contentClass );
     }
 
@@ -104,6 +108,7 @@ public class DefaultValueInfo implements ValueInfo {
         domainMappers_ = base.getDomainMappers() == null
                        ? null
                        : base.getDomainMappers().clone();
+        auxData_ = new ArrayList<DescribedValue>( base.getAuxData() );
     }
 
     /**
@@ -301,6 +306,27 @@ public class DefaultValueInfo implements ValueInfo {
      */
     public void setDomainMappers( DomainMapper[] domainMappers ) {
         domainMappers_ = domainMappers;
+    }
+
+    /**
+     * Returns a list of auxiliary metadata objects
+     * pertaining to this column.
+     * The returned value may, if mutable, be modified to change
+     * the aux data of this object.
+     *
+     * @return   a List of <tt>DescribedValue</tt> items
+     */
+    public List<DescribedValue> getAuxData() {
+        return auxData_;
+    }
+
+    /**
+     * Sets the list of auxiliary metadata items for this column.
+     *
+     * @param   auxData  a list of <tt>DescribedValue</tt> objects
+     */
+    public void setAuxData( List<DescribedValue> auxData ) {
+        auxData_ = auxData;
     }
 
     /**

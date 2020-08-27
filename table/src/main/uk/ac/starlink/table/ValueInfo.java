@@ -1,5 +1,6 @@
 package uk.ac.starlink.table;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -171,6 +172,16 @@ public interface ValueInfo {
      * @return  <tt>false</tt> if values are guaranteed non-<tt>null</tt>
      */
     boolean isNullable();
+
+    /**
+     * Returns a list of auxiliary metadata objects
+     * pertaining to this info.
+     * This is intended as a repository for metadata which is not
+     * otherwise made available in this interface.
+     *
+     * @return   a List of <tt>DescribedValue</tt> items
+     */
+    List<DescribedValue> getAuxData();
 
     /**
      * Returns an array of objects which may be able to convert from the

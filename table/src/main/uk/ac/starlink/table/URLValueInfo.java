@@ -1,5 +1,7 @@
 package uk.ac.starlink.table;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.table.TableCellRenderer;
@@ -16,6 +18,7 @@ public class URLValueInfo implements ValueInfo {
     private String utype_;
     private String name_;
     private String description_;
+    private List<DescribedValue> auxData_;
 
     /**
      * Constructs a new URLValueInfo.
@@ -26,6 +29,7 @@ public class URLValueInfo implements ValueInfo {
     public URLValueInfo( String name, String description ) {
         name_ = name;
         description_ = description;
+        auxData_ = new ArrayList<DescribedValue>();
     }
 
     public String getName() {
@@ -74,6 +78,10 @@ public class URLValueInfo implements ValueInfo {
 
     public DomainMapper[] getDomainMappers() {
         return new DomainMapper[ 0 ];
+    }
+
+    public List<DescribedValue> getAuxData() {
+        return auxData_;
     }
 
     public String formatValue( Object value, int maxLength ) {

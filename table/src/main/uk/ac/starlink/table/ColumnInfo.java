@@ -1,6 +1,5 @@
 package uk.ac.starlink.table;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,8 +15,6 @@ import java.util.List;
  * @author   Mark Taylor (Starlink)
  */
 public class ColumnInfo extends DefaultValueInfo {
-
-    private List<DescribedValue> auxData = new ArrayList<DescribedValue>();
 
     /**
      * Constructs a <tt>ColumnInfo</tt> object.
@@ -61,19 +58,6 @@ public class ColumnInfo extends DefaultValueInfo {
      */
     public ColumnInfo( ColumnInfo base ) {
         super( base );
-        this.setAuxData( new ArrayList<DescribedValue>( base.getAuxData() ) );
-    }
-
-    /**
-     * Returns a list of auxiliary metadata objects
-     * pertaining to this column.
-     * This is intended as a repository for metadata which is not
-     * defined in the <tt>ValueInfo</tt> interface.
-     *
-     * @return   a List of <tt>DescribedValue</tt> items
-     */
-    public List<DescribedValue> getAuxData() {
-        return auxData;
     }
 
     /**
@@ -85,7 +69,7 @@ public class ColumnInfo extends DefaultValueInfo {
      *          or <tt>null</tt> if none exists
      */
     public DescribedValue getAuxDatumByName( String name ) {
-        for ( DescribedValue dv : auxData ) {
+        for ( DescribedValue dv : getAuxData() ) {
             if ( dv.getInfo().getName().equals( name ) ) {
                 return dv;
             }
@@ -167,21 +151,11 @@ public class ColumnInfo extends DefaultValueInfo {
      * @param  dval  the new datum to add
      */
     public void setAuxDatum( DescribedValue dval ) {
+        List<DescribedValue> auxData = getAuxData();
         DescribedValue old = getAuxDatumByName( dval.getInfo().getName() );
         if ( old != null ) {
             auxData.remove( old );
         }
         auxData.add( dval );
-    }
-
-    /**
-     * Sets the list of auxiliary metadata items for this column.
-     * All elements of the supplied list should be 
-     * {@link DescribedValue} objects.
-     *
-     * @param   auxData  a list of <tt>DescribedValue</tt> objects
-     */
-    public void setAuxData( List<DescribedValue> auxData ) {
-        this.auxData = auxData;
     }
 }
