@@ -1,9 +1,12 @@
 package uk.ac.starlink.table;
 
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +30,7 @@ public class DefaultValueInfo implements ValueInfo {
     private boolean isNullable_;
     private int[] shape_;
     private int elementSize_;
+    private Function<String,?> fromString_;
 
     private static Pattern trailDigits = Pattern.compile( "\\.([0-9]+)$" );
     private static Pattern trailSpaces = Pattern.compile( "( +)$" );
@@ -226,6 +230,9 @@ public class DefaultValueInfo implements ValueInfo {
                 shape_ = new int[] { -1 };
             }
         }
+
+        /* Prepare for conversion from string values. */
+        fromString_ = createUnformatter( contentClass );
     }
 
     public boolean isArray() {
@@ -620,67 +627,9 @@ public class DefaultValueInfo implements ValueInfo {
     }
 
     public Object unformatString( String rep ) {
-
-        /*
-         * This is a not-very-OO stopgap solution to this problem.
-         * the proper solution requires some significant rejigging of
-         * the class hierarchy in the tables package. 
-         * I am writing demos that need to be working in a few days
-         * and don't have time for it now.  mbt.
-         */
-        if ( rep == null || rep.length() == 0 ) {
-            return null;
-        }
-        Class<?> clazz = getContentClass();
-        if ( clazz == Boolean.class ) {
-            return Boolean.valueOf( rep );
-        }
-        else if ( clazz == Character.class ) {
-            if ( rep.length() == 1 ) {
-                return new Character( rep.charAt( 0 ) );
-            }
-            else if ( rep.trim().length() == 1 ) {
-                return new Character( rep.trim().charAt( 0 ) );
-            }
-            else {
-                throw new IllegalArgumentException();
-            }
-        }
-        else if ( clazz == Byte.class ) {
-            return Byte.valueOf( rep );
-        }
-        else if ( clazz == Short.class ) {
-            return Short.valueOf( rep );
-        }
-        else if ( clazz == Integer.class ) {
-            return Integer.valueOf( rep );
-        }
-        else if ( clazz == Long.class ) {
-            return Long.valueOf( rep );
-        }
-        else if ( clazz == Float.class ) {
-            if ( rep.trim().length() == 0 ) {
-                return new Float( Float.NaN );
-            }
-            else {
-                return Float.valueOf( rep );
-            }
-        }
-        else if ( clazz == Double.class || clazz == Number.class ) {
-            if ( rep.trim().length() == 0 ) {
-                return new Double( Double.NaN );
-            }
-            else {
-                return Double.valueOf( rep );
-            }
-        }
-        else if ( clazz == String.class ) {
-            return rep;
-        }
-        else {
-            throw new IllegalArgumentException(
-                "No unformatter available for " + clazz.getName() );
-        }
+        return rep == null || rep.length() == 0
+             ? null
+             : fromString_.apply( rep );
     }
 
     /**
@@ -727,5 +676,69 @@ public class DefaultValueInfo implements ValueInfo {
             ashape[ ndim - 1 ] = ( nel + slice - 1 ) / slice;
         }
         return ashape;
+    }
+
+    /**
+     * Returns a function that can convert from a string to a given class.
+     * The output function has the same output type as the parameterised
+     * type of the input class, but that is not not enforced by the
+     * signature becuase it's a pain to implement like that.
+     *
+     * @param  clazz   required function output class
+     * @return  function that converts a string to the required class
+     */
+    private static Function<String,?> createUnformatter( Class<?> clazz ) {
+        if ( Boolean.class.equals( clazz ) ) {
+            return Boolean::valueOf;
+        }
+        else if ( Character.class.equals( clazz ) ) {
+            return txt -> {
+                if ( txt.length() == 1 ) {
+                    return Character.valueOf( txt.charAt( 0 ) );
+                }
+                else if ( txt.trim().length() == 1 ) {
+                    return Character.valueOf( txt.trim().charAt( 0 ) );
+                }
+                else {
+                    throw new IllegalArgumentException( "Not char" );
+                }
+            };
+        }
+        else if ( Byte.class.equals( clazz ) ) {
+            return Byte::valueOf;
+        }
+        else if ( Short.class.equals( clazz ) ) {
+            return Short::valueOf;
+        }
+        else if ( Integer.class.equals( clazz ) ) {
+            return Integer::valueOf;
+        }
+        else if ( Long.class.equals( clazz ) ) {
+            return Long::valueOf;
+        }
+        else if ( Float.class.equals( clazz ) ) {
+            return Float::valueOf;
+        }
+        else if ( Double.class.equals( clazz ) ) {
+            return Double::valueOf;
+        }
+        else if ( BigInteger.class.equals( clazz ) ) {
+            return BigInteger::new;
+        }
+        else if ( BigDecimal.class.equals( clazz ) ) {
+            return BigDecimal::new;
+        }
+        else if ( String.class.equals( clazz ) ) {
+            return Function.identity();
+        }
+        else if ( Number.class.isAssignableFrom( clazz ) ) {
+            return Double::valueOf;
+        }
+        else {
+            return txt -> {
+                throw new UnsupportedOperationException( "No unformatter"
+                                                       + " available" );
+            };
+        }
     }
 }
