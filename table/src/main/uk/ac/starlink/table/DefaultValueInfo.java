@@ -16,17 +16,17 @@ import java.util.regex.Pattern;
  */
 public class DefaultValueInfo implements ValueInfo {
 
-    private String name;
-    private String unitString = null;
-    private String ucd = null;
-    private String utype = null;
-    private String xtype = null;
-    private String description = "";
-    private Class<?> contentClass = Object.class;
-    private DomainMapper[] domainMappers = new DomainMapper[ 0 ];
-    private boolean isNullable = true;
-    private int[] shape = new int[] { -1 };
-    private int elementSize = -1;
+    private String name_;
+    private String unitString_;
+    private String ucd_;
+    private String utype_;
+    private String xtype_;
+    private String description_;
+    private Class<?> contentClass_;
+    private DomainMapper[] domainMappers_;
+    private boolean isNullable_;
+    private int[] shape_;
+    private int elementSize_;
 
     private static Pattern trailDigits = Pattern.compile( "\\.([0-9]+)$" );
     private static Pattern trailSpaces = Pattern.compile( "( +)$" );
@@ -36,6 +36,7 @@ public class DefaultValueInfo implements ValueInfo {
      * without a name.
      */
     public DefaultValueInfo() {
+        this( (String) null );
     }
 
     /**
@@ -45,7 +46,7 @@ public class DefaultValueInfo implements ValueInfo {
      * @param  name  the name applying to described values
      */
     public DefaultValueInfo( String name ) {
-        this.name = name;
+        this( name, Object.class );
     }
 
     /**
@@ -57,8 +58,7 @@ public class DefaultValueInfo implements ValueInfo {
      *         instances
      */
     public DefaultValueInfo( String name, Class<?> contentClass ) {
-        this( name );
-        setContentClass( contentClass );
+        this( name, contentClass, "" );
     }
 
     /**
@@ -72,9 +72,13 @@ public class DefaultValueInfo implements ValueInfo {
      */
     public DefaultValueInfo( String name, Class<?> contentClass,
                              String description ) {
-        this( name );
-        setContentClass( contentClass );
-        setDescription( description );
+        name_ = name;
+        description_ = description;
+        domainMappers_ = new DomainMapper[ 0 ];
+        isNullable_ = true;
+        shape_ = new int[] { -1 };
+        elementSize_ = -1;
+        configureContentClass( contentClass );
     }
 
     /**
@@ -85,17 +89,17 @@ public class DefaultValueInfo implements ValueInfo {
      * @param   base  the object to copy
      */
     public DefaultValueInfo( ValueInfo base ) {
-        this( base.getName() );
-        setUnitString( base.getUnitString() );
-        setUCD( base.getUCD() );
-        setUtype( base.getUtype() );
-        setXtype( base.getXtype() );
-        setDescription( base.getDescription() );
-        setContentClass( base.getContentClass() );
-        setShape( base.getShape() );
-        setElementSize( base.getElementSize() );
-        setNullable( base.isNullable() );
-        setDomainMappers( base.getDomainMappers() );
+        this( base.getName(), base.getContentClass(), base.getDescription() );
+        unitString_ = base.getUnitString();
+        ucd_ = base.getUCD();
+        utype_ = base.getUtype();
+        xtype_ = base.getXtype();
+        shape_ = base.getShape() == null ? null : base.getShape().clone();
+        elementSize_ = base.getElementSize();
+        isNullable_ = base.isNullable();
+        domainMappers_ = base.getDomainMappers() == null
+                       ? null
+                       : base.getDomainMappers().clone();
     }
 
     /**
@@ -104,11 +108,11 @@ public class DefaultValueInfo implements ValueInfo {
      * @param   name  the name
      */
     public void setName( String name ) {
-        this.name = name;
+        name_ = name;
     }
 
     public String getName() {
-        return name;
+        return name_;
     }
 
     /**
@@ -119,11 +123,11 @@ public class DefaultValueInfo implements ValueInfo {
      *         units are unknown
      */
     public void setUnitString( String unitString ) {
-        this.unitString = unitString;
+        unitString_ = unitString;
     }
 
     public String getUnitString() {
-        return unitString;
+        return unitString_;
     }
 
     /**
@@ -133,11 +137,11 @@ public class DefaultValueInfo implements ValueInfo {
      * @param  ucd  the UCD, or <tt>null</tt> if none is known
      */
     public void setUCD( String ucd ) {
-        this.ucd = ucd;
+        ucd_ = ucd;
     }
 
     public String getUCD() {
-        return ucd;
+        return ucd_;
     }
 
     /**
@@ -146,11 +150,11 @@ public class DefaultValueInfo implements ValueInfo {
      * @param  utype  the Utype, or <code>null</code> if none is known
      */
     public void setUtype( String utype ) {
-        this.utype = utype;
+        utype_ = utype;
     }
 
     public String getUtype() {
-        return utype;
+        return utype_;
     }
 
     /**
@@ -159,11 +163,11 @@ public class DefaultValueInfo implements ValueInfo {
      * @param  xtype  the Xtype, or <code>null</code> if none is known
      */
     public void setXtype( String xtype ) {
-        this.xtype = xtype;
+        xtype_ = xtype;
     }
 
     public String getXtype() {
-        return xtype;
+        return xtype_;
     }
 
     /**
@@ -173,15 +177,15 @@ public class DefaultValueInfo implements ValueInfo {
      *         or the empty string "" if there is nothing to be said
      */
     public void setDescription( String description ) {
-        this.description = description;
+        description_ = description;
     }
 
     public String getDescription() {
-        return description;
+        return description_;
     }
 
     public Class<?> getContentClass() {
-        return contentClass;
+        return contentClass_;
     }
 
     /**
@@ -191,34 +195,45 @@ public class DefaultValueInfo implements ValueInfo {
      * @throws  IllegalArgumentException if <tt>contentClass</tt> is primitive
      */
     public void setContentClass( Class<?> contentClass ) {
+        configureContentClass( contentClass );
+    }
+
+    /**
+     * Does the work for setting the content class of this object.
+     * This is a final method that is safe to call from the constructor.
+     *
+     * @param  contentClass  the class of items in this column
+     * @throws  IllegalArgumentException if <tt>contentClass</tt> is primitive
+     */
+    private final void configureContentClass( Class<?> contentClass ) {
         if ( contentClass.isPrimitive() ) {
             throw new IllegalArgumentException( 
                 "Primitive content class " + contentClass + " not permitted" );
         }
 
         /* Set the class. */
-        this.contentClass = contentClass;
+        contentClass_ = contentClass;
 
         /* If the content class is not an array type, set the shape to null. */
         if ( ! isArray() ) {
-            setShape( null );
+            shape_ = null;
         }
 
         /* If it is an array, ensure that the shape array is consistent
          * with this. */
         else {
-            if ( shape == null ) {
-                setShape( new int[] { -1 } );
+            if ( shape_ == null ) {
+                shape_ = new int[] { -1 };
             }
         }
     }
 
     public boolean isArray() {
-        return contentClass.isArray();
+        return contentClass_.isArray();
     }
 
     public int[] getShape() {
-        return shape == null ? null : shape.clone();
+        return shape_ == null ? null : shape_.clone();
     }
 
     /**
@@ -236,11 +251,11 @@ public class DefaultValueInfo implements ValueInfo {
                 }
             }
         }
-        this.shape = shape;
+        shape_ = shape;
     }
 
     public int getElementSize() {
-        return elementSize;
+        return elementSize_;
     }
 
     /**
@@ -249,11 +264,11 @@ public class DefaultValueInfo implements ValueInfo {
      * @param  size  the element size
      */
     public void setElementSize( int size ) {
-        this.elementSize = size;
+        elementSize_ = size;
     }
 
     public boolean isNullable() {
-        return isNullable;
+        return isNullable_;
     }
 
     /**
@@ -265,11 +280,11 @@ public class DefaultValueInfo implements ValueInfo {
      *         guaranteed non-<tt>null</tt>
      */
     public void setNullable( boolean isNullable ) {
-        this.isNullable = isNullable;
+        isNullable_ = isNullable;
     }
 
     public DomainMapper[] getDomainMappers() {
-        return domainMappers;
+        return domainMappers_;
     }
 
     /**
@@ -278,7 +293,7 @@ public class DefaultValueInfo implements ValueInfo {
      * @param  domainMappers  new domain mapper array
      */
     public void setDomainMappers( DomainMapper[] domainMappers ) {
-        this.domainMappers = domainMappers;
+        domainMappers_ = domainMappers;
     }
 
     /**
@@ -411,7 +426,7 @@ public class DefaultValueInfo implements ValueInfo {
         /* Otherwise, it's an array, output it in a multidimensional array
          * if necessary. */
         else {
-            int[] ashape = getActualShape( shape, Array.getLength( value ) );
+            int[] ashape = getActualShape( shape_, Array.getLength( value ) );
             appendElements( buf, value, 0, ashape, maxLength );
         }
     
@@ -668,7 +683,6 @@ public class DefaultValueInfo implements ValueInfo {
         }
     }
 
-        
     /**
      * Returns a string representation of this object.
      * The result indicates the object's name, class and shape. 
@@ -714,5 +728,4 @@ public class DefaultValueInfo implements ValueInfo {
         }
         return ashape;
     }
-
 }
