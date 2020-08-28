@@ -1,16 +1,14 @@
 package uk.ac.starlink.table;
 
-import java.util.List;
-
 /**
- * Contains information about a table column.  This includes 
- * a description of the values contained in it (as per the {@link ValueInfo}
- * interface) as well as additional miscellaneous metadata.
- * The miscellaneous, or auxiliary, metadata takes the form of a 
- * list of {@link DescribedValue} objects.  It is the intention that
- * only one object in this list exists for each value name (as returned
- * by the <tt>DescribedValue.getName</tt> method.  This restriction
- * is not guaranteed to be enforced however.
+ * Contains information about a table column.
+ * This really does the same thing as its superclass,
+ * {@link DefaultValueInfo}, but for historical reasons it contains
+ * some additional methods for access to the
+ * auxiliary metadata items.
+ * In earlier versions of the library, columns were allowed to store
+ * auxiliary metadata and non-column items (like table parameters)
+ * were not, but now they have the same capabilities.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -46,35 +44,8 @@ public class ColumnInfo extends DefaultValueInfo {
      * @param  description  a textual description of the described values
      */
     public ColumnInfo( String name, Class<?> contentClass,
-                       String description ) {
-        this( new DefaultValueInfo( name, contentClass, description ) );
-    }
-
-    /**
-     * Constructs a <tt>ColumnInfo</tt> object which is a 
-     * copy of an existing one.
-     *
-     * @param  base  the template <tt>ColumnInfo</tt>
-     */
-    public ColumnInfo( ColumnInfo base ) {
-        super( base );
-    }
-
-    /**
-     * Gets an item of auxiliary metadata by its name.
-     * 
-     * @param  name  the name of an auxiliary metadata item
-     * @return  a <tt>DescribedValue</tt> object representing the
-     *          named auxiliary metadata item for this column,
-     *          or <tt>null</tt> if none exists
-     */
-    public DescribedValue getAuxDatumByName( String name ) {
-        for ( DescribedValue dv : getAuxData() ) {
-            if ( dv.getInfo().getName().equals( name ) ) {
-                return dv;
-            }
-        }
-        return null;
+                      String description ) {
+        super( name, contentClass, description );
     }
 
     /**
@@ -106,15 +77,9 @@ public class ColumnInfo extends DefaultValueInfo {
      *          column if it exists and is an instance of <tt>clazz</tt> or
      *          one of its subtypes, otherwise <tt>null</tt>
      */
-    public Object getAuxDatumValue( ValueInfo vinfo, Class<?> clazz ) {
+    public <T> T getAuxDatumValue( ValueInfo vinfo, Class<T> clazz ) {
         DescribedValue dval = getAuxDatum( vinfo );
-        if ( dval != null ) {
-            Object val = dval.getValue();
-            if ( val != null && clazz.isAssignableFrom( val.getClass() ) ) {
-                return val;
-            }
-        }
-        return null;
+        return dval == null ? null : dval.getTypedValue( clazz );
     }
 
     /**
@@ -131,31 +96,8 @@ public class ColumnInfo extends DefaultValueInfo {
      *          instance of <tt>clazz</tt> or one of its subtypes, 
      *          otherwise <tt>null</tt>
      */
-    public Object getAuxDatumValueByName( String name, Class<?> clazz ) {
+    public <T> T getAuxDatumValueByName( String name, Class<T> clazz ) {
         DescribedValue dval = getAuxDatumByName( name );
-        if ( dval != null ) {
-            Object val = dval.getValue();
-            if ( val != null && clazz.isAssignableFrom( val.getClass() ) ) {
-                return val;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Adds the given DescribedValue to the list of auxiliary metadata
-     * for this object.  If an item in the metadata list with the same
-     * name as the supplied value already exists, it is removed from the
-     * list.
-     *
-     * @param  dval  the new datum to add
-     */
-    public void setAuxDatum( DescribedValue dval ) {
-        List<DescribedValue> auxData = getAuxData();
-        DescribedValue old = getAuxDatumByName( dval.getInfo().getName() );
-        if ( old != null ) {
-            auxData.remove( old );
-        }
-        auxData.add( dval );
+        return dval == null ? null : dval.getTypedValue( clazz );
     }
 }

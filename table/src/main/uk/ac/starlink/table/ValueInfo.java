@@ -221,4 +221,27 @@ public interface ValueInfo {
      */
     Object unformatString( String rep );
 
+    /**
+     * Gets an item of auxiliary metadata by its name.
+     *
+     * @param  name  the name of an auxiliary metadata item
+     * @return  a <tt>DescribedValue</tt> object representing the
+     *          named auxiliary metadata item for this column,
+     *          or <tt>null</tt> if none exists
+     */
+    default DescribedValue getAuxDatumByName( String name ) {
+        return Tables.getDescribedValueByName( getAuxData(), name );
+    }
+
+    /**
+     * Adds the given DescribedValue to the list of auxiliary metadata
+     * for this object.  If an item in the metadata list with the same
+     * name as the supplied value already exists, it is removed from the
+     * list.
+     *
+     * @param  dval  the new datum to add
+     */
+    default void setAuxDatum( DescribedValue dval ) {
+        Tables.setDescribedValue( getAuxData(), dval );
+    }
 }
