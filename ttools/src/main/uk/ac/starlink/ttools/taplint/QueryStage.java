@@ -626,8 +626,8 @@ public class QueryStage implements Stage {
                 /* Check column types match. */
                 String qType = cspec.getColumnMeta().getDataType();
                 String rType =
-                    (String) cinfo.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
-                                                     String.class );
+                    cinfo.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
+                                            String.class );
 
                 /* Note the data type checking is only advisory,
                  * since as clarified by TAP 1.0 Erratum #3,

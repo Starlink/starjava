@@ -288,8 +288,8 @@ abstract class ScalarColumnWriter implements ColumnWriter {
         if ( String.class.equals( clazz ) ||
              String[].class.equals( clazz ) ) {
             String longoffTxt =
-                (String) cinfo.getAuxDatumValue( BintableStarTable.LONGOFF_INFO,
-                                                 String.class );
+                cinfo.getAuxDatumValue( BintableStarTable.LONGOFF_INFO,
+                                        String.class );
             if ( longoffTxt != null ) {
                 try {
                     return new BigInteger( longoffTxt );

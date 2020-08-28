@@ -122,17 +122,14 @@ class Timesys {
      */
     public static Timesys getTimesys( ColumnInfo cinfo ) {
         String timeoriginTxt =
-            (String) cinfo.getAuxDatumValue( VOStarTable
-                                            .TIMESYS_TIMEORIGIN_INFO,
-                                             String.class );
+            cinfo.getAuxDatumValue( VOStarTable.TIMESYS_TIMEORIGIN_INFO,
+                                    String.class );
         String timescale =
-            (String) cinfo.getAuxDatumValue( VOStarTable
-                                            .TIMESYS_TIMESCALE_INFO,
-                                             String.class );
+            cinfo.getAuxDatumValue( VOStarTable.TIMESYS_TIMESCALE_INFO,
+                                    String.class );
         String refposition =
-            (String) cinfo.getAuxDatumValue( VOStarTable
-                                            .TIMESYS_REFPOSITION_INFO,
-                                             String.class );
+            cinfo.getAuxDatumValue( VOStarTable.TIMESYS_REFPOSITION_INFO,
+                                    String.class );
         if ( timescale != null && timescale.trim().length() > 0 &&
              refposition != null && refposition.trim().length() > 0 ) {
             double timeorigin;

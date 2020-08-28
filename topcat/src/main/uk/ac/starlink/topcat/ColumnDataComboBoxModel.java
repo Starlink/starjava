@@ -453,7 +453,7 @@ public class ColumnDataComboBoxModel
             return new SelectedColumnData( tcModel, tcol );
         }
         else {
-            ValueConverter conv = (ValueConverter)
+            ValueConverter conv =
                 info.getAuxDatumValue( TopcatUtils.NUMERIC_CONVERTER_INFO,
                                        ValueConverter.class );
             if ( conv != null ) {

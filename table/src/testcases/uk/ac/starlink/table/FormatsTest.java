@@ -451,12 +451,10 @@ public class FormatsTest extends TableCase {
             ColumnInfo c2 = t2.getColumnInfo( ic );
             int[] shape1 = c1.getShape();
             int[] shape2 = c2.getShape();
-            String tform1 =
-                (String) c1.getAuxDatumValue( BintableStarTable.TFORM_INFO,
-                                              String.class );
-            String tform2 =
-                (String) c2.getAuxDatumValue( BintableStarTable.TFORM_INFO,
-                                              String.class );
+            String tform1 = c1.getAuxDatumValue( BintableStarTable.TFORM_INFO,
+                                                 String.class );
+            String tform2 = c2.getAuxDatumValue( BintableStarTable.TFORM_INFO,
+                                                 String.class );
             if ( shape1 != null && shape1[ shape1.length - 1 ] < 0 ) {
                 nvar++;
                 assertTrue( shape2[ shape2.length - 1 ] < 0 );

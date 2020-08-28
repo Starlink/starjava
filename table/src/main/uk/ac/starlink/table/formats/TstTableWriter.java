@@ -430,10 +430,8 @@ public class TstTableWriter extends StreamStarTableWriter {
      */
     private static boolean matches( ColumnInfo info1, ColumnInfo info2 ) {
         String labelKey = LABEL_INFO.getName();
-        String label1 = (String) info1.getAuxDatumValueByName( labelKey,
-                                                               String.class );
-        String label2 = (String) info2.getAuxDatumValueByName( labelKey,
-                                                               String.class );
+        String label1 = info1.getAuxDatumValueByName( labelKey, String.class );
+        String label2 = info2.getAuxDatumValueByName( labelKey, String.class );
         return label1 != null && label2 != null && label1.equals( label2 );
     }
 

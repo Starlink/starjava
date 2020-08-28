@@ -296,8 +296,7 @@ public class ColumnMetadataStage implements Stage {
             /* Report on type discrepancies. */
             for ( String cname : bothList ) {
                 String dType = declaredMap.get( cname ).getDataType();
-                String rType = (String)
-                               resultMap.get( cname )
+                String rType = resultMap.get( cname )
                               .getAuxDatumValue( VOStarTable.DATATYPE_INFO,
                                                  String.class );
                 if ( ! CompareMetadataStage

@@ -852,8 +852,8 @@ public class TapSchemaStage extends TableMetadataStage {
             for ( int ic = 0; ic < ncol; ic++ ) {
                 ColumnInfo cinfo = table.getColumnInfo( ic );
                 String type =
-                    (String) cinfo.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
-                                                     String.class );
+                    cinfo.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
+                                            String.class );
                 if ( ! colTypes[ ic ].equals( type ) ) {
                     String msg = new StringBuffer()
                        .append( "Column " )

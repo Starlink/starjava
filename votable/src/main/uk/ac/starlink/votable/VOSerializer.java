@@ -1477,7 +1477,7 @@ public abstract class VOSerializer {
      */
     private static void addAtt( Map<String,String> map, ColumnInfo cinfo,
                                 ValueInfo key, String attname ) {
-        String value = (String) cinfo.getAuxDatumValue( key, String.class );
+        String value = cinfo.getAuxDatumValue( key, String.class );
         if ( value != null && value.trim().length() > 0 ) {
             map.put( attname, value );
         }

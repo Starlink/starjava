@@ -361,7 +361,6 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                     psel.getAxesSelector().getData().getColumnInfo( 1 );
                 yAxes[ isel ] = cinfo;
                 yConverters[ isel ] =
-                    (ValueConverter)
                     cinfo.getAuxDatumValue( TopcatUtils.NUMERIC_CONVERTER_INFO,
                                             ValueConverter.class );
                 yAxisLabels[ isel ] = yAxEd.getLabel();

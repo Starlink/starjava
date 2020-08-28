@@ -106,32 +106,30 @@ abstract class Encoder {
             ColumnInfo cinfo = (ColumnInfo) info;
 
             /* ID attribute. */
-            String id = 
-                (String) cinfo.getAuxDatumValue( VOStarTable.ID_INFO,
-                                                 String.class );
+            String id = cinfo.getAuxDatumValue( VOStarTable.ID_INFO,
+                                                String.class );
             if ( id != null && id.trim().length() > 0 ) {
                 putAtt( "ID", id.trim() );
             }
 
             /* Ref attribute. */
-            String ref = (String) cinfo.getAuxDatumValue( VOStarTable.REF_INFO,
-                                                          String.class );
+            String ref = cinfo.getAuxDatumValue( VOStarTable.REF_INFO,
+                                                 String.class );
             if ( ref != null && ref.trim().length() > 0 ) {
                 putAtt( "ref", ref.trim() );
             }
 
             /* Width attribute. */
-            Integer width = 
-                (Integer) cinfo.getAuxDatumValue( VOStarTable.WIDTH_INFO,
-                                                  Integer.class );
+            Integer width = cinfo.getAuxDatumValue( VOStarTable.WIDTH_INFO,
+                                                    Integer.class );
             if ( width != null && width.intValue() > 0 ) {
                 putAtt( "width", width.toString() );
             }
 
             /* Precision attribute. */
             String precision =
-                (String) cinfo.getAuxDatumValue( VOStarTable.PRECISION_INFO,
-                                                 String.class );
+                 cinfo.getAuxDatumValue( VOStarTable.PRECISION_INFO,
+                                         String.class );
             if ( precision != null && precision.trim().length() > 0 ) {
                 putAtt( "precision", precision.trim() );
             }

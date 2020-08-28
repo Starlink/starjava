@@ -495,7 +495,6 @@ public class DatalinkValidator {
                 if ( LinkColMap.COL_CONTENTLENGTH == coldef ) {
                     if ( ! Long.class.equals( clazz ) ) {
                         String datatype =
-                            (String)
                             info.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
                                                    String.class );
                         String msg = new StringBuffer()
@@ -782,8 +781,7 @@ public class DatalinkValidator {
         StarTable resultTable = linksDoc.getResultTable();
         int ncol = resultTable.getColumnCount();
         for ( int ic = 0; ic < ncol; ic++ ) {
-            String ref = (String)
-                         resultTable.getColumnInfo( ic )
+            String ref = resultTable.getColumnInfo( ic )
                         .getAuxDatumValue( VOStarTable.ID_INFO, String.class );
             if ( ref != null && ref.trim().length() > 0 ) {
                 fieldIds.add( ref.trim() );

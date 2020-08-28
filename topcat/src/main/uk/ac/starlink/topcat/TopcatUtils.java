@@ -144,8 +144,7 @@ public class TopcatUtils {
          * behaviour will be lost following this serialization. */
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo cinfo = table.getColumnInfo( icol );
-            String expr =
-                (String) cinfo.getAuxDatumValue( EXPR_INFO, String.class );
+            String expr = cinfo.getAuxDatumValue( EXPR_INFO, String.class );
             if ( expr != null ) {
                 String desc0 = cinfo.getDescription();
                 String descrip = desc0 == null || desc0.trim().length() == 0

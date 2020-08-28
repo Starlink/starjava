@@ -1221,7 +1221,6 @@ public abstract class GraphicsWindow extends AuxWindow {
             ColumnInfo cinfo = mainData.getColumnInfo( i );
             axinfos[ i ] = cinfo;
             converters[ i ] =
-                (ValueConverter)
                 cinfo.getAuxDatumValue( TopcatUtils.NUMERIC_CONVERTER_INFO,
                                         ValueConverter.class );
             if ( flipModels_.length > i ) {
