@@ -108,7 +108,9 @@ public interface StarTable {
      *
      * @param   parname  the name of the table parameter required
      */
-    DescribedValue getParameterByName( String parname );
+    default DescribedValue getParameterByName( String parname ) {
+        return Tables.getDescribedValueByName( getParameters(), parname );
+    }
 
     /**
      * Adds the given DescribedValue to the list of parameter metadata objects
@@ -118,7 +120,9 @@ public interface StarTable {
      *
      * @param  dval  the new parameter datum to add
      */
-    void setParameter( DescribedValue dval );
+    default void setParameter( DescribedValue dval ) {
+        Tables.setDescribedValue( getParameters(), dval );
+    }
 
     /**
      * Returns the object describing the data in a given column.

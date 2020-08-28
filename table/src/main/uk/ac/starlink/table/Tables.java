@@ -570,6 +570,45 @@ public class Tables {
     }
 
     /**
+     * Utility method to update a list of DescribedValues with a new entry.
+     * If an item with the same name as the new entry already exists,
+     * it is removed.
+     *
+     * @param  dvals  list to modify
+     * @param  dval  new entry to add
+     */
+    public static void setDescribedValue( Collection<DescribedValue> dvals,
+                                          DescribedValue dval ) {
+        DescribedValue old =
+            getDescribedValueByName( dvals, dval.getInfo().getName() );
+        if ( old != null ) {
+            dvals.remove( old );
+        }
+        dvals.add( dval );
+    }
+
+    /**
+     * Utility method to locate an element in a list of DescribedValue
+     * given the name of its ValueInfo member.
+     *
+     * @param   dvals  list to query
+     * @param   name   required value of name
+     * @return  element of <code>dvals</code> for which
+     *                  <code>getInfo().getName()</code>
+     *                  matches <code>name</code>
+     */
+    public static DescribedValue
+            getDescribedValueByName( Collection<DescribedValue> dvals,
+                                     String name ) {
+        for ( DescribedValue dval : dvals ) {
+            if ( name.equals( dval.getInfo().getName() ) ) {
+                return dval;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns the value from a list of {@link DescribedValue} objects
      * which corresponds to a given info key.
      * If the key is not represented in the list, or if its value is null,

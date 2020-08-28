@@ -81,15 +81,6 @@ public abstract class AbstractStarTable implements StarTable {
         parameters_ = parameters;
     }
 
-    public void setParameter( DescribedValue dval ) {
-        DescribedValue old = getParameterByName( dval.getInfo().getName() );
-        List<DescribedValue> parameters = getParameters();
-        if ( old != null ) {
-            parameters.remove( old );
-        }
-        parameters.add( dval );
-    }
-
     public String getName() {
         return name_;
     }
@@ -114,15 +105,6 @@ public abstract class AbstractStarTable implements StarTable {
      */
     public void setURL( URL url ) {
         url_ = url;
-    }
-
-    public DescribedValue getParameterByName( String parname ) {
-        for ( DescribedValue dval : getParameters() ) {
-            if ( parname.equals( dval.getInfo().getName() ) ) {
-                return dval;
-            }
-        }
-        return null;
     }
 
     /**
