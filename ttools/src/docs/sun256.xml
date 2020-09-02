@@ -12969,6 +12969,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="scheme-loop">simple sequence</ref>,
         <ref id="scheme-skysim">simulated sky</ref> and
         <ref id="scheme-attractor">strange attractor</ref> data.</li>
+    <li>COOSYS and TIMESYS attributes are now preserved
+        during VOTable I/O for table PARAMs
+        (as well as for FIELDs, which was already the case).</li>
     </ul>
     </p></dd>
 

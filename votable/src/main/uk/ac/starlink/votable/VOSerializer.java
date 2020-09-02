@@ -139,15 +139,21 @@ public abstract class VOSerializer {
         int ncol = table.getColumnCount();
         int ics = 0;
         int its = 0;
+        List<ValueInfo> infos = new ArrayList<ValueInfo>();
         for ( int ic = 0; ic < ncol; ic++ ) {
-            ColumnInfo colinfo = table.getColumnInfo( ic );
-            MetaEl coosys = getCoosys( colinfo );
+            infos.add( table.getColumnInfo( ic ) );
+        }
+        for ( DescribedValue dval : table.getParameters() ) {
+            infos.add( dval.getInfo() );
+        }
+        for ( ValueInfo info : infos ) {
+            MetaEl coosys = getCoosys( info );
             if ( coosys != null && ! coosysMap_.containsKey( coosys ) ) {
                 String id = baseId + "-coosys-" + ++ics;
                 coosysMap_.put( coosys, id );
             }
             if ( version.allowTimesys() ) {
-                MetaEl timesys = getTimesys( colinfo );
+                MetaEl timesys = getTimesys( info );
                 if ( timesys != null && ! timesysMap_.containsKey( timesys ) ) {
                     String id = baseId + "-timesys-" + ++its;
                     timesysMap_.put( timesys, id );
@@ -243,9 +249,7 @@ public abstract class VOSerializer {
     public void writeParams( BufferedWriter writer ) throws IOException {
         for  ( DescribedValue param : paramList_ ) {
             ValueInfo pinfo0 = param.getInfo();
-            DefaultValueInfo pinfo = pinfo0 instanceof ColumnInfo
-                                   ? new ColumnInfo( (ColumnInfo) pinfo0 )
-                                   : new DefaultValueInfo( pinfo0 );
+            DefaultValueInfo pinfo = new DefaultValueInfo( pinfo0 );
             Object pvalue = param.getValue();
 
             /* Adjust the info so that its dimension sizes are fixed,
@@ -293,13 +297,6 @@ public abstract class VOSerializer {
                 String valtext = encoder.encodeAsText( pvalue );
                 String content = encoder.getFieldContent();
                 Map<String,String> attMap = new LinkedHashMap<String,String>();
-
-                /* Note that in practice, the COOSYS/TIMESYS elements will not
-                 * be used here, since at present the ValueInfo object
-                 * defining the PARAM, unlike ColumnInfo objects defining
-                 * FIELDs, does not have the aux metadata items
-                 * required for storing the relevant metadata.
-                 * This is probably a STIL design fault. */
                 attMap.putAll( getFieldAttributes( encoder, coosysMap_,
                                                    timesysMap_ ) );
                 attMap.put( "value", valtext );
@@ -1397,15 +1394,15 @@ public abstract class VOSerializer {
     }
 
     /**
-     * Returns the attributes required for a FIELD parameter given the
-     * Encoder being used to write the column in question.
+     * Returns the attributes required for a FIELD/PARAM element given the
+     * Encoder being used to write the column or parameter in question.
      *
-     * @param  encoder   encoder to write FIELD data
+     * @param  encoder   encoder to write FIELD/PARAM data
      * @param  coosysMap   MetaEl-&gt;ID map for COOSYS elements that will be
      *                     available in the output document
      * @param  timesysMap  MetaEl-&gt;ID map for TIMESYS elements that will be
      *                     available in the output document
-     * @return   map of FIELD attribute name-&gt;value pairs
+     * @return   map of FIELD/PARAM attribute name-&gt;value pairs
      */
     private static Map<String,String>
             getFieldAttributes( Encoder encoder, Map<MetaEl,String> coosysMap,
@@ -1419,67 +1416,66 @@ public abstract class VOSerializer {
          * has been provided.  Note this relies on the fact that
          * the MetaEl class has suitable equality semantics. */
         ValueInfo info = encoder.getInfo();
-        if ( info instanceof ColumnInfo ) {
-            ColumnInfo colinfo = (ColumnInfo) info;
-            MetaEl coosys = getCoosys( colinfo );
-            MetaEl timesys = getTimesys( colinfo );
-            String csId = coosysMap != null ? coosysMap.get( coosys ) : null;
-            String tsId = timesysMap != null ? timesysMap.get( timesys ) : null;
-            if ( csId != null ) {
-                map.put( "ref", csId );
-            }
-            else if ( tsId != null ) {
-                map.put( "ref", tsId );
-            }
+        MetaEl coosys = getCoosys( info );
+        MetaEl timesys = getTimesys( info );
+        String csId = coosysMap != null ? coosysMap.get( coosys ) : null;
+        String tsId = timesysMap != null ? timesysMap.get( timesys ) : null;
+        if ( csId != null ) {
+            map.put( "ref", csId );
+        }
+        else if ( tsId != null ) {
+            map.put( "ref", tsId );
         }
         return map;
     }
 
     /**
      * Returns the MetaEl object corresponding to the COOSYS metadata
-     * for a given ColumnInfo, if such metadata is present.
+     * for a given ValueInfo, if such metadata is present.
      *
-     * @param  cinfo  column metadata
+     * @param  info  item metadata
      * @retun   MetaEl object representing COOSYS, or null if none required
      */
-    private static MetaEl getCoosys( ColumnInfo cinfo ) {
+    private static MetaEl getCoosys( ValueInfo info ) {
         Map<String,String> map = new LinkedHashMap<String,String>();
-        addAtt( map, cinfo, VOStarTable.COOSYS_SYSTEM_INFO, "system" );
-        addAtt( map, cinfo, VOStarTable.COOSYS_EPOCH_INFO, "epoch" );
-        addAtt( map, cinfo, VOStarTable.COOSYS_EQUINOX_INFO, "equinox" );
+        addAtt( map, info, VOStarTable.COOSYS_SYSTEM_INFO, "system" );
+        addAtt( map, info, VOStarTable.COOSYS_EPOCH_INFO, "epoch" );
+        addAtt( map, info, VOStarTable.COOSYS_EQUINOX_INFO, "equinox" );
         return map.size() > 0 ? new MetaEl( "COOSYS", map ) : null;
     }
 
     /**
      * Returns the MetaEl object corresponding to the TIMESYS metadata
-     * for a given ColumnInfo, if such metadata is present.
+     * for a given ValueInfo, if such metadata is present.
      *
-     * @param  cinfo  column metadata
+     * @param  info  item metadata
      * @retun   MetaEl object representing TIMESYS, or null if none required
      */
-    private static MetaEl getTimesys( ColumnInfo cinfo ) {
+    private static MetaEl getTimesys( ValueInfo info ) {
         Map<String,String> map = new LinkedHashMap<String,String>();
-        addAtt( map, cinfo, VOStarTable.TIMESYS_TIMEORIGIN_INFO, "timeorigin" );
-        addAtt( map, cinfo, VOStarTable.TIMESYS_TIMESCALE_INFO, "timescale" );
-        addAtt( map, cinfo, VOStarTable.TIMESYS_REFPOSITION_INFO,
-                "refposition" );
+        addAtt( map, info, VOStarTable.TIMESYS_TIMEORIGIN_INFO, "timeorigin" );
+        addAtt( map, info, VOStarTable.TIMESYS_TIMESCALE_INFO, "timescale" );
+        addAtt( map, info, VOStarTable.TIMESYS_REFPOSITION_INFO, "refposition");
         return map.size() > 0 ? new MetaEl( "TIMESYS", map ) : null;
     }
 
     /**
      * Utility method to add an item to the MetaEl attribute map
-     * given column metadata.
+     * given value metadata.
      *
      * @param  map    attribute map to augment
-     * @param  cinfo  column metadata
-     * @param  key    column info aux metadata key for a String item
+     * @param  info   info item containing aux metadata
+     * @param  auxKey aux metadata key for a String item
      * @param  attname  name of entry in attribute map
      */
-    private static void addAtt( Map<String,String> map, ColumnInfo cinfo,
-                                ValueInfo key, String attname ) {
-        String value = cinfo.getAuxDatumValue( key, String.class );
-        if ( value != null && value.trim().length() > 0 ) {
-            map.put( attname, value );
+    private static void addAtt( Map<String,String> map, ValueInfo info,
+                                ValueInfo auxKey, String attname ) {
+        DescribedValue dval = info.getAuxDatumByName( auxKey.getName() );
+        if ( dval != null ) {
+            String value = dval.getTypedValue( String.class );
+            if ( value != null && value.trim().length() > 0 ) {
+                map.put( attname, value );
+            }
         }
     }
 

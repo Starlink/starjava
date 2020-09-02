@@ -7,7 +7,11 @@
 <COOSYS ID="sys-eq-gaia" system="ICRS" epoch="J2015.0"/>
 <TIMESYS ID="tsys-gaia" timescale="TDB" refposition="BARYCENTER"
                         timeorigin="2455197.5"/>
+
 <TABLE nrows="4">
+<PARAM datatype="double" name="LAUNCH_DATE" ref="tsys-gaia"
+       value="1448.38349"/><!-- Might be wrong -->
+
 <FIELD datatype="double" name="ra" ucd="pos.eq.ra;meta.main" unit="deg"
        ref="sys-eq-gaia">
 <DESCRIPTION>Barycentric Right Ascension in ICRS at ref_epoch</DESCRIPTION>

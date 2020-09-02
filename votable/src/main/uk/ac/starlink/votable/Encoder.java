@@ -101,38 +101,34 @@ abstract class Encoder {
             putAtt( "xtype", xtype.trim() );
         }
 
-        /* Column auxiliary metadata items. */
-        if ( info instanceof ColumnInfo ) {
-            ColumnInfo cinfo = (ColumnInfo) info;
+        /* ID attribute. */
+        String id =
+            Tables.getAuxDatumValue( info, VOStarTable.ID_INFO, String.class );
+        if ( id != null && id.trim().length() > 0 ) {
+            putAtt( "ID", id.trim() );
+        }
 
-            /* ID attribute. */
-            String id = cinfo.getAuxDatumValue( VOStarTable.ID_INFO,
-                                                String.class );
-            if ( id != null && id.trim().length() > 0 ) {
-                putAtt( "ID", id.trim() );
-            }
+        /* Ref attribute. */
+        String ref =
+            Tables.getAuxDatumValue( info, VOStarTable.REF_INFO, String.class );
+        if ( ref != null && ref.trim().length() > 0 ) {
+            putAtt( "ref", ref.trim() );
+        }
 
-            /* Ref attribute. */
-            String ref = cinfo.getAuxDatumValue( VOStarTable.REF_INFO,
-                                                 String.class );
-            if ( ref != null && ref.trim().length() > 0 ) {
-                putAtt( "ref", ref.trim() );
-            }
+        /* Width attribute. */
+        Integer width =
+            Tables.getAuxDatumValue( info, VOStarTable.WIDTH_INFO,
+                                     Integer.class );
+        if ( width != null && width.intValue() > 0 ) {
+            putAtt( "width", width.toString() );
+        }
 
-            /* Width attribute. */
-            Integer width = cinfo.getAuxDatumValue( VOStarTable.WIDTH_INFO,
-                                                    Integer.class );
-            if ( width != null && width.intValue() > 0 ) {
-                putAtt( "width", width.toString() );
-            }
-
-            /* Precision attribute. */
-            String precision =
-                 cinfo.getAuxDatumValue( VOStarTable.PRECISION_INFO,
-                                         String.class );
-            if ( precision != null && precision.trim().length() > 0 ) {
-                putAtt( "precision", precision.trim() );
-            }
+        /* Precision attribute. */
+        String precision =
+            Tables.getAuxDatumValue( info, VOStarTable.PRECISION_INFO,
+                                     String.class );
+        if ( precision != null && precision.trim().length() > 0 ) {
+            putAtt( "precision", precision.trim() );
         }
 
         /* Description information. */
@@ -145,32 +141,27 @@ abstract class Encoder {
                      + "</DESCRIPTION>";
 
         /* URL-type auxiliary metadata can be encoded as LINK elements. */
-        if ( info instanceof ColumnInfo ) {
-            StringBuffer linksBuf = new StringBuffer();
-            for ( DescribedValue dval : ((ColumnInfo) info).getAuxData() ) {
-                ValueInfo linkInfo = dval.getInfo();
-                if ( URL.class.equals( linkInfo.getContentClass() ) ) {
-                    String linkName = linkInfo.getName();
-                    URL linkUrl = (URL) dval.getValue();
-                    if ( linkName != null && linkUrl != null ) {
-                        if ( linksBuf.length() > 0 ) {
-                            linksBuf.append( '\n' );
-                        }
-                        linksBuf.append( "<LINK" )
-                                .append( VOSerializer
-                                        .formatAttribute( "title", linkName ) )
-                                .append( VOSerializer
-                                        .formatAttribute( "href", 
-                                                          linkUrl.toString() ) )
-                                .append( "/>" );
+        StringBuffer linksBuf = new StringBuffer();
+        for ( DescribedValue dval : info.getAuxData() ) {
+            ValueInfo linkInfo = dval.getInfo();
+            if ( URL.class.equals( linkInfo.getContentClass() ) ) {
+                String linkName = linkInfo.getName();
+                URL linkUrl = dval.getTypedValue( URL.class );
+                if ( linkName != null && linkUrl != null ) {
+                    if ( linksBuf.length() > 0 ) {
+                        linksBuf.append( '\n' );
                     }
+                    linksBuf.append( "<LINK" )
+                            .append( VOSerializer
+                                    .formatAttribute( "title", linkName ) )
+                            .append( VOSerializer
+                                    .formatAttribute( "href", 
+                                                      linkUrl.toString() ) )
+                            .append( "/>" );
                 }
             }
-            links_ = linksBuf.toString();
         }
-        else {
-            links_ = null;
-        }
+        links_ = linksBuf.toString();
     }
 
     /**
@@ -276,31 +267,26 @@ abstract class Encoder {
 
         /* See if unsigned byte output is explicitly requested. */
         boolean isUbyte = false;
-        if ( info instanceof ColumnInfo ) {
-            if ( Boolean.TRUE
-                .equals( ((ColumnInfo) info)
-                        .getAuxDatumValue( Tables.UBYTE_FLAG_INFO,
-                                           Boolean.class ) ) ) {
-                if ( clazz == short[].class || clazz == Short.class ) {
-                    isUbyte = true;
-                }
-                else {
-                    logger.warning( "Ignoring " + Tables.UBYTE_FLAG_INFO
-                                  + " on non-short column " + info );
-                }
+        if ( Boolean.TRUE
+            .equals( Tables.getAuxDatumValue( info, Tables.UBYTE_FLAG_INFO,
+                                              Boolean.class ) ) ) {
+            if ( clazz == short[].class || clazz == Short.class ) {
+                isUbyte = true;
+            }
+            else {
+                logger.warning( "Ignoring " + Tables.UBYTE_FLAG_INFO
+                              + " on non-short column/param " + info );
             }
         }
 
         /* Try to work out a representation to use for blank integer values. */
         Number nullObj = null;
-        if ( info instanceof ColumnInfo ) {
-            DescribedValue nullValue = 
-                ((ColumnInfo) info).getAuxDatum( Tables.NULL_VALUE_INFO );
-            if ( nullValue != null ) {
-                Object o = nullValue.getValue();
-                if ( o instanceof Number ) {
-                    nullObj = (Number) o;
-                }
+        DescribedValue nullValue =
+        info.getAuxDatumByName( Tables.NULL_VALUE_INFO.getName() );
+        if ( nullValue != null ) {
+            Object o = nullValue.getValue();
+            if ( o instanceof Number ) {
+                nullObj = (Number) o;
             }
         }
 

@@ -2,7 +2,6 @@ package uk.ac.starlink.votable;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.table.ValueInfo;
@@ -91,9 +90,7 @@ class VOTableDomainMappers {
          * not set; that corresponds to an absolute date in years from 0AD.
          * If timescale and refposition are to be extracted in future,
          * handling for those cases will need to be added. */
-        Timesys tsys = info instanceof ColumnInfo
-                     ? Timesys.getTimesys( (ColumnInfo) info )
-                     : null;
+        Timesys tsys = Timesys.getTimesys( info );
         if ( tsys != null && Number.class.isAssignableFrom( clazz ) ) {
             double jdOrigin = tsys.getTimeorigin();
             final double unitSec = getUnitInSeconds( units );

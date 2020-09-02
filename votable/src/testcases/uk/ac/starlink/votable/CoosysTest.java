@@ -24,6 +24,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.TimeMapper;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.SourceReader;
@@ -135,6 +136,11 @@ public class CoosysTest extends TestCase {
                          new Double( 2455197.5 ).toString() );
         meta.assertMeta( "time1", "TimesysTimescale", "TDB" );
         meta.assertMeta( "time1", "TimesysRefposition", "BARYCENTER" );
+
+        meta.assertMeta( "LAUNCH_DATE", "TimesysTimescale", "TDB" );
+        meta.assertMeta( "LAUNCH_DATE", "TimesysTimeorigin",
+                         new Double( 2455197.5 ).toString() );
+        meta.assertMeta( "LAUNCH_DATE", "TimesysRefposition", "BARYCENTER" );
     }
 
     private int countTimesys( StarTable table ) {
@@ -229,12 +235,16 @@ public class CoosysTest extends TestCase {
     }
 
     private class AuxMeta {
-        final Map<String,ColumnInfo> metaMap_;
+        final Map<String,ValueInfo> metaMap_;
         AuxMeta( StarTable table ) {
-            metaMap_ = new HashMap<String,ColumnInfo>();
+            metaMap_ = new HashMap<String,ValueInfo>();
             for ( int ic = 0; ic < table.getColumnCount(); ic++ ) {
                 ColumnInfo cinfo = table.getColumnInfo( ic );
                 metaMap_.put( cinfo.getName(), cinfo );
+            }
+            for ( DescribedValue dval : table.getParameters() ) {
+                ValueInfo vinfo = dval.getInfo();
+                metaMap_.put( vinfo.getName(), vinfo );
             }
         }
         void assertMeta( String colname, String auxName, String value ) {

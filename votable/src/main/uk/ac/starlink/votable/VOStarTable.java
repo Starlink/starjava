@@ -183,123 +183,7 @@ public class VOStarTable extends AbstractStarTable {
             colinfos = new ColumnInfo[ ncol ];
             for ( int i = 0; i < ncol; i++ ) {
                 FieldElement field = fields[ i ];
-                ColumnInfo cinfo = new ColumnInfo( getValueInfo( field ) );
-
-                /* Set up auxiliary metadata for this column according to the
-                 * attributes that the FIELD element has. */
-                List<DescribedValue> auxdata = cinfo.getAuxData();
-
-                if ( field.hasAttribute( "ID" ) ) {
-                    String id = field.getAttribute( "ID" );
-                    auxdata.add( new DescribedValue( ID_INFO, id ) );
-                }
-
-                if ( field.hasAttribute( "datatype" ) ) {
-                    String datatype = field.getAttribute( "datatype" );
-                    auxdata.add( new DescribedValue( DATATYPE_INFO,
-                                                     datatype ) );
-                    if ( "unsignedByte".equals( datatype ) ) {
-                        auxdata.add( new DescribedValue( ubyteInfo,
-                                                         Boolean.TRUE ) );
-                    }
-                }
-
-                String blankstr = field.getNull();
-                if ( blankstr != null ) {
-                    Object blank = blankstr;
-                    try {
-                        Class<?> clazz = cinfo.getContentClass();
-                        if ( clazz == Byte.class ) {
-                            blank = Byte.valueOf( blankstr );
-                        }
-                        else if ( clazz == Short.class ) {
-                            blank = Short.valueOf( blankstr );
-                        }
-                        else if ( clazz == Integer.class ) {
-                            blank = Integer.valueOf( blankstr );
-                        }
-                        else if ( clazz == Long.class ) {
-                            blank = Long.valueOf( blankstr );
-                        }
-                    }
-                    catch ( NumberFormatException e ) {
-                        blank = blankstr;
-                    }
-                    auxdata.add( new DescribedValue( nullInfo, blank ) );
-                }
-
-                if ( field.hasAttribute( "width" ) ) {
-                    String width = field.getAttribute( "width" );
-                    try {
-                        int wv = Integer.parseInt( width );
-                        auxdata.add( new DescribedValue( WIDTH_INFO,
-                                                         new Integer( wv ) ) );
-                    }
-                    catch ( NumberFormatException e ) {
-                    }
-                }
-
-                if ( field.hasAttribute( "precision" ) ) {
-                    String precision = field.getAttribute( "precision" );
-                    auxdata.add( new DescribedValue( PRECISION_INFO,
-                                                     precision ) );
-                }
-
-                if ( field.hasAttribute( "type" ) ) {
-                    String type = field.getAttribute( "type" );
-                    auxdata.add( new DescribedValue( TYPE_INFO, type ) );
-                }
-
-                VOElement coosys = field.getCoosys();
-                if ( coosys != null ) {
-                    if ( coosys.hasAttribute( "system" ) ) {
-                        String system = coosys.getAttribute( "system" );
-                        auxdata.add( new DescribedValue( COOSYS_SYSTEM_INFO,
-                                                         system ) );
-                    }
-                    if ( coosys.hasAttribute( "epoch" ) ) {
-                        String epoch = coosys.getAttribute( "epoch" );
-                        auxdata.add( new DescribedValue( COOSYS_EPOCH_INFO,
-                                                         epoch ) );
-                    }
-                    if ( coosys.hasAttribute( "equinox" ) ) {
-                        String equinox = coosys.getAttribute( "equinox" );
-                        auxdata.add( new DescribedValue( COOSYS_EQUINOX_INFO,
-                                                         equinox ) );
-                    }
-                }
-
-                VOElement timesys = field.getTimesys();
-                if ( timesys != null ) {
-                    if ( timesys.hasAttribute( "timeorigin" ) ) {
-                        String torigin = timesys.getAttribute( "timeorigin" );
-                        auxdata
-                       .add( new DescribedValue( TIMESYS_TIMEORIGIN_INFO,
-                                                 torigin ) );
-                    }
-                    if ( timesys.hasAttribute( "timescale" ) ) {
-                        String tscale = timesys.getAttribute( "timescale" );
-                        auxdata.add( new DescribedValue( TIMESYS_TIMESCALE_INFO,
-                                                         tscale ) );
-                    }
-                    if ( timesys.hasAttribute( "refposition" ) ) {
-                        String refpos = timesys.getAttribute( "refposition" );
-                        auxdata
-                       .add( new DescribedValue( TIMESYS_REFPOSITION_INFO,
-                                                 refpos ) );
-                    }
-                }
-
-                VOElement[] links = field.getChildrenByName( "LINK" );
-                for ( int j = 0; j < links.length; j++ ) {
-                    auxdata.add( getDescribedValue( (LinkElement) 
-                                                    links[ j ] ) );
-                }
-
-                cinfo.setDomainMappers( VOTableDomainMappers
-                                       .getMappers( cinfo ) );
-
-                colinfos[ i ] = cinfo;
+                colinfos[ i ] = new ColumnInfo( getValueInfo( field ) );
             }
         }
         return colinfos[ icol ];
@@ -352,7 +236,6 @@ public class VOStarTable extends AbstractStarTable {
                     ParamElement pel = (ParamElement) el;
                     params.add( new DescribedValue( getValueInfo( pel ),
                                                     pel.getObject() ) );
-                   
                 }
                 else if ( el instanceof LinkElement ) {
                     LinkElement lel = (LinkElement) el;
@@ -585,7 +468,11 @@ public class VOStarTable extends AbstractStarTable {
      * @return  a ValueInfo suitable for <tt>field</tt>
      */
     public static ValueInfo getValueInfo( FieldElement field ) {
+
+        /* Decoder. */
         Decoder decoder = field.getDecoder();
+
+        /* Basic metadata. */
         Class<?> clazz = decoder.getContentClass();
         String name = field.getHandle();
         long[] shapel = decoder.getDecodedShape();
@@ -599,6 +486,112 @@ public class VOStarTable extends AbstractStarTable {
                             ? null
                             : Decoder.longsToInts( shapel ) );
         info.setElementSize( decoder.getElementSize() );
+
+        /* Aux metadata. */
+        List<DescribedValue> auxdata = info.getAuxData();
+        if ( field.hasAttribute( "ID" ) ) {
+            String id = field.getAttribute( "ID" );
+            auxdata.add( new DescribedValue( ID_INFO, id ) );
+        }
+        if ( field.hasAttribute( "datatype" ) ) {
+            String datatype = field.getAttribute( "datatype" );
+            auxdata.add( new DescribedValue( DATATYPE_INFO, datatype ) );
+            if ( "unsignedByte".equals( datatype ) ) {
+                auxdata.add( new DescribedValue( ubyteInfo, Boolean.TRUE ) );
+            }
+        }
+        String blankstr = field.getNull();
+        if ( blankstr != null ) {
+            Object blank = blankstr;
+            try {
+                if ( clazz == Byte.class ) {
+                    blank = Byte.valueOf( blankstr );
+                }
+                else if ( clazz == Short.class ) {
+                    blank = Short.valueOf( blankstr );
+                }
+                else if ( clazz == Integer.class ) {
+                    blank = Integer.valueOf( blankstr );
+                }
+                else if ( clazz == Long.class ) {
+                    blank = Long.valueOf( blankstr );
+                }
+            }
+            catch ( NumberFormatException e ) {
+                blank = blankstr;
+            }
+            auxdata.add( new DescribedValue( nullInfo, blank ) );
+        }
+        if ( field.hasAttribute( "width" ) ) {
+            String width = field.getAttribute( "width" );
+            try {
+                int wv = Integer.parseInt( width );
+                auxdata.add( new DescribedValue( WIDTH_INFO,
+                                                 new Integer( wv ) ) );
+            }
+            catch ( NumberFormatException e ) {
+            }
+        }
+        if ( field.hasAttribute( "precision" ) ) {
+            String precision = field.getAttribute( "precision" );
+            auxdata.add( new DescribedValue( PRECISION_INFO, precision ) );
+        }
+        if ( field.hasAttribute( "type" ) ) {
+            String type = field.getAttribute( "type" );
+            auxdata.add( new DescribedValue( TYPE_INFO, type ) );
+        }
+
+        /* Coosys. */
+        VOElement coosys = field.getCoosys();
+        if ( coosys != null ) {
+            if ( coosys.hasAttribute( "system" ) ) {
+                String system = coosys.getAttribute( "system" );
+                auxdata.add( new DescribedValue( COOSYS_SYSTEM_INFO,
+                                                 system ) );
+            }
+            if ( coosys.hasAttribute( "epoch" ) ) {
+                String epoch = coosys.getAttribute( "epoch" );
+                auxdata.add( new DescribedValue( COOSYS_EPOCH_INFO,
+                                                 epoch ) );
+            }
+            if ( coosys.hasAttribute( "equinox" ) ) {
+                String equinox = coosys.getAttribute( "equinox" );
+                auxdata.add( new DescribedValue( COOSYS_EQUINOX_INFO,
+                                                 equinox ) );
+            }
+        }
+
+        /* Timesys. */
+        VOElement timesys = field.getTimesys();
+        if ( timesys != null ) {
+            if ( timesys.hasAttribute( "timeorigin" ) ) {
+                String torigin = timesys.getAttribute( "timeorigin" );
+                auxdata
+               .add( new DescribedValue( TIMESYS_TIMEORIGIN_INFO,
+                                         torigin ) );
+            }
+            if ( timesys.hasAttribute( "timescale" ) ) {
+                String tscale = timesys.getAttribute( "timescale" );
+                auxdata.add( new DescribedValue( TIMESYS_TIMESCALE_INFO,
+                                                 tscale ) );
+            }
+            if ( timesys.hasAttribute( "refposition" ) ) {
+                String refpos = timesys.getAttribute( "refposition" );
+                auxdata
+               .add( new DescribedValue( TIMESYS_REFPOSITION_INFO,
+                                         refpos ) );
+            }
+        }
+
+        /* Links. */
+        VOElement[] links = field.getChildrenByName( "LINK" );
+        for ( int j = 0; j < links.length; j++ ) {
+            auxdata.add( getDescribedValue( (LinkElement) links[ j ] ) );
+        }
+
+        /* Domain mappers. */
+        info.setDomainMappers( VOTableDomainMappers.getMappers( info ) );
+
         return info;
     }
 
