@@ -1,5 +1,6 @@
 package uk.ac.starlink.table;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
@@ -10,7 +11,7 @@ import java.io.IOException;
  * @author   Mark Taylor
  * @since    24 Jul 2020
  */
-public interface RowAccess extends RowData {
+public interface RowAccess extends RowData, Closeable {
 
     /**
      * Sets the row index to which subsequent data accesses will refer.
