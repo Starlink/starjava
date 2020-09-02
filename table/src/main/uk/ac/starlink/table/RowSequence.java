@@ -1,5 +1,6 @@
 package uk.ac.starlink.table;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
@@ -29,7 +30,7 @@ import java.io.IOException;
  *
  * @author   Mark Taylor (Starlink)
  */
-public interface RowSequence {
+public interface RowSequence extends Closeable {
 
     /**
      * Attempts to advances the current row to the next one.
