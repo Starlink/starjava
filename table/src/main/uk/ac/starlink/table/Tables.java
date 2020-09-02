@@ -609,6 +609,34 @@ public class Tables {
     }
 
     /**
+     * Utility method to return an auxiliary metadata item from a ValueInfo.
+     *
+     * @param  info   metadata item
+     * @param  auxKey   info identifying aux metadata entry in <code>info</code>
+     * @param  auxClazz   required result type
+     * @return   typed aux metadata item requested,
+     *           or null if it doesn't exist or has the wrong type
+     */
+    public static <T> T getAuxDatumValue( ValueInfo info, ValueInfo auxKey,
+                                          Class<T> auxClazz ) {
+        return getTypedValue( info.getAuxDatumByName( auxKey.getName() ),
+                              auxClazz );
+    }
+
+    /**
+     * Utility method to get a typed value from a, possibly null,
+     * described value.
+     *
+     * @param  dval   described value, or null
+     * @param  clazz   required return type
+     * @return   typed value of <code>dval</code>, or null if dval is null,
+     *           or if dval's value has the wrong type
+     */
+    public static <T> T getTypedValue( DescribedValue dval, Class<T> clazz ) {
+        return dval == null ? null : dval.getTypedValue( clazz );
+    }
+
+    /**
      * Returns the value from a list of {@link DescribedValue} objects
      * which corresponds to a given info key.
      * If the key is not represented in the list, or if its value is null,
