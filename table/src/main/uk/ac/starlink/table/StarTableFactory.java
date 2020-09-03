@@ -448,7 +448,7 @@ public class StarTableFactory {
     /**
      * Constructs a sequence of StarTables from a DataSource using automatic
      * format detection.  Only certain formats (those whose handlers
-     * implement {@link MultiTableBuilder} will be capable of returning
+     * implement {@link MultiTableBuilder}) will be capable of returning
      * a sequence having more than one element.
      *
      * @param  datsrc  the data source containing the table data

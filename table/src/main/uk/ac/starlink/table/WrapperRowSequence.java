@@ -16,7 +16,7 @@ import java.io.IOException;
  */
 public class WrapperRowSequence implements RowSequence {
 
-    protected RowSequence baseSeq;
+    protected final RowSequence baseSeq;
 
     /**
      * Constructs a new RowSequence based on a given one.
@@ -48,6 +48,7 @@ public class WrapperRowSequence implements RowSequence {
      *
      * @return  string representation
      */
+    @Override
     public String toString() {
         StringBuffer sbuf = new StringBuffer( super.toString() );
         for ( RowSequence rseq = this; rseq instanceof WrapperRowSequence; ) {

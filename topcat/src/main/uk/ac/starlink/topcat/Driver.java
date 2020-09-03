@@ -32,7 +32,6 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;

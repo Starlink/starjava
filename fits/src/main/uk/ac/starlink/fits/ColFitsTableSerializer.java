@@ -14,7 +14,6 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.table.WrapperStarTable;
 
 /**
  * Object which can serialize a StarTable to a data stream as a one-row FITS
