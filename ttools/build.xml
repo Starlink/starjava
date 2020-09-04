@@ -1269,6 +1269,16 @@
           classpathref="classpath">
       <sysproperty key="java.awt.headless" value="true"/>
     </java>
+    <java classname="uk.ac.starlink.ttools.build.SchemeDoc"
+          output="${build.docs}/scheme-docs.xml"
+          failonerror="yes"
+          fork="no"
+          logerror="yes"
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-stil"/>
+      <arg value="-stilts"/>
+    </java>
 
     <!-- Write XML files containing MatchEngine usage information
      !   for inclusion in the user document. -->

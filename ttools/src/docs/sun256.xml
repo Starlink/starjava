@@ -28,6 +28,9 @@
   <!ENTITY % purpose-defs SYSTEM "purpose-defs.xml">
   %purpose-defs;
 
+  <!-- Description of table schemes. -->
+  <!ENTITY scheme-docs SYSTEM 'scheme-docs.xml'>
+
   <!-- Description of processing filters. -->
   <!ENTITY filter-docs SYSTEM 'filter-docs.xml'>
 
@@ -1023,6 +1026,15 @@ on the command line is equivalent to having the following in your
 <dt><code>startable.readers</code></dt>
 <dd><p>Can be set to a (colon-separated) list of custom table format input
     handler classes (see <docxref doc="sun252" loc="pluggableIO"/>).
+    </p></dd>
+
+<dt><code>startable.schemes</code></dt>
+<dd><p>Can be set to a (colon-separated) list of custom table scheme handler
+    classes.  Each class must implement the
+    <code>uk.ac.starlink.table.TableScheme</code> interface,
+    and must have a no-arg constructor.
+    The schemes thus named will be available
+    alongside the standard ones listed in <ref id="TableScheme"/>.
     </p></dd>
 
 <dt><code>startable.storage</code></dt>
@@ -2370,6 +2382,48 @@ by looking at the extension of the output filename you have specified.
 </p>
 
 </subsubsect>
+
+</subsect>
+
+<subsect id="TableScheme">
+<subhead><title>Table Schemes</title></subhead>
+
+<p>As well as being able to load tables from external data streams,
+STILTS offers a way to specify tables that do not correspond to a
+stream of bytes.  These may be defined programmatically or interact
+with external services in some way that is not as straightforward
+as decoding a stream of bytes.
+</p>
+
+<p>Such tables are defined using different <em>schemes</em>,
+and scheme specifications may be used in the same places as
+input table names, for instance as the value of the <code>in</code>
+parameter in <ref id="tpipe"><code>tpipe</code></ref> and other commands.
+If an input location parameter (<code>in</code>) uses a scheme specification,
+the corresponding input format parameter (<code>ifmt</code>) is ignored.
+</p>
+
+<p>The form of a scheme specification is:
+<verbatim>
+   :&lt;scheme-name&gt;:&lt;scheme-specific-part&gt;
+</verbatim>
+so that for instance "<code>in=:loop:10</code>" specifies
+a 10-row single-column table,
+as described by the <ref id="scheme-loop">loop</ref> scheme documentation
+below.
+For an example of using such tables, you can try running for instance
+<verbatim>
+   stilts plot2plane in=:attractor:1e7,clifford layer1=mark shading1=density densemap1=plasma x1=x y1=y
+</verbatim>
+</p>
+
+<p>The following subsections describe all the schemes that are
+available by default.
+It is also possible to add new schemes at runtime by using the
+<code>startable.schemes</code> <ref id="sysProperties">system property</ref>. 
+</p>
+
+&scheme-docs;
 
 </subsect>
 
@@ -12909,6 +12963,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         necessary to specify <code>ifmt=csv</code>.</li>
     <li>The <ref id="mode-stats">stats</ref> output mode now runs in
         parallel.</li>
+    <li><ref id="TableScheme">Scheme specifiers</ref> can now be used
+        to specify input tables, to read tables not based on
+        external files.  Options currently provided include
+        <ref id="scheme-loop">simple sequence</ref>,
+        <ref id="scheme-skysim">simulated sky</ref> and
+        <ref id="scheme-attractor">strange attractor</ref> data.</li>
     </ul>
     </p></dd>
 
