@@ -1507,6 +1507,18 @@
     </java>
     <echo message="]]&gt;" file="${topcat.usage}" append="yes"/>
 
+    <!-- Other auto-generated documentation. -->
+    <java classname="uk.ac.starlink.ttools.build.SchemeDoc"
+          output="${build.docs}/scheme-docs.xml"
+          failonerror="yes"
+          fork="no"
+          logerror="yes"
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-stil"/>
+      <arg value="-stilts"/>
+    </java>
+
   </target>
 
   <!--

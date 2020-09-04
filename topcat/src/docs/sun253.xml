@@ -22,6 +22,9 @@
   <!ENTITY gbin-package-classpath 'topcat-full.jar'>
   <!ENTITY gbin-package-mainclass 'uk.ac.starlink.topcat.Driver'>
 
+  <!-- Include some auto-generated documentation. -->
+  <!ENTITY scheme-docs SYSTEM 'scheme-docs.xml'>
+
   <!-- Define some character constants. -->
   <!ENTITY column.id.char '$'>
   <!ENTITY subset.id.char '_'>
@@ -2228,7 +2231,7 @@ document - see the user document and javadocs for
 </subsect>
 
 <subsect id="tableLocation">
-<subhead><title>Table Locations</title></subhead>
+<subhead><title>Input Locations</title></subhead>
 
 <p>In many cases loading and saving tables will be done using GUI
 dialogues such as the filestore 
@@ -2303,6 +2306,52 @@ of a shell pipeline (probably only works on Unix-like systems).
 supported formats (gzip, bzip2, Unix compress) is detected and 
 dealt with automatically for input locations.
 </p>
+
+<p>Note that tables can also be supplied by name from non-serialized sources,
+as described in <ref id="TableScheme">Input Schemes</ref>.
+</p>
+
+
+</subsect>
+
+<subsect id="TableScheme">
+<subhead><title>Input Schemes</title></subhead>
+
+<p>As well as being able to load tables from external data streams,
+TOPCAT offers a way to specify tables that do not correspond to a
+stream of bytes.  These may be defined programmatically or interact
+with external services in some way that is not as straightforward
+as decoding a stream of bytes.
+</p>
+
+<p>Such tables are defined with a <em>scheme specification</em> string,
+of the form:
+<verbatim>
+   :&lt;scheme-name&gt;:&lt;scheme-specific-part&gt;
+</verbatim>
+so that for instance "<code>:skysim:1e6</code>" specifies
+a million-row simulated star catalogue,
+as described by the <ref id="scheme-skysim">skysim</ref> scheme documentation
+below.
+</p>
+
+<p>At present, the only ways that scheme-specified tables can be
+loaded are:
+<ul>
+<li>naming them on the <ref id="topcatArgs">command line</ref> at startup</li>
+<li>entering them in the <label>Location</label> field in the
+    <ref id="LoadWindow">Load Window</ref></li>
+</ul>
+Some more GUI-friendly way to load them may be introduced in future releases.
+</p>
+
+<p>The following subsections describe all the schemes that are
+available by default.
+It is also possible to add new schemes at runtime by using the
+<code>startable.schemes</code> <ref id="jvmProperties">system property</ref>.
+</p>
+
+&scheme-docs;
 
 </subsect>
 
@@ -4480,7 +4529,8 @@ The meaning of the flags is as follows:
 <p>Other arguments on the command line are taken to be the locations
 of tables.  Any tables so specified will be loaded into TOPCAT at startup.
 These locations are typically filenames, but could also
-be URLs or SQL queries, or perhaps something else.  In addition
+be URLs or <ref id="TableScheme">scheme specifications</ref>.
+In addition
 they may contain "fragment identifiers" (with a "#") to locate a table within
 a given resource, so that for instance the location
 <verbatim>
@@ -4796,6 +4846,15 @@ The following ones have special significance within TOPCAT:
 <dt><code>startable.readers</code></dt>
 <dd><p>Can be set to a (colon-separated) list of custom table format input
     handler classes (see <ref id="customHandlers"/>).
+    </p></dd>
+
+<dt><code>startable.schemes</code></dt>
+<dd><p>Can be set to a (colon-separated) list of custom table scheme handler
+    classes.  Each class must implement the
+    <code>uk.ac.starlink.table.TableScheme</code> interface,
+    and must have a no-arg constructor.
+    The schemes thus named will be available
+    alongside the standard ones listed in <ref id="TableScheme"/>.
     </p></dd>
 
 <dt><code>startable.storage</code></dt>
@@ -17797,6 +17856,16 @@ and you have to select the right one explicitly
 (again, see <ref id="inFormats"/> for details).
 </p>
 
+<p>You can also enter a
+<ref id="TableScheme" plaintextref="yes">scheme specification</ref>
+into the <label>Location</label> field.
+These have the form "<code>:&lt;scheme-name&gt;:&lt;scheme-args&gt;</code>"
+and can be used for tables that are created in some other way
+than reading a stream of bytes;
+for instance "<code>:skysim:1e6</code>" generates a simulated
+sky survey with a million rows.
+</p>
+
 <p>There are many other ways of loading tables however,
 described in the following subsections.
 The <label>Filestore Browser</label> and <label>System Browser</label>
@@ -29877,6 +29946,13 @@ introduced since the last version:
         necessary to select "CSV" in the
         <ref id="LoadWindow">Load Window</ref> <label>Format</label>
         selector.</li>
+    <li><ref id="TableScheme">Scheme specifiers</ref> can now be
+        entered in the <ref id="LoadWindow">Load Window</ref>
+        to load tables not corresponding to external files.
+        Options currently provided include
+        <ref id="scheme-loop">simple sequence</ref>,
+        <ref id="scheme-skysim">simulated sky</ref> and
+        <ref id="scheme-attractor">strange attractor</ref> data.</li>
     </ul>
     </p></dd>
 
