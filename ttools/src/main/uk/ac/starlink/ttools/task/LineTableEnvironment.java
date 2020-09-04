@@ -3,11 +3,13 @@ package uk.ac.starlink.ttools.task;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.LineEnvironment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.votable.VOElementFactory;
 
 /**
@@ -44,6 +46,9 @@ public class LineTableEnvironment extends LineEnvironment
     public StarTableFactory getTableFactory() {
         if ( tfact_ == null ) {
             tfact_ = new StarTableFactory();
+            for ( TableScheme scheme : Stilts.getStandardSchemes() ) {
+                tfact_.addScheme( scheme );
+            }
         }
         return tfact_;
     }

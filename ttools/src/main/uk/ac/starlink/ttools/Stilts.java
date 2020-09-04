@@ -5,9 +5,12 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
 import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.plot2.task.TypedPlot2Task;
+import uk.ac.starlink.ttools.scheme.AttractorScheme;
+import uk.ac.starlink.ttools.scheme.SkySimScheme;
 import uk.ac.starlink.ttools.task.LineInvoker;
 import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.util.Loader;
@@ -28,6 +31,7 @@ public class Stilts {
     private static ObjectFactory<Task> taskFactory_;
     private static ObjectFactory<TypedPlot2Task<?,?>> plot2TaskFactory_;
     private static ObjectFactory<ProcessingMode> modeFactory_;
+    private static TableScheme[] stdSchemes_;
     static { init(); }
 
     public static final String VERSION_RESOURCE = "stilts.version";
@@ -80,6 +84,17 @@ public class Stilts {
      */
     public static ObjectFactory<TypedPlot2Task<?,?>> getPlot2TaskFactory() {
         return plot2TaskFactory_;
+    }
+
+    /**
+     * Returns a list of the TableSchemes which are supposed to be
+     * available within the Stilts application,
+     * but are not in a default StarTableFactory.
+     *
+     * @return   list of schemes
+     */ 
+    public static TableScheme[] getStandardSchemes() {
+        return stdSchemes_.clone();
     }
 
     /**
@@ -189,5 +204,10 @@ public class Stilts {
         modeFactory_.register( "plastic", modePkg + "PlasticMode" );
         modeFactory_.register( "tosql", modePkg + "JdbcMode" );
         modeFactory_.register( "gui", modePkg + "SwingMode" );
+
+        stdSchemes_ = new TableScheme[] {
+            new SkySimScheme(),
+            new AttractorScheme(),
+        };
     }
 }

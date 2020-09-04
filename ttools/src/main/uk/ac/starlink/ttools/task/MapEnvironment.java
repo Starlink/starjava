@@ -14,10 +14,12 @@ import java.util.Set;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.plottask.PaintModeParameter;
 import uk.ac.starlink.ttools.plottask.Painter;
@@ -40,6 +42,8 @@ public class MapEnvironment implements TableEnvironment {
     private final PrintStream perr_ = new PrintStream( err_ );
     private final Set<String> usedNames_ = new HashSet<String>();
     private Class<?> resourceBase_ = MapEnvironment.class;
+    private StarTableFactory tfact_;
+    private StarTableOutput tout_;
     private boolean strictVot_;
     private boolean debug_;
 
@@ -296,12 +300,21 @@ public class MapEnvironment implements TableEnvironment {
         }
     }
 
-    public StarTableFactory getTableFactory() {
-        return new StarTableFactory();
+    public synchronized StarTableFactory getTableFactory() {
+        if ( tfact_ == null ) {
+            tfact_ = new StarTableFactory();
+            for ( TableScheme scheme : Stilts.getStandardSchemes() ) {
+                tfact_.addScheme( scheme );
+            }
+        }
+        return tfact_;
     }
 
-    public StarTableOutput getTableOutput() {
-        return new StarTableOutput();
+    public synchronized StarTableOutput getTableOutput() {
+        if ( tout_ == null ) {
+            tout_ = new StarTableOutput();
+        }
+        return tout_;
     }
 
     public JDBCAuthenticator getJdbcAuthenticator() {

@@ -8,11 +8,13 @@ import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
+import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.FileDataSource;
 
 /**
@@ -118,9 +120,10 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
      */
     public static StarTableFactory createTableFactory( String sval )
             throws UsageException {
+        final StarTableFactory tfact;
         if ( sval == null || sval.trim().length() == 0 ||
              sval.equalsIgnoreCase( FILE_OPTION ) ) {
-            return new StarTableFactory();
+            tfact = new StarTableFactory();
         }
         else if ( sval.toLowerCase().startsWith( DIRS_PREFIX ) ) {
             String dirlist = sval.substring( DIRS_PREFIX.length() );
@@ -128,7 +131,7 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
             if ( dirs.length == 0 ) {
                 throw new UsageException( "No directories specified" );
             }
-            return new LocatorStarTableFactory( new DirLocator( dirs ) );
+            tfact = new LocatorStarTableFactory( new DirLocator( dirs ) );
         }
         else if ( sval.toLowerCase().startsWith( LOCCLASS_PREFIX ) ) {
             String clazzname = sval.substring( LOCCLASS_PREFIX.length() );
@@ -139,12 +142,16 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
             catch ( Throwable e ) {
                 throw new UsageException( "Bad TableLocator class name", e );
             }
-            return new LocatorStarTableFactory( tloc );
+            tfact = new LocatorStarTableFactory( tloc );
         }
         else {
             throw new UsageException( "Unknown form; "
                                     + "should be dirs:* or locator:*" );
         }
+        for ( TableScheme scheme : Stilts.getStandardSchemes() ) {
+            tfact.addScheme( scheme );
+        }
+        return tfact;
     }
 
     /**
