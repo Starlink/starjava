@@ -57,6 +57,7 @@ public class InputFormatParameter extends StringParameter
             "This cannot always be done correctly however, in which case",
             "the program will exit with an error explaining which",
             "formats were attempted.",
+            "This parameter is ignored for scheme-specified tables.",
             "</p>",
         } );
     }

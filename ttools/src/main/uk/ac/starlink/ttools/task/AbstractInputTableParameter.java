@@ -114,6 +114,7 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
             "if that is the best thing to do.",
             "However it can sometimes result in less resource usage when",
             "processing large files in certain formats (such as VOTable).",
+            "This parameter is ignored for scheme-specified tables.",
             "</p>",
         } );
         formatParam_.setTableDescription( inDescrip, this );
@@ -321,6 +322,9 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
             "    using the <code>" + fmtParam.getName() + "</code>",
             "    parameter.",
             "    Note that not all formats can be streamed in this way.</li>",
+            "<li>A <ref id='TableScheme'>scheme specification</ref>",
+            "    of the form",
+            "    <code>:&lt;scheme-name&gt;:&lt;scheme-args&gt;</code>.</li>",
             "<li>A system command line with",
             "    either a \"<code>&lt;</code>\" character at the start,",
             "    or a \"<code>|</code>\" character at the end",
