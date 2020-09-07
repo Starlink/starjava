@@ -42,7 +42,7 @@ public class ListRowStore implements RowStore {
         if ( ready_ ) {
             throw new IllegalStateException( "endRows has been called" );
         }
-        store_.addRow( row );
+        store_.addRow( row.clone() );
     }
 
     public void endRows() {
