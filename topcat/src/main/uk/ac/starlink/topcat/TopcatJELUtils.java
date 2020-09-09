@@ -10,6 +10,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import gnu.jel.CompilationException;
 import gnu.jel.Library;
 import gnu.jel.DVMap;
@@ -249,6 +251,22 @@ public class TopcatJELUtils extends JELUtils {
      */
     public static boolean isColumnReferenced( TopcatModel tcModel, int icol,
                                               String expr ) {
+        return getReferencedColumns( tcModel, expr )
+              .contains( new Integer( icol ) );
+    }
+
+    /**
+     * Returns a list of the column indices that are directly or indirectly
+     * referenced by a given JEL expression.
+     * If the expression cannot be compiled, an empty list is returned.
+     *
+     * @param  tcModel   topcat model
+     * @param  expr      JEL expression
+     * @return   set of column indices referenced
+     */
+    public static Set<Integer> getReferencedColumns( TopcatModel tcModel,
+                                                     String expr ) {
+        Set<Integer> icolSet = new HashSet<>();
 
         /* Compile the expression using a RowReader that we can later
          * interrogate to find out which symbols the expression referenced. */
@@ -258,26 +276,23 @@ public class TopcatJELUtils extends JELUtils {
             Evaluator.compile( expr, lib );
         }
         catch ( CompilationException e ) {
-            return false;
+            return icolSet;
         }
 
-        /* Look for direct references to the test column. */
-        for ( int ic : rdr.getTranslatedColumns() ) {
-            if ( ic == icol ) {
-                return true;
-            }
-        }
+        /* Record direct references to columns. */
+        icolSet.addAll( IntStream
+                       .of( rdr.getTranslatedColumns() )
+                       .boxed()
+                       .collect( Collectors.toSet() ) );
 
-        /* If there were no direct references, look recursively for
-         * references in the symbols that were referenced. */
+        /* Recursively record column references in the expression symbols
+         * that were referenced. */
         for ( String subExpr : getReferencedExpressions( rdr ) ) {
-            if ( isColumnReferenced( tcModel, icol, subExpr ) ) {
-                return true;
-            }
+            icolSet.addAll( getReferencedColumns( tcModel, subExpr ) );
         }
 
-        /* Otherwise, we can conclude there were no references. */
-        return false;
+        /* Return the result. */
+        return icolSet;
     }
 
     /**
@@ -292,6 +307,22 @@ public class TopcatJELUtils extends JELUtils {
      */
     public static boolean isSubsetReferenced( TopcatModel tcModel, int rsetId,
                                               String expr ) {
+        return getReferencedSubsets( tcModel, expr )
+              .contains( Integer.valueOf( rsetId ) );
+    }
+
+    /**
+     * Returns a list of subset IDs that are directly or indirectly
+     * referenced by a given JEL expression.
+     * If the expression cannot be compiled, an empty list is returned.
+     *
+     * @param  tcModel   topcat model
+     * @param  expr      JEL expression
+     * @return  set of subset IDs referenced
+     */
+    public static Set<Integer> getReferencedSubsets( TopcatModel tcModel,
+                                                     String expr ) {
+        Set<Integer> idSet = new HashSet<>();
 
         /* Compile the expression using a RowReader that we can later
          * interrogate to find out which symbols the expression referenced. */
@@ -301,26 +332,23 @@ public class TopcatJELUtils extends JELUtils {
             Evaluator.compile( expr, lib );
         }
         catch ( CompilationException e ) {
-            return false;
+            return idSet;
         }
 
-        /* Look for direct references to the test subset. */
-        for ( int id : rdr.getTranslatedSubsetIds() ) {
-            if ( id == rsetId ) {
-                return true;
-            }
-        }
+        /* Record direct references to subsets. */
+        idSet.addAll( IntStream
+                     .of( rdr.getTranslatedSubsetIds() )
+                     .boxed()
+                     .collect( Collectors.toSet() ) );
 
-        /* If there were no direct references, look recursively for
-         * references in the symbols that were referenced. */
+        /* Recursively record subset references in expression symbols
+         * that were referenced. */
         for ( String subExpr : getReferencedExpressions( rdr ) ) {
-            if ( isSubsetReferenced( tcModel, rsetId, subExpr ) ) {
-                return true;
-            }
+            idSet.addAll( getReferencedSubsets( tcModel, subExpr ) );
         }
 
-        /* Otherwise, we can conclude there were no references. */
-        return false;
+        /* Return the result. */
+        return idSet;
     }
 
     /**
