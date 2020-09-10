@@ -58,6 +58,7 @@ public abstract class SkyUnits {
     /**
      * Returns a pair of descriptions for the units of the first and
      * second coordinates represented by these units.
+     * Tries to stick to the VOUnits standard.
      *
      * @return   array of two unit names
      */
@@ -136,7 +137,7 @@ public abstract class SkyUnits {
             super( name );
         }
         public String[] getUnitStrings() {
-            return new String[] { "radians", "radians" };
+            return new String[] { "rad", "rad" };
         }
         public Class<?>[] getUnitTypes() {
             return new Class<?>[] { Double.class, Double.class };
@@ -165,7 +166,7 @@ public abstract class SkyUnits {
             super( name );
         }
         public String[] getUnitStrings() {
-            return new String[] { "degrees", "degrees" };
+            return new String[] { "deg", "deg" };
         }
         public Class<?>[] getUnitTypes() {
             return new Class<?>[] { Double.class, Double.class };
@@ -200,7 +201,7 @@ public abstract class SkyUnits {
             hPlaces_ = hPlaces;
         }
         public String[] getUnitStrings() {
-            return new String[] { "hms", "dms" };
+            return new String[] { "'hms'", "'dms'" };
         }
         public Class<?>[] getUnitTypes() {
             return new Class<?>[] { String.class, String.class };

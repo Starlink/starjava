@@ -31,7 +31,7 @@ public class SexagesimalToDegrees implements ValueConverter {
         hours_ = hours;
         outInfo_ = new DefaultValueInfo( sexInfo );
         outInfo_.setContentClass( Double.class );
-        outInfo_.setUnitString( "degrees" );
+        outInfo_.setUnitString( "deg" );
         outInfo_.setNullable( true );
     }
 
