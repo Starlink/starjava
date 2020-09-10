@@ -764,15 +764,20 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
             seqColReaders_ = new ColumnReader[ ncol_ ];
             cursors_ = new long[ ncol_ ];
             for ( int icol = 0; icol < ncol_; icol++ ) {
-                final BasicInput input =
-                    inputFacts_[ icol ].createInput( true );
+                final InputFactory inputFact = inputFacts_[ icol ];
                 seqColReaders_[ icol ] =
                         new ColumnReader( valReaders_[ icol ] ) {
-                    protected BasicInput getInput() {
-                        return input;
+                    BasicInput input_;
+                    protected BasicInput getInput() throws IOException {
+                        if ( input_ == null ) {
+                            input_ = inputFact.createInput( true );
+                        }
+                        return input_;
                     }
                     public void close() throws IOException {
-                        input.close();
+                        if ( input_ != null ) {
+                            input_.close();
+                        }
                     }
                 };
                 cursors_[ icol ] = -1;
@@ -827,14 +832,19 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
         ColFitsRowAccess() throws IOException {
             colReaders_ = new ColumnReader[ ncol_ ];
             for ( int icol = 0; icol < ncol_; icol++ ) {
-                final BasicInput input =
-                    inputFacts_[ icol ].createInput( false );
+                final InputFactory inFact = inputFacts_[ icol ];
                 colReaders_[ icol ] = new ColumnReader( valReaders_[ icol ] ) {
-                    protected BasicInput getInput() {
-                        return input;
+                    BasicInput input_;
+                    protected BasicInput getInput() throws IOException {
+                        if ( input_ == null ) {
+                            input_ = inFact.createInput( false );
+                        }
+                        return input_;
                     }
                     public void close() throws IOException {
-                        input.close();
+                        if ( input_ != null ) {
+                            input_.close();
+                        }
                     }
                 };
             }
@@ -938,7 +948,7 @@ public class ColFitsStarTable extends AbstractStarTable implements Closeable {
          *
          * @return  basic input
          */
-        protected abstract BasicInput getInput();
+        protected abstract BasicInput getInput() throws IOException;
 
         /**
          * Positions ready to read the value for a given row.
