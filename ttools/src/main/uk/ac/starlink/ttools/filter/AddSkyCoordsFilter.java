@@ -176,6 +176,7 @@ public class AddSkyCoordsFilter extends BasicFilter {
                     cinfo.setContentClass( outUnits.getUnitTypes()[ i ] );
                     cinfo.setDescription( outSys
                                          .getCoordinateDescriptions()[ i ] );
+                    cinfo.setUCD( outSys.getCoordinateUcds()[ i ] );
                     outColInfos[ i ] = cinfo;
                 }
 

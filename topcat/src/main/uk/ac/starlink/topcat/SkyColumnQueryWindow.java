@@ -141,6 +141,7 @@ public class SkyColumnQueryWindow extends QueryWindow {
             DefaultValueInfo info = new DefaultValueInfo( outNames[ i ] );
             info.setContentClass( outUnits.getUnitTypes()[ i ] );
             info.setDescription( outSys.getCoordinateDescriptions()[ i ] );
+            info.setUCD( outSys.getCoordinateUcds()[ i ] );
             info.setUnitString( outUnits.getUnitStrings()[ i ] );
             final int i0 = i;
             outData[ i ] = new ColumnData( info ) {
