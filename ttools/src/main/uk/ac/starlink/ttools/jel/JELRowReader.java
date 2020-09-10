@@ -335,7 +335,28 @@ public abstract class JELRowReader extends DVMap {
     }
 
     /**
-     * Evaluates a given compiled expression at the given row under the 
+     * Evaluates a given compiled expression at the current row under the
+     * assumption that the expression represents a boolean value.
+     * The returned value is a boolean.  If a null value was encountered
+     * during evaluation, false is returned.
+     *
+     * @param  compEx  numeric-valued compiled expression
+     * @return   expression value at current row
+     */
+    public synchronized boolean evaluateBoolean( CompiledExpression compEx )
+            throws Throwable {
+        try {
+            isNullExpression_ = false;
+            boolean result = compEx.evaluate_boolean( args_ );
+            return isNullExpression_ ? false : result;
+        }
+        catch ( NullPointerException e ) {
+            return false;
+        }
+    }
+
+    /**
+     * Evaluates a given compiled expression at the current row under the 
      * assumption that the expression represents a numeric value.
      * The returned value is a double.  If a null value was encountered
      * during evaluation, a NaN is returned.
