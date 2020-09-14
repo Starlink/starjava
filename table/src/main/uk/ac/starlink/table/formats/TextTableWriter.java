@@ -22,6 +22,7 @@ public class TextTableWriter extends AbstractTextTableWriter
 
     public TextTableWriter() {
         super( true );
+        setMaxWidth( 40 );
     }
 
     /**
@@ -67,10 +68,6 @@ public class TextTableWriter extends AbstractTextTableWriter
         finally {
             out.close();
         }
-    }
-
-    public int getMaxWidth() {
-        return 40;
     }
 
     protected String formatValue( Object val, ValueInfo vinfo, int width ) {

@@ -18,6 +18,7 @@ public class AsciiTableWriter extends AbstractTextTableWriter {
 
     public AsciiTableWriter() {
         super( false );
+        setMaxWidth( 158 );
     }
 
     protected String formatValue( Object val, ValueInfo vinfo, int width ) {
@@ -116,10 +117,6 @@ public class AsciiTableWriter extends AbstractTextTableWriter {
      */
     public boolean looksLikeFile( String location ) {
         return location.endsWith( ".txt" );
-    }
-
-    public int getMaxWidth() {
-        return 158;
     }
 
     protected void printSeparator( OutputStream strm, int[] colwidths ) {

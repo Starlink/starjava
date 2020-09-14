@@ -422,7 +422,10 @@ public class Tables {
             }
         }
         else {
-            handler = new TextTableWriter();
+            TextTableWriter textHandler = new TextTableWriter();
+            textHandler.setWriteParameters( false );
+            textHandler.setMaxWidth( 40 );
+            handler = textHandler;
         }
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();

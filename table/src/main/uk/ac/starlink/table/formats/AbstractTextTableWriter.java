@@ -22,6 +22,9 @@ import uk.ac.starlink.table.ValueInfo;
 public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
 
     private boolean writeParams_;
+    private int maxWidth_;
+    private int maxParamLength_;
+    private int sampledRows_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.formats" );
@@ -32,7 +35,10 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
      * @param  writeParams  whether parameters will be written by default
      */
     protected AbstractTextTableWriter( boolean writeParams ) {
-        writeParams_ = writeParams;
+        setWriteParameters( writeParams );
+        setMaxWidth( 160 );
+        setMaximumParameterLength( 160 );
+        setSampledRows( 200 );
     }
 
     /**
@@ -180,13 +186,22 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
     }
 
     /**
+     * Sets the maximum length for the value of a parameter that will be output.
+     *
+     * @param  maxParamLength  maximum printable parameter length
+     */
+    public void setMaximumParameterLength( int maxParamLength ) {
+        maxParamLength_ = maxParamLength;
+    }
+
+    /**
      * Returns the maximum length for the value of a parameter as passed to
      * {@link #printParam}.  The default implementation currently returns 160.
      *
      * @return  maximum length for output string parameters
      */
-    protected int getMaximumParameterLength() {
-        return 160;
+    public int getMaximumParameterLength() {
+        return maxParamLength_;
     }
 
     /**
@@ -212,12 +227,24 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
     }
 
     /**
-     * Returns the maximum width for a given column.  Values longer than
+     * Sets the maximum width in characters for any output column.
+     * Values longer than this may be truncated.
+     *
+     * @param  maxWidth  maximum column value width in characters
+     */
+    public void setMaxWidth( int maxWidth ) {
+        maxWidth_ = maxWidth;
+    }
+
+    /**
+     * Returns the maximum width for any output column.  Values longer than
      * this may be truncated.
      *
      * @return  maximum permitted column width in characters
      */
-    public abstract int getMaxWidth();
+    public int getMaxWidth() {
+        return maxWidth_;
+    }
 
     /**
      * Returns the minimum width required to output the actual characters
@@ -233,13 +260,23 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
     }
 
     /**
-     * Returns the number of columns which will be sampled to 
+     * Sets the number of rows which will be sampled before output is
+     * commenced to work out the column widths.
+     *
+     * @param  sampledRows   number of rows to be sampled
+     */
+    public void setSampledRows( int sampledRows ) {
+        sampledRows_ = sampledRows;
+    }
+
+    /**
+     * Returns the number of rows which will be sampled to 
      * work out the column width.
      *
      * @return   number of rows scanned
      */
     public int getSampledRows() {
-        return 200;
+        return sampledRows_;
     }
 
     /**

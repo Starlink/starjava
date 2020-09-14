@@ -27,6 +27,9 @@ public class IpacTableWriter extends AbstractTextTableWriter {
      */
     public IpacTableWriter() {
         super( true );
+        setMaxWidth( 1000 );
+        // The comments parameter may be many lines long
+        setMaximumParameterLength( 100_000 );
     }
 
     /**
@@ -51,11 +54,6 @@ public class IpacTableWriter extends AbstractTextTableWriter {
     public boolean looksLikeFile( String location ) {
         return location.endsWith( ".tbl" )
             || location.endsWith( ".ipac" );
-    }
-
-    @Override
-    public int getMaxWidth() {
-        return 1000;
     }
 
     @Override
@@ -152,14 +150,6 @@ public class IpacTableWriter extends AbstractTextTableWriter {
                                : value ) );
             out.write( '\n' );
         }
-    }
-
-    /**
-     * The comments parameter may be many lines long.
-     */
-    @Override
-    protected int getMaximumParameterLength() {
-        return 100000;
     }
 
     /**
