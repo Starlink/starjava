@@ -37,22 +37,13 @@ import uk.ac.starlink.util.DataSource;
  */
 public class GeojsonTableBuilder implements TableBuilder {
 
-    private final String shapeColName_;
+    private String shapeColName_;
 
     /**
      * Default constructor.
      */
     public GeojsonTableBuilder() {
-        this( "shape" );
-    }
-
-    /**
-     * Constructs an instance with a given name for the feature shape column.
-     *
-     * @param  shapeColName  name for STC-S feature shape column
-     */
-    public GeojsonTableBuilder( String shapeColName ) {
-        shapeColName_ = shapeColName;
+        shapeColName_ = "shape";
     }
 
     public boolean canImport( DataFlavor flavor ) {
@@ -85,6 +76,24 @@ public class GeojsonTableBuilder implements TableBuilder {
             sink.acceptRow( rseq.getRow() );
         }
         sink.endRows();
+    }
+
+    /**
+     * Sets the name for the feature shape column.
+     *
+     * @param  shapeColName  name for STC-S feature shape column
+     */
+    public void setShapeColName( String shapeColName ) {
+        shapeColName_ = shapeColName;
+    }
+
+    /**
+     * Returns the name of the feature shape column.
+     *
+     * @return  name for STC-S feature shape column
+     */
+    public String getShapeColName() {
+        return shapeColName_;
     }
 
     /**
