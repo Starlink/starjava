@@ -113,10 +113,14 @@ public class ObjectFactory<T> {
      * is not a subtype of this factory's supertype) a RuntimeException
      * will be thrown.
      *
-     * @param  name  classname/nickname of class to instantiate
+     * @param  spec  classname/nickname of class to instantiate,
+     *               followed by optional config text
      * @throws LoadException  if the load fails for unsurprising reasons
+     * @see  BeanConfig
      */
-    public T createObject( String name ) throws LoadException {
+    public T createObject( String spec ) throws LoadException {
+        BeanConfig config = BeanConfig.parseSpec( spec );
+        String name = config.getBaseText();
         if ( ! isRegistered( name ) ) {
             throw new LoadException( "Unknown classname/nickname " + name );
         }
@@ -138,9 +142,10 @@ public class ObjectFactory<T> {
             throw new ClassCastException( clazz + " does not subclass "
                                         + superClass_ );
         }
+        final T target;
         try {
-            return superClass_.cast( clazz.getConstructor( new Class<?>[ 0 ] )
-                                    .newInstance( new Object[ 0 ] ) );
+            target = superClass_.cast( clazz.getConstructor( new Class<?>[ 0 ] )
+                                      .newInstance( new Object[ 0 ] ) );
         }
         catch ( IllegalAccessException e ) {
             throw new RuntimeException( e );
@@ -164,5 +169,7 @@ public class ObjectFactory<T> {
                 throw new RuntimeException( e2 );
             }
         }
+        config.configBean( target );
+        return target;
     }
 }

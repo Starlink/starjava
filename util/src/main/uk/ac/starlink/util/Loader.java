@@ -244,15 +244,20 @@ public class Loader {
      * of it is constructed and returned.  Otherwise, <tt>null</tt> is
      * returned, and a message may be written through the logging system.
      *
-     * @param   className  name of the class to instantiate
+     * <p>A bean configuration parenthesis may be optionally appended,
+     * as per {@link BeanConfig}.
+     *
+     * @param   classSpec  name of the class to instantiate
      * @param   type   class which the instantiated class must be assignable
      *                 from
      * @return  new <tt>className</tt> instance, or <tt>null</tt>
      */
-    public static <T> T getClassInstance( String className, Class<T> type ) {
-        if ( className == null || className.trim().length() == 0 ) {
+    public static <T> T getClassInstance( String classSpec, Class<T> type ) {
+        if ( classSpec == null || classSpec.trim().length() == 0 ) {
             return null;
         }
+        BeanConfig config = BeanConfig.parseSpec( classSpec );
+        String className = config.getBaseText();
         Class<?> clazz;
         try {
             clazz = Class.forName( className );
@@ -273,8 +278,9 @@ public class Loader {
             warn( "Class " + clazz.getName() + " is not a " + type.getName() );
             return null;
         }
+        final T target;
         try {
-            return type.cast( clazz.newInstance() );
+            target = type.cast( clazz.newInstance() );
         }
         catch ( ExceptionInInitializerError e ) {
             warn( e.getCause() + " loading class " + className );
@@ -284,6 +290,14 @@ public class Loader {
             warn( th + " instantiating " + clazz.getName() );
             return null;
         }
+        try {
+            config.configBean( target );
+        }
+        catch ( LoadException e ) {
+            warn( "Configuration failed for " + config.getConfigText()
+                + ": " + e );
+        }
+        return target;
     }
 
     /**
