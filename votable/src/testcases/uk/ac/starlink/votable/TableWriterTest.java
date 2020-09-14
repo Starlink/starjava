@@ -16,6 +16,8 @@ import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.Tables;
 
@@ -36,6 +38,33 @@ public class TableWriterTest extends TestCase {
                                        createTestTable( 10 ),
                                        createTestTable( 100 ) } );
         checkTables( new StarTable[ 0 ] );
+    }
+
+    public void testOutputConfig() throws Exception {
+        StarTable table = new StarTableFactory().makeStarTable( ":loop:10" );
+        assertTrue( outputContains( table, "votable", "TABLEDATA" ) );
+        assertFalse( outputContains( table, "votable", "BINARY" ) );
+        assertTrue( outputContains( table, "votable(dataFormat=BINARY2)",
+                                    "BINARY2" ) );
+        assertFalse( outputContains( table, "votable", "VOTable/v1.1" ) );
+        assertTrue( outputContains( table, "votable(votableVersion=V11)",
+                                    "VOTable/v1.1" ) );
+        assertTrue( outputContains( table,
+                                    "votable(votableVersion=V14, "
+                                          + "writeSchemaLocation=false, "
+                                          + ",dataFormat=BINARY)",
+                                    "<BINARY>" ) );
+    }
+
+    private boolean outputContains( StarTable table, String handlerName,
+                                    String txt )
+            throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        StarTableOutput sto = new StarTableOutput();
+        StarTableWriter handler = sto.getHandler( handlerName );
+        handler.writeStarTable( table, out );
+        String ser = new String( out.toByteArray(), "UTF-8" );
+        return ser.indexOf( txt ) >= 0;
     }
 
     public static void checkTable( StarTable table ) throws Exception {

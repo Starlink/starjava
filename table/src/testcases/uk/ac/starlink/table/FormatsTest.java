@@ -185,6 +185,30 @@ public class FormatsTest extends TableCase {
         assertTableEquals( table, new WrapperStarTable( table ) );
     }
 
+    public void testHandlerNames() throws TableFormatException {
+        StarTableOutput tout = new StarTableOutput();
+        String[] fnames = new String[] {
+            "fits-basic", "fits-plus", "fits-var", "fits-healpix",
+            "colfits-basic", "colfits-plus",
+            "votable", "ecsv", "feather", "text", "ascii", "csv",
+            "ipac", "tst", "html", "latex", "mirage",
+        };
+        for ( String fname : fnames ) {
+            assertNotNull( tout.getHandler( fname ) );
+            assertNotNull( tout.getHandler( fname + "()" ) );
+        }
+
+        StarTableFactory tfact = new StarTableFactory();
+        String[] bnames = new String[] {
+            "fits", "colfits-basic", "colfits-plus",
+            "votable", "cdf", "ecsv", "feather",
+        };
+        for ( String bname : bnames ) {
+            assertNotNull( tfact.getTableBuilder( bname ) );
+            assertNotNull( tfact.getTableBuilder( bname + "()" ) );
+        }
+    }
+
     public void testStorage() throws IOException {
         exerciseRowStore( new ListRowStore() );
         exerciseRowStore( new DiskRowStore() );
@@ -281,33 +305,22 @@ public class FormatsTest extends TableCase {
             }
         }
         String[] knownFormats = new String[] {
-            "fits",
             "fits-plus",
             "fits-basic",
             "fits-var",
             "fits-healpix",
             "colfits-plus",
             "colfits-basic",
-            "votable-tabledata",
-            "votable-binary-inline",
-            "votable-binary2-inline",
-            "votable-fits-href",
-            "votable-binary-href",
-            "votable-binary2-href",
-            "votable-fits-inline",
-            "ecsv-space",
-            "ecsv-comma",
+            "votable",
+            "ecsv",
             "feather",
             "text",
             "ascii",
             "csv",
-            "csv-noheader",
             "ipac",
             "tst",
             "html",
-            "html-element",
             "latex",
-            "latex-document",
             "mirage",
         };
         String[] gotFormats = new String[ handlers.size() ];

@@ -26,8 +26,10 @@ import uk.ac.starlink.table.formats.TstTableBuilder;
 import uk.ac.starlink.table.formats.WDCTableBuilder;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.JDBCTableScheme;
+import uk.ac.starlink.util.BeanConfig;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.URLDataSource;
 
@@ -1119,30 +1121,65 @@ public class StarTableFactory {
             }
         }
 
-        /* See if it's a classname */
-        try {
-            Class<?> clazz = Class.forName( name );
-            if ( TableBuilder.class.isAssignableFrom( clazz ) ) {
-                return (TableBuilder) clazz.newInstance();
+        /* See if it's a dynamically created builder; the basic name
+         * may be either a builder name or a TableBuilder classname,
+         * and an optional configuration parenthesis may be appended. */
+        BeanConfig config = BeanConfig.parseSpec( name );
+        String cname = config.getBaseText();
+        Class<? extends TableBuilder> clazz = getBuilderClass( cname );
+        if ( clazz != null ) {
+            TableBuilder tbuilder;
+            try {
+                tbuilder = clazz.newInstance();
             }
-            else {
-                throw new TableFormatException(
-                    "Class " + clazz + " does not implement TableBuilder" );
+            catch ( ReflectiveOperationException e ) {
+                throw new TableFormatException( "Can't instantiate class "
+                                              + clazz.getName(), e );
             }
-        }
-        catch ( InstantiationException e ) {
-            throw new TableFormatException( e.toString(), e );
-        }
-        catch ( IllegalAccessException e ) {
-            throw new TableFormatException( e.toString(), e );
-        }
-        catch ( ClassNotFoundException e ) {
-            // No, it's not a class name.
+            try {
+                config.configBean( tbuilder );
+            }
+            catch ( LoadException e ) {
+                throw new TableFormatException( "Handler configuration failed: "
+                                              + e, e );
+            }
+            return tbuilder;
         }
 
         /* Failed to find any handler for name. */
         throw new TableFormatException( "No table handler available for "
                                       + name );
+    }
+
+    /**
+     * Returns the TableBuilder subclass corresponding to a given
+     * specified name.  This may be a classname or the name of one of
+     * the handlers known to this factory.
+     *
+     * @param  name  class name or label
+     * @return  class, or null if nothing suitable is found
+     */
+    private Class<? extends TableBuilder> getBuilderClass( String name )
+            throws TableFormatException {
+        for ( TableBuilder builder : knownBuilders_ ) {
+            if ( builder.getFormatName().equalsIgnoreCase( name ) ) {
+                return builder.getClass();
+            }
+        }
+        Class<?> clazz;
+        try {
+            clazz = Class.forName( name );
+        }
+        catch ( ClassNotFoundException e ) {
+            return null;
+        }
+        if ( TableBuilder.class.isAssignableFrom( clazz ) ) {
+            return clazz.asSubclass( TableBuilder.class ); 
+        }
+        else {
+            throw new TableFormatException( "Class " + clazz.getName()
+                                          + " does not implement TableBuilder");
+        }
     }
 
     /**

@@ -7,9 +7,6 @@ import java.io.FileOutputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -28,6 +25,8 @@ import uk.ac.starlink.table.formats.IpacTableWriter;
 import uk.ac.starlink.table.formats.LatexTableWriter;
 import uk.ac.starlink.table.formats.TextTableWriter;
 import uk.ac.starlink.table.formats.TstTableWriter;
+import uk.ac.starlink.util.BeanConfig;
+import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -118,46 +117,10 @@ public class StarTableOutput {
                     (Class<? extends StarTableWriter>)
                     Class.forName( className );
 
-                /* See if the class provides a method which can return
-                 * a list of handlers. */
-                StarTableWriter[] writers = null;
-                try {
-                    Method getList = clazz.getMethod( "getStarTableWriters", 
-                                                       new Class<?>[ 0 ] );
-                    int mods = getList.getModifiers();
-                    if ( Modifier.isStatic( mods ) && 
-                         Modifier.isPublic( mods ) ) {
-                        Class<?> retClass = getList.getReturnType();
-                        if ( retClass.isArray() && 
-                             StarTableWriter.class
-                            .isAssignableFrom( retClass.getComponentType() ) ) {
-                            writers = (StarTableWriter[]) 
-                                      getList.invoke( null, new Object[ 0 ] );
-                        }
-                    }
-                }
-                catch ( NoSuchMethodException e ) {
-                    // no problem
-                }
-
-                /* If we got a list, use that. */
-                if ( writers != null ) {
-                    for ( int j = 0; j < writers.length; j++ ) {
-                        StarTableWriter handler = writers[ j ];
-                        handlers_.add( handler );
-                        logger.config( "Handler " + handler.getFormatName() +
-                                       " registered" );
-                    }
-                }
-
-                /* Otherwise, just instantiate the class with a no-arg
-                 * constructor. */
-                else {
-                    StarTableWriter handler = clazz.newInstance();
-                    handlers_.add( handler );
-                    logger.config( "Handler " + handler.getFormatName() +
-                                   " registered" );
-                }
+                StarTableWriter handler = clazz.newInstance();
+                handlers_.add( handler );
+                logger.config( "Handler " + handler.getFormatName() +
+                               " registered" );
             }
             catch ( ClassNotFoundException e ) {
                 logger.config( className + " not found - can't register" );
@@ -478,46 +441,99 @@ public class StarTableOutput {
                                             "specific output handler" );
         }
 
-        /* See if the format is the class name of a StarTableWriter. */
-        try {
-            Class<?> fcls = Class.forName( format );
-            if ( StarTableWriter.class.isAssignableFrom( fcls ) ) {
+        /* Parse the format name, and see if it has a configuration
+         * parenthesis. */
+        BeanConfig config = BeanConfig.parseSpec( format );
+        String fname = config.getBaseText();
+        boolean isDynamic = config.getConfigText() != null;
 
-                /* Is it one of the registered ones? */
-                for ( StarTableWriter handler : handlers_ ) {
-                    if ( fcls.isInstance( handler ) ) {
-                        return handler;
-                    }
-                }
-
-                /* Otherwise, can we instantiate it with a no-arg
-                 * constructor? */
-                try {
-                    StarTableWriter handler = 
-                        (StarTableWriter) fcls.newInstance();
+        /* If there's no dynamic configuration required, try all the
+         * known handlers, matching against prefix of format name. */
+        if ( ! isDynamic ) {
+            for ( StarTableWriter handler : handlers_ ) {
+                if ( handler.getFormatName().toLowerCase()
+                            .startsWith( format.toLowerCase() ) ) {
                     return handler;
                 }
-                catch ( IllegalAccessException e ) {
-                }
-                catch ( InstantiationException e ) {
-                }
             }
-        }
-        catch ( ClassNotFoundException e ) {
-            // it's not a class name
         }
 
-        /* Otherwise, see if it names an output format. */
-        for ( StarTableWriter handler : handlers_ ) {
-            if ( handler.getFormatName().toLowerCase()
-                        .startsWith( format.toLowerCase() ) ) { 
-                return handler;
+        /* Otherwise, try to create a handler based on the given name,
+         * which may be a handler name or a StarTableWriter classname,
+         * and configure it if so required. */
+        StarTableWriter handler = createNamedHandler( fname );
+        if ( handler != null ) {
+            try {
+                config.configBean( handler );
             }
+            catch ( LoadException e ) {
+                throw new TableFormatException( "Handler configuration failed: "
+                                              + e, e );
+            }
+            return handler;
         }
 
         /* No luck - throw an exception. */
         throw new TableFormatException( "No handler for table format \"" +
                                         format + "\"" );
+    }
+
+    /**
+     * Returns a newly created TableBuilder instance corresponding to a given
+     * specified name.  The given name may be a classname or the name
+     * of one of the handlers known to this factory that corresponds to
+     * a default instance (created with a no-arg constructor).
+     *
+     * @param   name  class name or label
+     * @return  new and unconfigured StarTableWriter instance,
+     *          or null if nothing suitable is found
+     * @throws   TableFormatException  if the given name looks like it
+     *           references a class but there is a problem with it
+     */
+    private StarTableWriter createNamedHandler( String fname )
+            throws TableFormatException {
+        for ( StarTableWriter handler : handlers_ ) {
+            if ( handler.getFormatName().toLowerCase().equals( fname ) ) {
+                Class<? extends StarTableWriter> hclazz = handler.getClass();
+                StarTableWriter handler1;
+                try {
+                    handler1 = hclazz.newInstance();
+                }
+                catch ( ReflectiveOperationException e ) {
+                    throw new TableFormatException( "Can't instantiate class "
+                                                  + hclazz.getName() );
+                }
+                if ( handler1.getFormatName().equalsIgnoreCase( fname ) ) {
+                    return handler1;
+                }
+                else {
+                    return null;
+                }
+            }
+        }
+        Class<?> clazz;
+        try {
+            clazz = Class.forName( fname );
+        }
+        catch ( ClassNotFoundException e ) {
+            return null;
+        }
+        if ( StarTableWriter.class.isAssignableFrom( clazz ) ) {
+            Class<? extends StarTableWriter> hclazz =
+                clazz.asSubclass( StarTableWriter.class );
+            try {
+                return hclazz.newInstance();
+            }
+            catch ( ReflectiveOperationException e ) {
+                throw new TableFormatException( "Can't instantiate class "
+                                              + hclazz.getName() );
+            }
+        }
+        else {
+            throw new TableFormatException( "Class " + clazz.getName()
+                                          + " does not implement"
+                                          + " StarTableWriter" );
+        }
     }
 
     /**

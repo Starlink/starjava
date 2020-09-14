@@ -506,7 +506,6 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
     public String getFormatName() {
         StringBuffer fname = new StringBuffer( "votable" );
         if ( dataFormat == DataFormat.TABLEDATA ) {
-            fname.append( "-tabledata" );
             return fname.toString();
         }
 

@@ -531,7 +531,7 @@ public class EcsvTableWriter extends StreamStarTableWriter {
      */
     public static StarTableWriter[] getStarTableWriters() {
         return new StarTableWriter[] {
-            SPACE_WRITER,
+            new EcsvTableWriter(),
             COMMA_WRITER,
         };
     }

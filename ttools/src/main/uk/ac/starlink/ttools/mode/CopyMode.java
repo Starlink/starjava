@@ -108,7 +108,7 @@ public class CopyMode implements ProcessingMode {
                     String msg = isAuto
                                ? ( "Can't guess output format for " + loc )
                                : ( "No handler for output format " + fmt );
-                    throw new UsageException( msg );
+                    throw new UsageException( msg, e );
                 }
             }
             loc_ = loc;
