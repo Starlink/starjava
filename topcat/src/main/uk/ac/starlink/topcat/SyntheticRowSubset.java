@@ -6,7 +6,6 @@ import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.util.List;
 import java.util.logging.Logger;
-import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 
 /**
  * A <tt>RowSubset</tt> which uses an algebraic expression based on the
@@ -22,7 +21,7 @@ import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 public class SyntheticRowSubset extends RowSubset {
 
     private String expression_;
-    private RandomJELRowReader rowReader_;
+    private TopcatJELRowReader rowReader_;
     private CompiledExpression compEx_;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -36,7 +35,7 @@ public class SyntheticRowSubset extends RowSubset {
      * @param  rowReader   context for JEL expression evaluation
      */
     public SyntheticRowSubset( String name, String expression,
-                               RandomJELRowReader rowReader ) 
+                               TopcatJELRowReader rowReader ) 
             throws CompilationException {
         super( name );
         setExpression( expression, rowReader );
@@ -48,7 +47,7 @@ public class SyntheticRowSubset extends RowSubset {
      * @param  expression  JEL expression
      * @param  rowReader   context for JEL expression evaluation
      */
-    public void setExpression( String expression, RandomJELRowReader rowReader )
+    public void setExpression( String expression, TopcatJELRowReader rowReader )
             throws CompilationException {
         Library lib = TopcatJELUtils.getLibrary( rowReader, false );
         compEx_ = Evaluator.compile( expression, lib, boolean.class );
@@ -67,9 +66,7 @@ public class SyntheticRowSubset extends RowSubset {
 
     public boolean isIncluded( long lrow ) {
         try {
-            Boolean result =
-                (Boolean) rowReader_.evaluateAtRow( compEx_, lrow );
-            return result == null ? false : result.booleanValue();
+            return rowReader_.evaluateBooleanAtRow( compEx_, lrow );
         }
         catch ( RuntimeException e ) {
             logger.info( e.toString() );

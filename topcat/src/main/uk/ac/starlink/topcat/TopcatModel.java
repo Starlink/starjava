@@ -783,7 +783,7 @@ public class TopcatModel {
      *
      * @return  row reader
      */
-    public RandomJELRowReader createJELRowReader() {
+    public TopcatJELRowReader createJELRowReader() {
         return TopcatJELRowReader.createConcurrentReader( this );
     }
 
@@ -826,7 +826,7 @@ public class TopcatModel {
      * Where this can't be done, a warning is issued.
      */
     public void recompileSubsets() {
-        RandomJELRowReader jeller = createJELRowReader();
+        TopcatJELRowReader jeller = createJELRowReader();
         int nset = subsets_.size();
         for ( int is = 0; is < nset; is++ ) {
             RowSubset rs = subsets_.get( is );

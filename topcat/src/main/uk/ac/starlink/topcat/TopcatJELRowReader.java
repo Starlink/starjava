@@ -84,6 +84,19 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
         return tcModel_;
     }
 
+
+    /**
+     * Evaluates a given compiled expression of boolean return type
+     * at a given row.
+     *
+     * @param  compEx  compiled boolean expression
+     * @param  lrow   row at which to evaluate
+     * @return   expression value
+     */
+    public abstract boolean evaluateBooleanAtRow( CompiledExpression compEx,
+                                                  long lrow )
+            throws Throwable;
+
     /**
      * Overrides superclass implementation to recognise row subsets
      * by name or _ID.
@@ -385,6 +398,12 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
                 lrow_ = lrow;
                 return evaluate( compEx );
             }
+            public synchronized boolean
+                    evaluateBooleanAtRow( CompiledExpression compEx, long lrow )
+                    throws Throwable {
+                lrow_ = lrow;
+                return evaluateBoolean( compEx );
+            }
         };
     }
 
@@ -413,6 +432,15 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
                 }
                 return evaluate( compEx );
             }
+            public boolean evaluateBooleanAtRow( CompiledExpression compEx,
+                                                 long lrow )
+                    throws Throwable {
+                if ( lrow != lrow_ ) {
+                    racc.setRowIndex( lrow );
+                    lrow_ = lrow;
+                }
+                return evaluateBoolean( compEx );
+            }
         };
     }
 
@@ -433,6 +461,10 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
                 throw new UnsupportedOperationException();
             }
             public Object evaluateAtRow( CompiledExpression compEx, long lr ) {
+                throw new UnsupportedOperationException();
+            }
+            public boolean evaluateBooleanAtRow( CompiledExpression compEx,
+                                                 long lrow ) {
                 throw new UnsupportedOperationException();
             }
         };
