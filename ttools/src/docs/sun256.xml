@@ -12569,6 +12569,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Upgrade cds-healpix-java library to v0.28_1; avoid occasional
+        sky crossmatch failures (termination with error).</li>
     </ul>
     </p></dd>
 

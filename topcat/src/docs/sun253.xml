@@ -29769,6 +29769,8 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Upgrade cds-healpix-java library to v0.28_1; avoid occasional
+        sky crossmatch failures (termination with error).</li>
     </ul>
     </p></dd>
 
