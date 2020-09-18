@@ -12972,6 +12972,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>COOSYS and TIMESYS attributes are now preserved
         during VOTable I/O for table PARAMs
         (as well as for FIELDs, which was already the case).</li>
+    <li>Fix bug that could give unhelpful table load error message
+        for very short non-FITS files.</li>
     </ul>
     </p></dd>
 

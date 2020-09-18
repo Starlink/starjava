@@ -280,6 +280,9 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      *          file written by this handler
      */
     public boolean isMagic( byte[] buffer ) {
+        if ( buffer.length < 2 * 80 ) {
+            return false;
+        }
         final int ntest = FitsConstants.FITS_BLOCK / 80;
         int pos = 0;
         int ncard = 0;

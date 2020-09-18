@@ -435,6 +435,9 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
      * @return  true  if it looks like a FitsPlus file
      */
     public static boolean isMagic( byte[] buffer ) {
+        if ( buffer.length < 2 * 80 ) {
+            return false;
+        }
         final int ntest = 5;
         int pos = 0;
         int ncard = 0;
