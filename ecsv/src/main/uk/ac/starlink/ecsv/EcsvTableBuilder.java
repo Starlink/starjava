@@ -6,9 +6,9 @@ import java.io.InputStream;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -20,7 +20,7 @@ import uk.ac.starlink.util.DataSource;
  * @author   Mark Taylor
  * @since    29 Apr 2020
  */
-public class EcsvTableBuilder implements TableBuilder {
+public class EcsvTableBuilder extends DocumentedTableBuilder {
 
     private final YamlParser yamlParser_;
 
@@ -28,15 +28,12 @@ public class EcsvTableBuilder implements TableBuilder {
      * Constructor.
      */
     public EcsvTableBuilder() {
+        super( new String[] { "ecsv" } );
         yamlParser_ = new SnakeYamlParser();
     }
 
     public String getFormatName() {
         return "ECSV";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        return location.toLowerCase().endsWith( ".ecsv" );
     }
 
     public boolean canImport( DataFlavor flavor ) {
@@ -97,6 +94,18 @@ public class EcsvTableBuilder implements TableBuilder {
                 };
             }
         };
+    }
+
+    public String getXmlDescription() {
+        return readText( "EcsvTableBuilder.xml" );
+    }
+
+    public boolean canStream() {
+        return true;
+    }
+
+    public boolean docIncludesExample() {
+        return false;
     }
 
     /**
