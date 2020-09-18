@@ -16,10 +16,11 @@ import uk.ac.bristol.star.cdf.record.Bufs;
 import uk.ac.bristol.star.cdf.record.WrapperBuf;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.ByteStore;
+import uk.ac.starlink.table.formats.DocumentedIOHandler;
+import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
@@ -31,7 +32,7 @@ import uk.ac.starlink.util.IOUtils;
  * @author   Mark Taylor
  * @since    24 Jun 2013
  */
-public class CdfTableBuilder implements TableBuilder {
+public class CdfTableBuilder extends DocumentedTableBuilder {
 
     /** Default CDF-StarTable translation profile. */
     public static final CdfTableProfile DEFAULT_PROFILE = createProfile(
@@ -56,6 +57,7 @@ public class CdfTableBuilder implements TableBuilder {
      * @param   profile  CDF-Startable translation profile
      */
     public CdfTableBuilder( CdfTableProfile profile ) {
+        super( new String[] { "cdf" } );
         profile_ = profile;
     }
 
@@ -64,10 +66,6 @@ public class CdfTableBuilder implements TableBuilder {
      */
     public String getFormatName() {
         return "CDF";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        return location.toLowerCase().endsWith( ".cdf" );
     }
 
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
@@ -124,6 +122,25 @@ public class CdfTableBuilder implements TableBuilder {
     public void streamStarTable( InputStream in, TableSink sink, String pos )
             throws IOException {
         throw new TableFormatException( "Can't stream from CDF format" );
+    }
+
+    public String getXmlDescription() {
+        return String.join( "\n",
+            "<p>NASA's Common Data Format, described at",
+            DocumentedIOHandler.toLink( "http://cdf.gsfc.nasa.gov/" ) + ",",
+            "is a binary format for storing self-described data.",
+            "It is typically used to store tabular data for subject areas",
+            "like space and solar physics.",
+            "</p>",
+        "" );
+    }
+
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public boolean canStream() {
+        return false;
     }
 
     /**
