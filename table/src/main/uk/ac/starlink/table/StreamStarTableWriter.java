@@ -19,6 +19,8 @@ public abstract class StreamStarTableWriter implements StarTableWriter {
      * {@link #writeStarTable(uk.ac.starlink.table.StarTable,
      *                        java.io.OutputStream)} method.
      *
+     * <p>This method just invokes the static utility method of the same name.
+     *
      * @param  startab   table to write
      * @param  location  table destination
      * @param  sto       StarTableOutput
@@ -26,17 +28,26 @@ public abstract class StreamStarTableWriter implements StarTableWriter {
     public void writeStarTable( StarTable startab, String location,
                                 StarTableOutput sto )
             throws TableFormatException, IOException {
-        OutputStream out = null;
-        try {
-            out = sto.getOutputStream( location );
-            out = new BufferedOutputStream( out );
-            writeStarTable( startab, out );
+        writeStarTable( this, startab, location, sto );
+    }
+
+    /**
+     * Utility method that writes a table to a location
+     * using a given output handler.
+     *
+     * @param  writer   output handler
+     * @param  startab   table to write
+     * @param  location   destination
+     * @param  sto      output controller
+     */
+    public static void writeStarTable( StarTableWriter writer,
+                                       StarTable startab, String location,
+                                       StarTableOutput sto )
+            throws IOException {
+        try ( OutputStream out =
+                  new BufferedOutputStream( sto.getOutputStream( location ) ) ){
+            writer.writeStarTable( startab, out );
             out.flush();
-        }
-        finally {
-            if ( out != null ) {
-                out.close();
-            }
         }
     }
 }
