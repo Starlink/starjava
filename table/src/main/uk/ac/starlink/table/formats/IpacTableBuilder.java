@@ -14,7 +14,6 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
@@ -28,7 +27,7 @@ import uk.ac.starlink.util.DataSource;
  * @author   Mark Taylor
  * @since    7 Feb 2006
  */
-public class IpacTableBuilder implements TableBuilder {
+public class IpacTableBuilder extends DocumentedTableBuilder {
 
     /**
      * Parameter used for IPAC format comments, of which there may be
@@ -39,15 +38,15 @@ public class IpacTableBuilder implements TableBuilder {
         new DefaultValueInfo( "Ipac_Comments", String.class,
                               "IPAC format comment lines" );
 
+    public IpacTableBuilder() {
+        super( new String[] { "tbl", "ipac", } );
+    }
+
     /**
      * Returns "IPAC".
      */
     public String getFormatName() {
         return "IPAC";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        return location.endsWith( ".tbl" );
     }
 
     public boolean canImport( DataFlavor flavor ) {
@@ -89,6 +88,18 @@ public class IpacTableBuilder implements TableBuilder {
                     new BufferedInputStream( datsrc.getInputStream() ) );
             }
         };
+    }
+
+    public boolean canStream() {
+        return true;
+    }
+
+    public boolean docIncludesExample() {
+        return true;
+    }
+
+    public String getXmlDescription() {
+        return readText( "IpacTableBuilder.xml" );
     }
 
     /**

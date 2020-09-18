@@ -1,0 +1,8 @@
+<p>CalTech's Infrared Processing and Analysis Center
+use a text-based format for storage of tabular data,
+defined at
+<a href="http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html"
+        >http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html</a>.
+Tables can store column name, type, units and null values, as well
+as table parameters.
+</p>

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
@@ -17,14 +16,14 @@ import uk.ac.starlink.util.DataSource;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class AsciiTableBuilder implements TableBuilder {
+public class AsciiTableBuilder extends DocumentedTableBuilder {
+
+    public AsciiTableBuilder() {
+        super( new String[] { "txt" } );
+    }
 
     public String getFormatName() {
         return "ASCII";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        return location.toLowerCase().endsWith( ".txt" );
     }
 
     public boolean canImport( DataFlavor flavor ) {
@@ -40,5 +39,17 @@ public class AsciiTableBuilder implements TableBuilder {
     public void streamStarTable( InputStream in, TableSink sink, String pos )
             throws TableFormatException {
         throw new TableFormatException( "Can't stream ASCII format tables" ); 
+    }
+
+    public boolean canStream() {
+        return false;
+    }
+
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public String getXmlDescription() {
+        return readText( "AsciiTableBuilder.xml" );
     }
 }

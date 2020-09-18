@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
@@ -20,14 +19,14 @@ import uk.ac.starlink.util.DataSource;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class WDCTableBuilder implements TableBuilder {
+public class WDCTableBuilder extends DocumentedTableBuilder {
+
+    public WDCTableBuilder() {
+        super( new String[ 0 ] );
+    }
 
     public String getFormatName() {
         return "WDC";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        return false;
     }
 
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
@@ -70,6 +69,18 @@ public class WDCTableBuilder implements TableBuilder {
     public void streamStarTable( InputStream in, TableSink sink, String pos )
             throws TableFormatException {
         throw new TableFormatException( "WDC streaming not implemented" );
+    }
+
+    public boolean canStream() {
+        return false;
+    }
+
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public String getXmlDescription() {
+        return readText( "WDCTableBuilder.xml" );
     }
 
     public static String readLine( BufferedInputStream strm ) 

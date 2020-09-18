@@ -1,0 +1,45 @@
+<p>Comma-separated value ("CSV") format is a common semi-standard
+text-based format in which fields are delimited by commas.
+Spreadsheets and databases are often able to export data in some
+variant of it.  The intention is to read tables in
+the version of the format spoken by MS Excel amongst other applications,
+though the documentation
+on which it was based was not obtained directly from Microsoft.
+</p>
+
+<p>The rules for data which it understands are as follows:
+<ul>
+<li>Each row must have the same number of comma-separated fields.</li>
+<li>Whitespace (space or tab) adjacent to a comma is ignored.</li>
+<li>Adjacent commas, or a comma at the start or end of a line
+    (whitespace apart) indicates a null field.</li>
+<li>Lines are terminated by any sequence of carriage-return or newline
+    characters ('\r' or '\n')
+    (a corollary of this is that blank lines are ignored).</li>
+<li>Cells may be enclosed in double quotes; quoted values may contain
+    linebreaks (or any other character); a double quote character within
+    a quoted value is represented by two adjacent double quotes. </li>
+<li>The first line <em>may</em> be a header line containing column names
+    rather than a row of data.  Exactly the same syntactic rules are
+    followed for such a row as for data rows.</li>
+</ul>
+Note that you can <em>not</em> use a "<code>#</code>" character
+(or anything else) to introduce "comment" lines.
+</p>
+
+<p>Because the CSV format contains no metadata beyond column names,
+the handler is forced to guess the datatype of the values in each column.
+It does this by reading the whole file through once and guessing
+on the basis of what it has seen.  This has the disadvantages:
+<ul>
+<li>Sometimes it guesses a different type than what you want
+    (e.g. 32-bit integer rather than 64-bit integer)</li>
+<li>It's slow to read.</li>
+</ul>
+This means that CSV is not generally recommended if you can
+use another format instead.
+If you're stuck with a large CSV file that's misbehaving or slow
+to use, one possibility is to turn it into an ECSV file
+file by adding some header lines by hand.
+</p>
+

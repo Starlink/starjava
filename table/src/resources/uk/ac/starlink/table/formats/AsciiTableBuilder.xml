@@ -1,0 +1,106 @@
+<p>In many cases tables are stored in some sort of unstructured plain
+text format, with cells separated by spaces or some other delimiters.
+There is a wide variety of such formats depending on what delimiters
+are used, how columns are identified, whether blank values are permitted
+and so on.  It is impossible to cope with them all, but the ASCII handler
+attempts to make a good guess about how to interpret a given ASCII file as
+a table, which in many cases is successful.  In particular, if you just
+have columns of numbers separated by something that looks like spaces,
+you should be just fine.
+</p>
+
+<p>Here are the detailed rules for how the ASCII-format tables are
+interpreted:
+<ul>
+<li>Bytes in the file are interpreted as ASCII characters</li>
+<li>Each table row is represented by a single line of text</li>
+<li>Lines are terminated by one or more contiguous line termination
+    characters: line feed (0x0A) or carriage return (0x0D)</li>
+<li>Within a line, fields are separated by one or more whitespace
+    characters: space (" ") or tab (0x09)</li>
+<li>A field is either an unquoted sequence of non-whitespace characters,
+    or a sequence of non-newline characters between matching
+    single (') or double (") quote characters -
+    spaces are therefore allowed in quoted fields</li>
+<li>Within a quoted field, whitespace characters are permitted and are
+    treated literally</li>
+<li>Within a quoted field, any character preceded by a backslash character
+    ("\") is treated literally.  This allows quote characters to appear
+    within a quoted string.</li>
+<li>An empty quoted string (two adjacent quotes)
+    or the string "<code>null</code>" (unquoted) represents
+    the null value</li>
+<li>All data lines must contain the same number of fields (this is the
+    number of columns in the table)</li>
+<li>The data type of a column is guessed according to the fields that
+    appear in the table.  If all the fields in one column can be parsed
+    as integers (or null values), then that column will turn into an
+    integer-type column.  The types that are tried, in order of
+    preference, are:
+       <code>Boolean</code>,
+       <code>Short</code>
+       <code>Integer</code>,
+       <code>Long</code>,
+       <code>Float</code>,
+       <code>Double</code>,
+       <code>String</code>
+    </li>
+<li>Some special values are permitted for floating point columns:
+    <code>NaN</code> for not-a-number, which is treated the same as a
+    null value for most purposes, and <code>Infinity</code> or <code>inf</code>
+    for infinity (with or without a preceding +/- sign).
+    These values are matched case-insensitively.</li>
+<li>Empty lines are ignored</li>
+<li>Anything after a hash character "#" (except one in a quoted string)
+    on a line is ignored as far as table data goes;
+    any line which starts with a "!" is also ignored.
+    However, lines which start with a "#" or "!" at the start of the table
+    (before any data lines) will be interpreted as metadata as follows:
+    <ul>
+    <li>The last "#"/"!"-starting line before the first data line may
+        contain
+        the column names.  If it has the same number of fields as
+        there are columns in the table, each field will be taken to be
+        the title of the corresponding column.  Otherwise, it will be
+        taken as a normal comment line.</li>
+    <li>Any comment lines before the first data line not covered by the
+        above will be concatenated to form the "description" parameter
+        of the table.</li>
+    </ul>
+    </li>
+</ul>
+</p>
+
+<p>If the list of rules above looks frightening, don't worry,
+in many cases it ought
+to make sense of a table without you having to read the small print.
+Here is an example of a suitable ASCII-format table:
+<pre>
+    #
+    # Here is a list of some animals.
+    #
+    # RECNO  SPECIES         NAME         LEGS   HEIGHT/m
+      1      pig             "Pigling Bland"  4  0.8
+      2      cow             Daisy        4      2
+      3      goldfish        Dobbin       ""     0.05
+      4      ant             ""           6      0.001
+      5      ant             ""           6      0.001
+      6      ant             ''           6      0.001
+      7      "queen ant"     'Ma\'am'     6      2e-3
+      8      human           "Mark"       2      1.8
+</pre>
+In this case it will identify the following columns:
+<pre>
+    Name       Type
+    ----       ----
+    RECNO      Short
+    SPECIES    String
+    NAME       String
+    LEGS       Short
+    HEIGHT/m   Float
+</pre>
+It will also use the text "<code>Here is a list of some animals</code>"
+as the Description parameter of the table.
+Without any of the comment lines, it would still interpret the table,
+but the columns would be given the names <code>col1</code>..<code>col5</code>.
+</p>

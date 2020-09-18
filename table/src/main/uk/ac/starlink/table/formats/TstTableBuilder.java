@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
@@ -19,14 +18,14 @@ import uk.ac.starlink.util.DataSource;
  * @author   Mark Taylor
  * @since    1 Aug 2006
  */
-public class TstTableBuilder implements TableBuilder {
+public class TstTableBuilder extends DocumentedTableBuilder {
+
+    public TstTableBuilder() {
+        super( new String[ 0 ] );
+    }
 
     public String getFormatName() {
         return "TST";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        return false;
     }
 
     public boolean canImport( DataFlavor flavor ) {
@@ -42,5 +41,17 @@ public class TstTableBuilder implements TableBuilder {
     public void streamStarTable( InputStream in, TableSink sink, String pos )
             throws TableFormatException {
         throw new TableFormatException( "Can't stream TST format tables" );
+    }
+
+    public boolean canStream() {
+        return false;
+    }
+
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public String getXmlDescription() {
+        return readText( "TstTableBuilder.xml" );
     }
 }

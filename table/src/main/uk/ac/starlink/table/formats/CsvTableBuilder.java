@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
@@ -18,14 +17,14 @@ import uk.ac.starlink.util.DataSource;
  * @author   Mark Taylor (Starlink)
  * @since    21 Sep 2004
  */
-public class CsvTableBuilder implements TableBuilder {
+public class CsvTableBuilder extends DocumentedTableBuilder {
+
+    public CsvTableBuilder() {
+        super( new String[] { "csv" } );
+    }
 
     public String getFormatName() {
         return "CSV";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        return location.toLowerCase().endsWith( ".csv" );
     }
 
     public boolean canImport( DataFlavor flavor ) {
@@ -41,5 +40,17 @@ public class CsvTableBuilder implements TableBuilder {
     public void streamStarTable( InputStream in, TableSink sink, String pos )
             throws TableFormatException {
         throw new TableFormatException( "Can't stream ASCII format tables" ); 
+    }
+
+    public boolean canStream() {
+        return false;
+    }
+
+    public boolean docIncludesExample() {
+        return true;
+    }
+
+    public String getXmlDescription() {
+        return readText( "CsvTableBuilder.xml" );
     }
 }
