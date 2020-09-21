@@ -1,0 +1,78 @@
+<p>FITS is a very well-established format for storage of
+astronomical table or image data
+(see <a href="https://fits.gsfc.nasa.gov/">https://fits.gsfc.nasa.gov/</a>).
+This reader can read tables stored in
+binary (<code>XTENSION='BINTABLE'</code>) and
+ASCII (<code>XTENSION='TABLE'</code>) table extensions;
+any image data is ignored.
+Currently, binary table extensions are read much more efficiently
+than ASCII ones.
+</p>
+
+<p>When a table is stored in a BINTABLE extension in an uncompressed
+FITS file on disk, the table is 'mapped' into memory;
+this generally means very fast loading and low memory usage.
+FITS tables are thus usually efficient to use.
+</p>
+
+<p>Limited support is provided for the semi-standard
+<a href="https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf"
+   >HEALPix-FITS</a> convention;
+such information about HEALPix level and coordinate system is read
+and made available for application usage and user examination.
+</p>
+
+<p>A private convention is used to support encoding of tables with
+more than 999 columns (not possible in standard FITS);
+this was discussed on the FITSBITS mailing list in July 2017
+in the thread
+<a href="https://listmgr.nrao.edu/pipermail/fitsbits/2017-July/002967.html"
+   >BINTABLE convention for >999 columns</a>.
+</p>
+
+<p>Header cards in the table's HDU header will be
+made available as table parameters.
+Only header cards which are not used to specify the table format itself
+are visible as parameters (e.g. NAXIS, TTYPE* etc cards are not).
+HISTORY and COMMENT cards are run together as one multi-line value.
+</p>
+
+<p>Any 64-bit integer column with a non-zero integer offset
+(<code>TFORMn='K'</code>, <code>TSCALn=1</code>, <code>TZEROn&lt;&gt;0</code>)
+is represented in the read table as Strings giving the decimal integer value,
+since no numeric type in Java is capable of representing the whole range of
+possible inputs.  Such columns are most commonly seen representing
+unsigned long values.
+</p>
+
+<p>Where a multi-extension FITS file contains more than one table,
+a single table may be specified using the position indicator,
+which may take one of the following forms:
+<ul>
+<li>The numeric index of the HDU.  The first extension
+    (first HDU after the primary HDU) is numbered 1.
+    Thus in a compressed FITS table named "<code>spec23.fits.gz</code>"
+    with one primary HDU and two BINTABLE extensions,
+    you would view the first one using the name "<code>spec23.fits.gz</code>"
+    or "<code>spec23.fits.gz#1</code>"
+    and the second one using the name "<code>spec23.fits.gz#2</code>".
+    The suffix "<code>#0</code>" is never used for a legal
+    FITS file, since the primary HDU cannot contain a table.
+    </li>
+<li>The name of the extension.
+    This is the value of the <code>EXTNAME</code> header in the HDU,
+    or alternatively the value of <code>EXTNAME</code>
+    followed by "<code>-</code>" followed by the value of <code>EXTVER</code>.
+    This follows the recommendation in
+    the FITS standard that <code>EXTNAME</code> and <code>EXTVER</code>
+    headers can be used to identify an HDU.
+    So in a multi-extension FITS file "<code>cat.fits</code>"
+    where a table extension
+    has <code>EXTNAME='UV_DATA'</code> and <code>EXTVER=3</code>,
+    it could be referenced as
+    "<code>cat.fits#UV_DATA</code>" or "<code>cat.fits#UV_DATA-3</code>".
+    Matching of these names is case-insensitive.
+    </li>
+</ul>
+</p>
+

@@ -20,11 +20,11 @@ import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.QueueTableSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
@@ -51,7 +51,8 @@ import uk.ac.starlink.util.IOUtils;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
+public class FitsTableBuilder extends DocumentedTableBuilder
+                              implements MultiTableBuilder {
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.fits" );
@@ -72,6 +73,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
      *                use null to avoid use of extended columns
      */
     public FitsTableBuilder( WideFits wide ) {
+        super( new String[] { "fit", "fits" } );
         wide_ = wide;
     }
 
@@ -80,12 +82,6 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
      */
     public String getFormatName() {
         return "FITS";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        String loc = location.toLowerCase();
-        return loc.endsWith( ".fit" )
-            || loc.endsWith( ".fits" );
     }
 
     /**
@@ -283,6 +279,18 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
         }
+    }
+
+    public boolean canStream() {
+        return true;
+    }
+
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public String getXmlDescription() {
+        return readText( "FitsTableBuilder.xml" );
     }
 
     /**

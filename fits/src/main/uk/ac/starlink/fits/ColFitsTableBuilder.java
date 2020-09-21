@@ -9,9 +9,9 @@ import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -30,7 +30,7 @@ import uk.ac.starlink.util.DataSource;
  * @author   Mark Taylor
  * @since    26 Jun 2006
  */
-public class ColFitsTableBuilder implements TableBuilder {
+public class ColFitsTableBuilder extends DocumentedTableBuilder {
 
     private final WideFits wide_;
 
@@ -48,15 +48,12 @@ public class ColFitsTableBuilder implements TableBuilder {
      *                use null to avoid use of extended columns
      */
     public ColFitsTableBuilder( WideFits wide ) {
+        super( new String[] { "colfits" } );
         wide_ = wide;
     }
 
     public String getFormatName() {
         return "colfits-basic";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        return location.toLowerCase().endsWith( ".colfits" );
     }
 
     public void streamStarTable( InputStream in, TableSink sink, String pos )
@@ -96,5 +93,17 @@ public class ColFitsTableBuilder implements TableBuilder {
         }
 
         return new ColFitsStarTable( datsrc, hdr, pos, false, wide_ );
+    }
+
+    public boolean canStream() {
+        return false;
+    }
+
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public String getXmlDescription() {
+        return readText( "ColFitsTableBuilder.xml" );
     }
 }

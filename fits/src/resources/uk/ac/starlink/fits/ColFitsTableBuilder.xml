@@ -1,0 +1,29 @@
+<p>As well as normal binary and ASCII FITS tables, STIL supports
+FITS files which contain tabular data stored in column-oriented format.
+This means that the table is stored in a BINTABLE extension HDU,
+but that BINTABLE has a single row, with each cell of that row
+holding a whole column's worth of data.  The final (slowest-varying)
+dimension of each of these cells (declared via the <code>TDIMn</code> headers)
+is the same for every column, namely,
+the number of rows in the table that is represented.
+The point of this is that all the cells for each column are stored
+contiguously, which for very large, and especially very wide tables
+means that certain access patterns (basically, ones which access
+only a small proportion of the columns in a table) can be much more
+efficient since they require less I/O overhead in reading data blocks.
+</p>
+
+<p>Such tables are perfectly legal FITS files,
+but general-purpose FITS software
+may not recognise them as multi-row tables in the usual way.
+This format is mostly intended for the case where you have a large
+table in some other format (possibly the result of an SQL query)
+and you wish to cache it in a way which can be read efficiently
+by a STIL-based application.
+</p>
+
+<p>For performance reasons, it is advisable to access colfits files
+uncompressed on disk. Reading them from a remote URL, or in gzipped form,
+may be rather slow (in earlier versions it was not supported at all).
+</p>
+
