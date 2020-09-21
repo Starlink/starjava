@@ -1280,6 +1280,15 @@
       <arg value="-stil"/>
       <arg value="-stilts"/>
     </java>
+    <java classname="uk.ac.starlink.ttools.build.HandlerDoc"
+          failonerror="yes"
+          fork="yes"
+          dir="${build.docs}"
+          logerror="yes"
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-files"/>
+    </java>
 
     <!-- Write XML files containing MatchEngine usage information
      !   for inclusion in the user document. -->

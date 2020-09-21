@@ -44,6 +44,33 @@
   <!ENTITY layertype-docs SYSTEM 'layertype-docs.xml'>
   <!ENTITY shapemode-docs SYSTEM 'shapemode-docs.xml'>
 
+  <!-- Description of I/O handlers. -->
+  <!ENTITY in-ascii SYSTEM 'in-ascii.xml'>
+  <!ENTITY in-cdf SYSTEM 'in-cdf.xml'>
+  <!ENTITY in-colfits SYSTEM 'in-colfits-basic.xml'>
+  <!ENTITY in-csv SYSTEM 'in-csv.xml'>
+  <!ENTITY in-ecsv SYSTEM 'in-ecsv.xml'>
+  <!ENTITY in-feather SYSTEM 'in-feather.xml'>
+  <!ENTITY in-fits SYSTEM 'in-fits.xml'>
+  <!ENTITY in-gbin SYSTEM 'in-gbin.xml'>
+  <!ENTITY in-ipac SYSTEM 'in-ipac.xml'>
+  <!ENTITY in-tst SYSTEM 'in-tst.xml'>
+  <!ENTITY in-votable SYSTEM 'in-votable.xml'>
+  <!ENTITY in-wdc SYSTEM 'in-wdc.xml'>
+  <!ENTITY out-ascii SYSTEM 'out-ascii.xml'>
+  <!ENTITY out-csv SYSTEM 'out-csv.xml'>
+  <!ENTITY out-colfits SYSTEM 'out-colfits-plus.xml'>
+  <!ENTITY out-ecsv SYSTEM 'out-ecsv.xml'>
+  <!ENTITY out-feather SYSTEM 'out-feather.xml'>
+  <!ENTITY out-fits SYSTEM 'out-fits-plus.xml'>
+  <!ENTITY out-html SYSTEM 'out-html.xml'>
+  <!ENTITY out-ipac SYSTEM 'out-ipac.xml'>
+  <!ENTITY out-latex SYSTEM 'out-latex.xml'>
+  <!ENTITY out-mirage SYSTEM 'out-mirage.xml'>
+  <!ENTITY out-text SYSTEM 'out-text.xml'>
+  <!ENTITY out-tst SYSTEM 'out-tst.xml'>
+  <!ENTITY out-votable SYSTEM 'out-votable.xml'>
+
   <!-- Summary paragraphs containing usage for each commmand. -->
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY cdsskymatch-summary SYSTEM 'cdsskymatch-summary.xml'>
@@ -2113,112 +2140,7 @@ and others can only hold a single table per file.
 
 <p>Some of the tools in this package ask you to specify the format
 of input tables using the <code>ifmt</code> parameter.
-The following list gives the values usually allowed for this
-(matching is case-insensitive):
-<dl>
-
-<dt><code>fits</code></dt>
-<dd><p>FITS format - FITS binary or ASCII tables can be read.
-    For commands which take a single input table, by default the 
-    first table HDU in the file will used, but this can
-    be altered for multi-extension FITS files by supplying
-    an identifier after a '#' sign.
-    The identifier can be either an HDU index or the extension name
-    (EXTNAME header, possibly followed by "-" and the EXTVER header),
-    so "table.fits#3" means the third HDU extension, and
-    "table.fits#UV_DATA" means the HDU with the value "UV_DATA" for its
-    EXTNAME header card.
-    </p></dd>
-
-<dt><code>colfits</code></dt>
-<dd><p>Column-oriented FITS format.  This is where a table is stored as
-    a BINTABLE extension which contains a single row, each cell of the
-    row containing a whole column of the table it represents.
-    This has different performance characteristics from normal FITS tables;
-    in particular it may be considerably more efficient for very large, and
-    especially very wide tables where not all of the columns are required
-    at any one time.
-    Only likely to be efficient for uncompressed files on disk.
-    </p></dd>
-
-<dt><code>votable</code></dt>
-<dd><p>VOTable format - any legal version 1.0, 1.1, 1.2, 1.3 or 1.4 format 
-    VOTable documents, and many illegal ones, can be read.
-    For commands which take a single input table, by default the first
-    <code>TABLE</code> element in the document is used, but this can be
-    altered by supplying the 0-based index after a '<code>#</code>' sign, 
-    so "table.xml#4" means the fifth <code>TABLE</code> element in the document.
-    </p></dd>
-
-<dt><code>ecsv</code></dt>
-<dd><p>Enhanced Character Separated Values format was developed within
-    the <webref url="https://www.astropy.org/">Astropy</webref> project
-    and is described at
-    <webref
-       url="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"/>.
-    It is composed of a YAML header followed by a CSV-like body,
-    and is intended to be a human-readable format with rich metadata.
-    Most of the per-column and per-table metadata used by STILTS
-    is preserved when de/serializing to this format.
-    STILTS currently supports ECSV 0.9.
-    </p></dd>
-
-<dt><code>cdf</code></dt>
-<dd><p>NASA Common Data Format.
-    CDF is described at <webref url="http://cdf.gsfc.nasa.gov/"/>.
-    </p></dd>
-
-<dt><code>feather</code></dt>
-<dd><p>Feather file format is a column-oriented binary disk-based format
-     based on Apache Arrow and supported by (at least) Python, R and Julia.
-     Some description of it is available at
-     <webref url="https://github.com/wesm/feather"/> and
-     <webref url="https://blog.rstudio.com/2016/03/29/feather/"/>.
-     It can be used for large datasets, but it does not support
-     array-valued columns.
-     It can be a useful format to use for exchanging data with R,
-     for which FITS I/O is reported to be slow.
-     </p></dd>
-
-<dt><code>ascii</code></dt>
-<dd><p>Plain text file with one row per column 
-    in which columns are separated by whitespace.
-    </p></dd>
-
-<dt><code>csv</code></dt>
-<dd><p>Comma-Separated Values format, 
-    using approximately the conventions used by MS Excel.
-    </p></dd>
-
-<dt><code>gbin</code></dt>
-<dd><p>Special-interest GBIN format for internal use by the DPAC
-    consortium in relation to the Gaia astrometry satellite.
-    Additional classes (data model and GaiaTools GBIN reader)
-    are required on the classpath at runtime to use this format
-    (e.g. <code>stilts -classpath MDBExplorerStandalone.jar</code>
-     or <code>java -classpath stilts.jar:MDBExplorerStandalone.jar
-              uk.ac.starlink.ttools.Stilts</code>).
-    </p></dd>
-
-<dt><code>tst</code></dt>
-<dd><p>Tab-Separated Table format,
-    as used by Starlink's GAIA and ESO's SkyCat amongst other tools.
-    </p></dd>
-
-<dt><code>ipac</code></dt>
-<dd><p>IPAC Table Format.
-    </p></dd>
-
-<dt><code>wdc</code></dt>
-<dd><p>World Datacentre Format (experimental).
-    </p></dd>
-
-</dl>
-For more details on these formats, see the descriptions in 
-<docxref doc="sun253" loc="inFormats"/>.
-</p>
-
-<p>In some cases
+In some cases
 (when using VOTable, FITS, ECSV, CDF, Feather or GBIN format tables,
 and for certain other formats if the filename extension is recognised) the 
 tools can detect the table format automatically, and no explicit 
@@ -2230,6 +2152,110 @@ and may lead to more helpful error messages in the case that the
 table can't be read correctly.
 </p>
 
+<p>The available input formats are described in the following subsections.
+</p>
+
+<subsubsubsect id="inFits">
+<subhead><title><code>fits</code></title></subhead>
+&in-fits;
+
+<p>There are actually two FITS input handlers,
+<code>fits-basic</code> and <code>fits-plus</code>.
+The <code>fits-basic</code> handler extracts standard column metadata
+from FITS headers of the HDU in which the table is found,
+while the <code>fits-plus</code> handler reads column and table metadata
+from VOTable content stored in the primary HDU of the multi-extension
+FITS file.
+FITS-plus is a private convention effectively defined by the
+corresponding output handler; it allows de/serialization of
+much richer metadata than can be stored in standard FITS headers
+when the FITS file is read by fits-plus-aware readers,
+though other readers can understand the unenhanced FITS file perfectly well.
+It is normally not necessary to worry about this distinction;
+STILTS will determine whether a FITS file is FITS-plus or not based on its
+content and use the appropriate handler, but if you want to force the
+reader to use or ignore the enriched header, you can explicitly specify
+an input format of "<code>fits-plus</code>" or "<code>fits-basic</code>".
+</p>
+</subsubsubsect>
+
+<subsubsubsect id="inColfits">
+<subhead><title><code>colfits</code></title></subhead>
+&in-colfits;
+
+<p>Like the normal (row-oriented) <ref id="inFits">FITS handler</ref>,
+two variants are supported:
+with (<code>colfits-plus</code>) or without (<code>colfits-basic</code>)
+metadata stored as a VOTable byte array in the primary HDU.
+</p>
+</subsubsubsect>
+
+<subsubsubsect id="inVotable">
+<subhead><title><code>votable</code></title></subhead>
+&in-votable;
+</subsubsubsect>
+
+<subsubsubsect id="inCdf">
+<subhead><title><code>cdf</code></title></subhead>
+&in-cdf;
+</subsubsubsect>
+
+<subsubsubsect id="inCsv">
+<subhead><title><code>csv</code></title></subhead>
+&in-csv;
+<p>See also <ref id="inEcsv">ECSV</ref> as a format which is
+similar and capable of storing more metadata.
+</p>
+</subsubsubsect>
+
+<subsubsubsect id="inEcsv">
+<subhead><title><code>ecsv</code></title></subhead>
+&in-ecsv;
+</subsubsubsect>
+
+<subsubsubsect id="inAscii">
+<subhead><title><code>ascii</code></title></subhead>
+&in-ascii;
+</subsubsubsect>
+
+<subsubsubsect id="inIpac">
+<subhead><title><code>ipac</code></title></subhead>
+&in-ipac;
+</subsubsubsect>
+
+<subsubsubsect id="inFeather">
+<subhead><title><code>feather</code></title></subhead>
+&in-feather;
+</subsubsubsect>
+
+<subsubsubsect id="inGbin">
+<subhead><title><code>gbin</code></title></subhead>
+&in-gbin;
+
+<p><strong>Example:</strong>
+Suppose you have the <code>MDBExplorerStandalone.jar</code> file
+containing the data model classes, you can read GBIN files by
+starting STILTS like this:
+<verbatim>
+   stilts -classpath MDBExplorerStandalone.jar ...
+</verbatim>
+or like this:
+<verbatim>
+   java -classpath stilts.jar:MDBExplorerStandalone.jar uk.ac.starlink.ttools.Stilts ...
+</verbatim>
+</p>
+</subsubsubsect>
+
+<subsubsubsect id="inTst">
+<subhead><title><code>tst</code></title></subhead>
+&in-tst;
+</subsubsubsect>
+
+<subsubsubsect id="inWdc">
+<subhead><title><code>wdc</code></title></subhead>
+&in-wdc;
+</subsubsubsect>
+
 </subsubsect>
 
 <subsubsect id="outFormats">
@@ -2237,149 +2263,81 @@ table can't be read correctly.
 
 <p>Some of the tools ask you to specify the format of output tables
 using the <code>ofmt</code> parameter.
-The following list gives the values usually allowed for this;
-in some cases as you can see there are several variants of a given format.
-You can abbreviate these names, and the first match in the list below
-will be used, so for instance specifying <code>votable</code> is equivalent
-to specifying <code>votable-tabledata</code> and <code>fits</code> 
-is equivalent to <code>fits-plus</code>.
-Matching is case-insensitive.
-
-<dl>
-
-<dt><code>fits-plus</code></dt>
-<dd><p>FITS file; primary HDU contains a VOTable representation
-    of the metadata, subsequent extensions contain one or more 
-    FITS binary tables (behaves the same as <code>fits-basic</code>
-    for most purposes)</p></dd>
-
-<dt><code>fits-basic</code></dt>
-<dd><p>FITS file; primary HDU is data-less, subsequent extensions
-    contain a FITS binary table</p></dd>
-
-<dt><code>fits-var</code></dt>
-<dd><p>FITS file; like <code>fits-basic</code>,
-    but the FITS <code>P</code> and <code>Q</code> format types are
-    used where appropriate to write variable-length array columns.
-    </p></dd>
-
-<dt><code>fits-healpix</code></dt>
-<dd><p>FITS file conforming to the
-    <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref>
-    serialization convention.
-    This resembles <code>fits-basic</code>, but can only be used for
-    writing tables containing HEALPix pixel data, and will rearrange
-    column sequence and names to follow the convention if necessary.
-    </p></dd>
-
-<dt><code>colfits-plus</code></dt>
-<dd><p>FITS file containing a BINTABLE with a single row; each cell of
-    the row contains a whole column's worth of data.
-    The primary HDU also contains a VOTable representation of the metadata.
-    </p></dd>
-
-<dt><code>colfits-basic</code></dt>
-<dd><p>FITS file containing a BINTABLE with a single row; each cell of
-    the row contains a whole column's worth of data.  The primary HDU
-    contains nothing.
-    </p></dd>
-
-<dt><code>votable-tabledata</code></dt>
-<dd><p>VOTable document with TABLEDATA (pure XML) encoding</p></dd>
-
-<dt><code>votable-binary-inline</code></dt>
-<dd><p>VOTable document with BINARY-encoded data inline within a 
-    <code>STREAM</code> element.
-    </p></dd>
-
-<dt><code>votable-binary-href</code></dt>
-<dd><p>VOTable document with BINARY-encoded data in a separate file
-    (only if not writing to a stream).
-    </p></dd>
-
-<dt><code>votable-binary2-inline</code></dt>
-<dd><p>VOTable document with BINARY2-encoded data inline within a
-    <code>STREAM</code> element.
-    This option is only available if VOTable output version is
-    VOTable 1.3 or later.
-    VOTable 1.4 is the default;
-    see the <code>votable.version</code>
-    <ref id="sysProperties">system property</ref>.
-    </p></dd>
-
-<dt><code>votable-binary2-href</code></dt>
-<dd><p>VOTable document with BINARY-encoded data in a separate file
-    (only if not writing to a stream).
-    This option is only available if VOTable output version is
-    VOTable 1.3 or later.
-    VOTable 1.4 is the default;
-    see the <code>votable.version</code>
-    <ref id="sysProperties">system property</ref>.
-    </p></dd>
-
-<dt><code>votable-fits-href</code></dt>
-<dd><p>VOTable document with FITS-encoded data in a separate file
-    (only if not writing to a stream)</p></dd>
-
-<dt><code>votable-fits-inline</code></dt>
-<dd><p>VOTable document with FITS-encoded data inline within a 
-    <code>STREAM</code> element</p></dd>
-
-<dt><code>ecsv-space</code></dt>
-<dd><p>Enhanced Character Separated Values format
-    using a space character as the delimiter</p></dd>
-
-<dt><code>ecsv-comma</code></dt>
-<dd><p>Enhanced Character Separated Values format
-    using a comma character as the delimiter</p></dd>
-
-<dt><code>feather</code></dt>
-<dd><p>Feather format.</p></dd>
-
-<dt><code>ascii</code></dt>
-<dd><p>Simple space-separated ASCII file format</p></dd>
-
-<dt><code>text</code></dt>
-<dd><p>Human-readable plain text (with headers and column boundaries marked
-    out)</p></dd>
-
-<dt><code>csv</code></dt>
-<dd><p>Comma-Separated Value format.  
-    The first line is a header which contains the column names.</p></dd>
-
-<dt><code>csv-noheader</code></dt>
-<dd><p>Comma-Separated Value format with no header line.</p></dd>
-
-<dt><code>ipac</code></dt>
-<dd><p>IPAC Table Format.</p></dd>
-
-<dt><code>tst</code></dt>
-<dd><p>Tab-Separated Table format.</p></dd>
-
-<dt><code>html</code></dt>
-<dd><p>Standalone HTML document containing a <code>TABLE</code> element</p></dd>
-
-<dt><code>html-element</code></dt>
-<dd><p>HTML <code>TABLE</code> element</p></dd>
-
-<dt><code>latex</code></dt>
-<dd><p>LaTeX <code>tabular</code> environment</p></dd>
-
-<dt><code>latex-document</code></dt>
-<dd><p>LaTeX standalone document containing a <code>tabular</code>
-    environment</p></dd>
-   
-<dt><code>mirage</code></dt>
-<dd><p>Mirage input format</p></dd>
-
-</dl>
-For more details on these formats, see the descriptions in 
-<docxref doc="sun253" loc="outFormats"/>.
+The output formats described below are supported; in some cases there
+are variants or options for the basic formats as documented.
+If you don't specify an output format explicitly,
+STILTS will try to guess what format to write based on the
+output filename; the details of those rules are also documented below.
 </p>
 
-<p>In some cases the tools may guess what output format you want
-by looking at the extension of the output filename you have specified.
+<subsubsubsect id="outFits">
+<subhead><title><code>fits</code></title></subhead>
+&out-fits;
+<p>For column-oriented FITS table output, see <ref id="outColfits"/>.
 </p>
+</subsubsubsect>
+
+<subsubsubsect id="outColfits">
+<subhead><title><code>colfits</code></title></subhead>
+&out-colfits;
+<p>For normal (row-oriented) FITS output, see <ref id="outFits"/>.
+</p>
+</subsubsubsect>
+
+<subsubsubsect id="outVotable">
+<subhead><title><code>votable</code></title></subhead>
+&out-votable;
+</subsubsubsect>
+
+<subsubsubsect id="outCsv">
+<subhead><title><code>csv</code></title></subhead>
+&out-csv;
+</subsubsubsect>
+
+<subsubsubsect id="outEcsv">
+<subhead><title><code>ecsv</code></title></subhead>
+&out-ecsv;
+</subsubsubsect>
+
+<subsubsubsect id="outAscii">
+<subhead><title><code>ascii</code></title></subhead>
+&out-ascii;
+</subsubsubsect>
+
+<subsubsubsect id="outIpac">
+<subhead><title><code>ipac</code></title></subhead>
+&out-ipac;
+</subsubsubsect>
+
+<subsubsubsect id="outFeather">
+<subhead><title><code>feather</code></title></subhead>
+&out-feather;
+</subsubsubsect>
+
+<subsubsubsect id="outText">
+<subhead><title><code>text</code></title></subhead>
+&out-text;
+</subsubsubsect>
+
+<subsubsubsect id="outHtml">
+<subhead><title><code>html</code></title></subhead>
+&out-html;
+</subsubsubsect>
+
+<subsubsubsect id="outLatex">
+<subhead><title><code>latex</code></title></subhead>
+&out-latex;
+</subsubsubsect>
+
+<subsubsubsect id="outTst">
+<subhead><title><code>tst</code></title></subhead>
+&out-tst;
+</subsubsubsect>
+
+<subsubsubsect id="outMirage">
+<subhead><title><code>mirage</code></title></subhead>
+&out-mirage;
+</subsubsubsect>
 
 </subsubsect>
 
