@@ -13,17 +13,33 @@
                                          "activation-classes-javadocs.xml">
   <!ENTITY topcat.usage SYSTEM "topcat.usage">
 
-  <!-- Import entity definitions from other packages including customisation -->
-  <!ENTITY gbin.stil.intro SYSTEM "gbin-stil-intro.xdoc">
-  <!ENTITY gbin.stil.appexample SYSTEM "gbin-stil-appexample.xdoc">
-  <!ENTITY gbin.stil.notes SYSTEM "gbin-stil-notes.xdoc">
-  <!ENTITY gbin-package-name 'TOPCAT'>
-  <!ENTITY gbin-package-cmdline 'topcat'>
-  <!ENTITY gbin-package-classpath 'topcat-full.jar'>
-  <!ENTITY gbin-package-mainclass 'uk.ac.starlink.topcat.Driver'>
-
   <!-- Include some auto-generated documentation. -->
   <!ENTITY scheme-docs SYSTEM 'scheme-docs.xml'>
+  <!ENTITY in-ascii SYSTEM 'in-ascii.xml'>
+  <!ENTITY in-cdf SYSTEM 'in-cdf.xml'>
+  <!ENTITY in-colfits SYSTEM 'in-colfits-basic.xml'>
+  <!ENTITY in-csv SYSTEM 'in-csv.xml'>
+  <!ENTITY in-ecsv SYSTEM 'in-ecsv.xml'>
+  <!ENTITY in-feather SYSTEM 'in-feather.xml'>
+  <!ENTITY in-fits SYSTEM 'in-fits.xml'>
+  <!ENTITY in-gbin SYSTEM 'in-gbin.xml'>
+  <!ENTITY in-ipac SYSTEM 'in-ipac.xml'>
+  <!ENTITY in-tst SYSTEM 'in-tst.xml'>
+  <!ENTITY in-votable SYSTEM 'in-votable.xml'>
+  <!ENTITY in-wdc SYSTEM 'in-wdc.xml'>
+  <!ENTITY out-ascii SYSTEM 'out-ascii.xml'>
+  <!ENTITY out-csv SYSTEM 'out-csv.xml'>
+  <!ENTITY out-colfits SYSTEM 'out-colfits-plus.xml'>
+  <!ENTITY out-ecsv SYSTEM 'out-ecsv.xml'>
+  <!ENTITY out-feather SYSTEM 'out-feather.xml'>
+  <!ENTITY out-fits SYSTEM 'out-fits-plus.xml'>
+  <!ENTITY out-html SYSTEM 'out-html.xml'>
+  <!ENTITY out-ipac SYSTEM 'out-ipac.xml'>
+  <!ENTITY out-latex SYSTEM 'out-latex.xml'>
+  <!ENTITY out-mirage SYSTEM 'out-mirage.xml'>
+  <!ENTITY out-text SYSTEM 'out-text.xml'>
+  <!ENTITY out-tst SYSTEM 'out-tst.xml'>
+  <!ENTITY out-votable SYSTEM 'out-votable.xml'>
 
   <!-- Define some character constants. -->
   <!ENTITY column.id.char '$'>
@@ -1104,8 +1120,9 @@ convenient to use the <code>tcopy</code> command line utility in the
 <webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref> package.
 </p>
 
-<p>The format handling is extensible, so new formats can
-be added fairly easily.  All the table input/output is handled by 
+<p>The format handling is extensible, so it is possible to add support
+for new formats.
+All the table input/output is handled by 
 STIL, the Starlink Tables Infrastructure Library;
 more detailed descriptions of the I/O capabilities can be found in its
 <webref plaintextref="yes" url="http://www.starlink.ac.uk/stil/"
@@ -1144,520 +1161,108 @@ as URLs, and any data compression (gzip, unix compress and bzip2)
 will be automatically detected and dealt with - see <ref id="tableLocation"/>.
 </p>
 
-<p><strong>Note:</strong> in some earlier versions of TOPCAT, ASCII
-format tables could be detected automatically, so you could load
-them by typing something like "<code>topcat table.txt</code>".
-In the current version, you have to signal that this is an 
-ASCII table, for instance by typing "<code>topcat -f ascii table.txt</code>".
-</p>
-
 <p>The following sections describe the table formats which TOPCAT can read.</p>
 
 <subsubsubsect id="inFits">
 <subhead><title>FITS</title></subhead>
+&in-fits;
 
-<p>FITS binary and ASCII table extensions can be read.
-Normally, TOPCAT will load all TABLE or BINTABLE extensions in a given file.
+<p>There are actually two FITS input handlers,
+<code>fits-basic</code> and <code>fits-plus</code>.
+The <code>fits-basic</code> handler extracts standard column metadata
+from FITS headers of the HDU in which the table is found,
+while the <code>fits-plus</code> handler reads column and table metadata
+from VOTable content stored in the primary HDU of the multi-extension
+FITS file.
+FITS-plus is a private convention effectively defined by the
+corresponding output handler; it allows de/serialization of
+much richer metadata than can be stored in standard FITS headers
+when the FITS file is read by fits-plus-aware readers,
+though other readers can understand the unenhanced FITS file perfectly well.
+It is normally not necessary to worry about this distinction;
+TOPCAT will determine whether a FITS file is FITS-plus or not based on its
+content and use the appropriate handler, but if you want to force the
+reader to use or ignore the enriched header, you can explicitly select
+an input format of "<code>FITS-plus</code>" or "<code>FITS</code>".
 </p>
-
-<p>If only a single extension is required from a multi-extension FITS file,
-this is indicated by giving an identifier after a '#' at the
-end of the table location.
-The identifier can be in one of two forms:
-<ul>
-<li>The numeric index of the HDU.  The first extension
-    (first HDU after the primary HDU) is numbered 1.
-    Thus in a compressed FITS table named "spec23.fits.gz"
-    with one primary HDU and two BINTABLE extensions,
-    you would view the first one using the name "spec23.fits.gz"
-    or "spec23.fits.gz#1" and the second one using the name "spec23.fits.gz#2".
-    The suffix "#0" is never used for a legal
-    FITS file, since the primary HDU cannot contain a table.
-    </li>
-<li>The name of the extension.  This is the value of the EXTNAME header
-    in the HDU, or alternatively the value of EXTNAME followed by "-"
-    followed by the value of EXTVER.  This follows the recommendation in
-    the FITS standard that EXTNAME and EXTVER headers can be used to
-    identify an HDU.
-    So in a multi-extension FITS file "cat.fits" where a table extension
-    has EXTNAME='UV_DATA' and EXTVER=1, it could be referenced as
-    "cat.fits#UV_DATA" or "cat.fits#UV_DATA-1".
-    Matching of these names is case-insensitive.
-    </li>
-</ul>
-</p>
-
-<p>You can select which extension to use interactively
-if you use the
-<ref id="TreeTableLoadDialog">Hierarchy Browser</ref> to load the table.
-</p>
-
-<p>If the table has been written using TOPCAT's "<code>fits-plus</code>"
-output format (see <ref id="outFits"/>) then the metadata will be
-read in from the primary HDU as well.
-</p>
-
-<p>For normal FITS files, header cards in the table's HDU header will be
-made available as table parameters (see <ref id="ParameterWindow"/>).
-Only header cards which are not used to specify the table format itself
-are visible as parameters (e.g. NAXIS, TTYPE* etc cards are not).
-HISTORY and COMMENT cards are run together as one multi-line value.
-</p>
-
-<p>If the table is stored in a FITS binary table extension in a file
-on local disk in uncompressed form, then the table is 'mapped' into
-memory - this generally means fast loading and low memory use.
-</p>
-
 </subsubsubsect>
 
 <subsubsubsect id="inColfits">
 <subhead><title>Column-oriented FITS</title></subhead>
+&in-colfits;
 
-<p>As well as normal binary and ASCII FITS tables, STIL supports
-FITS files which contain tabular data stored in column-oriented format.
-This means that the table is stored in a BINTABLE extension HDU,
-but that BINTABLE has a single row, with each cell of that row
-holding a whole column's worth of data.  The final (slowest-varying)
-dimension of each of these cells (declared via the TDIMn header cards)
-is the same, namely, the number of rows in the table that is represented.
-The point of this is that all the cells of a given column are stored
-contiguously, which for very large, and especially very wide tables
-means that certain access patterns (basically, ones which access
-only a small proportion of the columns in a table) can be much more
-efficient since they require less I/O overhead in reading data blocks.
-</p>
-
-<p>Such tables are perfectly legal FITS files, but most non-STIL software
-will probably not recognise them as tables in the usual way.
-This format is mostly intended for the case where you have a large
-table in some other format (possibly the result of an SQL query)
-and you wish to cache it in a way which can be read efficiently
-by a STIL-based application.
-</p>
-
-<p>Like normal FITS, two variants are supported;
-with (<code>colfits-plus</code>) and without (<code>colfits-basic</code>)
+<p>Like the normal (row-oriented) <ref id="inFits">FITS handler</ref>,
+two variants are supported:
+with (<code>colfits-plus</code>) or without (<code>colfits-basic</code>)
 metadata stored as a VOTable byte array in the primary HDU.
 </p>
-
-<p>For performance reasons, it is advisable to access colfits files
-uncompressed on disk. Reading them from a remote URL, or in gzipped form,
-may be rather slow (in earlier versions it was not supported at all).
-</p>
-
 </subsubsubsect>
 
 <subsubsubsect id="inVotable">
 <subhead><title>VOTable</title></subhead>
-
-<p>VOTable is an XML-based format for tabular data endorsed by the
-<webref url="http://www.ivoa.net/"
-        >International Virtual Observatory Alliance</webref>;
-while the tabular data which can be encoded is by design close to
-what FITS allows, it provides for much richer encoding of structure 
-and metadata.
-TOPCAT is believed to read any table which conforms to the
-VOTable 1.0, 1.1, 1.2 1.3 or 1.4
-<webref plaintextref="yes" url="&URL.VOTABLE;">specifications</webref>.
-This includes tables in which the cell data are
-included in-line as XML elements (VOTable/TABLEDATA format),
-or included/referenced as a FITS table (VOTable/FITS)
-or included/referenced as a raw binary stream (VOTable/BINARY or
-VOTable/BINARY2).
-TOPCAT does not attempt to be fussy about input VOTable documents,
-and it will have a good go at reading VOTables which 
-violate the standards in various ways.
-</p>
-
-<p>VOTable documents can have a complicated hierarchical structure,
-and may contain more than one actual table (TABLE element).
-Normally, TOPCAT will load all tables it finds in the document.
-If you just want to load a single table, indicate the
-zero-based index of the TABLE element in a breadth-first search
-after a '#' character at the end of the table specification.
-Here is an example VOTable document:
-<verbatim><![CDATA[
-   <VOTABLE>
-     <RESOURCE>
-       <TABLE name="Star Catalogue"> ... </TABLE>
-       <TABLE name="Galaxy Catalogue"> ... </TABLE>
-     </RESOURCE>
-   </VOTABLE>
-]]></verbatim>
-If this is available in a file named "cats.xml"
-then loading the document in the usual way from the filestore browser
-or command line will open two new tables in TOPCAT.
-If you just want the Star Catalogue or the Galaxy Catalogue you can 
-use the name "cats.xml#0" or "cats.xml#1" respectively.
-</p>
-
-</subsubsubsect>
-
-<subsubsubsect id="inEcsv">
-<subhead><title>ECSV</title></subhead>
-
-<p>The Enhanced Character Separated Values format was developed within
-the <webref url="https://www.astropy.org/">Astropy</webref> project
-and is described at
-<webref url="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"/>.
-It is composed of a YAML header followed by a CSV-like body,
-and is intended to be a human-readable and maybe even human-writable format
-with rich metadata.
-Most of the per-column and per-table metadata used by TOPCAT
-is preserved when de/serializing to this format.
-TOPCAT currently supports ECSV 0.9.
-</p>
-
-<p>There are various ways to format the YAML header,
-but a simple example of an ECSV file looks like this:
-<verbatim>
-# %ECSV 0.9
-# ---
-# delimiter: ','
-# datatype: [
-#   { name: index,   datatype: int32   }, 
-#   { name: Species, datatype: string  },
-#   { name: Name,    datatype: string  },
-#   { name: Legs,    datatype: int32   },
-#   { name: Height,  datatype: float64, unit: m },
-#   { name: Mammal,  datatype: bool    },
-# ]
-index,Species,Name,Legs,Height,Mammal
-1,pig,Bland,4,,True
-2,cow,Daisy,4,2,True
-3,goldfish,Dobbin,,0.05,False
-4,ant,,6,0.001,False
-5,ant,,6,0.001,False
-6,human,Mark,2,1.9,True
-</verbatim>
-If you follow this pattern, it's possible to write your own ECSV files by
-taking an existing <ref id="inCsv">CSV</ref> file
-and decorating it with a header that gives column datatypes,
-and possibly other metadata such as units.
-This allows you to force the datatype of given columns
-(the CSV reader guesses datatype based on content, but can get it wrong)
-and also allows TOPCAT to read the file much more efficiently,
-and to recognise the file format automatically.
-</p>
-
-<p>The datatypes that work well with TOPCAT are
-<code>bool</code>,
-<code>int8</code>, <code>int16</code>, <code>int32</code>, <code>int64</code>,
-<code>float32</code>, <code>float64</code>
-and
-<code>string</code>.
-</p>
-
+&in-votable;
 </subsubsubsect>
 
 <subsubsubsect id="inCdf">
 <subhead><title>CDF</title></subhead>
-
-<p>NASA's Common Data Format, described at
-<webref url="http://cdf.gsfc.nasa.gov/"/>,
-is a binary format for storing self-describing data.
-It is typically used to store tabular data for subject areas like
-space and solar physics.
-Since v4.0-1 TOPCAT is capable of reading CDF files, though it can't
-write them.
-Currently, no attempt is made to represent values representing
-times in a human-friendly fashion.  This may change in future releases.
-</p>
-
+&in-cdf;
 </subsubsubsect>
 
-<subsubsubsect id="inFeather">
-<subhead><title>Feather</title></subhead>
-
-<p>The Feather file format is a column-oriented binary disk-based format
-based on Apache Arrow and supported by (at least) Python, R and Julia.
-Some description of it is available at
-<webref url="https://github.com/wesm/feather"/> and
-<webref url="https://blog.rstudio.com/2016/03/29/feather/"/>.
-It can be used for large datasets, but it does not support
-array-valued columns.
-It can be a useful format to use for exchanging data with R,
-for which FITS I/O is reported to be slow.
+<subsubsubsect id="inCsv">
+<subhead><title>CSV</title></subhead>
+&in-csv;
+<p>See also <ref id="inEcsv">ECSV</ref> as a format which is
+similar and capable of storing more metadata.
 </p>
+</subsubsubsect>
 
-<p>At present CATEGORY type columns are not supported,
-and metadata associated with TIME, DATE and TIMESTAMP
-columns is not retrieved.
-</p>
-
-<p>Feather can only read files that are on disk, not streamed.
-</p>
-
+<subsubsubsect id="inEcsv">
+<subhead><title>ECSV</title></subhead>
+&in-ecsv;
 </subsubsubsect>
 
 <subsubsubsect id="inAscii">
 <subhead><title>ASCII</title></subhead>
-
-<p>In many cases tables are stored in some sort of unstructured plain
-text format, with cells separated by spaces or some other delimiters.
-There is a wide variety of such formats depending on what delimiters
-are used, how columns are identified, whether blank values are permitted
-and so on.  It is impossible to cope with them all, but TOPCAT
-attempts to make a good guess about how to interpret a given ASCII file as
-a table, which in many cases is successful.  In particular, if you just
-have columns of numbers separated by something that looks like spaces,
-you should be just fine.
-</p>
-
-<p>Here are the detailed rules for how the ASCII-format tables are 
-interpreted:
-<ul>
-<li>Bytes in the file are interpreted as ASCII characters</li>
-<li>Each table row is represented by a single line of text</li>
-<li>Lines are terminated by one or more contiguous line termination
-    characters: line feed (0x0A) or carriage return (0x0D)</li>
-<li>Within a line, fields are separated by one or more whitespace
-    characters: space (" ") or tab (0x09)</li>
-<li>A field is either an unquoted sequence of non-whitespace characters,
-    or a sequence of non-newline characters between matching
-    single (') or double (") quote characters -
-    spaces are therefore allowed in quoted fields</li>
-<li>Within a quoted field, whitespace characters are permitted and are
-    treated literally</li>
-<li>Within a quoted field, any character preceded by a backslash character
-    ("\") is treated literally.  This allows quote characters to appear
-    within a quoted string.</li>
-<li>An empty quoted string (two adjacent quotes) 
-    or the string "<code>null</code>" (unquoted) represents
-    the null value</li>
-<li>All data lines must contain the same number of fields (this is the
-    number of columns in the table)</li>
-<li>The data type of a column is guessed according to the fields that
-    appear in the table.  If all the fields in one column can be parsed
-    as integers (or null values), then that column will turn into an 
-    integer-type column.  The types that are tried, in order of 
-    preference, are:
-       <code>Boolean</code>,
-       <code>Short</code>
-       <code>Integer</code>,
-       <code>Long</code>,
-       <code>Float</code>,
-       <code>Double</code>,
-       <code>String</code>
-    </li>
-<li>Some special values are permitted for floating point columns:
-    <code>NaN</code> for not-a-number, which is treated the same as a
-    null value for most purposes, and <code>Infinity</code> or <code>inf</code>
-    for infinity (with or without a preceding +/- sign).
-    These values are matched case-insensitively.</li>
-<li>Empty lines are ignored</li>
-<li>Anything after a hash character "#" (except one in a quoted string)
-    on a line is ignored as far as table data goes;
-    any line which starts with a "!" is also ignored.
-    However, lines which start with a "#" or "!" at the start of the table
-    (before any data lines) will be interpreted as metadata as follows:
-    <ul>
-    <li>The last "#"/"!"-starting line before the first data line may
-        contain
-        the column names.  If it has the same number of fields as 
-        there are columns in the table, each field will be taken to be 
-        the title of the corresponding column.  Otherwise, it will be 
-        taken as a normal comment line.</li>
-    <li>Any comment lines before the first data line not covered by the
-        above will be concatenated to form the "description" parameter
-        of the table.</li>
-    </ul>
-    </li>
-</ul>
-</p>
-
-<p>If the list of rules above looks frightening, don't worry,
-in many cases it ought
-to make sense of a table without you having to read the small print.
-Here is an example of a suitable ASCII-format table:
-<verbatim>
-    #
-    # Here is a list of some animals.
-    #
-    # RECNO  SPECIES         NAME         LEGS   HEIGHT/m
-      1      pig             "Pigling Bland"  4  0.8
-      2      cow             Daisy        4      2
-      3      goldfish        Dobbin       ""     0.05
-      4      ant             ""           6      0.001
-      5      ant             ""           6      0.001
-      6      ant             ''           6      0.001
-      7      "queen ant"     'Ma\'am'     6      2e-3
-      8      human           "Mark"       2      1.8
-</verbatim>
-In this case it will identify the following columns:
-<verbatim>
-    Name       Type
-    ----       ----
-    RECNO      Short
-    SPECIES    String
-    NAME       String
-    LEGS       Short
-    HEIGHT/m   Float
-</verbatim>
-It will also use the text "<code>Here is a list of some animals</code>"
-as the Description parameter of the table.
-Without any of the comment lines, it would still interpret the table,
-but the columns would be given the names <code>col1</code>..<code>col5</code>.
-</p>
-
-<p>If you understand the format of your files but they don't exactly
-match the criteria above, the best thing is probably to write a
-simple free-standing program or script which will convert them
-into the format described here.
-You may find Perl or awk suitable languages for this sort of thing.
-</p>
-
-<p>This format is not detected automatically - you must specify that
-you wish to load a table in <code>ascii</code> format.
-</p>
-
+&in-ascii;
 </subsubsubsect>
 
 <subsubsubsect id="inIpac">
 <subhead><title>IPAC</title></subhead>
-
-<p>CalTech's Infrared Processing and Analysis Center
-use a text-based format for storage of tabular data,
-defined at 
-<webref 
-   url="http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html"/>.
-Tables can store column name, type, units and null values, as well
-as table parameters.  They typically have a filename extension 
-"<code>.tbl</code>" and are used for Spitzer data amongst other
-things.  An example looks like this:
-<verbatim>
-   \title='Animals'
-   \ This is a table with some animals in it.
-   |   RECNO |    SPECIES |          NAME |    LEGS | HEIGHT   |
-   |    char |       char |          char |     int | double   |
-   |         |            |               |         | m        |
-   |         |            |          null |         |          |
-            1          pig   Pigling Bland         4        0.8
-            2          cow           Daisy         4          2
-            3     goldfish          Dobbin         0       0.05
-            4          ant            null         6      0.001
-</verbatim>
-</p>
-
+&in-ipac;
 </subsubsubsect>
 
-<subsubsubsect id="inCsv">
-<subhead><title>Comma-Separated Values</title></subhead>
-
-<p>Comma-separated value ("CSV") format is a common semi-standard 
-text-based format in which fields are delimited by commas.
-Spreadsheets and databases are often able to export data in some 
-variant of it.  The intention is that TOPCAT can read tables in 
-the version of the format spoken by MS Excel amongst other applications, 
-though the documentation
-on which it was based was not obtained directly from Microsoft.
-</p>
-
-<p>The rules for data which it understands are as follows:
-<ul> 
-<li>Each row must have the same number of comma-separated fields.
-    </li>
-<li>Whitespace (space or tab) adjacent to a comma is ignored.
-    </li>
-<li>Adjacent commas, or a comma at the start or end of a line
-    (whitespace apart) indicates a null field.
-    </li>
-<li>Lines are terminated by any sequence of carriage-return or newline
-    characters ('\r' or '\n')
-    (a corollary of this is that blank lines are ignored).
-    </li>
-<li>Cells may be enclosed in double quotes; quoted values may contain
-    linebreaks (or any other character); a double quote character within
-    a quoted value is represented by two adjacent double quotes.
-    </li>
-<li>The first line <em>may</em> be a header line containing column names
-    rather than a row of data.  Exactly the same syntactic rules are
-    followed for such a row as for data rows.
-    </li> 
-</ul>
-Note that you can <em>not</em> use a "<code>#</code>" character
-(or anything else) to introduce "comment" lines.
-</p>
-
-<p>Because the CSV format contains no metadata beyond column names,
-TOPCAT is forced to guess the datatype of the values in each column.
-It does this by reading the whole file through once and guessing
-on the basis of what it has seen.  This has the disadvantages:
-<ul>
-<li>Sometimes it guesses a different type than what you want
-    (e.g. 32-bit integer rather than 64-bit integer)</li>
-<li>It's slow to read.</li>
-</ul>
-This means that CSV is not generally recommended if you can
-use another format instead.
-If you're stuck with a large CSV file that's misbehaving or slow
-to use, one possibility is to turn it into an
-<ref id="inEcsv">ECSV</ref> file by adding some header lines by hand.
-</p>
-
-<p>This format is not detected automatically - you must specify that
-you wish to load a table in <code>csv</code> format.
-</p>
-
+<subsubsubsect id="inFeather">
+<subhead><title>Feather</title></subhead>
+&in-feather;
 </subsubsubsect>
 
 <subsubsubsect id="inGbin">
 <subhead><title>GBIN</title></subhead>
+&in-gbin;
 
-&gbin.stil.intro;
-&gbin.stil.appexample;
-&gbin.stil.notes;
-
+<p><strong>Example:</strong>
+Suppose you have the <code>MDBExplorerStandalone.jar</code> file
+containing the data model classes, you can read GBIN files by
+starting TOPCAT like this:
+<verbatim>
+   topcat -classpath MDBExplorerStandalone.jar ...
+</verbatim>
+or like this:
+<verbatim>
+   java -classpath topcat-full.jar:MDBExplorerStandalone.jar uk.ac.starlink.topcat.Driver ...
+</verbatim>
+</p>
 </subsubsubsect>
 
 <subsubsubsect id="inTst">
-<subhead><title>Tab-Separated Table</title></subhead>
-
-<p>Tab-Separated Table, or TST, is a text-based table format used
-by a number of astronomical tools including Starlink's 
-<webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>
-and
-ESO's <webref url="http://archive.eso.org/skycat/">SkyCat</webref>
-on which it is based.
-A definition of the format can be found in
-<webref url="http://www.starlink.ac.uk/star/docs/ssn75.htx/node38.html"
-        >Starlink Software Note 75</webref>.
-The implementation here ignores all comment lines: special comments
-such as the "<code>#column-units:</code>" are not processed.
-</p>
-
-<p>An example looks like this:
-<verbatim><![CDATA[
-    Simple TST example; stellar photometry catalogue.
-
-    A.C. Davenhall (Edinburgh) 26/7/00.
-
-    Catalogue of U,B,V colours.
-    UBV photometry from Mount Pumpkin Observatory, 
-    see Sage, Rosemary and Thyme (1988). 
-
-    # Start of parameter definitions. 
-    EQUINOX: J2000.0 
-    EPOCH: J1996.35
-
-    id_col: -1
-    ra_col: 0
-    dec_col: 1
-
-    # End of parameter definitions.
-    ra<tab>dec<tab>V<tab>B_V<tab>U_B
-    --<tab>---<tab>-<tab>---<tab>---
-    5:09:08.7<tab> -8:45:15<tab>  4.27<tab>  -0.19<tab>  -0.90
-    5:07:50.9<tab> -5:05:11<tab>  2.79<tab>  +0.13<tab>  +0.10
-    5:01:26.3<tab> -7:10:26<tab>  4.81<tab>  -0.19<tab>  -0.74
-    5:17:36.3<tab> -6:50:40<tab>  3.60<tab>  -0.11<tab>  -0.47
-    [EOD]
-]]></verbatim>
-</p>
-
+<subhead><title>TST</title></subhead>
+&in-tst;
 </subsubsubsect>
 
+<subsubsubsect id="inWdc">
+<subhead><title>World Data Center</title></subhead>
+&in-wdc;
+</subsubsubsect>
 
 <subsubsubsect id="inSql">
 <subhead><title>SQL Database Queries</title></subhead>
@@ -1700,35 +1305,6 @@ see <ref id="jdbcConfig"/>.
 
 </subsubsubsect>
 
-<subsubsubsect>
-<subhead><title>World Data Center</title></subhead>
-
-<p>Some support is provided for files produced by the
-<webref url="http://www.wdc.rl.ac.uk/">World Data Centre for
-Solar Terrestrial Physics</webref>.
-The format itself apparently has no name, but files in this format
-look something like the following:
-<verbatim><![CDATA[
-  Column formats and units - (Fixed format columns which are single space seperated.)
-  ------------------------
-  Datetime (YYYY mm dd HHMMSS)            %4d %2d %2d %6d      -
-                                          %1s
-  aa index - 3-HOURLY (Provisional)       %3d                  nT
-
-  2000 01 01 000000  67
-  2000 01 01 030000  32
-      ...
-]]></verbatim>
-Support for WDC tables is experimental <em>(does the format still exist?)</em>
-- it may not be very robust.
-</p>
-
-<p>This format is not detected automatically - you must specify that
-you wish to load a table in <code>wdc</code> format.
-</p>
-
-</subsubsubsect>
-
 </subsubsect>
 
 
@@ -1741,8 +1317,10 @@ In general you have to specify the format in which you want the table
 to be output by selecting from the Save Window's
 <label>Table Output Format</label> selector; 
 the following sections describe the possible choices.
-In some cases there are variants within each format - these are
-described as well.
+In some cases there are variants within each format, also described.
+If you use the default <label>(auto)</label> output format,
+TOPCAT will try to guess the format based on the filename you provide;
+the rules for that are described below as well.
 </p>
 
 <p>The program has no "native" file format, but if you have no particular
@@ -1758,320 +1336,83 @@ in a way TOPCAT can read in again later (see <ref id="outFits"/>).
 These files are quite usable as normal FITS tables by other applications, 
 but they will only be able to see the limited metadata stored in the
 FITS headers.
-For very large files, in some circumstances column-oriented FITS
-("<code>colfits</code>") format can be more efficient for some applications,
+For very large files, in some circumstances
+<ref id="outColfits">Column-oriented FITS</ref> format
+format can be more efficient for some applications,
 though this is unlikely to be understood except by STIL-based code
 (TOPCAT and STILTS).
 If you want to write to a format which retains all metadata in a portable
-format, then one of the <ref id="outVotable"/> formats might be better.
+format, then one of the <ref id="outVotable">VOTable</ref>
+formats might be better.
 </p>
 
 <subsubsubsect id="outFits">
 <subhead><title>FITS</title></subhead>
-
-<p>When saving in FITS format a new file is written consisting of two HDUs
-(Header+Data Units):
-a primary one (required by the FITS standard), and a single extension of
-type BINTABLE containing the table data.
+&out-fits;
+<p>For column-oriented FITS table output, see <ref id="outColfits"/>.
 </p>
-
-<p>There are a few variants of this format:
-<dl>
-
-<dt>fits-basic</dt>
-<dd><p>The primary HDU contains only very minimal headers and no data.
-    </p></dd>
-
-<dt>fits-plus</dt>
-<dd><p>The primary HDU contains an array of bytes
-    which stores the full table metadata as the text of a VOTable document,
-    along with headers that mark this has been done.
-    Most FITS table readers will ignore this altogether and treat the
-    file just as if it contained only the table.  
-    When TOPCAT (or other 
-    <webref url="http://www.starlink.ac.uk/stil/">STIL</webref>-based
-    applications)
-    read it however, they read out the metadata and make it available for use.
-    In this way you can store your data in the efficient and widely portable
-    FITS format without losing the additional metadata such as table parameters,
-    column UCDs, lengthy column descriptions etc that may be attached
-    to the table.  
-    Other, more standard schemes exist for combining the benefits of FITS and
-    VOTable, but suffer from some disadvantages: 
-    <code>votable-fits-inline</code> is hard to process efficiently
-    (in particular the data cannot easily be mapped into memory) and
-    <code>votable-fits-href</code> requires that you keep your data in 
-    two separate files, which can get separated from each other.
-    If you want to ensure that the metadata are available to other VOTable-aware
-    programs, you should use one of the normal
-    <ref plaintextref="yes" id="outVotable">VOTable formats</ref>.
-    </p></dd>
-
-<dt>fits-var</dt>
-<dd><p>Behaves like <code>fits-basic</code>, but columns containing
-    variable-length numeric array data are stored using the <code>P</code>
-    and <code>Q</code> formats where appropriate, rather than padding
-    smaller arrays to the size of the largest.
-    This can make for more compact storage of variable-length array-valued
-    column data but may also result in tables less suitable for streaming.
-    </p></dd>
-
-<dt>fits-healpix</dt>
-<dd><p>Used for storing HEALPix pixel data in a way that conforms to the
-    <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref>
-    serialization convention.
-    In most ways it behaves the same as <code>fits-basic</code>,
-    but it will rearrange and rename columns as required to follow
-    the convention, and it will fail if the table does not contain
-    the required HEALPix metadata (<code>STIL_HPX_*</code> parameters).
-    </p></dd>
-
-</dl>
-In general, you can just let TOPCAT detect the format automatically
-and not worry about which of these variants is being used - if 
-<code>fits-plus</code> is being used you just get some hidden benefits.
-</p>
-
-<p>The FITS standard only supports BINTABLE extensions with a maximum
-of 999 columns.  In TOPCAT versions up to v4.4, attempting to write
-a wider table to FITS format would fail.  In v4.5 and later, a
-non-standard convention
-(described in <docxref doc="sun252" loc="wideFits"/>)
-is used so that tables with up to 2^31
-columns can be written and re-read.
-Note however that if software unaware of this convention
-(e.g. CFITSIO or earlier versions of TOPCAT) is used
-to read such tables it will only see the first 998 columns written
-as intended, plus a column 999 containing an undescribed byte buffer.
-</p>
-
 </subsubsubsect>
 
 <subsubsubsect id="outColfits">
 <subhead><title>Column-oriented FITS</title></subhead>
-
-<p>When saving in column-oriented FITS format a new file is written
-consisting of two HDUs (Header+Data Units); a primary one (required
-by the FITS standard) and a single extension of type BINTABLE
-containing the table data.  Unlike normal FITS format however,
-this table consists of a single row in which each cell holds the
-data for an entire column.  This can be a more efficient format
-to work with when dealing with very large, and especially very wide,
-tables.  The benefits are greatest when the file size exceeds the
-amount of available physical memory and operations are required
-which scan through the table using only a few of the columns
-(much of TOPCAT's operations, for instance plotting two columns
-against each other, fit into this category).
-The overhead for reading and writing this format is somewhat
-higher than for normal FITS however, and other applications may not
-be able to work with it (though it is a legal FITS file), so in most
-cases normal FITS is a more suitable choice.
-</p>
-
-<p>Like normal (row-oriented) FITS (see <ref id="outFits"/>), 
-there are two variants:
-<dl>
-<dt>colfits-plus</dt>
-<dd><p>The primary HDU contains an array of bytes which stores the
-    table metadata in VOTable format.
-    </p></dd>
-<dt>colfits-basic</dt>
-<dd><p>The primary HDU contains no data.
-    </p></dd>
-</dl>
-</p>
-
+&out-colfits;
 </subsubsubsect>
 
 <subsubsubsect id="outVotable">
 <subhead><title>VOTable</title></subhead>
+&out-votable;
+</subsubsubsect>
 
-<p>When a table is saved to VOTable format, a document conforming to the
-VOTable specification containing a single TABLE element within
-a single RESOURCE element is written.
-The version of the VOTable specification according to which the output
-is written can be controlled using the
-<code>votable.version</code> <ref id="jvmProperties">system property</ref>.
-</p>
-
-<p>There are a number of variants which determine the form in which
-the table data (DATA element) is written:
-<dl>
-
-<dt>votable-tabledata</dt>
-<dd><p>TABLEDATA element (pure XML)
-    </p></dd>
-
-<dt>votable-binary-inline</dt>
-<dd><p>BINARY element containing base64-encoded data within the document
-    </p></dd>
-
-<dt>votable-binary2-inline</dt>
-<dd><p>BINARY2 element containing base64-encoded data within the document.
-    Not available for VOTable version 1.2 or earlier.
-    </p></dd>
-
-<dt>votable-fits-href</dt>
-<dd><p>FITS element containing a reference to an external newly-written FITS
-    file (with a name derived from that of the VOTable document)
-    </p></dd>
-
-<dt>votable-binary2-href</dt>
-<dd><p>BINARY2 element containing a reference to an external newly-written
-    binary file (with a name derived from that of the VOTable document)
-    Not available for VOTable version 1.2 or earlier.
-    </p></dd>
-
-<dt>votable-binary-href</dt>
-<dd><p>BINARY element containing a reference to an external newly-written
-    binary file (with a name derived from that of the VOTable document)
-    </p></dd>
-
-<dt>votable-fits-inline</dt>
-<dd><p>FITS element containing base64-encoded data within the document
-    </p></dd>
-</dl>
-See the 
-<webref url="&URL.VOTABLE;" plaintextref="yes">VOTable specification</webref> 
-for more explanation of what these variants mean.
-They can all be read by the 
-<ref id="inVotable">VOTable input handler</ref>.
-</p>
-
+<subsubsubsect id="outCsv">
+<subhead><title>CSV</title></subhead>
+&out-csv;
 </subsubsubsect>
 
 <subsubsubsect id="outEcsv">
 <subhead><title>ECSV</title></subhead>
-
-<p>Tables can be written to the Enhanced Character Separated Values format,
-described in <ref id="inEcsv"/>.
-Two variants of this format are currently supported,
-depending on the delimiter character you want to use
-(both are legal ECSV):
-<dl>
-<dt>ecsv-space</dt>
-<dd><p>ECSV using the space character as a delimiter
-    </p></dd>
-<dt>ecsv-comma</dt>
-<dd><p>ECSV using the comma character as a delimiter
-    </p></dd>
-</dl>
-</p>
-
-</subsubsubsect>
-
-<subsubsubsect id="outFeather">
-<subhead><title>Feather</title></subhead>
-
-<p>The Feather format is described in <ref id="inFeather"/>.
-Not all column types are supported by feather,
-in particular if you attempt to write a table containing
-array-valued columns (except for byte arrays),
-those columns will be omitted from the output.
-</p>
-
-<p>This writer is currently somewhat experimental;
-please report problems if you experience them.
-</p>
-
+&out-ecsv;
 </subsubsubsect>
 
 <subsubsubsect id="outAscii">
 <subhead><title>ASCII</title></subhead>
-
-<p>Tables can be written using a format which is compatible with
-the <ref id="inAscii">ASCII input format</ref>.
-It writes as plainly as possible, so should stand a good chance of
-being comprehensible to other programs which require some sort of
-plain text rendition of a table.  
-</p>
-
-<p>The first line is a comment (starting with a "<code>#</code>" character)
-which names the columns, and
-an attempt is made to line up data in columns using spaces.
-Here is an example of a short table written in this format:
-<verbatim>
-   # index Species  Name   Legs Height Mammal
-     1     pig      Bland  4    0.8    true  
-     2     cow      Daisy  4    2.0    true  
-     3     goldfish Dobbin 0    0.05   false 
-     4     ant      ""     6    0.0010 false 
-     5     ant      ""     6    0.0010 false 
-     6     human    Mark   2    1.9    true  
-</verbatim>
-</p>
-
-</subsubsubsect>
-
-
-<subsubsubsect>
-<subhead><title>Text</title></subhead>
-
-<p>Tables can be written to a simple text-based format which is
-designed to be read by humans.  No reader exists for this format.
-</p>
-
-<p>Here is an example of a short table written in this format:
-<verbatim>
-   +-------+----------+--------+------+--------+--------+
-   | index | Species  | Name   | Legs | Height | Mammal |
-   +-------+----------+--------+------+--------+--------+
-   | 1     | pig      | Bland  | 4    | 0.8    | true   |
-   | 2     | cow      | Daisy  | 4    | 2.0    | true   |
-   | 3     | goldfish | Dobbin | 0    | 0.05   | false  |
-   | 4     | ant      |        | 6    | 0.0010 | false  |
-   | 5     | ant      |        | 6    | 0.0010 | false  |
-   | 6     | human    | Mark   | 2    | 1.9    | true   |
-   +-------+----------+--------+------+--------+--------+
-</verbatim>
-</p>
-
-</subsubsubsect>
-
-<subsubsubsect id="outCsv">
-<subhead><title>Comma-Separated Values</title></subhead>
-
-<p>Tables can be written to the semi-standard comma-separated value (CSV) 
-format, described in more detail in <ref id="inCsv"/>.
-This can be useful for importing into certain external applications,
-such as some spreadsheets or databases.
-</p>
-
-<p>There are two variants:
-<dl>
-
-<dt>CSV</dt>
-<dd><p>The first line is a header which contains the column names.
-    </p></dd>
-
-<dt>CSV-noheader</dt>
-<dd><p>No header line is emitted, all lines represent data rows.
-    </p></dd>
-
-</dl>
-
-</p>
-
+&out-ascii;
 </subsubsubsect>
 
 <subsubsubsect id="outIpac">
 <subhead><title>IPAC</title></subhead>
+&out-ipac;
+</subsubsubsect>
 
-<p>Tables can be wrtten to the IPAC data format,
-described in more detail in <ref id="inIpac"/>.
-</p>
+<subsubsubsect id="outFeather">
+<subhead><title>Feather</title></subhead>
+&out-feather;
+</subsubsubsect>
 
+<subsubsubsect id="outText">
+<subhead><title>Text</title></subhead>
+&out-text;
+</subsubsubsect>
+
+<subsubsubsect id="outHtml">
+<subhead><title>HTML</title></subhead>
+&out-html;
+</subsubsubsect>
+
+<subsubsubsect id="outLatex">
+<subhead><title>LaTeX</title></subhead>
+&out-latex;
 </subsubsubsect>
 
 <subsubsubsect id="outTst">
 <subhead><title>Tab-Separated Table</title></subhead>
-
-<p>Tables can be written to TST format, which is described in more 
-detail in <ref id="inTst"/>.  This can be useful for communicating 
-with some other astronomical tools such as GAIA.
-</p>
-
+&out-tst;
 </subsubsubsect>
+
+<subsubsubsect id="outMirage">
+<subhead><title>Mirage Format</title></subhead>
+&out-mirage;
+</subsubsubsect>
+
 
 <subsubsubsect id="outSql">
 <subhead><title>SQL Tables</title></subhead>
@@ -2102,100 +1443,6 @@ in putting it together.
 <p>Use of SQL queries requires some additional configuration of TOPCAT;
 see <ref id="jdbcConfig"/>.
 </p>
-
-</subsubsubsect>
-
-<subsubsubsect>
-<subhead><title>HTML</title></subhead>
-
-<p>A table can be written out as an HTML 4.01
-<webref url="http://www.w3.org/TR/html401/struct/tables.html">TABLE</webref>
-element, suitable for use as a web page or insertion into one.
-</p>
-
-<p>There are two variants:
-<dl>
-
-<dt>HTML</dt>
-<dd><p>A freestanding HTML document, complete with HTML, HEAD and BODY
-    tags is output.
-    </p></dd>
-
-<dt>HTML-element</dt>
-<dd><p>Only the TABLE element representing the table is output;
-    this should normally be embedded in a larger HTML document before use.
-    </p></dd>
-
-</dl>
-</p>
-
-</subsubsubsect>
-
-<subsubsubsect>
-<subhead><title>LaTeX</title></subhead>
-
-<p>A table can be written out as a LaTeX <code>tabular</code> environment,
-suitable for insertion into a document intended for publication.
-</p>
-
-<p>There are two variants:
-<dl>
-
-<dt>LaTeX</dt>
-<dd><p>The <code>tabular</code> element alone is output;
-    this will have to be embedded in a larger LaTeX document before use.
-    </p></dd>
-
-<dt>LaTeX-document</dt>
-<dd><p>A freestanding LaTeX document, consisting of the 
-    <code>tabular</code> within a 
-    <code>table</code> within a
-    <code>document</code> is output.
-    </p></dd>
-
-</dl>
-</p>
-
-<p>Obviously, this isn't so suitable for very large tables.
-</p>
-
-</subsubsubsect>
-
-<subsubsubsect id="mirage">
-<subhead><title>Mirage Format</title></subhead>
-
-<p><webref url="http://www.bell-labs.com/project/mirage/index.html"
-           plaintextref="yes"
-           >Mirage</webref>
-is a powerful standalone java tool developed at Bell Labs for analysis of
-multidimensional data.  It uses its own file format for input.
-TOPCAT can write tables in the input format which Mirage uses,
-so that you can prepare tables in TOPCAT and write them out for
-subsequent use by Mirage.
-</p>
-
-<p>It is also possible in principle to launch Mirage directly
-from within TOPCAT, using the 
-<label>Export To Mirage</label> item on the 
-<ref id="ControlWindow">Control Window</ref>'s <label>File</label> menu;
-this will cause Mirage to start up viewing the currently selected
-<ref id="apparent">Apparent Table</ref>.
-In order for this to work the Mirage classes must
-be on your classpath (see <ref id="jvmClasspath"/>) when TOPCAT is run.
-</p>
-
-<p>There appears to be 
-a bug in Mirage which means this does not always work -
-sometimes Mirage starts up with no data loaded into it.
-In this case you will have to save the data to disk in Mirage format,
-start up Mirage separately, and load the data in using the
-<label>New Dataset</label> item in Mirage's <label>Console</label> menu.
-</p>
-
-<p>Note that when Mirage has been launched from TOPCAT, exiting Mirage
-or closing its window will exit TOPCAT as well.
-</p>
-
 </subsubsubsect>
 
 </subsubsect>
@@ -4575,7 +3822,6 @@ in particular for:
 <ul>
 <li>JDBC drivers (see <ref id="jdbcConfig"/>)</li>
 <li>Providing extended algebraic functions (see <ref id="jelExtend"/>)</li>
-<li>Launching Mirage (see <ref id="mirage"/>)</li>
 <li>Installing I/O handlers for new table formats
     (see <ref id="customHandlers"/>)</li>
 </ul>
