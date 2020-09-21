@@ -9,11 +9,11 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -22,7 +22,8 @@ import uk.ac.starlink.util.DataSource;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
+public class VOTableBuilder extends DocumentedTableBuilder
+                            implements MultiTableBuilder {
 
     private boolean strict_;
     private static Pattern htmlPattern = 
@@ -45,23 +46,17 @@ public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
      * @see    VOElementFactory#setStrict
      */
     public VOTableBuilder( boolean strict ) {
+        super( new String[] { "vot", "votable", "xml" } );
         strict_ = strict;
     }
 
     /**
-     * Returns the string "votable".
+     * Returns the string "VOTable".
      * 
      * @return  format name
      */
     public String getFormatName() {
         return "VOTable";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        String loc = location.toLowerCase();
-        return loc.endsWith( ".xml" )
-            || loc.endsWith( ".vot" )
-            || loc.endsWith( ".votable" );
     }
 
     /**
@@ -204,6 +199,18 @@ public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
         }
+    }
+
+    public boolean canStream() {
+        return true;
+    }
+
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public String getXmlDescription() {
+        return readText( "VOTableBuilder.xml" );
     }
 
     /**

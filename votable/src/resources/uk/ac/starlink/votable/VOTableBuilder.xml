@@ -1,0 +1,55 @@
+<p>VOTable is an XML-based format for tabular data endorsed by the
+<a href="http://www.ivoa.net/" >International Virtual Observatory Alliance</a>;
+while the tabular data which can be encoded is by design close to
+what FITS allows, it provides for much richer encoding of structure
+and metadata.
+Most of the table data exchanged by VO services is in VOTable format,
+and it can be used for local table storage as well.
+</p>
+
+<p>Any table which conforms to the 
+VOTable 1.0, 1.1, 1.2, 1.3 or 1.4
+<a href="http://www.ivoa.net/documents/VOTable/">specifications</a>
+can be read.
+This includes all the defined cell data serializations; cell data may be 
+included in-line as XML elements (TABLEDATA serialization),
+included/referenced as a FITS table (FITS serialization), or
+included/referenced as a raw binary stream (BINARY or BINARY2 serialization).
+The handler does not attempt to be fussy about input VOTable documents,
+and it will have a good go at reading VOTables which
+violate the standards in various ways.
+</p>
+
+<p>Much, but not all, of the metadata contained in a VOTable
+document is retained when the table is read in.
+The attributes
+<code>unit</code>, <code>ucd</code>, <code>xtype</code> and <code>utype</code>,
+and the elements
+<code>COOSYS</code>, <code>TIMESYS</code> and <code>DESCRIPTION</code>
+attached to table columns or parameters,
+are read and may be used by the application as appropriate
+or examined by the user.
+However, information encoded in the hierarchical structure
+of the VOTable document, including <code>GROUP</code> structure, is not
+currently retained when a VOTable is read.
+</p>
+
+<p>VOTable documents may contain more than one actual table
+(<code>TABLE</code> element).
+To specify a specific single table,
+the table position indicator is given by the
+zero-based index of the <code>TABLE</code> element in a breadth-first search.
+Here is an example VOTable document:
+<pre><![CDATA[
+   <VOTABLE>
+     <RESOURCE>
+       <TABLE name="Star Catalogue"> ... </TABLE>
+       <TABLE name="Galaxy Catalogue"> ... </TABLE>
+     </RESOURCE>
+   </VOTABLE>
+]]></pre>
+If this is available in a file named "cats.xml"
+then the two tables could be named as
+"cats.xml#0" and "cats.xml#1" respectively.
+</p>
+
