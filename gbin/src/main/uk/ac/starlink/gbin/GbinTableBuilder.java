@@ -12,11 +12,11 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowSequence;
+import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -25,7 +25,7 @@ import uk.ac.starlink.util.DataSource;
  * @author   Mark Taylor
  * @since    14 Aug 2014
  */
-public class GbinTableBuilder implements TableBuilder {
+public class GbinTableBuilder extends DocumentedTableBuilder {
 
     private final GbinTableProfile profile_;
 
@@ -68,6 +68,7 @@ public class GbinTableBuilder implements TableBuilder {
      * @param  profile  configures how GBIN files will be mapped to a table
      */
     public GbinTableBuilder( GbinTableProfile profile ) {
+        super( new String[] { "gbin" } );
         profile_ = profile;
     }
 
@@ -85,10 +86,6 @@ public class GbinTableBuilder implements TableBuilder {
      */
     public String getFormatName() {
         return "GBIN";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        return location.toLowerCase().endsWith( ".gbin" );
     }
 
     public boolean canImport( DataFlavor flavor ) {
@@ -207,5 +204,17 @@ public class GbinTableBuilder implements TableBuilder {
             table.setParameter( param );
         }
         return table;
+    }
+
+    public boolean canStream() {
+        return true;
+    }
+
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public String getXmlDescription() {
+        return readText( "GbinTableBuilder.xml" );
     }
 }

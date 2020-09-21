@@ -1,0 +1,85 @@
+<p>GBIN format is a special-interest file format used within DPAC,
+the Data Processing and Analysis Consortium working on data from the
+<a href="https://www.cosmos.esa.int/web/gaia/">Gaia</a>
+astrometry satellite.
+It is based on java serialization, and in all of its various forms
+has the peculiarity that you only stand any chance of decoding it
+if you have the Gaia data model classes on your java classpath at runtime.
+Since the set of relevant classes is very large,
+and also depends on what version of the data model your GBIN file
+corresponds to, those classes will not be packaged with this software,
+so some additional setup is required to read GBIN files.
+</p>
+
+<p>As well as the data model classes, you must provide on the runtime
+classpath the GaiaTools classes required for GBIN reading.
+The table input handler accesses these by reflection,
+to avoid an additional large library dependency for a rather niche requirement.
+It is likely that since you have to supply the required data model classes
+you will also have the required GaiaTools classes to hand as well,
+so this shouldn't constitute much of an additional burden for usage.
+</p>
+
+<p>In practice, if you have a jar file or files for pretty much any
+java library or application which is capable of reading a given
+GBIN file, just adding it or them to the classpath at runtime
+when using this input handler ought to do the trick.
+Examples of such jar files are
+the
+<a href="https://gaia.esac.esa.int/mdbexp/lib/MDBExplorerStandalone.jar"
+        ><code>MDBExplorerStandalone.jar</code></a>
+file available from
+<a href="https://gaia.esac.esa.int/mdbexp/"
+        >https://gaia.esac.esa.int/mdbexp/</a>,
+or the <code>gbcat.jar</code> file you can build from the
+<a href="https://gaia.esac.esa.int/dpacsvn/DPAC/CU9/software/gbcat/"
+                                              >CU9/software/gbcat/</a>
+directory in the DPAC subversion repository.
+</p>
+
+<p>The GBIN format doesn't really store tables, it stores arrays of
+java objects, so the input handler has to make some decisions about how to
+flatten these into table rows.
+</p>
+
+<p>In its simplest form, the handler basically looks for public instance
+methods of the form <code>getXxx()</code>
+and uses the <code>Xxx</code> as column names.
+If the corresponding values are themselves objects with suitable getter
+methods, those objects are added as new columns instead.
+This more or less follows the practice of the <code>gbcat</code>
+(<code>gaia.cu1.tools.util.GbinInterogator</code>) tool.
+Method names are sorted alphabetically.
+Arrays of complex objects are not handled well,
+and various other things may trip it up.
+See the source code (e.g. <code>uk.ac.starlink.gbin.GbinTableProfile</code>)
+for more details.
+</p>
+
+<p>If the object types stored in the GBIN file are known to the
+special metadata-bearing class
+<code>gaia.cu9.tools.documentationexport.MetadataReader</code>
+and its dependencies, and if that class is on the runtime classpath,
+then the handler will be able to extract additional metadata as available,
+including standardised column names,
+table and column descriptions, and UCDs.
+An example of a jar file containing this metadata class alongside
+data model classes is <code>GaiaDataLibs-18.3.1-r515078.jar</code>.
+Note however at time of writing there are some deficiencies with this
+metadata extraction functionality related to unresolved issues
+in the upstream gaia class libraries and the relevant
+interface control document
+(GAIA-C9-SP-UB-XL-034-01, "External Data Centres ICD").
+Currently columns appear in the output table in a more or less
+random order, units and Utypes are not extracted,
+and using the GBIN reader tends to cause a 700kbyte file "temp.xml"
+to be written in the current directory.
+If the upstream issues are fixed, this behaviour may improve.
+</p>
+
+<p>Note that support for GBIN files is somewhat experimental.
+Please contact the author (who is not a GBIN expert)
+if it doesn't seem to be working properly
+or you think it should do things differently.
+</p>
+
