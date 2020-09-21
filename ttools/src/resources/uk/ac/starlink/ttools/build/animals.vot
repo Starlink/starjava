@@ -1,0 +1,84 @@
+<?xml version='1.0'?>
+<VOTABLE version='1.3'
+  xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3
+                      http://www.ivoa.net/xml/VOTable/v1.3"
+  >
+<RESOURCE>
+<PARAM name="Author" arraysize="*" datatype="char" value="Mark Taylor"/>
+<TABLE nrows="7">
+<DESCRIPTION>Some animals</DESCRIPTION>
+<FIELD datatype="int" name="RECNO" />
+<FIELD datatype="char" arraysize="*" name="SPECIES"/>
+<FIELD arraysize="*" datatype="char" name="NAME">
+  <DESCRIPTION>How one should address the animal in public &amp; private.</DESCRIPTION>
+</FIELD>
+<FIELD datatype="int" name="LEGS" utype="anatomy:limb">
+  <VALUES null="-99"/>
+</FIELD>
+<FIELD datatype="double" name="HEIGHT" unit="m" precision="2"/>
+<FIELD datatype="boolean" name="MAMMAL"/>
+<DATA>
+<TABLEDATA>
+  <TR>
+    <TD>1</TD>
+    <TD>pig</TD>
+    <TD>Pigling Bland</TD>
+    <TD>4</TD>
+    <TD>0.8</TD>
+    <TD>T</TD>
+  </TR>
+  <TR>
+    <TD>2</TD>
+    <TD>cow</TD>
+    <TD>Daisy</TD>
+    <TD>4</TD>
+    <TD>2.0</TD>
+    <TD>T</TD>
+  </TR>
+  <TR>
+    <TD>3</TD>
+    <TD>goldfish</TD>
+    <TD>Dobbin</TD>
+    <TD>-99</TD>
+    <TD>0.05</TD>
+    <TD>F</TD>
+  </TR>
+  <TR>
+    <TD>4</TD>
+    <TD>ant</TD>
+    <TD></TD>
+    <TD>6</TD>
+    <TD>0.001</TD>
+    <TD>F</TD>
+  </TR>
+  <TR>
+    <TD>5</TD>
+    <TD>ant</TD>
+    <TD></TD>
+    <TD>6</TD>
+    <TD>0.0010</TD>
+    <TD>F</TD>
+  </TR>
+  <TR>
+    <TD>6</TD>
+    <TD>queen ant</TD>
+    <TD>Ma'am</TD>
+    <TD>6</TD>
+    <TD>0.002</TD>
+    <TD>F</TD>
+  </TR>
+  <TR>
+    <TD>7</TD>
+    <TD>human</TD>
+    <TD>Mark</TD>
+    <TD>2</TD>
+    <TD>1.8</TD>
+    <TD>T</TD>
+  </TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+</RESOURCE>
+</VOTABLE>
