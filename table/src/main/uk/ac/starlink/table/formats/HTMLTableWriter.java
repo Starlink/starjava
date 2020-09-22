@@ -11,9 +11,9 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
-import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.ConfigMethod;
 
 /**
  * A StarTableWriter that outputs text to HTML.
@@ -28,7 +28,7 @@ import uk.ac.starlink.table.Tables;
  * @see      <a href="http://www.w3.org/TR/html401/struct/tables.html"
  *              >HTML 4.01</a>
  */
-public class HTMLTableWriter extends StreamStarTableWriter
+public class HTMLTableWriter extends DocumentedStreamStarTableWriter
                              implements MultiStarTableWriter {
 
     private boolean standalone_;
@@ -40,7 +40,7 @@ public class HTMLTableWriter extends StreamStarTableWriter
      * Constructs a new writer with default characteristics.
      */
     public HTMLTableWriter() {
-        this( true, true );
+        this( false, true );
     }
 
     /**
@@ -48,6 +48,7 @@ public class HTMLTableWriter extends StreamStarTableWriter
      * or partial HTML documents.
      */
     public HTMLTableWriter( boolean standalone, boolean useRowGroups ) {
+        super( new String[] { "html", "htm" } );
         setStandalone( standalone );
         useRowGroups_ = useRowGroups;
         maxWidth_ = DFLT_MAX_WIDTH;
@@ -59,6 +60,12 @@ public class HTMLTableWriter extends StreamStarTableWriter
      * @param   standalone  true if the output document should be a
      *          complete HTML document
      */
+    @ConfigMethod(
+        property = "standalone",
+        doc = "If true, the output is a freestanding HTML document "
+            + "complete with HTML, HEAD and BODY tags. "
+            + "If false, the output is just a TABLE element."
+    )
     public void setStandalone( boolean standalone ) {
         standalone_ = standalone;
     }
@@ -77,6 +84,11 @@ public class HTMLTableWriter extends StreamStarTableWriter
      *
      * @param   maxWidth  new maximum cell width
      */
+    @ConfigMethod(
+        property = "maxCell",
+        doc = "Maximum width in characters of an output table cell. "
+            + "Cells longer than this will be truncated."
+    )
     public void setMaxWidth( int maxWidth ) {
         maxWidth_ = maxWidth;
     }
@@ -91,16 +103,23 @@ public class HTMLTableWriter extends StreamStarTableWriter
     }
 
     public String getFormatName() {
-        return standalone_ ? "HTML" : "HTML-element";
+        return "HTML";
     }
 
     public String getMimeType() {
         return "text/html";
     }
 
-    public boolean looksLikeFile( String location ) {
-        return location.endsWith( ".html" ) ||
-               location.endsWith( ".htm" );
+    public boolean docIncludesExample() {
+        return true;
+    }
+
+    public String getXmlDescription() {
+        return String.join( "\n",
+            "<p>Writes a basic HTML <code>TABLE</code> element",
+            "suitable for use as a web page or for insertion into one.",
+            "</p>",
+        "" );
     }
 
     public void writeStarTable( StarTable table, OutputStream out )
@@ -251,8 +270,8 @@ public class HTMLTableWriter extends StreamStarTableWriter
                             String attlist, String[] values ) 
             throws IOException {
         int ncol = values.length;
-        printLine( ostrm, "<TR>" );
         StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "<TR>" );
         for ( int icol = 0; icol < ncol; icol++ ) {
             sbuf.append( ' ' )
                 .append( '<' )
@@ -280,8 +299,8 @@ public class HTMLTableWriter extends StreamStarTableWriter
                 .append( tagname )
                 .append( ">" );
         }
+        sbuf.append( "</TR>" );
         printLine( ostrm, sbuf.toString() );
-        printLine( ostrm, "</TR>" );
     }
 
     /**

@@ -6,8 +6,8 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
-import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.ConfigMethod;
 
 /**
  * A StarTableWriter that outputs text to a LaTeX document.
@@ -18,7 +18,7 @@ import uk.ac.starlink.table.Tables;
  *
  * @author   Mark Taylor (Starlnk)
  */
-public class LatexTableWriter extends StreamStarTableWriter {
+public class LatexTableWriter extends DocumentedStreamStarTableWriter {
 
     private boolean standalone;
 
@@ -34,6 +34,7 @@ public class LatexTableWriter extends StreamStarTableWriter {
      * or partial LaTeX documents.
      */
     public LatexTableWriter( boolean standalone ) {
+        super( new String[] { "tex" } );
         setStandalone( standalone );
     }
 
@@ -43,6 +44,14 @@ public class LatexTableWriter extends StreamStarTableWriter {
      * @param   standalone  true if the output document should be a
      *          complete LaTeX document
      */
+    @ConfigMethod(
+        property = "standalone",
+        doc = "<p>If true, the output is a freestanding LaTeX document "
+            + "consisting of a <code>tabular</code> environment "
+            + "within a <code>table</code> within a <code>document</code>. "
+            + "If false, the output is just a <code>tabular</code> environment."
+            + "</p>"
+    )
     public void setStandalone( boolean standalone ) {
         this.standalone = standalone;
     }
@@ -67,8 +76,17 @@ public class LatexTableWriter extends StreamStarTableWriter {
         return "text/plain";
     }
 
-    public boolean looksLikeFile( String location ) {
-        return location.endsWith( ".tex" );
+    public boolean docIncludesExample() {
+        return true;
+    }
+
+    public String getXmlDescription() {
+        return String.join( "\n",
+            "<p>Writes a table as a LaTeX <code>tabular</code> environment,",
+            "suitable for insertion into a document intended for publication.",
+            "This is only likely to be useful for fairly small tables.",
+            "</p>",
+        "" );
     }
 
     public void writeStarTable( StarTable startab, OutputStream ostrm ) 

@@ -1,0 +1,8 @@
+<p>Writes to a simple plain-text format intended to be comprehensible
+by humans or machines.
+</p>
+
+<p>The first line is a comment, starting with a "<code>#</code>" character,
+naming the columns, and an attempt is made to line up data in columns
+using spaces.  No metadata apart from column names is written.
+</p>

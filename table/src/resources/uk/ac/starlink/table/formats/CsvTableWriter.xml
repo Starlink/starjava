@@ -1,0 +1,11 @@
+<p>Writes tables in the semi-standard Comma-Separated Values format.
+This does not preserve any metadata apart from column names,
+and is generally inefficient to read,
+but it can be useful for importing into certain external applications,
+such as some databases or spreadsheets.
+</p>
+
+<p>By default, the first line is a header line giving the column names,
+but this can be inhibited using the <code>header=false</code>
+configuration option.
+</p>

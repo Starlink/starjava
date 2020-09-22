@@ -26,7 +26,7 @@ public class IpacTableWriter extends AbstractTextTableWriter {
      * Constructor.
      */
     public IpacTableWriter() {
-        super( true );
+        super( new String[] { "tbl", "ipac" }, true );
         setMaxWidth( 1000 );
         // The comments parameter may be many lines long
         setMaximumParameterLength( 100_000 );
@@ -40,20 +40,20 @@ public class IpacTableWriter extends AbstractTextTableWriter {
         return "IPAC";
     }
 
+    public boolean docIncludesExample() {
+        return true;
+    }
+
+    public String getXmlDescription() {
+        return readText( "IpacTableWriter.xml" );
+    }
+
     /**
      * Returns "text/plain".
      */
     @Override
     public String getMimeType() {
         return "text/plain";
-    }
-
-    /**
-     * Returns true for files with extension ".ipac" or ".tbl".
-     */
-    public boolean looksLikeFile( String location ) {
-        return location.endsWith( ".tbl" )
-            || location.endsWith( ".ipac" );
     }
 
     @Override

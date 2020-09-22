@@ -1,0 +1,8 @@
+<p>Writes output in the format used by
+CalTech's Infrared Processing and Analysis Center,
+and defined at
+<a href="http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html"
+        >http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html</a>.
+Column name, type, units and null values are written,
+as well as table parameters.
+</p>

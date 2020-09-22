@@ -8,8 +8,8 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
-import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.ConfigMethod;
 
 /**
  * A StarTableWriter which outputs to Comma-Separated Value format.
@@ -18,7 +18,7 @@ import uk.ac.starlink.table.Tables;
  * @author   Mark Taylor (Starlink)
  * @since    21 Sep 2004
  */
-public class CsvTableWriter extends StreamStarTableWriter {
+public class CsvTableWriter extends DocumentedStreamStarTableWriter {
 
     private boolean writeHeader_ = true;
     private int maxFieldChars_ = Integer.MAX_VALUE;
@@ -38,6 +38,7 @@ public class CsvTableWriter extends StreamStarTableWriter {
      *         column names
      */
     public CsvTableWriter( boolean writeHeader ) {
+        super( new String[] { "csv" } );
         setWriteHeader( writeHeader );
     }
 
@@ -48,6 +49,13 @@ public class CsvTableWriter extends StreamStarTableWriter {
      * @param  writeHeader  true iff you want the first output line to contain
      *         column names
      */
+    @ConfigMethod(
+        property = "header",
+        doc = "<p>If true, the first line of the CSV output will be "
+            + "a header containing the column names; "
+            + "if false, no header line is written and all lines "
+            + "represent data rows.</p>"
+    )
     public void setWriteHeader( boolean writeHeader ) {
         writeHeader_ = writeHeader;
     }
@@ -68,6 +76,12 @@ public class CsvTableWriter extends StreamStarTableWriter {
      *
      * @param  maxFieldChars  new limit
      */
+    @ConfigMethod(
+        property = "maxCell",
+        doc = "<p>Maximum width in characters of an output table cell. "
+            + "Cells longer than this will be truncated.</p>",
+        example = "160"
+    )
     public void setMaxFieldChars( int maxFieldChars ) {
         maxFieldChars_ = maxFieldChars;
     }
@@ -95,12 +109,12 @@ public class CsvTableWriter extends StreamStarTableWriter {
              + "\"";
     }
 
-    /**
-     * Returns true for locations ending ".csv" or ".CSV".
-     */
-    public boolean looksLikeFile( String location ) {
-        return location.endsWith( ".csv" )
-            || location.endsWith( ".CSV" );
+    public boolean docIncludesExample() {
+        return true;
+    }
+
+    public String getXmlDescription() {
+        return readText( "CsvTableWriter.xml" );
     }
 
     public void writeStarTable( StarTable table, OutputStream ostrm )

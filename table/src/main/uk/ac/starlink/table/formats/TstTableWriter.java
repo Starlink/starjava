@@ -15,7 +15,6 @@ import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperRowSequence;
@@ -31,7 +30,7 @@ import uk.ac.starlink.util.IOUtils;
  * @author   Mark Taylor
  * @since    27 Jul 2006
  */
-public class TstTableWriter extends StreamStarTableWriter {
+public class TstTableWriter extends DocumentedStreamStarTableWriter {
 
     /** Longest field that will get written without truncation. */
     private final static int MAX_CHARS = 10240;
@@ -57,6 +56,10 @@ public class TstTableWriter extends StreamStarTableWriter {
         Y_INFO.setAuxDatum( new DescribedValue( LABEL_INFO, "Y" ) );
     }
 
+    public TstTableWriter() {
+        super( new String[] { "tst" } );
+    }
+
     /**
      * Returns "TST".
      *
@@ -75,17 +78,12 @@ public class TstTableWriter extends StreamStarTableWriter {
         return "text/plain";
     }
 
-    /**
-     * Returns true for <code>location</code> argument which ends in 
-     * ".tst", ".TST" or ".TAB".
-     *
-     * @param   location  the intended destination of the output
-     * @return   whether it looks suitable for this class
-     */
-    public boolean looksLikeFile( String location ) {
-        return location.endsWith( ".tst" ) 
-            || location.endsWith( ".TST" )
-            || location.endsWith( ".TAB" );
+    public boolean docIncludesExample() {
+        return true;
+    }
+
+    public String getXmlDescription() {
+        return readText( "TstTableWriter.xml" );
     }
 
     public void writeStarTable( StarTable st, OutputStream out )

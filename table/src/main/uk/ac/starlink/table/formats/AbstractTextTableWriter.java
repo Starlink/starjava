@@ -9,8 +9,8 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.ConfigMethod;
 
 /**
  * A <tt>StarTableWriter</tt> which outputs text to a human-readable text file.
@@ -19,7 +19,8 @@ import uk.ac.starlink.table.ValueInfo;
  *
  * @author   Mark Taylor (Starlink)
  */
-public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
+public abstract class AbstractTextTableWriter
+        extends DocumentedStreamStarTableWriter {
 
     private boolean writeParams_;
     private int maxWidth_;
@@ -32,9 +33,13 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
     /**
      * Constructor.
      *
+     * @param  extensions  list of lower-cased filename extensions,
+     *                     excluding the '.' character
      * @param  writeParams  whether parameters will be written by default
      */
-    protected AbstractTextTableWriter( boolean writeParams ) {
+    protected AbstractTextTableWriter( String[] extensions,
+                                       boolean writeParams ) {
+        super( extensions );
         setWriteParameters( writeParams );
         setMaxWidth( 160 );
         setMaximumParameterLength( 160 );
@@ -190,6 +195,11 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
      *
      * @param  maxParamLength  maximum printable parameter length
      */
+    @ConfigMethod(
+        property = "maxParam",
+        doc = "<p>Maximum width in characters of an output table parameter. "
+            + "Parameters with values longer than this will be truncated.</p>"
+    )
     public void setMaximumParameterLength( int maxParamLength ) {
         maxParamLength_ = maxParamLength;
     }
@@ -212,6 +222,10 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
      * @param writeParams  true iff you want table parameters to be output as
      *        well as the table data
      */
+    @ConfigMethod(
+        property = "params",
+        doc = "<p>Whether to output table parameters as well as row data.</p>"
+    )
     public void setWriteParameters( boolean writeParams ) {
         writeParams_ = writeParams;
     }
@@ -232,6 +246,11 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
      *
      * @param  maxWidth  maximum column value width in characters
      */
+    @ConfigMethod(
+        property = "maxCell",
+        doc = "<p>Maximum width in characters of an output table cell. "
+            + "Cells longer than this will be truncated.</p>"
+    )
     public void setMaxWidth( int maxWidth ) {
         maxWidth_ = maxWidth;
     }

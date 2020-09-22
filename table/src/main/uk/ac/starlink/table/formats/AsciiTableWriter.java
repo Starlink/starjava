@@ -17,7 +17,7 @@ import uk.ac.starlink.table.ValueInfo;
 public class AsciiTableWriter extends AbstractTextTableWriter {
 
     public AsciiTableWriter() {
-        super( false );
+        super( new String[] { "txt" }, false );
         setMaxWidth( 158 );
     }
 
@@ -112,11 +112,12 @@ public class AsciiTableWriter extends AbstractTextTableWriter {
         return "ascii";
     }
 
-    /**
-     * Returns true for if the location ends with "<code>.txt</code>".
-     */
-    public boolean looksLikeFile( String location ) {
-        return location.endsWith( ".txt" );
+    public boolean docIncludesExample() {
+        return true;
+    }
+
+    public String getXmlDescription() {
+        return readText( "AsciiTableWriter.xml" );
     }
 
     protected void printSeparator( OutputStream strm, int[] colwidths ) {

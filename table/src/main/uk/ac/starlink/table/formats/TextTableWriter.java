@@ -21,7 +21,7 @@ public class TextTableWriter extends AbstractTextTableWriter
                              implements MultiStarTableWriter {
 
     public TextTableWriter() {
-        super( true );
+        super( new String[ 0 ], true );
         setMaxWidth( 40 );
     }
 
@@ -38,10 +38,24 @@ public class TextTableWriter extends AbstractTextTableWriter
         return "text/plain";
     }
 
+    public boolean docIncludesExample() {
+        return true;
+    }
+
+    public String getXmlDescription() {
+        return String.join( "\n",
+            "<p>Writes tables in a simple text-based format",
+            "designed to be read by humans.",
+            "No reader exists for this format.",
+            "</p>",
+        "" );
+    }
+
     /**
      * Returns true if the location argument is equal to "-",
      * indicating standard output.
      */
+    @Override
     public boolean looksLikeFile( String location ) {
         return location.equals( "-" );
     }

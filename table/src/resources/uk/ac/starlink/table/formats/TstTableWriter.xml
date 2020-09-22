@@ -1,0 +1,10 @@
+<p>Tab-Separated Table, or TST, is a text-based table format used
+by a number of astronomical tools including Starlink's
+<a href="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</a>
+and
+ESO's <a href="http://archive.eso.org/skycat/">SkyCat</a>
+on which it is based.
+A definition of the format can be found in
+<a href="http://www.starlink.ac.uk/star/docs/ssn75.htx/ssn75.html"
+        >Starlink Software Note 75</a>.
+</p>
