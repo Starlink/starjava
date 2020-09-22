@@ -12,8 +12,9 @@ import uk.ac.bristol.star.feather.FeatherType;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.formats.DocumentedIOHandler;
+import uk.ac.starlink.table.formats.DocumentedStreamStarTableWriter;
 import uk.ac.starlink.util.IntList;
 
 /**
@@ -22,7 +23,7 @@ import uk.ac.starlink.util.IntList;
  * @author   Mark Taylor
  * @since    26 Feb 2020
  */
-public class FeatherTableWriter extends StreamStarTableWriter {
+public class FeatherTableWriter extends DocumentedStreamStarTableWriter {
 
     private final boolean isColumnOrder_;
     private final StoragePolicy storage_;
@@ -52,6 +53,7 @@ public class FeatherTableWriter extends StreamStarTableWriter {
      *                   (row-oriented output only)
      */
     public FeatherTableWriter( boolean isColumnOrder, StoragePolicy storage ) {
+        super( new String[] { "fea", "feather" } );
         isColumnOrder_ = isColumnOrder;
         storage_ = storage;
     }
@@ -64,14 +66,29 @@ public class FeatherTableWriter extends StreamStarTableWriter {
         return "application/octet-stream";
     }
 
-    /**
-     * Returns true for files with extension ".fea" or ".feather".
-     */
-    public boolean looksLikeFile( String loc ) {
-        int idot = loc.lastIndexOf( '.' );
-        String extension = idot >= 0 ? loc.substring( idot ) : "";
-        return extension.equalsIgnoreCase( ".fea" )
-            || extension.equalsIgnoreCase( ".feather" );
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public String getXmlDescription() {
+        return String.join( "\n",
+            "<p>The Feather file format is a column-oriented binary",
+            "disk-based format based on Apache Arrow",
+            "and supported by (at least) Python, R and Julia.",
+            "Some description of it is available at",
+            DocumentedIOHandler.toLink( "https://github.com/wesm/feather" ),
+            "and",
+            DocumentedIOHandler
+           .toLink( "https://blog.rstudio.com/2016/03/29/feather/" ) + ".",
+            "It can be used for large datasets, but it does not support",
+            "array-valued columns.",
+            "It can be a useful format to use for exchanging data with R,",
+            "for which FITS I/O is reported to be slow.",
+            "</p>",
+            "<p>This writer is somewhat experimental;",
+            "please report problems if you encounter them.",
+            "</p>",
+        "" );
     }
 
     public void writeStarTable( StarTable table, OutputStream out )
