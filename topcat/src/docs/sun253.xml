@@ -29771,6 +29771,7 @@ introduced since the last version:
     <ul>
     <li>Upgrade cds-healpix-java library to v0.28_1; avoid occasional
         sky crossmatch failures (termination with error).</li>
+    <li>Improve guesses about default coordinates in Area plots.</li>
     </ul>
     </p></dd>
 
