@@ -8,6 +8,7 @@ import uk.ac.starlink.fits.StandardFitsTableSerializer;
 import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.table.formats.DocumentedIOHandler;
 
 /**
  * TableWriter which writes table data into the first extension of a FITS file,
@@ -35,7 +36,8 @@ import uk.ac.starlink.table.StarTableWriter;
  * @author   Mark Taylor (Starlink)
  * @since    26 Aug 2004
  */
-public class FitsPlusTableWriter extends VOTableFitsTableWriter {
+public class FitsPlusTableWriter extends VOTableFitsTableWriter
+                                 implements DocumentedIOHandler {
 
     private final WideFits wide_;
 
@@ -58,22 +60,20 @@ public class FitsPlusTableWriter extends VOTableFitsTableWriter {
         wide_ = wide;
     }
 
-    /**
-     * Returns true if <tt>location</tt> ends with something like ".fit"
-     * or ".fits".
-     *
-     * @param  location  filename
-     * @return true if it sounds like a fits file
-     */
+    public String[] getExtensions() {
+        return new String[] { "fit", "fits", "fts" };
+    }
+
     public boolean looksLikeFile( String location ) {
-        int dotPos = location.lastIndexOf( '.' );
-        if ( dotPos > 0 ) {
-            String exten = location.substring( dotPos + 1 ).toLowerCase();
-            if ( exten.startsWith( "fit" ) ) {
-                return true;
-            }
-        }
+        return DocumentedIOHandler.matchesExtension( this, location );
+    }
+
+    public boolean docIncludesExample() {
         return false;
+    }
+
+    public String getXmlDescription() {
+        return readText( "/uk/ac/starlink/fits/FitsTableWriter.xml" );
     }
 
     protected void customisePrimaryHeader( Header hdr )

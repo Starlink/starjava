@@ -7,6 +7,7 @@ import uk.ac.starlink.fits.ColFitsTableSerializer;
 import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.formats.DocumentedIOHandler;
 
 /**
  * Handles writing of a <code>StarTable</code> in a column-oriented
@@ -26,7 +27,8 @@ import uk.ac.starlink.table.StarTable;
  * @author   Mark Taylor
  * @since    21 Jun 2006
  */
-public class ColFitsPlusTableWriter extends VOTableFitsTableWriter {
+public class ColFitsPlusTableWriter extends VOTableFitsTableWriter
+                                    implements DocumentedIOHandler {
 
     private final WideFits wide_;
 
@@ -49,8 +51,20 @@ public class ColFitsPlusTableWriter extends VOTableFitsTableWriter {
         wide_ = wide;
     }
 
+    public String[] getExtensions() {
+        return new String[] { "colfits" };
+    }
+
     public boolean looksLikeFile( String location ) {
-        return location.endsWith( ".colfits" );
+        return DocumentedIOHandler.matchesExtension( this, location );
+    }
+
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public String getXmlDescription() {
+        return readText( "/uk/ac/starlink/fits/ColFitsTableWriter.xml" );
     }
 
     protected void customisePrimaryHeader( Header hdr )
