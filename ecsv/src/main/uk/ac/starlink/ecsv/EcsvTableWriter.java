@@ -16,9 +16,10 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
-import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.formats.DocumentedStreamStarTableWriter;
 import uk.ac.starlink.util.ByteList;
+import uk.ac.starlink.util.ConfigMethod;
 
 /**
  * TableWriter for ECSV output format.
@@ -37,15 +38,15 @@ import uk.ac.starlink.util.ByteList;
  * @author   Mark Taylor
  * @since    29 Apr 2020
  */
-public class EcsvTableWriter extends StreamStarTableWriter {
+public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
 
-    private final char delimiter_;
     private final String formatName_;
     private final String nullRep_;
     private final byte badChar_;
     private final String nl_;
     private final String indent_;
     private final ByteList bbuf_;
+    private char delimiter_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ecsv" );
 
@@ -90,6 +91,7 @@ public class EcsvTableWriter extends StreamStarTableWriter {
      * @param  nameSuffix  string to append to "ECSV" to provide the format name
      */
     public EcsvTableWriter( char delimiter, String nameSuffix ) {
+        super( new String[] { "ecsv" } );
         delimiter_ = delimiter;
         formatName_ = "ECSV" + ( nameSuffix == null ? "" : nameSuffix );
         nullRep_ = delimiter == ' ' ? "\"\"" : "";
@@ -110,12 +112,50 @@ public class EcsvTableWriter extends StreamStarTableWriter {
         return "text/plain";
     }
 
+    public boolean docIncludesExample() {
+        return true;
+    }
+
+    public String getXmlDescription() {
+        return readText( "EcsvTableWriter.xml" );
+    }
+
     /**
-     * Returns true for file extensions ".ecsv" or ".ECSV".
+     * Sets the delimiter.  ECSV only permits the space or comma.
+     *
+     * @param  delimiter  delimiter character;
+     *                    may be "space", "comma", " " or ","
+     * @throws  IllegalArgumentException  if not one of the permitted values
      */
-    public boolean looksLikeFile( String location ) {
-        return location.endsWith( ".ecsv" )
-            || location.endsWith( ".ECSV" );
+    @ConfigMethod(
+        property = "delimiter",
+        doc = "<p>Delimiter character, which for ECSV may be "
+            + "either a space or a comma. "
+            + "Permitted values are "
+            + "\"<code>space</code>\" or \"<code>comma</code>\".</p>",
+        usage = "comma|space",
+        example = "comma"
+    )
+    public void setDelimiter( String delimiter ) {
+        if ( " ".equals( delimiter ) || "space".equals( delimiter ) ) {
+            delimiter_ = ' ';
+        }
+        else if ( ",".equals( delimiter ) || "comma".equals( delimiter ) ) {
+            delimiter_ = ',';
+        }
+        else {
+            throw new IllegalArgumentException( "Illegal delimiter \""
+                                              + delimiter + "\"" );
+        }
+    }
+
+    /**
+     * Returns the delimiter character, either a space or a comma.
+     *
+     * @return  delimiter character
+     */
+    public char getDelimiter() {
+        return delimiter_;
     }
 
     public void writeStarTable( StarTable table, OutputStream out )

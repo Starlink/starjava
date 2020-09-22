@@ -1,0 +1,24 @@
+<p>The Enhanced Character Separated Values format was developed within
+the <a href="https://www.astropy.org/">Astropy</a> project
+and is described at
+<a href="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"
+        >https://github.com/astropy/astropy-APEs/blob/master/APE6.rst</a>.
+It is composed of a YAML header followed by a CSV-like body,
+and is intended to be a human-readable and maybe even human-writable format
+with rich metadata.
+Most of the useful per-column and per-table metadata
+is preserved when de/serializing to this format.
+The version supported by this writer is currently ECSV 0.9.
+</p>
+
+<p>ECSV does not support array-valued columns,
+so this format is not suitable for writing array data in tables.
+</p>
+
+<p>ECSV allows either a space or a comma for delimiting values,
+controlled by the <code>delimiter</code> configuration option.
+If <code>ecsv(delimiter=comma)</code> is used, then removing
+the YAML header will leave a CSV file that can be interpreted
+by the CSV inputhandler or imported into other
+CSV-capable applications.
+</p>
