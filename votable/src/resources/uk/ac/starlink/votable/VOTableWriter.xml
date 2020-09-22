@@ -1,0 +1,30 @@
+<p>VOTable is an XML-based format for tabular data endorsed by the
+<a href="http://www.ivoa.net/">International Virtual Observatory Alliance</a>
+and defined in the
+<a href="http://www.ivoa.net/documents/VOTable/">VOTable Recommendation</a>.
+While the tabular data which can be encoded is by design close to
+what FITS allows, it provides for much richer encoding of structure
+and metadata.
+Most of the table data exchanged by VO services is in VOTable format,
+but it can be used for local table storage as well.
+</p>
+
+<p>When a table is saved to VOTable format, a document conforming to the
+VOTable specification containing a single TABLE element within
+a single RESOURCE element is written.
+Where the table contains such information
+(often obtained by reading an input VOTable),
+column and table metadata will be written out as appropriate to
+the attributes
+<code>unit</code>, <code>ucd</code>, <code>xtype</code> and <code>utype</code>,
+and the elements
+<code>COOSYS</code>, <code>TIMESYS</code> and <code>DESCRIPTION</code>
+attached to table columns or parameters.
+</p>
+
+<p>There are various ways that a VOTable can be written;
+by default the output serialization format is TABLEDATA
+and the VOTable format version is 1.4, or a value controlled
+by the <code>votable.version</code> system property.
+However, configuration options are available to adjust these defaults.
+</p>

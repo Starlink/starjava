@@ -23,7 +23,9 @@ import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.formats.DocumentedIOHandler;
 import uk.ac.starlink.util.Base64OutputStream;
+import uk.ac.starlink.util.ConfigMethod;
 import uk.ac.starlink.util.IOUtils;
 
 /**
@@ -58,7 +60,8 @@ import uk.ac.starlink.util.IOUtils;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
+public class VOTableWriter
+        implements StarTableWriter, MultiStarTableWriter, DocumentedIOHandler {
 
     private DataFormat dataFormat;
     private boolean inline;
@@ -490,17 +493,20 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         writer.newLine();
     }
 
-    /**
-     * Returns true for filenames with the extension ".xml", ".vot" or
-     * ".votable";
-     *
-     * @param  filename  name of the file 
-     * @return  true if <tt>filename</tt> looks like the home of a VOTable
-     */
+    public String[] getExtensions() {
+        return new String[] { "vot", "votable", "xml", };
+    }
+
     public boolean looksLikeFile( String filename ) {
-        return filename.endsWith( ".xml" )
-            || filename.endsWith( ".vot" )
-            || filename.endsWith( ".votable" );
+        return DocumentedIOHandler.matchesExtension( this, filename );
+    }
+
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public String getXmlDescription() {
+        return readText( "VOTableWriter.xml" );
     }
 
     public String getFormatName() {
@@ -556,6 +562,12 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
      *
      * @param  format  bulk data format
      */
+    @ConfigMethod(
+        property = "format",
+        usage = "TABLEDATA|BINARY|BINARY2|FITS",
+        doc = "<p>Gives the serialization type (DATA element content) "
+            + "of output VOTables.</p>"
+    )
     public void setDataFormat( DataFormat format ) {
         this.dataFormat = format;
     }
@@ -576,6 +588,15 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
      * @param  inline  <tt>true</tt> iff streamed data will be encoded 
      *         inline in the STREAM element
      */
+    @ConfigMethod(
+        property = "inline",
+        doc = "If true, STREAM elements are written base64-encoded "
+            + "within the body of the document, "
+            + "and if false they are written to a new external binary file "
+            + "whose name is derived from that of the output VOTable document. "
+            + "This is only applicable to BINARY, BINARY2 and FITS formats "
+            + "where output is not to a stream."
+    )
     public void setInline( boolean inline ) {
         this.inline = inline;
     }
@@ -618,6 +639,14 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
      *
      * @param  version   new version
      */
+    @ConfigMethod(
+        property = "version",
+        usage = "V10|V11|V12|V13|V14",
+        example = "V14",
+        doc = "<p>Gives the version of the VOTable format which will be used "
+            + "when writing the VOTable.\n"
+            + "\"<code>V10</code>\" is version 1.0 etc.</p>"
+    )
     public void setVotableVersion( VOTableVersion version ) {
         this.version = version;
     }
