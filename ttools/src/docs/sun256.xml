@@ -1977,99 +1977,6 @@ by parameters with the following names (or similar ones):
 The values of these parameters are discussed in more detail below.
 </p>
 
-<subsect id="location-syntax">
-<subhead><title>Table Locations</title></subhead>
-
-<p>The location of tables for input and output are usually given using
-the <code>in</code> and <code>out</code> parameters respectively.
-These are often, but not always, filenames.  The possibilities are these:
-<dl>
-<dt>Filename</dt>
-<dd><p>Very often, you will simply specify a filename as location, and
-    the tool will just read from/write to it in the usual way.
-    </p></dd>
-
-<dt>URL</dt>
-<dd><p>Tables can be read from URLs directly, and in some cases written
-    to them as well.  Some non-standard URL protocols are supported 
-    as well as the usual ones.  The list is:
-    <dl>
-    <dt><code>http:</code></dt>
-    <dd><p>Read from HTTP resources.</p></dd>
-    <dt><code>ftp:</code></dt>
-    <dd><p>Read from anonymous FTP resources.</p></dd>
-    <dt><code>file:</code></dt>
-    <dd><p>Read from local files.
-        This is not particularly useful since you can
-        do much the same using just the filename.
-        There is a difference: using this form forces reads to be sequential
-        rather than random access, which may allow you to experience
-        a different set of different performance characteristics
-        and bugs.</p></dd>
-    <dt><code>jar:</code></dt>
-    <dd><p>Specialised protocol for looking inside Java Archive files -
-        see <webref url="&URL.J2SE_DOCS;api/java/net/JarURLConnection.html"
-                    >JarURLConnection</webref> documentation.</p></dd>
-    <dt><code>myspace:</code></dt>
-    <dd><p>Accesses files in the AstroGrid "MySpace" virtual file store.
-        These URLs look something like 
-        "<code>myspace:/survey/iras_psc.xml</code>",
-        and can access files in the myspace are that the user is currently
-        logged into.
-        These URLs can be used for both input and output of tables.
-        To use them you must have an AstroGrid account and the AstroGrid
-        WorkBench or similar must be running; if you're not currently
-        logged in a dialogue will pop up to ask you for name and 
-        password.</p></dd>
-    <dt><code>ivo:</code></dt>
-    <dd><p>Understands ivo-type URLs which signify files in the
-        AstroGrid "MySpace" virtual file store.  
-        These URLs look something like
-        "<code>ivo://uk.ac.le.star/filemanager#node-2583</code>".
-        These URLs can be used for both input and output of tables.
-        To use them you must have an AstroGrid account and the AstroGrid
-        WorkBench or similar must be running; if you're not currently
-        logged in a dialogue will pop up to ask you for name and 
-        password.</p></dd>
-    <dt><code>jdbc:</code></dt>
-    <dd><p>Used for communicating with SQL-compliant relational databases.
-        These are a bit different to normal URLs -
-        see section <ref id="jdbcConfig"/>.</p></dd>
-    </dl>
-    </p></dd>
-
-<dt>Minus sign ("<code>-</code>")</dt>
-<dd><p>The special location "-" (minus sign) indicates standard input 
-    (for reading) or standard output (for writing).
-    This allows you to use STILTS commands in a normal Unix pipeline.
-    </p></dd>
-
-<dt>System command ("<code>&lt;</code><em>syscmd</em>" or
-                    "<em>syscmd</em><code>|</code>)</dt>
-<dd><p>If the location starts with a "<code>&lt;</code>" character
-    or ends with a "<code>|</code>" character,
-    the rest of the string is taken as a command line to be executed
-    by the system shell.
-    For instance a location like
-    "<code>&lt;cat header.txt data.txt</code>"
-    (or equivalently
-    "<code>cat header.txt data.txt|</code>")
-    could be used to prepend a header line to an ASCII data file
-    before it is passed to the STILTS ASCII-format input handler.
-    Note this syntax will probably only work on Unix-like systems.
-    </p></dd>
-</dl>
-</p>
-
-<p>In any of these cases, for input locations compression is taken care
-of automatically.  That means that you can give the filename or URL
-of a file which is compressed using <code>gzip</code>, <code>bzip2</code>
-or Unix <code>compress</code> and the program will uncompress it on the fly.
-</p>
-
-</subsect>
-
-
 <subsect>
 <subhead><title>Table Formats</title></subhead>
 
@@ -2342,6 +2249,99 @@ output filename; the details of those rules are also documented below.
 </subsubsect>
 
 </subsect>
+
+<subsect id="location-syntax">
+<subhead><title>Table Locations</title></subhead>
+
+<p>The location of tables for input and output are usually given using
+the <code>in</code> and <code>out</code> parameters respectively.
+These are often, but not always, filenames.  The possibilities are these:
+<dl>
+<dt>Filename</dt>
+<dd><p>Very often, you will simply specify a filename as location, and
+    the tool will just read from/write to it in the usual way.
+    </p></dd>
+
+<dt>URL</dt>
+<dd><p>Tables can be read from URLs directly, and in some cases written
+    to them as well.  Some non-standard URL protocols are supported 
+    as well as the usual ones.  The list is:
+    <dl>
+    <dt><code>http:</code></dt>
+    <dd><p>Read from HTTP resources.</p></dd>
+    <dt><code>ftp:</code></dt>
+    <dd><p>Read from anonymous FTP resources.</p></dd>
+    <dt><code>file:</code></dt>
+    <dd><p>Read from local files.
+        This is not particularly useful since you can
+        do much the same using just the filename.
+        There is a difference: using this form forces reads to be sequential
+        rather than random access, which may allow you to experience
+        a different set of different performance characteristics
+        and bugs.</p></dd>
+    <dt><code>jar:</code></dt>
+    <dd><p>Specialised protocol for looking inside Java Archive files -
+        see <webref url="&URL.J2SE_DOCS;api/java/net/JarURLConnection.html"
+                    >JarURLConnection</webref> documentation.</p></dd>
+    <dt><code>myspace:</code></dt>
+    <dd><p>Accesses files in the AstroGrid "MySpace" virtual file store.
+        These URLs look something like 
+        "<code>myspace:/survey/iras_psc.xml</code>",
+        and can access files in the myspace are that the user is currently
+        logged into.
+        These URLs can be used for both input and output of tables.
+        To use them you must have an AstroGrid account and the AstroGrid
+        WorkBench or similar must be running; if you're not currently
+        logged in a dialogue will pop up to ask you for name and 
+        password.</p></dd>
+    <dt><code>ivo:</code></dt>
+    <dd><p>Understands ivo-type URLs which signify files in the
+        AstroGrid "MySpace" virtual file store.  
+        These URLs look something like
+        "<code>ivo://uk.ac.le.star/filemanager#node-2583</code>".
+        These URLs can be used for both input and output of tables.
+        To use them you must have an AstroGrid account and the AstroGrid
+        WorkBench or similar must be running; if you're not currently
+        logged in a dialogue will pop up to ask you for name and 
+        password.</p></dd>
+    <dt><code>jdbc:</code></dt>
+    <dd><p>Used for communicating with SQL-compliant relational databases.
+        These are a bit different to normal URLs -
+        see section <ref id="jdbcConfig"/>.</p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Minus sign ("<code>-</code>")</dt>
+<dd><p>The special location "-" (minus sign) indicates standard input 
+    (for reading) or standard output (for writing).
+    This allows you to use STILTS commands in a normal Unix pipeline.
+    </p></dd>
+
+<dt>System command ("<code>&lt;</code><em>syscmd</em>" or
+                    "<em>syscmd</em><code>|</code>)</dt>
+<dd><p>If the location starts with a "<code>&lt;</code>" character
+    or ends with a "<code>|</code>" character,
+    the rest of the string is taken as a command line to be executed
+    by the system shell.
+    For instance a location like
+    "<code>&lt;cat header.txt data.txt</code>"
+    (or equivalently
+    "<code>cat header.txt data.txt|</code>")
+    could be used to prepend a header line to an ASCII data file
+    before it is passed to the STILTS ASCII-format input handler.
+    Note this syntax will probably only work on Unix-like systems.
+    </p></dd>
+</dl>
+</p>
+
+<p>In any of these cases, for input locations compression is taken care
+of automatically.  That means that you can give the filename or URL
+of a file which is compressed using <code>gzip</code>, <code>bzip2</code>
+or Unix <code>compress</code> and the program will uncompress it on the fly.
+</p>
+
+</subsect>
+
 
 <subsect id="TableScheme">
 <subhead><title>Table Schemes</title></subhead>
