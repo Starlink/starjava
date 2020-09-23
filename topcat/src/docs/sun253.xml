@@ -1100,33 +1100,35 @@ though there are options to change this view.
 
 </sect>
 
-<sect>
+<sect id="io">
 <subhead><title>Table I/O</title></subhead>
 
-<subsect>
+<p>Tables can be loaded into TOPCAT using the
+<ref id="LoadWindow">Load Window</ref> or from the command line,
+or acquired from VO services,
+and saved using the <ref id="SaveQueryWindow">Save Window</ref>.
+This section describes the <ref id="ioFormats">file formats</ref>
+supported for input and output,
+as well as the syntax to use when specifying a table by name,
+either as a <ref id="tableLocation">file/URL</ref> or using a
+<ref id="TableScheme"><em>scheme specification</em></ref>.
+</p>
+
+<subsect id="ioFormats">
 <subhead><title>Table Formats</title></subhead>
 
-<p>TOPCAT supports a wide variety of tabular data formats.
-In most cases these are file formats for tables stored as single files
-on a disk or at the end of a URL, but there are other possibilities,
-for instance a table you have opened could 
-be the result of an SQL query on a database.
+<p>TOPCAT supports a number of different serialization formats
+for table data;
+some have better facilities for storing table data and metadata
+than others.
 </p>
 
 <p>Since you can load a table from one format and save it in a different
 one, TOPCAT can be used to convert a table from one format to another.
 If this is all you want to do however, you may find it more 
-convenient to use the <code>tcopy</code> command line utility in the 
+convenient to use the <code>tcopy</code> or <code>tpipe</code>
+command line utilities in the 
 <webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref> package.
-</p>
-
-<p>The format handling is extensible, so it is possible to add support
-for new formats.
-All the table input/output is handled by 
-STIL, the Starlink Tables Infrastructure Library;
-more detailed descriptions of the I/O capabilities can be found in its
-<webref plaintextref="yes" url="http://www.starlink.ac.uk/stil/"
-        >documentation</webref>.
 </p>
 
 <p>The following subsections describe the available formats for reading
@@ -1135,25 +1137,28 @@ supported input formats have matching output formats and vice versa.
 </p>
 
 <subsubsect id="inFormats">
-<subhead><title>Supported Input Formats</title></subhead>
+<subhead><title>Input Formats</title></subhead>
 
-<p>Loading tables into TOPCAT is done either from the command line
-when you start the program up or
-using the <ref id="LoadWindow">Load Table</ref> dialogue.
-For FITS, VOTable, ECSV, CDF, feather and GBIN formats
-the file format can be detected automatically by looking at
-the content.  For certain other formats, the format can sometimes
-be guessed from the filename (e.g. the comma-separated values
-format is tried for files with the "<code>.csv</code>" extension).
+<p>Loading table into TOPCAT from files or URLs is done either
+using the <ref id="LoadWindow">Load Table</ref> dialogue
+or one of its sub-windows,
+or from the command line when you start the program.
+For some file formats (e.g. FITS, VOTable, CDF),
+the format can be automatically determined by
+looking at the file content, regardless of filename;
+for others (e.g. CSV files with a "<code>.csv</code>" extension),
+TOPCAT may be able to use the filename as a hint to guess the format
+(the details of these rules are given in the format-specific
+subsections below).
 In other cases though,
 you will have to specify the format that the file is in.
 In the Load Window, there is a selection box from which you can
 choose the format, and from the command line you use the
 <code>-f</code> flag - see <ref id="invoke"/> for details.
 You can always specify the format rather than using automatic detection
-if you prefer - this can be a good idea if a table appears to 
-be failing to load in a surprising way, since it may give you 
-a more detailed error message.
+if you prefer - this is slightly more efficient,
+and may give you a more detailed error message
+if a table fails to load.
 </p>
 
 <p>In either case, table locations may be given as filenames or
@@ -1161,7 +1166,21 @@ as URLs, and any data compression (gzip, unix compress and bzip2)
 will be automatically detected and dealt with - see <ref id="tableLocation"/>.
 </p>
 
-<p>The following sections describe the table formats which TOPCAT can read.</p>
+<p>Some of the formats
+(e.g. <ref id="inFits">FITS</ref>, <ref id="inVotable">VOTable</ref>)
+are capable of storing more than one table;
+usually loading such files loads all the tables into TOPCAT.
+If you want to specify only a single table,
+you can give a position indicator either after a "<code>#</code>" sign
+at the end of the filename or using the
+<label>Position in file</label> field in the
+<ref id="FilestoreTableLoadDialog">Filestore Browser</ref> or similar.
+The details of the syntax for this is given in the relevant
+format description below.
+</p>
+
+<p>The following sections describe the table formats which TOPCAT can read.
+</p>
 
 <subsubsubsect id="inFits">
 <subhead><title>FITS</title></subhead>
@@ -1264,52 +1283,11 @@ or like this:
 &in-wdc;
 </subsubsubsect>
 
-<subsubsubsect id="inSql">
-<subhead><title>SQL Database Queries</title></subhead>
-
-<p>With appropriate configuration, TOPCAT can be used to examine the
-results of queries on an SQL-compatible relational database.
-</p>
-
-<p>Database queries can be specified as a string in the form:
-<verbatim>
-   jdbc:<var>driver-specific-url</var>#<var>sql-query</var>
-</verbatim>
-The exact form is dependent on the driver.
-Here is an example for MySQL:
-<verbatim><![CDATA[
-   jdbc:mysql://localhost/astro1?user=mbt#SELECT ra, dec FROM swaa WHERE vmag<18
-]]></verbatim>
-which would get a two-column table (the columns being "ra" and "dec"),
-constructed from certain rows from the table "swaa" in the database
-"astro1" on the local host, using the access privileges of user mbt.
-</p>
-
-<p>Fortunately you don't have to construct this by hand, there is
-an <ref plaintextref="yes" id="SQLTableLoadDialog">SQL Query Dialogue</ref> 
-to assist in putting it together.
-</p>
-
-<p>Note that TOPCAT does not view a table in the database directly,
-but the result of an SQL query on that table.  If you want to view
-the whole table you can use the query
-<verbatim>
-   SELECT * FROM table-name
-</verbatim>
-but be aware that such a query might be expensive on a large table.
-</p>
-
-<p>Use of SQL queries requires some additional configuration of TOPCAT;
-see <ref id="jdbcConfig"/>.
-</p>
-
-</subsubsubsect>
-
 </subsubsect>
 
 
 <subsubsect id="outFormats">
-<subhead><title>Supported Output Formats</title></subhead>
+<subhead><title>Output Formats</title></subhead>
 
 <p>Writing out tables from TOPCAT is done 
 using the <ref id="SaveQueryWindow">Save Table Window</ref>.
@@ -1356,6 +1334,8 @@ formats might be better.
 <subsubsubsect id="outColfits">
 <subhead><title>Column-oriented FITS</title></subhead>
 &out-colfits;
+<p>For normal (row-oriented) FITS output, see <ref id="outFits"/>.
+</p>
 </subsubsubsect>
 
 <subsubsubsect id="outVotable">
@@ -1413,58 +1393,36 @@ formats might be better.
 &out-mirage;
 </subsubsubsect>
 
-
-<subsubsubsect id="outSql">
-<subhead><title>SQL Tables</title></subhead>
-
-<p>With appropriate configuration, TOPCAT can write out tables as
-new tables in an SQL-compatible relational database.
-</p>
-
-<p>For writing, the location is specified as the following URL:
-<verbatim>
-   jdbc:<var>driver-specific-url</var>#<var>new-table-name</var>
-</verbatim>
-The exact form is dependent on the driver.
-Here is an example for MySQL:
-<verbatim><![CDATA[
-   jdbc:mysql://localhost/astro1?user=mbt#newtab
-]]></verbatim>
-which would write the current contents of the browser into a new table
-named "newtab" in the database "astro1" on the local host with the
-access privileges of user mbt.
-</p>
-
-<p>Fortunately you do not have to construct this URL by hand, there is
-an <ref id="SQLWriteDialog">SQL dialogue box</ref> to assist
-in putting it together.
-</p>
-
-<p>Use of SQL queries requires some additional configuration of TOPCAT;
-see <ref id="jdbcConfig"/>.
-</p>
-</subsubsubsect>
-
 </subsubsect>
 
 <subsubsect id="customHandlers">
 <subhead><title>Custom I/O Formats</title></subhead>
 
 <p>It is in principle possible to configure TOPCAT to work with
-table file formats other than the ones listed in this section.
+table file formats and schemes other than the ones listed in this section.
 It does not require any upgrade of TOPCAT itself, but you have
-to write or otherwise acquire an input and/or output handler for the
+to write or otherwise acquire an input/output/scheme handler for the
 table format in question.
 </p>
 
 <p>The steps that you need to take are:
 <ol>
-<li>Write java classes which constitute your input and/or output handler</li>
+<li>Write java classes which constitute your input/output/scheme handler.
+    Such classes must have a no-arg constructor and implement the appropriate
+    interface:
+    <code>uk.ac.starlink.table.TableBuilder</code> for input handlers,
+    <code>uk.ac.starlink.table.StarTableWriter</code> for output handlers,
+    <code>uk.ac.starlink.table.TableScheme</code> for scheme handlers.
+    </li>
 <li>Ensure that these classes are available on your classpath while
-    TOPCAT is running (see <ref id="jvmClasspath"/>)</li>
-<li>Set the <code>startable.readers</code> and/or 
-    <code>startable.writers</code> system property to the name of the
-    handler classes (see <ref id="jvmProperties"/>)</li>
+    TOPCAT is running (see <ref id="jvmClasspath"/>).
+    </li>
+<li>Set the relevant system property to the name of the handler class
+    (see <ref id="jvmProperties"/>):
+    <code>startable.readers</code> for input handlers,
+    <code>startable.writers</code> for output handlers,
+    <code>startable.schemes</code> for scheme handlers.
+    </li>
 </ol>
 </p>
 
@@ -1480,39 +1438,44 @@ document - see the user document and javadocs for
 <subsect id="tableLocation">
 <subhead><title>Input Locations</title></subhead>
 
-<p>In many cases loading and saving tables will be done using GUI
-dialogues such as the filestore 
-<ref id="FilestoreTableLoadDialog">load</ref> and 
-<ref id="FilestoreTableSaveDialog">save</ref> windows, where you 
-just need to click on a filename or directory to indicate the
-load/save location.  However in some cases, for instance
+<p>In many cases loading tables will be done using GUI dialogues such as the
+<ref id="FilestoreTableLoadDialog">Filestore Load Window</ref>,
+where you just need to click on a filename or directory to indicate the
+load location.  However in some cases, for instance
 specifying tables on the command line (<ref id="topcatArgs"/>) 
 or typing pathnames directly into the 
-<ref id="LoadWindow">load</ref>/<ref id="SaveQueryWindow">save</ref> 
-dialogue windows,
-you may want give the location of a table for input or output 
+Load Window <label>Location</label> field,
+you may want give the location of an input table
 using only a single string.
 </p>
 
 <p>Most of the time you will just want to type in a filename; either
-an absolute or relative pathname can be used.
+an absolute pathname or one relative to TOPCAT's starting directory
+can be used.
 However, TOPCAT also supports direct use of URLs, including ones
 using some specialised protocols.  Here is the list of URL types
 allowed:
 <dl>
     <dt><code>http:</code></dt>
-    <dd><p>Read from HTTP resources.</p></dd>
+    <dd><p>Read from an HTTP resource.</p></dd>
+    <dt><code>https:</code></dt>
+    <dd><p>Read from an HTTPS resource.</p></dd>
     <dt><code>ftp:</code></dt>
-    <dd><p>Read from anonymous FTP resources.</p></dd>
+    <dd><p>Read from an anonymous FTP resource.</p></dd>
     <dt><code>file:</code></dt>
-    <dd><p>Read from local files; not particularly useful since you can
-        do much the same using just the filename.</p></dd>
+    <dd><p>Read from a local file, using the syntax
+        <code>file:///path/to/file</code>.
+        This is similar to specifying the filename directly, but
+        there is a difference: using this form forces reads to be sequential
+        rather than random access, which may allow you to experience
+        a different set of performance characteristics and bugs.</p></dd>
     <dt><code>jar:</code></dt>
     <dd><p>Specialised protocol for looking inside Java Archive files -
         see <webref url="&URL.J2SE_DOCS;api/java/net/JarURLConnection.html"
                     >JarURLConnection</webref> documentation.</p></dd>
     <dt><code>myspace:</code></dt>
-    <dd><p>Accesses files in the AstroGrid "MySpace" virtual file store.
+    <dd><p><em>(Obsolete?)</em>
+        Accesses files in the AstroGrid "MySpace" virtual file store.
         These URLs look something like
         "<code>myspace:/survey/iras_psc.xml</code>",
         and can access files in the myspace are that the user is currently
@@ -1523,7 +1486,8 @@ allowed:
         logged in a dialogue will pop up to ask you for name and
         password.</p></dd>
     <dt><code>ivo:</code></dt>
-    <dd><p>Understands ivo-type URLs which signify files in the
+    <dd><p><em>(Obsolete?)</em>
+        Understands ivo-type URLs which signify files in the
         AstroGrid "MySpace" virtual file store.
         These URLs look something like
         "<code>ivo://uk.ac.le.star/filemanager#node-2583</code>".
@@ -1533,14 +1497,14 @@ allowed:
         logged in a dialogue will pop up to ask you for name and
         password.</p></dd>
     <dt><code>jdbc:</code></dt>
-    <dd><p>Used for communicating with SQL-compliant relational databases.
-        These are a bit different to normal URLs - see
-        <ref id="inSql"/> and <ref id="outSql"/>.</p></dd>
+    <dd><p>JDBC URLs may be used, but they don't work in the same way
+        as the others listed here, since they do not reference an
+        input byte stream.  See instead <ref id="scheme-jdbc"/>.</p></dd>
 </dl>
 </p>
 
-<p>It is also possible to use the special value "<code>-</code>"
-to mean standard input; 
+<p>From the command line it is also possible
+to use the special value "<code>-</code>" to mean standard input;
 in this case the file format must be specified explicitly
 using the <code>-f</code> flag,
 and not all formats can be streamed from stdin.
@@ -4228,8 +4192,8 @@ in your <code>.starjava.properties</code> file.
 
 <p>This section describes additional configuration which must be
 done to allow TOPCAT to access SQL-compatible relational databases
-for reading (see <ref id="inSql"/>) or
-writing (see <ref id="outSql"/>) tables.
+for reading (see <ref id="SQLTableLoadDialog"/>) or
+writing (see <ref id="SQLWriteDialog"/>) tables.
 If you don't need to talk to SQL-type databases, 
 you can ignore the rest of this section.
 The steps described here are the standard ones
@@ -17434,8 +17398,7 @@ Changing the root of the tree will interrupt the search.
 <figureimage src="&FIG.SQLTableLoadDialog;"/>
 </figure>
 
-<p>If you want to 
-<ref id="inSql" plaintextref="yes">read a table from an SQL database</ref>,
+<p>If you want to read a table from an SQL database,
 you can use a specialised dialogue to specify the SQL query by selecting
 <label>SQL Query</label> button from the
 <ref id="LoadWindow">Load Window</ref>'s 
@@ -18317,8 +18280,7 @@ will need to use the selector in the <label>Save Window</label>.
 <figureimage src="&FIG.SQLWriteDialog;"/>
 </figure>
 
-<p>If you want to 
-<ref id="outSql" plaintextref="yes">write a table to an SQL database</ref>,
+<p>If you want to write a table to an SQL database,
 you can use a specialised dialogue to specify the table destination by clicking
 the <label>SQL Table</label> button in the <label>Save Table</label>
 window.
@@ -29210,6 +29172,17 @@ introduced since the last version:
         (as well as for FIELDs, which was already the case).
         However, they are not currently displayed in the application GUI
         for table parameters, only for columns.</li>
+    <li>The <ref id="io">Table I/O</ref> section has been somewhat
+        reorganised and tidied up.</li>
+    <li>Table output handlers specified in the
+        table <ref id="SaveQueryWindow">Save Window</ref>
+        can now in some cases take parenthesised options,
+        e.g. you can type in
+        "<label>votable(version=V12,format=BINARY)</label>"
+        instead of just selecting "<label>votable</label>".
+        See individual format documentation
+        (e.g. <ref id="outVotable">VOTable output</ref>
+        for details).</li>
     </ul>
     </p></dd>
 
