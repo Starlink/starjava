@@ -24,7 +24,7 @@ import uk.ac.starlink.datanode.tree.TreeTableLoadDialog;
 public class DemoLoadDialog extends TreeTableLoadDialog {
 
     public String getName() {
-        return "Browse Demo Data";
+        return "Browse Demo Tree";
     }
 
     public String getDescription() {

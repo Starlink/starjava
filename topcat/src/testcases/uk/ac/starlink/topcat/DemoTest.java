@@ -1,9 +1,11 @@
 package uk.ac.starlink.topcat;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
 
 public class DemoTest extends TestCase {
 
@@ -15,7 +17,7 @@ public class DemoTest extends TestCase {
         super( name );
     }
 
-    public void testDemoTables() {
+    public void testDemoTables() throws IOException {
         StarTable[] demoTables = Driver.getDemoTables();
         int ix = 0;
 
@@ -35,5 +37,13 @@ public class DemoTest extends TestCase {
         // assertEquals( 881L, demoTables[ ix++ ].getRowCount() );
 
         assertEquals( demoTables.length, ix );
+    }
+
+    public void testExamples() throws IOException {
+        StarTableFactory tfact = TopcatPreparation.createFactory();
+        for ( LoadWindow.Example ex : LoadWindow.createExamples() ) {
+            StarTable table = tfact.makeStarTable( ex.location_ );
+            assertTrue( table.getRowCount() > 100 );
+        }
     }
 }

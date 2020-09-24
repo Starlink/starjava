@@ -17948,11 +17948,39 @@ in the <ref id="LoadWindow">Load Window</ref> however.
 This contains the following options:
 <dl>
 
-<dt>Load Example Table</dt>
-<dd><p>Loads in a single example table.
+<dt>Messier</dt>
+<dd><p>Loads a short table containing the Messier objects
     </p></dd>
 
-<dt>Browse Demo Data</dt>
+<dt>6dfgs Sample</dt>
+<dd><p>Loads a semi-random sample of objects from the 6dfGS survey;
+    this data is has been modified to serve as an example and is
+    not intended for science use.
+    </p></dd>
+
+<dt>Fake Sky 1 Mrow</dt>
+<dd><p>Loads a million-row table giving (very roughly) simulated sky objects:
+    see <ref id="scheme-skysim"/>
+    (you can easily specify similar tables with different row counts).
+    </p></dd>
+
+<dt>2d Attractor 1 Mrow</dt>
+<dd><p>Loads a million-row table representing samples from a
+    Clifford chaotic attractor: see <ref id="scheme-attractor"/>
+    (you can easily specify similar tables with different row counts).
+    </p></dd>
+
+<dt>3d Attractor 1 Mrow</dt>
+<dd><p>Loads a million-row table representing samples from a
+    Rampe chaotic attractor: see <ref id="scheme-attractor"/>
+    (you can easily specify similar tables with different row counts).
+    </p></dd>
+
+<dt>All Examples</dt>
+<dd><p>Convenience item that loads all of the above tables.
+    </p></dd>
+
+<dt>Browse Demo Tree</dt>
 <dd><p>Pops up a 
     <ref id="TreeTableLoadDialog" plaintextref="yes">Hierarchy Browser</ref>
     looking at a hierarchy of tables in different formats.
@@ -29183,6 +29211,10 @@ introduced since the last version:
         See individual format documentation
         (e.g. <ref id="outVotable">VOTable output</ref>
         for details).</li>
+    <li>Add more example tables
+        (using <ref id="scheme-skysim">skysim</ref>
+        and <ref id="scheme-attractor">attractor</ref> schemes)
+        to the <ref id="demoData">Example Tables</ref> menu.</li>
     </ul>
     </p></dd>
 

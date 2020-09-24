@@ -208,20 +208,37 @@ public class LoadWindow extends AuxWindow {
         /* Demo actions. */
         JMenu demoMenu = new JMenu( "Examples" );
         demoMenu.setMnemonic( KeyEvent.VK_X );
-        demoMenu.add( new AbstractAction( "Load Example Table" ) {
+        for ( Example ex : createExamples() ) {
+            demoMenu.add( new AbstractAction( ex.name_ ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    try {
+                        StarTable table = tfact.makeStarTable( ex.location_ );
+                        ControlWindow.getInstance()
+                                     .addTable( table, ex.location_, true );
+                        conditionallyClose();
+                    }
+                    catch ( IOException e ) {
+                        ErrorDialog.showError( LoadWindow.this,
+                                               "Example Table Load Failure", e,
+                                               "Can't load " + ex.location_ );
+                    }
+                }
+            } );
+        }
+        demoMenu.addSeparator();
+        demoMenu.add( new AbstractAction( "All Examples" ) {
             public void actionPerformed( ActionEvent evt ) {
-                String demoPath = TopcatUtils.DEMO_LOCATION + "/"
-                                + TopcatUtils.DEMO_TABLE;
-                String loc = getClass().getClassLoader()
-                                       .getResource( demoPath ).toString();
                 try {
-                    StarTable table = tfact.makeStarTable( loc );
-                    ControlWindow.getInstance().addTable( table, loc, true );
+                    ControlWindow cwin = ControlWindow.getInstance();
+                    for ( Example ex : createExamples() ) {
+                        cwin.addTable( tfact.makeStarTable( ex.location_ ),
+                                       ex.location_, true );
+                    }
                     conditionallyClose();
                 }
                 catch ( IOException e ) {
-                    ErrorDialog.showError( LoadWindow.this, "Load Failure", e,
-                                           "Can't load " + loc + "??" );
+                    ErrorDialog.showError( LoadWindow.this,
+                                           "Example Table Load Failure", e );
                 }
             }
         } );
@@ -332,6 +349,47 @@ public class LoadWindow extends AuxWindow {
         if ( workerStack_.getComponentCount() == 0 &&
              ! stayOpenModel_.isSelected() && isShowing() ) {
             dispose();
+        }
+    }
+
+    /**
+     * Returns a list of example table locations
+     * to be provided in the Examples menu.
+     */
+    static Example[] createExamples() {
+        ClassLoader loader = LoadWindow.class.getClassLoader();
+        return new Example[] {
+            new Example( "Messier",
+                         loader.getResource( TopcatUtils.DEMO_LOCATION + "/"
+                                           + "messier.xml" )
+                               .toString() ),
+            new Example( "6dfgs Sample",
+                         loader.getResource( TopcatUtils.DEMO_LOCATION + "/"
+                                           + TopcatUtils.DEMO_TABLE )
+                               .toString() ),
+            new Example( "2d Attractor 1 Mrow", ":attractor:1e6,clifford" ),
+            new Example( "3d Attractor 1 Mrow", ":attractor:1e6,rampe" ),
+            new Example( "Fake Sky 1 Mrow", ":skysim:1e6" ),
+        };
+    }
+
+    /**
+     * Utility class that aggregates a table load example name and location.
+     */
+    static class Example {
+        final String name_;
+        final String location_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  presentation name for use in menu text
+         * @param  location  table location to be presented to
+         *                   StarTableFactory.makeStarTable(String)
+         */
+        Example( String name, String location ) {
+            name_ = name;
+            location_ = location;
         }
     }
 
