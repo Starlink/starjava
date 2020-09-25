@@ -167,9 +167,9 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
 
             JComponent formatBox = Box.createHorizontalBox();
             formatBox.add( new JLabel( "Output Format: " ) );
-            formatBox.add( new ShrinkWrapper(
-                               new JComboBox<String>( formatModel ) ) );
-            formatBox.add( Box.createHorizontalGlue() );
+            JComboBox<String> formatSelector = new JComboBox<>( formatModel );
+            formatSelector.setEditable( true );
+            formatBox.add( formatSelector );
 
             JComponent controlBox = Box.createHorizontalBox();
             controlBox.add( Box.createHorizontalGlue() );

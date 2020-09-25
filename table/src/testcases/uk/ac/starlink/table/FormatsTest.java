@@ -46,6 +46,7 @@ import uk.ac.starlink.table.formats.IpacTableBuilder;
 import uk.ac.starlink.table.formats.IpacTableWriter;
 import uk.ac.starlink.table.formats.TstTableBuilder;
 import uk.ac.starlink.table.formats.TstTableWriter;
+import uk.ac.starlink.table.gui.TableSaveChooser;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IntList;
@@ -209,10 +210,17 @@ public class FormatsTest extends TableCase {
         }
     }
 
-    public void testLegacyHandlers() throws TableFormatException {
+    public void testLegacyOutputHandlers() throws TableFormatException {
         StarTableOutput sto = new StarTableOutput();
         for ( String hname :
               StarTableOutput.createLegacyHandlerMap().keySet() ) {
+            assertNotNull( hname, sto.getHandler( hname ) );
+        }
+    }
+
+    public void testGuiOutputHandlers() throws TableFormatException {
+        StarTableOutput sto = new StarTableOutput();
+        for ( String hname : TableSaveChooser.getExtraWriterNames( false ) ) {
             assertNotNull( hname, sto.getHandler( hname ) );
         }
     }

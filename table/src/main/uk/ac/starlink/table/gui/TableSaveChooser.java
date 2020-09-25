@@ -95,6 +95,7 @@ public abstract class TableSaveChooser extends JPanel {
                 return getPreferredSize();
             }
         };
+        formatSelector_.setEditable( true );
         formatBox.add( formatSelector_ );
         activeList.add( formatSelector_ );
         formatBox.setAlignmentX( LEFT_ALIGNMENT );
@@ -453,7 +454,31 @@ public abstract class TableSaveChooser extends JPanel {
                 model.addElement( handler.getFormatName() );
             }
         }
+        for( String extra : getExtraWriterNames( multi ) ) {
+            model.addElement( extra );
+        }
         return model;
+    }
+
+    /**
+     * Returns a selection of output handler specifications that can be
+     * offered to the user alongside the default-configuration ones.
+     *
+     * @param  multi  true if multiple tables might be used,
+     *                false if only a single table will be written
+     * @return  example/useful writer specifications including config options
+     */
+    public static String[] getExtraWriterNames( boolean multi ) {
+        List<String> list = new ArrayList<>();
+        list.add( "votable(format=BINARY)" );
+        list.add( "votable(format=BINARY2)" );
+        if ( ! multi ) {
+            list.add( "csv(header=false)" );
+            list.add( "ecsv(delimiter=comma)" );
+            list.add( "latex(standalone=true)" );
+        };
+        list.add( "html(standalone=true)" );
+        return list.toArray( new String[ 0 ] );
     }
 
     /** Testing purposes only. */

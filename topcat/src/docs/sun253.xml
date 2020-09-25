@@ -18960,6 +18960,12 @@ If the "(auto)" option is used, an attempt is made to guess the
 format based on the filename given;
 for instance if you specify the name "out.fits" a FITS binary table
 will be written.
+Usually just using <label>(auto)</label> or selecting one of the listed
+options will be appropriate, but you can type into the selector a more
+specific value with configuration options, for instance
+<label>votable(format=BINARY,votable=V12)</label>;
+see the output format descriptions in <ref id="outFormats"/>
+for more details.
 </p>
 
 <p>You can specify the location of the output table in these ways,
@@ -19030,7 +19036,7 @@ To save to a new file, type it into the <label>File Name</label> field;
 this will save the table under that name into the directory which is displayed.
 You can (re)set the format in which the file will be written using
 the <label>Output Format</label> selector box on the right
-(see <ref id="outFormats"/> for discussion of output formats).
+(see <ref id="TableSaveChooser"/> for discussion of this selector).
 </p>
 
 </subsubsubsect>
