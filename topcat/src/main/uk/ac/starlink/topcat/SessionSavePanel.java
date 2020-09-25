@@ -2,7 +2,6 @@ package uk.ac.starlink.topcat;
 
 import java.awt.BorderLayout;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JScrollPane;
@@ -14,6 +13,7 @@ import javax.swing.table.TableModel;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.gui.TableSaveChooser;
+import uk.ac.starlink.votable.ColFitsPlusTableWriter;
 import uk.ac.starlink.votable.FitsPlusTableWriter;
 import uk.ac.starlink.votable.VOTableWriter;
 
@@ -96,8 +96,8 @@ public class SessionSavePanel extends SavePanel {
     private static String[] createFormatList() {
         List<StarTableWriter> writerList = new ArrayList<StarTableWriter>();
         writerList.add( new FitsPlusTableWriter() );
-        writerList.addAll( Arrays
-                          .asList( VOTableWriter.getStarTableWriters() ) );
+        writerList.add( new ColFitsPlusTableWriter() );
+        writerList.add( new VOTableWriter() );
         String[] names = new String[ writerList.size() ];
         for ( int i = 0; i < names.length; i++ ) {
             names[ i ] = writerList.get( i ).getFormatName();
