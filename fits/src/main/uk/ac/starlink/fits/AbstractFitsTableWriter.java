@@ -21,6 +21,7 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.ConfigMethod;
 import uk.ac.starlink.util.IOUtils;
 
 /**
@@ -54,6 +55,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
                                               implements MultiStarTableWriter {
 
     private String formatName_;
+    private boolean writeDate_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
 
@@ -64,6 +66,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      */
     protected AbstractFitsTableWriter( String formatName ) {
         setFormatName( formatName );
+        writeDate_ = true;
     }
 
     public String getFormatName() {
@@ -185,8 +188,10 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      */
     protected void addMetadata( Header hdr ) {
         try {
-            hdr.addValue( "DATE-HDU", getCurrentDate(),
-                          "Date of HDU creation (UTC)" );
+            if ( getWriteDate() ) {
+                hdr.addValue( "DATE-HDU", getCurrentDate(),
+                              "Date of HDU creation (UTC)" );
+            }
             hdr.addValue( "STILVERS",
                           IOUtils.getResourceContents( StarTable.class,
                                                        "stil.version", null ),
@@ -197,6 +202,29 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
         catch ( HeaderCardException e ) {
             logger_.warning( "Trouble adding metadata header cards " + e );
         }
+    }
+
+    /**
+     * Configures whether a datestamp is written to output FITS files.
+     *
+     * @param  writeDate  true to include DATE-HDU, false to omit it
+     */
+    @ConfigMethod(
+        property = "date",
+        doc = "<p>If true, the DATE-HDU header is filled in with the current "
+            + "date; otherwise it is not included.</p>"
+    )
+    public void setWriteDate( boolean writeDate ) {
+        writeDate_ = writeDate;
+    }
+
+    /**
+     * Indicates whether a datestamp is written to output FITS files.
+     *
+     * @return   true to include DATE-HDU, false to omit it
+     */
+    public boolean getWriteDate() {
+        return writeDate_;
     }
 
     /**
