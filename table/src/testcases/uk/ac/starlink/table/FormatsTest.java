@@ -209,6 +209,14 @@ public class FormatsTest extends TableCase {
         }
     }
 
+    public void testLegacyHandlers() throws TableFormatException {
+        StarTableOutput sto = new StarTableOutput();
+        for ( String hname :
+              StarTableOutput.createLegacyHandlerMap().keySet() ) {
+            assertNotNull( hname, sto.getHandler( hname ) );
+        }
+    }
+
     public void testStorage() throws IOException {
         exerciseRowStore( new ListRowStore() );
         exerciseRowStore( new DiskRowStore() );

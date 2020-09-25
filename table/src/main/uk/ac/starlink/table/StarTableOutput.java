@@ -13,8 +13,11 @@ import java.net.URLConnection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.WriteMode;
@@ -87,6 +90,8 @@ public class StarTableOutput {
         LatexTableWriter.class.getName(),
         "uk.ac.starlink.mirage.MirageTableWriter",
     };
+    private static Map<String,String> legacyHandlerMap_ =
+        createLegacyHandlerMap();
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
 
     private StarTableWriter voWriter_;
@@ -473,6 +478,13 @@ public class StarTableOutput {
             return handler;
         }
 
+        /* Hack to maintain backward compatibility with some variant handlers
+         * available pre-STIL4. */
+        StarTableWriter legHandler = getLegacyHandler( fname );
+        if ( legHandler != null ) {
+            return legHandler;
+        }
+
         /* No luck - throw an exception. */
         throw new TableFormatException( "No handler for table format \"" +
                                         format + "\"" );
@@ -680,5 +692,66 @@ public class StarTableOutput {
             }
         }
         return tdWriter;
+    }
+
+    /**
+     * Returns an output handler corresponding to a name that was supported
+     * in older versions of STIL (pre-v4) but is no longer supported by
+     * the usual syntax.
+     *
+     * @param  name  legacy name, or prefix of legacy name
+     * @return   handler, or null if name does not correspond to a known
+     *           legacy name
+     */
+    private StarTableWriter getLegacyHandler( String name )
+            throws TableFormatException {
+        for ( Map.Entry<String,String> entry : legacyHandlerMap_.entrySet() ) {
+            if ( entry.getKey().startsWith( name ) ) {
+                String hspec = entry.getValue();
+                logger.info( "Mapping legacy output handler: "
+                           + name + " -> " + hspec );
+                BeanConfig config = BeanConfig.parseSpec( hspec );
+                String fname = config.getBaseText();
+                StarTableWriter handler = createNamedHandler( fname );
+                try {
+                    config.configBean( handler );
+                }
+                catch ( LoadException e ) {
+                    throw new TableFormatException(
+                        "Error configuring known handler?", e );
+                }
+                return handler;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Creates an unmodifiable map from handler names that used to be supported
+     * in pre-v4 versions of STIL to specifications in the newer syntax.
+     *
+     * @return  handler-legacy-name-&gt;handler-specification map
+     */
+    static Map<String,String> createLegacyHandlerMap() {
+        Map<String,String> map = new LinkedHashMap<>();
+        map.put( "votable-tabledata", "votable(format=TABLEDATA)" );
+        map.put( "votable-binary-inline",
+                 "votable(format=BINARY,inline=true)" );
+        map.put( "votable-binary2-inline",
+                 "votable(format=BINARY2,inline=true)" );
+        map.put( "votable-fits-href",
+                 "votable(format=FITS,inline=false)" );
+        map.put( "votable-binary-href",
+                 "votable(format=BINARY,inline=false)" );
+        map.put( "votable-binary2-href",
+                 "votable(format=BINARY2,inline=false)" );
+        map.put( "votable-fits-inline",
+                 "votable(format=FITS,inline=true)" );
+        map.put( "ecsv-space", "ecsv(delimiter=space)" );
+        map.put( "ecsv-comma", "ecsv(delimiter=comma)" );
+        map.put( "csv-noheader", "csv(header=false)" );
+        map.put( "html-element", "html(standalone=false)" );
+        map.put( "latex-document", "latex(standalone=true)" );
+        return Collections.unmodifiableMap( map );
     }
 }
