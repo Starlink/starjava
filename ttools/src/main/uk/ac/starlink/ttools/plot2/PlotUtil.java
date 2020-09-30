@@ -663,7 +663,8 @@ public class PlotUtil {
                Thread.currentThread().isInterrupted()
              ? null
              : new IndicatedRow( ixdist.bestIndex_,
-                                 Math.sqrt( ixdist.bestDist2_ ) );
+                                 Math.sqrt( ixdist.bestDist2_ ),
+                                 ixdist.bestDpos_ );
     }
 
     /**     
@@ -1178,6 +1179,7 @@ public class PlotUtil {
     private static class IndexDist {
         long bestIndex_ = -1;
         double bestDist2_ = Double.POSITIVE_INFINITY;
+        double[] bestDpos_ = null;
     }
 
     /**
@@ -1222,6 +1224,7 @@ public class PlotUtil {
                     if ( dist2 < acc.bestDist2_ ) {
                         acc.bestDist2_ = dist2;
                         acc.bestIndex_ = tseq.getRowIndex();
+                        acc.bestDpos_ = dpos.clone();
                     }
                 }
             }
