@@ -1,18 +1,14 @@
 package uk.ac.starlink.topcat.plot2;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.Shape;
-import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -80,6 +76,7 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
+import uk.ac.starlink.ttools.plot2.task.HighlightIcon;
 import uk.ac.starlink.ttools.plot2.task.LayerSpec;
 import uk.ac.starlink.ttools.plot2.task.PlotSpec;
 import uk.ac.starlink.ttools.plot2.task.ZoneSpec;
@@ -154,7 +151,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private Decoration navDecoration_;
 
     private static final boolean WITH_SCROLL = true;
-    private static final Icon HIGHLIGHTER = new HighlightIcon();
+    private static final HighlightIcon HIGHLIGHTER = HighlightIcon.INSTANCE;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot2" );
 
@@ -1656,15 +1653,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 decList.addAll( Arrays.asList( basicDecs ) );
 
                 /* Place highlighted point icons as further plot decorations. */
-                Icon highIcon = HIGHLIGHTER;
-                int xoff = highIcon.getIconWidth() / 2;
-                int yoff = highIcon.getIconHeight() / 2;
                 Point2D.Double gp = new Point2D.Double();
                 for ( double[] highlight : zone.highlights_ ) {
                     if ( surface.dataToGraphics( highlight, true, gp ) ) {
-                        int gx = PlotUtil.ifloor( gp.x - xoff );
-                        int gy = PlotUtil.ifloor( gp.y - yoff );
-                        decList.add( new Decoration( highIcon, gx, gy ) );
+                        decList.add( HIGHLIGHTER.createDecoration( gp ) );
                     }
                 }
 
@@ -2444,61 +2436,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                         .paintIcon( c, g, 0, 0 );
             }
             g.translate( -x, -y );
-        }
-    }
-
-    /**
-     * Icon used for point highlighting.
-     */
-    private static class HighlightIcon implements Icon {
-        private final int size_;
-        private final int size2_;
-        private final Stroke stroke_ =
-            new BasicStroke( 2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND );
-        private final Map<RenderingHints.Key,Object> hints_;
-        private final Color color1_ = new Color( 0xffffff );
-        private final Color color2_ = new Color( 0x000000 );
-        HighlightIcon() {
-            size_ = 6;
-            size2_ = size_ * 2 + 1;
-            hints_ = new HashMap<RenderingHints.Key,Object>();
-            hints_.put( RenderingHints.KEY_RENDERING,
-                        RenderingHints.VALUE_RENDER_QUALITY );
-        }
-        public int getIconWidth() {
-            return size2_;
-        }
-        public int getIconHeight() {
-            return size2_;
-        }
-        public void paintIcon( Component c, Graphics g, int x, int y ) {
-            Graphics2D g2 = (Graphics2D) g;
-            Stroke stroke0 = g2.getStroke();
-            Color color0 = g2.getColor();
-            RenderingHints hints0 = g2.getRenderingHints();
-            g2.setRenderingHints( hints_ );
-            g2.setStroke( stroke_ );
-            int xoff = x + size_;
-            int yoff = y + size_;
-            g2.translate( xoff, yoff );
-            g2.setColor( color1_ );
-            drawTarget( g2, size_ - 1 );
-            g2.setColor( color2_ );
-            drawTarget( g2, size_ );
-            g2.translate( -xoff, -yoff );
-            g2.setColor( color0 );
-            g2.setStroke( stroke0 );
-            g2.setRenderingHints( hints0 );
-        }
-        private static void drawTarget( Graphics g, int size ) {
-            int size2 = size * 2 + 1;
-            int s = size - 2;
-            int s2 = s * 2;
-            g.drawOval( -size, -size, size2, size2 );
-            g.drawLine( 0, +s, 0, +s2 );
-            g.drawLine( 0, -s, 0, -s2 );
-            g.drawLine( +s, 0, +s2, 0 );
-            g.drawLine( -s, 0, -s2, 0 );
         }
     }
 }
