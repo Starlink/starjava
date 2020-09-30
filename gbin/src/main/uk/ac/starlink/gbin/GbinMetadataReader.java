@@ -113,8 +113,8 @@ public class GbinMetadataReader {
      * @return   metadata object, or null if table name not known
      */
     public static GaiaTableMetadata getTableMetadata( String gaiaTableName ) {
-        return mr_ != null &&
-               mr_.getTableNameList().indexOf( gaiaTableName ) >= 0
+        List<?> tnlist = mr_ == null ? null : mr_.getTableNameList();
+        return tnlist != null && tnlist.indexOf( gaiaTableName ) >= 0
              ? new GaiaTableMetadataImpl( mr_, gaiaTableName )
              : null;
     }
