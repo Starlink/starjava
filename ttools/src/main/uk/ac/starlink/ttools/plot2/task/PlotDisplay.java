@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Ganger;
+import uk.ac.starlink.ttools.plot2.IndicatedRow;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Padding;
@@ -145,14 +146,18 @@ public class PlotDisplay<P,A> extends JComponent {
                     if ( surface != null && layers.length > 0 &&
                          surface.getPlotBounds().contains( p ) ) {
                         clickExecutor_.execute( () -> {
-                            final long[] closestRows =
+                            final IndicatedRow[] closestRows =
                                 scene.findClosestRows( surface, layers, p,
                                                        dataStore_ );
                             if ( closestRows != null ) {
+                                int nc = closestRows.length;
+                                long[] lrows = new long[ nc ];
+                                for ( int ic = 0; ic < nc; ic++ ) {
+                                    lrows[ ic ] = closestRows[ ic ].getIndex();
+                                }
                                 final PointSelectionEvent pEvt =
                                     new PointSelectionEvent( PlotDisplay.this,
-                                                             p, iz,
-                                                             closestRows );
+                                                             p, iz, lrows );
                                 SwingUtilities.invokeLater( () -> {
                                     for ( PointSelectionListener psl :
                                           pslList_ ) {

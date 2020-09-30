@@ -443,11 +443,11 @@ public class PlotScene<P,A> {
      * @param  layers   layers plotted
      * @param  point   graphics position to which the selection event refers
      * @param  dataStore  data storage object
-     * @return   per-layer array of closest dataset row index
+     * @return   per-layer array of closest dataset row objects
      */
     @Slow
-    public long[] findClosestRows( Surface surface, PlotLayer[] layers,
-                                   Point point, DataStore dataStore ) {
+    public IndicatedRow[] findClosestRows( Surface surface, PlotLayer[] layers,
+                                           Point point, DataStore dataStore ) {
 
         /* The donkey work here is done by PlotUtil.getClosestRow.
          * However, we need to do some disentangling in order to work out
@@ -497,7 +497,7 @@ public class PlotScene<P,A> {
          * entry for each layer.  At the same time threshold the results,
          * so that ones that are not within a few pixels (NEAR_PIXELS)
          * of the reference point don't count. */
-        long[] closestRows = new long[ nl ];
+        IndicatedRow[] closestRows = new IndicatedRow[ nl ];
         for ( int il = 0; il < nl; il++ ) {
             IndicatedRow bestRow = null;
             for ( SubCloud cloud : layerClouds[ il ] ) {
@@ -510,7 +510,7 @@ public class PlotScene<P,A> {
                     }
                 }
             }
-            closestRows[ il ] = bestRow == null ? -1 : bestRow.getIndex();
+            closestRows[ il ] = bestRow;
         }
 
         /* Return the result, unless we've been interrupted, which would
