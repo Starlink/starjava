@@ -162,6 +162,8 @@
   <property name="dist.osx" value="${dist.dir}/osx-${name}"/>
   <property name="dist.osx.bin"
             value="${dist.osx}/${Name}.app/Contents/Resources/bin"/>
+  <property name="dist.osx.docs"
+            value="${dist.osx}/${Name}.app/Contents/Resources/docs"/>
   <property name="dist.dmgfile" value="${dist.dir}/${name}-full.dmg"/>
 
   <property name="dist.bin.pkg" value="${dist.bin}"/>
@@ -740,87 +742,59 @@
 
   </target>
 
-  <!-- Create an MacOS X Java application bundle, using the osxjarbundler ant
-   !   task built (see http://jarbundler.sourceforge.net).
-   !   Additionally, create a .dmg file for distribution.
+  <!-- Create a MacOS X Java application bundle, using the appbundler task
+   !   (see https://github.com/TheInfiniteKind/appbundler).
+   !   Prepare to create a .dmg file for distribution.
    !-->
   <target name="build-osxapp"
-          depends="build_demo,build-standalone"
-          description="-> builds .dmg application bundle for MacOS X">
+          depends="build-standalone"
+          description="-> prepares .dmg application bundle for MacOS X">
     <delete dir="${dist.osx}" quiet="true"/>
     <mkdir dir="${dist.osx}"/>
-    <!-- 'Infostring' should not contain a version number (as of OS X
-     !   10.4 - see docs for CFBundleGetInfoString); 'version' should
-     !   be the `marketing version of the bundle' (ie, the release
-     !   version); 'buildnumber' can optionally hold a rolling build number.
-     !   -->
-    <osxjarbundler dir="${dist.osx}"
-                mainclass="${package.name}.Driver"
-                name="${Name}"
-                shortname="${Name}"
-                aboutmenuname="${Name}"
-                bundleid="${package.name}"
-                stubfile="${src.dir}/lib/MacOS/TopcatUJAStub"
-                icon="${src.dir}/lib/MacOS/Topcat.icns"
-                infostring="${Name} ${copyright.string}"
-                vmoptions=""
-                version="${version}"
-                jvmversion="1.8+"
-                workingdirectory="$USER_HOME"
-                jar="${dist.lib.pkg}/topcat-full.jar">
-
-      <!-- demo data lives in ${src.etc}/demo (see target build_demo) -->
-      <resourcefileset dir="${src.etc}"
-                       includes="demo/**"/>
-      <javaproperty name="uk.ac.starlink.topcat.demodir"
-                    value="$APP_PACKAGE/Contents/Resources/demo"/>
-
-      <javaproperty name="uk.ac.starlink.topcat.cmdname"
-                    value="topcat"/>
-      <!-- Put the menus in the screen menu bar, rather than an
-           application-specific one -->
-      <javaproperty name="apple.laf.useScreenMenuBar" value="true"/>
-
-    </osxjarbundler>
-
-    <!-- Hack the Java section of the Info.plist file so that the section
-     !   key is headed JavaUJAS instead of Java.  This key is then used
-     !   by the (also hacked) TopcatUJAStub stub file to interrogate the plist.
-     !   This appears to be necessary to prevent OSX from doing something
-     !   magic with the Java section.
-     !   See https://github.com/tofi86/universalJavaApplicationStub/issues/9 -->
-    <replace file="${dist.osx}/${Name}.app/Contents/Info.plist"
-             token="&lt;key&gt;Java&lt;/key&gt;"
-             value="&lt;key&gt;JavaUJAS&lt;/key&gt;"/>
+    <bundleapp outputdirectory="${dist.osx}"
+               name="${Name}"
+               displayname="${Name}"
+               identifier="uk.ac.starlink.topcat"
+               mainclassname="${package.name}.Driver"
+               jvmRequired="1.8"
+               shortversion="${version}"
+               icon="${src.dir}/lib/MacOS/Topcat.icns"
+               applicationCategory="public.app-category.education"
+               >
+      <classpath file="${dist.lib.pkg}/topcat-full.jar"/>
+      <option value="-Duk.ac.starlink.topcat.cmdname=topcat"/>
+      <option value="-Dapple.laf.useScreenMenuBar=true"/>
+      <option value="-Dcom.apple.macos.useScreenMenuBar=true"/>
+      <option value="-Dcom.apple.mrj.application.apple.menu.about.name=${Name}"/>
+    </bundleapp>
 
     <!-- Copy the docs into the release directory -->
-    <mkdir dir="${dist.osx}/docs"/>
-    <copy todir="${dist.osx}/docs">
+    <mkdir dir="${dist.osx.docs}"/>
+    <copy todir="${dist.osx.docs}">
+      <fileset file="${src.dir}/lib/MacOS/index.html"/>
       <fileset dir="${dist.docs}/${name}" excludes="javadocs javadocs/**"/>
+      <fileset dir="${star.dir}/docs/ttools/" includes="sun256/**"/>
     </copy>
 
-    <!-- Copy scripts into the release directory.  These used to just go
-     !   in /bin at the top.  However, the Homebrew people want it to
-     !   go inside TOPCAT.app, so it can get symlinked from ... somewhere.
-     !   So I've put them in /TOPCAT.app/Contents/Resources/bin as well
+    <!-- Copy scripts into the release directory.
+     !   These used to just go in /bin at the top, but probably that's
+     !   not how MacOS applications are normally laid out, so they are
+     !   no longer included there.
+     !   The Homebrew people want it to go inside TOPCAT.app,
+     !   so it can get symlinked from ... somewhere.
+     !   So I've put them in /TOPCAT.app/Contents/Resources/bin
      !   (I took advice on what the best place was and got various
-     !   different answers, but this seems fairly unobjectionable).
-     !   Possibly I should remove them from /bin now, but they've been
-     !   there a long time, so leave them be lest changing it breaks
-     !   some people's usage. -->
-    <mkdir dir="${dist.osx}/bin"/>
-    <copy todir="${dist.osx}/bin">
-      <fileset dir="${star.bin}" includes="topcat stilts"/>
-    </copy>
+     !   different answers, but this seems fairly unobjectionable). -->
     <mkdir dir="${dist.osx.bin}"/>
     <copy todir="${dist.osx.bin}">
       <fileset dir="${star.bin}" includes="topcat stilts"/>
     </copy>
     <chmod perm="ugo+x" type="file" failonerror="yes" maxparallel="50">
-      <fileset dir="${dist.osx}/bin"/>
       <fileset dir="${dist.osx.bin}"/>
     </chmod>
 
+    <!-- I don't really know what purpose this serves; somebody must have
+     !   told me to put it in at some point. -->
     <mkdir dir="${dist.osx}/README.rtfd"/>
     <copy todir="${dist.osx}/README.rtfd">
       <fileset dir="${src.dir}/lib/MacOS/README.rtfd"/>

@@ -62,8 +62,8 @@ stilts_jars="\
 if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
    bundle_jar="Java/topcat-full.jar"
    stilts_jars="$stilts_jars \
-                $bindir/../$bundle_jar \
-                $bindir/../TOPCAT.app/Contents/Resources/$bundle_jar"
+                $bindir/../../$bundle_jar"
+
 fi
 
 #  Locate the application jar file.

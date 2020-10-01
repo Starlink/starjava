@@ -29772,6 +29772,10 @@ introduced since the last version:
     <li>Upgrade cds-healpix-java library to v0.28_1; avoid occasional
         sky crossmatch failures (termination with error).</li>
     <li>Improve guesses about default coordinates in Area plots.</li>
+    <li>Rework packaging of .dmg file for MacOS.  It should no longer
+        get confused by versions of Java 6 installed alongside Java 8;
+        it may also avoid security issues in accessing some local
+        directories.</li>
     </ul>
     </p></dd>
 
