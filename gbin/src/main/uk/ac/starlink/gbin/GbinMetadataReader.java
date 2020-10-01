@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Provides methods for extracting metadata from a GBIN file.
@@ -16,8 +15,6 @@ import java.util.logging.Logger;
  */
 public class GbinMetadataReader {
 
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.gbin" );
     private static final ClassMap classMap_ = createClassMap();
     private static final MetadataReader mr_ = createMetadataReader();
     private static final Method nameChangeMethod_ = createNameChangeMethod();
@@ -70,8 +67,9 @@ public class GbinMetadataReader {
                       .invoke( null, new Object[] { dmClazzName } );
             }
             catch ( Throwable e ) {
-                logger_.log( Level.INFO,
-                             "No gaia table name for class " + dmClazz, e );
+                GbinObjectReader
+               .logError( Level.WARNING,
+                          "No gaia table name for class " + dmClazz, e );
                 return null;
             }
         }
@@ -94,8 +92,8 @@ public class GbinMetadataReader {
                          .invoke( null, new Object[] { gbinName } );
             }
             catch ( Throwable e ) {
-                logger_.log( Level.INFO,
-                             "Can't convert gbin name " + gbinName, e );
+                GbinObjectReader
+               .logError( Level.INFO, "Can't convert gbin name " + gbinName, e);
             }
         }
         return nameObj instanceof String ? (String) nameObj : gbinName;
@@ -127,16 +125,19 @@ public class GbinMetadataReader {
      * @return  ClassMap instance
      */
     private static ClassMap createClassMap() {
+        String clazzName = "gaia.cu1.tools.util.GaiaFactory";
+        String methodName = "getClassMap"; 
         try {
-            Object cmObj =
-                Class.forName( "gaia.cu1.tools.util.GaiaFactory" )
-               .getMethod( "getClassMap", new Class<?>[ 0 ] )
-               .invoke( null, new Object[ 0 ] );
+            Object cmObj = Class.forName( clazzName )
+                          .getMethod( methodName, new Class<?>[ 0 ] )
+                          .invoke( null, new Object[ 0 ] );
             return Proxies.createReflectionProxy( ClassMap.class, cmObj );
         }
         catch ( Throwable e ) {
-            logger_.log( Level.WARNING, "Failed to get Gaia ClassMap instance",
-                         e );
+            GbinObjectReader
+           .logError( Level.WARNING,
+                      "Failed to invoke " + clazzName + "." + methodName + "()",
+                      e );
             return Proxies.createNullsProxy( ClassMap.class );
         }
     }
@@ -149,17 +150,19 @@ public class GbinMetadataReader {
      * @return  MetadataReader instance
      */
     private static MetadataReader createMetadataReader() {
+        String clazzName = "gaia.cu9.tools.documentationexport.MetadataReader";
+        String methodName = "getInstance";
         try {
-            Object mrObj =
-                Class
-               .forName( "gaia.cu9.tools.documentationexport.MetadataReader" )
-               .getMethod( "getInstance", new Class<?>[ 0 ] )
-               .invoke( null, new Object[ 0 ] );
+            Object mrObj = Class.forName( clazzName )
+                          .getMethod( methodName, new Class<?>[ 0 ] )
+                          .invoke( null, new Object[ 0 ] );
             return Proxies.createReflectionProxy( MetadataReader.class, mrObj );
         }
         catch ( Throwable e ) {
-            logger_.log( Level.WARNING,
-                         "Failed to get Gaia MetadataReader instance" );
+            GbinObjectReader
+           .logError( Level.WARNING,
+                      "Failed to invoke " + clazzName + "." + methodName + "()",
+                      e );
             return Proxies.createNullsProxy( MetadataReader.class );
         }
     }
@@ -178,8 +181,9 @@ public class GbinMetadataReader {
                   .getMethod( methodName, new Class<?>[] { String.class } );
         }
         catch ( Throwable e ) {
-            logger_.log( Level.WARNING,
-                         "Failed to get " + clazzName + "." + methodName, e );
+            GbinObjectReader
+           .logError( Level.WARNING,
+                      "Failed to invoke " + clazzName + "." + methodName, e );
             return null;
         }
     }

@@ -227,7 +227,7 @@ public class GbinObjectReader {
                      .invoke( null, new Object[ 0 ] );
             }
             catch ( Throwable e ) {
-                logger_.log( Level.WARNING, "Failed to invoke " + sig, e );
+                logError( Level.WARNING, "Failed to invoke " + sig, e );
             }
             isGaiaToolsInit_ = true;
         }
@@ -280,5 +280,26 @@ public class GbinObjectReader {
                   new IOException( e.getTargetException().getMessage() )
                  .initCause( e );
         } 
+    }
+
+    /**
+     * Write a logging message including an exception.
+     * This is a drop-in replacement for the method
+     * {@link java.util.logging.Logger#log(java.util.logging.Level,
+     *                                     String, Throwable)};
+     * it's required because loading the GaiaTools classes seems
+     * to mess up the system configuration done by stilts/topcat on startup,
+     * so this implementation includes the actual exception stringification
+     * in the log message itself, as well as passing the exception
+     * itself to the logging system (which seems to get ignored after loading
+     * GaiaTools, even with stilts -debug).
+     * Exception text is also unlikely to frighten GBIN-competent users.
+     * 
+     * @param  level  logging level
+     * @param  msg  basic log message
+     * @param  error  exception
+     */
+    public static void logError( Level level, String msg, Throwable error ) {
+        logger_.log( level, msg + " - " + error, error );
     }
 }

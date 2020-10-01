@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
@@ -29,8 +28,6 @@ import uk.ac.starlink.util.DataSource;
 public class GbinTableBuilder implements TableBuilder {
 
     private final GbinTableProfile profile_;
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.gbin" );
 
     /** ValueInfo for GBIN row object classname. */
     public static final ValueInfo CLASSNAME_INFO =
@@ -166,7 +163,8 @@ public class GbinTableBuilder implements TableBuilder {
             }
             catch ( Throwable e ) {
                 nrowObj = null;
-                logger_.log( Level.WARNING, "Couldn't read GBIN metadata", e );
+                GbinObjectReader.logError( Level.WARNING,
+                                           "Couldn't read GBIN metadata", e );
             }
             finally {
                 metaIn.close();
