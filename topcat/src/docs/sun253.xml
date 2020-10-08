@@ -29776,6 +29776,8 @@ introduced since the last version:
         get confused by versions of Java 6 installed alongside Java 8;
         it may also avoid security issues in accessing some local
         directories.</li>
+    <li>Fix minor plotting bug that could cause white points to
+        be invisible.</li>
     </ul>
     </p></dd>
 

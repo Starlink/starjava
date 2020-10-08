@@ -12571,6 +12571,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <ul>
     <li>Upgrade cds-healpix-java library to v0.28_1; avoid occasional
         sky crossmatch failures (termination with error).</li>
+    <li>Fix minor plotting bug that could cause white points to
+        be invisible.</li>
     </ul>
     </p></dd>
 

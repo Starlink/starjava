@@ -63,14 +63,30 @@ public class RgbImage {
     }
 
     /**
-     * Constructs an RgbImage.
+     * Constructs an RgbImage with default background colour.
      *
      * @param  width  width in pixels
      * @param  height  height in pixels
      * @param  hasAlpha  true for ARGB, false for RGB
+     * @return   new instance
      */
     public static RgbImage createRgbImage( int width, int height,
                                            boolean hasAlpha ) {
+        return createRgbImage( width, height, hasAlpha,
+                               hasAlpha ? 0 : 0xffffffff );
+    }
+
+    /**
+     * Constructs an RgbImage with a given background coour.
+     *
+     * @param  width  width in pixels
+     * @param  height  height in pixels
+     * @param  hasAlpha  true for ARGB, false for RGB
+     * @param  bg   initial value for all elements in the image buffer
+     * @return   new instance
+     */
+    public static RgbImage createRgbImage( int width, int height,
+                                           boolean hasAlpha, int bg ) {
 
         /* You could do this in a more respectable way by starting with
          * an int buffer and working your way through creating a Raster
@@ -84,7 +100,7 @@ public class RgbImage {
                                         : BufferedImage.TYPE_INT_RGB );
         int[] buf = ((DataBufferInt) image.getRaster().getDataBuffer())
                    .getData();
-        Arrays.fill( buf, hasAlpha ? 0 : 0xffffffff );
+        Arrays.fill( buf, bg );
         return new RgbImage( image, buf, hasAlpha );
     }
 }

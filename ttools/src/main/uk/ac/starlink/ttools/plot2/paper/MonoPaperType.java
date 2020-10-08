@@ -118,11 +118,17 @@ public class MonoPaperType extends RgbPaperType
         public void placeDecal( Decal decal ) {
             Rectangle bounds = getBounds();
             boolean hasAlpha = ! decal.isOpaque();
+
+            /* Initialise the buffer with a fully transparent background colour
+             * (alpha = 0).  For opaque decals this cannot be painted,
+             * and for transparent decals if it is painted it won't
+             * contribute to the output image.  We can then ignore any
+             * pixels of this colour when copying from the painted decal. */
+            int bg = 0;
             RgbImage decalIm =
                 RgbImage.createRgbImage( bounds.width, bounds.height,
-                                         hasAlpha );
+                                         hasAlpha, bg );
             int[] decalBuf = decalIm.getBuffer();
-            int bg = decalBuf[ 0 ];
             Graphics g = decalIm.getImage().createGraphics();
             g.translate( - bounds.x, - bounds.y );
             decal.paintDecal( g );

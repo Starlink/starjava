@@ -79,11 +79,17 @@ public class CompositePaperType2D extends RgbPaperType2D {
         public void placeDecal( Decal decal ) {
             Rectangle bounds = getBounds();
             boolean hasAlpha = ! decal.isOpaque();
+
+            /* Initialise the buffer with a fully transparent background colour
+             * (alpha = 0).  For opaque decals this cannot be painted, 
+             * and for transparent decals if it is painted it won't 
+             * contribute to the output image.  We can then ignore any 
+             * pixels of this colour when copying from the painted decal. */
+            int bg = 0;
             RgbImage rgbim =
                 RgbImage.createRgbImage( bounds.width, bounds.height,
-                                         hasAlpha );
+                                         hasAlpha, bg );
             int[] rgbBuf = rgbim.getBuffer();
-            int bg = rgbBuf[ 0 ];
             Graphics g = rgbim.getImage().createGraphics();
             g.translate( - bounds.x, - bounds.y );
             decal.paintDecal( g );
