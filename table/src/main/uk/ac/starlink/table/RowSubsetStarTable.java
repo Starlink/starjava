@@ -91,4 +91,8 @@ public class RowSubsetStarTable extends WrapperStarTable {
             }
         };
     }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        return Tables.getDefaultRowSplittable( this );
+    }
 }

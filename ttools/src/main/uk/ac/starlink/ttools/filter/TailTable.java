@@ -6,7 +6,9 @@ import uk.ac.starlink.table.AccessRowSequence;
 import uk.ac.starlink.table.IteratorRowSequence;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperStarTable;
 
@@ -88,5 +90,9 @@ public class TailTable extends WrapperStarTable {
                 return new IteratorRowSequence( queue.iterator() );
             }
         }
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        return Tables.getDefaultRowSplittable( this );
     }
 }

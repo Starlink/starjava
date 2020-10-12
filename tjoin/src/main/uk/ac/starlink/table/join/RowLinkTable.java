@@ -3,8 +3,11 @@ package uk.ac.starlink.table.join;
 import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 
@@ -90,9 +93,18 @@ abstract class RowLinkTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        return base_.isRandom() ? (RowSequence) new RandomLinkRowSequence()
-                                : (RowSequence) new SequentialLinkRowSequence();
+        return base_.isRandom() ? new RandomLinkRowSequence()
+                                : new SequentialLinkRowSequence();
     }
+
+    public RowAccess getRowAccess() {
+        throw new UnsupportedOperationException();
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        return Tables.getDefaultRowSplittable( this );
+    }
+
 
     /**
      * Returns the row index in the base table corresponding to a given

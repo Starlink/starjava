@@ -5,8 +5,11 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.MappingRowSplittable;
 import uk.ac.starlink.table.RowAccess;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -110,28 +113,34 @@ public class ReplaceValueTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        return new WrapperRowSequence( super.getRowSequence() ) {
-            public Object getCell( int icol ) throws IOException {
-                return replacers_[ icol ].replaceValue( super.getCell( icol ) );
-            }
-            public Object[] getRow() throws IOException {
-                Object[] row = super.getRow();
-                for ( int icol = 0; icol < row.length; icol++ ) {
-                    row[ icol ] = replacers_[ icol ]
-                                 .replaceValue( row[ icol ] );
-                }
-                return row;
-            }
-        };
+        RowSequence baseSeq = super.getRowSequence();
+        return new WrapperRowSequence( baseSeq, replaceMapper( baseSeq ) );
     }
 
     public RowAccess getRowAccess() throws IOException {
-        return new WrapperRowAccess( super.getRowAccess() ) {
+        RowAccess baseAcc = super.getRowAccess();
+        return new WrapperRowAccess( baseAcc, replaceMapper( baseAcc ) );
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        RowSplittable baseSplit = super.getRowSplittable();
+        return new MappingRowSplittable( baseSplit, this::replaceMapper );
+    }
+
+    /**
+     * Maps a base RowData to the output from this table.
+     *
+     * @param  baseData  base RowData
+     * @return  output RowData
+     */
+    private RowData replaceMapper( final RowData baseData ) {
+        return new RowData() {
             public Object getCell( int icol ) throws IOException {
-                return replacers_[ icol ].replaceValue( super.getCell( icol ) );
+                return replacers_[ icol ]
+                      .replaceValue( baseData.getCell( icol ) );
             }
             public Object[] getRow() throws IOException {
-                Object[] row = super.getRow();
+                Object[] row = baseData.getRow();
                 for ( int icol = 0; icol < row.length; icol++ ) {
                     row[ icol ] = replacers_[ icol ]
                                  .replaceValue( row[ icol ] );

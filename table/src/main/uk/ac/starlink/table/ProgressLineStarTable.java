@@ -2,6 +2,9 @@ package uk.ac.starlink.table;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A WrapperStarTable which behaves the same as its base, except that
@@ -33,24 +36,29 @@ public class ProgressLineStarTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        final long nrow = getRowCount();
-        final ProgressShower ps = nrow > 0 
-                  ? (ProgressShower) new DeterminateProgressShower( nrow )
-                  : (ProgressShower) new IndeterminateProgressShower();
+        final ProgressShower ps = createProgressShower();
         return new WrapperRowSequence( baseTable.getRowSequence() ) {
 
-            boolean started = false;
-            long alarm = System.currentTimeMillis() + INITIAL_WAIT;
-            long irow = 0L;
+            final Timer timer_;
+            boolean started_ = false;
+            long irow_ = 0L;
+
+            /* Constructor */ {
+                timer_ = new Timer( "progress", true );
+                timer_.schedule( new TimerTask() {
+                    long ir = -1;
+                    public void run() {
+                        if ( irow_ > ir ) {
+                            out_.print( ps.getProgressLine( ir = irow_ ) );
+                            started_ = true;
+                        }
+                    }
+                }, INITIAL_WAIT, INTERVAL );
+            }
 
             public boolean next() throws IOException {
                 if ( super.next() ) {
-                    irow++;
-                    if ( System.currentTimeMillis() > alarm ) {
-                        alarm = System.currentTimeMillis() + INTERVAL;
-                        out_.print( ps.getProgressLine( irow ) );
-                        started = true;
-                    }
+                    irow_++;
                     return true;
                 }
                 else {
@@ -59,12 +67,62 @@ public class ProgressLineStarTable extends WrapperStarTable {
             }
 
             public void close() throws IOException {
-                if ( started ) {
-                    out_.println( ps.getFinishedLine( irow ) );
+                timer_.cancel();
+                if ( started_ ) {
+                    out_.println( ps.getFinishedLine( irow_ ) );
                 }
                 super.close();
             }
         };
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        final ProgressShower ps = createProgressShower();
+        ProgressRowSplittable.Target target =
+                new ProgressRowSplittable.Target() {
+            final Timer timer_;
+            boolean started_;
+            final AtomicLong count_ = new AtomicLong();
+
+            /* Constructor. */ {
+                timer_ = new Timer( "progress", true );
+                timer_.schedule( new TimerTask() {
+                    long ir = -1;
+                    public void run() {
+                        long c = count_.get();
+                        if ( c > ir ) {
+                            out_.print( ps.getProgressLine( ir = c ) );
+                            started_ = true;
+                        }
+                    }
+                }, INITIAL_WAIT, INTERVAL );
+            }
+  
+            public void updateCount( long count ) {
+                count_.set( count );
+            }
+
+            public void done( long count ) {
+                timer_.cancel();
+                if ( started_ ) {
+                    out_.print( ps.getProgressLine( count ) );
+                }
+            }
+        };
+        return new ProgressRowSplittable( baseTable.getRowSplittable(),
+                                          target );
+    }
+
+    /**
+     * Returns a ProgressShower for use with this table.
+     *
+     * @return  new progress shower
+     */
+    private ProgressShower createProgressShower() {
+        final long nrow = getRowCount();
+        return nrow > 0 
+             ? new DeterminateProgressShower( nrow )
+             : new IndeterminateProgressShower();
     }
 
     /**

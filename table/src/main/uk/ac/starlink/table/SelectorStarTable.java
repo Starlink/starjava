@@ -69,4 +69,11 @@ public abstract class SelectorStarTable extends WrapperStarTable {
         };
     }
 
+    public RowSplittable getRowSplittable() throws IOException {
+        return Tables.getDefaultRowSplittable( this );
+    }
+
+    public RowAccess getRowAccess() {
+        throw new UnsupportedOperationException();
+    }
 }

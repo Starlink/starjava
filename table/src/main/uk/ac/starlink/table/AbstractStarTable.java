@@ -128,6 +128,19 @@ public abstract class AbstractStarTable implements StarTable {
     }
 
     /**
+     * Returns a default splittable which relies on table random access
+     * if available, or otherwise provides only sequential access (no splits).
+     *
+     * <p>It is often possible to provide a better implementation than this.
+     *
+     * @return  {@link Tables#getDefaultRowSplittable
+     *                 Tables.getDefaultRowSplittable(this)}
+     */
+    public RowSplittable getRowSplittable() throws IOException {
+        return Tables.getDefaultRowSplittable( this );
+    }
+
+    /**
      * The <tt>AbstractStarTable</tt> implementation of this method throws an
      * <tt>UnsupportedOperationException</tt>, since unless otherwise
      * provided there is no random access.

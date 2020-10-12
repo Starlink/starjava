@@ -65,15 +65,15 @@ public class RowRunner {
 
     /**
      * Acquires a splittable row sequence from a table.
-     * This may be overridden if required.
+     * The default implementation just calls {@link StarTable#getRowSplittable},
+     * but this may be overridden if required.
      *
      * @param  table  input table
      * @return   potentially splittable row sequence
      */
     public RowSplittable createRowSplittable( StarTable table )
             throws IOException {
-        return table.isRandom() ? new RandomRowSplittable( table )
-                                : new SequentialRowSplittable( table );
+        return table.getRowSplittable();
     }
 
     /**

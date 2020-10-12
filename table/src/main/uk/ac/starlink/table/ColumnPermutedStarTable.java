@@ -120,54 +120,18 @@ public class ColumnPermutedStarTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        final int ncol = getColumnCount();
-        return readRow_
-             ? new WrapperRowSequence( baseTable.getRowSequence() ) {
-                   public Object getCell( int icol ) throws IOException {
-                       return baseSeq.getCell( columnMap_[ icol ] );
-                   }
-                   public Object[] getRow() throws IOException {
-                       return permuteRow( baseSeq.getRow() );
-                   }
-               }
-             : new WrapperRowSequence( baseTable.getRowSequence() ) {
-                   public Object getCell( int icol ) throws IOException {
-                       return baseSeq.getCell( columnMap_[ icol ] );
-                   }
-                   public Object[] getRow() throws IOException {
-                       Object[] row = new Object[ ncol ];
-                       for ( int icol = 0; icol < ncol; icol++ ) {
-                           row[ icol ] = getCell( icol );
-                       }
-                       return row;
-                   }
-               };
+        RowSequence baseseq = baseTable.getRowSequence();
+        return new WrapperRowSequence( baseseq, permuteMapper( baseseq ) );
     }
 
     public RowAccess getRowAccess() throws IOException {
-        final int ncol = getColumnCount();
-        final RowAccess baseAcc = baseTable.getRowAccess();
-        return readRow_
-             ? new WrapperRowAccess( baseAcc ) {
-                   public Object getCell( int icol ) throws IOException {
-                       return baseAcc.getCell( columnMap_[ icol ] );
-                   }
-                   public Object[] getRow() throws IOException {
-                       return permuteRow( baseAcc.getRow() );
-                   }
-               }
-             : new WrapperRowAccess( baseAcc ) {
-                   private final Object[] row = new Object[ ncol ];
-                   public Object getCell( int icol ) throws IOException {
-                       return baseAcc.getCell( columnMap_[ icol ] );
-                   }
-                   public Object[] getRow() throws IOException {
-                       for ( int icol = 0; icol < ncol; icol++ ) {
-                           row[ icol ] = getCell( icol );
-                       }
-                       return row;
-                   }
-               };
+        RowAccess baseAcc = baseTable.getRowAccess();
+        return new WrapperRowAccess( baseAcc, permuteMapper( baseAcc ) );
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        return new MappingRowSplittable( baseTable.getRowSplittable(),
+                                         this::permuteMapper );
     }
 
     public Object getCell( long irow, int icol ) throws IOException {
@@ -240,5 +204,36 @@ public class ColumnPermutedStarTable extends WrapperStarTable {
         }
         assert j == nOut;
         return new ColumnPermutedStarTable( baseTable, colMap );
+    }
+
+    /**
+     * Maps an underlying RowData to a RowData for output from this table.
+     *
+     * @param  data  base RowData
+     * @return   output RowData
+     */
+    private RowData permuteMapper( final RowData data ) {
+        return readRow_
+             ? new RowData() {
+                   public Object getCell( int icol ) throws IOException {
+                       return data.getCell( columnMap_[ icol ] );
+                   }
+                   public Object[] getRow() throws IOException {
+                       return permuteRow( data.getRow() );
+                   }
+               }
+             : new RowData() {
+                   final int ncol = getColumnCount();
+                   public Object getCell( int icol ) throws IOException {
+                       return data.getCell( columnMap_[ icol ] );
+                   }
+                   public Object[] getRow() throws IOException {
+                       Object[] row = new Object[ ncol ];
+                       for ( int icol = 0; icol < ncol; icol++ ) {
+                           row[ icol ] = getCell( icol );
+                       }
+                       return row;
+                   }
+               };
     }
 }

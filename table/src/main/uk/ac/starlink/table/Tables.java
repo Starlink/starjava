@@ -7,9 +7,11 @@ import java.lang.reflect.Array;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.LongSupplier;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.formats.TextTableWriter;
@@ -170,6 +172,22 @@ public class Tables {
     }
 
     /**
+     * Returns a RowSplittable object with generic characteristics
+     * for a given table.
+     * For a random-access table the splitting will be based on
+     * {@link RowAccess} objects, and for a non-random table
+     * it will not be capable of splits.
+     *
+     * @param  table  table
+     * @return  splittable for potentially parallel iteration over rows
+     */
+    public static RowSplittable getDefaultRowSplittable( StarTable table )
+            throws IOException {
+        return table.isRandom() ? new RandomRowSplittable( table )
+                                : new SequentialRowSplittable( table );
+    }
+
+    /**
      * Diagnostic method which tests the invariants of a StarTable.
      * This method returns no value, and throws an exception if a table
      * is illegal in some way.
@@ -241,8 +259,11 @@ public class Tables {
         /* Read all cells. */
         long lrow = 0L;
         RowAccess racc = isRandom ? table.getRowAccess() : null;
+        RowSplittable rsplit = table.getRowSplittable();
         while ( rseq.next() ) {
+            assertTrue( rsplit.next() );
             Object[] row = rseq.getRow();
+            Object[] rowSplit = rsplit.getRow(); 
             for ( int icol = 0; icol < ncol; icol++ ) {
 
                 /* Check that elements got in different ways look the same. */
@@ -251,6 +272,8 @@ public class Tables {
                 Object val2 = rseq.getCell( icol );
                 Object val3 = null;
                 Object val4 = null;
+                Object val5 = rowSplit[ icol ];
+                Object val6 = rsplit.getCell( icol );
                 if ( isRandom ) {
                     val3 = table.getCell( lrow, icol );
                     racc.setRowIndex( lrow );
@@ -260,16 +283,22 @@ public class Tables {
                 if ( isNull ) {
                     assertTrue( colinfos[ icol ].isNullable() );
                     assertTrue( val2 == null );
+                    assertTrue( val5 == null );
+                    assertTrue( val6 == null );
                     if ( isRandom ) {
                         assertTrue( val3 == null );
                         assertTrue( val4 == null );
                     }
                 }
                 else {
-                    String s1 = colinfos[ icol ]
-                               .formatValue( val1, formatChars );
-                    assertTrue( s1.equals( colinfos[ icol ]
+                    ColumnInfo cinfo = colinfos[ icol ];
+                    String s1 = cinfo.formatValue( val1, formatChars );
+                    assertTrue( s1.equals( cinfo
                                           .formatValue( val2, formatChars ) ) );
+                    assertTrue( s1.equals( cinfo
+                                          .formatValue( val5, formatChars ) ) );
+                    assertTrue( s1.equals( cinfo
+                                          .formatValue( val6, formatChars ) ) );
                     if ( isRandom ) {
                         assertTrue( s1.equals( colinfos[ icol ]
                                               .formatValue( val3,
@@ -304,6 +333,42 @@ public class Tables {
             lrow++;
         }
         rseq.close();
+        assertTrue( ! rsplit.next() );
+        rsplit.close();
+
+        /* Check splittables split correctly. */
+        RowSplittable split1 = table.getRowSplittable();
+        RowSplittable split2 = split1.split();
+        LongSupplier rowIndex1 = split1.rowIndex();
+        boolean hasRowIndex = rowIndex1 != null;
+        if ( split2 != null ) {
+            LongSupplier rowIndex2 = split2.rowIndex();
+            assertTrue( ( rowIndex2 != null ) == hasRowIndex );
+            BitSet bits = hasRowIndex && nrow < Integer.MAX_VALUE
+                        ? new BitSet( nrow >= 0 ? (int) nrow : 1024 )
+                        : null;
+            int nr = 0;
+            while ( split2.next() ) {
+                nr++;
+                if ( bits != null ) {
+                    bits.set( (int) rowIndex2.getAsLong() );
+                }
+            }
+            while ( split1.next() ) {
+                nr++;
+                if ( bits != null ) {
+                    bits.set( (int) rowIndex1.getAsLong() );
+                }
+            }
+            split2.close();
+            if ( nrow >= 0 ) {
+                assertTrue( nrow == nr );
+            }
+            if ( bits != null ) {
+                assertTrue( nr == bits.nextClearBit( 0 ) );
+            }
+        }
+        split1.close();
 
         /* Check that the claimed number of rows is correct. */
         if ( nrow >= 0 ) {

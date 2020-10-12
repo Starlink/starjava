@@ -5,6 +5,7 @@ import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
@@ -94,6 +95,18 @@ public abstract class WrapperDataStoreFactory implements DataStoreFactory {
             throws IOException;
 
     /**
+     * Creates a row splittable from a given table.
+     * <p>The obvious implementation is <code>table.getRowSplittable()</code>,
+     * but implementations may decorate that instance to provide
+     * useful functionality.
+     *
+     * @param   table  table providing data
+     * @return   row splittable which will be used to acquire table data
+     */
+    protected abstract RowSplittable createRowSplittable( StarTable table )
+            throws IOException;
+
+    /**
      * DataStore wrapper implementation.
      * It is a simple wrapper, except that every DataSpec passed to it
      * is wrapped in a WrapperDataSpec.
@@ -153,6 +166,10 @@ public abstract class WrapperDataStoreFactory implements DataStoreFactory {
                 @Override
                 public RowAccess getRowAccess() throws IOException {
                     return createRowAccess( baseSourceTable );
+                }
+                @Override
+                public RowSplittable getRowSplittable() throws IOException {
+                    return createRowSplittable( baseSourceTable );
                 }
                 @Override
                 public int hashCode() {

@@ -2,6 +2,7 @@ package uk.ac.starlink.table;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.LongSupplier;
 
 /**
  * StarTable implementation whose column values are derived from
@@ -100,6 +101,54 @@ public abstract class CalcStarTable<C> extends AbstractStarTable {
                 return calc_;
             }
         };
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        return new CalcRowSplittable( base_.getRowSplittable() );
+    }
+
+    /**
+     * RowSplittable for use with CalcStarTable.
+     */
+    private class CalcRowSplittable extends WrapperRowSequence
+                                    implements RowSplittable {
+     
+        private C calc_;
+        private final RowSplittable baseSplit_;
+        CalcRowSplittable( RowSplittable base ) {
+            super( base );
+            baseSplit_ = base;
+        }
+        public long splittableSize() {
+            return baseSplit_.splittableSize();
+        }   
+        public LongSupplier rowIndex() {
+            return baseSplit_.rowIndex();
+        }
+        @Override
+        public boolean next() throws IOException {
+            calc_ = null;
+            return baseSplit_.next();
+        }
+        @Override
+        public Object getCell( int icol ) throws IOException {
+            return getCalculatedCell( getCalculation(), icol );
+        }
+        @Override
+        public Object[] getRow() throws IOException {
+            return getCalculatedRow( getCalculation() );
+        }
+        public CalcRowSplittable split() {
+            RowSplittable spl = baseSplit_.split();
+            return spl == null ? null
+                               : new CalcRowSplittable( spl );
+        }
+        private C getCalculation() throws IOException {
+            if ( calc_ == null ) {
+                calc_ = createCalculation( baseSplit_ );
+            }
+            return calc_;
+        }
     }
 
     public RowAccess getRowAccess() throws IOException {

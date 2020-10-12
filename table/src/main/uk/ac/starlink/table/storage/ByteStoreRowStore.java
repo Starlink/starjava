@@ -7,8 +7,10 @@ import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RandomRowSplittable;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
@@ -259,6 +261,10 @@ public class ByteStoreRowStore implements RowStore {
                 public void close() {
                 }
             };
+        }
+
+        public RowSplittable getRowSplittable() throws IOException {
+            return new RandomRowSplittable( this );
         }
 
         public RowAccess getRowAccess() throws IOException {

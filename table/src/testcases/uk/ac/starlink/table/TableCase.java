@@ -245,12 +245,15 @@ public class TableCase extends TestCase {
         long lrow = 0;
         RowSequence rseq1 = st.getRowSequence();
         RowSequence rseq2 = st.getRowSequence();
+        RowSplittable rsplit = st.getRowSplittable();
         RowAccess racc = isRandom ? st.getRowAccess() : null;
         while ( rseq1.next() ) {
             assertTrue( rseq2.next() );
+            assertTrue( rsplit.next() );
             for ( int icol = 0; icol < ncol; icol++ ) {
                 Object[] row = rseq1.getRow();
                 assertArrayEquals( row, rseq2.getRow() );
+                assertArrayEquals( row, rsplit.getRow() );
                 Object cell = row[ icol ];
                 if ( isRandom ) {
                     assertScalarOrArrayEquals( cell, st.getCell( lrow, icol ) );
@@ -260,6 +263,7 @@ public class TableCase extends TestCase {
                 }
                 assertScalarOrArrayEquals( cell, rseq1.getCell( icol ) );
                 assertScalarOrArrayEquals( cell, rseq2.getCell( icol ) );
+                assertScalarOrArrayEquals( cell, rsplit.getCell( icol ) );
                 if ( cell != null && cell.getClass().isArray() ) {
                     int nel = Array.getLength( cell );
                     if ( nels[ icol ] < 0 ) {
@@ -277,6 +281,12 @@ public class TableCase extends TestCase {
                 }
             }
             lrow++;
+        }
+        rseq1.close();
+        rseq2.close();
+        rsplit.close();
+        if ( racc != null ) {
+            racc.close();
         }
     }
 

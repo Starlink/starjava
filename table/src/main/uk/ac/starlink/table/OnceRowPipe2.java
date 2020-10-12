@@ -68,6 +68,12 @@ class OnceRowPipe2 implements RowPipe, RowSequence {
             public boolean isRandom() {
                 return false;
             }
+            public RowAccess getRowAccess() {
+                throw new UnsupportedOperationException();
+            }
+            public RowSplittable getRowSplittable() throws IOException {
+                return Tables.getDefaultRowSplittable( this );
+            }
             public synchronized RowSequence getRowSequence()
                     throws IOException {
                 if ( rseq_ == null ) {

@@ -3,7 +3,9 @@ package uk.ac.starlink.ttools.filter;
 import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.AccessRowSequence;
+import uk.ac.starlink.table.RandomRowSplittable;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
 
@@ -41,6 +43,9 @@ public class RandomViewFilter extends BasicFilter implements ProcessingStep {
             return new WrapperStarTable( base ) {
                 public RowSequence getRowSequence() throws IOException {
                     return AccessRowSequence.createInstance( base );
+                }
+                public RowSplittable getRowSplittable() throws IOException {
+                    return new RandomRowSplittable( base );
                 }
             };
         }

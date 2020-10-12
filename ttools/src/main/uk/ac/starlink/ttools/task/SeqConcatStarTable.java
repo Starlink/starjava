@@ -3,9 +3,11 @@ package uk.ac.starlink.ttools.task;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.function.LongSupplier;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.EmptyRowSequence;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
@@ -60,6 +62,10 @@ public class SeqConcatStarTable extends WrapperStarTable {
         return new ConcatRowSequence();
     }
 
+    public RowSplittable getRowSplittable() throws IOException {
+        return new SeqConcatRowSplittable();
+    }
+
     /**
      * Checks whether a given table is compatible with the metadata of
      * this one.  The main thing to check is that the columns have
@@ -109,8 +115,7 @@ public class SeqConcatStarTable extends WrapperStarTable {
                         table = tProd.getTable();
                     }
                     catch ( TaskException e ) {
-                        throw (IOException) new IOException( e.getMessage() )
-                                           .initCause( e );
+                        throw new IOException( e.getMessage(), e );
                     }
                     checkCompatible( table );
                     rseq_ = table.getRowSequence();
@@ -132,6 +137,97 @@ public class SeqConcatStarTable extends WrapperStarTable {
 
         public void close() throws IOException {
             rseq_.close();
+        }
+    }
+
+    /**
+     * RowSplittable implementation for use with SeqConcatStarTable.
+     * It just splits between consituent tables, not within them.
+     */
+    private class SeqConcatRowSplittable implements RowSplittable {
+
+        private int itab_;
+        private int ntab_;
+        private RowSequence rseq_;
+
+        /**
+         * Public constructor.
+         */
+        public SeqConcatRowSplittable() {
+            this( -1, tProds_.length );
+        }
+
+        /**
+         * Recursive constructor.
+         *
+         * @param  itab    index before first table to be processed
+         * @param  ntab    index after last table to be processed
+         */
+        private SeqConcatRowSplittable( int itab, int ntab ) {
+            itab_ = itab;
+            ntab_ = ntab;
+        }
+
+        public RowSplittable split() {
+            if ( rseq_ == null && ntab_ - itab_ > 2 ) {
+                int mid = ( 1 + itab_ + ntab_ ) / 2;
+                RowSplittable split = new SeqConcatRowSplittable( itab_, mid );
+                itab_ = mid - 1;
+                return split;
+            }
+            else {
+                return null;
+            }
+        }
+
+        public long splittableSize() {
+            return -1;
+        }
+
+        public LongSupplier rowIndex() {
+            return null;
+        }
+
+        public boolean next() throws IOException {
+            while ( true ) {
+                while ( rseq_ == null ) {
+                    if ( itab_ + 1 == ntab_ ) {
+                        return false;
+                    }
+                    itab_++;
+                    StarTable table;
+                    try {
+                        table = tProds_[ itab_ ].getTable();
+                    }
+                    catch ( TaskException e ) {
+                        throw new IOException( e.getMessage(), e );
+                    }
+                    checkCompatible( table );
+                    rseq_ = table.getRowSequence();
+                }
+                if ( rseq_.next() ) {
+                    return true;
+                }
+                else {
+                    rseq_.close();
+                    rseq_ = null;
+                }
+            }
+        }
+
+        public Object getCell( int icol ) throws IOException {
+            return rseq_.getCell( icol );
+        }
+
+        public Object[] getRow() throws IOException {
+            return rseq_.getRow();
+        }
+
+        public void close() throws IOException {
+            if ( rseq_ != null ) {
+                rseq_ = null;
+                itab_ = ntab_;
+            }
         }
     }
 }

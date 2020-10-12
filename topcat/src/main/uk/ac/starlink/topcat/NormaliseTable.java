@@ -2,8 +2,11 @@ package uk.ac.starlink.topcat;
 
 import java.io.IOException;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.MappingRowSplittable;
 import uk.ac.starlink.table.RowAccess;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.WrapperRowAccess;
@@ -50,27 +53,33 @@ public class NormaliseTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        return new WrapperRowSequence( super.getRowSequence() ) {
-            @Override
-            public Object getCell( int icol ) throws IOException {
-                return converters_[ icol ].convert( super.getCell( icol ) );
-            }
-            @Override
-            public Object[] getRow() throws IOException {
-                return convertRow( super.getRow() );
-            }
-        };
+        RowSequence baseSeq = super.getRowSequence();
+        return new WrapperRowSequence( baseSeq, convertMapper( baseSeq ) );
     }
 
     public RowAccess getRowAccess() throws IOException {
-        return new WrapperRowAccess( super.getRowAccess() ) {
-            @Override
+        RowAccess baseAcc = super.getRowAccess();
+        return new WrapperRowAccess( baseAcc, convertMapper( baseAcc ) );
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        RowSplittable baseSplit = super.getRowSplittable();
+        return new MappingRowSplittable( baseSplit, this::convertMapper );
+    }
+
+    /**
+     * Converts an unnormlaised to a normalised RowData.
+     *
+     * @param  baseRow  input RowData
+     * @return  normalised RowData
+     */
+    private RowData convertMapper( RowData baseRow ) {
+        return new RowData() {
             public Object getCell( int icol ) throws IOException {
-                return converters_[ icol ].convert( super.getCell( icol ) );
+                return converters_[ icol ].convert( baseRow.getCell( icol ) );
             }
-            @Override
             public Object[] getRow() throws IOException {
-                return convertRow( super.getRow() );
+                return convertRow( baseRow.getRow() );
             }
         };
     }

@@ -7,6 +7,7 @@ import uk.ac.starlink.table.AccessRowSequence;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
@@ -216,6 +217,10 @@ public class TransposeFilter extends BasicFilter {
 
         public RowSequence getRowSequence() throws IOException {
             return AccessRowSequence.createInstance( this );
+        }
+
+        public RowSplittable getRowSplittable() throws IOException {
+            return Tables.getDefaultRowSplittable( this );
         }
 
         /**

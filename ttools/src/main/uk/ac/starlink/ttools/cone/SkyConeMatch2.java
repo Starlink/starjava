@@ -9,6 +9,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperRowAccess;
@@ -391,6 +392,9 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                                 thread.interrupt();
                             }
                         };
+                    }
+                    public RowSplittable getRowSplittable() throws IOException {
+                        return Tables.getDefaultRowSplittable( this );
                     }
                 };
                 return ostream ? result : Tables.randomTable( result );

@@ -18,6 +18,8 @@ import java.util.List;
  * calling {@link #getRowSequence}.  This may in general be
  * called multiple times so that more than one iteration can be made
  * through the rows of the table from start to finish.
+ * The {@link #getRowSplittable} method supports multi-threaded
+ * sequential access, and is used by {@link RowRunner}.
  * Additionally, if the {@link #isRandom} method returns <tt>true</tt>
  * then the random access methods {@link #getRowAccess},
  * {@link #getRow} and {@link #getCell}
@@ -176,6 +178,26 @@ public interface StarTable {
      *         <tt>false</tt>
      */
     RowAccess getRowAccess() throws IOException;
+
+    /**
+     * Returns an object which can iterate over all the rows in the table,
+     * but which may also be requested to split recursively
+     * for potentially parallel processing.
+     *
+     * <p>The return value must be non-null, and may provide splitting
+     * arrangements specially appropriate for the implementation.
+     * If this table 'wraps' an upstream table, it is usually best to
+     * base the implementation on calls to the the upstream
+     * <code>getRowSplittable</code> method, so that upstream policy
+     * about how to divide up the table is respected.
+     * However, implementations without special requirements may return
+     * {@link Tables#getDefaultRowSplittable
+     *        Tables.getDefaultRowSplittable}<code>(this)</code>.
+     *
+     * @return   new RowSplittable
+     * @see  RowRunner
+     */
+    RowSplittable getRowSplittable() throws IOException;
 
     /**
      * Indicates whether random access is provided by this table.

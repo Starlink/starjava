@@ -17,6 +17,7 @@ import java.io.IOException;
 public class WrapperRowSequence implements RowSequence {
 
     protected final RowSequence baseSeq;
+    private final RowData data_;
 
     /**
      * Constructs a new RowSequence based on a given one.
@@ -24,7 +25,20 @@ public class WrapperRowSequence implements RowSequence {
      * @param  baseSeq  the base row sequence
      */
     public WrapperRowSequence( RowSequence baseSeq ) {
+        this( baseSeq, baseSeq );
+    }
+
+    /**
+     * Constructs a new RowSequence based on a given one but with
+     * a supplied data access implementation.
+     *
+     * @param  baseSeq  the base row access
+     * @param  data   RowData object whose methods will be used
+     *                to implement the getCell and getRow methods
+     */
+    public WrapperRowSequence( RowSequence baseSeq, RowData data ) {
         this.baseSeq = baseSeq;
+        data_ = data;
     }
 
     public boolean next() throws IOException {
@@ -32,11 +46,11 @@ public class WrapperRowSequence implements RowSequence {
     }
 
     public Object getCell( int icol ) throws IOException {
-        return baseSeq.getCell( icol );
+        return data_.getCell( icol );
     }
 
     public Object[] getRow() throws IOException {
-        return baseSeq.getRow();
+        return data_.getRow();
     }
 
     public void close() throws IOException {

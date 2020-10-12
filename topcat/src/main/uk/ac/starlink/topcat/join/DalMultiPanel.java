@@ -36,6 +36,8 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
+import uk.ac.starlink.table.SequentialRowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
@@ -984,6 +986,9 @@ public class DalMultiPanel extends JPanel {
                                 return retval;
                             }
                         };
+                    }
+                    public RowSplittable getRowSplittable() throws IOException {
+                        return new SequentialRowSplittable( this );
                     }
                 };
 

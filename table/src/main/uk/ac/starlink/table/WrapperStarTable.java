@@ -11,9 +11,13 @@ import java.util.List;
  * table.  The exception is the {@link #getURL} method which returns
  * <tt>null</tt> as an indication that the actual table is not a persistent
  * one (though it may be based on, and even identical to, a persistent one).
- * <p>
- * This class is provided so that it can be extended by
+ *
+ * <p>This class is provided so that it can be extended by
  * subclasses which modify the view of the base table in useful ways.
+ *
+ * <p>Subclasses should take care to ensure that all the data access methods
+ * are overridden in a consistent way: {@link #getCell}, {@link #getRow},
+ * {@link #getRowSequence}, {@link #getRowAccess} and {@link #getRowSplittable}.
  *
  * @author   Mark Taylor (Starlink)
  * @see      WrapperRowSequence
@@ -105,6 +109,10 @@ public class WrapperStarTable implements StarTable {
 
     public RowAccess getRowAccess() throws IOException {
         return baseTable.getRowAccess();
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        return baseTable.getRowSplittable();
     }
 
     public boolean isRandom() {

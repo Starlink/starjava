@@ -1,9 +1,15 @@
 package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
+import java.util.function.Function;
+import java.util.function.LongSupplier;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.MappingRowSplittable;
 import uk.ac.starlink.table.RowAccess;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
+import uk.ac.starlink.table.SequentialRowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
 
@@ -173,6 +179,38 @@ public class AddColumnsTable extends WrapperStarTable {
         }
         else {
             throw new UnsupportedOperationException( "Not random" );
+        }
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        RowSplittable baseSplittable = baseTable.getRowSplittable();
+        final LongSupplier baseRowIndex = baseSplittable.rowIndex();
+        if ( baseRowIndex == null ) {
+            return new SequentialRowSplittable( this );
+        }
+        else {
+            Function<RowSplittable,RowData> mapper = base -> new RowData() {
+                final SupplementData sup;
+                /* Constructor. */ {
+                    try {
+                        sup = colSup_.createSupplementData( base );
+                    }
+                    catch ( IOException e ) {
+                        throw new RuntimeException( "shouldn't happen" );
+                    }
+                }
+                public Object getCell( int icol ) throws IOException {
+                    int jcol = jcols_[ icol ];
+                    return jtabs_[ icol ]
+                         ? sup.getCell( baseRowIndex.getAsLong(), jcol )
+                         : base.getCell( jcol );
+                }
+                public Object[] getRow() throws IOException {
+                    return combineRows( base.getRow(),
+                                        sup.getRow( baseRowIndex.getAsLong() ));
+                }
+            };
+            return new MappingRowSplittable( baseSplittable, mapper );
         }
     }
 }

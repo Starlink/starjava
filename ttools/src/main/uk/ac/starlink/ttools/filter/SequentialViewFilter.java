@@ -2,6 +2,8 @@ package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
 import java.util.Iterator;
+import uk.ac.starlink.table.RowSplittable;
+import uk.ac.starlink.table.SequentialRowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
 
@@ -42,6 +44,9 @@ public class SequentialViewFilter extends BasicFilter
             }
             public long getRowCount() {
                 return -1L;
+            }
+            public RowSplittable getRowSplittable() throws IOException {
+                return new SequentialRowSplittable( this );
             }
         };
     }

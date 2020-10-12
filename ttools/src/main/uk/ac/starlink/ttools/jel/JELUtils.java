@@ -16,6 +16,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
@@ -110,6 +111,9 @@ public class JELUtils {
                     throw new UnsupportedOperationException();
                 }
                 public RowAccess getRowAccess() {
+                    throw new UnsupportedOperationException();
+                }
+                public RowSplittable getRowSplittable() {
                     throw new UnsupportedOperationException();
                 }
             } );

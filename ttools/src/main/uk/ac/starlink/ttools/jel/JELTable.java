@@ -1,13 +1,17 @@
 package uk.ac.starlink.ttools.jel;
 
 import java.io.IOException;
+import java.util.function.Function;
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.MappingRowSplittable;
 import uk.ac.starlink.table.RowAccess;
+import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowAccess;
@@ -140,38 +144,41 @@ public class JELTable extends WrapperStarTable {
     public RowSequence getRowSequence() throws IOException {
         final SequentialJELRowReader seqReader =
             new SequentialJELRowReader( baseTable_ );
-        final CompiledExpression[] seqCompexs =
-            JELUtils.compileExpressions( seqReader, exprs_ );
-        return new WrapperRowSequence( seqReader ) {
-            public Object getCell( int icol ) throws IOException {
-                try {
-                    return seqReader.evaluate( seqCompexs[ icol ] );
-                }
-                catch ( IOException | RuntimeException | Error e ) {
-                    throw e;
-                }
-                catch ( Throwable e ) {
-                    throw (IOException) new IOException( e.getMessage() )
-                                       .initCause( e );
-                }
-            }
-            public Object[] getRow() throws IOException {
-                Object[] row = new Object[ ncol_ ];
-                for ( int icol = 0; icol < ncol_; icol++ ) {
-                    row[ icol ] = getCell( icol );
-                }
-                return row;
-            }
-        };
+        return new WrapperRowSequence( seqReader, jelMapper( seqReader ) );
     }
 
     public RowAccess getRowAccess() throws IOException {
         RowAccess baseAcc = baseTable_.getRowAccess();
-        final RandomJELRowReader jelReader =
+        RandomJELRowReader jelReader =
             RandomJELRowReader.createAccessReader( baseTable_, baseAcc );
+        return new WrapperRowAccess( baseAcc, jelMapper( jelReader ) );
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        RowSplittable baseSplit = baseTable_.getRowSplittable();
+        Function<RowSplittable,RowData> mapper = split -> {
+            try {
+                return jelMapper( new SequentialJELRowReader( this, split ) );
+            }
+            catch ( IOException e ) {
+                throw new RuntimeException( "Shouldn't happen", e );
+            }
+        };
+        return new MappingRowSplittable( baseSplit, mapper );
+    }
+
+    /**
+     * Provides a RowData that supplies the evaluated expressions
+     * given a JELREader.
+     *
+     * @param  jelReader   interrogates base table
+     * @return   provides evaluated expressions based on current state of reader
+     */
+    private RowData jelMapper( final StarTableJELRowReader jelReader )
+            throws IOException {
         final CompiledExpression[] accCompexs =
             JELUtils.compileExpressions( jelReader, exprs_ );
-        return new WrapperRowAccess( baseAcc ) {
+        return new RowData() {
             final Object[] row_ = new Object[ ncol_ ];
             public Object getCell( int icol ) throws IOException {
                 try {

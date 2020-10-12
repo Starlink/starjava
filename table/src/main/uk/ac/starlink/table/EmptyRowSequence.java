@@ -1,5 +1,7 @@
 package uk.ac.starlink.table;
 
+import java.util.function.LongSupplier;
+
 /**
  * Implementation of both RowSequence and RowAccess which has no rows.
  * Singleton class.
@@ -7,7 +9,7 @@ package uk.ac.starlink.table;
  * @since    28 Oct 2004
  * @author   Mark Taylor (Starlink)
  */
-public class EmptyRowSequence implements RowSequence, RowAccess {
+public class EmptyRowSequence implements RowSplittable, RowAccess {
 
     /** Instance. */
     private static final EmptyRowSequence INSTANCE = new EmptyRowSequence();
@@ -27,6 +29,18 @@ public class EmptyRowSequence implements RowSequence, RowAccess {
 
     public void setRowIndex( long irow ) {
         throw new IllegalArgumentException( "Out of bounds (no data)" );
+    }
+
+    public LongSupplier rowIndex() {
+        return () -> -1L;
+    }
+
+    public RowSplittable split() {
+        return null;
+    }
+
+    public long splittableSize() {
+        return 0;
     }
 
     /**

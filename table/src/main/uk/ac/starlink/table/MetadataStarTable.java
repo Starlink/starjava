@@ -56,6 +56,10 @@ public class MetadataStarTable extends AbstractStarTable {
         return EmptyRowSequence.getInstance();
     }
 
+    public RowSplittable getRowSplittable() {
+        return EmptyRowSequence.getInstance();
+    }
+
     public long getRowCount() {
         return rowCount_;
     }

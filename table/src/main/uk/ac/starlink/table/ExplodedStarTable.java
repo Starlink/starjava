@@ -108,28 +108,36 @@ public class ExplodedStarTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        return new WrapperRowSequence( baseTable_.getRowSequence() ) {
-            public Object getCell( int icol ) throws IOException {
-                ColPointer pointer = pointers_[ icol ];
-                Object baseCell = super.getCell( pointer.getBaseIndex() );
-                return translateCell( pointer, baseCell );
-            }
-            public Object[] getRow() throws IOException {
-                return translateRow( super.getRow() );
-            }
-        };
+        RowSequence baseSeq = baseTable.getRowSequence();
+        return new WrapperRowSequence( baseSeq, explodeMapper( baseSeq ) );
     }
 
     public RowAccess getRowAccess() throws IOException {
         RowAccess baseAcc = baseTable.getRowAccess();
-        return new WrapperRowAccess( baseAcc ) {
+        return new WrapperRowAccess( baseAcc, explodeMapper( baseAcc ) );
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        RowSplittable baseSplit = baseTable.getRowSplittable();
+        return new MappingRowSplittable( baseSplit, this::explodeMapper );
+    }
+
+    /**
+     * Maps a RowData from the base table to a RowData for output from
+     * this table.
+     *
+     * @param  baseData  base row data
+     * @return  output row data
+     */
+    private RowData explodeMapper( final RowData baseData ) {
+        return new RowData() {
             public Object getCell( int icol ) throws IOException {
                 ColPointer pointer = pointers_[ icol ];
-                Object baseCell = baseAcc.getCell( pointer.getBaseIndex() );
+                Object baseCell = baseData.getCell( pointer.getBaseIndex() );
                 return translateCell( pointer, baseCell );
             }
             public Object[] getRow() throws IOException {
-                return translateRow( baseAcc.getRow() );
+                return translateRow( baseData.getRow() );
             }
         };
     }

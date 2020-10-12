@@ -15,9 +15,10 @@ import java.io.IOException;
  * @since    24 Jul 2020
  * @see      WrapperStarTable
  */
-public abstract class WrapperRowAccess implements RowAccess {
+public class WrapperRowAccess implements RowAccess {
 
     private final RowAccess baseAcc_;
+    private final RowData data_;
 
     /**
      * Constructs a new RowAccess based on a given one.
@@ -25,7 +26,20 @@ public abstract class WrapperRowAccess implements RowAccess {
      * @param  baseAcc  the base row access
      */
     public WrapperRowAccess( RowAccess baseAcc ) {
+        this( baseAcc, baseAcc );
+    }
+
+    /**
+     * Constructs a new RowAccess based on a given one but with
+     * a supplied data access implementation.
+     *
+     * @param  baseAcc  the base row access
+     * @param  data   RowData object whose methods will be used
+     *                to implement the getCell and getRow methods
+     */
+    public WrapperRowAccess( RowAccess baseAcc, RowData data ) {
         baseAcc_ = baseAcc;
+        data_ = data;
     }
 
     public void setRowIndex( long irow ) throws IOException {
@@ -33,11 +47,11 @@ public abstract class WrapperRowAccess implements RowAccess {
     }
 
     public Object getCell( int icol ) throws IOException {
-        return baseAcc_.getCell( icol );
+        return data_.getCell( icol );
     }
 
     public Object[] getRow() throws IOException {
-        return baseAcc_.getRow();
+        return data_.getRow();
     }
 
     public void close() throws IOException {

@@ -5,8 +5,11 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.function.LongSupplier;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
+import uk.ac.starlink.table.SequentialRowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowAccess;
 import uk.ac.starlink.table.WrapperRowSequence;
@@ -82,6 +85,7 @@ public class AssertFilter extends BasicFilter {
         private final StarTable baseTable_;
         private final RandomJELRowReader randomReader_;
         private final CompiledExpression compEx_;
+        private final boolean requiresRowIndex_;
 
         /**
          * Constructor.
@@ -96,9 +100,9 @@ public class AssertFilter extends BasicFilter {
             expr_ = expr;
             randomReader_ =
                 RandomJELRowReader.createConcurrentReader( baseTable );
-            Library lib =
-                JELUtils.getLibrary( new DummyJELRowReader( baseTable ) );
+            Library lib = JELUtils.getLibrary( randomReader_ );
             compEx_ = JELUtils.compile( lib, baseTable, expr );
+            requiresRowIndex_ = randomReader_.requiresRowIndex();
             JELUtils.checkExpressionType( lib, baseTable, expr, boolean.class );
         }
 
@@ -185,11 +189,94 @@ public class AssertFilter extends BasicFilter {
             };
         }
 
+        public RowSplittable getRowSplittable() throws IOException {
+            RowSplittable baseSplittable = baseTable.getRowSplittable();
+            if ( requiresRowIndex_ && baseSplittable.rowIndex() == null ) {
+                return new SequentialRowSplittable( this );
+            }
+            else {
+                return new AssertRowSplittable( baseTable.getRowSplittable() );
+            }
+        }
+
         private void check( Object result, long irow ) throws AssertException {
             if ( ! ( result instanceof Boolean ) ||
                  ! ((Boolean) result).booleanValue() ) {
                 throw new AssertException( "Assertion \"" + expr_ + "\" "
                                          + "violated at row " + ( irow + 1 ) );
+            }
+        }
+
+        /**
+         * RowSplittable implementation for use with AssertFilter.
+         */
+        private class AssertRowSplittable extends WrapperRowSequence
+                                          implements RowSplittable {
+            final RowSplittable baseSplit_;
+            final SequentialJELRowReader seqReader_;
+            final CompiledExpression compEx1_;
+            final LongSupplier rowIndex_;
+
+            /**
+             * Constructor.
+             *
+             * @param   baseSplit  base splittable
+             */
+            AssertRowSplittable( RowSplittable baseSplit ) throws IOException {
+                super( baseSplit );
+                baseSplit_ = baseSplit;
+                seqReader_ = new SequentialJELRowReader( baseTable_, baseSplit);
+                LongSupplier rowIndex = baseSplit.rowIndex();
+                if ( rowIndex == null ) {
+                    rowIndex_ = () -> Long.MIN_VALUE;
+                    assert ! requiresRowIndex_;
+                }
+                else {
+                    rowIndex_ = rowIndex;
+                }
+                Library lib = JELUtils.getLibrary( seqReader_ );
+                try {
+                    compEx1_ = JELUtils.compile( lib, baseTable_, expr_ );
+                }
+                catch ( CompilationException e ) {
+                    throw JELUtils.toIOException( e, expr_ );
+                }
+            }
+            public long splittableSize() {
+                return baseSplit_.splittableSize();
+            }
+            public LongSupplier rowIndex() {
+                return baseSplit_.rowIndex();
+            }
+            @Override
+            public boolean next() throws IOException {
+                boolean next = super.next();
+                if ( next ) {
+                    Object result;
+                    try {
+                        result = seqReader_.evaluate( compEx1_ );
+                    }
+                    catch ( IOException | RuntimeException | Error e ) {
+                        throw e;
+                    }
+                    catch ( Throwable e ) {
+                        throw (IOException) new IOException( e.getMessage() )
+                             .initCause( e );
+                    }
+                    check( result, rowIndex_.getAsLong() );
+                }
+                return next;
+            }
+            @Override
+            public AssertRowSplittable split() {
+                RowSplittable split1 = baseSplit_.split();
+                try {
+                    return split1 == null ? null
+                                          : new AssertRowSplittable( split1 );
+                }
+                catch ( IOException e ) {
+                    return null;
+                }
             }
         }
     }

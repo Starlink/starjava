@@ -7,6 +7,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -177,6 +178,10 @@ public class UniqueFilter extends BasicFilter {
 
         public RowAccess getRowAccess() {
             throw new UnsupportedOperationException( "not random" );
+        }
+
+        public RowSplittable getRowSplittable() throws IOException {
+            return Tables.getDefaultRowSplittable( this );
         }
     }
 

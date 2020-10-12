@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.OnceRowPipe;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
@@ -300,6 +301,9 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
                     }
                     return t2.getRowSequence();
                 }
+            }
+            public RowSplittable getRowSplittable() throws IOException {
+                return Tables.getDefaultRowSplittable( this );
             }
         };
     }

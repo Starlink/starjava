@@ -67,6 +67,12 @@ public class ConcatTableTest extends TableCase {
         StarTable ct = new ConcatStarTable( items[ 0 ], items );
         checkStarTable( t1 );
         checkStarTable( ct );
+        checkStarTable( new ConcatStarTable( items[ 0 ], items ) {
+            @Override
+            public boolean isRandom() {
+                return false;
+            }
+        } );
         assertArrayEquals( row, t1.getRow( 5 ) );
         assertEquals( 100L, ct.getRowCount() );
         for ( int i = 0; i < ct.getRowCount(); i++ ) {

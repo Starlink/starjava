@@ -124,6 +124,10 @@ public class RowPermutedStarTable extends WrapperStarTable {
         return AccessRowSequence.createInstance( this );
     }
 
+    public RowSplittable getRowSplittable() throws IOException {
+        return Tables.getDefaultRowSplittable( this );
+    }
+
     public Object getCell( long irow, int icol ) throws IOException {
         long baseRow = rowMap[ checkedLongToInt( irow ) ];
         return baseRow >= 0 ? baseTable.getCell( baseRow, icol )

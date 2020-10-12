@@ -1,8 +1,10 @@
 package uk.ac.starlink.table.storage;
 
 import java.io.IOException;
+import uk.ac.starlink.table.RandomRowSplittable;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
 
@@ -105,6 +107,10 @@ class ColumnStoreStarTable extends WrapperStarTable {
             public void close() {
             }
         };
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        return new RandomRowSplittable( this );
     }
 
     public RowAccess getRowAccess() throws IOException {

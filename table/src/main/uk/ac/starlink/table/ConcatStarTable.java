@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.LongSupplier;
 import java.util.logging.Logger;
 
 /**
@@ -116,6 +117,19 @@ public class ConcatStarTable extends WrapperStarTable {
 
     public RowSequence getRowSequence() throws IOException {
         return new ConcatRowSequence( getTableIterator() );
+    }
+
+    public RowSplittable getRowSplittable() throws IOException {
+        if ( isRandom() ) {
+            return new RandomRowSplittable( this );
+        }
+        else if ( tableIt_ == null ) {
+            return new ConcatRowSplittable( tableList_
+                                           .toArray( new StarTable[ 0 ] ) );
+        }
+        else {
+            return Tables.getDefaultRowSplittable( this );
+        }
     }
 
     public RowAccess getRowAccess() {
@@ -409,6 +423,156 @@ public class ConcatStarTable extends WrapperStarTable {
 
         public void close() throws IOException {
             rseq_.close();
+        }
+    }
+
+    /**
+     * RowSplittable implementation that can be used with ConcatStarTable
+     * when all the tables are in place (not still to be iterated over).
+     * It currently just splits into the constituent tables.
+     * It could split further between those, but doesn't.
+     */
+    private static class ConcatRowSplittable implements RowSplittable {
+        private final StarTable[] tables_;
+        private final long[] nrows_;
+        private long ir0_;
+        private long irow_;
+        private int itab_;
+        private int ntab_;
+        private RowSequence rseq_;
+
+        /**
+         * Public constructor.
+         *
+         * @param  tables  list of tables constituting this ConcatTable
+         */
+        public ConcatRowSplittable( StarTable[] tables ) {
+            this( tables, countRows( tables ), -1, tables.length );
+        }
+
+        /**
+         * Private constructor used for recursion.
+         *
+         * @param  tables  list of tables constituting this ConcatTable
+         * @param  nrows   array of row counts per table, or null if
+         *                 not completely known
+         * @param  itab    index before first table to be processed
+         * @param  ntab    index after last table to be processed
+         */
+        private ConcatRowSplittable( StarTable[] tables, long[] nrows,
+                                     int itab, int ntab ) {
+            tables_ = tables;
+            nrows_ = nrows;
+            itab_ = itab;
+            ntab_ = ntab;
+            irow_ = -1;
+            ir0_ = getStartRowIndex();
+        }
+
+        public RowSplittable split() {
+            if ( rseq_ == null && ntab_ - itab_ > 2 ) {
+                int mid = ( 1 + itab_ + ntab_ ) / 2;
+                RowSplittable split =
+                    new ConcatRowSplittable( tables_, nrows_, itab_, mid );
+                itab_ = mid - 1;
+                ir0_ = getStartRowIndex();
+                return split;
+            }
+            else {
+                return null;
+            }
+        }
+
+        public long splittableSize() {
+            if ( nrows_ == null ) {
+                return -1;
+            }
+            else {
+                long nr = 0;
+                for ( int i = rseq_ == null ? itab_ + 1 : itab_; i < ntab_;
+                      i++ ) {
+                    nr += nrows_[ i ];
+                }
+                return nr;
+            }
+        }
+
+        public LongSupplier rowIndex() {
+            return ir0_ >= 0 ? () -> ir0_ + irow_
+                             : null;
+        }
+
+        public boolean next() throws IOException {
+            while ( true ) {
+                while ( rseq_ == null ) {
+                    if ( itab_ + 1 == ntab_ ) {
+                        return false;
+                    }
+                    itab_++;
+                    rseq_ = tables_[ itab_ ].getRowSequence();
+                }
+                if ( rseq_.next() ) {
+                    irow_++;
+                    return true;
+                }
+                else {
+                    rseq_.close();
+                    rseq_ = null;
+                }
+            }
+        }
+
+        public Object getCell( int icol ) throws IOException {
+            return rseq_.getCell( icol );
+        }
+
+        public Object[] getRow() throws IOException {
+            return rseq_.getRow();
+        }
+
+        public void close() throws IOException {
+            if ( rseq_ != null ) {
+                rseq_ = null;
+                itab_ = ntab_;
+            }
+        }
+
+        /**
+         * Returns the index of the first row that this splittable will
+         * iterate over, or -1 if not known.
+         *
+         * @param  starting global row index, or -1
+         */
+        private long getStartRowIndex() {
+            if ( nrows_ == null ) {
+                return -1;
+            }
+            else {
+                long ir0 = 0;
+                for ( int i = 0; i < itab_ + 1; i++ ) {
+                    ir0 += nrows_[ i ];
+                }
+                return ir0;
+            }
+        }
+
+        /**
+         * Provides an array per-table of the row counts of the consituent
+         * tables, or null if it can't be fully done.
+         *
+         * @param  tables   array of tables
+         * @return  per-table array of definite row counts, or null
+         */
+        private static long[] countRows( StarTable[] tables ) {
+            int nt = tables.length;
+            long[] nrows = new long[ nt ];
+            for ( int it = 0; it < nt; it++ ) {
+                nrows[ it ] = tables[ it ].getRowCount();
+                if ( nrows[ it ] < 0 ) {
+                    return null;
+                }
+            }
+            return nrows;
         }
     }
 }
