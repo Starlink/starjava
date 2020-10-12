@@ -148,6 +148,16 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
     }
 
     /**
+     * Returns a table factory based on a TableLocator instance.
+     *
+     * @param  locator  locator
+     * @return   table factory
+     */
+    public static StarTableFactory createTableFactory( TableLocator locator ) {
+        return new LocatorStarTableFactory( locator );
+    }
+
+    /**
      * StarTableFactory implementation based on a TableLocator.
      */
     private static class LocatorStarTableFactory extends StarTableFactory {
