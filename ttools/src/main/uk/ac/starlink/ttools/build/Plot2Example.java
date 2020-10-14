@@ -1059,8 +1059,9 @@ public class Plot2Example {
                 "layer1=mark", "*layer2=linearfit",
             } ),
             new Plot2Example( "layer-label", c, PlotTask.SKY, new String[] {
-                "*in=" + TName.MESSIER, "*lon=RA", "*lat=DEC",
-                "layer1=mark", "*layer2=label", "*label2=NAME",
+                "*in=" + TName.MESSIER, "*lon=RA", "*lat=DEC", null,
+                "layer1=mark", "size1=3", null,
+                "*layer2=label", "*label2=NAME", "*color2=black",
             } ),
             new Plot2Example( "layer-contour", c, PlotTask.PLANE, new String[] {
                 "*in=" + TName.TGAS,
