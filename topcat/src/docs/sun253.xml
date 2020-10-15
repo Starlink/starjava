@@ -19836,6 +19836,10 @@ be examined, manipulated and saved like any other.
 </dl>
 </p>
 
+<p>When considering matching beyond pairs, see the comments in
+<ref id="matchGroup"/> about the semantics of multi-object matches.
+</p>
+
 <p>For information on the 
 <label>Tuning Parameters</label> (&IMG.TUNING;) and
 <label>Full Profiling</label> (&IMG.PROFILE;) toolbar buttons,
@@ -19965,6 +19969,10 @@ be examined, manipulated and saved like any other.
     </p></dd>
 
 </dl>
+</p>
+
+<p>See the comments in <ref id="matchGroup"/> about the semantics
+of multi-object matches.
 </p>
 
 <p>For information on the
@@ -29778,6 +29786,7 @@ introduced since the last version:
         directories.</li>
     <li>Fix minor plotting bug that could cause white points to
         be invisible.</li>
+    <li>Minor fixes to match window help text.</li>
     </ul>
     </p></dd>
 

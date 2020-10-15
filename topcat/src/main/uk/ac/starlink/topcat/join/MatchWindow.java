@@ -166,8 +166,17 @@ public class MatchWindow extends AuxWindow implements ItemListener {
 
         /* Add standard help actions. */
         getToolBar().addSeparator();
-        addHelp( nTable == 1 ? "MatchWindow1"
-                             : "MatchWindow" );
+        final String helpTag;
+        if ( nTable == 1 ) {
+            helpTag = "MatchWindow1";
+        }
+        else if ( nTable == 2 ) {
+            helpTag = "MatchWindow";
+        }
+        else {
+            helpTag = "MatchWindowN";
+        }
+        addHelp( helpTag );
 
         /* Set up components associated with logging calculation progress. */
         logArea = new JTextArea();
