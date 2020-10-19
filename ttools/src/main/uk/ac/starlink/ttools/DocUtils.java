@@ -11,6 +11,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import uk.ac.starlink.table.Documented;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.filter.BasicFilter;
 
@@ -103,6 +104,30 @@ public class DocUtils {
         }
         sbuf.append( "</ul>\n" );
         return sbuf.toString();
+    }
+
+    /**
+     * Returns the XML description provided by an item implementing the
+     * Documented interface, in a form suitable for insertion into
+     * the STILTS user document.
+     *
+     * <p>Note the implementation of this is currently somewhat scrappy;
+     * it works on the things that it's called upon to transform during
+     * the STILTS user document build, but it may need extra work if
+     * some less constrained XHTML gets fed to it.  If that becomes the case,
+     * problems should show up at TTOOLS package build/test time.
+     *
+     * @param   item  supplier of (XHTML-like) documentation XML
+     * @return   SUN-compliant XML
+     */
+    public static String getXmlDescription( Documented item )
+            throws IOException {
+        try {
+            return fromXhtml( item.getXmlDescription() );
+        }
+        catch ( TransformerException e ) {
+            throw new IOException( "XSLT trouble", e );
+        }
     }
 
     /**
