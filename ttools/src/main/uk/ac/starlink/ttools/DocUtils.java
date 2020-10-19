@@ -1,5 +1,16 @@
 package uk.ac.starlink.ttools;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.net.URL;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.filter.BasicFilter;
 
@@ -92,5 +103,36 @@ public class DocUtils {
         }
         sbuf.append( "</ul>\n" );
         return sbuf.toString();
+    }
+
+    /**
+     * Does minimal conversion from XHTML-like XML to SUN-friendly XML.
+     * Since this works on strings, it's not intended for huge documents.
+     *
+     * @param  xhtml  input XHTML-like XML string, expected to be a sequence
+     *                of P elements
+     * @return  output SUN-friendly XML string
+     */
+    public static String fromXhtml( String xhtml )
+            throws IOException, TransformerException {
+
+        /* Need to wrap the content in a top-level document, since it may
+         * consist of a sequence of siblings rather than a single element. */
+        String wrapTag = "wrap-doc";
+        String wrapXhtml = "<" + wrapTag + ">" + xhtml + "</" + wrapTag + ">";
+
+        /* Transform using custom XSLT. */
+        URL xsltUrl = DocUtils.class.getResource( "fromXhtml.xslt" );
+        Source xsltSrc = new StreamSource( xsltUrl.openStream() );
+        Source docSrc = new StreamSource( new StringReader( wrapXhtml ) );
+        Transformer trans =
+            TransformerFactory.newInstance().newTransformer( xsltSrc );
+        StringWriter out = new StringWriter();
+        Result docRes = new StreamResult( out );
+        trans.transform( docSrc, docRes );
+        out.close();
+
+        /* Return result. */
+        return out.getBuffer().toString();
     }
 }
