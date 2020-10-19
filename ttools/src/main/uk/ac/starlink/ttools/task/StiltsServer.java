@@ -26,6 +26,7 @@ import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.server.FormServlet;
+import uk.ac.starlink.ttools.server.PlotServlet;
 import uk.ac.starlink.ttools.server.ServletEnvironment;
 import uk.ac.starlink.ttools.server.StiltsContext;
 import uk.ac.starlink.ttools.server.TaskServlet;
@@ -83,13 +84,16 @@ public class StiltsServer implements Task {
         tasksParam_.setNullPermitted( true );
         tasksParam_.setDescription( new String[] {
             "<p>Gives a space-separated list of tasks which will be provided",
-            "by the running server.",
+            "by the relevant endpoints of the running server.",
             "If the value is <code>null</code> then all tasks will be",
             "available.  However, some tasks don't make a lot of sense",
             "to run from the server, so the default value is a somewhat",
             "restricted list.",
             "If the server is being exposed to external users, you might",
             "also want to reduce the list for security reasons.",
+            "If you don't want any tasks made available,",
+            "for instance if you want to run the plot service only,",
+            "you can set this to the empty string.",
             "</p>",
         } );
         ObjectFactory<Task> taskFactory = Stilts.getTaskFactory();
@@ -147,6 +151,9 @@ public class StiltsServer implements Task {
                 ServletHandler handler = new ServletHandler();
                 context.addHandler( handler );
                 List<String> baseList = new ArrayList<String>();
+                handler.addServlet( "STILTS plot2", base + "/plot/*",
+                                    PlotServlet.class.getName() );
+                baseList.add( base + "/plot/" );
                 handler.addServlet( "STILTS Tasks", base + "/task/*",
                                     TaskServlet.class.getName() );
                 baseList.add( base + "/task/" );
