@@ -6,10 +6,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import javax.xml.transform.TransformerException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.geom.TimeDataGeom;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
+import uk.ac.starlink.ttools.server.PlotServlet;
 
 /**
  * Write some miscallaneous auto-documentation files for ingestion
@@ -42,7 +44,8 @@ public class MiscDoc {
     /**
      * Writes miscellaneous documentation files to the current directory.
      */
-    public static void main( String[] args ) throws IOException {
+    public static void main( String[] args )
+            throws IOException, TransformerException {
         Input timeInput = TimeDataGeom.T_COORD.getInput();
         String timeSuffix = AbstractPlot2Task.EXAMPLE_LAYER_SUFFIX;
         Parameter<?> ttypeParam = 
@@ -50,5 +53,7 @@ public class MiscDoc {
            .createDomainMapperParameter( timeInput, timeSuffix );
         writeData( "ttypeN-param.xml",
                    UsageWriter.xmlItem( ttypeParam, false ) );
+        writeData( "plotserv-syntax.xml",
+                   PlotServlet.getXmlSyntaxDocumentation() );
     }
 }

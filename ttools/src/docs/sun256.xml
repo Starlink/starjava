@@ -117,6 +117,7 @@
 
   <!-- Miscellaneous text -->
   <!ENTITY ttypeN-param SYSTEM 'ttypeN-param.xml'>
+  <!ENTITY plotserv-syntax SYSTEM 'plotserv-syntax.xml'>
 
   <!-- Automatically generated plot2 figures. -->
   <!ENTITY figs './'>
@@ -709,11 +710,15 @@ see the full task descriptions in the
 <sect id="invoke">
 <subhead><title>Invocation</title></subhead>
 
-<p>There are a number of ways of invoking the <code>stilts</code> command,
+<p>There are a number of ways of invoking commands
+in the <code>stilts</code> application,
 depending on how you have installed the package.
 This section describes how to invoke it from the command line.
-An alternative, using it from Jython (the Java implementation of
-the Python language), is described in <ref id="jystilts"/>.
+Other options are using it from Jython (the Java implementation of
+the Python language) as described in <ref id="jystilts"/>,
+invoking it over HTTP as described in <ref id="serverMode"/>,
+and invoking it from within a Java application
+as described in <ref id="taskApi"/>.
 </p>
 
 <p>If you're using a Unix-like operating system,
@@ -4749,6 +4754,372 @@ the declaration with identical effect.
 
 </sect>
 
+
+<sect id="serverMode">
+<subhead><title>Server Mode</title></subhead>
+
+<p>STILTS is generally run by issuing commands from some kind
+of command line.  However, facilities are also included to
+run it as a service, accepting commands via HTTP.
+The basic implementation of this is in the form of some
+Servlet implementations that can be run in a servlet container.
+At present the following servlets are provided:
+<ul>
+<li><javadoc docset="&stiltsjavadocs;"
+             class="uk.ac.starlink.ttools.server.PlotServlet"/></li>
+<li><javadoc docset="&stiltsjavadocs;"
+             class="uk.ac.starlink.ttools.server.TaskServlet"/></li>
+<li><javadoc docset="&stiltsjavadocs;"
+             class="uk.ac.starlink.ttools.server.FormServlet"/></li>
+</ul>
+</p>
+
+<p>In order to run them there are a few options:
+<dl>
+
+<dt>STILTS <code>server</code> command</dt>
+<dd><p>The simplest is to use the STILTS
+    <ref id="server"><code>server</code></ref> command.
+    If you run this, the services will start up immediately and print
+    information about the base URL.
+    Some configuration of available functions and data access
+    is offered by the command line parameters.
+    This command is a thin wrapper around the Jetty servlet engine
+    which is included in the STILTS distribution.
+    </p></dd>
+
+<dt>Deploy in a servlet container</dt>
+<dd><p>For more control you can deploy the servlet or servlets
+    you want to run in a servlet container of your choice,
+    for instance Tomcat.  The servlets can be configured
+    by setting context parameters in a <code>web.xml</code> file
+    in the usual way; look at the 
+    <javadoc docset="&stiltsjavadocs;"
+             class="uk.ac.starlink.ttools.server.StiltsContext"/> class
+    to see the available configuration parameters.
+    </p></dd>
+
+<dt>Docker</dt>
+<dd><p>In the case of the plot server, a Docker container has been
+    provided for convenience.
+    At time of writing this is available, with some more discussion
+    about how to deploy it, at
+    <webref url="https://hub.docker.com/r/mbtaylor/plotserv"/>.
+    </p></dd>
+
+</dl>
+In all cases, look at the base URL of the running service for more information
+and usage examples.  For instance if the server is running at the
+default base URL, then pointing your browser at
+<verbatim>
+    http://localhost:2112/stilts/
+</verbatim>
+will show you links to documentation for the available services.
+</p>
+
+<p>The different services are described further in the following subsections.
+</p>
+
+<p><strong>Note:</strong>
+The <code>server</code> command and associated servlet code are
+somewhat experimental.
+If you have requirements which are not currently provided, please
+contact the author for discussion.
+</p>
+
+<subsect id="PlotServlet">
+<subhead><title>Plot Service</title></subhead>
+
+<p>The plot server supports interactive plots that can be
+viewed and navigated using HTTP requests.
+A plot is specified with a URL, corresponding to an invocation
+of one of the <ref id="plot2"><code>plot2*</code></ref> commands,
+that specifies a plot, and uses
+a service API that can be used by client-side javascript to
+display and update a plot image in response to user navigation actions
+such as mouse drag and wheel gestures.
+The effect is of an interactive plot in a web browser that
+can be navigated with the mouse in exactly the same way as
+a STILTS or TOPCAT interactive plot.
+</p>
+
+<p>To see this in action, run
+   <verbatim>
+   % stilts server
+   </verbatim>
+point your browser at the URL displayed and follow the links
+to see some interactive plots.
+</p>
+
+<p>The following subsections give some more details about how
+this works and how it can be used.
+</p>
+
+<subsubsect id="plotserv-use">
+<subhead><title>Usage</title></subhead>
+
+<p>The best way to see how the plot service can be used is to run the service
+(most simply by executing <code>stilts <ref id="server">server</ref></code>),
+and look at the running plot examples, along with their HTML source code,
+served from the server endpoint.
+</p>
+
+<p>However this section gives a brief independent overview
+of how the service can be used.
+The PlotServlet itself exposes a RESTful API as described in
+<ref id="plotserv-api"/>.
+This offers the services required for client HTML/JavaScript code
+running in a browser to set up a plot based on server-side
+(or at least server-accessible) table data, and to make updates to it
+following user activity like mouse gestures.
+</p>
+
+<p>A basic client JavaScript library named <code>plot2Lib.js</code>,
+that facilitates this plot setup is included with STILTS;
+it can be found in the <code>stilts.jar</code> file at
+<code>uk/ac/starlink/ttools/server/plot2Lib.js</code>,
+and is available from the running server at
+<code>&lt;plot-service-base&gt;/plot2Lib.js</code>.
+It exports some variables in the <code>plot2</code> namespace;
+see comments in the file itself for documentation of how to use it.
+A minimal web page using this to present an interactive plot might look like:
+<verbatim><![CDATA[
+   <html>
+   <script src="plot2Lib.js"></script>
+   <script>
+      var serverUrl = "http://localhost:2112/stilts/plot/";
+      onload = function() {
+         var plotTxt = plot2.wordsToPlotTxt([
+            "plot2sky",
+            "layer1=mark",
+            "in1=/data/catalogue.fits",
+            "lon1=RA",
+            "lat1=DEC"
+         ]);
+         var plotNode = plot2.createPlotNode(serverUrl, plotTxt);
+         document.getElementsByTagName("body")[0].appendChild(plotNode);
+      };
+   </script>
+   </html>
+]]></verbatim>
+In this case the data file "<code>/data/catalogue.fits</code>"
+has to be available to the servlet;
+how this is arranged depends on the way the service is deployed.
+</p>
+
+<p>JavaScript clients don't have to use the <code>plot2Lib.js</code> library;
+it's also possible to write custom code that talks to the
+RESTful API described in <ref id="plotserv-api"/>.
+</p>
+
+</subsubsect>
+
+<subsubsect id="plotserv-api">
+<subhead><title>RESTful API</title></subhead>
+
+<p>This section details the endpoints supported by the plot servlet;
+it is not required reading for those who want to use the supplied
+<code>plot2Lib.js</code> JavaScript library,
+but may be of interest to those who want to write their own
+JavaScript clients.
+</p>
+
+&plotserv-syntax;
+
+<p>This API is subject to extension or modification in future releases.
+</p>
+
+</subsubsect>
+
+<subsubsect id="plotserv-cache">
+<subhead><title>Caching and Performance</title></subhead>
+
+<p>The plot servlet requires some temporary disk storage for caching
+images and prepared coordinate data to improve performance when
+updating plots during visualisation sequences.
+Servlet configuration options are available to manage usage
+of these resources.
+</p>
+
+<p>When first requested to make a plot, it works out what coordinate
+data will be required, reads this from the input table,
+and writes it to cache in an efficient binary storage format.
+This may be simply a copy of columns from the input table,
+or may require some computation, for instance if the
+plotted quantity is the result of an expression in the expression
+language, or if the coordinates are longitude and latitude
+(in which case they are converted to unit vector components).
+This coordinate cache preparation requires a scan of the input
+table which is in the current implementation single-threaded,
+so may be time-consuming for very large tables.
+</p>
+
+<p>Once the coordinate data is in cache, the cache rather than
+the input table is used for subsequent plots; that includes both
+derived replots resulting from user navigation and completely separate
+plots that happen to require the same row/column data.
+Plots from cache are in most cases multi-threaded, so can
+be quite rapid even for large datasets depending on server
+configuration and load.
+</p>
+
+<p>When the plot is first made, the initial (pre-navigation) plotted image is
+also stored in a cache, so that if other HTTP clients request
+the same plot they can receive the initial image without further
+data access or computation.
+</p>
+
+<p>By default, the directory used for caching is the value of the
+<code>java.io.tmpdir</code> system property, which is typically
+<code>/tmp</code> on Unix systems.
+The directory used for caching can be changed by modifying this
+system property, or caching can be configured with
+the servlet context parameters controlled by the
+<javadoc docset="&stiltsjavadocs;"
+         class="uk.ac.starlink.ttools.server.StiltsContext"/> class.
+</p>
+
+<p>When cache storage gets full, older items are dropped in the usual way.
+There is no doubt scope for improvement of the existing cache management;
+the details may be refined in future releases.
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="TaskServlet">
+<subhead><title>Task Service</title></subhead>
+
+<p>This servlet allows execution of a single STILTS command
+by making an HTTP request with the command name and parameters,
+rather than by presenting them on the command line.
+You might want to run this service if you are providing
+a web service to external users which is able to access files residing
+on the server, for instance generating static table plots
+(though see the <ref id="PlotServlet">Plot service</ref> for
+more sophisticated server-side visualisation)
+or row selections on the fly.
+This can be done without the server mode, for instance by invoking
+the <code>stilts</code> script or java from a CGI script to serve
+each request, but using server mode has two advantages:
+first it provides correct output HTTP headers such as Content-Type,
+and secondly it avoids the Java startup overheads for each invocation.
+</p>
+
+<p>The URLs accepted by the service are of the form
+<verbatim><![CDATA[
+   <task-base-url>/<task-name>?<arg-name>=<arg-value>&<arg-name>=<arg-value>...
+]]></verbatim>
+The <code>&lt;task-name&gt;</code> is one of the STILTS command names
+as listed in <ref id="cmdUsage"/>,
+and the <code>&lt;arg-name&gt;=&lt;arg-value&gt;</code> pairs
+are the parameter settings for that command;
+the parameter settings are syntactically
+an <code>application/x-www-form-urlencoded</code> query string.
+These parameters may be supplied as a POST body rather than as part of a
+GET query if preferred, though since the task invocation will normally
+be idempotent, GET may be more respectable.
+</p>
+
+<p>The HTTP response depends on the behaviour of the task in question.
+If the task is one that outputs a table or sequence of tables, such as
+<ref id="tpipe"><code>tpipe</code></ref> or
+<ref id="tmatch2"><code>tmatch2</code></ref>,
+the HTTP response will be the serialized form of the table
+in an appropriate format.  By default that is currently VOTable
+(Content-Type "<code>application/x-votable+xml</code>"),
+but that can be altered by supplying the appropriate output
+format parameter, e.g. "<code>ofmt=fits</code>".
+Plotting commands return an image in a default graphics format;
+again the output format can be controlled using command paramters
+in the same way as on the command line.
+Output for some other commands such as <ref id="calc"><code>calc</code></ref>
+may just be plain text.
+</p>
+
+<p>Here are some example invocations, assuming the default
+server base URL of <code>http://localhost:2112/stilts/</code>:
+<dl>
+    
+<dt><verbatim>
+http://localhost:2112/stilts/
+</verbatim></dt>
+<dd><p>Returns an HTML page giving version information and some links to
+    example usages of the server.
+    </p></dd>
+
+<dt><verbatim>
+http://localhost:2112/stilts/task/tpipe
+</verbatim></dt>
+<dd><p>Returns an HTML page giving usage instructions for the
+    <ref id="tpipe"><code>tpipe</code></ref> task.
+    </p></dd>
+
+<dt><verbatim>
+http://localhost:2112/stilts/task/calc?expression=21%2b2
+</verbatim></dt>
+<dd><p>Invokes the <ref id="calc"><code>calc</code></ref> task
+    to return a document containing the text "<code>23</code>".
+    Note that the plus ("<code>+</code>") sign in the expression has to be
+    encoded using the sequence "<code>%2b</code>" since "<code>+</code>"
+    has a special significance in query URLs - see for instance sec 2.2 of
+    <webref url="http://www.ietf.org/rfc/rfc1738.txt">RFC 1738</webref>.
+    </p></dd>
+
+<dt><verbatim>
+http://localhost:2112/stilts/task/plot2plane?in=/data/table1.vot&amp;layer1=mark&amp;x1=RMAG&amp;y1=BMAG
+</verbatim></dt>
+<dd><p>Invokes the <ref id="plot2d"><code>plot2d</code></ref> task 
+    to return a magnitude-magnitude diagram of the named server-side file
+    as an image, probably an <code>image/png</code>
+    (but see the <ref id="PlotServlet">Plot Service</ref>
+    if you want interactive plots).
+    </p></dd>
+
+<dt><verbatim>
+http://localhost:2112/stilts/task/tcopy?in=/data/cat.fits&amp;ofmt=ecsv
+</verbatim></dt>
+<dd><p>Invokes the <ref id="tcopy"><code>tcopy</code></ref> task
+    to return a translation of the named server-side FITS file to ECSV format.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>Note that in the current form of this service
+no great attention has been paid
+to security, so it may be possible for clients to read and write files
+and expend significant system resources by making certain requests to the
+server.  Anyone exposing this service directly to external
+clients should bear this in mind.
+</p>
+
+</subsect>
+
+<subsect id="FormServlet">
+<subhead><title>Form Service</title></subhead>
+
+<p>The Form service is more or less obsolete;
+it really just gives an example of how to set up an HTML Form
+to invoke one of the STILTS commands using the
+<ref id="TaskServlet">Task Service</ref>.
+</p>
+
+<p>The content served gives provides a couple of examples of an HTML form
+that can invoke plotting using the <ref id="TaskServlet">Task Service</ref>.
+The output graphics use the <ref id="plot">old-style plot commands</ref>
+rather than the much more capable <ref id="plot2"><code>plot2*</code></ref>
+plotting, and are not interactive;
+for much improved server-side visualisastion,
+see <ref id="PlotServlet"/>.
+</p>
+
+</subsect>
+
+</sect>
+
+
 <sect id="taskApi">
 <subhead><title>Programmatic Invocation</title></subhead>
 
@@ -6591,78 +6962,27 @@ stilts regquery query="capability/@standardID = 'ivo://ivoa.net/std/SSA'"
 <subsect id="server" tocleaf="yes">
 <subhead><title><code>server</code>: &server-purpose;</title></subhead>
 
-<p><code>server</code> runs an HTTP server which makes some or all
-of the various STILTS <ref id="cmdUsage">tasks</ref> available to 
-local or remote clients making HTTP requests rather than using the
-more usual command line interface.
+<p><code>server</code> runs an HTTP server which makes various elements
+of STILTS functionality available as HTTP services,
+so that they can be run by local or remote clients making HTTP requests
+rather than from the more usual command line interface.
 </p>
 
 <p>When you run <code>server</code> it will start up a server which 
-runs until it is interrupted, and write to the screen the <em>base URL</em>
-at which it can be accessed, for instance
+runs until it is interrupted, and write to standard output
+the <em>base URL</em> at which it can be accessed, for instance
 "<code>http://localhost:2112/stilts/</code>".
 If you point your browser here you will see some examples (hyperlinks to
-server requests) of how to use the server.
-Currently there are two main sets of capabilities:
-<dl>
-<dt>Tasks (<em>baseURL</em><code>/task/</code><em>task-name</em>)</dt>
-<dd><p>There is a URL as above associated with each STILTS task provided
-    by the server.  The task parameters are passed in the usual
-    way for HTTP queries, using
-    <code>application/x-www-form-urlencoded</code> (see e.g. the
-    <webref url="http://www.w3.org/TR/html4/interact/forms.html#h-17.13.4.1"
-            >HTML FORM</webref> specification).
-    Some examples are given in the 
-    <ref id="server-client-examples">Client Examples</ref> subsection below.
-    Either HTTP GET or POST methods may be used;
-    since the task invocations will normally be idempotent, GET is more
-    respectable, but long URLs can cause trouble in some circumstances
-    (MS IE apparently imposes a limit of about 2000 characters) 
-    so POST may be preferable for lengthy invocations.
-    </p></dd>
-<dt>Forms (<em>baseURL</em><code>/form/</code>)</dt>
-<dd><p>There are a couple of example HTML Forms which can be used to
-    access the server tasks.  These by no means show all the capabilities
-    of the tasks that they use, they are just intended to be examples of
-    how forms can be used in this way.
-    </p></dd>
-</dl>
-In general if you request a URL which contains no useful information,
-an attempt will be made to return an HTML page directing you to a 
-more useful starting point.
+service requests) of how to use the server.
 </p>
 
-<p>You might want to run STILTS in server mode if you are providing
-a web service to external users which is able to access files residing
-on the server, for instance generating table plots or row selections
-on the fly.
-This can be done without the server mode, for instance by invoking
-the <code>stilts</code> script or java from a CGI script to serve
-each request, but using server mode has two advantages:
-first it provides correct HTTP headers such as Content-Types,
-and secondly it avoids the Java startup overheads for each invocation.
-Note however that in its current form no great attention has been paid
-to security, so it may be possible for clients to read and write files
-and expend significant system resources by making certain requests to the
-server.  Anyone exposing the STILTS HTTP server directly to external
-clients should bear this in mind.
-</p>
-
-<p>For more flexibility you can run STILTS in servlet mode.
-See the javadocs and sources of the 
-<code>uk.ac.starlink.ttools.server.TaskServlet</code> class.
-The <code>server</code> command is a fairly thin wrapper around this,
-which simply deploys the servlet in an embedded web application container
-(<webref url="http://jetty.mortbay.org/">Jetty</webref>).
-By using the servlet class in your own custom web application instead you
-can customise the way it is accessed, for instance providing improved
-security.
+<p>See <ref id="serverMode"/> for more discussion of the 
+server functionality available.
 </p>
 
 <p><strong>Note:</strong>
 The <code>server</code> command and associated servlet code are
-at time of writing (v2.0) experimental, and probably buggy and missing some 
-features which ought to be present.
+somewhat experimental.
 If you have requirements which are not currently provided, please
 contact the author for discussion.
 </p>
@@ -6705,61 +7025,6 @@ stilts server tasks="plot2d plothist"
     </p></dd>
 </dl>
 </p>
-</subsubsect>
-
-<subsubsect id="server-client-examples">
-<subhead><title>Client Examples</title></subhead>
-
-<p>Here are some examples of URLs which can be retrieved from
-a server which is running at the base URL 
-<code>http://localhost:2112/stilts/</code>.
-All these use the HTTP GET form of request; the POST form could be
-used instead with the same effect.
-<dl>
-
-<dt><verbatim>
-http://localhost:2112/stilts/
-</verbatim></dt>
-<dd><p>Returns an HTML page giving version information and some links to
-    example usages of the server.
-    </p></dd>
-
-<dt><verbatim>
-http://localhost:2112/stilts/task/tpipe
-</verbatim></dt>
-<dd><p>Returns an HTML page giving usage instructions for the 
-    <ref id="tpipe"><code>tpipe</code></ref> task.
-    </p></dd>
-
-<dt><verbatim>
-http://localhost:2112/stilts/task/calc?expression=21%2b2
-</verbatim></dt>
-<dd><p>Invokes the <ref id="calc"><code>calc</code></ref> task
-    to return a document containing the text "<code>23</code>".
-    Note that the plus ("<code>+</code>") sign in the expression has to be
-    encoded using the sequence "<code>%2b</code>" since "<code>+</code>"
-    has a special significance in query URLs - see for instance sec 2.2 of 
-    <webref url="http://www.ietf.org/rfc/rfc1738.txt">RFC 1738</webref>.
-    </p></dd>
-
-<dt><verbatim>
-http://localhost:2112/stilts/task/plot2d?in=/data/table1.vot&amp;xdata=RMAG&amp;ydata=BMAG
-</verbatim></dt>
-<dd><p>Invokes the <ref id="plot2d"><code>plot2d</code></ref> task 
-    to return a magnitude-magnitude diagram of the named local file as an image
-    (probably an <code>image/png</code>).
-    </p></dd>
-
-<dt><verbatim>
-http://localhost:2112/stilts/task/tcopy?in=/data/cat.fits&amp;ofmt=votable
-</verbatim></dt>
-<dd><p>Invokes the <ref id="tcopy"><code>tcopy</code></ref> task
-    to return a translation of the named local FITS file to VOTable format.
-    </p></dd>
-
-</dl>
-</p>
-
 </subsubsect>
 
 </subsect>
@@ -12573,6 +12838,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         sky crossmatch failures (termination with error).</li>
     <li>Fix minor plotting bug that could cause white points to
         be invisible.</li>
+    <li>A <ref id="PlotServlet">plot server</ref> has been added
+        that can serve interactive plots in web applications
+        for server-side tables.
+        Documentation for the <ref id="server"><code>server</code></ref>
+        command mostly moved into new
+        <ref id="serverMode">Server Mode</ref> section.</li>
     </ul>
     </p></dd>
 
