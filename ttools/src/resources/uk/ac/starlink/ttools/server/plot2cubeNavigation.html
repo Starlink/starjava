@@ -1,0 +1,81 @@
+<h4>
+<a name="cubeNavigation">Cube Navigation</a>
+</h4>
+<p>Navigation in three dimensions with a two-dimensional screen and mouse
+is a bit of a challenge.  However, the actions listed below should make it
+fairly straightforward to navigate around points in 3d space to zoom in
+on the regions that you are interested in.
+<dl>
+
+<dt>
+<strong><img align="middle" alt="" src="%PLOTSERV_URL%/DRAG1.png">
+        Left drag</strong>
+</dt>
+
+<dd>
+<em>Rotate.</em>
+    Rotates the view cube about its center.
+    </dd>
+
+<dt>
+<strong><img align="middle" alt="" src="%PLOTSERV_URL%/MOUSE_WHEEL.png">
+        Wheel</strong>
+</dt>
+
+<dd>
+<em>Isotropic zoom.</em>
+    Spinning the mouse wheel forwards/backwards zooms the space in the
+    view cube in/out around the cube center.  The mouse position does not
+    affect it.
+    </dd>
+
+<dt>
+<strong><img align="middle" alt="" src="%PLOTSERV_URL%/DRAG3.png">
+        Right drag (CTRL-drag)</strong>
+</dt>
+
+<dd>
+<em>2d stretch zoom.</em>
+    Dragging with the right button does a stretch zoom in the two dimensions
+    best aligned with the plane of the screen.
+    There is no movement in the third (mostly perpendicular to the screen)
+    direction.
+    The zoom is around a line defined by the position of the mouse at
+    the start of the zoom, pointing along the third dimension. 
+    You can stretch/squash in both directions by dragging the mouse
+    up/down/left/right - it's easier to try it than to explain it.
+    </dd>
+
+<dt>
+<strong><img align="middle" alt="" src="%PLOTSERV_URL%/DRAG2.png">
+        Center drag (SHIFT-drag)</strong>
+</dt>
+
+<dd>
+<em>2d pan.</em>
+    Dragging with the center button pans the 3d space in the two dimensions
+    best alighned with the plane of the screen.
+    There is no movement in the third (mostly perpendicular to the screen)
+    direction.
+    </dd>
+
+</dd>
+
+<dt>
+<strong><img align="middle" alt="" src="%PLOTSERV_URL%/CLICK3.png">
+        Right click (CTRL-click)</strong>
+</dt>
+
+<dd>
+<em>Re-center.</em>
+    Right-clicking identifies a position in a similar way to the
+    left-click Select action, and then translates the plot so that point
+    is at the center of the view cube.  This means that clicking on a
+    cluster will put that cluster in the center of the cube.
+    If you click on an empty region, a position half way between front
+    and back of the cube at that X/Y position will be used.
+    </dd>
+
+</dl>
+
+</p>

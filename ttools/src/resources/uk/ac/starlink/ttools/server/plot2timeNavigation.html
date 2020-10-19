@@ -1,0 +1,81 @@
+<h4>
+<a name="timeNavigation">Time Navigation</a>
+</h4>
+<p>Horizontal navigation (panning and zooming left and right along the
+shared time axis) affects all the stacked <a href="plotZones.html">zones</a>,
+but vertical navigation (panning and zooming along the Y axis of each zone)
+is done independently for each zone.
+</p>
+<p>The navigation actions for this window are:
+<dl>
+
+<dt>
+<strong><img align="middle" alt="" src="%PLOTSERV_URL%/DRAG1.png">
+        Left drag</strong>
+</dt>
+
+<dd>
+<em>Pan.</em>
+    On the body of the plot this usually moves it around left/right.
+    By default, vertical movement is inhibited since you don't normally
+    want it for a time plot.
+    To pan vertically, drag on the left of the Y axis for the zone
+    you want to affect.
+    It is also possible to configure panning on the body of the plot
+    to be in both directions using the <b>Pan/Zoom Axes</b>
+    in the <b>Navigation</b> axis configuration tab.
+    </dd>
+
+<dt>
+<strong><img align="middle" alt="" src="%PLOTSERV_URL%/DRAG3.png">
+        Right drag (CTRL-drag)</strong>
+</dt>
+
+<dd>
+<em>Stretch zoom.</em>
+    On the body of the plot this usually stretches/squashes the plot
+    centered on the horizontal position of the mouse.
+    By default, vertical zooming is inhibited since you don't normally
+    want it for a time plot.
+    To zoom vertically, drag on the left of the Y axis for the zone
+    you want to affect.
+    It is also possible to configure zooming on the body of the plot
+    to be in both directions using the <b>Pan/Zoom Axes</b>
+    in the <b>Navigation</b> axis configuration tab.
+    </dd>
+
+<dt>
+<strong><img align="middle" alt="" src="%PLOTSERV_URL%/DRAG2.png">
+        Center drag (SHIFT-drag)</strong>
+</dt>
+
+<dd>
+<em>Frame zoom.</em>
+    On the body of the plot, dragging right usually drags out a frame;
+    when the button is released, the plot will be zoomed in
+    to cover the area enclosed by the frame.
+    Dragging left does something like the opposite, you can zoom out
+    using a similar (though not quite the same) mechanism.
+    By default, vertical zooming is inhibited since you don't normally
+    want it for a time plot.
+    To zoom in/out vertically, drag up/down on the left of the Y axis
+    for the zone you want to affect.
+    It is also possible to configure zooming on the body of the plot
+    to be in both directions using the <b>Pan/Zoom Axes</b>
+    in the <b>Navigation</b> axis configuration tab.
+    </dd>
+
+<dt>
+<strong><img align="middle" alt="" src="%PLOTSERV_URL%/MOUSE_WHEEL.png">
+        Wheel</strong>
+</dt>
+
+<dd>
+<em>Zoom.</em>
+    Spinning the mouse wheel forwards/backwards will zoom horizontally in/out
+    around the mouse position,
+    just like dragging with the right button up-and-right or down-and-left.
+    </dd>
+
+</dl>
+

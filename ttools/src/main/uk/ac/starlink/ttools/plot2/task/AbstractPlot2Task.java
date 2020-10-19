@@ -105,6 +105,7 @@ import uk.ac.starlink.ttools.plottask.PaintMode;
 import uk.ac.starlink.ttools.plottask.PaintModeParameter;
 import uk.ac.starlink.ttools.plottask.Painter;
 import uk.ac.starlink.ttools.plottask.SwingPainter;
+import uk.ac.starlink.ttools.server.ServerPainter;
 import uk.ac.starlink.ttools.task.AddEnvironment;
 import uk.ac.starlink.ttools.task.ConsumerTask;
 import uk.ac.starlink.ttools.task.DoubleArrayParameter;
@@ -492,13 +493,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final PlotContext<?,?> context = getPlotContext( env );
         final Painter painter = painterParam_.painterValue( env );
         final boolean isSwing = painter instanceof SwingPainter;
+        final boolean isServer = painter instanceof ServerPainter;
         final TableProducer animateProducer =
               allowAnimate_
             ? ConsumerTask.createProducer( env, animateFilterParam_,
                                            animateParam_ )
             : null;
         boolean isAnimate = animateProducer != null;
-        dstoreParam_.setDefaultCaching( isSwing || isAnimate );
+        dstoreParam_.setDefaultCaching( isSwing || isServer || isAnimate );
 
         /* Single frame: prepare operation and return an executable that
          * has no reference to the environment. */
@@ -529,6 +531,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                 ((SwingPainter) painter).postComponent( panel );
                             }
                         } );
+                    }
+
+                    /* Handle server invocation specially; the painting has
+                     * to go back into the server environment rather than
+                     * being sent to a normal output. */
+                    else if ( isServer ) {
+                        ((ServerPainter) painter)
+                       .setPlotConfiguration( plotConfig );
                     }
 
                     /* For a static plot, generate and plot
@@ -596,6 +606,13 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                         }
                     }
                 };
+            }
+
+            /* I think server-side animation could be done, but wait until
+             * there's a call for it. */
+            else if ( isServer ) {
+                throw new TaskException( "Server-side animation "
+                                       + "is not currently supported" );
             }
 
             /* File output animation. */
