@@ -454,6 +454,31 @@
        <fileset dir="${src.jars.dir}"/>
     </copy>
 
+    <!-- Additional built resources. -->
+    <java classname="uk.ac.starlink.ttools.build.Plot2Example"
+          output="${build.classes}/uk/ac/starlink/ttools/server/ex-plots.html"
+          failonerror="yes"
+          logerror="yes">
+      <classpath refid="classpath"/>
+      <arg value="-mode"/> <arg value="plotserv"/>
+    </java>
+    <java classname="uk.ac.starlink.ttools.build.Plot2Example"
+          output="${build.classes}/uk/ac/starlink/ttools/server/basic-plots.html"
+          failonerror="yes"
+          logerror="yes">
+      <classpath refid="classpath"/>
+      <arg value="-mode"/> <arg value="plotserv_basic"/>
+      <arg value="layer-label"/> <arg value="layer-function"/>
+    </java>
+    <java classname="uk.ac.starlink.ttools.build.Plot2Example"
+          output="${build.classes}/uk/ac/starlink/ttools/server/basic-plots.ipynb"
+          failonerror="yes"
+          logerror="yes">
+      <classpath refid="classpath"/>
+      <arg value="-mode"/> <arg value="ipynb_basic"/>
+      <arg value="layer-label"/> <arg value="layer-function"/>
+    </java>
+
     <!-- Call target to do time-consuming build of additional components;
      !   first check that they are not already in place. -->
     <condition property="extras.built">

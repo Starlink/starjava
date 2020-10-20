@@ -75,6 +75,9 @@ public class PlotServlet extends HttpServlet {
     private String acao_;
     private Logger logger_;
     private static final String UTF8 = "UTF-8";
+    private static final String EXAMPLE_HTML = "basic-plots.html";
+    private static final String EXAMPLE_IPYNB = "basic-plots.ipynb";
+    private static final String PYTHON_IPYNB = "plotserv.py";
     private static final String DFLT_ALLOWORIGINS = "*"; // think it's safe
     private static final Map<String,String> MIME_TYPES = mimeTypes();
 
@@ -473,6 +476,11 @@ public class PlotServlet extends HttpServlet {
                + alink( standaloneExample ) + "</li>",
             "<li>Library for embedding interactive plots: "
                + jslibRef + "</li>",
+            "<li>Examples using " + PlotSession.JS_FILE + ": "
+               + alink( EXAMPLE_HTML ) + "</li>",
+            "<li>Example Jupyter notebook "
+               + "(using " + alink( PYTHON_IPYNB ) + "): "
+               + alink( EXAMPLE_IPYNB ) + "</li>",
             "</ul>",
             "<p>The easiest way to insert interactive plots",
             "in your web pages is by using",
