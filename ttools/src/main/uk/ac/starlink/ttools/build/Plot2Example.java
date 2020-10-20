@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -642,8 +643,270 @@ public class Plot2Example {
                     }
                 }
             }
+        },
+
+        /** Writes interactive plot page HTML to standard output. */
+        plotserv( false ) {
+            public void execute( Context context, Plot2Example[] examples ) {
+                final String serverUrl = "%PLOTSERV_URL%";
+                String title = "Interactive STILTS Plot Examples";
+                PrintStream out = System.out;
+                out.println( String.join( "\n",
+                    "<html>",
+                    "<head>",
+                    "<meta charset='UTF-8'>",
+                    "<title>" + title + "</title>",
+                    "<style type='text/css'>",
+                    "  table, th, td {border: 1px solid black; "
+                                   + "border-collapse: collapse;}",
+                    "  th, td {padding-left: 5px; padding-right: 5px;}",
+                    "  th {background-color: skyblue;}",
+                    "</style>",
+                    "</head>",
+                    "<body>",
+                    "<script src='plot2Lib.js'></script>",
+                    "<script>",
+                    "var serverUrl = '" + serverUrl + "';",
+                    "var contentNode;",
+                    "var addExamplePlot = function(label, taskName, params) {",
+                    "   var titleNode = document.createElement('h2');",
+                    "   titleNode.appendChild(document.createTextNode(label));",
+                    "   var cmdPad = '\\n    ';",
+                    "   var cmdText = taskName + cmdPad;",
+                    "   var pw;",
+                    "   var pw1;",
+                    "   var pwords = [taskName];",
+                    "   var i;",
+                    "   for (i = 0; i < params.length; i++) {",
+                    "      pw = params[i];",
+                    "      if (pw) {",
+                    "         pw1 = pw.charAt(0);",
+                    "         pw = pw.replace(/^[*!]/, '');",
+                    "         pw = pw.replace(/^([^=]+)='(.*)'$/, '$1=$2');",
+                    "         pwords.push(pw);",
+                    "         if (pw1 == '*') {",
+                    "            cmdText += '<strong>' + pw + '</strong> ';",
+                    "         }",
+                    "         else if (pw1 == '!') {",
+                    "         }",
+                    "         else {",
+                    "            cmdText += pw + ' ';",
+                    "         }",
+                    "      }",
+                    "      else {",
+                    "         cmdText += cmdPad;",
+                    "      }",
+                    "   }",
+                    "   var plotTxt = plot2.wordsToPlotTxt(pwords);",
+                    "   var plotNode = plot2.createPlotNode(serverUrl, "
+                        + "plotTxt);",
+                    "   var rowTable = plot2.createRowDisplayTable(true);",
+                    "   var plotDiv = document.createElement('div');",
+                    "   var cmdNode = document.createElement('pre');",
+                    "   cmdNode.innerHTML = cmdText;",
+                    "   contentNode.appendChild(titleNode);",
+                    "   plotNode.style.display = 'inline-block';",
+                    "   plotNode.style.verticalAlign = 'top';",
+                    "   cmdNode.style.display = 'inline-block';",
+                    "   cmdNode.style.verticalAlign = 'top';",
+                    "   cmdNode.style.padding = '20px';",
+                    "   plotDiv.style.whiteSpace = 'nowrap';",
+                    "   plotDiv.appendChild(plotNode);",
+                    "   plotDiv.appendChild(cmdNode);",
+                    "   contentNode.appendChild(plotDiv);",
+                    "   contentNode.appendChild(rowTable);",
+                    "   plotNode.onrow = "
+                        + "function(row) {rowTable.displayRow(row);};",
+                    "   rowTable.style.display = 'block';",
+                    "   rowTable.style.overflow = 'auto';",
+                    "   rowTable.style.width = '95%';",
+                    "};",
+                    "onload = function() {",
+                    "   contentNode = document.getElementById('content')",
+                "" ) );
+                for ( Plot2Example ex : examples ) {
+                    out.println( new StringBuffer()
+                       .append( "   addExamplePlot('" )
+                       .append( ex.label_ )
+                       .append( "', '" )
+                       .append( ex.task_.name_ )
+                       .append( "', [" )
+                    );
+                    for ( String param : ex.params_ ) {
+                        out.println( "      "
+                                   + ( param == null ? "null,"
+                                                     : "\"" + param + "\"," ) );
+                    }
+                    out.println( "   ]);" );
+                }
+                out.println( String.join( "\n",
+                    "};",
+                    "</script>",
+                    "<h1>" + title + "</h1>",
+                    "<p>These examples are interactive;",
+                    "you can navigate them using the mouse",
+                    "and click on points to get row data.</p>",
+                    "<div id='content'></div>",
+                    "</body>",
+                    "</html>",
+                "" ) );
+            }
+        },
+
+        /** Writes basic interactive plot page HTML to standard output. */
+        plotserv_basic( false ) {
+            public void execute( Context context, Plot2Example[] examples ) {
+                final String serverUrl = "%PLOTSERV_URL%";
+                String title = "Interactive STILTS Plot Examples";
+                PrintStream out = System.out;
+                out.println( String.join( "\n",
+                    "<html>",
+                    "<head>",
+                    "<meta charset='UTF-8'>",
+                    "<title>" + title + "</title>",
+                    "</head>",
+                    "<body>",
+                    "<script src='plot2Lib.js'></script>",
+                    "<script>",
+                    "var serverUrl = '" + serverUrl + "';",
+                    "var contentNode;",
+                    "var addExamplePlot = function(label, taskName, params) {",
+                    "   var titleNode = document.createElement('h2');",
+                    "   titleNode.appendChild(document.createTextNode(label));",
+                    "   var pwords = [taskName];",
+                    "   var i;",
+                    "   for (i = 0; i < params.length; i++) {",
+                    "      pwords.push(params[i]);",
+                    "   }",
+                    "   var plotTxt = plot2.wordsToPlotTxt(pwords);",
+                    "   var plotNode = plot2.createPlotNode(serverUrl, "
+                        + "plotTxt);",
+                    "   var plotDiv = document.createElement('div');",
+                    "   contentNode.appendChild(titleNode);",
+                    "   plotDiv.appendChild(plotNode);",
+                    "   contentNode.appendChild(plotDiv);",
+                    "};",
+                    "onload = function() {",
+                    "   contentNode = document.getElementById('content')",
+                "" ) );
+                for ( Plot2Example ex : examples ) {
+                    out.println( new StringBuffer()
+                       .append( "   addExamplePlot('" )
+                       .append( ex.label_ )
+                       .append( "', '" )
+                       .append( ex.task_.name_ )
+                       .append( "', [" )
+                    );
+                    for ( String param : ex.params_ ) {
+                        if ( param != null ) {
+                            param = param.replaceFirst( "^[!*]", "" );
+                            out.print( "      " );
+                            if ( param.startsWith( "in=" ) ) {
+                               out.print( "'in=' + serverUrl + '/"
+                                        + param.substring( 3 ) + "'" );
+                            }
+                            else {
+                               out.print( "'" + param + "'" );
+                            }
+                            out.println( "," );
+                        }
+                    }
+                    out.println( "   ]);" );
+                }
+                out.println( String.join( "\n",
+                    "};",
+                    "</script>",
+                    "<h1>" + title + "</h1>",
+                    "<p>These examples are interactive;",
+                    "you can navigate them using the mouse",
+                    "</p>",
+                    "<div id='content'></div>",
+                    "</body>",
+                    "</html>",
+                "" ) );
+            }
+        },
+
+        /** Writes a jupyter notebook JSON file for use with plotserver. */
+        ipynb( false ) {
+            public void execute( Context context, Plot2Example[] examples ) {
+                List<JupyterCell> cells = new ArrayList<>();
+                cells.add( Plot2Notebook.PLOT_CELL );
+                for ( Plot2Example ex : examples ) {
+                    List<String> lines = new ArrayList<>();
+                    lines.add( "# " + ex.label_ );
+                    lines.add( "plot(['" + ex.task_.name_ + "'," );
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( String param : ex.params_ ) {
+                        if ( param == null && sbuf.length() > 0 ) {
+                            lines.add( "    " + sbuf );
+                            sbuf = new StringBuffer();
+                        }
+                        else {
+                            param = param
+                                   .replaceFirst( "^[*!]", "" )
+                                   .replaceFirst( "(^[^=]+)='(.*)'$", "$1=$2" );
+                            sbuf.append( sbuf.length() == 0 ? "" : " " )
+                                .append( "'" )
+                                .append( param )
+                                .append( "'" )
+                                .append( "," );
+                        }
+                    }
+                    if ( sbuf.length() > 0 ) {
+                        lines.add( "    " + sbuf );
+                        sbuf = new StringBuffer();
+                    }
+                    lines.add( "])" );
+                    cells.add( new JupyterCell( lines ) );
+                }
+                System.out.println( JupyterCell.toNotebook( cells )
+                                               .toString( 1 ) );
+            }
+        },
+
+        /** Writes a basic jupyter notebook JSON file for use with plotserver.*/
+        ipynb_basic( false ) {
+            public void execute( Context context, Plot2Example[] examples ) {
+                List<JupyterCell> cells = new ArrayList<>();
+                cells.add( Plot2Notebook.PLOT_CELL );
+                for ( Plot2Example ex : examples ) {
+                    List<String> lines = new ArrayList<>();
+                    lines.add( "# " + ex.label_ );
+                    lines.add( "plot(['" + ex.task_.name_ + "'," );
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( String param : ex.params_ ) {
+                        if ( param == null && sbuf.length() > 0 ) {
+                            lines.add( "    " + sbuf );
+                            sbuf = new StringBuffer();
+                        }
+                        else {
+                            param = param
+                                   .replaceFirst( "^[*!]", "" )
+                                   .replaceFirst( "(^[^=]+)='(.*)'$", "$1=$2" );
+                            if ( param.startsWith( "in=" ) ) {
+                                param = "in=' + server_url + '/"
+                                              + param.substring( 3 );
+                            }
+                            sbuf.append( sbuf.length() == 0 ? "" : " " )
+                                .append( "'" )
+                                .append( param )
+                                .append( "'" )
+                                .append( "," );
+                        }
+                    }
+                    if ( sbuf.length() > 0 ) {
+                        lines.add( "    " + sbuf );
+                        sbuf = new StringBuffer();
+                    }
+                    lines.add( "])" );
+                    cells.add( new JupyterCell( lines ) );
+                }
+                System.out.println( JupyterCell.toNotebook( cells )
+                                               .toString( 1 ) );
+            }
         };
- 
+
         private final boolean preTest_;
 
         /**
