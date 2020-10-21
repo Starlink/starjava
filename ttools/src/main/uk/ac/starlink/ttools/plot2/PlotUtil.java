@@ -1050,6 +1050,36 @@ public class PlotUtil {
     }
 
     /**
+     * Formats a pair of values representing data bounds of a range
+     * along a graphics axis. nge.  The number of pixels separating the
+     * values is used to determine the formatting precision.
+     *
+     * @param  lo   data lower bound
+     * @param  hi   data upper bound
+     * @param  isLog  true for logarithmic axis, false for linear
+     * @param   npix   approximate number of pixels covered by the range
+     * @return   2-element array giving (lower,upper) bounds formatted
+     *           and ready for presentation to the user
+     */
+    public static String[] formatAxisRangeLimits( double lo, double hi,
+                                                  boolean isLog, int npix ) {
+        if ( isLog ) {
+            double dl = ( Math.log( hi ) - Math.log( lo ) ) / npix;
+            return new String[] {
+                formatNumber( lo, Math.min( lo * dl, lo / dl ) ),
+                formatNumber( hi, Math.min( hi * dl, hi / dl ) ),
+            };
+        }
+        else {
+            double eps = ( hi - lo ) / npix;
+            return new String[] {
+                formatNumber( lo, eps ),
+                formatNumber( hi, eps ),
+            };
+        }
+    }
+
+    /**
      * Rounds a number to a decimal round value.
      * The number of decimal places is determined by the size of
      * a supplied value, epsilon.

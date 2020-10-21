@@ -1987,10 +1987,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     sbuf.append( " AND " );
                 }
                 String[] limits =
-                    TopcatJELUtils.formatAxisRangeLimits( dlims_[ idim ][ 0 ],
-                                                          dlims_[ idim ][ 1 ],
-                                                          logFlags_[ idim ],
-                                                          npixs_[ idim ] );
+                    PlotUtil.formatAxisRangeLimits( dlims_[ idim ][ 0 ],
+                                                    dlims_[ idim ][ 1 ],
+                                                    logFlags_[ idim ],
+                                                    npixs_[ idim ] );
                 sbuf.append( varNames[ idim ] )
                     .append( " BETWEEN " )
                     .append( limits[ 0 ] )
