@@ -433,7 +433,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>24 August 2020</docdate>
+<docdate>23 October 2020</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -29783,24 +29783,41 @@ introduced since the last version:
 
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 4.7-3 (23 October 2020)</dt>
 <dd><p>
-    <ul>
-    <li>Upgrade cds-healpix-java library to v0.28_1; avoid occasional
-        sky crossmatch failures (termination with error).</li>
-    <li>Improve guesses about default coordinates in Area plots.</li>
-    <li>Rework packaging of .dmg file for MacOS.  It should no longer
-        get confused by versions of Java 6 installed alongside Java 8;
-        it may also avoid security issues in accessing some local
-        directories.</li>
-    <li>Fix minor plotting bug that could cause white points to
-        be invisible.</li>
-    <li>Minor fixes to match window help text.</li>
-    <li>The <ref id="GangLayerControl_single">Position Layer Control</ref>
-        for the Plane Plot now has an <label>X&lt;-&gt;Y</label> button
-        for convenience, which lets you switch the contents of the
-        X and Y coordinate value fields.</li>
-    </ul>
+    <dl>
+    <dt>Packaging</dt>
+    <dd><p>
+        <ul>
+        <li>The build of the .dmg file for MacOS has been reworked.
+            It should no longer get confused by versions of Java 6
+            installed alongside Java 8; it may also avoid security
+            issues in accessing some local directories.
+            This should make things work better for (some) MacOS users,
+            but please report if there are new problems.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>The <ref id="GangLayerControl_single">Position Layer Control</ref>
+            for the Plane Plot now has an <label>X&lt;-&gt;Y</label> button
+            for convenience, which lets you switch the contents of the
+            X and Y coordinate value fields.</li>
+        <li>Minor fixes to match window help text.</li>
+        <li>Improve guesses about default coordinates in Area plots.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Upgrade cds-healpix-java library to v0.28_1; avoid occasional
+            sky crossmatch failures (termination with error).</li>
+        <li>Fix minor plotting bug that could cause white points to
+            be invisible.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

@@ -140,7 +140,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>24 August 2020</docdate>
+<docdate>23 October 2020</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -12831,20 +12831,27 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 3.3 (23 October 2020)</dt>
 <dd><p>
-    <ul>
-    <li>Upgrade cds-healpix-java library to v0.28_1; avoid occasional
-        sky crossmatch failures (termination with error).</li>
-    <li>Fix minor plotting bug that could cause white points to
-        be invisible.</li>
-    <li>A <ref id="PlotServlet">plot server</ref> has been added
+    <dl>
+    <dt>Plot server</dt>
+    <dd><p>A <ref id="PlotServlet">plot server</ref> has been added
         that can serve interactive plots in web applications
         for server-side tables.
         Documentation for the <ref id="server"><code>server</code></ref>
-        command mostly moved into new
-        <ref id="serverMode">Server Mode</ref> section.</li>
-    </ul>
+        command has been mostly moved into new
+        <ref id="serverMode">Server Mode</ref> section.
+        </p></dd>
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Upgrade cds-healpix-java library to v0.28_1; avoid occasional
+            sky crossmatch failures (termination with error).</li>
+        <li>Fix minor plotting bug that could cause white points to
+            be invisible.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
