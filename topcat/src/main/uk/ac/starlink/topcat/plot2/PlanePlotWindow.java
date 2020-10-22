@@ -2,7 +2,11 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import javax.swing.Action;
 import javax.swing.ListModel;
+import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
@@ -59,9 +63,27 @@ public class PlanePlotWindow
             return new PlaneAxisController();
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
-            return SimplePositionCoordPanel
-                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
-                                XY_SPOTTERS );
+            final PositionCoordPanel panel =
+                SimplePositionCoordPanel
+               .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
+                             XY_SPOTTERS );
+            panel.addButtons( new Action[] {
+                new BasicAction( "X \u2194 Y", null, "Switch X and Y values" ) {
+                    public void actionPerformed( ActionEvent evt ) {
+                        ColumnDataComboBoxModel xModel =
+                            panel.getColumnSelector( 0, 0 );
+                        ColumnDataComboBoxModel yModel =
+                            panel.getColumnSelector( 1, 0 );
+                        if ( xModel != null && yModel != null ) {
+                            Object xItem = xModel.getSelectedItem();
+                            Object yItem = yModel.getSelectedItem();
+                            xModel.setSelectedItem( yItem );
+                            yModel.setSelectedItem( xItem );
+                        }
+                    }
+                },
+            } );
+            return panel;
         }
         public PositionCoordPanel createAreaCoordPanel() {
             return new AreaCoordPanel( AreaCoord.PLANE_COORD, new Coord[ 0 ],

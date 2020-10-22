@@ -7,8 +7,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -48,6 +50,7 @@ public class CoordPanel {
     private final ActionForwarder forwarder_;
     private final List<List<ColumnDataComboBox>> colSelectors_;
     private final JComponent panel_;   
+    private final JComponent controlBox_;
     private TopcatModel tcModel_;
 
     /**
@@ -69,13 +72,13 @@ public class CoordPanel {
         panel_ = new JPanel( new BorderLayout() );
         coords_ = coords;
         forwarder_ = new ActionForwarder();
-        JComponent box = Box.createVerticalBox();
+        controlBox_ = Box.createVerticalBox();
 
         /* Set up config specifiers for the given config keys. */
         cspec_ = new ConfigSpecifier( configKeys );
         cspec_.addActionListener( forwarder_ );
         if ( configKeys.length > 0 ) {
-            box.add( new LineBox( null, cspec_.getComponent(), true ) );
+            controlBox_.add( new LineBox( null, cspec_.getComponent(), true ) );
         }
 
         /* Place entry components for each required coordinate. */
@@ -138,12 +141,27 @@ public class CoordPanel {
             }
         }
         if ( nc > 0 ) {
-            box.add( new LineBox( null, stack, true ) );
+            controlBox_.add( new LineBox( null, stack, true ) );
         }
 
         /* Place the lot at the top of the component so it doesn't fill
          * vertical space. */
-        panel_.add( box, BorderLayout.NORTH );
+        panel_.add( controlBox_, BorderLayout.NORTH );
+    }
+
+    /**
+     * Adds a row of buttons to the control panel for a given array of actions.
+     *
+     * @param  acts  custom  actions
+     */
+    public void addButtons( Action[] acts ) {
+        Box line = Box.createHorizontalBox();
+        for ( Action act : acts ) {
+            line.add( new JButton( act ) );
+            line.add( Box.createHorizontalStrut( 10 ) );
+        }
+        line.add( Box.createHorizontalGlue() );
+        controlBox_.add( new LineBox( null, line, true ) );
     }
 
     /**

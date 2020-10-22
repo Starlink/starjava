@@ -9262,6 +9262,15 @@ different for different plot types, for instance the Cube plot
 has a Z coordinate field alongside X and Y.
 </p>
 
+<p>For the Plane plot only, there is an <label>X&lt;-&gt;Y</label> button
+that lets you swap the contents of the <label>X</label>
+and <label>Y</label> fields for convenience.
+Note that swapping those contents is the only thing it does,
+it does not for instance swap the log flags for the axes,
+so the result may not be exactly the same as reflecting the plot
+about the X=Y line.
+</p>
+
 <figure>
 <caption><px>Form tab of Position layer control</px></caption>
 <figureimage src="&FIG.GangLayerControl_form;"/>
@@ -29787,6 +29796,10 @@ introduced since the last version:
     <li>Fix minor plotting bug that could cause white points to
         be invisible.</li>
     <li>Minor fixes to match window help text.</li>
+    <li>The <ref id="GangLayerControl_single">Position Layer Control</ref>
+        for the Plane Plot now has an <label>X&lt;-&gt;Y</label> button
+        for convenience, which lets you switch the contents of the
+        X and Y coordinate value fields.</li>
     </ul>
     </p></dd>
 
