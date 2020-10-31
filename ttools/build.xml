@@ -459,6 +459,7 @@
           output="${build.classes}/uk/ac/starlink/ttools/server/ex-plots.html"
           failonerror="yes"
           logerror="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
       <classpath refid="classpath"/>
       <arg value="-mode"/> <arg value="plotserv"/>
     </java>
@@ -466,6 +467,7 @@
           output="${build.classes}/uk/ac/starlink/ttools/server/basic-plots.html"
           failonerror="yes"
           logerror="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
       <classpath refid="classpath"/>
       <arg value="-mode"/> <arg value="plotserv_basic"/>
       <arg value="layer-label"/> <arg value="layer-function"/>
@@ -474,6 +476,7 @@
           output="${build.classes}/uk/ac/starlink/ttools/server/basic-plots.ipynb"
           failonerror="yes"
           logerror="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
       <classpath refid="classpath"/>
       <arg value="-mode"/> <arg value="ipynb_basic"/>
       <arg value="layer-label"/> <arg value="layer-function"/>
@@ -554,6 +557,7 @@
     <delete file="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
 
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
       <classpath refid="classpath"/>
       <arg value="-oj"/><arg value="${dist.lib.pkg}/stilts.jar"/>
       <arg value="-oz"/><arg value="${dist.lib.pkg}/stilts_jars.zip"/>
@@ -1170,6 +1174,7 @@
           output="${build.docs}/stilts-usage.xml"
           logerror="yes"
           classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
       <arg value="uk.ac.starlink.ttools.Stilts"/>
       <arg value="-help"/>
     </java>
@@ -1179,6 +1184,7 @@
           output="${build.docs}/tcopy-usage.xml"
           logerror="yes"
           classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
       <arg value="uk.ac.starlink.ttools.Stilts"/>
       <arg value="tcopy"/>
       <arg value="help"/>
@@ -1190,6 +1196,7 @@
           output="${build.docs}/tcopy-in-usage.xml"
           logerror="yes"
           classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
       <arg value="uk.ac.starlink.ttools.Stilts"/>
       <arg value="tcopy"/>
       <arg value="help=in"/>
@@ -1223,12 +1230,16 @@
           failonerror="yes"
           output="${build.docs}/filter-docs.xml"
           logerror="yes"
-          classpathref="classpath"/>
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
     <java classname="uk.ac.starlink.ttools.build.ModeDoc"
           failonerror="yes"
           output="${build.docs}/mode-docs.xml"
           logerror="yes"
-          classpathref="classpath"/>
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
     <java classname="uk.ac.starlink.ttools.build.PaintModeDoc"
           failonerror="yes"
           output="${build.docs}/paintmode-docs.xml"
@@ -1240,18 +1251,24 @@
           failonerror="yes"
           output="${build.docs}/layertype-docs.xml"
           logerror="yes"
-          classpathref="classpath"/>
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
     <java classname="uk.ac.starlink.ttools.build.ShapeModeDoc"
           failonerror="yes"
           output="${build.docs}/shapemode-docs.xml"
           logerror="yes"
-          classpathref="classpath"/>
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
     <java classname="uk.ac.starlink.ttools.build.MiscDoc"
           failonerror="yes"
           fork="yes"
           dir="${build.docs}"
           logerror="yes"
-          classpathref="classpath"/>
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
 
     <!-- Write XML files containing MatchEngine usage information
      !   for inclusion in the user document. -->
@@ -1260,6 +1277,7 @@
           fork="yes"
           dir="${build.docs}"
           classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
       <arg value="sky"/>
       <arg value="skyerr"/>
       <arg value="skyellipse"/>
@@ -1317,6 +1335,7 @@
     <java classname="org.apache.fop.apps.Fop"
           failonerror="yes"
           fork="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
       <classpath>
         <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
       </classpath>
@@ -1415,6 +1434,7 @@
           classname="uk.ac.starlink.ttools.build.Plot2Example"
           failonerror="yes"
           fork="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
       <arg value="-dataDir"/>
       <arg value="${plot2.figdata.dir}"/>
       <arg value="-dataUrl"/>
