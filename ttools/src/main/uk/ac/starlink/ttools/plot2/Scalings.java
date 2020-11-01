@@ -16,6 +16,8 @@ public class Scalings {
 
     private static final Object SQRT_TYPE = new Object();
     private static final Object SQR_TYPE = new Object();
+    private static final Object ACOS_TYPE = new Object();
+    private static final Object COS_TYPE = new Object();
     private static final double AUTO_DELTA = 0.0625;
     private static final double UNSCALE_TOL = 0.0001;
     private static final double UNSCALE_MAXIT = 50;
@@ -210,7 +212,7 @@ public class Scalings {
     }
 
     /**
-     * Constructs the squre scaling instance.
+     * Constructs the square scaling instance.
      *
      * @param  name  scaling name
      * @return  square scaling
@@ -222,6 +224,39 @@ public class Scalings {
                                       return val * val;
                                   }
                               } );
+    }
+
+    /**
+     * Constructs the Arccos scaling instance.
+     * It's a sigmoid horizontal at each end.
+     *
+     * @param  name  scaling name
+     * @return   arccos scaling
+     */
+    static Scaling.RangeScaling createAcosScaling( String name ) {
+        return new ReScaling( name, "Arccos Scaling", LINEAR,
+                              new DefaultScaler( false, 0, 1, ACOS_TYPE ) {
+                                  public double scaleValue( double val ) {
+                                      return Math.acos( 1 - 2 * val ) / Math.PI;
+                                  }
+                              } );
+    }
+
+    /**
+     * Constructs the Cos scaling instance.
+     * It's a sigmoid vertical at each end.
+     *
+     * @param  name  scaling name
+     * @return   cos scaling
+     */
+    static Scaling.RangeScaling createCosScaling( String name ) {
+        return new ReScaling( name, "Cos Scaling", LINEAR,
+                new DefaultScaler( false, 0, 1, COS_TYPE ) {
+                    public double scaleValue( double val ) {
+                        return 0.5 * ( 1 + Math.cos( ( 1 + val ) * Math.PI ) );
+                    }
+                }
+        );
     }
 
     /**

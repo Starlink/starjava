@@ -9098,14 +9098,16 @@ It has the following options:
     <li><code>histolog</code></li>
     <li><code>square</code></li>
     <li><code>sqrt</code></li>
+    <li><code>acos</code></li>
+    <li><code>cos</code></li>
     </ul>
     In all these cases, the full range of data values is displayed on the
     colour bar (though it can be restricted by using the 
     <label>Aux Subrange</label> control in the <label>Range</label> tab,
     described below).
-    The <code>linear</code>, <code>log</code>, <code>square</code> and
-    <code>sqrt</code> options just apply the named function to the
-    full data range.
+    The <code>linear</code>, <code>log</code>, <code>square</code>,
+    <code>sqrt</code>, <code>acos</code> and <code>cos</code> options
+    just apply the named function to the full data range.
     The histogram options on the other hand use a scaling function
     that corresponds to the actual distribution of the data, so that
     there are about the same number of points (or pixels, or whatever
@@ -12391,7 +12393,9 @@ you to use it.
     Options are <label>linear</label>,
                 <label>logarithmic</label>,
                 <label>square</label> and
-                <label>square root</label>.
+                <label>square root</label>,
+                <label>arc cosine</label>,
+                <label>cosine</label>.
     </p></dd>
 <dt>Density Subrange</dt>
 <dd><p>Adjusts the density range over which the colour
@@ -13166,8 +13170,12 @@ user-configurable options.  The options are:
     onto the colour map.
     Options are <label>linear</label>,
                 <label>logarithmic</label>,
+                <label>histogram</label>,
+                <label>logarithmic histogram</label>,
                 <label>square</label> and
-                <label>square root</label>.
+                <label>square root</label>,
+                <label>arc cosine</label>,
+                <label>cosine</label>.
     </p></dd>
 <dt>Density Subrange</dt>
 <dd><p>Adjusts the density range over which the colour
@@ -24836,6 +24844,7 @@ Some of the notable contributers are these:
 <li>Heinz-Bernd Eggenstein (AEI, Hannover)</li>
 <li>Pierre Fernique (CDS)</li>
 <li>Shashikiran Ganesh (PRL, India)</li>
+<li>Fedrico Garcia (RUG)</li>
 <li>David Giaretta (Starlink, RAL)</li>
 <li>Bertrand Goldman (MPIA)</li>
 <li>Eduardo Gonzalez-Solares (IoA)</li>
@@ -29823,6 +29832,13 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Add new options <code>acos</code> and <code>cos</code>
+        for <label>Scaling</label> in the
+        <ref id="ShaderControl">Aux Axis Control</ref> etc;
+        these provide linear-like stretch functions with
+        steeper/flatter ends, which may be useful for shading
+        by quantities with most variation near to/far from the
+        middle of the range.</li>
     </ul>
     </p></dd>
 

@@ -30,6 +30,14 @@ public interface Scaling {
     public static final Scaling.RangeScaling SQUARE =
         Scalings.createSquareScaling( "Square" );
 
+    /** Arccos scaling; sigmoid vertical at each end. */
+    public static final Scaling.RangeScaling ACOS =
+        Scalings.createAcosScaling( "Acos" );
+
+    /** Cos scaling; sigmoid horizontal at each end. */
+    public static final Scaling.RangeScaling COS =
+        Scalings.createCosScaling( "Cos" );
+
     /** Asinh-based scaling with default parameters. */
     public static final Scaling.RangeScaling AUTO =
         Scalings.createAutoScaling( "Auto" );
@@ -44,7 +52,7 @@ public interface Scaling {
 
     /** List of standard options for colour map stretch. */
     public static final Scaling[] STRETCHES = new Scaling[] {
-        LOG, LINEAR, HISTO, HISTOLOG, SQRT, SQUARE,
+        LOG, LINEAR, HISTO, HISTOLOG, SQRT, SQUARE, ACOS, COS,
     };
 
     /**

@@ -12857,6 +12857,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Add new options <code>acos</code> and <code>cos</code>
+        for colour scaling options
+        <code>auxfunc</code>, <code>densefunc</code> etc;
+        these provide linear-like stretch functions with
+        steeper/flatter ends, which may be useful for shading
+        by quantities with most variation near to/far from the
+        middle of the range.</li>
     </ul>
     </p></dd>
 
