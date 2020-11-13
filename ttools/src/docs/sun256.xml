@@ -8419,7 +8419,7 @@ for 1- and 2-table crossmatching respectively.
 
 &tmatchn-summary;
 
-<subsubsect>
+<subsubsect id="tmatchn-examples">
 <subhead><title>Examples</title></subhead>
 
 <p>Here are some examples of using <code>tmatchn</code>:
@@ -8465,9 +8465,9 @@ stilts tmatchn multimode=pairs nin=4 matcher=sky params=5 \
 
 <dt><verbatim>
 stilts tmatchn multimode=group nin=3 matcher=skyerr params=8 \
-       in1=Hband.fits values='RA DEC SEEING*2' \
-       in2=Jband.fits values='RA DEC SEEING*2' \
-       in3=Kband.fits values='RA DEC SEEING*2' \
+       in1=Hband.fits values1='RA DEC SEEING*2' \
+       in2=Jband.fits values2='RA DEC SEEING*2' \
+       in3=Kband.fits values3='RA DEC SEEING*2' \
        omode=topcat
 </verbatim></dt>
 <dd><p>Performs a group-mode match.  There is no reference table, so that
@@ -12864,6 +12864,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         steeper/flatter ends, which may be useful for shading
         by quantities with most variation near to/far from the
         middle of the range.</li>
+    <li>Fix broken example in
+        <ref id="tmatchn-examples"><code>tmatchn</code>
+                                   documentation</ref>.</li>
     </ul>
     </p></dd>
 
