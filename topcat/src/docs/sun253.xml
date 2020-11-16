@@ -29842,6 +29842,10 @@ introduced since the last version:
     <li>Cope better with infinite values in aux plot coordinates.</li>
     <li>Fix histogram ranging bug
         (plot failure under certain circumstances).</li>
+    <li>Upgrade JEL to v2.1.2: fixes a bug that could cause failure when
+        reloading saved sessions with certain boolean-valued
+        synthetic columns.  Also some efficiency improvements in object
+        creation.</li>
     </ul>
     </p></dd>
 

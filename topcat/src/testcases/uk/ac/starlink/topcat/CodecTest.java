@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
@@ -86,6 +88,16 @@ public class CodecTest extends TableCase {
         tcModel.applySubset( tenSet );
         tcModel.sortBy( new SortOrder( tcModel.getColumnModel()
                                               .getColumn( 2 ) ), true );
+        ColumnData addcol1 =
+            new SyntheticColumn( new ColumnInfo( "ix", Integer.class, null ),
+                                 "(int)$0", Integer.class,
+                                 tcModel.createJELRowReader() );
+        tcModel.appendColumn( addcol1 );
+        ColumnData addcol2 =
+            new SyntheticColumn( new ColumnInfo( "isOne", Boolean.class, null ),
+                                 "ix==1", null,
+                                 tcModel.createJELRowReader() );
+
         TableColumnModel colModel = tcModel.getColumnModel();
         colModel.moveColumn( 0, 4 );
         colModel.moveColumn( 5, 2 );

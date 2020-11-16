@@ -7,6 +7,8 @@ import gnu.jel.Library;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ArrayColumn;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 import uk.ac.starlink.util.TestCase;
@@ -63,5 +65,25 @@ public class JELTest extends TestCase {
                   "vfmnx", "gg99", "$index", "$00", } ) {
             assertTrue( TopcatJELUtils.isJelIdentifier( s ) );
         }
+    }
+
+    public void testWeird() throws CompilationException {
+        ColumnStarTable st = ColumnStarTable.makeTableWithRows( 4 );
+        RandomJELRowReader rdr0 = new RandomJELRowReader( st );
+        st.addColumn( new SyntheticColumn( new ColumnInfo( "ix", Integer.class,
+                                                           null ),
+                                           "(int)$0", Integer.class, rdr0 ) );
+        st.addColumn( new SyntheticColumn( new ColumnInfo( "dx", Double.class,
+                                                           null ),
+                                           "(double)$0", Double.class, rdr0 ) );
+        Library lib =
+            TopcatJELUtils.getLibrary( new RandomJELRowReader( st ), false );
+
+        Evaluator.compile( "dx==1", lib, Boolean.class );
+        Evaluator.compile( "ix==1", lib, null );
+
+        // At older versions of JEL (v2.1.1) this fails with a
+        // java.lang.VerifyError.  Fixed by 2.1.2.
+        Evaluator.compile( "ix==1", lib, Boolean.class );
     }
 }
