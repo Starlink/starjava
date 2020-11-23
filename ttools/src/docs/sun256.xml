@@ -12871,6 +12871,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         VOSI1.1 <code>detail=min</code>-style response from
         <code>/tables</code> endpoint; avoid spurious
         <code>E-TMC-CM21</code>/<code>E-TMC-FM21</code> errors.</li>
+    <li>Cope better with infinite values in aux plot coordinates.</li>
     </ul>
     </p></dd>
 

@@ -51,20 +51,20 @@ public class BasicRanger implements Ranger {
                 lo_ = datum;
                 hi_ = datum;
             }
-        }
-        if ( datum > 0.0 ) {
-            if ( hasPos_ ) {
-                if ( datum < loPos_ ) {
-                    loPos_ = datum;
+            if ( datum > 0.0 ) {
+                if ( hasPos_ ) {
+                    if ( datum < loPos_ ) {
+                        loPos_ = datum;
+                    }
+                    else if ( datum > hiPos_ ) {
+                        hiPos_ = datum;
+                    }
                 }
-                else if ( datum > hiPos_ ) {
+                else {
+                    hasPos_ = true;
+                    loPos_ = datum;
                     hiPos_ = datum;
                 }
-            }
-            else {
-                hasPos_ = true;
-                loPos_ = datum;
-                hiPos_ = datum;
             }
         }
     }

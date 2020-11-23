@@ -29839,6 +29839,7 @@ introduced since the last version:
         steeper/flatter ends, which may be useful for shading
         by quantities with most variation near to/far from the
         middle of the range.</li>
+    <li>Cope better with infinite values in aux plot coordinates.</li>
     </ul>
     </p></dd>
 
