@@ -19,4 +19,15 @@ public interface MetadataHolder {
      * @return   tableset schema metadata array
      */
     SchemaMeta[] getTableMetadata();
+
+    /**
+     * Indicates whether the TableMeta objects in the metadata tree
+     * contained by this object are expected to contain
+     * column and foreign key metadata.
+     *
+     * @return   true if TableMetas are populated with ColumnMeta
+     *           and ForeignMeta arrays where appropriate;
+     *           false if those have been omitted
+     */
+    boolean hasDetail();
 }

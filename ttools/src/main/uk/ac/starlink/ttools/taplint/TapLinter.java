@@ -301,13 +301,41 @@ public class TapLinter {
         }
 
         public SchemaMeta[] getTableMetadata() {
-            for ( int ih = 0; ih < holders_.length; ih++ ) {
-                SchemaMeta[] smetas = holders_[ ih ].getTableMetadata();
+            MetadataHolder h = getBestHolder();
+            return h == null ? null : h.getTableMetadata();
+        }
+
+        public boolean hasDetail() {
+            MetadataHolder h = getBestHolder();
+            return h == null ? false : h.hasDetail();
+        }
+
+        /**
+         * Returns from the list of available metadata suppliers
+         * the one that has the most complete metadata.
+         *
+         * @return  best available metadata holder
+         */
+        private MetadataHolder getBestHolder() {
+
+            /* Pick only populated holders. */
+            List<MetadataHolder> popHolders = new ArrayList<>();
+            for ( MetadataHolder h : holders_ ) {
+                SchemaMeta[] smetas = h.getTableMetadata();
                 if ( smetas != null && smetas.length > 0 ) {
-                    return smetas;
+                    popHolders.add( h );
                 }
             }
-            return null;
+
+            /* Return preferentially one with column/fkey detail. */
+            for ( MetadataHolder h : popHolders ) {
+                if ( h.hasDetail() ) {
+                    return h;
+                }
+            }
+
+            /* Otherwise, return any populated instance or null. */
+            return popHolders.size() > 0 ? popHolders.get( 0 ) : null;
         }
     }
 

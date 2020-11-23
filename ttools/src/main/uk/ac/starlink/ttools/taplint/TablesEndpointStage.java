@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TableMeta;
@@ -39,11 +42,12 @@ public class TablesEndpointStage extends TableMetadataStage {
         coding_ = ContentCoding.NONE;
     }
 
-    protected SchemaMeta[] readTableMetadata( Reporter reporter,
-                                              TapService tapService ) {
+    protected MetadataHolder readTableMetadata( Reporter reporter,
+                                                TapService tapService ) {
 
         /* Determine if tables endpoint is declared. */
         StdCapabilityInterface[] intfs = capHolder_.getInterfaces();
+        boolean isVosi11 = false;
         Boolean declaresTables;
         if ( intfs == null ) {
             declaresTables = null;
@@ -55,12 +59,27 @@ public class TablesEndpointStage extends TableMetadataStage {
                 if ( stdid != null &&
                      stdid.startsWith( "ivo://ivoa.net/std/VOSI#tables" ) ) {
                     declaresTables = Boolean.TRUE;
+                    String vers = intf.getVersion();
+                    if ( vers != null && vers.matches( "1[.][1-9][0-9]*" ) ) {
+                        isVosi11 = true;
+                    }
                 }
             }
         }
 
-        /* Prepare to read tables document. */
-        URL turl = tapService.getTablesEndpoint();
+        /* Prepare to read tables document.  Request maximum detail if we
+         * are talking to a VOSI 1.1 tables endpoint.  This doesn't mean
+         * that we will necessarily get maximum detail, but if it doesn't
+         * want to give it to us here, we ought not to subvert that policy
+         * by attempting to get it in another way. */
+        String query = isVosi11 ? "?detail=max" : "";
+        final URL turl;
+        try {
+            turl = new URL( tapService.getTablesEndpoint() + query );
+        }
+        catch ( MalformedURLException e ) {
+            throw new RuntimeException( "Shouldn't happen: " + e, e );
+        }
         reporter.report( FixedCode.I_TURL,
                          "Reading table metadata from " + turl );
 
@@ -196,6 +215,70 @@ public class TablesEndpointStage extends TableMetadataStage {
         }
 
         /* Return metadata as array of schemas. */
-        return schemaList.toArray( new SchemaMeta[ 0 ] );
+        final SchemaMeta[] smetas = schemaList.toArray( new SchemaMeta[ 0 ] );
+        final boolean hasDetail = hasDetail( reporter, turl, smetas, isVosi11 );
+        return new MetadataHolder() {
+            public SchemaMeta[] getTableMetadata() {
+                return smetas;
+            }
+            public boolean hasDetail() {
+                return hasDetail;
+            }
+        };
+    }
+
+    /**
+     * Indicates whether the table metadata includes per-table detail,
+     * that is column and foreign key information.
+     * At least at VOSI 1.1, it is optional whether the service supplies
+     * such detail from the tables endpoint.
+     *
+     * <p>Anomalies are reported through the logging system.
+     *
+     * @param  reporter  reporter
+     * @param  turl    tables URL, used for reports
+     * @param  smetas   populated schema metadata array
+     * @param  isVosi11  true if tables endpoint declares itself as
+     *                   at least VOSI 1.1
+     * @return   true if at least some of the column metadata is supplied
+     */
+    private boolean hasDetail( Reporter reporter, URL turl,
+                               SchemaMeta[] smetas, boolean isVosi11 ) {
+        int nTable = 0;
+        int nColDetail = 0;
+        int nKeyDetail = 0;
+        for ( SchemaMeta smeta : smetas ) {
+            for ( TableMeta tmeta : smeta.getTables() ) {
+                nTable++;
+                ColumnMeta[] cmetas = tmeta.getColumns();
+                ForeignMeta[] fmetas = tmeta.getForeignKeys();
+                if ( cmetas != null && cmetas.length > 0 ) {
+                    nColDetail++;
+                }
+                if ( fmetas != null && fmetas.length > 0 ) {
+                    nKeyDetail++;
+                }
+            }
+        }
+        if ( nColDetail == 0 ) {
+            if ( isVosi11 ) {
+                reporter.report( FixedCode.I_CDET,
+                                 "No column detail returned from " + turl );
+            }
+            else {
+                reporter.report( FixedCode.W_CDET,
+                                 "No column detail returned from VOSI 1.0"
+                               + " endpoint " + turl );
+            }
+            return false;
+        }
+        if ( nColDetail == nTable ) {
+            return true;
+        }
+        assert nColDetail < nTable;
+        String msg = "Column detail returned for " + nColDetail + "/" + nTable
+                   + " tables from " + turl;
+        reporter.report( FixedCode.W_CDET, msg );
+        return false;
     }
 }

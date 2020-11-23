@@ -172,6 +172,7 @@ public enum FixedCode implements ReportCode {
     W_A2MX( "Non-standard ADQL2 declaration" ),
     W_AD2X( "ADQL2 not declared" ),
     W_CCAS( "Capitalisation mismatch" ),
+    W_CDET( "Partial column metadata from /tables" ),
     W_CEUK( "Unknown Content-Encoding" ),
     W_CEZZ( "Compression" ),
     W_CIDX( "Index flag mismatch" ),
@@ -234,6 +235,7 @@ public enum FixedCode implements ReportCode {
     F_GONE( "Table metadata absent" ),
     F_INTR( "Interrupted" ),
     F_MURL( "Bad URL" ),
+    F_NODT( "Metadata lacks column/key detail" ),
     F_NOTB( "No obscore table" ),
     F_NOTM( "Earlier metadata stages not completed" ),
     F_NOUP( "No upload methods listed" ),
@@ -248,6 +250,7 @@ public enum FixedCode implements ReportCode {
     F_XVAL( "Validator preparation error" ),
     F_ZCOL( "No columns known for tests" ),
 
+    I_CDET( "No column metadata from /tables" ),
     I_CJOB( "Job created" ),
     I_CURL( "Reading capability metadata" ),
     I_DMID( "Data model declared" ),

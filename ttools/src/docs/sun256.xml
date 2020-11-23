@@ -12867,6 +12867,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix broken example in
         <ref id="tmatchn-examples"><code>tmatchn</code>
                                    documentation</ref>.</li>
+    <li>Fix <ref id="taplint"><code>taplint</code></ref> to cope with
+        VOSI1.1 <code>detail=min</code>-style response from
+        <code>/tables</code> endpoint; avoid spurious
+        <code>E-TMC-CM21</code>/<code>E-TMC-FM21</code> errors.</li>
     </ul>
     </p></dd>
 

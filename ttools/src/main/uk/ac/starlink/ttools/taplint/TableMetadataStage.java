@@ -29,7 +29,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
     private final String srcDescription_;
     private final String[] knownColFlags_;
     private final boolean reportOtherFlags_;
-    private SchemaMeta[] smetas_;
+    private MetadataHolder metaHolder_;
     private static final AdqlSyntax syntax_ = AdqlSyntax.getInstance();
     private static final String[] KNOWN_COL_FLAGS =
         new String[] { "indexed", "primary", "nullable" };
@@ -68,23 +68,33 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
      * @return  table metadata array
      */
     public SchemaMeta[] getTableMetadata() {
-        return smetas_;
+        return metaHolder_ == null ? null : metaHolder_.getTableMetadata();
+    }
+
+    /**
+     * Indicates whether column/key metadata was obtained by the last run
+     * of this stage.
+     *
+     * @return  true iff getTableMetadata result has applicable column detail
+     */
+    public boolean hasDetail() {
+        return metaHolder_ != null && metaHolder_.hasDetail();
     }
    
     /**
-     * Returns an array providing table metadata to check.
+     * Reads an object providing table metadata to check.
      *
      * @param  reporter   destination for validation messages
      * @param  tapService  TAP service description
-     * @return   list of fully populated schema metadata elements
+     * @return   fully populated metadata object
      */
-    protected abstract SchemaMeta[]
+    protected abstract MetadataHolder
             readTableMetadata( Reporter reporter, TapService tapService );
 
     public void run( Reporter reporter, TapService tapService ) {
-        SchemaMeta[] smetas = readTableMetadata( reporter, tapService );
-        checkSchemas( reporter, smetas );
-        smetas_ = smetas;
+        MetadataHolder meta = readTableMetadata( reporter, tapService );
+        checkSchemas( reporter, meta == null ? null : meta.getTableMetadata() );
+        metaHolder_ = meta;
     }
 
     /**

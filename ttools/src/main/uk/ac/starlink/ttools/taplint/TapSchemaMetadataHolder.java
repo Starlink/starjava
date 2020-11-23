@@ -42,6 +42,10 @@ public class TapSchemaMetadataHolder implements MetadataHolder {
         return metadata_;
     }
 
+    public boolean hasDetail() {
+        return true;
+    }
+
     /**
      * Does the work for reading the metadata from a file which should be
      * present on the classpath.

@@ -48,8 +48,8 @@ public class TapSchemaStage extends TableMetadataStage {
         tapRunner_.reportSummary( reporter );
     }
 
-    protected SchemaMeta[] readTableMetadata( Reporter reporter,
-                                              TapService tapService ) {
+    protected MetadataHolder readTableMetadata( Reporter reporter,
+                                                TapService tapService ) {
         TapVersion tapVersion = tapService.getTapVersion();
         reporter.report( FixedCode.I_TAPV,
                          "Validating for TAP version " + tapVersion );
@@ -248,7 +248,20 @@ public class TapSchemaStage extends TableMetadataStage {
         }
 
         /* Return the schemas, if we managed to read any. */
-        return sList == null ? null : sList.toArray( new SchemaMeta[ 0 ] );
+        if ( sList == null ) {
+            return null;
+        }
+        else {
+            final SchemaMeta[] smetas = sList.toArray( new SchemaMeta[ 0 ] );
+            return new MetadataHolder() {
+                public SchemaMeta[] getTableMetadata() {
+                    return smetas;
+                }
+                public boolean hasDetail() {
+                    return true;
+                }
+            };
+        }
     }
 
     /**

@@ -71,6 +71,13 @@ public class CompareMetadataStage implements Stage {
      */
     private void compareSchemas( Reporter reporter,
                                  SchemaMeta[] smetas1, SchemaMeta[] smetas2 ) {
+        boolean hasDetails = metaHolder1_.hasDetail()
+                          && metaHolder2_.hasDetail();
+        if ( ! hasDetails ) {
+            reporter.report( FixedCode.F_NODT,
+                             "No column/fkey metadata comparison"
+                           + " (one/both metadatas lack detail)" );
+        }
         Map<String,SchemaMeta> smMap1 = createNameMap( smetas1 );
         Map<String,SchemaMeta> smMap2 = createNameMap( smetas2 );
         Collection<String> sNames =
@@ -79,7 +86,8 @@ public class CompareMetadataStage implements Stage {
             SchemaMeta sm1 = smMap1.get( sname );
             SchemaMeta sm2 = smMap2.get( sname );
             assert sm1 != null && sm2 != null : sm1 + " " + sm2;
-            compareTables( reporter, sname, sm1.getTables(), sm2.getTables() );
+            compareTables( reporter, sname, sm1.getTables(), sm2.getTables(),
+                           hasDetails );
         }
     }
 
@@ -90,22 +98,28 @@ public class CompareMetadataStage implements Stage {
      * @param  schemaName  name of schema containing tables
      * @param  tmetas1  first table metadata set
      * @param  tmetas2  second table metadata set
+     * @param  cmpDetail  true iff an attempt should be made to compare
+     *                    the column/fkey detail of tables in the two sets
      */
     private void compareTables( Reporter reporter, String schemaName,
-                                TableMeta[] tmetas1, TableMeta[] tmetas2 ) {
+                                TableMeta[] tmetas1, TableMeta[] tmetas2,
+                                boolean cmpDetail ) {
         Map<String,TableMeta> tmMap1 = createNameMap( tmetas1 );
         Map<String,TableMeta> tmMap2 = createNameMap( tmetas2 );
         Collection<String> tNames =
             getIntersection( reporter, 'T', "Table", "schema " + schemaName,
                              tmetas1, tmetas2 );
-        for ( String tname : tNames ) {
-            TableMeta tm1 = tmMap1.get( tname );
-            TableMeta tm2 = tmMap2.get( tname );
-            assert tm1 != null && tm2 != null : tm1 + " " + tm2;
-            compareColumns( reporter, tname,
-                            tm1.getColumns(), tm2.getColumns() );
-            compareForeignKeys( reporter, tname,
-                                tm1.getForeignKeys(), tm2.getForeignKeys() );
+        if ( cmpDetail ) {
+            for ( String tname : tNames ) {
+                TableMeta tm1 = tmMap1.get( tname );
+                TableMeta tm2 = tmMap2.get( tname );
+                assert tm1 != null && tm2 != null : tm1 + " " + tm2;
+                compareColumns( reporter, tname,
+                                tm1.getColumns(), tm2.getColumns() );
+                compareForeignKeys( reporter, tname,
+                                    tm1.getForeignKeys(),
+                                    tm2.getForeignKeys() );
+            }
         }
     }
 
