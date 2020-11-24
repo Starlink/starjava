@@ -95,16 +95,13 @@ public class JELSelectorTable extends WrapperStarTable {
             }
 
             private boolean isIncluded() throws IOException {
-                Object val;
                 try {
-                    val = jelSeq.evaluate( compEx );
+                    return jelSeq.evaluateBoolean( compEx );
                 }
                 catch ( Throwable e ) {
                     throw (IOException) new IOException( "Evaluation error" )
                                        .initCause( e );
                 }
-                Boolean bval = (Boolean) val;
-                return bval != null && bval.booleanValue();
             }
         };
     }
