@@ -12997,6 +12997,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         parallel.</li>
     <li>The <ref id="progress">progress</ref> filter no longer
         slows down pipelines to any noticeable extent.</li>
+    <li>The <ref id="every">every</ref> filter has a new
+        <code>-exact|-approx</code> option; in approx mode
+        it runs in parallel.</li>
     </ul>
     </p></dd>
 
