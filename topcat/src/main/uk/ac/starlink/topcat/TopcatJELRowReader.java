@@ -322,6 +322,9 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
                     int jrow = viewModel.getViewRow( getCurrentRow() );
                     return jrow >= 0 ? new Integer( 1 + jrow ) : null;
                 }
+                public boolean requiresRowIndex() {
+                    return true;
+                }
             };
         }
         else if ( name.equalsIgnoreCase( "$nrow0" ) ) {
@@ -333,6 +336,9 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
                 public Object getValue() {
                     return new Integer( viewModel.getRowCount() );
                 }
+                public boolean requiresRowIndex() {
+                    return false;
+                }
             };
         }
         else if ( name.equalsIgnoreCase( "$ncol0" ) ) {
@@ -343,6 +349,9 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
                 }
                 public Object getValue() {
                     return new Integer( colModel.getColumnCount() );
+                }
+                public boolean requiresRowIndex() {
+                    return false;
                 }
             };
         }
@@ -370,6 +379,9 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
             public Object getValue() {
                 Object val = dval.getValue();
                 return Tables.isBlank( val ) ? null : val;
+            }
+            public boolean requiresRowIndex() {
+                return false;
             }
         };
     }

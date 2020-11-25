@@ -39,4 +39,8 @@ public class FixedConstant implements Constant {
     public Object getValue() {
         return value_;
     }
+
+    public boolean requiresRowIndex() {
+        return false;
+    }
 }

@@ -129,6 +129,27 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      */
     public abstract long getCurrentRow();
 
+    /**
+     * Indicates whether this RowReader has been asked to reference any
+     * constants for which the row index is required.
+     * In practice this means it will return true if any of the JEL expressions
+     * which this RowReader has been asked to compile may need to call
+     * the {@link #getCurrentRow} method.
+     * Since not all row reader implementations are able to return a value
+     * for that method, this is useful information.
+     *
+     * @return    true if the current row index may be required during
+     *            evaluation
+     */
+    public boolean requiresRowIndex() {
+        for ( Constant konst : getTranslatedConstants() ) {
+            if ( konst.requiresRowIndex() ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected boolean isBlank( int icol ) {
         try {
             return Tables.isBlank( getCell( icol ) );
@@ -251,6 +272,9 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                 public Object getValue() {
                     return new Long( table_.getRowCount() );
                 }
+                public boolean requiresRowIndex() {
+                    return false;
+                }
             };
         }
         if ( name.equalsIgnoreCase( "$ncol" ) ) {
@@ -261,6 +285,9 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                 public Object getValue() {
                     int ncol = table_.getColumnCount();
                     return ncol >= 0 ? new Integer( ncol ) : null;
+                }
+                public boolean requiresRowIndex() {
+                    return false;
                 }
             };
         }
@@ -290,6 +317,9 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                 public Object getValue() {
                     return new Long( getCurrentRow() + 1 );
                 }
+                public boolean requiresRowIndex() {
+                    return true;
+                }
             };
         }
         else if ( name.equalsIgnoreCase( "$random" ) ||
@@ -302,6 +332,9 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                 public Object getValue() {
                     long seed = seed0 + ( getCurrentRow() * 2000000011L );
                     return new Double( new Random( seed ).nextDouble() );
+                }
+                public boolean requiresRowIndex() {
+                    return true;
                 }
             };
         }
@@ -329,6 +362,9 @@ public abstract class StarTableJELRowReader extends JELRowReader {
             }
             public Object getValue() {
                 return value;
+            }
+            public boolean requiresRowIndex() {
+                return false;
             }
         };
     }

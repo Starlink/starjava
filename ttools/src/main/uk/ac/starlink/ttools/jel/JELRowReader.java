@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * An object which is able to read cell values by column name or number.
@@ -104,6 +105,9 @@ public abstract class JELRowReader extends DVMap {
         public Object getValue() {
             foundNull();
             return b0;
+        }
+        public boolean requiresRowIndex() {
+            return false;
         }
     };
 
@@ -496,6 +500,23 @@ public abstract class JELRowReader extends DVMap {
         /* It is an error if the column name doesn't exist, since the
          * variable substitution isn't going to come from anywhere else. */
         return null;
+    }
+
+    /**
+     * Returns a list of the constants for which this RowReader has
+     * been asked to provide translation values.
+     * In practice this means there will be an entry for every constant
+     * in expressions which this RowReader has been used to compile.
+     *
+     * @return  list of constants which this row reader has had to reference
+     *          in compiling JEL expressions
+     */
+    public Constant[] getTranslatedConstants() {
+        return constantList_
+              .stream()
+              .map( c -> c.konst_ )
+              .collect( Collectors.toList() )
+              .toArray( new Constant[ 0 ] );
     }
 
     /**

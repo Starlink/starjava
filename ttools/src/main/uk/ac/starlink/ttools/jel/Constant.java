@@ -24,4 +24,15 @@ public interface Constant {
      * @return  value
      */
     Object getValue();
+
+    /**
+     * Indicates whether evaluation of this constant needs to know the row
+     * index.  If executing {@link #getValue} may result in a call to
+     * {@link StarTableJELRowReader#getCurrentRow},
+     * this method must return true.
+     *
+     * @return  true if evaluating this constant needs or may need to know
+     *          the current row index
+     */
+    boolean requiresRowIndex();
 }
