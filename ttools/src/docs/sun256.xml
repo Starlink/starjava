@@ -12993,6 +12993,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         See individual handler documentation
         (e.g. <ref id="outVotable">votable output handler</ref>
         for details).</li>
+    <li>The <ref id="mode-count">count</ref> output mode now runs in
+        parallel.</li>
     </ul>
     </p></dd>
 
