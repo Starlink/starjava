@@ -12872,6 +12872,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>/tables</code> endpoint; avoid spurious
         <code>E-TMC-CM21</code>/<code>E-TMC-FM21</code> errors.</li>
     <li>Cope better with infinite values in aux plot coordinates.</li>
+    <li>Fix histogram ranging bug
+        (plot failure under certain circumstances).</li>
     </ul>
     </p></dd>
 

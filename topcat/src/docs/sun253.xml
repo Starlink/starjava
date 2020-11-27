@@ -29840,6 +29840,8 @@ introduced since the last version:
         by quantities with most variation near to/far from the
         middle of the range.</li>
     <li>Cope better with infinite values in aux plot coordinates.</li>
+    <li>Fix histogram ranging bug
+        (plot failure under certain circumstances).</li>
     </ul>
     </p></dd>
 

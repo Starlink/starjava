@@ -241,7 +241,6 @@ public class HistoRanger implements Ranger {
             return iData_ < nStore_ ? (int) iData_ : nStore_;
         }
 
-
         /* Because of the statistical nature of the work and the
          * number of possibilities, it would be a lot of effort to
          * write tests for this method.  It has not been well tested.
@@ -273,10 +272,10 @@ public class HistoRanger implements Ranger {
              * from both distributors.  Copy all the data into this one. */
             else if ( nd0 + nd1 < nStore_ ) {
                 assert iStep_ == 1 && other.iStep_ == 1;
-                iStore_ += other.iStore_;
-                iData_ += other.iData_;
                 System.arraycopy( other.array_, 0, array_, iStore_,
                                   other.iStore_ );
+                iStore_ += other.iStore_;
+                iData_ += other.iData_;
                 return;
             }
 
