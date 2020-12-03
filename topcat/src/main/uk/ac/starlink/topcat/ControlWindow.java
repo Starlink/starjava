@@ -86,6 +86,7 @@ import javax.swing.table.TableColumnModel;
 import org.astrogrid.samp.client.DefaultClientProfile;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
@@ -190,6 +191,7 @@ public class ControlWindow extends AuxWindow
     private final Window window_ = this;
     private final ButtonModel dummyButtonModel_ = new DefaultButtonModel();
     private StarTableFactory tabfact_ = new StarTableFactory( true );
+    private final RowRunner runner_ = RowRunner.DEFAULT;
     private final boolean showListToolBar_ = false;
     private LoadWindow loadWindow_;
     private SaveQueryWindow saveWindow_;
@@ -776,6 +778,15 @@ public class ControlWindow extends AuxWindow
      */
     public TopcatCommunicator getCommunicator() {
         return communicator_;
+    }
+
+    /**
+     * Returns the RowRunner to be used for multithreaded table processing.
+     *
+     * @return  row runner
+     */
+    public RowRunner getRowRunner() {
+        return runner_;
     }
 
     /**
