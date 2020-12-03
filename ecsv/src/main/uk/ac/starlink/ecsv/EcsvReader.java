@@ -129,7 +129,7 @@ public class EcsvReader implements Closeable {
         }
         else {
             try {
-                return decoders_[ icol ].decode( cellWords_.get( icol ) );
+                return decoders_[ icol ].decode( word );
             }
             catch ( NumberFormatException e ) {
                 return null;
