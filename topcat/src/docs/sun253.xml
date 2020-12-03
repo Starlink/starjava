@@ -23519,6 +23519,16 @@ when using the service, though it may help to understand how the progress
 bar moves.
 </p>
 
+<p>For a better understanding of the details of how this service operates,
+including exactly what coordinates are matched against the uploaded positions
+(roughly: integrated to J2000 using proper motions if available)
+and what columns are included in the output
+(roughly: a subset of the most commonly used columns), 
+please consult the
+<webref url="http://cdsxmatch.u-strasbg.fr/xmatch/doc/"
+        >service documentation</webref>.
+</p>
+
 <p>The window has three panels, described below.
 </p>
 
@@ -29846,6 +29856,8 @@ introduced since the last version:
         reloading saved sessions with certain boolean-valued
         synthetic columns.  Also some efficiency improvements in object
         creation.</li>
+    <li>Slightly improved documentation for
+        <ref id="CdsUploadMatchWindow">CDS Upload X-Match Window</ref>.</li>
     </ul>
     </p></dd>
 
