@@ -68,6 +68,7 @@ public class EcsvTableWriter extends StreamStarTableWriter {
 
     private static final Collection<String> EXCLUDE_AUXMETAS = 
             new HashSet<String>( Arrays.asList( new String[] {
+        Tables.NULL_VALUE_INFO.getName(),
         Tables.UBYTE_FLAG_INFO.getName(),
         "Datatype",    // VOStarTable.DATATYPE_INFO
         "VOTable ID",  // VOStarTable.ID_INFO

@@ -12882,6 +12882,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in object creation.</li>
     <li>Slightly improved documentation for
         <ref id="cdsskymatch"><code>cdsskymatch</code></ref>.</li>
+    <li>Avoid inserting <code>NULL_VALUE</code> custom metadata entries
+        into ECSV output.</li>
     </ul>
     </p></dd>
 

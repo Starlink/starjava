@@ -29858,6 +29858,8 @@ introduced since the last version:
         creation.</li>
     <li>Slightly improved documentation for
         <ref id="CdsUploadMatchWindow">CDS Upload X-Match Window</ref>.</li>
+    <li>Avoid inserting <code>NULL_VALUE</code> custom metadata entries
+        into ECSV output.</li>
     </ul>
     </p></dd>
 
