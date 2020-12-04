@@ -49,6 +49,8 @@ public class TablePipeTest extends TableTestCase {
               .setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.fits" )
               .setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.util" )
+              .setLevel( Level.WARNING );
     }
 
     private StarTable apply( String cmd ) throws Exception {
@@ -792,39 +794,63 @@ public class TablePipeTest extends TableTestCase {
             new long[] { 0L, 1L, 0L, 1L },
             unbox( getColData( apply( "stats nbad" ), 0 ) ) );
         assertArrayEquals(
-            new Object[] { new Integer( 1 ), new Double( 10. ), null, null, },
+            new Object[] { new Integer( 1 ), new Double( 10. ),
+                           null, "Beauchamp", },
             getColData( apply( "stats minimum" ), 0 ) );
         assertArrayEquals(
-            new Object[] { new Integer( 4 ), new Double( 30. ), null, null, },
+            new Object[] { new Integer( 4 ), new Double( 30. ),
+                           null, "Taylor", },
             getColData( apply( "stats maximum" ), 0 ) );
         assertArrayEquals(
             new double[] { 10., 60., 2., Double.NaN, },
             unbox( getColData( apply( "stats sum" ), 0 ) ) );
         assertArrayEquals(
-            new Object[] { new Long( 1 ), new Long( 1 ), null, null, },
+            new Object[] { new Long( 1 ), new Long( 1 ), null, new Long( 2 ), },
             getColData( apply( "stats minpos" ), 0 ) );
         assertArrayEquals(
-            new Object[] { new Long( 4 ), new Long( 3 ), null, null, },
+            new Object[] { new Long( 4 ), new Long( 3 ), null, new Long( 3 ), },
             getColData( apply( "stats maxpos" ), 0 ) );
         assertArrayEquals(
             new int[] { 4, 3, 2, 3 },
             unbox( getColData( apply( "stats cardinality" ), 0 ) ) );
 
-        // n.b. the Floats here could/should be Doubles.
+        // n.b. the floats here could/should be doubles
         assertArrayEquals(
-            new Object[] { new Integer( 1 ), new Float( 10. ), null, null, },
-            getColData( apply( "stats q.01 median q.99" ), 0 ) );
+            new float[] { 1f, 10f, Float.NaN, Float.NaN, },
+            unbox( getColData( apply( "stats q.00 median q.9999" ), 0 ) ) );
         assertArrayEquals(
-            new Object[] { new Integer( 3 ), new Float( 20. ), null, null, },
-            getColData( apply( "stats q.01 median q.99" ), 1 ) );
+            new float[] { 2.5f, 20f, Float.NaN, Float.NaN, },
+            unbox( getColData( apply( "stats q.00 median q.9999" ), 1 ) ) );
         assertArrayEquals(
-            new Object[] { new Integer( 4 ), new Float( 30. ), null, null, },
-            getColData( apply( "stats q.01 median q.99" ), 2 ) );
+            new float[] { 4f, 30f, Float.NaN, Float.NaN, },
+            unbox( getColData( apply( "stats q.00 median q.9999" ), 2 ) ),
+            1e-2 );
 
         assertArrayEquals(
             new String[] { "Name", "Mean", "StDev", "Minimum",
                            "Maximum", "NGood", },
             getColNames( apply( "stats" ) ) );
+    }
+
+    public void testQuantile() throws Exception {
+        StarTable t1 = new QuickTable( 11, new ColumnData[] {
+            col( "a", new int[] { 0, 5, 5, 10, 9, 5, 1, 2, 5, 5, 5, } ),
+            col( "b", new double[] { -10.0, 0, 10,
+                                     Double.NaN, Double.NaN, 
+                                     100.0, 70.0, 50, 50,
+                                     Double.NaN, Double.NaN } ),
+        } );
+        assertEquals( new Float( 5 ),
+                      process( t1, "stats median" ).getCell( 0, 0 ) );
+        assertEquals( new Float( 2 ),
+                      process( t1, "stats q.2" ).getCell( 0, 0 ) );
+        assertEquals( new Float( 1 ),
+                      process( t1, "stats q.1" ).getCell( 0, 0 ) );
+        assertEquals( new Float( 50 ),
+                      process( t1, "stats median" ).getCell( 1, 0 ) );
+        assertEquals( 70., ((Number) process( t1, "stats q.8333333" )
+                                    .getCell( 1, 0 ) ).doubleValue(),
+                      1e-4 );
     }
 
     public void testTail() throws Exception {

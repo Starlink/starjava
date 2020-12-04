@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.build.HideDoc;
-import uk.ac.starlink.ttools.filter.QuantCalc;
+import uk.ac.starlink.ttools.filter.Quantiler;
+import uk.ac.starlink.ttools.filter.SortQuantiler;
 
 /**
  * Functions which operate on array-valued cells.
@@ -245,18 +246,14 @@ public class Arrays {
     public static double quantile( Object array, double quant ) {
         try {
             int n = Array.getLength( array );
-            QuantCalc qc = QuantCalc.createInstance( Double.class, n );
+            Quantiler qc = new SortQuantiler( n );
             for ( int i = 0; i < n; i++ ) {
-                qc.acceptDatum( new Double( Array.getDouble( array, i ) ) );
+                qc.acceptDatum( Array.getDouble( array, i ) );
             }
             qc.ready();
-            Number value = qc.getQuantile( quant );
-            return value == null ? Double.NaN : value.doubleValue();
+            return qc.getValueAtQuantile( quant );
         }
         catch ( RuntimeException e ) {
-            return Double.NaN;
-        }
-        catch ( IOException e ) {
             return Double.NaN;
         }
     }

@@ -7,15 +7,13 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Supplier;
 import javax.swing.Action;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -34,17 +32,19 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowListStarTable;
-import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable; 
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.TableSource;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.formats.AsciiTableWriter;
 import uk.ac.starlink.table.gui.NumericCellRenderer;
 import uk.ac.starlink.table.gui.ProgressBarStarTable;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
-import uk.ac.starlink.ttools.filter.QuantCalc;
+import uk.ac.starlink.ttools.filter.Quantiler;
+import uk.ac.starlink.ttools.filter.SortQuantiler;
+import uk.ac.starlink.ttools.filter.TableStats;
+import uk.ac.starlink.ttools.filter.UnivariateStats;
 import uk.ac.starlink.util.gui.SizingScrollPane;
 
 /**
@@ -139,8 +139,8 @@ public class StatsWindow extends AuxWindow {
                     if ( calc == null ) {
                         calc = lastCalc_;
                     }
-                    if ( calc != null && ( ( isQuant && ! calc.hasQuant ) ||
-                                           ( isMad && ! calc.hasMad ) ) ) {
+                    if ( calc != null && ( ( isQuant && ! calc.hasQuant_ ) ||
+                                           ( isMad && ! calc.hasMad_ ) ) ) {
                         recalcAct_.actionPerformed( null );
                     }
                 }
@@ -261,7 +261,7 @@ public class StatsWindow extends AuxWindow {
         /* Stop any calculations that are in train, since we will not now
          * need their results. */
         if ( activeCalculator_ != null ) {
-            activeCalculator_.interrupt();
+            activeCalculator_.cancel();
         }
 
         /* Ensure consistency with the subset selector. */
@@ -291,7 +291,10 @@ public class StatsWindow extends AuxWindow {
          * calculations and display the results in due course. */
         else {
             activeCalculator_ = new StatsCalculator( rset, hasQuant, hasMad );
-            activeCalculator_.start();
+            Thread calcThread =
+                new Thread( activeCalculator_, "StatsCalculator" );
+            calcThread.setDaemon( true );
+            calcThread.start();
         }
     }
 
@@ -327,7 +330,7 @@ public class StatsWindow extends AuxWindow {
     public void dispose() {
         super.dispose();
         if ( activeCalculator_ != null ) {
-            activeCalculator_.interrupt();
+            activeCalculator_.cancel();
             activeCalculator_ = null;
             setBusy( false );
         }
@@ -375,34 +378,6 @@ public class StatsWindow extends AuxWindow {
     }
 
     /**
-     * Provides the largest cardinality which is counted as valid for
-     * a given number of rows.  Any cardinality higher than this value
-     * will not be reported.  This limit is provided for two reasons:
-     * firstly for efficiency to reduce the burden of looking for a 
-     * black needle in a dark haystack <em>when it isn't there</em>,
-     * and secondly because cardinalities equal or near to the number 
-     * of good values are not very useful figures to provide, since
-     * they probably only indicate a few values which happen to be
-     * the same by chance.
-     * <p>
-     * A cardinality, by the way, is the number of distinct values 
-     * assumed by the rows in a column.
-     * <p>
-     * The implementation provided here is currently the lower of
-     * 50 or <tt>0.75*nvalue</tt>.
-     * 
-     * @param  nvalue the number of values over which the cardinality 
-     *                is to be assessed
-     * @return  the  largest number of distinct values which is to 
-     *               count as a cardinality
-     */
-    public int getCardinalityLimit( long nvalue ) {
-        return Math.min( 50, (int) Math.min( nvalue * 0.75, 
-                                             (double) Integer.MAX_VALUE ) );
-    }
-
-
-    /**
      * Helper class which provides a TableModel view of this window's
      * most recently completed StatsCalculator object.
      */
@@ -415,8 +390,8 @@ public class StatsWindow extends AuxWindow {
         /* Index. */
         hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Index", Integer.class, "Column index" ) {
-            public Object getValue( int irow ) {
-                return new Integer( irow + 1 );
+            public Integer getValue( int irow ) {
+                return Integer.valueOf( irow + 1 );
             }
         } );
 
@@ -425,17 +400,19 @@ public class StatsWindow extends AuxWindow {
         final ValueInfo idInfo = TopcatUtils.COLID_INFO;
         metas.add( new MetaColumn( idInfo.getName(), String.class,
                                    "Column unique identifier" ) {
-            public Object getValue( int irow ) {
-                return ((StarTableColumn) columnModel_.getColumn( irow ))
-                      .getColumnInfo()
-                      .getAuxDatum( idInfo )
-                      .getValue();
+            public String getValue( int irow ) {
+                Object idObj =
+                    ((StarTableColumn) columnModel_.getColumn( irow ))
+                   .getColumnInfo()
+                   .getAuxDatum( idInfo )
+                   .getValue();
+                return idObj instanceof String ? (String) idObj : null;
             }
         } );
 
         /* Name. */
         metas.add( new MetaColumn( "Name", String.class, "Column name" ) {
-            public Object getValue( int irow ) {
+            public String getValue( int irow ) {
                 int jcol = getModelIndexFromRow( irow );
                 return dataModel_.getColumnInfo( jcol ).getName();
             }
@@ -443,85 +420,56 @@ public class StatsWindow extends AuxWindow {
 
         /* Sum. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Sum", Double.class,
-                                   "Sum of all values in column" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                if ( lastCalc_.isNumber[ jcol ] ) {
-                    return new Double( lastCalc_.sums[ jcol ] );
-                }
-                else if ( lastCalc_.isBoolean[ jcol ] ) {
-                    return new Double( lastCalc_.ntrues[ jcol ] );
-                }
-                else {
-                    return null;
-                }
+        metas.add( new StatMetaColumn( "Sum", Number.class,
+                                       "Sum of all values in column" ) {
+            public Number getValue( ColStat cstat ) {
+                return Double.valueOf( cstat.sum_ );
             }
         } );
 
         /* Mean. */
-        metas.add( new MetaColumn( "Mean", Float.class,
-                                   "Mean of values in column" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return lastCalc_.isNumber[ jcol ] || lastCalc_.isBoolean[ jcol ]
-                     ? new Float( lastCalc_.means[ jcol ] )
-                     : null;
+        metas.add( new StatMetaColumn( "Mean", Number.class,
+                                       "Mean of values in column" ) {
+            public Number getValue( ColStat cstat ) {
+                return Double.valueOf( cstat.mean_ );
             }
         } );
 
         /* Population Standard Deviation. */
-        metas.add( new MetaColumn( "SD", Float.class,
-                                   "Population standard deviation " +
-                                   "of values in column" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return lastCalc_.isNumber[ jcol ]
-                     ? new Float( lastCalc_.popsdevs[ jcol ] ) 
-                     : null;
+        metas.add( new StatMetaColumn( "SD", Number.class,
+                                       "Population standard deviation " +
+                                       "of values in column" ) {
+            public Number getValue( ColStat cstat ) {
+                return Float.valueOf( (float) Math.sqrt( cstat.popvar_ ) );
             }
         } );
 
         /* Population Variance. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Variance", Float.class,
-                                   "Population variance of values in column" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return lastCalc_.isNumber[ jcol ]
-                     ? new Float( lastCalc_.popvars[ jcol ] )
-                     : null;
+        metas.add( new StatMetaColumn( "Variance", Number.class,
+                                       "Population variance "
+                                     + "of values in column" ) {
+            public Number getValue( ColStat cstat ) {
+                return Float.valueOf( (float) cstat.popvar_ );
             }
         } );
 
         /* Sample Standard Deviation. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Sample_SD", Float.class,
+        metas.add( new StatMetaColumn( "Sample_SD", Number.class,
                                    "Sample standard deviation of " +
                                    "values in column" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return lastCalc_.isNumber[ jcol ]
-                     ? new Float( lastCalc_.sampsdevs[ jcol ] ) 
-                     : null;
+            public Number getValue( ColStat cstat ) {
+                return Float.valueOf( (float) Math.sqrt( cstat.sampvar_ ) );
             }
         } );
 
         /* Sample Variance. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Sample_Variance", Float.class,
-                                   "Sample variance of values in column" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return lastCalc_.isNumber[ jcol ]
-                     ? new Float( lastCalc_.sampvars[ jcol ] )
-                     : null;
+        metas.add( new StatMetaColumn( "Sample_Variance", Number.class,
+                                       "Sample variance of values in column" ) {
+            public Number getValue( ColStat cstat ) {
+                return Float.valueOf( (float) cstat.sampvar_ );
             }
         } );
 
@@ -533,7 +481,7 @@ public class StatsWindow extends AuxWindow {
 
         /* Scaled Median Absolute Deviation. */
         hideColumns_.set( metas.size() );
-        double madScale = QuantCalc.MAD_SCALE;
+        double madScale = TableStats.MAD_SCALE;
         metas.add( new MadColumn( "Scaled_Median_Absolute_Deviation",
                                    "Median absolute deviation multiplied by "
                                  + madScale
@@ -543,115 +491,91 @@ public class StatsWindow extends AuxWindow {
  
         /* Skew. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Skew", Float.class, 
-                                   "Gamma 1 measure of skewness " +
-                                   "of column value distribution" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return lastCalc_.isNumber[ jcol ]
-                     ? new Float( lastCalc_.skews[ jcol ] )
-                     : null;
+        metas.add( new StatMetaColumn( "Skew", Number.class, 
+                                       "Gamma 1 measure of skewness " +
+                                       "of column value distribution" ) {
+            public Number getValue( ColStat cstat ) {
+                return Float.valueOf( (float) cstat.skew_ );
             }
         } );
 
         /* Kurtosis. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Kurtosis", Float.class,
-                                   "Gamma 2 measure of peakedness of " +
-                                   "column value distribution" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return lastCalc_.isNumber[ jcol ]
-                     ? new Float( lastCalc_.kurts[ jcol ] )
-                     : null;
+        metas.add( new StatMetaColumn( "Kurtosis", Number.class,
+                                       "Gamma 2 measure of peakedness of " +
+                                       "column value distribution" ) {
+            public Number getValue( ColStat cstat ) {
+                return Float.valueOf( (float) cstat.kurt_ );
             }
         } );
 
         /* Minimum. */
-        metas.add( new MetaColumn( "Minimum", Object.class,
-                                   "Numerically or other (e.g. alphabetically) "
-                                 + "smallest value in column" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return lastCalc_.mins[ jcol ];
+        metas.add( new StatMetaColumn( "Minimum", Comparable.class,
+                                       "Numerically or other "
+                                     + "(e.g. alphabetically) "
+                                     + "smallest value in column" ) {
+            public Comparable<?> getValue( ColStat cstat ) {
+                return cstat.min_;
             }
         } );
 
         /* Row for minimum. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Row_of_min", Long.class,
-                                   "Row index of the minimum value " +
-                                   "from column"  ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if  ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return lastCalc_.mins[ jcol ] != null
-                     ? new Long( lastCalc_.imins[ jcol ] + 1 )
-                     : null;
+        metas.add( new StatMetaColumn( "Row_of_min", Long.class,
+                                       "Row index of the minimum value " +
+                                       "from column"  ) {
+            public Long getValue( ColStat cstat ) {
+                long imin = cstat.imin_; 
+                return imin >= 0 ? Long.valueOf( imin + 1 ) : null;
             }
         } );
 
         /* Maximum. */
-        metas.add( new MetaColumn( "Maximum", Object.class,
-                                   "Numerically or other (e.g. alphabetically) "
-                                 + "largest value in column" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return lastCalc_.maxs[ jcol ];
+        metas.add( new StatMetaColumn( "Maximum", Comparable.class,
+                                       "Numerically or other "
+                                     + "(e.g. alphabetically) "
+                                     + "largest value in column" ) {
+            public Comparable<?> getValue( ColStat cstat ) {
+                return cstat.max_;
             }
         } );
 
         /* Row for maximum. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Row_of_max", Long.class,
-                                   "Row index of the maximum value " +
-                                   "from column" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return lastCalc_.maxs[ jcol ] != null
-                     ? new Long( lastCalc_.imaxs[ jcol ] + 1 )
-                     : null;
+        metas.add( new StatMetaColumn( "Row_of_max", Long.class,
+                                       "Row index of the maximum value " +
+                                       "from column" ) {
+            public Long getValue( ColStat cstat ) {
+                long imax = cstat.imax_;
+                return imax >= 0 ? Long.valueOf( imax + 1 ) : null;
             }
         } );
 
         /* Count of non-null rows. */
-        metas.add( new MetaColumn( "nGood", Long.class,
-                                   "Number of non-blank values in column" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return new Long( lastCalc_.ngoods[ jcol ] );
+        metas.add( new StatMetaColumn( "nGood", Long.class,
+                                       "Number of non-blank values in column" ){
+            public Long getValue( ColStat cstat ) {
+                return Long.valueOf( cstat.ngood_ );
             }
         } );
 
         /* Count of null rows. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "nBad", Long.class,
-                                   "Number of blank values in column" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                return new Long( lastCalc_.nbads[ jcol ] );
+        metas.add( new StatMetaColumn( "nBad", Long.class,
+                                       "Number of blank values in column" ) {
+            public Long getValue( ColStat cstat ) {
+                return Long.valueOf( cstat.nbad_ );
             }
         } );
 
         /* Cardinality. */
         hideColumns_.set( metas.size() );
-        metas.add( new MetaColumn( "Cardinality", Integer.class,
-                                   "Number of distinct non-blank values " +
-                                   "in column (blank if too large)" ) {
-            public Object getValue( int irow ) {
-                int jcol = getModelIndexFromRow( irow );
-                if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-                int card = lastCalc_.cards[ jcol ];
-                return ( lastCalc_.isCardinal[ jcol ] && card > 0 )
-                     ? new Integer( card )
-                     : null;
+        metas.add( new StatMetaColumn( "Cardinality", Short.class,
+                                       "Number of distinct non-blank values " +
+                                       "in column (blank if too large)" ) {
+            public Short getValue( ColStat cstat ) {
+                int ncard = cstat.ncard_;
+                return ncard > 0 ? Short.valueOf( (short) ncard ) : null;
             }
         } );
 
@@ -735,7 +659,7 @@ public class StatsWindow extends AuxWindow {
         }
         table.setParameter( new DescribedValue( NROW_INFO,
                                                 new Long( lastCalc_
-                                                         .ngoodrow ) ) );
+                                                         .ngoodrow_ ) ) );
         if ( rset != null && rset != RowSubset.ALL ) {
             table.setParameter( new DescribedValue( RSET_INFO,
                                                     rset.getName() ) );
@@ -784,7 +708,7 @@ public class StatsWindow extends AuxWindow {
      * Metacolumn subclass which displays a scaled version of the
      * Median Absolute Deviation.
      */
-    private class MadColumn extends MetaColumn {
+    private class MadColumn extends StatMetaColumn {
         private final double scale_;
 
         /**
@@ -795,23 +719,19 @@ public class StatsWindow extends AuxWindow {
          * @param  scale  scale factor for result
          */
         MadColumn( String name, String description, double scale ) {
-            super( name, Float.class, description );
+            super( name, Number.class, description );
             scale_ = scale;
         }
 
-        public Object getValue( int irow ) {
-            int jcol = getModelIndexFromRow( irow );
-            if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
-            return lastCalc_.hasMad && lastCalc_.isNumber[ jcol ]
-                 ? new Float( (float) ( lastCalc_.mads[ jcol ] * scale_ ) )
-                 : null;
+        public Number getValue( ColStat cstat ) {
+            return new Float( (float) ( cstat.mad_ * scale_ ) );
         }
     }
 
     /**
      * Metacolumn subclass which can display quantile values.
      */
-    private class QuantileColumn extends MetaColumn {
+    private class QuantileColumn extends StatMetaColumn {
         private final Double key_;
         private final double quant_;
 
@@ -822,69 +742,151 @@ public class StatsWindow extends AuxWindow {
          * @param  name   column name
          */
         QuantileColumn( double quant, String name ) {
-            super( name, Number.class,
+            super( name, Double.class,
                    "Value below which " + quant + " of column contents fall" );
             quant_ = quant;
             key_ = new Double( quant );
         }
 
-        public Object getValue( int irow ) {
-            int jcol = getModelIndexFromRow( irow );
-            if ( lastCalc_.hasQuant ) {
-                Map<Double,Number> quantiles = lastCalc_.quantiles.get( jcol );
-                if ( quantiles == null || ! quantiles.containsKey( key_ ) ) {
-                    return null;
-                }
-                else {
-                    return quantiles.get( key_ );
-                }
+        public Double getValue( ColStat cstat ) {
+            Map<Double,Double> quantiles = cstat.quantiles_;
+            return quantiles == null ? null : quantiles.get( key_ );
+        }
+    }
+
+    /**
+     * Partial MetaColumn implementation that represents some quantity
+     * derived from a ColStat object.
+     */
+    private abstract class StatMetaColumn extends MetaColumn {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  statistic name
+         * @param  clazz  value class
+         * @param  descrip  statistic description
+         */
+        StatMetaColumn( String name, Class<?> clazz, String descrip ) {
+            super( name, clazz, descrip );
+        }
+
+        /**
+         * Obtains this column's value from a ColStat.
+         *
+         * @param  cstat  column statistics object
+         * @return  result
+         */
+        abstract Object getValue( ColStat cstat );
+
+        final public Object getValue( int irow ) {
+            if ( lastCalc_ == null ) {
+                return null;
             }
             else {
-                return null;
+                int jcol = getModelIndexFromRow( irow );
+                return jcol < lastCalc_.colStats_.length
+                     ? getValue( lastCalc_.colStats_[ jcol ] )
+                     : null;
             }
         }
     }
 
     /**
-     * Helper class which performs the calculations in its own thread,
+     * Stores calculated statistical information relating to one column
+     * of the data table.  The memory footprint of this object is small.
+     */
+    private static class ColStat {
+
+        final long ngood_;
+        final long nbad_;
+        final double sum_;
+        final Comparable<?> min_;
+        final Comparable<?> max_;
+        final long imin_;
+        final long imax_;
+        final int ncard_;
+        final double mean_;
+        final double popvar_;
+        final double sampvar_;
+        final double skew_;
+        final double kurt_;
+        final double median_;
+        final Map<Double,Double> quantiles_;
+        double mad_;
+
+        /**
+         * Constructs a ColStat from a UnivariateStat.
+         * This copies the information from the (potentially resource-heavy)
+         * ustat object, but does not retain a reference to it or its members.
+         * This constructor does set the median (if quantiles are available),
+         * but does not set the MAD, which requires another pass.
+         *
+         * @param  ustat  univariate statistics object
+         * @param  nrow   total number of rows surveyed to acquire statistics
+         */
+        ColStat( UnivariateStats ustat, long nrow ) {
+            ngood_ = ustat.getCount();
+            nbad_ = nrow - ngood_;
+            sum_ = ustat.getSum();
+            min_ = ustat.getMinimum();
+            max_ = ustat.getMaximum();
+            imin_ = ustat.getMinPos();
+            imax_ = ustat.getMaxPos();
+            ncard_ = ustat.getCardinality();
+            double sum0 = ngood_;
+            double sum1 = sum_;
+            double sum2 = ustat.getSum2();
+            double sum3 = ustat.getSum3();
+            double sum4 = ustat.getSum4();
+            double dcount = ngood_;
+            double rcount = dcount > 0 ? 1. / dcount : Double.NaN;
+            double nvar = sum2 - sum1 * sum1 * rcount;
+            mean_ = sum1 * rcount;
+            popvar_ = nvar * rcount;
+            sampvar_ = dcount > 1 ? nvar / ( dcount - 1 ) : Double.NaN;
+            skew_ = Math.sqrt( dcount ) / Math.pow( nvar, 1.5 )
+                  * ( + 1 * sum3 
+                      - 3 * mean_ * sum2 
+                      + 3 * mean_ * mean_ * sum1
+                      - 1 * mean_ * mean_ * mean_ * sum0 );
+            kurt_ = dcount / ( nvar * nvar )
+                  * ( + 1 * sum4
+                      - 4 * mean_ * sum3
+                      + 6 * mean_ * mean_ * sum2
+                      - 4 * mean_ * mean_ * mean_ * sum1
+                      + 1 * mean_ * mean_ * mean_ * mean_ * sum0 ) - 3.0;
+            Quantiler quantiler = ustat.getQuantiler();
+            if ( quantiler != null ) {
+                median_ = quantiler.getValueAtQuantile( 0.5 );
+                quantiles_ = new HashMap<Double,Double>();
+                for ( Double qp : NAMED_QUANTILES.keySet() ) {
+                    double qv = quantiler.getValueAtQuantile( qp.doubleValue());
+                    quantiles_.put( qp, qv );
+                }
+            }
+            else {
+                median_ = Double.NaN;
+                quantiles_ = null;
+            }
+            mad_ = Double.NaN;
+        }
+    }
+
+    /**
+     * Helper class whose run method performs the calculations
      * and displays the results in the StatsWindow when it's done.
      * A maximum of one active instance of this is maintained by each 
      * StatsWindow, its <tt>run</tt> method running in a separate thread.
      */
-    private class StatsCalculator extends Thread {
+    private class StatsCalculator implements Runnable {
 
-        private final RowSubset rset;
-        private final boolean hasQuant;
-        private final boolean hasMad;
-
-        int ncol;
-        long ngoodrow;
-        boolean[] isNumber;
-        boolean[] isComparable;
-        boolean[] isBoolean;
-        boolean[] isCardinal;
-        Object[] mins;
-        Object[] maxs;
-        long[] imins;
-        long[] imaxs;
-        long[] ngoods;
-        long[] nbads;
-        long[] ntrues;
-        double[] means;
-        double[] popsdevs;
-        double[] popvars;
-        double[] sampsdevs;
-        double[] sampvars;
-        double[] mads;
-        double[] skews;
-        double[] kurts;
-        double[] sums;
-        double[] sum2s;
-        double[] sum3s;
-        double[] sum4s;
-        int[] cards;
-        List<Map<Double,Number>> quantiles;
-        QuantCalc[] quantCalcs;
+        private final RowSubset rset_;
+        private final boolean hasQuant_;
+        private final boolean hasMad_;
+        private boolean cancelled_;
+        long ngoodrow_;
+        ColStat[] colStats_;
 
         /**
          * Constructs a calculator object which can calculate the statistics
@@ -896,10 +898,16 @@ public class StatsWindow extends AuxWindow {
          */
         public StatsCalculator( RowSubset rset, boolean hasQuant,
                                 boolean hasMad ) {
-            super( "StatsCalculator" );
-            this.rset = rset;
-            this.hasQuant = hasQuant || hasMad; 
-            this.hasMad = hasMad;
+            rset_ = rset;
+            hasQuant_ = hasQuant || hasMad; 
+            hasMad_ = hasMad;
+        }
+
+        /**
+         * Messages this calculator to halt pending calculations.
+         */
+        public void cancel() {
+            cancelled_ = true;
         }
 
         /**
@@ -907,10 +915,13 @@ public class StatsWindow extends AuxWindow {
          * if they complete without interruption arranges for the
          * results to be displayed in the StatsWindow.
          * The cursor is also switched between busy and non-busy at the
-         * start and end of calculcations as long as this calculator
+         * start and end of calculations as long as this calculator
          * has not been superceded by another in the mean time.
          */
         public void run() {
+            if ( cancelled_ ) {
+                return;
+            }
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     if ( StatsCalculator.this == activeCalculator_ ) {
@@ -920,7 +931,7 @@ public class StatsWindow extends AuxWindow {
             } );
             try {
                 calculate();
-                calcMap_.put( rset, StatsCalculator.this );
+                calcMap_.put( rset_, StatsCalculator.this );
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         displayCalculations( StatsCalculator.this );
@@ -928,8 +939,8 @@ public class StatsWindow extends AuxWindow {
                 } );
             }
             catch ( OutOfMemoryError e ) {
-                if ( hasQuant ) {
-                    quantCalcs = null;
+                cancel();
+                if ( hasQuant_ ) {
                     final Object msg = new String[] {
                         "Out of memory while calculating quantiles.",
                         "",
@@ -950,6 +961,7 @@ public class StatsWindow extends AuxWindow {
                 }
             }
             catch ( IOException e ) {
+                cancel();
                 // no other action
             }
             finally {
@@ -975,337 +987,37 @@ public class StatsWindow extends AuxWindow {
          * @throws  IOException if calculation is not complete
          */
         private void calculate() throws IOException {
-            ncol = dataModel_.getColumnCount();
-
-            /* Allocate result objects. */
-            isNumber = new boolean[ ncol ];
-            isComparable = new boolean[ ncol ];
-            isBoolean = new boolean[ ncol ];
-            isCardinal = new boolean[ ncol ];
-            mins = new Object[ ncol ];
-            maxs = new Object[ ncol ];
-            imins = new long[ ncol ];
-            imaxs = new long[ ncol ];
-            ngoods = new long[ ncol ];
-            nbads = new long[ ncol ];
-            ntrues = new long[ ncol ];
-            means = new double[ ncol ];
-            popsdevs = new double[ ncol ];
-            popvars = new double[ ncol ];
-            sampsdevs = new double[ ncol ];
-            sampvars = new double[ ncol ];
-            mads = new double[ ncol ];
-            skews = new double[ ncol ];
-            kurts = new double[ ncol ];
-            sums = new double[ ncol ];
-            sum2s = new double[ ncol ];
-            sum3s = new double[ ncol ];
-            sum4s = new double[ ncol ];
-            cards = new int[ ncol ];
-            quantiles = new ArrayList<Map<Double,Number>>( ncol );
-            quantCalcs = new QuantCalc[ ncol ];
-
-            boolean[] badcompars = new boolean[ ncol ];
-            double[] dmins = new double[ ncol ];
-            double[] dmaxs = new double[ ncol ];
-            List<Set<Object>> valuesets = new ArrayList<Set<Object>>( ncol );
-            for ( int i = 0; i < ncol; i++ ) {
-                quantiles.add( null );
-                valuesets.add( null );
-            }
-            Arrays.fill( dmins, Double.MAX_VALUE );
-            Arrays.fill( dmaxs, -Double.MAX_VALUE );
-
-            /* If we are going to calculate quantiles it's useful to work out
-             * how many rows there are in the subset up front.  This is a
-             * bit risky - the count may be incorrect if subset definition
-             * has changed.  Hmm.  It's not essential to use this value,
-             * but doing it will make it easier to catch, e.g.,
-             * OutOfMemoryErrors. */
-            long nr = -1;
-            if ( hasQuant ) {
-                Object num = tcModel_.getSubsetCounts().get( rset );
-                if ( num instanceof Number ) {
-                    nr = ((Number) num).longValue();
-                }
-            }
-
-            /* See which columns we can sensibly gather statistics on. */
+            RowRunner runner = ControlWindow.getInstance().getRowRunner();
+            StarTable table = new ProgressBarStarTable( dataModel_, progBar_,
+                                                        () -> cancelled_ );
+            table = SubsetStarTable.createTable( table, rset_ );
+            boolean doCard = true;
+            Supplier<Quantiler> qSupplier =
+                hasQuant_ ? SortQuantiler::new : null;
+            TableStats tstats =
+                TableStats.calculateStats( table, runner, qSupplier, doCard );
+            long nrow = tstats.getRowCount();
+            ngoodrow_ = nrow;
+            UnivariateStats[] ustats = tstats.getColumnStats();
+            int ncol = ustats.length;
+            colStats_ = new ColStat[ ncol ];
+            double[] medians = new double[ ncol ];
+            int nmed = 0;
             for ( int icol = 0; icol < ncol; icol++ ) {
-                Class<?> clazz = dataModel_.getColumnInfo( icol )
-                                           .getContentClass();
-                isNumber[ icol ] = Number.class.isAssignableFrom( clazz );
-                isComparable[ icol ] = Comparable.class
-                                                 .isAssignableFrom( clazz );
-                isBoolean[ icol ] = clazz.equals( Boolean.class );
-                isCardinal[ icol ] = ! clazz.equals( Boolean.class );
-                if ( isCardinal[ icol ] ) {
-                    valuesets.set( icol, new HashSet<Object>() );
-                }
-                if ( hasQuant && isNumber[ icol ] ) {
-                    @SuppressWarnings("unchecked")
-                    Class<? extends Number> nclazz =
-                        (Class<? extends Number>) clazz;
-                    quantCalcs[ icol ] = QuantCalc.createInstance( nclazz, nr );
+                UnivariateStats ustat = ustats[ icol ];
+                colStats_[ icol ] = new ColStat( ustat, nrow );
+                medians[ icol ] = colStats_[ icol ].median_;
+                if ( !Double.isNaN( medians[ icol ] ) ) {
+                    nmed++;
                 }
             }
-
-            /* Iterate over the selected rows in the table. */
-            RowSequence rseq = new ProgressBarStarTable( dataModel_, progBar_ )
-                              .getRowSequence();
-            int cardlimit = getCardinalityLimit( dataModel_.getRowCount() );
-            IOException interruption = null;
-            long lrow = 0L;
-            ngoodrow = 0L;
-            for ( ; true; lrow++ ) {
-                long lrow1 = lrow;
-
-                /* A thread interruption may manifest itself here as an
-                 * exception (see ProgressBarStarTable).  If so, save the
-                 * exception and break out. */
-                try {
-                    if ( ! rseq.next() ) {
-                        break;
-                    }
+            if ( hasMad_ && nmed > 0 ) {
+                double[] mads =
+                    TableStats.calculateMads( table, runner, qSupplier,
+                                              medians );
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    colStats_[ icol ].mad_ = mads[ icol ];
                 }
-                catch ( IOException e ) {
-                    interruption = e;
-                    break;
-                }
-
-                if ( rset.isIncluded( lrow ) ) {
-                    ngoodrow++;
-                    Object[] row = rseq.getRow();
-
-                    /* Accumulate statistics as appropriate. */
-                    for ( int icol = 0; icol < ncol; icol++ ) {
-                        Object val = row[ icol ];
-                        boolean good;
-                        if ( val == null ) {
-                            good = false;
-                        }
-                        else {
-                            if ( isNumber[ icol ] ) {
-                                double dval = Double.NaN;
-                                if ( ! ( val instanceof Number ) ) {
-                                    System.err.println(
-                                        "Error in table data: not numeric at " +
-                                        lrow1 + "," + icol + "(" + val + ")" );
-                                    good = false;
-                                }
-                                else {
-                                    dval = ((Number) val).doubleValue();
-                                }
-                                if ( Double.isNaN( dval ) ) {
-                                    good = false;
-                                }
-                                else {
-                                    good = true;
-                                }
-                                if ( good ) {
-                                    if ( dval < dmins[ icol ] ) {
-                                        dmins[ icol ] = dval;
-                                        mins[ icol ] = val;
-                                        imins[ icol ] = lrow1;
-                                    }
-                                    if ( dval > dmaxs[ icol ] ) {
-                                        dmaxs[ icol ] = dval;
-                                        maxs[ icol ] = val;
-                                        imaxs[ icol ] = lrow1;
-                                    }
-                                    double s1 = dval;
-                                    double s2 = dval * s1;
-                                    double s3 = dval * s2;
-                                    double s4 = dval * s3;
-                                    sums[ icol ] += s1;
-                                    sum2s[ icol ] += s2;
-                                    sum3s[ icol ] += s3;
-                                    sum4s[ icol ] += s4;
-                                    if ( hasQuant ) {
-                                        quantCalcs[ icol ].acceptDatum( val );
-                                    }
-                                }
-                            }
-                            else if ( isBoolean[ icol ] ) {
-                                if ( ! ( val instanceof Boolean ) ) {
-                                    System.err.println(
-                                        "Error in table data: not boolean at " +
-                                        lrow1 + "," + icol + "(" + val + ")" );
-                                    good = false;
-                                }
-                                else {
-                                    good = true;
-                                }
-                                if ( good ) {
-                                    boolean bval =
-                                        ((Boolean) val).booleanValue();
-                                    if ( bval ) {
-                                        ntrues[ icol ]++;
-                                    }
-                                }
-                            }
-                            else if ( isComparable[ icol ] ) {
-                                if ( ! ( val instanceof Comparable ) ) {
-                                    System.err.println(
-                                        "Error in table data: not Comparable " +
-                                        " at " + lrow1 + "," + icol + "(" +
-                                        val + ")" );
-                                    good = false;
-                                }
-                                else {
-                                    good = true;
-                                }
-                                if ( good ) {
-                                    @SuppressWarnings("unchecked")
-                                    Comparable<Object> cval =
-                                        (Comparable<Object>) val;
-                                    if ( mins[ icol ] == null ) {
-                                        assert maxs[ icol ] == null;
-                                        mins[ icol ] = val;
-                                        maxs[ icol ] = val;
-                                        imins[ icol ] = lrow1;
-                                        imaxs[ icol ] = lrow1;
-                                    }
-                                    else {
-                                        try {
-                                            if ( cval.compareTo( mins[ icol ] )
-                                                 < 0 ) {
-                                                mins[ icol ] = val;
-                                                imins[ icol ] = lrow1;
-                                            }
-                                            else if ( cval
-                                                     .compareTo( maxs[ icol ] )
-                                                      > 0 ) {
-                                                maxs[ icol ] = val;
-                                                imaxs[ icol ] = lrow1;
-                                            }
-                                        }
-
-                                        /* It is possible for two objects in the
-                                         * same column both to be Comparable,
-                                         * but not to each other.  In this case,
-                                         * there does not exist a well-defined
-                                         * min/max for that column. */
-                                        catch ( ClassCastException e ) {
-                                            badcompars[ icol ] = true;
-                                        }
-                                    }
-                                }
-                            }
-                            else {
-                                good = true;
-                            }
-                            if ( good ) {
-                                ngoods[ icol ]++;
-                            }
-                        }
-
-                        /* Maybe calculate the cardinalities. */
-                        if ( good && isCardinal[ icol ] ) {
-                            valuesets.get( icol ).add( val );
-                            if ( valuesets.get( icol ).size() > cardlimit ) {
-                                isCardinal[ icol ] = false;
-                                valuesets.set( icol, null );
-                            }
-                        }
-                    }
-                }
-            }
-            rseq.close();
-            long nrow = lrow;
-
-            /* Calculate the actual statistics based on the accumulated
-             * values.  We do this even if the summation was interrupted,
-             * since the partially-accumulated values may be of interest. */
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                long ngood = ngoods[ icol ];
-                nbads[ icol ] = ngoodrow - ngood;
-                if ( ngood > 0 ) {
-                    if ( isNumber[ icol ] ) {
-                        double dcount = (double) ngood;
-                        double sum0 = dcount;
-                        double sum1 = sums[ icol ];
-                        double sum2 = sum2s[ icol ];
-                        double sum3 = sum3s[ icol ];
-                        double sum4 = sum4s[ icol ];
-                        double mean = sum1 / dcount;
-                        double nvar = ( sum2 - sum1 * sum1 / dcount );
-                        means[ icol ] = mean;
-                        popvars[ icol ] = nvar / dcount;
-                        popsdevs[ icol ] = Math.sqrt( popvars[ icol ] );
-                        if ( ngood > 1 ) {
-                            sampvars[ icol ] = nvar / ( dcount - 1 );
-                            sampsdevs[ icol ] = Math.sqrt( sampvars[ icol ] );
-                        }
-                        else {
-                            sampvars[ icol ] = Double.NaN;
-                            sampsdevs[ icol ] = Double.NaN;
-                        }
-                        skews[ icol ] =
-                            Math.sqrt( dcount ) / Math.pow( nvar, 1.5 ) *
-                            ( + 1 * sum3 
-                              - 3 * mean * sum2 
-                              + 3 * mean * mean * sum1
-                              - 1 * mean * mean * mean * sum0 );
-                        kurts[ icol ] =
-                            dcount / ( nvar * nvar ) *
-                            ( + 1 * sum4
-                              - 4 * mean * sum3
-                              + 6 * mean * mean * sum2
-                              - 4 * mean * mean * mean * sum1
-                              + 1 * mean * mean * mean * mean * sum0 ) - 3.0;
-                    }
-                    else if ( isBoolean[ icol ] ) {
-                        means[ icol ] = (double) ntrues[ icol ] / ngood;
-                    }
-                    if ( isCardinal[ icol ] ) {
-                        int card = valuesets.get( icol ).size();
-                        if ( card <= getCardinalityLimit( ngood ) ) {
-                            cards[ icol ] = card;
-                        }
-                        else {
-                            cards[ icol ] = 0;
-                            isCardinal[ icol ] = false;
-                            valuesets.set( icol, null );
-                        }
-                    }
-                    QuantCalc quantCalc = quantCalcs[ icol ];
-                    if ( quantCalc != null ) {
-                        quantCalc.ready();
-                        quantiles.set( icol, new HashMap<Double,Number>() );
-                        for ( Double qval : NAMED_QUANTILES.keySet() ) {
-                            quantiles.get( icol )
-                           .put( qval, quantCalc.getQuantile( qval ) );
-                        }
-                        mads[ icol ] =
-                            hasMad
-                                ? QuantCalc
-                                 .calculateMedianAbsoluteDeviation( quantCalc )
-                                : Double.NaN;
-                        quantCalcs[ icol ] = null;
-                    }
-                }
-                else {
-                    means[ icol ] = Double.NaN;
-                    popsdevs[ icol ] = Double.NaN;
-                    popvars[ icol ] = Double.NaN;
-                    sampvars[ icol ] = Double.NaN;
-                    sampsdevs[ icol ] = Double.NaN;
-                    mads[ icol ] = Double.NaN;
-                    skews[ icol ] = Double.NaN;
-                    kurts[ icol ] = Double.NaN;
-                }
-                if ( badcompars[ icol ] ) {
-                    mins[ icol ] = null;
-                    maxs[ icol ] = null;
-                    imins[ icol ] = -1L;
-                    imaxs[ icol ] = -1L;
-                }
-            }
-
-            /* Re-throw any interruption-type exception we picked up. */
-            if ( interruption != null ) {
-                throw interruption;
             }
         }
     }

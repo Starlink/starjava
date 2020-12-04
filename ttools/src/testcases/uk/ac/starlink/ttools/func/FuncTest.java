@@ -172,7 +172,7 @@ public class FuncTest extends TestCase {
             assertEquals( 3.0, Arrays.median( a5 ) );
             assertEquals( 1.0, Arrays.quantile( a5, 0 ) );
             assertEquals( 5.0, Arrays.quantile( a5, 1 ) );
-            assertEquals( Math.E, Arrays.quantile( a5, 0.2 ), 0.001 );
+            assertEquals( Math.E, Arrays.quantile( a5, 0.25 ), 1e-8 );
         }
 
         assertEquals( 1, Arrays.median( Arrays.array( 1 ) ) );

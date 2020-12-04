@@ -5,8 +5,8 @@
 
 package uk.ac.starlink.ttools.func;
 
-import java.io.IOException;
-import uk.ac.starlink.ttools.filter.QuantCalc;
+import uk.ac.starlink.ttools.filter.Quantiler;
+import uk.ac.starlink.ttools.filter.SortQuantiler;
 
 /**
  * Functions which operate on lists of values.
@@ -175,24 +175,15 @@ public class Lists {
      * @return  median of <code>values</code>
      */
     public static double median( double... values ) {
-        if ( values == null ) {
+        if ( values == null || values.length == 0 ) {
             return Double.NaN;
         }
-        QuantCalc qc;
-        try {
-            qc = QuantCalc.createInstance( Double.class, values.length );
-        }
-        catch ( IOException e ) {
-            assert false;
-            return Double.NaN;
-        }
+        Quantiler qc = new SortQuantiler( values.length );
         for ( double v : values ) {
-            qc.acceptDatum( new Double( v ) );
+            qc.acceptDatum( v );
         }
         qc.ready();
-        Number median = qc.getQuantile( 0.5 );
-        return median instanceof Number ? median.doubleValue()
-                                        : Double.NaN;
+        return qc.getValueAtQuantile( 0.5 );
     }
 
     /**

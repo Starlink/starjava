@@ -1,5 +1,8 @@
 package uk.ac.starlink.ttools.filter;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Supplier;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.Tables;
 
@@ -14,14 +17,26 @@ import uk.ac.starlink.table.Tables;
  */
 public abstract class UnivariateStats {
 
+    /** Maximum value for cardinality counters. */
+    public static final int MAX_CARDINALITY = 100;
+
     /**
      * Submits a single value to the statistics accumulator.
      * The submitted value should be of a type compatible with the 
      * class type of this Stats object.
      *
      * @param   value   value object
+     * @param   irow    row index of input value
      */
-    public abstract void acceptDatum( Object value );
+    public abstract void acceptDatum( Object value, long irow );
+
+    /**
+     * Adds the accumulated content of a second UnivariateStats object
+     * to this one.
+     *
+     * @param   other  compatible UnivariateStats object
+     */
+    public abstract void addStats( UnivariateStats other );
 
     /**
      * Returns the number of good (non-null) values accumulated.
@@ -59,34 +74,53 @@ public abstract class UnivariateStats {
     public abstract double getSum4();
 
     /**
-     * Returns the numeric minimum value submitted.
+     * Returns the numeric minimum value submitted, if applicable.
      *
      * @return  minimum
      */
-    public abstract Number getMinimum();
+    public abstract Comparable<?> getMinimum();
 
     /**
-     * Returns the numeric maximum value submitted.
+     * Returns the maximum value submitted, if applicable.
      *
      * @return  maximum
      */
-    public abstract Number getMaximum();
+    public abstract Comparable<?> getMaximum();
 
     /**
      * Returns the sequence number of the minimum value submitted.
-     * Returns -1 if there is no minimum.
+     * Returns -1 if there is no minimum or if the sequence number is not known.
      *
-     * @return   row index of minimum
+     * @return   row index of minimum, or -1
      */
     public abstract long getMinPos();
 
     /**
      * Returns the sequence number of the maximum value submitted.
-     * Returns -1 if there is no maximum.
+     * Returns -1 if there is no maximum or if the sequence number is not known.
      *
-     * @return  row index of maximum
+     * @return  row index of maximum, or -1
      */
     public abstract long getMaxPos();
+
+    /**
+     * Returns the number of distinct non-null values submitted, if known.
+     * If the count was not collected, or if there were too many
+     * different values to count, -1 is returned.
+     *
+     * @return  number of distinct non-null values, or -1
+     */
+    public abstract int getCardinality();
+
+    /**
+     * Returns a quantiler ready to provide quantile values, or null
+     * if quantiles were not gathered.
+     * If a non-null quantiler is returned, the {@link Quantiler#ready}
+     * value will have been called on it.
+     *
+     * @return  ready quantiler, or null
+     */
+    public abstract Quantiler getQuantiler();
 
     /**
      * Factory method to construct an instance of this class for accumulating
@@ -94,28 +128,133 @@ public abstract class UnivariateStats {
      *
      * @param  clazz  class of which all submitted values will be instances of
      *         (if they're not null)
+     * @param  qSupplier  supplier for an object that can calculate quantiles,
+     *                    or null if quantiles are not required
+     * @param  doCard   true if an attempt is to be made to count
+     *                  distinct values
+     * @return   stats accumulator
      */
-    public static UnivariateStats createStats( Class<?> clazz ) {
+    public static UnivariateStats createStats( Class<?> clazz,
+                                               Supplier<Quantiler> qSupplier,
+                                               boolean doCard ) {
+ 
         if ( Number.class.isAssignableFrom( clazz ) ) {
-            return new NumberStats();
+            return new NumberStats( qSupplier, doCard );
         }
         else if ( clazz == Boolean.class ) {
             return new BooleanStats();
         }
         else {
-            return new ObjectStats();
+            boolean doCompare = Comparable.class.isAssignableFrom( clazz );
+            return new ObjectStats( doCard, doCompare );
         }
+    }
+
+    /**
+     * Utility method to compare comparables.
+     * Generics rules makes it a pain to do inline.
+     *
+     * @return  -1, 0, or 1 for lessthan, equal or greater than
+     * @throws  ClassCastException  in case of a comparison failure
+     */
+    private static int compare( Comparable<?> c1, Comparable<?> c2 ) {
+        @SuppressWarnings("unchecked")
+        int cmp = ((Comparable) c1).compareTo( (Comparable) c2 );
+        return cmp;
     }
 
     /**
      * Stats implementation for Objects.
      */
     private static class ObjectStats extends UnivariateStats {
+        private boolean doCompare_;
         private long nGood_;
+        private Set<Object> distincts_;
+        private int ndistinct_;
+        private final int maxCard_;
+        private Comparable<?> min_;
+        private Comparable<?> max_;
+        private long minPos_ = -1L;
+        private long maxPos_ = -1L;
 
-        public void acceptDatum( Object obj ) {
+        /**
+         * Constructor.
+         *
+         * @param  doCard   whether to count distinct values
+         * @param  doCompare  whether to try to find min/max values
+         */
+        ObjectStats( boolean doCard, boolean doCompare ) {
+            doCompare_ = doCompare;
+            distincts_ = doCard ? new HashSet<Object>() : null;
+            maxCard_ = MAX_CARDINALITY;
+        }
+
+        public void acceptDatum( Object obj, long irow ) {
             if ( ! Tables.isBlank( obj ) ) {
                 nGood_++;
+                if ( distincts_ != null ) {
+                    if ( ndistinct_ < maxCard_ ) {
+                        if ( distincts_.add( obj ) ) {
+                            ndistinct_++;
+                        }
+                    }
+                    else {
+                        distincts_ = null;
+                    }
+                }
+                if ( doCompare_ && obj instanceof Comparable<?> ) {
+                    try {
+                        Comparable<?> cobj = (Comparable<?>) obj;
+                        if ( min_ == null || compare( cobj, min_ ) < 0 ) {
+                            min_ = cobj;
+                            minPos_ = irow;
+                        }
+                        if ( max_ == null || compare( cobj, max_ ) > 0 ) {
+                            max_ = cobj;
+                            maxPos_ = irow;
+                        }
+                    }
+
+                    /* Comparison can result in a ClassCastException.
+                     * If that happens, bail out of attempting comparisons;
+                     * hitting this exception every row could be very
+                     * expensive and the results would be questionable. */
+                    catch ( ClassCastException e ) {
+                        doCompare_ = false;
+                    }
+                }
+            }
+        }
+
+        public void addStats( UnivariateStats o ) {
+            ObjectStats other = (ObjectStats) o;
+            nGood_ += other.nGood_;
+            doCompare_ = doCompare_ && other.doCompare_;
+            if ( doCompare_ ) {
+                try {
+                    if ( other.min_ != null &&
+                         ( min_ == null || compare( other.min_, min_ ) < 0 ) ) {
+                        min_ = other.min_;
+                        minPos_ = other.minPos_;
+                    }
+                    if ( other.max_ != null &&
+                         ( max_ == null || compare( other.max_, max_ ) > 0 ) ) {
+                        max_ = other.max_;
+                        maxPos_ = other.maxPos_;
+                    }
+                }
+                catch ( ClassCastException e ) {
+                    doCompare_ = false;
+                }
+            }
+            if ( distincts_ != null ) {
+                if ( other.distincts_ != null ) {
+                    distincts_.addAll( other.distincts_ );
+                }
+                ndistinct_ = distincts_.size();
+                if ( ndistinct_ > maxCard_ ) {
+                    distincts_ = null;
+                }
             }
         }
 
@@ -139,20 +278,28 @@ public abstract class UnivariateStats {
             return Double.NaN;
         }
 
-        public Number getMinimum() {
-            return null;
+        public Comparable<?> getMinimum() {
+            return doCompare_ ? min_ : null;
         }
 
-        public Number getMaximum() {
-            return null;
+        public Comparable<?> getMaximum() {
+            return doCompare_ ? max_ : null;
         }
 
         public long getMinPos() {
-            return -1L;
+            return doCompare_ ? minPos_ : -1L;
         }
 
         public long getMaxPos() {
-            return -1L;
+            return doCompare_ ? maxPos_ : -1L;
+        }
+
+        public int getCardinality() {
+            return distincts_ == null ? -1 : distincts_.size();
+        }
+
+        public Quantiler getQuantiler() {
+            return null;
         }
     }
 
@@ -163,13 +310,19 @@ public abstract class UnivariateStats {
         private long nGood_;
         private long nTrue_;
 
-        public void acceptDatum( Object obj ) {
+        public void acceptDatum( Object obj, long irow ) {
             if ( obj instanceof Boolean ) {
                 nGood_++;
                 if ( ((Boolean) obj).booleanValue() ) {
                     nTrue_++;
                 }
             }
+        }
+
+        public void addStats( UnivariateStats o ) {
+            BooleanStats other = (BooleanStats) o;
+            nGood_ += other.nGood_;
+            nTrue_ += other.nTrue_;
         }
 
         public long getCount() {
@@ -192,11 +345,11 @@ public abstract class UnivariateStats {
             return Double.NaN;
         }
 
-        public Number getMinimum() {
+        public Comparable<?> getMinimum() {
             return null;
         }
 
-        public Number getMaximum() {
+        public Comparable<?> getMaximum() {
             return null;
         }
 
@@ -207,13 +360,27 @@ public abstract class UnivariateStats {
         public long getMaxPos() {
             return -1L;
         }
+
+        public int getCardinality() {
+            int card = 0;
+            if ( nTrue_ > 0 ) {
+                card++;
+            }
+            if ( nGood_ > nTrue_ ) {
+                card++;
+            }
+            return card;
+        }
+
+        public Quantiler getQuantiler() {
+            return null;
+        }
     }
 
     /**
      * Stats implementation for Number objects.
      */
     private static class NumberStats extends UnivariateStats {
-        private long iDatum_;
         private long nGood_;
         private double sum1_;
         private double sum2_;
@@ -225,8 +392,25 @@ public abstract class UnivariateStats {
         private Number max_;
         private long minPos_ = -1L;
         private long maxPos_ = -1L;
-        
-        public void acceptDatum( Object obj ) {
+        private final Quantiler quantiler_;
+        private Set<Object> distincts_;
+        private int ndistinct_;
+        private final int maxCard_;
+
+        /**
+         * Constructor.
+         *
+         * @param  qSupplier  quantile supplier if quantiles are required,
+         *                    null if they are not
+         * @param  doCard  whether to try to count distinct values
+         */
+        public NumberStats( Supplier<Quantiler> qSupplier, boolean doCard ) {
+            quantiler_ = qSupplier == null ? null : qSupplier.get();
+            distincts_ = doCard ? new HashSet<Object>() : null;
+            maxCard_ = MAX_CARDINALITY;
+        }
+
+        public void acceptDatum( Object obj, long irow ) {
             if ( obj instanceof Number ) {
                 Number val = (Number) obj;
                 double dval = val.doubleValue();
@@ -243,16 +427,59 @@ public abstract class UnivariateStats {
                     if ( ! ( dval >= dmin_ ) ) {  // note NaN handling
                         dmin_ = dval;
                         min_ = val;
-                        minPos_ = iDatum_;
+                        minPos_ = irow;
                     }
                     if ( ! ( dval <= dmax_ ) ) {  // note NaN handling
                         dmax_ = dval;
                         max_ = val;
-                        maxPos_ = iDatum_;
+                        maxPos_ = irow;
+                    }
+                    if ( distincts_ != null ) {
+                        if ( ndistinct_ < maxCard_ ) {
+                            if ( distincts_.add( val ) ) {
+                                ndistinct_++;
+                            }
+                        }
+                        else {
+                            distincts_ = null;
+                        }
+                    }
+                    if ( quantiler_ != null ) {
+                        quantiler_.acceptDatum( dval );
                     }
                 }
             }
-            iDatum_++;
+        }
+
+        public void addStats( UnivariateStats o ) {
+            NumberStats other = (NumberStats) o;
+            nGood_ += other.nGood_;
+            sum1_ += other.sum1_;
+            sum2_ += other.sum2_;
+            sum3_ += other.sum3_;
+            sum4_ += other.sum4_;
+            if ( ! Double.isNaN( other.dmin_ ) && ! ( other.dmin_ >= dmin_ ) ) {
+                dmin_ = other.dmin_;
+                min_ = other.min_;
+                minPos_ = other.minPos_;
+            }
+            if ( ! Double.isNaN( other.dmax_ ) && ! ( other.dmax_ <= dmax_ ) ) {
+                dmax_ = other.dmax_;
+                max_ = other.max_;
+                maxPos_ = other.maxPos_;
+            }
+            if ( distincts_ != null ) {
+                if ( other.distincts_ != null ) {
+                    distincts_.addAll( other.distincts_ );
+                }
+                ndistinct_ = distincts_.size();
+                if ( ndistinct_ > maxCard_ ) {
+                    distincts_ = null;
+                }
+            }
+            if ( quantiler_ != null ) {
+                quantiler_.addQuantiler( other.quantiler_ );
+            }
         }
 
         public long getCount() {
@@ -275,12 +502,12 @@ public abstract class UnivariateStats {
             return sum4_;
         }
 
-        public Number getMinimum() {
-            return min_;
+        public Comparable<?> getMinimum() {
+            return min_ instanceof Comparable ? (Comparable<?>) min_ : null;
         }
 
-        public Number getMaximum() {
-            return max_;
+        public Comparable<?> getMaximum() {
+            return max_ instanceof Comparable ? (Comparable<?>) max_ : null;
         }
 
         public long getMinPos() {
@@ -289,6 +516,17 @@ public abstract class UnivariateStats {
 
         public long getMaxPos() {
             return maxPos_;
+        }
+
+        public int getCardinality() {
+            return distincts_ == null ? -1 : distincts_.size();
+        }
+
+        public Quantiler getQuantiler() {
+            if ( quantiler_ != null ) {
+                quantiler_.ready();
+            }
+            return quantiler_;
         }
     }
 }
