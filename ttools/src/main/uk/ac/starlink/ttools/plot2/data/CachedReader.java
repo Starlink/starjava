@@ -35,7 +35,7 @@ public interface CachedReader {
     Object getObjectValue( long ix );
 
     /**
-     * Retrieve the current value of this sequence as a floating point number.
+     * Retrieve the value at a given index as a floating point number.
      *
      * @param   ix  value index
      * @return   value
@@ -43,7 +43,7 @@ public interface CachedReader {
     double getDoubleValue( long ix );
 
     /**
-     * Retrieve the current value of this sequence as an integer.
+     * Retrieve the value at a given index as an integer.
      *
      * @param   ix  value index
      * @return   value
@@ -51,7 +51,7 @@ public interface CachedReader {
     int getIntValue( long ix );
 
     /**
-     * Retrieve the current value of this sequence as a long.
+     * Retrieve the value at a given index a long.
      *
      * @param   ix  value index
      * @return   value
@@ -59,7 +59,7 @@ public interface CachedReader {
     long getLongValue( long ix );
 
     /**
-     * Retrieve the current value of this sequence as a boolean value.
+     * Retrieve the value at a given index as a boolean value.
      *
      * @param   ix  value index
      * @return   value
