@@ -13000,6 +13000,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>The <ref id="every">every</ref> filter has a new
         <code>-exact|-approx</code> option; in approx mode
         it runs in parallel.</li>
+    <li>The <ref id="stats">stats</ref> filter now runs in parallel
+        by default, unless the <code>-noparallel</code> flag is supplied.
+        If quantiles are calculated, the <code>-qapprox</code> flag
+        can be supplied to use an (approximate) algorithm that will
+        not run out of memory.</li>
     </ul>
     </p></dd>
 

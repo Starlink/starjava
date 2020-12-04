@@ -130,7 +130,7 @@ public class StatsFilter extends BasicFilter {
      * Constructor.
      */
     public StatsFilter() {
-        super( "stats", "[-[no]parallel] [<item> ...]" );
+        super( "stats", "[-[no]parallel] [-qapprox|-qexact] [<item> ...]" );
     }
 
     protected String[] getDescriptionLines() {
@@ -161,6 +161,18 @@ public class StatsFilter extends BasicFilter {
             "<p>Any parameters of the input table are propagated",
             "to the output one.",
             "</p>",
+            "<p>The <code>-qapprox</code> or <code>-qexact</code>",
+            "flag controls how quantiles are calculated.",
+            "With <code>-qexact</code> they are calculated exactly,",
+            "but this requires memory usage scaling with the number of rows.",
+            "If the <code>-qapprox</code> flag is supplied,",
+            "an method is used which is typically slower and produces only",
+            "approximate values, but which will work in fixed memory",
+            "and so can be used for arbitrarily large tables.",
+            "By default, exact calculation is used.",
+            "These flags are ignored if neither quantiles nor the MAD",
+            "are being calculated",
+            "</p>",
             "<p>The <code>-noparallel</code> flag may be supplied to inhibit",
             "multi-threaded statistics accumulation.",
             "Calculation is done in parallel by default if multi-threaded",
@@ -172,6 +184,7 @@ public class StatsFilter extends BasicFilter {
     public ProcessingStep createStep( Iterator<String> argIt )
             throws ArgException {
         boolean isParallel = true;
+        boolean isQuantileApprox = false;
         final ValueInfo[] colInfos;
         Map<String,ValueInfo> infoMap = new HashMap<>();
         for ( int i = 0; i < ALL_KNOWN_INFOS.length; i++ ) {
@@ -188,6 +201,12 @@ public class StatsFilter extends BasicFilter {
             }
             else if ( lname.equals( "-noparallel" ) ) {
                 isParallel = false;
+            }
+            else if ( lname.equals( "-qapprox" ) ) {
+                isQuantileApprox = true;
+            }
+            else if ( lname.equals( "-qexact" ) ) {
+                isQuantileApprox = false;
             }
             else if ( infoMap.containsKey( lname ) ) {
                 infoList.add( infoMap.get( lname ) );
@@ -225,11 +244,25 @@ public class StatsFilter extends BasicFilter {
                                       : infoList.toArray( new ValueInfo[ 0 ] );
         final RowRunner runner = isParallel ? RowRunner.DEFAULT
                                             : RowRunner.SEQUENTIAL;
-        final Supplier<Quantiler> qSupplier = SortQuantiler::new;
+        final boolean qApprox = isQuantileApprox;
+        final Supplier<Quantiler> qSupplier =
+            isQuantileApprox ? GKQuantiler::new
+                             : SortQuantiler::new;
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
                 MapGroup<ValueInfo,Object> group;
-                group = statsMapGroup( base, colInfos, runner, qSupplier );
+                try {
+                    group = statsMapGroup( base, colInfos, runner, qSupplier );
+                }
+                catch ( OutOfMemoryError e ) {
+                    if ( ! qApprox ) {
+                        throw new IOException( "Out of memory: Try -qapprox?",
+                                               e );
+                    }
+                    else {
+                        throw e;
+                    }
+                }
                 group.setKnownKeys( Arrays.asList( colInfos ) );
                 AbstractStarTable table = new ValueInfoMapGroupTable( group );
                 table.setParameters( base.getParameters() );
