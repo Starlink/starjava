@@ -41,6 +41,7 @@ import uk.ac.starlink.table.gui.NumericCellRenderer;
 import uk.ac.starlink.table.gui.ProgressBarStarTable;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.ttools.filter.GKQuantiler;
 import uk.ac.starlink.ttools.filter.Quantiler;
 import uk.ac.starlink.ttools.filter.SortQuantiler;
 import uk.ac.starlink.ttools.filter.TableStats;
@@ -65,6 +66,7 @@ public class StatsWindow extends AuxWindow {
     private final MetaColumnTableModel statsTableModel_;
     private final BitSet hideColumns_ = new BitSet();
     private final Action recalcAct_;
+    private final ToggleButtonModel qapproxModel_;
     private StatsCalculator activeCalculator_;
     private StatsCalculator lastCalc_;
     private SaveTableQueryWindow saveWindow_;
@@ -130,6 +132,7 @@ public class StatsWindow extends AuxWindow {
          * since (because of the expense) quantiles are not calculated
          * unless explicitly asked for. */
         statsColumnModel.addColumnModelListener( new TableColumnModelAdapter() {
+            @Override
             public void columnAdded( TableColumnModelEvent evt ) {
                 MetaColumn col = getMetaColumn( evt.getToIndex() );
                 boolean isQuant = col instanceof QuantileColumn;
@@ -189,10 +192,19 @@ public class StatsWindow extends AuxWindow {
             }
         };
 
+        /* Configure a toggle for quantile calculation implementation. */
+        qapproxModel_ =
+            new ToggleButtonModel( "Approximate quantile algorithm",
+                                   ResourceIcon.QAPPROX,
+                                   "If selected, quantiles are calculated "
+                                 + "slower, approximately, "
+                                 + "but in fixed memory");
+
         /* Add actions to toolbar. */
         getToolBar().add( saveAct );
         getToolBar().add( importAct );
         getToolBar().add( recalcAct_ );
+        getToolBar().add( qapproxModel_.createToolbarButton() );
         getToolBar().addSeparator();
 
         /* Add Export menu. */
@@ -205,6 +217,7 @@ public class StatsWindow extends AuxWindow {
         JMenu statsMenu = new JMenu( "Statistics" );
         statsMenu.setMnemonic( KeyEvent.VK_S );
         statsMenu.add( new JMenuItem( recalcAct_ ) );
+        statsMenu.add( qapproxModel_.createMenuItem() );
         getJMenuBar().add( statsMenu );
 
         /* Add a menu for controlling column display. */
@@ -940,16 +953,10 @@ public class StatsWindow extends AuxWindow {
             }
             catch ( OutOfMemoryError e ) {
                 cancel();
-                if ( hasQuant_ ) {
+                if ( hasQuant_ && !qapproxModel_.isSelected() ) {
                     final Object msg = new String[] {
-                        "Out of memory while calculating quantiles.",
-                        "",
-                        "Quantiles (median, quartiles, percentiles etc)",
-                        "are much more expensive to calculate than other",
-                        "statistical quantities.",
-                        "To calculate statistics for this table you will",
-                        "need to undisplay these columns, or start again",
-                        "with more memory.",
+                        "Out of memory while calculating quantiles:",
+                        "try setting Approximate Quantile Algorithm option."
                     };
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
@@ -992,8 +999,14 @@ public class StatsWindow extends AuxWindow {
                                                         () -> cancelled_ );
             table = SubsetStarTable.createTable( table, rset_ );
             boolean doCard = true;
-            Supplier<Quantiler> qSupplier =
-                hasQuant_ ? SortQuantiler::new : null;
+            final Supplier<Quantiler> qSupplier;
+            if ( hasQuant_ ) {
+                qSupplier = qapproxModel_.isSelected() ? GKQuantiler::new
+                                                       : SortQuantiler::new;
+            }
+            else {
+                qSupplier = null;
+            }
             TableStats tstats =
                 TableStats.calculateStats( table, runner, qSupplier, doCard );
             long nrow = tstats.getRowCount();

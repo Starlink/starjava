@@ -254,6 +254,7 @@ public class ResourceIcon implements Icon {
         APPROVE_ALL = makeIcon( "approve_all.png" ),
         MEASURE = makeIcon( "measure.png" ),
         LOCK = makeIcon( "lock2.png" ),
+        QAPPROX = makeIcon( "qapprox.png" ),
 
         /* Plot2 icons. */
         UP_DOWN = makeIcon( "updown8.png" ),

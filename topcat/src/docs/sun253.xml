@@ -6465,9 +6465,13 @@ the previous list).  The available values are:
 <dd><p>value below which 99.9% of rows fall</p></dd>
 </dl>
 These are considerably more expensive to calculate than the other 
-statistical quantities, and so they are not provided by default.
+statistical quantities, and so they are not provided by default
+(the same applies to the MAD).
 If you attempt to calculate them for large tables, 
 you may get a message saying that there is insufficient memory.
+In this case you can use an approximate quantile calculation
+method which is not memory limited: see the description below of the
+<label>Approximate Quantile Calculation</label> (&IMG.QAPPROX;) option.
 </p>
 
 <p>The quantities displayed in this window are not necessarily those for
@@ -6506,6 +6510,15 @@ the subset will correspond to the current row subset.
     cached and not normally recalculated again.
     Use this button if you want to force a recalculation because the
     data may have changed.
+    </p></dd>
+
+<dt>&IMG.QAPPROX; Approximate Quantile Calculation</dt>
+<dd><p>If selected this button will cause the quantiles to be calculated
+    using a method which is both approximate and slower than the
+    default (exact) method, for which reason it's usually not preferred.
+    However, the approximate method executes in constant memory,
+    while the exact method can fail by running out of memory
+    for very large row counts.
     </p></dd>
 
 </dl>
