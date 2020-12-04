@@ -13,6 +13,7 @@ public class QuantilerTest extends TestCase {
     public void testEmpty() {
         Quantiler[] calcs = {
             new SortQuantiler(),
+            new GKQuantiler(),
         };
         for ( Quantiler calc : calcs ) {
             calc.ready();
@@ -23,6 +24,7 @@ public class QuantilerTest extends TestCase {
     public void testSmall() {
         Quantiler[] calcs = {
             new SortQuantiler(),
+            new GKQuantiler(),
         };
         for ( Quantiler calc : calcs ) {
             calc.acceptDatum( 23 );
