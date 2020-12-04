@@ -29860,6 +29860,8 @@ introduced since the last version:
         <ref id="CdsUploadMatchWindow">CDS Upload X-Match Window</ref>.</li>
     <li>Avoid inserting <code>NULL_VALUE</code> custom metadata entries
         into ECSV output.</li>
+    <li>Fix annoying column selector bug that sometimes required
+        an extra click.</li>
     </ul>
     </p></dd>
 

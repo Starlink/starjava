@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ComboBoxEditor;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -174,7 +175,9 @@ public class ColumnSelector extends JComponent {
      * @param  txt  text value
      */
     public void setStringValue( String txt ) {
-        colComboBox_.configureEditor( colComboBox_.getEditor(), txt );
+        ComboBoxEditor editor = colComboBox_.getEditor();
+        colComboBox_.configureEditor( editor, txt );
+        colComboBox_.setSelectedItem( editor.getItem() );
         colComboBox_.actionPerformed( new ActionEvent( this, 0, null ) );
     }
 
