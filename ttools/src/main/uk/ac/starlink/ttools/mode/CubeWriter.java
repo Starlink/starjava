@@ -5,6 +5,8 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Iterator;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.fits.FitsConstants;
@@ -22,6 +24,9 @@ import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.ttools.jel.ColumnIdentifier;
+import uk.ac.starlink.ttools.plot2.layer.BinList;
+import uk.ac.starlink.ttools.plot2.layer.BinListCollector;
+import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.util.Destination;
 
 /**
@@ -37,6 +42,7 @@ public class CubeWriter implements TableConsumer {
     private final double[] hiBounds_;
     private final String[] colIds_;
     private final String scaleId_;
+    private final Combiner combiner_;
     private final Class<?> outType_;
     private final Destination dest_;
     private int[] nbins_;
@@ -56,19 +62,21 @@ public class CubeWriter implements TableConsumer {
      * @param   binSizes   extent of bins in each dimension
      * @param   colIds     column ID strings for axes
      * @param   scaleId    column ID string for scale column (or null)
+     * @param   combiner   combination mode
      * @param   dest       data output locator
      * @param   outType    primitive numeric data type for output data;
      *                     if null worked out automatically
      */
     public CubeWriter( double[] loBounds, double[] hiBounds, int[] nbins,
                        double[] binSizes, String[] colIds, String scaleId,
-                       Destination dest, Class<?> outType ) {
+                       Combiner combiner, Destination dest, Class<?> outType ) {
         loBounds_ = loBounds;
         hiBounds_ = hiBounds;
         nbins_ = nbins;
         binSizes_ = binSizes;
         colIds_ = colIds;
         scaleId_ = scaleId;
+        combiner_ = combiner;
         dest_ = dest;
         outType_ = outType;
     }
@@ -120,7 +128,8 @@ public class CubeWriter implements TableConsumer {
         }
 
         /* Populate the cube by reading the table data. */
-        double[] cube = calculateCube( asTable, loBounds_, nbins_, binSizes_ );
+        double[] cube =
+            calculateCube( asTable, combiner_, loBounds_, nbins_, binSizes_ );
 
         /* Write the cube to the output stream as FITS. */
         DataOutputStream out = new DataOutputStream(
@@ -257,19 +266,25 @@ public class CubeWriter implements TableConsumer {
      * value.
      *
      * @param   table  table with N+1 columns
+     * @param   combiner  combination mode
      * @param   loBounds  N-element array of lower bounds by dimension
      * @param   nbins     N-element array of number of bins by dimension
      * @param   binSizes  N-element array of bin extents by dimension
      */
-    public static double[] calculateCube( StarTable table, double[] loBounds, 
-                                          int[] nbins, double[] binSizes )
+    public static double[]
+            calculateCube( StarTable table, Combiner combiner,
+                           double[] loBounds, int[] nbins, double[] binSizes )
             throws IOException {
         int ndim = table.getColumnCount() - 1;
         double[] hiBounds = new double[ ndim ];
+        double binExtent = 1;
         for ( int idim = 0; idim < ndim; idim++ ) {
             hiBounds[ idim ] = loBounds[ idim ]
                              + nbins[ idim ] * binSizes[ idim ];
+            binExtent *= binSizes[ idim ];
         }
+        Combiner.Type ctype = combiner.getType();
+        double binFactor = ctype.getBinFactor( binExtent );
 
         /* Construct a cube to hold the counts. */
         long np = 1;
@@ -277,7 +292,7 @@ public class CubeWriter implements TableConsumer {
             np *= nbins[ idim ];
         }
         int npix = Tables.checkedLongToInt( np );
-        double[] cube = new double[ npix ];
+        BinList binList = BinListCollector.createDefaultBinList( combiner, np );
 
         /* Populate it. */
         RowSequence rseq = table.getRowSequence();
@@ -326,12 +341,23 @@ public class CubeWriter implements TableConsumer {
                         ipix += step * coords[ idim ];
                         step *= nbins[ idim ];
                     }
-                    cube[ ipix ] += scale;
+                    binList.submitToBin( ipix, scale );
                 }
             }
         }
         finally { 
             rseq.close();
+        }
+
+        /* Assemble bins into a cube array. */
+        BinList.Result result = binList.getResult();
+        double[] cube = new double[ npix ];
+        if ( ! ctype.isExtensive() ) {
+            Arrays.fill( cube, Double.NaN );
+        }
+        for ( Iterator<Long> it = result.indexIterator(); it.hasNext(); ) {
+            int index = it.next().intValue();
+            cube[ index ] = result.getBinValue( index ) * binFactor;
         }
         return cube;
     }
@@ -341,7 +367,7 @@ public class CubeWriter implements TableConsumer {
      *
      * @param   axInfos  metadata objects describing each axis
      * @param   binInfo  metadata object describing the bin values
-     * @param   cube   data array, in column major order
+     * @param   cube     data array, in column major order
      * @param   outType   primitive numeric type to write
      * @param   out    output stream
      */
@@ -355,6 +381,8 @@ public class CubeWriter implements TableConsumer {
         /* Get minimum and maximum values. */
         double min = Double.NaN;
         double max = Double.NaN;
+        boolean isInt = true;
+        boolean hasBlank = false;
         if ( npix > 0 ) {
             for ( int i = 0; i < npix; i++ ) {
                 double datum = cube[ i ];
@@ -364,6 +392,9 @@ public class CubeWriter implements TableConsumer {
                 if ( ! ( datum <= max ) ) {
                     max = datum;
                 }
+                boolean isNaN = Double.isNaN( datum );
+                hasBlank = hasBlank || isNaN;
+                isInt = isInt && ( isNaN || (int) datum == datum );
             }
         }
         if ( min == Double.NaN ) {
@@ -376,28 +407,23 @@ public class CubeWriter implements TableConsumer {
             if ( min == Double.NaN ) {
                 clazz = byte.class;
             }
-            else {
-                Class<?> binType = binInfo.getContentClass();
-                if ( binType == Byte.class ||
-                     binType == Short.class ||
-                     binType == Integer.class ||
-                     binType == Long.class ) {
-                    if ( min >= Byte.MIN_VALUE && max <= Byte.MAX_VALUE ) {
-                        clazz = byte.class;
-                    }
-                    else if ( min >= Short.MIN_VALUE &&
-                              max <= Short.MAX_VALUE ) {
-                        clazz = short.class;
-                    }
-                    else if ( min >= Integer.MIN_VALUE &&
-                              max <= Integer.MAX_VALUE ) {
-                        clazz = int.class;
-                    }
+            else if ( isInt ) {
+                if ( min >= Byte.MIN_VALUE + 1 &&
+                     max <= Byte.MAX_VALUE ) {
+                    clazz = byte.class;
+                }
+                else if ( min >= Short.MIN_VALUE + 1 &&
+                          max <= Short.MAX_VALUE ) {
+                    clazz = short.class;
+                }
+                else if ( min >= Integer.MIN_VALUE + 1 &&
+                          max <= Integer.MAX_VALUE ) {
+                    clazz = int.class;
                 }
             }
-            if ( clazz == null ) {
-                clazz = double.class;
-            }
+        }
+        if ( clazz == null ) {
+            clazz = double.class;
         }
         NumberWriter writer = createNumberWriter( out, clazz );
 
@@ -416,6 +442,9 @@ public class CubeWriter implements TableConsumer {
                           "HDU creation date" );
             hdr.addValue( "BUNIT", "COUNTS",
                           "Number of points per pixel (bin)" );
+            if ( hasBlank && writer.blank_ != 0 ) {
+                hdr.addValue( "BLANK", writer.blank_, "Blank value" );
+            }
             hdr.addValue( "DATAMIN", min, "Minimum value" );
             hdr.addValue( "DATAMAX", max, "Maximum value" );
             for ( int id = 0; id < ndim; id++ ) {
@@ -470,42 +499,46 @@ public class CubeWriter implements TableConsumer {
     public static NumberWriter createNumberWriter( final DataOutput out,
                                                    Class<?> clazz ) {
         if ( clazz == byte.class ) {
-            return new NumberWriter( 8 ) {
+            return new NumberWriter( 8, Byte.MIN_VALUE ) {
                 public void writeNumber( double value ) throws IOException {
-                    out.writeByte( (byte) value );
+                    out.writeByte( Double.isNaN( value ) ? (byte) blank_
+                                                         : (byte) value );
                 }
             };
         }
         else if ( clazz == short.class ) {
-            return new NumberWriter( 16 ) {
+            return new NumberWriter( 16, Short.MIN_VALUE ) {
                 public void writeNumber( double value ) throws IOException {
-                    out.writeShort( (short) value );
+                    out.writeShort( Double.isNaN( value ) ? (short) blank_
+                                                          : (short) value );
                 }
             };
         }
         else if ( clazz == int.class ) {
-            return new NumberWriter( 32 ) {
+            return new NumberWriter( 32, Integer.MIN_VALUE ) {
                 public void writeNumber( double value ) throws IOException {
-                    out.writeInt( (int) value );
+                    out.writeInt( Double.isNaN( value ) ? (int) blank_
+                                                        : (int) value );
                 }
             };
         }
         else if ( clazz == long.class ) {
-            return new NumberWriter( 64 ) {
+            return new NumberWriter( 64, Long.MIN_VALUE ) {
                 public void writeNumber( double value ) throws IOException {
-                    out.writeLong( (long) value );
+                    out.writeLong( Double.isNaN( value ) ? blank_
+                                                         : (long) value );
                 }
             };
         }
         else if ( clazz == float.class ) {
-            return new NumberWriter( -32 ) {
+            return new NumberWriter( -32, 0 ) {
                 public void writeNumber( double value ) throws IOException {
                     out.writeFloat( (float) value );
                 }
             };
         }
         else if ( clazz == double.class ) {
-            return new NumberWriter( -64 ) {
+            return new NumberWriter( -64, 0 ) {
                 public void writeNumber( double value ) throws IOException {
                     out.writeDouble( value );
                 }
@@ -513,7 +546,7 @@ public class CubeWriter implements TableConsumer {
         }
         else {
             assert false;
-            return new NumberWriter( 64 ) {
+            return new NumberWriter( 64, 0 ) {
                 public void writeNumber( double value ) throws IOException {
                     out.writeDouble( value );
                 }
@@ -527,14 +560,17 @@ public class CubeWriter implements TableConsumer {
     private abstract static class NumberWriter {
 
         private final int bitpix_;
+        final long blank_;
 
         /**
          * Constructor.
          *
          * @param  bitpix  appropriate value for FITS BITPIX header card.
+         * @param  blank   non-zero blank value, or 0 if there is none
          */
-        protected NumberWriter( int bitpix ) {
+        protected NumberWriter( int bitpix, long blank ) {
             bitpix_ = bitpix;
+            blank_ = blank;
         }
 
         /**

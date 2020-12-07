@@ -17,6 +17,7 @@ import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.task.WordParser;
 import uk.ac.starlink.ttools.task.WordsParameter;
+import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.util.Destination;
 
 /**
@@ -32,6 +33,7 @@ public class CubeMode implements ProcessingMode {
     private final WordsParameter binsizeParam_;
     private final WordsParameter nbinParam_;
     private final OutputStreamParameter outParam_;
+    private final ChoiceParameter<Combiner> combinerParam_;
     private final ChoiceParameter<Class<?>> typeParam_;
     private final StringParameter scaleParam_;
     private WordsParameter colsParam_;
@@ -102,6 +104,29 @@ public class CubeMode implements ProcessingMode {
             "</p>",
         } );
 
+        Combiner[] combiners = Combiner.getKnownCombiners();
+        combinerParam_ = new ChoiceParameter<Combiner>( "combine", combiners );
+        combinerParam_.setPrompt( "Combination method" );
+        StringBuffer lbuf = new StringBuffer();
+        for ( Combiner combiner : combiners ) {
+            lbuf.append( "<li>" )
+                .append( "<code>" )
+                .append( combiner.getName() )
+                .append( "</code>: " )
+                .append( combiner.getDescription() )
+                .append( "</li>\n" );
+        }
+        combinerParam_.setDescription( new String[] {
+            "<p>Defines how values contributing to the same density map bin",
+            "are combined together to produce the value assigned to that bin.",
+            "Possible values are:",
+            "<ul>",
+            lbuf.toString(),
+            "</ul>",
+            "</p>",
+        } );
+        combinerParam_.setDefaultOption( Combiner.SUM );
+
         outParam_ = new OutputStreamParameter( "out" );
         outParam_.setPreferExplicit( true );
         outParam_.setPrompt( "Location of output FITS file" );
@@ -162,6 +187,7 @@ public class CubeMode implements ProcessingMode {
             boundsParam_,
             binsizeParam_,
             nbinParam_,
+            combinerParam_,
             outParam_,
             typeParam_,
             scaleParam_,
@@ -232,6 +258,9 @@ public class CubeMode implements ProcessingMode {
             nbins = null;
         }
 
+        /* Get the weighting and combination mode. */
+        Combiner combiner = combinerParam_.objectValue( env );
+
         /* Get the destination. */
         Destination dest = outParam_.objectValue( env );
 
@@ -240,7 +269,7 @@ public class CubeMode implements ProcessingMode {
 
         /* Construct and return the consumer itself. */
         return new CubeWriter( loBounds, hiBounds, nbins, binsizes, colIds,
-                               scaleId, dest, outType );
+                               scaleId, combiner, dest, outType );
     }
 
     /**

@@ -7996,17 +7996,23 @@ stilts -classpath /usr/local/jars/pg73jdbc3.jar \
 from N columns of an input table, and writes it out as an
 N-dimensional data cube.  The parameters you supply define which N
 numeric columns of the input table you want to use and the dimensions 
-(bounds and pixel sizes) of the output grid.  
+(bounds and pixel sizes) of the output grid,
+as well as any weighting to be applied to each point and how
+the weighted quantities in a single bin are to be aggregated together.
 Each table row then defines a point in N-dimensional space.  
 The program goes through each row, and if the point that row
 defines falls within the bounds of the output grid you have defined,
-increments the value associated with the corresponding pixel.  
-The resulting N-dimensional array, whose pixel values represent a 
-count of the rows associated with that region of the N-dimensional space,
+associates the weight value with the relevant pixel in the output grid.
+When all the input values have been processed, the weights in each
+pixel are aggregated according to the requested combination method.
+</p>
+
+<p>The resulting N-dimensional array, whose pixel values represent an
+aggregation of the rows associated with that region of the N-dimensional space,
 is then written out as a FITS file.
 In one dimension, this gives you a normal histogram of a given variable.
-In two dimensions it might typically be used to plot the density on
-the sky of objects from a catalogue.
+In two dimensions it might typically be used to plot the density or
+weighted density on the sky of objects from a catalogue.
 </p>
 
 <p>As with some of the other generic table commands,
@@ -8033,17 +8039,21 @@ stilts tcube in=2QZ_6QZ_pubcat.fits out=ccm.fits \
     colour dimensions, but for the (third) magnitude dimension it is 
     determined from the minimum and maximum values the data in 
     that column of the table.
-    The output is a three-dimensional FITS cube.
+    The output is a three-dimensional FITS cube containing the number
+    of points in each cell.
     </p></dd>
 
 <dt><verbatim>
-stilts tcube in=iras_psc.vot out=iras_psc_map.fits \
+stilts tcube in=iras_psc.vot out=flux60_map.fits \
              icmd='addskycoords fk5 galactic ra dec glat glon' \
-             cols='glat glon' nbins='400 200'
+             cols='glat glon' nbins='400 200' \
+             scale=Fnu_60 combine=sum 
 </verbatim></dt>
-<dd><p>Calculates a map of object densities in galactic coordinates from
+<dd><p>Calculates a map of integrated fluxes in galactic coordinates from
     a catalogue of IRAS point sources.  The output is a two-dimensional
-    FITS image representing the sky in galactic coordinates.
+    FITS image representing the sky in galactic coordinates,
+    with each pixel containing the sum of <code>Fnu_60</code> fluxes
+    from objects in that rectangle of <code>(glat,glon></code> space.
     Bounds are determined automatically from the data, and the number of
     pixels in each dimension (400 in latitude and 200 in longitude) are
     specified, which means that the pixel sizes don't have to be.
@@ -12884,6 +12894,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="cdsskymatch"><code>cdsskymatch</code></ref>.</li>
     <li>Avoid inserting <code>NULL_VALUE</code> custom metadata entries
         into ECSV output.</li>
+    <li>Add <code>combine</code> parameter to
+        <ref id="tcube"><code>tcube</code></ref>,
+        so it can produce generalised weighted maps.</li>
     </ul>
     </p></dd>
 
