@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.plot2.Equality;
 @Equality
 public class MaskSpec {
 
-    private final UserDataReader dataReader_;
+    private final DataSpec dataSpec_;
     private final StarTable table_;
     private final String maskId_;
 
@@ -27,7 +27,7 @@ public class MaskSpec {
      *                     is taken
      */
     public MaskSpec( DataSpec dataSpec ) {
-        dataReader_ = dataSpec.createUserDataReader();
+        dataSpec_ = dataSpec;
         table_ = dataSpec.getSourceTable();
         maskId_ = dataSpec.getMaskId();
     }
@@ -51,14 +51,15 @@ public class MaskSpec {
     }
 
     /**
-     * Reads inclusion flag from a row sequence.
+     * Returns an object that can read the flag value for this mask
+     * from the current row of a supplied row sequence.
      *
-     * @param   rdata   row for this data spec's table
-     * @param   irow   row index
-     * @return  inclusion mask for current row
+     * @param   rdata   row for this mask spec's table
+     * @return  inclusion mask reader
      */
-    public boolean readFlag( RowData rdata, long irow ) throws IOException {
-        return dataReader_.getMaskFlag( rdata, irow );
+    public Reader flagReader( final RowData rdata ) {
+        final UserDataReader dataReader = dataSpec_.createUserDataReader();
+        return irow -> dataReader.getMaskFlag( rdata, irow );
     }
 
     @Override
@@ -81,5 +82,24 @@ public class MaskSpec {
     @Override
     public String toString() {
         return String.valueOf( maskId_ );
+    }
+
+    /**
+     * Reads a flag.
+     */
+    @FunctionalInterface
+    public interface Reader {
+
+        /**
+         * Returns a particular mask given this reader's current state.
+         * Note that the supplied row index is additional information
+         * (for instance may be relevant to JEL expression evaluation)
+         * and it does <em>not</em> determine the row from which the
+         * value is supplied.
+         *
+         * @param  irow   row index
+         * @return  inclusion flag
+         */
+        boolean readFlag( long irow ) throws IOException;
     }
 }

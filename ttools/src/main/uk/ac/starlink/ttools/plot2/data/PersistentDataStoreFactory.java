@@ -160,23 +160,23 @@ public class PersistentDataStoreFactory implements DataStoreFactory {
         /* For each table, iterate over rows and write the required data
          * columns to file. */
         for ( StarTable table : tMap.keySet() ) {
-            CacheEntry[] tEntries =
-                tMap.get( table ).toArray( new CacheEntry[ 0 ] );
-            int nent = tEntries.length;
+            RowSequence rseq = table.getRowSequence();
+            List<CacheEntry> tEntries = tMap.get( table );
+            int nent = tEntries.size();
+            CoordSpec.Reader[] objRdrs = new CoordSpec.Reader[ nent ];
             CachedColumn[] wcols = new CachedColumn[ nent ];
             List<File> files = new ArrayList<File>();
             for ( int ient = 0; ient < nent; ient++ ) {
-                CacheEntry entry = tEntries[ ient ];
+                CacheEntry entry = tEntries.get( ient );
+                objRdrs[ ient ] = entry.createObjectReader( rseq );
                 wcols[ ient ] = entry.createWriter();
                 files.addAll( Arrays.asList( entry.files_ ) );
             }
             assert nent > 0;
-            RowSequence rseq = table.getRowSequence();
             try {
                 for ( long irow = 0; rseq.next(); irow++ ) {
                     for ( int ient = 0; ient < nent; ient++ ) {
-                        wcols[ ient ]
-                       .add( tEntries[ ient ].getRowObject( rseq, irow ) );
+                        wcols[ ient ].add( objRdrs[ ient ].readValue( irow ) );
                     }
                 }
                 for ( int ient = 0; ient < nent; ient++ ) {
@@ -194,7 +194,7 @@ public class PersistentDataStoreFactory implements DataStoreFactory {
             finally {
                 rseq.close();
                 synchronized ( inProgress_ ) {
-                    inProgress_.removeAll( Arrays.asList( tEntries ) );
+                    inProgress_.removeAll( tEntries );
                     inProgress_.notifyAll();
                 }
             }
@@ -248,9 +248,9 @@ public class PersistentDataStoreFactory implements DataStoreFactory {
            .append( DiskCache.hashText( getMaskId( mspec ) ) )
            .toString();
         return new CacheEntry( id, StorageType.BOOLEAN ) {
-            Object getRowObject( RowData rdata, long irow )
-                    throws IOException {
-                return Boolean.valueOf( mspec.readFlag( rdata, irow ) );
+            CoordSpec.Reader createObjectReader( final RowData rdata ) {
+                final MaskSpec.Reader maskRdr = mspec.flagReader( rdata );
+                return ir -> Boolean.valueOf( maskRdr.readFlag( ir ) );
             }
         };
     }
@@ -269,9 +269,8 @@ public class PersistentDataStoreFactory implements DataStoreFactory {
            .append( DiskCache.hashText( getCoordId( cspec ) ) )
            .toString();
         return new CacheEntry( id, cspec.getStorageType() ) {
-            Object getRowObject( RowData rdata, long irow )
-                    throws IOException {
-                return cspec.readValue( rdata, irow );
+            CoordSpec.Reader createObjectReader( final RowData rdata ) {
+                return cspec.valueReader( rdata );
             }
         };
     }
@@ -553,14 +552,13 @@ public class PersistentDataStoreFactory implements DataStoreFactory {
         }
 
         /**
-         * Acquires the data to be written for this entry for
-         * a RowData obtained from the relevant table.
+         * Returns a reader for the data to be written for this entry,
+         * given a RowData obtained from the relevant table.
          *
          * @param  rdata  row data object
-         * @param  irow  row index
+         * @return  object reader
          */
-        abstract Object getRowObject( RowData rdata, long irow )
-                throws IOException;
+        abstract CoordSpec.Reader createObjectReader( RowData rdata );
 
         /**
          * Returns a reader that will read the data for this entry from disk,

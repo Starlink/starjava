@@ -19,9 +19,9 @@ import uk.ac.starlink.ttools.plot2.Equality;
 @Equality
 public class CoordSpec {
 
-    private final UserDataReader dataReader_;
-    private final StarTable table_;
+    private final DataSpec dataSpec_;
     private final int icoord_;
+    private final StarTable table_;
     private final String coordId_;
     private final StorageType storageType_;
     private final Function<Object[],?> inputStorage_;
@@ -33,7 +33,7 @@ public class CoordSpec {
      * @param  icoord  coordinate index within dataSpec
      */
     public CoordSpec( DataSpec dataSpec, int icoord ) {
-        dataReader_ = dataSpec.createUserDataReader();
+        dataSpec_ = dataSpec;
         icoord_ = icoord;
         table_ = dataSpec.getSourceTable();
         coordId_ = dataSpec.getCoordId( icoord );
@@ -72,18 +72,21 @@ public class CoordSpec {
     }
 
     /**
-     * Reads the user value for this coordinate from a row sequence.
+     * Returns an object that can read the user value for this coordinate
+     * from the current row of a supplied a row sequence.
      *
-     * @param   rdata   row data for this data spec's table
-     * @param   irow   row index
-     * @return   coordinate stored value for this column at current row
+     * @param   rdata   row data for this coord spec's table
+     * @return  value reader
      */
-    public Object readValue( RowData rdata, long irow ) throws IOException {
-        Object[] userCoords =
-            dataReader_.getUserCoordValues( rdata, irow, icoord_ );
-        Object value = inputStorage_.apply( userCoords );
-        assert value != null;
-        return value;
+    public Reader valueReader( final RowData rdata ) {
+        final UserDataReader dataReader = dataSpec_.createUserDataReader();
+        return irow -> {
+            Object[] userCoords =
+                dataReader.getUserCoordValues( rdata, irow, icoord_ );
+            Object value = inputStorage_.apply( userCoords );
+            assert value != null;
+            return value;
+        };
     }
 
     @Override
@@ -106,5 +109,24 @@ public class CoordSpec {
     @Override
     public String toString() {
         return String.valueOf( coordId_ );
+    }
+
+    /**
+     * Reads a data value object.
+     */
+    @FunctionalInterface
+    public interface Reader {
+
+        /**
+         * Returns a particular value given this reader's current state.
+         * Note that the supplied row index is additional information
+         * (for instance may be relevant to JEL expression evaluation)
+         * and it does <em>not</em> determine the row from which the
+         * value is supplied.
+         *
+         * @param  irow   row index
+         * @return  coordinate stored value
+         */
+        Object readValue( long irow ) throws IOException;
     }
 }

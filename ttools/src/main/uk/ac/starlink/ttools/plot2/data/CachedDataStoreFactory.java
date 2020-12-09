@@ -117,26 +117,30 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         long nrow = table.getRowCount();
         CachedColumn[] maskCols = new CachedColumn[ nm ];
         CachedColumn[] coordCols = new CachedColumn[ nc ];
+        MaskSpec.Reader[] maskRdrs = new MaskSpec.Reader[ nm ];
+        CoordSpec.Reader[] coordRdrs = new CoordSpec.Reader[ nc ];
+        RowSequence rseq = table.getRowSequence();
         for ( int im = 0; im < nm; im++ ) {
+            maskRdrs[ im ] = masks[ im ].flagReader( rseq );
             maskCols[ im ] =
                 colFact.createColumn( StorageType.BOOLEAN, nrow );
         }
         for ( int ic = 0; ic < nc; ic++ ) {
+            coordRdrs[ ic ] = coords[ ic ].valueReader( rseq );
             coordCols[ ic ] =
                 colFact.createColumn( coords[ ic ].getStorageType(), nrow );
         }
-        RowSequence rseq = table.getRowSequence();
         try {
             for ( long irow = 0; rseq.next(); irow++ ) {
                 if ( Thread.currentThread().isInterrupted() ) {
                     throw new InterruptedException();
                 }
                 for ( int im = 0; im < nm; im++ ) {
-                    boolean include = masks[ im ].readFlag( rseq, irow );
+                    boolean include = maskRdrs[ im ].readFlag( irow );
                     maskCols[ im ].add( Boolean.valueOf( include ) );
                 }
                 for ( int ic = 0; ic < nc; ic++ ) {
-                    Object value = coords[ ic ].readValue( rseq, irow );
+                    Object value = coordRdrs[ ic ].readValue( irow );
                     coordCols[ ic ].add( value );
                 }
             }
