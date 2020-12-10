@@ -309,7 +309,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
 
         public void endAdd() {
-            assert irow_ == nrow_;
         }
 
         public long getRowCount() {
@@ -347,7 +346,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
 
         public void endAdd() {
-            assert irow_ == nrow_;
         }
 
         public long getRowCount() {
@@ -385,7 +383,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
 
         public void endAdd() {
-            assert irow_ == nrow_;
         }
 
         public long getRowCount() {
@@ -423,7 +420,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
 
         public void endAdd() {
-            assert irow_ == nrow_;
         }
 
         public long getRowCount() {
@@ -461,7 +457,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
 
         public void endAdd() {
-            assert irow_ == nrow_;
         }
 
         public long getRowCount() {
@@ -499,7 +494,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
 
         public void endAdd() {
-            assert irow_ == nrow_;
         }
 
         public long getRowCount() {
@@ -537,7 +531,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
 
         public void endAdd() {
-            assert irow_ == nrow_;
         }
 
         public long getRowCount() {
@@ -583,7 +576,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
 
         public void endAdd() {
-            assert ipos_ == nrow_ * ncol_;
         }
 
         public long getRowCount() {
@@ -637,7 +629,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
 
         public void endAdd() {
-            assert ipos_ == nrow_ * ncol_;
         }
 
         public long getRowCount() {
@@ -691,7 +682,6 @@ public class MemoryColumnFactory implements CachedColumnFactory {
         }
 
         public void endAdd() {
-            assert ipos_ == nrow_ * ncol_;
         }
 
         public long getRowCount() {

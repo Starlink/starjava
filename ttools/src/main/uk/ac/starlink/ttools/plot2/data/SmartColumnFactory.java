@@ -186,7 +186,6 @@ public class SmartColumnFactory implements CachedColumnFactory {
 
         public void endAdd() throws IOException {
             ( bulkCol_ != null ? bulkCol_ : constCol_ ).endAdd();
-            assert constCol_ == null || nrow_ < 0 || constCount_ == nrow_;
         }
 
         public long getRowCount() {
