@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.plot2.Slow;
@@ -27,21 +28,45 @@ import uk.ac.starlink.ttools.plot2.Slow;
 public class CachedDataStoreFactory implements DataStoreFactory {
 
     private final CachedColumnFactory colFact_;
-    private final TupleRunner runner_;
+    private final TupleRunner tupleRunner_;
+    private final RowRunner rowRunner_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
     /**
-     * Constructor.
+     * Constructs a default instance.
+     * This currently does not do cache reading in parallel.
      *
      * @param   colFact  object which provides the storage for caching
      *                   arrays of typed data
-     * @param   runner  tuple runner dispensed with DataStores
+     * @param   tupleRunner  tuple runner dispensed with DataStores
      */
     public CachedDataStoreFactory( CachedColumnFactory colFact,
-                                   TupleRunner runner ) {
+                                   TupleRunner tupleRunner ) {
+        this( colFact, tupleRunner, (RowRunner) null );
+    }
+
+    /**
+     * Constructs an instance with control over read paralellism.
+     *
+     * <p><strong>Note</strong> the parallel cache population is a bit
+     * experimental.  The reading is faster, but the contents are not
+     * guaranteed to be in the right order (most likely that doesn't matter
+     * for large datasets) and the resulting cached data can be a bit (20%?)
+     * slower to use.
+     *
+     * @param   colFact  object which provides the storage for caching
+     *                   arrays of typed data
+     * @param   tupleRunner  tuple runner dispensed with DataStores
+     * @param   rowRunner   null for sequential cache population,
+     *                      non-null for potentially parallel
+     */
+    protected CachedDataStoreFactory( CachedColumnFactory colFact,
+                                      TupleRunner tupleRunner,
+                                      RowRunner rowRunner ) {
         colFact_ = colFact;
-        runner_ = runner;
+        tupleRunner_ = tupleRunner;
+        rowRunner_ = rowRunner;
     }
 
     // how about weak links for all known columns, new methods
@@ -59,14 +84,15 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         CacheSpec needSpec = createCacheSpec( dataSpecs );
         CacheData gotData = prevStore instanceof CacheData
                           ? ((CacheData) prevStore)
-                          : new CacheData( runner_ );
+                          : new CacheData( tupleRunner_ );
         CacheSpec makeSpec = needSpec.subtract( gotData.getSpec() );
         if ( makeSpec.isEmpty() ) {
             return prevStore;
         }
         else {
             CacheData oldData = gotData.retain( needSpec );
-            CacheData makeData = makeSpec.readData( colFact_, runner_ );
+            CacheData makeData =
+                makeSpec.readData( colFact_, tupleRunner_, rowRunner_ );
             CacheData useData = makeData.add( oldData );
             return useData;
         }
@@ -103,6 +129,8 @@ public class CachedDataStoreFactory implements DataStoreFactory {
      * @param   coordSet  required coordinates
      * @param   colFact   supplies data storage objects
      * @param   tupleRunner  tuple runner dispensed with DataStores
+     * @param   rowRunner   controls parallel cache reading,
+     *                      or null to read data sequentially
      * @return   data object containing required data
      */
     @Slow
@@ -110,12 +138,16 @@ public class CachedDataStoreFactory implements DataStoreFactory {
                                             Set<MaskSpec> maskSet,
                                             Set<CoordSpec> coordSet,
                                             CachedColumnFactory colFact,
-                                            TupleRunner tupleRunner )
+                                            TupleRunner tupleRunner,
+                                            RowRunner rowRunner )
             throws IOException, InterruptedException {
         MaskSpec[] masks = maskSet.toArray( new MaskSpec[ 0 ] );
         CoordSpec[] coords = coordSet.toArray( new CoordSpec[ 0 ] );
         TableCachedData tcd =
-            TableCachedData.readData( table, masks, coords, colFact );
+              rowRunner == null
+            ? TableCachedData.readDataSeq( table, masks, coords, colFact )
+            : TableCachedData.readDataPar( table, masks, coords, colFact,
+                                           rowRunner );
         long nrow = tcd.getRowCount();
         List<Supplier<CachedReader>> maskCols = tcd.getMaskColumns();
         List<Supplier<CachedReader>> coordCols = tcd.getCoordColumns();
@@ -200,11 +232,14 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          * CacheData.
          *
          * @param   colFact  factory supplying actual column data storage
-         * @param   runner  tuple runner dispensed with DataStores
+         * @param   tupleRunner  tuple runner dispensed with DataStores
+         * @param   rowRunner   controls parallel cache reading,
+         *                      or null to read data sequentially
          * @return  data object containing all data specified by this object
          */
         @Slow
-        CacheData readData( CachedColumnFactory colFact, TupleRunner runner )
+        CacheData readData( CachedColumnFactory colFact,
+                            TupleRunner tupleRunner, RowRunner rowRunner )
                 throws IOException, InterruptedException {
             Level level = Level.INFO;
             if ( logger_.isLoggable( level ) ) {
@@ -218,11 +253,11 @@ public class CachedDataStoreFactory implements DataStoreFactory {
                     .toString();
                 logger_.log( level, msg );
             }
-            CacheData data = new CacheData( runner );
+            CacheData data = new CacheData( tupleRunner );
             for ( StarTable table : getTables() ) {
                 CacheData tData =
                     readCacheData( table, getMasks( table ), getCoords( table ),
-                                   colFact, runner );
+                                   colFact, tupleRunner, rowRunner );
                 data = data.add( tData );
             }
             return data;
@@ -290,7 +325,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
      * It also implements DataStore.
      */
     private static class CacheData implements DataStore {
-        private final TupleRunner runner_;
+        private final TupleRunner tupleRunner_;
         private final Map<MaskSpec,Supplier<CachedReader>> mMap_;
         private final Map<CoordSpec,Supplier<CachedReader>> cMap_;
         private final Map<StarTable,Long> nMap_;
@@ -298,16 +333,16 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         /**
          * Constructs a CacheData from data maps.
          *
-         * @param   runner  tuple runner
+         * @param   tupleRunner  tuple runner
          * @param   mMap  map of mask data, keyed by mask spec
          * @param   cMap  map of coordinate data, keyed by coord spec
          * @param   nMap  map of table row count, keyed by table
          */
-        CacheData( TupleRunner runner,
+        CacheData( TupleRunner tupleRunner,
                    Map<MaskSpec,Supplier<CachedReader>> mMap,
                    Map<CoordSpec,Supplier<CachedReader>> cMap,
                    Map<StarTable,Long> nMap ) {
-            runner_ = runner;
+            tupleRunner_ = tupleRunner;
             mMap_ = new HashMap<MaskSpec,Supplier<CachedReader>>( mMap );
             cMap_ = new HashMap<CoordSpec,Supplier<CachedReader>>( cMap );
             nMap_ = new HashMap<StarTable,Long>( nMap );
@@ -316,11 +351,12 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         /**
          * Clone constructor.
          *
-         * @param   runner  tuple runner
+         * @param   tupleRunner  tuple runner
          * @param  cloned   object whose data is to be copied (by reference)
          */
-        CacheData( TupleRunner runner, CacheData cloned ) {
-            this( cloned.runner_, cloned.mMap_, cloned.cMap_, cloned.nMap_ );
+        CacheData( TupleRunner tupleRunner, CacheData cloned ) {
+            this( cloned.tupleRunner_,
+                  cloned.mMap_, cloned.cMap_, cloned.nMap_ );
         }
 
         /**
@@ -351,7 +387,8 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          */
         CacheData add( CacheData other ) {
             CacheData result =
-                new CacheData( runner_, this.mMap_, this.cMap_, this.nMap_ );
+                new CacheData( tupleRunner_,
+                               this.mMap_, this.cMap_, this.nMap_ );
             result.mMap_.putAll( other.mMap_ );
             result.cMap_.putAll( other.cMap_ );
             result.nMap_.putAll( other.nMap_ );
@@ -373,7 +410,8 @@ public class CachedDataStoreFactory implements DataStoreFactory {
             for ( CoordSpec cSpec : cMap_.keySet() ) {
                 tSet.add( cSpec.getTable() );
             }
-            CacheData result = new CacheData( runner_, mMap_, cMap_, nMap_ );
+            CacheData result =
+                new CacheData( tupleRunner_, mMap_, cMap_, nMap_ );
             result.mMap_.keySet().retainAll( spec.mSet_ );
             result.cMap_.keySet().retainAll( spec.cSet_ );
             result.nMap_.keySet().retainAll( tSet );
@@ -447,7 +485,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         }
 
         public TupleRunner getTupleRunner() {
-            return runner_;
+            return tupleRunner_;
         }
     }
 }
