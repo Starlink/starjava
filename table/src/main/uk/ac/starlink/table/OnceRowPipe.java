@@ -23,7 +23,7 @@ public class OnceRowPipe implements RowPipe, RowSequence {
     private Object[] seqRow_;
     private boolean seqClosed_;
     private boolean seqEnded_;
-    private IOException error_;
+    private volatile IOException error_;
 
     private static final Object[] END_ROWS = new Object[ 0 ];
 
@@ -46,6 +46,7 @@ public class OnceRowPipe implements RowPipe, RowSequence {
     }
 
     public synchronized void setError( IOException error ) {
+        rowQueue_.clear();
         if ( error_ == null ) {
             error_ = error;
             notifyAll();
@@ -97,6 +98,7 @@ public class OnceRowPipe implements RowPipe, RowSequence {
         if ( seqClosed_ ) {
             throw new IOException( "Stream closed at reading end" );
         }
+        checkError();
         try {
             while ( rowQueue_.size() > queueSize_ ) {
                 wait();

@@ -39,7 +39,7 @@ public abstract class StreamTableSink implements TableSink {
     protected abstract void scanTable( StarTable table ) throws IOException;
 
     public void acceptMetadata( StarTable meta ) throws TableFormatException {
-        rowPipe_ = new OnceRowPipe();
+        rowPipe_ = new OnceRowPipe2();
         rowPipe_.acceptMetadata( meta );
         final StarTable outTable;
         try {
@@ -55,6 +55,9 @@ public abstract class StreamTableSink implements TableSink {
                 }
                 catch ( Throwable e ) {
                     writerError_ = e;
+                    if ( e instanceof IOException ) {
+                        rowPipe_.setError( (IOException) e );
+                    }
                 }
             }
         };

@@ -56,6 +56,7 @@ class OnceRowPipe2 implements RowPipe, RowSequence {
     }
 
     public void setError( IOException error ) {
+        rowQueue_.clear();
         if ( error_ == null ) {
             error_ = error;
         }
@@ -106,6 +107,7 @@ class OnceRowPipe2 implements RowPipe, RowSequence {
         if ( seqClosed_ ) {
             throw new IOException( "Stream closed at reading end" );
         }
+        checkError();
         try {
             rowQueue_.put( row );
         }
