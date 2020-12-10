@@ -1,9 +1,11 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -100,7 +102,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
      * @param   maskSet  required masks
      * @param   coordSet  required coordinates
      * @param   colFact   supplies data storage objects
-     * @param   runner  tuple runner dispensed with DataStores
+     * @param   tupleRunner  tuple runner dispensed with DataStores
      * @return   data object containing required data
      */
     @Slow
@@ -108,63 +110,26 @@ public class CachedDataStoreFactory implements DataStoreFactory {
                                             Set<MaskSpec> maskSet,
                                             Set<CoordSpec> coordSet,
                                             CachedColumnFactory colFact,
-                                            TupleRunner runner )
+                                            TupleRunner tupleRunner )
             throws IOException, InterruptedException {
         MaskSpec[] masks = maskSet.toArray( new MaskSpec[ 0 ] );
         CoordSpec[] coords = coordSet.toArray( new CoordSpec[ 0 ] );
-        int nm = masks.length;
-        int nc = coords.length;
-        long nrow = table.getRowCount();
-        CachedColumn[] maskCols = new CachedColumn[ nm ];
-        CachedColumn[] coordCols = new CachedColumn[ nc ];
-        MaskSpec.Reader[] maskRdrs = new MaskSpec.Reader[ nm ];
-        CoordSpec.Reader[] coordRdrs = new CoordSpec.Reader[ nc ];
-        RowSequence rseq = table.getRowSequence();
-        for ( int im = 0; im < nm; im++ ) {
-            maskRdrs[ im ] = masks[ im ].flagReader( rseq );
-            maskCols[ im ] =
-                colFact.createColumn( StorageType.BOOLEAN, nrow );
+        TableCachedData tcd =
+            TableCachedData.readData( table, masks, coords, colFact );
+        long nrow = tcd.getRowCount();
+        List<Supplier<CachedReader>> maskCols = tcd.getMaskColumns();
+        List<Supplier<CachedReader>> coordCols = tcd.getCoordColumns();
+        Map<StarTable,Long> nMap = new HashMap<>();
+        Map<MaskSpec,Supplier<CachedReader>> mMap = new HashMap<>();
+        Map<CoordSpec,Supplier<CachedReader>> cMap = new HashMap<>();
+        nMap.put( table, Long.valueOf( nrow ) );
+        for ( int im = 0; im < masks.length; im++ ) {
+            mMap.put( masks[ im ], maskCols.get( im ) );
         }
-        for ( int ic = 0; ic < nc; ic++ ) {
-            coordRdrs[ ic ] = coords[ ic ].valueReader( rseq );
-            coordCols[ ic ] =
-                colFact.createColumn( coords[ ic ].getStorageType(), nrow );
+        for ( int ic = 0; ic < coords.length; ic++ ) {
+            cMap.put( coords[ ic ], coordCols.get( ic ) );
         }
-        try {
-            for ( long irow = 0; rseq.next(); irow++ ) {
-                if ( Thread.currentThread().isInterrupted() ) {
-                    throw new InterruptedException();
-                }
-                for ( int im = 0; im < nm; im++ ) {
-                    boolean include = maskRdrs[ im ].readFlag( irow );
-                    maskCols[ im ].add( Boolean.valueOf( include ) );
-                }
-                for ( int ic = 0; ic < nc; ic++ ) {
-                    Object value = coordRdrs[ ic ].readValue( irow );
-                    coordCols[ ic ].add( value );
-                }
-            }
-        }
-        finally {
-            rseq.close();
-        }
-        for ( int im = 0; im < nm; im++ ) {
-            maskCols[ im ].endAdd();
-        }
-        for ( int ic = 0; ic < nc; ic++ ) {
-            coordCols[ ic ].endAdd();
-        }
-        Map<MaskSpec,CachedColumn> mMap =
-            new HashMap<MaskSpec,CachedColumn>();
-        Map<CoordSpec,CachedColumn> cMap =
-            new HashMap<CoordSpec,CachedColumn>();
-        for ( int im = 0; im < nm; im++ ) {
-            mMap.put( masks[ im ], maskCols[ im ] );
-        }
-        for ( int ic = 0; ic < nc; ic++ ) {
-            cMap.put( coords[ ic ], coordCols[ ic ] );
-        }
-        return new CacheData( runner, mMap, cMap );
+        return new CacheData( tupleRunner, mMap, cMap, nMap );
     }
 
     /**
@@ -325,9 +290,10 @@ public class CachedDataStoreFactory implements DataStoreFactory {
      * It also implements DataStore.
      */
     private static class CacheData implements DataStore {
-        private final Map<MaskSpec,CachedColumn> mMap_;
-        private final Map<CoordSpec,CachedColumn> cMap_;
         private final TupleRunner runner_;
+        private final Map<MaskSpec,Supplier<CachedReader>> mMap_;
+        private final Map<CoordSpec,Supplier<CachedReader>> cMap_;
+        private final Map<StarTable,Long> nMap_;
  
         /**
          * Constructs a CacheData from data maps.
@@ -335,23 +301,26 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          * @param   runner  tuple runner
          * @param   mMap  map of mask data, keyed by mask spec
          * @param   cMap  map of coordinate data, keyed by coord spec
+         * @param   nMap  map of table row count, keyed by table
          */
         CacheData( TupleRunner runner,
-                   Map<MaskSpec,CachedColumn> mMap,
-                   Map<CoordSpec,CachedColumn> cMap ) {
+                   Map<MaskSpec,Supplier<CachedReader>> mMap,
+                   Map<CoordSpec,Supplier<CachedReader>> cMap,
+                   Map<StarTable,Long> nMap ) {
             runner_ = runner;
-            mMap_ = new HashMap<MaskSpec,CachedColumn>( mMap );
-            cMap_ = new HashMap<CoordSpec,CachedColumn>( cMap );
+            mMap_ = new HashMap<MaskSpec,Supplier<CachedReader>>( mMap );
+            cMap_ = new HashMap<CoordSpec,Supplier<CachedReader>>( cMap );
+            nMap_ = new HashMap<StarTable,Long>( nMap );
         }
 
         /**
          * Clone constructor.
          *
          * @param   runner  tuple runner
-         * @param  cloned   object whos data is to be copied (by reference)
+         * @param  cloned   object whose data is to be copied (by reference)
          */
         CacheData( TupleRunner runner, CacheData cloned ) {
-            this( cloned.runner_, cloned.mMap_, cloned.cMap_ );
+            this( cloned.runner_, cloned.mMap_, cloned.cMap_, cloned.nMap_ );
         }
 
         /**
@@ -360,8 +329,9 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          * @param   runner  tuple runner
          */
         CacheData( TupleRunner runner ) {
-            this( runner, new HashMap<MaskSpec,CachedColumn>(),
-                          new HashMap<CoordSpec,CachedColumn>() );
+            this( runner, new HashMap<MaskSpec,Supplier<CachedReader>>(),
+                          new HashMap<CoordSpec,Supplier<CachedReader>>(),
+                          new HashMap<StarTable,Long>() );
         }
 
         /**
@@ -380,9 +350,11 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          * @return   new data object containing union
          */
         CacheData add( CacheData other ) {
-            CacheData result = new CacheData( runner_, this.mMap_, this.cMap_ );
+            CacheData result =
+                new CacheData( runner_, this.mMap_, this.cMap_, this.nMap_ );
             result.mMap_.putAll( other.mMap_ );
             result.cMap_.putAll( other.cMap_ );
+            result.nMap_.putAll( other.nMap_ );
             return result;
         }
 
@@ -394,9 +366,17 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          * @return  new intersection data object
          */
         CacheData retain( CacheSpec spec ) {
-            CacheData result = new CacheData( runner_, this.mMap_, this.cMap_ );
+            Set<StarTable> tSet = new HashSet<StarTable>();
+            for ( MaskSpec mSpec : mMap_.keySet() ) {
+                tSet.add( mSpec.getTable() );
+            }
+            for ( CoordSpec cSpec : cMap_.keySet() ) {
+                tSet.add( cSpec.getTable() );
+            }
+            CacheData result = new CacheData( runner_, mMap_, cMap_, nMap_ );
             result.mMap_.keySet().retainAll( spec.mSet_ );
             result.cMap_.keySet().retainAll( spec.cSet_ );
+            result.nMap_.keySet().retainAll( tSet );
             return result;
         }
 
@@ -406,7 +386,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          * @param  dataSpec  data spec
          * @return   mask column
          */
-        CachedColumn getMask( DataSpec dataSpec ) {
+        Supplier<CachedReader> getMask( DataSpec dataSpec ) {
             return mMap_.get( new MaskSpec( dataSpec ) );
         }
 
@@ -417,7 +397,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          * @param  icoord  coordinate index within dataSpec
          * @return  data column
          */
-        CachedColumn getColumn( DataSpec dataSpec, int icoord ) {
+        Supplier<CachedReader> getColumn( DataSpec dataSpec, int icoord ) {
             return cMap_.get( new CoordSpec( dataSpec, icoord ) );
         }
 
@@ -429,13 +409,16 @@ public class CachedDataStoreFactory implements DataStoreFactory {
          * @param   dataSpec  specification of required columns
          * @return   all column data, or null
          */
-        CachedColumn[] getColumns( DataSpec dataSpec ) {
+        List<Supplier<CachedReader>> getColumns( DataSpec dataSpec ) {
             int ncol = dataSpec.getCoordCount();
-            CachedColumn[] cols = new CachedColumn[ ncol ];
+            List<Supplier<CachedReader>> cols = new ArrayList<>();
             for ( int ic = 0; ic < ncol; ic++ ) {
-                cols[ ic ] = getColumn( dataSpec, ic );
-                if ( cols[ ic ] == null ) {
+                Supplier<CachedReader> col = getColumn( dataSpec, ic );
+                if ( col == null ) {
                     return null;
+                }
+                else {
+                    cols.add( col );
                 }
             }
             return cols;
@@ -448,15 +431,15 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         }
 
         public TupleSequence getTupleSequence( DataSpec spec ) {
-            final CachedColumn mask = getMask( spec );
-            long nrow = mask.getRowCount();
-            Supplier<CachedReader> maskSupplier = mask::createReader;
-            final CachedColumn[] cols = getColumns( spec );
-            final int ncol = cols.length;
+            Long nRow = nMap_.get( spec.getSourceTable() );
+            long nrow = nRow == null ? -1 :  nRow.longValue();
+            Supplier<CachedReader> maskSupplier = getMask( spec );
+            final List<Supplier<CachedReader>> cols = getColumns( spec );
+            final int ncol = cols.size();
             Supplier<CachedReader[]> colsSupplier = () -> {
                 CachedReader[] rdrs = new CachedReader[ ncol ];
                 for ( int ic = 0; ic < ncol; ic++ ) {
-                    rdrs[ ic ] = cols[ ic ].createReader();
+                    rdrs[ ic ] = cols.get( ic ).get();
                 }
                 return rdrs;
             };
