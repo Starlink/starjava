@@ -13005,6 +13005,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         If quantiles are calculated, the <code>-qapprox</code> flag
         can be supplied to use an (approximate) algorithm that will
         not run out of memory.</li>
+    <li>The <ref id="sort">sort</ref> filter now runs in parallel
+        for large tables; the <code>-[no]parallel</code> can be used
+        to force parallel/sequential execution.</li>
     </ul>
     </p></dd>
 

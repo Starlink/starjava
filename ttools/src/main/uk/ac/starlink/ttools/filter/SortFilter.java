@@ -1,8 +1,7 @@
 package uk.ac.starlink.ttools.filter;
 
 import gnu.jel.CompilationException;
-import gnu.jel.CompiledExpression;
-import gnu.jel.Library;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -14,8 +13,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Tokenizer;
-import uk.ac.starlink.ttools.jel.JELUtils;
-import uk.ac.starlink.ttools.jel.RandomJELRowReader;
+import uk.ac.starlink.ttools.jel.RandomJELEvaluator;
 
 /**
  * Processing filter which sorts on one or more JEL expressions.
@@ -24,6 +22,9 @@ import uk.ac.starlink.ttools.jel.RandomJELRowReader;
  * @since    8 Mar 2005
  */
 public class SortFilter extends BasicFilter {
+
+    /** Boundary for default sequential/parallel sort behaviour threshold. */
+    private static final int PARALLEL_THRESHOLD = 100_000;
 
     public SortFilter() {
         super( "sort",
@@ -51,10 +52,9 @@ public class SortFilter extends BasicFilter {
             "flag is given then they are considered to come at the start",
             "instead.",
             "</p>",
-            "<p>The <code>-parallel</code> flag may be supplied to perform",
-            "a multi-threaded sort.  However, in the current implementation",
-            "this is usually slower than the default single-threaded sort,",
-            "so this option is not generally recommended.",
+            "<p>By default, sorting is done sequentially for small tables",
+            "and in parallel for large tables, but this can be controlled",
+            "with the <code>-parallel</code> or <code>-noparallel</code> flag.",
             "</p>",
             explainSyntax( new String[] { "key-list", } ),
         };
@@ -64,7 +64,7 @@ public class SortFilter extends BasicFilter {
             throws ArgException {
         boolean up = true;
         boolean nullsLast = true;
-        boolean isParallel = false;
+        Boolean isParallel = null;
         String exprs = null;
         while ( argIt.hasNext() && exprs == null ) {
             String arg = argIt.next();
@@ -78,11 +78,11 @@ public class SortFilter extends BasicFilter {
             }
             else if ( arg.equals( "-parallel" ) ) {
                 argIt.remove();
-                isParallel = true;
+                isParallel = Boolean.TRUE;
             }
             else if ( arg.equals( "-noparallel" ) ) {
                 argIt.remove();
-                isParallel = false;
+                isParallel = Boolean.FALSE;
             }
             else if ( exprs == null ) {
                 argIt.remove();
@@ -116,10 +116,10 @@ public class SortFilter extends BasicFilter {
         final String[] keys_;
         final boolean up_;
         final boolean nullsLast_;
-        final boolean isParallel_;
+        final Boolean isParallel_;
 
         SortStep( String[] keys, boolean up, boolean nullsLast,
-                  boolean isParallel ) {
+                  Boolean isParallel ) {
             keys_ = keys;
             up_ = up;
             nullsLast_ = nullsLast;
@@ -134,21 +134,24 @@ public class SortFilter extends BasicFilter {
                     "Sorry, can't sort tables with >2^31 rows" );
             }
             int nrow = (int) lnrow;
+            boolean isParallel = isParallel_ == null
+                               ? nrow > PARALLEL_THRESHOLD
+                               : isParallel_.booleanValue();
             Number[] rowMap = new Number[ nrow ];
             for ( int i = 0; i < nrow; i++ ) {
                 rowMap[ i ] = new Integer( i );
             }
-            Comparator<Number> keyComparator;
+            RowComparator keyComparator;
             try {
                 keyComparator = new RowComparator( baseTable, keys_, up_,
-                                                   nullsLast_, isParallel_ );
+                                                   nullsLast_, isParallel );
             }
             catch ( CompilationException e ) {
                 throw (IOException) new IOException( "Bad sort key(s)" )
                                    .initCause( e );
             }
             try {
-                if ( isParallel_ ) {
+                if ( isParallel ) {
                     Arrays.parallelSort( rowMap, keyComparator );
                 }
                 else {
@@ -157,6 +160,9 @@ public class SortFilter extends BasicFilter {
             }
             catch ( SortException e ) {
                 throw e.asIOException();
+            }
+            finally {
+                keyComparator.close();
             }
             long[] rmap = new long[ nrow ];
             for ( int i = 0; i < nrow; i++ ) {
@@ -170,11 +176,11 @@ public class SortFilter extends BasicFilter {
      * Comparator which will compare two objects which are Numbers 
      * representing row indices of a given table.
      */
-    private static class RowComparator implements Comparator<Number> {
+    private static class RowComparator
+            implements Comparator<Number>, Closeable {
 
-        final CompiledExpression[] compExs_;
         final int nexpr_;
-        final RandomJELRowReader rowReader_;
+        final RandomJELEvaluator[] evaluators_;
         final boolean up_;
         final boolean nullsLast_;
 
@@ -196,19 +202,17 @@ public class SortFilter extends BasicFilter {
             nexpr_ = keys.length;
             up_ = up;
             nullsLast_ = nullsLast;
+            evaluators_ = new RandomJELEvaluator[ nexpr_ ];
+            for ( int ie = 0; ie < nexpr_; ie++ ) {
+                evaluators_[ ie ] =
+                    RandomJELEvaluator
+                   .createEvaluator( table, keys[ ie ], isParallel );
+            }
+        }
 
-            /* Prepare compiled expressions for reading the data from 
-             * table rows.
-             * Note: sorting in parallel is likely to be slow, unless
-             * the expression evaluation is pretty expensive, because
-             * of contention for the thread-safe row reader. */
-            rowReader_ = isParallel
-                       ? RandomJELRowReader.createConcurrentReader( table )
-                       : RandomJELRowReader.createAccessReader( table );
-            Library lib = JELUtils.getLibrary( rowReader_ );
-            compExs_ = new CompiledExpression[ nexpr_ ];
-            for ( int i = 0; i < nexpr_; i++ ) {
-                compExs_[ i ] = JELUtils.compile( lib, table, keys[ i ] );
+        public void close() throws IOException {
+            for ( RandomJELEvaluator rev : evaluators_ ) {
+                rev.close();
             }
         }
 
@@ -217,14 +221,14 @@ public class SortFilter extends BasicFilter {
             long row2 = o2.longValue();
             int c = 0;
             for ( int i = 0; i < nexpr_ && c == 0; i++ ) { 
-                CompiledExpression compEx = compExs_[ i ];
+                RandomJELEvaluator evaluator = evaluators_[ i ];
                 Object val1;
                 Object val2;
                 try {
-                    val1 = rowReader_.evaluateAtRow( compEx, row1 );
-                    val2 = rowReader_.evaluateAtRow( compEx, row2 );
+                    val1 = evaluator.evaluateObject( row1 );
+                    val2 = evaluator.evaluateObject( row2 );
                 }
-                catch ( Throwable e ) {
+                catch ( IOException e ) {
                     throw new SortException( "Sort error", e );
                 }
                 try {
