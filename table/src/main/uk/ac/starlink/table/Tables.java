@@ -1,6 +1,8 @@
 package uk.ac.starlink.table;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -8,6 +10,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.table.formats.TextTableWriter;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
 
 /**
@@ -388,6 +393,39 @@ public class Tables {
         long[] rowMap =
             TableSorter.getSortedOrder( table, colIndices, up, nullsLast );
         return new RowPermutedStarTable( table, rowMap );
+    }
+
+    /**
+     * Returns the contents of a table as a string.
+     * Only intended for small tables, for instance during debugging.
+     *
+     * @param  table   input table
+     * @param  ofmt   output format specifier, or null for plain text output
+     * @return  stringified table
+     */
+    public static String tableToString( StarTable table, String ofmt ) {
+        final StarTableWriter handler;
+        if ( ofmt != null ) {
+            try {
+                handler = new StarTableOutput().getHandler( ofmt );
+            }
+            catch ( TableFormatException e ) {
+                throw new IllegalArgumentException( "No such format \"" + ofmt
+                                                  + "\"", e );
+            }
+        }
+        else {
+            handler = new TextTableWriter();
+        }
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            handler.writeStarTable( table, out );
+            out.close();
+            return new String( out.toByteArray(), "utf-8" );
+        }
+        catch ( IOException e ) {
+            return "Formatting error: " + e;
+        }
     }
 
     /**
