@@ -108,9 +108,7 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
         }
         else {
             try {
-                exprSubset =
-                    new SyntheticRowSubset( name, expr,
-                                            tcModel_.createJELRowReader() );
+                exprSubset = new SyntheticRowSubset( name, tcModel_, expr );
             }
             catch ( CompilationException e ) {
                 exprSubset = null;

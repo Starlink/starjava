@@ -72,8 +72,7 @@ public class CodecTest extends TableCase {
         RowSubset tenSet = new BitsRowSubset( "Ten", mask );
         RowSubset notTenSet = new InverseRowSubset( tenSet );
         RowSubset evenSet =
-            new SyntheticRowSubset( "Even", "$0 % 2 == 0",
-                                    tcModel.createJELRowReader() );
+            new SyntheticRowSubset( "Even", tcModel, "$0 % 2 == 0" );
         tcModel.addSubset( RowSubset.NONE );
         tcModel.addSubset( tenSet );
         tcModel.addSubset( notTenSet );

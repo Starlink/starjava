@@ -579,10 +579,9 @@ public class TopcatCodec2 implements TopcatCodec {
             String expr = rsetExprMap.get( rset0 );
             if ( expr != null ) {
                 String name = rset0.getName();
-                TopcatJELRowReader rowReader = tcModel.createJELRowReader();
                 try {
                     RowSubset rset1 =
-                        new SyntheticRowSubset( name, expr, rowReader );
+                        new SyntheticRowSubset( name, tcModel, expr );
                     subsets.set( is, rset1 );
                 }
                 catch ( CompilationException e ) {

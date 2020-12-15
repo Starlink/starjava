@@ -418,8 +418,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                     return;
                 }
                 try {
-                    rset.setExpression( value.toString(),
-                                        tcModel.createJELRowReader() );
+                    rset.setExpression( value.toString() );
                 }
                 catch ( CompilationException e ) {
                     String[] msg = new String[] {

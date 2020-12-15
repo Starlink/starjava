@@ -284,8 +284,7 @@ public class MultiSubsetQueryWindow extends QueryWindow {
          */
         private RowSubset createSubset( String name )
                 throws CompilationException {
-            return new SyntheticRowSubset( name, expr_,
-                                           tcModel_.createJELRowReader() );
+            return new SyntheticRowSubset( name, tcModel_, expr_ );
         }
 
         /**

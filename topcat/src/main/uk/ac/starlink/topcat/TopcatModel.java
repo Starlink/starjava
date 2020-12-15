@@ -826,14 +826,13 @@ public class TopcatModel {
      * Where this can't be done, a warning is issued.
      */
     public void recompileSubsets() {
-        TopcatJELRowReader jeller = createJELRowReader();
         int nset = subsets_.size();
         for ( int is = 0; is < nset; is++ ) {
             RowSubset rs = subsets_.get( is );
             if ( rs instanceof SyntheticRowSubset ) {
                 SyntheticRowSubset ss = (SyntheticRowSubset) rs;
                 try {
-                    ss.setExpression( ss.getExpression(), jeller );
+                    ss.setExpression( ss.getExpression() );
                 }
                 catch ( CompilationException e ) {
                     logger_.warning( "Can't recompile expression "

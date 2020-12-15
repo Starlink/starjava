@@ -1,9 +1,6 @@
 package uk.ac.starlink.topcat;
 
 import gnu.jel.CompilationException;
-import gnu.jel.CompiledExpression;
-import gnu.jel.Evaluator;
-import gnu.jel.Library;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -20,9 +17,8 @@ import java.util.logging.Logger;
  */
 public class SyntheticRowSubset extends RowSubset {
 
-    private String expression_;
-    private TopcatJELRowReader rowReader_;
-    private CompiledExpression compEx_;
+    private final TopcatModel tcModel_;
+    private TopcatJELEvaluator evaluator_;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -31,28 +27,27 @@ public class SyntheticRowSubset extends RowSubset {
      * expression.
      *
      * @param  name  the name to use for the new RowSubset
+     * @param  tcModel   context for JEL expression evaluation
      * @param  expression   the algebraic expression
-     * @param  rowReader   context for JEL expression evaluation
      */
-    public SyntheticRowSubset( String name, String expression,
-                               TopcatJELRowReader rowReader ) 
+    public SyntheticRowSubset( String name, TopcatModel tcModel,
+                               String expression )
             throws CompilationException {
         super( name );
-        setExpression( expression, rowReader );
+        tcModel_ = tcModel;
+        setExpression( expression );
     }
 
     /**
      * Sets the expression to use for this subset.
      *
      * @param  expression  JEL expression
-     * @param  rowReader   context for JEL expression evaluation
      */
-    public void setExpression( String expression, TopcatJELRowReader rowReader )
+    public void setExpression( String expression )
             throws CompilationException {
-        Library lib = TopcatJELUtils.getLibrary( rowReader, false );
-        compEx_ = Evaluator.compile( expression, lib, boolean.class );
-        expression_ = expression;
-        rowReader_ = rowReader;
+        evaluator_ = TopcatJELEvaluator
+                    .createEvaluator( tcModel_, expression, false,
+                                      Boolean.class );
     }
 
     /**
@@ -61,12 +56,12 @@ public class SyntheticRowSubset extends RowSubset {
      * @return  expression
      */
     public String getExpression() {
-        return expression_;
+        return evaluator_.getExpression();
     }
 
     public boolean isIncluded( long lrow ) {
         try {
-            return rowReader_.evaluateBooleanAtRow( compEx_, lrow );
+            return evaluator_.evaluateBoolean( lrow );
         }
         catch ( RuntimeException e ) {
             logger.info( e.toString() );
