@@ -500,8 +500,7 @@ public class ColumnDataComboBoxModel
          */
         SyntheticColumnData( TopcatModel tcModel, String expr )
                 throws CompilationException {
-            super( new ColumnInfo( expr ), expr, null,
-                   tcModel.createJELRowReader() );
+            super( tcModel, new ColumnInfo( expr ), expr, null );
             tcModel_ = tcModel;
             expr_ = expr;
         }

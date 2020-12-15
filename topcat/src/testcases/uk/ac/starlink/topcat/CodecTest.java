@@ -88,14 +88,14 @@ public class CodecTest extends TableCase {
         tcModel.sortBy( new SortOrder( tcModel.getColumnModel()
                                               .getColumn( 2 ) ), true );
         ColumnData addcol1 =
-            new SyntheticColumn( new ColumnInfo( "ix", Integer.class, null ),
-                                 "(int)$0", Integer.class,
-                                 tcModel.createJELRowReader() );
+            new SyntheticColumn( tcModel,
+                                 new ColumnInfo( "ix", Integer.class, null ),
+                                 "(int)$0", Integer.class );
         tcModel.appendColumn( addcol1 );
         ColumnData addcol2 =
-            new SyntheticColumn( new ColumnInfo( "isOne", Boolean.class, null ),
-                                 "ix==1", null,
-                                 tcModel.createJELRowReader() );
+            new SyntheticColumn( tcModel,
+                                 new ColumnInfo( "isOne", Boolean.class, null ),
+                                 "ix==1", null );
 
         TableColumnModel colModel = tcModel.getColumnModel();
         colModel.moveColumn( 0, 4 );

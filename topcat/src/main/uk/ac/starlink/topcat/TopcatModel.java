@@ -48,7 +48,6 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.activate.ActivationMeta;
 import uk.ac.starlink.topcat.activate.ActivationWindow;
-import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 import uk.ac.starlink.ttools.convert.Conversions;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 
@@ -669,7 +668,6 @@ public class TopcatModel {
         String baseExpr = baseInfo.getAuxDatum( TopcatUtils.COLID_INFO )
                                   .getValue().toString();
         ColumnInfo elInfo = new ColumnInfo( baseInfo );
-        RandomJELRowReader rowReader = createJELRowReader();
         elInfo.setShape( null );
         int ipos = 0;
         for ( Iterator<int[]> it = new ShapeIterator( baseInfo.getShape() );
@@ -687,7 +685,7 @@ public class TopcatModel {
             String colExpr = baseExpr + '[' + ipos + ']';
             try {
                 SyntheticColumn elcol =
-                    new SyntheticColumn( colInfo, colExpr, null, rowReader );
+                    new SyntheticColumn( this, colInfo, colExpr, null );
                 appendColumn( elcol, ++insertPos );
             }
             catch ( CompilationException e ) {

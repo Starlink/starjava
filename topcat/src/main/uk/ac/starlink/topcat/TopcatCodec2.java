@@ -24,7 +24,6 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 
 /**
  * Second version of TopcatCodec implementation.
@@ -558,10 +557,9 @@ public class TopcatCodec2 implements TopcatCodec {
             if ( expr != null ) {
                 ColumnInfo info = dataModel.getColumnInfo( ic );
                 Class<?> clazz = info.getContentClass();
-                RandomJELRowReader rowReader = tcModel.createJELRowReader();
                 try {
                     ColumnData cdata =
-                        new SyntheticColumn( info, expr, clazz, rowReader );
+                        new SyntheticColumn( tcModel, info, expr, clazz );
                     dataModel.setColumn( ic, cdata );
                 }
                 catch ( CompilationException e ) {

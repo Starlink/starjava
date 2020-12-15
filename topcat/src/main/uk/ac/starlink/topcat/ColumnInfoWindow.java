@@ -301,8 +301,7 @@ public class ColumnInfoWindow extends AuxWindow {
                 SyntheticColumn col = getSyntheticColumn( irow );
                 if ( col != null ) {
                     try { 
-                        col.setExpression( expr, null,
-                                           tcModel.createJELRowReader() );
+                        col.setExpression( expr, null );
                         super.setValue( irow, expr );
     
                         /* Message the table that its data may have changed.

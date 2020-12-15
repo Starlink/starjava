@@ -29228,6 +29228,8 @@ introduced since the last version:
         (using <ref id="scheme-skysim">skysim</ref>
         and <ref id="scheme-attractor">attractor</ref> schemes)
         to the <ref id="demoData">Example Tables</ref> menu.</li>
+    <li>Improved performance when multiple threads are accessing
+        synthetic columns or subsets concurrently.</li>
     </ul>
     </p></dd>
 

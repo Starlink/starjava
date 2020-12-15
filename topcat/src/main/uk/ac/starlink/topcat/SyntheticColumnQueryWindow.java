@@ -243,8 +243,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
             info.setUnitString( unit );
         }
         try {
-            return new SyntheticColumn( info, expr, null,
-                                        tcModel.createJELRowReader() );
+            return new SyntheticColumn( tcModel, info, expr, null );
         }
         catch ( CompilationException e ) {
             String[] msg = new String[] {
