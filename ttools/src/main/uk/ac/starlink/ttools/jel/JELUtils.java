@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -316,6 +317,36 @@ public class JELUtils {
             }
             public ValueInfo getValueInfo() {
                 return info;
+            }
+        };
+    }
+
+    /**
+     * Returns a function that can compile a fixed expression from a Library.
+     * This method does a test compilation before it returns,
+     * so that if there's something wrong with the expression this method
+     * will throw a CompilationException, but invocations of the returned
+     * Function on Libraries compatible with the supplied <code>table</code>
+     * ought not to.  The returned function therefore does not need to
+     * declare throwing a CompilerException.  If for some reason the
+     * deferred compilations do fail, a RuntimeException is returned.
+     *
+     * @param  table  table from which libraries will be derived
+     * @param  expr   expression to compile
+     * @param  clazz  required result type of expression, or null for automatic
+     */
+    public static Function<Library,CompiledExpression>
+            compiler( StarTable table, String expr, Class<?> clazz )
+            throws CompilationException {
+        Library dummyLib = getLibrary( new DummyJELRowReader( table ) );
+        compile( dummyLib, table, expr, clazz );
+        return lib -> {
+            try {
+                return compile( lib, table, expr, clazz );
+            }
+            catch ( CompilationException e ) {
+                throw new RuntimeException( "Unexpected compilation error; "
+                                          + "it worked last time", e );
             }
         };
     }
