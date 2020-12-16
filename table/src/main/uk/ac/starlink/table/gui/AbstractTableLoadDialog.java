@@ -162,7 +162,10 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
      * @return  table format combo box
      */
     public JComboBox<String> createFormatSelector() {
-        return new JComboBox<String>( formatSelectorModel_ );
+        JComboBox<String> formatSelector =
+            new JComboBox<>( formatSelectorModel_ );
+        formatSelector.setEditable( true );
+        return formatSelector;
     }
 
     /**

@@ -29215,15 +29215,16 @@ introduced since the last version:
         for table parameters, only for columns.</li>
     <li>The <ref id="io">Table I/O</ref> section has been somewhat
         reorganised and tidied up.</li>
-    <li>Table output handlers specified in the
-        table <ref id="SaveQueryWindow">Save Window</ref>
+    <li>Table input/output handlers specified in the
+        table <ref id="SaveQueryWindow">Save</ref
+            >/<ref id="LoadWindow">Load</ref> Windows
         can now in some cases take parenthesised options,
         e.g. you can type in
         "<label>votable(version=V12,format=BINARY)</label>"
         instead of just selecting "<label>votable</label>".
         See individual format documentation
-        (e.g. <ref id="outVotable">VOTable output</ref>
-        for details).</li>
+        (e.g. <ref id="outVotable">VOTable output</ref>)
+        for details.</li>
     <li>Add more example tables
         (using <ref id="scheme-skysim">skysim</ref>
         and <ref id="scheme-attractor">attractor</ref> schemes)
