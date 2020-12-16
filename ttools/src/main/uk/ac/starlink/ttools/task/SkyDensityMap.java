@@ -7,12 +7,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.table.RowAccess;
+import uk.ac.starlink.table.RowCollector;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.StarTable;
@@ -29,10 +33,12 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.cone.HealpixTiling;
 import uk.ac.starlink.ttools.cone.SkyTiling;
 import uk.ac.starlink.ttools.cone.TilingParameter;
+import uk.ac.starlink.ttools.jel.DummyJELRowReader;
 import uk.ac.starlink.ttools.jel.JELQuantity;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
+import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
 import uk.ac.starlink.ttools.plot2.layer.BinList;
 import uk.ac.starlink.ttools.plot2.layer.BinListCollector;
 import uk.ac.starlink.ttools.plot2.layer.BinResultColumnData;
@@ -303,7 +309,7 @@ public class SkyDensityMap extends SingleMapperTask {
          *
          * @param  lonStr  expression giving longitude coordinate in degrees
          * @param  latStr  expression giving latitude coordinate in degrees
-         * @param  tiling  tilling that defines histogram bins on the sky
+         * @param  tiling  tiling that defines histogram bins on the sky
          * @param  complete  true to write all pixels,
          *                   false for only those represented in the input
          * @param  aqs     list of quantities to aggregate into bins
@@ -324,88 +330,78 @@ public class SkyDensityMap extends SingleMapperTask {
 
         public StarTable map( StarTable inTable )
                 throws IOException, TaskException {
-            SequentialJELRowReader jelReader =
-                new SequentialJELRowReader( inTable );
-            Library lib = JELUtils.getLibrary( jelReader );
 
-            /* Acquire accessors for sky position. */
-            CompiledExpression lonExpr;
-            CompiledExpression latExpr;
+            /* Prepare to read coordinates. */
+            Function<Library,CompiledExpression> lonCompiler;
+            Function<Library,CompiledExpression> latCompiler;
             try {
-                lonExpr =
-                    JELUtils.compile( lib, inTable, lonStr_, double.class );
-                latExpr =
-                    JELUtils.compile( lib, inTable, latStr_, double.class );
+                lonCompiler =
+                    JELUtils.compiler( inTable, lonStr_, double.class );
+                latCompiler =
+                    JELUtils.compiler( inTable, latStr_, double.class );
             }
             catch ( CompilationException e ) {
                 throw new TaskException( "Bad lon/lat value: " + e.getMessage(),
                                          e );
             }
 
-            /* Acquire accessors for quantities to be aggregated and
-             * accumulators to do the work of aggregating them. */
-            int nq = aqs_.length;
-            long npix = tiling_.getPixelCount();
-            Binner[] binners = new Binner[ nq ];
-            for ( int iq = 0; iq < nq; iq++ ) {
-                AggregateQuantity aq = aqs_[ iq ];
-                Combiner combiner = aq.combiner_;
-                String expr = aq.expr_;
-                SolidAngleUnit unit = aq.unit_;
-                BinList binList =
-                    BinListCollector.createDefaultBinList( combiner, npix );
+            /* Prepare to read accumulated quantities and get the associated
+             * output metadata. */
+            List<Function<Library,CompiledExpression>> qCompilers =
+                new ArrayList<>();
+            List<ValueInfo> qInfos = new ArrayList<>();
+            StarTableJELRowReader dummyRdr = new DummyJELRowReader( inTable );
+            Library lib = JELUtils.getLibrary( dummyRdr );
+            for ( AggregateQuantity aq : aqs_ ) {
+                String qexpr = aq.expr_;
                 JELQuantity jq;
                 try {
-                    jq = JELUtils.compileQuantity( lib, jelReader, expr,
-                                                   double.class );
+                    qCompilers.add( JELUtils
+                                   .compiler( inTable, qexpr, double.class ) );
+                    jq = JELUtils
+                        .compileQuantity( lib, dummyRdr, qexpr, double.class );
                 }
                 catch ( CompilationException e ) {
-                    throw new TaskException( "Bad quantity value " + expr
+                    throw new TaskException( "Bad quantity value " + qexpr
                                            + ": " + e.getMessage(), e );
                 }
-                ValueInfo info =
-                    aq.adjustInfo( combiner
-                                  .createCombinedInfo( jq.getValueInfo(),
-                                                       unit ) );
-                CompiledExpression compEx = jq.getCompiledExpression();
-                binners[ iq ] = new Binner( info, binList, compEx,
-                                            combiner.getType(), unit );
+                ValueInfo qInfo =
+                    aq.adjustInfo( aq.combiner_
+                       .createCombinedInfo( jq.getValueInfo(), aq.unit_ ) );
+                qInfos.add( qInfo );
             }
 
-            /* Iterate over input table rows, determining sky pixel index
-             * and accumulating the required values for each row. */
-            long minIndex = npix;
-            long maxIndex = 0;
-            try {
-                while ( jelReader.next() ) {
-                    double lon = doEvaluateDouble( jelReader, lonExpr );
-                    double lat = doEvaluateDouble( jelReader, latExpr );
-                    long index = tiling_.getPositionTile( lon, lat );
-                    minIndex = Math.min( minIndex, index );
-                    maxIndex = Math.max( maxIndex, index );
-                    for ( Binner binner : binners ) {
-                        double datum =
-                            doEvaluateDouble( jelReader, binner.compEx_ );
-                        if ( ! Double.isNaN( datum ) ) {
-                            binner.binList_.submitToBin( index, datum );
-                        }
-                    }
-                }
-            }
-            finally {
-                jelReader.close();
-            }
+            /* Perform the aggregation in parallel. */
+            BinDataCollector collector =
+                new BinDataCollector( inTable, tiling_, aqs_,
+                                      lonCompiler, latCompiler, qCompilers );
+            RowRunner rowRunner = RowRunner.DEFAULT;
+            BinData binData = rowRunner.collect( collector, inTable );
 
             /* Turn the result into a table. */
+            long npix = tiling_.getPixelCount();
             ColumnStarTable binsTable =
                 ColumnStarTable.makeTableWithRows( npix );
             binsTable.addColumn( createIndexColumn( tiling_ ) );
-            for ( Binner binner : binners ) {
-                binsTable.addColumn( binner.createColumnData( tiling_ ) );
+            long minIndex = npix;
+            long maxIndex = 0;
+            for ( int iq = 0; iq < aqs_.length; iq++ ) {
+                AggregateQuantity aq = aqs_[ iq ];
+                double binExtent = 4.0 * Math.PI / npix
+                                 * ( 180 * 180 ) / ( Math.PI * Math.PI )
+                                 / aq.unit_.getExtentInSquareDegrees();
+                double binFactor =
+                    aq.combiner_.getType().getBinFactor( binExtent );
+                ColumnData qData =
+                    BinResultColumnData
+                   .createInstance( qInfos.get( iq ),
+                                    binData.binLists_[ iq ].getResult(),
+                                    binFactor );
+                binsTable.addColumn( qData );
             }
-            final StarTable outTable;
 
             /* Either use the table as is, with one row for each pixel. */
+            final StarTable outTable;
             if ( complete_ ) {
                 outTable = binsTable;
             }
@@ -425,8 +421,10 @@ public class SkyDensityMap extends SingleMapperTask {
                         testIcols[ i ] = icolOffset + i;
                     }
                 }
-                outTable = new UnsparseTable( binsTable, minIndex, maxIndex,
-                                              testIcols );
+                outTable =
+                    new UnsparseTable( binsTable,
+                                       binData.minIndex_, binData.maxIndex_,
+                                       testIcols );
             }
 
             /* Add HEALPix-specific metadata if applicable. */
@@ -493,51 +491,6 @@ public class SkyDensityMap extends SingleMapperTask {
     }
 
     /**
-     * Aggregates information required for accumulating evaluations of
-     * an expression into bins.
-     */
-    private static class Binner {
-        final ValueInfo info_;
-        final BinList binList_;
-        final CompiledExpression compEx_;
-        final Combiner.Type ctype_;
-        final SolidAngleUnit unit_;
-
-        /**
-         * Constructor.
-         *
-         * @param  info  metadata for the accumulated value
-         * @param  binList   accumulator instance
-         * @param  compEx   value accessor
-         * @param  ctype   combiner type
-         * @param  unit    unit of solid angle for density-like combiners
-         */
-        Binner( ValueInfo info, BinList binList, CompiledExpression compEx,
-                Combiner.Type ctype, SolidAngleUnit unit ) {
-            info_ = info;
-            binList_ = binList;
-            compEx_ = compEx;
-            ctype_ = ctype;
-            unit_ = unit;
-        }
-
-        /**
-         * Returns a column data based on this binner, once the bin list
-         * has been populated.
-         *
-         * @param  tiling  tiling
-         */
-        ColumnData createColumnData( SkyTiling tiling ) {
-            double binExtent = 4.0 * Math.PI / tiling.getPixelCount()
-                             * ( 180 * 180 ) / ( Math.PI * Math.PI )
-                             / unit_.getExtentInSquareDegrees();
-            double binFactor = ctype_.getBinFactor( binExtent );
-            return BinResultColumnData
-                  .createInstance( info_, binList_.getResult(), binFactor );
-        }
-    }
-
-    /**
      * Aggregates a combiner and a quantity to evaluate.
      * This defines the requirements for a given binned output column.
      */
@@ -571,6 +524,127 @@ public class SkyDensityMap extends SingleMapperTask {
          * @return  (possibly) adjusted metadat for combined result
          */
         abstract ValueInfo adjustInfo( ValueInfo combinedInfo );
+    }
+
+    /**
+     * Accumulator class for binning.
+     */
+    private static class BinData {
+        BinList[] binLists_;
+        long minIndex_;
+        long maxIndex_;
+
+        /**
+         * Constructor.
+         *
+         * @param  binLists  array of BinList objects for accumulation
+         * @param  npix   number of bins in each binlist
+         */
+        BinData( BinList[] binLists, long npix ) {
+            binLists_ = binLists;
+            minIndex_ = npix;
+            maxIndex_ = -1;
+        }
+    }
+
+    /**
+     * Collector that performs sky map aggregation.
+     */
+    private static class BinDataCollector extends RowCollector<BinData> {
+        final StarTable table_;
+        final SkyTiling tiling_;
+        final AggregateQuantity[] aqs_;
+        final Function<Library,CompiledExpression> lonCompiler_;
+        final Function<Library,CompiledExpression> latCompiler_;
+        final List<Function<Library,CompiledExpression>> quantCompilers_;
+        final int nq_;
+        final long npix_;
+
+        /**
+         * Constructor.
+         *
+         * @param  table   table contaning data
+         * @param  tiling  sky tiling
+         * @param  aqs    array of quantities to aggregate
+         * @param  lonCompiler   compiler for longitude expression in degrees
+         * @param  latCompiler   compiler for latitude expression in degrees
+         * @param  qComps   compilers for aggraged quanties
+         *
+         */
+        BinDataCollector( StarTable table, SkyTiling tiling,
+                          AggregateQuantity[] aqs,
+                          Function<Library,CompiledExpression> lonCompiler,
+                          Function<Library,CompiledExpression> latCompiler,
+                          List<Function<Library,CompiledExpression>> qComps ) {
+            table_ = table;
+            tiling_ = tiling;
+            aqs_ = aqs;
+            lonCompiler_ = lonCompiler;
+            latCompiler_ = latCompiler;
+            quantCompilers_ = qComps;
+            nq_ = aqs_.length;
+            npix_ = tiling_.getPixelCount();
+        }
+
+        public BinData createAccumulator() {
+            BinList[] binLists =
+                Arrays
+               .stream( aqs_ )
+               .map( aq -> BinListCollector
+                          .createDefaultBinList( aq.combiner_, npix_ ) )
+               .collect( Collectors.toList() )
+               .toArray( new BinList[ nq_ ] );
+            return new BinData( binLists, npix_ );
+        }
+
+        public BinData combine( BinData binData1, BinData binData2 ) {
+            BinList[] bls1 = binData1.binLists_;
+            BinList[] bls2 = binData2.binLists_;
+            for ( int iq = 0; iq < nq_; iq++ ) {
+                bls1[ iq ] = BinListCollector
+                            .mergeBinLists( bls1[ iq ], bls2[ iq ] );
+            }
+            binData1.minIndex_ =
+                Math.min( binData1.minIndex_, binData2.minIndex_ );
+            binData1.maxIndex_ =
+                Math.max( binData1.maxIndex_, binData2.maxIndex_ );
+            return binData1;
+        }
+
+        public void accumulateRows( RowSplittable rseq, BinData binData )
+                throws IOException {
+            SequentialJELRowReader jelRdr =
+                new SequentialJELRowReader( table_, rseq );
+            Library lib = JELUtils.getLibrary( jelRdr );
+            CompiledExpression lonExpr = lonCompiler_.apply( lib );
+            CompiledExpression latExpr = latCompiler_.apply( lib );
+            int nq = aqs_.length;
+            CompiledExpression[] quantExprs = new CompiledExpression[ nq ];
+            for ( int iq = 0; iq < nq; iq++ ) {
+                quantExprs[ iq ] = quantCompilers_.get( iq ).apply( lib );
+            }
+            long minIndex = binData.minIndex_;
+            long maxIndex = binData.maxIndex_;
+            BinList[] binLists = binData.binLists_;
+            while ( rseq.next() ) {
+                double lon = doEvaluateDouble( jelRdr, lonExpr );
+                double lat = doEvaluateDouble( jelRdr, latExpr );
+                if ( ! Double.isNaN( lon ) && ! Double.isNaN( lat ) ) {
+                    long index = tiling_.getPositionTile( lon, lat );
+                    minIndex = Math.min( minIndex, index );
+                    maxIndex = Math.max( maxIndex, index );
+                    for ( int iq = 0; iq < nq; iq++ ) {
+                        double datum =
+                            doEvaluateDouble( jelRdr, quantExprs[ iq ] );
+                        if ( ! Double.isNaN( datum ) ) {
+                            binLists[ iq ].submitToBin( index, datum );
+                        }
+                    }
+                }
+            }
+            binData.minIndex_ = minIndex;
+            binData.maxIndex_ = maxIndex;
+        }
     }
 
     /**

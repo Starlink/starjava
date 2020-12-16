@@ -13008,6 +13008,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>The <ref id="sort">sort</ref> filter now runs in parallel
         for large tables; the <code>-[no]parallel</code> can be used
         to force parallel/sequential execution.</li>
+    <li><ref id="tskymap"><code>tskymap</code></ref> now runs
+        in parallel.</li>
     </ul>
     </p></dd>
 
