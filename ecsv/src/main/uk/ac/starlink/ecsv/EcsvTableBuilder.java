@@ -34,6 +34,7 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
 
     private final YamlParser yamlParser_;
     private String headerLoc_;
+    private MessagePolicy colCheck_;
     private byte[] headerBuf_;
 
     /**
@@ -42,6 +43,7 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
     public EcsvTableBuilder() {
         super( new String[] { "ecsv" } );
         yamlParser_ = new SnakeYamlParser();
+        colCheck_ = MessagePolicy.WARN;
     }
 
     public String getFormatName() {
@@ -74,9 +76,21 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
         headerLoc_ = headerLoc;
     }
 
+    @ConfigMethod(
+        property = "colcheck",
+        doc = "<p>Determines the action taken if the columns named\n"
+            + "in the YAML header differ from the columns named in the\n"
+            + "first line of the CSV part of the file.\n"
+            + "</p>",
+        example = "FAIL"
+    )
+    public void setColcheck( MessagePolicy colCheck ) {
+        colCheck_ = colCheck;
+    }
+
     public void streamStarTable( InputStream in, TableSink sink, String pos )
             throws IOException {
-        try ( EcsvReader reader = createEcsvReader( in ) ) {
+        try ( EcsvReader reader = createEcsvReader( in, colCheck_ ) ) {
             EcsvStarTable stMeta = new EcsvStarTable( reader.getMeta() ) {
                 public RowSequence getRowSequence() {
                     throw new UnsupportedOperationException();
@@ -101,13 +115,14 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
         }
         EcsvMeta meta;
         try ( EcsvReader reader =
-                  createEcsvReader( datsrc.getInputStream() ) ) {
+                  createEcsvReader( datsrc.getInputStream(), colCheck_ ) ) {
             meta = reader.getMeta();
         }
         return new EcsvStarTable( meta ) {
             public RowSequence getRowSequence() throws IOException {
                 final EcsvReader rdr =
-                    createEcsvReader( datsrc.getInputStream() );
+                    createEcsvReader( datsrc.getInputStream(),
+                                      MessagePolicy.IGNORE );
                 return new RowSequence() {
                     public boolean next() throws IOException {
                         try {
@@ -206,11 +221,14 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
      * Creates an EcsvReader given an input stream.
      *
      * @param   in   input stream
+     * @param   colCheck  behviour for YAML/CSV column name mismatch
      * @return   reader
      */
-    private EcsvReader createEcsvReader( InputStream in ) throws IOException {
+    private EcsvReader createEcsvReader( InputStream in,
+                                         MessagePolicy colCheck )
+            throws IOException {
         try {
-            return new EcsvReader( applyHeader( in ), yamlParser_ );
+            return new EcsvReader( applyHeader( in ), yamlParser_, colCheck );
         }
         catch ( EcsvFormatException e ) {
             throw new TableFormatException( e.getMessage(), e );

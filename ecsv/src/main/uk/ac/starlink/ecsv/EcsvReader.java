@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Parser for the metadata and data of an ECSV file.
@@ -36,8 +37,10 @@ public class EcsvReader implements Closeable {
      *
      * @param  in  input stream; doesn't need to be buffered
      * @param  yamlParser   knows how to extrace ECSV metadata from YAML
+     * @param  colCheck  what to do on CSV/YAML column name mismatches
      */
-    public EcsvReader( InputStream in, YamlParser yamlParser )
+    public EcsvReader( InputStream in, YamlParser yamlParser,
+                       MessagePolicy colCheck )
             throws IOException, EcsvFormatException {
 
         /* Initialise workspace. */
@@ -74,6 +77,28 @@ public class EcsvReader implements Closeable {
             throw new EcsvFormatException( "Names line/YAML column count "
                                          + "mismatch: "
                                          + nName + " != " + ncol_ );
+        }
+        List<String> colMismatches = new ArrayList<>();
+        for ( int ic = 0; ic < ncol_; ic++ ) {
+            String csvName = nameWords.get( ic );
+            String yamlName = columns[ ic ].getName();
+            if ( ! yamlName.equalsIgnoreCase( csvName ) ) {
+                colMismatches.add( csvName + "!=" + yamlName );
+            }
+        }
+        int nMis = colMismatches.size();
+        if ( nMis > 0 ) {
+            int nMax = 5;
+            StringBuffer sbuf = new StringBuffer()
+                .append( "YAML/CSV column name " )
+                .append( nMis > 1 ? "mismatches: " : "mismatch: " )
+                .append( colMismatches.stream()
+                                      .limit( nMax )
+                                      .collect( Collectors.joining( ", " ) ) );
+            if ( nMis > nMax ) {
+                sbuf.append( ", ..." );
+            }
+            colCheck.deliverMessage( sbuf.toString() );
         }
     }
 
