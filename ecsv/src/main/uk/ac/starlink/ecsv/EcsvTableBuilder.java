@@ -1,15 +1,25 @@
 package uk.ac.starlink.ecsv;
 
 import java.awt.datatransfer.DataFlavor;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.formats.DocumentedTableBuilder;
+import uk.ac.starlink.util.ConfigMethod;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.IOUtils;
 
 /**
  * TableBuilder implementation for ECSV tables.
@@ -23,6 +33,8 @@ import uk.ac.starlink.util.DataSource;
 public class EcsvTableBuilder extends DocumentedTableBuilder {
 
     private final YamlParser yamlParser_;
+    private String headerLoc_;
+    private byte[] headerBuf_;
 
     /**
      * Constructor.
@@ -38,6 +50,28 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
 
     public boolean canImport( DataFlavor flavor ) {
         return false;
+    }
+
+    /**
+     * Sets the location of a header file which will be prepended to
+     * any file read by this handler.  It can be ste to a file containing
+     * an ECSV header, so that this handler can read plain CSV files
+     * but include prepared YAML metadata.
+     *
+     * @param  headerLoc  filename or URL pointing to a header file
+     */
+    @ConfigMethod(
+        property = "header",
+        doc = "<p>Location of a file containing a header to be applied\n"
+            + "to the start of the input file.\n"
+            + "By using this you can apply your own ECSV-format metadata\n"
+            + "to plain CSV files.\n"
+            + "</p>",
+        usage = "<filename-or-url>",
+        example = "http://andromeda.star.bris.ac.uk/gaia-edr3/edr3-header.ecsv"
+    )
+    public void setHeader( String headerLoc ) {
+        headerLoc_ = headerLoc;
     }
 
     public void streamStarTable( InputStream in, TableSink sink, String pos )
@@ -62,11 +96,12 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
     public StarTable makeStarTable( final DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storagePolicy )
             throws IOException {
-        if ( ! EcsvHeader.isMagic( datsrc.getIntro() ) ) {
+        if ( headerLoc_ == null && ! EcsvHeader.isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( "No ECSV header" );
         }
         EcsvMeta meta;
-        try ( EcsvReader reader = createEcsvReader( datsrc.getInputStream()) ) {
+        try ( EcsvReader reader =
+                  createEcsvReader( datsrc.getInputStream() ) ) {
             meta = reader.getMeta();
         }
         return new EcsvStarTable( meta ) {
@@ -109,15 +144,73 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
     }
 
     /**
+     * Returns an input stream which is based on the supplied stream,
+     * but with the content of this handler's header file, if any,
+     * inserted at the start.
+     *
+     * @param  in   base input stream
+     * @return   input stream with possible adjustment
+     */
+    private InputStream applyHeader( InputStream in ) throws IOException {
+        return headerLoc_ == null
+             ? in
+             : new SequenceInputStream(
+                       new ByteArrayInputStream( getHeaderBytes() ),
+                                                 in );
+    }
+
+    /**
+     * Returns the content of this handler's header file.
+     *
+     * @return   lazily read header file content as a byte array
+     */
+    private byte[] getHeaderBytes() throws IOException {
+        if ( headerLoc_ == null ) {
+            return new byte[ 0 ];
+        }
+        else if ( headerBuf_ == null ) {
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            IOUtils.copy( getInputStream( headerLoc_ ), bout );
+            headerBuf_ = bout.toByteArray();
+        }
+        return headerBuf_;
+    }
+
+    /**
+     * Returns an input stream specified by a string location.
+     *
+     * @param   location  filename or URL
+     * @return   input stream
+     * @throws  IOException  if no such file
+     */
+    private static InputStream getInputStream( String location )
+            throws IOException {
+        File file = new File( location );
+        if ( file.exists() ) {
+            return new FileInputStream( file );
+        }
+        else {
+            URL url;
+            try {
+                url = new URL( location );
+            }
+            catch ( MalformedURLException e ) {
+                String msg = "No file or URL \"" + location + "\"";
+                throw new FileNotFoundException( msg );
+            }
+            return url.openStream();
+        }
+    }    
+
+    /**
      * Creates an EcsvReader given an input stream.
      *
      * @param   in   input stream
      * @return   reader
      */
-    private EcsvReader createEcsvReader( InputStream in )
-            throws IOException {
+    private EcsvReader createEcsvReader( InputStream in ) throws IOException {
         try {
-            return new EcsvReader( in, yamlParser_ );
+            return new EcsvReader( applyHeader( in ), yamlParser_ );
         }
         catch ( EcsvFormatException e ) {
             throw new TableFormatException( e.getMessage(), e );

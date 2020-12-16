@@ -29230,6 +29230,9 @@ introduced since the last version:
         to the <ref id="demoData">Example Tables</ref> menu.</li>
     <li>Improved performance when multiple threads are accessing
         synthetic columns or subsets concurrently.</li>
+    <li>The <ref id="inEcsv">ECSV input handler</ref> now has
+        an optional <code>header</code> parameter, so you can
+        prepend custom ECSV headers to plain CSV files.</li>
     </ul>
     </p></dd>
 
