@@ -12897,6 +12897,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add <code>combine</code> parameter to
         <ref id="tcube"><code>tcube</code></ref>,
         so it can produce generalised weighted maps.</li>
+    <li>Make <ref id="taplint"><code>taplint</code></ref> changes for
+        later edits to ObsCore-1.1 Erratum #1
+        (<code>dataproduct_type</code> and
+         <code>dataproduct_subtype</code> UCDs are now
+         <code>meta.code.class</code>).</li>
     </ul>
     </p></dd>
 

@@ -616,7 +616,7 @@ public class ObsTapStage implements Stage {
             new ObsCol( "dataproduct_type", Type.VARCHAR,
                         is11 ? "ObsDataset.dataProductType"
                              : "Obs.dataProductType",
-                        "meta.id" ),
+                        "meta.code.class" ),
             new ObsCol( "calib_level", Type.INTEGER,
                         is11 ? "ObsDataset.calibLevel"
                              : "Obs.calibLevel",
@@ -749,6 +749,7 @@ public class ObsTapStage implements Stage {
 
         /* ObsCore 1.1 Erratum #1. */
         map.get( "obs_publisher_did" ).ucdOnce_ = "meta.ref.uri;meta.curation";
+        map.get( "dataproduct_type" ).ucdOnce_ = "meta.id";
 
         return map;
     }
@@ -764,7 +765,7 @@ public class ObsTapStage implements Stage {
         list.addAll( Arrays.asList( new ObsCol[] {
             new ObsCol( "dataproduct_subtype", Type.VARCHAR,
                         is11 ? "ObsDataset.dataProductSubtype"
-                             : "Obs.dataProductSubtype", "meta.id" ),
+                             : "Obs.dataProductSubtype", "meta.code.class" ),
             new ObsCol( "target_class", Type.VARCHAR,
                         "Target.Class", "src.class" ),
             new ObsCol( "obs_creation_date", Type.TIMESTAMP,
@@ -887,6 +888,7 @@ public class ObsTapStage implements Stage {
         /* ObsCore 1.1 Erratum #1. */
         map.get( "publisher_id" ).ucdOnce_ = "meta.ref.uri;meta.curation";
         map.get( "o_stat_error" ).ucdOnce_ = "stat.error;phot.flux";
+        map.get( "dataproduct_subtype" ).ucdOnce_ = "meta.id";
 
         return map;
     }
