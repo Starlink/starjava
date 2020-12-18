@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.task;
 
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.ttools.plot2.data.ByteStoreColumnFactory;
@@ -37,6 +38,11 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
     public static final DataStoreFactory MEMORY_CACHE =
         new CachedDataStoreFactory(
             new SmartColumnFactory( new MemoryColumnFactory() ), TUPLE_RUNNER );
+
+    public static final DataStoreFactory PARALLEL_MEMORY_CACHE =
+        new CachedDataStoreFactory(
+            new SmartColumnFactory( new MemoryColumnFactory() ), TUPLE_RUNNER,
+            RowRunner.DEFAULT ) {};
 
     /** Smart disk-cached storage. */
     public static final DataStoreFactory DISK_CACHE =
@@ -76,6 +82,7 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
         addOption( MEMORY1_CACHE, "cache" );
         addOption( BASIC_CACHE, "basic-cache" );
         addOption( PERSISTENT_CACHE, "persistent" );
+        addOption( PARALLEL_MEMORY_CACHE, "parallel" );
         setDefaultOption( SIMPLE );
 
         setPrompt( "Data storage policy" );
@@ -132,6 +139,15 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
             "<li><code>basic-cache</code>: ",
                 "dumber version of <code>memory</code>",
                 "(no optimisation for constant-valued columns)",
+                "</li>",
+            "<li><code>parallel</code>: ",
+                "experimental version of memory-based cache that reads",
+                "into the cache in parallel for large files.",
+                "This will make the plot faster to prepare,",
+                "but interaction is a bit slower and sequence-dependent",
+                "attributes of the plot may not come out right.",
+                "This experimental option may be withdrawn or modified",
+                "in future releases.",
                 "</li>",
             "</ul>",
             "</p>",

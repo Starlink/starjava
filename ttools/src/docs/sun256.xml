@@ -13014,6 +13014,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         an optional <code>header</code> parameter, so it's easy to
         prepend custom ECSV headers to plain CSV files, e.g.
         <code>ifmt='ecsv(header=edr3-hdr.ecsv)'</code>.</li>
+    <li>Add experimental option <code>storage=parallel</code>
+        for <code>plot2*</code> commands.</li>
     </ul>
     </p></dd>
 
