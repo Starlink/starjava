@@ -79,6 +79,7 @@ public class TamfitsTest extends TestCase {
         }
     }
 
+
     private void checkStringCard( HeaderCard card ) {
         String image = card.toString();
         assertEquals( 80, image.length() );
@@ -91,6 +92,24 @@ public class TamfitsTest extends TestCase {
             assertTrue( "Disallowed character: " + c + " in " + image,
                         c >= 0x20 && c <= 0x7e );
         }
+    }
+
+    public void testStringValues() throws Exception {
+        checkStringValue( "electron'.s**-1" );
+        checkStringValue( "x'electron'.s**-1" );
+
+        // This one fails for nom.tam.fits 1.15.2;
+        // the HeaderCard constructor checks for a quote at the start of
+        // the string and assumes that you have pre-quoted the value,
+        // tries to strip quotes from start and end, and fails if
+        // it can't.  That is horrible behaviour.
+        // See https://github.com/nom-tam-fits/nom-tam-fits/issues/148
+        checkStringValue( "'electron'.s**-1" );
+    }
+
+    private void checkStringValue( String sval ) throws Exception {
+        HeaderCard card = new HeaderCard( "CARD", sval, "comment" );
+        assertEquals( sval, card.getValue() );
     }
 
     private static String repeat( String txt, int count ) {
