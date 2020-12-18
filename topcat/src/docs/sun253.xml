@@ -29234,6 +29234,8 @@ introduced since the last version:
     <li>The <ref id="inEcsv">ECSV input handler</ref> now has
         an optional <code>header</code> parameter, so you can
         prepend custom ECSV headers to plain CSV files.</li>
+    <li>Perform part of the <ref id="order">Sort</ref>
+        operation in parallel.</li>
     </ul>
     </p></dd>
 

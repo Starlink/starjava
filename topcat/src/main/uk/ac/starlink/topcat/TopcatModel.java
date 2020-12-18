@@ -40,6 +40,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowListStarTable;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ShapeIterator;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
@@ -919,9 +920,13 @@ public class TopcatModel {
         final int sense = ascending ? 1 : -1;
          
         /* Define a little class for objects being sorted. */
-        class Item implements Comparable<Item> { 
-            int rank;
-            Comparable<?> value;
+        class Item implements Comparable<Item> {
+            final int rank;
+            final Comparable<?> value;
+            Item( int r, Comparable<?> v ) {
+                this.rank = r;
+                this.value = v;
+            }
             public int compareTo( Item other ) {
                 Comparable<?> oval = other.value;
                 if ( value != null && oval != null ) {
@@ -941,17 +946,18 @@ public class TopcatModel {
         /* Construct a list of all the elements in the given column. */
         int nrow = AbstractStarTable
                   .checkedLongToInt( dataModel_.getRowCount() );
-        ColumnData coldata = dataModel_.getColumnData( icol );
         Item[] items = new Item[ nrow ];
-        for ( int i = 0; i < nrow; i++ ) {
-            Item item = new Item();
-            item.rank = i;
-            item.value = (Comparable<?>) coldata.readValue( (long) i );
-            items[ i ] = item;
+        try ( RowSequence rseq = dataModel_.getRowSequence() ) {
+            int ir = 0;
+            while ( rseq.next() ) {
+                items[ ir ] =
+                    new Item( ir, (Comparable<?>) rseq.getCell( icol ) );
+                ir++;
+            }
         }
 
         /* Sort the list on the ordering of the items. */
-        Arrays.sort( items );
+        Arrays.parallelSort( items );
 
         /* Construct and return a list of reordered ranks from the
          * sorted array. */
