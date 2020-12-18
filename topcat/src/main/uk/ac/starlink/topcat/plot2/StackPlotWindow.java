@@ -19,6 +19,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -51,11 +52,13 @@ import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSource;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.HelpAction;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.MultiSubsetQueryWindow;
@@ -156,7 +159,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ToggleButtonModel sketchModel_;
     private final ToggleButtonModel axisLockModel_;
     private final ToggleButtonModel auxLockModel_;
+    private final ToggleButtonModel parallelCacheModel_;
     private final ZoneId dfltZone_;
+    private DataStoreFactory storeFact_;
     private boolean hasShader_;
     private static final String[] XYZ = new String[] { "x", "y", "z" };
     private static final Level REPORT_LEVEL = Level.INFO;
@@ -206,10 +211,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             new ToggleButtonModel( "Lock Aux Range", ResourceIcon.AUX_LOCK,
                                    "Do not auto-rescale aux scales" );
         surfFact_ = plotType_.getSurfaceFactory();
-        DataStoreFactory storeFact =
-            new CachedDataStoreFactory(
-                new SmartColumnFactory( new MemoryColumnFactory() ),
-                TupleRunner.DEFAULT );
+        DataStoreFactory storeFact = new DataStoreFactory() {
+            public DataStore readDataStore( DataSpec[] specs,
+                                            DataStore prevStore )
+                    throws IOException, InterruptedException {
+                return storeFact_.readDataStore( specs, prevStore );
+            }
+        };
         sketchModel_ =
             new ToggleButtonModel( "Sketch Frames", ResourceIcon.SKETCH,
                                    "Draw intermediate frames from subsampled "
@@ -237,6 +245,17 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return getZoneDefs();
             }
         };
+
+        /* Provide an option for preparing the cache in parallel.
+         * This is experimental; in particular cancelling it doesn't
+         * work properly, so keep this option out of the way. */
+        parallelCacheModel_ =
+            new ToggleButtonModel( "Parallel Caching", ResourceIcon.DO_WHAT,
+                                   "Prepare data for plot in parallel" );
+        parallelCacheModel_.addChangeListener( evt -> {
+            updateDataStoreFactory();
+        } );
+        updateDataStoreFactory();
 
         /* Set up fixed configuration controls. */
         MultiConfigger configger = new MultiConfigger();
@@ -678,6 +697,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         plotMenu.add( sketchModel_.createMenuItem() );
         plotMenu.add( showProgressModel_.createMenuItem() );
         plotMenu.add( navdecModel.createMenuItem() );
+        plotMenu.add( parallelCacheModel_.createMenuItem() );
         getJMenuBar().add( plotMenu );
         exportMenu_ = new JMenu( "Export" );
         exportMenu_.setMnemonic( KeyEvent.VK_E );
@@ -879,6 +899,24 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         }
         return layerList.toArray( new PlotLayer[ 0 ] );
+    }
+
+    /**
+     * Make sure that the DataStoreFactory is configured according to
+     * the current state.  That means that data reads either will
+     * or will not run in parallel.  The parallel option doesn't work
+     * perfectly.
+     */
+    private void updateDataStoreFactory() {
+        RowRunner rowRunner = parallelCacheModel_.isSelected()
+                            ? ControlWindow.getInstance().getRowRunner()
+                            : null;
+        storeFact_ = new CachedDataStoreFactory(
+                         new SmartColumnFactory( new MemoryColumnFactory() ),
+                         TupleRunner.DEFAULT, rowRunner ) {};
+        if ( plotPanel_ != null ) {
+            plotPanel_.replot();
+        }
     }
 
     /**
