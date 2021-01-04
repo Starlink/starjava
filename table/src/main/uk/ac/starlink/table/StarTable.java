@@ -1,5 +1,6 @@
 package uk.ac.starlink.table;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
@@ -38,7 +39,7 @@ import java.util.List;
  *
  * @author   Mark Taylor (Starlink)
  */
-public interface StarTable {
+public interface StarTable extends Closeable {
 
     /**
      * Returns the number of columns in this table.
@@ -244,4 +245,19 @@ public interface StarTable {
      *         <tt>false</tt>
      */
     Object[] getRow( long irow ) throws IOException;
+
+    /**
+     * Relinquishes any resources associated with this table.
+     * This may do nothing, and calling it is often not required,
+     * but it provides an opportunity to force release of file
+     * descriptors or other resources that are not well handled by
+     * garbage collection if the table itself holds them.
+     * It is not intended for release of heap-based resources,
+     * for which garbage collection already provides adequate management.
+     *
+     * <p>Following a call to this method, any attempt to use this table
+     * or objects such as RowSequences obtained from it will result
+     * in undefined behaviour.
+     */
+    public void close() throws IOException;
 }

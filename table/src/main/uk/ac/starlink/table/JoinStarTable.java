@@ -217,6 +217,16 @@ public class JoinStarTable extends AbstractStarTable {
     }
 
     /**
+     * Closes all the constituent tables.
+     */
+    @Override
+    public void close() throws IOException {
+        for ( StarTable table : tables_ ) {
+            table.close();
+        }
+    }
+
+    /**
      * Helper class providing the row sequence implementation used by
      * a JoinStarTable.
      */

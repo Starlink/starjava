@@ -33,7 +33,7 @@ import uk.ac.starlink.util.Loader;
  * @author   Mark Taylor
  * @since    21 Jun 2006
  */
-public class ColFitsStarTable extends AbstractStarTable implements Closeable {
+public class ColFitsStarTable extends AbstractStarTable {
 
     private final int ncol_;
     private final long nrow_;

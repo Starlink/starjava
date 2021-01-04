@@ -141,7 +141,12 @@ public class ByteStoreRowStore implements RowStore {
         }
         logger_.config( nrow_ + " rows stored in " + nbyte + " bytes" );
         storedTable_ = new ByteStoreStarTable( template_, nrow_, codecs_,
-                                               offsets_, bbufs );
+                                               offsets_, bbufs ) {
+            @Override
+            public void close() throws IOException {
+                byteStore_.close();
+            }
+        };
     }
 
     public StarTable getStarTable() {

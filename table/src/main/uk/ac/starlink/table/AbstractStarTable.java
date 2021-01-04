@@ -162,6 +162,13 @@ public abstract class AbstractStarTable implements StarTable {
         return row;
     }
 
+    /**
+     * The <tt>AbstractStarTable</tt> implementation of this method
+     * does nothing.
+     */
+    public void close() throws IOException {
+    }
+
     abstract public ColumnInfo getColumnInfo( int icol );
     abstract public int getColumnCount();
     abstract public long getRowCount();

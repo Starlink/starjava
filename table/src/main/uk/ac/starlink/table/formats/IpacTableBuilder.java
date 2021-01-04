@@ -133,5 +133,9 @@ public class IpacTableBuilder extends DocumentedTableBuilder {
         public long getRowCount() {
             return -1L;
         }
+
+        public void close() throws IOException {
+            reader_.close();
+        }
     }
 }

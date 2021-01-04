@@ -1,5 +1,6 @@
 package uk.ac.starlink.votable;
 
+import java.io.Closeable;
 import java.io.IOException;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
@@ -41,7 +42,7 @@ import uk.ac.starlink.table.RowSequence;
  *
  * @author   Mark Taylor
  */
-public interface TabularData {
+public interface TabularData extends Closeable {
 
     /**
      * Returns the number of columns in the table data.

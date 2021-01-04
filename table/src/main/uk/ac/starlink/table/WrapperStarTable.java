@@ -127,6 +127,10 @@ public class WrapperStarTable implements StarTable {
         return baseTable.getRow( irow );
     }
 
+    public void close() throws IOException {
+        baseTable.close();
+    }
+
     /**
      * Convenience method to get an <tt>int</tt> value from a <tt>long</tt>.
      * Invokes {@link Tables#checkedLongToInt}.

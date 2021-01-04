@@ -69,6 +69,9 @@ class TableBodies {
         public Object[] getRow( long irow ) {
             throw new UnsupportedOperationException( "Not random" );
         }
+
+        public void close() {
+        }
     }
 
     /**
@@ -83,6 +86,8 @@ class TableBodies {
         }
         public RowSequence getRowSequence() {
             return EmptyRowSequence.getInstance();
+        }
+        public void close() {
         }
     }
 
@@ -127,6 +132,10 @@ class TableBodies {
         public Object[] getRow( long irow ) throws IOException {
             return startab.getRow( irow );
         }
+
+        public void close() throws IOException {
+            startab.close();
+        }
     }
 
     /**
@@ -152,6 +161,9 @@ class TableBodies {
             InputStream istrm = new BufferedInputStream( url.openStream() );
             return new BinaryRowSequence( decoders, istrm, encoding,
                                           isBinary2 );
+        }
+
+        public void close() {
         }
     }
 
@@ -322,6 +334,9 @@ class TableBodies {
                     return trEl_;
                 }
             };
+        }
+
+        public void close() {
         }
 
         private Object[] getRowFromTr( Element trEl ) {

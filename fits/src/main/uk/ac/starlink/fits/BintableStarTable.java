@@ -1,6 +1,5 @@
 package uk.ac.starlink.fits;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -48,8 +47,7 @@ import uk.ac.starlink.table.ValueInfo;
  *
  * @author   Mark Taylor
  */
-public abstract class BintableStarTable extends AbstractStarTable
-                                        implements Closeable {
+public abstract class BintableStarTable extends AbstractStarTable {
 
     private final int ncol_;
     private final long nrow_;

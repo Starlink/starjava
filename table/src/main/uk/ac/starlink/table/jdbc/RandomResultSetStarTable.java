@@ -87,4 +87,13 @@ public class RandomResultSetStarTable extends RandomStarTable {
         }
     }
 
+    @Override
+    public void close() throws IOException {
+        try {
+            srset_.getResultSet().close();
+        }
+        catch ( SQLException e ) {
+            throw new IOException( "SQL Error", e );
+        }
+    }
 }

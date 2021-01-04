@@ -89,6 +89,11 @@ public class UploadConeTable extends AbstractStarTable {
         };
     }
 
+    @Override
+    public void close() throws IOException {
+        coneSeq_.close();
+    }
+
     /**
      * Determines whether the contents of a given row are
      * compatible with a given list of column metadata objects.

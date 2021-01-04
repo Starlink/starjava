@@ -331,6 +331,10 @@ public class VOStarTable extends AbstractStarTable {
         }
     }
 
+    public void close() throws IOException {
+        tdata.close();
+    }
+
     /**
      * Perform post-processing on the list of table parameters that
      * has been acquired from the input VOTable document.

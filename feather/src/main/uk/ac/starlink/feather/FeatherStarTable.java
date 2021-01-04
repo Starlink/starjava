@@ -170,6 +170,14 @@ public class FeatherStarTable extends AbstractStarTable {
     }
 
     /**
+     * Does nothing, but perhaps it ought to try to clear up resources
+     * related to the mapped buffers.
+     */
+    @Override
+    public void close() throws IOException {
+    }
+
+    /**
      * Adapts a FeatherColumn to a ColumnInfo.
      *
      * @param  fcol  feather column object
