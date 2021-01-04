@@ -114,10 +114,12 @@ public class Progresser {
      *                should normally be significantly larger than 1
      */
     public void add( int count ) {
-        long ix0 = index_.getAndAdd( count );
-        long ix1 = ( ix0 + count ) % count_;
-        if ( ix1 < ix0 || ix1 / step_ > ix0 / step_ ) {
-            updateIfNotRecent( ix1 );
+        if ( count != 0 ) {
+            long ix0 = index_.getAndAdd( count );
+            long ix1 = ( ix0 + count ) % count_;
+            if ( ix1 < ix0 || ix1 / step_ > ix0 / step_ ) {
+                updateIfNotRecent( ix1 );
+            }
         }
     }
 
