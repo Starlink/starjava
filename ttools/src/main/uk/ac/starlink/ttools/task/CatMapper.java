@@ -266,12 +266,14 @@ public class CatMapper implements TableMapper {
             }
 
             /* Work out the table row count if required. */
-            if ( out.getRowCount() < 0L && countRows_ ) {
+            if ( lazy_ && countRows_ && out.getRowCount() < 0L ) {
                 long nr = 0L;
                 for ( int i = 0; i < nTable && nr >= 0L; i++ ) {
-                    long n = tProds[ i ].getTable().getRowCount();
-                    nr = n >= 0 ? nr + n
-                                : -1L;
+                    try ( StarTable t  = tProds[ i ].getTable() ) {
+                        long n = t.getRowCount();
+                        nr = n >= 0 ? nr + n
+                                    : -1L;
+                    }
                 }
                 if ( nr >= 0L ) {
                     final long nrow = nr;

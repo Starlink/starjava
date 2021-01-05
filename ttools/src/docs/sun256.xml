@@ -7754,6 +7754,9 @@ will be taken from the first of the input tables.
 formats and processing, <code>tcat</code> is capable of joining
 an unlimited number of tables together to produce an output table of
 unlimited length, without large memory requirements.
+If there are very many input files, it may be necessary to set the
+<code>lazy</code> parameter so that they are not all kept open
+at once.
 </p>
 
 <p>If you have heterogeneous tables, in different formats or
@@ -7790,6 +7793,16 @@ stilts tcat ifmt=ascii in=&indirection.char;inlist.lis out=table.txt
 <dd><p>This will have the same effect as the previous two examples if a
     file name "inlist.lis" in the current directory contains three lines,
     "t1.txt", "t2.txt" and "t3.txt".
+    </p></dd>
+
+<dt><verbatim>
+stilts tcat in=&indirection.char;infits.lis out=gaia_source.colfits
+            lazy=true countrows=true
+</verbatim></dt>
+<dd><p>Concatenates the contents of all the files listed in "infits.lis"
+    to one large output colfits file.
+    The <code>lazy=true</code> is a good idea if there is a large number
+    of input files listed.
     </p></dd>
 
 <dt><verbatim>
@@ -13016,6 +13029,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>ifmt='ecsv(header=edr3-hdr.ecsv)'</code>.</li>
     <li>Add experimental option <code>storage=parallel</code>
         for <code>plot2*</code> commands.</li>
+    <li>Tidy up open files in the table concatenation command
+        <ref id="tcat"><code>tcat</code></ref>;
+        with <code>lazy=true</code>
+        it should no longer fail with "Too many open files".</li>
     </ul>
     </p></dd>
 

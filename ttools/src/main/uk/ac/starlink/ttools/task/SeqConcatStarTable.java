@@ -104,10 +104,15 @@ public class SeqConcatStarTable extends WrapperStarTable {
         private final Iterator<TableProducer> prodIt =
             Arrays.asList( tProds_ ).iterator();
         private RowSequence rseq_ = EmptyRowSequence.getInstance();
+        private StarTable table_;
 
         public boolean next() throws IOException {
             while ( ! rseq_.next() ) {
                 rseq_.close();
+                if ( table_ != null ) {
+                    table_.close();
+                    table_ = null;
+                }
                 if ( prodIt.hasNext() ) {
                     TableProducer tProd = prodIt.next();
                     StarTable table;
@@ -119,6 +124,7 @@ public class SeqConcatStarTable extends WrapperStarTable {
                     }
                     checkCompatible( table );
                     rseq_ = table.getRowSequence();
+                    table_ = table;
                 }
                 else {
                     return false;
@@ -149,6 +155,7 @@ public class SeqConcatStarTable extends WrapperStarTable {
         private int itab_;
         private int ntab_;
         private RowSequence rseq_;
+        private StarTable table_;
 
         /**
          * Public constructor.
@@ -204,6 +211,7 @@ public class SeqConcatStarTable extends WrapperStarTable {
                     }
                     checkCompatible( table );
                     rseq_ = table.getRowSequence();
+                    table_ = table;
                 }
                 if ( rseq_.next() ) {
                     return true;
@@ -211,6 +219,10 @@ public class SeqConcatStarTable extends WrapperStarTable {
                 else {
                     rseq_.close();
                     rseq_ = null;
+                    if ( table_ != null ) {
+                        table_.close();
+                        table_ = null;
+                    }
                 }
             }
         }
