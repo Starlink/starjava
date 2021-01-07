@@ -59,7 +59,7 @@ stilts_jars="\
 # If we're on a Mac, look for the jar in the resource bundle,
 # since we may have been installed that way.  This is a bit of a mess,
 # because of historical changes in the locations of these scripts.
-if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
+if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -iq 'Mac *OS'; then
    bundle_jar="Java/topcat-full.jar"
    stilts_jars="$stilts_jars \
                 $bindir/../../$bundle_jar"

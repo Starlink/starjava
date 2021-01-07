@@ -24840,6 +24840,7 @@ Some of the notable contributers are these:
 <li>Thomas Boch (CDS)</li>
 <li>Laurent Bourges (JMMC)</li>
 <li>Danny Boxhoorn (Kapteyn, Groningen)</li>
+<li>Patrick Broos (Penn State)</li>
 <li>Baptiste Cecconi (LESIA)</li>
 <li>Igor Chilingarian (CfA)</li>
 <li>Malcolm Currie (Starlink, RAL)</li>
@@ -29862,6 +29863,9 @@ introduced since the last version:
         into ECSV output.</li>
     <li>Fix annoying column selector bug that sometimes required
         an extra click.</li>
+    <li>Fix up MacOS application packaging issue so that
+        <code>topcat</code>/<code>stilts</code> startup scripts work
+        on Mac Mini.</li>
     </ul>
     </p></dd>
 

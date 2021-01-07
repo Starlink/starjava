@@ -50,7 +50,7 @@ topcat_jars="$bindir/topcat-full.jar \
 
 # Mac-specific items.
 javaArgs0=""
-if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
+if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -iq 'Mac *OS'; then
 
    # Look for the jar in the resource bundle, since we may have been
    # installed that way.  This is a bit of a mess, because of historical
