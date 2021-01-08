@@ -12944,96 +12944,114 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
-<dd><p>
-    <ul>
-    <li>Add new options <code>acos</code> and <code>cos</code>
-        for colour scaling options
-        <code>auxfunc</code>, <code>densefunc</code> etc;
-        these provide linear-like stretch functions with
-        steeper/flatter ends, which may be useful for shading
-        by quantities with most variation near to/far from the
-        middle of the range.</li>
-    <li>Fix broken example in
-        <ref id="tmatchn-examples"><code>tmatchn</code>
-                                   documentation</ref>.</li>
-    <li>Fix <ref id="taplint"><code>taplint</code></ref> to cope with
-        VOSI1.1 <code>detail=min</code>-style response from
-        <code>/tables</code> endpoint; avoid spurious
-        <code>E-TMC-CM21</code>/<code>E-TMC-FM21</code> errors.</li>
-    <li>Cope better with infinite values in aux plot coordinates.</li>
-    <li>Fix histogram ranging bug
-        (plot failure under certain circumstances).</li>
-    <li>Upgrade JEL to v2.1.2: bugfix plus some efficiency improvements
-        in object creation.</li>
-    <li>Slightly improved documentation for
-        <ref id="cdsskymatch"><code>cdsskymatch</code></ref>.</li>
-    <li>Avoid inserting <code>NULL_VALUE</code> custom metadata entries
-        into ECSV output.</li>
-    <li>Add <code>combine</code> parameter to
-        <ref id="tcube"><code>tcube</code></ref>,
-        so it can produce generalised weighted maps.</li>
-    <li>Make <ref id="taplint"><code>taplint</code></ref> changes for
-        later edits to ObsCore-1.1 Erratum #1
-        (<code>dataproduct_type</code> and
-         <code>dataproduct_subtype</code> UCDs are now
-         <code>meta.code.class</code>).</li>
-    <li>Auto file format detection now examines filenames to help
-        guess format; this means that e.g. for CSV files named
-        with the "<code>.csv</code>" extension, it is no longer
-        necessary to specify <code>ifmt=csv</code>.</li>
-    <li>The <ref id="mode-stats">stats</ref> output mode now runs in
-        parallel.</li>
-    <li><ref id="TableScheme">Scheme specifiers</ref> can now be used
-        to specify input tables, to read tables not based on
-        external files.  Options currently provided include
-        <ref id="scheme-loop">simple sequence</ref>,
-        <ref id="scheme-skysim">simulated sky</ref> and
-        <ref id="scheme-attractor">strange attractor</ref> data.</li>
-    <li>COOSYS and TIMESYS attributes are now preserved
-        during VOTable I/O for table PARAMs
-        (as well as for FIELDs, which was already the case).</li>
-    <li>Fix bug that could give unhelpful table load error message
-        for very short non-FITS files.</li>
-    <li>Improved documentation of I/O formats in this document:
-        full docs are now provided in <ref id="ioFormats"/>
-        for all formats rather than summaries
-        with pointers to <docxref doc="sun253"/>.
-        The <ref id="io">Table I/O</ref> section has been somewhat
-        reorganised and tidied up.</li>
-    <li>I/O handlers can now in some cases take parenthesised options,
-        e.g. <code>ofmt=votable(version=V12,format=BINARY)</code>.
-        See individual handler documentation
-        (e.g. <ref id="outVotable">votable output handler</ref>
-        for details).</li>
-    <li>The <ref id="mode-count">count</ref> output mode now runs in
-        parallel.</li>
-    <li>The <ref id="progress">progress</ref> filter no longer
-        slows down pipelines to any noticeable extent.</li>
-    <li>The <ref id="every">every</ref> filter has a new
-        <code>-exact|-approx</code> option; in approx mode
-        it runs in parallel.</li>
-    <li>The <ref id="stats">stats</ref> filter now runs in parallel
-        by default, unless the <code>-noparallel</code> flag is supplied.
-        If quantiles are calculated, the <code>-qapprox</code> flag
-        can be supplied to use an (approximate) algorithm that will
-        not run out of memory.</li>
-    <li>The <ref id="sort">sort</ref> filter now runs in parallel
-        for large tables; the <code>-[no]parallel</code> can be used
-        to force parallel/sequential execution.</li>
-    <li><ref id="tskymap"><code>tskymap</code></ref> now runs
-        in parallel.</li>
-    <li>The <ref id="inEcsv">ECSV input handler</ref> now has
-        an optional <code>header</code> parameter, so it's easy to
-        prepend custom ECSV headers to plain CSV files, e.g.
-        <code>ifmt='ecsv(header=edr3-hdr.ecsv)'</code>.</li>
-    <li>Add experimental option <code>storage=parallel</code>
-        for <code>plot2*</code> commands.</li>
-    <li>Tidy up open files in the table concatenation command
-        <ref id="tcat"><code>tcat</code></ref>;
-        with <code>lazy=true</code>
-        it should no longer fail with "Too many open files".</li>
-    </ul>
+<dt>Version 3.4</dt>
+<dd><p>In this version, the table handling library STIL has
+    been upgraded to v4.0, which enables some enhancements
+    including multithreading and new I/O handler features.
+    <dl>
+    <dt>Notable new functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>Auto file format detection now examines filenames to help
+            guess format; this means that e.g. for CSV files named
+            with the "<code>.csv</code>" extension, it is no longer
+            necessary to specify <code>ifmt=csv</code>.</li>
+        <li>Several operations can now run in parallel,
+            so should execute faster
+            for large datasets on multi-core machines.
+            Parallelised operations are the output modes
+            <ref id="mode-stats">stats</ref> and
+            <ref id="mode-count">count</ref>,
+            the filters <ref id="stats">stats</ref> and
+            <ref id="sort">sort</ref>,
+            and the task <ref id="tskymap">tskymap</ref>.
+            The <code>stats</code> and <code>sort</code> filters have
+            <code>-[no]parallel</code> flags that can be used to select
+            between sequential and parallel execution.
+            Parallel data caching for plots is also available
+            using the <code>storage=parallel</code> option,
+            but this is currently experimental and not generally recommended.
+            Future releases will parallelise other operations,
+            including matching.</li>
+        <li>I/O handlers can now in some cases take parenthesised options,
+            e.g. <code>ofmt=votable(version=V12,format=BINARY)</code>.
+            For examples see individual handler documentation,
+            e.g. the <ref id="outVotable">VOTable output handler</ref> and
+            <ref id="inEcsv">ECSV input handler</ref>.</li>
+        <li><ref id="TableScheme">Scheme specifiers</ref> can now be used
+            to specify input tables, to read tables not based on
+            external files.  Options currently provided include
+            <ref id="scheme-loop">simple sequence</ref>,
+            <ref id="scheme-skysim">simulated sky</ref> and
+            <ref id="scheme-attractor">strange attractor</ref> data.</li>
+        <li>Improved documentation of I/O formats in this document:
+            full docs are now provided in <ref id="ioFormats"/>
+            for all formats rather than summaries
+            with pointers to <docxref doc="sun253"/>.
+            The <ref id="io">Table I/O</ref> section has been somewhat
+            reorganised and tidied up.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>When the <ref id="stats">stats</ref> filter calculates quantiles,
+            the <code>-qapprox</code> flag can be supplied to use an
+            (approximate) algorithm that will not run out of memory.</li>
+        <li>Add <code>combine</code> parameter to
+            <ref id="tcube"><code>tcube</code></ref>,
+            so it can produce generalised weighted maps.</li>
+        <li>Add new options <code>acos</code> and <code>cos</code>
+            for colour scaling options
+            <code>auxfunc</code>, <code>densefunc</code> etc;
+            these provide linear-like stretch functions with
+            steeper/flatter ends, which may be useful for shading
+            by quantities with most variation near to/far from the
+            middle of the range.</li>
+        <li>The <ref id="progress">progress</ref> filter no longer
+            slows down pipelines to any noticeable extent.</li>
+        <li>COOSYS and TIMESYS attributes are now preserved
+            during VOTable I/O for table PARAMs
+            (as well as for FIELDs, which was already the case).</li>
+        <li>Tidy up open files in the table concatenation command
+            <ref id="tcat"><code>tcat</code></ref>;
+            with <code>lazy=true</code>
+            it should no longer fail with "Too many open files".</li>
+        <li>The <ref id="every">every</ref> filter has a new
+            <code>-exact|-approx</code> flag;
+            <code>-approx</code> may be required for certain operations
+            to run in parallel.</li>
+        <li>Slightly improved documentation for
+            <ref id="cdsskymatch"><code>cdsskymatch</code></ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix bug that could give unhelpful table load error message
+            for very short non-FITS files.</li>
+        <li>Fix broken example in
+            <ref id="tmatchn-examples"><code>tmatchn</code>
+                                       documentation</ref>.</li>
+        <li>Fix <ref id="taplint"><code>taplint</code></ref> to cope with
+            VOSI1.1 <code>detail=min</code>-style response from
+            <code>/tables</code> endpoint; avoid spurious
+            <code>E-TMC-CM21</code>/<code>E-TMC-FM21</code> errors.</li>
+        <li>Cope better with infinite values in aux plot coordinates.</li>
+        <li>Fix histogram ranging bug
+            (plot failure under certain circumstances).</li>
+        <li>Upgrade JEL to v2.1.2: bugfix plus some efficiency improvements
+            in object creation.</li>
+        <li>Avoid inserting <code>NULL_VALUE</code> custom metadata entries
+            into ECSV output.</li>
+        <li>Make <ref id="taplint"><code>taplint</code></ref> changes for
+            later edits to ObsCore-1.1 Erratum #1
+            (<code>dataproduct_type</code> and
+             <code>dataproduct_subtype</code> UCDs are now
+             <code>meta.code.class</code>).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
