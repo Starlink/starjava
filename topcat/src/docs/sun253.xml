@@ -29170,73 +29170,96 @@ introduced since the last version:
     </p></dd>
 
 <dt>Next Version</dt>
-<dd><p>
-    <ul>
-    <li>Add new options <code>acos</code> and <code>cos</code>
-        for <label>Scaling</label> in the
-        <ref id="ShaderControl">Aux Axis Control</ref> etc;
-        these provide linear-like stretch functions with
-        steeper/flatter ends, which may be useful for shading
-        by quantities with most variation near to/far from the
-        middle of the range.</li>
-    <li>Cope better with infinite values in aux plot coordinates.</li>
-    <li>Fix histogram ranging bug
-        (plot failure under certain circumstances).</li>
-    <li>Upgrade JEL to v2.1.2: fixes a bug that could cause trouble when
-        reloading saved sessions with certain boolean-valued
-        synthetic columns: load could fail or values could be inverted.
-        Also some efficiency improvements in object creation.</li>
-    <li>Slightly improved documentation for
-        <ref id="CdsUploadMatchWindow">CDS Upload X-Match Window</ref>.</li>
-    <li>Avoid inserting <code>NULL_VALUE</code> custom metadata entries
-        into ECSV output.</li>
-    <li>Fix annoying column selector bug that sometimes required
-        an extra click.</li>
-    <li>Fix up MacOS application packaging issue so that
-        <code>topcat</code>/<code>stilts</code> startup scripts work
-        on Mac Mini.</li>
-    <li>Auto file format detection now examines filenames to help
-        guess format; this means that e.g. when loading CSV files named
-        with the "<code>.csv</code>" extension, it is no longer
-        necessary to select "CSV" in the
-        <ref id="LoadWindow">Load Window</ref> <label>Format</label>
-        selector.</li>
-    <li><ref id="TableScheme">Scheme specifiers</ref> can now be
-        entered in the <ref id="LoadWindow">Load Window</ref>
-        to load tables not corresponding to external files.
-        Options currently provided include
-        <ref id="scheme-loop">simple sequence</ref>,
-        <ref id="scheme-skysim">simulated sky</ref> and
-        <ref id="scheme-attractor">strange attractor</ref> data.</li>
-    <li>COOSYS and TIMESYS attributes are now preserved
-        during VOTable I/O for table PARAMs
-        (as well as for FIELDs, which was already the case).
-        However, they are not currently displayed in the application GUI
-        for table parameters, only for columns.</li>
-    <li>The <ref id="io">Table I/O</ref> section has been somewhat
-        reorganised and tidied up.</li>
-    <li>Table input/output handlers specified in the
-        table <ref id="SaveQueryWindow">Save</ref
-            >/<ref id="LoadWindow">Load</ref> Windows
-        can now in some cases take parenthesised options,
-        e.g. you can type in
-        "<label>votable(version=V12,format=BINARY)</label>"
-        instead of just selecting "<label>votable</label>".
-        See individual format documentation
-        (e.g. <ref id="outVotable">VOTable output</ref>)
-        for details.</li>
-    <li>Add more example tables
-        (using <ref id="scheme-skysim">skysim</ref>
-        and <ref id="scheme-attractor">attractor</ref> schemes)
-        to the <ref id="demoData">Example Tables</ref> menu.</li>
-    <li>Improved performance when multiple threads are accessing
-        synthetic columns or subsets concurrently.</li>
-    <li>The <ref id="inEcsv">ECSV input handler</ref> now has
-        an optional <code>header</code> parameter, so you can
-        prepend custom ECSV headers to plain CSV files.</li>
-    <li>Perform part of the <ref id="order">Sort</ref>
-        operation in parallel.</li>
-    </ul>
+<dd><p>In this version, the table handling library STIL has
+    been upgraded to v4.0, which enables some enhancements
+    including multithreading and new I/O handler features.
+    <dl>
+    <dt>Notable new functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>Auto file format detection now examines filenames to help
+            guess format; this means that e.g. when loading CSV files named
+            with the "<code>.csv</code>" extension, it is no longer
+            necessary to select "CSV" in the
+            <ref id="LoadWindow">Load Window</ref> <label>Format</label>
+            selector.</li>
+        <li><ref id="TableScheme">Scheme specifiers</ref> can now be
+            entered in the <ref id="LoadWindow">Load Window</ref>
+            to load tables not corresponding to external files.
+            Options currently provided include
+            <ref id="scheme-loop">simple sequence</ref>,
+            <ref id="scheme-skysim">simulated sky</ref> and
+            <ref id="scheme-attractor">strange attractor</ref> data.</li>
+        <li>Add more example tables
+            (using <ref id="scheme-skysim">skysim</ref>
+            and <ref id="scheme-attractor">attractor</ref> schemes)
+            to the <ref id="demoData">Example Tables</ref> menu.</li>
+        <li>Table input/output handlers specified in the
+            table <ref id="SaveQueryWindow">Save</ref
+                >/<ref id="LoadWindow">Load</ref> Windows
+            can now in some cases take parenthesised options,
+            e.g. you can type in
+            "<label>votable(version=V12,format=BINARY)</label>"
+            instead of just selecting "<label>votable</label>".
+            For examples see individual handler documentation,
+            e.g. the <ref id="outVotable">VOTable output handler</ref> and
+            <ref id="inEcsv">ECSV input handler</ref>.</li>
+        <li>Improved performance when multiple threads are accessing
+            synthetic columns or subsets concurrently.</li>
+        <li>Statistics calculations in
+            <ref id="StatsWindow">Statistics Window</ref>
+            now execute in parallel.</li>
+        <li>New <label>Approximate Quantile Calculation</label> option
+            in <ref id="StatsWindow">Statistics Window</ref>
+            that runs in limited memory.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>COOSYS and TIMESYS attributes are now preserved
+            during VOTable I/O for table PARAMs
+            (as well as for FIELDs, which was already the case).
+            However, they are not currently displayed in the application GUI
+            for table parameters, only for columns.</li>
+        <li>The <ref id="io">Table I/O</ref> section has been somewhat
+            reorganised and tidied up.</li>
+        <li>Add new options <code>acos</code> and <code>cos</code>
+            for <label>Scaling</label> in the
+            <ref id="ShaderControl">Aux Axis Control</ref> etc;
+            these provide linear-like stretch functions with
+            steeper/flatter ends, which may be useful for shading
+            by quantities with most variation near to/far from the
+            middle of the range.</li>
+        <li>Perform part of the <ref id="order">Sort</ref>
+            operation in parallel.</li>
+        <li>Slightly improved documentation for
+            <ref id="CdsUploadMatchWindow">CDS Upload X-Match Window</ref>.</li>
+        <li>Add <label>Plot|Parallel Caching</label> menu option
+            in plot windows; this is experimental and not generally
+            recommended.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Upgrade JEL to v2.1.2: fixes a bug that could cause trouble when
+            reloading saved sessions with certain boolean-valued
+            synthetic columns: load could fail or values could be inverted.
+            Also some efficiency improvements in object creation.</li>
+        <li>Fix histogram ranging bug
+            (plot failure under certain circumstances).</li>
+        <li>Avoid inserting <code>NULL_VALUE</code> custom metadata entries
+            into ECSV output.</li>
+        <li>Fix annoying column selector bug that sometimes required
+            an extra click.</li>
+        <li>Fix up MacOS application packaging issue so that (hopefully)
+            <code>topcat</code>/<code>stilts</code> startup scripts work
+            on Mac M1 architecture.</li>
+        <li>Cope better with infinite values in aux plot coordinates.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
