@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -231,8 +232,8 @@ public class MapEnvironment implements TableEnvironment {
                 value = tablePs;
             }
 
-            /* For tables that are specified by name, use the current
-             * context. */
+            /* If the table corresponds to a resource in the current context,
+             * use that.  Otherwise use the specified value. */
             else if ( pclazz.equals( StarTable.class ) &&
                       mapVal instanceof String &&
                       ((String) mapVal).indexOf( '/' ) < 0 ) {
@@ -243,7 +244,8 @@ public class MapEnvironment implements TableEnvironment {
                     frag = sval.substring( ihash );
                     sval = sval.substring( 0, ihash );
                 }
-                value = resourceBase_.getResource( sval ).toString() + frag;
+                URL url = resourceBase_.getResource( sval );
+                value = url == null ? mapVal : url.toString() + frag;
             }
 
             /* Otherwise use the specified value. */
