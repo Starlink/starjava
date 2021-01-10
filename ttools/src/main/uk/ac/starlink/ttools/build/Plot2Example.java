@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.KeyStroke;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.task.InvokeUtils;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
@@ -451,6 +452,9 @@ public class Plot2Example {
             outDir_ = outDir;
             dataUrl_ = dataUrl;
             tableFactory_ = new StarTableFactory();
+            for ( TableScheme scheme : Stilts.getStandardSchemes() ) {
+                tableFactory_.addScheme( scheme );
+            }
             tableMap_ = new HashMap<String,StarTable>();
             envDefaults_ = new LinkedHashMap<String,Object>();
             envDefaults_.put( "ypix", "350" );
@@ -1598,6 +1602,29 @@ public class Plot2Example {
             } ),
             createShadingExample( "weighted", c, new String[] {
                 "*weight1=z", "*auxmap=plasma",
+            } ),
+            new Plot2Example( "skysim", c, PlotTask.SKY, new String[] {
+                "xpix=700", "ypix=600",
+                "datasys=equatorial", "viewsys=galactic", "layer1=mark", null,
+                "in1=:skysim:1e6", "lon1=ra", "lat1=dec", null,
+                "shading1=weighted", "weight1=b_r", "combine=mean",
+                "auxmap=sron", "auxflip=true",
+            } ),
+            new Plot2Example( "clifford", c, PlotTask.PLANE, new String[] {
+                "xpix=650", "ypix=650",
+                "layer1=mark", "in1=:attractor:2e6,clifford", "x1=x", "y1=y",
+                null,
+                "shading1=density", "densemap1=plasma",
+            } ),
+            new Plot2Example( "rampe", c, PlotTask.CUBE, new String[] {
+                "xpix=650", "ypix=650", "zoom=1.3",
+                "layer1=mark",
+                "in1=:attractor:2e6,rampe,1.42,-1.98,0.39,1.32,1.79,-0.37",
+                "x1=x", "y1=y", "z1=z", null,
+                "shading1=density", "color1=yellow",
+                "!xmin=-3.58", "!xmax=2.16",
+                "!ymin=-2.03", "!ymax=0.82",
+                "!zmin=-2.61", "!zmax=0.09",
             } ),
         };
     }

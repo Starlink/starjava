@@ -470,7 +470,11 @@
       <sysproperty key="java.awt.headless" value="true"/>
       <classpath refid="classpath"/>
       <arg value="-mode"/> <arg value="plotserv_basic"/>
-      <arg value="layer-label"/> <arg value="layer-function"/>
+      <arg value="layer-label"/>
+      <arg value="skysim"/>
+      <arg value="clifford"/>
+      <arg value="rampe"/>
+      <arg value="layer-function"/>
     </java>
     <java classname="uk.ac.starlink.ttools.build.Plot2Example"
           output="${build.classes}/uk/ac/starlink/ttools/server/basic-plots.ipynb"
@@ -479,7 +483,11 @@
       <sysproperty key="java.awt.headless" value="true"/>
       <classpath refid="classpath"/>
       <arg value="-mode"/> <arg value="ipynb_basic"/>
-      <arg value="layer-label"/> <arg value="layer-function"/>
+      <arg value="layer-label"/>
+      <arg value="skysim"/>
+      <arg value="clifford"/>
+      <arg value="rampe"/>
+      <arg value="layer-function"/>
     </java>
 
     <!-- Call target to do time-consuming build of additional components;
