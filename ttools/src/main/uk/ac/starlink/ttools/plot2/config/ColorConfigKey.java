@@ -163,7 +163,7 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
             "from <code>AliceBlue</code> to <code>YellowGreen</code>,",
             "listed e.g. in the",
             "<em>Extended color keywords</em> section of",
-            "the <webref url='http://www.w3c.org/TR/css3-color#svg-color'"
+            "the <webref url='https://www.w3.org/TR/css-color-3/#svg-color'"
                       + ">CSS3</webref> standard.",
             "</p>",
             "<p>Alternatively, a six-digit hexadecimal number <em>RRGGBB</em>",

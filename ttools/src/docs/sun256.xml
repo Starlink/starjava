@@ -11891,7 +11891,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>Colour names recognised by the <code>plot2*</code> command
             <code>*color</code> parameters
             now include the (140)
-            <webref url="https://www.w3c.org/TR/css3-color#svg-color"
+            <webref url="https://www.w3.org/TR/css-color-3/#svg-color"
                     >CSS-like</webref> colours alongside
             the dozen standard plotting colours.</li>
         <li>Plot commands <code>insets</code> parameter now lets you specify
