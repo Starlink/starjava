@@ -452,7 +452,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>23 October 2020</docdate>
+<docdate>11 January 2021</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -29169,7 +29169,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 4.8 (11 January 2021)</dt>
 <dd><p>In this version, the table handling library STIL has
     been upgraded to v4.0, which enables some enhancements
     including multithreading and new I/O handler features.
