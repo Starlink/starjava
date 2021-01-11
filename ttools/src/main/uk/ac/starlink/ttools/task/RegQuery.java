@@ -62,10 +62,7 @@ public class RegQuery extends ConsumerTask {
             "Logical operators <code>and</code> and <code>or</code> and",
             "parentheses can be used to group and combine expressions.",
             "To work out the various <code>&lt;field-name&gt;</code>s",
-            "you need to look at the VOResource 1.0 schema;",
-            "you can find some more discussion in the documentation of the",
-            "NVO <webref url='http://trac.us-vo.org/project/nvo/wiki/"
-                           + "IVOARegistry'>IVOARegistry</webref> package.",
+            "you need to look at the VOResource 1.0 schema.",
             "</p>",
         } );
         paramList.add( queryParam_ );
