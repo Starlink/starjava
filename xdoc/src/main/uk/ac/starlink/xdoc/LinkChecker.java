@@ -49,7 +49,10 @@ public class LinkChecker {
     private static Pattern namePattern2 =
         Pattern.compile( "<a\\s+name=(\\w+)>",
                          Pattern.CASE_INSENSITIVE );
-    private int networkTimeout = 5;
+    private static Pattern hrefPattern =
+        Pattern.compile( "<a\\b[^>]*\\bhref=['\"]#([^'\"]*)['\"]",
+                         Pattern.CASE_INSENSITIVE );
+    private int networkTimeout = 10;
 
     /**
      * Constructs a new LinkChecker with a given home context. 
@@ -151,6 +154,26 @@ public class LinkChecker {
                     if ( response == HttpURLConnection.HTTP_OK ) {
                         ok = true;
                     }
+                    else if ( response == HttpURLConnection.HTTP_BAD_METHOD ) {
+                        fconn =
+                            followRedirectsWithTimeout( url.openConnection() );
+                        if ( fconn instanceof HttpURLConnection ) {
+                            int responseGet = ((HttpURLConnection) fconn)
+                                             .getResponseCode();
+                            if ( responseGet == HttpURLConnection.HTTP_OK ) {
+                                ok = true;
+                            }
+                            else {
+                                logMessage( "HEAD failed with 405; "
+                                          + "GET failed with " + responseGet
+                                          + ": " + url );
+                                ok = false;
+                            }
+                        }
+                        else {
+                            ok = true;
+                        }
+                    }
                     else {
                         logMessage( "Response " + response + ": " + url );
                         ok = false;
@@ -195,12 +218,28 @@ public class LinkChecker {
             connectWithTimeout( conn );
             BufferedReader strm = new BufferedReader( 
                 new InputStreamReader( conn.getInputStream() ) );
+
+            /* Try to find all the IDs defined in the document.
+             * This is not going to be all that reliable, since I'm trying
+             * to parse HTML by hand, which is at the mercy of whitespace
+             * decisions made by the document author etc. */
             for ( String line; ( line = strm.readLine() ) != null; ) {
                 for ( Matcher matcher = namePattern1.matcher( line );
                       matcher.find(); ) {
                     names.add( matcher.group( 1 ) );
                 }
                 for ( Matcher matcher = namePattern2.matcher( line );
+                      matcher.find(); ) {
+                    names.add( matcher.group( 1 ) );
+                }
+
+                /* This is really a cheat.  I'm looking for references within
+                 * the document to the fragment ID.  That doesn't guarantee
+                 * that the document contains the referenced ID, but it's
+                 * a pretty good indicator that it does.  I'm resorting to
+                 * this because it happens to catch some documents that
+                 * slip through the cracks for the other attempts. */
+                for ( Matcher matcher = hrefPattern.matcher( line );
                       matcher.find(); ) {
                     names.add( matcher.group( 1 ) );
                 }
