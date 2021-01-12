@@ -41,12 +41,10 @@
 <xsl:stylesheet version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:java="http://xml.apache.org/xalan/java"
-                xmlns:File="xalan://java.io.File"
-                xmlns:ImageIcon="xalan://javax.swing.ImageIcon"
                 xmlns:Date="xalan://java.util.Date"
                 xmlns:DateFormat="xalan://java.text.DateFormat"
                 xmlns:XdocUtils="xalan://uk.ac.starlink.xdoc.XdocUtils"
-                exclude-result-prefixes="java File ImageIcon Date DateFormat XdocUtils"
+                exclude-result-prefixes="java Date DateFormat XdocUtils"
                 >
 
   <xsl:param name="BASEDIR" select="'.'"/>
@@ -69,13 +67,11 @@
   <xsl:template match="img">
     <xsl:element name="img">
       <xsl:apply-templates select="@*"/>
-      <xsl:if test="function-available('ImageIcon:getIconWidth')">
+      <xsl:if test="function-available('XdocUtils:getImageSize')">
         <xsl:variable name="src" select="string(./@src)"/>
-        <xsl:variable name="srcFile" select="File:new($BASEDIR,$src)"/>
-        <xsl:variable name="srcLoc" select="java:toString($srcFile)"/>
-        <xsl:variable name="icon" select="ImageIcon:new($srcLoc)"/>
-        <xsl:variable name="width" select="java:getIconWidth($icon)"/>
-        <xsl:variable name="height" select="java:getIconHeight($icon)"/>
+        <xsl:variable name="iconDim" select="XdocUtils:getImageSize($src)"/>
+        <xsl:variable name="width" select="java:getWidth($iconDim)"/>
+        <xsl:variable name="height" select="java:getHeight($iconDim)"/>
         <xsl:if test="$width&gt;=0">
           <xsl:attribute name="width">
             <xsl:value-of select="$width"/>

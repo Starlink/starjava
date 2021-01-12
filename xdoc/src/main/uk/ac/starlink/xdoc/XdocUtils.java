@@ -1,10 +1,16 @@
 package uk.ac.starlink.xdoc;
 
+import java.awt.Dimension;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.logging.Logger;
+import javax.swing.ImageIcon;
 
 /**
  * Utilities designed for use during XSTL processing.
@@ -22,6 +28,9 @@ import java.lang.reflect.Method;
  * @since    20 Feb 2006
  */
 public class XdocUtils {
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.xdoc" );
 
     private XdocUtils() {
     }
@@ -89,5 +98,32 @@ public class XdocUtils {
             System.exit( 1 );
         }
         return leng;
+    }
+
+    /**
+     * Returns the dimensions of an image file with the given filename.
+     * If no dimensions can be established, a message is reported through
+     * the logging system, and a Dimension object with negative dimensions
+     * is returned.
+     *
+     * @param  fname  filename of image file
+     * @return   dimensions of image, or dummy <code>new Dimension(-1,-1)</code>
+     */
+    public static Dimension getImageSize( String fname ) throws IOException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        byte[] buf = new byte[ 8096 ];
+        try ( InputStream in = new FileInputStream( fname ) ) {
+            for ( int n; ( n = in.read( buf ) ) > 0; ) {
+                bout.write( buf, 0, n );
+            }
+            bout.close();
+            ImageIcon icon = new ImageIcon( bout.toByteArray() );
+            return new Dimension( icon.getIconWidth(),
+                                  icon.getIconHeight() );
+        }
+        catch ( IOException e ) {
+            logger_.warning( "Can't establish dimensions for \"" + fname + '"');
+            return new Dimension( -1, -1 );
+        }
     }
 }
