@@ -1386,7 +1386,7 @@ public class StarTableFactory {
      * Parses a scheme-format table specification as a scheme name
      * and a scheme-specific part.
      * Normally schemes are of the form
-     * ":&lt;scheme-name&gt;:&lt;scheme-specific-part>gt;",
+     * ":&lt;scheme-name&gt;:&lt;scheme-specific-part&gt;",
      * but as a special case the initial colon may be omitted for JDBC
      * (backward compatibility).
      *
@@ -1395,7 +1395,7 @@ public class StarTableFactory {
      *           a 2-element array giving [scheme-name,scheme-specific-part];
      *           otherwise null
      */
-    private static String[] parseSchemeLocation( String location ) {
+    public static String[] parseSchemeLocation( String location ) {
         if ( location.startsWith( "jdbc:" ) ) {
             return new String[] { "jdbc", location.substring( 5 ) };
         }

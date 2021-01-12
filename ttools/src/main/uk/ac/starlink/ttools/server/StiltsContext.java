@@ -268,6 +268,9 @@ public class StiltsContext {
     private StarTable getServletTable( StarTableFactory tfact, String loc,
                                        boolean allowAbsolute )
             throws IOException {
+        if ( StarTableFactory.parseSchemeLocation( loc ) != null ) {
+            return tfact.makeStarTable( loc );
+        }
         String fsPath = ( allowAbsolute &&
                           loc.length() > 0 && loc.charAt( 0 ) == '/' )
                       ? loc

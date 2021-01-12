@@ -13057,6 +13057,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Fix <code>server</code> to work with scheme-specified tables
+        with non-default <code>tablefactory</code> parameter.</li>
     </ul>
     </p></dd>
 
