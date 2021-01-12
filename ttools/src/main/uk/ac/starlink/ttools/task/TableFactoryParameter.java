@@ -123,7 +123,7 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
         final StarTableFactory tfact;
         if ( sval == null || sval.trim().length() == 0 ||
              sval.equalsIgnoreCase( FILE_OPTION ) ) {
-            tfact = new StarTableFactory();
+            tfact = createDefaultTableFactory();
         }
         else if ( sval.toLowerCase().startsWith( DIRS_PREFIX ) ) {
             String dirlist = sval.substring( DIRS_PREFIX.length() );
@@ -148,9 +148,6 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
             throw new UsageException( "Unknown form; "
                                     + "should be dirs:* or locator:*" );
         }
-        for ( TableScheme scheme : Stilts.getStandardSchemes() ) {
-            tfact.addScheme( scheme );
-        }
         return tfact;
     }
 
@@ -162,6 +159,19 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
      */
     public static StarTableFactory createTableFactory( TableLocator locator ) {
         return new LocatorStarTableFactory( locator );
+    }
+
+    /**
+     * Returns a table factory with standard characteristics for STILTS.
+     *
+     * @return  new table factory
+     */
+    private static StarTableFactory createDefaultTableFactory() {
+        StarTableFactory tfact = new StarTableFactory();
+        for ( TableScheme scheme : Stilts.getStandardSchemes() ) {
+            tfact.addScheme( scheme );
+        }
+        return tfact;
     }
 
     /**
@@ -212,7 +222,7 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
                 }
             }
             tableMap_ = new WeakHashMap<String,StarTable>();
-            tfact_ = new StarTableFactory();
+            tfact_ = createDefaultTableFactory();
         }
 
         public StarTable getTable( String location ) throws IOException {
@@ -228,6 +238,9 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
                     tableMap_.put( location, tbl );
                     return tbl;
                 }
+            }
+            if ( StarTableFactory.parseSchemeLocation( location ) != null ) {
+                return tfact_.makeStarTable( location );
             }
             throw new FileNotFoundException( "No known table " + location );
         }
