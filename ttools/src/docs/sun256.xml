@@ -13059,6 +13059,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <ul>
     <li>Fix <code>server</code> to work with scheme-specified tables
         with non-default <code>tablefactory</code> parameter.</li>
+    <li>JDBC output no longer attempts to create VARCHAR(0) columns.</li>
     </ul>
     </p></dd>
 

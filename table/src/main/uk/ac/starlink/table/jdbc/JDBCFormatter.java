@@ -129,7 +129,11 @@ public class JDBCFormatter {
             }
             else {
                 if ( sqlType == Types.VARCHAR ) {
-                    tSpec += "(" + charSizes[ icol ] + ")";
+
+                    /* Pin the minimum size to 1, since at least some
+                     * RDBMS (Postgres) don't like VARCHAR(0). */
+                    int charSize = Math.max( charSizes[ icol ], 1 );
+                    tSpec += "(" + charSize + ")";
                 }
                 sqlCols_[ icol ] = new SqlColumn( sqlType, colName, tSpec );
             }
