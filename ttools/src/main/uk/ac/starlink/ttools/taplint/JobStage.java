@@ -592,6 +592,9 @@ public class JobStage implements Stage {
                .append( value )
                .append( " to " )
                .append( url )
+               .append( " (" )
+               .append( code )
+               .append( ")" )
                .toString();
             reporter_.report( FixedCode.I_POPA, msg );
             return true;
