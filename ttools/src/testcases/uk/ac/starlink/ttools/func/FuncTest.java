@@ -236,6 +236,8 @@ public class FuncTest extends TestCase {
         assertArrayEquals( new int[] { 7, 10, 12 },
                            Arrays.intArray( 7, 10, 12 ) );
 
+        assertArrayEquals( new int[] { 0, 1, 2, 3 }, Arrays.sequence( 4 ) );
+
         double[] da = new double[] { 10., 11., 12., 13., 14., 15., };
         int[] ia = new int[] { 10, 11, 12, 13, 14, 15, };
         String[] sa = new String[] { "Tess", "Armadillo", "Scout", };

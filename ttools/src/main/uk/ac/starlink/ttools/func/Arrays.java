@@ -1035,6 +1035,24 @@ public class Arrays {
     }
 
     /**
+     * Returns an integer array of a given length with the values
+     * 0, 1, 2, ....
+     *
+     * @example <code>sequence(4) = (0, 1, 2, 3)</code>
+     *
+     * @param  n  length of array
+     * @return   <code>n</code>-element array,
+     *           (0, 1, 2, ... <code>n</code>-1)
+     */
+    public static int[] sequence( int n ) {
+        int[] seq = new int[ n ];
+        for ( int i = 0; i < n; i++ ) {
+            seq[ i ] = i;
+        }
+        return seq;
+    }
+
+    /**
      * Returns a floating point numeric array built from the given arguments.
      *
      * @param   values   one or more array elements

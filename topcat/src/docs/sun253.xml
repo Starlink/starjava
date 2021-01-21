@@ -29266,6 +29266,8 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>JDBC output no longer attempts to create VARCHAR(0) columns.</li>
+    <li>Add new function <code>sequence</code> to class
+        <ref id="Arrays">Arrays</ref>.</li>
     </ul>
     </p></dd>
 

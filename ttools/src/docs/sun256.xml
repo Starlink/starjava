@@ -13060,6 +13060,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix <code>server</code> to work with scheme-specified tables
         with non-default <code>tablefactory</code> parameter.</li>
     <li>JDBC output no longer attempts to create VARCHAR(0) columns.</li>
+    <li>Add new function <code>sequence</code> to class
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
     </ul>
     </p></dd>
 
