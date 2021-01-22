@@ -12,6 +12,19 @@ import uk.ac.starlink.util.IntList;
  */
 public class Pixers {
 
+    /** Pixer with no pixels. */
+    public static final Pixer EMPTY = new Pixer() {
+        public boolean next() {
+            return false;
+        }
+        public int getX() {
+            throw new IllegalStateException();
+        }
+        public int getY() {
+            throw new IllegalStateException();
+        }
+    };
+
     /**
      * Private constructor prevents instantiation.
      */
