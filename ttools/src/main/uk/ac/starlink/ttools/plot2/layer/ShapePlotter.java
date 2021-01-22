@@ -34,21 +34,33 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
     private final ShapeMode mode_;
 
     /**
-     * Constructor.
+     * Constructs a ShapePlotter with a coord group determined from
+     * its supplied form and mode.
      *
      * @param   name  plotter name
      * @param   form  shape determiner
      * @param   mode  colour determiner
      */
     public ShapePlotter( String name, ShapeForm form, ShapeMode mode ) {
-        super( name,
-               form.getFormIcon(),
-               CoordGroup
-              .createCoordGroup( form.getPositionCount(),
-                                 PlotUtil
-                                .arrayConcat( form.getExtraCoords(),
-                                              mode.getExtraCoords() ) ),
-               mode.hasReports() );
+        this( name, form, mode,
+              CoordGroup
+             .createCoordGroup( form.getPositionCount(),
+                                PlotUtil
+                               .arrayConcat( form.getExtraCoords(),
+                                             mode.getExtraCoords() ) ) );
+    }
+
+    /**
+     * Constructs a ShapePlotter with a given coord group.
+     *
+     * @param   name  plotter name
+     * @param   form  shape determiner
+     * @param   mode  colour determiner
+     * @param   cgrp  coordinate group
+     */
+    protected ShapePlotter( String name, ShapeForm form, ShapeMode mode,
+                            CoordGroup cgrp ) {
+        super( name, form.getFormIcon(), cgrp, mode.hasReports() );
         form_ = form;
         mode_ = mode;
     }
@@ -100,7 +112,7 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
     public int getModeCoordsIndex( DataGeom geom ) {
         return ( geom == null ? 0 : geom.getPosCoords().length )
                * form_.getPositionCount()
-             + form_.getExtraCoords().length;
+               + form_.getExtraCoords().length;
     }
 
     /**
