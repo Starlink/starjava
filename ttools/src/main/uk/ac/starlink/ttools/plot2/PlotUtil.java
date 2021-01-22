@@ -506,7 +506,7 @@ public class PlotUtil {
                                                boolean[] logFlags,
                                                boolean doPad,
                                                DataStore dataStore ) {
-        int nDataDim = ranges.length;
+        final int nDataDim = ranges.length;
 
         /* Create a point cloud containing all the data coordinates
          * represented by the supplied layers.  If there are several
@@ -525,7 +525,17 @@ public class PlotUtil {
 
         /* Collect values for the represented points to mark out the basic
          * range of data positions covered by the layers. */
-        RangeCollector rangeCollector = new RangeCollector( nDataDim );
+        RangeCollector<CoordSequence> rangeCollector =
+                new RangeCollector<CoordSequence>( nDataDim ) {
+            public void accumulate( CoordSequence cseq, Range[] ranges ) {
+                double[] dpos = cseq.getCoords();
+                while ( cseq.next() ) {
+                    for ( int idim = 0; idim < nDataDim; idim++ ) {
+                        ranges[ idim ].submit( dpos[ idim ] );
+                    }
+                }
+            }
+        };
         Range[] cloudRanges =
             dataStore.getTupleRunner().coordRunner()
                      .collect( rangeCollector, 
@@ -1146,59 +1156,6 @@ public class PlotUtil {
                               base.y + insets.top,
                               base.width - insets.left - insets.right,
                               base.height - insets.top - insets.bottom );
-    }
-
-    /**
-     * SplitCollector implementation that can accumulate range information
-     * from a CoordSequence.
-     */
-    private static class RangeCollector
-            implements SplitCollector<CoordSequence,Range[]> {
-
-        private final int ndim_;
-
-        /**
-         * Constructor.
-         *
-         * @param  ndim  number of range objects (data dimensions)
-         */
-        public RangeCollector( int ndim ) {
-            ndim_ = ndim;
-        }
-
-        public Range[] createAccumulator() {
-            Range[] ranges = new Range[ ndim_ ];
-            for ( int i = 0; i < ndim_; i++ ) {
-                ranges[ i ] = new Range();
-            }
-            return ranges;
-        }
-
-        public void accumulate( CoordSequence cseq, Range[] ranges ) {
-            double[] dpos = cseq.getCoords();
-            while ( cseq.next() ) {
-                for ( int idim = 0; idim < ndim_; idim++ ) {
-                    ranges[ idim ].submit( dpos[ idim ] );
-                }
-            }
-        }
-
-        public Range[] combine( Range[] ranges1, Range[] ranges2 ) {
-            mergeRanges( ranges1, ranges2 );
-            return ranges1;
-        }
-
-        /**
-         * Merges the content of the second range into the first one.
-         *
-         * @param  ranges0  first input range, modified on exit
-         * @param  ranges1  second input range, unmodified on exit
-         */
-        public void mergeRanges( Range[] ranges0, Range[] ranges1 ) {
-            for ( int i = 0; i < ndim_; i++ ) {
-                ranges0[ i ].extend( ranges1[ i ] );
-            }
-        }
     }
 
     /**
