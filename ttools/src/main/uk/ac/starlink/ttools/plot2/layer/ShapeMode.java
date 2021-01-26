@@ -1833,7 +1833,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                     Outliner outliner ) {
                 return combiner.equals( combiner_ )
                     && surface.equals( surface_ )
-                    && geom.equals( geom_ )
+                    && PlotUtil.equals( geom, geom_ )
                     && dataSpec.equals( dataSpec_ )
                     && outliner.equals( outliner_ );
             }

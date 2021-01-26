@@ -518,29 +518,28 @@ public class PlotUtil {
         SubCloud[] subClouds =
             arrayConcat( SubCloud.createSubClouds( layers, true ),
                          SubCloud.createPartialSubClouds( layers, true ) );
-        if ( subClouds.length == 0 ) {
-            return;
-        }
-        PointCloud cloud = new PointCloud( subClouds );
+        if ( subClouds.length > 0 ) {
+            PointCloud cloud = new PointCloud( subClouds );
 
-        /* Collect values for the represented points to mark out the basic
-         * range of data positions covered by the layers. */
-        RangeCollector<CoordSequence> rangeCollector =
-                new RangeCollector<CoordSequence>( nDataDim ) {
-            public void accumulate( CoordSequence cseq, Range[] ranges ) {
-                double[] dpos = cseq.getCoords();
-                while ( cseq.next() ) {
-                    for ( int idim = 0; idim < nDataDim; idim++ ) {
-                        ranges[ idim ].submit( dpos[ idim ] );
+            /* Collect values for the represented points to mark out the basic
+             * range of data positions covered by the layers. */
+            RangeCollector<CoordSequence> rangeCollector =
+                    new RangeCollector<CoordSequence>( nDataDim ) {
+                public void accumulate( CoordSequence cseq, Range[] ranges ) {
+                    double[] dpos = cseq.getCoords();
+                    while ( cseq.next() ) {
+                        for ( int idim = 0; idim < nDataDim; idim++ ) {
+                            ranges[ idim ].submit( dpos[ idim ] );
+                        }
                     }
                 }
-            }
-        };
-        Range[] cloudRanges =
-            dataStore.getTupleRunner().coordRunner()
-                     .collect( rangeCollector, 
-                               cloud.createDataPosSupplier( dataStore ) );
-        rangeCollector.mergeRanges( ranges, cloudRanges );
+            };
+            Range[] cloudRanges =
+                dataStore.getTupleRunner().coordRunner()
+                         .collect( rangeCollector, 
+                                   cloud.createDataPosSupplier( dataStore ) );
+            rangeCollector.mergeRanges( ranges, cloudRanges );
+        }
 
         /* If any of the layers wants to supply non-data-position points
          * to mark out additional space, take account of those too. */

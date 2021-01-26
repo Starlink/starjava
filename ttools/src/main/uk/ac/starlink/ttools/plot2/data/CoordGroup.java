@@ -154,7 +154,7 @@ public abstract class CoordGroup {
      * @return    geom.getPosCoords().length;
      */
     private static int getPosCoordCount( DataGeom geom ) {
-        return geom.getPosCoords().length;
+        return geom == null ? 0 : geom.getPosCoords().length;
     }
 
     /**

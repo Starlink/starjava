@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -402,8 +403,7 @@ public abstract class AxisController<P,A> implements Configger {
         DataGeom geom = layer.getDataGeom();
         DataSpec spec = layer.getDataSpec();
         CoordGroup cgrp = layer.getPlotter().getCoordGroup();
-        return geom == null ||
-               spec == null ||
+        return spec == null ||
                cgrp.getRangeCoordIndices( geom ).length == 0
              ? null 
              : new DataId( geom, spec, cgrp );
@@ -430,7 +430,7 @@ public abstract class AxisController<P,A> implements Configger {
         /**
          * Constructor.
          *
-         * @param  geom  data geom, not null
+         * @param  geom  data geom
          * @param  dataSpec  data spec, not null
          * @param  cgrp   coordinate group 
          */
@@ -449,7 +449,7 @@ public abstract class AxisController<P,A> implements Configger {
         @Override
         public int hashCode() {
             int code = 33771;
-            code = 23 * code + geom_.hashCode();
+            code = 23 * code + PlotUtil.hashCode( geom_ );
             code = 23 * code + srcTable_.hashCode();
             code = 23 * code + Arrays.hashCode( coordIds_ );
             return code; 
@@ -458,7 +458,7 @@ public abstract class AxisController<P,A> implements Configger {
         public boolean equals( Object o ) {
             if ( o instanceof DataId ) {
                 DataId other = (DataId) o;
-                return this.geom_.equals( other.geom_ )
+                return PlotUtil.equals( this.geom_, other.geom_ )
                     && this.srcTable_.equals( other.srcTable_ )
                     && Arrays.equals( this.coordIds_, other.coordIds_ );
             }

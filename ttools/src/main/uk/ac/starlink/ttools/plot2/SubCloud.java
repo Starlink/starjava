@@ -183,11 +183,14 @@ public class SubCloud {
         int nl = layers.length;
         for ( int il = 0; il < nl; il++ ) {
             PlotLayer layer = layers[ il ];
-            CoordGroup cgrp = layer.getPlotter().getCoordGroup();
-            if ( cgrp.isSinglePartialPosition() ) {
-                assert cgrp.getPositionCount() == 0;
-                subClouds.add( new SubCloud( layer.getDataGeom(),
-                                             layer.getDataSpec(), 0 ) );
+            DataGeom dataGeom = layer.getDataGeom();
+            DataSpec dataSpec = layer.getDataSpec();
+            if ( dataGeom != null && dataSpec != null ) {
+                CoordGroup cgrp = layer.getPlotter().getCoordGroup();
+                if ( cgrp.isSinglePartialPosition() ) {
+                    assert cgrp.getPositionCount() == 0;
+                    subClouds.add( new SubCloud( dataGeom, dataSpec, 0 ) );
+                }
             }
         }
         return subClouds.toArray( new SubCloud[ 0 ] );
