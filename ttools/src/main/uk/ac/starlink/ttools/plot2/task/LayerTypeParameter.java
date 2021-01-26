@@ -15,7 +15,7 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
-import uk.ac.starlink.ttools.plot2.layer.ShapePlotter.ShapeModePlotter;
+import uk.ac.starlink.ttools.plot2.layer.ShapeModePlotter;
 import uk.ac.starlink.ttools.task.ExtraParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
 import uk.ac.starlink.ttools.task.TableEnvironment;

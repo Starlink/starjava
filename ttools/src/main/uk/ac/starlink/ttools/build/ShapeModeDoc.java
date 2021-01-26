@@ -12,7 +12,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
-import uk.ac.starlink.ttools.plot2.layer.ShapePlotter.ShapeModePlotter;
+import uk.ac.starlink.ttools.plot2.layer.ShapeModePlotter;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
 import uk.ac.starlink.ttools.plot2.task.LayerType;
 import uk.ac.starlink.ttools.plot2.task.LayerTypeParameter;

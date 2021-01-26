@@ -327,8 +327,7 @@ public abstract class MatchPlotter {
              * by looking at the values the user entered into the
              * TupleSelectors to specify the match. */
             Plotter<ShapeStyle> plotter1 =
-                new ShapePlotter.ShapeModePlotter( "input", MarkForm.SINGLE,
-                                                   markMode1_ );
+                new ShapePlotter( "input", MarkForm.SINGLE, markMode1_ );
             for ( int iin = 0; iin < nin; iin++ ) {
                 TupleSelector tsel = tselectors[ iin ];
                 String[] texprs = tsel.getTupleExpressions();
@@ -420,9 +419,8 @@ public abstract class MatchPlotter {
             /* Use the calculated information to set up a new layer creation
              * command. */
             Plotter<ShapeStyle> markPlotterN =
-                new ShapePlotter
-                   .ShapeModePlotter( "result", MarkForm.createMarkForm( nin ),
-                                      markModeN_ );
+                new ShapePlotter( "result", MarkForm.createMarkForm( nin ),
+                                  markModeN_ );
             LayerCommand<?> markCmd =
                 new LayerCommand<ShapeStyle>( markPlotterN, result,
                                               coordValuesN, createMarkConfigN(),
@@ -430,8 +428,7 @@ public abstract class MatchPlotter {
             controlManager.addLayer( markCmd );
             if ( nin == 2 ) {
                 Plotter<ShapeStyle> linkPlotter =
-                    new ShapePlotter
-                   .ShapeModePlotter( "result", PairLinkForm.getInstance(),
+                    new ShapePlotter( "result", PairLinkForm.getInstance(),
                                       markModeN_ );
                 LayerCommand<?> linkCmd =
                     new LayerCommand<ShapeStyle>( linkPlotter, result,

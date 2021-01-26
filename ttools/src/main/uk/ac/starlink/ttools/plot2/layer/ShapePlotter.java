@@ -28,7 +28,8 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
  * @author   Mark Taylor
  * @since    18 Feb 2013
  */
-public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
+public class ShapePlotter extends AbstractPlotter<ShapeStyle>
+                          implements ShapeModePlotter {
 
     private final ShapeForm form_;
     private final ShapeMode mode_;
@@ -63,6 +64,14 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
         super( name, form.getFormIcon(), cgrp, mode.hasReports() );
         form_ = form;
         mode_ = mode;
+    }
+
+    public ShapeForm getForm() {
+        return form_;
+    }
+
+    public ShapeMode getMode() {
+        return mode_;
     }
 
     public String getPlotterDescription() {
@@ -125,19 +134,18 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
      * @param  modes  array of shape modes
      * @return <code>forms.length*modes.length</code>-element array of plotters
      */
-    public static ShapeModePlotter[] createShapePlotters( ShapeForm[] forms,
-                                                          ShapeMode[] modes ) {
+    public static ShapePlotter[] createShapePlotters( ShapeForm[] forms,
+                                                      ShapeMode[] modes ) {
         int nf = forms.length;
         int nm = modes.length;
-        ShapeModePlotter[] plotters = new ShapeModePlotter[ nf * nm ];
+        ShapePlotter[] plotters = new ShapePlotter[ nf * nm ];
         int ip = 0;
         for ( int im = 0; im < nm; im++ ) {
             ShapeMode mode = modes[ im ];
             for ( int jf = 0; jf < nf; jf++ ) {
                 ShapeForm form = forms[ jf ];
                 String name = form.getFormName() + "-" + mode.getModeName();
-                ShapeModePlotter p = new ShapeModePlotter( name, form, mode );
-                plotters[ ip++ ] = p;
+                plotters[ ip++ ] = new ShapePlotter( name, form, mode );
             }
         }
         assert ip == plotters.length;
@@ -155,36 +163,5 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
      */
     public static ShapePlotter createFlat2dPlotter( ShapeForm form ) {
         return new ShapePlotter( form.getFormName(), form, ShapeMode.FLAT2D );
-    }
-
-    /**
-     * ShapePlotter subclass which additionally implements the ModePlotter
-     * interface.
-     */
-    public static class ShapeModePlotter extends ShapePlotter
-                                         implements ModePlotter<ShapeStyle> {
-        private final ShapeForm sform_;
-        private final ShapeMode smode_;
-
-        /**
-         * Constructor.
-         *
-         * @param   name  plotter name
-         * @param   form  shape of markers
-         * @param   mode  compositing mode
-         */
-        public ShapeModePlotter( String name, ShapeForm form, ShapeMode mode ) {
-            super( name, form, mode );
-            sform_ = form;
-            smode_ = mode;
-        }
-
-        public ShapeForm getForm() {
-            return sform_;
-        }
-
-        public ShapeMode getMode() {
-            return smode_;
-        }
     }
 }

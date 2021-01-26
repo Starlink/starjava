@@ -35,6 +35,7 @@ import uk.ac.starlink.ttools.plot2.geom.SkySurfaceFactory;
 import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
+import uk.ac.starlink.ttools.plot2.layer.ShapeModePlotter;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
 import uk.ac.starlink.ttools.task.Credibility;
@@ -278,9 +279,8 @@ public class StiltsPlot {
             Plotter<?> plotter = lspec.getPlotter();
             final String ltype;
             List<Setting> modeSettings = new ArrayList<Setting>();
-            if ( plotter instanceof ShapePlotter.ShapeModePlotter ) {
-                ShapePlotter.ShapeModePlotter sPlotter =
-                    (ShapePlotter.ShapeModePlotter) plotter;
+            if ( plotter instanceof ShapeModePlotter ) {
+                ShapeModePlotter sPlotter = (ShapeModePlotter) plotter;
                 ShapeForm form = sPlotter.getForm();
                 ShapeMode mode = sPlotter.getMode();
                 ltype = form.getFormName();
