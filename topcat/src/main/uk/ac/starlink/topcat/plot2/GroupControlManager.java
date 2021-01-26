@@ -33,6 +33,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.AreaCoord;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
+import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
@@ -423,6 +424,17 @@ public class GroupControlManager<P,A> implements ControlManager {
             }
         },
 
+        /** Plotter with array-valued X and Y coordinates. */
+        XYARRAY( ResourceIcon.PLOT_VECTOR, "XYArray", "array pair", true ) {
+            public <P,A> PositionCoordPanel
+                    createPositionCoordPanel( PlotType<P,A> plotType,
+                                              PlotTypeGui<P,A> plotTypeGui ) {
+                FloatingArrayCoord[] arrayCoords =
+                    { FloatingArrayCoord.X, FloatingArrayCoord.Y };
+                return new XYArrayCoordPanel( arrayCoords );
+            }
+        },
+
         /** Plotter with four positional coordinates. */
         QUAD_POS( ResourceIcon.PLOT_QUAD, "Quad", "quadrilateral", true ) {
             public <P,A> PositionCoordPanel
@@ -553,6 +565,12 @@ public class GroupControlManager<P,A> implements ControlManager {
                       extraCoords.length > 0 &&
                       extraCoords[ 0 ] instanceof AreaCoord ) {
                 return CoordsType.AREA;
+            }
+            else if ( npos == 0 &&
+                      extraCoords.length >= 2 &&
+                      extraCoords[ 0 ] instanceof FloatingArrayCoord &&
+                      extraCoords[ 1 ] instanceof FloatingArrayCoord ) {
+                return CoordsType.XYARRAY;
             }
             else if ( npos == 1 ) {
                 return CoordsType.SINGLE_POS;
