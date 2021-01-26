@@ -95,6 +95,7 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
+import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
@@ -2554,11 +2555,13 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         Domain<?> domain = input.getDomain();
         boolean hasSuffix = suffix.length() > 0;
         String cName = meta.getShortName();
+        boolean isArray = domain instanceof FloatingArrayCoord.ArrayDomain;
         DomainMapper[] mappers = domain.getMappers();
         final String typeTxt;
         final String typeUsage;
         if ( mappers.length == 1 ) {
-            Class<?> cClazz = mappers[ 0 ].getSourceClass();
+            DomainMapper mapper = mappers[ 0 ];
+            Class<?> cClazz = mapper.getSourceClass();
             if ( cClazz.equals( String.class ) ) {
                 typeTxt = "a string";
                 typeUsage = "txt";
@@ -2571,6 +2574,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             else if ( Number.class.isAssignableFrom( cClazz ) ) {
                 typeTxt = "a numeric";
                 typeUsage = "num";
+            }
+            else if ( isArray ) {
+                typeTxt = "an array-valued";
+                typeUsage = "array";
             }
             else if ( Object.class.equals( cClazz ) ) {
                 typeTxt = "an";
@@ -2614,8 +2621,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         dbuf.append( "The value is " )
             .append( typeTxt )
             .append( " algebraic expression based on column names\n" )
-            .append( "as described in <ref id='jel'/>.\n" )
-            .append( "</p>\n" );
+            .append( "as described in <ref id='jel'/>.\n" );
+        if ( isArray ) {
+            dbuf.append( "Some of the functions in the " )
+                .append( "<ref id='uk.ac.starlink.ttools.func.Arrays'>" )
+                .append( "Arrays</ref> class\n" )
+                .append( "may be useful here.\n" );
+        }
+        dbuf.append( "</p>\n" );
         param.setDescription( dbuf.toString() );
         String vUsage = meta.getValueUsage();
         if ( vUsage == null ) {

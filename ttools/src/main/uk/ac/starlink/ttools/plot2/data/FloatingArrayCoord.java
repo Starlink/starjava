@@ -19,6 +19,12 @@ public abstract class FloatingArrayCoord extends SingleCoord {
      * will be the same for every row.  The implementation could be smart
      * enough to spot this and optimise storage accordingly. */
 
+    /** Coordinate representing a vector of X values. */
+    public static final FloatingArrayCoord X = createArrayCoord( "X" );
+
+    /** Coordinate representing a vector of Y values. */
+    public static final FloatingArrayCoord Y = createArrayCoord( "Y" );
+
     /**
      * Constructor.
      *
@@ -178,7 +184,6 @@ public abstract class FloatingArrayCoord extends SingleCoord {
                         };
                     }
                     else {
-                        assert false;
                         return values -> d0;
                     }
                 }
@@ -320,7 +325,7 @@ public abstract class FloatingArrayCoord extends SingleCoord {
     /**
      * Domain for numeric array values.
      */
-    private static class ArrayDomain implements Domain<ArrayMapper> {
+    public static class ArrayDomain implements Domain<ArrayMapper> {
 
         /** Singleton instance. */
         static final ArrayDomain INSTANCE = new ArrayDomain();
@@ -371,5 +376,23 @@ public abstract class FloatingArrayCoord extends SingleCoord {
         public String getSourceDescription() {
             return "array-valued quantity";
         }
+    }
+
+    /**
+     * Creates a coordinate representing a vector of values along one axis.
+     *
+     * @param   axId  axis identifier
+     * @return  array coord
+     */
+    private static FloatingArrayCoord createArrayCoord( String axId ) {
+        String axid = axId.toLowerCase();
+        InputMeta meta = new InputMeta( axid + "s", axId + " Values" );
+        meta.setShortDescription( axId + " coords array" );
+        meta.setValueUsage( "array" );
+        meta.setXmlDescription( new String[] {
+            "<p>Array giving the " + axId + " coordinate array for each line.",
+            "</p>",
+        } );
+        return FloatingArrayCoord.createCoord( meta, true );
     }
 }
