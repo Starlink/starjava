@@ -9,8 +9,8 @@ import uk.ac.starlink.ttools.plot2.Pixer;
 
 /**
  * A greyscale image backed by a a byte buffer.
- * The buffer is initially set to zero values, corresponding to white.
- * Black corresponds to byte values of 255.
+ * The buffer is initially set to zero values, corresponding to black.
+ * White corresponds to byte values of 255.
  * Trial and error suggests that it is more efficient in time,
  * though not in memory, to use greyscale than bitmap images
  * (BufferedImage.TYPE_BYTE_BINARY), even if only bitmap type values
