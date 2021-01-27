@@ -1,12 +1,15 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.ttools.plot2.layer.ArrayShapePlotter;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
 import uk.ac.starlink.ttools.plot2.task.CoordSpec;
 
@@ -140,30 +143,58 @@ public class GuiCoordContent {
     public static String getCoordLabel( String userCoordName,
                                         GuiCoordContent[] contents ) {
 
-        /* For each coordinate data item, see if one of the user info
-         * names associated with it matches what we're looking for.
-         * If so, return the user-entered value (column name or expression),
-         * perhaps with a unit string appended. */
+        /* Prepare a policy for which coordinate input selectors correspond
+         * to values whose metadata are suitable for labelling the axes.
+         * This list of criteria is a bit ad hoc. */
+        List<Predicate<Input>> matchers = Arrays.asList(
+            input -> input.getMeta().getLongName().equals( userCoordName ),
+            input -> ArrayShapePlotter.matchesAxis( userCoordName, input )
+        );
+
+        /* Try to find a ColumnData whose metadata we should use,
+         * according to those criteria. */
+        if ( contents != null ) {
+            for ( Predicate<Input> matcher : matchers ) {
+                ColumnData cdata = getInputData( contents, matcher );
+
+                /* If we get one, prepare an axis label accordingly. */
+                if ( cdata != null ) {
+                    ValueInfo dinfo = cdata.getColumnInfo();
+                    String name = dinfo.getName();
+                    String unit = dinfo.getUnitString();
+                    return unit != null && unit.trim().length() > 0
+                         ? name + " / " + unit
+                         : name;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns a ColumnData entered as the value of the first input coordinate
+     * that matches a given criterion.
+     *
+     * @param  contents  list of GuiCoordContent values associated
+     *                   with a plot; null is permitted, and will give
+     *                   a null result
+     * @param  inputMatcher  criterion for an Input to select
+     * @return   column data corresponding to inputMatcher, or null
+     */
+    private static ColumnData getInputData( GuiCoordContent[] contents,
+                                            Predicate<Input> inputMatcher ) {
         if ( contents != null ) {
             for ( GuiCoordContent content : contents ) {
                 Input[] inputs = content.getCoord().getInputs();
                 ColumnData[] coldatas = content.getColDatas();
                 for ( int ii = 0; ii < inputs.length; ii++ ) {
-                    if ( inputs[ ii ].getMeta().getLongName()
-                                     .equals( userCoordName ) &&
+                    if ( inputMatcher.test( inputs[ ii ] ) &&
                          coldatas[ ii ] != null ) {
-                        ValueInfo dinfo = coldatas[ ii ].getColumnInfo();
-                        String name = dinfo.getName();
-                        String unit = dinfo.getUnitString();
-                        return unit != null && unit.trim().length() > 0
-                             ? name + " / " + unit
-                             : name;
+                        return coldatas[ ii ];
                     }
                 }
             }
         }
-
-        /* Not found; return null. */
         return null;
     }
 }
