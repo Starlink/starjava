@@ -210,7 +210,7 @@ public abstract class MarkForm implements ShapeForm {
      * @param  size   marker size in pixels
      * @return   marker style
      */
-    private static MarkStyle createMarkStyle( MarkShape shape, int size ) {
+    public static MarkStyle createMarkStyle( MarkShape shape, int size ) {
         return size == 0 ? MarkShape.POINT.getStyle( DUMMY_COLOR, 0 )
                          : shape.getStyle( DUMMY_COLOR, size );
     }
