@@ -12,20 +12,24 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.layer.AreaForm;
+import uk.ac.starlink.ttools.plot2.layer.ArrayShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.CartesianVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.CentralForm;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
+import uk.ac.starlink.ttools.plot2.layer.ErrorArrayForm;
 import uk.ac.starlink.ttools.plot2.layer.FillPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FixedKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.GridPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.KnnKernelDensityPlotter;
+import uk.ac.starlink.ttools.plot2.layer.LineArrayForm;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinearFitPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
+import uk.ac.starlink.ttools.plot2.layer.MarkArrayForm;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
@@ -139,6 +143,16 @@ public class PlanePlotType
         Plotter<?>[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
         list.addAll( Arrays.asList( shapePlotters ) );
+        ShapeForm[] arrayForms = new ShapeForm[] {
+            LineArrayForm.getInstance(),
+            MarkArrayForm.getInstance(),
+            ErrorArrayForm.Y,
+            ErrorArrayForm.XY,
+        };
+        Plotter<?>[] arrayShapePlotters =
+            ArrayShapePlotter
+           .createArrayShapePlotters( arrayForms, ShapeMode.MODES_2D );
+        list.addAll( Arrays.asList( arrayShapePlotters ) );
         PerUnitConfigKey<Unit> unitKey = null;
         list.addAll( Arrays.asList( new Plotter<?>[] {
             new LinePlotter( LinePlotter.PLANE_SORTAXIS_KEY ),
