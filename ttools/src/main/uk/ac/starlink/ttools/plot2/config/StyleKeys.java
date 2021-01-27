@@ -785,7 +785,7 @@ public class StyleKeys {
             public Specifier<Integer> createSpecifier() {
                 return new ComboBoxSpecifier<Integer>(
                                Integer.class,
-                               new ThicknessComboBox( 5 ) );
+                               new ThicknessComboBox( 9 ) );
             }
         };
     }

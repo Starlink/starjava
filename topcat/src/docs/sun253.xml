@@ -29401,6 +29401,7 @@ introduced since the last version:
         can now be read even in compressed or streamed input.</li>
     <li>Fix long-standing file caching bug; mostly seemed to
         affect large (&gt;2Gb) streams.</li>
+    <li>Maximum line thickness in line plots raised from 5 to 9.</li>
     </ul>
     </p></dd>
 
