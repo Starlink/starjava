@@ -534,7 +534,7 @@ public abstract class MultiPointForm implements ShapeForm {
     /**
      * Glyph implementation to draw a multipoint shape.
      */
-    private static class MultiPointGlyph implements Glyph {
+    public static class MultiPointGlyph implements Glyph {
         private final ErrorRenderer renderer_;
         private final int[] xoffs_;
         private final int[] yoffs_;
