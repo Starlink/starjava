@@ -2,6 +2,8 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -42,6 +44,7 @@ public class TableCone extends ConsumerTask {
 
     public TableCone() {
         super( "Executes a Cone Search-like query", new ChoiceMode(), true );
+        List<Parameter<?>> coneParams = new ArrayList<>();
 
         final String sysParamName = "skysys";
         ServiceType[] serviceTypes = new ServiceType[] {
@@ -71,6 +74,7 @@ public class TableCone extends ConsumerTask {
             "one will be added as appropriate.",
             "</p>",
         } );
+        coneParams.add( urlParam_ );
 
         lonParam_ = new DoubleParameter( "lon" );
         lonParam_.setPrompt( "Longitude in degrees" );
@@ -83,6 +87,7 @@ public class TableCone extends ConsumerTask {
             "it may be in a different sky system.",
             "</p>",
         } );
+        coneParams.add( lonParam_ );
 
         latParam_ = new DoubleParameter( "lat" );
         latParam_.setPrompt( "Latitude in degrees" );
@@ -95,6 +100,7 @@ public class TableCone extends ConsumerTask {
             "it may be in a different sky system.",
             "</p>",
         } );
+        coneParams.add( latParam_ );
 
         radiusParam_ = new DoubleParameter( "radius" );
         radiusParam_.setPrompt( "Radius in degrees" );
@@ -103,6 +109,7 @@ public class TableCone extends ConsumerTask {
             "<p>Search radius in degrees.",
             "</p>",
         } );
+        coneParams.add( radiusParam_ );
 
         sysParam_ =
             new ChoiceParameter<SkySystem>( sysParamName,
@@ -120,6 +127,7 @@ public class TableCone extends ConsumerTask {
             "</p>",
         } );
         sysParam_.setDefaultOption( SkySystem.ICRS );
+        coneParams.add( sysParam_ );
 
         serviceParam_ =
             new ChoiceParameter<ServiceType>( "servicetype", serviceTypes );
@@ -145,6 +153,7 @@ public class TableCone extends ConsumerTask {
             "</p>",
         } );
         serviceParam_.setDefaultOption( serviceTypes[ 0 ] );
+        coneParams.add( serviceParam_ );
 
         verbParam_ =
             new ChoiceParameter<String>( "verb",
@@ -157,8 +166,10 @@ public class TableCone extends ConsumerTask {
             "3 indicates all available information.",
             "</p>",
         } );
+        coneParams.add( verbParam_ );
 
         codingParam_ = new ContentCodingParameter();
+        coneParams.add( codingParam_ );
 
         formatParam_ = new StringParameter( "dataformat" );
         formatParam_.setPrompt( "Data format type for DAL outputs" );
@@ -188,20 +199,9 @@ public class TableCone extends ConsumerTask {
             "</ul>",
             "</p>",
         } );
-    }
+        coneParams.add( formatParam_ );
 
-    public Parameter<?>[] getParameters() {
-        return new Parameter<?>[] {    
-            urlParam_,
-            lonParam_,
-            latParam_,
-            radiusParam_,
-            sysParam_,
-            serviceParam_,
-            verbParam_,
-            codingParam_,
-            formatParam_,
-        };
+        getParameterList().addAll( 0, coneParams );
     }
 
     public TableProducer createProducer( Environment env )

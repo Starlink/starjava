@@ -13062,6 +13062,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>JDBC output no longer attempts to create VARCHAR(0) columns.</li>
     <li>Add new function <code>sequence</code> to class
         <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+    <li>Fix documentation bug in <ref id="cone"><code>cone</code></ref>;
+        output parameters <code>out</code>, <code>ofmt</code>,
+        <code>ocmd</code> and <code>omode</code> are now listed.</li>
     </ul>
     </p></dd>
 
