@@ -7375,6 +7375,7 @@ instance.
 <webref url="http://www.ivoa.net/Documents/TAPRegExt/">TAPRegExt</webref>,
 <webref url="http://www.ivoa.net/documents/DALI/">DALI</webref>,
 <webref url="http://www.ivoa.net/Documents/ObsCore/">ObsCore</webref>,
+<webref url="http://www.ivoa.net/Documents/ObsLocTAP/">ObsLocTAP</webref>,
 <webref url="http://www.ivoa.net/Documents/VOTable/">VOTable</webref>,
 <webref url="http://www.ivoa.net/documents/SSO/">SSO</webref>,
 <webref url="http://www.w3.org/Protocols/rfc2616/rfc2616.html">HTTP</webref>,
@@ -13137,6 +13138,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         parameters.</li>
     <li>Downgrade taplint report for accepting unknown LANG from
         <code>E_DSUC</code> to <code>W_OLNG</code>.</li>
+    <li>Add new <code>taplint</code> stage <code>LOC</code>
+        (ObsLocTAP validation).</li>
     </ul>
     </p></dd>
 

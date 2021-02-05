@@ -53,6 +53,7 @@ public class TapLinter {
     private final ColumnMetadataStage colMetaStage_;
     private final UploadStage uploadStage_;
     private final ObsTapStage obstapStage_;
+    private final ObsLocStage obslocStage_;
     private final ExampleStage exampleStage_;
     private final TapSchemaMetadataHolder tapSchemaMetadata_;
     private final CapabilitiesReader capabilitiesReader_;
@@ -126,6 +127,9 @@ public class TapLinter {
                              new AnyMetadataHolder( new MetadataHolder[] {
                                  tapSchemaStage_, tmetaStage_,
                              } ) );
+        obslocStage_ =
+            new ObsLocStage( VotLintTapRunner.createGetSyncRunner( true ),
+                             capabilitiesReader_, metaHolder );
         exampleStage_ =
             new ExampleStage( VotLintTapRunner.createGetSyncRunner( true ),
                               capabilitiesReader_,
@@ -148,6 +152,7 @@ public class TapLinter {
         stageSet_.add( "UWS", jobStage_, true );
         stageSet_.add( MDQ_NAME, colMetaStage_, true );
         stageSet_.add( "OBS", obstapStage_, true );
+        stageSet_.add( "LOC", obslocStage_, true );
         stageSet_.add( "UPL", uploadStage_, true );
         stageSet_.add( "EXA", exampleStage_, true );
     }
