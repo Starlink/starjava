@@ -963,6 +963,7 @@ public class ObsTapStage implements Stage {
 
     /**
      * Converts an array of ObsCol objects into a name->value map.
+     * The {@link #nameKey} method is used to normalise the column name.
      *
      * @param  cols  column metadata list
      * @return  map
@@ -977,12 +978,13 @@ public class ObsTapStage implements Stage {
     }
 
     /**
-     * Converts an array of ColumnMeta objects into a name->value map.
+     * Converts an array of ColumnMeta objects into a name-&gt;value map.
+     * The {@link #nameKey} method is used to normalise the column name.
      *
      * @param  cols  column metadata list
-     * @return  map
+     * @return  map of normalised column name to column metadata object
      */
-    private static Map<String,ColumnMeta> toMap( ColumnMeta[] cols ) {
+    public static Map<String,ColumnMeta> toMap( ColumnMeta[] cols ) {
         Map<String,ColumnMeta> map = new LinkedHashMap<String,ColumnMeta>();
         for ( int i = 0; i < cols.length; i++ ) {
             map.put( nameKey( cols[ i ].getName() ), cols[ i ] );
@@ -997,7 +999,7 @@ public class ObsTapStage implements Stage {
      * @param   name   column name
      * @return   map-friendly value identifying <code>name</code>
      */
-    private static String nameKey( String name ) {
+    public static String nameKey( String name ) {
         return name.toLowerCase();
     }
 
