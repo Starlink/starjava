@@ -25,6 +25,14 @@ public class DmTest extends TestCase {
         }
     }
 
+    public void testObsLocTap() throws UnitParserException {
+        for ( ObsLocStage.PlanCol col :
+              ObsLocStage.createRequiredColumns().values() ) {
+            checkUcd( col.ucd_ );
+            checkUnit( col.unit_ );
+        }
+    }
+
     private void checkUcd( String ucd ) {
         if ( ucd != null ) {
             UCD pucd = UCDParser.parseUCD( ucd );
