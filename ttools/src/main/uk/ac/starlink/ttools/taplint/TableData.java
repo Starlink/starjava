@@ -18,7 +18,7 @@ public abstract class TableData {
     /**
      * Returns number of rows.
      *
-     * @return  row count
+     * @return  row count, &gt;=0
      */
     public abstract int getRowCount();
 
@@ -29,6 +29,21 @@ public abstract class TableData {
      * @param  icol  column index
      */
     public abstract Object getCell( int irow, int icol );
+
+    /**
+     * Returns the content of one column of the table as an array.
+     *
+     * @param  icol  column index
+     * @return   array with one element per table row
+     */
+    public Object[] getColumn( int icol ) {
+        int nrow = getRowCount();
+        Object[] col = new Object[ nrow ];
+        for ( int ir = 0; ir < nrow; ir++ ) {
+            col[ ir ] = getCell( ir, icol );
+        }
+        return col;
+    }
 
     /**
      * Adapts a StarTable to a TableData.  In case of trouble, null is
