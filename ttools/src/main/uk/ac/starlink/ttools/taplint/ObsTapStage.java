@@ -610,7 +610,7 @@ public class ObsTapStage implements Stage {
      * @param   is11  true for ObsCore-1.1, false for ObsCore-1.0
      * @return  new name-&gt;metadata map
      */
-    private static Map<String,ObsCol> createMandatoryColumns( boolean is11 ) {
+    static Map<String,ObsCol> createMandatoryColumns( boolean is11 ) {
         List<ObsCol> list = new ArrayList<ObsCol>();
         list.addAll( Arrays.asList( new ObsCol[] {
             new ObsCol( "dataproduct_type", Type.VARCHAR,
@@ -760,7 +760,7 @@ public class ObsTapStage implements Stage {
      * @param   is11  true for ObsCore-1.1, false for ObsCore-1.0
      * @return  new name-&gt;metadata map
      */
-    private static Map<String,ObsCol> createOptionalColumns( boolean is11 ) {
+    static Map<String,ObsCol> createOptionalColumns( boolean is11 ) {
         List<ObsCol> list = new ArrayList<ObsCol>();
         list.addAll( Arrays.asList( new ObsCol[] {
             new ObsCol( "dataproduct_subtype", Type.VARCHAR,
@@ -1030,7 +1030,7 @@ public class ObsTapStage implements Stage {
     /**
      * Represents metadata for a standard ObsCore column.
      */
-    private static class ObsCol {
+    static class ObsCol {
         final String name_;
         final Type type_;
         final String utype_;
