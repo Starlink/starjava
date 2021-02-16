@@ -13065,6 +13065,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix documentation bug in <ref id="cone"><code>cone</code></ref>;
         output parameters <code>out</code>, <code>ofmt</code>,
         <code>ocmd</code> and <code>omode</code> are now listed.</li>
+    <li>Fix regression bug in previous release affecting
+        <code>text</code>, <code>ascii</code> and <code>ipac</code>
+        output formats, that could cause cached table output
+        (e.g. from filters <code>cache</code> or <code>random</code>)
+        to contain many repeated copies of the same row.</li>
     </ul>
     </p></dd>
 

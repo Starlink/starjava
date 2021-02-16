@@ -93,7 +93,7 @@ public abstract class AbstractTextTableWriter
                 allRowsSampled = true;
                 break;
             }
-            sampleList.add( rseq.getRow() );
+            sampleList.add( rseq.getRow().clone() );
         }
         logger_.config( sampleList.size()
                       + ( allRowsSampled ? " (all)" : "" )
