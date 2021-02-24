@@ -62,7 +62,7 @@ public class IvoaSchemaResolver implements LSResourceResolver {
         Map<String,URL> map = new HashMap<String,URL>();
         map.put( VODATASERVICE_URI =
                  "http://www.ivoa.net/xml/VODataService/v1.1",
-                 base.getResource( "VODataService-v1.1.xsd" ) );
+                 base.getResource( "VODataService-v1.2.xsd" ) );
         map.put( CAPABILITIES_URI =
                  "http://www.ivoa.net/xml/VOSICapabilities/v1.0",
                  base.getResource( "VOSICapabilities-v1.0.xsd" ) );

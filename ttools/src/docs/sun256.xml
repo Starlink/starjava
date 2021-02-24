@@ -13070,6 +13070,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         output formats, that could cause cached table output
         (e.g. from filters <code>cache</code> or <code>random</code>)
         to contain many repeated copies of the same row.</li>
+    <li><code>taplint</code> stage <code>TMV</code> now validates
+        against (a pre-REC version of) version 1.2 of the
+        VODataService schema instead of version 1.1.</li>
     </ul>
     </p></dd>
 
