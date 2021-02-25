@@ -20,6 +20,7 @@
   <!ENTITY in-colfits SYSTEM 'in-colfits-basic.xml'>
   <!ENTITY in-csv SYSTEM 'in-csv.xml'>
   <!ENTITY in-ecsv SYSTEM 'in-ecsv.xml'>
+  <!ENTITY in-parquet SYSTEM 'in-parquet.xml'>
   <!ENTITY in-feather SYSTEM 'in-feather.xml'>
   <!ENTITY in-fits SYSTEM 'in-fits.xml'>
   <!ENTITY in-gbin SYSTEM 'in-gbin.xml'>
@@ -32,6 +33,7 @@
   <!ENTITY out-csv SYSTEM 'out-csv.xml'>
   <!ENTITY out-colfits SYSTEM 'out-colfits-plus.xml'>
   <!ENTITY out-ecsv SYSTEM 'out-ecsv.xml'>
+  <!ENTITY out-parquet SYSTEM 'out-parquet.xml'>
   <!ENTITY out-feather SYSTEM 'out-feather.xml'>
   <!ENTITY out-fits SYSTEM 'out-fits-plus.xml'>
   <!ENTITY out-html SYSTEM 'out-html.xml'>
@@ -675,7 +677,7 @@ something like
 <code>java -jar topcat-full.jar</code> (see <ref id="invoke"/> for
 more detail).  To view a table that you have on disk, you can either
 give its name on the command line or load it using the <label>Load</label>
-button from the GUI.  FITS, VOTable, ECSV, CDF, feather and GBIN files
+button from the GUI.  FITS, VOTable, ECSV, CDF, feather, Parquet and GBIN files
 are recognised automatically;
 if your data is in another format such as ASCII (see <ref id="inFormats"/>)
 you need to tell the program (e.g. <code>-f ascii</code> on the command line).
@@ -1278,6 +1280,11 @@ similar and capable of storing more metadata.
 &in-mrt;
 </subsubsubsect>
 
+<subsubsubsect id="inParquet">
+<subhead><title>Parquet</title></subhead>
+&in-parquet;
+</subsubsubsect>
+
 <subsubsubsect id="inFeather">
 <subhead><title>Feather</title></subhead>
 &in-feather;
@@ -1389,6 +1396,11 @@ formats might be better.
 <subsubsubsect id="outIpac">
 <subhead><title>IPAC</title></subhead>
 &out-ipac;
+</subsubsubsect>
+
+<subsubsubsect id="outParquet">
+<subhead><title>Parquet</title></subhead>
+&out-parquet;
 </subsubsubsect>
 
 <subsubsubsect id="outFeather">
@@ -29808,6 +29820,8 @@ introduced since the last version:
     <li>Fix regression bug in v4.8 that broke use of
         <code>jdbc:</code> URLs and
         <ref id="SQLTableLoadDialog">SQL Query window</ref>.</li>
+    <li>Add Apache Parquet <ref id="inParquet">input</ref> and 
+        <ref id="outParquet">output</ref> handlers.</li>
     </ul>
     </p></dd>
 

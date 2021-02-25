@@ -34,6 +34,8 @@ import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.fits.HealpixFitsTableWriter;
 import uk.ac.starlink.fits.VariableFitsTableWriter;
 import uk.ac.starlink.fits.WideFits;
+import uk.ac.starlink.parquet.ParquetTableBuilder;
+import uk.ac.starlink.parquet.ParquetTableWriter;
 import uk.ac.starlink.table.storage.AdaptiveByteStore;
 import uk.ac.starlink.table.storage.ByteStoreRowStore;
 import uk.ac.starlink.table.storage.FileByteStore;
@@ -209,7 +211,7 @@ public class FormatsTest extends TableCase {
         StarTableFactory tfact = new StarTableFactory();
         String[] bnames = new String[] {
             "fits", "colfits-basic", "colfits-plus",
-            "votable", "cdf", "ecsv", "feather",
+            "votable", "cdf", "ecsv", "parquet", "feather",
         };
         for ( String bname : bnames ) {
             assertNotNull( tfact.getTableBuilder( bname ) );
@@ -274,6 +276,7 @@ public class FormatsTest extends TableCase {
             "CDF",
             "ECSV",
             "MRT",
+            "parquet",
             "feather",
             "GBIN",
         };
@@ -286,6 +289,7 @@ public class FormatsTest extends TableCase {
             "CDF",
             "ECSV",
             "MRT",
+            "parquet",
             "feather",
             "GBIN",
             "ASCII",
@@ -338,6 +342,7 @@ public class FormatsTest extends TableCase {
             "colfits-basic",
             "votable",
             "ecsv",
+            "parquet",
             "feather",
             "text",
             "ascii",
@@ -528,6 +533,8 @@ public class FormatsTest extends TableCase {
                            new EcsvTableBuilder(), "ecsv" );
         exerciseReadWrite( EcsvTableWriter.COMMA_WRITER,
                            new EcsvTableBuilder(), "ecsv" );
+        exerciseReadWrite( new ParquetTableWriter(),
+                           new ParquetTableBuilder(), "parquet" );
         exerciseReadWrite(
             new FeatherTableWriter( false, StoragePolicy.PREFER_MEMORY ),
             new FeatherTableBuilder(), "feather" );
@@ -610,6 +617,9 @@ public class FormatsTest extends TableCase {
         }
         else if ( "ecsv".equals( equalMethod ) ) {
             assertEcsvTableEquals( t1, t2 );
+        }
+        else if ( "parquet".equals( equalMethod ) ) {
+            assertParquetTableEquals( t1, t2 );
         }
         else if ( "feather".equals( equalMethod ) ) {
             assertFeatherTableEquals( t1, t2 );
@@ -882,6 +892,19 @@ public class FormatsTest extends TableCase {
                                    t2.getColumnInfo( ic ) );
         }
         assertRowSequenceEquals( t1a, t2 );
+    }
+
+    private void assertParquetTableEquals( StarTable t1, StarTable t2 )
+            throws IOException {
+        int nc = t1.getColumnCount();
+        assertEquals( nc, t2.getColumnCount() );
+        for ( int ic = 0; ic < nc; ic++ ) {
+            ColumnInfo cinfo1 = t1.getColumnInfo( ic );
+            ColumnInfo cinfo2 = t2.getColumnInfo( ic );
+            assertEquals( cinfo1.getName(), cinfo2.getName() );
+            assertEquals( cinfo1.getContentClass(), cinfo2.getContentClass() );
+        }
+        assertRowSequenceEquals( t1, t2 );
     }
 
     private void assertFeatherTableEquals( StarTable t1, StarTable t2 )

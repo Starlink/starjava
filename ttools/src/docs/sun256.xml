@@ -50,6 +50,7 @@
   <!ENTITY in-colfits SYSTEM 'in-colfits-basic.xml'>
   <!ENTITY in-csv SYSTEM 'in-csv.xml'>
   <!ENTITY in-ecsv SYSTEM 'in-ecsv.xml'>
+  <!ENTITY in-parquet SYSTEM 'in-parquet.xml'>
   <!ENTITY in-feather SYSTEM 'in-feather.xml'>
   <!ENTITY in-fits SYSTEM 'in-fits.xml'>
   <!ENTITY in-gbin SYSTEM 'in-gbin.xml'>
@@ -62,6 +63,7 @@
   <!ENTITY out-csv SYSTEM 'out-csv.xml'>
   <!ENTITY out-colfits SYSTEM 'out-colfits-plus.xml'>
   <!ENTITY out-ecsv SYSTEM 'out-ecsv.xml'>
+  <!ENTITY out-parquet SYSTEM 'out-parquet.xml'>
   <!ENTITY out-feather SYSTEM 'out-feather.xml'>
   <!ENTITY out-fits SYSTEM 'out-fits-plus.xml'>
   <!ENTITY out-html SYSTEM 'out-html.xml'>
@@ -1521,7 +1523,7 @@ As with command-line STILTS, the <code>fmt</code> argument
 is one of the options in <ref id="inFormats"/>, but may be
 left as the default if the format auto-detectable,
 which currently means if the file is in
-VOTable, FITS, CDF, ECSV, Feather or GBIN format.
+VOTable, FITS, CDF, ECSV, Parquet, Feather or GBIN format.
 The <code>random</code> argument can be used to ensure that the returned file
 has random (i.e. not sequential-only) access;
 for some table formats the default way of reading them in means that
@@ -2163,6 +2165,11 @@ similar and capable of storing more metadata.
 &in-mrt;
 </subsubsubsect>
 
+<subsubsubsect id="inParquet">
+<subhead><title><code>parquet</code></title></subhead>
+&in-parquet;
+</subsubsubsect>
+
 <subsubsubsect id="inFeather">
 <subhead><title><code>feather</code></title></subhead>
 &in-feather;
@@ -2253,6 +2260,11 @@ or by setting the format to the classname of a
 <subsubsubsect id="outIpac">
 <subhead><title><code>ipac</code></title></subhead>
 &out-ipac;
+</subsubsubsect>
+
+<subsubsubsect id="outParquet">
+<subhead><title><code>parquet</code></title></subhead>
+&out-parquet;
 </subsubsubsect>
 
 <subsubsubsect id="outFeather">
@@ -13193,6 +13205,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         to I_EXVT.</li>
     <li>Fix regression bug in v3.4 that broke use of
         <code>jdbc:</code> URLs.</li>
+    <li>Add Apache Parquet <ref id="inParquet">input</ref> and
+        <ref id="outParquet">output</ref> handlers.</li>
     </ul>
     </p></dd>
 
