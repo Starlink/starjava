@@ -44,12 +44,20 @@ public class SuperJar {
     private final File[] jarFiles_;
     private final File[] flatFiles_;
     private final File[] jarDeps_;
-    private final Collection<String> fileExcludeSet_;
-    private final Collection<String> dirExcludeSet_;
+    private final Collection<String> excludeSet_;
     private static PrintStream logStrm_ = System.err;
 
     /**
      * Constructor.
+     *
+     * <p>The <code>entryExcludes</code> values are full pathnames
+     * with no leading "/", interpreted as follows:
+     * <ul>
+     * <li>ending in "/": exclude that directory and all children
+     * <li>ending in "/*": exclude all flat files, but not subdirectories
+     *     of that directory
+     * <li>otherwise: exclude the flat file with that exact name
+     * </ul>
      *
      * @param   jarFiles  top-level jar files containing files and dependencies
      * @param   flatFiles  files for inclusion at top level of output
@@ -62,13 +70,8 @@ public class SuperJar {
                      String[] entryExcludes ) throws IOException {
         jarFiles_ = jarFiles;
         flatFiles_ = flatFiles;
-        fileExcludeSet_ = new HashSet<String>();
-        dirExcludeSet_ = new HashSet<String>();
-        for ( String name : entryExcludes ) {
-            ( ( name.charAt( name.length() - 1 ) == '/' ) ? dirExcludeSet_
-                                                          : fileExcludeSet_ )
-                .add( name );
-        }
+        excludeSet_ = new HashSet<String>( Arrays.asList( entryExcludes ) );
+        excludeSet_.add( "MANIFEST.MF" );
         jarDeps_ = getDependencies( jarFiles, jarExcludes );
     }
 
@@ -107,8 +110,7 @@ public class SuperJar {
                         new FileInputStream( jarDeps_[ ij ] ) ) );
             for ( JarEntry jent; ( jent = jin.getNextJarEntry() ) != null;
                   jin.closeEntry() ) {
-                if ( ! excludeEntry( jent ) &&
-                     ! jent.getName().startsWith( "META-INF" ) ) {
+                if ( ! excludeEntry( jent ) ) {
                     jout.putNextEntry( jent );
                     IOUtils.copy( jin, jout );
                     jout.closeEntry();
@@ -224,12 +226,23 @@ public class SuperJar {
             return true;
         }
         String name = entry.getName();
-        if ( fileExcludeSet_.contains( name ) ) {
-            return true;
-        }
-        for ( String exclude : dirExcludeSet_ ) {
-            if ( name.startsWith( exclude ) ) {
-                return true;
+        for ( String exclude : excludeSet_ ) {
+            if ( exclude.endsWith( "/" ) ) {
+                if ( name.startsWith( exclude ) ) {
+                    return true;
+                }
+            }
+            else if ( exclude.endsWith( "/*" ) || exclude.equals( "*" ) ) {
+                String dir = exclude.substring( 0, exclude.length() - 1 );
+                if ( name.startsWith( dir ) && 
+                     name.indexOf( '/', dir.length() ) == -1 ) {
+                    return true;
+                }
+            }
+            else {
+                if ( name.equals( exclude ) ) {
+                    return true;
+                }
             }
         }
         return false;
@@ -423,10 +436,15 @@ public class SuperJar {
      * excluded (e.g. axis.jar or axis/axis.jar would both work).
      * <tt>-x</tt> is a deprecated synonym for <tt>-xjar</tt>.
      *
-     * <p>The <tt>-xent</tt> flag may be supplied one or more times to define
-     * jar entry names (names of directories or files within the included
-     * jar archives) which should not be included.  Directory names should
-     * include a trailing "/".
+     * <p>The <tt>-xent</tt> flag may be supplied one or more times to give
+     * full paths for jar entries which should not be included in the output.
+     * These are interpreted as follows:
+     * <ul>
+     * <li>ending in "/": exclude that directory and all children
+     * <li>ending in "/*": exclude all flat files, but not subdirectories
+     *     of that directory
+     * <li>otherwise: exclude the flat file with that exact name
+     * </ul>
      *
      * <p>The <tt>jarfile</tt> argument(s) will be combined to form
      * the output file, all their contents and those of the jar files

@@ -563,9 +563,8 @@
       <arg value="-xjar"/><arg value="sog.jar"/>
       <arg value="-xjar"/><arg value="soapserver.jar"/>
       <arg value="-xjar"/><arg value="srb.jar"/>
-      <arg value="-xent"/><arg value="COPYING.txt"/>
-      <arg value="-xent"/><arg value="README.txt"/>
-      <arg value="-xent"/><arg value="package cache/"/>
+      <arg value="-xent"/><arg value="*"/>
+      <arg value="-xent"/><arg value="META-INF/*"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
       <arg value="${dist.lib.pkg}/extras.zip"/>
     </java>
@@ -578,9 +577,8 @@
       <arg value="-xjar"/><arg value="log4j-core.jar"/>
       <arg value="-xjar"/><arg value="jsky/jel.jar"/>
       <arg value="-xjar"/><arg value="gsi-classes.jar"/>
-      <arg value="-xent"/><arg value="COPYING.txt"/>
-      <arg value="-xent"/><arg value="README.txt"/>
-      <arg value="-xent"/><arg value="package cache/"/>
+      <arg value="-xent"/><arg value="*"/>
+      <arg value="-xent"/><arg value="META-INF/*"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
       <arg value="${dist.lib.pkg}/extras.zip"/>
     </java>
