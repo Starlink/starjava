@@ -85,6 +85,10 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
 
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storage ) throws IOException {
+        if ( ! ParquetUtil.isMagic( datsrc.getIntro() ) ) {
+            throw new TableFormatException( "Not parquet format"
+                                          + " (no leading magic number)" );
+        }
 
         /* For random access, it would be nice to read the table in parallel
          * here (multiple columns on multiple threads, using e.g.
@@ -98,8 +102,20 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
          * narrow them down to read only for a subset of columns,
          * so the idea seems doomed, despite the fact that pyarrow.parquet
          * can do it fine. */
-        IOSupplier<ParquetFileReader> pfrSupplier =
-            () -> ParquetFileReader.open( createInputFile( datsrc ) );
+        IOSupplier<ParquetFileReader> pfrSupplier = () -> {
+            try {
+                return ParquetFileReader.open( createInputFile( datsrc ) );
+            }
+
+            /* The ParquetFileReader sometimes generates RuntimeExceptions
+             * (e.g. for absent trailing magic number), so catch and rethrow
+             * here. */
+            catch ( RuntimeException e ) {
+                throw new TableFormatException( "Trouble opening "
+                                              + datsrc.getName() 
+                                              + " as parquet", e );
+            }
+        };
         return new SequentialParquetStarTable( pfrSupplier );
     }
 
