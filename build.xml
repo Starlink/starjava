@@ -204,6 +204,9 @@
     <echo message="Executing CDF target: ${what}"/>
     <ant dir="./cdf" target="${what}"/>
 
+    <echo message="Executing PARQUET target: ${what}"/>
+    <ant dir="./parquet" target="${what}"/>
+
     <echo message="Excecuting FEATHER target: ${what}"/>
     <ant dir="./feather" target="${what}"/>
 
@@ -485,6 +488,10 @@
       </packageset>
 
       <packageset dir="feather/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="parquet/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
