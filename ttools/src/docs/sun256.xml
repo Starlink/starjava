@@ -13076,6 +13076,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Output of <ref id="cache"><code>cache</code></ref> filter
         now retains no reference to input table, so it can be used
         to manage deeply nested tables in (Jy)STILTS pipelines.</li>
+    <li>JyStilts now has access to table schemes <code>skysim</code>
+        and <code>attractor</code>.</li>
     </ul>
     </p></dd>
 

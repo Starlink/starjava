@@ -715,6 +715,8 @@ public class JyStilts {
         lineList.add( "    '''" );
         lineList.add( "    fact = " + getImportName( StarTableFactory.class )
                                     + "(random)" );
+        lineList.add( "    " + getImportName( Stilts.class )
+                             + ".addStandardSchemes(fact)" );
         lineList.add( "    if hasattr(location, 'read'):" );
         lineList.add( "        datsrc = _JyDataSource(location)" );
         lineList.add( "        table = fact.makeStarTable(datsrc, fmt)" );
@@ -765,6 +767,8 @@ public class JyStilts {
         lineList.add( "    '''" );
         lineList.add( "    fact = " + getImportName( StarTableFactory.class )
                                     + "(random)" );
+        lineList.add( "    " + getImportName( Stilts.class )
+                             + ".addStandardSchemes(fact)" );
         lineList.add( "    if hasattr(location, 'read'):" );
         lineList.add( "        datsrc = _JyDataSource(location)" );
         lineList.add( "    else:" );

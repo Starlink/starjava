@@ -94,6 +94,12 @@ class TableTest(unittest.TestCase):
                           self.messier.cmd_addcol('-before', '1', 'Name', 999)
                           [100]['Name'])
 
+    def testScheme(self):
+        self.assertEquals(10, len(stilts.tread(':loop:10')))
+        cliff = stilts.tread(':attractor:11,clifford').cmd_cache()
+        self.assertEquals(11, len(cliff))
+        self.assertEquals(['x','y'], [str(c) for c in cliff.columns()])
+
     def testTasks(self):
         self.assertEquals(99, int(stilts.calc('100-1')))
         self.assertEquals(31,
