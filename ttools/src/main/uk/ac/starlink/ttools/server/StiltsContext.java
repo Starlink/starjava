@@ -10,7 +10,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.plot2.SplitRunner;
@@ -123,9 +122,7 @@ public class StiltsContext {
         String tfactSpec = context_.getInitParameter( TABLEFACTORY_PARAM );
         if ( tfactSpec == null || tfactSpec.trim().length() == 0 ) {
             final StarTableFactory tfact = new StarTableFactory();
-            for ( TableScheme scheme : Stilts.getStandardSchemes() ) {
-                tfact.addScheme( scheme );
-            }
+            Stilts.addStandardSchemes( tfact );
             final boolean allowAbsolute = true;
             return TableFactoryParameter.createTableFactory( new TableLocator(){
                 public StarTable getTable( String loc ) throws IOException {

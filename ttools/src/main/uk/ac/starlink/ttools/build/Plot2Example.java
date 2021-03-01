@@ -33,7 +33,6 @@ import javax.swing.JLabel;
 import javax.swing.KeyStroke;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.task.InvokeUtils;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
@@ -452,9 +451,7 @@ public class Plot2Example {
             outDir_ = outDir;
             dataUrl_ = dataUrl;
             tableFactory_ = new StarTableFactory();
-            for ( TableScheme scheme : Stilts.getStandardSchemes() ) {
-                tableFactory_.addScheme( scheme );
-            }
+            Stilts.addStandardSchemes( tableFactory_ );
             tableMap_ = new HashMap<String,StarTable>();
             envDefaults_ = new LinkedHashMap<String,Object>();
             envDefaults_.put( "ypix", "350" );

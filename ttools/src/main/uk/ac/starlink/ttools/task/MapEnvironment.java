@@ -14,7 +14,6 @@ import java.util.Set;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
-import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
@@ -303,9 +302,7 @@ public class MapEnvironment implements TableEnvironment {
     public synchronized StarTableFactory getTableFactory() {
         if ( tfact_ == null ) {
             tfact_ = new StarTableFactory();
-            for ( TableScheme scheme : Stilts.getStandardSchemes() ) {
-                tfact_.addScheme( scheme );
-            }
+            Stilts.addStandardSchemes( tfact_ );
         }
         return tfact_;
     }

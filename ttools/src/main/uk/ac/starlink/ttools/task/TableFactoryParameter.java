@@ -8,7 +8,6 @@ import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
@@ -168,9 +167,7 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
      */
     private static StarTableFactory createDefaultTableFactory() {
         StarTableFactory tfact = new StarTableFactory();
-        for ( TableScheme scheme : Stilts.getStandardSchemes() ) {
-            tfact.addScheme( scheme );
-        }
+        Stilts.addStandardSchemes( tfact );
         return tfact;
     }
 

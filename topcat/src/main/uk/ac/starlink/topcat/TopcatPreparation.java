@@ -10,7 +10,6 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TablePreparation;
-import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.Stilts;
 
@@ -98,9 +97,7 @@ public class TopcatPreparation implements TablePreparation {
      */
     public static StarTableFactory createFactory() {
         StarTableFactory tfact = new StarTableFactory( true );
-        for ( TableScheme scheme : Stilts.getStandardSchemes() ) {
-            tfact.addScheme( scheme );
-        }
+        Stilts.addStandardSchemes( tfact );
         tfact.setPreparation( new TopcatPreparation( tfact.getPreparation() ) );
         return tfact;
     }
