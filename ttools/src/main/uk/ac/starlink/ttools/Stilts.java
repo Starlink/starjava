@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
 import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
@@ -95,6 +96,19 @@ public class Stilts {
      */ 
     public static TableScheme[] getStandardSchemes() {
         return stdSchemes_.clone();
+    }
+
+    /**
+     * Adds the table schemes specific to STILTS to the given table factory.
+     * This utility method just adds each element of the result of
+     * {@link #getStandardSchemes}.
+     *
+     * @param  tfact  table factory
+     */
+    public static void addStandardSchemes( StarTableFactory tfact ) {
+        for ( TableScheme scheme : stdSchemes_ ) {
+            tfact.addScheme( scheme );
+        }
     }
 
     /**
