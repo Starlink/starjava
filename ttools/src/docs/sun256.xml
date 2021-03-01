@@ -13078,6 +13078,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         to manage deeply nested tables in (Jy)STILTS pipelines.</li>
     <li>JyStilts now has access to table schemes <code>skysim</code>
         and <code>attractor</code>.</li>
+    <li>Fix optional argument processing bug in JyStilts
+        (optional named arguments like <code>start</code> in
+        <code>tloop</code> were being ignored).</li>
     </ul>
     </p></dd>
 

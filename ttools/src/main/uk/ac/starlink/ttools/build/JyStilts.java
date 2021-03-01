@@ -1121,7 +1121,7 @@ public class JyStilts {
             .append( "def " )
             .append( fname )
             .append( "(" );
-        for ( Arg arg : argList ) {
+        for ( Arg arg : mandArgList ) {
             sbuf.append( arg.formalArg_ )
                 .append( ", " );
         }

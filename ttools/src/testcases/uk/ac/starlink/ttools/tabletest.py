@@ -130,6 +130,9 @@ class TableTest(unittest.TestCase):
         self.assertRaises(SyntaxError, stilts.calc, '1+2', spurious='99')
         self.assertRaises(uk.ac.starlink.task.UsageException,
                           stilts.tmatchn)
+        lop = stilts.tloop(start=50, end=100, step=10)
+        self.assertEquals(99, len(stilts.tloop(99)))
+        self.assertEquals(5, len(stilts.tloop(start=50, end=100, step=10)))
 
     def testIO(self):
         for fmt in ['csv', 'fits', 'ascii', 'votable']:
