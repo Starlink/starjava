@@ -1,11 +1,17 @@
 package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import uk.ac.starlink.table.AbstractStarTable;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.MetaCopyStarTable;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.Tables;
 
 /**
  * Processing step which caches the current table in a disk or memory
@@ -33,6 +39,11 @@ public class CacheFilter extends BasicFilter implements ProcessingStep {
             "then adding this step near the start of the filters",
             "might help.",
             "</p>",
+            "<p>The output table contains no code-level reference",
+            "to the input table, so this filter can also be useful",
+            "when managing tables that have become deeply nested",
+            "as the result of successively applying many STILTS operations.",
+            "</p>",
             "<p>The result of this filter is guaranteed to be random-access.",
             "</p>",
             "<p>See also the <ref id='random'><code>random</code></ref>",
@@ -48,7 +59,64 @@ public class CacheFilter extends BasicFilter implements ProcessingStep {
 
     public StarTable wrap( StarTable baseTable ) throws IOException {
         RowStore store = StoragePolicy.getDefaultPolicy().makeRowStore();
-        Tables.streamStarTable( baseTable, store );
-        return store.getStarTable();
+        store.acceptMetadata( new MetaOnlyTable( baseTable ) );
+        try ( RowSequence rseq = baseTable.getRowSequence() ) {
+            while ( rseq.next() ) {
+                store.acceptRow( rseq.getRow() );
+            }
+            store.endRows();
+            return store.getStarTable();
+        }
+    }
+
+    /**
+     * Skeleton table containing metadata copied from a template table,
+     * but providing no data and retaining no reference to the template.
+     * All data access methods will throw an UnsupportedOperationException.
+     */
+    private static class MetaOnlyTable extends AbstractStarTable {
+
+        private final ColumnInfo[] cinfos_;
+        private final List<DescribedValue> dvals_;
+        private final long nrow_;
+
+        /**
+         * Constructor.
+         *
+         * @param  template  template table
+         */
+        MetaOnlyTable( StarTable template ) {
+            int ncol = template.getColumnCount();
+            cinfos_ = new ColumnInfo[ ncol ];
+            for ( int ic = 0; ic < ncol; ic++ ) {
+                cinfos_[ ic ] = new ColumnInfo( template.getColumnInfo( ic ) );
+            }
+            dvals_ = new ArrayList<DescribedValue>();
+            for ( DescribedValue dval : template.getParameters() ) {
+                dvals_.add( new DescribedValue( dval.getInfo(),
+                                                dval.getValue() ) );
+            }
+            nrow_ = template.getRowCount();
+            setName( template.getName() );
+            setURL( template.getURL() );
+        }
+        public long getRowCount() {
+            return nrow_;
+        }
+        public int getColumnCount() {
+            return cinfos_.length;
+        }
+        public ColumnInfo getColumnInfo( int ic ) {
+            return cinfos_[ ic ];
+        }
+        public RowSequence getRowSequence() {
+            throw new UnsupportedOperationException();
+        }
+        public Object getCell( long irow, int icol ) {
+            throw new UnsupportedOperationException();
+        }
+        public Object[] getRow( long irow ) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

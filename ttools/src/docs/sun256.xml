@@ -13073,6 +13073,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li><code>taplint</code> stage <code>TMV</code> now validates
         against (a pre-REC version of) version 1.2 of the
         VODataService schema instead of version 1.1.</li>
+    <li>Output of <ref id="cache"><code>cache</code></ref> filter
+        now retains no reference to input table, so it can be used
+        to manage deeply nested tables in (Jy)STILTS pipelines.</li>
     </ul>
     </p></dd>
 
