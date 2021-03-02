@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetFileReader;
@@ -27,6 +29,9 @@ import uk.ac.starlink.util.URLUtils;
  * @since    25 Feb 2021
  */
 public class ParquetTableBuilder extends DocumentedTableBuilder {
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.parquet" );
 
     /* Log4j is annoying. */
     static {
@@ -87,19 +92,6 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
             throw new TableFormatException( "Not parquet format"
                                           + " (no leading magic number)" );
         }
-
-        /* For random access, it would be nice to read the table in parallel
-         * here (multiple columns on multiple threads, using e.g.
-         * uk.ac.starlink.table.storage.ColumnStore implementations).
-         * It ought to be possible, but as far as I can see,
-         * parquet-mr table read methods have only a single input stream,
-         * so there's no chance to do concurrent reads.  You could do
-         * totally separate reads of the input file on multiple threads,
-         * but the PageReadStore objects (row groups) are slow to read
-         * and very memory heavy for large files, and I can't see how to
-         * narrow them down to read only for a subset of columns,
-         * so the idea seems doomed, despite the fact that pyarrow.parquet
-         * can do it fine. */
         IOSupplier<ParquetFileReader> pfrSupplier = () -> {
             try {
                 return ParquetFileReader.open( createInputFile( datsrc ) );
@@ -114,6 +106,15 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
                                               + " as parquet", e );
             }
         };
+        if ( wantRandom ) {
+            try {
+                return new CachedParquetStarTable( pfrSupplier, -1 );
+            }
+            catch ( IOException e ) {
+                logger_.log( Level.WARNING,
+                             "Cached read failed for " + datsrc, e );
+            }
+        }
         return new SequentialParquetStarTable( pfrSupplier );
     }
 
