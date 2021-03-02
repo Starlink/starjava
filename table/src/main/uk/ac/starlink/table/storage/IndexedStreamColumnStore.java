@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
  * @author   Mark Taylor
  * @since    21 Jun 2006
  */
-class IndexedStreamColumnStore implements ColumnStore {
+public class IndexedStreamColumnStore implements ColumnStore {
 
     private final Codec codec_;
     private final File dataFile_;

@@ -15,7 +15,7 @@ import uk.ac.starlink.table.WrapperStarTable;
  * @author   Mark Taylor
  * @since    21 Jun 2006
  */
-class ColumnStoreStarTable extends WrapperStarTable {
+public class ColumnStoreStarTable extends WrapperStarTable {
 
     private final long nrow_;
     private final int ncol_;

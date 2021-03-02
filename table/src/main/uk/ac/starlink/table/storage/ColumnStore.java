@@ -18,7 +18,7 @@ import java.io.IOException;
  * @author   Mark Taylor
  * @since    21 Jun 2006
  */
-interface ColumnStore {
+public interface ColumnStore {
 
     /**
      * Writes a datum to this store.
