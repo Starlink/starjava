@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -243,10 +244,11 @@ public class StarTableFactory {
                 logger.config( className + " registered" );
             }
             catch ( ClassNotFoundException e ) {
-                logger.config( className + " not found - can't register" );
+                logger.info( className + " not found - can't register" );
             }
-            catch ( Exception e ) {
-                logger.config( "Failed to register " + className + " - " + e );
+            catch ( Throwable e ) {
+                logger.log( Level.WARNING, "Failed to register " + className,
+                            e );
             }
         }
 

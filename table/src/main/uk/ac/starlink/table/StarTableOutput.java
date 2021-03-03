@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.WriteMode;
@@ -130,10 +131,11 @@ public class StarTableOutput {
                                " registered" );
             }
             catch ( ClassNotFoundException e ) {
-                logger.config( className + " not found - can't register" );
+                logger.info( className + " not found - can't register" );
             }
-            catch ( Exception e ) {
-                logger.config( "Failed to register " + className + " - " + e );
+            catch ( Throwable e ) {
+                logger.log( Level.WARNING, "Failed to register " + className,
+                            e );
             }
         }
 
