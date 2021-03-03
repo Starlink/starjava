@@ -88,6 +88,11 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
             "per-column metadata, so the only information read about",
             "each column apart from its datatype is its name.",
             "</p>",
+            "<p>Depending on the way that the table is accessed,",
+            "the reader tries to take advantage of the column and",
+            "row block structure of parquet files to read the data",
+            "in parallel where possible.",
+            "</p>",
             ""
         );
     }
