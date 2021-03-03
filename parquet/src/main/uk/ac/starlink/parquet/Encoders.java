@@ -29,9 +29,11 @@ public class Encoders {
      * Returns an encoder for a given ColumnInfo.
      *
      * @param   info  column metadata
+     * @param   groupArray   true for group-style arrays,
+     *                       false for repeated primitives
      * @return   value encoder
      */
-    public static Encoder createEncoder( ColumnInfo info ) {
+    public static Encoder createEncoder( ColumnInfo info, boolean groupArray ) {
         final Class<?> clazz = info.getContentClass();
         final String cname = info.getName();
         if ( clazz.equals( Boolean.class ) ) {
@@ -90,38 +92,44 @@ public class Encoders {
                        byte[].class, cname,
                        PrimitiveType.PrimitiveTypeName.INT32,
                        LogicalTypeAnnotation.intType( 8, true ),
-                       (val, ix, cns) -> cns.addInteger( val[ ix ] ) );
+                       (val, ix, cns) -> cns.addInteger( val[ ix ] ),
+                       groupArray );
         }
         else if ( clazz.equals( short[].class ) ) {
             return createArrayEncoder(
                        short[].class, cname,
                        PrimitiveType.PrimitiveTypeName.INT32,
                        LogicalTypeAnnotation.intType( 16, true ),
-                       (val, ix, cns) -> cns.addInteger( val[ ix ] ) );
+                       (val, ix, cns) -> cns.addInteger( val[ ix ] ),
+                       groupArray );
         }
         else if ( clazz.equals( int[].class ) ) {
             return createArrayEncoder(
                        int[].class, cname,
                        PrimitiveType.PrimitiveTypeName.INT32, null,
-                       (val, ix, cns) -> cns.addInteger( val[ ix ] ) );
+                       (val, ix, cns) -> cns.addInteger( val[ ix ] ),
+                       groupArray );
         }
         else if ( clazz.equals( long[].class ) ) {
             return createArrayEncoder(
                        long[].class, cname,
                        PrimitiveType.PrimitiveTypeName.INT64, null,
-                       (val, ix, cns) -> cns.addLong( val[ ix ] ) );
+                       (val, ix, cns) -> cns.addLong( val[ ix ] ),
+                       groupArray );
         }
         else if ( clazz.equals( float[].class ) ) {
             return createArrayEncoder(
                        float[].class, cname,
                        PrimitiveType.PrimitiveTypeName.FLOAT, null,
-                       (val, ix, cns) -> cns.addFloat( val[ ix ] ) );
+                       (val, ix, cns) -> cns.addFloat( val[ ix ] ),
+                       groupArray );
         }
         else if ( clazz.equals( double[].class ) ) {
             return createArrayEncoder(
                        double[].class, cname,
                        PrimitiveType.PrimitiveTypeName.DOUBLE, null,
-                       (val, ix, cns) -> cns.addDouble( val[ ix ] ) );
+                       (val, ix, cns) -> cns.addDouble( val[ ix ] ),
+                       groupArray );
         }
         else if ( clazz.equals( String[].class ) ) {
             return createArrayEncoder(
@@ -129,7 +137,8 @@ public class Encoders {
                        PrimitiveType.PrimitiveTypeName.BINARY,
                        LogicalTypeAnnotation.stringType(),
                        (val, ix, cns) ->
-                           cns.addBinary( Binary.fromString( val[ ix ] ) ) );
+                           cns.addBinary( Binary.fromString( val[ ix ] ) ),
+                       groupArray );
         }
         else {
             return null;
@@ -168,39 +177,60 @@ public class Encoders {
      * @param   primType  primitive output type
      * @param   logType   logical type annotation
      * @param   arrayReader   passes array-typed values to consumer
+     * @param   groupArray   true for group-style arrays,
+     *                       false for repeated primitives
+     * @return   new encoder
      */
     private static <T> Encoder
             createArrayEncoder( Class<T> clazz, String cname,
                                 PrimitiveType.PrimitiveTypeName primType,
                                 LogicalTypeAnnotation logType,
-                                ArrayReader<T> arrayReader ) {
-        Types.PrimitiveBuilder<PrimitiveType> elBuilder =
-            Types.optional( primType );
-        if ( logType != null ) {
-            elBuilder = elBuilder.as( logType );
-        }
-        final String elName = "item";
-        final String listName = "list";  // this one is magic
-        PrimitiveType elType = elBuilder.named( elName );
-        GroupType listType =
-            Types.optionalList()
-                 .element( elType )
-                 .named( cname );
-        BiConsumer<T,RecordConsumer> consume = (val, cns) -> {
-            cns.startGroup();
-            cns.startField( listName, 0 );
-            int nel = Array.getLength( val );
-            for ( int i = 0; i < nel; i++ ) {
-                cns.startGroup();
-                cns.startField( elName, 0 );
-                arrayReader.consume( val, i, cns );
-                cns.endField( elName, 0 );
-                cns.endGroup();
+                                ArrayReader<T> arrayReader,
+                                boolean groupArray ) {
+        if ( groupArray ) {
+            Types.PrimitiveBuilder<PrimitiveType> elBuilder =
+                Types.optional( primType );
+            if ( logType != null ) {
+                elBuilder = elBuilder.as( logType );
             }
-            cns.endField( listName, 0 );
-            cns.endGroup();
-        };
-        return new DefaultEncoder<T>( cname, listType, consume );
+            final String elName = "item";
+            final String listName = "list";  // this one is magic
+            PrimitiveType elType = elBuilder.named( elName );
+            GroupType listType =
+                Types.optionalList()
+                     .element( elType )
+                     .named( cname );
+            BiConsumer<T,RecordConsumer> consume = (val, cns) -> {
+                cns.startGroup();
+                cns.startField( listName, 0 );
+                int nel = Array.getLength( val );
+                for ( int i = 0; i < nel; i++ ) {
+                    cns.startGroup();
+                    cns.startField( elName, 0 );
+                    arrayReader.consume( val, i, cns );
+                    cns.endField( elName, 0 );
+                    cns.endGroup();
+                }
+                cns.endField( listName, 0 );
+                cns.endGroup();
+            };
+            return new DefaultEncoder<T>( cname, listType, consume );
+        }
+        else {
+            Types.PrimitiveBuilder<PrimitiveType> elBuilder =
+                Types.repeated( primType );
+            if ( logType != null ) {
+                elBuilder = elBuilder.as( logType );
+            }
+            PrimitiveType elType = elBuilder.named( cname );
+            BiConsumer<T,RecordConsumer> consume = (val, cns) -> {
+                int nel = Array.getLength( val );
+                for ( int i = 0; i < nel; i++ ) {
+                    arrayReader.consume( val, i, cns );
+                }
+            };
+            return new DefaultEncoder<T>( cname, elType, consume );
+        }
     }
 
     /**

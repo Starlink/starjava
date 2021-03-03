@@ -536,10 +536,13 @@ public class FormatsTest extends TableCase {
                            new EcsvTableBuilder(), "ecsv" );
 
         ParquetTableBuilder parquetBuilder = new ParquetTableBuilder();
+        ParquetTableWriter parquetWriter = new ParquetTableWriter();
         parquetBuilder.setCacheCols( Boolean.FALSE );
-        exerciseReadWrite( new ParquetTableWriter(), parquetBuilder, "parquet");
+        parquetWriter.setGroupArray( false );
+        exerciseReadWrite( parquetWriter, parquetBuilder, "parquet");
         parquetBuilder.setCacheCols( Boolean.TRUE );
-        exerciseReadWrite( new ParquetTableWriter(), parquetBuilder, "parquet");
+        parquetWriter.setGroupArray( true );
+        exerciseReadWrite( parquetWriter, parquetBuilder, "parquet");
 
         exerciseReadWrite(
             new FeatherTableWriter( false, StoragePolicy.PREFER_MEMORY ),

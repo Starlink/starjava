@@ -12,6 +12,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.formats.DocumentedIOHandler;
+import uk.ac.starlink.util.ConfigMethod;
 
 /**
  * TableWriter implementation for output to Parquet format.
@@ -21,6 +22,8 @@ import uk.ac.starlink.table.formats.DocumentedIOHandler;
  */
 public class ParquetTableWriter
         implements StarTableWriter, DocumentedIOHandler {
+
+    private boolean groupArray_;
 
     static {
         ParquetUtil.silenceLog4j();
@@ -88,6 +91,48 @@ public class ParquetTableWriter
     }
 
     /**
+     * Configures how array-valued columns are written.
+     * If false, it's a top-level <code>repeated</code> primitive,
+     * if true, it's an <code>optional group</code> containing a
+     * <code>repeated group</code> containing a <code>optional</code>
+     * primitive.  The latter way seems unnecessarily complicated to me,
+     * but it seems to be what python writes.
+     *
+     * @param  groupArray   true for grouped arrays,
+     *                      false for repeated primitives
+     */
+    @ConfigMethod(
+        property = "groupArray",
+        usage = "true|false",
+        example = "false",
+        doc = "<p>Controls the low-level detail of how array-valued columns\n"
+            + "are written.\n"
+            + "For an array-valued int32 column named IVAL,\n"
+            + "<code>groupArray=false</code> will write it as\n"
+            + "\"<code>repeated int32 IVAL</code>\"\n"
+            + "while <code>groupArray=true</code> will write it as\n"
+            + "\"<code>optional group IVAL (LIST) { repeated group list\n"
+            + "{ optional int32 item} }</code>\".\n"
+            + "I don't know why you'd want to do it the latter way,\n"
+            + "but some other parquet writers seem to do that by default,\n"
+            + "so there must be some good reason.\n"
+            + "</p>"
+    )
+    public void setGroupArray( boolean groupArray ) {
+        groupArray_ = groupArray;
+    }
+
+    /**
+     * Indicates how array-valued columns are written.
+     *
+     * @return   true for grouped arrays,
+     *           false for repeated primitives
+     */
+    public boolean isGroupArray() {
+        return groupArray_;
+    }
+
+    /**
      * Performs all required post-construction configuration
      * of the ParquetWriter.Builder in accordance with the requirements
      * of this ParquetTableWriter.
@@ -96,6 +141,7 @@ public class ParquetTableWriter
      */
     private void configureBuilder( StarParquetWriter.StarBuilder builder ) {
         builder.withWriteMode( ParquetFileWriter.Mode.OVERWRITE )
+               .withGroupArray( groupArray_ )
                .withValidation( true )
                .withPageWriteChecksumEnabled( false ) // doesn't seem to help
                .withDictionaryEncoding( true );

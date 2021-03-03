@@ -47,6 +47,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
     public static class StarBuilder
             extends ParquetWriter.Builder<Object[],StarBuilder> {
         private final StarTable table_;
+        private boolean groupArray_;
 
         /**
          * Constructor based on a hadoop Path.
@@ -79,6 +80,17 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
             return table_;
         }
 
+        /**
+         * Configures array-valued column writing style.
+         *
+         * @param   groupArray   true for group-style arrays,
+         *                       false for repeated primitives
+         */
+        public StarBuilder withGroupArray( boolean groupArray ) {
+            groupArray_ = groupArray;
+            return self();
+        }
+
         public StarBuilder self() {
             return this;
         }
@@ -88,7 +100,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
                 throw new IllegalStateException( "builder.withTable"
                                                + " not called" );
             }
-            return new StarWriteSupport( table_ );
+            return new StarWriteSupport( table_, groupArray_ );
         }
     }
 
@@ -109,15 +121,17 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
          * Constructor.
          *
          * @param  table  table to write
+         * @param   groupArray   true for group-style arrays,
+         *                       false for repeated primitives
          */
-        StarWriteSupport( StarTable table ) {
+        StarWriteSupport( StarTable table, boolean groupArray ) {
             List<OutCol> outcols = new ArrayList<>();
             metaMap_ = new HashMap<String,String>();
             Types.MessageTypeBuilder schemaBuilder = Types.buildMessage();
             int jc = 0;
             for ( int ic = 0; ic < table.getColumnCount(); ic++ ) {
                 ColumnInfo cinfo = table.getColumnInfo( ic );
-                Encoder encoder = Encoders.createEncoder( cinfo );
+                Encoder encoder = Encoders.createEncoder( cinfo, groupArray );
                 if ( encoder != null ) {
                     outcols.add( new OutCol( encoder, ic, jc++ ) );
                     schemaBuilder.addField( encoder.getColumnType() );
