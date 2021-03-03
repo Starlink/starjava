@@ -2168,6 +2168,12 @@ similar and capable of storing more metadata.
 <subsubsubsect id="inParquet">
 <subhead><title><code>parquet</code></title></subhead>
 &in-parquet;
+
+<p><em><strong>Note:</strong> The Parquet file handler
+requires large external libraries,
+which are not always bundled with STILTS because of size.
+In some configurations, parquet support may not be present.</em>
+</p>
 </subsubsubsect>
 
 <subsubsubsect id="inFeather">
@@ -2265,6 +2271,12 @@ or by setting the format to the classname of a
 <subsubsubsect id="outParquet">
 <subhead><title><code>parquet</code></title></subhead>
 &out-parquet;
+
+<p><em><strong>Note:</strong> The Parquet file handler
+requires large external libraries,
+which are not always bundled with STILTS because of size.
+In some configurations, parquet support may not be present.</em>
+</p>
 </subsubsubsect>
 
 <subsubsubsect id="outFeather">

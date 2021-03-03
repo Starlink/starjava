@@ -1283,6 +1283,13 @@ similar and capable of storing more metadata.
 <subsubsubsect id="inParquet">
 <subhead><title>Parquet</title></subhead>
 &in-parquet;
+
+<p><em><strong>Note:</strong> The Parquet file handler
+requires large external libraries,
+which are not always bundled with TOPCAT because of size.
+If you are using the topcat-lite configuration,
+parquet support may not be present.</em>
+</p>
 </subsubsubsect>
 
 <subsubsubsect id="inFeather">
@@ -1401,6 +1408,13 @@ formats might be better.
 <subsubsubsect id="outParquet">
 <subhead><title>Parquet</title></subhead>
 &out-parquet;
+
+<p><em><strong>Note:</strong> The Parquet file handler
+requires large external libraries,
+which are not always bundled with TOPCAT because of size.
+If you are using the topcat-lite configuration,
+parquet support may not be present.</em>
+</p>
 </subsubsubsect>
 
 <subsubsubsect id="outFeather">

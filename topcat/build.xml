@@ -518,7 +518,7 @@
    !  Builds jar files which can be used on their own, without needing any
    !  other jars to be present.  Two of them are built: topcat-lite.jar
    !  which contains enough classes to do most things but not support for
-   !  peripheral items like MySpace access etc.
+   !  peripheral and/or oversize items like MySpace access, Parquet I/O etc.
    !-->
   <target name="build-standalone"
           depends="install"
@@ -560,6 +560,7 @@
       <arg value="-xjar"/><arg value="jniast.jar"/>
       <arg value="-xjar"/><arg value="junit.jar"/>
       <arg value="-xjar"/><arg value="ndx.jar"/>
+      <arg value="-xjar"/><arg value="parquet.jar"/>
       <arg value="-xjar"/><arg value="sog.jar"/>
       <arg value="-xjar"/><arg value="soapserver.jar"/>
       <arg value="-xjar"/><arg value="srb.jar"/>
