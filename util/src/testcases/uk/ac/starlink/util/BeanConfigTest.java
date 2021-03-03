@@ -25,7 +25,13 @@ public class BeanConfigTest extends TestCase {
 
         assertEquals( Dir.LEFT, createTBean( "( dir = LEFT )" ).dir_ );
         assertEquals( TBean.NORTH, createTBean( "(dir=NORTH)" ).dir_ );
-   
+
+        assertFalse( createTBean( "()" ).flag_ );
+        assertFalse( createTBean( "()" ).flagObj_.booleanValue() );
+        assertTrue( createTBean( "(flag=true)" ).flag_ );
+        assertTrue( createTBean( "(flagObj=True)" ).flagObj_ );
+        assertNull( createTBean( "(flagObj=null)" ).flagObj_ );
+        assertNull( createTBean( "(flagObj=)" ).flagObj_ );
     }
 
     private static Object createObj( String txt )
@@ -52,6 +58,8 @@ public class BeanConfigTest extends TestCase {
         int ival_;
         double dval_;
         String text_;
+        boolean flag_;
+        Boolean flagObj_ = Boolean.FALSE;
         Primary primary_;
         Dir dir_;
 
@@ -66,6 +74,12 @@ public class BeanConfigTest extends TestCase {
         }
         public void setText( String text ) {
             text_ = text;
+        }
+        public void setFlag( boolean flag ) {
+            flag_ = flag;
+        }
+        public void setFlagObj( Boolean flagObj ) {
+            flagObj_ = flagObj;
         }
         public void setPrimary( Primary primary ) {
             primary_ = primary;

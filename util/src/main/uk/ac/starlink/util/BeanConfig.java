@@ -299,8 +299,11 @@ public class BeanConfig {
             return annUsage;
         }
         Class<?> optClazz = getMutationType( configMethod );
-        if ( optClazz == boolean.class || optClazz == Boolean.class ) {
+        if ( optClazz == boolean.class ) {
             return "true|false";
+        }
+        else if ( optClazz == Boolean.class ) {
+            return "true|false|null";
         }
         else if ( optClazz.isEnum() ) {
             return Arrays.stream( optClazz.getEnumConstants() )
@@ -356,9 +359,15 @@ public class BeanConfig {
                 throw new NullPointerException();
             }
         }
-        else if ( clazz.equals( boolean.class ) ||
-                  clazz.equals( Boolean.class ) ) {
+        else if ( clazz.equals( boolean.class ) ) {
             return (T) Boolean.valueOf( txt );
+        }
+        else if ( clazz.equals( Boolean.class ) ) {
+            return ( txt == null ||
+                     txt.trim().length() == 0 ||
+                     "null".equals( txt ) )
+                 ? null
+                 : (T) Boolean.valueOf( txt );
         }
         else if ( clazz.equals( byte.class ) || clazz.equals( Byte.class ) ) {
             return (T) Byte.valueOf( txt );
