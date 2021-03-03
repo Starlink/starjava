@@ -100,6 +100,7 @@ public class FormatsTest extends TableCase {
         Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.feather" ).setLevel( Level.SEVERE );
         Logger.getLogger( "uk.ac.starlink.ecsv" ).setLevel( Level.SEVERE );
+        Logger.getLogger( "uk.ac.starlink.parquet" ).setLevel( Level.WARNING );
 
         FitsConstants.configureHierarch();
     }
@@ -533,8 +534,13 @@ public class FormatsTest extends TableCase {
                            new EcsvTableBuilder(), "ecsv" );
         exerciseReadWrite( EcsvTableWriter.COMMA_WRITER,
                            new EcsvTableBuilder(), "ecsv" );
-        exerciseReadWrite( new ParquetTableWriter(),
-                           new ParquetTableBuilder(), "parquet" );
+
+        ParquetTableBuilder parquetBuilder = new ParquetTableBuilder();
+        parquetBuilder.setCacheCols( Boolean.FALSE );
+        exerciseReadWrite( new ParquetTableWriter(), parquetBuilder, "parquet");
+        parquetBuilder.setCacheCols( Boolean.TRUE );
+        exerciseReadWrite( new ParquetTableWriter(), parquetBuilder, "parquet");
+
         exerciseReadWrite(
             new FeatherTableWriter( false, StoragePolicy.PREFER_MEMORY ),
             new FeatherTableBuilder(), "feather" );

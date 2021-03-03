@@ -190,7 +190,7 @@ public class AdaptiveByteStore implements ByteStore {
      *
      * @return  default memory limit
      */
-    private static int getDefaultLimit() {
+    public static int getDefaultLimit() {
         if ( defaultLimit_ <= 0 ) {
             int maxmem = (int) Math.min( Runtime.getRuntime().maxMemory(),
                                          Integer.MAX_VALUE );
