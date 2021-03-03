@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetFileReader;
@@ -32,7 +30,7 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
 
     /* Log4j is annoying. */
     static {
-        silenceLog4j();
+        ParquetUtil.silenceLog4j();
     }
 
     /**
@@ -170,18 +168,5 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         }
         URL url = datsrc.getURL();
         return url == null ? null : URLUtils.urlToFile( url.toString() );
-    }
-
-    /**
-     * Suppress all output from Log4j.
-     */
-    private static void silenceLog4j() {
-        @SuppressWarnings("unchecked")
-        List<org.apache.log4j.Logger> loggers =
-            Collections.list( org.apache.log4j.LogManager.getCurrentLoggers() );
-        loggers.add( org.apache.log4j.LogManager.getRootLogger() );
-        for ( org.apache.log4j.Logger logger : loggers ) {
-            logger.setLevel( org.apache.log4j.Level.OFF );
-        }
     }
 }

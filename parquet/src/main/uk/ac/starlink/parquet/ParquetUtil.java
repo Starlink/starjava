@@ -1,5 +1,8 @@
 package uk.ac.starlink.parquet;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Utility classes for Parquet I/O.
  *
@@ -28,5 +31,18 @@ public class ParquetUtil {
                (char) buffer[ 1 ] == 'A' &&
                (char) buffer[ 2 ] == 'R' &&
                (char) buffer[ 3 ] == '1';
+    }
+
+    /**
+     * Suppress all output from Log4j.
+     */
+    public static void silenceLog4j() {
+        @SuppressWarnings("unchecked")
+        List<org.apache.log4j.Logger> loggers =
+            Collections.list( org.apache.log4j.LogManager.getCurrentLoggers() );
+        loggers.add( org.apache.log4j.LogManager.getRootLogger() );
+        for ( org.apache.log4j.Logger logger : loggers ) {
+            logger.setLevel( org.apache.log4j.Level.OFF );
+        }
     }
 }

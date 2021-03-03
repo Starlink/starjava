@@ -22,6 +22,10 @@ import uk.ac.starlink.table.formats.DocumentedIOHandler;
 public class ParquetTableWriter
         implements StarTableWriter, DocumentedIOHandler {
 
+    static {
+        ParquetUtil.silenceLog4j();
+    }
+
     public ParquetTableWriter() {
     }
 

@@ -2,6 +2,8 @@ package uk.ac.starlink.parquet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -11,6 +13,11 @@ import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLUtils;
 
 public class ExampleTest extends TestCase {
+
+    static {
+        Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
+        ParquetUtil.silenceLog4j();
+    }
  
     public void testExample() throws IOException {
         StarTable ex = readTestTable( "example.parquet" );
