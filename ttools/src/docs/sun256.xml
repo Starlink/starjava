@@ -4316,7 +4316,7 @@ The following specials are column-like, in that they have a different value
 for each row:
 
 <dl>
-<dt><code>$index</code> or <code>$0</code></dt>
+<dt>$index <em>or</em> $0</dt>
 <dd><p>The value of this is the current row number (the first row is 1).
     Note that this value is a <code>long</code> (8-byte integer);
     when using it in certain expressions you may find it necessary to convert
@@ -4325,7 +4325,7 @@ for each row:
     <em>The deprecated alias "<code>INDEX</code>" may also be used.</em>
     </p></dd>
 
-<dt><code>$random</code></dt>
+<dt>$random</dt>
 <dd><p>Evaluates to a double-precision random number <code>0&lt;=x&lt;1</code>
     with a value which is fixed for a given row in this expression.
     The quality of the random numbers may not be particularly good.
@@ -13081,6 +13081,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix optional argument processing bug in JyStilts
         (optional named arguments like <code>start</code> in
         <code>tloop</code> were being ignored).</li>
+    <li>Fix bug in <ref id="addcol"><code>addcol</code></ref> filter
+        that could evaluate the row index
+        (<ref id="jel-special"><code>$index/$0</code></ref>)
+        incorrectly during parallel processing.</li>
     </ul>
     </p></dd>
 

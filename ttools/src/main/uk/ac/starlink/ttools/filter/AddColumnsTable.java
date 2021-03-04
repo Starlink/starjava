@@ -184,13 +184,13 @@ public class AddColumnsTable extends WrapperStarTable {
 
     public RowSplittable getRowSplittable() throws IOException {
         RowSplittable baseSplittable = baseTable.getRowSplittable();
-        final LongSupplier baseRowIndex = baseSplittable.rowIndex();
-        if ( baseRowIndex == null ) {
+        if ( baseSplittable.rowIndex() == null ) {
             return new SequentialRowSplittable( this );
         }
         else {
             Function<RowSplittable,RowData> mapper = base -> new RowData() {
                 final SupplementData sup;
+                final LongSupplier rowIndex = base.rowIndex();
                 /* Constructor. */ {
                     try {
                         sup = colSup_.createSupplementData( base );
@@ -202,12 +202,12 @@ public class AddColumnsTable extends WrapperStarTable {
                 public Object getCell( int icol ) throws IOException {
                     int jcol = jcols_[ icol ];
                     return jtabs_[ icol ]
-                         ? sup.getCell( baseRowIndex.getAsLong(), jcol )
+                         ? sup.getCell( rowIndex.getAsLong(), jcol )
                          : base.getCell( jcol );
                 }
                 public Object[] getRow() throws IOException {
                     return combineRows( base.getRow(),
-                                        sup.getRow( baseRowIndex.getAsLong() ));
+                                        sup.getRow( rowIndex.getAsLong() ));
                 }
             };
             return new MappingRowSplittable( baseSplittable, mapper );
