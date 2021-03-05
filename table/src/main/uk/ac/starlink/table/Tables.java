@@ -396,7 +396,23 @@ public class Tables {
     }
 
     /**
-     * Convenience method to consruct a TableSequence for a single table.
+     * Collapses whitespace in a string.
+     * This normalises the text in the sense of the XML Schema facet
+     * <code>whitespace='collapse'</code>:
+     * leading and trailing whitespace is removed,
+     * and any other run of whitespace is replaced by a single space character.
+     *
+     * @param  txt  input string (may be null)
+     * @return   string with whitespaces collapsed
+     */
+    public static String collapseWhitespace( String txt ) {
+        return txt == null
+             ? null
+             : txt.trim().replaceAll( "\\s+", " " );
+    }
+
+    /**
+     * Convenience method to construct a TableSequence for a single table.
      *
      * @param   table  table
      * @return  table sequence with just one element
