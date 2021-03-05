@@ -13,6 +13,7 @@ import skyview.geometry.projecter.Arc;
 import skyview.geometry.projecter.Car;
 import skyview.geometry.projecter.Stg;
 import skyview.geometry.projecter.Tan;
+import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
@@ -107,22 +108,23 @@ public abstract class FixedSkyviewProjection extends SkyviewProjection {
 
     public SkyAspect createAspect( boolean reflect, double[] r3,
                                    double radiusRad, Range[] ranges ) {
+        double[] rotmat = getFixedRotation( reflect );
         final double zoom;
         final double xoff;
         final double yoff;
+        double[] rr3 = r3 == null ? null : Matrices.mvMult( rotmat, r3 );
         Point2D.Double dpos = new Point2D.Double();
-        if ( r3 != null &&
-             project( r3[ 0 ], r3[ 1 ], r3[ 2 ], dpos ) ) {
+        if ( rr3 != null &&
+             project( rr3[ 0 ], rr3[ 1 ], rr3[ 2 ], dpos ) ) {
             zoom = Math.PI / radiusRad;
-            xoff = dpos.x * zoom;
-            yoff = dpos.y * zoom;
+            xoff = -dpos.x * zoom;
+            yoff =  dpos.y * zoom;
         }
         else {
             zoom = 1;
             xoff = 0;
             yoff = 0;
         }
-        double[] rotmat = getFixedRotation( reflect );
         return new SkyAspect( rotmat, zoom, xoff, yoff );
     }
 

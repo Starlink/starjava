@@ -13085,6 +13085,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         that could evaluate the row index
         (<ref id="jel-special"><code>$index/$0</code></ref>)
         incorrectly during parallel processing.</li>
+    <li>Fix <code>plot2sky</code> bug that got
+        <code>clon</code>/<code>clat</code> positioning wrong
+        for some projections such as <code>CAR0</code>.</li>
     </ul>
     </p></dd>
 

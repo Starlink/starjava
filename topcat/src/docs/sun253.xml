@@ -29269,6 +29269,10 @@ introduced since the last version:
     <li>JDBC output no longer attempts to create VARCHAR(0) columns.</li>
     <li>Add new function <code>sequence</code> to class
         <ref id="Arrays">Arrays</ref>.</li>
+    <li>Fix bug in <label>FOV</label> tab of
+        <ref id="SkyAxisControl">sky plot axes control</ref>
+        that could point to the wrong position for some projections
+        such as <code>CAR0</code>.</li>
     </ul>
     </p></dd>
 
