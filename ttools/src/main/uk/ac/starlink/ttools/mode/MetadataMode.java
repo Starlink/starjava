@@ -88,7 +88,7 @@ public class MetadataMode implements ProcessingMode {
             out.print( scol + ": " );
             ColumnInfo cinfo = cinfos[ icol ];
             String text = cinfo.toString();
-            String desc = cinfo.getDescription();
+            String desc = Tables.collapseWhitespace( cinfo.getDescription() );
             if ( desc != null ) {
                text = text + " - " + desc;
             }

@@ -13095,6 +13095,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         In the same way as <code>car</code>/<code>car0</code>,
         this gives an Aitoff projection but with the longitude=0
         line at the left/right edge instead of the center.</li>
+    <li>Collapse whitespace in some table metadata description items
+        in <code>meta</code> filter and output mode output.
+        This prevents unwanted linebreaks as well as tidying
+        whitespace-formatted values.</li>
     </ul>
     </p></dd>
 

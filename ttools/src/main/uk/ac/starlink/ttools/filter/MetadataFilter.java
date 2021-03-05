@@ -192,7 +192,8 @@ public class MetadataFilter extends BasicFilter {
             if ( elsize >= 0 ) {
                 map.put( ELSIZE_INFO, info.getElementSize() );
             }
-            map.put( DESCRIPTION_INFO, info.getDescription() );
+            map.put( DESCRIPTION_INFO,
+                     Tables.collapseWhitespace( info.getDescription() ) );
             map.put( UCD_INFO, info.getUCD() );
             map.put( UTYPE_INFO, info.getUtype() );
             map.put( XTYPE_INFO, info.getXtype() );
