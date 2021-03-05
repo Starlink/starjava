@@ -29279,6 +29279,8 @@ introduced since the last version:
         In the same way as <label>Car</label>/<label>Car0</label>,
         this gives an Aitoff projection but with the longitude=0
         line at the left/right edge instead of the center.</li> 
+    <li>Collapse whitespace in some metadata display items,
+        such as column/parameter Description entries.</li>
     </ul>
     </p></dd>
 

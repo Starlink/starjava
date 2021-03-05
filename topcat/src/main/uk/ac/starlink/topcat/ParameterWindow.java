@@ -28,6 +28,7 @@ import javax.swing.table.TableModel;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarJTable;
@@ -171,7 +172,8 @@ public class ParameterWindow extends AuxWindow
         /* Add value column. */
         metas.add( new MetaColumn( VALUE_NAME, Object.class ) {
             public Object getValue( int irow ) {
-                return getParam( irow ).getValueAsString( 64 );
+                return Tables.collapseWhitespace( getParam( irow )
+                                                 .getValueAsString( 64 ) );
             }
             public boolean isEditable( int irow ) {
                 if ( isEditableParameter( irow ) ) {
@@ -294,7 +296,8 @@ public class ParameterWindow extends AuxWindow
         /* Add description column. */
         metas.add( new MetaColumn( DESC_NAME, String.class ) {
             public Object getValue( int irow ) {
-                return getParamInfo( irow ).getDescription();
+                return Tables.collapseWhitespace( getParamInfo( irow )
+                                                 .getDescription() );
             }
             public boolean isEditable( int irow ) {
                 return ! isPseudoParameter( irow ) &&

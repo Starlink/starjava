@@ -37,6 +37,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.DomainMapper;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.NumericCellRenderer;
@@ -332,7 +333,8 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Add description column. */
         metas.add( new MetaColumn( "Description", String.class ) {
             public Object getValue( int irow ) {
-                return getColumnInfo( irow ).getDescription();
+                return Tables.collapseWhitespace( getColumnInfo( irow )
+                                                 .getDescription() );
             }
             public boolean isEditable( int irow ) {
                 return irow > 0;
