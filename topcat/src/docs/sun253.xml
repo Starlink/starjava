@@ -13352,7 +13352,7 @@ tab of the <ref id="SkyAxisControl">Axes control</ref>.
     if the mouse starts on the sphere and ends up off it the navigation
     will be jerky.
     </p>
-    <p>The Aitoff and Plate Car&#x00e9;e projections act like a piece of
+    <p>The Aitoff and Plate Carr&#x00e9;e projections act like a piece of
     paper that can be dragged around in two dimensions in the usual way.
     </p></dd>
 <dt>&GESTURE.WHEEL;</dt>
@@ -13408,11 +13408,12 @@ coordinates are projected onto the screen.
 <dl>
 <dt>Projection</dt>
 <dd><p>Selects the sky projection to use.
-    The options are <label>Sin</label>, <label>Ait</label> for Aitoff and
-    <label>Car</label> or <label>Car0</label> for Plate Car&#x00e9;e.
+    The options are <label>Sin</label>;
+    <label>Aitoff</label> or <label>Aitoff0</label> for Aitoff; and
+    <label>Car</label> or <label>Car0</label> for Plate Carr&#x00e9;e.
     Sin is rotatable, the other two are essentially flat all-sky projections.
-    Car has longitude=0 at the center of the plot, and Car0 has it
-    at the left/right edge.
+    Car and Aitoff have longitude=0 at the center of the plot, while
+    Car0 and Aitoff0 have it at the left/right edge.
     </p></dd>
 <dt>Reflect longitude axis</dt>
 <dd><p>Determines whether longitude increases left to right or right to left.
@@ -29272,7 +29273,12 @@ introduced since the last version:
     <li>Fix bug in <label>FOV</label> tab of
         <ref id="SkyAxisControl">sky plot axes control</ref>
         that could point to the wrong position for some projections
-        such as <code>CAR0</code>.</li>
+        such as <label>Car0</label>.</li>
+    <li>Introduce the <label>Aitoff0</label> projection alongside
+        <label>Aitoff</label> in sky plots.
+        In the same way as <label>Car</label>/<label>Car0</label>,
+        this gives an Aitoff projection but with the longitude=0
+        line at the left/right edge instead of the center.</li> 
     </ul>
     </p></dd>
 

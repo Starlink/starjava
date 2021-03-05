@@ -13088,6 +13088,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix <code>plot2sky</code> bug that got
         <code>clon</code>/<code>clat</code> positioning wrong
         for some projections such as <code>CAR0</code>.</li>
+    <li>Introduce the <code>aitoff0</code> option alongside
+        <code>aitoff</code> as a value for the
+        <ref id="plot2sky"><code>plot2sky</code></ref>
+        <code>projection</code> parameter.
+        In the same way as <code>car</code>/<code>car0</code>,
+        this gives an Aitoff projection but with the longitude=0
+        line at the left/right edge instead of the center.</li>
     </ul>
     </p></dd>
 

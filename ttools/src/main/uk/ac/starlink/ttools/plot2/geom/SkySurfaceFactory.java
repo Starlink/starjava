@@ -402,6 +402,7 @@ public class SkySurfaceFactory
             // new HemisphereProjection(),  // toy projection, inferior to Sin
             SinProjection.INSTANCE,
             FixedSkyviewProjection.AIT,
+            FixedSkyviewProjection.AIT0,
             FixedSkyviewProjection.CAR1,
             FixedSkyviewProjection.CAR0,
         };
