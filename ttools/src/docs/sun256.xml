@@ -13099,6 +13099,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in <code>meta</code> filter and output mode output.
         This prevents unwanted linebreaks as well as tidying
         whitespace-formatted values.</li>
+    <li>Add configuration option <code>header</code> for
+        <ref id="inCsv">CSV input handler</ref>,
+        to indicate whether header line is present.</li>
     </ul>
     </p></dd>
 

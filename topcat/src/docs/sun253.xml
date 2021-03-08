@@ -29281,6 +29281,9 @@ introduced since the last version:
         line at the left/right edge instead of the center.</li> 
     <li>Collapse whitespace in some metadata display items,
         such as column/parameter Description entries.</li>
+    <li>Add configuration option <code>header</code> for
+        <ref id="inCsv">CSV input handler</ref>,
+        to indicate whether header line is present.</li>
     </ul>
     </p></dd>
 

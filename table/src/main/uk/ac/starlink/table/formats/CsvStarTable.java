@@ -39,11 +39,30 @@ import uk.ac.starlink.util.DataSource;
  */
 public class CsvStarTable extends StreamStarTable {
 
+    private final Boolean fixHasHeaderLine_;
     private boolean hasHeading_;
 
+    /**
+     * Constructor with default options.
+     *
+     * @param  datsrc   data source
+     */
     public CsvStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
+        this( datsrc, null );
+    }
+
+    /**
+     * Constructor with configuration option.
+     *
+     * @param  datsrc   data source
+     * @param  fixHasHeaderLine  indicates whether initial line is known
+     *                           to be column names: yes, no or auto-determine
+     */
+    public CsvStarTable( DataSource datsrc, Boolean fixHasHeaderLine )
+            throws TableFormatException, IOException {
         super();
+        fixHasHeaderLine_ = fixHasHeaderLine;
         init( datsrc );
     }
 
@@ -98,14 +117,21 @@ public class CsvStarTable extends StreamStarTable {
 
         /* Now return to the first row.  See if it's a data row. */
         if ( row0.length == ncol ) {
-            boolean isDataRow = true;
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                String cell = row0[ icol ];
-                if ( cell != null && cell.length() > 0 ) {
-                    isDataRow = isDataRow
-                             && decoders[ icol ].isValid( cell );
+            boolean isDataRow;
+            if ( fixHasHeaderLine_ == null ) {
+                isDataRow = true;
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    String cell = row0[ icol ];
+                    if ( cell != null && cell.length() > 0 ) {
+                        isDataRow = isDataRow
+                                 && decoders[ icol ].isValid( cell );
+                    }
                 }
             }
+            else {
+                isDataRow = ! fixHasHeaderLine_.booleanValue();
+            }
+            hasHeading_ = ! isDataRow;
 
             /* If it is a data row, present it to the row evaluator like
              * the other rows, and return the metadata thus constructed. */
@@ -118,7 +144,6 @@ public class CsvStarTable extends StreamStarTable {
              * construct and return a suitable metadata item. */
             else {
                 assert ! isDataRow;
-                hasHeading_ = true;
                 ColumnInfo[] colinfos = meta.colInfos_;
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     String h = row0[ icol ];
