@@ -78,11 +78,12 @@ import uk.ac.starlink.util.DataSource;
  */
 public class AsciiStarTable extends StreamStarTable {
 
+    private final int maxSample_;
     private List<String> comments_;
     private boolean dataStarted_;
 
     /**
-     * Constructs a new AsciiStarTable from a datasource.
+     * Constructor with default options.
      *
      * @param  datsrc  the data source containing the table text
      * @throws TableFormatException  if the input stream doesn't appear to
@@ -91,7 +92,23 @@ public class AsciiStarTable extends StreamStarTable {
      */
     public AsciiStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
+        this( datsrc, 0 );
+    }
+
+    /**
+     * Constructor with configuration option.
+     *
+     * @param  datsrc  the data source containing the table text
+     * @param  maxSample  maximum number of rows sampled to determine
+     *                    column data types; if &lt;=0, all rows are sampled
+     * @throws TableFormatException  if the input stream doesn't appear to
+     *         form a ASCII-format table
+     * @throws IOException if some I/O error occurs
+     */
+    public AsciiStarTable( DataSource datsrc, int maxSample )
+            throws TableFormatException, IOException {
         super();
+        maxSample_ = maxSample;
         init( datsrc );
     }
 
@@ -107,7 +124,9 @@ public class AsciiStarTable extends StreamStarTable {
         comments_ = new ArrayList<String>();
         long lrow = 0;
         try {
-            for ( List<String> row; ( row = readRow( in ) ) != null; ) {
+            for ( List<String> row;
+                  ( ( row = readRow( in ) ) != null &&
+                    ( maxSample_ <= 0 || lrow < maxSample_ ) ); ) {
                 lrow++;
                 evaluator.submitRow( row );
             }
@@ -121,6 +140,7 @@ public class AsciiStarTable extends StreamStarTable {
                 in.close();
             }
         }
+        boolean isSampleLimited = maxSample_ > 0 && lrow >= maxSample_;
 
         /* Get and check the metadata. */
         RowEvaluator.Metadata meta = evaluator.getMetadata();
@@ -132,7 +152,8 @@ public class AsciiStarTable extends StreamStarTable {
         interpretComments( meta.colInfos_ );
         comments_ = null;
 
-        return meta;
+        return new RowEvaluator.Metadata( meta.colInfos_, meta.decoders_,
+                                          isSampleLimited ? -1 : meta.nrow_ );
     }
 
     /**

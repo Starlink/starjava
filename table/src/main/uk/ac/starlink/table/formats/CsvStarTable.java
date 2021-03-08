@@ -40,6 +40,7 @@ import uk.ac.starlink.util.DataSource;
 public class CsvStarTable extends StreamStarTable {
 
     private final Boolean fixHasHeaderLine_;
+    private final int maxSample_;
     private boolean hasHeading_;
 
     /**
@@ -49,7 +50,7 @@ public class CsvStarTable extends StreamStarTable {
      */
     public CsvStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
-        this( datsrc, null );
+        this( datsrc, null, 0 );
     }
 
     /**
@@ -58,11 +59,15 @@ public class CsvStarTable extends StreamStarTable {
      * @param  datsrc   data source
      * @param  fixHasHeaderLine  indicates whether initial line is known
      *                           to be column names: yes, no or auto-determine
+     * @param  maxSample  maximum number of rows sampled to determine
+     *                    column data types; if &lt;=0, all rows are sampled
      */
-    public CsvStarTable( DataSource datsrc, Boolean fixHasHeaderLine )
+    public CsvStarTable( DataSource datsrc, Boolean fixHasHeaderLine,
+                         int maxSample )
             throws TableFormatException, IOException {
         super();
         fixHasHeaderLine_ = fixHasHeaderLine;
+        maxSample_ = maxSample;
         init( datsrc );
     }
 
@@ -92,7 +97,9 @@ public class CsvStarTable extends StreamStarTable {
          * look like. */
         RowEvaluator evaluator = new RowEvaluator();
         try {
-            for ( List<String> row; ( row = readRow( in ) ) != null; ) {
+            for ( List<String> row;
+                  ( ( row = readRow( in ) ) != null &&
+                    ( maxSample_ <= 0 || lrow < maxSample_ ) ); )  {
                 evaluator.submitRow( row );
                 lrow++;
             }
@@ -106,6 +113,7 @@ public class CsvStarTable extends StreamStarTable {
                 in.close();
             }
         }
+        boolean isSampleLimited = maxSample_ > 0 && lrow >= maxSample_;
 
         /* Get a first look at the metadata (may be adjusted later). */
         RowEvaluator.Metadata meta = evaluator.getMetadata();
@@ -137,7 +145,9 @@ public class CsvStarTable extends StreamStarTable {
              * the other rows, and return the metadata thus constructed. */
             if ( isDataRow ) {
                 evaluator.submitRow( Arrays.asList( row0 ) );
-                return evaluator.getMetadata();
+                RowEvaluator.Metadata meta1 = evaluator.getMetadata();
+                return new RowEvaluator
+                          .Metadata( meta1.colInfos_, meta1.decoders_, -1 );
             }
 
             /* If it's a headings row, get column names from it, and
@@ -151,8 +161,9 @@ public class CsvStarTable extends StreamStarTable {
                         colinfos[ icol ].setName( h );
                     }
                 }
-                return new RowEvaluator.Metadata( colinfos, decoders,
-                                                  meta.nrow_ );
+                return new RowEvaluator
+                          .Metadata( colinfos, decoders,
+                                     isSampleLimited ? -1 : meta.nrow_ );
             }
         }
 
@@ -160,7 +171,9 @@ public class CsvStarTable extends StreamStarTable {
          * (some sort of comment?) and use the metadata we've got. */
         else {
             hasHeading_ = true;
-            return meta;
+            return new RowEvaluator
+                      .Metadata( meta.colInfos_, meta.decoders_,
+                                 isSampleLimited ? -1 : meta.nrow_ );
         }
     }
 

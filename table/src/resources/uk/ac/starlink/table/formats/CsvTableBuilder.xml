@@ -30,7 +30,8 @@ Note that you can <em>not</em> use a "<code>#</code>" character
 <p>Because the CSV format contains no metadata beyond column names,
 the handler is forced to guess the datatype of the values in each column.
 It does this by reading the whole file through once and guessing
-on the basis of what it has seen.  This has the disadvantages:
+on the basis of what it has seen (though see the <code>maxSample</code>
+configuration option).  This has the disadvantages:
 <ul>
 <li>Sometimes it guesses a different type than what you want
     (e.g. 32-bit integer rather than 64-bit integer)</li>

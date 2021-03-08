@@ -29284,6 +29284,9 @@ introduced since the last version:
     <li>Add configuration option <code>header</code> for
         <ref id="inCsv">CSV input handler</ref>,
         to indicate whether header line is present.</li>
+    <li>Add configuration option <code>maxSample</code> for
+        <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref>
+        input handlers to reduce 2-pass read time.</li>
     </ul>
     </p></dd>
 

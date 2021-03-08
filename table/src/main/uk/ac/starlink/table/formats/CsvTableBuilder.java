@@ -21,6 +21,7 @@ import uk.ac.starlink.util.DataSource;
 public class CsvTableBuilder extends DocumentedTableBuilder {
 
     private Boolean hasHeader_;
+    private int maxSample_;
 
     public CsvTableBuilder() {
         super( new String[] { "csv" } );
@@ -37,7 +38,7 @@ public class CsvTableBuilder extends DocumentedTableBuilder {
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy policy )
             throws TableFormatException, IOException {
-        return new CsvStarTable( datsrc, hasHeader_ );
+        return new CsvStarTable( datsrc, hasHeader_, maxSample_ );
     }
 
     public void streamStarTable( InputStream in, TableSink sink, String pos )
@@ -89,5 +90,36 @@ public class CsvTableBuilder extends DocumentedTableBuilder {
     )
     public void setHasHeader( Boolean hasHeader ) {
         hasHeader_ = hasHeader;
+    }
+
+    /**
+     * Sets the maximum number of rows that will be sampled to determine
+     * column data types.
+     *
+     * @param   maxSample  maximum number of rows sampled;
+     *                     if &lt;=0, all rows are sampled
+     */
+    @ConfigMethod(
+        property = "maxSample",
+        doc = "<p>Controls how many rows of the input file are sampled\n"
+            + "to determine column datatypes.\n"
+            + "When reading CSV files, since no type information is present\n"
+            + "in the input file, the handler has to look at the column data\n"
+            + "to see what type of value appears to be present\n"
+            + "in each column, before even starting to read the data in.\n"
+            + "By default it goes through the whole table when doing this,\n"
+            + "which can be time-consuming for large tables.\n"
+            + "If this value is set, it limits the number of rows\n"
+            + "that are sampled in this data characterisation pass,\n"
+            + "which can reduce read time substantially.\n"
+            + "However, if values near the end of the table differ\n"
+            + "in apparent type from those near the start,\n"
+            + "it can also result in getting the datatypes wrong.\n"
+            + "</p>",
+        usage = "<int>",
+        example = "100000"
+    )
+    public void setMaxSample( int maxSample ) {
+        maxSample_ = maxSample;
     }
 }
