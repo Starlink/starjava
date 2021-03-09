@@ -23,6 +23,7 @@ public class TableMeta {
     String title_;
     String description_;
     String utype_;
+    String nrows_;
     Map<String,Object> extras_;
     private ColumnMeta[] columns_;
     private ForeignMeta[] foreignKeys_;
@@ -76,6 +77,15 @@ public class TableMeta {
      */
     public String getDescription() {
         return description_;
+    }
+
+    /**
+     * Returns the (approximate?) row count declared for this table.
+     *
+     * @return  string indicating row count; may or may not be strictly numeric
+     */
+    public String getNrows() {
+        return nrows_;
     }
 
     /**

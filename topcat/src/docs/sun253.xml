@@ -20568,6 +20568,8 @@ The tabs are as follows:
     </p></dd>
 <dt>Table</dt>
 <dd><p>Provides a textual description of the currently selected table (if any).
+    Some additional information like the number of columns, rows and
+    foreign keys may also be displayed if available.
     </p></dd>
 <dt>Columns</dt>
 <dd><p>Tabulates a list of all the columns in the currently selected table;
@@ -29287,6 +29289,11 @@ introduced since the last version:
     <li>Add configuration option <code>maxSample</code> for
         <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref>
         input handlers to reduce 2-pass read time.</li>
+    <li>The <label>Table</label> tab in the
+        <ref id="TapTableLoadDialog_query">TAP window</ref>
+        now reports approximate row count if provided by
+        VODataService 1.2 <code>nrows</code> element
+        (TableSet-VOSI metadata acquisition mode only).</li>
     </ul>
     </p></dd>
 

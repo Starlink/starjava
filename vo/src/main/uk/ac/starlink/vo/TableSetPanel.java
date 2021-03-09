@@ -1535,6 +1535,7 @@ public class TableSetPanel extends JPanel {
     private static class TableMetaPanel extends MetaPanel {
         private final JTextComponent nameField_;
         private final JTextComponent ncolField_;
+        private final JTextComponent nrowField_;
         private final JTextComponent nfkField_;
         private final JTextComponent descripField_;
         private final JTextComponent tableExtrasField_;
@@ -1547,6 +1548,7 @@ public class TableSetPanel extends JPanel {
         TableMetaPanel() {
             nameField_ = addLineField( "Name" );
             ncolField_ = addLineField( "Columns" );
+            nrowField_ = addLineField( "Rows (approx)" );
             nfkField_ = addLineField( "Foreign Keys" );
             descripField_ = addMultiLineField( "Description" );
             tableExtrasField_ = addHtmlField( "Non-Standard Table Metadata" );
@@ -1565,6 +1567,8 @@ public class TableSetPanel extends JPanel {
                               table == null ? null : table.getName() );
                 setFieldText( descripField_,
                               table == null ? null : table.getDescription() );
+                setFieldText( nrowField_,
+                              table == null ? null : table.getNrows() );
                 setFieldText( tableExtrasField_,
                               table == null ? null
                                             : mapToHtml( table.getExtras() ) );

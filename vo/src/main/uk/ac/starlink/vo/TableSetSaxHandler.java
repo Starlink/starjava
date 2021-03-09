@@ -275,6 +275,9 @@ public class TableSetSaxHandler extends DefaultHandler {
             else if ( "utype".equals( tname ) ) {
                 table_.utype_ = txt;
             }
+            else if ( "nrows".equals( tname ) ) {
+                table_.nrows_ = txt;
+            }
         }
         else if ( schema_ != null ) {
             if ( "name".equals( tname ) ) {
