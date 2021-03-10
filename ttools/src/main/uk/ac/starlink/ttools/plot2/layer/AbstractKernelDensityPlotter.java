@@ -119,7 +119,7 @@ public abstract class AbstractKernelDensityPlotter
         Color color = StyleKeys.getAlphaColor( config, StyleKeys.COLOR,
                                                StyleKeys.TRANSPARENCY );
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
-        boolean isCumulative = config.get( StyleKeys.CUMULATIVE );
+        Cumulation cumulative = config.get( StyleKeys.CUMULATIVE );
         Normalisation norm = config.get( NORMALISE_KEY );
         FillMode fill = config.get( StyleKeys.FILL );
         Combiner combiner = config.get( getCombinerKey() );
@@ -131,7 +131,7 @@ public abstract class AbstractKernelDensityPlotter
                                          BasicStroke.JOIN_ROUND )
                       : null;
         return new KDenseStyle( color, fill, stroke, kernelShape, kernelFigure,
-                                combiner, unit, isCumulative, norm );
+                                combiner, unit, cumulative, norm );
     }
 
     protected LayerOpt getLayerOpt( KDenseStyle style ) {
@@ -388,7 +388,7 @@ public abstract class AbstractKernelDensityPlotter
                                          Kernel1d kernel, KDenseStyle style ) {
         return getDataBins( binArray, xAxis, kernel, style.norm_,
                             style.combiner_.getType(), style.unit_,
-                            style.isCumulative() );
+                            style.getCumulative() );
     }
 
     /**
@@ -402,7 +402,7 @@ public abstract class AbstractKernelDensityPlotter
         private final KernelFigure kernelFigure_;
         private final Combiner combiner_;
         private final Unit unit_;
-        private final boolean isCumulative_;
+        private final Cumulation cumulative_;
         private final Normalisation norm_;
         private static final int[] ICON_DATA = { 4, 6, 8, 9, 9, 7, 5, 3, };
 
@@ -416,14 +416,14 @@ public abstract class AbstractKernelDensityPlotter
          * @param  kernelFigure  kernel configuration
          * @param  combiner   bin aggregation mode
          * @param  unit    axis unit scaling
-         * @param  isCumulative  are bins painted cumulatively
+         * @param  cumulative  are bins painted cumulatively
          * @param  norm   normalisation mode
          */
         public KDenseStyle( Color color, FillMode fill, Stroke stroke,
                             Kernel1dShape kernelShape,
                             KernelFigure kernelFigure,
                             Combiner combiner, Unit unit,
-                            boolean isCumulative, Normalisation norm ) {
+                            Cumulation cumulative, Normalisation norm ) {
             color_ = color;
             fill_ = fill;
             stroke_ = stroke;
@@ -431,17 +431,17 @@ public abstract class AbstractKernelDensityPlotter
             kernelFigure_ = kernelFigure;
             combiner_ = combiner;
             unit_ = unit;
-            isCumulative_ = isCumulative;
+            cumulative_ = cumulative;
             norm_ = norm;
         }
 
         /**
-         * Returns cumulative flag.
+         * Returns cumulative mode.
          *
-         * @return  true iff counts are cumulative
+         * @return  cumulative counting mode
          */
-        public boolean isCumulative() {
-            return isCumulative_;
+        public Cumulation getCumulative() {
+            return cumulative_;
         }
 
         /**
@@ -478,7 +478,7 @@ public abstract class AbstractKernelDensityPlotter
             code = 23 * code + kernelFigure_.hashCode();
             code = 23 * code + combiner_.hashCode();
             code = 23 * code + unit_.hashCode();
-            code = 23 * code + ( isCumulative_ ? 11 : 13 );
+            code = 23 * code + cumulative_.hashCode();
             code = 23 * code + PlotUtil.hashCode( norm_ );
             return code;
         }
@@ -494,7 +494,7 @@ public abstract class AbstractKernelDensityPlotter
                     && this.kernelFigure_.equals( other.kernelFigure_ )
                     && this.combiner_.equals( other.combiner_ )
                     && this.unit_.equals( other.unit_ )
-                    && this.isCumulative_ == other.isCumulative_
+                    && this.cumulative_ == other.cumulative_
                     && PlotUtil.equals( this.norm_, other.norm_ );
             }
             else {

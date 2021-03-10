@@ -13105,6 +13105,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add configuration option <code>maxSample</code> for
         <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref>
         input handlers to reduce 2-pass read time.</li>
+    <li>The <code>cumulative</code> option in
+        <ref id="layer-histogram">histogram</ref>-like plots
+        can now take the values
+        <code>none</code>/<code>forward</code>/<code>reverse</code>,
+        not just <code>true</code>/<code>false</code>.</li>
     </ul>
     </p></dd>
 

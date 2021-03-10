@@ -28,6 +28,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.AbstractKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
+import uk.ac.starlink.ttools.plot2.layer.Cumulation;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.Pixel1dPlotter;
@@ -178,12 +179,12 @@ public class HistogramAxisController
                 return true;
             }
             else {
-                if ( state0.isCumulative_ != state1.isCumulative_ ||
+                if ( state0.cumulative_ != state1.cumulative_ ||
                      state0.norm_ != state1.norm_ ) {
                     return true;
                 }
                 else if ( ! PlotUtil.equals( state0.sizer_, state1.sizer_ ) &&
-                          ! state0.isCumulative_ ) {
+                          ! state0.cumulative_.isCumulative() ) {
                     return true;
                 }
                 else {
@@ -280,12 +281,12 @@ public class HistogramAxisController
          * subsequent changes to the GUI could invalidate those assertions
          * in which case we have to rethink the role of the bar state. */
         BinSizer sizer = null;
-        Boolean cumul = null;
+        Cumulation cumul = null;
         Normalisation norm = null;
         boolean hasBars = false;
         for ( PlotLayer layer : layers ) {
             BinSizer sizer1 = null;
-            Boolean cumul1 = null;
+            Cumulation cumul1 = null;
             Normalisation norm1 = null;
             Style style = layer.getStyle();
             final boolean layerHasBars;
@@ -294,7 +295,7 @@ public class HistogramAxisController
                 HistogramPlotter.HistoStyle hstyle =
                     (HistogramPlotter.HistoStyle) style;
                 sizer1 = hstyle.getBinSizer();
-                cumul1 = hstyle.isCumulative();
+                cumul1 = hstyle.getCumulative();
                 norm1 = hstyle.getNormalisation();
             }
             else if ( style instanceof
@@ -302,7 +303,7 @@ public class HistogramAxisController
                 layerHasBars = true;
                 AbstractKernelDensityPlotter.KDenseStyle dstyle =
                     (AbstractKernelDensityPlotter.KDenseStyle) style;
-                cumul1 = dstyle.isCumulative();
+                cumul1 = dstyle.getCumulative();
                 norm1 = dstyle.getNormalisation();
             }
             else {
@@ -381,11 +382,11 @@ public class HistogramAxisController
      */
     private static class BarState {
         final BinSizer sizer_;
-        final boolean isCumulative_;
+        final Cumulation cumulative_;
         final Normalisation norm_;
-        BarState( BinSizer sizer, boolean isCumulative, Normalisation norm ) {
+        BarState( BinSizer sizer, Cumulation cumulative, Normalisation norm ) {
             sizer_ = sizer;
-            isCumulative_ = isCumulative;
+            cumulative_ = cumulative;
             norm_ = norm;
         }
     }

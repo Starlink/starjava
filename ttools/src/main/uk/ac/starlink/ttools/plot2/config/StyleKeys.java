@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.Cumulation;
 import uk.ac.starlink.ttools.plot2.layer.FatMarkShapes;
 import uk.ac.starlink.ttools.plot2.layer.FillMode;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
@@ -245,22 +246,34 @@ public class StyleKeys {
          }.setOptionUsage()
           .addOptionsXml();
 
-    /** Config key for cumulative histogram flag. */
-    public static final ConfigKey<Boolean> CUMULATIVE =
-        new BooleanConfigKey(
+    /** Config key for cumulative histogram mode. */
+    public static final ConfigKey<Cumulation> CUMULATIVE =
+        new OptionConfigKey<Cumulation>(
             new ConfigMeta( "cumulative", "Cumulative" )
-           .setShortDescription( "Cumulative histogram?" )
+           .setShortDescription( "Cumulative histogram mode" )
            .setXmlDescription( new String[] {
-                "<p>If true, the histogram bars plotted are calculated",
+                "<p>If set to",
+                "<code>" + Cumulation.FORWARD.toString().toLowerCase()
+                         + "</code>/<code>"
+                         + Cumulation.REVERSE.toString().toLowerCase()
+                         + "</code>",
+                "the histogram bars plotted are calculated",
                 "cumulatively;",
-                "each bin includes the counts from all previous bins.",
+                "each bin includes the counts from all previous bins",
+                "working up/down the independent axis.",
                 "</p>",
-                "<p>Note that setting cumulative true may not make much sense",
+                "<p>Note that setting cumulative plotting",
+                "may not make much sense",
                 "with some other parameter values,",
                 "for instance averaging aggregation modes.",
                 "</p>",
-            } )
-        );
+            } ),
+            Cumulation.class, Cumulation.values(), Cumulation.NONE, true ) {
+            public String getXmlDescription( Cumulation cumul ) {
+                return cumul.getTextDescription();
+            }
+        }.setOptionUsage()
+         .addOptionsXml();
 
     /** Config key for histogram normalisation mode on generic axis. */
     public static final ConfigKey<Normalisation> NORMALISE =

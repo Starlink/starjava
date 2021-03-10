@@ -83,12 +83,12 @@ public class BinBag {
     /**
      * Returns a sorted iterator over all bins with non-zero values.
      *
-     * @param   cumulative  true for bins of a cumulative histogram
+     * @param   cumul  flag for bins of a cumulative histogram
      * @param   norm  normalisation mode
      * @param   unit  axis unit scaling
      * @return  sorted iterator over bins
      */
-    public Iterator<Bin> binIterator( boolean cumulative, Normalisation norm,
+    public Iterator<Bin> binIterator( Cumulation cumul, Normalisation norm,
                                       Unit unit ) {
 
         /* Avoid some edge cases by returning an empty iterator immediately
@@ -120,8 +120,9 @@ public class BinBag {
         double total = 0;
         double max = 0;
         for ( int ib = 0; ib < nbin; ib++ ) {
-            double value = valueMap_.get( binIndices[ ib ] ).getCombinedValue();
-            binValues[ ib ] = cumulative ? total + value : value;
+            int jb = cumul.isReverse() ? nbin - ib - 1 : ib;
+            double value = valueMap_.get( binIndices[ jb ] ).getCombinedValue();
+            binValues[ jb ] = cumul.isCumulative() ? total + value : value;
             total += value;
             max = Math.max( max, Math.abs( value ) );
         }
@@ -130,7 +131,7 @@ public class BinBag {
         double bw = log_ ? BinMapper.log( binWidth_ )
                          : binWidth_ / unit.getExtent();
         double scale = norm.getScaleFactor( total, max, bw, combiner_.getType(),
-                                            cumulative );
+                                            cumul.isCumulative() );
         if ( scale != 1.0 ) {
             for ( int ib = 0; ib < nbin; ib++ ) {
                 binValues[ ib ] *= scale;
@@ -141,7 +142,7 @@ public class BinBag {
          * into them, and hence did not appear in the bin map,
          * will (probably) have non-zero values that must be returned.
          * Step up from the lowest to highest known bin value in steps of 1. */
-        if ( cumulative ) {
+        if ( cumul.isCumulative() ) {
             return new Iterator<Bin>() {
                 int ib = 0;
                 int index = binIndices[ 0 ];

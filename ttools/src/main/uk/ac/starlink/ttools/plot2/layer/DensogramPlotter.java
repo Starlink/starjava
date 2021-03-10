@@ -129,7 +129,7 @@ public class DensogramPlotter
         BinSizer sizer = config.get( SMOOTHSIZER_KEY );
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
         Combiner combiner = Combiner.SUM;
-        boolean cumul = config.get( StyleKeys.CUMULATIVE );
+        Cumulation cumul = config.get( StyleKeys.CUMULATIVE );
         int extent = config.get( EXTENT_KEY );
         double position = config.get( POSITION_KEY );
         return new DensoStyle( baseColor, ramp.getShader(), ramp.getScaling(),
@@ -247,7 +247,7 @@ public class DensogramPlotter
         final Kernel1dShape kernelShape_;
         final Combiner combiner_;
         final BinSizer sizer_;
-        final boolean cumul_;
+        final Cumulation cumul_;
         final int extent_;
         final double position_;
 
@@ -267,7 +267,7 @@ public class DensogramPlotter
          */
         public DensoStyle( Color baseColor, Shader shader, Scaling scaling,
                            Subrange dataclip, Kernel1dShape kernelShape,
-                           Combiner combiner, BinSizer sizer, boolean cumul,
+                           Combiner combiner, BinSizer sizer, Cumulation cumul,
                            int extent, double position ) {
             baseColor_ = baseColor;
             shader_ = shader;
@@ -295,7 +295,7 @@ public class DensogramPlotter
             code = 23 * code + kernelShape_.hashCode();
             code = 23 * code + combiner_.hashCode();
             code = 23 * code + sizer_.hashCode();
-            code = 23 * code + ( cumul_ ? 13 : 17 );
+            code = 23 * code + cumul_.hashCode();
             code = 23 * code + extent_;
             code = 23 * code + Float.floatToIntBits( (float) position_ );
             return code;

@@ -426,13 +426,13 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      * @param   norm   normalisation mode
      * @param   ctype  combiner type used to populate bins
      * @param   unit    unit for scaling X axis bin width
-     * @param   cumul   true for cumulative representation
+     * @param   cumul   cumulative representation
      * @return  output data bin values
      */
     public static double[] getDataBins( BinArray binArray, Axis xAxis,
                                         Kernel1d kernel, Normalisation norm,
                                         Combiner.Type ctype, Unit unit,
-                                        boolean cumul ) {
+                                        Cumulation cumul ) {
         double[] bins = binArray.getBins();
         int nb = bins.length;
 
@@ -442,7 +442,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         }
 
         /* Work out the maximum bin height, which may be required for
-         * normalisation (Normalisation.MAXIMUM mode, cumul=false only).
+         * normalisation (Normalisation.MAXIMUM mode, non-cumulative only).
          * This procedure is flawed, since it will fail to pick up
          * maximum bar heights outside of the range covered by the bins array.
          * It probably should do that, but it would require the BinArray
@@ -464,8 +464,8 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
          * combiners like MEAN. */
         double total = binArray.loBin_ + binArray.midBin_ + binArray.hiBin_;
         double binWidth = getPixelDataWidth( xAxis, unit );
-        double scale =
-            norm.getScaleFactor( total, max, binWidth, ctype, cumul );
+        double scale = norm.getScaleFactor( total, max, binWidth, ctype,
+                                            cumul.isCumulative() );
         if ( scale != 1.0 ) {
             double[] nbins = new double[ nb ];
             for ( int ib = 0; ib < nb; ib++ ) {
@@ -476,10 +476,11 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
 
         /* Cumulate.  This probably doesn't make much sense for intensive
          * combiners like MEAN. */
-        if ( cumul ) {
+        if ( cumul.isCumulative() ) {
             double[] dlimits = xAxis.getDataLimits();
-            boolean xflip = xAxis.dataToGraphics( dlimits[ 0 ] )
-                          > xAxis.dataToGraphics( dlimits[ 1 ] );
+            boolean xflip = ( xAxis.dataToGraphics( dlimits[ 0 ] )
+                            > xAxis.dataToGraphics( dlimits[ 1 ] ) )
+                          ^ cumul.isReverse();
             double[] cbins = new double[ nb ];
             double sum = scale * ( xflip ? binArray.hiBin_ : binArray.loBin_ );
             for ( int ib = 0; ib < nb; ib++ ) {

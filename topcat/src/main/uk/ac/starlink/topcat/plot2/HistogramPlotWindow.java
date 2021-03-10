@@ -47,6 +47,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.AbstractKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.BinBag;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
+import uk.ac.starlink.ttools.plot2.layer.Cumulation;
 import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FixedKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
@@ -254,7 +255,7 @@ public class HistogramPlotWindow
             HistogramPlotter.HistoStyle style =
                 (HistogramPlotter.HistoStyle) layer.getStyle();
             GuiDataSpec dataSpec = (GuiDataSpec) layer.getDataSpec();
-            boolean isCumulative = style.isCumulative();
+            Cumulation cumul = style.getCumulative();
             Normalisation norm = style.getNormalisation();
             Combiner combiner = style.getCombiner();
             int icWeight = plotter.getWeightCoordIndex();
@@ -294,7 +295,10 @@ public class HistogramPlotWindow
             if ( norm != Normalisation.NONE ) {
                 descripWords.add( "normalised" );
             }
-            if ( isCumulative ) {
+            if ( cumul.isCumulative() ) {
+                if ( cumul.isReverse() ) {
+                    descripWords.add( "reverse" );
+                }
                 descripWords.add( "cumulative" );
             }
             if ( hasWeight ) {
@@ -328,7 +332,7 @@ public class HistogramPlotWindow
             final Number[] data = new Number[ nrow ];
             final Class<?> clazz = isInt ? Integer.class : Double.class;
             for ( Iterator<BinBag.Bin> binIt =
-                      binBag.binIterator( isCumulative, norm, unit );
+                      binBag.binIterator( cumul, norm, unit );
                   binIt.hasNext(); ) {
                 BinBag.Bin bin = binIt.next();
                 Double xmin = new Double( bin.getXMin() );
@@ -344,11 +348,12 @@ public class HistogramPlotWindow
                                 : (Number) new Double( 0 );
             Number lastVal = zero;
             for ( int irow = 0; irow < nrow; irow++ ) {
-                if ( data[ irow ] == null ) {
-                    data[ irow ] = isCumulative ? lastVal : zero;
+                int jrow = cumul.isReverse() ? nrow - irow - 1 : irow;
+                if ( data[ jrow ] == null ) {
+                    data[ jrow ] = cumul.isCumulative() ? lastVal : zero;
                 }
                 else {
-                    lastVal = data[ irow ];
+                    lastVal = data[ jrow ];
                 }
             }
 

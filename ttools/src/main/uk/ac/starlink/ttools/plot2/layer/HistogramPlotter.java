@@ -263,7 +263,7 @@ public class HistogramPlotter
                                                StyleKeys.TRANSPARENCY );
         BarStyle.Form barForm = config.get( StyleKeys.BAR_FORM );
         BarStyle.Placement placement = BarStyle.PLACE_OVER;
-        boolean cumulative = config.get( StyleKeys.CUMULATIVE );
+        Cumulation cumulative = config.get( StyleKeys.CUMULATIVE );
         Normalisation norm = config.get( StyleKeys.NORMALISE );
         Unit unit = unitKey_ == null ? Unit.UNIT : config.get( unitKey_ );
         int thick = config.get( THICK_KEY );
@@ -291,7 +291,7 @@ public class HistogramPlotter
             final double binPhase = style.phase_;
             final BinSizer sizer = style.sizer_;
             final Combiner combiner = style.combiner_;
-            final boolean cumul = style.cumulative_;
+            final Cumulation cumul = style.cumulative_;
             final Normalisation norm = style.norm_;
             final Unit unit = style.unit_;
             final boolean hasWeight = weightCoord_ != null
@@ -512,7 +512,7 @@ public class HistogramPlotter
         Color color0 = g.getColor();
         g.setColor( style.color_ );
         BarStyle barStyle = style.barStyle_;
-        boolean cumul = style.cumulative_;
+        Cumulation cumul = style.cumulative_;
         Normalisation norm = style.norm_;
         Unit unit = style.unit_;
         Rectangle clip = surface.getPlotBounds();
@@ -759,7 +759,7 @@ public class HistogramPlotter
 
         public RowSequence getRowSequence() {
             final Iterator<BinBag.Bin> binIt =
-                binBag_.binIterator( hstyle_.isCumulative(),
+                binBag_.binIterator( hstyle_.getCumulative(),
                                      hstyle_.getNormalisation(),
                                      hstyle_.getUnit() );
             final Iterator<Object[]> rowIt = new Iterator<Object[]>() {
@@ -793,7 +793,7 @@ public class HistogramPlotter
         private final Color color_;
         private final BarStyle.Form barForm_;
         private final BarStyle.Placement placement_;
-        private final boolean cumulative_;
+        private final Cumulation cumulative_;
         private final Normalisation norm_;
         private final Unit unit_;
         private final int thick_;
@@ -821,7 +821,7 @@ public class HistogramPlotter
          */
         public HistoStyle( Color color, BarStyle.Form barForm,
                            BarStyle.Placement placement,
-                           boolean cumulative, Normalisation norm, Unit unit,
+                           Cumulation cumulative, Normalisation norm, Unit unit,
                            int thick, float[] dash,
                            BinSizer sizer, double phase, Combiner combiner ) {
             color_ = color;
@@ -850,11 +850,11 @@ public class HistogramPlotter
         }
 
         /**
-         * Returns cumulative flag.
+         * Returns cumulative plot mode.
          *
-         * @return  true iff counts are cumulative
+         * @return  cumulative mode
          */
-        public boolean isCumulative() {
+        public Cumulation getCumulative() {
             return cumulative_;
         }
 
@@ -895,7 +895,7 @@ public class HistogramPlotter
             code = 23 * code + color_.hashCode();
             code = 23 * code + barForm_.hashCode();
             code = 23 * code + placement_.hashCode();
-            code = 23 * code + ( cumulative_ ? 11 : 13 );
+            code = 23 * code + cumulative_.hashCode();
             code = 23 * code + PlotUtil.hashCode( norm_ );
             code = 23 * code + unit_.hashCode();
             code = 23 * code + thick_;

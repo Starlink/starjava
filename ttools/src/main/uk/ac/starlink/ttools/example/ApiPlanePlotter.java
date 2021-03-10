@@ -29,6 +29,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
+import uk.ac.starlink.ttools.plot2.layer.Cumulation;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
@@ -236,7 +237,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         Color color = Color.BLUE;
         BarStyle.Form barForm = BarStyle.FORM_OPEN;
         BarStyle.Placement placement = BarStyle.PLACE_ADJACENT;
-        boolean cumulative = true;
+        Cumulation cumulative = Cumulation.NONE;
         Normalisation norm = Normalisation.NONE;
         Unit unit = Unit.UNIT;
         int thick = 1;

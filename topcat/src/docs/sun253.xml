@@ -11164,8 +11164,10 @@ for the Histogram window:
     boundary at X=0 (linear X axis) or X=1 (logarithmic X axis).
     </p></dd>
 <dt>Cumulative</dt>
-<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
-    bin includes the counts from all previous bins.
+<dd><p>If set to <label>forward</label> or <label>reverse</label>,
+    the histogram bars are plotted cumulatively;
+    each bin includes the counts from all previous bins in the
+    direction of negative or positive infinity.
     </p></dd>
 <dt>Normalise</dt>
 <dd><p>Defines how, if at all, the bars are normalised.
@@ -11377,8 +11379,10 @@ for the Histogram window:
     </ul>
     </p></dd>
 <dt>Cumulative</dt>
-<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
-    bin includes the counts from all previous bins.
+<dd><p>If set to <label>forward</label> or <label>reverse</label>,
+    the heights are plotted cumulatively;
+    each bin includes the counts from all previous bins in the
+    direction of negative or positive infinity.
     </p></dd>
 <dt>Normalise</dt>
 <dd><p>Defines how, if at all, the bars are normalised.
@@ -11554,8 +11558,10 @@ for the Histogram window:
     </ul>
     </p></dd>
 <dt>Cumulative</dt>
-<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
-    bin includes the counts from all previous bins.
+<dd><p>If set to <label>forward</label> or <label>reverse</label>,
+    the heights are plotted cumulatively;
+    each bin includes the counts from all previous bins in the
+    direction of negative or positive infinity.
     </p></dd>
 <dt>Normalise</dt>
 <dd><p>Defines how, if at all, the bars are normalised.
@@ -11750,8 +11756,10 @@ for the Histogram window:
     </ul>
     </p></dd>
 <dt>Cumulative</dt>
-<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
-    bin includes the counts from all previous bins.
+<dd><p>If set to <label>forward</label> or <label>reverse</label>,
+    the levels are calculated cumulatively;
+    each bin includes the counts from all previous bins in the
+    direction of negative or positive infinity.
     </p></dd>
 </dl>
 </p>
@@ -12916,8 +12924,10 @@ and has the following controls:
 and has the following controls:
 <dl>
 <dt>Cumulative</dt>
-<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
-    bin includes the counts from all previous bins.
+<dd><p>If set to <label>forward</label> or <label>reverse</label>,
+    the bin values are calculated cumulatively;
+    each bin includes the counts from all previous bins in the
+    direction of negative or positive infinity.
     </p></dd>
 <dt>Normalise</dt>
 <dd><p>Defines how, if at all, the bars are normalised.
@@ -29366,6 +29376,11 @@ introduced since the last version:
         (TableSet-VOSI metadata acquisition mode only).</li>
     <li>Add new <ref id="SendCustomActivationType">SAMP Message</ref>
         activation action for sending custom SAMP messages.</li>
+    <li>The <label>Cumulative</label> option in
+        <ref id="ConfigControl_histobins">histogram</ref>-like plots
+        can now take the values
+        <label>none</label>/<label>forward</label>/<label>reverse</label>,
+        not just true/false.</li>
     </ul>
     </p></dd>
 
