@@ -290,6 +290,7 @@
   <!ENTITY FIG.DelayActivationType '&figs;DelayActivationType.png'>
   <!ENTITY FIG.JelActivationType '&figs;JelActivationType.png'>
   <!ENTITY FIG.ShellActivationType '&figs;ShellActivationType.png'>
+  <!ENTITY FIG.SendCustomActivationType '&figs;SendCustomActivationType.png'>
   <!ENTITY FIG.CutoutActivationType '&figs;CutoutActivationType.png'>
   <!ENTITY FIG.InvokeDatalinkActivationType
            '&figs;InvokeDatalinkActivationType.png'>
@@ -2110,7 +2111,8 @@ in <ref id="vo-windows"/>.
 <li>To define certain custom
     <ref id="activation" plaintextref="yes">Activation Action</ref>s
     (<ref id="JelActivationType">Execute code</ref>,
-     <ref id="ShellActivationType">Run system command</ref>)
+     <ref id="ShellActivationType">Run system command</ref>,
+     <ref id="SendCustomActivationType">SAMP message</ref>)
     in the <ref id="ActivationWindow">Activation</ref> window.</li>
 </ol>
 This is a powerful feature which permits you to manipulate and select
@@ -3336,6 +3338,12 @@ unless you are a tool developer you can probably ignore these.
     <p>SAMP MTypes: <code>voresource.loadlist.cone</code>,
                     <code>voresource.loadlist.siap</code>,
                     <code>voresource.loadlist.ssap</code>
+    </p></dd>
+
+<dt>Custom messaging</dt>
+<dd><p>The <ref id="SendCustomActivationType">SAMP Message</ref>
+    activation action can be used to send SAMP messages with arbitrary
+    MTypes and parameter lists.
     </p></dd>
 </dl>
 </p>
@@ -22349,6 +22357,68 @@ the <ref id="activationSecurity">security panel</ref> will be shown.
 
 </subsubsubsect>
 
+<subsubsubsect id="SendCustomActivationType">
+<subhead><title>SAMP Message</title></subhead>
+
+<figure>
+<caption><px>Configuration for SAMP Message action</px></caption>
+<figureimage src="&FIG.SendCustomActivationType;"/>
+</figure>
+
+<p>The <label>SAMP Message</label> action allows you to send a
+custom <ref id="interop">SAMP</ref> message
+to other appliacations on the desktop.
+In most cases it is more straightforward to use one of the
+standard <label>Send...</label> actions like
+<ref id="SendSkyPosActivationType">Send Sky Coordinates</ref>,
+<ref id="SendImageActivationType">Send FITS Image</ref> or
+<ref id="SendTableActivationType">Send VOTable</ref>,
+but if you want to send a SAMP message that is not
+covered by those options, you can use this action instead
+to control exactly what goes in the message.
+</p>
+
+<p>To use this action, you need to supply the <label>MType</label>
+string and (if applicable) name-value pairs for the message parameters.
+You will of course need to know the MType-specific parameter syntax
+for the message that you want to send.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>MType</dt>
+<dd><p>The MType string identifying the message type to send.
+    </p></dd>
+<dt>Target Client</dt>
+<dd><p>Determines which external client(s) to send the messages to.
+    Only those which declare support for the chosen MType are listed.
+    The default is "All Clients" which will send it to all eligible
+    applications, but you can select just one.  Clicking the selector
+    also serves to indicate which clients capable of acting on the
+    supplied MType are currently registered.  If there are none,
+    the action will be disabled.
+    </p></dd>
+<dt>Message Parameters</dt>
+<dd><p>Each line represents a name=value pair to be sent as a parameter
+    assignment in the message that is sent.
+    The first field gives the name of the parameter,
+    and the second gives its value.
+    Note that the name part is interpreted as a literal string,
+    but the value part is an expression in TOPCAT's
+    <ref id="jel">expression language</ref>,
+    evaluated for each table row as it is activated.
+    </p></dd>
+<dt>Add/Remove Parameter Field (&IMG.ADD;/&IMG.SUBTRACT;)</dt>
+<dd><p>Use these buttons to add or remove <em>name</em> = <em>expression</em>
+    fields in the parameter list.
+    Empty entries at the end of the list are ignored, so you don't have
+    to remove trailing ones.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="CutoutActivationType">
 <subhead><title>Display Cutout Image</title></subhead>
 
@@ -29294,6 +29364,8 @@ introduced since the last version:
         now reports approximate row count if provided by
         VODataService 1.2 <code>nrows</code> element
         (TableSet-VOSI metadata acquisition mode only).</li>
+    <li>Add new <ref id="SendCustomActivationType">SAMP Message</ref>
+        activation action for sending custom SAMP messages.</li>
     </ul>
     </p></dd>
 

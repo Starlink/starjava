@@ -915,6 +915,7 @@ public class ActivationWindow extends AuxWindow {
             new DelayActivationType(),
             new JelActivationType(),
             new ShellActivationType(),
+            new SendCustomActivationType(),
             new SendIndexActivationType( true ),
         } ) );
         return list.toArray( new ActivationType[ 0 ] );

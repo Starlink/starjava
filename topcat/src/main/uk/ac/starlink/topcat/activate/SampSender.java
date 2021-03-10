@@ -78,6 +78,15 @@ public class SampSender {
     }
 
     /**
+     * Returns the MType of the message that this sender will send.
+     *
+     * @return  MType
+     */
+    public String getMType() {
+        return mtype_;
+    }
+
+    /**
      * Indicates whether this sender has a chance of working.
      *
      * @return   false if this will never work
@@ -96,6 +105,16 @@ public class SampSender {
      */
     public ListModel<Client> getClientListModel() {
         return clientListModel_;
+    }
+
+    /**
+     * Indicates whether any registered clients are subscribed to
+     * this sender's MType.
+     *
+     * @return   true iff at least one subscribed client is present
+     */
+    public boolean hasClients() {
+        return clientListModel_.getSize() > 0;
     }
 
     /**
