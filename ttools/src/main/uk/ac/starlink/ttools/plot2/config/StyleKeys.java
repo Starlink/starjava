@@ -267,10 +267,29 @@ public class StyleKeys {
                 "with some other parameter values,",
                 "for instance averaging aggregation modes.",
                 "</p>",
+                "<p>For reasons of backward compatibility,",
+                "the values <code>true</code> and <code>false</code>",
+                "may be used as aliases for",
+                "<code>forward</code> and <code>none</code>.",
+                "</p>",
             } ),
             Cumulation.class, Cumulation.values(), Cumulation.NONE, true ) {
             public String getXmlDescription( Cumulation cumul ) {
                 return cumul.getTextDescription();
+            }
+            @Override
+            public Cumulation stringToValue( String txt )
+                    throws ConfigException {
+                /* Backward compatibility - this used to be a boolean option. */
+                if ( BooleanConfigKey.isTrue( txt ) ) {
+                    return Cumulation.FORWARD;
+                }
+                else if ( BooleanConfigKey.isFalse( txt ) ) {
+                    return Cumulation.NONE;
+                }
+                else {
+                    return super.stringToValue( txt );
+                }
             }
         }.setOptionUsage()
          .addOptionsXml();
