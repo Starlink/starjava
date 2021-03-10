@@ -47,11 +47,10 @@ public class BooleanConfigKey extends ConfigKey<Boolean> {
     }
 
     public Boolean stringToValue( String txt ) throws ConfigException {
-        txt = txt.toLowerCase();
-        if ( TRUE_STRINGS.contains( txt ) ) {
+        if ( isTrue( txt ) ) {
             return Boolean.TRUE;
         }
-        else if ( FALSE_STRINGS.contains( txt ) ) {
+        else if ( isFalse( txt ) ) {
             return Boolean.FALSE;
         }
         else {
@@ -85,5 +84,25 @@ public class BooleanConfigKey extends ConfigKey<Boolean> {
             public void submitReport( ReportMap report ) {
             }
         };
+    }
+
+    /**
+     * Indicates whether the given string represents the value True.
+     *
+     * @param  txt  string
+     * @return   true iff txt means True
+     */
+    public static boolean isTrue( String txt ) {
+        return txt != null && TRUE_STRINGS.contains( txt.toLowerCase() );
+    }
+
+    /**
+     * Indicates whether the given string represents the value False.
+     *
+     * @param  txt  string
+     * @return   true iff txt means False
+     */
+    public static boolean isFalse( String txt ) {
+        return txt != null && FALSE_STRINGS.contains( txt.toLowerCase() );
     }
 }
