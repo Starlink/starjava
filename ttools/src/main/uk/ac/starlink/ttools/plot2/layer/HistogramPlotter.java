@@ -538,7 +538,8 @@ public class HistogramPlotter
 
         /* Iterate over bins, plotting each one individually. */
         for ( Iterator<BinBag.Bin> binIt =
-                  binBag.binIterator( cumul, norm, unit );
+                  binBag.binIterator( cumul, norm, unit,
+                                      new double[] { dxMin, dxMax } );
               binIt.hasNext(); ) {
             BinBag.Bin bin = binIt.next();
 
@@ -548,7 +549,8 @@ public class HistogramPlotter
             double dy = bin.getY();
 
             /* Only plot those bins that fall at least partly in the X range. */
-            if ( dxlo <= dxMax && dxhi >= dxMin && dy != 0 ) {
+            if ( dxlo <= dxMax && dxhi >= dxMin &&
+                 ( cumul.isCumulative() || dy != 0 ) ) {
 
                  /* Transform the corners of each bar to graphics coords. */
                  dpos0[ 0 ] = dxlo;
@@ -591,8 +593,11 @@ public class HistogramPlotter
             }
         }
 
-        /* Draw the trailing edge of the final bar. */
-        barStyle.drawEdge( g, lastGx1, lastGy1, commonGy0, iseq, nseq );
+        /* Draw the trailing edge of the final bar unless we have already
+         * filled the whole X range. */
+        if ( ! cumul.isCumulative() ) {
+            barStyle.drawEdge( g, lastGx1, lastGy1, commonGy0, iseq, nseq );
+        }
         g.setColor( color0 );
     }
 

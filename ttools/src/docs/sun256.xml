@@ -13110,6 +13110,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         can now take the values
         <code>none</code>/<code>forward</code>/<code>reverse</code>,
         not just <code>true</code>/<code>false</code>.</li>
+    <li>Fix issue with cumulative
+        <ref id="layer-histogram">histograms</ref>;
+        bars beyond the last sample are now displayed with total value
+        not zero.</li>
     </ul>
     </p></dd>
 

@@ -29381,6 +29381,10 @@ introduced since the last version:
         can now take the values
         <label>none</label>/<label>forward</label>/<label>reverse</label>,
         not just true/false.</li>
+    <li>Fix issue with cumulative
+        <ref id="form-histogram">histograms</ref>;
+        bars beyond the last sample are now displayed with total value
+        not zero.</li>
     </ul>
     </p></dd>
 

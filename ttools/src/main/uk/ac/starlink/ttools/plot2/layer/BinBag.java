@@ -81,7 +81,8 @@ public class BinBag {
     }
 
     /**
-     * Returns a sorted iterator over all bins with non-zero values.
+     * Returns a sorted iterator over all bins with non-zero values
+     * in the range over which samples were presented.
      *
      * @param   cumul  flag for bins of a cumulative histogram
      * @param   norm  normalisation mode
@@ -90,6 +91,31 @@ public class BinBag {
      */
     public Iterator<Bin> binIterator( Cumulation cumul, Normalisation norm,
                                       Unit unit ) {
+
+        return binIterator( cumul, norm, unit, null );
+    }
+
+    /**
+     * Returns a sorted iterator over all bins with non-zero values
+     * in the range over which samples were presented, perhaps
+     * extended over a given range.
+     *
+     * <p>The purpose of the supplied extension range is to extend the number
+     * of bins returned, specifically for the purpose of cumulative histograms,
+     * where bins outside the range of the presented samples can have
+     * non-zero values.  At present the range is not used to cut down
+     * the number of bins returned; that could be done to improve efficiency,
+     * though the effect is not likely to be large since bin counts are
+     * usually fairly modest.
+     *
+     * @param   cumul  flag for bins of a cumulative histogram
+     * @param   norm  normalisation mode
+     * @param   unit  axis unit scaling
+     * @param   range  required range for extending data
+     * @return  sorted iterator over bins
+     */
+    public Iterator<Bin> binIterator( Cumulation cumul, Normalisation norm,
+                                      Unit unit, double[] range ) {
 
         /* Avoid some edge cases by returning an empty iterator immediately
          * in case of no bins. */
@@ -143,25 +169,40 @@ public class BinBag {
          * will (probably) have non-zero values that must be returned.
          * Step up from the lowest to highest known bin value in steps of 1. */
         if ( cumul.isCumulative() ) {
+            int ixlo = binIndices[ 0 ];
+            int ixhi = binIndices[ nbin - 1 ];
+
+            /* If requested, extend the range so that maximum-value bins
+             * go all the way to the edge of the plot region. */
+            if ( range != null ) {
+                ixlo = Math.min( ixlo, mapper_.getBinIndex( range[ 0 ] ) - 1 );
+                ixhi = Math.max( ixhi, mapper_.getBinIndex( range[ 1 ] ) + 1 );
+            }
+            final int ixMin = ixlo;
+            final int ixMax = ixhi;
             return new Iterator<Bin>() {
-                int ib = 0;
-                int index = binIndices[ 0 ];
+                int index = ixMin;
+                int ib = index < binIndices[ 0 ] ? -1 : 0;
                 public boolean hasNext() {
-                    return ib < nbin;
+                    return index < ixMax;
                 }
                 public Bin next() {
-                    if ( ib < nbin ) {
-                        assert index >= binIndices[ ib ];
-                        Bin bin = createBin( index, binValues[ ib ] );
-                        index++;
-                        if ( ib == nbin - 1 || index == binIndices[ ib + 1 ] ) {
-                            ib++;
-                        }
-                        return bin;
+                    final double value;
+                    if ( ib < 0 ) {
+                        value = cumul.isReverse() ? binValues[ 0 ] : 0;
+                    }
+                    else if ( ib >= nbin ) {
+                        value = cumul.isReverse() ? 0 : binValues[ nbin - 1 ];
                     }
                     else {
-                        throw new NoSuchElementException();
+                        value = binValues[ ib ];
                     }
+                    index++;
+                    if ( ib == nbin - 1 ||
+                         ib < nbin -1 && index == binIndices[ ib + 1 ] ) {
+                        ib++;
+                    }
+                    return createBin( index, value );
                 }
                 public void remove() {
                     throw new UnsupportedOperationException();
