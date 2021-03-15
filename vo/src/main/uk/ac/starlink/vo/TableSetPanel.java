@@ -191,6 +191,7 @@ public class TableSetPanel extends JPanel {
         colTableModel_ = new ArrayTableModel<ColumnMeta>( new ColumnMeta[ 0 ] );
         colTableModel_.setColumns( colMetaColumns_ );
         colTable_ = new JTable( colTableModel_ );
+        StarJTable.configureDefaultRenderers( colTable_ );
         colTable_.setColumnSelectionAllowed( false );
         new ArrayTableSorter<ColumnMeta>( colTableModel_ )
            .install( colTable_.getTableHeader() );
@@ -208,6 +209,7 @@ public class TableSetPanel extends JPanel {
             new ArrayTableModel<ForeignMeta>( new ForeignMeta[ 0 ] );
         foreignTableModel_.setColumns( createForeignMetaColumns() );
         foreignTable_ = new JTable( foreignTableModel_ );
+        StarJTable.configureDefaultRenderers( foreignTable_ );
         foreignTable_.setColumnSelectionAllowed( false );
         foreignTable_.setRowSelectionAllowed( false );
         new ArrayTableSorter<ForeignMeta>( foreignTableModel_ )
