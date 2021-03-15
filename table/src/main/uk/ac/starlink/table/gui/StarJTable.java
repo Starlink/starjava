@@ -215,6 +215,21 @@ public class StarJTable extends JTable {
     }
 
     /**
+     * Sets up numeric cell renderers for the columns of a JTable.
+     *
+     * @param  jtable  table to configure; does not have to be a StarJTable
+     */
+    public static void configureDefaultRenderers( JTable jtable ) {
+        for ( Class<?> clazz : new Class<?>[] {
+                  Byte.class, Short.class, Integer.class, Long.class,
+                  Float.class, Double.class,
+              } ) {
+            jtable.setDefaultRenderer( clazz,
+                                       new NumericCellRenderer( clazz ) );
+        }
+    }
+
+    /**
      * Sets the width of one column to match the width of its contents.
      * A heuristic * method is used; the widths of the headers and of 
      * the first few rows is got, and the width set to this value.
