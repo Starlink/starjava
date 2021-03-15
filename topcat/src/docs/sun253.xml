@@ -29385,6 +29385,9 @@ introduced since the last version:
         <ref id="form-histogram">histograms</ref>;
         bars beyond the last sample are now displayed with total value
         not zero.</li>
+    <li>Fix TAP metadata column display so that numeric non-standard
+        items are actually shown; previously the columns appeared
+        but with blank values.</li>
     </ul>
     </p></dd>
 

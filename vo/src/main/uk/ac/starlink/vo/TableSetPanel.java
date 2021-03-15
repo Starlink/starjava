@@ -1498,6 +1498,18 @@ public class TableSetPanel extends JPanel {
         }
 
         /**
+         * Creates a type-specific instance of this class.
+         * This is a simple wrapper around the constructor require for
+         * wrangling generics.
+         *
+         * @param  key   name of metadata key in ColumnMeta extras map
+         * @param  clazz   class of object returned by getValue method
+         */
+        static <C> ExtraColumn<C> createInstance( String key, Class<C> clazz ) {
+            return new ExtraColumn<C>( key, clazz );
+        }
+
+        /**
          * Creates an instance of this class that can display a given
          * list of objects.  The content type is determined by the
          * actual data types of the known values.  Don't try too hard;
@@ -1523,9 +1535,10 @@ public class TableSetPanel extends JPanel {
                     }
                 }
             }
-            return clazz == null
-                 ? new ExtraColumn<Object>( name, Object.class )
-                 : new ExtraColumn<String>( name, String.class );
+            if ( clazz == null ) {
+                clazz = Object.class;
+            }
+            return createInstance( name, clazz );
         }
     }
 
