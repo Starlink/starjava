@@ -29390,6 +29390,9 @@ introduced since the last version:
         but with blank values.</li>
     <li>Fix regression bug since v4.8 that failed to re-read Byte-typed
         synthetic columns from saved sessions in some circumstances.</li>
+    <li>Fix problem with evaluation of a synthetic column/subset
+        referencing a second synthetic column whose expression gets
+        edited to yield a different type.</li>
     </ul>
     </p></dd>
 

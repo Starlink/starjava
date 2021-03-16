@@ -72,6 +72,7 @@ public class ColumnInfoWindow extends AuxWindow {
     private final JTable jtab;
     private final MetaColumnTableModel metaTableModel;
     private final int icolColsetIndex_;
+    private final int icolColsetClass_;
     private final MetaColumnTableSorter sorter;
 
     private static final Logger logger = 
@@ -157,6 +158,7 @@ public class ColumnInfoWindow extends AuxWindow {
         metas.add( new ValueInfoMetaColumn( TopcatUtils.COLID_INFO, false ) );
 
         /* Add class column. */
+        icolColsetClass_ = metas.size();
         metas.add( new MetaColumn( "Class", String.class ) {
             public Object getValue( int irow ) {
                 return DefaultValueInfo
@@ -304,15 +306,6 @@ public class ColumnInfoWindow extends AuxWindow {
                     try { 
                         col.setExpression( expr, null );
                         super.setValue( irow, expr );
-    
-                        /* Message the table that its data may have changed.
-                         * Since every cell in one column is changing, 
-                         * potentially any cell in the table could change, since
-                         * it may be in a synthetic column depending on the
-                         * changed one.  Which is just as well, since no event
-                         * is defined to describe all the data in a single
-                         * column changing. */
-                        viewModel.fireTableDataChanged();
                     }
                     catch ( CompilationException e ) {
                         String[] msg = new String[] {
@@ -326,6 +319,28 @@ public class ColumnInfoWindow extends AuxWindow {
                                            JOptionPane.ERROR_MESSAGE );
                         return;
                     }
+
+                    /* In most cases, setting the expression to its new
+                     * value is all that's necessary here.
+                     * However, if the new expression has a different data type
+                     * than the old one, two more things are required:
+                     * first, update the displayed expression data type,
+                     * and second, recompile any other expressions that
+                     * may depend on this one, since the way that JEL
+                     * expression evaluation works, the compiled expressions
+                     * won't work any longer if the data type has changed. */
+                    metaTableModel.fireTableCellUpdated( irow,
+                                                         icolColsetClass_ );
+                    recompileDependencies( icol );
+    
+                    /* Message the table that its data may have changed.
+                     * Since every cell in one column is changing, 
+                     * potentially any cell in the table could change, since
+                     * it may be in a synthetic column depending on the
+                     * changed one.  Which is just as well, since no event
+                     * is defined to describe all the data in a single
+                     * column changing. */
+                    viewModel.fireTableDataChanged();
                 }
             }
         } );
@@ -721,6 +736,52 @@ public class ColumnInfoWindow extends AuxWindow {
         sortupAct.setEnabled( hasUniqueSelection );
         sortdownAct.setEnabled( hasUniqueSelection );
         replacecolAct.setEnabled( hasUniqueSelection && TopcatUtils.canJel() );
+    }
+
+    /**
+     * Called if the evaluation expression of a synthetic column has changed,
+     * to trigger recompilation of any expressions dependent on it.
+     * This is required for the dependent expressions to continue working
+     * if the datatype of the upstream expression has changed;
+     * if the datatype hasn't changed it's not necessary, but it should be
+     * harmless.
+     *
+     * @param  icol  index of column whose expression has changed
+     */
+    private void recompileDependencies( int icol ) {
+
+        /* Recompile expressions for any dependent synthetic columns. */
+        for ( int ic = 0; ic < dataModel.getColumnCount(); ic++ ) {
+            ColumnData coldata = dataModel.getColumnData( ic );
+            if ( ic != icol && coldata instanceof SyntheticColumn ) {
+                SyntheticColumn scol = (SyntheticColumn) coldata;
+                String expr = scol.getExpression();
+                if ( TopcatJELUtils.isColumnReferenced( tcModel, icol, expr ) ){
+                    try {
+                        scol.setExpression( expr, null );
+                    }
+                    catch ( CompilationException e ) {
+                        logger.warning( "Uh oh: " + e );
+                    }
+                }
+            }
+        }
+
+        /* Recompile expressions for any dependent synthetic subsets. */
+        for ( RowSubset rset : tcModel.getSubsets() ) {
+            if ( rset instanceof SyntheticRowSubset ) {
+                SyntheticRowSubset srset = (SyntheticRowSubset) rset;
+                String expr = srset.getExpression();
+                if ( TopcatJELUtils.isColumnReferenced( tcModel, icol, expr ) ){
+                    try {
+                        srset.setExpression( expr );
+                    }
+                    catch ( CompilationException e ) {
+                        logger.warning( "Uh oh: " + e );
+                    }
+                }
+            }
+        }
     }
 
     /**
