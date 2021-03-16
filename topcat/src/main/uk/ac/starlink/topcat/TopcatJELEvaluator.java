@@ -109,7 +109,7 @@ public abstract class TopcatJELEvaluator implements Closeable {
          * for use in a single thread. */
         Supplier<AccessRowReader> rdrSupplier = () -> {
             try {
-                return new AccessRowReader( tcModel, expr, libFunc );
+                return new AccessRowReader( tcModel, expr, libFunc, reqType );
             }
             catch ( CompilationException e ) {
                 throw new RuntimeException( "Unexpected compilation failure"
@@ -204,12 +204,14 @@ public abstract class TopcatJELEvaluator implements Closeable {
          * @param  tcModel  evaluation context
          * @param  expr   expression to evaluate
          * @param  libFunc  provides a JEL Library
+         * @param  reqType   required result type, or null to accept any
          */
         AccessRowReader( TopcatModel tcModel, String expr,
-                         Function<TopcatJELRowReader,Library> libFunc )
+                         Function<TopcatJELRowReader,Library> libFunc,
+                         Class<?> reqType )
                 throws CompilationException, IOException {
             super( tcModel );
-            compEx_ = Evaluator.compile( expr, libFunc.apply( this ), null );
+            compEx_ = Evaluator.compile( expr, libFunc.apply( this ), reqType );
             rowAccess_ = tcModel.getDataModel().getRowAccess();
             lrow_ = -1;
         }

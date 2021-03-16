@@ -29388,6 +29388,8 @@ introduced since the last version:
     <li>Fix TAP metadata column display so that numeric non-standard
         items are actually shown; previously the columns appeared
         but with blank values.</li>
+    <li>Fix regression bug since v4.8 that failed to re-read Byte-typed
+        synthetic columns from saved sessions in some circumstances.</li>
     </ul>
     </p></dd>
 

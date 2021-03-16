@@ -47,7 +47,7 @@ public class SyntheticRowSubset extends RowSubset {
             throws CompilationException {
         evaluator_ = TopcatJELEvaluator
                     .createEvaluator( tcModel_, expression, false,
-                                      Boolean.class );
+                                      boolean.class );
     }
 
     /**
