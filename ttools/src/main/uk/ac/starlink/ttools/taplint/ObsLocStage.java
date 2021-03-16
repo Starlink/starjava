@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -18,6 +20,7 @@ import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapService;
+import uk.ac.starlink.votable.VOStarTable;
 
 /**
  * Validation stage for testing ObsLocTAP data model metadata and content.
@@ -120,7 +123,12 @@ public class ObsLocStage implements Stage {
                    .append( " features " )
                    .append( Arrays.toString( ADQLGEO_FORMS ) )
                    .toString();
-                reporter.report( FixedCode.E_PGEO, msg );
+
+                /* Jesus Salgado (on ObsLocTAP10RFC page) recommends
+                 * that missing the *declaration* of these UDFs is a Warning
+                 * not an Error, though implementation of them is mandated
+                 * by the standard (sec 3.3). */
+                reporter.report( FixedCode.W_PGEO, msg );
             }
         }
 
@@ -221,6 +229,9 @@ public class ObsLocStage implements Stage {
                 }
             }
 
+            /* Special checks for observation times. */
+            checkObservationTimes();
+
             /* Summarise columns. */
             int nother = gotCols_.size() - nreq;
             String msg = new StringBuffer()
@@ -260,13 +271,13 @@ public class ObsLocStage implements Stage {
          */
         private void checkContent( PlanCol stdCol ) {
             String optList = stdCol.adqlOptList_;
+            boolean isNullable = stdCol.isNullable_;
+            String cname = stdCol.name_;
 
             /* If the column content is restricted, check only restricted
              * values are present. */
             if ( optList != null ) {
                 int maxWrong = 4;
-                boolean nullPermitted = true;
-                String cname = stdCol.name_;
                 StringBuffer abuf = new StringBuffer()
                    .append( "SELECT " )
                    .append( "DISTINCT TOP " )
@@ -280,10 +291,15 @@ public class ObsLocStage implements Stage {
                    .append( " NOT IN (" )
                    .append( optList )
                    .append( ")" );
-                if ( nullPermitted ) {
+                if ( isNullable ) {
                     abuf.append( " AND " )
                         .append( cname )
                         .append( " IS NOT NULL" );
+                }
+                else {
+                    abuf.append( " OR " )
+                        .append( cname )
+                        .append( " IS NULL" );
                 }
                 String adql = abuf.toString();
                 TapQuery tq = new TapQuery( tapService_, adql, null );
@@ -307,6 +323,60 @@ public class ObsLocStage implements Stage {
                        .toString();
                     reporter_.report( FixedCode.E_PVAL, msg );
                 }
+            }
+
+            /* If the column is not nullable, look for null values. */
+            else if ( ! isNullable ) {
+                String adql = new StringBuffer()
+                   .append( "SELECT " )
+                   .append( "TOP 1 " )
+                   .append( cname )
+                   .append( " FROM " )
+                   .append( OBSPLAN_TNAME )
+                   .append( " WHERE " )
+                   .append( cname )
+                   .append( " IS NULL" )
+                   .toString();
+                TapQuery tq = new TapQuery( tapService_, adql, null );
+                StarTable table = tapRunner_.getResultTable( reporter_, tq );
+                TableData tdata = TableData.createTableData( reporter_, table );
+                if ( tdata != null && tdata.getRowCount() > 0 ) {
+                    String msg = new StringBuffer()
+                       .append( "NULL values in non-nullable column " )
+                       .append( cname )
+                       .toString();
+                    reporter_.report( FixedCode.E_LNUL, msg );
+                }
+            }
+        }
+
+        /**
+         * Check specific constraint on the t_min, t_max, t_exptime columns:
+         * they may not be null for Scheduled or Performed status records.
+         */
+        private void checkObservationTimes() {
+            String adql = new StringBuffer()
+                .append( "SELECT " )
+                .append( "TOP 1 " )
+                .append( "execution_status, t_min, t_max, t_exptime " )
+                .append( " FROM " )
+                .append( OBSPLAN_TNAME )
+                .append( " WHERE (" )
+                .append( "t_min IS NULL OR " )
+                .append( "t_max IS NULL OR " )
+                .append( "t_exptime IS NULL" )
+                .append( ") AND " )
+                .append( "execution_status IN ('Scheduled', 'Performed')" )
+                .toString();
+            TapQuery tq = new TapQuery( tapService_, adql, null );
+            StarTable table = tapRunner_.getResultTable( reporter_, tq );
+            TableData tdata = TableData.createTableData( reporter_, table );
+            if ( tdata != null && tdata.getRowCount() > 0 ) {
+                String msg = new StringBuffer()
+                   .append( "NULL t_min/t_max/t_exptime values for " )
+                   .append( "execution_status Scheduled/Performed" )
+                   .toString();
+                reporter_.report( FixedCode.E_LNSP, msg );
             }
         }
 
@@ -431,13 +501,19 @@ public class ObsLocStage implements Stage {
         assert map.size() == 26;
 
         /* Add some additional constraints for various columns. */
+        map.get( "t_planning" ).isNullable_ = false;
+        map.get( "obs_id" ).isNullable_ = false;
+        map.get( "facility_name" ).isNullable_ = false;
         map.get( "category" ).setStringOpts( new String[] {
             "Fixed", "Coordinated", "Window", "Other",
         } );
+        map.get( "category" ).isNullable_ = false;
         map.get( "priority" ).setIntOpts( new int[] { 0, 1, 2 } );
+        map.get( "priority" ).isNullable_ = false;
         map.get( "execution_status" ).setStringOpts( new String[] {
             "Planned", "Scheduled", "Unscheduled", "Performed", "Aborted",
         } );
+        map.get( "execution_status" ).isNullable_ = false;
         return map;
     }
 
@@ -454,6 +530,21 @@ public class ObsLocStage implements Stage {
     }
 
     /**
+     * Returns the human-readable name of the data type of a column
+     * from a VOTable.
+     *
+     * @param  info  column info
+     * @return   datatype name
+     */
+    private static String votype( ValueInfo info ) {
+
+        /* This isn't really correct, since it gives the java name not the
+         * reconstructed datatype,arraysize information that would have
+         * come from the VOTable.  But it's good enough to get the idea. */
+        return info.getContentClass().getSimpleName();
+    }
+
+    /**
      * Enum for column data types used by obsplan table.
      */
     private static enum Type {
@@ -462,21 +553,24 @@ public class ObsLocStage implements Stage {
                 if ( ! matchesClass( info,
                                      Byte.class, Short.class, Integer.class,
                                      Long.class ) ) {
-                    reportTypeMismatch( reporter, info, "not integer" );
+                    reportTypeMismatch( reporter, info,
+                                        votype( info ) + " not integer" );
                 }
             }
         },
         FLOAT() {
             void checkInfo( Reporter reporter, ValueInfo info ) {
                 if ( ! matchesClass( info, Float.class, Double.class ) ) {
-                    reportTypeMismatch( reporter, info, "not floating point" );
+                    reportTypeMismatch( reporter, info,
+                                        votype( info ) + " not floating point");
                 }
             }
         },
         STRING() {
             void checkInfo( Reporter reporter, ValueInfo info ) {
                 if ( ! String.class.equals( info.getContentClass() ) ) {
-                    reportTypeMismatch( reporter, info, "not string" );
+                    reportTypeMismatch( reporter, info,
+                                        votype( info ) + " not string" );
                 }
             }
         },
@@ -489,7 +583,8 @@ public class ObsLocStage implements Stage {
                     }
                 }
                 else {
-                    reportTypeMismatch( reporter, info, "not string" );
+                    reportTypeMismatch( reporter, info,
+                                        votype( info ) + " not string" );
                 }
             }
         },
@@ -571,6 +666,7 @@ public class ObsLocStage implements Stage {
         final String unit_;
         final String utype_;
         final String ucd_;
+        boolean isNullable_;
         String adqlOptList_;
 
         /**
@@ -582,13 +678,14 @@ public class ObsLocStage implements Stage {
          * @param  utype  utype, or null 
          * @param  ucd    UCD, or null
          */
-        PlanCol( String name, Type type, String unit, String utype,
-                 String ucd ) {
+        PlanCol( String name, Type type, 
+                 String unit, String utype, String ucd ) {
             name_ = name;
             type_ = type;
             unit_ = unit;
             utype_ = utype;
             ucd_ = ucd;
+            isNullable_ = true;
         }
 
         /**
