@@ -4,12 +4,17 @@ import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.ByteStore;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
@@ -162,6 +167,90 @@ public abstract class InputFactory implements Closeable {
                     return new BufferedRandomInput( raf, offset );
                 }
                 public void close() {
+                }
+            };
+        }
+    }
+
+    /**
+     * Returns an InputFactory for which random access is guaranteed.
+     * If necessary, the bytes from the data source will be cached
+     * using the supplied storage policy.
+     *
+     * @param   datsrc  data source
+     * @param   offset   offset into file of stream start
+     * @param   leng  number of bytes in stream
+     * @param   policy   storage policy for caching if required,
+     *                   or null for default
+     * @return  new instance
+     */
+    public static InputFactory createRandomFactory( DataSource datsrc,
+                                                    long offset, long leng,
+                                                    StoragePolicy policy )
+            throws IOException {
+        boolean isFile = datsrc instanceof FileDataSource;
+        if ( isFile && datsrc.getCompression() == Compression.NONE ) {
+            File uncompressedFile = ((FileDataSource) datsrc).getFile();
+            return createFileFactory( uncompressedFile, offset, leng );
+        }
+        else {
+            logger_.warning( "Caching non-random FITS data" );
+            ByteStore byteStore =
+                ( policy == null ? StoragePolicy.getDefaultPolicy() : policy )
+               .makeByteStore();
+            try (
+                InputStream in = datsrc.getInputStream();
+                OutputStream out = byteStore.getOutputStream();
+            ) {
+                IOUtils.skip( in, offset );
+                byte[] buf = new byte[ 1024 * 64 ];
+                while ( leng > 0 ) {
+                    int nb = in.read( buf, 0,
+                                      (int) Math.min( leng, buf.length ) );
+                    if ( nb < 0 ) {
+                        throw new EOFException( "FITS file too short" );
+                    }
+                    out.write( buf, 0, nb );
+                    leng -= nb;
+                }
+            }
+            return createByteStoreFactory( byteStore );
+        }
+    }
+
+    /**
+     * Returns an input factory based on a populated bytestore.
+     *
+     * @param   byteStore  cache containing byte content
+     * @return   new input factory
+     */
+    public static InputFactory
+            createByteStoreFactory( final ByteStore byteStore )
+            throws IOException {
+        final ByteBuffer[] bbufs = byteStore.toByteBuffers();
+        final int nbuf = bbufs.length;
+        if ( nbuf == 1 ) {
+            final ByteBuffer bbuf = bbufs[ 0 ];
+            return new AbstractInputFactory( true ) {
+                public BasicInput createInput( boolean isSeq ) {
+                    return new ByteBufferInput( bbuf.duplicate() );
+                }
+                public void close() throws IOException {
+                    byteStore.close();
+                }
+            };
+        }
+        else {
+            return new AbstractInputFactory( true ) {
+                public BasicInput createInput( boolean isSeq ) {
+                    ByteBuffer[] bbufs1 = new ByteBuffer[ nbuf ];
+                    for ( int ib = 0; ib < nbuf; ib++ ) {
+                        bbufs1[ ib ] = bbufs[ ib ].duplicate();
+                    }
+                    return new MultiByteBufferInput( bbufs1 );
+                }
+                public void close() throws IOException {
+                    byteStore.close();
                 }
             };
         }
