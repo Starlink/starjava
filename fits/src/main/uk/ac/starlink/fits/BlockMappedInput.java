@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  * @author   Mark Taylor
  * @since    2 Dec 2014
  */
-public abstract class BlockMappedInput implements BasicInput {
+public abstract class BlockMappedInput extends BlockInput {
 
     private final FileChannel channel_;
     private final long pos_;
@@ -32,12 +32,6 @@ public abstract class BlockMappedInput implements BasicInput {
     private final long blockSize_;
     private final int nblock_;
     private final Unmapper unmapper_;
-
-    /** Most recently used block index: do not use outside this class! */
-    int iblock_;
-
-    /** Most recently used block buffer: DO NOT use outside this class! */
-    MappedByteBuffer buffer_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
@@ -60,181 +54,37 @@ public abstract class BlockMappedInput implements BasicInput {
     protected BlockMappedInput( FileChannel channel, long pos, long size,
                                 String logName, int blockSize )
             throws IOException {
+        super( (int) ( ( size - 1 ) / blockSize ) + 1 );
+        long nb = ( ( size - 1 ) / blockSize ) + 1;
         channel_ = channel;
         pos_ = pos;
         size_ = size;
         logName_ = logName;
         blockSize_ = blockSize;
-        long nb = ( ( size - 1 ) / blockSize_ ) + 1;
-        nblock_ = (int) nb;
+        nblock_ = getBlockCount();
         if ( nblock_ != nb ) {
             throw new IllegalArgumentException( "Block count " + nb
                                               + " too high" );
         }
         logger_.info( logName_ + " mapping as " + nblock_ + " blocks of "
                     + blockSize_ + " bytes" );
-        iblock_ = -1;
-        buffer_ = channel.map( FileChannel.MapMode.READ_ONLY, pos, 0 );
         unmapper_ = Unmapper.getInstance();
     }
 
-    public byte readByte() throws IOException {
-        try {
-            return buffer_.get();
-        }
-        catch ( BufferUnderflowException e ) {
-            return getAssuredBuffer( 1 ).get();
-        }
+    public int[] getBlockPos( long offset ) {
+        return new int[] {
+            (int) ( offset / blockSize_ ),
+            (int) ( offset % blockSize_ ),
+        };
     }
 
-    public short readShort() throws IOException {
-        try {
-            return buffer_.getShort();
-        }
-        catch ( BufferUnderflowException e ) {
-            return getAssuredBuffer( 2 ).getShort();
-        }
+    public long getBlockOffset( int iblock, int offsetInBlock ) {
+        return iblock * blockSize_ + offsetInBlock;
     }
 
-    public int readInt() throws IOException {
-        try {
-            return buffer_.getInt();
-        }
-        catch ( BufferUnderflowException e ) {
-            return getAssuredBuffer( 4 ).getInt();
-        }
+    public void close() {
+        super.close();
     }
-
-    public long readLong() throws IOException {
-        try {
-            return buffer_.getLong();
-        }
-        catch ( BufferUnderflowException e ) {
-            return getAssuredBuffer( 8 ).getLong();
-        }
-    }
-
-    public float readFloat() throws IOException {
-        try {
-            return buffer_.getFloat();
-        }
-        catch ( BufferUnderflowException e ) {
-            return getAssuredBuffer( 4 ).getFloat();
-        }
-    }
-
-    public double readDouble() throws IOException {
-        try {
-            return buffer_.getDouble();
-        }
-        catch ( BufferUnderflowException e ) {
-            return getAssuredBuffer( 8 ).getDouble();
-        }
-    }
-
-    public void readBytes( byte[] bbuf ) throws IOException {
-        try {
-            buffer_.get( bbuf );
-        }
-        catch ( BufferUnderflowException e ) {
-            getAssuredBuffer( bbuf.length ).get( bbuf );
-        }
-    }
-
-    public boolean isRandom() {
-        return true;
-    }
-
-    public void seek( long offset ) throws IOException {
-        int ib = (int) ( offset / blockSize_ );
-        int ioff = (int) ( offset % blockSize_ );
-
-        /* Ensure that the required block is current. */
-        if ( ib != iblock_ ) {
-
-            /* In most cases, that means resetting state by acquiring the
-             * block with index offset/blocksize as the new current one. */
-            if ( ioff > 0 ) {
-                setCurrentBlock( ib );
-            }
-          
-            /* However, if the sought position is right at the start
-             * of a block, in some circumstances it's desirable to set
-             * state to the equivalent case where block offset/blocksize-1
-             * is current, and it's positioned at its end. */
-            else if ( ioff == 0 ) {
-
-                /* If we can manage it without changing block, do that. */
-                if ( ib == iblock_ + 1 ) {
-                    ib = iblock_;
-                    ioff = buffer_.limit();
-                }
-
-                /* Otherwise if it's the last position in the stream,
-                 * use the penultimate block. */
-                else if ( ib == nblock_ ) {
-                    setCurrentBlock( nblock_ - 1 );
-                    ib = iblock_;
-                    ioff = buffer_.limit();
-                }
-
-                /* Otherwise, do the normal thing. */
-                else {
-                    setCurrentBlock( ib );
-                }
-            }
-            else {
-                throw new IllegalArgumentException( ioff + " < 0" );
-            }
-        }
-        assert ib == iblock_;
-        assert ib * blockSize_ + ioff == offset
-            || ib == -1 && buffer_.limit() == 0 && buffer_.position() == 0;
-
-        /* The current buffer is the one we want.  Set its position. */
-        try {
-            buffer_.position( ioff );
-        }
-        catch ( IllegalArgumentException e ) {
-            throw (EOFException) new EOFException().initCause( e );
-        }
-    }
-
-    public long getOffset() {
-        if ( iblock_ >= 0 ) {
-            return iblock_ * blockSize_ + buffer_.position();
-        }
-        else {
-            assert iblock_ == -1;
-            assert buffer_.limit() == 0 && buffer_.position() == 0;
-            return 0;
-        }
-    }
-
-    public void skip( long nbyte ) throws IOException {
-        seek( getOffset() + nbyte );
-    }
-
-    /**
-     * Returns the number of mapped blocks used.
-     *
-     * @return  block count
-     */
-    public int getBlockCount() {
-        return nblock_;
-    }
-
-    /**
-     * Obtains a buffer corresponding to a named block of the stream.
-     * The buffer's position must be zero.
-     * This method is called whenever a buffer is required which is not
-     * the same as the most recently used one.
-     *
-     * @param  iblock   block index
-     * @return   byte buffer for given block, positioned at start
-     */
-    protected abstract MappedByteBuffer acquireBlock( int iblock )
-            throws IOException;
 
     /**
      * Performs the actual file mapping to create a new mapped buffer.
@@ -257,69 +107,17 @@ public abstract class BlockMappedInput implements BasicInput {
      * @param   iblock  block index
      * @param   buf  mapped buffer - must not be used subsequently
      */
-    void unmapBlock( int iblock, MappedByteBuffer buf ) {
+    void unmapBlock( int iblock, ByteBuffer buf ) {
         if ( iblock >= 0 ) {
-            boolean unmapped = unmapper_.unmap( buf );
-            logger_.config( "Expiring cached buffer "
-                          + ( iblock + 1 ) + "/" + nblock_
-                          + " of " + logName_
-                          + ( unmapped ? " (unmapped)"
-                                       : " (not unmapped)" ) );
-        }
-    }
-
-    /**
-     * Returns a ByteBuffer with content equivalent to that at the
-     * current position, but which is guaranteed to contain at least
-     * a given number of bytes.
-     * This method is not expected to be called frequently,
-     * only if a read happens to straddle blocks.  Since blocks are
-     * expected to be large, that should constitute a very small fraction
-     * of reads.
-     *
-     * @param  count   required number of bytes to read
-     * @return  buffer containing at least count bytes
-     */
-    private ByteBuffer getAssuredBuffer( int count ) throws IOException {
-
-        /* If the current buffer is at its end, advance to the next one. */
-        if ( ! buffer_.hasRemaining() ) {
-            setCurrentBlock( iblock_ + 1 );
-
-            /* If that buffer has enough bytes, return that. */
-            if ( buffer_.remaining() >= count ) {
-                return buffer_;
+            assert buf instanceof MappedByteBuffer;
+            if ( buf instanceof MappedByteBuffer ) {
+                boolean unmapped = unmapper_.unmap( (MappedByteBuffer) buf );
+                logger_.config( "Expiring cached buffer "
+                              + ( iblock + 1 ) + "/" + nblock_
+                              + " of " + logName_
+                              + ( unmapped ? " (unmapped)"
+                                           : " (not unmapped)" ) );
             }
-        }
-
-        /* If we have arrived here, we need to construct a new
-         * buffer with content that straddles multiple mapped buffers. */
-        byte[] array = new byte[ count ];
-        for ( int i = 0; i < count; ) {
-            if ( ! buffer_.hasRemaining() ) {
-                setCurrentBlock( iblock_ + 1 );
-            }
-            int nr = Math.min( count - i, buffer_.remaining() );
-            buffer_.get( array, i, nr );
-            i += nr;
-        }
-        return ByteBuffer.wrap( array );
-    }
-
-    /**
-     * Sets the current block, updating the current buffer and block index.
-     *
-     * @param  iblock  block index
-     */
-    private void setCurrentBlock( int iblock ) throws IOException {
-        if ( iblock < nblock_ ) {
-            MappedByteBuffer buf = acquireBlock( iblock );
-            assert buf.position() == 0;
-            buffer_ = buf;
-            iblock_ = iblock;
-        }
-        else {
-            throw new EOFException();
         }
     }
 
@@ -378,6 +176,9 @@ public abstract class BlockMappedInput implements BasicInput {
      */
     private static class UniqueBlockMappedInput extends BlockMappedInput {
 
+        private int iblock_;
+        private MappedByteBuffer buffer_;
+
         /**
          * Constructor.
          *
@@ -393,17 +194,19 @@ public abstract class BlockMappedInput implements BasicInput {
             super( channel, pos, size, logName, blockSize );
         }
 
-        protected MappedByteBuffer acquireBlock( int iblock )
-                throws IOException {
+        protected ByteBuffer acquireBlock( int iblock ) throws IOException {
             int oldIndex = iblock_;
-            MappedByteBuffer oldBuffer = buffer_;
+            ByteBuffer oldBuffer = buffer_;
             if ( oldBuffer != null ) {
                 unmapBlock( oldIndex, oldBuffer );
             }
-            return mapBlock( iblock );
+            buffer_ = mapBlock( iblock );
+            iblock_ = iblock;
+            return buffer_;
         }
 
         public void close() {
+            super.close();
             int oldIndex = iblock_;
             MappedByteBuffer oldBuffer = buffer_;
             if ( oldBuffer != null ) {
@@ -422,7 +225,7 @@ public abstract class BlockMappedInput implements BasicInput {
         private final int nblock_;
         private final long expiryMillis_;
         private final long tidyMillis_;
-        private final MappedByteBuffer[] bufs_;
+        private final ByteBuffer[] bufs_;
         private final long[] useEpochs_;
         private long lastTidy_;
 
@@ -444,14 +247,13 @@ public abstract class BlockMappedInput implements BasicInput {
             expiryMillis_ = expiryMillis;
             tidyMillis_ = expiryMillis / 4;
             nblock_ = getBlockCount();
-            bufs_ = new MappedByteBuffer[ nblock_ ];
+            bufs_ = new ByteBuffer[ nblock_ ];
             useEpochs_ = new long[ nblock_ ];
             lastTidy_ = System.currentTimeMillis();
         }
 
-        protected MappedByteBuffer acquireBlock( int iblock )
-                throws IOException {
-            MappedByteBuffer buf = bufs_[ iblock ];
+        protected ByteBuffer acquireBlock( int iblock ) throws IOException {
+            ByteBuffer buf = bufs_[ iblock ];
             if ( buf == null ) {
                 buf = mapBlock( iblock );
                 long now = System.currentTimeMillis();
@@ -469,6 +271,7 @@ public abstract class BlockMappedInput implements BasicInput {
         }
 
         public void close() {
+            super.close();
             tidyCache( Long.MAX_VALUE );
         }
 
@@ -481,7 +284,7 @@ public abstract class BlockMappedInput implements BasicInput {
          */
         private void tidyCache( long lastOkUse ) {
             for ( int i = 0; i < nblock_; i++ ) {
-                MappedByteBuffer buf = bufs_[ i ];
+                ByteBuffer buf = bufs_[ i ];
                 long useEpoch = useEpochs_[ i ];
                 if ( buf != null && useEpoch < lastOkUse ) {
                     bufs_[ i ] = null;
