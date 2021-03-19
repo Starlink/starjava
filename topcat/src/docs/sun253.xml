@@ -29393,6 +29393,9 @@ introduced since the last version:
     <li>Fix problem with evaluation of a synthetic column/subset
         referencing a second synthetic column whose expression gets
         edited to yield a different type.</li>
+    <li>Fix bug that meant writing long (&gt;2Gb)
+        <ref id="outFits">fits-var</ref> files could output 
+        illegal/corrupted FITS.</li>
     </ul>
     </p></dd>
 

@@ -13114,6 +13114,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="layer-histogram">histograms</ref>;
         bars beyond the last sample are now displayed with total value
         not zero.</li>
+    <li>Fix bug that meant writing long (&gt;2Gb)
+        <ref id="outFits">fits-var</ref> files could output
+        illegal/corrupted FITS.</li>
     </ul>
     </p></dd>
 

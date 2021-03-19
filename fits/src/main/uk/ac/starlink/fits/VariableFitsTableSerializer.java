@@ -74,7 +74,8 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
     public Header getHeader() throws HeaderCardException {
         Header hdr = super.getHeader();
         long heapSize = getHeapSize();
-        long datEnd = hdr.getIntValue( "NAXIS1" ) * hdr.getIntValue( "NAXIS2" );
+        long datEnd =
+            hdr.getLongValue( "NAXIS1" ) * hdr.getLongValue( "NAXIS2" );
         long theap = ( ( datEnd + 2880 - 1 ) / 2880 ) * 2880;
         long gap = theap - datEnd;
         long pcount = gap + heapSize;
