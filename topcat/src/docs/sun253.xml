@@ -29395,7 +29395,7 @@ introduced since the last version:
         edited to yield a different type.</li>
     <li>Fix bug that meant writing long (&gt;2Gb)
         <ref id="outFits">fits-var</ref> files could output 
-        illegal/corrupted FITS.</li>
+        incorrect/corrupted FITS.</li>
     </ul>
     </p></dd>
 

@@ -149,12 +149,13 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         VariableArrayColumnWriter[] vcws = getVariableArrayColumnWriters();
         ByteStore byteStore = storagePolicy_.makeByteStore();
         int bufsiz = 64 * 1024;
+        long[] counter = new long[ 1 ];
         DataOutputStream dataOut =
             new DataOutputStream(
                 new BufferedOutputStream( byteStore.getOutputStream(),
                                           bufsiz ) );
         for ( int iv = 0; iv < vcws.length; iv++ ) {
-            vcws[ iv ].setDataOutput( dataOut );
+            vcws[ iv ].setDataOutput( dataOut, counter );
         }
         try {
 
@@ -173,7 +174,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
             out.write( new byte[ 2880 - over ] );
         }
         for ( int iv = 0; iv < vcws.length; iv++ ) {
-            vcws[ iv ].setDataOutput( null );
+            vcws[ iv ].setDataOutput( (DataOutputStream) null, (long[]) null );
         }
     }
 
@@ -229,8 +230,10 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         private final ArrayWriter arrayWriter_;
         private final int maxElements_;
         private final long totalElements_;
+        private final int elSize_;
         private PQMode pqMode_;
         private DataOutputStream dataOut_;
+        private long[] counter_;
 
         /**
          * Constructor.
@@ -242,6 +245,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
             arrayWriter_ = arrayWriter;
             maxElements_ = maxElements;
             totalElements_ = totalElements;
+            elSize_ = arrayWriter.getByteCount();
         }
 
         /**
@@ -256,21 +260,29 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
          * Sets the byte store to which the actual array data is written
          * by this serializer.  Must be called before use.
          *
+         * <p>The supplied <code>counter</code> array is a 1-element array
+         * containing the number of bytes written so far to the
+         * <code>dataOut</code> stream.  That value may be used by this
+         * writer, and it must be updated by this writer in accordance
+         * with any output it makes to that stream.
+         *
          * @param  byteStore  byte store
+         * @param  counter   1-element array containing output byte count
          */
-        public void setDataOutput( DataOutputStream dataOut ) {
+        public void setDataOutput( DataOutputStream dataOut, long[] counter ) {
             dataOut_ = dataOut;
+            counter_ = counter;
         }
 
         public void writeValue( DataOutput out, Object value )
                 throws IOException {
             int leng = value == null ? 0 : Array.getLength( value );
             pqMode_.writeInteger( out, leng );
-            pqMode_.writeInteger( out, leng == 0 ? 0
-                                                 : dataOut_.size() );
+            pqMode_.writeInteger( out, leng == 0 ? 0 : counter_[ 0 ] );
             for ( int i = 0; i < leng; i++ ) {
                 arrayWriter_.writeElement( dataOut_, value, i );
             }
+            counter_[ 0 ] += leng * elSize_;
         }
 
         public char getFormatChar() {
