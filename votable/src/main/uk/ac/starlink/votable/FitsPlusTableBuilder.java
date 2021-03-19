@@ -117,8 +117,9 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
 
             /* Now get the StarTable from the next HDU. */
             StarTable starTable =
-                FitsTableBuilder.attemptReadTable( strm, wantRandom,
-                                                   datsrc, wide_, pos );
+                FitsTableBuilder
+               .attemptReadTable( strm, wantRandom, datsrc, wide_, pos,
+                                  storagePolicy );
             if ( starTable == null ) {
                 throw new TableFormatException( "No BINTABLE HDU found" );
             }

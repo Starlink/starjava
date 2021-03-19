@@ -29396,6 +29396,9 @@ introduced since the last version:
     <li>Fix bug that meant writing long (&gt;2Gb)
         <ref id="outFits">fits-var</ref> files could output 
         incorrect/corrupted FITS.</li>
+    <li>Variable-length array-valued columns in FITS tables
+        (<code>P</code>/<code>Q</code> descriptors)
+        can now be read even in compressed or streamed input.</li>
     </ul>
     </p></dd>
 
