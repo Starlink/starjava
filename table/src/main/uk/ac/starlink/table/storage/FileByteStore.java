@@ -108,17 +108,22 @@ public class FileByteStore implements ByteStore {
      * @param  out  destination stream
      */
     public static void copy( File file, OutputStream out ) throws IOException {
-        FileInputStream in = new FileInputStream( file );
         long size = file.length();
-        FileChannel inChannel = in.getChannel();
-        WritableByteChannel outChannel = out instanceof FileOutputStream
-                                       ? ((FileOutputStream) out).getChannel()
-                                       : Channels.newChannel( out );
-        long count = inChannel.transferTo( 0, size, outChannel );
-        in.close();
-        if ( count < size ) {
-            throw new IOException( "Only " + count + "/" + size
-                                 + " bytes could be transferred" );
+        try (
+            FileInputStream in = new FileInputStream( file );
+            FileChannel inChannel = in.getChannel()
+        ) {
+            WritableByteChannel outChannel =
+                  out instanceof FileOutputStream
+                ? ((FileOutputStream) out).getChannel()
+                : Channels.newChannel( out );
+            long pos = 0;
+            while ( pos < size ) {
+                pos += inChannel.transferTo( pos, size - pos, outChannel );
+            }
+            if ( pos != size ) {
+                throw new IOException( "Error in byte transfer" );
+            }
         }
     }
 

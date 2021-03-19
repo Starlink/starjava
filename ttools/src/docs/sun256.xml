@@ -13120,6 +13120,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Variable-length array-valued columns in FITS tables
         (<code>P</code>/<code>Q</code> descriptors)
         can now be read even in compressed or streamed input.</li>
+    <li>Fix long-standing file caching bug; mostly seemed to
+        affect large (&gt;2Gb) streams.</li>
     </ul>
     </p></dd>
 
