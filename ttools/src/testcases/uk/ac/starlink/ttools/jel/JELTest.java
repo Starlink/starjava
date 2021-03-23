@@ -106,6 +106,66 @@ public class JELTest extends TableTestCase {
         }
     }
 
+    public void testJELArrayFunction() throws CompilationException {
+        assertArrayEquals(
+            new int[] { 30, 300, 3000 },
+            JELArrayFunction.evaluate( "i", "x", "3*x",
+                                       new int[] { 10, 100, 1000 } ) );
+        assertArrayEquals(
+            new float[] { 1f, 32f, 1024f, 0.5f },
+            JELArrayFunction.evaluate( "i", "x", "(float)pow(2,x)",
+                                       new double[] { 0, 5, 10, -1 } ) );
+        assertArrayEquals(
+            new boolean[] { true, false, true },
+            JELArrayFunction.evaluate( "i", "flag", "!flag",
+                                       new boolean[] { false, true, false } ) );
+        assertArrayEquals(
+            new int[] { 3, 6, 0, 9, },
+            JELArrayFunction.evaluate( "i", "s", "s.length()",
+                   new String[] { "dog", "rabbit", null, "crocodile", } ) );
+        assertArrayEquals(
+            new double[] { 3., 6., Double.NaN, 9., },
+            JELArrayFunction.evaluate( "i", "s", "(double)s.length()",
+                   new String[] { "dog", "rabbit", null, "crocodile", } ) );
+        assertArrayEquals(
+            new String[] { null, "ap", "or", null },
+            JELArrayFunction.evaluate( "i", "fruit", "fruit.substring(0, 2)",
+                   new String[] { null, "apple", "orange", "p", } ) );
+
+        assertArrayEquals(
+            new int[] { 1, 11, 102, 1003 },
+            JELArrayFunction.evaluate( "i", "$", "i+$",
+                   new int[] { 1, 10, 100, 1000 } ) );
+
+        assertEquals( int[].class,
+                      new JELArrayFunction<short[],Object>( "ix", "ival",
+                                                            "(int)ival",
+                                                            short[].class,
+                                                            Object.class )
+                     .evaluate( new short[ 0 ] ).getClass() );
+        assertEquals( int[].class,
+                      new JELArrayFunction<short[],int[]>( "ix", "ival",
+                                                           "(int)ival",
+                                                           short[].class,
+                                                           int[].class )
+                     .evaluate( new short[ 0 ] ).getClass() );
+        assertEquals( long[].class,
+                      new JELArrayFunction<short[],long[]>( "ix", "ival",
+                                                            "(int)ival",
+                                                            short[].class,
+                                                            long[].class )
+                     .evaluate( new short[ 0 ] ).getClass() );
+        try {
+            new JELArrayFunction<short[],boolean[]>( "ix", "ival", "(int)ival",
+                                                     short[].class,
+                                                     boolean[].class );
+            fail();
+        }
+        catch ( CompilationException e ) {
+            // OK
+        }
+    }
+
     public void testObject() throws Throwable {
         testRandom( false );
         testRandom( true );
