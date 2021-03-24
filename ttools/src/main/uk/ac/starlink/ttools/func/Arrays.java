@@ -5,12 +5,18 @@
 
 package uk.ac.starlink.ttools.func;
 
+import gnu.jel.CompilationException;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.build.HideDoc;
 import uk.ac.starlink.ttools.filter.Quantiler;
 import uk.ac.starlink.ttools.filter.SortQuantiler;
+import uk.ac.starlink.ttools.jel.JELArrayFunction;
 
 /**
  * Functions which operate on array-valued cells.
@@ -69,6 +75,17 @@ import uk.ac.starlink.ttools.filter.SortQuantiler;
  * @since    14 Jul 2008
  */
 public class Arrays {
+
+    /** Array element variable name in arrayFunc expressions. */
+    public static final String ARRAY_ELEMENT_VARNAME = "x";
+
+    /** Array index variable name in arrayFunc expressions. */
+    public static final String ARRAY_INDEX_VARNAME = "i";
+
+    private static final ThreadLocal<ArrayFuncMap> afuncsThreadLocal_ =
+        ThreadLocal.withInitial( ArrayFuncMap::new );
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.func" );
 
     /**
      * Private constructor prevents instantiation.
@@ -900,6 +917,130 @@ public class Arrays {
     }
 
     /**
+     * Returns a floating-point array resulting from applying a given
+     * function expression element-by-element to an input array.
+     * The output array is the same length as the input array.
+     *
+     * <p>The supplied expression can use the variable "<code>x</code>"
+     * to refer to the corresponding element of the input array, and
+     * "<code>i</code>"
+     * to refer to its (zero-based) index.
+     * The various functions and operators from the expression language
+     * can all be used, but it is currently <strong>not</strong> possible
+     * to reference other table column values.
+     *
+     * <p>If there is an error in the expression, a blank value
+     * (not an array) will be returned.
+     *
+     * @example <code>arrayFunc("3*x",array(0,1,2,3,NaN))
+     *              = [0, 3, 6, 9, NaN]</code>
+     * @example <code>arrayFunc("pow(2,i)+x", array(0.5,0.5,0.5,0.5))
+     *              = [1.5, 2.5, 4.5, 8.5]</code>
+     *
+     * @param  expr  expression mapping input to output array values
+     * @param  inArray   input array
+     * @return   floating point array with the same number of elements as
+     *           <code>inArray</code>, or null for a bad <code>expr</code>
+     */
+    public static double[] arrayFunc( String expr, Object inArray ) {
+        return arrayFunc( expr, inArray, double[].class );
+    }
+
+    /**
+     * Returns an integer array resulting from applying a given
+     * function expression element-by-element to an input array.
+     * The output array is the same length as the input array.
+     *
+     * <p>The supplied expression can use the variable "<code>x</code>"
+     * to refer to the corresponding element of the input array, and
+     * "<code>i</code>"
+     * to refer to its (zero-based) index.
+     * The various functions and operators from the expression language
+     * can all be used, but it is currently <strong>not</strong> possible
+     * to reference other table column values.
+     *
+     * <p>If there is an error in the expression, a blank value
+     * (not an array) will be returned.
+     *
+     * @example <code>intArrayFunc("-x",sequence(5))
+     *              = [0, -1, -2, -3, -4]</code>
+     *
+     * @param  expr  expression mapping input to output array values
+     * @param  inArray   input array
+     * @return   floating point array with the same number of elements as
+     *           <code>inArray</code>, or null for a bad <code>expr</code>
+     */
+    public static int[] intArrayFunc( String expr, Object inArray ) {
+        return arrayFunc( expr, inArray, int[].class );
+    }
+
+    /**
+     * Returns an untyped array resulting from applying a given
+     * function expression element-by-element to an input array.
+     * The runtime type of the output value is determined by the
+     * compiled type of the supplied expression, but since this
+     * method only has type Object, it has to be cast manually to
+     * the actual type before anything much can be done with it.
+     * For that reason it's not publicised in the user documentation.
+     *
+     * @param  expr  expression mapping input to output array values
+     * @param  inArray   input array
+     * @return   untyped array with the same number of elements as
+     *           <code>inArray</code>, or null for a bad <code>expr</code>
+     */
+    @HideDoc
+    public static Object untypedArrayFunc( String expr, Object inArray ) {
+        return arrayFunc( expr, inArray, Object.class );
+    }
+
+    /**
+     * Returns an array of a specified type that results from applying a given
+     * function expression element-by-element to an input array.
+     *
+     * @param  expr  expression mapping input to output array values
+     * @param  inArray   input array
+     * @return   array with the same number of elements as
+     *           <code>inArray</code>, or null for a bad <code>expr</code>
+     */
+    private static <I,O> O arrayFunc( String expr, I inArray,
+                                      Class<O> outClazz ) {
+        if ( inArray == null || expr == null ) {
+            return null;
+        }
+        @SuppressWarnings("unchecked")
+        Class<I> inClazz = (Class<I>) inArray.getClass();
+        JELArrayFunction<I,O> afunc =
+             getArrayFunction( ARRAY_INDEX_VARNAME, ARRAY_ELEMENT_VARNAME,
+                               expr, inClazz, outClazz );
+        return afunc == null
+             ? null
+             : afunc.evaluate( inArray );
+    }
+
+    /**
+     * Returns an array function with specified characteristics that is
+     * safe for use in the current thread.
+     *
+     * @param   iname  name of the array index variable
+     * @param   xname  name of the array element variable
+     * @param   fexpr  text of expression giving the function value
+     * @param   inClazz  type of input array; must be an array type of
+     *                   primitive or object elements
+     * @param   outClazz  type of output array; if not known, Object.class
+     *                    may be given, and the output type will be determined
+     *                    from the expression
+     */
+    private static <I,O>
+             JELArrayFunction<I,O> getArrayFunction( String iname, String xname,
+                                                     String fexpr,
+                                                     Class<I> inClazz,
+                                                     Class<O> outClazz ) {
+         return afuncsThreadLocal_
+               .get()
+               .getArrayFunction( iname, xname, fexpr, inClazz, outClazz );
+    }
+
+    /**
      * Returns the position in a supplied array at which a given item appears.
      * The result is zero-based, so if the supplied <code>item</code>
      * is the first entry in the <code>array</code>, the return value
@@ -1115,5 +1256,100 @@ public class Arrays {
     private static int effectiveIndex( int index, int leng ) {
         return index >= 0 ? Math.min( leng, index )
                           : Math.max( 0, leng + index );
+    }
+
+    /**
+     * Class to cache compiled array functions.
+     */
+    private static class ArrayFuncMap {
+        private final Map<Key<?,?>,JELArrayFunction<?,?>> map_;
+
+        ArrayFuncMap() {
+            map_ = new HashMap<>();
+        }
+
+        /**
+         * Returns a lazily constructed, possibly cached, array function.
+         * The returned object not safe for concurrent use within
+         * multiple threads.
+         *
+         * @param   iname  name of the array index variable
+         * @param   xname  name of the input array element variable
+         * @param   fexpr  expression for the output array element
+         * @param   inClazz  array class for the input array
+         * @param   outClazz  array class for the output array
+         * @return   function that maps input to output array objects,
+         *           or null in the case of a compilation exception
+         */
+        <I,O> JELArrayFunction<I,O> getArrayFunction( String iname,
+                                                      String xname,
+                                                      String fexpr,
+                                                      Class<I> inClazz,
+                                                      Class<O> outClazz ) {
+            Key<I,O> key = new Key<>( iname, xname, fexpr, inClazz, outClazz );
+            JELArrayFunction<I,O> afunc;
+            if ( map_.containsKey( key ) ) {
+                @SuppressWarnings("unchecked")
+                JELArrayFunction<I,O> afunc0 =
+                    (JELArrayFunction<I,O>) map_.get( key );
+                afunc = afunc0;
+            }
+            else {
+                try {
+                    afunc = new JELArrayFunction<I,O>( iname, xname, fexpr,
+                                                       inClazz, outClazz );
+                }
+                catch ( CompilationException e ) {
+                    logger_.log( Level.WARNING,
+                                 "Bad expresssion \"" + fexpr + "\": " + e, e );
+                    afunc = null;
+                }
+                map_.put( key, afunc );
+            }
+            return afunc;
+        }
+
+        /**
+         * Map key to identify array function indices.
+         */
+        private static class Key<I,O> {
+            final String iname_;
+            final String xname_;
+            final String fexpr_;
+            final Class<I> inClazz_;
+            final Class<O> outClazz_;
+            Key( String iname, String xname, String fexpr,
+                 Class<I> inClazz, Class<O> outClazz ) {
+                iname_ = iname;
+                xname_ = xname;
+                fexpr_ = fexpr;
+                inClazz_ = inClazz;
+                outClazz_ = outClazz;
+            }
+            @Override
+            public int hashCode() {
+                int code = -9971;
+                code = 23 * code + iname_.hashCode();
+                code = 23 * code + xname_.hashCode();
+                code = 23 * code + fexpr_.hashCode();
+                code = 23 * code + inClazz_.hashCode();
+                code = 23 * code + outClazz_.hashCode();
+                return code;
+            }
+            @Override
+            public boolean equals( Object o ) {
+                if ( o instanceof Key ) {
+                    Key<?,?> other = (Key<?,?>) o;
+                    return this.fexpr_.equals( other.fexpr_ )
+                        && this.iname_.equals( other.iname_ )
+                        && this.xname_.equals( other.xname_ )
+                        && this.inClazz_.equals( other.inClazz_ )
+                        && this.outClazz_.equals( other.outClazz_ );
+                }
+                else {
+                    return false;
+                }
+            }
+        }
     }
 }

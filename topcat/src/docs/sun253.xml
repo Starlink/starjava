@@ -29402,6 +29402,9 @@ introduced since the last version:
     <li>Fix long-standing file caching bug; mostly seemed to
         affect large (&gt;2Gb) streams.</li>
     <li>Maximum line thickness in line plots raised from 5 to 9.</li>
+    <li>Add new functions <code>arrayFunc</code>,
+        <code>intArrayFunc</code> to class
+        <ref id="Arrays">Arrays</ref>.</li>
     </ul>
     </p></dd>
 

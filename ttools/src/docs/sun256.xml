@@ -13122,6 +13122,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         can now be read even in compressed or streamed input.</li>
     <li>Fix long-standing file caching bug; mostly seemed to
         affect large (&gt;2Gb) streams.</li>
+    <li>Add new functions <code>arrayFunc</code>,
+        <code>intArrayFunc</code> to class
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
     </ul>
     </p></dd>
 
