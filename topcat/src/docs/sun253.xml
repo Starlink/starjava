@@ -159,6 +159,11 @@
   <!ENTITY FIG.SpectrogramLayerControl '&figs;SpectrogramLayerControl.png'>
   <!ENTITY FIG.SpectrogramLayerControl_data
            '&figs;SpectrogramLayerControl_data.png'>
+  <!ENTITY FIG.GangLayerControl_xyarray '&figs;GangLayerControl_xyarray.png'>
+  <!ENTITY FIG.GangLayerControl_xyarray_position
+           '&figs;GangLayerControl_xyarray_position.png'>
+  <!ENTITY FIG.GangLayerControl_xyarray_form
+           '&figs;GangLayerControl_xyarray_form.png'>
   <!ENTITY FIG.LayerControl_skygrid '&figs;LayerControl_skygrid.png'>
   <!ENTITY FIG.LayerControl_spheregrid '&figs;LayerControl_spheregrid.png'>
   <!ENTITY FIG.GangLayerControl_position '&figs;GangLayerControl_position.png'>
@@ -222,6 +227,9 @@
   <!ENTITY FIG.form_link2 '&figs;form_link2.png'>
   <!ENTITY FIG.form_poly4 '&figs;form_poly4.png'>
   <!ENTITY FIG.form_area '&figs;form_area.png'>
+  <!ENTITY FIG.form_lines '&figs;form_lines.png'>
+  <!ENTITY FIG.form_yerrors '&figs;form_yerrors.png'>
+  <!ENTITY FIG.form_xyerrors '&figs;form_xyerrors.png'>
   <!ENTITY FIG.font_tab '&figs;font_tab.png'>
   <!ENTITY FIG.size_tab '&figs;size_tab.png'>
   <!ENTITY FIG.title_tab '&figs;title_tab.png'>
@@ -332,6 +340,10 @@
   <!ENTITY FIG.plot2-layer-area '&figs;plot2-layer-area.png'>
   <!ENTITY FIG.plot2-layer-central '&figs;plot2-layer-central.png'>
   <!ENTITY FIG.plot2-layer-arealabel '&figs;plot2-layer-arealabel.png'>
+  <!ENTITY FIG.plot2-layer-lines '&figs;plot2-layer-lines.png'>
+  <!ENTITY FIG.plot2-layer-marks '&figs;plot2-layer-marks.png'>
+  <!ENTITY FIG.plot2-layer-yerrors '&figs;plot2-layer-yerrors.png'>
+  <!ENTITY FIG.plot2-layer-xyerrors '&figs;plot2-layer-xyerrors.png'>
   <!ENTITY FIG.plot2-shading-flat '&figs;plot2-shading-flat.png'>
   <!ENTITY FIG.plot2-shading-auto '&figs;plot2-shading-auto.png'>
   <!ENTITY FIG.plot2-shading-density '&figs;plot2-shading-density.png'>
@@ -369,6 +381,9 @@
   <!ENTITY CONTROL.spectrogram
            '&IMG.PLOT_SPECTRO;
             <ref id="SpectrogramLayerControl">Spectrogram Layer Control</ref>'>
+  <!ENTITY CONTROL.xyarray
+           '&IMG.PLOT_VECTOR;
+            <ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>'>
   <!ENTITY CONTROL.healpix
            '&IMG.PLOT_HEALPIX;
             <ref id="HealpixLayerControl">Healpix Layer Control</ref>'>
@@ -428,6 +443,12 @@
                            <ref id="form-arealabel">AreaLabel</ref>'>
   <!ENTITY FORM.polygon '&IMG.FORM_POLYLINE;
                          <ref id="form-polygon">Polygon</ref>'>
+  <!ENTITY FORM.lines '&IMG.PLOT_LINE; <ref id="form-lines">Lines</ref>'>
+  <!ENTITY FORM.marks '&IMG.FORM_MARK; <ref id="form-marks">Marks</ref>'>
+  <!ENTITY FORM.yerrors '&IMG.FORM_ERROR1;
+                         <ref id="form-yerrors">YErrors</ref>'>
+  <!ENTITY FORM.xyerrors '&IMG.FORM_ERROR;
+                          <ref id="form-xyerrors">XYErrors</ref>'>
   <!ENTITY GESTURE.DRAG1 '&IMG.DRAG1; Left drag'>
   <!ENTITY GESTURE.DRAG2 '&IMG.DRAG2; Center drag (SHIFT-drag)'>
   <!ENTITY GESTURE.DRAG3 '&IMG.DRAG3; Right drag (CTRL-drag)'>
@@ -9304,8 +9325,114 @@ It has the following fields:
 use the <ref id="ShaderControl">Aux</ref> &IMG.COLORS; fixed control.
 </p>
 
+</subsubsubsect>
+
+<subsubsubsect id="GangLayerControl_xyarray">
+<subhead><title>XYArray Layer Control</title></subhead>
+
+<p>The <label>XYArray</label> layer control (&IMG.PLOT_VECTOR;)
+can be used to plot points, lines and error bars,
+but unlike the <ref id="GangLayerControl_single">Position Layer Control</ref>
+it works with table cells whose values are arrays giving multiple coordinates,
+rather than single values.
+It is typically used where the value stored in each cell of a column
+is an array representing a whole spectrum or time series,
+or some related quantity (such as errors, frequencies, epochs etc).
+Each row of the table therefore corresponds to a full spectrum,
+timeseries, or other array of coordinate pairs.
+</p>
+
+<p>Use the <label>Layers</label> menu item or corresponding toolbar button to
+add an instance to the control stack.
+This control is only available for the
+<ref id="PlanePlotWindow">Plane</ref> plot.
+you can add one of these controls to the stack by using the
+<label>Add XYArray Control</label> (&IMG.ADD_PLOT_XYARRAY;) button
+in the control panel toolbar,
+or the corresponding item in the <label>Layers</label> menu.
+</p>
+
+<figure>
+<caption><px>Plane Plot window with an XYArray layer</px></caption>
+<figureimage src="&FIG.GangLayerControl_xyarray;"/>
+</figure>
+
+<p>This control is a Table Data control as described in
+<ref id="tableDataControl"/>.
+That section explains the <label>Subsets</label> tab;
+the <label>Position</label> and <label>Form</label> tabs
+are described in more detail below.
+</p>
+
+<figure>
+<caption><px>Position tab of XYArray layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_xyarray_position;"/>
+</figure>
+
+<p>In the <label>Position</label> tab you have to fill in
+array values for the <label>X Values</label> and <label>Y Values</label>
+plot coordinates.
+The contents can be array-valued column names or expressions.
+For each row, the X and Y coordinates must be arrays of the same length
+(if they are not, nothing will be plotted for that row),
+though different rows may have different array lengths.
+To manipulate array values, some of the expression language functions
+in the <ref id="Arrays">Arrays</ref> class may be useful.
+</p>
+
+<p>TOPCAT will try to fill in the X and Y coordinates with suitable
+array values from the table, if it can find some.
+As well as array-valued columns, array-valued table parameters
+can be used, and are often suitable for the X axis;
+these can be referred to using the syntax "<code>param$&lt;name&gt;</code>",
+as explained in <ref id="jelParams"/>.
+It helps if columns are declared with fixed array sizes, where applicable.
+</p>
+
+<figure>
+<caption><px>Form tab of XYArray layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_xyarray_form;"/>
+</figure>
+
+<p>The <label>Form</label> tab lets you define how the specified
+data set is plotted.
+The list on the left gives a list of forms currently being plotted,
+and the panel on the right shows the detailed configuration for the
+currently selected form.
+</p>
+
+<p>The available forms for an XYArray plot
+(select them using the &IMG.ADD; <label>Forms</label> button)
+are currently
+<ul>
+<li>&IMG.PLOT_LINE; <ref id="form-lines">Lines</ref>:
+    draws a line between the X,Y positions</li>
+<li>&IMG.FORM_MARK; <ref id="form-marks">Marks</ref>:
+    draws a marker for each X,Y position</li>
+<li>&IMG.FORM_ERROR1; <ref id="form-yerrors">YErrors</ref>:
+    draws a vertical error bar at each X,Y position</li>
+<li>&IMG.FORM_ERROR; <ref id="form-xyerrors">XYErrors</ref>:
+    draws horizontal and/or vertical error bars at each X,Y position</li>
+</ul>
+You can have zero or more of each form and configure them separately.
+The detail panel for these forms is dependent on the form itself
+and are described in more detail in <ref id="ShapeForm"/>,
+but the detail panels are divided into these parts:
+<dl>
+<dt>Shading</dt>
+<dd><p>The shading mode controls how points are shaded based on their
+    chosen colour.  The various options are described in <ref id="ShapeMode"/>.
+    Depending on the mode there may be more settings to fill in here.
+    </p></dd>
+<dt>Global/Subset Styles</dt>
+<dd><p>Controls the style details for the chosen form;
+    see <ref id="tableDataControl"/>.
+    </p></dd>
+</dl>
+</p>
 
 </subsubsubsect>
+
 
 <subsubsubsect id="FunctionLayerControl">
 <subhead><title>Function Layer Control</title></subhead>
@@ -12210,6 +12337,197 @@ shape information; it may or may not correspond to the shape's actual center.
 
 </subsubsubsect>
 
+<subsubsubsect id="form-lines">
+<subhead><title>Lines Form</title></subhead>
+
+<p>The <label>Lines</label> form (&IMG.PLOT_LINE;),
+available from the
+<ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>,
+draws a point-to-point line joining all the elements of X, Y
+array-valued coordinates, resulting in one line for each table row.
+It is typically used to plot a number of spectra or time series.
+</p>
+
+<figure>
+<caption><px>Example Lines plot</px></caption>
+<figureimage src="&FIG.plot2-layer-lines;"/>
+</figure>
+
+<figure>
+<caption><px>Lines form configuration panel</px></caption>
+<figureimage src="&FIG.form_lines;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Line thickness in pixels.
+    </p></dd>
+<dt>Dash</dt>
+<dd><p>Dash pattern.  The line is solid by default.
+    </p></dd>
+<dt>Antialiasing</dt>
+<dd><p>If true, pixels are blurred to give the line a smoother appearance.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-marks">
+<subhead><title>Marks Form</title></subhead>
+
+<p>The <label>Marks</label> form (&IMG.FORM_MARK;),
+available from the
+<ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>,
+draws a set of points representing all the elements of X, Y
+array-valued coordinates, resulting in a sequence of points
+for each table row.
+</p>
+
+<figure>
+<caption><px>Example Marks plot</px></caption>
+<figureimage src="&FIG.plot2-layer-marks;"/>
+</figure>
+
+<figure>
+<caption><px>Mark form configuration panel</px></caption>
+<figureimage src="&FIG.form_mark;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Shape</dt>
+<dd><p>Marker shape from a list of options.
+    </p></dd>
+<dt>Size</dt>
+<dd><p>Marker size in pixels.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-yerrors">
+<subhead><title>YErrors Form</title></subhead>
+
+<p>The <label>YErrors</label> form (&IMG.FORM_ERROR1;),
+available from the
+<ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>,
+draws a set of symmetric or asymmetric vertical error bars
+representing all the elements of X, Y
+array-valued coordinates, resulting in a sequence of error bars
+for each table row.
+</p>
+
+<figure>
+<caption><px>Example YErrors plot</px></caption>
+<figureimage src="&FIG.plot2-layer-yerrors;"/>
+</figure>
+
+<figure>
+<caption><px>YErrors form configuration panel</px></caption>
+<figureimage src="&FIG.form_yerrors;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Y Positive Errors</dt>
+<dt>Y Negative Errors</dt>
+<dd><p>Array values giving vertical error extents corresponding to the plotted
+    data position arrays.
+    If both positive and negative values are filled in,
+    the errors will be asymmetric.
+    If the negative value is blank (either because the coordinate is not
+    filled in, or because its value is NaN for that row),
+    the error bars will be symmetric,
+    i.e. the negative error bar will be the same size as the positive one.
+    If you want to ensure only a positive error bar is plotted,
+    supply zero for the corresponding negative errors.
+    The error extents must be positive; negative array elements are ignored.
+    </p>
+    <p>The column names or expressions used here must be array values,
+    matching the length of the data array values.
+    If you need to create or manipulate array values,
+    the functions in the <ref id="Arrays">Arrays</ref> class
+    may be of use here.
+    </p></dd>
+<dt>Error Bar</dt>
+<dd><p>Error bar shape from a list of options.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-xyerrors">
+<subhead><title>XYErrors Form</title></subhead>
+
+<p>The <label>XYErrors</label> form (&IMG.FORM_ERROR;),
+available from the
+<ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>,
+draws a set of error bars representing all the elements of X, Y
+array-valued coordinates, resulting in a sequence of error bars
+for each table row.
+Symmetric or asymmetric vertical and/or horizontal error bars may be drawn,
+and the shape of the error "bars" is quite configurable,
+including error ellipses, rectangles etc.
+</p>
+
+<figure>
+<caption><px>Example XYErrors plot</px></caption>
+<figureimage src="&FIG.plot2-layer-xyerrors;"/>
+</figure>
+
+<figure>
+<caption><px>XYErrors form configuration panel</px></caption>
+<figureimage src="&FIG.form_xyerrors;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>X Positive Errors</dt>
+<dt>X Negative Errors</dt>
+<dt>Y Positive Errors</dt>
+<dt>Y Negative Errors</dt>
+<dd><p>Array values giving error extents in X and Y directions
+    corresponding to the plotted data position arrays.
+    For each axis, if both positive and negative values are filled in,
+    the errors will be asymmetric.
+    If the negative value is blank (either because the coordinate is not
+    filled in, or because its value is NaN for that row),
+    the error bars will be symmetric,
+    i.e. the negative error bar will be the same size as the positive one.
+    If you want to ensure only a positive error bar is plotted,
+    supply zero for the corresponding negative errors.
+    Either X, Y or both error values may be supplied.
+    </p>
+    <p>The column names or expressions used here must be array values,
+    matching the length of the data array values.
+    If you need to create or manipulate array values,
+    the functions in the <ref id="Arrays">Arrays</ref> class
+    may be of use here.
+    </p></dd>
+<dt>Error Bar</dt>
+<dd><p>Error bar shape from a list of options.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 </subsubsect>
 
 <subsubsect id="ShapeMode">
@@ -12996,21 +13314,28 @@ see the <label>Coords</label> tab of the
     <li>&FORM.fill;</li>
     <li>&FORM.quantile;</li>
     </ul></li>
-<li>&CONTROL.pair;, with the following plot controls:
+<li>&CONTROL.pair;, with these form options:
     <ul>
     <li>&FORM.link2;</li>
     <li>&FORM.mark2;</li>
     </ul></li>
-<li>&CONTROL.area;, with the following plot controls:
+<li>&CONTROL.area;, with these form options:
     <ul>
     <li>&FORM.area;</li>
     <li>&FORM.central;</li>
     <li>&FORM.arealabel;</li>
     </ul></li>
-<li>&CONTROL.quad;, with the following plot controls:
+<li>&CONTROL.quad;, with these form options:
     <ul>
     <li>&FORM.poly4;</li>
     <li>&FORM.mark4;</li>
+    </ul></li>
+<li>&CONTROL.xyarray;, with these form options:
+    <ul>
+    <li>&FORM.lines;</li>
+    <li>&FORM.marks;</li>
+    <li>&FORM.yerrors;</li>
+    <li>&FORM.xyerrors;</li>
     </ul></li>
 <li>&CONTROL.histogram;, with these form options:
     <ul>
@@ -29407,6 +29732,15 @@ introduced since the last version:
         <ref id="Arrays">Arrays</ref>.</li>
     <li>Add new function <code>constant</code> to class
         <ref id="Arrays">Arrays</ref>.</li>
+    <li>Add new
+        <ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>
+        with associated plot forms
+        <ref id="form-lines">Lines</ref>,
+        <ref id="form-marks">Marks</ref>,
+        <ref id="form-yerrors">YErrors</ref> and
+        <ref id="form-xyerrors">XYErrors</ref> forms
+        for plotting array-valued columns such as
+        per-row spectra and time series.</li>
     </ul>
     </p></dd>
 
