@@ -13127,6 +13127,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
     <li>Add new function <code>constant</code> to class
         <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+    <li>Add new plot layers to <ref id="plot2plane">plot2plane</ref>
+        for working with data (such as spectra or time series)
+        in array-valued columns:
+        <ref id="layer-lines">layer-lines</ref>,
+        <ref id="layer-marks">layer-marks</ref>,
+        <ref id="layer-yerrors">layer-yerrors</ref> and
+        <ref id="layer-xyerrors">layer-xyerrors</ref>.</li>
     </ul>
     </p></dd>
 
