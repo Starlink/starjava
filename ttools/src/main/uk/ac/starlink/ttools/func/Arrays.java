@@ -77,9 +77,11 @@ import uk.ac.starlink.ttools.jel.JELArrayFunction;
 public class Arrays {
 
     /** Array element variable name in arrayFunc expressions. */
+    @HideDoc
     public static final String ARRAY_ELEMENT_VARNAME = "x";
 
     /** Array index variable name in arrayFunc expressions. */
+    @HideDoc
     public static final String ARRAY_INDEX_VARNAME = "i";
 
     private static final ThreadLocal<ArrayFuncMap> afuncsThreadLocal_ =
