@@ -29405,6 +29405,8 @@ introduced since the last version:
     <li>Add new functions <code>arrayFunc</code>,
         <code>intArrayFunc</code> to class
         <ref id="Arrays">Arrays</ref>.</li>
+    <li>Add new function <code>constant</code> to class
+        <ref id="Arrays">Arrays</ref>.</li>
     </ul>
     </p></dd>
 

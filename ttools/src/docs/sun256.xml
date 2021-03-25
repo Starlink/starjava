@@ -13125,6 +13125,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add new functions <code>arrayFunc</code>,
         <code>intArrayFunc</code> to class
         <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+    <li>Add new function <code>constant</code> to class
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
     </ul>
     </p></dd>
 

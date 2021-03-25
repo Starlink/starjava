@@ -589,6 +589,64 @@ public class Arrays {
     }
 
     /**
+     * Returns a fixed-size array filled with a given constant value.
+     *
+     * <p><strong>Note:</strong>
+     * This documents the double-precision version of the routine.
+     * Corresponding routines exist for other data types
+     * (<code>float</code>, <code>long</code>, <code>int</code>,
+     * <code>short</code>, <code>byte</code>).
+     *
+     * @example  <code>constant(5, 23.5) = [23.5, 23.5, 23.5, 23.5, 23.5]</code>
+     *
+     * @param  n  size of output array
+     * @param  value  value of every element in the output array
+     * @return   <code>n</code>-element array with every element set to
+     *           <code>value</code>
+     */
+    public static double[] constant( int n, double value ) {
+        double[] array = new double[ n ];
+        java.util.Arrays.fill( array, value );
+        return array;
+    }
+
+    @HideDoc
+    public static float[] constant( int n, float value ) {
+        float[] array = new float[ n ];
+        java.util.Arrays.fill( array, value );
+        return array;
+    }
+
+    @HideDoc
+    public static byte[] constant( int n, byte value ) {
+        byte[] array = new byte[ n ];
+        java.util.Arrays.fill( array, value );
+        return array;
+    }
+
+    @HideDoc
+    public static short[] constant( int n, short value ) {
+        short[] array = new short[ n ];
+        java.util.Arrays.fill( array, value );
+        return array;
+    }
+
+
+    @HideDoc
+    public static int[] constant( int n, int value ) {
+        int[] array = new int[ n ];
+        java.util.Arrays.fill( array, value );
+        return array;
+    }
+
+    @HideDoc
+    public static long[] constant( int n, long value ) {
+        long[] array = new long[ n ];
+        java.util.Arrays.fill( array, value );
+        return array;
+    }
+
+    /**
      * Returns a sub-sequence of values from a given array.
      *
      * <p>The semantics are like python array slicing, though both limits

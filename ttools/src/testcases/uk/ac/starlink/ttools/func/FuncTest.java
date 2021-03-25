@@ -306,6 +306,11 @@ public class FuncTest extends TestCase {
                                         "BCG"));
         assertEquals(-1, Arrays.indexOf(Arrays.stringArray("QSO", "BCG", "SNR"),
                                         "TLA"));
+
+        assertArrayEquals( new double[] { 5.5, 5.5, 5.5, 5.5, },
+                           Arrays.constant( 4, 5.5 ) );
+        assertArrayEquals( new int[] { 23, 23, 23 },
+                           Arrays.constant( 3, 23 ) );
     }
 
     public void testConversions() {
