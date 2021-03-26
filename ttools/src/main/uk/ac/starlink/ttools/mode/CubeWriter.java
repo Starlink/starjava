@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.mode;
 
+import gnu.jel.CompilationException;
 import java.io.BufferedOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -11,11 +12,8 @@ import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.table.ColumnData;
-import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
-import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
-import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -23,7 +21,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.func.Times;
-import uk.ac.starlink.ttools.jel.ColumnIdentifier;
+import uk.ac.starlink.ttools.jel.JELTable;
 import uk.ac.starlink.ttools.plot2.layer.BinList;
 import uk.ac.starlink.ttools.plot2.layer.BinListCollector;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
@@ -40,8 +38,8 @@ public class CubeWriter implements TableConsumer {
 
     private final double[] loBounds_;
     private final double[] hiBounds_;
-    private final String[] colIds_;
-    private final String scaleId_;
+    private final String[] colExprs_;
+    private final String scaleExpr_;
     private final Combiner combiner_;
     private final Class<?> outType_;
     private final Destination dest_;
@@ -60,50 +58,44 @@ public class CubeWriter implements TableConsumer {
      * @param   hiBounds   upper bounds for each dimension
      * @param   nbins      number of bins in each dimension
      * @param   binSizes   extent of bins in each dimension
-     * @param   colIds     column ID strings for axes
-     * @param   scaleId    column ID string for scale column (or null)
+     * @param   colExprs   expression strings for axes
+     * @param   scaleExpr  expression string for scale column (or null)
      * @param   combiner   combination mode
      * @param   dest       data output locator
      * @param   outType    primitive numeric data type for output data;
      *                     if null worked out automatically
      */
     public CubeWriter( double[] loBounds, double[] hiBounds, int[] nbins,
-                       double[] binSizes, String[] colIds, String scaleId,
+                       double[] binSizes, String[] colExprs, String scaleExpr,
                        Combiner combiner, Destination dest, Class<?> outType ) {
         loBounds_ = loBounds;
         hiBounds_ = hiBounds;
         nbins_ = nbins;
         binSizes_ = binSizes;
-        colIds_ = colIds;
-        scaleId_ = scaleId;
+        colExprs_ = colExprs;
+        scaleExpr_ = scaleExpr;
         combiner_ = combiner;
         dest_ = dest;
         outType_ = outType;
     }
 
     public void consume( final StarTable inTable ) throws IOException {
-
-        /* Permute table columns so that only the selected ones appear in
-         * the table we're working with. */
-        int ndim = colIds_.length;
-        StarTable aTable = getPermutedTable( inTable, colIds_ );
+        int ndim = colExprs_.length;
+        String[] exprs = new String[ ndim + 1 ];
+        System.arraycopy( colExprs_, 0, exprs, 0, ndim );
+        exprs[ ndim ] = scaleExpr_ == null ? "1" : scaleExpr_;
         StarTable asTable;
-        if ( scaleId_ != null ) {
-            String[] ids = new String[ ndim + 1 ];
-            System.arraycopy( colIds_, 0, ids, 0, ndim );
-            ids[ ndim ] = scaleId_;
-            asTable = getPermutedTable( inTable, ids );
+        try {
+            asTable = JELTable.createJELTable( inTable, exprs );
         }
-        else {
-            ColumnStarTable unitTable = new ColumnStarTable( inTable ) {
-                public long getRowCount() {
-                    return inTable.getRowCount();
-                }
-            };
-            unitTable.addColumn( new UnitColumnData() );
-            asTable =
-                new JoinStarTable( new StarTable[] { aTable, unitTable } );
+        catch ( CompilationException e ) {
+            throw new IOException( "Bad expression " + e.getMessage() );
         }
+        int[] icData = new int[ ndim ];
+        for ( int ic = 0; ic < ndim; ic++ ) {
+            icData[ ic ] = ic;
+        }
+        StarTable aTable = new ColumnPermutedStarTable( asTable, icData );
  
         /* Read data to acquire bounds from the data if necessary. */
         fixBounds( aTable, loBounds_, hiBounds_ );
@@ -142,35 +134,6 @@ public class CubeWriter implements TableConsumer {
         finally {
             out.close();
         }
-    }
-
-    /**
-     * Returns a table which is made from the named columns selected from
-     * a given input table.
-     *
-     * @param  baseTable   input table
-     * @param  colIds     list of column IDs describing the table you want
-     * @return  table consisting of only <code>colIds</code> out of 
-     *          <code>baseTable</code>
-     */
-    private static StarTable getPermutedTable( StarTable baseTable,
-                                               String[] colIds )
-            throws IOException {
-        ColumnIdentifier ident = new ColumnIdentifier( baseTable );
-        int ndim = colIds.length;
-        int[] colMap = new int[ ndim ];
-        for ( int idim = 0; idim < ndim; idim++ ) {
-            colMap[ idim ] = ident.getColumnIndex( colIds[ idim ] );
-        }
-        StarTable dimTable = new ColumnPermutedStarTable( baseTable, colMap );
-        for ( int idim = 0; idim < ndim; idim++ ) {
-            ColumnInfo info = dimTable.getColumnInfo( idim );
-            if ( ! Number.class.isAssignableFrom( info.getContentClass() ) ) {
-                throw new IOException( "Column " + info +
-                                       " not numeric" );
-            }
-        }
-        return dimTable;
     }
 
     /**

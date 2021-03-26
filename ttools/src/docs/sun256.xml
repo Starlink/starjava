@@ -13134,6 +13134,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="layer-marks">layer-marks</ref>,
         <ref id="layer-yerrors">layer-yerrors</ref> and
         <ref id="layer-xyerrors">layer-xyerrors</ref>.</li>
+    <li>Fix <ref id="tcube">tcube</ref> bug that caused problems with
+        some input filter (<code>icmd</code>) processing.</li>
+    <li>Modify <ref id="tcube">tcube</ref> so that it accepts
+        expression language expressions rather than just column name/ID
+        values for the <code>cols</code> and <code>scale</code>
+        parameters.</li>
     </ul>
     </p></dd>
 

@@ -21,7 +21,7 @@ import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.util.Destination;
 
 /**
- * Output mode for generating an N-dimenaional histogram of data points
+ * Output mode for generating an N-dimensional histogram of data points
  * from a selection of N columns of the input table.
  *
  * @author   Mark Taylor
@@ -153,21 +153,18 @@ public class CubeMode implements ProcessingMode {
         } );
 
         scaleParam_ = new StringParameter( "scale" );
-        scaleParam_.setUsage( "<col-id>" );
+        scaleParam_.setUsage( "<expr>" );
         scaleParam_.setNullPermitted( true );
         scaleParam_.setStringDefault( null );
         scaleParam_.setPrompt( "Value by which to scale counts" );
         scaleParam_.setDescription( new String[] {
-            "<p>Optionally gives a value by which the count in each bin is",
-            "scaled.",
-            "If this value is <code>null</code> (the default) then for each",
-            "row that falls within the bounds of a pixel, the pixel value",
-            "will be incremented by 1.",
-            "If a column ID is given, then instead of 1 being added,",
-            "the value of that column for the row in question is added.",
-            "The effect of this is that the output image contains the mean",
-            "of the given column for the rows corresponding to each pixel",
-            "rather than just a count of them.",
+            "<p>Optionally gives a weight for each entry contributing to",
+            "histogram bins.",
+            "The value of this expression is accumulated,",
+            "in accordance with the",
+            "<code>" + combinerParam_.getName() + "</code> parameter,",
+            "into the bin defined by its coordinates.",
+            "If no expression is given, the value 1 is assumed.",
             "</p>",
         } );
     }
@@ -177,7 +174,7 @@ public class CubeMode implements ProcessingMode {
            "<p>Makes an N-dimensional histogram of the columns in the",
            "input table.",
            "The result is an N-dimensional array which is output as a",
-           "FITS file.",
+           "FITS image file.",
            "</p>",
         } );
     }
@@ -200,14 +197,14 @@ public class CubeMode implements ProcessingMode {
         /* Determine the dimensionality of the output cube (which is the 
          * number of columns in the input table) and configure the 
          * multiplicity of some of the other parameters accordingly. */
-        final String[] colIds = colsParam_.wordsValue( env );
-        final int ndim = colIds.length;
+        final String[] colExprs = colsParam_.wordsValue( env );
+        final int ndim = colExprs.length;
         boundsParam_.setRequiredWordCount( ndim );
         binsizeParam_.setRequiredWordCount( ndim );
         nbinParam_.setRequiredWordCount( ndim );
 
-        /* Get the scale column ID. */
-        final String scaleId = scaleParam_.stringValue( env );
+        /* Get the scale column expression. */
+        final String scaleExpr = scaleParam_.stringValue( env );
 
         /* Get the explicitly specified bounds for the output grid. */
         Object[] boundsWords = boundsParam_.parsedWordsValue( env );
@@ -268,8 +265,8 @@ public class CubeMode implements ProcessingMode {
         Class<?> outType = typeParam_.objectValue( env );
 
         /* Construct and return the consumer itself. */
-        return new CubeWriter( loBounds, hiBounds, nbins, binsizes, colIds,
-                               scaleId, combiner, dest, outType );
+        return new CubeWriter( loBounds, hiBounds, nbins, binsizes, colExprs,
+                               scaleExpr, combiner, dest, outType );
     }
 
     /**

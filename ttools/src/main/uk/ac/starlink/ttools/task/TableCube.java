@@ -24,14 +24,14 @@ public class TableCube extends SingleMapperTask {
         List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
         colsParam_ = new WordsParameter( "cols" );
-        colsParam_.setWordUsage( "<col-id>" );
+        colsParam_.setWordUsage( "<expr> ..." );
         colsParam_.setPrompt( "Space-separated list of input columns" );
         colsParam_.setDescription( new String[] {
             "<p>Columns to use for this task.",
-            "One or more <code>&lt;col-id&gt;</code> elements, ",
+            "One or more <code>&lt;expr&gt;</code> elements, ",
             "separated by spaces, should be given.",
-            "Each one represents a column in the table, using either its",
-            "name or index.",
+            "Each one represents a numeric value from the table,",
+            "provided as a column name or algebraic expression.",
             "</p>",
             "<p>The number of columns listed in the value of this",
             "parameter defines the dimensionality of the output",
