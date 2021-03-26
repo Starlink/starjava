@@ -8843,7 +8843,13 @@ If you want a polygon with more vertices, try the
 <p>The <label>Healpix</label> layer control (&IMG.PLOT_HEALPIX;)
 is available from the <ref id="SkyPlotWindow">Sky Plot Window</ref>
 for plotting tables that represent HEALPix maps on the celestial sphere.
-Each row in the table must represent a single healpix tile,
+You can add one of these controls to the stack by using the
+<label>Add HEALPix Control</label> (&IMG.ADD_PLOT_HEALPIX;) button
+in the control panel toolbar,
+or the corresponding item in the <label>Layers</label> menu.
+</p>
+
+<p>Each row in the table must represent a single healpix tile,
 and a value from that row is used to colour
 the corresponding region of the sky plot.
 The resolution (healpix order) of the input table is supplied
@@ -9271,7 +9277,11 @@ changed in a future version.
 plots a spectrum at successive (usually, but not necessarily,
 regularly-spaced) points in a time series.
 It is only available for the
-<ref id="TimePlotWindow">Time Plot Window</ref>.
+<ref id="TimePlotWindow">Time Plot Window</ref>;
+you can add one of these controls to the stack by using the
+<label>Add Spectrogram Control</label> (&IMG.ADD_PLOT_SPECTRO;) button
+in the control panel toolbar,
+or the corresponding item in the <label>Layers</label> menu.
 </p>
 
 <figure>
@@ -9442,8 +9452,10 @@ is only available for the
 <ref id="PlanePlotWindow">Plane</ref>,
 <ref id="HistogramPlotWindow">Histogram</ref> and
 <ref id="TimePlotWindow">Time</ref> plots.
-Use the <label>Layers</label> menu item or corresponding toolbar button to
-add an instance to the control stack.
+You can add one of these controls to the stack by using the
+<label>Add Function Control</label> (&IMG.ADD_PLOT_FUNCTION;) button
+in the control panel toolbar,
+or the corresponding item in the <label>Layers</label> menu.
 </p>
 
 <figure>
@@ -9548,6 +9560,10 @@ and plots an additional axis grid on the celestial sphere.
 This can be overlaid on the default sky axis grid
 so that axes for multiple sky coordinate systems
 are simultaneously visible. 
+You can add one of these controls to the SkyPlot stack by using the
+<label>Add SkyGrid Control</label> (&IMG.ADD_PLOT_SKYGRID;) button
+in the control panel toolbar,
+or the corresponding item in the <label>Layers</label> menu.
 </p>
 
 <p>Note that some of the configuration items for this plot layer,
@@ -9605,11 +9621,17 @@ with the following fields:
 <subhead><title>SphereGrid Layer Control</title></subhead>
 
 <p>The <label>SphereGrid</label> layer control (&IMG.PLOT_SKYGRID;)
-is available from the
+plots a spherical net centered on the coordinate origin.
+It is available from the
 <ref id="SpherePlotWindow">Sphere</ref> and
 <ref id="CubePlotWindow">Cube</ref> plot windows,
-and plots a spherical net centered on the coordinate origin.
-This is currently not labelled, but it can provide orientation
+and you can add one of these controls to the stack by using the
+<label>Add SphereGrid Control</label> (&IMG.ADD_PLOT_SKYGRID;) button
+in the control panel toolbar,
+or the corresponding item in the <label>Layers</label> menu.
+</p>
+
+<p>The plotted grid is currently not labelled, but it can provide orientation
 to make clear for instance the position of a bounding unit sphere.
 Its radius can be controlled by a slider or by entering a
 fixed value.
