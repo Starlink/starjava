@@ -483,8 +483,6 @@ public class ObsLocStage implements Stage {
             new PlanCol( "instrument_name", Type.STRING, null,
                          "Provenance.ObsConfig.Instrument.name",
                          "meta.id;instr" ),
-            new PlanCol( "obs_release_date", Type.DATE, null,
-                         "Curation.releaseDate", "time.release;obs.exposure" ),
             new PlanCol( "t_plan_exptime", Type.FLOAT, "s",
                          "Char.TimeAxis.Coverage.Support.Extent",
                          "time.duration;obs.exposure" ),
@@ -498,7 +496,7 @@ public class ObsLocStage implements Stage {
         for ( PlanCol col : cols ) {
             map.put( ObsTapStage.nameKey( col.name_ ), col );
         }
-        assert map.size() == 26;
+        assert map.size() == 25;
 
         /* Add some additional constraints for various columns. */
         map.get( "t_planning" ).isNullable_ = false;
@@ -569,20 +567,6 @@ public class ObsLocStage implements Stage {
         STRING() {
             void checkInfo( Reporter reporter, ValueInfo info ) {
                 if ( ! String.class.equals( info.getContentClass() ) ) {
-                    reportTypeMismatch( reporter, info,
-                                        votype( info ) + " not string" );
-                }
-            }
-        },
-        DATE() {
-            void checkInfo( Reporter reporter, ValueInfo info ) {
-                if ( String.class.equals( info.getContentClass() ) ) {
-                    if ( ! "timestamp".equals( info.getXtype() ) ) {
-                        reportTypeMismatch( reporter, info,
-                                            "does not have xtype='timestamp'" );
-                    }
-                }
-                else {
                     reportTypeMismatch( reporter, info,
                                         votype( info ) + " not string" );
                 }
