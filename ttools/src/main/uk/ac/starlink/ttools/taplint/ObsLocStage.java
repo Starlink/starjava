@@ -558,9 +558,11 @@ public class ObsLocStage implements Stage {
         },
         FLOAT() {
             void checkInfo( Reporter reporter, ValueInfo info ) {
-                if ( ! matchesClass( info, Float.class, Double.class ) ) {
+                if ( ! matchesClass( info, Float.class, Double.class,
+                                     Byte.class, Short.class, Integer.class,
+                                     Long.class ) ) {
                     reportTypeMismatch( reporter, info,
-                                        votype( info ) + " not floating point");
+                                        votype( info ) + " not numeric");
                 }
             }
         },
