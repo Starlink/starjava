@@ -3563,7 +3563,7 @@ would produce a 4-frame animation zooming in towards the origin.
 </p>
 
 <p>If output is to the screen
-(<code>omode=<ref id="paintmode-swing">swing</ref></code>)
+(<code>omode=<ref id="paintmode-swing">swing</ref></code>, the default)
 the animation can be seen directly.
 If it is to an output file
 (<code>omode=<ref id="paintmode-out">out</ref></code>)
@@ -3582,7 +3582,10 @@ but you can use other tools to do this, for instance using ImageMagick:
 <verbatim>
    convert x-*.png xmovie.gif
 </verbatim>
-will produce an animated gif from the input frames.
+or ffmpeg:
+<verbatim>
+   ffmpeg -i 'x-%03d.png' -framerate 15 -pix_fmt yuv420p xmovie.webm
+</verbatim>
 </p>
 
 <p>You can create the animation control table any way you like,
@@ -3590,23 +3593,15 @@ but you may find the <code><ref id="tloop">tloop</ref></code>
 command convenient.  For instance the above table can be
 written like this:
 <verbatim>
-   stilts tloop xmax 4 0 -1 ocmd='addcol ymax xmax*0.5' ofmt=ascii
+   stilts tloop xmax 4 0 -1 ocmd='addcol ymax xmax*0.5' ofmt=ascii out=bounds.txt
 </verbatim>
-You can pipe the output of tloop (or any other command)
-as the animation table on the unix command line by specifying
-<code>animate=-</code> (the "<code>-</code>" character stands for
-standard input).  Note however that in this case you 
-must explicitly give the file format (using the <code>afmt</code> parameter)
-and it must be a format which STILTS is capable of streaming
-(VOTable is suitable; ASCII is not).
-</p>
-
-<p>A common requirement is to produce an animation of rotating a 3-d plot.
-Here's an example of how to do it from a unix shell:
+Alternatively, you can generate a table like this inline using the
+<ref id="scheme-loop">loop scheme</ref>.
+A common requirement is to produce an animation of rotating a 3-d plot,
+here's an example of how to do that:
 <verbatim>
-     stilts tloop phi 15 375 2 ofmt=votable \
-   | stilts plot2sphere layer_1=mark in_1=hip_main.fits lon_1=radeg lat_1=dedeg r_1=plx \
-                        animate=- afmt=votable
+   stilts plot2sphere layer_1=mark in_1=hip_main.fits lon_1=radeg lat_1=dedeg r_1=plx \
+                      animate=:loop:15,375,2 acmd='colmeta -name phi $1'
 </verbatim>
 The <code>phi</code> parameter controls the angle from which the
 3D plot is viewed, and here it is incremented by 2 degrees
