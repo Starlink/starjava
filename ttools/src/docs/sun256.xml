@@ -13135,6 +13135,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         expression language expressions rather than just column name/ID
         values for the <code>cols</code> and <code>scale</code>
         parameters.</li>
+    <li>Downgrade taplint report for accepting unknown LANG from
+        <code>E_DSUC</code> to <code>W_OLNG</code>.</li>
     </ul>
     </p></dd>
 

@@ -209,6 +209,7 @@ public enum FixedCode implements ReportCode {
     W_NOCT( "Missing Content-Type header" ),
     W_NOMS( "No error message text" ),
     W_NSOP( "ObsCore value not in suggested set" ),
+    W_OLNG( "Bad LANG not rejected" ),
     W_QERR( "Query failed" ),
     W_QTYP( "Query/result column type possible mismatch" ),
     W_RDIO( "Resource read error" ),

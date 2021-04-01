@@ -107,13 +107,15 @@ public class QueryStage implements Stage {
         Map<String,String> extraParams = new HashMap<String,String>();
         runErrorQuery( reporter,
                        new TapQuery( tapService, "DUFF QUERY", extraParams ),
-                       "bad ADQL" );
+                       "bad ADQL", FixedCode.E_DSUC );
+
+        /* TAP 1.1 sec 2.7.1. */
         extraParams.put( "LANG", "OOBLECK" );
         runErrorQuery( reporter,
                        new TapQuery( tapService,
                                      "SELECT TOP 1 * FROM TAP_SCHEMA.tables",
                                      extraParams ),
-                       "unknown query language" );
+                       "unknown query language", FixedCode.W_OLNG );
 
         /* Summarise. */
         tapRunner_.reportSummary( reporter );
@@ -158,9 +160,10 @@ public class QueryStage implements Stage {
      * @param  tq   query expected to fail
      * @param  errorType  short description of what's wrong with the query,
      *                    to be used in reporting messages
+     * @param  successCode   report code in case of query success
      */
     private void runErrorQuery( Reporter reporter, TapQuery tq,
-                                String errorType ) {
+                                String errorType, ReportCode successCode ) {
         String pErrorType = " (" + errorType + ")";
         reporter.report( FixedCode.I_DUFF,
                          "Submitting query expected to fail" + pErrorType
@@ -236,7 +239,7 @@ public class QueryStage implements Stage {
                     .append( " from bad query" )
                     .append( pErrorType )
                     .toString();
-                reporter.report( FixedCode.E_DSUC, msg );
+                reporter.report( successCode, msg );
             }
 
             /* Badly reported status. */
