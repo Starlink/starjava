@@ -128,6 +128,12 @@ public abstract class DataModelAdqlExample implements AdqlExample {
     public static DataModelAdqlExample[] createRegTapExamples() {
         return new DataModelAdqlExample[] {
 
+            /* Note the ADQL is slightly modified from the RegTAP
+             * example here: it uses
+             * "standard_id = 'ivo://ivoa.net/std/tap'" rather than
+             * "standard_id LIKE 'ivo://ivoa.net/std/tap%'".
+             * This prevents it picking up #aux services, hence only
+             * one result from VizieR rather than 20,000+. */
             createRegTapExample(
                 "TAP accessURLs",
                 "Find all TAP services, return their accessURL strings",
@@ -136,7 +142,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
                     "SELECT ivoid, access_url",
                     "FROM rr.capability",
                     "NATURAL JOIN rr.interface",
-                    "WHERE standard_id like 'ivo://ivoa.net/std/tap%'",
+                    "WHERE standard_id = 'ivo://ivoa.net/std/tap'",
                     "  AND intf_type='vs:paramhttp'",
                 }
             ),

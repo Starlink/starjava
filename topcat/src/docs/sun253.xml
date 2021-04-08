@@ -29763,6 +29763,8 @@ introduced since the last version:
         <ref id="form-xyerrors">XYErrors</ref> forms
         for plotting array-valued columns such as
         per-row spectra and time series.</li>
+    <li>Modify Example RegTAP "TAP accessURLs" query in TAP window
+        to avoid aux resources.</li>
     </ul>
     </p></dd>
 
