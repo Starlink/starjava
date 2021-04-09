@@ -560,7 +560,7 @@
       <arg value="-xjar"/><arg value="jniast.jar"/>
       <arg value="-xjar"/><arg value="junit.jar"/>
       <arg value="-xjar"/><arg value="ndx.jar"/>
-      <arg value="-xjar"/><arg value="parquet.jar"/>
+      <arg value="-xjar"/><arg value="parquet-mr-stil.jar"/>
       <arg value="-xjar"/><arg value="sog.jar"/>
       <arg value="-xjar"/><arg value="soapserver.jar"/>
       <arg value="-xjar"/><arg value="srb.jar"/>
@@ -578,6 +578,7 @@
       <arg value="-xjar"/><arg value="log4j-core.jar"/>
       <arg value="-xjar"/><arg value="jsky/jel.jar"/>
       <arg value="-xjar"/><arg value="gsi-classes.jar"/>
+      <arg value="-xjar"/><arg value="parquet-mr-stil.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>

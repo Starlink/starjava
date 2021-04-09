@@ -577,6 +577,7 @@
       <arg value="-xjar"/><arg value="topcat.jar"/>
       <arg value="-xjar"/><arg value="org.mortbay.jmx.jar"/>
       <arg value="-xjar"/><arg value="jasper-combined.jar"/>
+      <arg value="-xjar"/><arg value="parquet-mr-stil.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
       <arg value="-file"/><arg value="${star.bin}/stilts"/>
