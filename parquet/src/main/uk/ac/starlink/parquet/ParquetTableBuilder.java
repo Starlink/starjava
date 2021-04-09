@@ -1,17 +1,8 @@
 package uk.ac.starlink.parquet;
 
 import java.awt.datatransfer.DataFlavor;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.parquet.hadoop.ParquetFileReader;
-import org.apache.parquet.hadoop.util.HadoopInputFile;
-import org.apache.parquet.io.InputFile;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
@@ -22,8 +13,6 @@ import uk.ac.starlink.table.storage.MonitorStoragePolicy;
 import uk.ac.starlink.util.ConfigMethod;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
-import uk.ac.starlink.util.IOSupplier;
-import uk.ac.starlink.util.URLUtils;
 
 /**
  * TableBuilder for parquet files.
@@ -35,14 +24,6 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
 
     private Boolean cacheCols_;
     private int nThread_;
-
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.parquet" );
-
-    /* Log4j is annoying. */
-    static {
-        ParquetUtil.silenceLog4j();
-    }
 
     /**
      * Constructor.
@@ -103,36 +84,11 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
             throw new TableFormatException( "Not parquet format"
                                           + " (no leading magic number)" );
         }
-        IOSupplier<ParquetFileReader> pfrSupplier = () -> {
-            try {
-                return ParquetFileReader.open( createInputFile( datsrc ) );
-            }
-
-            /* The ParquetFileReader sometimes generates RuntimeExceptions
-             * (e.g. for absent trailing magic number), so catch and rethrow
-             * here. */
-            catch ( RuntimeException e ) {
-                throw new TableFormatException( "Trouble opening "
-                                              + datsrc.getName() 
-                                              + " as parquet", e );
-            }
-        };
-        if ( useCache( datsrc, wantRandom, storage ) ) {
-            int nThread = nThread_ > 0
-                        ? nThread_
-                        : CachedParquetStarTable.getDefaultThreadCount();
-            logger_.info( "Caching parquet column data for " + datsrc
-                        + " with " + nThread + " threads" );
-            try {
-                return new CachedParquetStarTable( pfrSupplier, nThread );
-            }
-            catch ( IOException e ) {
-                logger_.log( Level.WARNING,
-                             "Cached read failed for " + datsrc, e );
-            }
+        else {
+            ParquetIO io = ParquetUtil.getIO();
+            boolean useCache = useCache( datsrc, wantRandom, storage );
+            return io.readParquet( datsrc, this, useCache );
         }
-        logger_.info( "No parquet column caching for " + datsrc );
-        return new SequentialParquetStarTable( pfrSupplier );
     }
 
     public void streamStarTable( InputStream istrm, TableSink sink,
@@ -243,49 +199,5 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         else {
             return false;
         }
-    }
-
-    /**
-     * Tries to turn a datasource into a Hadoop input file.
-     *
-     * @return   input file, not null
-     * @throws   IOException  if it can't be done
-     */
-    private static InputFile createInputFile( DataSource datsrc )
-            throws IOException {
-        Path path = null;
-
-        /* A file will work if we can get one. */
-        File file = getFile( datsrc );
-        URL url = datsrc.getURL();
-        if ( file != null ) {
-            path = new Path( file.getPath() );
-        }
-
-        /* A URL might work, who knows? */
-        else if ( url != null ) {
-            path = new Path( url.toString() );
-        }
-        else {
-            throw new IOException( "Can't turn " + datsrc.getClass().getName()
-                                 + " " + datsrc + " into input file" );
-        }
-        return HadoopInputFile.fromPath( path, new Configuration() );
-    }
-
-    /**
-     * Try to turn a data source into a file.
-     * Since non-file URLs are not in general permissible for parquet,
-     * we try to extract the file if at all possible.
-     *
-     * @param  datsrc  datasource
-     * @return   file, or null
-     */
-    private static File getFile( DataSource datsrc ) {
-        if ( datsrc instanceof FileDataSource ) {
-            return ((FileDataSource) datsrc).getFile();
-        }
-        URL url = datsrc.getURL();
-        return url == null ? null : URLUtils.urlToFile( url.toString() );
     }
 }
