@@ -74,6 +74,7 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
             "row block structure of parquet files to read the data",
             "in parallel where possible.",
             "</p>",
+            readText( "parquet-packaging.xml" ),
             ""
         );
     }

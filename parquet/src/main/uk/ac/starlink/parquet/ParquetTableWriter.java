@@ -53,6 +53,7 @@ public class ParquetTableWriter
             "per-column metadata, so the only information written about",
             "each column apart from its datatype is its name.",
             "</p>",
+            readText( "parquet-packaging.xml" ),
             ""
         );
     }

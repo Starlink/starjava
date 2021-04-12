@@ -2168,12 +2168,6 @@ similar and capable of storing more metadata.
 <subsubsubsect id="inParquet">
 <subhead><title><code>parquet</code></title></subhead>
 &in-parquet;
-
-<p><em><strong>Note:</strong> The Parquet file handler
-requires large external libraries,
-which are not always bundled with STILTS because of size.
-In some configurations, parquet support may not be present.</em>
-</p>
 </subsubsubsect>
 
 <subsubsubsect id="inFeather">
@@ -2271,12 +2265,6 @@ or by setting the format to the classname of a
 <subsubsubsect id="outParquet">
 <subhead><title><code>parquet</code></title></subhead>
 &out-parquet;
-
-<p><em><strong>Note:</strong> The Parquet file handler
-requires large external libraries,
-which are not always bundled with STILTS because of size.
-In some configurations, parquet support may not be present.</em>
-</p>
 </subsubsubsect>
 
 <subsubsubsect id="outFeather">
@@ -13218,7 +13206,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix regression bug in v3.4 that broke use of
         <code>jdbc:</code> URLs.</li>
     <li>Add Apache Parquet <ref id="inParquet">input</ref> and
-        <ref id="outParquet">output</ref> handlers.</li>
+        <ref id="outParquet">output</ref> handlers
+        (note not available in all configurations).</li>
     </ul>
     </p></dd>
 
