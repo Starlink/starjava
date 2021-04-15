@@ -13140,6 +13140,16 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>E_DSUC</code> to <code>W_OLNG</code>.</li>
     <li>Add new <code>taplint</code> stage <code>LOC</code>
         (ObsLocTAP validation).</li>
+    <li>The <ref id="outFits">fits-var</ref> output handler now avoids
+        use of the THEAP keyword (no pre-heap gap is written).
+        Heap padding is legal FITS, but a bug in CFITSIO means that
+        other software components may fail to read such files.</li>
+    <li>The <ref id="outFits">fits-var</ref> output handler now avoids
+        use of the THEAP keyword (no pre-heap gap is written).
+        Heap padding is legal FITS, but bugs in other 
+        FITS software mean that some third party components
+        (including <code>fverify</code>) have problems 
+        with such files.</li>
     </ul>
     </p></dd>
 

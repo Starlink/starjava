@@ -505,6 +505,22 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
     }
 
     public void writeData( DataOutput strm ) throws IOException {
+        long nWritten = writeDataOnly( strm );
+
+        /* Write padding. */
+        int extra = (int) ( nWritten % (long) 2880 );
+        if ( extra > 0 ) {
+            strm.write( new byte[ 2880 - extra ] );
+        }
+    }
+
+    /**
+     * Writes the table data content without any trailing padding.
+     *
+     * @param  strm  destination stream
+     * @return   number of bytes written
+     */
+    public long writeDataOnly( DataOutput strm ) throws IOException {
 
         /* Work out the length of each row in bytes. */
         int rowBytes = 0;
@@ -535,12 +551,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         finally {
             rseq.close();
         }
-
-        /* Write padding. */
-        int extra = (int) ( nWritten % (long) 2880 );
-        if ( extra > 0 ) {
-            strm.write( new byte[ 2880 - extra ] );
-        }
+        return nWritten;
     }
 
     public char getFormatChar( int icol ) {

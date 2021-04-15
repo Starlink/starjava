@@ -74,29 +74,18 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
     public Header getHeader() throws HeaderCardException {
         Header hdr = super.getHeader();
         long heapSize = getHeapSize();
-        long datEnd =
-            hdr.getLongValue( "NAXIS1" ) * hdr.getLongValue( "NAXIS2" );
-        long theap = ( ( datEnd + 2880 - 1 ) / 2880 ) * 2880;
-        long gap = theap - datEnd;
-        long pcount = gap + heapSize;
 
         /* Header manipulation methods leave a bit to be desired.
          * It is a bit fiddly to make sure these cards go in the right place. */
         final List<HeaderCard> cardList = new ArrayList<HeaderCard>();
         assert hdr.containsKey( "PCOUNT" );
         assert hdr.containsKey( "GCOUNT" );
-        hdr.removeCard( "THEAP" );
         assert hdr.containsKey( "NAXIS2" );
         for ( HeaderCard card : FitsConstants.headerIterable( hdr ) ) {
             String key = card.getKey();
             if ( "PCOUNT".equals( key ) ) {
-                cardList.add( new HeaderCard( "PCOUNT", pcount,
-                                              "heap size + gap" ) );
-            }
-            else if ( "TFIELDS".equals( key ) ) {
-                cardList.add( card );
-                cardList.add( new HeaderCard( "THEAP", theap,
-                                              "heap start (block aligned)" ) );
+                cardList.add( new HeaderCard( "PCOUNT", heapSize,
+                                              "heap size (no gap)" ) );
             }
             else {
                 cardList.add( card );
@@ -145,6 +134,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         return count;
     }
 
+    @Override
     public void writeData( DataOutput out ) throws IOException {
         VariableArrayColumnWriter[] vcws = getVariableArrayColumnWriters();
         ByteStore byteStore = storagePolicy_.makeByteStore();
@@ -157,22 +147,29 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         for ( int iv = 0; iv < vcws.length; iv++ ) {
             vcws[ iv ].setDataOutput( dataOut, counter );
         }
+        long nWritten = 0;
         try {
 
-            /* Write the fixed-size table data.  Note this pads to a 
-             * 2880-byte block. */
-            super.writeData( out );
+            /* Write the fixed-size table data with no trailing padding. */
+            nWritten += super.writeDataOnly( out );
+
+            /* Write the heap. */
             dataOut.flush();
             byteStore.copy( toStream( out ) );
+            nWritten += byteStore.getLength();
+            assert byteStore.getLength() == getHeapSize();
         }
         finally {
             byteStore.close();
         }
-        assert byteStore.getLength() == getHeapSize();
-        int over = (int) ( getHeapSize() % 2880 );
+
+        /* Pad to the end of the block. */
+        int over = (int) ( nWritten % 2880 );
         if ( over > 0 ) {
             out.write( new byte[ 2880 - over ] );
         }
+
+        /* Tidy up. */
         for ( int iv = 0; iv < vcws.length; iv++ ) {
             vcws[ iv ].setDataOutput( (DataOutputStream) null, (long[]) null );
         }
