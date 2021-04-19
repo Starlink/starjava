@@ -39,6 +39,8 @@ public class UploadStage implements Stage {
 
     private final TapRunner tapRunner_;
     private final CapabilityHolder capHolder_;
+
+    // DALI 1.1 is a bit equivocal about a trailing 'Z' here.
     private static final Pattern DALI_ISO_REGEX =
         Pattern.compile( "[0-9]{4}-[01][0-9]-[0-3][0-9]"
                        + "(T[0-2][0-9]:[0-5][0-9]:[0-6][0-9](\\.[0-9]+)?)?" );
@@ -206,15 +208,15 @@ public class UploadStage implements Stage {
                     }
                     compareStringAuxMetadata( c1, c2,
                                               VOStarTable.DATATYPE_INFO );
-                    String xtype1 = c1.getXtype();
-                    String xtype2 = c2.getXtype();
+                    String xtype1 = normaliseXtype( c1.getXtype() );
+                    String xtype2 = normaliseXtype( c2.getXtype() );
                     if ( ( xtype1 == null && xtype2 != null ) ||
                          ( xtype1 != null && ! xtype1.equals( xtype2 ) ) ) {
                         String msg = new StringBuffer()
                             .append( "Upload result column xtype mismatch " )
-                            .append( xtype2 )
+                            .append( c1.getXtype() )
                             .append( " != " )
-                            .append( xtype1 )
+                            .append( c2.getXtype() )
                             .toString();
                         reporter_.report( FixedCode.E_TMCX, msg );
                     }
@@ -238,17 +240,19 @@ public class UploadStage implements Stage {
 
                         /* Treat non-null time columns specially. */
                         boolean isTimeCol =
-                            "adql:TIMESTAMP"
-                           .equals( t1.getColumnInfo( ic ).getXtype() );
+                            "timestamp"
+                           .equals( t2.getColumnInfo( ic ).getXtype() );
                         if ( isTimeCol && s1.length() > 0 && s2.length() > 0 ) {
 
-                            /* See TAP 1.0 sec 2.3.4/2.5; also DALI 1.0
-                             * sec 3.1.2.  The main error this is likely to
-                             * catch is using a ' ' instead of 'T' to separate
-                             * time and date.  Now TAP doesn't explicitly say
-                             * that output must be in this format for timestamp
-                             * columns, but it's pretty much implied by the
-                             * fact that this format has to work for queries.
+                            /* See TAP 1.0 sec 2.3.4/2.5, TAP 1.1 sec 2.7.2;
+                             * also DALI 1.0 sec 3.1.2, DALI 1.1 sec 3.3.3.
+                             * The main error this is likely to catch is using
+                             * a ' ' instead of 'T' to separate time and date.
+                             * DALI 1.1 explicitly says that output must be
+                             * in this format for timestamp columns;
+                             * TAP 1.0/DALI 1.0 does not, but it's pretty much
+                             * implied by the fact that this format has to work
+                             * for queries.
                              * In any case, we can't assess value equality if
                              * we don't have the returned values in a defined
                              * format. */
@@ -335,6 +339,29 @@ public class UploadStage implements Stage {
     }
 
     /**
+     * Converts Xtype values to canonical form.  In some cases different
+     * Xtypes are considered (by the grace of DALI) to have equivalent
+     * meanings, so convert here to the most DALI-compliant form in such cases.
+     *  
+     * @param  input xtype, may be null
+     * @return  canonical xtype, may be null
+     */
+    private static String normaliseXtype( String xtype ) {
+        if ( xtype == null ) {
+            return null;
+        }
+
+        /* Normalise the old TAP1.1 "adql:TIMESTAMP" to DALI "timestamp";
+         * see email from Pat Dowler on DAL list 16 Apr 2021. */
+        else if ( "adql:TIMESTAMP".equals( xtype ) ) {
+            return "timestamp";
+        }
+        else {
+            return xtype;
+        }
+    }
+
+    /**
      * Turns the contents of a cell into a string.
      *
      * @param   cell   cell data
@@ -402,7 +429,7 @@ public class UploadStage implements Stage {
         ctable.addColumn( makeColumn( "d_double", doubleData, null ) );
         ctable.addColumn( makeColumn( "d_char", charData, null ) );
         ctable.addColumn( makeColumn( "d_string", stringData, null ) );
-        ctable.addColumn( makeColumn( "d_time", timeData, "adql:TIMESTAMP" ) );
+        ctable.addColumn( makeColumn( "d_time", timeData, "timestamp" ) );
 
         /* Populate the final row with blank values, where appropriate. */
         int irBlank = nrow - 1;

@@ -13152,6 +13152,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         with such files.</li>
     <li>Upgrade cds-healpix-java library to v0.29.2; avoid occasional
         sky crossmatch failures (termination with error).</li>
+    <li>Relax taplint timestamp upload round-tripping requirements;
+        folding <code>adql:TIMESTAMP</code>-&gt;<code>timestamp</code>
+        no longer provokes error <code>E-UPL-TMCX</code>.</li>
     </ul>
     </p></dd>
 
