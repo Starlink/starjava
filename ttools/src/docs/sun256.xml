@@ -13150,6 +13150,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         FITS software mean that some third party components
         (including <code>fverify</code>) have problems 
         with such files.</li>
+    <li>Upgrade cds-healpix-java library to v0.29.2; avoid occasional
+        sky crossmatch failures (termination with error).</li>
     </ul>
     </p></dd>
 
