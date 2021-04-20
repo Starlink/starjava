@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -23,7 +24,7 @@ import uk.ac.starlink.util.IOUtils;
 
 /**
  * TableBuilder implementation for ECSV tables.
- * The format currently supported is ECSV 0.9, as documented at
+ * The format currently supported is ECSV 1.0, as documented at
  * <a href="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"
  *    >Astropy APE6</a>.
  *
@@ -36,6 +37,9 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
     private String headerLoc_;
     private MessagePolicy colCheck_;
     private byte[] headerBuf_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ecsv" );
 
     /**
      * Constructor.
@@ -117,6 +121,15 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
         try ( EcsvReader reader =
                   createEcsvReader( datsrc.getInputStream(), colCheck_ ) ) {
             meta = reader.getMeta();
+        }
+        EcsvColumn<?>[] ecols = meta.getColumns();
+        for ( int ic = 0; ic < ecols.length; ic++ ) {
+            EcsvColumn<?> ecol = ecols[ ic ];
+            String msg = ecol.getDecoder().getWarning();
+            if ( msg != null ) {
+                logger_.warning( "Column " + ecol.getName()
+                               + " (#" + ( ic + 1 ) + "): " + msg );
+            }
         }
         return new EcsvStarTable( meta ) {
             public RowSequence getRowSequence() throws IOException {

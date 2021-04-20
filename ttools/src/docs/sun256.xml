@@ -13167,6 +13167,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add support for reading AAS 
         <ref id="inMrt">Machine-Readable Table</ref> format.</li>
     <li>Add new table scheme <ref id="scheme-test">test</ref>.</li>
+    <li>The <ref id="inEcsv">ECSV input handler</ref>
+        is upgraded to version 1.0 of the ECSV format, 
+        meaning it can now read array-valued columns.</li>
     </ul>
     </p></dd>
 

@@ -77,6 +77,10 @@ public abstract class EcsvStarTable extends AbstractStarTable {
         Class<?> clazz = decoder.getContentClass();
         ColumnInfo cinfo =
             new ColumnInfo( ecol.getName(), clazz, ecol.getDescription() );
+        int[] shape = decoder.getShape();
+        if ( shape != null ) {
+            cinfo.setShape( shape );
+        }
         String unit = ecol.getUnit();
         if ( unit != null && unit.trim().length() > 0 ) {
             cinfo.setUnitString( unit );

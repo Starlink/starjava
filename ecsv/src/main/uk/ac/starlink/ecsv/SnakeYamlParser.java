@@ -182,7 +182,9 @@ public class SnakeYamlParser implements YamlParser {
             throw new EcsvFormatException( "Column " + name
                                          + " has no datatype" );
         }
-        final EcsvDecoder<?> decoder = EcsvDecoder.createDecoder( datatype );
+        String subtype = getStringValue( colMap, "subtype" );
+        final EcsvDecoder<?> decoder =
+            EcsvDecoder.createDecoder( datatype, subtype );
         if ( decoder == null ) {
             throw new EcsvFormatException( "Unknown/unsupported datatype "
                                          + datatype );

@@ -8,13 +8,13 @@ and is intended to be a human-readable and maybe even human-writable format
 with rich metadata.
 Most of the useful per-column and per-table metadata
 is preserved when de/serializing to this format.
-The version supported by this reader is currently ECSV 0.9.
+The version supported by this reader is currently ECSV 1.0.
 </p>
 
 <p>There are various ways to format the YAML header,
 but a simple example of an ECSV file looks like this:
 <pre>
-# %ECSV 0.9
+# %ECSV 1.0
 # ---
 # delimiter: ','
 # datatype: [
@@ -49,4 +49,19 @@ and its format can be detected automatically.
 <code>float32</code>, <code>float64</code>
 and
 <code>string</code>.
+Array-valued columns are also supported with some restrictions.
+Following the ECSV 1.0 specification,
+columns representing arrays of the supported datatypes can be read,
+as columns with <code>datatype: string</code> and a suitable
+<code>subtype</code>, e.g.
+"<code>int32[&lt;dims&gt;]</code>" or "<code>float64[&lt;dims&gt;]</code>".
+Fixed-length arrays (e.g. <code>subtype: int32[3,10]</code>)
+and 1-dimensional variable-length arrays
+(e.g. <code>subtype: float64[null]</code>) are supported;
+however variable-length arrays with more than one dimension
+(e.g. <code>subtype: int32[4,null]</code>) cannot be represented,
+and are read in as string values.
+Null elements of array-valued cells are not supported;
+they are read as NaNs for floating point data, and as zero/false for
+integer/boolean data.
 </p>

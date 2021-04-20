@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 /**
  * Parser for the metadata and data of an ECSV file.
- * The format currently supported is ECSV 0.9, as documented at
+ * The format currently supported is ECSV 1.0, as documented at
  * <a href="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"
  *    >Astropy APE6</a>.
  *
@@ -47,7 +47,7 @@ public class EcsvReader implements Closeable {
         words_ = new ArrayList<String>();
         wbuf_ = new StringBuilder();
 
-        /* Prepare line reader.  ECSV 0.9 is documented as using ASCII
+        /* Prepare line reader.  ECSV 1.0 is documented as using ASCII
          * rather than, for instance, UTF-8. */
         lineRdr_ = LineReader.createAsciiLineReader( in );
 
