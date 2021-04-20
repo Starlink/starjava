@@ -39,6 +39,13 @@ public interface EcsvColumn<T> {
     String getFormat();
 
     /**
+     * Returns the declared datatype for this column.
+     *
+     * @return  datatype
+     */
+    String getDatatype();
+
+    /**
      * Returns a decoder that can be used to make sense of cell values
      * in the body of the ECSV file corresponding to this column.
      *

@@ -182,7 +182,7 @@ public class SnakeYamlParser implements YamlParser {
             throw new EcsvFormatException( "Column " + name
                                          + " has no datatype" );
         }
-        final EcsvDecoder<?> decoder = EcsvDecoder.forDatatype( datatype );
+        final EcsvDecoder<?> decoder = EcsvDecoder.createDecoder( datatype );
         if ( decoder == null ) {
             throw new EcsvFormatException( "Unknown/unsupported datatype "
                                          + datatype );
@@ -204,6 +204,7 @@ public class SnakeYamlParser implements YamlParser {
         final String unit = getStringValue( colMap, "unit" );
         final String format = getStringValue( colMap, "format" );
         final String description = getStringValue( colMap, "description" );
+        final String datatype = getStringValue( colMap, "datatype" );
         Object mapObj = colMap.get( "meta" );
         final Map<?,?> meta = mapObj instanceof Map ? (Map<?,?>) mapObj : null;
         return new EcsvColumn<T>() {
@@ -212,6 +213,9 @@ public class SnakeYamlParser implements YamlParser {
             }
             public EcsvDecoder<T> getDecoder() {
                 return decoder;
+            }
+            public String getDatatype() {
+                return datatype;
             }
             public String getUnit() {
                 return unit;

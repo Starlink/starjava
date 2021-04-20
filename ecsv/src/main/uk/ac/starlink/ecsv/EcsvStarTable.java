@@ -85,7 +85,7 @@ public abstract class EcsvStarTable extends AbstractStarTable {
         if ( format != null && format.trim().length() > 0 ) {
             cinfo.setAuxDatum( new DescribedValue( CFORMAT_INFO, format ) );
         }
-        if ( "uint8".equals( decoder.getDatatype() ) &&
+        if ( "uint8".equals( ecol.getDatatype() ) &&
              Short.class.equals( clazz ) ) {
             cinfo.setAuxDatum( new DescribedValue( Tables.UBYTE_FLAG_INFO,
                                                    Boolean.TRUE ) );

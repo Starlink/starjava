@@ -1,8 +1,6 @@
 package uk.ac.starlink.ecsv;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Decodes values in the body of an ECSV file for a given data type.
@@ -13,18 +11,16 @@ import java.util.Map;
 public abstract class EcsvDecoder<T> {
 
     private final Class<T> clazz_;
-    private final String datatype_;
-    private static final Map<String,EcsvDecoder<?>> DECODERS = createDecoders();
+    private static final Float FNAN = Float.valueOf( Float.NaN );
+    private static final Double DNAN = Double.valueOf( Double.NaN );
 
     /**
      * Constructor.
      *
      * @param   clazz  destination class
-     * @param   datatype   datatype string declared in ECSV file
      */
-    protected EcsvDecoder( Class<T> clazz, String datatype ) {
+    protected EcsvDecoder( Class<T> clazz ) {
         clazz_ = clazz;
-        datatype_ = datatype;
     }
 
     /**
@@ -50,119 +46,77 @@ public abstract class EcsvDecoder<T> {
     }
 
     /**
-     * Returns the declared name for this decoder.
-     *
-     * @return   datatype name
-     */
-    public String getDatatype() {
-        return datatype_;
-    }
-
-    /**
      * Returns an instance of this class given a datatype name.
      *
-     * @param  txt  case-sensitive datatype name
+     * @param  datatype  case-sensitive datatype name
      * @return   decoder for datatype, or null if unknown or unsupported
      */
-    public static EcsvDecoder<?> forDatatype( String txt ) {
-        return DECODERS.get( txt );
+    public static EcsvDecoder<?> createDecoder( String datatype ) {
+        if ( "int8".equals( datatype ) ) {
+            return createDecoder( Byte.class, Byte::parseByte );
+        }
+        else if ( "int16".equals( datatype ) ||
+                  "uint8".equals( datatype ) ) {
+            return createDecoder( Short.class, Short::parseShort );
+        }
+        else if ( "int32".equals( datatype ) ||
+                  "uint16".equals( datatype ) ) {
+            return createDecoder( Integer.class, Integer::parseInt );
+        }
+        else if ( "int64".equals( datatype ) ||
+                  "uint32".equals( datatype ) ) {
+            return createDecoder( Long.class, Long::parseLong );
+        }
+        else if ( "float32".equals( datatype ) ) {
+            return createDecoder( Float.class,
+                txt -> "nan".equals( txt ) ? FNAN : Float.parseFloat( txt ) );
+        }
+        else if ( "float64".equals( datatype ) ) {
+            return createDecoder( Double.class,
+                txt -> "nan".equals( txt ) ? DNAN : Double.parseDouble( txt ) );
+        }
+        else if ( "bool".equals( datatype ) ) {
+            return createDecoder( Boolean.class, txt -> {
+                if ( "True".equals( txt ) ) {
+                    return Boolean.TRUE;
+                }
+                else if ( "False".equals( txt ) ) {
+                    return Boolean.FALSE;
+                }
+                else if ( txt.equalsIgnoreCase( "true" ) ||
+                          txt.equalsIgnoreCase( "T" ) ) {
+                    return Boolean.TRUE; 
+                }
+                else if ( txt.equalsIgnoreCase( "false" ) ||
+                          txt.equalsIgnoreCase( "F" ) ) {
+                    return Boolean.FALSE;
+                }
+                else {
+                    return null;
+                }
+            } );
+        }
+        else if ( "string".equals( datatype ) ) {
+            return createDecoder( String.class, Function.identity() );
+        }
+        else {
+            return null;
+        }
     }
 
     /**
-     * Creates a name-&gt;decoder map for all supported datatypes.
+     * Creates an EcsvDecoder instance given a string-&gt;type mapping function.
      *
-     * @return  map keyed by decoder name
+     * @param  clazz  output class
+     * @param  decode   function that decodes strings to typed values
+     * @return   decoder
      */
-    private static final Map<String,EcsvDecoder<?>> createDecoders() {
-        EcsvDecoder<?>[] decoders = new EcsvDecoder<?>[] {
-            new EcsvDecoder<Boolean>( Boolean.class, "bool" ) {
-                public Boolean decode( String txt ) {
-                    if ( "True".equals( txt ) ) {
-                        return Boolean.TRUE;
-                    }
-                    else if ( "False".equals( txt ) ) {
-                        return Boolean.FALSE;
-                    }
-                    else if ( txt.equalsIgnoreCase( "true" ) ||
-                              txt.equalsIgnoreCase( "T" ) ) {
-                        return Boolean.TRUE; 
-                    }
-                    else if ( txt.equalsIgnoreCase( "false" ) ||
-                              txt.equalsIgnoreCase( "F" ) ) {
-                        return Boolean.FALSE;
-                    }
-                    else {
-                        return null;
-                    }
-                }
-            },
-            new EcsvDecoder<Byte>( Byte.class, "int8" ) {
-                public Byte decode( String txt ) {
-                    return Byte.parseByte( txt );
-                }
-            },
-            new EcsvDecoder<Short>( Short.class, "int16" ) {
-                public Short decode( String txt ) {
-                    return Short.parseShort( txt );
-                }
-            },
-            new EcsvDecoder<Integer>( Integer.class, "int32" ) {
-                public Integer decode( String txt ) {
-                    return Integer.parseInt( txt );
-                }
-            },
-            new EcsvDecoder<Long>( Long.class, "int64" ) {
-                public Long decode( String txt ) {
-                    return Long.parseLong( txt );
-                }
-            },
-            new EcsvDecoder<Float>( Float.class, "float32" ) {
-                private final Float FNAN = Float.valueOf( Float.NaN );
-                public Float decode( String txt ) {
-                    if ( "nan".equals( txt ) ) {
-                        return FNAN;
-                    }
-                    else {
-                        return Float.parseFloat( txt );
-                    }
-                }
-            },
-            new EcsvDecoder<Double>( Double.class, "float64" ) {
-                private final Double DNAN = Double.valueOf( Double.NaN );
-                public Double decode( String txt ) {
-                    if ( "nan".equals( txt ) ) {
-                        return DNAN;
-                    }
-                    else {
-                        return Double.parseDouble( txt );
-                    }
-                }
-            },
-            new EcsvDecoder<String>( String.class, "string" ) {
-                public String decode( String txt ) {
-                    return txt;
-                }
-            },
-            new EcsvDecoder<Short>( Short.class, "uint8" ) {
-                public Short decode( String txt ) {
-                    return Short.parseShort( txt );
-                }
-            },
-            new EcsvDecoder<Integer>( Integer.class, "uint16" ) {
-                public Integer decode( String txt ) {
-                    return Integer.parseInt( txt );
-                }
-            },
-            new EcsvDecoder<Long>( Long.class, "uint32" ) {
-                public Long decode( String txt ) {
-                    return Long.parseLong( txt );
-                }
-            },
+    private static <T> EcsvDecoder<T>
+            createDecoder( Class<T> clazz, final Function<String,T> decode ) {
+        return new EcsvDecoder<T>( clazz ) {
+            public T decode( String txt ) {
+                return decode.apply( txt );
+            }
         };
-        Map<String,EcsvDecoder<?>> map = new LinkedHashMap<>();
-        for ( EcsvDecoder<?> decoder : decoders ) {
-            map.put( decoder.getDatatype(), decoder );
-        }
-        return Collections.unmodifiableMap( map );
     }
 }
