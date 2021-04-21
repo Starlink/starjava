@@ -311,6 +311,18 @@ public class FuncTest extends TestCase {
                            Arrays.constant( 4, 5.5 ) );
         assertArrayEquals( new int[] { 23, 23, 23 },
                            Arrays.constant( 3, 23 ) );
+
+        assertArrayEquals( new int[] { 1, 11, 102 },
+            Arrays.intArrayFunc( "x+i", new int[] { 1,10,100 }));
+        assertArrayEquals( new int[] { 0, -1, -2, -3, -4 },
+            Arrays.intArrayFunc( "-x", Arrays.sequence( 5 ) ) );
+
+        assertArrayEquals( new double[] { 101., 102., 103. },
+            Arrays.arrayFunc( "100.+x", new int[] { 1,2,3 } ) );
+        assertArrayEquals( new double[] { 0, 3, 6, 9, Double.NaN },
+            Arrays.arrayFunc( "3*x", new double[] { 0,1,2,3,Double.NaN } ) );
+        assertArrayEquals( new double[] { 1.5, 2.5, 4.5, 8.5 },
+            Arrays.arrayFunc( "pow(2,i)+x", new double[] { .5,.5,.5,.5 } ) );
     }
 
     public void testConversions() {
