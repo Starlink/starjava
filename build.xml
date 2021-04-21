@@ -204,11 +204,11 @@
     <echo message="Executing CDF target: ${what}"/>
     <ant dir="./cdf" target="${what}"/>
 
-    <echo message="Executing ECSV target: ${what}"/>
-    <ant dir="./ecsv" target="${what}"/>
-
     <echo message="Excecuting FEATHER target: ${what}"/>
     <ant dir="./feather" target="${what}"/>
+
+    <echo message="Executing ECSV target: ${what}"/>
+    <ant dir="./ecsv" target="${what}"/>
 
     <echo message="Executing GBIN target: ${what}"/>
     <ant dir="./gbin" target="${what}"/>
@@ -484,11 +484,11 @@
          <include name="**"/>
       </packageset>
 
-      <packageset dir="ecsv/build/java" defaultexcludes="yes">
+      <packageset dir="feather/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
-      <packageset dir="feather/build/java" defaultexcludes="yes">
+      <packageset dir="ecsv/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
