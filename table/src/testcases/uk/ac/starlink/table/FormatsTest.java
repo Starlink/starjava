@@ -850,17 +850,17 @@ public class FormatsTest extends TableCase {
 
     private void assertEcsvTableEquals( StarTable t1, StarTable t2 )
             throws IOException {
-        IntList icols = new IntList();
-        int nc = t1.getColumnCount();
-        for ( int ic = 0; ic < nc; ic++ ) {
-            Class<?> clazz = t1.getColumnInfo( ic ).getContentClass();
-            if ( clazz.getComponentType() == null ) {
-                icols.add( ic );
+        StarTable t1a = new MetaCopyStarTable( t1 );
+        int ncol = t1a.getColumnCount();
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            ColumnInfo cinfo = t1a.getColumnInfo( ic );
+            int[] shape = cinfo.getShape();
+            if ( shape != null &&
+                 shape.length > 1 &&
+                 shape[ shape.length - 1 ] < 0 ) {
+                cinfo.setShape( new int[] { -1 } );
             }
         }
-        StarTable t1a = new ColumnPermutedStarTable( t1, icols.toIntArray() );
-        int ncol = t1a.getColumnCount();
-        assertEquals( ncol, t2.getColumnCount() );
         for ( int ic = 0; ic < ncol; ic++ ) {
             assertValueInfoEquals( t1a.getColumnInfo( ic ),
                                    t2.getColumnInfo( ic ) );
@@ -952,5 +952,70 @@ public class FormatsTest extends TableCase {
             }
             lrow++;
         }
+    }
+
+    /**
+     * Adjusts a table so that, as far as possible, any variable-length
+     * multi-dimensional arrays are described in the column metadata
+     * as fixed-length multi-dimensional arrays.
+     * This is a utility function to assist with testing formats like ECSV
+     * that don't cope with variable-length multi-dimensional array-valued
+     * columns.
+     *
+     * @param   table   input table
+     * @return   output table
+     */
+    private static StarTable fixArraySizes( StarTable table )
+            throws IOException {
+        table = new MetaCopyStarTable( table );
+        int ncol = table.getColumnCount();
+        int[] nels = new int[ ncol ];
+        RowSequence rseq = table.getRowSequence();
+        ColumnInfo[] cinfos = Tables.getColumnInfos( table );
+        while ( rseq.next() ) {
+            Object[] row = rseq.getRow();
+            for ( int ic = 0; ic < ncol; ic++ ) {
+                if ( cinfos[ ic ].getShape() != null ) {
+                    Object cell = row[ ic ];
+                    if ( cell != null ) {
+                        int nel = Array.getLength( cell );
+                        if ( nels[ ic ] == -1 ) {
+                            // no good
+                        }
+                        else if ( nels[ ic ] == 0 ) {
+                            nels[ ic ] = nel;
+                        }
+                        else if ( nel != nels[ ic ] ) {
+                            nels[ ic ] = -1;
+                        }
+                    }
+                }
+            }
+        }
+        rseq.close();
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            ColumnInfo cinfo = cinfos[ ic ];
+            int[] shape0 = cinfo.getShape();
+            if ( shape0 != null &&
+                 shape0.length > 1 &&
+                 shape0[ shape0.length - 1 ] < 0 ) {
+                int nd0 = shape0.length;
+                int[] shape1;
+                if ( nels[ ic ] >= 1 ) {
+                    shape1 = new int[ nd0 ];
+                    int nel = 1;
+                    for ( int id = 0; id < nd0 - 1; id++ ) {
+                        nel *= shape0[ id ];
+                        shape1[ id ] = shape0[ id ];
+                    }
+                    shape1[ nd0 - 1 ] = nels[ ic ] / nel;
+                }
+                else {
+                    shape1 = new int[] { -1 };
+                }
+                cinfo.setShape( shape1 );
+            }
+        }
+        return table;
     }
 }

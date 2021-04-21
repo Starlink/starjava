@@ -23,7 +23,7 @@ import uk.ac.starlink.util.ConfigMethod;
 
 /**
  * TableWriter for ECSV output format.
- * The format currently supported is ECSV 0.9, as documented at
+ * The format currently supported is ECSV 1.0, as documented at
  * <a href="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"
  *    >Astropy APE6</a>.
  *
@@ -168,13 +168,13 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
             ColumnInfo cinfo = table.getColumnInfo( ic );
             encoders[ ic ] = EcsvEncoder.createEncoder( cinfo, delimiter_ );
             if ( encoders[ ic ] == null ) {
-                logger_.warning( "Will not write un ECSV-able column "
+                logger_.warning( "Will not write un-ECSV-able column "
                                + cinfo );
             }
         }
 
         /* Write preamble. */
-        writeHeaderLine( out, "%ECSV 0.9" );
+        writeHeaderLine( out, "%ECSV 1.0" );
         writeHeaderLine( out, "---" );
 
         /* Write delimiter if required. */
@@ -200,6 +200,8 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
                 writeHeaderPairString( out, 1, "name", colInfo.getName() );
                 writeHeaderPairString( out, 1, "datatype",
                                        encoder.getDatatype() );
+                writeHeaderPairString( out, 1, "subtype",
+                                       encoder.getSubtype() );
                 writeHeaderPairString( out, 1, "unit",
                                        colInfo.getUnitString() );
                 writeHeaderPairString( out, 1, "description",
