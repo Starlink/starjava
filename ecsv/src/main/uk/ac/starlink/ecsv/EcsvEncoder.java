@@ -204,8 +204,11 @@ public abstract class EcsvEncoder {
      * @return   sanitised version of the string
      */
     public static String quoteString( String txt, char delimiter ) {
-        boolean needsQuote = false;
         int nc = txt.length();
+        if ( nc == 0 ) {
+            return delimiter == ' ' ? "\"\"" : "";
+        }
+        boolean needsQuote = false;
         int ndq = 0;
         for ( int ic = 0; ic < nc; ic++ ) {
             char c = txt.charAt( ic );
