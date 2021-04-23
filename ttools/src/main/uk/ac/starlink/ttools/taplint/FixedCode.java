@@ -96,6 +96,7 @@ public enum FixedCode implements ReportCode {
     E_JDNO( "Missing job document" ),
     E_JDPH( "Info/phase phase mismatch" ),
     E_JDSX( "Error parsing job document" ),
+    E_JREJ( "Async job rejected before RUN" ),
     E_KCIO( "Error reading TAP_SCHEMA.key_columns table" ),
     E_KEYX( "Unknown standard language feature key" ),
     E_LVER( "Some ADQL variants fail" ),

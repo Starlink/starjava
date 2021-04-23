@@ -24,6 +24,7 @@ import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapLanguage;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapService;
+import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.votable.VODocument;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOStarTable;
@@ -177,6 +178,23 @@ public class QueryStage implements Stage {
         catch ( SAXException e ) {
             reporter.report( FixedCode.E_DFSF,
                              "TAP result parse failed for bad query"
+                           + pErrorType, e );
+            return;
+        }
+        catch ( UwsJob.UnexpectedResponseException e ) {
+
+            /* Report as a special case a job rejected at job creation time
+             * (this exception can only be thrown by the async tap runner).
+             * Although UWS 1.1 sec 2.2.3.1 says that the service may
+             * reject a job creation request by giving a non-303 response,
+             * TAP 1.1 sec 2.7 makes clear that errors resulting from
+             * bad parameter values, which is probably what's happening here,
+             * should occur only at execution time not job creation time.
+             * However, it is *possible* that some legitimate condition,
+             * i.e. not bad job parameters, is causing this exception,
+             * so this report might need to be reviewed in future. */
+            reporter.report( FixedCode.E_JREJ,
+                             "TAP job rejected before execution for bad query"
                            + pErrorType, e );
             return;
         }
