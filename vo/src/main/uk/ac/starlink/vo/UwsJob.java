@@ -486,18 +486,28 @@ public class UwsJob {
             postForm( new URL( jobListUrl ), ContentCoding.NONE,
                       stringParamMap, streamParamMap );
         int code = hconn.getResponseCode();
-        if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {  // 303
-            String msg = "Non-" + HttpURLConnection.HTTP_SEE_OTHER + " response"
-                       + " (" + hconn.getResponseCode() + " "
-                       + hconn.getResponseMessage() + ")";
-            throw new UnexpectedResponseException( msg, hconn );
+        String codeMsg = "(" + code + " " + hconn.getResponseMessage() + ")";
+
+        /* See UWS 1.1 section 2.2.3.1.  In case of success, there should be a
+         * 303 (See Other) response.  Job rejection should provoke a
+         * 403 (Forbidden).  Other responses are possible, and maybe even
+         * legitimate, but not mentioned by UWS, so flagged for possible
+         * special treatment. */
+        if ( code == 303 ) {
+            String location = hconn.getHeaderField( "Location" );
+            if ( location == null ) {
+                throw new IOException( "No Location field in 303 response" );
+            }
+            logger_.info( "Created UWS job at: " + location );
+            return new UwsJob( new URL( location ) );
         }
-        String location = hconn.getHeaderField( "Location" );
-        if ( location == null ) {
-            throw new IOException( "No Location field in 303 response" );
+        else if ( code == 403 ) {
+            throw new IOException( "UWS job creation rejected " + codeMsg );
         }
-        logger_.info( "Created UWS job at: " + location );
-        return new UwsJob( new URL( location ) );
+        else {
+            throw new UnexpectedResponseException( "Non-303 response "
+                                                 + codeMsg, hconn );
+        }
     }
 
     /**
