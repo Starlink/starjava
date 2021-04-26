@@ -12,7 +12,8 @@ public class SchemeTest extends TestCase {
         StarTableFactory tfact = new StarTableFactory();
         Map<String,TableScheme> schemes = tfact.getSchemes();
         assertEquals(
-            new HashSet<String>( Arrays.asList( "jdbc", "class", "loop" ) ),
+            new HashSet<String>( Arrays.asList( "jdbc", "class", "loop",
+                                                "test" ) ),
                       schemes.keySet() );
         failCreateTable( tfact, ":num:10" );
         tfact.addScheme( new NumTableScheme() );
@@ -55,6 +56,37 @@ public class SchemeTest extends TestCase {
         assertEquals( 10, tcloop.getRowCount() );
         tfact.getSchemes().remove( "class" );
         failCreateTable( tfact, l10spec );
+    }
+
+    public void testTest() throws IOException {
+        StarTableFactory tfact = new StarTableFactory();
+        failCreateTable( tfact, ":test:xx" );
+        failCreateTable( tfact, ":test:10,X" );
+        failCreateTable( tfact, ":test:100,is,99" );
+ 
+        StarTable iTable = createTable( tfact, ":test:99,i" );
+        assertEquals( 99, iTable.getRowCount() );
+        assertEquals( 1, iTable.getColumnCount() );
+
+        assertTrue( createTable( tfact, ":test:10000" ).getColumnCount() >= 3 );
+
+        assertNull( createTable( tfact, ":test:10,s" )
+                   .getColumnInfo( 0 )
+                   .getContentClass()
+                   .getComponentType() );
+        assertNotNull( createTable( tfact, ":test:10,f" )
+                      .getColumnInfo( 0 )
+                      .getContentClass()
+                      .getComponentType() );
+        assertNotNull( createTable( tfact, ":test:10,v" )
+                      .getColumnInfo( 0 )
+                      .getContentClass()
+                      .getComponentType() );
+
+        StarTable t1k = createTable( tfact, ":test:1000,*" );
+        assertEquals( 1000, t1k.getRowCount() );
+        assertTrue( t1k.getColumnCount() >= 30 );
+        Tables.checkTable( t1k );
     }
 
     private StarTable createTable( StarTableFactory tfact, String tspec )

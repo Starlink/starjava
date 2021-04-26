@@ -206,6 +206,7 @@ public class StarTableFactory {
     };
     private static TableScheme[] dfltSchemes = {
         new LoopTableScheme(),
+        new TestTableScheme(),
         new ClassTableScheme(),
     };
 

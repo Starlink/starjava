@@ -29784,6 +29784,7 @@ introduced since the last version:
         could misidentify column types and cause read failures.</li>
     <li>Add support for reading AAS
         <ref id="inMrt">Machine-Readable Table</ref> format.</li>
+    <li>Add new table scheme <ref id="scheme-test">test</ref>.</li>
     </ul>
     </p></dd>
 
