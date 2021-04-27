@@ -13156,6 +13156,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         folding <code>adql:TIMESTAMP</code>-&gt;<code>timestamp</code>
         no longer provokes error <code>E-UPL-TMCX</code>.</li>
     <li>Space-delimited ECSV files now write empty fields quoted.</li>
+    <li>Fix long-standing logic error in ASCII/CSV input handler that
+        could misidentify column types and cause read failures.</li>
     </ul>
     </p></dd>
 

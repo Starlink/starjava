@@ -29774,6 +29774,8 @@ introduced since the last version:
     <li>Upgrade cds-healpix-java library to v0.29.2; avoid occasional 
         sky crossmatch failures (termination with error).</li>
     <li>Space-delimited ECSV files now write empty fields quoted.</li>
+    <li>Fix long-standing logic error in ASCII/CSV input handler that 
+        could misidentify column types and cause read failures.</li>
     </ul>
     </p></dd>
 

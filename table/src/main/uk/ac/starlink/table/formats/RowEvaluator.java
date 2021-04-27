@@ -271,84 +271,41 @@ public class RowEvaluator {
             int leng0 = cell0 == null ? 0 : cell0.length();
             String cell = cell0 == null ? "" : cell0.trim();
             int leng = cell.length();
-            if ( leng == 0 ) {
-                done = true;
-            }
             if ( leng0 > stringLength_[ icol ] ) {
                 stringLength_[ icol ] = leng0;
             }
-            if ( ! done && maybeBoolean_[ icol ] ) {
-                if ( BOOLEAN_DECODER.isValid( cell ) ) {
-                    done = true;
-                }
-                else {
-                    maybeBoolean_[ icol ] = false;
-                }
+            if ( leng > 0 ) {
+                updateColFlag( icol, cell, maybeBoolean_, BOOLEAN_DECODER );
+                updateColFlag( icol, cell, maybeShort_, SHORT_DECODER );
+                updateColFlag( icol, cell, maybeInteger_, INTEGER_DECODER );
+                updateColFlag( icol, cell, maybeLong_, LONG_DECODER );
+                updateColFlag( icol, cell, maybeFloat_, FLOAT_DECODER );
+                updateColFlag( icol, cell, maybeDouble_, DOUBLE_DECODER );
+                updateColFlag( icol, cell, maybeDate_, DATE_DECODER );
+                updateColFlag( icol, cell, maybeHms_, HMS_DECODER );
+                updateColFlag( icol, cell, maybeDms_, DMS_DECODER );
             }
-            if ( ! done && maybeShort_[ icol ] ) {
-                if ( SHORT_DECODER.isValid( cell ) ) {
-                    done = true;
-                }
-                else {
-                    maybeShort_[ icol ] = false;
-                }
-            }
-            if ( ! done && maybeInteger_[ icol ] ) {
-                if ( INTEGER_DECODER.isValid( cell ) ) {
-                    done = true;
-                }
-                else {
-                    maybeInteger_[ icol ] = false;
-                }
-            }
-            if ( ! done && maybeLong_[ icol ] ) {
-                if ( LONG_DECODER.isValid( cell ) ) {
-                    done = true;
-                }
-                else {
-                    maybeLong_[ icol ] = false;
-                }
-            }
-            if ( ! done && maybeFloat_[ icol ] ) {
-                if ( FLOAT_DECODER.isValid( cell ) ) {
-                    done = true;
-                }
-                else {
-                    maybeFloat_[ icol ] = false;
-                }
-            }
-            if ( ! done && maybeDouble_[ icol ] ) {
-                if ( DOUBLE_DECODER.isValid( cell ) ) {
-                    done = true;
-                }
-                else {
-                    maybeDouble_[ icol ] = false;
-                }
-            }
-            if ( ! done && maybeDate_[ icol ] ) {
-                if ( DATE_DECODER.isValid( cell ) ) {
-                    done = true;
-                }
-                else {
-                    maybeDate_[ icol ] = false;
-                }
-            }
-            if ( ! done && maybeHms_[ icol ] ) {
-                if ( HMS_DECODER.isValid( cell ) ) {
-                    done = true;
-                }
-                else {
-                    maybeHms_[ icol ] = false;
-                }
-            }
-            if ( ! done && maybeDms_[ icol ] ) {
-                if ( DMS_DECODER.isValid( cell ) ) {
-                    done = true;
-                }
-                else {
-                    maybeDms_[ icol ] = false;
-                }
-            }
+        }
+    }
+
+    /**
+     * Updates an element of a flags array based on compatibility of
+     * a cell value with a given decoder.
+     *
+     * @param  icol  index into colFlags array
+     * @param  cell  test cell value
+     * @param  colFlags   flags array
+     * @param  decoder   if cell is marked as invalid by decoder,
+     *                   then <code>colFlags[icol]</code> will be set false
+     */
+    private static void updateColFlag( int icol, String cell,
+                                       boolean[] colFlags, Decoder decoder ) {
+
+        /* Get the short circuiting right for efficiency; a failed validity
+         * test can throw an exception and so be expensive, so it's important
+         * that it's not done over and over again for a column. */
+        if ( colFlags[ icol ] && ! decoder.isValid( cell ) ) {
+            colFlags[ icol ] = false;
         }
     }
 
