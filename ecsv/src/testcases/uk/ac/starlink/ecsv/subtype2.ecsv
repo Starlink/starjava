@@ -1,0 +1,9 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: a, datatype: string, subtype: 'int64[null]'}
+# schema: astropy-2.0
+a
+[1,2]
+[3,4,5,6,7]
+[8,9,10]

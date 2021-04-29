@@ -40,6 +40,7 @@
 #   sarray: ["a,b,c", "[abc]", "{abc}"]
 #
 message,log,txt,iu8,iu16,iu32,su8,su16,su32,su64,f32,f64
-msg,false,zero,0,0,0,0,0,0,0,0.5,0.5
+msg,False,zero,0,0,0,0,0,0,0,0.5,0.5
 
-msg,true,"one",1,1,1,1,1,1,1,1.5,1.5
+msg,True,"one",1,1,1,1,1,1,1,1.5,1.5
+,False,,,,,,,,,,
