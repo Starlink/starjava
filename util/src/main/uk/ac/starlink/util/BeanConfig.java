@@ -311,9 +311,14 @@ public class BeanConfig {
                          .collect( Collectors.joining( "|" ) );
         }
         else if ( optClazz != null ) {
-            return "<" + optClazz.getSimpleName() + ">";
+            String[] instanceNames = getStaticInstanceNames( optClazz );
+            return instanceNames.length > 1
+                 ? String.join( "|", instanceNames ) 
+                 : "<" + optClazz.getSimpleName() + ">";
         }
-        return "??";
+        else {
+            return "??";
+        }
     }
 
     /**
@@ -428,6 +433,7 @@ public class BeanConfig {
      * @param  txt   value representation; name of static member
      * @param  ownerClazz   class to search for static members
      * @return   member value fitting requirements, or null
+     * @see   #getStaticInstanceNames
      */
     private static <T> T getTypedMember( Class<T> reqClazz, String txt,
                                          Class<?> ownerClazz ) {
@@ -443,6 +449,30 @@ public class BeanConfig {
         catch ( ReflectiveOperationException | NullPointerException e ) {
             return null;
         }
+    }
+
+    /**
+     * Returns a list giving names of any public static final members
+     * of a class which are themselves instances of that class.
+     * Any of these values can be interpreted by {@link #getTypedMember}
+     * as suitable target values.
+     *
+     * @param  clazz  class to interrogate
+     * @return   array of zero or more instance names
+     */
+    private static String[] getStaticInstanceNames( Class<?> clazz ) {
+        List<String> list = new ArrayList<>();
+        for ( Field field : clazz.getFields() ) {
+            if ( clazz.isAssignableFrom( field.getType() ) ) {
+                int mods = field.getModifiers();
+                if ( Modifier.isPublic( mods ) &&
+                     Modifier.isStatic( mods ) &&
+                     Modifier.isFinal( mods ) ) {
+                    list.add( field.getName() );
+                }
+            }
+        }
+        return list.toArray( new String[ 0 ] );
     }
 
     /**
