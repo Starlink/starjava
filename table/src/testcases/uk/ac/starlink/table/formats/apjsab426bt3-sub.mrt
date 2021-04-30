@@ -1,0 +1,57 @@
+Title: Microlensing optical depth and event rate toward the Galactic bulge 
+       from eight years of OGLE-IV observations 
+Authors: Mroz P., Udalski A., Skowron J., Szymanski M.K., Soszynski I.,
+    Wyrzykowski L., Pietrukowicz P., Kozlowski S., Poleski R., Ulaczyk K., 
+    Rybicki K., Iwanek P. 
+Table: Best-fitting parameters of the analyzed microlensing events in 
+    low-cadence OGLE fields
+================================================================================
+Byte-by-byte Description of file: apjsab426bt3_mrt.txt
+--------------------------------------------------------------------------------
+   Bytes Format Units    Label    Explanations
+--------------------------------------------------------------------------------
+   1- 16 A16    ---      name     Star name
+  18- 26 A9     ---      field    OGLE-IV subfield name
+  28- 33 I6     ---      star     Star ID in the OGLE-IV database
+  35- 36 I2     h        RAh      Hour of Right Ascension (J2000) 
+  38- 39 I2     min      RAm      Minute of Right Ascension (J2000) 
+  41- 45 F5.2   s        RAs      Second of Right Ascension (J2000) 
+  47- 47 A1     ---      DE-      Sign of the Declination (J2000)
+  48- 49 I2     deg      DEd      Degree of Declination (J2000) 
+  51- 52 I2     arcmin   DEm      Arcminute of Declination (J2000) 
+  54- 57 F4.1   arcsec   DEs      Arcsecond of Declination (J2000) 
+  59- 67 F9.5   deg      RAdeg    Right Ascension, decimal degrees (J2000)
+  69- 77 F9.5   deg      DEdeg    Declination, decimal degrees (J2000)
+  79- 86 F8.5   deg      GLON     Galactic longitude 
+  88- 96 F9.5   deg      GLAT     Galactic latitude 
+  98-108 F11.3  d        t0-best  Best-fit t0, time of closest approach, Heliocentric Julian Date
+ 110-116 F7.3   d        tE-best  Best-fit tE, Einstein timescale, day
+ 118-122 F5.3   ---      u0-best  Best-fit u0, projected separation
+ 124-129 F6.3   mag      Is-best  Best-fit I-band source magnitude
+ 131-135 F5.3   ---      fs-best  Best-fit blending parameter
+ 137-147 F11.3  d        t0-med   Median t0, time of closest approach, Heliocentric Julian Date
+ 149-155 F7.3   d      e_t0-med   Negative error bar, t0-med
+ 157-162 F6.3   d      E_t0-med   Positive error bar, t0-med
+ 164-171 F8.3   d        tE-med   Median tE, Einstein timescale, day
+ 173-181 F9.3   d      e_tE-med   Negative error bar, tE-med, day
+ 183-191 F9.3   d      E_tE-med   Positive error bar, tE-med, day
+ 193-197 F5.3   ---      u0-med   Median u0, projected separation
+ 199-204 F6.3   ---    e_u0-med   Negative error bar, u0-med
+ 206-210 F5.3   ---    E_u0-med   Positive error bar, u0-med
+ 212-217 F6.3   mag      Is-med   Median I-band source magnitude
+ 219-224 F6.3   mag    e_Is-med   Negative error bar, Is-med (mag)
+ 226-230 F5.3   mag    E_Is-med   Positive error bar, Is-med (mag)
+ 232-236 F5.3   ---      fs-med   Median blending parameter
+ 238-243 F6.3   ---    e_fs-med   Negative error bar, fs-med
+ 245-249 F5.3   ---    E_fs-med   Positive error bar, fs-med
+ 251-256 F6.2   ---      weight   Inverse of the detection efficiency
+ 258-294 A37    ---      ews-ids  OGLE EWS ID(s)
+--------------------------------------------------------------------------------
+BLG617.16.73378  BLG617.16  73378 17 13 08.00 -29 48 13.0 258.28333 -29.80361 -4.63170   5.42560 2455434.908  24.294 0.206 20.104 0.911 2455434.908  -0.218  0.229   24.414    -2.846     4.555 0.206 -0.045 0.041 20.105 -0.234 0.308 0.910 -0.224 0.219   3.92 X                                     
+BLG617.24.41328  BLG617.24  41328 17 13 54.30 -29 36 35.5 258.47625 -29.60986 -4.37550   5.40191 2457462.780 201.029 0.138 20.298 0.245 2457462.791  -0.657  0.572  199.662   -17.422    18.486 0.139 -0.016 0.019 20.286 -0.156 0.144 0.248 -0.031 0.038   2.35 OGLE-2016-BLG-0231                    
+BLG616.32.9872   BLG616.32   9872 17 13 56.45 -28 08 40.8 258.48521 -28.14467 -3.17082   6.24486 2455840.447  41.553 0.021 20.948 0.806 2455840.415  -0.296  0.277   38.599    -9.951    15.646 0.021 -0.007 0.010 20.859 -0.404 0.441 0.872 -0.288 0.388   8.49 X                                     
+BLG617.24.47717  BLG617.24  47717 17 13 56.92 -29 32 34.2 258.48717 -29.54283 -4.31514   5.43309 2457594.803  19.768 0.238 20.188 1.239 2457594.847  -0.245  0.239   21.545    -2.773     4.745 0.211 -0.052 0.048 20.344 -0.251 0.342 1.073 -0.289 0.278   4.45 OGLE-2016-BLG-1459                    
+BLG617.07.43804  BLG617.07  43804 17 14 00.26 -30 08 42.2 258.50108 -30.14506 -4.80047   5.07357 2457842.378  51.461 0.427 20.542 0.172 2457842.431  -1.616  1.621   38.769    -8.754    18.741 0.691 -0.317 0.336 19.742 -0.826 1.011 0.360 -0.218 0.410   3.18 OGLE-2017-BLG-0395                    
+BLG617.07.22676  BLG617.07  22676 17 14 06.09 -30 04 59.8 258.52537 -30.08328 -4.73773   5.09235 2456434.702  36.408 0.387 20.013 1.096 2456434.709  -0.510  0.517   39.078    -4.414     6.765 0.349 -0.074 0.068 20.161 -0.260 0.328 0.955 -0.248 0.257   3.55 OGLE-2013-BLG-0673                    
+BLG617.15.7193   BLG617.15   7193 17 14 06.52 -29 56 21.5 258.52717 -29.93931 -4.61913   5.17467 2456038.722  25.266 0.462 19.512 0.782 2456038.680  -0.426  0.436   26.216    -3.224     5.424 0.438 -0.111 0.099 19.599 -0.332 0.433 0.722 -0.237 0.258   3.92 OGLE-2012-BLG-0420                    
+BLG617.14.111445 BLG617.14 111445 17 14 18.39 -29 48 49.5 258.57662 -29.81375 -4.49146   5.21260 2455652.634  15.657 0.086 19.147 0.394 2455652.637  -0.030  0.030   15.527    -1.004     1.074 0.087 -0.007 0.008 19.135 -0.101 0.100 0.399 -0.035 0.039   5.25 X                                     

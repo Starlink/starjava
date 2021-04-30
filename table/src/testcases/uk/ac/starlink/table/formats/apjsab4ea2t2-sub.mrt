@@ -1,0 +1,60 @@
+Title: Swift-XRT Follow-up of Gravitational Wave Triggers in the 
+       Second Advanced Ligo/Virgo Observing Run 
+Authors: Klingler N.J., Kennea J.A., Evans P.A., Tohuvavohu A., Cenko S.B., 
+         Barthelmy S.D., Beardmore A.P., Breeveld A.A., Brown P.J., 
+         Burrows D.N., Campana S., Cusumano G., D'Ai A., D'Avanzo P., 
+         D'Elia V., de Pasquale M., Emery S.W.K., Garcia J., Giommi P., 
+         Gronwall C., Hartmann D.H., Krimm H.A., Kuin N.P.M., Lien A., 
+         Malesani D.B., Marshall F.E., Melandri A., Nousek J.A., Oates S.R., 
+         O'Brien P.T., Osborne J.P., Page K.L., Palmer D.M., Perri M., 
+         Racusin J.L., Siegel M.H., Sakamoto T., Sbarufatti B., 
+         Tagliaferri G., Troja E. 
+Table: Catalog of X-ray sources detected in the follow-up searches 
+       for O2 GW triggers
+================================================================================
+Byte-by-byte Description of file: apjsab4ea2t2_mrt.txt
+--------------------------------------------------------------------------------
+   Bytes Format Units    Label   Explanations
+--------------------------------------------------------------------------------
+   1-  2 I2     ---      GW      GW event number (1)
+       4 I1     ---      Rank    Rank (2)
+   6-  7 I2     h        RAh     Hour of Right Ascension (J2000)
+   9- 10 I2     min      RAm     Minute of Right Ascension (J2000)
+  12- 16 F5.2   s        RAs     Second of Right Ascension (J2000)
+      18 A1     ---      DE-     Sign of the Declination (J2000)
+  19- 20 I2     deg      DEd     Degree of Declination (J2000)
+  22- 23 I2     arcmin   DEm     Arcminute of Declination (J2000)
+  25- 28 F4.1   arcsec   DEs     Arcsecond of Declination (J2000)
+  30- 32 F3.1   arcsec   PosErr  The 90% positional uncertainty
+  34- 38 F5.3   ct/s     PRate   Peak source XRT count rate
+  40- 44 F5.3   ct/s   e_PRate   Uncertainty in PRate
+  46- 53 E8.2   mW/m2    PFlux   Peak flux (3)
+  55- 62 E8.2   mW/m2  e_PFlux   Uncertainty in PFlux (3)
+  64- 78 A15    ---      Simbad  Simbad source type (4)
+      80 A1     ---      Known   Source has been previously detected in X-rays
+  82- 83 I2     ---      Near    Number of known "nearby" galaxies; Section 4.1
+      85 I1     ---      2MASS   Number of nearby/positionally coincident 
+                                  2MASS sources
+  87- 91 F5.2   ---      Fade    Statistical significance of fading 
+                                  behavior, if present
+--------------------------------------------------------------------------------
+Note (1): 4 corresponds to the first entry in Table 1, and 17 corresponds 
+          to last.
+Note (2): 
+    2 = interesting source;
+    3 = uncataloged X-ray source;
+    4 = catalogued X-ray source.
+Note (3): See section 3 for details. In units of erg/s/cm^2^.
+Note (4): "AGN; MQ" and "AGN; S/W" denote that there is a positionally 
+          coincident entry in the Million Quasars catalog or the QSO selection 
+          from SDSS and WISE; see Flesch 2015 [2015PASA...32...10F] and 
+          Richards et al. 2015 [2015ApJS..219...39R], respectively);
+--------------------------------------------------------------------------------
+ 8 4 00 00 31.64 +68 15 00.4 4.9 0.028 0.009 1.20e-12 0.40e-12 Star            Y  2 1  0.   
+ 8 4 01 09 44.03 +73 11 58.5 5.6 0.14  0.05  6.10e-12 2.20e-12 Seyfert 1       Y  1 1  0.   
+17 3 01 20 16.99 +12 03 20.3 6.1 0.013 0.005 5.70e-13 2.10e-13 Radio           N  0 1  0.   
+17 3 01 24 24.94 +08 24 03.1 5.2 0.033 0.010 1.40e-12 0.40e-12 EB*WUMa         N  1 1  0.   
+17 4 01 39 10.99 +34 33 40.3 6.6 0.068 0.028 2.90e-12 1.20e-12 X               Y  0 1  0.   
+17 3 01 40 17.34 +23 27 21.3 6.4 0.020 0.008 9.00e-13 3.00e-13 QSO             N  0 1  0.   
+17 3 02 03 24.54 +39 51 19.7 7.9 0.04  0.03  1.80e-12 1.30e-12 Unknown         N  0 1  1.2  
+17 3 02 01 09.81 +44 10 16.2 5.8 0.018 0.008 8.00e-13 3.00e-13 (AGN; MQ)       N  0 1  0.   

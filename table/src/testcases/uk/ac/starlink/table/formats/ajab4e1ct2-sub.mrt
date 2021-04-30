@@ -1,0 +1,29 @@
+Title: A search for multi-planet systems with TESS using a Bayesian 
+       N-body retrieval and machine learning
+Author: Pearson K.A.
+Table: Stellar Parameters
+================================================================================
+Byte-by-byte Description of file: ajab4e1ct2_mrt.txt
+--------------------------------------------------------------------------------
+   Bytes Format Units   Label   Explanations
+--------------------------------------------------------------------------------
+   1-  9 I9     ---     ID      TESS Input Catalog identifier
+  11- 15 F5.2   mag     Tmag    Apparent TESS band magnitude
+  17- 21 F5.3   solRad  R*      Stellar radius
+  23- 26 I4     K       Teff    Effective temperature
+  28- 32 F5.3   [cm/s2] log(g)  log surface gravity
+  34- 38 F5.2   [Sun]   [Fe/H]  Metallicity
+  40- 44 F5.3   ---     u1      Linear Limb Darkening
+  46- 50 F5.3   ---     u2      Quadratic Limb Darkening
+--------------------------------------------------------------------------------
+231663901 12.35 0.860 5600 4.489  0.00 0.439 0.138 
+149603524  9.72 1.280 6280 4.321  0.24 0.409 0.140 
+336732616 11.46 1.400 6351 4.229  0.00 0.398 0.140 
+231670397  9.85 2.070 6036 3.934  0.00 0.438 0.117 
+144065872  9.48 1.130 5630 4.378  0.00 0.453 0.127 
+ 38846515 10.31 1.000 6900 4.400  0.00 0.361 0.152 
+ 92352620  9.64 1.620 6153 4.181  0.22 0.420 0.133 
+289793076 13.10 0.890 5523 4.522  0.00 0.447 0.134 
+ 29344935 13.18 0.930 5346 4.488  0.00 0.467 0.127 
+281459670 11.63 1.060 5943 4.425 -0.10 0.415 0.147 
+355703913 13.13 0.980 5380 4.434  0.00 0.478 0.120 
