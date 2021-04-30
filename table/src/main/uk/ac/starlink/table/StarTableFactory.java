@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import uk.ac.starlink.table.formats.AsciiTableBuilder;
 import uk.ac.starlink.table.formats.CsvTableBuilder;
 import uk.ac.starlink.table.formats.IpacTableBuilder;
+import uk.ac.starlink.table.formats.MrtTableBuilder;
 import uk.ac.starlink.table.formats.TstTableBuilder;
 import uk.ac.starlink.table.formats.WDCTableBuilder;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
@@ -90,6 +91,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="cdf")
  * <li> {@link uk.ac.starlink.ecsv.EcsvTableBuilder}
  *      (format name="ecsv")
+ * <li> {@link uk.ac.starlink.table.formats.MrtTableBuilder}
+ *      (format name="mrt")
  * <li> {@link uk.ac.starlink.feather.FeatherTableBuilder}
  *      (format name="feather")
  * </ul>
@@ -190,6 +193,7 @@ public class StarTableFactory {
         "uk.ac.starlink.votable.VOTableBuilder",
         "uk.ac.starlink.cdf.CdfTableBuilder",
         "uk.ac.starlink.ecsv.EcsvTableBuilder",
+        "uk.ac.starlink.table.formats.MrtTableBuilder",
         "uk.ac.starlink.feather.FeatherTableBuilder",
         "uk.ac.starlink.gbin.GbinTableBuilder",
     };

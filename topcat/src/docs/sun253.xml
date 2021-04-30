@@ -24,6 +24,7 @@
   <!ENTITY in-fits SYSTEM 'in-fits.xml'>
   <!ENTITY in-gbin SYSTEM 'in-gbin.xml'>
   <!ENTITY in-ipac SYSTEM 'in-ipac.xml'>
+  <!ENTITY in-mrt SYSTEM 'in-mrt.xml'>
   <!ENTITY in-tst SYSTEM 'in-tst.xml'>
   <!ENTITY in-votable SYSTEM 'in-votable.xml'>
   <!ENTITY in-wdc SYSTEM 'in-wdc.xml'>
@@ -1270,6 +1271,11 @@ similar and capable of storing more metadata.
 <subsubsubsect id="inIpac">
 <subhead><title>IPAC</title></subhead>
 &in-ipac;
+</subsubsubsect>
+
+<subsubsubsect id="inMrt">
+<subhead><title>MRT</title></subhead>
+&in-mrt;
 </subsubsubsect>
 
 <subsubsubsect id="inFeather">
@@ -24642,7 +24648,7 @@ Some of the notable contributers are these:
 <li>Daniel Michalik (Lund)</li>
 <li>David Mills (Bristol)</li>
 <li>Douglas Morgan (Bristol)</li>
-<li>August Muench (CfA)</li>
+<li>August Muench (AAS)</li>
 <li>Simon Murphy (ANU)</li>
 <li>John Murrell</li>
 <li>Ada Nebot (CDS)</li>
@@ -29776,6 +29782,8 @@ introduced since the last version:
     <li>Space-delimited ECSV files now write empty fields quoted.</li>
     <li>Fix long-standing logic error in ASCII/CSV input handler that 
         could misidentify column types and cause read failures.</li>
+    <li>Add support for reading AAS
+        <ref id="inMrt">Machine-Readable Table</ref> format.</li>
     </ul>
     </p></dd>
 

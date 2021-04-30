@@ -54,6 +54,7 @@
   <!ENTITY in-fits SYSTEM 'in-fits.xml'>
   <!ENTITY in-gbin SYSTEM 'in-gbin.xml'>
   <!ENTITY in-ipac SYSTEM 'in-ipac.xml'>
+  <!ENTITY in-mrt SYSTEM 'in-mrt.xml'>
   <!ENTITY in-tst SYSTEM 'in-tst.xml'>
   <!ENTITY in-votable SYSTEM 'in-votable.xml'>
   <!ENTITY in-wdc SYSTEM 'in-wdc.xml'>
@@ -2155,6 +2156,11 @@ similar and capable of storing more metadata.
 <subsubsubsect id="inIpac">
 <subhead><title><code>ipac</code></title></subhead>
 &in-ipac;
+</subsubsubsect>
+
+<subsubsubsect id="inMrt">
+<subhead><title><code>mrt</code></title></subhead>
+&in-mrt;
 </subsubsubsect>
 
 <subsubsubsect id="inFeather">
@@ -13158,6 +13164,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Space-delimited ECSV files now write empty fields quoted.</li>
     <li>Fix long-standing logic error in ASCII/CSV input handler that
         could misidentify column types and cause read failures.</li>
+    <li>Add support for reading AAS 
+        <ref id="inMrt">Machine-Readable Table</ref> format.</li>
     </ul>
     </p></dd>
 

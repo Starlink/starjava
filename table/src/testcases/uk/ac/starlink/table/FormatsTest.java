@@ -266,6 +266,7 @@ public class FormatsTest extends TableCase {
             "VOTable",
             "CDF",
             "ECSV",
+            "MRT",
             "feather",
             "GBIN",
         };
@@ -277,6 +278,7 @@ public class FormatsTest extends TableCase {
             "VOTable",
             "CDF",
             "ECSV",
+            "MRT",
             "feather",
             "GBIN",
             "ASCII",
