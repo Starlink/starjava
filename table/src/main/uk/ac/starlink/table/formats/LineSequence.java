@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Utility class which can read lines from an input stream.
+ * Utility class which can read lines from an ASCII input stream.
  * You can also push lines back if you want to unread them.
  *
  * @author   Mark Taylor
@@ -33,7 +33,7 @@ class LineSequence {
      * Returns the next line to read from the stream.
      * If the stream is empty, null is returned.
      * The line will not contain a terminating newline.
-     * Currently, only lines terminated by a single '\n' are recognised.
+     * Lines terminated by a "\n" or "\r\n" are recognised.
      * Characters are assumed 8-bit.
      * The line which is returned is either a newly-read one, or one which
      * has previously been read and then pushed back using
@@ -50,14 +50,14 @@ class LineSequence {
             for ( int v; ( v = in_.read() ) >= 0; ) {
                 char c = (char) v;
                 if ( c == '\n' ) {
-                    return sbuf_.toString();
+                    return trimCr( sbuf_ );
                 }
                 else {
                     sbuf_.append( c );
                 }
             }
             if ( sbuf_.length() > 0 ) {
-                return sbuf_.toString();
+                return trimCr( sbuf_ );
             }
             else {
                 return null;
@@ -77,5 +77,25 @@ class LineSequence {
      */
     public void replaceLine( String line ) {
         readyLines_.add( line );
+    }
+
+    /**
+     * Returns the string content of a character sequence, with any trailing
+     * CR ("<code>\r</code>") character removed.
+     * This can be used on input lines so that "\r\n" line endings
+     * are treated the same as "\n" line endings.
+     *
+     * @param  sbuf  character sequence that may or may not end
+     *               with a single CR
+     * @return  string value that does not include any single trailing CR
+     *          from the input
+     * @see   Goldfarb's First Law of Text Processing
+     */
+    private String trimCr( CharSequence line ) {
+        int leng = line.length();
+        int iEnd = leng > 0 && line.charAt( leng - 1 ) == '\r'
+                 ? leng - 1
+                 : leng;
+        return line.subSequence( 0, iEnd ).toString();
     }
 }
