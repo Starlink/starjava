@@ -72,7 +72,7 @@ public class EcsvTest extends TestCase {
             assertEquals( c1.getContentClass(), c2.getContentClass() );
             assertEquals( c1.getUnitString(), c2.getUnitString() );
             assertEquals( c1.getUCD(), c2.getUCD() );
-            assertEquals( Tables.getXtype( c1 ), Tables.getXtype( c2 ) );
+            assertEquals( c1.getXtype(), c2.getXtype() );
             Object dummy1 = c1.getAuxDatumValueByName( "dummy", String.class );
             Object dummy2 = c2.getAuxDatumValueByName( "dummy", String.class );
             assertEquals( dummy1, dummy2 );
