@@ -41,12 +41,12 @@ import uk.ac.starlink.util.ConfigMethod;
 public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
 
     private final String formatName_;
-    private final String nullRep_;
     private final byte badChar_;
     private final String nl_;
     private final String indent_;
     private final ByteList bbuf_;
     private char delimiter_;
+    private String nullRep_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ecsv" );
 
@@ -92,9 +92,8 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
      */
     public EcsvTableWriter( char delimiter, String nameSuffix ) {
         super( new String[] { "ecsv" } );
-        delimiter_ = delimiter;
+        setDelimiter( Character.toString( delimiter ) );
         formatName_ = "ECSV" + ( nameSuffix == null ? "" : nameSuffix );
-        nullRep_ = delimiter == ' ' ? "\"\"" : "";
         badChar_ = (byte) '?';
         nl_ = "\n";
         indent_ = "  ";
@@ -147,6 +146,7 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
             throw new IllegalArgumentException( "Illegal delimiter \""
                                               + delimiter + "\"" );
         }
+        nullRep_ = delimiter_ == ' ' ? "\"\"" : "";
     }
 
     /**
