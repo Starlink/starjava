@@ -1374,6 +1374,7 @@ public class StarTableFactory {
         catch ( TableFormatException e ) {
             String msg = new StringBuffer()
                 .append( "Bad format for " )
+                .append( ":" )
                 .append( schemeName )
                 .append( ":" )
                 .append( scheme.getSchemeUsage() )
