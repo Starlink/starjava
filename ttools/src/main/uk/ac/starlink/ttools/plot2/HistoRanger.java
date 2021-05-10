@@ -526,6 +526,8 @@ public class HistoRanger implements Ranger {
         final int dataHash_;
         final boolean isLogLike_;
         final double nq1_;
+        final double loval_;
+        final double hival_;
 
         /**
          * The dataHash is supplied since it may be somewhat expensive
@@ -551,6 +553,9 @@ public class HistoRanger implements Ranger {
             dataHash_ = dataHash;
             isLogLike_ = isLogLike;
             nq1_ = 1.0 / ( ihi_ - ilo_ );
+            loval_ = Math.max( lo_, sortedQuantiles[ 0 ] );
+            hival_ = Math.min( hi_,
+                               sortedQuantiles[ sortedQuantiles.length - 1 ] );
         }
 
         public double getLow() {
@@ -568,10 +573,10 @@ public class HistoRanger implements Ranger {
         public double scaleValue( double val ) {
 
             /* Clip. */
-            if ( val <= lo_ ) {
+            if ( val <= loval_ ) {
                 return 0;
             }
-            else if ( val >= hi_ ) {
+            else if ( val >= hival_ ) {
                 return 1;
             }
             else if ( Double.isNaN( val ) ) {
