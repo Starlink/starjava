@@ -114,7 +114,8 @@ public class EcsvTest extends TestCase {
         ColumnInfo c1a = s1.getColumnInfo( 0 );
         assertEquals( double[].class, c1a.getContentClass() );
         assertArrayEquals( new int[] { 2, 3 }, c1a.getShape() );
-        assertEquals( 9.0, ((double[]) s1.getCell( 1, 0 ))[ 3 ] );
+        assertEquals( 3.0, ((double[]) s1.getCell( 0, 0 ))[ 3 ] );
+        assertTrue( Double.isNaN( ((double[]) s1.getCell( 1, 0 ))[ 3 ] ) );
 
         ColumnInfo c2a = s2.getColumnInfo( 0 );
         assertEquals( long[].class, c2a.getContentClass() );

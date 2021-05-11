@@ -1,8 +1,8 @@
 # %ECSV 1.0
 # ---
 # datatype:
-# - {name: a, datatype: string, subtype: 'float64[3,2]'}
+# - {name: array3x2, datatype: string, subtype: 'float64[3,2]'}
 # schema: astropy-2.0
-a
+array3x2
 [[0.0,1.0],[2.0,3.0],[4.0,5.0]]
-[[6.0,7.0],[8.0,9.0],[10.0,11.0]]
+[[6.0,7.0],[8.0,null],[10.0,11.0]]
