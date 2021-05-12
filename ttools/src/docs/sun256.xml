@@ -13171,6 +13171,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="outEcsv">output</ref> handlers
         are upgraded to version 1.0 of the ECSV format,
         meaning they can now read and write array-valued columns.</li>
+    <li>Unknown or unsupported column datatype values in ECSV files
+        are now treated like <code>string</code> rather than
+        causing table read failure.</li>
     <li>Fix failure when trying to plot with
         <code>auxfunc=histogram</code> and
         explicitly set <code>auxmin</code>/<code>auxmax</code> bounds

@@ -29789,6 +29789,9 @@ introduced since the last version:
         <ref id="outEcsv">output</ref> handlers
         are upgraded to version 1.0 of the ECSV format,
         meaning they can now read and write array-valued columns.</li>
+    <li>Unknown or unsupported column datatype values in ECSV files
+        are now treated like <code>string</code> rather than
+        causing table read failure.</li>
     <li>Fix plot failure when trying to use
         Histogram aux scaling and aux limits set
         explicitly outside of data range.</li>

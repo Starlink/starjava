@@ -238,8 +238,20 @@ public abstract class EcsvDecoder<T> {
                                       Function.identity() );
             }
         }
+        else if ( "float128".equals( datatype ) ||
+                  "complex64".equals( datatype ) ||
+                  "complex128".equals( datatype ) ||
+                  "complex256".equals( datatype ) ) {
+            return createDecoder( String.class, SCALAR_SHAPE,
+                                  "Unsupported ECSV type \"" + datatype
+                                + "\" - treating as string",
+                                  Function.identity() );
+        }
         else {
-            return null;
+            return createDecoder( String.class, SCALAR_SHAPE,
+                                  "Unknown ECSV type \"" + datatype
+                                + "\" - treating as string",
+                                  Function.identity() );
         }
     }
 
