@@ -472,8 +472,10 @@ public class ColFitsStarTable extends AbstractStarTable {
                 info.setNullable( false );
                 return new ValueReader( info, 1, SCALAR ) {
                     Object readValue( BasicInput in ) throws IOException {
-                        return Character.valueOf( (char)
-                                                  ( in.readByte() & 0xff ) );
+                        char chr = (char) ( in.readByte() & 0xff );
+                        return chr == '\0'
+                             ? null
+                             : Character.valueOf( chr );
                     }
                 };
             }

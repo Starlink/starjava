@@ -646,7 +646,9 @@ abstract class ColumnReader {
                     Object readValue( BasicInput stream )
                             throws IOException {
                         char c = (char) ( stream.readByte() & 0xff );
-                        return Character.valueOf( c );
+                        return c == '\0'
+                             ? null
+                             : Character.valueOf( c );
                     }
                 };
                 return reader;

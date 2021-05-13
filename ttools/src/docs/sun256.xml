@@ -13184,6 +13184,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>W-TMS-TSCT</code>.</li>
     <li>FITS TZERO headers are now written correctly with numeric values
         rather than string values.</li>
+    <li>Empty strings in FITS 1-character columns are now returned as
+        blank values rather than ASCII NUL ('<code>\0</code>').</li>
     </ul>
     </p></dd>
 
