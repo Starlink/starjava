@@ -472,7 +472,8 @@ public class ColFitsStarTable extends AbstractStarTable {
                 info.setNullable( false );
                 return new ValueReader( info, 1, SCALAR ) {
                     Object readValue( BasicInput in ) throws IOException {
-                        return new Character( (char) ( in.readByte() & 0xff ) );
+                        return Character.valueOf( (char)
+                                                  ( in.readByte() & 0xff ) );
                     }
                 };
             }
@@ -487,7 +488,7 @@ public class ColFitsStarTable extends AbstractStarTable {
                         byte val = in.readByte();
                         return ( hasBad && val == badval )
                              ? null
-                             : new Short( (short) ( val & 0xff ) );
+                             : Short.valueOf( (short) ( val & 0xff ) );
                     }
                 };
             }
@@ -502,7 +503,7 @@ public class ColFitsStarTable extends AbstractStarTable {
                         byte val = in.readByte();
                         return ( hasBad && val == badval )
                              ? null
-                             : new Short( (short) val );
+                             : Short.valueOf( (short) val );
                     }
                 };
             }
@@ -517,7 +518,7 @@ public class ColFitsStarTable extends AbstractStarTable {
                         short val = in.readShort();
                         return ( hasBad && val == badval )
                              ? null
-                             : new Short( val );
+                             : Short.valueOf( val );
                     }
                 };
             }
@@ -532,7 +533,7 @@ public class ColFitsStarTable extends AbstractStarTable {
                         int val = in.readInt();
                         return ( hasBad && val == badval )
                              ? null
-                             : new Integer( val );
+                             : Integer.valueOf( val );
                     }
                 };
             }
@@ -547,7 +548,7 @@ public class ColFitsStarTable extends AbstractStarTable {
                         long val = in.readLong();
                         return ( hasBad && val == badval )
                              ? null
-                             : new Long( val );
+                             : Long.valueOf( val );
                     }
                 };
             }

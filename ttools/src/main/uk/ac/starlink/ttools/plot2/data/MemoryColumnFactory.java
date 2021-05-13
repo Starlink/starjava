@@ -1203,7 +1203,7 @@ public class MemoryColumnFactory implements CachedColumnFactory {
             data_ = data;
         }
         public Object getObjectValue( long ix ) {
-            return new Long( data_[ (int) ix ] );
+            return Long.valueOf( data_[ (int) ix ] );
         }
         public double getDoubleValue( long ix ) {
             return (double) data_[ (int) ix ];
@@ -1234,7 +1234,7 @@ public class MemoryColumnFactory implements CachedColumnFactory {
             data_ = data;
         }
         public Object getObjectValue( long ix ) {
-            return new Integer( data_[ (int) ix ] );
+            return Integer.valueOf( data_[ (int) ix ] );
         }
         public double getDoubleValue( long ix ) {
             return data_[ (int) ix ];
@@ -1265,7 +1265,7 @@ public class MemoryColumnFactory implements CachedColumnFactory {
             data_ = data;
         }
         public Object getObjectValue( long ix ) {
-            return new Short( data_[ (int) ix ] );
+            return Short.valueOf( data_[ (int) ix ] );
         }
         public double getDoubleValue( long ix ) {
             return data_[ (int) ix ];
@@ -1296,7 +1296,7 @@ public class MemoryColumnFactory implements CachedColumnFactory {
             data_ = data;
         }
         public Object getObjectValue( long ix ) {
-            return new Byte( data_[ (int) ix ] );
+            return Byte.valueOf( data_[ (int) ix ] );
         }
         public double getDoubleValue( long ix ) {
             return data_[ (int) ix ];

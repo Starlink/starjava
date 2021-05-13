@@ -263,7 +263,7 @@ public abstract class Codec {
             return 1;
         }
         public Object decodeObject( ByteStoreAccess in ) throws IOException {
-            return new Byte( in.readByte() );
+            return Byte.valueOf( in.readByte() );
         }
         public int decodeInt( ByteStoreAccess in ) throws IOException {
             return in.readByte();
@@ -288,7 +288,7 @@ public abstract class Codec {
             return 2;
         }
         public Object decodeObject( ByteStoreAccess in ) throws IOException {
-            return new Short( in.readShort() );
+            return Short.valueOf( in.readShort() );
         }
         public int decodeInt( ByteStoreAccess in ) throws IOException {
             return in.readShort();
@@ -313,7 +313,7 @@ public abstract class Codec {
             return 4;
         }
         public Object decodeObject( ByteStoreAccess in ) throws IOException {
-            return new Integer( in.readInt() );
+            return Integer.valueOf( in.readInt() );
         }
         public int decodeInt( ByteStoreAccess in ) throws IOException {
             return in.readInt();
@@ -338,7 +338,7 @@ public abstract class Codec {
             return 8;
         }
         public Object decodeObject( ByteStoreAccess in ) throws IOException {
-            return new Long( in.readLong() );
+            return Long.valueOf( in.readLong() );
         }
         public int decodeInt( ByteStoreAccess in ) throws IOException {
             return (int) in.readLong();
