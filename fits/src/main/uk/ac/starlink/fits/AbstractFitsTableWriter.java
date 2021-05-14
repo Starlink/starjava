@@ -57,6 +57,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
     private String formatName_;
     private boolean writeDate_;
     private boolean allowSignedByte_;
+    private boolean allowZeroLengthString_;
     private WideFits wide_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
@@ -69,6 +70,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
     protected AbstractFitsTableWriter( String formatName ) {
         setFormatName( formatName );
         allowSignedByte_ = true;
+        allowZeroLengthString_ = true;
         wide_ = WideFits.DEFAULT;
         writeDate_ = true;
     }
@@ -123,7 +125,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
 
     /**
      * Invokes {@link #writeStarTables(uk.ac.starlink.table.TableSequence,
-                                       java.io.OutputStream)}.
+     *                                 java.io.OutputStream)}.
      */
     public void writeStarTables( TableSequence tableSeq, String location,
                                  StarTableOutput sto ) throws IOException {
@@ -188,10 +190,14 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      */
     public FitsTableSerializerConfig getConfig() {
         final boolean allowSignedByte = allowSignedByte_;
+        final boolean allowZeroLengthString = allowZeroLengthString_;
         final WideFits wide = wide_;
         return new FitsTableSerializerConfig() {
             public boolean allowSignedByte() {
                 return allowSignedByte;
+            }
+            public boolean allowZeroLengthString() {
+                return allowZeroLengthString;
             }
             public WideFits getWide() {
                 return wide;
@@ -282,6 +288,30 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      */
     public boolean getAllowSignedByte() {
         return allowSignedByte_;
+    }
+
+    /**
+     * Sets whether zero-length string columns may be written.
+     * Such columns (<code>TFORMn='0A'</code>) are explicitly permitted
+     * by the FITS standard, but they can cause crashes because of
+     * divide-by-zero errors when encountered by some versions of CFITSIO
+     * (v3.50 and earlier), so FITS writing code may wish to avoid them.
+     * If this is set false, then A repeat values will always be &gt;=1.
+     *
+     * @param  allowZeroLengthString  false to prevent zero-length
+     *                                string columns
+     */
+    public void setAllowZeroLengthString( boolean allowZeroLengthString ) {
+        allowZeroLengthString_ = allowZeroLengthString;
+    }
+
+    /**
+     * Indicates whether zero-length string columns may be output.
+     *
+     * @return  false if zero-length string columns are avoided
+     */
+    public boolean getAllowZeroLengthString() {
+        return allowZeroLengthString_;
     }
 
     /**

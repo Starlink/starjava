@@ -21,6 +21,15 @@ public interface FitsTableSerializerConfig {
     boolean allowSignedByte();
 
     /**
+     * Indicates whether columns with TFORMn=0A may be output.
+     * Such columns are explicitly permitted by the FITS standard,
+     * but they cause failures in some versions of CFITSIO.
+     *
+     * @return  false to block TFORMn=0A column output, true to allow it
+     */
+    boolean allowZeroLengthString();
+
+    /**
      * Returns the convention for representing over-wide tables.
      *
      * @return   wide table convention, or null to avoid writing wide tables

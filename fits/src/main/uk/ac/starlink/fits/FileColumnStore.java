@@ -285,7 +285,7 @@ abstract class FileColumnStore implements ColumnStore {
      */
     public static ColumnStore
             createColumnStore( ValueInfo info,
-                               FitsTableSerializerConfig config )
+                               final FitsTableSerializerConfig config )
             throws IOException {
         Class<?> clazz = info.getContentClass();
 
@@ -378,7 +378,7 @@ abstract class FileColumnStore implements ColumnStore {
 
         else if ( clazz == String.class ) {
             return new FileColumnStore( info, 'A', 1 ) {
-                int maxleng_ = 1;
+                int maxleng_ = config.allowZeroLengthString() ? 0 : 1;
                 byte[] copyBuffer_;
                 protected void storeValue( Object value, DataOutput out )
                         throws IOException {

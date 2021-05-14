@@ -356,6 +356,9 @@ public class ColumnReaderTest extends TestCase {
             public boolean allowSignedByte() {
                 return true;
             }
+            public boolean allowZeroLengthString() {
+                return true;
+            }
         };
         FitsTableSerializer ser =
             new StandardFitsTableSerializer( config, table );

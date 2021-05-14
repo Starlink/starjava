@@ -915,6 +915,9 @@ public abstract class VOSerializer {
                 public WideFits getWide() {
                     return null;
                 }
+                public boolean allowZeroLengthString() {
+                    return false;
+                }
             };
             return new FITSVOSerializer( table, version,
                 new StandardFitsTableSerializer( config, table ) );

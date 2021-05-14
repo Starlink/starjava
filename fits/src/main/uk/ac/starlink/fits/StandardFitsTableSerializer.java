@@ -248,6 +248,16 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 }
             }
 
+            /* If required, make sure that all output strings have a length
+             * of at least 1. */
+            if ( ! config_.allowZeroLengthString() ) {
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    if ( maxChars[ icol ] == 0 ) {
+                        maxChars[ icol ] = 1;
+                    }
+                }
+            }
+
             /* Work out the actual shapes for columns which have variable ones,
              * based on the shapes that we encountered in the rows. */
             if ( hasVarShapes ) {
