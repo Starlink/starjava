@@ -285,6 +285,7 @@ abstract class FileColumnStore implements ColumnStore {
     public static ColumnStore createColumnStore( ValueInfo info )
             throws IOException {
         Class<?> clazz = info.getContentClass();
+        final boolean allowSignedByte = true;
 
         if ( clazz == Boolean.class ) {
             return new FileColumnStore( info, 'L', 1, true ) {
@@ -306,20 +307,23 @@ abstract class FileColumnStore implements ColumnStore {
         }
 
         else if ( clazz == Byte.class ) {
-            return new IntegerColumnStore( info, IntegerStorage
-                                                .createByteStorage() ) {
-
-                /* FITS bytes (unlike java bytes, and other FITS integer types)
-                 * are unsigned, so note the offset in the headers. */
-                public void addHeaderInfo( Header hdr,
-                                           BintableColumnHeader colhead,
-                                           int jcol )
-                        throws HeaderCardException {
-                    super.addHeaderInfo( hdr, colhead, jcol );
-                    hdr.addValue( colhead.getKeyName( "TZERO" ), -128.0,
-                                  "unsigned offset" );
-                }
-            };
+            if ( allowSignedByte ) {
+                return new IntegerColumnStore( info, IntegerStorage
+                                                    .createByteStorage() ) {
+                    public void addHeaderInfo( Header hdr,
+                                               BintableColumnHeader colhead,
+                                               int jcol )
+                            throws HeaderCardException {
+                        super.addHeaderInfo( hdr, colhead, jcol );
+                        hdr.addValue( colhead.getKeyName( "TZERO" ), -128.0,
+                                      "unsigned offset" );
+                    }
+                };
+            }
+            else {
+                return new IntegerColumnStore( info, IntegerStorage
+                                                    .createShortStorage() );
+            }
         }
 
         else if ( clazz == Short.class ) {
