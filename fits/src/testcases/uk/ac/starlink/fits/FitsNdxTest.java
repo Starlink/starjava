@@ -85,9 +85,10 @@ public class FitsNdxTest extends TestCase {
         File ofile = new File( tmpdir, "copy2.fits" );
         ArrayDataOutput ostrm =
             new BufferedDataOutputStream( new FileOutputStream( ofile ) );
-        FitsNdxHandler.getInstance().outputNdx( ostrm, ofile.toURL(), xndx );
+        FitsNdxHandler.getInstance()
+                      .outputNdx( ostrm, ofile.toURI().toURL(), xndx );
         ostrm.close();
-        Ndx fndx = ndxio.makeNdx( ofile.toURL(), AccessMode.READ );
+        Ndx fndx = ndxio.makeNdx( ofile.toURI().toURL(), AccessMode.READ );
         assertNdxEqual( ndx, fndx );
     }
 
