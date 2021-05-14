@@ -23,9 +23,7 @@ import uk.ac.starlink.table.StoragePolicy;
  */
 public class VariableFitsTableWriter extends AbstractFitsTableWriter {
 
-    private final Boolean longIndexing_;
-    private final boolean allowSignedByte_;
-    private final WideFits wide_;
+    private Boolean longIndexing_;
     private StoragePolicy storagePolicy_;
 
     /**
@@ -33,27 +31,23 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
      * It chooses sensibly between using 'P' and 'Q' format.
      */
     public VariableFitsTableWriter() {
-        this( null, true, WideFits.DEFAULT );
+        super( "fits-var" );
+        storagePolicy_ = StoragePolicy.getDefaultPolicy();
     }
 
     /**
-     * Constructs a writer with custom characteristics.
+     * Deprecated custom constructor.
      *
-     * @param  longIndexing  TRUE for 'Q' (64-bit) indexing into the heap,
-     *                      FALSE for 'P' (32-bit) indexing into the heap,
-     *                       null to make a sensible choice
-     * @param   allowSignedByte  if true, bytes written as FITS signed bytes
-     *          (TZERO=-128), if false bytes written as signed shorts
-     * @param   wide   convention for representing over-wide tables;
-     *                 null to avoid this convention
+     * @deprecated  allows some configuration options but not others;
+     *              use no-arg constructor and configuration methods instead
      */
+    @Deprecated
     public VariableFitsTableWriter( Boolean longIndexing,
                                     boolean allowSignedByte, WideFits wide ) {
-        super( "fits-var" );
-        longIndexing_ = longIndexing;
-        allowSignedByte_ = allowSignedByte;
-        wide_ = wide;
-        storagePolicy_ = StoragePolicy.getDefaultPolicy();
+        this();
+        setLongIndexing( longIndexing );
+        setAllowSignedByte( allowSignedByte );
+        setWide( wide );
     }
 
     /**
@@ -69,6 +63,30 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
     }
 
     /**
+     * Sets whether this writer will use P or Q format descriptors
+     * for writing variable-length arrays.
+     *
+     * @param  longIndexing  TRUE for 'Q' (64-bit) indexing into the heap,
+     *                      FALSE for 'P' (32-bit) indexing into the heap,
+     *                       null to make a sensible choice
+     */
+    public void setLongIndexing( Boolean longIndexing ) {
+        longIndexing_ = longIndexing;
+    }
+
+    /**
+     * Indicates whether this writer will use P or Q format descriptors
+     * for writing variable-length arrays.
+     *
+     * @return  TRUE for 'Q' (64-bit) indexing into the heap,
+     *         FALSE for 'P' (32-bit) indexing into the heap,
+     *          null to make a sensible choice
+     */
+    public Boolean getLongIndexing() {
+        return longIndexing_;
+    }
+
+    /**
      * Always returns false.
      */
     public boolean looksLikeFile( String location ) {
@@ -78,8 +96,8 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
     protected FitsTableSerializer createSerializer( StarTable table )
             throws IOException {
         VariableFitsTableSerializer fitser =
-            new VariableFitsTableSerializer( table, storagePolicy_,
-                                             allowSignedByte_, wide_ );
+            new VariableFitsTableSerializer( getConfig(), table,
+                                             storagePolicy_ );
         if ( longIndexing_ != null ) {
             fitser.set64BitMode( longIndexing_.booleanValue() );
         }

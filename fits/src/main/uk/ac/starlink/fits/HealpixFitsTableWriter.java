@@ -40,6 +40,8 @@ public class HealpixFitsTableWriter extends AbstractFitsTableWriter {
      */
     public HealpixFitsTableWriter() {
         super( "fits-healpix" );
+        setAllowSignedByte( false );
+        setWide( null );
     }
 
     /**
@@ -108,7 +110,7 @@ public class HealpixFitsTableWriter extends AbstractFitsTableWriter {
 
         /* Create a serializer based on the, possibly reorganised, table. */
         StandardFitsTableSerializer fitser =
-            new StandardFitsTableSerializer( table, false, (WideFits) null );
+            new StandardFitsTableSerializer( getConfig(), table );
 
         /* Do a dummy run of constructing the Healpix headers.
          * This call will be made later during serializer invocation,

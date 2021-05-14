@@ -21,25 +21,24 @@ import uk.ac.starlink.table.StarTable;
  */
 public class ColFitsTableWriter extends AbstractFitsTableWriter {
 
-    private final WideFits wide_;
-
     /**
      * Default constructor.
      */
     public ColFitsTableWriter() {
-        this( "colfits-basic", WideFits.DEFAULT );
+        super( "colfits-basic" );
     }
 
     /**
-     * Custom constructor.
+     * Deprecated custom constructor.
      *
-     * @param   name   writer name
-     * @param   wide   convention for representing over-wide tables;
-     *                 null to avoid this convention
+     * @deprecated  allows some configuration options but not others;
+     *              use no-arg constructor and configuration methods instead
      */
+    @Deprecated
     public ColFitsTableWriter( String name, WideFits wide ) {
-        super( name );
-        wide_ = wide;
+        this();
+        setFormatName( name );
+        setWide( wide );
     }
 
     public boolean looksLikeFile( String location ) {
@@ -48,6 +47,6 @@ public class ColFitsTableWriter extends AbstractFitsTableWriter {
 
     protected FitsTableSerializer createSerializer( StarTable table )
             throws IOException {
-        return new ColFitsTableSerializer( table, wide_ );
+        return new ColFitsTableSerializer( getConfig(), table );
     }
 }

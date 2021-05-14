@@ -24,7 +24,7 @@ import uk.ac.starlink.table.Tables;
  */
 public class ColFitsTableSerializer implements FitsTableSerializer {
 
-    private final WideFits wide_;
+    private final FitsTableSerializerConfig config_;
     private final ColumnStore[] colStores_;
     private final String[] colids_;
     private final int ncol_;
@@ -36,14 +36,14 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
     /**
      * Constructor.
      *
-     * @param   table  table to serialize
-     * @param   wide   convention for representing over-wide tables;
-     *                 null to avoid this convention
+     * @param  config  configuration
+     * @param  table  table to serialize
      * @throws IOException if it won't be possible to write the given table
      */
-    public ColFitsTableSerializer( StarTable table, WideFits wide )
+    public ColFitsTableSerializer( FitsTableSerializerConfig config,
+                                   StarTable table )
             throws IOException {
-        wide_ = wide;
+        config_ = config;
 
         /* Prepare an array of column storage objects which know how to do
          * serial storage/retrieval of the data in a table column. */
@@ -63,7 +63,7 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
                 nUseCol++;
             }
         }
-        FitsConstants.checkColumnCount( wide, nUseCol );
+        FitsConstants.checkColumnCount( config.getWide(), nUseCol );
 
         /* Store the table data into these storage objects. */
         boolean ok = false;
@@ -110,6 +110,7 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
     }
 
     public Header getHeader() throws HeaderCardException {
+        WideFits wide = config_.getWide();
 
         /* Work out the length of the single table row. */
         long size = 0L; 
@@ -121,8 +122,8 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
                 nUseCol++;
                 long leng = colStore.getDataLength();
                 size += leng;
-                if ( wide_ != null &&
-                     nUseCol >= wide_.getContainerColumnIndex() ) {
+                if ( wide != null &&
+                     nUseCol >= wide.getContainerColumnIndex() ) {
                     extSize += leng;
                 }
             }
@@ -131,8 +132,8 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
         /* Work out the number of standard and extended columns.
          * This won't fail because of checks carried out in constructor. */
         int nStdCol =
-              wide_ != null && nUseCol > wide_.getContainerColumnIndex()
-            ? wide_.getContainerColumnIndex()
+              wide != null && nUseCol > wide.getContainerColumnIndex()
+            ? wide.getContainerColumnIndex()
             : nUseCol;
         boolean hasExtCol = nUseCol > nStdCol;
 
@@ -155,7 +156,7 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
 
         /* Add extended column header information if applicable. */
         if ( hasExtCol ) {
-            wide_.addExtensionHeader( hdr, nUseCol );
+            wide.addExtensionHeader( hdr, nUseCol );
             AbstractWideFits.logWideWrite( logger_, nStdCol, nUseCol ); 
         }
 
@@ -167,11 +168,11 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
             if ( colStore != null ) {
                 jcol++;
                 if ( hasExtCol && jcol == nStdCol ) {
-                    wide_.addContainerColumnHeader( hdr, extSize, nrow_ );
+                    wide.addContainerColumnHeader( hdr, extSize, nrow_ );
                 }
                 BintableColumnHeader colhead =
                       hasExtCol && jcol >= nStdCol
-                    ? wide_.createExtendedHeader( nStdCol, jcol )
+                    ? wide.createExtendedHeader( nStdCol, jcol )
                     : BintableColumnHeader.createStandardHeader( jcol );
                 colStore.addHeaderInfo( hdr, colhead, jcol );
             }

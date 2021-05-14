@@ -80,12 +80,15 @@ public class WideTest extends TestCase {
             AbstractWideFits.createHierarchWideFits( 9 ),
         };
         for ( WideFits wide : wides ) {
-            exerciseReadWrite( new FitsTableWriter( "fits", true, wide ),
-                               new FitsTableBuilder( wide ) );
-            exerciseReadWrite( new ColFitsTableWriter( "colfits", wide ),
-                               new ColFitsTableBuilder( wide ) );
-            exerciseReadWrite( new VariableFitsTableWriter( Boolean.FALSE,
-                                                            true, wide ),
+            exerciseReadWrite(
+                configWriter( new FitsTableWriter(), true, wide ),
+                new FitsTableBuilder( wide ) );
+            exerciseReadWrite(
+                configWriter( new ColFitsTableWriter(), true, wide ),
+                new ColFitsTableBuilder( wide ) );
+            VariableFitsTableWriter vWriter = new VariableFitsTableWriter();
+            vWriter.setLongIndexing( Boolean.FALSE );
+            exerciseReadWrite( configWriter( vWriter, true, wide ),
                                new FitsTableBuilder( wide ) );
         }
     }
@@ -131,7 +134,8 @@ public class WideTest extends TestCase {
             AbstractWideFits.createHierarchWideFits( iExtCol ),
         };
         for ( WideFits wide : wides ) {
-            StarTableWriter writer = new FitsTableWriter( "fits", true, wide );
+            StarTableWriter writer =
+                configWriter( new FitsTableWriter(), true, wide );
             File f = File.createTempFile( "table", ".fits" );
             f.deleteOnExit();
             OutputStream out = new FileOutputStream( f );
@@ -284,6 +288,14 @@ public class WideTest extends TestCase {
             mult *= base;
         }
         return ix;
+    }
+
+    private static AbstractFitsTableWriter
+            configWriter( AbstractFitsTableWriter writer,
+                          boolean allowSignedByte, WideFits wide ) {
+        writer.setAllowSignedByte( allowSignedByte );
+        writer.setWide( wide );
+        return writer;
     }
 
 

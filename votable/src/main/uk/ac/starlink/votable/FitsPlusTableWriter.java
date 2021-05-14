@@ -39,25 +39,23 @@ import uk.ac.starlink.table.formats.DocumentedIOHandler;
 public class FitsPlusTableWriter extends VOTableFitsTableWriter
                                  implements DocumentedIOHandler {
 
-    private final WideFits wide_;
-
     /**
      * Default constructor.
      */
     public FitsPlusTableWriter() {
-        this( "fits-plus", WideFits.DEFAULT );
+        super( "fits-plus" );
     }
 
     /**
-     * Custom constructor.
+     * Deprecated custom constructor.
      *
-     * @param   name   writer name
-     * @param   wide   convention for representing over-wide tables;
-     *                 null to avoid this convention
+     * @deprecated  allows some configuration options but not others;
+     *              use no-arg constructor and configuration methods instead
      */
+    @Deprecated
     public FitsPlusTableWriter( String name, WideFits wide ) {
-        super( name );
-        wide_ = wide;
+        this();
+        setWide( wide );
     }
 
     public String[] getExtensions() {
@@ -92,7 +90,7 @@ public class FitsPlusTableWriter extends VOTableFitsTableWriter
 
     protected FitsTableSerializer createSerializer( StarTable table ) 
             throws IOException {
-        return new StandardFitsTableSerializer( table, false, wide_ );
+        return new StandardFitsTableSerializer( getConfig(), table );
     }
 
     /**

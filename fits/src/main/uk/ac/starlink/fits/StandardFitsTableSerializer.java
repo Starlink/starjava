@@ -43,8 +43,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.fits" );
 
-    private final boolean allowSignedByte;
-    private final WideFits wide;
+    private final FitsTableSerializerConfig config_;
     private StarTable table;
     private ColumnWriter[] colWriters;
     private ColumnInfo[] colInfos;
@@ -52,36 +51,36 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
 
     /**
      * Package-private constructor intended for use by subclasses.
+     * The {@link #init} method must be called after this constructor
+     * is invoked.
      *
-     * @param   allowSignedByte  if true, bytes written as FITS signed bytes
-     *          (TZERO=-128), if false bytes written as signed shorts
-     * @param   wide   convention for representing over-wide tables;
-     *                 null to avoid this convention
+     * @param  config  configuration
      */
-    StandardFitsTableSerializer( boolean allowSignedByte, WideFits wide ) {
-        this.allowSignedByte = allowSignedByte;
-        this.wide = wide;
+    StandardFitsTableSerializer( FitsTableSerializerConfig config ) {
+        config_ = config;
     }
 
     /**
-     * Constructs a serializer to write a given StarTable, with explicit
-     * instruction about how to write byte-type columns data.
-     * Since FITS bytes are unsigned (unlike, for instance, java bytes), 
-     * they can cause trouble in some circumstances, so avoiding writing
-     * them may sometimes help.
+     * Constructor.
      *
-     * @param  table  the table to be written
-     * @param  allowSignedByte  if true, bytes written as FITS signed bytes
-     *         (TZERO=-128), if false bytes written as signed shorts
-     * @param   wide   convention for representing over-wide tables;
-     *                 null to avoid this convention
+     * @param  config  configuration
+     * @param  table   table to serialize
      * @throws IOException if it won't be possible to write the given table
      */
-    public StandardFitsTableSerializer( StarTable table,
-                                        boolean allowSignedByte, WideFits wide )
+    public StandardFitsTableSerializer( FitsTableSerializerConfig config,
+                                        StarTable table )
             throws IOException {
-        this( allowSignedByte, wide );
+        this( config );
         init( table );
+    }
+
+    /**
+     * Returns the configuration information for this serializer.
+     *
+     * @return  config
+     */
+    public FitsTableSerializerConfig getConfig() {
+        return config_;
     }
 
     /**
@@ -306,7 +305,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         }
 
         /* Check column count is permissible. */
-        FitsConstants.checkColumnCount( wide, nUseCol );
+        FitsConstants.checkColumnCount( config_.getWide(), nUseCol );
     }
 
     /**
@@ -327,6 +326,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         int extLength = 0;
         int nUseCol = 0;
         int ncol = table.getColumnCount();
+        WideFits wide = config_.getWide();
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnWriter writer = colWriters[ icol ];
             if ( writer != null ) {
@@ -726,6 +726,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             };
         }
         else {
+            boolean allowSignedByte = config_.allowSignedByte();
             ColumnWriter cw =
                 ScalarColumnWriter.createColumnWriter( cinfo, nullableInt,
                                                        allowSignedByte );

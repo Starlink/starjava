@@ -56,6 +56,8 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
 
     private String formatName_;
     private boolean writeDate_;
+    private boolean allowSignedByte_;
+    private WideFits wide_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
 
@@ -66,6 +68,8 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      */
     protected AbstractFitsTableWriter( String formatName ) {
         setFormatName( formatName );
+        allowSignedByte_ = true;
+        wide_ = WideFits.DEFAULT;
         writeDate_ = true;
     }
 
@@ -168,6 +172,34 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
     }
 
     /**
+     * Returns the configuration details for writing FITS files.
+     * Its content can be controlled using single-config-item
+     * mutator methods
+     * (which may also be labelled as
+     * {@link uk.ac.starlink.util.ConfigMethod}s)
+     * on this class.
+     * This covers things that are generally orthogonal to the type
+     * of serialization, so may be set for any kind of FITS output,
+     * which is why it makes sense to manage them in the
+     * <code>AbstractFitsTableWriter</code> abstract superclass.
+     *
+     * @return   object representing the FITS serialization options
+     *           currently configured for this writer
+     */
+    public FitsTableSerializerConfig getConfig() {
+        final boolean allowSignedByte = allowSignedByte_;
+        final WideFits wide = wide_;
+        return new FitsTableSerializerConfig() {
+            public boolean allowSignedByte() {
+                return allowSignedByte;
+            }
+            public WideFits getWide() {
+                return wide;
+            }
+        };
+    }
+
+    /**
      * Provides a suitable serializer for a given table.
      * Note this should throw an IOException if it can be determined that
      * the submitted table cannot be written by this writer, for instance
@@ -225,6 +257,50 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      */
     public boolean getWriteDate() {
         return writeDate_;
+    }
+
+    /**
+     * Configures how Byte-valued columns are written.
+     * This is a bit fiddly, since java bytes are signed,
+     * but FITS 8-bit integers are unsigned.
+     * If true, they are written as FITS unsigned 8-bit integers
+     * with an offset, as discussed in the FITS standard
+     * (<code>TFORMn='B'</code>, <code>TZERO=-128</code>).
+     * If false, they are written as FITS signed 16-bit integers.
+     *
+     * @param  allowSignedByte  true to write offset bytes,
+     *                          false to write shorts
+     */
+    public void setAllowSignedByte( boolean allowSignedByte ) {
+        allowSignedByte_ = allowSignedByte;
+    }
+
+    /**
+     * Returns a flag indicating how Byte-valued columns are written.
+     *
+     * @return  true to write offset bytes, false to write shorts
+     */
+    public boolean getAllowSignedByte() {
+        return allowSignedByte_;
+    }
+
+    /**
+     * Sets the convention for representing over-wide (&gt;999 column) tables.
+     *
+     * @param  wide   wide-table representation policy,
+     *                null to avoid wide tables
+     */
+    public void setWide( WideFits wide ) {
+        wide_ = wide;
+    }
+
+    /**
+     * Indicates the convention in use for representing over-wide tables.
+     *
+     * @return   wide-table representation policy, null for no wide tables
+     */
+    public WideFits getWide() {
+        return wide_;
     }
 
     /**

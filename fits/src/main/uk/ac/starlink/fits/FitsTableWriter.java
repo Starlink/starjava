@@ -42,30 +42,26 @@ import uk.ac.starlink.table.StarTable;
  */
 public class FitsTableWriter extends AbstractFitsTableWriter {
 
-    private final boolean allowSignedByte_;
-    private final WideFits wide_;
-
     /**
      * Default constructor.
      */
     public FitsTableWriter() {
-        this( "fits-basic", true, WideFits.DEFAULT );
+        super( "fits-basic" );
     }
 
     /**
-     * Custom constructor.
+     * Deprecated custom constructor.
      *
-     * @param   name   writer name
-     * @param   allowSignedByte  if true, bytes written as FITS signed bytes
-     *          (TZERO=-128), if false bytes written as signed shorts
-     * @param   wide   convention for representing over-wide tables;
-     *                 null to avoid this convention
+     * @deprecated  allows some configuration options but not others;
+     *              use no-arg constructor and configuration methods instead
      */
+    @Deprecated
     public FitsTableWriter( String name, boolean allowSignedByte,
                             WideFits wide ) {
-        super( name );
-        allowSignedByte_ = allowSignedByte;
-        wide_ = wide;
+        this();
+        setFormatName( name );
+        setAllowSignedByte( allowSignedByte );
+        setWide( wide );
     }
 
     /**
@@ -90,7 +86,6 @@ public class FitsTableWriter extends AbstractFitsTableWriter {
 
     protected FitsTableSerializer createSerializer( StarTable table )
             throws IOException {
-        return new StandardFitsTableSerializer( table, allowSignedByte_,
-                                                wide_ );
+        return new StandardFitsTableSerializer( getConfig(), table );
     }
 }

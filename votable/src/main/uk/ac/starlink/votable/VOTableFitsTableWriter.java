@@ -50,7 +50,17 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      */
     protected VOTableFitsTableWriter( String formatName ) {
         super( formatName );
+        setAllowSignedByte( false );
         votVersion_ = VOTableVersion.getDefaultVersion();
+    }
+
+    @Override
+    public void setAllowSignedByte( boolean allowSignedByte ) {
+        if ( allowSignedByte ) {              
+            throw new IllegalArgumentException( "Not recommended "
+                                              + "for fits-plus" );
+        }
+        super.setAllowSignedByte( allowSignedByte );
     }
 
     public void writeStarTables( TableSequence tableSeq, OutputStream out )

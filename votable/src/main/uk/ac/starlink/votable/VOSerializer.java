@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableSerializer;
+import uk.ac.starlink.fits.FitsTableSerializerConfig;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.fits.StandardFitsTableSerializer;
 import uk.ac.starlink.fits.WideFits;
@@ -902,10 +903,21 @@ public abstract class VOSerializer {
             return new TabledataVOSerializer( table, version, magicNulls );
         }
         else if ( dataFormat == DataFormat.FITS ) {
-            return new FITSVOSerializer(
-                table, version,
-                new StandardFitsTableSerializer( table, false,
-                                                 (WideFits) null ) );
+
+            /* Use some fairly innocuous configuration here.
+             * It would be possible to provide user-level configuration
+             * options, but the FITS serialization format is very little used,
+             * so don't bother unless some compelling use case arises. */
+            FitsTableSerializerConfig config = new FitsTableSerializerConfig() {
+                public boolean allowSignedByte() {
+                    return false;
+                }
+                public WideFits getWide() {
+                    return null;
+                }
+            };
+            return new FITSVOSerializer( table, version,
+                new StandardFitsTableSerializer( config, table ) );
         }
         else if ( dataFormat == DataFormat.BINARY ) {
             return new BinaryVOSerializer( table, version, magicNulls );

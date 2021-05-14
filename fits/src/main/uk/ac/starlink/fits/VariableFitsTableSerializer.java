@@ -29,26 +29,21 @@ import uk.ac.starlink.table.Tables;
 public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
 
     private final StoragePolicy storagePolicy_;
-    private final boolean allowSignedByte_;
 
     /** 
      * Constructor.
      *
+     * @param  config   FITS configuration
      * @param  table  table to write
      * @param  storagePolicy  policy for acquiring byte array scratch buffers
-     * @param  allowSignedByte  if true, bytes written as FITS signed bytes
-     *         (TZERO=-128), if false bytes written as signed shorts
-     * @param   wide   convention for representing over-wide tables;
-     *                 null to avoid this convention
      * @throws IOException if it won't be possible to write the given table
      */
-    public VariableFitsTableSerializer( StarTable table,
-                                        StoragePolicy storagePolicy,
-                                        boolean allowSignedByte, WideFits wide )
+    public VariableFitsTableSerializer( FitsTableSerializerConfig config,
+                                        StarTable table,
+                                        StoragePolicy storagePolicy )
             throws IOException {
-        super( allowSignedByte, wide );
+        super( config );
         storagePolicy_ = storagePolicy;
-        allowSignedByte_ = allowSignedByte;
         init( table );
         set64BitMode( getHeapSize() > Integer.MAX_VALUE );
     }
@@ -186,8 +181,9 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         }
         else {
             assert clazz.isArray();
+            boolean allowSignedByte = getConfig().allowSignedByte();
             ArrayWriter aw =
-                ArrayWriter.createArrayWriter( cinfo, allowSignedByte_ );
+                ArrayWriter.createArrayWriter( cinfo, allowSignedByte );
             return new VariableArrayColumnWriter( aw, maxEls, totalEls );
         }
     }

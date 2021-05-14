@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.AssertionFailedError;
@@ -21,6 +23,7 @@ import uk.ac.starlink.ecsv.EcsvTableBuilder;
 import uk.ac.starlink.ecsv.EcsvTableWriter;
 import uk.ac.starlink.feather.FeatherTableBuilder;
 import uk.ac.starlink.feather.FeatherTableWriter;
+import uk.ac.starlink.fits.AbstractFitsTableWriter;
 import uk.ac.starlink.fits.AbstractWideFits;
 import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.ColFitsTableWriter;
@@ -412,9 +415,9 @@ public class FormatsTest extends TableCase {
     }
 
     private void exerciseFits( WideFits wide ) throws IOException {
-        boolean allowSignedByte = true;
-        StarTableWriter writer =
-            new FitsTableWriter( "fits", allowSignedByte, wide );
+        FitsTableWriter writer = new FitsTableWriter();
+        writer.setAllowSignedByte( true );
+        writer.setWide( wide );
         File loc = getTempFile( "t.fits" );
         StarTable t1 = table;
         writer.writeStarTable( t1, loc.toString(), sto );
@@ -470,8 +473,11 @@ public class FormatsTest extends TableCase {
             throws IOException {
         File loc = getTempFile( "tv.fits" );
         StarTable t1 = table;
-        new VariableFitsTableWriter( Boolean.valueOf( isLong ), true, wide )
-           .writeStarTable( t1, loc.toString(), sto );
+        VariableFitsTableWriter vWriter =
+            createVariableFitsTableWriter( isLong );
+        vWriter.setAllowSignedByte( true );
+        vWriter.setWide( wide );
+        vWriter.writeStarTable( t1, loc.toString(), sto );
         StarTable t2 = new FitsTableBuilder( wide )
                       .makeStarTable( new FileDataSource( loc ), true,
                                       StoragePolicy.PREFER_MEMORY );
@@ -497,33 +503,21 @@ public class FormatsTest extends TableCase {
     }
 
     public void testReadWrite() throws IOException {
-        for ( WideFits wide : wides_ ) {
-            exerciseReadWrite( new FitsTableWriter( "fits", true, wide ),
-                               new FitsTableBuilder( wide ), "fits" );
-            exerciseReadWrite( new FitsTableWriter( "fits", false, wide ),
-                               new FitsTableBuilder( wide ), "fits" );
-            exerciseReadWrite( new FitsPlusTableWriter( "fits-plus", wide ),
-                               new FitsPlusTableBuilder( wide ), "fits" );
-            exerciseReadWrite( new ColFitsTableWriter( "colfits", wide ),
-                               new ColFitsTableBuilder( wide ), "fits" );
-            exerciseReadWrite(
-                new ColFitsPlusTableWriter( "colfits-plus", wide ),
-                new ColFitsPlusTableBuilder( wide ), "votable" );
-    
-            exerciseReadWrite(
-                new VariableFitsTableWriter( Boolean.FALSE, true, wide ),
-                new FitsTableBuilder( wide ), "fitsv" );
-            exerciseReadWrite(
-                new VariableFitsTableWriter( Boolean.FALSE, false, wide ),
-                new FitsTableBuilder( wide ), "fitsv" );
-    
-            exerciseReadWrite(
-                new VariableFitsTableWriter( Boolean.TRUE, true, wide ),
-                new FitsTableBuilder( wide ), "fitsv" );
-            exerciseReadWrite(
-                new VariableFitsTableWriter( Boolean.TRUE, false, wide ),
-                new FitsTableBuilder( wide ), "fitsv" );
-        }
+
+        exerciseFitsReadWrite( () -> new FitsTableWriter(),
+                               wide -> new FitsTableBuilder( wide ), "fits" );
+        exerciseFitsReadWrite( () -> new ColFitsTableWriter(),
+                               wide -> new ColFitsTableBuilder( wide ), "fits");
+        exerciseFitsReadWrite( () -> createVariableFitsTableWriter( false ),
+                               wide -> new FitsTableBuilder( wide ), "fitsv" );
+        exerciseFitsReadWrite( () -> createVariableFitsTableWriter( true ),
+                               wide -> new FitsTableBuilder( wide ), "fitsv" );
+
+        exerciseReadWrite( new FitsPlusTableWriter(),
+                           new FitsPlusTableBuilder( null ), "votable" );
+        exerciseReadWrite( new ColFitsPlusTableWriter(),
+                           new ColFitsPlusTableBuilder( null ), "votable" );
+
         exerciseReadWrite( new VOTableWriter(),
                            new VOTableBuilder(), "votable" );
         exerciseReadWrite( EcsvTableWriter.SPACE_WRITER,
@@ -544,6 +538,23 @@ public class FormatsTest extends TableCase {
                            new IpacTableBuilder(), "ipac" );
         exerciseReadWrite( new TstTableWriter(),
                            new TstTableBuilder(), "text" );
+    }
+
+    private void exerciseFitsReadWrite(
+                Supplier<AbstractFitsTableWriter> writerSupplier,
+                Function<WideFits,TableBuilder> builderFunction,
+                String equalMethod )
+            throws IOException {
+        for ( WideFits wide : wides_ ) {
+            TableBuilder builder = builderFunction.apply( wide );
+            for ( int ib = 0; ib < 2; ib++ ) {
+                boolean allowSignedByte = ib == 0;
+                AbstractFitsTableWriter writer = writerSupplier.get();
+                writer.setWide( wide );
+                writer.setAllowSignedByte( allowSignedByte );
+                exerciseReadWrite( writer, builder, equalMethod );
+            }
+        }
     }
 
     public void exerciseReadWrite( StarTableWriter writer,
@@ -655,7 +666,8 @@ public class FormatsTest extends TableCase {
     }
 
     private void exerciseColFits( WideFits wide ) throws IOException {
-        StarTableWriter writer = new ColFitsTableWriter( "colfits", wide );
+        ColFitsTableWriter writer = new ColFitsTableWriter();
+        writer.setWide( wide );
         File loc = getTempFile( "t.colfits" );
         StarTable t1 = table;
         writer.writeStarTable( t1, loc.toString(), sto );
@@ -952,6 +964,14 @@ public class FormatsTest extends TableCase {
             }
             lrow++;
         }
+    }
+
+    private static VariableFitsTableWriter
+            createVariableFitsTableWriter( boolean longIndexing ) {
+        VariableFitsTableWriter vWriter = new VariableFitsTableWriter();
+        vWriter.setStoragePolicy( StoragePolicy.PREFER_MEMORY );
+        vWriter.setLongIndexing( Boolean.valueOf( longIndexing ) );
+        return vWriter;
     }
 
     /**
