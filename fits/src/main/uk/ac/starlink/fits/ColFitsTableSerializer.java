@@ -55,7 +55,8 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
         for ( int icol = 0; icol < ncol_; icol++ ) {
             ColumnInfo info = table.getColumnInfo( icol );
             colids_[ icol ] = info.toString();
-            colStores_[ icol ] = FileColumnStore.createColumnStore( info );
+            colStores_[ icol ] =
+                FileColumnStore.createColumnStore( info, config );
             if ( colStores_[ icol ] == null ) {
                 logger_.warning( "Can't serialize column " + info );
             }

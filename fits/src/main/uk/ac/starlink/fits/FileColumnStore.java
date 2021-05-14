@@ -280,12 +280,14 @@ abstract class FileColumnStore implements ColumnStore {
      * column descriptions.
      *
      * @param   info  column description
+     * @param   config   output configuration details
      * @return  suitable column store for column described by <code>info</code>
      */
-    public static ColumnStore createColumnStore( ValueInfo info )
+    public static ColumnStore
+            createColumnStore( ValueInfo info,
+                               FitsTableSerializerConfig config )
             throws IOException {
         Class<?> clazz = info.getContentClass();
-        final boolean allowSignedByte = true;
 
         if ( clazz == Boolean.class ) {
             return new FileColumnStore( info, 'L', 1, true ) {
@@ -307,7 +309,7 @@ abstract class FileColumnStore implements ColumnStore {
         }
 
         else if ( clazz == Byte.class ) {
-            if ( allowSignedByte ) {
+            if ( config.allowSignedByte() ) {
                 return new IntegerColumnStore( info, IntegerStorage
                                                     .createByteStorage() ) {
                     public void addHeaderInfo( Header hdr,
