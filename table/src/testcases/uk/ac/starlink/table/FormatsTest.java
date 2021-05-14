@@ -565,7 +565,7 @@ public class FormatsTest extends TableCase {
                     throw new AssertionError();
             }
             DataSource datsrc =
-                isSeq ? (DataSource) new URLDataSource( loc.toURL() )
+                isSeq ? (DataSource) new URLDataSource( loc.toURI().toURL() )
                       : (DataSource) new FileDataSource( loc );
             StarTable t2 =
                 reader.makeStarTable( datsrc, true,
