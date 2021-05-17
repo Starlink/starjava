@@ -227,6 +227,7 @@ public enum FixedCode implements ReportCode {
     W_TBNF( "Tables endpoint missing" ),
     W_TBUN( "Tables content" ),
     W_TFMT( "Non-ISO-8601 result" ),
+    W_TSCT( "Questionable type for TAP_SCHEMA column" ),
     W_TSDL( "Bad time format in table data" ),
     W_TSZ1( "Single-element array declared" ),
     W_TYPI( "ObsCore datatype mismatch" ),

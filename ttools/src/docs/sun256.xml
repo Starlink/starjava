@@ -13178,6 +13178,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>auxfunc=histogram</code> and
         explicitly set <code>auxmin</code>/<code>auxmax</code> bounds
         outside of data range.</li>
+    <li>Relax some taplint type checking for TAP_SCHEMA columns
+        of TAP 1.0 services (see TAP 1.0 Erratum #3);
+        <code>E-TMS-TSCT</code> downgraded to
+        <code>W-TMS-TSCT</code>.</li>
     </ul>
     </p></dd>
 

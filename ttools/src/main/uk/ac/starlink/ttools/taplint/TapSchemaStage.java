@@ -530,18 +530,23 @@ public class TapSchemaStage extends TableMetadataStage {
                             }
                         }
                         else {
+
+                            /* Given that TAP 1.0 has no real type system,
+                             * (and for that reason, this checking is ad hoc)
+                             * this can only be a warning, not an error;
+                             * see TAP 1.0 Erratum #3. */
                             if ( ! reqType.isCompatibleTap10( datatype ) ) {
                                String msg = new StringBuffer()
-                                  .append( "Type mismatch for " )
+                                  .append( "Possible type mismatch for " )
                                   .append( ctxt )
                                   .append( ": datatype=" )
                                   .append( datatype )
-                                  .append( " is not " )
+                                  .append( " does not look " )
                                   .append( reqType.name10_ )
                                   .append( "-like" )
                                   .append( " (TAP 1.0)" )
                                   .toString();
-                               reporter_.report( FixedCode.E_TSCT, msg );
+                               reporter_.report( FixedCode.W_TSCT, msg );
                             }
                         }
                     }
@@ -722,7 +727,7 @@ public class TapSchemaStage extends TableMetadataStage {
      * Enumeration of standard column data types.
      */
     private static enum ColType {
-        STR( "varchar", "string" ) {
+        STR( "VARCHAR", "string" ) {
             boolean isCompatibleTap11( String datatype, String arraysize ) {
                 return ( "char".equals( datatype ) ||
                          "unicodeChar".equals( datatype ) )
@@ -734,7 +739,7 @@ public class TapSchemaStage extends TableMetadataStage {
                       .compatibleDataTypes( "varchar", datatype );
             }
         },
-        INT( "integer", "integer" ) {
+        INT( "INTEGER", "integer" ) {
             boolean isCompatibleTap11( String datatype, String arraysize ) {
                 return ( "unsignedByte".equals( datatype ) ||
                          "int".equals( datatype ) ||
@@ -747,7 +752,7 @@ public class TapSchemaStage extends TableMetadataStage {
                       .compatibleDataTypes( "integer", datatype );
             }
         },
-        BOOL( "integer", "integer" ) {
+        BOOL( "INTEGER", "integer" ) {
             boolean isCompatibleTap11( String datatype, String arraysize ) {
                 return INT.isCompatibleTap11( datatype, arraysize );
             }
@@ -782,9 +787,12 @@ public class TapSchemaStage extends TableMetadataStage {
         /**
          * Indicates whether this type is compatible with given values
          * of the TAP v1.0 datatype value.
+         * Since TAP 1.0 has no type system (see TAP 1.0 Erratum #3)
+         * this test is only advisory, it cannot report a true error.
          *
          * @param  datatype   value of datatype column in TAP_SCHEMA.columns
-         * @return  true iff this type is compatible with the supplied metadta
+         * @return  true iff this type looks compatible
+         *          with the supplied metadta
          */
         abstract boolean isCompatibleTap10( String datatype );
     }
