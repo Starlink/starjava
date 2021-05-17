@@ -474,8 +474,16 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         BigDecimal zero = colwriter.getZero();
         double scale = colwriter.getScale();
         if ( zero != null && ! BigDecimal.ZERO.equals( zero ) ) {
-            hdr.addValue( colhead.getKeyName( "TZERO" ), zero.toString(),
-                          "base" + forcol );
+
+            /* The version of nom.tam.fits packaged with starjava has no
+             * good way to write an unquoted text value to a header card,
+             * so we have to do it more or less by hand.
+             * In later nom.tam.fits versions there are ways to do this. */
+            String tzeroKey = colhead.getKeyName( "TZERO" );
+            HeaderCard tzeroCard =
+                FitsConstants.createRawHeaderCard( tzeroKey, zero.toString(),
+                                                   "base" + forcol );
+            hdr.addLine( tzeroCard );
         }
         if ( scale != 1.0 ) {
             hdr.addValue( colhead.getKeyName( "TSCALE" ), scale,

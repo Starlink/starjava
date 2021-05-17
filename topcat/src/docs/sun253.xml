@@ -29795,6 +29795,8 @@ introduced since the last version:
     <li>Fix plot failure when trying to use
         Histogram aux scaling and aux limits set
         explicitly outside of data range.</li>
+    <li>FITS TZERO headers are now written correctly with numeric values
+        rather than string values.</li>
     </ul>
     </p></dd>
 

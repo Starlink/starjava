@@ -13182,6 +13182,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         of TAP 1.0 services (see TAP 1.0 Erratum #3);
         <code>E-TMS-TSCT</code> downgraded to
         <code>W-TMS-TSCT</code>.</li>
+    <li>FITS TZERO headers are now written correctly with numeric values
+        rather than string values.</li>
     </ul>
     </p></dd>
 

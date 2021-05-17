@@ -175,6 +175,63 @@ public class FitsConstants {
     }
 
     /**
+     * Create a header card given the final representation of the
+     * card value.  No additional manipulation will be done on the value;
+     * for instance it will not be wrapped in quotes.
+     * Use this method with caution, since the arguments may not be
+     * checked as rigorously as during normal header creation,
+     * though steps will be taken to ensure that the header does not
+     * overflow the 80 character limit.
+     *
+     * @param  keyname  header card name
+     * @param  rawvalue  raw header card value
+     * @param  comment   comment text (ignored if too long)
+     * @return   new header card
+     * @throws   HeaderCardException   if card would be too long
+     */
+    public static HeaderCard createRawHeaderCard( String keyname,
+                                                  String rawvalue,
+                                                  String comment )
+            throws HeaderCardException {
+
+        /* HIERARCH processing here is somewhat sloppy,
+         * but works for existing cases. */
+        boolean isHierarch = keyname.startsWith( "HIERARCH." )
+                          && FitsFactory.getUseHierarch();
+
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( isHierarch ? keyname.replaceAll( "[.]", " " )
+                                : keyname );
+        if ( sbuf.length() > 8 && ! isHierarch ) {
+            throw new HeaderCardException( "keyword too long: " + keyname );
+        }
+        while ( sbuf.length() < 8 ) {
+            sbuf.append( ' ' );
+        }
+        sbuf.append( '=' );
+        sbuf.append( ' ' );
+        sbuf.append( rawvalue );
+        while ( sbuf.length() < 30 ) {
+            sbuf.append( ' ' );
+        }
+        if ( sbuf.length() + 3 + comment.length() < 80 ) {
+            sbuf.append( ' ' );
+            sbuf.append( '/' );
+            sbuf.append( ' ' );
+            sbuf.append( comment );
+        }
+        while ( sbuf.length() < 80 ) {
+            sbuf.append( ' ' );
+        }
+        String cardImg = sbuf.toString();
+        if ( cardImg.length() > 80 ) {
+            throw new HeaderCardException( "value too long: " + rawvalue );
+        }
+        assert cardImg.length() == 80;
+        return createHeaderCard( cardImg );
+    }
+
+    /**
      * Returns an iterable over HeaderCards for a given Header.
      *
      * @param   hdr  header
