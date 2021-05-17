@@ -366,7 +366,7 @@ public class Header implements FitsElement {
     /** Add a card image to the header.
       * @param fcard The card to be added.
       */
-    protected void addLine(HeaderCard fcard) {
+    public void addLine(HeaderCard fcard) {
 
         if (fcard != null) {
 	    if (fcard.isKeyValuePair()) {
