@@ -52,6 +52,8 @@ public class BeanConfig {
         Pattern.compile( "[, ]*([A-Za-z][A-Za-z0-9_]*) *= *([^,]*)" );
     private static final Pattern CONFIG_REGEX =
         Pattern.compile( "([^(]*)(?:[(]([^)]*)[)]) *" );
+    private static final Pattern HEX_REGEX =
+        Pattern.compile( "0x([0-9a-f]+)", Pattern.CASE_INSENSITIVE );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.util" );
 
@@ -350,6 +352,7 @@ public class BeanConfig {
     @SuppressWarnings("unchecked")
     private static <T> T decodeTypedValue( Class<T> clazz, String txt,
                                            Object target ) {
+        Long hexValue = decode0x( txt );
         if ( txt == null || txt.trim().length() == 0 ) {
             if ( ! clazz.isPrimitive() ) {
                 return (T) null;
@@ -375,16 +378,24 @@ public class BeanConfig {
                  : (T) Boolean.valueOf( txt );
         }
         else if ( clazz.equals( byte.class ) || clazz.equals( Byte.class ) ) {
-            return (T) Byte.valueOf( txt );
+            return (T) ( hexValue == null
+                             ? Byte.valueOf( txt )
+                             : Byte.valueOf( hexValue.byteValue() ) );
         }
         else if ( clazz.equals( short.class ) || clazz.equals( Short.class ) ) {
-            return (T) Short.valueOf( txt );
+            return (T) ( hexValue == null
+                             ? Short.valueOf( txt )
+                             : Short.valueOf( hexValue.shortValue() ) );
         }
         else if ( clazz.equals( int.class ) || clazz.equals( Integer.class ) ) {
-            return (T) Integer.valueOf( txt );
+            return (T) ( hexValue == null
+                             ? Integer.valueOf( txt )
+                             : Integer.valueOf( hexValue.intValue() ) );
         }
         else if ( clazz.equals( long.class ) || clazz.equals( Long.class ) ) {
-            return (T) Long.valueOf( txt );
+            return (T) ( hexValue == null
+                             ? Long.valueOf( txt )
+                             : Long.valueOf( hexValue.longValue() ) );
         }
         else if ( clazz.equals( float.class ) || clazz.equals( Float.class ) ) {
             return (T) Float.valueOf( txt );
@@ -395,9 +406,11 @@ public class BeanConfig {
         }
         else if ( clazz.equals( char.class ) ||
                   clazz.equals( Character.class ) ) {
-            return (T) Character.valueOf( txt.replaceAll( "\\", "," )
-                                             .replaceAll( "\\\\", "\\" )
-                                             .charAt( 0 ) );
+            return (T) ( hexValue == null
+                             ? Character.valueOf( txt.replaceAll( "\\", "," )
+                                                 .replaceAll( "\\\\", "\\" )
+                                                 .charAt( 0 ) )
+                             : Character.valueOf( (char) hexValue.intValue() ));
         }
         else if ( clazz.equals( String.class ) ) {
             return (T) txt.replaceAll( "\\,", "," )
@@ -423,6 +436,24 @@ public class BeanConfig {
                                                   + clazz.getSimpleName() );
             }
         }
+    }
+
+    /**
+     * Attempts to decode a string of the form "0xXXX" where XXX are
+     * hexadecimal digits.  If the supplied string is not of that form,
+     * null is returned without error.
+     *
+     * @param  txt  string which may be hexadecimal
+     * @return   integer value of hex string, or null
+     */
+    private static Long decode0x( String txt ) {
+        if ( txt != null ) {
+            Matcher matcher = HEX_REGEX.matcher( txt );
+            if ( matcher.matches() ) {
+                return Long.valueOf( matcher.group( 1 ), 16 );
+            }
+        }
+        return null;
     }
 
     /**

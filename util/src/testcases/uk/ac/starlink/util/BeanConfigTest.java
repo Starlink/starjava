@@ -23,6 +23,8 @@ public class BeanConfigTest extends TestCase {
         assertEquals( Primary.BLUE, tb1.primary_ );
         assertEquals( "elder thing", tb1.text_ );
 
+        assertEquals( 42, createTBean( "(ival=0x2a)" ).ival_ );
+
         assertEquals( Dir.LEFT, createTBean( "( dir = LEFT )" ).dir_ );
         assertEquals( TBean.NORTH, createTBean( "(dir=NORTH)" ).dir_ );
 
