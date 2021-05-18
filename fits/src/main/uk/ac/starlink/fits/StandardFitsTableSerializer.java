@@ -219,9 +219,12 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                                 else if ( varElementChars[ icol ] ) {
                                     String[] svals = (String[]) cell;
                                     for ( int i = 0; i < svals.length; i++ ) {
-                                        maxChars[ icol ] =
-                                            Math.max( maxChars[ icol ],
-                                                      svals[ i ].length() );
+                                        String sv = svals[ i ];
+                                        if ( sv != null ) {
+                                            maxChars[ icol ] =
+                                                Math.max( maxChars[ icol ],
+                                                          sv.length() );
+                                        }
                                     }
                                 }
                                 if ( varShapes[ icol ] ) {
