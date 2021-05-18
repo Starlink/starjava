@@ -359,6 +359,9 @@ public class ColumnReaderTest extends TestCase {
             public boolean allowZeroLengthString() {
                 return true;
             }
+            public byte getPadCharacter() {
+                return (byte) '\0';
+            }
         };
         FitsTableSerializer ser =
             new StandardFitsTableSerializer( config, table );

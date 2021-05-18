@@ -75,11 +75,13 @@ abstract class ScalarColumnWriter implements ColumnWriter {
      *                      may be null
      * @param   allowSignedByte  if true, bytes written as FITS signed bytes
      *          (TZERO=-128), if false bytes written as signed shorts
+     * @param   padChar   padding character for undersized character arrays
      * @return  new column writer, or null if we don't know how to do it
      */
     public static ScalarColumnWriter
                   createColumnWriter( ColumnInfo cinfo, boolean nullableInt,
-                                      boolean allowSignedByte ) {
+                                      boolean allowSignedByte,
+                                      final byte padChar ) {
         Class<?> clazz = cinfo.getContentClass();
         Number blankNum = null;
         if ( nullableInt ) {
@@ -266,7 +268,7 @@ abstract class ScalarColumnWriter implements ColumnWriter {
                         throws IOException {
                     char cval = ( value != null )
                               ? ((Character) value).charValue()
-                              : ' ';
+                              : (char) padChar;
                     stream.writeByte( cval );
                 }
             };

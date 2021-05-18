@@ -29799,6 +29799,9 @@ introduced since the last version:
         rather than string values.</li>
     <li>Empty strings in FITS 1-character columns are now returned as
         blank values rather than ASCII NUL ('<code>\0</code>').</li>
+    <li>Undersized, including zero-length, strings written to FITS 
+        columns are now by default terminated with an ASCII NUL
+        rather than in some cases padded with spaces.</li>
     </ul>
     </p></dd>
 

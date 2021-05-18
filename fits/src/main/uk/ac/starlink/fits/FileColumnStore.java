@@ -288,6 +288,7 @@ abstract class FileColumnStore implements ColumnStore {
                                final FitsTableSerializerConfig config )
             throws IOException {
         Class<?> clazz = info.getContentClass();
+        final byte padByte = config.getPadCharacter();
 
         if ( clazz == Boolean.class ) {
             return new FileColumnStore( info, 'L', 1, true ) {
@@ -371,7 +372,7 @@ abstract class FileColumnStore implements ColumnStore {
                         throws IOException {
                     out.writeByte( value instanceof Character
                                        ? ((Character) value).charValue()
-                                       : ' ' );
+                                       : (char) padByte );
                 }
             };
         }
@@ -402,7 +403,7 @@ abstract class FileColumnStore implements ColumnStore {
                         throw new IOException( "Corrupted temporary file" );
                     }
                     in.readFully( copyBuffer_, 0, leng );
-                    Arrays.fill( copyBuffer_, leng, maxleng_, (byte) '\0' );
+                    Arrays.fill( copyBuffer_, leng, maxleng_, padByte );
                     out.write( copyBuffer_ );
                 }
             };
@@ -489,7 +490,7 @@ abstract class FileColumnStore implements ColumnStore {
                     super.endStores();
                     setItemShape( new int[] { maxChars_, maxStrings_ } );
                     blankString_ = new byte[ maxChars_ ];
-                    Arrays.fill( blankString_, (byte) '\0' );
+                    Arrays.fill( blankString_, padByte );
                 }
 
                 protected void copyValue( DataInput in, DataOutput out )
@@ -509,7 +510,7 @@ abstract class FileColumnStore implements ColumnStore {
                             out.writeByte( in.readByte() );
                         }
                         for ( int ic = nchar; ic < maxChars_; ic++ ) {
-                            out.writeByte( (byte) '\0' );
+                            out.writeByte( padByte );
                         }
                     }
                     for ( int is = nstring; is < maxStrings_; is++ ) {

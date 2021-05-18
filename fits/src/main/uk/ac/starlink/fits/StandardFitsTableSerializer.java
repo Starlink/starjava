@@ -633,7 +633,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             final int[] dims = new int[] { maxChars };
             final byte[] buf = new byte[ maxChars ];
             final byte[] blankBuf = new byte[ maxChars ];
-            final byte padByte = (byte) ' ';
+            final byte padByte = config_.getPadCharacter();
             Arrays.fill( blankBuf, padByte );
             return new ColumnWriter() {
                 public void writeValue( DataOutput out, Object value )
@@ -684,7 +684,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             charDims[ 0 ] = maxChars;
             System.arraycopy( shape, 0, charDims, 1, shape.length );
             final byte[] buf = new byte[ maxChars ];
-            final byte padByte = (byte) ' ';
+            final byte padByte = config_.getPadCharacter();
             return new ColumnWriter() {
                 public void writeValue( DataOutput out, Object value )
                         throws IOException {
@@ -737,9 +737,10 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         }
         else {
             boolean allowSignedByte = config_.allowSignedByte();
-            ColumnWriter cw =
-                ScalarColumnWriter.createColumnWriter( cinfo, nullableInt,
-                                                       allowSignedByte );
+            byte padChar = config_.getPadCharacter();
+            ColumnWriter cw = ScalarColumnWriter
+                             .createColumnWriter( cinfo, nullableInt,
+                                                  allowSignedByte, padChar );
             if ( cw != null ) {
                 return cw;
             }

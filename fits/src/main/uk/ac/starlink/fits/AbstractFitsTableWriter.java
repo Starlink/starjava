@@ -59,6 +59,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
     private boolean allowSignedByte_;
     private boolean allowZeroLengthString_;
     private WideFits wide_;
+    private byte padChar_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
 
@@ -72,6 +73,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
         allowSignedByte_ = true;
         allowZeroLengthString_ = true;
         wide_ = WideFits.DEFAULT;
+        padChar_ = (byte) '\0';
         writeDate_ = true;
     }
 
@@ -192,6 +194,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
         final boolean allowSignedByte = allowSignedByte_;
         final boolean allowZeroLengthString = allowZeroLengthString_;
         final WideFits wide = wide_;
+        final byte padChar = padChar_;
         return new FitsTableSerializerConfig() {
             public boolean allowSignedByte() {
                 return allowSignedByte;
@@ -201,6 +204,9 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
             }
             public WideFits getWide() {
                 return wide;
+            }
+            public byte getPadCharacter() {
+                return padChar;
             }
         };
     }
@@ -331,6 +337,33 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      */
     public WideFits getWide() {
         return wide_;
+    }
+
+    /**
+     * Sets the byte value with which under-length string (character array)
+     * values should be padded.
+     * This should normally be one of 0x00 (ASCII NUL) or 0x20 (space).
+     * The function of an ASCII NUL is to terminate the string early,
+     * as described in Section 7.3.3.1 of the FITS 4.0 standard;
+     * space characters pad it to its declared length with whitespace.
+     * Other values in the range 0x21-0x7E are permitted but probably
+     * not sensible.
+     *
+     * @param  padChar  character data padding byte
+     */
+    public void setPadCharacter( byte padChar ) {
+        padChar_ = padChar;
+    }
+
+    /**
+     * Returns the byte value with which under-length string (character array)
+     * values will be padded.
+     * This will normally be one of 0x00 (ASCII NUL) or 0x20 (space).
+     *
+     * @return  character data padding byte
+     */
+    public byte getPadCharacter() {
+        return padChar_;
     }
 
     /**

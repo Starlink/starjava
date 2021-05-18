@@ -918,6 +918,9 @@ public abstract class VOSerializer {
                 public boolean allowZeroLengthString() {
                     return false;
                 }
+                public byte getPadCharacter() {
+                    return (byte) '\0';
+                }
             };
             return new FITSVOSerializer( table, version,
                 new StandardFitsTableSerializer( config, table ) );

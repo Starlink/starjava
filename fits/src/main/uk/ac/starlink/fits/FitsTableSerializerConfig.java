@@ -35,4 +35,13 @@ public interface FitsTableSerializerConfig {
      * @return   wide table convention, or null to avoid writing wide tables
      */
     WideFits getWide();
+
+    /**
+     * Returns the byte value with which under-length string (character array)
+     * values should be padded.
+     * This should normally be one of 0x00 (ASCII NUL) or 0x20 (space).
+     *
+     * @return  padding value for character array data
+     */
+    byte getPadCharacter();
 }
