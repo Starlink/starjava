@@ -293,12 +293,14 @@ public class ColumnMetadataStage implements Stage {
                 }
             }
 
-            /* Report on type discrepancies. */
+            /* Report on datatype and metadata discrepancies. */
             for ( String cname : bothList ) {
-                String dType = declaredMap.get( cname ).getDataType();
-                String rType = resultMap.get( cname )
-                              .getAuxDatumValue( VOStarTable.DATATYPE_INFO,
-                                                 String.class );
+                ColumnMeta dMeta = declaredMap.get( cname );
+                ColumnInfo rInfo = resultMap.get( cname );
+                String dType = dMeta.getDataType();
+                String rType =
+                    rInfo.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
+                                            String.class );
                 if ( ! CompareMetadataStage
                       .compatibleDataTypes( dType, rType ) ) {
                     String msg = new StringBuilder()
@@ -315,6 +317,48 @@ public class ColumnMetadataStage implements Stage {
                         .toString();
                     reporter_.report( FixedCode.E_CTYP, msg );
                 }
+                compareColumnMetadata( dMeta.getUnit(), rInfo.getUnitString(),
+                                       "Unit", FixedCode.W_DRUN, cname, tname );
+                compareColumnMetadata( dMeta.getXtype(), rInfo.getXtype(),
+                                       "XType", FixedCode.W_DRXT, cname, tname);
+                compareColumnMetadata( dMeta.getUcd(), rInfo.getUCD(),
+                                       "UCD", FixedCode.W_DRUC, cname, tname );
+                compareColumnMetadata( dMeta.getUtype(), rInfo.getUtype(),
+                                       "UType", FixedCode.W_DRUT, cname, tname);
+            }
+        }
+
+        /**
+         * Compares declared and query result metadata and reports
+         * discrepancies.
+         *
+         * @param   declTxt   declared metadata item value
+         * @param   resultTxt   query result metadata item value
+         * @param   metaName   metadata item name
+         * @param   mismatchCode   report code in case of mismatch
+         * @param   colName   name of column
+         * @Param   tableName   name of table
+         */
+        private void compareColumnMetadata( String declTxt, String resultTxt,
+                                            String metaName,
+                                            ReportCode mismatchCode,
+                                            String colName, String tableName ) {
+            if ( declTxt == null ? resultTxt != null
+                                 : ! declTxt.equals( resultTxt ) ) {
+                String msg = new StringBuilder()
+                    .append( "Declared/result " )
+                    .append( metaName )
+                    .append( " mismatch for column " )
+                    .append( colName )
+                    .append( " in table " )
+                    .append( tableName )
+                    .append( " (")
+                    .append( declTxt )
+                    .append( " != " )
+                    .append( resultTxt )
+                    .append( ")" )
+                    .toString();
+                reporter_.report( mismatchCode, msg );
             }
         }
     }

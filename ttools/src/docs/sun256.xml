@@ -13261,6 +13261,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         HEALPix-FITS files, e.g. allow "GALACTIC" instead of "G".</li>
     <li>Revert to sequential processing in some cases for
         healpix plot layer to reduce resource usage.</li>
+    <li>Taplint MDQ stage now reports mismatches between declared
+        and result Units, UCDs, Xtypes, and Utypes as well as
+        datatypes.</li>
     </ul>
 
     </p></dd>
