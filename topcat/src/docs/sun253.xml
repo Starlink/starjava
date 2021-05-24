@@ -29802,6 +29802,8 @@ introduced since the last version:
     <li>Undersized, including zero-length, strings written to FITS 
         columns are now by default terminated with an ASCII NUL
         rather than in some cases padded with spaces.</li>
+    <li>Fix regression bug in last release (v4.8) that meant table
+        drag'n'drop wasn't working.</li>
     </ul>
     </p></dd>
 

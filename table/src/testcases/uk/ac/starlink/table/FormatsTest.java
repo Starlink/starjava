@@ -180,6 +180,10 @@ public class FormatsTest extends TableCase {
         }
     }
 
+    public void testTransferable() {
+        assertNotNull( new StarTableOutput().getTransferWriter() );
+    }
+
     public void testIdentity() throws IOException {
         checkStarTable( table );
         assertTableEquals( table, table );

@@ -140,9 +140,7 @@ public class StarTableOutput {
                                                     StarTableWriter.class ) );
 
         /* Further initialization. */
-        voWriter_ =
-            getTransferableWriter( handlers_
-                                  .toArray( new StarTableWriter[ 0 ] ) );
+        voWriter_ = createTransferableWriter();
     }
 
     /**
@@ -668,30 +666,24 @@ public class StarTableOutput {
 
     /**
      * Sets up one serializer suitable for streaming objects during
-     * drag and drop.  In the current implementation a VOTable BINARY
-     * is used if available, otherwise VOTable TABLEDATA.
+     * drag and drop.  In the current implementation a VOTable BINARY2
+     * serialization is used if available, otherwise VOTable TABLEDATA.
      *
      * @param  handlers  available handler list
      * @return  widely-understandable serializer
      */
-    private static StarTableWriter
-            getTransferableWriter( StarTableWriter[] handlers ) {
-
-        /* Identify a suitable handler by name.  Can't easily do it by class,
-         * since the VOTable classes are probably not available at
-         * compile time. */
-        StarTableWriter tdWriter = null;
-        for ( int ih = 0; ih < handlers.length; ih++ ) {
-            StarTableWriter handler = handlers[ ih ];
-            String formatName = handler.getFormatName();
-            if ( "votable-binary-inline".equals( formatName ) ) {
-                return handler;
+    private final StarTableWriter createTransferableWriter() {
+        for ( String fname :
+              new String[] { "votable(format=BINARY2)", "votable" } ) {
+            try {
+                return getHandler( fname );
             }
-            if ( "votable-tabledata".equals( formatName ) ) {
-                tdWriter = handler;
+            catch ( TableFormatException e ) {
+                logger.warning( "No format " + fname + " for transferables" );
             }
         }
-        return tdWriter;
+        logger.warning( "No table drag'n'drop available" );
+        return null;
     }
 
     /**
