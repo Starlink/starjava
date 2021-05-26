@@ -12,6 +12,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXParseException;
+import uk.ac.starlink.ttools.taplint.AdhocCode;
 import uk.ac.starlink.votable.VOTableVersion;
 
 /**
@@ -119,12 +120,14 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
             String versionNamespace = contextVersion.getXmlNamespace();
             if ( declaredNamespace == null ) {
                 if ( versionNamespace != null ) {
-                    context_.warning( "Element not namespaced, "
+                    context_.warning( new VotLintCode( "NS0" ),
+                                      "Element not namespaced, "
                                     + "should be in " + versionNamespace );
                 }
             }
             else if ( ! declaredNamespace.equals( versionNamespace ) ) {
-                context_.warning( "Element in wrong namespace ("
+                context_.warning( new VotLintCode( "NSX" ),
+                                  "Element in wrong namespace ("
                                 + declaredNamespace + " not "
                                 + versionNamespace + ")" );
             }
@@ -156,12 +159,13 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
     }
 
     public void processingInstruction( String target, String data ) {
-        context_.info( "Ignoring processing instruction <?" + target + 
+        context_.info( new VotLintCode( "PIY" ),
+                       "Ignoring processing instruction <?" + target + 
                        " " + data + "?>" );
     }
 
     public void skippedEntity( String name ) {
-        context_.info( "Skipping entity " + name );
+        context_.info( new VotLintCode( "ENY" ), "Skipping entity " + name );
     }
 
     // ErrorHandler implementation.
@@ -171,7 +175,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
         if ( msg == null ) {
             msg = e.toString();
         }
-        context_.warning( msg );
+        context_.warning( createSaxCode( msg ), msg );
     }
 
     public void error( SAXParseException e ) {
@@ -180,7 +184,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
             if ( msg == null ) {
                 msg = e.toString();
             }
-            context_.error( msg );
+            context_.error( createSaxCode( msg ), msg );
         }
     }
 
@@ -189,7 +193,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
         if ( msg == null ) {
             msg = e.toString();
         }
-        context_.error( msg );
+        context_.error( createSaxCode( msg ), msg );
     }
 
     /**
@@ -226,6 +230,18 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
             }
         }
         return false;
+    }
+
+    /**
+     * Generates a VotLintCode corresponding to a given SAX error message.
+     * Multiple calls with the same input message will yield the same
+     * output code.
+     *
+     * @param  msg  message text
+     * @return  code
+     */
+    private VotLintCode createSaxCode( String msg ) {
+        return new VotLintCode( "J" + AdhocCode.createLabelChars( msg, 2 ) );
     }
 
     /**

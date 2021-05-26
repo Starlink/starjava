@@ -22,7 +22,7 @@ public class FieldHandler extends ParamHandler {
             table.registerField( this );
         }
         else {
-            error( this + " outside of TABLE" );
+            error( new VotLintCode( "DDF" ), this + " outside of TABLE" );
         }
     }
 

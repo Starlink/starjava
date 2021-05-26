@@ -136,7 +136,8 @@ public class ElementHandler {
         if ( childNames_.containsKey( name ) ) {
             ElementRef ref = childNames_.get( name );
             if ( ! name.equals( "QUERY_STATUS" ) ) {  // DAL special case
-                warning( "Name '" + name + "' already used in this " + this );
+                warning( new VotLintCode( "DNM" ),
+                         "Name '" + name + "' already used in this " + this );
             }
         }
         else {
@@ -156,28 +157,31 @@ public class ElementHandler {
     /**
      * Writes an info message through the context.
      *
-     * @param   msg  message
+     * @param  code  message identifier
+     * @param   msg  message text
      */
-    public void info( String msg ) {
-        getContext().info( msg );
+    public void info( VotLintCode code, String msg ) {
+        getContext().info( code, msg );
     }
 
     /**
      * Writes a warning message through the context.
      *
-     * @param   msg  message
+     * @param  code  message identifier
+     * @param   msg  message text
      */
-    public void warning( String msg ) {
-        getContext().warning( msg );
+    public void warning( VotLintCode code, String msg ) {
+        getContext().warning( code, msg );
     }
 
     /**
      * Writes an error message through the context.
      *
-     * @param   msg  message
+     * @param  code  message identifier
+     * @param   msg  message text
      */
-    public void error( String msg ) {
-        getContext().error( msg );
+    public void error( VotLintCode code, String msg ) {
+        getContext().error( code, msg );
     }
 
     public String toString() {

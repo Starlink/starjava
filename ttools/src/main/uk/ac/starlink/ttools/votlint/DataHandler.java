@@ -19,12 +19,13 @@ public class DataHandler extends ElementHandler {
         if ( table != null ) {
             fields_ = table.getFields().toArray( new FieldHandler[ 0 ] );
             if ( fields_.length == 0 ) {
-                error( "There are no columns in this table!" );
+                error( new VotLintCode( "ZCL" ),
+                       "There are no columns in this table!" );
             }
         }
         else {
             fields_ = new FieldHandler[ 0 ];
-            error( getName() + " outside TABLE" );
+            error( new VotLintCode( "DDT" ), getName() + " outside TABLE" );
         }
     }
 

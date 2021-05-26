@@ -27,7 +27,8 @@ public class BinaryHandler extends StreamingHandler {
         for ( int icol = 0; icol < ncol; icol++ ) {
             parsers[ icol ] = fields[ icol ].getParser();
             if ( parsers[ icol ] == null ) {
-                warning( "Can't validate stream with unidentified column " +
+                warning( new VotLintCode( "UKP" ),
+                         "Can't validate stream with unidentified column " +
                          fields[ icol ] );
                 throw new IOException( "No stream validation" );
             }

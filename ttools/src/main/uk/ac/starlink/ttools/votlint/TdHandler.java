@@ -26,7 +26,7 @@ public class TdHandler extends ElementHandler {
             }
         }
         else {
-            error( getName() + " outside DATA" );
+            error( new VotLintCode( "TDS" ), getName() + " outside DATA" );
         }
     }
 }

@@ -87,28 +87,31 @@ public abstract class ValueParser {
     /**
      * Writes an info mesage to the user.
      *
-     * @param   msg  message
+     * @param   code  message identifier
+     * @param   msg  message text
      */
-    public void info( String msg ) {
-        getContext().info( msg );
+    public void info( VotLintCode code, String msg ) {
+        getContext().info( code, msg );
     }
 
     /**
      * Writes a warning mesage to the user.
      *
-     * @param   msg  message
+     * @param   code  message identifier
+     * @param   msg  message text
      */
-    public void warning( String msg ) {
-        getContext().warning( msg );
+    public void warning( VotLintCode code, String msg ) {
+        getContext().warning( code, msg );
     }
 
     /**
      * Writes an error mesage to the user.
      *
-     * @param   msg  message
+     * @param   code  message identifier
+     * @param   msg  message text
      */
-    public void error( String msg ) {
-        getContext().error( msg );
+    public void error( VotLintCode code, String msg ) {
+        getContext().error( code, msg );
     }
 
     /**
@@ -125,7 +128,8 @@ public abstract class ValueParser {
 
         /* If no datatype has been specified, we can't do much. */
         if ( datatype == null || datatype.trim().length() == 0 ) {
-            handler.error( "No datatype specified for " + handler + 
+            handler.error( new VotLintCode( "DT0" ),
+                           "No datatype specified for " + handler + 
                            " Can't parse values" );
             return null;
         }
@@ -136,7 +140,8 @@ public abstract class ValueParser {
             shape = new int[] { 1 };
             if ( "char".equals( datatype ) ||
                  "unicodeChar".equals( datatype ) ) {
-                handler.info( "No arraysize for character, " + handler +
+                handler.info( new VotLintCode( "AR1" ),
+                              "No arraysize for character, " + handler +
                               " implies single character" );
             }
         }
@@ -152,7 +157,8 @@ public abstract class ValueParser {
                             Integer.parseInt( num );
                         }
                         catch ( NumberFormatException e ) {
-                            handler.error( "Bad arraysize value '" +
+                            handler.error( new VotLintCode( "ARB" ),
+                                           "Bad arraysize value '" +
                                            arraysize + "'" );
                         }
                     }
@@ -163,12 +169,14 @@ public abstract class ValueParser {
                         shape[ i ] = Integer.parseInt( dims[ i ] );
                     }
                     catch ( NumberFormatException e ) {
-                        handler.error( "Bad arraysize value '" +
+                        handler.error( new VotLintCode( "ARB" ),
+                                       "Bad arraysize value '" +
                                        arraysize + "'" );
                         return null;
                     }
                     if ( shape[ i ] < 0 ) {
-                        handler.error( "Negative dimensions element " +
+                        handler.error( new VotLintCode( "DMN" ),
+                                       "Negative dimensions element " +
                                        shape[ i ] );
                         return null;
                     }
@@ -287,7 +295,8 @@ public abstract class ValueParser {
             return new DoubleParser();
         }
         else {
-            handler.error( "Unknown datatype '" + datatype + "'" + 
+            handler.error( new VotLintCode( "DTX" ),
+                           "Unknown datatype '" + datatype + "'" + 
                            " - can't parse column" );
             return null;
         }
@@ -381,7 +390,8 @@ public abstract class ValueParser {
             StringTokenizer stok = new StringTokenizer( text );
             int ntok = stok.countTokens();
             if ( ntok != count_ ) {
-                error( "Wrong number of elements in array (" + 
+                error( new VotLintCode( "E09" ),
+                       "Wrong number of elements in array (" + 
                        ntok + " found, " + count_ + " expected)" );
             }
             while ( stok.hasMoreTokens() ) {
@@ -430,7 +440,8 @@ public abstract class ValueParser {
                     base_.checkStream( in );
                 }
                 catch ( EOFException e ) {
-                    error( "End of stream while reading " + count +
+                    error( new VotLintCode( "EOF" ),
+                           "End of stream while reading " + count +
                            " elements (probable stream corruption)" );
                     throw e;
                 }
@@ -459,7 +470,8 @@ public abstract class ValueParser {
                     case ' ': case '?': case '\0':
                         return;
                     default:
-                        error( "Bad boolean value '" + text + "'" );
+                        error( new VotLintCode( "TFX" ),
+                               "Bad boolean value '" + text + "'" );
                 }
             }
             else if ( text.equalsIgnoreCase( "true" ) ||
@@ -467,7 +479,8 @@ public abstract class ValueParser {
                 return;
             }
             else {
-                error( "Bad boolean value '" + text + "'" );
+                error( new VotLintCode( "TFX" ),
+                       "Bad boolean value '" + text + "'" );
             }
         }
 
@@ -479,10 +492,12 @@ public abstract class ValueParser {
                 case ' ': case '?': case '\0':
                     return;
                 case (char) -1:
-                    error( "End of stream during read" );
+                    error( new VotLintCode( "EOF" ),
+                           "End of stream during read" );
                     throw new EOFException();
                 default:
-                    error( "Bad boolean value '" + chr + "'" );
+                    error( new VotLintCode( "TFX" ),
+                           "Bad boolean value '" + chr + "'" );
              }
         }
     }
@@ -521,13 +536,15 @@ public abstract class ValueParser {
                     value = Long.parseLong( text.substring( pos + 2 ), 16 );
                 }
                 catch ( NumberFormatException e ) {
-                    error( "Bad hexadecimal string '" + text + "'" );
+                    error( new VotLintCode( "HX0" ),
+                           "Bad hexadecimal string '" + text + "'" );
                     return;
                 }
             }
             else if ( text.length() == 0 ) {
                 if ( ! getContext().getVersion().allowEmptyTd() ) {
-                    error( "Empty cell illegal for integer value" );
+                    error( new VotLintCode( "ETD" ),
+                           "Empty cell illegal for integer value" );
                 }
                 return;
             }
@@ -536,12 +553,14 @@ public abstract class ValueParser {
                     value = Long.parseLong( text );
                 }
                 catch ( NumberFormatException e ) {
-                    error( "Bad integer string '" + text + "'" );
+                    error( new VotLintCode( "IT0" ),
+                           "Bad integer string '" + text + "'" );
                     return;
                 }
             }
             if ( value < minVal_ || value > maxVal_ ) {
-                error( "Value " + text + " outside type range " + 
+                error( new VotLintCode( "BND" ),
+                       "Value " + text + " outside type range " + 
                        minVal_ + "..." + maxVal_ );
             }
         }
@@ -565,7 +584,8 @@ public abstract class ValueParser {
             else {
                 Matcher matcher = DOUBLE_REGEX.matcher( text );
                 if ( ! matcher.matches() ) {
-                    error( "Bad float string '" + text + "'" );
+                    error( new VotLintCode( "FP0" ),
+                           "Bad float string '" + text + "'" );
                 }
             }
         }
@@ -589,7 +609,8 @@ public abstract class ValueParser {
             else {
                 Matcher matcher = DOUBLE_REGEX.matcher( text );
                 if ( ! matcher.matches() ) {
-                    error( "Bad double string '" + text + "'" );
+                    error( new VotLintCode( "FP0" ),
+                           "Bad double string '" + text + "'" );
                 }
             }
         }
@@ -621,12 +642,14 @@ public abstract class ValueParser {
                     case ' ': case '\n':
                         break;
                     default:
-                        error( "Bad value for bit vector " + text );
+                        error( new VotLintCode( "BT0" ),
+                               "Bad value for bit vector " + text );
                         return;
                 }
             }
             if ( nbit != count_ ) {
-                error( "Wrong number of elements in array (" +
+                error( new VotLintCode( "CT9" ),
+                       "Wrong number of elements in array (" +
                        nbit + " found, " + count_ + " expected)" );
             }
         }
@@ -647,7 +670,8 @@ public abstract class ValueParser {
                     case ' ': case '\n':
                         break;
                     default:
-                        error( "Bad value for bit vector " + text );
+                        error( new VotLintCode( "BV0" ),
+                               "Bad value for bit vector " + text );
                         return;
                 }
             }
@@ -677,16 +701,19 @@ public abstract class ValueParser {
             int leng = text.length();
             switch ( leng ) {
                 case 0:
-                    warning( "Empty character value is questionable" );
+                    warning( new VotLintCode( "CH0" ),
+                             "Empty character value is questionable" );
                     break;
                 case 1:
                     break;
                 default:
-                    warning( "Characters after first in char scalar ignored" +
+                    warning( new VotLintCode( "CH1" ),
+                             "Characters after first in char scalar ignored" +
                              " (missing arraysize?)" );
             }
             if ( ascii_ && leng > 0 && text.charAt( 0 ) > 0x7f ) {
-                error( "Non-ascii character in 'char' data" );
+                error( new VotLintCode( "CRU" ),
+                       "Non-ascii character in 'char' data" );
             }
         }
     }
@@ -782,7 +809,8 @@ public abstract class ValueParser {
         public void checkString( String text ) {
             int leng = text.length();
             if ( text.length() != nchar_ ) {
-                warning( "Wrong number of characters in string (" +
+                warning( new VotLintCode( "C09" ),
+                         "Wrong number of characters in string (" +
                          leng + " found, " + nchar_ + " expected)" );
             }
         }
@@ -811,7 +839,8 @@ public abstract class ValueParser {
             throws IOException {
         for ( int i = 0; i < nbyte; i++ ) {
             if ( in.read() < 0 ) {
-                context.error( "Stream ended during data read; done "
+                context.error( new VotLintCode( "EOF" ),
+                               "Stream ended during data read; done "
                              + i + "/" + nbyte );
                 throw new EOFException();
             }
@@ -831,7 +860,8 @@ public abstract class ValueParser {
         int c3 = in.read();
         int c4 = in.read();
         if ( c1 < 0 || c2 < 0 || c3 < 0 || c4 < 0 ) {
-            error( "End of stream while reading element count" +
+            error( new VotLintCode( "EOF" ),
+                   "End of stream while reading element count" +
                    " (probable stream corruption)" );
             throw new EOFException();
         }
@@ -841,7 +871,8 @@ public abstract class ValueParser {
                       | ( ( c3 & 0xff ) <<  8 )
                       | ( ( c4 & 0xff ) <<  0 );
             if ( count < 0 ) {
-                error( "Apparent negative element count " +
+                error( new VotLintCode( "MEL" ),
+                       "Apparent negative element count " +
                        "(probably stream corruption)" );
                 throw new IOException( "Unrecoverable stream error" );
             }

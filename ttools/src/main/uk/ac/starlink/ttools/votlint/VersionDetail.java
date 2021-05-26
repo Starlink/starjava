@@ -72,7 +72,8 @@ public abstract class VersionDetail {
             ElementHandler handler = createElementHandler( voTagname );
             if ( handler == null ) {
                 if ( ! context.isValidating() ) {
-                    context.error( "Element " + voTagname
+                    context.error( new VotLintCode( "VBE" ),
+                                   "Element " + voTagname
                                  + " not known at VOTable " + version_ );
                 }
                 handler = new ElementHandler();
@@ -114,7 +115,8 @@ public abstract class VersionDetail {
             return VERSION_MAP.get( version );
         }
         else {
-            context.warning( "No checking information available for version "
+            context.warning( new VotLintCode( "UKV" ),
+                             "No checking information available for version "
                            + version );
             return DUMMY;
         }
@@ -350,7 +352,8 @@ public abstract class VersionDetail {
                 return new ElementHandler() {
                     public void startElement() {
                         super.startElement();
-                        info( "COOSYS is deprecated at VOTable 1.2"
+                        info( new VotLintCode( "CD2" ),
+                              "COOSYS is deprecated at VOTable 1.2"
                             + " (though reprieved at 1.3)" );
                     }
                 };

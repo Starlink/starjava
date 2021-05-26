@@ -94,7 +94,7 @@ public class VocabChecker implements AttributeChecker {
                     }
                 }
                 sbuf.append( ")" );
-                context.warning( sbuf.toString() );
+                context.warning( new VotLintCode( "VCU" ), sbuf.toString() );
             }
             else if ( term.isDeprecated() ) {
                 String msg = new StringBuffer()
@@ -104,7 +104,7 @@ public class VocabChecker implements AttributeChecker {
                    .append( " is marked *deprecated* in vocabulary " )
                    .append( vocabUrl_ )
                    .toString();
-                context.warning( msg );
+                context.warning( new VotLintCode( "VCD" ), msg );
             }
             else if ( term.isPreliminary() ) {
                 String msg = new StringBuffer()
@@ -114,7 +114,7 @@ public class VocabChecker implements AttributeChecker {
                    .append( " is marked *preliminary* in vocabulary " )
                    .append( vocabUrl_ )
                    .toString();
-                context.info( msg );
+                context.info( new VotLintCode( "VCP" ), msg );
             }
         }
     }

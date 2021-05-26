@@ -20,7 +20,8 @@ public class DeprecatedAttChecker implements AttributeChecker {
     }
 
     public void check( String attValue, ElementHandler handler ) {
-        handler.warning( "Attribute " + attName_ + " is deprecated" );
+        handler.warning( new VotLintCode( "DPR" ),
+                         "Attribute " + attName_ + " is deprecated" );
     }
   
 }

@@ -102,7 +102,8 @@ public class VotLintContext {
         /* Check this one isn't already taken. */
         if ( idMap_.containsKey( id ) ) {
             ElementRef ref = idMap_.get( id );
-            error( "ID " + id + " already defined " + ref );
+            error( new VotLintCode( "DID" ),
+                   "ID " + id + " already defined " + ref );
         }
 
         /* If not, keep a record of it. */
@@ -157,7 +158,8 @@ public class VotLintContext {
             String id = entry.getKey();
             UncheckedReference unref = entry.getValue();
             ElementRef from = unref.from_;
-            error( "ID " + id + " referenced from " + from + " never found" );
+            error( new VotLintCode( "NFI" ),
+                   "ID " + id + " referenced from " + from + " never found" );
         }
     }
 
@@ -185,7 +187,7 @@ public class VotLintContext {
                         .append( id )
                         .append( "\" never referenced" )
                         .toString();
-                    warning( msg );
+                    warning( new VotLintCode( "HTI" ), msg );
                 }
             }
         }
@@ -194,27 +196,30 @@ public class VotLintContext {
     /**
      * Write an informative message to the user.
      *
-     * @param  msg  message
+     * @param  code  message identifier
+     * @param  msg  message text
      */
-    public void info( String msg ) {
+    public void info( VotLintCode code, String msg ) {
         messager_.reportMessage( SaxMessager.Level.INFO, msg, locator_ );
     }
 
     /**
      * Write a warning message to the user. 
      *
-     * @param  msg  message
+     * @param  code  message identifier
+     * @param  msg  message text
      */
-    public void warning( String msg ) {
+    public void warning( VotLintCode code, String msg ) {
         messager_.reportMessage( SaxMessager.Level.WARNING, msg, locator_ );
     }
 
     /**
      * Write an error message to the user.
      *
-     * @param  msg  message
+     * @param  code  message identifier
+     * @param  msg  message text
      */
-    public void error( String msg ) {
+    public void error( VotLintCode code, String msg ) {
         errCount_++;
         messager_.reportMessage( SaxMessager.Level.ERROR, msg, locator_ );
     }

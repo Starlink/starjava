@@ -21,7 +21,8 @@ public class TableHandler extends ElementHandler {
          * number of rows that were present. */
         if ( nrowsSpecified_ >= 0 ) {
             if ( nrowsSeen_ != nrowsSpecified_ ) {
-                error( "Row count (" + nrowsSeen_ + ") not equal to " +
+                error( new VotLintCode( "NRM" ),
+                       "Row count (" + nrowsSeen_ + ") not equal to " +
                        "nrows attribute (" + nrowsSpecified_ +")" );
             }
         }
@@ -71,14 +72,16 @@ public class TableHandler extends ElementHandler {
             try {
                 long nr = Long.parseLong( value );
                 if ( nr < 0 ) {
-                    handler.error( "Negative value for nrows: " + value );
+                    handler.error( new VotLintCode( "NRM" ),
+                                   "Negative value for nrows: " + value );
                 }
                 else {
                     thandler.nrowsSpecified_ = nr;
                 }
             }
             catch ( IllegalArgumentException e ) {
-                handler.error( "Bad number format for nrows: " + value );
+                handler.error( new VotLintCode( "NFT" ),
+                               "Bad number format for nrows: " + value );
             }
         }
     }

@@ -23,6 +23,7 @@ import uk.ac.starlink.ttools.votlint.DoctypeInterpolator;
 import uk.ac.starlink.ttools.votlint.PrintSaxMessager;
 import uk.ac.starlink.ttools.votlint.SaxMessager;
 import uk.ac.starlink.ttools.votlint.VersionDetector;
+import uk.ac.starlink.ttools.votlint.VotLintCode;
 import uk.ac.starlink.ttools.votlint.VotLintContext;
 import uk.ac.starlink.ttools.votlint.VotLinter;
 import uk.ac.starlink.util.DataSource;
@@ -217,7 +218,7 @@ public class VotLint implements Task {
             if ( validate_ && version.getDoctypeDeclaration() != null ) {
                 in = new DoctypeInterpolator() {
                     public void message( String msg ) {
-                        context.info( msg );
+                        context.info( new VotLintCode( "DOC" ), msg );
                     }
                 }.getStreamWithDoctype( bufIn );
             }

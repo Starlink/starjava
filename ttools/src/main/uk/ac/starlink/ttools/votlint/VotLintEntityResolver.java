@@ -77,7 +77,8 @@ public class VotLintEntityResolver implements EntityResolver, LexicalHandler {
             }
             catch ( IOException e ) {
                 if ( context_.isValidating() ) {
-                    context_.warning( "Trouble opening DTD - "
+                    context_.warning( new VotLintCode( "DTD" ),
+                                      "Trouble opening DTD - "
                                     + "validation may not be done" );
                 }
                 return null;

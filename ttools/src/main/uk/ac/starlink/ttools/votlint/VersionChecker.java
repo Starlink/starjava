@@ -17,14 +17,16 @@ public class VersionChecker implements AttributeChecker {
         VOTableVersion statedVersion =
             VOTableVersion.getKnownVersions().get( value ); 
         if ( statedVersion == null ) {
-            context.warning( "Unknown VOTable version: " + value );
+            context.warning( new VotLintCode( "VR9" ),
+                             "Unknown VOTable version: " + value );
         }
         else {
 
             /* Compare with the version value in the context. */
             VOTableVersion contextVersion = context.getVersion();
             if ( ! contextVersion.equals( statedVersion ) ) {
-                context.warning( "Declared version "
+                context.warning( new VotLintCode( "VRM" ),
+                                 "Declared version "
                                + "(" + statedVersion + ")"
                                + " differs from version specified to linter "
                                + "(" + contextVersion + ")" );

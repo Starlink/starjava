@@ -80,7 +80,8 @@ public class VotLinter {
             }
             catch ( SAXException e ) {
                 parser.setEntityResolver( StarEntityResolver.getInstance() );
-                context_.warning( "Entity trouble - DTD validation may not be "
+                context_.warning( new VotLintCode( "DTE" ),
+                                  "Entity trouble - DTD validation may not be "
                                 + "done properly (" + e + ")" );
             }
         }
