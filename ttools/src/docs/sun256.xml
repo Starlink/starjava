@@ -13271,8 +13271,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Columns that are all blank in ASCII-like tables
         (CSV, ASCII, TST) are now interpreted as type String
         not boolean.</li>
+    <li>Votlint now does a better job of identifying similar errors,
+        so output suppressing repeated messages can be more compact.
+        Suppression of repeated messages is reported.</li>
     </ul>
-
     </p></dd>
 
 </dl>

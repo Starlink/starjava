@@ -19,7 +19,7 @@ public class PrintSaxMessager implements SaxMessager {
     private final PrintStream out_;
     private final boolean debug_;
     private final int maxRepeat_;
-    private final Map<String,Integer> msgMap_;
+    private final Map<VotLintCode,Integer> msgMap_;
 
     /**
      * Constructor.
@@ -34,7 +34,7 @@ public class PrintSaxMessager implements SaxMessager {
         out_ = out;
         debug_ = debug;
         maxRepeat_ = maxRepeat;
-        msgMap_ = new HashMap<String,Integer>();
+        msgMap_ = new HashMap<VotLintCode,Integer>();
     }
 
     public void reportMessage( Level level, VotLintCode code, String msg,
@@ -43,10 +43,10 @@ public class PrintSaxMessager implements SaxMessager {
         /* See how many times (if any) we have output this same message
          * before now.  If it's more than a certain threshold, don't
          * bother to do it again. */
-        int repeat = msgMap_.containsKey( msg ) 
-                   ? msgMap_.get( msg ).intValue()
+        int repeat = msgMap_.containsKey( code ) 
+                   ? msgMap_.get( code ).intValue()
                    : 0;
-        msgMap_.put( msg, new Integer( repeat + 1 ) );
+        msgMap_.put( code, Integer.valueOf( repeat + 1 ) );
         if ( repeat < maxRepeat_ ) {
 
             /* Construct the text to output. */
@@ -69,9 +69,6 @@ public class PrintSaxMessager implements SaxMessager {
             }
             sbuf.append( ": " )
                 .append( msg );
-            if ( repeat == maxRepeat_ ) {
-                sbuf.append( " (more...)" );
-            }
             String text = sbuf.toString();
 
             /* Output the message. */
@@ -82,6 +79,20 @@ public class PrintSaxMessager implements SaxMessager {
                 err.printStackTrace( out_ );
                 out_.println();
             }
+        }
+
+        /* The first time we reach the repeat limit, make sure it's
+         * reported. */
+        else if ( repeat == maxRepeat_ ) {
+            String txt = new StringBuffer()
+               .append( Level.INFO )
+               .append( " (maxrepeat=" )
+               .append( maxRepeat_ )
+               .append( ") suppressing more messages like \"" )
+               .append( msg )
+               .append( "\"" )
+               .toString();
+            out_.println( txt );
         }
     }
 }
