@@ -199,10 +199,12 @@ public class VotLint implements Task {
                 else {
                     Locator noloc = null;
                     messager_.reportMessage( SaxMessager.Level.INFO,
+                                             new VotLintCode( "WTV" ),
                                              "Unable to determine VOTable "
                                            + "version from document", noloc );
                     version = VOTableVersion.getDefaultVersion();
                     messager_.reportMessage( SaxMessager.Level.INFO,
+                                             new VotLintCode( "ASV" ),
                                              "Assuming VOTable v" + version
                                            + " by default", noloc );
                 }

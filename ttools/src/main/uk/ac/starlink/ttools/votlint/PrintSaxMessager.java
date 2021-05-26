@@ -37,7 +37,8 @@ public class PrintSaxMessager implements SaxMessager {
         msgMap_ = new HashMap<String,Integer>();
     }
 
-    public void reportMessage( Level level, String msg, Locator locator ) {
+    public void reportMessage( Level level, VotLintCode code, String msg,
+                               Locator locator ) {
 
         /* See how many times (if any) we have output this same message
          * before now.  If it's more than a certain threshold, don't

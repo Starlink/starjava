@@ -200,7 +200,7 @@ public class VotLintContext {
      * @param  msg  message text
      */
     public void info( VotLintCode code, String msg ) {
-        messager_.reportMessage( SaxMessager.Level.INFO, msg, locator_ );
+        messager_.reportMessage( SaxMessager.Level.INFO, code, msg, locator_ );
     }
 
     /**
@@ -210,7 +210,7 @@ public class VotLintContext {
      * @param  msg  message text
      */
     public void warning( VotLintCode code, String msg ) {
-        messager_.reportMessage( SaxMessager.Level.WARNING, msg, locator_ );
+        messager_.reportMessage( SaxMessager.Level.WARNING, code, msg, locator_);
     }
 
     /**
@@ -221,7 +221,7 @@ public class VotLintContext {
      */
     public void error( VotLintCode code, String msg ) {
         errCount_++;
-        messager_.reportMessage( SaxMessager.Level.ERROR, msg, locator_ );
+        messager_.reportMessage( SaxMessager.Level.ERROR, code, msg, locator_ );
     }
 
     /**
