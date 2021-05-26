@@ -13274,6 +13274,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Votlint now does a better job of identifying similar errors,
         so output suppressing repeated messages can be more compact.
         Suppression of repeated messages is reported.</li>
+    <li>Taplint now does a better job of categorising VOTable parse
+        errors, so multiple repeats of similar messages can be avoided.
+        Ad-hoc VOTable error codes have changed from
+        "<code>VOxx</code>" to "<code>Yxxx</code>".</li>
     </ul>
     </p></dd>
 

@@ -14,6 +14,7 @@ import uk.ac.starlink.ttools.votlint.VotLintCode;
 public class ReporterSaxMessager implements SaxMessager {
 
     private final Reporter reporter_;
+    static final char VOTLINT_PREFIX_CHAR = 'Y';
 
     /**
      * Constructor.
@@ -27,9 +28,7 @@ public class ReporterSaxMessager implements SaxMessager {
     public void reportMessage( Level level, VotLintCode vcode, String msg,
                                Locator locator ) {
         ReportType type = getReportType( level );
-        String label = "VO"
-                     + AdhocCode.createLabelChars( type + ": " + msg,
-                                                   AdhocCode.LABEL_LENGTH - 2 );
+        String label = VOTLINT_PREFIX_CHAR + vcode.getCode();
         ReportCode code = new AdhocCode( type, label );
         int il = -1;
         int ic = -1;
