@@ -13189,6 +13189,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Undersized, including zero-length, strings written to FITS
         columns are now by default terminated with an ASCII NUL
         rather than in some cases padded with spaces.</li>
+    <li>Taplint W_EXVC TOPCAT compatibility warnings downgraded
+        to I_EXVT.</li>
     </ul>
     </p></dd>
 

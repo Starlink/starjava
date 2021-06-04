@@ -272,6 +272,7 @@ public enum FixedCode implements ReportCode {
     I_EURL( "Reading examples document" ),
     I_EXA2( "Assume default query language" ),
     I_EXMP( "Example found" ),
+    I_EXVT( "Possible issues with examples RDFa vocab attribute" ),
     I_JOFI( "Job finished immediately" ),
     I_NODM( "No ObsCore tests" ),
     I_OCCP( "No ObsCore tests" ),

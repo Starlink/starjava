@@ -686,7 +686,7 @@ public class ExampleStage implements Stage {
                        .append( workWithTopcat )
                        .append( " :-(." )
                        .toString();
-                    reporter_.report( FixedCode.W_EXVC, msg );
+                    reporter_.report( FixedCode.I_EXVT, msg );
                 }
                 else if ( TAPNOTE_VOCAB.equals( vatt ) ||
                           PRAGMATIC_VOCAB.equals( vatt ) ) {
@@ -702,12 +702,12 @@ public class ExampleStage implements Stage {
                     assert ! Arrays.asList( EXAMPLES_VOCABS ).contains( vatt );
                     String msg = new StringBuffer()
                        .append( msgIntro )
-                       .append( " wrong, should probably be one of \"" )
-                       .append( PRAGMATIC_VOCAB )
-                       .append( "\" (to work with some TOPCAT versions)" )
-                       .append( " or \"" )
+                       .append( " wrong, should probably be \"" )
                        .append( DALI11_VOCAB )
                        .append( "\" (DALI 1.1)" )
+                       .append( " or maybe \"" )
+                       .append( PRAGMATIC_VOCAB )
+                       .append( "\" (to work with some TOPCAT versions)" )
                        .toString();
                     reporter_.report( FixedCode.E_EXVC, msg );
                 }
