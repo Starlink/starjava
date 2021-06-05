@@ -242,6 +242,13 @@ public class TestTableScheme implements TableScheme, Documented {
                                   - i - .25, - i - .50, - i - .75,
                                 } );
             } ),
+            new ContentOpt( 'k', "kilo-column", "almost a thousand columns",
+                            t -> {
+                for ( int j = 0; j < 995; j++ ) {
+                    addColumn( t, "k_" + (j + 1), Integer.class, 0,
+                               i -> Integer.valueOf( valInt( i ) ) );
+                }
+            } ),
         };
         Map<Character,ContentOpt> map = new LinkedHashMap<>();
         for ( ContentOpt opt : opts ) {
