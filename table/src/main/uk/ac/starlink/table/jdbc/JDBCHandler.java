@@ -53,7 +53,8 @@ public class JDBCHandler {
 
         /* Reject if it doesn't look like a JDBC URL. */
         if ( ! spec.startsWith( "jdbc:" ) ) {
-            throw new IllegalArgumentException( "Not a JDBC-protocol URL" );
+            throw new IllegalArgumentException( "Not a JDBC-protocol URL: "
+                                              + spec );
         }
 
         /* Reject if no SQL query is present. */

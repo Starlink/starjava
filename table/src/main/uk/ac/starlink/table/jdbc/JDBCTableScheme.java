@@ -84,6 +84,7 @@ public class JDBCTableScheme implements TableScheme, Documented {
     }
 
     public StarTable createTable( String spec ) throws IOException {
-        return tfact_.getJDBCHandler().makeStarTable( spec, wantRandom_ );
+        String jdbcUrl = "jdbc:" + spec;
+        return tfact_.getJDBCHandler().makeStarTable( jdbcUrl, wantRandom_ );
     }
 }

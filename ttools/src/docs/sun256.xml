@@ -13191,6 +13191,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         rather than in some cases padded with spaces.</li>
     <li>Taplint W_EXVC TOPCAT compatibility warnings downgraded
         to I_EXVT.</li>
+    <li>Fix regression bug in v3.4 that broke use of
+        <code>jdbc:</code> URLs.</li>
     </ul>
     </p></dd>
 

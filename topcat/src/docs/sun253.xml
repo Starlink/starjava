@@ -24636,6 +24636,7 @@ Some of the notable contributers are these:
 <li>Christian Knigge (Southampton)</li>
 <li>Marina Kounkel (WWU)</li>
 <li>Gerard Lemson (MPE Garching)</li>
+<li>Jochen Liske (Hamburg)</li>
 <li>Mark Mahabir (Leicester)</li>
 <li>Brian Major (CADC)</li>
 <li>Bob Mann (Royal Observatory Edinburgh)</li>
@@ -29804,6 +29805,9 @@ introduced since the last version:
         rather than in some cases padded with spaces.</li>
     <li>Fix regression bug in last release (v4.8) that meant table
         drag'n'drop wasn't working.</li>
+    <li>Fix regression bug in v4.8 that broke use of
+        <code>jdbc:</code> URLs and
+        <ref id="SQLTableLoadDialog">SQL Query window</ref>.</li>
     </ul>
     </p></dd>
 
