@@ -42,7 +42,7 @@ public class ObsLocStage implements Stage {
 
     /** Required registration UType for ObsPlan table. */
     public static final String OBSPLAN_UTYPE =
-        "ivo://ivoa.net/std/ObsLocTAP#table-1.0";
+        "ivo://ivoa.net/std/obsloctap#table-1.0";
 
     /** Feature type for ADQL Geometry functions from TAPRegExt. */
     public static final String ADQLGEO_TYPE =
