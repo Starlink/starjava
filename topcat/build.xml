@@ -25,7 +25,7 @@
  !      test             -> runs JUnit test cases
  !
  !   Targets specific to TOPCAT:
- !      build-standalone -> builds topcat-full.jar, topcat-lite.jar
+ !      build-standalone -> builds topcat-{lite,full,extra}.jar
  !      docs-pdf         -> builds sun253.pdf
  !
  !   Authors:
@@ -579,6 +579,20 @@
       <arg value="-xjar"/><arg value="jsky/jel.jar"/>
       <arg value="-xjar"/><arg value="gsi-classes.jar"/>
       <arg value="-xjar"/><arg value="parquet-mr-stil.jar"/>
+      <arg value="-xent"/><arg value="*"/>
+      <arg value="-xent"/><arg value="META-INF/*"/>
+      <arg value="${star.lib.pkg}/topcat.jar"/>
+      <arg value="${dist.lib.pkg}/extras.zip"/>
+    </java>
+
+    <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
+      <classpath refid="classpath"/>
+      <arg value="-oj"/><arg value="${dist.lib.pkg}/topcat-extra.jar"/>
+      <arg value="-xjar"/><arg value="junit.jar"/>
+      <arg value="-xjar"/><arg value="log4j.jar"/>
+      <arg value="-xjar"/><arg value="log4j-core.jar"/>
+      <arg value="-xjar"/><arg value="jsky/jel.jar"/>
+      <arg value="-xjar"/><arg value="gsi-classes.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
