@@ -24,6 +24,7 @@ import uk.ac.starlink.votable.VOStarTable;
 
 /**
  * Validation stage for testing ObsLocTAP data model metadata and content.
+ * This implementation corresponds to PR-ObsLocTAP-20210609.
  *
  * @author   Mark Taylor
  * @since    5 Feb 2021
@@ -489,6 +490,7 @@ public class ObsLocStage implements Stage {
             new PlanCol( "category", Type.STRING, null, null, null ),
             new PlanCol( "priority", Type.INTEGER, null, null, null ),
             new PlanCol( "execution_status", Type.STRING, null, null, null ),
+            new PlanCol( "tracking_type", Type.STRING, null, null, null ),
         };
 
         /* Store them in a map. */
@@ -496,7 +498,7 @@ public class ObsLocStage implements Stage {
         for ( PlanCol col : cols ) {
             map.put( ObsTapStage.nameKey( col.name_ ), col );
         }
-        assert map.size() == 25;
+        assert map.size() == 26;
 
         /* Add some additional constraints for various columns. */
         map.get( "t_planning" ).isNullable_ = false;
@@ -512,6 +514,10 @@ public class ObsLocStage implements Stage {
             "Planned", "Scheduled", "Unscheduled", "Performed", "Aborted",
         } );
         map.get( "execution_status" ).isNullable_ = false;
+        map.get( "tracking_type" ).setStringOpts( new String[] {
+            "Sidereal", "Solar-system-object-tracking", "Fixed-az-el-transit",
+        } );
+        map.get( "tracking_type" ).isNullable_ = false;
         return map;
     }
 
