@@ -18,7 +18,8 @@ At time of writing, the required libraries are included in
 the <code>topcat-extra.jar</code> monolithic jar file;
 they can also be found in the starjava github repository
 (<a href="https://github.com/Starlink/starjava/tree/master/parquet/src/lib"
-         >https://github.com/Starlink/starjava/tree/master/parquet/src/lib</a>),
+         >https://github.com/Starlink/starjava/tree/master/parquet/src/lib</a>,
+use <code>parquet-mr-stil.jar</code> and its dependencies),
 or you can acquire them from the
 <a href="https://github.com/apache/parquet-mr">Parquet MR</a> package.
 These arrangements may be revised in future releases, for instance if
