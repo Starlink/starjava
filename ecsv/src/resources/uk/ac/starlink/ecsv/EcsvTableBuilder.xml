@@ -64,4 +64,6 @@ and are read in as string values.
 Null elements of array-valued cells are not supported;
 they are read as NaNs for floating point data, and as zero/false for
 integer/boolean data.
+ECSV 1.0, required to work with array-valued columns,
+is supported by Astropy v4.3 and later.
 </p>

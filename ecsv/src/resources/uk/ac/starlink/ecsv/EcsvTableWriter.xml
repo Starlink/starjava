@@ -20,4 +20,6 @@ CSV-capable applications.
 </p>
 
 <p>Following the ECSV 1.0 specification, array-valued columns are supported.
+ECSV 1.0, required for working with array-valued columns,
+is supported by Astropy v4.3 and later.
 </p>
