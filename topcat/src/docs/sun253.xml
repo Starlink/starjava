@@ -477,7 +477,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>11 January 2021</docdate>
+<docdate>10 June 2021</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -29712,118 +29712,138 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 4.8-1 (10 June 2021)</dt>
 <dd><p>
-    <ul>
-    <li>JDBC output no longer attempts to create VARCHAR(0) columns.</li>
-    <li>Add new function <code>sequence</code> to class
-        <ref id="Arrays">Arrays</ref>.</li>
-    <li>Fix bug in <label>FOV</label> tab of
-        <ref id="SkyAxisControl">sky plot axes control</ref>
-        that could point to the wrong position for some projections
-        such as <label>Car0</label>.</li>
-    <li>Introduce the <label>Aitoff0</label> projection alongside
-        <label>Aitoff</label> in sky plots.
-        In the same way as <label>Car</label>/<label>Car0</label>,
-        this gives an Aitoff projection but with the longitude=0
-        line at the left/right edge instead of the center.</li> 
-    <li>Collapse whitespace in some metadata display items,
-        such as column/parameter Description entries.</li>
-    <li>Add configuration option <code>header</code> for
-        <ref id="inCsv">CSV input handler</ref>,
-        to indicate whether header line is present.</li>
-    <li>Add configuration option <code>maxSample</code> for
-        <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref>
-        input handlers to reduce 2-pass read time.</li>
-    <li>The <label>Table</label> tab in the
-        <ref id="TapTableLoadDialog_query">TAP window</ref>
-        now reports approximate row count if provided by
-        VODataService 1.2 <code>nrows</code> element
-        (TableSet-VOSI metadata acquisition mode only).</li>
-    <li>Add new <ref id="SendCustomActivationType">SAMP Message</ref>
-        activation action for sending custom SAMP messages.</li>
-    <li>The <label>Cumulative</label> option in
-        <ref id="ConfigControl_histobins">histogram</ref>-like plots
-        can now take the values
-        <label>none</label>/<label>forward</label>/<label>reverse</label>,
-        not just true/false.</li>
-    <li>Fix issue with cumulative
-        <ref id="form-histogram">histograms</ref>;
-        bars beyond the last sample are now displayed with total value
-        not zero.</li>
-    <li>Fix TAP metadata column display so that numeric non-standard
-        items are actually shown; previously the columns appeared
-        but with blank values.</li>
-    <li>Fix regression bug since v4.8 that failed to re-read Byte-typed
-        synthetic columns from saved sessions in some circumstances.</li>
-    <li>Fix problem with evaluation of a synthetic column/subset
-        referencing a second synthetic column whose expression gets
-        edited to yield a different type.</li>
-    <li>Fix bug that meant writing long (&gt;2Gb)
-        <ref id="outFits">fits-var</ref> files could output 
-        incorrect/corrupted FITS.</li>
-    <li>Variable-length array-valued columns in FITS tables
-        (<code>P</code>/<code>Q</code> descriptors)
-        can now be read even in compressed or streamed input.</li>
-    <li>Fix long-standing file caching bug; mostly seemed to
-        affect large (&gt;2Gb) streams.</li>
-    <li>Maximum line thickness in line plots raised from 5 to 9.</li>
-    <li>Add new functions <code>arrayFunc</code>,
-        <code>intArrayFunc</code> to class
-        <ref id="Arrays">Arrays</ref>.</li>
-    <li>Add new function <code>constant</code> to class
-        <ref id="Arrays">Arrays</ref>.</li>
-    <li>Add new
-        <ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>
-        with associated plot forms
-        <ref id="form-lines">Lines</ref>,
-        <ref id="form-marks">Marks</ref>,
-        <ref id="form-yerrors">YErrors</ref> and
-        <ref id="form-xyerrors">XYErrors</ref> forms
-        for plotting array-valued columns such as
-        per-row spectra and time series.</li>
-    <li>Modify Example RegTAP "TAP accessURLs" query in TAP window
-        to avoid aux resources.</li>
-    <li>The <ref id="outFits">fits-var</ref> output handler now avoids
-        use of the THEAP keyword (no pre-heap gap is written).
-        Heap padding is legal FITS, but bugs in other
-        FITS software mean that some third party components
-        (including <code>fverify</code>) have problems
-        with such files.</li>
-    <li>Upgrade cds-healpix-java library to v0.29.3; avoid occasional 
-        sky crossmatch failures (termination with error).</li>
-    <li>Space-delimited ECSV files now write empty fields quoted.</li>
-    <li>Fix long-standing logic error in ASCII/CSV input handler that 
-        could misidentify column types and cause read failures.</li>
-    <li>Add support for reading AAS
-        <ref id="inMrt">Machine-Readable Table</ref> format.</li>
-    <li>Add new table scheme <ref id="scheme-test">test</ref>.</li>
-    <li>The ECSV <ref id="inEcsv">input</ref> and
-        <ref id="outEcsv">output</ref> handlers
-        are upgraded to version 1.0 of the ECSV format,
-        meaning they can now read and write array-valued columns.</li>
-    <li>Unknown or unsupported column datatype values in ECSV files
-        are now treated like <code>string</code> rather than
-        causing table read failure.</li>
-    <li>Fix plot failure when trying to use
-        Histogram aux scaling and aux limits set
-        explicitly outside of data range.</li>
-    <li>FITS TZERO headers are now written correctly with numeric values
-        rather than string values.</li>
-    <li>Empty strings in FITS 1-character columns are now returned as
-        blank values rather than ASCII NUL ('<code>\0</code>').</li>
-    <li>Undersized, including zero-length, strings written to FITS 
-        columns are now by default terminated with an ASCII NUL
-        rather than in some cases padded with spaces.</li>
-    <li>Fix regression bug in last release (v4.8) that meant table
-        drag'n'drop wasn't working.</li>
-    <li>Fix regression bug in v4.8 that broke use of
-        <code>jdbc:</code> URLs and
-        <ref id="SQLTableLoadDialog">SQL Query window</ref>.</li>
-    <li>Add Apache Parquet <ref id="inParquet">input</ref> and 
-        <ref id="outParquet">output</ref> handlers
-        (note not available in all configurations).</li>
-    </ul>
+    <dl>
+    <dt>File formats:</dt>
+    <dd><p>
+        <ul>
+        <li>Apache Parquet format is now supported for
+            <ref id="inParquet">input</ref> and
+            <ref id="outParquet">output</ref>
+            (note not available in all configurations).</li>
+        <li>AAS Machine-Readable Table (MRT) format is now supported
+            for <ref id="inMrt">input</ref>.</li>
+        <li>ECSV format <ref id="inEcsv">input</ref> and
+            <ref id="outEcsv">output</ref> handlers
+            are upgraded to version 1.0 of the ECSV format,
+            meaning they can now read and write array-valued columns.</li>
+        <li>Add configuration option <code>header</code> for
+            <ref id="inCsv">CSV input handler</ref>,
+            to indicate whether header line is present.</li>
+        <li>Add configuration option <code>maxSample</code> for
+            <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref>
+            input handlers to reduce 2-pass read time.</li>
+        <li>Variable-length array-valued columns in FITS tables
+            (<code>P</code>/<code>Q</code> descriptors)
+            can now be read even in compressed or streamed FITS files.</li>
+        </ul>
+        </p></dd>
+    <dt>Other new functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>Add new
+            <ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>
+            with associated plot forms
+            <ref id="form-lines">Lines</ref>,
+            <ref id="form-marks">Marks</ref>,
+            <ref id="form-yerrors">YErrors</ref> and
+            <ref id="form-xyerrors">XYErrors</ref> forms
+            for plotting array-valued columns such as
+            per-row spectra and time series.</li>
+        <li>Add new functions to class <ref id="Arrays">Arrays</ref>
+            for working with array values:
+            <code>arrayFunc</code>, <code>intArrayFunc</code>,
+            <code>sequence</code>, <code>constant</code>.</li>
+        <li>Add new <ref id="SendCustomActivationType">SAMP Message</ref>
+            activation action for sending custom SAMP messages.</li>
+        <li>The <label>Cumulative</label> option in
+            <ref id="ConfigControl_histobins">histogram</ref>-like plots
+            can now take the values
+            <label>none</label>/<label>forward</label>/<label>reverse</label>,
+            not just true/false.</li>
+        <li>Introduce the <label>Aitoff0</label> projection alongside
+            <label>Aitoff</label> in <ref id="SkyAxisControl">sky</ref> plots.
+            In the same way as <label>Car</label>/<label>Car0</label>,
+            this gives an Aitoff projection but with the longitude=0
+            line at the left/right edge instead of the center.</li> 
+        <li>The <label>Table</label> tab in the
+            <ref id="TapTableLoadDialog_query">TAP window</ref>
+            now reports approximate row count if provided by
+            VODataService 1.2 <code>nrows</code> element
+            (TableSet-VOSI metadata acquisition mode only).</li>
+        <li>Add new table scheme <ref id="scheme-test">test</ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and workarounds:</dt>
+    <dd><p>
+        <ul>
+        <li>Maximum line thickness in line plots raised from 5 to 9.</li>
+        <li>Collapse whitespace in some metadata display items,
+            such as column/parameter Description entries.</li>
+        <li>The <ref id="outFits">fits-var</ref> output handler now avoids
+            use of the THEAP keyword (no pre-heap gap is written).
+            Heap padding is legal FITS, but bugs in other
+            FITS software mean that some third party components
+            (including <code>fverify</code> in FTOOLS e.g. v3.14-3.50)
+            have problems with such files.</li>
+        <li>JDBC output no longer attempts to create VARCHAR(0) columns.</li>
+        <li>Space-delimited ECSV files now write empty fields quoted.</li>
+        <li>Unknown or unsupported column datatype values in ECSV files
+            are now treated like <code>string</code> rather than
+            causing table read failure.</li>
+        <li>Empty strings in FITS 1-character columns are now returned as
+            blank values rather than ASCII NUL ('<code>\0</code>').</li>
+        <li>Undersized, including zero-length, strings written to FITS 
+            columns are now by default terminated with an ASCII NUL
+            rather than in some cases padded with spaces.</li>
+        <li>Modify Example RegTAP "TAP accessURLs" query in TAP window
+            to avoid aux resources.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix regression bug in previous release (v4.8)
+            that broke use of <code>jdbc:</code> URLs and
+            <ref id="SQLTableLoadDialog">SQL Query window</ref>.</li>
+        <li>Fix regression bug in previous release (v4.8)
+            that meant table drag'n'drop wasn't working.</li>
+        <li>Fix regression bug in previous release (v4.8)
+            that failed to re-read Byte-typed synthetic columns
+            from saved sessions in some circumstances.</li>
+        <li>Upgrade cds-healpix-java library to v0.29.3;
+            this avoids occasional sky crossmatch failures
+            (termination with error) introduced at TOPCAT v4.7-1.</li>
+        <li>Fix bug in <label>FOV</label> tab of
+            <ref id="SkyAxisControl">sky plot axes control</ref>
+            that could point to the wrong position for some projections
+            such as <label>Car0</label>.</li>
+        <li>Fix TAP metadata column display so that numeric non-standard
+            items are actually shown; previously the columns appeared
+            but with blank values.</li>
+        <li>Fix problem with evaluation of a synthetic column/subset
+            referencing a second synthetic column whose expression gets
+            edited to yield a different type.</li>
+        <li>Fix issue with cumulative
+            <ref id="form-histogram">histograms</ref>;
+            bars beyond the last sample are now displayed with total value
+            not zero.</li>
+        <li>Fix bug that meant writing long (&gt;2Gb)
+            <ref id="outFits">fits-var</ref> files could output 
+            incorrect/corrupted FITS.</li>
+        <li>Fix long-standing file caching bug; mostly seemed to
+            affect large (&gt;2Gb) streams.</li>
+        <li>Fix long-standing logic error in ASCII/CSV input handler that 
+            could misidentify column types and cause read failures.</li>
+        <li>Fix plot failure when trying to use
+            Histogram aux scaling and aux limits set
+            explicitly outside of data range.</li>
+        <li>FITS TZERO headers are now written correctly with numeric values
+            rather than string values.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

@@ -173,7 +173,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>11 January 2021</docdate>
+<docdate>10 June 2021</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -12911,7 +12911,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             for plot export.</li>
         </ul>
         </p></dd>
-    <dt>Bugfixes and minor enhancments:</dt>
+    <dt>Bugfixes and minor enhancements:</dt>
     <dd><p>
         <ul>
         <li>Fix Healpix trouble at large angles, e.g. sky crossmatch failure
@@ -13068,147 +13068,170 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 3.4-1 (10 June 2021)</dt>
 <dd><p>
-    <ul>
-    <li>Fix <code>server</code> to work with scheme-specified tables
-        with non-default <code>tablefactory</code> parameter.</li>
-    <li>JDBC output no longer attempts to create VARCHAR(0) columns.</li>
-    <li>Add new function <code>sequence</code> to class
-        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
-    <li>Fix documentation bug in <ref id="cone"><code>cone</code></ref>;
-        output parameters <code>out</code>, <code>ofmt</code>,
-        <code>ocmd</code> and <code>omode</code> are now listed.</li>
-    <li>Fix regression bug in previous release affecting
-        <code>text</code>, <code>ascii</code> and <code>ipac</code>
-        output formats, that could cause cached table output
-        (e.g. from filters <code>cache</code> or <code>random</code>)
-        to contain many repeated copies of the same row.</li>
-    <li><code>taplint</code> stage <code>TMV</code> now validates
-        against (a pre-REC version of) version 1.2 of the
-        VODataService schema instead of version 1.1.</li>
-    <li>Output of <ref id="cache"><code>cache</code></ref> filter
-        now retains no reference to input table, so it can be used
-        to manage deeply nested tables in (Jy)STILTS pipelines.</li>
-    <li>JyStilts now has access to table schemes <code>skysim</code>
-        and <code>attractor</code>.</li>
-    <li>Fix optional argument processing bug in JyStilts
-        (optional named arguments like <code>start</code> in
-        <code>tloop</code> were being ignored).</li>
-    <li>Fix bug in <ref id="addcol"><code>addcol</code></ref> filter
-        that could evaluate the row index
-        (<ref id="jel-special"><code>$index/$0</code></ref>)
-        incorrectly during parallel processing.</li>
-    <li>Fix <code>plot2sky</code> bug that got
-        <code>clon</code>/<code>clat</code> positioning wrong
-        for some projections such as <code>CAR0</code>.</li>
-    <li>Introduce the <code>aitoff0</code> option alongside
-        <code>aitoff</code> as a value for the
-        <ref id="plot2sky"><code>plot2sky</code></ref>
-        <code>projection</code> parameter.
-        In the same way as <code>car</code>/<code>car0</code>,
-        this gives an Aitoff projection but with the longitude=0
-        line at the left/right edge instead of the center.</li>
-    <li>Collapse whitespace in some table metadata description items
-        in <code>meta</code> filter and output mode output.
-        This prevents unwanted linebreaks as well as tidying
-        whitespace-formatted values.</li>
-    <li>Add configuration option <code>header</code> for
-        <ref id="inCsv">CSV input handler</ref>,
-        to indicate whether header line is present.</li>
-    <li>Add configuration option <code>maxSample</code> for
-        <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref>
-        input handlers to reduce 2-pass read time.</li>
-    <li>The <code>cumulative</code> option in
-        <ref id="layer-histogram">histogram</ref>-like plots
-        can now take the values
-        <code>none</code>/<code>forward</code>/<code>reverse</code>,
-        not just <code>true</code>/<code>false</code>.</li>
-    <li>Fix issue with cumulative
-        <ref id="layer-histogram">histograms</ref>;
-        bars beyond the last sample are now displayed with total value
-        not zero.</li>
-    <li>Fix bugs that meant writing long (&gt;2Gb)
-        <ref id="outFits">fits-var</ref> files could output
-        incorrect/corrupted FITS.</li>
-    <li>Variable-length array-valued columns in FITS tables
-        (<code>P</code>/<code>Q</code> descriptors)
-        can now be read even in compressed or streamed input.</li>
-    <li>Fix long-standing file caching bug; mostly seemed to
-        affect large (&gt;2Gb) streams.</li>
-    <li>Add new functions <code>arrayFunc</code>,
-        <code>intArrayFunc</code> to class
-        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
-    <li>Add new function <code>constant</code> to class
-        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
-    <li>Add new plot layers to <ref id="plot2plane">plot2plane</ref>
-        for working with data (such as spectra or time series)
-        in array-valued columns:
-        <ref id="layer-lines">layer-lines</ref>,
-        <ref id="layer-marks">layer-marks</ref>,
-        <ref id="layer-yerrors">layer-yerrors</ref> and
-        <ref id="layer-xyerrors">layer-xyerrors</ref>.</li>
-    <li>Fix <ref id="tcube">tcube</ref> bug that caused problems with
-        some input filter (<code>icmd</code>) processing.</li>
-    <li>Modify <ref id="tcube">tcube</ref> so that it accepts
-        expression language expressions rather than just column name/ID
-        values for the <code>cols</code> and <code>scale</code>
-        parameters.</li>
-    <li>Downgrade taplint report for accepting unknown LANG from
-        <code>E_DSUC</code> to <code>W_OLNG</code>.</li>
-    <li>Add new <code>taplint</code> stage <code>LOC</code>
-        (ObsLocTAP validation).</li>
-    <li>The <ref id="outFits">fits-var</ref> output handler now avoids
-        use of the THEAP keyword (no pre-heap gap is written).
-        Heap padding is legal FITS, but a bug in CFITSIO means that
-        other software components may fail to read such files.</li>
-    <li>The <ref id="outFits">fits-var</ref> output handler now avoids
-        use of the THEAP keyword (no pre-heap gap is written).
-        Heap padding is legal FITS, but bugs in other 
-        FITS software mean that some third party components
-        (including <code>fverify</code>) have problems 
-        with such files.</li>
-    <li>Upgrade cds-healpix-java library to v0.29.3; avoid occasional
-        sky crossmatch failures (termination with error).</li>
-    <li>Relax taplint timestamp upload round-tripping requirements;
-        folding <code>adql:TIMESTAMP</code>-&gt;<code>timestamp</code>
-        no longer provokes error <code>E-UPL-TMCX</code>.</li>
-    <li>Space-delimited ECSV files now write empty fields quoted.</li>
-    <li>Fix long-standing logic error in ASCII/CSV input handler that
-        could misidentify column types and cause read failures.</li>
-    <li>Add support for reading AAS 
-        <ref id="inMrt">Machine-Readable Table</ref> format.</li>
-    <li>Add new table scheme <ref id="scheme-test">test</ref>.</li>
-    <li>The ECSV <ref id="inEcsv">input</ref> and
-        <ref id="outEcsv">output</ref> handlers
-        are upgraded to version 1.0 of the ECSV format,
-        meaning they can now read and write array-valued columns.</li>
-    <li>Unknown or unsupported column datatype values in ECSV files
-        are now treated like <code>string</code> rather than
-        causing table read failure.</li>
-    <li>Fix failure when trying to plot with
-        <code>auxfunc=histogram</code> and
-        explicitly set <code>auxmin</code>/<code>auxmax</code> bounds
-        outside of data range.</li>
-    <li>Relax some taplint type checking for TAP_SCHEMA columns
-        of TAP 1.0 services (see TAP 1.0 Erratum #3);
-        <code>E-TMS-TSCT</code> downgraded to
-        <code>W-TMS-TSCT</code>.</li>
-    <li>FITS TZERO headers are now written correctly with numeric values
-        rather than string values.</li>
-    <li>Empty strings in FITS 1-character columns are now returned as
-        blank values rather than ASCII NUL ('<code>\0</code>').</li>
-    <li>Undersized, including zero-length, strings written to FITS
-        columns are now by default terminated with an ASCII NUL
-        rather than in some cases padded with spaces.</li>
-    <li>Taplint W_EXVC TOPCAT compatibility warnings downgraded
-        to I_EXVT.</li>
-    <li>Fix regression bug in v3.4 that broke use of
-        <code>jdbc:</code> URLs.</li>
-    <li>Add Apache Parquet <ref id="inParquet">input</ref> and
-        <ref id="outParquet">output</ref> handlers
-        (note not available in all configurations).</li>
-    </ul>
+    <dl>
+    <dt>File formats:</dt>
+    <dd><p>
+        <ul>
+        <li>Apache Parquet format is now supported for
+            <ref id="inParquet">input</ref> and
+            <ref id="outParquet">output</ref>
+            (note not available in all configurations).</li>
+        <li>AAS Machine-Readable Table (MRT) format is now supported
+            for <ref id="inMrt">input</ref>.</li>
+        <li>ECSV format <ref id="inEcsv">input</ref> and
+            <ref id="outEcsv">output</ref> handlers
+            are upgraded to version 1.0 of the ECSV format,
+            meaning they can now read and write array-valued columns.</li>
+        <li>Add configuration option <code>header</code> for
+            <ref id="inCsv">CSV input handler</ref>,
+            to indicate whether header line is present.</li>
+        <li>Add configuration option <code>maxSample</code> for
+            <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref>
+            input handlers to reduce 2-pass read time.</li>
+        <li>Variable-length array-valued columns in FITS tables
+            (<code>P</code>/<code>Q</code> descriptors)
+            can now be read even in compressed or streamed input.</li>
+        </ul>
+        </p></dd>
+    <dt>Other new functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>Add new plot layers to <ref id="plot2plane">plot2plane</ref>
+            for plotting data (such as spectra or time series)
+            in array-valued columns:
+            <ref id="layer-lines">lines</ref>,
+            <ref id="layer-marks">marks</ref>,
+            <ref id="layer-yerrors">yerrors</ref> and
+            <ref id="layer-xyerrors">xyerrors</ref>.</li>
+        <li>Add new functions to class
+            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>
+            for working with array values:
+            <code>arrayFunc</code>, <code>intArrayFunc</code>,
+            <code>sequence</code>, <code>constant</code>.</li>
+        <li>Add new table scheme <ref id="scheme-test">test</ref>.</li>
+        <li>The <code>cumulative</code> option in
+            <ref id="layer-histogram">histogram</ref>-like plots
+            can now take the values
+            <code>none</code>/<code>forward</code>/<code>reverse</code>,
+            not just <code>true</code>/<code>false</code>.</li>
+        <li>Introduce the <code>aitoff0</code> option alongside
+            <code>aitoff</code> as a value for the
+            <ref id="plot2sky">plot2sky</ref>
+            <code>projection</code> parameter.
+            In the same way as <code>car</code>/<code>car0</code>,
+            this gives an Aitoff projection but with the longitude=0
+            line at the left/right edge instead of the center.</li>
+        <li>Modify <ref id="tcube">tcube</ref> so that it accepts
+            expression language expressions rather than just column name/ID
+            values for the <code>cols</code> and <code>scale</code>
+            parameters.</li>
+        </ul>
+        </p></dd>
+    <dt>Taplint changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Add new <ref id="taplint">taplint</ref>
+            stage <code>LOC</code>, for ObsLocTAP validation.
+            This release validates against the draft
+            standard version PR-ObsLocTAP-20210609.</li>
+        <li>Taplint stage <code>TMV</code> now validates
+            against (a pre-REC version of) version 1.2 of the
+            VODataService schema instead of version 1.1.</li>
+        <li>Downgrade taplint report for accepting unknown LANG from
+            <code>E_DSUC</code> to <code>W_OLNG</code>.</li>
+        <li>Relax taplint timestamp upload round-tripping requirements;
+            folding <code>adql:TIMESTAMP</code>-&gt;<code>timestamp</code>
+            no longer provokes error <code>E-UPL-TMCX</code>.</li>
+        <li>Relax some taplint type checking for TAP_SCHEMA columns
+            of TAP 1.0 services (see TAP 1.0 Erratum #3);
+            report <code>E-TMS-TSCT</code> is downgraded to
+            <code>W-TMS-TSCT</code>.</li>
+        <li>Taplint <code>W_EXVC</code> TOPCAT compatibility warnings
+            are downgraded to <code>I_EXVT</code>.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and workarounds:</dt>
+    <dd><p>
+        <ul>
+        <li>The <ref id="outFits">fits-var</ref> output handler now avoids
+            use of the THEAP keyword (no pre-heap gap is written).
+            Heap padding is legal FITS, but bugs in other 
+            FITS software mean that some third party components
+            (including <code>fverify</code> in FTOOLS e.g. v3.14-3.50)
+            have problems with such files.</li>
+        <li>Fix <ref id="server">server</ref>
+            to work with scheme-specified tables having a
+            non-default <code>tablefactory</code> parameter.</li>
+        <li>JDBC output no longer attempts to create VARCHAR(0) columns.</li>
+        <li>Output of <ref id="cache"><code>cache</code></ref> filter
+            now retains no reference to input table, so it can be used
+            to manage deeply nested tables in (Jy)STILTS pipelines.</li>
+        <li>JyStilts now has access to the same table schemes as STILTS.</li>
+        <li>Collapse whitespace in some table metadata description items
+            in output form <code>meta</code> filter and output mode.
+            This prevents unwanted linebreaks as well as tidying
+            whitespace-formatted values.</li>
+        <li>Space-delimited ECSV files now write empty fields quoted.</li>
+        <li>Unknown or unsupported column datatype values in ECSV files
+            are now treated like <code>string</code> rather than
+            causing table read failure.</li>
+        <li>Empty strings in FITS 1-character columns are now returned as
+            blank values rather than ASCII NUL ('<code>\0</code>').</li>
+        <li>Undersized, including zero-length, strings written to FITS
+            columns are now by default terminated with an ASCII NUL
+            rather than in some cases padded with spaces.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix regression bug in previous release (v3.4) that broke use of
+            <code>jdbc:</code> URLs.</li>
+        <li>Fix regression bug in previous release (v3.4) affecting
+            <code>text</code>, <code>ascii</code> and <code>ipac</code>
+            output formats, that could cause cached table output
+            (e.g. from filters <code>cache</code> or <code>random</code>)
+            to contain many repeated copies of the same row.</li>
+        <li>Upgrade cds-healpix-java library to v0.29.3;
+            this avoids occasional sky crossmatch failures
+            (termination with error) introduced at STILTS v3.2-1.</li>
+        <li>Fix bug in <ref id="addcol"><code>addcol</code></ref> filter
+            that could evaluate the row index
+            (<ref id="jel-special"><code>$index/$0</code></ref>)
+            incorrectly during parallel processing.</li>
+        <li>Fix <code>plot2sky</code> bug that got
+            <code>clon</code>/<code>clat</code> positioning wrong
+            for some projections such as <code>CAR0</code>.</li>
+        <li>Fix issue with cumulative
+            <ref id="layer-histogram">histograms</ref>;
+            bars beyond the last sample are now displayed with total value
+            not zero.</li>
+        <li>Fix bugs that meant writing long (&gt;2Gb)
+            <ref id="outFits">fits-var</ref> files could output
+            incorrect/corrupted FITS.</li>
+        <li>Fix long-standing file caching bug; mostly seemed to
+            affect large (&gt;2Gb) streams.</li>
+        <li>Fix documentation bug in <ref id="cone">cone</ref>;
+            output parameters <code>out</code>, <code>ofmt</code>,
+            <code>ocmd</code> and <code>omode</code> are now listed.</li>
+        <li>Fix optional argument processing bug in JyStilts
+            (optional named arguments like <code>start</code> in
+            <code>tloop</code> were being ignored).</li>
+        <li>Fix <ref id="tcube">tcube</ref> bug that caused problems with
+            some input filter (<code>icmd</code>) processing.</li>
+        <li>Fix long-standing logic error in ASCII/CSV input handler that
+            could misidentify column types and cause read failures.</li>
+        <li>Fix failure when trying to plot with
+            <code>auxfunc=histogram</code> and
+            explicitly set <code>auxmin</code>/<code>auxmax</code> bounds
+            outside of data range.</li>
+        <li>FITS TZERO headers are now written correctly with numeric values
+            rather than string values.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
