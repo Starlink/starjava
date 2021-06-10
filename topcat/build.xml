@@ -536,9 +536,6 @@
           file="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
 
     <zip destfile="${dist.lib.pkg}/extras.zip">
-      <fileset dir="${star.bin}" includes="topcat stilts"/>
-      <fileset dir="${star.dir}/source/src/etc" includes="LICENCE.txt"/>
-      <fileset dir="${star.etc}/ttools" includes="stilts.py"/>
       <fileset dir="${build.classes}">
         <include name="uk/ac/starlink/topcat/revision-string"/>
         <include name="uk/ac/starlink/ttools/revision-string"/>
@@ -566,6 +563,10 @@
       <arg value="-xjar"/><arg value="srb.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
+      <arg value="-file"/><arg value="${star.bin}/topcat"/>
+      <arg value="-file"/><arg value="${star.bin}/stilts"/>
+      <arg value="-file"/><arg value="${star.etc}/ttools/stilts.py"/>
+      <arg value="-file"/><arg value="${star.dir}/source/src/etc/LICENCE.txt"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
       <arg value="${dist.lib.pkg}/extras.zip"/>
     </java>
@@ -581,6 +582,10 @@
       <arg value="-xjar"/><arg value="parquet-mr-stil.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
+      <arg value="-file"/><arg value="${star.bin}/topcat"/>
+      <arg value="-file"/><arg value="${star.bin}/stilts"/>
+      <arg value="-file"/><arg value="${star.etc}/ttools/stilts.py"/>
+      <arg value="-file"/><arg value="${star.dir}/source/src/etc/LICENCE.txt"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
       <arg value="${dist.lib.pkg}/extras.zip"/>
     </java>
@@ -595,6 +600,10 @@
       <arg value="-xjar"/><arg value="gsi-classes.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
+      <arg value="-file"/><arg value="${star.bin}/topcat"/>
+      <arg value="-file"/><arg value="${star.bin}/stilts"/>
+      <arg value="-file"/><arg value="${star.etc}/ttools/stilts.py"/>
+      <arg value="-file"/><arg value="${star.dir}/source/src/etc/LICENCE.txt"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
       <arg value="${dist.lib.pkg}/extras.zip"/>
     </java>
