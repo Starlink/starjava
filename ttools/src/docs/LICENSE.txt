@@ -42,10 +42,12 @@ this list up to date, but if there are missing entries please complain.
       astrogrid.jar
       cdf.jar
       connect.jar
+      ecsv.jar
       fits.jar
       gbin.jar
       mirage.jar
       pal.jar
+      parquet.jar
       plastic.jar
       registry.jar
       stilts-app.jar
