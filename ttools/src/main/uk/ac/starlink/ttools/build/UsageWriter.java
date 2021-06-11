@@ -147,7 +147,8 @@ public class UsageWriter {
         if ( pkgName.startsWith( "java" ) ) {
             docset = "&corejavadocs;";
         }
-        else if ( pkgName.startsWith( "uk.ac.starlink.ttools" ) ) {
+        else if ( pkgName.startsWith( "uk.ac.starlink.ttools" ) ||
+                  pkgName.startsWith( "uk.ac.starlink.table.join" ) ) {
             docset = "&stiltsjavadocs;";
         }
         else if ( pkgName.startsWith( "uk.ac.starlink.table" ) ) {
