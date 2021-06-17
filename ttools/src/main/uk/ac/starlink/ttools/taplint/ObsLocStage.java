@@ -540,7 +540,7 @@ public class ObsLocStage implements Stage {
      * @param  info  column info
      * @return   datatype name
      */
-    private static String votype( ValueInfo info ) {
+    public static String votype( ValueInfo info ) {
 
         /* This isn't really correct, since it gives the java name not the
          * reconstructed datatype,arraysize information that would have
