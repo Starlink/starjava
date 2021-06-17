@@ -7394,6 +7394,7 @@ instance.
 <webref url="http://www.ivoa.net/documents/DALI/">DALI</webref>,
 <webref url="http://www.ivoa.net/Documents/ObsCore/">ObsCore</webref>,
 <webref url="http://www.ivoa.net/Documents/ObsLocTAP/">ObsLocTAP</webref>,
+<webref url="http://www.ivoa.net/Documents/EPNTAP/">EPN-TAP</webref>,
 <webref url="http://www.ivoa.net/Documents/VOTable/">VOTable</webref>,
 <webref url="http://www.ivoa.net/documents/UCD1+/">UCD</webref>,
 <webref url="http://www.ivoa.net/Documents/VOUnits/">VOUnits</webref>,
@@ -13304,6 +13305,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New stage <code>UUC</code> added to taplint.
         This checks units (against the VOUnits standard) and UCDs
         (against the UCD1+ standard).</li>
+    <li>New stage <code>EPN</code> added to taplint.
+        This checks EPN-TAP (<code>*.epn_core</code>) tables
+        against some version of EPN-TAP 2.0.
+        Since EPN-TAP is still in draft at time of writing,
+        this stage is not run by default.</li>
     </ul>
     </p></dd>
 
