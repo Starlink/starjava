@@ -417,6 +417,10 @@ public class TapLinter {
             return getCapabilityHolder().getInterfaces();
         }
 
+        public String getServerHeader() {
+            return getCapabilityHolder().getServerHeader();
+        }
+
         /**
          * Returns a lazily-read capabilities document.
          * May be a dummy if reading fails, but will not be null.
@@ -442,9 +446,11 @@ public class TapLinter {
                               "Reading capability metadata from " + capUrl );
             InputStream in = null;
             Element el;
+            String serverHdr;
             try {
                 URLConnection conn =
                     URLUtils.followRedirects( capUrl.openConnection(), null );
+                serverHdr = conn.getHeaderField( "server" );
                 in = new BufferedInputStream( conn.getInputStream() );
                 el = DocumentBuilderFactory.newInstance()
                     .newDocumentBuilder()
@@ -453,16 +459,19 @@ public class TapLinter {
             }
             catch ( SAXException e ) {
                 el = null;
+                serverHdr = null;
                 reporter_.report( FixedCode.E_CPSX,
                                   "Error parsing capabilities metadata", e );
             }
             catch ( ParserConfigurationException e ) {
                 el = null;
+                serverHdr = null;
                 reporter_.report( FixedCode.F_CAPC,
                                   "Trouble setting up XML parse", e );
             }
             catch ( IOException e ) {
                 el = null;
+                serverHdr = null;
                 reporter_.report( FixedCode.E_CPIO,
                                   "Error reading capabilities metadata", e );
             }
@@ -495,6 +504,7 @@ public class TapLinter {
             }
             final Element el0 = el;
             final TapCapability tapcap0 = tapcap;
+            final String serverHdr0 = serverHdr;
             return new CapabilityHolder() {
                 public Element getElement() {
                     return el0;
@@ -504,6 +514,9 @@ public class TapLinter {
                 }
                 public StdCapabilityInterface[] getInterfaces() {
                     return intfs;
+                }
+                public String getServerHeader() {
+                    return serverHdr0;
                 }
             };
         }

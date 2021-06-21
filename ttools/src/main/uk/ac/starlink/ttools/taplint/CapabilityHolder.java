@@ -34,4 +34,12 @@ public interface CapabilityHolder {
      * @return  interfaces, or null if not available
      */
     StdCapabilityInterface[] getInterfaces();
+
+    /**
+     * Returns the content of the HTTP "Server" header attached to the
+     * response that supplied the capabilities.
+     *
+     * @return  server header value, may be null
+     */
+    String getServerHeader();
 }

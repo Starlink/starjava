@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.w3c.dom.Element;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlVersion;
@@ -21,6 +22,7 @@ import uk.ac.starlink.vo.TapLanguageFeature;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapService;
 import uk.ac.starlink.vo.TapVersion;
+import uk.ac.starlink.vo.UserAgentUtil;
 
 /**
  * Stage for checking content of TAPRegExt capability metadata.
@@ -42,6 +44,10 @@ public class CapabilityStage implements Stage {
         Pattern.compile( "(text|image|audio|video|application|x-" + TOKEN_REGEX
                        + ")/" + TOKEN_REGEX + "\\s*(;.*)?",
                          Pattern.CASE_INSENSITIVE );
+    private static final Set<String> NON_VO_SERVERSOFT =
+           new HashSet<String>( Arrays.asList( new String[] {
+        "apache", "nginx", "twistedweb", "php", "openssl", "mod_jk",
+    } ) );
 
     /**
      * Constructor.
@@ -57,6 +63,7 @@ public class CapabilityStage implements Stage {
     }
 
     public void run( Reporter reporter, TapService tapService ) {
+        checkServerHeader( reporter, capHolder_.getServerHeader() );
         TapCapability tcap = capHolder_.getCapability();
         if ( tcap == null ) {
             reporter.report( FixedCode.F_CAP0, "No TAPRegExt capability" );
@@ -71,6 +78,80 @@ public class CapabilityStage implements Stage {
         else {
             new CapDocRunner( reporter, tapService, caps ).run();
         }
+    }
+
+    /**
+     * Examines the content of an HTTP Server header associated with
+     * service responses, and reports appropriately.
+     *
+     * @param  reporter  reporter
+     * @param  serverHdr   content of HTTP Server header
+     */
+    private static void checkServerHeader( Reporter reporter,
+                                           String serverHdr ) {
+        if ( serverHdr == null || serverHdr.trim().length() == 0 ) {
+            reporter.report( FixedCode.W_SVR0, "No HTTP Server header" );
+        }
+        String qHdr = "\"Server: " + serverHdr + "\"";
+        final String[] tokens;
+        try {
+            tokens = UserAgentUtil.parseProducts( serverHdr );
+        }
+        catch ( RuntimeException e ) {
+
+            /* RFC 7231 section 5.5.3. */
+            reporter.report( FixedCode.E_SVRB,
+                             "Bad product list syntax " + qHdr );
+            return;
+        }
+        reporter.report( FixedCode.I_SVRI, "HTTP server header " + qHdr );
+
+        /* Note-SoftID-1.0. */
+        List<String> possVoProducts =
+            Arrays.stream( tokens )
+                  .filter( CapabilityStage::isPossibleVoProduct )
+                  .collect( Collectors.toList() );
+        if ( possVoProducts.size() == 0 ) {
+            String msg = new StringBuffer()
+               .append( "No apparent VO service software identification " )
+               .append( "in HTTP header " )
+               .append( qHdr )
+               .append( " - see SoftID Note" )
+               .toString();
+            reporter.report( FixedCode.W_SVRV, msg );
+        }
+    }
+
+    /**
+     * Examines a word from an HTTP Server header and checks whether it
+     * looks like it might be a SoftID-style VO service software component
+     * identifier.
+     *
+     * @param  word  product token or comment from Server header
+     * @return  true if it is plausibly a VO software component identifier
+     */
+    private static boolean isPossibleVoProduct( String word ) {
+
+        /* If empty, it's not a VO component identifier. */
+        if ( word == null || word.length() == 0 ) {
+            return false;
+        }
+
+        /* If it's a comment, it's not a VO component identifier. */
+        if ( word.charAt( 0 ) == '(' ) {  // RFC 7230 sec 3.2.6
+            // it's a comment
+            return false;
+        }
+
+        /* If it's one of several common non-VO server component names,
+         * it's not a VO component identifier. */
+        if ( NON_VO_SERVERSOFT    // RFC 7231 sec 5.5.3
+            .contains( word.replaceAll( "/.*", "" ).toLowerCase() ) ) {
+            return false;
+        }
+
+        /* Otherwise, it might be. */
+        return true;
     }
 
     /**

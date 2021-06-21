@@ -7396,6 +7396,7 @@ instance.
 <webref url="http://www.ivoa.net/Documents/ObsLocTAP/">ObsLocTAP</webref>,
 <webref url="http://www.ivoa.net/Documents/VOTable/">VOTable</webref>,
 <webref url="http://www.ivoa.net/documents/SSO/">SSO</webref>,
+<webref url="http://www.ivoa.net/documents/Notes/softid/">SoftID</webref>,
 <webref url="http://www.w3.org/Protocols/rfc2616/rfc2616.html">HTTP</webref>,
 <webref url="https://www.w3.org/TR/rdfa-lite/">RDFa Lite</webref>),
 and it is hard to write a validator which is comprehensive, especially
@@ -13252,7 +13253,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         this follows the published content of the
         <webref url="https://www.ivoa.net/documents/Notes/softid/"
                 >SoftID-1.0</webref> IVOA Note.</li>
+    <li>Taplint now examines the service <code>Server</code> header
+        and tries to check it for VO component identification
+        as recommended by <code>SoftID</code>.</li>
     </ul>
+
     </p></dd>
 
 </dl>
