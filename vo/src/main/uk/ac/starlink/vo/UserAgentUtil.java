@@ -143,4 +143,14 @@ public class UserAgentUtil {
         sbuf.append( ")" );
         return sbuf.toString();
     }
+
+    /**
+     * Returns the content of the User-Agent header that this client
+     * will currently use when making HTTP requests.
+     *
+     * @return  client User-Agent header content
+     */
+    public static String getUserAgentText() {
+        return System.getProperty( AGENT_PROPNAME );
+    }
 }
