@@ -27,6 +27,11 @@ import uk.ac.starlink.pal.Pal;
  * <dd><p>A continuous measure in days since midnight at the start of
  *     17 November 1858.  Based on UTC.
  *     </p></dd>
+ * <dt>Julian Day (JD)</dt>
+ * <dd><p>MJD plus a fixed offset of 2400000.5.
+ *     The number of days since the notional creation of the universe,
+ *     midday on 1 Jan 4713 BC.
+ *     </p></dd>
  * <dt>ISO 8601</dt>
  * <dd><p>A string representation of the form 
  *     <code>yyyy-mm-ddThh:mm:ss.s</code>, where the <code>T</code>
@@ -93,6 +98,9 @@ public class Times {
 
     /** Number of seconds per day. */
     private final static double SEC_PER_DAY = 60 * 60 * 24;
+
+    /** JD value for MJD = 0 (=2400000.5). */
+    public static final double MJD_OFFSET = 2400000.5;
 
     /**
      * Thread-local copy of a DateKit object.
@@ -296,8 +304,8 @@ public class Times {
      * @param  jd  Julian day
      * @return   seconds since the Unix epoch
      */
-    public static double julianToUnixSec( double jd ) {
-        return mjdToUnixSec( julianToMjd( jd ) );
+    public static double jdToUnixSec( double jd ) {
+        return mjdToUnixSec( jdToMjd( jd ) );
     }
 
     /**
@@ -387,6 +395,28 @@ public class Times {
      */
     public static String formatMjd( double mjd, String format ) {
         return formatMjd( mjd, getFormat( format ) );
+    }
+
+    /**
+     * Converts a Julian Day to Modified Julian Date.
+     * The calculation is simply <code>jd-2400000.5</code>.
+     *
+     * @param   jd  Julian day number
+     * @return   MJD value
+     */
+    public static double jdToMjd( double jd ) {
+        return jd - MJD_OFFSET;
+    }
+
+    /**
+     * Converts a Modified Julian Date to Julian Day.
+     * The calculation is simply <code>jd+2400000.5</code>.
+     *
+     * @param  mjd  MJD value
+     * @return  Julian day number
+     */
+    public static double mjdToJd( double mjd ) {
+        return mjd + MJD_OFFSET;
     }
 
     /**

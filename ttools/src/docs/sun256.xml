@@ -13237,6 +13237,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Add Julian Day manipulation functions <code>jdToMjd</code>
+        and <code>mjdToJd</code> to class
+        <ref id="uk.ac.starlink.ttools.func.Times">Times</ref>;
+        replace <code>julianToUnixSec</code>, which didn't do what
+        it said it did, with <code>jdToUnixSec</code>.</li>
     </ul>
     </p></dd>
 

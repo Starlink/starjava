@@ -29849,6 +29849,10 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Add Julian Day manipulation functions <code>jdToMjd</code>
+        and <code>mjdToJd</code> to class <ref id="Times">Times</ref>;
+        replace <code>julianToUnixSec</code>, which didn't do what
+        it said it did, with <code>jdToUnixSec</code>.</li>
     </ul>
     </p></dd>
 
