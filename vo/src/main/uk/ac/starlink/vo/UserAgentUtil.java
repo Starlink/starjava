@@ -1,5 +1,9 @@
 package uk.ac.starlink.vo;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.logging.Logger;
 
 /**
@@ -152,5 +156,54 @@ public class UserAgentUtil {
      */
     public static String getUserAgentText() {
         return System.getProperty( AGENT_PROPNAME );
+    }
+
+    /**
+     * Parses a products string as found in the HTTP User-Agent or Server
+     * header.  See RFC 7231 sec 5.5.3 and RFC 7230 sec 3.2.6 for the
+     * relevant syntax productions.
+     *
+     * @param  productsTxt   string giving product and comment tokens
+     *                       as found in User-Agent or Server header
+     * @return  array of tokens; each may be either a product or a comment;
+     *          comments start with a "("
+     * @throws  IllegalArgumentException  if the syntax is not as required
+     */
+    public static String[] parseProducts( String productsTxt ) {
+        final boolean allowComment = true;
+        String tchar = "[-!#$%&'*+.^_`|~a-zA-Z0-9]";
+        String token = tchar + "+";
+        String product = token + "(/" + token + ")?";
+        String comment = "\\(" + "([^\\\\)]|\\\\.)*" + "\\)";
+        String wordRegex =
+            "\\s+(" + product + ( allowComment ? ( "|" + comment ) : "" ) + ")";
+        Pattern wordPattern = Pattern.compile( wordRegex );
+        List<String> list = new ArrayList<>();
+        String txt = " " + productsTxt;
+        while ( txt.trim().length() > 0 ) {
+            Matcher matcher = wordPattern.matcher( txt );
+            if ( matcher.lookingAt() ) {
+                String word = matcher.group();
+                boolean isComment = word.trim().charAt( 0 ) == '(';
+                if ( isComment ) {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( int ic = 0; ic < word.length(); ic++ ) {
+                        char c = word.charAt( ic );
+                        if ( c != '\\' ) {
+                            sbuf.append( c );
+                        }
+                    }
+                    list.add( sbuf.toString().trim() );
+                }
+                else {
+                    list.add( word.trim() );
+                }
+                txt = txt.substring( matcher.end() );
+            }
+            else {
+                throw new IllegalArgumentException( "Bad product syntax" );
+            }
+        }
+        return list.toArray( new String[ 0 ] );
     }
 }

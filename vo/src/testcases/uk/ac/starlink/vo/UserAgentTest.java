@@ -2,7 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import junit.framework.TestCase;
+import uk.ac.starlink.util.TestCase;
 
 public class UserAgentTest extends TestCase {
 
@@ -28,6 +28,30 @@ public class UserAgentTest extends TestCase {
         }
         else {
             System.setProperty( "http.agent", agent0 );
+        }
+    }
+
+    public void testParse() {
+        assertArrayEquals(
+            new String[] { "DaCHS/2.3.2", "twistedWeb/18.9.0", },
+            UserAgentUtil.parseProducts( "DaCHS/2.3.2 twistedWeb/18.9.0" ) );
+        assertArrayEquals(
+            new String[] { "Apache/2.4.29", "(Ubuntu)", "mod_jk/1.2.43", },
+            UserAgentUtil
+           .parseProducts( "Apache/2.4.29 (Ubuntu) mod_jk/1.2.43" ) );
+        assertArrayEquals(
+            new String[] { "Aaa", "(yyy-) zzz)", "bbb", },
+            UserAgentUtil.parseProducts( "Aaa (yyy-\\) z\\zz) bbb" ) );
+        checkBadProducts( "aaa (bbb)b ccc" );
+        checkBadProducts( "<word>" );
+    }
+
+    private void checkBadProducts( String txt ) {
+        try {
+            UserAgentUtil.parseProducts( txt );
+            fail( txt );
+        }
+        catch ( RuntimeException e ) {
         }
     }
 
