@@ -13246,6 +13246,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in class <ref id="uk.ac.starlink.ttools.func.Times">Times</ref>
         now prepend the string
         "<code>(BCE)</code>" to dates before the common era.</li>
+    <li>Taplint and datalinklint now identify themselves as validators
+        using the User-Agent token "<code>(IVOA-test)</code>"
+        than "<code>(IVOA-validate)</code>" as before;
+        this follows the published content of the
+        <webref url="https://www.ivoa.net/documents/Notes/softid/"
+                >SoftID-1.0</webref> IVOA Note.</li>
     </ul>
     </p></dd>
 

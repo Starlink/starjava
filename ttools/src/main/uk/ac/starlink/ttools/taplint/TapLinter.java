@@ -227,7 +227,7 @@ public class TapLinter {
         final String[] announcements = getAnnouncements();
         return new Executable() {
             public void execute() {
-                String uaToken = UserAgentUtil.COMMENT_VALIDATE;
+                String uaToken = UserAgentUtil.COMMENT_TEST;
                 UserAgentUtil.pushUserAgentToken( uaToken );
                 try {
                     reporter.start( announcements );

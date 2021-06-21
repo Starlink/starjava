@@ -11,9 +11,8 @@ public class UserAgentTest extends TestCase {
     }
 
     public static void testTokens() {
-        assertEquals( "(IVOA-validate)", UserAgentUtil.COMMENT_VALIDATE );
-        assertEquals( "(IVOA-monitor)", UserAgentUtil.COMMENT_MONITOR );
-        assertEquals( "(IVOA-harvest)", UserAgentUtil.COMMENT_HARVEST );
+        assertEquals( "(IVOA-test)", UserAgentUtil.COMMENT_TEST );
+        assertEquals( "(IVOA-copy)", UserAgentUtil.COMMENT_COPY );
 
         assertEquals( "(IVOA-tat xxx)",
                       UserAgentUtil.createOpPurposeComment( "tat", "xxx" ) );
