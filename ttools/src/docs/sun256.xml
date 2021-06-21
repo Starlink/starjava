@@ -13242,6 +13242,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="uk.ac.starlink.ttools.func.Times">Times</ref>;
         replace <code>julianToUnixSec</code>, which didn't do what
         it said it did, with <code>jdToUnixSec</code>.</li>
+    <li>The <code>mjdToIso</code> and <code>mjdToDate</code> functions
+        in class <ref id="uk.ac.starlink.ttools.func.Times">Times</ref>
+        now prepend the string
+        "<code>(BCE)</code>" to dates before the common era.</li>
     </ul>
     </p></dd>
 

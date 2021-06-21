@@ -80,6 +80,7 @@ public class Times {
     private final static String TIME_PATTERN = "HH:mm:ss";
     private final static TimeZone UTC = TimeZone.getTimeZone( "UTC" );
     private final static Pal pal = new Pal();
+    private final static long BCE_BOUNDARY_UNIXMILLIS = -62135769600000L;
 
     /** Regular expression for parsing ISO 8601 dates. */
     private final static Pattern ISO_REGEX = 
@@ -311,6 +312,7 @@ public class Times {
     /**
      * Converts a Modified Julian Date value to an ISO 8601-format date-time
      * string.  The output format is <code>yyyy-mm-ddThh:mm:ss</code>.
+     * If the result predates the Common Era, the string "(BCE)" is prepended.
      *
      * @example  <code>mjdToIso(53551.72917) = "2005-06-30T17:30:00"</code>
      *
@@ -318,12 +320,13 @@ public class Times {
      * @return  ISO 8601 format date corresponding to <code>mjd</code>
      */
     public static String mjdToIso( double mjd ) {
-        return formatMjd( mjd, getKit().isoDateTimeFormat_ );
+        return formatMjd( mjd, getKit().isoDateTimeFormat_, true );
     }
 
     /**
      * Converts a Modified Julian Date value to an ISO 8601-format date
      * string.  The output format is <code>yyyy-mm-dd</code>.
+     * If the result predates the Common Era, the string "(BCE)" is prepended.
      *
      * @example  <code>mjdToDate(53551.72917) = "2005-06-30"</code>
      *
@@ -331,7 +334,7 @@ public class Times {
      * @return  ISO 8601 format date corresponding to <code>mjd</code>
      */
     public static String mjdToDate( double mjd ) {
-        return formatMjd( mjd, getKit().isoDateFormat_ );
+        return formatMjd( mjd, getKit().isoDateFormat_, true );
     }
 
     /**
@@ -344,7 +347,7 @@ public class Times {
      * @return  ISO 8601 format time corresponding to <code>mjd</code>
      */
     public static String mjdToTime( double mjd ) {
-        return formatMjd( mjd, getKit().isoTimeFormat_ );
+        return formatMjd( mjd, getKit().isoTimeFormat_, false );
     }
 
     /**
@@ -394,7 +397,7 @@ public class Times {
      * @see     java.text.SimpleDateFormat
      */
     public static String formatMjd( double mjd, String format ) {
-        return formatMjd( mjd, getFormat( format ) );
+        return formatMjd( mjd, getFormat( format ), false );
     }
 
     /**
@@ -567,16 +570,41 @@ public class Times {
     /**
      * Formats an MJD using a given date formatting object.
      *
+     * <p>Optionally, the string "<code>(BCE)</code>"
+     * can be prepended to the output for dates before the Common Era.
+     * This is rarely likely to be activated for astronomical data,
+     * except in the (perhaps not so rare) case of erroneous
+     * numeric date values present in data.  If this option is not used,
+     * a BCE date looks indistinguishable from a CE date.
+     * The choice of prepending and parenthesising the marker string is used
+     * firstly to make it visually obvious what's going on, and
+     * secondly so that BCE dates sort lexicographically before CE ones.
+     *
      * @param  mjd  modified Julian date
      * @param  format   format object
+     * @param  prependBce  prepend "(BCE)" for dates before the common era
+     *         
      * @return  formatted string
      */
-    private static String formatMjd( double mjd, DateFormat format ) {
+    private static String formatMjd( double mjd, DateFormat format,
+                                     boolean prependBce ) {
         if ( Double.isNaN( mjd ) || Double.isInfinite( mjd ) ) {
             return null;
         }
         else {
-            return format.format( new Date( mjdToUnixMillis( mjd ) ) );
+            long unixMillis = mjdToUnixMillis( mjd );
+            String txt = format.format( new Date( unixMillis ) );
+
+            /* I don't think there's a way of getting the DateFormat to
+             * do the BCE formatting itself; format GG adds "AD" or "BC",
+             * but we really just want the marker for the (exceptional)
+             * case in which it's pre-CE, without adding an AD or
+             * additional string manipulation in the vast majority of
+             * normal cases. */
+            if ( prependBce && unixMillis < BCE_BOUNDARY_UNIXMILLIS ) {
+                txt = "(BCE)" + txt;
+            }
+            return txt;
         }
     }
 

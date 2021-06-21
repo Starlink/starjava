@@ -29853,6 +29853,9 @@ introduced since the last version:
         and <code>mjdToJd</code> to class <ref id="Times">Times</ref>;
         replace <code>julianToUnixSec</code>, which didn't do what
         it said it did, with <code>jdToUnixSec</code>.</li>
+    <li>The <code>mjdToIso</code> and <code>mjdToDate</code> functions 
+        in class <ref id="Times">Times</ref> now prepend the string
+        "<code>(BCE)</code>" to dates before the common era.</li>
     </ul>
     </p></dd>
 
