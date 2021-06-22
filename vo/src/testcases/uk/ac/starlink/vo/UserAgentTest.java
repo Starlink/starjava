@@ -59,7 +59,6 @@ public class UserAgentTest extends TestCase {
         String agent0 = System.getProperty( "http.agent" );
         UserAgentUtil.pushUserAgentToken( "(zzz)" );
         String agent1 = System.getProperty( "http.agent" );
-        assertEquals( agent1, UserAgentUtil.getUserAgentText() );
         if ( agent0 == null || agent0.trim().length() == 0 ) {
             assertEquals( "(zzz)", agent1 );
         }

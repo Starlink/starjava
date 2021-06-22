@@ -149,16 +149,6 @@ public class UserAgentUtil {
     }
 
     /**
-     * Returns the content of the User-Agent header that this client
-     * will currently use when making HTTP requests.
-     *
-     * @return  client User-Agent header content
-     */
-    public static String getUserAgentText() {
-        return System.getProperty( AGENT_PROPNAME );
-    }
-
-    /**
      * Parses a products string as found in the HTTP User-Agent or Server
      * header.  See RFC 7231 sec 5.5.3 and RFC 7230 sec 3.2.6 for the
      * relevant syntax productions.
