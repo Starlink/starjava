@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -265,6 +267,11 @@ public class TapLinter {
             .append( Stilts.getStarjavaRevision() )
             .toString();
 
+        /* Timestamp. */
+        String dateLine = "Timestamp: "
+                        + new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss z" )
+                         .format( new Date() );
+
         /* Count by report type of known FixedCode instances. */
         Map<ReportType,int[]> codeMap = new LinkedHashMap<ReportType,int[]>();
         for ( ReportType type : ReportType.values() ) {
@@ -286,7 +293,7 @@ public class TapLinter {
         String codesLine = cbuf.toString();
 
         /* Return lines. */
-        return new String[] { versionLine, codesLine, };
+        return new String[] { versionLine, dateLine, codesLine, };
     }
 
     /**

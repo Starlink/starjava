@@ -13256,6 +13256,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Taplint now examines the service <code>Server</code> header
         and tries to check it for VO component identification
         as recommended by <code>SoftID</code>.</li>
+    <li>Add timestamp line at start of <code>taplint</code> output.</li>
     </ul>
 
     </p></dd>
