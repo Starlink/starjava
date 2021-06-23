@@ -225,9 +225,11 @@
    !   entered into the main jar file manifest.
    !-->
   <path id="package.jars">
+ <!--
      <fileset dir="${src.jars.dir}">
         <include name="*.jar"/>
      </fileset>
+  !-->
   </path>
 
   <path id="built.classpath">
@@ -374,9 +376,11 @@
      !   make these available for resolution by other locally built
      !   packages that are using this one -->
     <mkdir dir="${dist.lib.pkg}"/>
+<!--
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
+ !-->
 
   </target>
 

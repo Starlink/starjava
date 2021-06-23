@@ -4,7 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
-import org.apache.tools.bzip2.CBZip2InputStream;
+import uk.ac.starlink.util.bzip2.CBZip2InputStream;
 
 /**
  * Characterises the compression status of a stream, and provides methods
