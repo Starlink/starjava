@@ -21,8 +21,11 @@
  * <keiron@aftexsw.com> to whom the Ant project is very grateful for his
  * great code.
  */
+// Package name changed from apache original for starjava usage,
+// code otherwise unchanged.
 
-package org.apache.tools.bzip2;
+// package org.apache.tools.bzip2;
+package uk.ac.starlink.util.bzip2;
 
 /**
  * A simple class the hold and calculate the CRC for sanity checking

@@ -21,7 +21,11 @@
  * <keiron@aftexsw.com> to whom the Ant project is very grateful for his
  * great code.
  */
-package org.apache.tools.bzip2;
+// Package name changed from apache original for starjava usage,
+// code otherwise unchanged.
+
+// package org.apache.tools.bzip2;
+package uk.ac.starlink.util.bzip2;
 
 import java.io.InputStream;
 import java.io.IOException;

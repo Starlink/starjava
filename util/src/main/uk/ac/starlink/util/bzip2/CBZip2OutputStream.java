@@ -21,8 +21,12 @@
  * <keiron@aftexsw.com> to whom the Ant project is very grateful for his
  * great code.
  */
+// Package name changed from apache original for starjava usage
+// and minor changes to javadocs to avoid build-time javadoc errors,
+// code otherwise unchanged.
 
-package org.apache.tools.bzip2;
+// package org.apache.tools.bzip2;
+package uk.ac.starlink.util.bzip2;
 
 import java.io.OutputStream;
 import java.io.IOException;
@@ -55,11 +59,7 @@ import java.io.IOException;
  * </pre>
  *
  * <table width="100%" border="1">
- *  <colgroup>
- *    <col width="33%" />
- *    <col width="33%" />
- *    <col width="33%" />
- *  </colgroup>
+ *  <caption>Memory usage by blocksize</caption>
  *  <tr>
  *    <th colspan="3">Memory usage by blocksize</th>
  *  </tr><tr>
@@ -616,7 +616,7 @@ public class CBZip2OutputStream extends OutputStream implements BZip2Constants {
      * @throws IOException
      *  if an I/O error occurs in the specified stream.
      * @throws IllegalArgumentException
-     *  if <code>(blockSize < 1) || (blockSize > 9)</code>.
+     *  if <code>(blockSize &lt; 1) || (blockSize &gt; 9)</code>.
      * @throws NullPointerException
      *  if <code>out == null</code>.
      *
