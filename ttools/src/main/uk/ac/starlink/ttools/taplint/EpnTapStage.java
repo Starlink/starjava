@@ -1,13 +1,16 @@
 package uk.ac.starlink.ttools.taplint;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,15 +20,17 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.func.Times;
+import uk.ac.starlink.ttools.votlint.VocabChecker;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapService;
+import uk.ac.starlink.vo.VocabTerm;
 
 /**
  * Validation stage for testing EPN-TAP data model metadata and content.
- * This implementation corresponds to WD-EPNTAP-2.0-20201027.
+ * This implementation corresponds to PR-EPNTAP-2.0-20210623.
  *
  * @author   Mark Taylor
  * @since    17 Jun 2021
@@ -54,6 +59,15 @@ public class EpnTapStage implements Stage {
     private static Pattern TIMESTAMP_REGEX = Pattern.compile(
         "[0-9]{4}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]"
     );
+
+    // VocabularyChecker for https://www.ivoa.net/rdf/messenger.
+    // Note at time of writing these are all marked Preliminary.
+    private static final VocabChecker MESSENGER_VOCAB =
+        new VocabChecker( "https://www.ivoa.net/rdf/messenger",
+                          new String[] {
+                              "EUV", "Gamma-ray", "Infrared", "Millimeter",
+                              "Neutrino", "Optical", "Photon", "UV", "X-ray",
+                          } );
 
     /**
      * Constructor.
@@ -735,15 +749,21 @@ public class EpnTapStage implements Stage {
             "celestial", "body", "cartesian", "spherical",
             "cylindrical", "none", "healpix",
         } );
+        colMap.get( "s_region" ).checker_ = sregionChecker();
         colMap.get( "dataproduct_type" ).checker_ =
                 hashlistOptionsChecker( false, FixedCode.E_PNDP, new String[] {
-            "im", "ma", "sp", "ds", "sc", "pr", "vo", "mo",
+            "im", "ma", "sp", "ds", "sc", "pr", "pf", "vo", "mo",
             "cu", "ts", "ca", "ci", "sv", "ev",
         } );
         colMap.get( "processing_level" ).checker_ =
             rangeChecker( true, FixedCode.E_PNPL, "1", "6" );
-        colMap.get( "target_class" ).checker_ = targetClassChecker();
-        
+        colMap.get( "target_class" ).checker_ =
+                optionsChecker( false, FixedCode.E_PNTG, new String[] {
+            "asteroid", "dwarf_planet", "planet", "satellite", "comet",
+            "exoplanet", "interplanetary_medium", "sample", "sky",
+            "spacecraft", "spacejunk", "star", "calibration",
+        } );
+
         colMap.get( "service_title" ).checker_ = serviceTitleChecker();
         ContentChecker timestampChecker = timestampChecker( false );
         colMap.get( "creation_date" ).checker_ = timestampChecker;
@@ -770,7 +790,7 @@ public class EpnTapStage implements Stage {
             textCol( "file_name", "meta.id;meta.file" ),
             textCol( "datalink_url", "meta.ref.url" ),
             textCol( "species", "meta.id;phys.atmol" ),
-            textCol( "waveband", "instr.bandpass" ),
+            textCol( "messengers", "instr.bandpass" ),
             textCol( "alt_target_name", "meta.id;src" ),
             textCol( "target_region", "meta.id;src;obs.field" ),
             textCol( "feature_name", "meta.id;src;obs.field" ),
@@ -778,10 +798,12 @@ public class EpnTapStage implements Stage {
             textCol( "bib_reference", "meta.bib" ),
             textCol( "internal_reference", "meta.id.cross" ),
             textCol( "external_link", "meta.ref.url" ),
+            new SingleCol( "shape", Type.TEXT_MOC, null,
+                           "pos.outline;obs.field" ),
             textCol( "spatial_coordinate_description",
                      "meta.code.class;pos.frame" ),
             textCol( "spatial_origin", "meta.ref;pos.frame" ),
-            textCol( "time_origin", "meta.ref;time.scale" ),
+            textCol( "time_refposition", "meta.ref;time.scale" ),
             textCol( "time_scale", "time.scale" ),
             new MinMaxCol( "subsolar_longitude_", Type.DOUBLE, "deg",
                            minMaxStats( "pos.bodyrc.lon" ) ),
@@ -820,15 +842,12 @@ public class EpnTapStage implements Stage {
         colMap.get( "local_time_" ).checker_ =
             rangeChecker( true, FixedCode.E_PNLT, "0", "24" );
         colMap.get( "target_time_" ).checker_ = timestampChecker( true );
-
-        /* NOTE: problems here.  EPN-TAP suggests that everything should
-         * be lowercase, but these are mixed case; the checker doesn't
-         * currently work well with mixed case values.  Could be rewritten. */
-        colMap.get( "waveband" ).checker_ =
-                optionsChecker( true, FixedCode.E_PNWB, new String[] {
-            "Radio", "Millimeter", "Infrared", "Optical", "UV", "EUV",
-            "X-ray", "Gamma-ray",
-        } );
+        colMap.get( "messengers" ).checker_ =
+            vocabChecker( true, MESSENGER_VOCAB,
+                          FixedCode.E_PNMG, FixedCode.W_VCPD );
+        colMap.get( "time_scale" ).checker_ =
+            vocabChecker( true, VocabChecker.TIMESCALE,
+                          FixedCode.W_PNTS, FixedCode.W_VCPD );
 
         // Currently not tested but could be: compliant MOC strings in
         // shape column.
@@ -1209,6 +1228,117 @@ public class EpnTapStage implements Stage {
     }
 
     /**
+     * Creates a check for column content within a given VO Vocabulary.
+     *
+     * @param  isNullable  true iff NULLs are permitted
+     * @param  vChecker   vocabulary definition
+     * @param  errorCode  code for unknown or disallowed NULL values
+     * @param  flagCode  code for values flagged as deprecated or preliminary
+     * @return   new checker
+     */
+    private static ContentChecker vocabChecker( boolean isNullable,
+                                                VocabChecker vChecker,
+                                                ReportCode errorCode,
+                                                ReportCode flagCode ) {
+        return ( stdCol, runner ) -> {
+            String cname = stdCol.name_;
+            String tname = runner.tname_;
+            String adql = new StringBuffer()
+               .append( "SELECT DISTINCT TOP 10 " )
+               .append( cname )
+               .append( " FROM " )
+               .append( tname )
+               .append( " WHERE " )
+               .append( cname )
+               .append( isNullable ? " IS NOT NULL AND "
+                                   : " IS NULL OR " )
+               .append( cname )
+               .append( " NOT IN (" )
+               .append( vChecker.getFixedTerms()
+                                .stream()
+                                .map( s -> "'" + s + "'" )
+                                .collect( Collectors.joining( ", " ) ) )
+               .append( ")" )
+               .toString();
+            TableData tdata = runner.runQuery( adql );
+            if ( tdata != null && tdata.getRowCount() > 0 ) {
+                Object[] values = tdata.getColumn( 0 );
+                boolean hasNull = false;
+                Set<String> prelims = new TreeSet<>();
+                Set<String> deprecs = new TreeSet<>();
+                Set<String> unknowns = new TreeSet<>();
+                URL vocabUrl = vChecker.getVocabularyUrl();
+                Map<String,VocabTerm> termMap = vChecker.getRetrievedTerms();
+                for ( Object value : values ) {
+                    VocabTerm term = termMap.get( value );
+                    if ( value == null ) {
+                        hasNull = true;
+                    }
+                    else if ( term == null ) {
+                        unknowns.add( value.toString() );
+                    }
+                    else if ( term.isPreliminary() ) {
+                        prelims.add( value.toString() );
+                    }
+                    else if ( term.isDeprecated() ) {
+                        deprecs.add( value.toString() );
+                    }
+                }
+                if ( ! isNullable && hasNull ) {
+                    String msg = new StringBuffer()
+                       .append( "NULL values in " )
+                       .append( tname )
+                       .append( " non-nullable column " )
+                       .append( cname )
+                       .toString();
+                    runner.reporter_.report( errorCode, msg );
+                }
+                if ( unknowns.size() > 0 ) {
+                    String msg = new StringBuffer()
+                       .append( "Unknown values " )
+                       .append( unknowns )
+                       .append( " in " )
+                       .append( tname )
+                       .append( " column " )
+                       .append( cname )
+                       .append( " not in vocabulary " )
+                       .append( vocabUrl )
+                       .append( "; options are " )
+                       .append( termMap.keySet() )
+                       .toString();
+                    runner.reporter_.report( errorCode, msg );
+                }
+                if ( deprecs.size() > 0 ) {
+                    String msg = new StringBuffer()
+                       .append( "Terms " )
+                       .append( deprecs )
+                       .append( " in " )
+                       .append( tname )
+                       .append( " column " )
+                       .append( cname )
+                       .append( " are deprecated in vocabulary " )
+                       .append( vocabUrl )
+                       .toString();
+                    runner.reporter_.report( flagCode, msg );      
+                }
+                else if ( prelims.size() > 0 ) {
+                    String msg = new StringBuffer()
+                       .append( "Terms " )
+                       .append( prelims )
+                       .append( " in " )
+                       .append( tname )
+                       .append( " column " )
+                       .append( cname )
+                       .append( " are flagged preliminary in vocabulary " )
+                       .append( vocabUrl )
+                       .toString();
+                    runner.reporter_.report( flagCode, msg );      
+                }
+            }
+        };
+    }
+
+    /**
      * Creates a check that a column contains EPN-TAP-style ISO8601-style
      * timestamp strings.  The detailed form is defined in Note 4
      * to Table 1 (sec 3.1) and elsewhere in the standard.
@@ -1319,6 +1449,74 @@ public class EpnTapStage implements Stage {
     }
 
     /**
+     * Checks s_region content.  This is really a metadata check, to
+     * see if the XType and datatype are consistent, but it's only
+     * reasonable to raise an error if there are any non-NULL values
+     * in the column, which often will not be the case.
+     *
+     * @return  new checker
+     */
+    private static ContentChecker sregionChecker() {
+        return ( stdCol, runner ) -> {
+            String cname = stdCol.name_;
+            String tname = runner.tname_;
+            String adql = new StringBuffer()
+               .append( "SELECT TOP 1 " )
+               .append( cname )
+               .append( " FROM " )
+               .append( tname )
+               .append( " WHERE " )
+               .append( cname )
+               .append( " IS NOT NULL" )
+               .toString();
+            TableData tdata = runner.runQuery( adql );
+
+            /* There are non-null values, so check the metadata. */
+            if ( tdata != null && tdata.getRowCount() > 0 ) {
+                ColumnInfo info = tdata.getTable().getColumnInfo( 0 );
+                Class<?> clazz = info.getContentClass();
+                String xtype = info.getXtype();
+                String reqXtype = "adql:REGION";
+                if ( String.class.equals( clazz ) ) {
+                    if ( ! reqXtype.equals( xtype ) ) {
+                        String msg = new StringBuffer()
+                           .append( "Table " )
+                           .append( tname )
+                           .append( " column " )
+                           .append( cname )
+                           .append( " has wrong xtype for string datatype: " )
+                           .append( xtype )
+                           .append( " != " )
+                           .append( reqXtype )
+                           .toString();
+                        runner.reporter_.report( FixedCode.E_SRXT, msg );
+                    }
+                }
+                else if ( float[].class.equals( clazz ) ||
+                          double[].class.equals( clazz ) ) {
+                    Collection<String> arrayXtypes =
+                            Arrays.asList( new String[] {
+                        "point", "circle", "polygon",
+                    } );
+                    if ( ! arrayXtypes.contains( xtype ) ) {
+                        String msg = new StringBuffer()
+                           .append( "Table " ) 
+                           .append( tname )
+                           .append( " column " )
+                           .append( cname )
+                           .append( " has wrong datatype \"" )
+                           .append( xtype )
+                           .append( "\"; should be one of " )
+                           .append( arrayXtypes )
+                           .toString();
+                        runner.reporter_.report( FixedCode.E_SRXT, msg );
+                    }
+                }
+            }
+        };
+    }
+
+    /**
      * Creates a check that a column contains a Julian Day value.
      * This is formally not restricted in value, but if a value corresponds
      * to some time in the distant past or far future there's a good chance
@@ -1372,46 +1570,6 @@ public class EpnTapStage implements Stage {
     }
 
     /**
-     * Creates a check for the target_class column; it has restricted
-     * values only when target_name is not null.
-     *
-     * @return  new checker
-     */
-    private static ContentChecker targetClassChecker() {
-        return ( stdCol, runner ) -> {
-            String tname = runner.tname_;
-            String adql = new StringBuffer()
-               .append( "SELECT DISTINCT TOP 10 target_class FROM " )
-               .append( tname )
-               .append( " WHERE target_name IS NOT NULL AND (" )
-               .append( "target_class IS NULL OR " )
-               .append( "target_class NOT IN (" )
-               .append( String.join( ", ", new String[] {
-                            "'asteroid'", "'dwarf_planet'", "'planet'",
-                            "'satellite'", "'comet'", "'exoplanet'",
-                            "'interplanetary_medium'", "'sample'", "'sky'",
-                            "'spacecraft'", "'spacejunk'", "'star'",
-                            "'calibration'",
-                        } ) )
-               .append( "))" )
-               .toString();
-            TableData tdata = runner.runQuery( adql );
-            if ( tdata != null && tdata.getRowCount() > 0 ) {
-                Object[] badVals = tdata.getColumn( 0 );
-                String msg = new StringBuffer()
-                   .append( badVals.length == 1
-                        ? ( "Illegal value \"" + badVals[ 0 ] + "\"" )
-                        : ( "Illegal values " + Arrays.toString( badVals  ) ) )
-                   .append( " in " )
-                   .append( tname )
-                   .append( " column target_class" )
-                   .toString();
-                runner.reporter_.report( FixedCode.E_PNTG, msg );
-            }
-        };
-    }
-
-    /**
      * Column type enumeration.  Corresponds to the entries in the "Type"
      * column of Table 1.
      */
@@ -1437,25 +1595,8 @@ public class EpnTapStage implements Stage {
             void checkInfo( Reporter reporter, TableMeta tmeta,
                             ValueInfo info ) {
                 Class<?> clazz = info.getContentClass();
-                if ( clazz.equals( Double.class ) ) {
-                    // OK
-                }
-
-                /* Section 1.2 says "All floating-point parameters are
-                 * provided in double precision".  But it's not really
-                 * clear what this means, since that looks like a DB
-                 * implementation detail.  So make this a warning
-                 * not an error. */
-                else if ( clazz.equals( Float.class ) ) {
-                    String msg = new StringBuffer()
-                       .append( "Floating point but not double precision for " )
-                       .append( tmeta.getName() )
-                       .append( " column " )
-                       .append( info.getName() )
-                       .toString();
-                    reporter.report( FixedCode.W_PNFF, msg );
-                }
-                else {
+                if ( ! ( clazz.equals( Double.class ) ||
+                         clazz.equals( Float.class ) ) ) {
                     reportTypeMismatch( reporter, tmeta, info,
                                         ObsLocStage.votype( info ) +
                                         " not floating point");
@@ -1472,30 +1613,36 @@ public class EpnTapStage implements Stage {
                 }
             }
         },
+        TEXT_MOC() {
+            void checkInfo( Reporter reporter, TableMeta tmeta,
+                            ValueInfo info ) {
+                if ( ! String.class.equals( info.getContentClass() ) ) {
+                    reportTypeMismatch( reporter, tmeta, info,
+                                        ObsLocStage.votype( info ) +
+                                        " not Text" );
+                }
+                else {
+                    checkXtype( reporter, tmeta, info, "MOC" );
+                }
+            }
+        },
         TIMESTAMP() {
             void checkInfo( Reporter reporter, TableMeta tmeta,
                             ValueInfo info ) {
-                // EPN-TAP says "Timestamps are provided as ISO-8601 strings".
-                // Would be better if it deferred to DALI 1.1 sec 3.3.3,
-                // which includes xtype="timestamp".
                 if ( ! String.class.equals( info.getContentClass() ) ) {
                     reportTypeMismatch( reporter, tmeta, info,
                                         ObsLocStage.votype( info ) +
                                         " not String - not Timestamp?" );
+                }
+                else {
+                    checkXtype( reporter, tmeta, info, "timestamp" );
                 }
             }
         },
         SPOLY() {
             void checkInfo( Reporter reporter, TableMeta tmeta,
                             ValueInfo info ) {
-                // It's not really clear from the standard what's required
-                // here.  Change this if DALI-style geometries are permitted.
-                // Should I constrain on xtype? (not mentioned in standard).
-                if ( ! String.class.equals( info.getContentClass() ) ) {
-                    reportTypeMismatch( reporter, tmeta, info,
-                                        ObsLocStage.votype( info ) +
-                                        " not String - not spoly?" );
-                }
+                // metadata checking is done elsewhere (sregionChecker)
             }
         };
 
@@ -1531,6 +1678,34 @@ public class EpnTapStage implements Stage {
                .append( txt )
                .toString();
             reporter.report( FixedCode.E_PNDE, msg );
+        }
+
+        /**
+         * Checks that a retrieved column has a required xtype,
+         * and reports if not.
+         *
+         * @param  reporter  reporter
+         * @param  tmeta    metadata for epn_core table
+         * @param  info    metadata for column to test
+         * @param  reqValue  requird xtype
+         */
+        private static void checkXtype( Reporter reporter, TableMeta tmeta,
+                                        ValueInfo info, String reqValue ) {
+            String xtype = info.getXtype();
+            if ( ! reqValue.equals( xtype ) ) {
+                String msg = new StringBuffer()
+                   .append( "Wrong xtype for " )
+                   .append( tmeta.getName() )
+                   .append( " column " )
+                   .append( info.getName() )
+                   .append( ": " )
+                   .append( xtype )
+                   .append( " != \"" )
+                   .append( reqValue )
+                   .append( "\"" )
+                   .toString();
+                reporter.report( FixedCode.E_PNXT, msg );
+            }
         }
     }
 
