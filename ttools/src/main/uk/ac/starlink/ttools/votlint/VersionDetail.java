@@ -275,8 +275,10 @@ public abstract class VersionDetail {
             }
             else if ( "TIMESYS".equals( name ) ) {
                 hasID = true;
-                map.put( "timescale", VocabChecker.TIMESCALE );
-                map.put( "refposition", VocabChecker.REFPOSITION );
+                map.put( "timescale",
+                         new VocabAttributeChecker( VocabChecker.TIMESCALE ) );
+                map.put( "refposition",
+                         new VocabAttributeChecker( VocabChecker.REFPOSITION ));
             }
             else if ( "TR".equals( name ) ) {
             }

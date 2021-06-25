@@ -19,12 +19,12 @@ import uk.ac.starlink.vo.VocabTerm;
 import uk.ac.starlink.vo.Vocabulary;
 
 /**
- * Checks an attribute that is defined by the content of an IVOA Vocabulary.
+ * Checks values that are defined by the content of an IVOA Vocabulary.
  *
  * @author   Mark Taylor
  * @since    25 Apr 2019
  */
-public class VocabChecker implements AttributeChecker {
+public class VocabChecker {
 
     private final URL vocabUrl_;
     private final Collection<String> fixedTerms_;
@@ -57,28 +57,40 @@ public class VocabChecker implements AttributeChecker {
      *                        other terms may be available by resolving
      *                        the vocabulary URL
      */
-    private VocabChecker( String vocabUrl, String[] fixedTerms ) {
+    public VocabChecker( String vocabUrl, String[] fixedTerms ) {
         try {
             vocabUrl_ = new URL( vocabUrl );
         }
         catch ( MalformedURLException e ) {
             throw new IllegalArgumentException( "Not a URL: " + vocabUrl );
         }
-        fixedTerms_ = new LinkedHashSet<String>( Arrays.asList( fixedTerms ) );
+        fixedTerms_ = Collections.unmodifiableSet(
+                          new LinkedHashSet<String>(
+                              Arrays.asList( fixedTerms ) ) );
     }
 
-    public void check( String nameValue, ElementHandler handler ) {
-        VotLintContext context = handler.getContext();
+    /**
+     * Checks whether a term is present in this vocabulary,
+     * and reports to a callback interface. 
+     *
+     * @param  value  vocabulary name item to test
+     * @param  termReporter  destination for reports;
+     *                       exactly one of its methods will be invoked
+     */
+    public void checkTerm( String value, TermReporter termReporter ) {
 
         /* Note that the online vocabulary document is only consulted
          * if encountered vocabulary terms are not present in the
          * hard-coded list. */
-        if ( ! fixedTerms_.contains( nameValue ) ) {
-            VocabTerm term = getRetrievedTerms().get( nameValue );
+        if ( fixedTerms_.contains( value ) ) {
+            termReporter.termFound();
+        }
+        else {
+            VocabTerm term = getRetrievedTerms().get( value );
             if ( term == null ) {
                 StringBuffer sbuf = new StringBuffer()
                     .append( "\"" )
-                    .append( nameValue )
+                    .append( value )
                     .append( "\"" )
                     .append( " not known in vocabulary " )
                     .append( vocabUrl_ )
@@ -94,29 +106,52 @@ public class VocabChecker implements AttributeChecker {
                     }
                 }
                 sbuf.append( ")" );
-                context.warning( new VotLintCode( "VCU" ), sbuf.toString() );
+                termReporter.termUnknown( sbuf.toString() );
             }
             else if ( term.isDeprecated() ) {
                 String msg = new StringBuffer()
                    .append( "\"" )
-                   .append( nameValue )
+                   .append( value )
                    .append( "\"" )
                    .append( " is marked *deprecated* in vocabulary " )
                    .append( vocabUrl_ )
                    .toString();
-                context.warning( new VotLintCode( "VCD" ), msg );
+                termReporter.termDeprecated( msg );
             }
             else if ( term.isPreliminary() ) {
                 String msg = new StringBuffer()
                    .append( "\"" )
-                   .append( nameValue )
+                   .append( value )
                    .append( "\"" )
                    .append( " is marked *preliminary* in vocabulary " )
                    .append( vocabUrl_ )
                    .toString();
-                context.info( new VotLintCode( "VCP" ), msg );
+                termReporter.termPreliminary( msg );
+            }
+            else {
+                termReporter.termFound();
             }
         }
+    }
+
+    /**
+     * Returns the URI/URL of this object's vocabulary.
+     *
+     * @return  vocabulary URL
+     */
+    public URL getVocabularyUrl() {
+        return vocabUrl_;
+    }
+
+    /**
+     * Returns the hard-coded list of terms known by this checker.
+     * It may not be complete if this class is out of date with respect to
+     * the vocabulary itself.
+     *
+     * @return   unmodifiable list of known terms
+     */
+    public Collection<String> getFixedTerms() {
+        return fixedTerms_;
     }
 
     /**
@@ -160,5 +195,40 @@ public class VocabChecker implements AttributeChecker {
             retrievedTerms_ = Collections.unmodifiableMap( terms );
         }
         return retrievedTerms_;
+    }
+
+    /**
+     * Callback interface for reporting vocabulary interrogation results.
+     */
+    public interface TermReporter {
+
+        /**
+         * Invoked if the presented term was found as a normal entry
+         * in the vocabulary.
+         */
+        void termFound();
+
+        /**
+         * Invoked if no such term was found in the vocabulary.
+         *
+         * @param  msg  user-directed message giving details
+         */
+        void termUnknown( String msg );
+
+        /**
+         * Invoked if the presented term was found in the vocabulary
+         * but flagged as "deprecated".
+         *
+         * @param  msg  user-directed message giving details
+         */
+        void termDeprecated( String msg );
+
+        /**
+         * Invoked if the presented term was found in the vocabulary
+         * but flagged as "preliminary".
+         *
+         * @param  msg  user-directed message giving details
+         */
+        void termPreliminary( String msg );
     }
 }
