@@ -2,6 +2,9 @@ package uk.ac.starlink.ttools.taplint;
 
 import ari.ucidy.UCD;
 import ari.ucidy.UCDParser;
+import ari.ucidy.UCDSyntax;
+import ari.ucidy.UCDWord;
+import ari.ucidy.UCDWordList;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,6 +24,9 @@ import uk.me.nxg.unity.UnitParserException;
 public class DmTest extends TestCase {
 
     private static final Syntax SYNTAX = Syntax.VOUNITS;
+    private static final UCDSyntax UCD_P = UCDSyntax.PRIMARY;
+    private static final UCDSyntax UCD_S = UCDSyntax.SECONDARY;
+    private static final UCDSyntax UCD_Q = UCDSyntax.BOTH;
 
     public DmTest() {
         Logger.getLogger( "ari.ucidy" ).setLevel( Level.OFF );
@@ -46,13 +52,18 @@ public class DmTest extends TestCase {
     }
 
     public void testEpnTap() throws UnitParserException {
+        UCDParser ucdParser = createUCDParser();
+        boolean isRequested15 = true;
+        ucdParser.knownWords
+                 .add( new UCDWord( UCD_Q, "pos.projection",
+                       "Geometric projection", isRequested15 ) );
         Pattern minmaxRegex = Pattern.compile( ".*(.)(min|max)" );
         Set<String> cnames = new HashSet<>();
         for ( EpnTapStage.SingleCol col :
               EpnTapStage.toSingleCols( EpnTapStage.getAllColumns() ) ) {
             String cname = col.name_;
             assertTrue( cnames.add( cname ) );
-            warnUcd( col.ucd_ );
+            checkUcd( col.ucd_, ucdParser );
             checkUnitEpn( col.unit_ );
             Matcher nameMatcher = minmaxRegex.matcher( cname );
             if ( nameMatcher.matches() ) {
@@ -86,24 +97,28 @@ public class DmTest extends TestCase {
         ucdSet.remove( null );
         unitSet.remove( null );
         for ( String ucd : ucdSet ) {
-            warnUcd( EpnTapStage.toMinUcd( ucd ) );
-            warnUcd( EpnTapStage.toMaxUcd( ucd ) );
+            checkUcd( EpnTapStage.toMinUcd( ucd ), ucdParser );
+            checkUcd( EpnTapStage.toMaxUcd( ucd ), ucdParser );
         }
         for ( String unit : unitSet ) {
             checkUnitEpn( unit );
         }
     }
 
-    private void warnUcd( String ucd ) {
+    private void checkUcd( String ucd ) {
+        checkUcd( ucd, UCDParser.defaultParser );
+    }
+
+    private void checkUcd( String ucd, UCDParser parser ) {
         if ( ucd != null ) {
-            UCD pucd = UCDParser.parseUCD( ucd );
-            if ( ! pucd.isFullyValid() ) {
-                System.err.println( ucd );
+            UCD pucd = parser.parse( ucd );
+            if ( !pucd.isFullyValid() ) {
                 for ( Iterator<String> errIt = pucd.getErrors();
                       errIt.hasNext(); ) {
                     System.err.println( "    " + errIt.next() );
                 }
             }
+            assertTrue( ucd, pucd.isFullyValid() );
         }
     }
 
@@ -114,13 +129,6 @@ public class DmTest extends TestCase {
         }
         else {
             checkUnit( unit );
-        }
-    }
-
-    private void checkUcd( String ucd ) {
-        if ( ucd != null ) {
-            UCD pucd = UCDParser.parseUCD( ucd );
-            assertTrue( ucd, UCDParser.parseUCD( ucd ).isFullyValid() );
         }
     }
 
@@ -136,5 +144,18 @@ public class DmTest extends TestCase {
                 fail( "Bad unit \"" + unit + "\": " + e );
             }
         }
+    }
+
+    /**
+     * Creates a UCDParser with default content, but which can be manipulated
+     * without interfering with globals.
+     */
+    private static UCDParser createUCDParser() {
+        UCDParser baseParser = UCDParser.defaultParser;
+        UCDWordList words = new UCDWordList();
+        for ( UCDWord w : baseParser.knownWords ) {
+            words.add( w );
+        }
+        return new UCDParser( words, baseParser.deprecatedWords );
     }
 }
