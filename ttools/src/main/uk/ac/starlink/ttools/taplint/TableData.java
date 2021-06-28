@@ -15,6 +15,17 @@ import uk.ac.starlink.table.StarTable;
  */
 public abstract class TableData {
 
+    private final StarTable table_;
+
+    /**
+     * Constructor.
+     *
+     * @param  table  table
+     */
+    TableData( StarTable table ) {
+        table_ = table;
+    }
+
     /**
      * Returns number of rows.
      *
@@ -43,6 +54,15 @@ public abstract class TableData {
             col[ ir ] = getCell( ir, icol );
         }
         return col;
+    }
+
+    /**
+     * Returns the table on which this object is based.
+     *
+     * @return  table
+     */
+    public StarTable getTable() {
+        return table_;
     }
 
     /**
@@ -76,7 +96,7 @@ public abstract class TableData {
                                  "Error reading result table", e );
                 return null;
             }
-            return new TableData() {
+            return new TableData( table ) {
                 public int getRowCount() {
                     return rowList.size();
                 }
