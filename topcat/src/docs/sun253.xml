@@ -29858,6 +29858,8 @@ introduced since the last version:
         "<code>(BCE)</code>" to dates before the common era.</li>
     <li>Guess meaning for some non-standard COORDSYS values in 
         HEALPix-FITS files, e.g. allow "GALACTIC" instead of "G".</li>
+    <li>Revert to sequential processing in some cases for
+        Healpix plots to reduce resource usage.</li>
     </ul>
     </p></dd>
 
