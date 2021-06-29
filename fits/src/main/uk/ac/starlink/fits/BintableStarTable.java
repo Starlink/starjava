@@ -601,10 +601,17 @@ public abstract class BintableStarTable extends AbstractStarTable {
         final HealpixTableInfo.HpxCoordSys csys;
         String coordsys = cards.getStringValue( "COORDSYS" );
         if ( coordsys != null ) {
-            csys = coordsys.length() == 1
-                 ? HealpixTableInfo.HpxCoordSys
-                                   .fromCharacter( coordsys.charAt( 0 ) )
-                 : null;
+            if ( coordsys.trim().length() == 1 ) {
+                csys = HealpixTableInfo.HpxCoordSys
+                      .fromCharacter( coordsys.charAt( 0 ) );
+            }
+            else {
+                csys = guessHealpixCoordSys( coordsys.trim() );
+                if ( csys != null ) {
+                    logger_.warning( "Guessing HEALPix header COORDSYS='"
+                                   + coordsys + "' -> " + csys.getWord() );
+                }
+            }
             if ( csys == null ) {
                 logger_.warning( "Unknown HEALPix header COORDSYS='"
                                + coordsys + "'" );
@@ -621,6 +628,34 @@ public abstract class BintableStarTable extends AbstractStarTable {
 
         /* Return a new metadata object. */
         return new HealpixTableInfo( level, isNest, ipixColName, csys );
+    }
+
+    /**
+     * Makes a best guess at a HEALPix coordinate system given a COORDSYS
+     * header value.  There is a "standard" for this, as per the
+     * HealpixTableInfo.fromCharacter method, but some providers use
+     * unambiguous but non-standard values, e.g. "GALACTIC" has been seen
+     * in Planck Legacy Archive data.
+     *
+     * @param  coordsysTxt   non-null content of FITS COORDSYS header
+     * @param  coordsys value, or null if nothing obvious
+     */
+    private static HealpixTableInfo.HpxCoordSys
+            guessHealpixCoordSys( String coordsysTxt ) {
+        String ctxt = coordsysTxt.toUpperCase();
+        if ( ctxt.startsWith( "GAL" ) ) {
+            return HealpixTableInfo.HpxCoordSys.GALACTIC;
+        }
+        else if ( ctxt.startsWith( "ECL" ) ) {
+            return HealpixTableInfo.HpxCoordSys.ECLIPTIC;
+        }
+        else if ( ctxt.startsWith( "EQU" ) ||
+                  ctxt.startsWith( "CEL" ) ) {
+            return HealpixTableInfo.HpxCoordSys.CELESTIAL;
+        }
+        else {
+            return null;
+        }
     }
 
     /**

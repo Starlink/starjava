@@ -29856,6 +29856,8 @@ introduced since the last version:
     <li>The <code>mjdToIso</code> and <code>mjdToDate</code> functions 
         in class <ref id="Times">Times</ref> now prepend the string
         "<code>(BCE)</code>" to dates before the common era.</li>
+    <li>Guess meaning for some non-standard COORDSYS values in 
+        HEALPix-FITS files, e.g. allow "GALACTIC" instead of "G".</li>
     </ul>
     </p></dd>
 
