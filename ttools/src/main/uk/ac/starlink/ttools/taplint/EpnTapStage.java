@@ -30,7 +30,7 @@ import uk.ac.starlink.vo.VocabTerm;
 
 /**
  * Validation stage for testing EPN-TAP data model metadata and content.
- * This implementation corresponds to PR-EPNTAP-2.0-20210623.
+ * This implementation corresponds to PR-EPNTAP-2.0-20210630.
  *
  * @author   Mark Taylor
  * @since    17 Jun 2021
@@ -56,14 +56,17 @@ public class EpnTapStage implements Stage {
     // Times.mjdToDecYear(jd-2400000.5).
     private static final int JD_PLAUSIBLE_LO = 2086000; // approx 1000 AD
     private static final int JD_PLAUSIBLE_HI = 2817000; // approx 3000 AD
-    private static Pattern TIMESTAMP_REGEX = Pattern.compile(
-        "[0-9]{4}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]"
+
+    // DALI 1.1 sec 3.3.3.
+    static Pattern DALI_TIMESTAMP_REGEX = Pattern.compile(
+          "[0-9]{4}-[01][0-9]-[0-3][0-9]"
+        + "(?:T[0-2][0-9]:[0-5][0-9]:[0-5][0-9](?:[.][0-9]*)?Z?)?"
     );
 
     // VocabularyChecker for https://www.ivoa.net/rdf/messenger.
     // Note at time of writing these are all marked Preliminary.
     private static final VocabChecker MESSENGER_VOCAB =
-        new VocabChecker( "https://www.ivoa.net/rdf/messenger",
+        new VocabChecker( "http://www.ivoa.net/rdf/messenger",
                           new String[] {
                               "EUV", "Gamma-ray", "Infrared", "Millimeter",
                               "Neutrino", "Optical", "Photon", "UV", "X-ray",
@@ -762,6 +765,8 @@ public class EpnTapStage implements Stage {
             "asteroid", "dwarf_planet", "planet", "satellite", "comet",
             "exoplanet", "interplanetary_medium", "sample", "sky",
             "spacecraft", "spacejunk", "star", "calibration",
+            // special case recommended
+            "dwarf_planet#asteroid", "asteroid#dwarf_planet",
         } );
 
         colMap.get( "service_title" ).checker_ = serviceTitleChecker();
@@ -790,7 +795,7 @@ public class EpnTapStage implements Stage {
             textCol( "file_name", "meta.id;meta.file" ),
             textCol( "datalink_url", "meta.ref.url" ),
             textCol( "species", "meta.id;phys.atmol" ),
-            textCol( "messengers", "instr.bandpass" ),
+            textCol( "messenger", "instr.bandpass" ),
             textCol( "alt_target_name", "meta.id;src" ),
             textCol( "target_region", "meta.id;src;obs.field" ),
             textCol( "feature_name", "meta.id;src;obs.field" ),
@@ -842,7 +847,7 @@ public class EpnTapStage implements Stage {
         colMap.get( "local_time_" ).checker_ =
             rangeChecker( true, FixedCode.E_PNLT, "0", "24" );
         colMap.get( "target_time_" ).checker_ = timestampChecker( true );
-        colMap.get( "messengers" ).checker_ =
+        colMap.get( "messenger" ).checker_ =
             vocabChecker( true, MESSENGER_VOCAB,
                           FixedCode.E_PNMG, FixedCode.W_VCPD );
         colMap.get( "time_scale" ).checker_ =
@@ -968,10 +973,14 @@ public class EpnTapStage implements Stage {
             "conical", "hemispherical", "other geometry", "unknown",
         } );
 
-        // Currently NOT tested but could be: particle_spectral_type and
-        // particle_spectral_range, which have UCDs and units dependent
-        // on values.  At time of writing, no services with the
-        // particle_spectral_type are registered.
+        // Currently NOT tested but could be: particle_spectral_range,
+        // which has UCDs and units dependent on particle_spectral_type value.
+        // At time of writing, no services with the particle_spectral_type
+        // column are registered.
+        colMap.get( "particle_spectral_type" ).checker_ =
+                optionsChecker( true, FixedCode.E_PPST, new String[] {
+            "energy", "mass", "mass/charge",
+        } );
 
         return colMap.values().toArray( new EpnCol[ 0 ] );
     }
@@ -1377,7 +1386,7 @@ public class EpnTapStage implements Stage {
                     }
                     else {
                         String sval = (String) val;
-                        if ( ! TIMESTAMP_REGEX.matcher( sval ).matches() ) {
+                        if ( ! DALI_TIMESTAMP_REGEX.matcher( sval ).matches() ){
                             String msg = new StringBuffer()
                                .append( "Timestamp value \"" )
                                .append( sval )
@@ -1386,7 +1395,8 @@ public class EpnTapStage implements Stage {
                                .append( " column " )
                                .append( cname )
                                .append( " does not match " )
-                               .append( "YYYY-MM-DDThh:mm:ss" )
+                               .append( " does not match " )
+                               .append( "YYYY-MM-DD['T'hh:mm:ss[.SSS]['Z']]" )
                                .toString();
                             runner.reporter_.report( FixedCode.E_PN86, msg );
                             return;
@@ -1721,7 +1731,7 @@ public class EpnTapStage implements Stage {
         BODY( new String[][] { { "pos.bodyrc.lon" },
                                { "pos.bodyrc.lat" },
                                { "pos.bodyrc.alt", "pos.distance;pos.bodyrc" }},
-              new String[] { "deg", "deg", "m" },
+              new String[] { "deg", "deg", "km" },
               new boolean[] { true, true, false } ),
         CARTESIAN( new String[] { "pos.cartesian.x",
                                   "pos.cartesian.y",
@@ -1731,7 +1741,7 @@ public class EpnTapStage implements Stage {
         SPHERICAL( new String[] { "pos.spherical.r",
                                   "pos.spherical.colat",
                                   "pos.spherical.azi" },
-                   new String[] { "km", "deg", "deg" },
+                   new String[] { "m", "deg", "deg" },
                    new boolean[] { false, true, true } ),
         CYLINDRICAL( new String[] { "pos.cylindrical.r",
                                     "pos.cylindrical.azi",

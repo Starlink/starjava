@@ -145,6 +145,7 @@ public enum FixedCode implements ReportCode {
     E_PNXT( "Wrong xtype for epn_core column" ),
     E_POER( "POST failure" ),
     E_PORE( "POST error" ),
+    E_PPST( "Epn_core particle_spectral_type bad values" ),
     E_PTXT( "Non plain-text RDFa property content" ),
     E_PVAL( "Illegal ObsLocTAP cell value" ),
     E_QERR( "Query failed" ),
