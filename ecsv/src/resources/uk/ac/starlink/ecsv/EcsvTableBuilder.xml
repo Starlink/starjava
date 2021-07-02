@@ -1,8 +1,8 @@
 <p>The Enhanced Character Separated Values format was developed within
 the <a href="https://www.astropy.org/">Astropy</a> project
-and is described at
-<a href="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"
-        >https://github.com/astropy/astropy-APEs/blob/master/APE6.rst</a>.
+and is described in Astropy
+<a href="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst">APE6</a>
+(<a href="https://doi.org/10.5281/zenodo.4792325">DOI</a>).
 It is composed of a YAML header followed by a CSV-like body,
 and is intended to be a human-readable and maybe even human-writable format
 with rich metadata.
