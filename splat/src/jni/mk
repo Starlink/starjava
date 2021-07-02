@@ -7,7 +7,6 @@
 #  Export "local" definitions to the environment for use by make.
       export BLD_SHR
       export CC
-      export FC
       export CFLAGS
       export SHARE
       export JAVA_INCLUDE
@@ -46,13 +45,12 @@
 #  ----------------------------------------
             sun4_Solaris)
                if test "$JAVA_SYSTEM" = "x86"; then
-                  BLD_SHR='f() $(FC) -G -o $$1 $$2 -Bstatic -lfui -lfai -lfsu -lsunmath -Bdynamic -lm -lpthread -lc; f'
+                  BLD_SHR='f() $(CC) -G -o $$1 $$2 -Bstatic -lfui -lfai -lfsu -lsunmath -Bdynamic -lm -lpthread -lc; f'
                   JAVA_SYSTEM="solaris"
                else
-                  BLD_SHR='f() $(FC) -G -o $$1 $$2 -Bstatic -L/opt/SUNWspro/WS6U2/lib -lF77 -lM77 -lsunmath -Bdynamic -lm -lcx -lc; f'
+                  BLD_SHR='f() $(CC) -G -o $$1 $$2 -Bstatic -L/opt/SUNWspro/WS6U2/lib -lF77 -lM77 -lsunmath -Bdynamic -lm -lcx -lc; f'
                fi
                CC='cc'
-               FC=${FC:=f77}
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O -K PIC'
                SHARE='.so'
                echo "mk: Environment variables defined for $SYSTEM system"
@@ -63,9 +61,8 @@
 #  Intel PC running Linux.
 #  ----------------------
             ix86_Linux)
-               BLD_SHR='f() { $(FC) -shared -o $$1 $$2 -lm -lgcc -lc;}; f'
+               BLD_SHR='f() { $(CC) -shared -o $$1 $$2 -lm -lgcc -lc;}; f'
                CC='gcc'
-               FC=${FC:=g77}
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O -fPIC'
                SHARE='.so'
                echo "mk: Environment variables defined for $SYSTEM system"
@@ -82,9 +79,8 @@
                   LDFLAGS="$LDFLAGS -m64"
                fi
                export LDFLAGS
-               BLD_SHR='f() { $(FC) $(LDFLAGS) -framework JavaVM -dynamiclib -install_name $(STARJAVA_LIB)/`basename $$1` -single_module -undefined dynamic_lookup -o $$1 $$2 -lm -lgcc -lc; }; f'
+               BLD_SHR='f() { $(CC) $(LDFLAGS) -framework JavaVM -dynamiclib -install_name $(STARJAVA_LIB)/`basename $$1` -single_module -undefined dynamic_lookup -o $$1 $$2 -lm -lgcc -lc; }; f'
                CC='gcc'
-               FC=${FC:=g77}
                CFLAGS='-I/System/Library/Frameworks/JavaVM.framework/Headers -arch $(JAVA_SYSTEM) -I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -g -fPIC'
                SHARE='.jnilib'
                JAVA_INCLUDE='$(JAVA_HOME)/Headers'
