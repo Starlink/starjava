@@ -13,6 +13,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.InputStreamParameter;
+import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
@@ -37,6 +38,7 @@ public class VotLint implements Task {
 
     private final InputStreamParameter inParam_;
     private final BooleanParameter validParam_;
+    private final IntegerParameter maxrepeatParam_;
     private final ChoiceParameter<VOTableVersion> versionParam_;
     private final OutputStreamParameter outParam_;
 
@@ -72,6 +74,18 @@ public class VotLint implements Task {
             "own checks are performed.",
             "In this case many violations of the VOTable standard",
             "concerning document structure will go unnoticed.",
+            "</p>",
+        } );
+
+        maxrepeatParam_ = new IntegerParameter( "maxrepeat" );
+        maxrepeatParam_.setIntDefault( 4 );
+        maxrepeatParam_.setPrompt( "Maximum repeats of similar message" );
+        maxrepeatParam_.setDescription( new String[] {
+            "<p>Puts a limit on the number of times that the same issue",
+            "will be reported.",
+            "With this set to a relatively small number,",
+            "the output is not cluttered with many repetitions of",
+            "the same problem.",
             "</p>",
         } );
 
@@ -112,6 +126,7 @@ public class VotLint implements Task {
     public Parameter<?>[] getParameters() {
         return new Parameter<?>[] {
             inParam_,
+            maxrepeatParam_,
             validParam_,
             versionParam_,
             outParam_,
@@ -121,6 +136,7 @@ public class VotLint implements Task {
     public Executable createExecutable( Environment env ) throws TaskException {
         VOTableVersion version = versionParam_.objectValue( env );
         boolean validate = validParam_.booleanValue( env );
+        int maxRepeat = maxrepeatParam_.intValue( env );
         boolean debug = env instanceof TableEnvironment
                      && ((TableEnvironment) env).isDebug();
         String sysid = inParam_.stringValue( env );
@@ -135,7 +151,6 @@ public class VotLint implements Task {
                                      + outParam_.stringValue( env )
                                      + "\" for output: " + e.getMessage(), e );
         }
-        int maxRepeat = 4;
         SaxMessager messager = new PrintSaxMessager( out, debug, maxRepeat );
         return new VotLintExecutable( in, version, validate, sysid, messager );
     }

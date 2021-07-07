@@ -9474,6 +9474,9 @@ Error and warning messages will be written on standard error.
 Each message is prefixed with the location at which the error was
 found (if possible the line and column are shown, though this is
 dependent on your JVM's default XML parser).
+If multiple instances of the same problem are found,
+by default only a few repeats of the message are reported;
+this can be controlled with the <code>maxrepeat</code> parameter.
 The processing is SAX-based, so arbitrarily long tables can
 be processed without heavy memory use.
 </p>
@@ -13264,6 +13267,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Taplint MDQ stage now reports mismatches between declared
         and result Units, UCDs, Xtypes, and Utypes as well as
         datatypes.</li>
+    <li><ref id="votlint">votlint</ref> now has a <code>maxrepeat</code>
+        parameter like <code>taplint</code>
+        (previously the repeat count was hard-wired to 4).</li>
     </ul>
 
     </p></dd>
