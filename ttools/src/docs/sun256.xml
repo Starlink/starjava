@@ -6127,7 +6127,7 @@ tests are confined to the presented document itself.
 
 <p>HTTP connections made by this validator are flagged in the
 <code>User-Agent</code> field with the token
-"<code>(IVOA-Validate)</code>".
+"<code>(IVOA-test)</code>".
 </p>
 
 &datalinklint-summary;
@@ -7417,7 +7417,7 @@ and service registration.
 
 <p>HTTP connections made by this validator are flagged in the
 <code>User-Agent</code> field with the token
-"<code>(IVOA-Validate)</code>".
+"<code>(IVOA-test)</code>".
 </p>
 
 &taplint-summary;
