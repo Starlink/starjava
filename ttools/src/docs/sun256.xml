@@ -9421,8 +9421,7 @@ if required.
 
 <p>The VOTable standard, while not hugely complicated, has a number
 of subtleties and it's not difficult to produce VOTable documents
-which violate it in various ways.  In fact it's probably true to say
-that most VOTable documents out there are not strictly legal.
+which violate it in various ways.
 In some cases the errors are small and a parser is likely to
 process the document without noticing the trouble.  
 In other cases, the errors are so serious that it's hard for
@@ -9448,8 +9447,7 @@ It is meant for use in two main scenarios:
 </p>
 
 <p>Validating a VOTable document against the VOTable schema or DTD 
-of course goes a long way towards checking a VOTable document for errors
-(though it's clear that many VOTable authors don't even go this far),
+of course goes a long way towards checking a VOTable document for errors,
 but it by no means does the whole job, simply because the schema/DTD
 specification languages don't have the facilities 
 to understand the data structure
