@@ -7395,6 +7395,8 @@ instance.
 <webref url="http://www.ivoa.net/Documents/ObsCore/">ObsCore</webref>,
 <webref url="http://www.ivoa.net/Documents/ObsLocTAP/">ObsLocTAP</webref>,
 <webref url="http://www.ivoa.net/Documents/VOTable/">VOTable</webref>,
+<webref url="http://www.ivoa.net/documents/UCD1+/">UCD</webref>,
+<webref url="http://www.ivoa.net/Documents/VOUnits/">VOUnits</webref>,
 <webref url="http://www.ivoa.net/documents/SSO/">SSO</webref>,
 <webref url="http://www.ivoa.net/documents/Notes/softid/">SoftID</webref>,
 <webref url="http://www.w3.org/Protocols/rfc2616/rfc2616.html">HTTP</webref>,
@@ -13299,6 +13301,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Modify taplint <code>stages</code> parameter usage;
         you can now add and remove stages individually using
         <code>+XXX</code>/<code>-XXX</code> syntax.</li>
+    <li>New stage <code>UUC</code> added to taplint.
+        This checks units (against the VOUnits standard) and UCDs
+        (against the UCD1+ standard).</li>
     </ul>
     </p></dd>
 

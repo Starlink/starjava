@@ -45,6 +45,7 @@ public class TapLinter {
     private final TablesEndpointStage tmetaStage_;
     private final TapSchemaStage tapSchemaStage_;
     private final CompareMetadataStage cfTmetaStage_;
+    private final UnitUcdStage unitUcdStage_;
     private final XsdStage tcapXsdStage_;
     private final CapabilityStage tcapStage_;
     private final XsdStage availXsdStage_;
@@ -93,6 +94,7 @@ public class TapLinter {
         } );
         cfTmetaStage_ = CompareMetadataStage
                        .createStage( tmetaStage_, tapSchemaStage_ );
+        unitUcdStage_ = new UnitUcdStage( declaredMetaHolder );
         tcapXsdStage_ = new XsdStage( IvoaSchemaResolver.CAPABILITIES_URI,
                                       "capabilities", true, "capabilities" ) {
             public URL getDocumentUrl( TapService tapService ) {
@@ -145,6 +147,7 @@ public class TapLinter {
         stageSet_.add( "TME", tmetaStage_, true );
         stageSet_.add( "TMS", tapSchemaStage_, true );
         stageSet_.add( "TMC", cfTmetaStage_, true );
+        stageSet_.add( "UUC", unitUcdStage_, true );
         stageSet_.add( "CPV", tcapXsdStage_, true );
         stageSet_.add( "CAP", tcapStage_, true );
         stageSet_.add( "AVV", availXsdStage_, true );
