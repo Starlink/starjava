@@ -95,7 +95,7 @@ public class HDSObjectTest extends TestCase {
             fail( "Should have thrown exception" );
         }
         catch ( HDSException e ) {
-            assertTrue( e.getMessage().indexOf( "HDS_OPEN: Error" ) > -1 );
+            assertTrue( e.getMessage().indexOf( "Failed to open" ) > -1 );
         }
 
         // hdsNew
