@@ -13278,6 +13278,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         errors, so multiple repeats of similar messages can be avoided.
         Ad-hoc VOTable error codes have changed from
         "<code>VOxx</code>" to "<code>Yxxx</code>".</li>
+    <li>New functions in class 
+        <ref id="uk.ac.starlink.ttools.func.VO">VO</ref>
+        to check syntax of UCD and VOUnit strings.</li>
     </ul>
     </p></dd>
 

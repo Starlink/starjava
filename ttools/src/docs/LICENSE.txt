@@ -61,6 +61,7 @@ this list up to date, but if there are missing entries please complain.
 
    LGPL (other):
       adqlParser.jar
+      ucidy-1.1.jar
       iText_shrunk.jar
       jcdf.jar
       dpac.jar
@@ -73,6 +74,9 @@ this list up to date, but if there are missing entries please complain.
       jsamp.jar
       org.mortbay.jetty.jar
       snakeyaml-1.25.jar
+
+   BSD 2-clause:
+      unity-1.0.jar
 
    BSD 3-clause:
       cdshealpix.jar

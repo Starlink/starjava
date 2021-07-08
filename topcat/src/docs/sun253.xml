@@ -24563,6 +24563,10 @@ functionality:
             Multi-Order Coverage HEALPix maps for footprint manipulation</li>
 <li><webref url="https://bitbucket.org/asomov/snakeyaml"
             >Snakeyaml</webref> for YAML parsing in ECSV input handler</li>
+<li><webref url="https://github.com/gmantele/ucidy">Ucidy</webref>
+            (Gr&#x00e9;gory Mantelet, CDS) for UCD parsing.</li>
+<li><webref url="http://www.astro.gla.ac.uk/users/norman/ivoa/unity/"
+            >Unity</webref> (Norman Gray, Glasgow) for VOUnits parsing</li>
 <li><webref url="http://www.jidesoft.com/products/oss.htm"
             >JIDE Common Layer</webref> (Jidesoft)
             for double-ended slider controls</li>
@@ -29863,6 +29867,8 @@ introduced since the last version:
     <li>Columns that are all blank in ASCII-like tables
         (CSV, ASCII, TST) are now interpreted as String
         not boolean.</li>
+    <li>New functions in class <ref id="VO">VO</ref>
+        to check syntax of UCD and VOUnit strings.</li>
     </ul>
     </p></dd>
 
