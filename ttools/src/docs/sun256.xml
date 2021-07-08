@@ -9562,8 +9562,10 @@ wise at least to take a look at the input which caused them:
     though not <code>INFO</code>s) with the
     same <code>name</code> attributes</li>
 <li><code>TIMESYS</code> elements never referenced.</li>
-<li><code>ucd</code> attribute values are not legal UCD1+ strings</li>
-<li><code>unit</code> attribute values are not legal VOUnit strings</li>
+<li><code>ucd</code> attribute values are not legal UCD1+ strings
+    (if parameter <code>ucd=true</code>)</li>
+<li><code>unit</code> attribute values are not legal VOUnit strings
+    (if parameter <code>unit=true</code>)</li>
 </ul>
 </p>
 
@@ -13283,8 +13285,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New functions in class 
         <ref id="uk.ac.starlink.ttools.func.VO">VO</ref>
         to check syntax of UCD and VOUnit strings.</li>
-    <li>Votlint now checks the content of <code>unit</code> and
-        <code>ucd</code> attributes, checking against the
+    <li>Votlint now optionally checks the content of <code>unit</code>
+        and <code>ucd</code> attributes, checking against the
         VOUnits and UCD1+ standards respectively;
         warnings (not errors) are reported in case of violations.</li>
     </ul>

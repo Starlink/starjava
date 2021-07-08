@@ -39,6 +39,8 @@ public class VotLint implements Task {
 
     private final InputStreamParameter inParam_;
     private final BooleanParameter validParam_;
+    private final BooleanParameter ucdParam_;
+    private final BooleanParameter unitParam_;
     private final IntegerParameter maxrepeatParam_;
     private final ChoiceParameter<VOTableVersion> versionParam_;
     private final OutputStreamParameter outParam_;
@@ -53,6 +55,32 @@ public class VotLint implements Task {
             "to indicate standard input.",
             "The input may be compressed using one of the known",
             "compression formats (Unix compress, gzip or bzip2).",
+            "</p>",
+        } );
+
+        ucdParam_ = new BooleanParameter( "ucd" );
+        ucdParam_.setBooleanDefault( true );
+        ucdParam_.setPrompt( "Check ucd attributes for UCD1+ syntax?" );
+        ucdParam_.setDescription( new String[] {
+            "<p>If true, the <code>ucd</code> attributes",
+            "on FIELD and PARAM elements etc",
+            "are checked for conformance against the UCD1+ standard,",
+            "and warnings are issued if the syntax does not match.",
+            "VOTable does not require UCD1+ ucd values however,",
+            "so this option controls whether such checking is done.",
+            "</p>",
+        } );
+
+        unitParam_ = new BooleanParameter( "unit" );
+        unitParam_.setBooleanDefault( true );
+        unitParam_.setPrompt( "Check unit attributes for VOUnit syntax?" );
+        unitParam_.setDescription( new String[] {
+            "<p>If true, the <code>unit</code> attributes",
+            "on FIELD and PARAM elements",
+            "are checked for conformance against the VOUnits standard,",
+            "and warnings are issued if the syntax does not match.",
+            "VOTable recommends, but does not require, use of VOUnits however,",
+            "so this option controls whether such checking is done.",
             "</p>",
         } );
 
@@ -127,6 +155,8 @@ public class VotLint implements Task {
     public Parameter<?>[] getParameters() {
         return new Parameter<?>[] {
             inParam_,
+            ucdParam_,
+            unitParam_,
             maxrepeatParam_,
             validParam_,
             versionParam_,
@@ -137,6 +167,8 @@ public class VotLint implements Task {
     public Executable createExecutable( Environment env ) throws TaskException {
         VOTableVersion version = versionParam_.objectValue( env );
         boolean validate = validParam_.booleanValue( env );
+        boolean ucd = ucdParam_.booleanValue( env );
+        boolean unit = unitParam_.booleanValue( env );
         int maxRepeat = maxrepeatParam_.intValue( env );
         boolean debug = env instanceof TableEnvironment
                      && ((TableEnvironment) env).isDebug();
@@ -153,22 +185,27 @@ public class VotLint implements Task {
                                      + "\" for output: " + e.getMessage(), e );
         }
         SaxMessager messager = new PrintSaxMessager( out, debug, maxRepeat );
-        return new VotLintExecutable( in, version, validate, sysid, messager );
+        return new VotLintExecutable( in, version, ucd, unit, validate,
+                                      sysid, messager );
     }
 
     private class VotLintExecutable implements Executable {
 
         final InputStream baseIn_;
         final VOTableVersion forceVersion_;
+        final boolean ucd_;
+        final boolean unit_;
         final boolean validate_;
         final String sysid_;
         final SaxMessager messager_;
 
         VotLintExecutable( InputStream in, VOTableVersion forceVersion,
-                           boolean validate, String sysid,
-                           SaxMessager messager ) {
+                           boolean ucd, boolean unit, boolean validate,
+                           String sysid, SaxMessager messager ) {
             baseIn_ = in;
             forceVersion_ = forceVersion;
+            ucd_ = ucd;
+            unit_ = unit;
             validate_ = validate;
             sysid_ = sysid;
             messager_ = messager;
@@ -214,7 +251,9 @@ public class VotLint implements Task {
             assert version != null;
             final VotLintContext context =
                 new VotLintContext( version, validate_, messager_ );
-               
+            context.setCheckUcd( ucd_ );
+            context.setCheckUnit( unit_ );
+
             /* Interpolate the VOTable DOCTYPE declaration if required. */
             final InputStream in;
             if ( validate_ && version.getDoctypeDeclaration() != null ) {
