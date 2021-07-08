@@ -267,6 +267,12 @@ public abstract class VotLintTapRunner extends TapRunner {
             SaxMessager messager = new ReporterSaxMessager( reporter );
             VotLintContext vlContext =
                 new VotLintContext( version, true, messager );
+
+            /* Unit and UCD checks will be performed explicitly elsewhere;
+             * including those reports from every returned VOTable
+             * would unnecessarily clutter the output, so turn them off. */
+            vlContext.setCheckUcd( false );
+            vlContext.setCheckUnit( false );
             parser = new VotLinter( vlContext ).createParser( domHandler );
         }
         else {

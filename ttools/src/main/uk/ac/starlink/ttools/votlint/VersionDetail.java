@@ -220,11 +220,15 @@ public abstract class VersionDetail {
                 map.put( "ref",
                          new RefChecker( new String[] { "COOSYS", "TIMESYS",
                                                         "GROUP" } ) );
+                map.put( "ucd", UcdChecker.INSTANCE );
+                map.put( "unit", UnitChecker.INSTANCE );
             }
             else if ( "FITS".equals( name ) ) {
             }
             else if ( "INFO".equals( name ) ) {
                 hasID = true;
+                map.put( "ucd", UcdChecker.INSTANCE );
+                map.put( "unit", UnitChecker.INSTANCE );
 
                 /* INFO has a name attribute.  However, we don't set hasName
                  * here, since multiple INFOs with the same name in the same
@@ -248,6 +252,8 @@ public abstract class VersionDetail {
                 map.put( "ref",
                          new RefChecker( new String[] { "COOSYS", "TIMESYS",
                                                         "FIELD", "GROUP" } ) );
+                map.put( "ucd", UcdChecker.INSTANCE );
+                map.put( "unit", UnitChecker.INSTANCE );
             }
             else if ( "RESOURCE".equals( name ) ) {
                 hasID = true;
@@ -260,6 +266,7 @@ public abstract class VersionDetail {
                 hasName = true;
                 map.put( "ref", new RefChecker( "TABLE" ) );
                 map.put( "nrows", new TableHandler.NrowsChecker() );
+                map.put( "ucd", UcdChecker.INSTANCE );
             }
             else if ( "TABLEDATA".equals( name ) ) {
             }
@@ -324,6 +331,7 @@ public abstract class VersionDetail {
             }
             else if ( "FIELDref".equals( name ) ) {
                 map.put( "ref", new RefChecker( "FIELD" ) );
+                map.put( "ucd", UcdChecker.INSTANCE );
             }
             else if ( "GROUP".equals( name ) ) {
                 map.put( "ref", new RefChecker( new String[] { "GROUP",
@@ -333,6 +341,7 @@ public abstract class VersionDetail {
             }
             else if ( "PARAMref".equals( name ) ) {
                 map.put( "ref", new RefChecker( "PARAM" ) );
+                map.put( "ucd", UcdChecker.INSTANCE );
             }
             return map;
         }
@@ -371,6 +380,7 @@ public abstract class VersionDetail {
                 map.put( "ref", new RefChecker( new String[] { "GROUP",
                                                                "COOSYS",
                                                                "TABLE", } ) );
+                map.put( "ucd", UcdChecker.INSTANCE );
             }
             return map;
         }

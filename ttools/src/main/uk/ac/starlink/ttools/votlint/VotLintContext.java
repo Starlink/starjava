@@ -24,6 +24,8 @@ public class VotLintContext {
     private final Map<String,UncheckedReference> refMap_;
     private final Map<String,String> namespaceMap_;
     private final Map<String,Collection<ElementRef>> linksMap_;
+    private boolean checkUcd_;
+    private boolean checkUnit_;
     private Locator locator_;
     private int errCount_;
 
@@ -44,6 +46,8 @@ public class VotLintContext {
         refMap_ = new HashMap<String,UncheckedReference>();
         namespaceMap_ = new HashMap<String,String>();
         linksMap_ = new LinkedHashMap<String,Collection<ElementRef>>();
+        checkUcd_ = true;
+        checkUnit_ = true;
     }
 
     /**
@@ -62,6 +66,46 @@ public class VotLintContext {
      */
     public boolean isValidating() {
         return validate_;
+    }
+
+    /**
+     * Indicates whether ucd attribute values will be checked.
+     * Checking is currently against the UCD1+ standard.
+     *
+     * @return   whether to check UCD syntax
+     */
+    public boolean isCheckUcd() {
+        return checkUcd_;
+    }
+
+    /**
+     * Sets whether ucd attribute values will be checked.
+     * Checking is currently against the UCD1+ standard.
+     *
+     * @param   checkUcd  whether to check UCD syntax
+     */
+    public void setCheckUcd( boolean checkUcd ) {
+        checkUcd_ = checkUcd;
+    }
+
+    /**
+     * Indicates whether unit attribute values will be checked.
+     * Checking is against the VOUnits standard.
+     *
+     * @return  whether to check unit syntax
+     */
+    public boolean isCheckUnit() {
+        return checkUnit_;
+    }
+
+    /**
+     * Sets whether unit attribute values will be checked.
+     * Checking is against the VOUnits standard.
+     *
+     * @param  checkUnit  whether to check unit syntax
+     */
+    public void setCheckUnit( boolean checkUnit ) {
+        checkUnit_ = checkUnit;
     }
 
     /**
