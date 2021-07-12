@@ -9533,6 +9533,8 @@ and lead to ERROR reports if violations are found:
     but the external vocabularies are consulted if necessary to check
     for values added after build time
     (currently only applies to <code>TIMESYS</code> attributes).</li>
+<li>Values marked by <code>xtype</code> values as defined in DALI
+    are checked for formal compliance with DALI requirements.</li>
 </ul>
 </p>
 
@@ -13289,6 +13291,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         and <code>ucd</code> attributes, checking against the
         VOUnits and UCD1+ standards respectively;
         warnings (not errors) are reported in case of violations.</li>
+    <li>Votlint, hence also taplint, now checks values in
+        FIELD/PARAMs marked with <code>xtype</code> attributes for
+        conformance to rules from
+        <webref url="https://www.ivoa.net/documents/DALI/20170517/"
+                >DALI 1.1</webref> sec 3.3.</li>
     </ul>
     </p></dd>
 

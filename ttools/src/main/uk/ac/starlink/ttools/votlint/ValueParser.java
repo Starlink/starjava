@@ -1,12 +1,18 @@
 package uk.ac.starlink.ttools.votlint;
 
+import java.io.DataInput;
+import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.StringTokenizer;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import uk.ac.starlink.ttools.func.Times;
 
 /**
  * Object which knows how to interpret the values associated with a
@@ -25,6 +31,10 @@ public abstract class ValueParser {
         Pattern.compile( "([+-])?"
                        + "[0-9]*([0-9]|[0-9]\\.|\\.[0-9])[0-9]*"
                        + "([Ee][+-]?[0-9]{1,3})?" );
+    private static final Pattern ISO_REGEX =
+        Pattern.compile( "[0-9]{4}-[01][0-9]-[0-3][0-9]"
+                       + "(T[0-2][0-9]:[0-5][0-9]:[0-6][0-9]"
+                       + "([.][0-9]+)?)?Z?" );
 
     /**
      * Checks the value of a string which contains the value. 
@@ -120,11 +130,13 @@ public abstract class ValueParser {
      * @param   handler  element handler
      * @param   datatype  datatype attribute value
      * @param   arraysize  arraysize attribute value
+     * @param   xtype   xtype (extended type) attribute value
      * @return   a suitable ValueParser, or <tt>null</tt> if one can't
      *           be constructed
      */
     public static ValueParser makeParser( ElementHandler handler, 
-                                          String datatype, String arraysize ) {
+                                          String datatype, String arraysize,
+                                          String xtype ) {
 
         /* If no datatype has been specified, we can't do much. */
         if ( datatype == null || datatype.trim().length() == 0 ) {
@@ -190,7 +202,93 @@ public abstract class ValueParser {
             nel *= shape[ i ];
         }
 
-        /* Return a suitable parser. */
+        /* Consider xtype values with regard to rules in DALI 1.1 sec 3.3.
+         * If the metadata are appropriate for a DALI-endorsed extended type,
+         * return an appropriate parser, or if the xtype looks like DALI
+         * but the other metadata doesn't, issue an error and continue. */
+        boolean isFloating = "float".equals( datatype )
+                          || "double".equals( datatype );
+        boolean isNumeric = isFloating
+                         || "short".equals( datatype )
+                         || "int".equals( datatype )
+                         || "long".equals( datatype );
+        VotLintContext context = handler.getContext();
+        if ( "timestamp".equals( xtype ) ) {
+            if ( "char".equals( datatype ) &&
+                 shape.length == 1 ) {
+                return makeTimestampParser( context, shape[ 0 ] );
+            }
+            else {
+                context.error( new VotLintCode( "XTS" ),
+                               "xtype='timestamp' for non-string-type value" );
+            }
+        }
+        else if ( "interval".equals( xtype ) ) {
+            if ( shape.length != 1 || shape[ 0 ] != 2 ) {
+                context.error( new VotLintCode( "XI2" ),
+                               "xtype='interval' for arraysize != 2" );
+            }
+            else if ( !isNumeric ) {
+                context.error( new VotLintCode( "XI9" ),
+                               "xtype='interval' for non-numeric datatype" );
+            }
+            else if ( isFloating ) {
+                return makeFloatingIntervalParser( datatype, context );
+            }
+            else {
+                // Fall through, to make a normal array checker.
+                // Integer intervals are permitted, but we don't have
+                // a checker for them.  There's not much to check in any case,
+                // beyond normal 2-element array constraints.
+            }
+        }
+        else if ( "point".equals( xtype ) ) {
+            if ( shape.length != 1 || shape[ 0 ] != 2 ) {
+                context.error( new VotLintCode( "XP2" ),
+                               "xtype='point' for arraysize != 2" );
+            }
+            else if ( !isFloating ) {
+                context.error( new VotLintCode( "XP9" ),
+                               "xtype='point' for non-floating datatype" );
+            }
+            else {
+                return makePointParser( datatype, context );
+            }
+        }
+        else if ( "circle".equals( xtype ) ) {
+            if ( shape.length != 1 || shape[ 0 ] != 3 ) {
+                context.error( new VotLintCode( "XC3" ),
+                               "xtype='circle' for arraysize != 3" );
+            }
+            else if ( !isFloating ) {
+                context.error( new VotLintCode( "XC9" ),
+                               "xtype='circle' for non-floating datatype" );
+            }
+            else {
+                return makeCircleParser( datatype, context );
+            }
+        }
+        else if ( "polygon".equals( xtype ) ) {
+            if ( shape.length != 1 ) {
+                context.error( new VotLintCode( "XSV" ),
+                               "xtype='polygon' for non-vector arraysize" );
+            }
+            else if ( !isFloating ) {
+                context.error( new VotLintCode( "XS9" ),
+                               "xtype='polygon' for non-floating datatype" );
+            }
+            else {
+                return makePolygonParser( datatype, shape[ 0 ], context );
+            }
+        }
+        /* DALI sec 3.3: allow namespaced xtypes,
+         * but warn for non-standard non-namespaced xtypes. */
+        else if ( xtype != null && xtype.indexOf( ':' ) <= 0 ) {
+            context.warning( new VotLintCode( "XDL" ),
+                             "Non-DALI xtype value \"" + xtype + "\"" );
+        }
+
+        /* Return a suitable non-xtype parser. */
         if ( "char".equals( datatype ) || 
              "unicodeChar".equals( datatype ) ) {
             boolean ascii = "char".equals( datatype );
@@ -303,6 +401,281 @@ public abstract class ValueParser {
     }
 
     /**
+     * Returns a parser for xtype='timestamp' (DALI 1.1 sec 3.3.3).
+     */
+    private static ValueParser
+            makeTimestampParser( final VotLintContext context,
+                                 int stringLeng ) {
+        return new AbstractParser( String.class, 1 ) {
+            public void checkString( String txt ) {
+                checkTimestamp( txt );
+            }
+            public void checkStream( InputStream in ) throws IOException {
+                int nchar = stringLeng >= 0 ? stringLeng : readCount( in );
+                // The string should be ASCII, but we can test it as UTF-8,
+                // since if there are non-UTF-8 characters it will fail
+                // the regex match anyway.
+                checkTimestamp( new String( readStreamBytes( in, nchar ),
+                                            StandardCharsets.UTF_8 ) );
+            }
+            private void checkTimestamp( String txt ) {
+                if ( txt != null && txt.trim().length() > 0 ) {
+                    if ( ! ISO_REGEX.matcher( txt ).matches() ) {
+                        context.error( new VotLintCode( "TSR" ),
+                                       "Timestamp value \"" + txt + "\""
+                                     + " does not match "
+                                     + "YYYY-MM-DD['T'hh:mm:ss[.SSS]]['Z']" );
+                    }
+                    else {
+                        // This looks like it should be a more rigorous check.
+                        // Actually, it's not because the Times parsing
+                        // currently uses a lenient GregorianCalendar.
+                        // Maybe replace this by a non-lenient parser
+                        // at some point.
+                        try {
+                            Times.isoToMjd( txt );
+                        }
+                        catch ( RuntimeException e ) {
+                            context.error( new VotLintCode( "TSR" ),
+                                           "Bad timestamp \"" + txt + "\" "
+                                         + e.getMessage() );
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    /**
+     * Returns a parser for xtype='interval' (DALI 1.1 sec 3.3.4).
+     * This parser only handles floating point intervals,
+     * though integer ones are also permitted.
+     *
+     * @param  datatype  datatype value
+     * @param  context   reporting context
+     * @return  new parser
+     */
+    private static ValueParser
+            makeFloatingIntervalParser( String datatype,
+                                        VotLintContext context ) {
+        return makeFloatingArrayParser( datatype, 2, values -> {
+            double d0 = values[ 0 ];
+            double d1 = values[ 1 ];
+            if ( Double.isNaN( d0 ) != Double.isNaN( d1 ) ) {
+                context.error( new VotLintCode( "XIN" ),
+                               "One but not both interval limit is NaN "
+                             + Arrays.toString( values ) );
+            }
+        } );
+    }
+
+    /**
+     * Returns a parser for xtype='point' (DALI 1.1 sec 3.3.5).
+     *
+     * @param  datatype  datatype value
+     * @param  context   reporting context
+     * @return  new parser
+     */
+    private static ValueParser makePointParser( String datatype,
+                                                VotLintContext context ) {
+        return makeFloatingArrayParser( datatype, 2, values -> {
+            double d0 = values[ 0 ];
+            double d1 = values[ 1 ];
+            if ( Double.isNaN( d0 ) != Double.isNaN( d1 ) ) {
+                context.error( new VotLintCode( "XIN" ),
+                               "One but not both point coordinate is NaN "
+                             + Arrays.toString( values ) );
+            }
+            else if ( Double.isInfinite( d0 ) || Double.isInfinite( d1 ) ) {
+                context.error( new VotLintCode( "XIZ" ),
+                               "Infinite point coordinate(s) "
+                             + Arrays.toString( values ) );
+            }
+        } );
+    }
+
+    /**
+     * Returns a parser for xtype='circle' (DALI 1.1 sec 3.3.6).
+     *
+     * @param  datatype  datatype value
+     * @param  context   reporting context
+     * @return  new parser
+     */
+    private static ValueParser makeCircleParser( String datatype,
+                                                 VotLintContext context ) {
+        return makeFloatingArrayParser( datatype, 3, values -> {
+            double c1 = values[ 0 ];
+            double c2 = values[ 1 ];
+            double r = values[ 2 ];
+            if ( Double.isNaN( c1 ) != Double.isNaN( c2 ) ||
+                 Double.isNaN( c1 ) != Double.isNaN( r ) ) {
+                context.error( new VotLintCode( "XIN" ),
+                               "Some but not all circle parameters are NaN "
+                             + Arrays.toString( values ) );
+            }
+        } );
+    }
+
+    /**
+     * Returns a parser for xtype='polygon' (DALI 1.1 sec 3.3.7).
+     *
+     * @param  datatype  datatype value
+     * @param  nel     fixed element count of array value,
+     *                 or negative for variable element count
+     * @param  context   reporting context
+     * @return  new parser
+     */
+    private static ValueParser makePolygonParser( String datatype, int nel,
+                                                  VotLintContext context ) {
+        return makeFloatingArrayParser( datatype, nel, values -> {
+            int ncoord = values.length;
+            if ( nel >= 0 && ncoord != nel ) {
+                context.error( new VotLintCode( "E09" ),
+                               "Wrong number of elements in array (" + 
+                               ncoord + " found, " + nel + " expected)" );
+            }
+            if ( ncoord % 2 != 0 ) {
+                context.error( new VotLintCode( "XSO" ),
+                               "Odd number of polygon coords (" + ncoord + ")");
+            }
+            else if ( ncoord > 0 && ncoord < 6 ) {
+                context.error( new VotLintCode( "XSF" ),
+                               "Too few polygon coords (" + ncoord + ")" );
+            }
+        } );
+    }
+
+    /**
+     * Creates a generic parser that works with fixed- or variable-length
+     * arrays of floating point values.
+     * Note that this currently only works with <code>datatype</code>
+     * values of "<code>float</code>" or "<code>double</code>".
+     *
+     * @param  datatype  value of (scalar) datatype attribute;
+     * @param  nel   fixed element count for array values,
+     *               or negative value for variable elemen count
+     * @param  arrayChecker  callback to perform checking on an
+     *                       array of floating point values read in
+     * @return   new parser
+     */
+    private static ValueParser
+            makeFloatingArrayParser( String datatype, int nel,
+                                     Consumer<double[]> arrayChecker ) {
+        final Class<?> aclazz;
+        final int elSize;
+
+        /* Set up readers.  As it happens the DataInput readFloat/readDouble
+         * methods are correct for reading from VOTable BINARY streams. */
+        final FloatReader floatReader;
+        if ( "float".equals( datatype ) ) {
+            aclazz = float[].class;
+            elSize = 4;
+            floatReader = DataInput::readFloat;
+        }
+        else if ( "double".equals( datatype ) ) {
+            aclazz = double[].class;
+            elSize = 8;
+            floatReader = DataInput::readDouble;
+        }
+        else {
+            throw new AssertionError( "datatype? " + datatype );
+        }
+        return new AbstractParser( aclazz, nel >= 0 ? nel : -1 ) {
+            public void checkString( String text ) {
+                double[] values = readString( text );
+                if ( values != null ) {
+                    arrayChecker.accept( values );
+                }
+            }
+            public void checkStream( InputStream in ) throws IOException {
+                double[] values = readStream( in );
+                if ( values != null ) {
+                    arrayChecker.accept( values );
+                }
+            }
+
+            /**
+             * Reads a floating point array from a string value.
+             *
+             * @param  text  string value of field
+             * @return   content as double array, or null if not parseable
+             */
+            private double[] readString( String text ) {
+                String[] sitems = text.trim().split( "\\s+" );
+                int n = sitems.length;
+                double[] ditems = new double[ n ];
+                for ( int i = 0; i < n; i++ ) {
+                    String sitem = sitems[ i ];
+                    final double ditem;
+                    if ( "NaN".equals( sitem ) ) {
+                        ditem = Double.NaN;
+                    }
+                    else if ( "+Inf".equals( sitem ) ) {
+                        ditem = Double.POSITIVE_INFINITY;
+                    }
+                    else if ( "-Inf".equals( sitem ) ) {
+                        ditem = Double.NEGATIVE_INFINITY;
+                    }
+                    else {
+                        Matcher matcher = DOUBLE_REGEX.matcher( sitem );
+                        if ( matcher.matches() ) {
+                            try {
+                                ditem = Double.parseDouble( sitem );
+                            }
+                            catch ( NumberFormatException e ) {
+                                // shouldn't happen
+                                error( new VotLintCode( "FPX" ),
+                                       "Unexpected bad " + datatype + " string"
+                                     + " '" + sitem + "'" );
+                                return null;
+                            }
+                        }
+                        else {
+                            error( new VotLintCode( "FP0" ),
+                                   "Bad " + datatype + " string"
+                                 + " '" + sitem + "'" );
+                            return null;
+                        }
+                    }
+                    ditems[ i ] = ditem;
+                }
+                return ditems;
+            }
+
+            /**
+             * Reads a double array from a stream.
+             *
+             * @param  in  input stream
+             * @return  floating point array of size defined by this parser
+             */
+            private double[] readStream( InputStream in ) throws IOException {
+                int nitem = nel >= 0 ? nel : readCount( in );
+                DataInputStream dataIn = new DataInputStream( in );
+                double[] ditems = new double[ nitem ];
+                for ( int i = 0; i < nel; i++ ) {
+                    ditems[ i ] = floatReader.readDouble( dataIn );
+                }
+                return ditems;
+            }
+        };
+    }
+
+    /**
+     * Interface for extracting a double from a binary stream.
+     */
+    @FunctionalInterface
+    private static interface FloatReader {
+
+        /**
+         * Reads a numeric value from a DataInput.
+         *
+         * @param  dataIn  input stream
+         * @return  double value
+         */
+        double readDouble( DataInput dataIn ) throws IOException;
+    }
+
+    /**
      * Abstract parser superclass which just keeps track of parser
      * class and count.
      */
@@ -359,7 +732,6 @@ public abstract class ValueParser {
             slurpStream( in, nbyte_ );
         }
     }
-
 
     /**
      * Parser which reads a fixed number of scalar elements.
@@ -827,6 +1199,18 @@ public abstract class ValueParser {
     }
 
     /**
+     * Reads and returns a fixed number of bytes from a stream.
+     *
+     * @param  in  input stream
+     * @param  nbyte  required byte count
+     * @return   full buffer of size <code>nbyte</code>
+     * @throws  IOException  if read could not complete
+     */
+    byte[] readStreamBytes( InputStream in, int nbyte ) throws IOException {
+        return readStreamBytes( in, nbyte, getContext() );
+    }
+
+    /**
      * Uncritically reads in a fixed number of bytes from a stream.
      * An error is reported if the stream ends mid-read.
      *
@@ -845,6 +1229,33 @@ public abstract class ValueParser {
                 throw new EOFException();
             }
         }
+    }
+
+    /**
+     * Reads and returns a fixed number of bytes from a stream.
+     * An error is reported if the stream ends mid-read.
+     *
+     * @param  in  input stream
+     * @param  nbyte  number of bytes to read
+     * @param  context  error reporting context
+     * @return   full buffer of size <code>nbyte</code>
+     * @throws  IOException  if read could not complete
+     */
+    public static byte[] readStreamBytes( InputStream in, int nbyte,
+                                          VotLintContext context )
+            throws IOException {
+        byte[] buf = new byte[ nbyte ];
+        for ( int ip = 0; ip < nbyte; ) {
+            int nr = in.read( buf, ip, nbyte - ip );
+            if ( nr < 0 ) {
+                context.error( new VotLintCode( "EOF" ),
+                               "Scream ended during data read; done "
+                             + ip + "/" + nbyte );
+                throw new EOFException();
+            }
+            ip += nr;
+        }
+        return buf;
     }
 
     /**
@@ -918,5 +1329,4 @@ public abstract class ValueParser {
             return Array.newInstance( wclazz, 0 ).getClass();
         }
     }
-       
 }
