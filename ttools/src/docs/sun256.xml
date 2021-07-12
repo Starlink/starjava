@@ -13296,6 +13296,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         conformance to rules from
         <webref url="https://www.ivoa.net/documents/DALI/20170517/"
                 >DALI 1.1</webref> sec 3.3.</li>
+    <li>Modify taplint <code>stages</code> parameter usage;
+        you can now add and remove stages individually using
+        <code>+XXX</code>/<code>-XXX</code> syntax.</li>
     </ul>
     </p></dd>
 
