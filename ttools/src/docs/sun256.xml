@@ -13268,6 +13268,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li><ref id="votlint">votlint</ref> now has a <code>maxrepeat</code>
         parameter like <code>taplint</code>
         (previously the repeat count was hard-wired to 4).</li>
+    <li>Columns that are all blank in ASCII-like tables
+        (CSV, ASCII, TST) are now interpreted as type String
+        not boolean.</li>
     </ul>
 
     </p></dd>

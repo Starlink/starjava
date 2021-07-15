@@ -29860,6 +29860,9 @@ introduced since the last version:
         HEALPix-FITS files, e.g. allow "GALACTIC" instead of "G".</li>
     <li>Revert to sequential processing in some cases for
         Healpix plots to reduce resource usage.</li>
+    <li>Columns that are all blank in ASCII-like tables
+        (CSV, ASCII, TST) are now interpreted as String
+        not boolean.</li>
     </ul>
     </p></dd>
 
