@@ -66,7 +66,6 @@ public class CodeTest extends TestCase {
             assertTrue( status.getMessage().length() > 0 );
         }
         for ( String unit : new String[] {
-                  "Angstrom",
                   "'electron'.pix**-1",
                   "sizeOfWales",
               } ) {
@@ -78,6 +77,8 @@ public class CodeTest extends TestCase {
         }
         assertEquals( UnitStatus.Code.WHITESPACE,
                       UnitStatus.getStatus( "m / s" ).getCode() );
+        assertEquals( UnitStatus.Code.DEPRECATED,
+                      UnitStatus.getStatus( "Angstrom" ).getCode() );
     }
 
 }

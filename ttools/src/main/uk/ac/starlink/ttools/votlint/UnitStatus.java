@@ -148,12 +148,15 @@ public class UnitStatus {
 
         /** Conforms to VOUnits standard. */
         OK( ' ' ),
+ 
+        /** Contains some units deprecated in VOUnits standard. */
+        // In most cases this means deprecated by the IAU.
+        // Don't even class this as a warning, since it contains some
+        // items like Angstrom and erg that are common and reasonable.
+        DEPRECATED( ' ' ),
 
         /** Parsed as VOUnit but contains unknown base units. */
         UNKNOWN_UNIT( 'W' ),
- 
-        /** Contains some units deprecated in VOUnits standard. */
-        DEPRECATED( 'W' ),
 
         /** Cannot be parsed as VOUnit. */
         BAD_SYNTAX( 'E' ),
