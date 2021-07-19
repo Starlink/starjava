@@ -4,6 +4,8 @@ import ari.ucidy.UCD;
 import ari.ucidy.UCDParser;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import junit.framework.TestCase;
 import uk.me.nxg.unity.Syntax;
 import uk.me.nxg.unity.UnitExpr;
@@ -13,6 +15,10 @@ import uk.me.nxg.unity.UnitParserException;
 public class DmTest extends TestCase {
 
     private static final Syntax SYNTAX = Syntax.VOUNITS;
+
+    public DmTest() {
+        Logger.getLogger( "ari.ucidy" ).setLevel( Level.OFF );
+    }
 
     public void testObsTap() throws UnitParserException {
         boolean is11 = true;
