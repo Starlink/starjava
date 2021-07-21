@@ -30,7 +30,7 @@ import uk.ac.starlink.vo.VocabTerm;
 
 /**
  * Validation stage for testing EPN-TAP data model metadata and content.
- * This implementation corresponds to PR-EPNTAP-2.0-20210630.
+ * This implementation corresponds to PR-EPNTAP-2.0-20210721.
  *
  * @author   Mark Taylor
  * @since    17 Jun 2021
@@ -695,7 +695,7 @@ public class EpnTapStage implements Stage {
             new MinMaxCol( "spectral_range_", Type.DOUBLE, "Hz",
                            minMaxStats( "em.freq" ) ),
             new MinMaxCol( "spectral_sampling_step_", Type.DOUBLE, "Hz",
-                           minMaxStats( "em.freq;stat.interval" ) ),
+                           minMaxStats( "em.freq;spect.binSize" ) ),
             new MinMaxCol( "spectral_resolution_", Type.DOUBLE, "",
                            minMaxStats( "spect.resolution" ) ),
             new MinMaxCol( "c1", Type.DOUBLE, null, null ),

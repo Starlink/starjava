@@ -13307,7 +13307,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (against the UCD1+ standard).</li>
     <li>New stage <code>EPN</code> added to taplint.
         This checks EPN-TAP (<code>*.epn_core</code>) tables
-        against some version of EPN-TAP 2.0.
+        against some version of EPN-TAP 2.0
+        (currently PR-EPNTAP-2.0-20210721).
         Since EPN-TAP is still in draft at time of writing,
         this stage is not run by default.</li>
     </ul>
