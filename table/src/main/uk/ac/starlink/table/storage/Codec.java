@@ -26,7 +26,7 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public abstract class Codec {
 
-    private int warnings_;
+    private volatile int warnings_;
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.storage" );
 
@@ -799,7 +799,7 @@ public abstract class Codec {
      * and deserialize elements of an array.
      */
     private static abstract class Codec1 {
-        private int warnings_;
+        private volatile int warnings_;
 
         /**
          * Serializes an element of an array to a stream.
