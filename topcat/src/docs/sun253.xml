@@ -24632,11 +24632,12 @@ Some of the notable contributers are these:
 <li>Sebastien Derriere (CDS)</li>
 <li>Emilio Donoso (ICATE)</li>
 <li>Peter Draper (Starlink, Durham)</li>
-<li>St#x00e9phane Erard (Observatoire de Paris)</li>
+<li>St&#x00e9;phane Erard (Observatoire de Paris)</li>
 <li>Heinz-Bernd Eggenstein (AEI, Hannover)</li>
 <li>Pierre Fernique (CDS)</li>
 <li>Shashikiran Ganesh (PRL, India)</li>
 <li>Fedrico Garcia (RUG)</li>
+<li>Vincent G&#x00e9;not (IRAP)</li>
 <li>David Giaretta (Starlink, RAL)</li>
 <li>Bertrand Goldman (MPIA)</li>
 <li>Eduardo Gonzalez-Solares (IoA)</li>
@@ -29869,6 +29870,10 @@ introduced since the last version:
         not boolean.</li>
     <li>New functions in class <ref id="VO">VO</ref>
         to check syntax of UCD and VOUnit strings.</li>
+    <li>Fix serious threading bug that could return nonsense values
+        from fixed-length string fields during parallel processing, 
+        for instance statistics calculation, 
+        of large cached/randomised tables.</li>
     </ul>
     </p></dd>
 

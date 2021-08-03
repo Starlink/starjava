@@ -689,11 +689,9 @@ public abstract class Codec {
     private static class FixedStringCodec extends ObjectCodec {
 
         final int nchar_;
-        final char[] cbuf_;
 
         FixedStringCodec( int nchar ) {
             nchar_ = nchar;
-            cbuf_ = new char[ nchar_ ];
         }
 
         public int encode( Object value, DataOutput out ) throws IOException {
@@ -713,15 +711,16 @@ public abstract class Codec {
 
         public Object decodeObject( ByteStoreAccess in ) throws IOException {
             int lastNonZero = -1;
+            char[] cbuf = new char[ nchar_ ];
             for ( int ic = 0; ic < nchar_; ic++ ) {
                 char c = in.readChar();
                 if ( c != 0 ) {
                     lastNonZero = ic;
                 }
-                cbuf_[ ic ] = c;
+                cbuf[ ic ] = c;
             }
             return lastNonZero < 0 ? null
-                                   : new String( cbuf_, 0, lastNonZero + 1 );
+                                   : new String( cbuf, 0, lastNonZero + 1 );
         }
         public int getItemSize() {
             return nchar_ * 2;

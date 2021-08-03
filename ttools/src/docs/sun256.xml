@@ -13311,6 +13311,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (currently PR-EPNTAP-2.0-20210721).
         Since EPN-TAP is still in draft at time of writing,
         this stage is not run by default.</li>
+    <li>Fix serious threading bug that could return nonsense values
+        from fixed-length string fields during parallel processing,
+        for instance statistics calculation,
+        of large cached/randomised tables.</li>
     </ul>
     </p></dd>
 
