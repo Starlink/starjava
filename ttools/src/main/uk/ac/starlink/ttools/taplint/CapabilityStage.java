@@ -144,10 +144,12 @@ public class CapabilityStage implements Stage {
         }
 
         /* If it's one of several common non-VO server component names,
-         * it's not a VO component identifier. */
-        if ( NON_VO_SERVERSOFT    // RFC 7231 sec 5.5.3
-            .contains( word.replaceAll( "/.*", "" ).toLowerCase() ) ) {
-            return false;
+         * it's not a VO component identifier; see RFC 7231 sec 5.5.3. */
+        String componentName = word.replaceAll( "/.*", "" ).toLowerCase();
+        for ( String nonvoName : NON_VO_SERVERSOFT ) {
+            if ( componentName.indexOf( nonvoName.toLowerCase() ) >= 0 ) {
+                return false;
+            }
         }
 
         /* Otherwise, it might be. */
