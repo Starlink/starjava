@@ -99,6 +99,8 @@ public class ResourceIcon implements Icon {
         FITS = makeIcon( "fits1.png" ),
         COPY = makeIcon( "Copy24.png" ),
         REDO = makeIcon( "Redo24.png" ),
+        PAUSE = makeIcon( "Pause24.png" ),
+        SCROLL = makeIcon( "History24.png" ),
         ADD = makeIcon( "Plus1.png" ),
         SUBTRACT = makeIcon( "Minus1.png" ),
         DELETE = makeIcon( "trash2.png" ),

@@ -24353,31 +24353,82 @@ but they may not have proper documentation
 <figureimage src="&FIG.LogWindow;"/>
 </figure>
 
-<p>The log window can be obtained using the <label>View Log</label>
+<p>The log window can be obtained using the
+<label>View Log</label> (&IMG.LOG;) 
 option on the <label>File</label> menu of the 
 <ref id="ControlWindow">Control Window</ref>.
 </p>
 
 <p>This window displays any log messages which the application has
-generated.  Depending on whether the <code>-verbose</code> flag has
-been specified, some or all of these messages may have been written
-to console as well (if there is a console - this depends on how you
-have invoked TOPCAT).  
-Under some circumstances, messages way back in the list may not be
-displayed.
+generated.
+These messages are <em>not</em> required reading for users, but they can be
+useful for debugging in case of problems,
+and they can also tell you some useful information about what
+the application is doing, for instance external URLs that are being
+accessed or ADQL query text.
+These messages can be useful if you want to reproduce some parts of
+TOPCAT's behaviour outside the application, e.g. using <code>curl</code>
+or a web browser.
 </p>
 
-<p>To clear the display of all the existing messages you can use
-the <label>Clear Log</label> button (&IMG.CLEAR;).
+<p>The messages are colour-coded to some extent.
+WARNING- and SEVERE-level messages, which generally indicate some kind of
+problem that may cause trouble, are displayed in red and black
+respectively.
+INFO- and CONFIG-level messages, which generally just provide
+information about what's going on under the hood,
+are assigned an arbitrary colour based on the code subsystem
+(the <em>Source</em> value) that has generated them.
+These colours are not really significant,
+they are just intended as a visual aid.
 </p>
 
-<p>The messages displayed here are those written through Java's
-<webref url="&URL.J2SE_DOCS;guide/util/logging/index.html"
-        >logging system</webref>
-- in general they are intended for 
-debugging purposes and not for users to read, but if something 
-unexpected is happening, or if you are filing a bug report, 
-it may provide some clues about what's going on.
+<p>The <label>Level</label> selector at the bottom can be used as a
+filter so that only messages beyond a certain severity are displayed.
+</p>
+
+<p>Depending on whether the <code>-verbose</code> flag
+<ref id="topcatArgs">has been specified</ref>,
+some or all of the displayed messages may have been written
+to the console as well
+(if there is a console - this depends on how you have invoked TOPCAT).  
+</p>
+
+<p>There is a limit (currently 1000) to the number of logging messages
+retained, so for long-running instances the older ones may be discarded.
+</p>
+
+<p>The following toolbar/menu items are available:
+<dl>
+
+<dt>&IMG.CLEAR; Clear</dt>
+<dd><p>Clears all the existing messages from the display.
+    </p></dd>
+
+<dt>&IMG.SCROLL; Auto-scroll</dt>
+<dd><p>When this toggle is on (the default),
+    the display will scroll to the bottom
+    any time a new log message is added, so you can always see the latest ones.
+    That can be annoying if you're trying to examine messages earlier
+    in the list however, so by turning it off you can prevent this behaviour.
+    </p></dd>
+
+<dt>&IMG.PAUSE; Pause logging</dt>
+<dd><p>While this toggle is on, no more messages will be added to the display.
+    </p></dd>
+
+<dt>&IMG.SAVE; Export to file</dt>
+<dd><p>Writes all the current content of the logging buffer to a text file.
+    Even those messages currently filtered out by level from the display
+    are included.  The output is in a somewhat different format than
+    what's displayed.  This output may be a useful accompaniment to
+    (certain kinds of) bug reports.
+    </p></dd>
+</dl>
+</p>
+
+<p>Note: the messages displayed here are those written through Java's
+<webref url="&URL.J2SE_DOCS;technotes/guides/logging/">logging system</webref>.
 Although it tries not to disturb things too much, TOPCAT's 
 manipulation of the logging infrastructure affects how it is 
 set up, so if you have customised your logging setup using,
@@ -29877,6 +29928,10 @@ introduced since the last version:
     <li>Copy/paste is now possible from the
         <ref id="ActivationWindow">Activation Window</ref>
         Results panel.</li>
+    <li>The <ref id="LogWindow">Log Window</ref>, which has been broken
+        since v4.7-1, and not much use before that, has been rewritten.
+        It now presents logging information, including things like
+        external service access details, in a useful way.</li>
     </ul>
     </p></dd>
 

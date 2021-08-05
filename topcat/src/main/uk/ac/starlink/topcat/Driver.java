@@ -351,6 +351,9 @@ public class Driver {
 
         /* Configure logging. */
         InvokeUtils.configureLogging( verbosity, debug );
+        Logger rootLogger = Logger.getLogger( "" );
+        rootLogger.setLevel( Level.CONFIG );
+        rootLogger.addHandler( LogHandler.getInstance() );
 
         /* Check JRE vendor and report on concerns. */
         Loader.checkJ2seVendor();
