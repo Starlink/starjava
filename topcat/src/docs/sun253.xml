@@ -29874,6 +29874,9 @@ introduced since the last version:
         from fixed-length string fields during parallel processing, 
         for instance statistics calculation, 
         of large cached/randomised tables.</li>
+    <li>Copy/paste is now possible from the
+        <ref id="ActivationWindow">Activation Window</ref>
+        Results panel.</li>
     </ul>
     </p></dd>
 

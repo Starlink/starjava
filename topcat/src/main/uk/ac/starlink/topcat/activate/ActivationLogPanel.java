@@ -256,6 +256,16 @@ public class ActivationLogPanel extends JPanel {
         }
 
         /**
+         * Flag cells as editable as a quick hack to allow the cell contents
+         * to be selected for copy/paste.  Actual editing of the values
+         * doesn't do anything.
+         */
+        @Override
+        public boolean isCellEditable( int irow, int icol ) {
+            return true;
+        }
+
+        /**
          * Updates column widths based on the presented cell values
          * alongside any previous column width determinations.
          *
