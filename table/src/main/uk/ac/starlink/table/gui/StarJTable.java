@@ -3,6 +3,7 @@ package uk.ac.starlink.table.gui;
 import java.awt.Component;
 import java.util.Iterator;
 import java.util.logging.Logger;
+import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -249,6 +250,20 @@ public class StarJTable extends JTable {
         int width = Math.min( getColumnWidth( table, icol, rowSample ),
                               maxpix );
         table.getColumnModel().getColumn( icol ).setPreferredWidth( width );
+    }
+
+    /**
+     * Utility method that tries to arrange for the column headers to be
+     * left-aligned rather than, as seems to be the default, center-aligned.
+     *
+     * @param  jtable  table to affect
+     */
+    public static void alignHeadersLeft( JTable jtable ) {
+        TableCellRenderer hdrRend =
+            jtable.getTableHeader().getDefaultRenderer();
+        if ( hdrRend instanceof JLabel ) {
+            ((JLabel) hdrRend).setHorizontalAlignment( SwingConstants.LEFT );
+        }
     }
 
     /**
