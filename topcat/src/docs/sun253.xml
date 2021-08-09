@@ -29932,6 +29932,10 @@ introduced since the last version:
         since v4.7-1, and not much use before that, has been rewritten.
         It now presents logging information, including things like
         external service access details, in a useful way.</li>
+    <li>Fix behaviour for a couple of activation actions
+        (<ref id="ServiceActivationType">Invoke Service</ref> and
+         <ref id="InvokeDatalinkActivationType">Invoke Datalink</ref>),
+        that invoked the wrong row for tables with sorted rows.</li>
     </ul>
     </p></dd>
 

@@ -95,7 +95,7 @@ public class InvokeDatalinkActivationType implements ActivationType {
 
         public Activator getActivator() {
             final boolean isAuto = autoModel_.isSelected();
-            final StarTable table = tcModel_.getViewModel().getSnapshot();
+            final StarTable table = tcModel_.getDataModel();
             if ( LinksDoc.isLinksResponse( table, 4 ) ) {
                 return new Activator() {
                     public boolean invokeOnEdt() {

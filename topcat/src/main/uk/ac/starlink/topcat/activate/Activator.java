@@ -26,6 +26,13 @@ public interface Activator {
     /**
      * Invokes some kind of action on the table row indicated by a given index.
      *
+     * <p>Note that the row index supplied is that from the TopcatModel's
+     * DataModel, not the Apparent Table, so that remapping the row index
+     * according to any current row sorting has already been applied.
+     * Possibly that's not the way it should have been done, and it
+     * may be desirable to change that in future, but at time of writing
+     * that's the way it is.
+     *
      * @param  lrow   row index
      * @param  meta   additional activation metadata if available;
      *                may be null if no special information is available
