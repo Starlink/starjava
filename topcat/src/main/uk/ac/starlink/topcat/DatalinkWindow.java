@@ -27,7 +27,7 @@ public class DatalinkWindow extends AuxWindow {
      */
     public DatalinkWindow( final TopcatModel tcModel, Component parent ) {
         super( tcModel, "DataLink View", parent );
-        DatalinkPanel dlPanel = new DatalinkPanel( false ) {
+        DatalinkPanel dlPanel = new DatalinkPanel( false, false ) {
             @Override
             protected void configureJTable( JTable jtable, LinksDoc linksDoc ) {
                 jtable.setModel( tcModel.getViewModel() );

@@ -37,6 +37,7 @@ public class UrlPanel extends JPanel {
     private final JComboBox<ResourceType> typeSelector_;
     private final JComboBox<UrlInvoker> invokeSelector_;
     private final ToggleButtonModel guessTypeModel_;
+    private final ToggleButtonModel autoInvokeModel_;
     private final Action invokeAct_;
     private final JLabel statusLabel_;
     private final JTextField msgField_;
@@ -53,8 +54,10 @@ public class UrlPanel extends JPanel {
      * Constructor.
      *
      * @param  urlopts  options and defaults for URL invocation
+     * @param  hasAutoInvoke      true iff an auto-invoke toggle button
+     *                            should be displayed
      */
-    public UrlPanel( UrlOptions urlopts ) {
+    public UrlPanel( UrlOptions urlopts, boolean hasAutoInvoke ) {
         super( new BorderLayout() );
         urlopts_ = urlopts;
         isSingleInvocationThread_ = true;
@@ -70,6 +73,16 @@ public class UrlPanel extends JPanel {
                 }
             }
         } );
+        autoInvokeModel_ =
+            new ToggleButtonModel( "Auto-Invoke", null,
+                                   "Actions will be invoked without "
+                                 + "manual intervention" );
+        autoInvokeModel_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                updateState();
+            }
+        } );
+        autoInvokeModel_.setSelected( false );
         JComponent vbox = Box.createVerticalBox();
         add( vbox, BorderLayout.NORTH );
         urlField_ = new JTextField();
@@ -137,6 +150,10 @@ public class UrlPanel extends JPanel {
         cline.add( Box.createHorizontalStrut( 5 ) );
         cline.add( new LineBox( "Action", invokeSelector_ ) );
         cline.add( Box.createHorizontalGlue() );
+        if ( hasAutoInvoke ) {
+            cline.add( autoInvokeModel_.createCheckBox() );
+            cline.add( Box.createHorizontalStrut( 5 ) );
+        }
         cline.add( new JButton( invokeAct_ ) );
         vbox.add( Box.createVerticalStrut( 2 ) );
         vbox.add( cline );
@@ -152,6 +169,9 @@ public class UrlPanel extends JPanel {
 
     /**
      * Configures this panel for use with a given URL.
+     *
+     * <p>If auto-invoke is set up, this will also cause the action
+     * to be invoked (when possible).
      *
      * @param  url   resource URL
      * @param  contentType   known or inferred Content-Type string (RFC 2045),
@@ -169,6 +189,10 @@ public class UrlPanel extends JPanel {
             typeSelector_.setSelectedItem( guessType_ );
         }
         updateState();
+        if ( autoInvokeModel_.isSelected() && canInvoke() ) {
+            ActionEvent evt = new ActionEvent( this, 1, "Auto-Invoke" );
+            invokeAct_.actionPerformed( evt );
+        }
     }
 
     /**
@@ -218,6 +242,18 @@ public class UrlPanel extends JPanel {
     }
 
     /**
+     * Indicates whether this panel is currently set up for auto-invoke.
+     * If true, then calling the {@link #configure} method
+     * will cause the link to be followed according to current settings
+     * without further manual user intervention.
+     *
+     * @return   whether auto-invoke is in effect
+     */
+    public boolean isAutoInvoke() {
+        return autoInvokeModel_.isSelected();
+    }
+
+    /**
      * Sets the Outcome to be displayed, reporting the result of the
      * most recently invoked URL.
      *
@@ -246,7 +282,17 @@ public class UrlPanel extends JPanel {
      * the GUI correctly reflects them.
      */
     private void updateState() {
-        invokeAct_.setEnabled( getUrlInvoker() != null && getUrl() != null );
+        invokeAct_.setEnabled( ! autoInvokeModel_.isSelected() && canInvoke() );
+    }
+
+    /**
+     * Indicates whether this panel currently has enough state to be able
+     * to invoke its displayed link.
+     *
+     * @return  true iff invocation may perform some action
+     */
+    private boolean canInvoke() {
+        return getUrlInvoker() != null && getUrl() != null;
     }
 
     /**
