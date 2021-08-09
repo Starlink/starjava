@@ -23022,10 +23022,26 @@ by the <webref url="&URL.DATALINK;">DataLink standard</webref>.
 Activating a row with this action defined will retrieve the
 DataLink file from the given URL and display it in a new popup window.
 The display is the same as that of the
-<ref plaintextref="yes" id="DatalinkWindow">DataLink Window</ref>,
-except that in this case the DataLink table has not been loaded into
-the TOPCAT application as a new table.
-Refer to the documentation of that window for more details.
+<ref plaintextref="yes" id="DatalinkWindow">DataLink Window</ref>;
+see the documentation of that window for details.
+There are a couple of differences however:
+<ul>
+<li>In this case, the DataLink table has not been loaded into TOPCAT
+    as a new table.</li>
+<li>There is an extra checkbox, <label>Auto-Invoke</label>, next to
+    the <label>Invoke</label> button.
+    If this is selected, then as soon as the row is activated, the
+    invoke action will be performed automatically on that row's
+    DataLink table without needing any more user intervention.
+    This can work well, and reduces the number of clicks required
+    (it's not necessary to hit Invoke every time), but it may be worth
+    trying it manually on a few rows to make sure the right action is
+    taking place.
+    TOPCAT tries to use the corresponding row of the DataLink table
+    each time a new DataLink table is loaded, based on column values;
+    it usually guesses correctly, but may get confused if the
+    structure of the tables is much different for different rows.</li>
+</ul>
 </p>
 
 <p>Configuration:
@@ -29936,6 +29952,9 @@ introduced since the last version:
         (<ref id="ServiceActivationType">Invoke Service</ref> and
          <ref id="InvokeDatalinkActivationType">Invoke Datalink</ref>),
         that invoked the wrong row for tables with sorted rows.</li>
+    <li>Add <label>Auto-Invoke</label> option to 
+        <ref id="ViewDatalinkActivationType">View Datalink Table</ref>
+        activation action's Datalink display.</li>
     </ul>
     </p></dd>
 

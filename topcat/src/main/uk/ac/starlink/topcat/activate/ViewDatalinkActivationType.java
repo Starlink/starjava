@@ -109,7 +109,7 @@ public class ViewDatalinkActivationType implements ActivationType {
         DatalinkConfigurator( TopcatModelInfo tinfo ) {
             super( tinfo, "Datalink",
                    new ColFlag[] { ColFlag.DATALINK, ColFlag.URL, } );
-            dlPanel_ = new DatalinkPanel( true, false );
+            dlPanel_ = new DatalinkPanel( true, true );
             String title = "TOPCAT(" + tinfo.getTopcatModel().getID() + "): "
                          + "Activation - View Datalink Table";
             window_ = new JFrame( title );
