@@ -22,6 +22,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 /**
@@ -62,7 +63,7 @@ public class UrlPanel extends JPanel {
         urlopts_ = urlopts;
         isSingleInvocationThread_ = true;
         guessTypeModel_ =
-            new ToggleButtonModel( "Guess Type", null,
+            new ToggleButtonModel( "Guess", null,
                                    "Guess resource type"
                                  + " from available information" );
         guessTypeModel_.setSelected( true );
@@ -144,10 +145,12 @@ public class UrlPanel extends JPanel {
         vbox.add( uline );
         JComponent cline = Box.createHorizontalBox();
         JCheckBox guessButton = guessTypeModel_.createCheckBox();
-        guessButton.setText( null );
+        guessButton.setHorizontalTextPosition( SwingConstants.LEFT );
+        cline.add( new JLabel( "Type: " ) );
+        cline.add( typeSelector_ );
         cline.add( guessButton );
-        cline.add( new LineBox( "Type", typeSelector_ ) );
         cline.add( Box.createHorizontalStrut( 5 ) );
+        cline.add( Box.createHorizontalGlue() );
         cline.add( new LineBox( "Action", invokeSelector_ ) );
         cline.add( Box.createHorizontalGlue() );
         if ( hasAutoInvoke ) {

@@ -96,7 +96,7 @@ public class DatalinkPanel extends JPanel {
         UrlOptions urlopts =
             UrlOptions.createOptions( canReplaceContents ? this : null );
         linkPanel_ = new LinkRowPanel( urlopts, hasAutoInvoke );
-        int width = hasAutoInvoke ? 750 : 550;
+        int width = hasAutoInvoke ? 750 : 650;
 
         tablePanel.setPreferredSize( new Dimension( width, 150 ) );
         linkPanel_.setPreferredSize( new Dimension( width, 300 ) );

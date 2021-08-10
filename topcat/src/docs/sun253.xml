@@ -6659,7 +6659,7 @@ listed resource.  The parts of this panel are:
     you select a new row in the table.
     However, if you want the selected type to be "sticky",
     i.e. not to be automatically updated,
-    uncheck the checkbox on the left of it.
+    uncheck the <label>Guess</label> checkbox on the right of it.
     Then the selected value will stay the same until it's changed manually.
     The purpose of this selector is to give a hint to the Action selection.
    </p></dd>
