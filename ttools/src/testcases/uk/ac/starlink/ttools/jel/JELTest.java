@@ -78,6 +78,7 @@ public class JELTest extends TableTestCase {
             assertEquals( Integer.class, info.getContentClass() );
         }
         assertEquals( Integer.class, ct.getColumnInfo( 3 ).getContentClass() );
+        Tables.checkTable( ct );
 
         /* Now try one with mismatched colinfos. */
         try {
