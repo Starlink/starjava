@@ -128,7 +128,7 @@ public class PairMatchSpec extends MatchSpec {
         PairMode pairMode = pairModeSelector_.getMode();
 
         /* Find the matching row pairs. */
-        RowMatcher matcher = new RowMatcher( engine_, tables );
+        RowMatcher matcher = RowMatcher.createMatcher( engine_, tables );
         matcher.setIndicator( indicator );
         LinkSet pairs = matcher.findPairMatches( pairMode );
         pairCount_ = pairs.size();

@@ -74,7 +74,8 @@ public class Match1Mapping implements SingleTableMapping {
 
         /* Do the matching. */
         RowMatcher matcher =
-            new RowMatcher( matchEngine_, new StarTable[] { subTable } );
+            RowMatcher.createMatcher( matchEngine_,
+                                      new StarTable[] { subTable } );
         matcher.setIndicator( progger_ );
         LinkSet matches; 
         try {

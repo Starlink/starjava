@@ -68,8 +68,8 @@ public class IntraMatchSpec extends MatchSpec {
         StarTable appTable = tupleSelector_.getTable().getApparentStarTable();
 
         /* Do the matching. */
-        RowMatcher matcher = 
-            new RowMatcher( engine_, new StarTable[] { effTable } );
+        RowMatcher matcher =
+            RowMatcher.createMatcher( engine_, new StarTable[] { effTable } );
         matcher.setIndicator( indicator );
         LinkSet matches = matcher.findInternalMatches( false );
         if ( ! matches.sort() ) {

@@ -95,8 +95,9 @@ public class Match2Mapping implements TableMapping {
 
         /* Do the match. */
         RowMatcher matcher =
-            new RowMatcher( matchEngine_,
-                            new StarTable[] { subTable1, subTable2 } );
+            RowMatcher
+           .createMatcher( matchEngine_,
+                           new StarTable[] { subTable1, subTable2 } );
         matcher.setIndicator( progger_ );
         LinkSet matches;
         try {

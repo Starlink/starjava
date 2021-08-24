@@ -77,7 +77,7 @@ public class RowMatcher {
 
     /**
      * Constructs a new empty LinkSet for use by this matcher.
-     * The current implementation returns one based on a SortedSet,
+     * The current implementation returns one based on a HashSet,
      * but future implementations may provide the option of LinkSet
      * implementations backed by disk.
      *
@@ -1241,6 +1241,18 @@ public class RowMatcher {
             throw new IllegalArgumentException( "Column count mismatch" );
         }
         return ncol;
+    }
+
+    /**
+     * Creates a RowMatcher instance.
+     *
+     * @param  engine  matching engine
+     * @param  tables  the array of tables on which matches are to be done
+     * @return   new RowMatcher
+     */
+    public static RowMatcher createMatcher( MatchEngine engine,
+                                            StarTable[] tables ) {
+        return new RowMatcher( engine, tables );
     }
 
     /**

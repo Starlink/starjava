@@ -229,7 +229,8 @@ public class MatchMapper implements TableMapper {
             }
 
             /* Do the match. */
-            RowMatcher matcher = new RowMatcher( matchEngine_, subTables );
+            RowMatcher matcher =
+                RowMatcher.createMatcher( matchEngine_, subTables );
             matcher.setIndicator( progger_ );
             LinkSet matches;
             try { 

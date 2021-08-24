@@ -124,7 +124,7 @@ public class InterMatchSpec extends MatchSpec {
 
         /* Do the matching. */
         MultiJoinType[] joinTypes = getJoinTypes();
-        RowMatcher matcher = new RowMatcher( engine, tables );
+        RowMatcher matcher = RowMatcher.createMatcher( engine, tables );
         matcher.setIndicator( indicator );
         LinkSet matches = matcher.findGroupMatches( joinTypes );
         if ( ! matches.sort() ) {
