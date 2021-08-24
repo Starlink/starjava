@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -32,10 +33,15 @@ import uk.ac.starlink.table.ValueInfo;
  * memory as possible.  Techniques include removing items from one
  * collection as they are added to another.  This means that in many
  * cases input values may be modified by the methods.
+ *
+ * <p>Some of the computationally intensive work done by this abstract
+ * class is defined as abstract methods to be implemented by concrete
+ * subclasses.
  * 
  * @author   Mark Taylor (Starlink)
+ * @since    13 Jan 2004
  */
-public class RowMatcher {
+public abstract class RowMatcher {
 
     private final MatchEngine engine_;
     private final StarTable[] tables_;
@@ -50,7 +56,7 @@ public class RowMatcher {
      * @param  engine  matching engine
      * @param  tables  the array of tables on which matches are to be done
      */
-    public RowMatcher( MatchEngine engine, StarTable[] tables ) {
+    protected RowMatcher( MatchEngine engine, StarTable[] tables ) {
         engine_ = engine;
         tables_ = tables;
         nTable_ = tables.length;
@@ -202,110 +208,11 @@ public class RowMatcher {
             throws IOException, InterruptedException {
 
         /* Bin the row indices for the random table. */
-        ProgressRowSequence rseq =
-            new ProgressRowSequence( tables_[ indexR ], indicator_,
-                                     "Binning rows for table "
-                                     + ( indexR + 1 ) );
-        LongBinner binner =
-            Binners.createLongBinner( tables_[ indexR ].getRowCount() );
-        long nrow = 0;
-        long nref = 0;
-        long nexclude = 0;
-        try {
-            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
-                Object[] row = rseq.getRow();
-                if ( range.isInside( row ) ) {
-                    Object[] keys = engine_.getBins( row );
-                    int nkey = keys.length;
-                    for ( int ikey = 0; ikey < nkey; ikey++ ) {
-                        binner.addItem( keys[ ikey ], lrow );
-                    }
-                    nref += nkey;
-                }
-                else {
-                    nexclude++;
-                }
-                nrow++;
-            }
-            assert nrow == tables_[ indexR ].getRowCount();
-        }
-        finally {
-            rseq.close();
-        }
-        if ( nexclude > 0 ) {
-            indicator_.logMessage( nexclude + "/" + nrow + " rows excluded "
-                                 + "(out of match region)" );
-        }
-        long nbin = binner.getBinCount();
-        indicator_.logMessage( nref + " row refs for " + nrow + " rows in "
-                             + nbin + " bins" );
-        indicator_.logMessage( "(average bin occupancy " +
-                               ( (float) nref / (float) nbin ) + ")" );
+        LongBinner binner = binRowIndices( indexR, range::isInside );
 
         /* Scan the rows for the sequential table. */
-        LinkSet linkSet = createLinkSet();
-        ProgressRowSequence sseq =
-            new ProgressRowSequence( tables_[ indexS ], indicator_,
-                                     "Scanning rows for table "
-                                   + ( indexS + 1 ) );
-        try {
-            for ( long isrow = 0; sseq.nextProgress(); isrow++ ) {
-                Object[] srowData = sseq.getRow();
-                if ( range.isInside( srowData ) ) {
-
-                    /* Identify rows from table R which may match table S. */
-                    Object[] keys = engine_.getBins( srowData );
-                    int nkey = keys.length;
-                    Set<Long> rrowSet = new HashSet<Long>();
-                    for ( int ikey = 0; ikey < nkey; ikey++ ) {
-                        long[] rrows = binner.getLongs( keys[ ikey ] );
-                        if ( rrows != null ) {
-                            for ( int ir = 0; ir < rrows.length; ir++ ) {
-                                rrowSet.add( new Long( rrows[ ir ] ) );
-                            }
-                        }
-                    }
-                    long[] rrows = new long[ rrowSet.size() ];
-                    int ir = 0;
-                    for ( Long rr : rrowSet ) {
-                        rrows[ ir++ ] = rr.longValue();
-                    }
-                    Arrays.sort( rrows );
-
-                    /* Score and accumulate matched links. */
-                    List<RowLink2> linkList = new ArrayList<RowLink2>( 1 );
-                    double bestScore = Double.MAX_VALUE;
-                    for ( ir = 0; ir < rrows.length; ir++ ) {
-                        long irrow = rrows[ ir ];
-                        Object[] rrowData = tables_[ indexR ].getRow( irrow );
-                        double score = engine_.matchScore( srowData, rrowData );
-                        if ( score >= 0 &&
-                             ( ! bestOnly || score < bestScore ) ) {
-                            RowRef rref = new RowRef( indexR, irrow );
-                            RowRef sref = new RowRef( indexS, isrow );
-                            RowLink2 pairLink = new RowLink2( rref, sref );
-                            pairLink.setScore( score );
-                            if ( bestOnly ) {
-                                bestScore = score;
-                                linkList.clear();
-                            }
-                            linkList.add( pairLink );
-                            assert ( ! bestOnly ) || ( linkList.size() == 1 );
-                        }
-                    }
-
-                    /* Add matched links to output set. */
-                    for ( RowLink2 pairLink : linkList ) {
-                        assert ! linkSet.containsLink( pairLink );
-                        linkSet.addLink( pairLink );
-                    }
-                }
-            }
-        }
-        finally {
-            sseq.close();
-        }
-        return linkSet;
+        return scanBinsForPairs( indexR, indexS, range::isInside, bestOnly,
+                                 binner);
     }
 
     /**
@@ -491,6 +398,57 @@ public class RowMatcher {
     }
 
     /**
+     * Create a map from match bin to list of all the row indices
+     * associated with that bin, for a given table.
+     *
+     * @param   indexR  index of table to bin
+     * @param   rowSelector   filter for rows to be included;
+     *                        row values that fail this test are ignored
+     * @return   binner with keys that are match bins and values that
+     *           are lists of row indices
+     */
+    abstract LongBinner binRowIndices( int indexR,
+                                       Predicate<Object[]> rowSelector )
+            throws IOException, InterruptedException;
+
+    /**
+     * Scans a table S sequentially with reference to a supplied LongBinner
+     * containing bin assignments for a random-access table R,
+     * to identify matched pairs between rows in the two tables.
+     *
+     * @param  indexR  index of table R which will be accessed randomly
+     * @param  indexS  index of table S which will be accessed sequentially
+     * @param  rowSelector   filter for rows to be included;
+     *                       row values that fail this test are ignored
+     * @param  bestOnly  true iff only the best S-R match is required;
+     *                   if false multiple matches in R may be returned
+     *                   for each row in S
+     * @param  binnerR   map from bin value to list of row indices in R
+     *                   to which that bin relates
+     * @return  links representing pair matches
+     */
+    abstract LinkSet scanBinsForPairs( int indexR, int indexS,
+                                       Predicate<Object[]> rowSelector,
+                                       boolean bestOnly, LongBinner binnerR )
+            throws IOException, InterruptedException;
+
+    /**
+     * Determines the NdRange for selected columns from a given table
+     * by scanning through all its rows.
+     *
+     * @param   tIndex  index of table whose data is to be scanned
+     * @param   colFlags  array of same length as table column count
+     *                    indicating which columns are to be scanned
+     *                    for range; output NdRange will be blank in
+     *                    dimensions for which these flags are false
+     * @return   N-dimensional range for selected columns;
+     *           note this may contain null or infinite values even
+     *           in the selected columns, so may require post-processing
+     */
+    abstract NdRange rangeColumns( int tIndex, boolean[] colFlags )
+            throws IOException, InterruptedException;
+
+    /**
      * Identifies all the pairs of equivalent rows in a set of RowLinks.
      * Internal matches (ones corresponding to two rows of the same table)
      * are included as well as external ones.
@@ -587,28 +545,11 @@ public class RowMatcher {
      */
     private LinkSet getAllPossibleInternalLinks( int itable )
             throws IOException, InterruptedException {
-        StarTable table = tables_[ itable ];
-        long nRow = table.getRowCount();
-        LongBinner binner = Binners.createLongBinner( nRow );
-        ProgressRowSequence rseq =
-            new ProgressRowSequence( table, indicator_, "Binning rows" );
-        try {
-            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
-                Object[] row = rseq.getRow();
-                Object[] keys = engine_.getBins( row );
-                int nkey = keys.length;
-                for ( int ikey = 0; ikey < nkey; ikey++ ) {
-                    binner.addItem( keys[ ikey ], lrow );
-                }
-            }
-        }
-        finally {
-            rseq.close();
-        }
+        LongBinner binner = binRowIndices( itable, row -> true );
+        long nRow = tables_[ itable ].getRowCount();
         long nBin = binner.getBinCount();
         indicator_.logMessage( "Average bin count per row: " +
                                (float) ( nBin / (double) nRow ) );
-
         LinkSet links = createLinkSet();
         binsToInternalLinks( binner, links, itable );
         return links;
@@ -659,7 +600,8 @@ public class RowMatcher {
                     indicator_.logMessage( "Potential match region: " + range );
                     for ( int iTable = 0; iTable < nt; iTable++ ) {
                         int index = iTables[ iTable ];
-                        inRangeCounts[ iTable ] = countInRange( index, range );
+                        inRangeCounts[ iTable ] =
+                            countInRange( index, range::isInside );
                     }
                 }
                 else {
@@ -1252,7 +1194,7 @@ public class RowMatcher {
      */
     public static RowMatcher createMatcher( MatchEngine engine,
                                             StarTable[] tables ) {
-        return new RowMatcher( engine, tables );
+        return new SequentialRowMatcher( engine, tables );
     }
 
     /**
@@ -1352,41 +1294,10 @@ public class RowMatcher {
             return new NdRange( ncol );
         }
 
-        /* Go through each row finding the minimum and maximum value 
-         * for each column (coordinate). */
-        Comparable<?>[] mins = new Comparable<?>[ ncol ];
-        Comparable<?>[] maxs = new Comparable<?>[ ncol ];
-        ProgressRowSequence rseq =
-            new ProgressRowSequence( table, indicator_,
-                                     "Assessing range of coordinates " +
-                                     "from table " + ( tIndex + 1 ) );
-        try {
-            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
-                Object[] row = rseq.getRow();
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    if ( isComparable[ icol ] ) {
-                        Object cell = row[ icol ];
-                        if ( cell instanceof Comparable &&
-                             ! Tables.isBlank( cell ) ) {
-                            Comparable<?> val = (Comparable<?>) cell;
-                            mins[ icol ] =
-                                NdRange.min( mins[ icol ], val, false );
-                            maxs[ icol ] =
-                                NdRange.max( maxs[ icol ], val, false );
-                        }
-                    }
-                }
-            }
-        }
-
-        /* It's possible, though not particularly likely, that a 
-         * compare invocation can result in a ClassCastException 
-         * (e.g. comparing an Integer to a Double).  Such ClassCastExceptions
-         * should get caught higher up, but we need to make sure the
-         * row sequence is closed or the logging will get in a twist. */
-        finally {
-            rseq.close();
-        }
+        /* Calculate the ranges. */
+        NdRange rawRange = rangeColumns( tIndex, isComparable );
+        Comparable<?>[] mins = rawRange.getMins().clone();
+        Comparable<?>[] maxs = rawRange.getMaxs().clone();
 
         /* Deal sensibly with funny numbers. */
         for ( int icol = 0; icol < ncol; icol++ ) {
@@ -1496,7 +1407,7 @@ public class RowMatcher {
         long nbin = binner.getBinCount();
         indicator_.logMessage( nrow + " row refs in " + nbin + " bins" );
         indicator_.logMessage( "(average bin occupancy " +
-                               ( (float) nrow / (float) nbin ) + ")" );
+                              ( (float) nrow / (float) nbin ) + ")" );
         indicator_.startStage( "Consolidating potential match groups" );
         double nl = (double) nbin;
         long il = 0;
@@ -1571,12 +1482,12 @@ public class RowMatcher {
      * range of min/max values.
      * 
      * @param  tIndex  index of table to assess
-     * @param  range   bounds of permissible coordinates
+     * @param  rowSelector   defines permissible rows
      * @return  number of rows of <tt>table</tt> that fall within supplied
      *          bounds
      * @throws  ClassCastException  if objects are not mutually comparable
      */
-    private long countInRange( int tIndex, NdRange range )
+    long countInRange( int tIndex, Predicate<Object[]> rowSelector )
             throws IOException, InterruptedException {
         ProgressRowSequence rseq = 
             new ProgressRowSequence( tables_[ tIndex ], indicator_, 
@@ -1585,7 +1496,7 @@ public class RowMatcher {
         long nInclude = 0;
         try {
             for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
-                if ( range.isInside( rseq.getRow() ) ) {
+                if ( rowSelector.test( rseq.getRow() ) ) {
                     nInclude++;
                 }
             }
