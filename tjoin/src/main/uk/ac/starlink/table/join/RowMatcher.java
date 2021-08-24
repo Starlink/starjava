@@ -37,11 +37,11 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class RowMatcher {
 
-    private final MatchEngine engine;
-    private final StarTable[] tables;
-    private final int nTable;
-    private ProgressIndicator indicator = new NullProgressIndicator();
-    private long startTime;
+    private final MatchEngine engine_;
+    private final StarTable[] tables_;
+    private final int nTable_;
+    private ProgressIndicator indicator_;
+    private long startTime_;
 
     /**
      * Constructs a new matcher with match characteristics defined by
@@ -51,9 +51,10 @@ public class RowMatcher {
      * @param  tables  the array of tables on which matches are to be done
      */
     public RowMatcher( MatchEngine engine, StarTable[] tables ) {
-        this.engine = engine;
-        this.tables = tables;
-        this.nTable = tables.length;
+        engine_ = engine;
+        tables_ = tables;
+        nTable_ = tables.length;
+        indicator_ = new NullProgressIndicator();
     }
 
     /**
@@ -62,7 +63,7 @@ public class RowMatcher {
      * @param  indicator  new indicator
      */
     public void setIndicator( ProgressIndicator indicator ) {
-        this.indicator = indicator;
+        indicator_ = indicator;
     }
 
     /**
@@ -71,7 +72,7 @@ public class RowMatcher {
      * @return   indicator
      */
     public ProgressIndicator getIndicator() {
-        return indicator;
+        return indicator_;
     }
 
     /**
@@ -98,7 +99,7 @@ public class RowMatcher {
      */
     public LinkSet findPairMatches( PairMode pairMode )
             throws IOException, InterruptedException {
-        if ( nTable != 2 ) {
+        if ( nTable_ != 2 ) {
             throw new IllegalStateException( "findPairMatches only makes sense"
                                            + " for 2 tables" );
         }
@@ -134,19 +135,20 @@ public class RowMatcher {
         final NdRange range;
 
         /* If neither table has random access, we can't proceed. */
-        if ( ! tables[ index1 ].isRandom() && ! tables[ index2 ].isRandom() ) {
+        if ( ! tables_[ index1 ].isRandom() &&
+             ! tables_[ index2 ].isRandom() ) {
             throw new IllegalArgumentException( "Neither table random-access" );
         }
 
         /* If only one table has random access, use that as table R. */
-        else if ( ! tables[ index1 ].isRandom() ) {
-            assert tables[ index2 ].isRandom();
+        else if ( ! tables_[ index1 ].isRandom() ) {
+            assert tables_[ index2 ].isRandom();
             indexS = index1;
             indexR = index2;
             range = new NdRange( ncol );
         }
-        else if ( ! tables[ index2 ].isRandom() ) {
-            assert tables[ index1 ].isRandom();
+        else if ( ! tables_[ index2 ].isRandom() ) {
+            assert tables_[ index1 ].isRandom();
             indexS = index2;
             indexR = index1;
             range = new NdRange( ncol );
@@ -201,11 +203,11 @@ public class RowMatcher {
 
         /* Bin the row indices for the random table. */
         ProgressRowSequence rseq =
-            new ProgressRowSequence( tables[ indexR ], indicator,
+            new ProgressRowSequence( tables_[ indexR ], indicator_,
                                      "Binning rows for table "
                                      + ( indexR + 1 ) );
         LongBinner binner =
-            Binners.createLongBinner( tables[ indexR ].getRowCount() );
+            Binners.createLongBinner( tables_[ indexR ].getRowCount() );
         long nrow = 0;
         long nref = 0;
         long nexclude = 0;
@@ -213,7 +215,7 @@ public class RowMatcher {
             for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
                 Object[] row = rseq.getRow();
                 if ( range.isInside( row ) ) {
-                    Object[] keys = engine.getBins( row );
+                    Object[] keys = engine_.getBins( row );
                     int nkey = keys.length;
                     for ( int ikey = 0; ikey < nkey; ikey++ ) {
                         binner.addItem( keys[ ikey ], lrow );
@@ -225,25 +227,25 @@ public class RowMatcher {
                 }
                 nrow++;
             }
-            assert nrow == tables[ indexR ].getRowCount();
+            assert nrow == tables_[ indexR ].getRowCount();
         }
         finally {
             rseq.close();
         }
         if ( nexclude > 0 ) {
-            indicator.logMessage( nexclude + "/" + nrow + " rows excluded "
-                                + "(out of match region)" );
+            indicator_.logMessage( nexclude + "/" + nrow + " rows excluded "
+                                 + "(out of match region)" );
         }
         long nbin = binner.getBinCount();
-        indicator.logMessage( nref + " row refs for " + nrow + " rows in "
-                            + nbin + " bins" );
-        indicator.logMessage( "(average bin occupancy " +
-                              ( (float) nref / (float) nbin ) + ")" );
+        indicator_.logMessage( nref + " row refs for " + nrow + " rows in "
+                             + nbin + " bins" );
+        indicator_.logMessage( "(average bin occupancy " +
+                               ( (float) nref / (float) nbin ) + ")" );
 
         /* Scan the rows for the sequential table. */
         LinkSet linkSet = createLinkSet();
         ProgressRowSequence sseq =
-            new ProgressRowSequence( tables[ indexS ], indicator,
+            new ProgressRowSequence( tables_[ indexS ], indicator_,
                                      "Scanning rows for table "
                                    + ( indexS + 1 ) );
         try {
@@ -252,7 +254,7 @@ public class RowMatcher {
                 if ( range.isInside( srowData ) ) {
 
                     /* Identify rows from table R which may match table S. */
-                    Object[] keys = engine.getBins( srowData );
+                    Object[] keys = engine_.getBins( srowData );
                     int nkey = keys.length;
                     Set<Long> rrowSet = new HashSet<Long>();
                     for ( int ikey = 0; ikey < nkey; ikey++ ) {
@@ -275,8 +277,8 @@ public class RowMatcher {
                     double bestScore = Double.MAX_VALUE;
                     for ( ir = 0; ir < rrows.length; ir++ ) {
                         long irrow = rrows[ ir ];
-                        Object[] rrowData = tables[ indexR ].getRow( irrow );
-                        double score = engine.matchScore( srowData, rrowData );
+                        Object[] rrowData = tables_[ indexR ].getRow( irrow );
+                        double score = engine_.matchScore( srowData, rrowData );
                         if ( score >= 0 &&
                              ( ! bestOnly || score < bestScore ) ) {
                             RowRef rref = new RowRef( indexR, irrow );
@@ -323,10 +325,10 @@ public class RowMatcher {
                                          MultiJoinType[] joinTypes )
             throws IOException, InterruptedException {
         checkRandom();
-        if ( joinTypes.length != nTable ) {
+        if ( joinTypes.length != nTable_ ) {
             throw new IllegalArgumentException(
                 "Options length " + joinTypes.length +
-                " differs from table count " + nTable );
+                " differs from table count " + nTable_ );
         }
         startMatch();
 
@@ -343,13 +345,13 @@ public class RowMatcher {
          * one or more matches.  In the case that we want to output 
          * some links with unmatched parts, add new singleton row 
          * links as necessary. */
-        LinkSet[] missing = new LinkSet[ nTable ];
-        for ( int i = 0; i < nTable; i++ ) {
+        LinkSet[] missing = new LinkSet[ nTable_ ];
+        for ( int i = 0; i < nTable_; i++ ) {
             if ( joinTypes[ i ] == MultiJoinType.ALWAYS ) {
                 missing[ i ] = missingSingles( multiLinks, i );
             }
         }
-        for ( int i = 0; i < nTable; i++ ) {
+        for ( int i = 0; i < nTable_; i++ ) {
             if ( missing[ i ] != null ) {
                 for ( RowLink link : missing[ i ] ) {
                     multiLinks.addLink( link );
@@ -388,16 +390,16 @@ public class RowMatcher {
         checkRandom();
 
         /* Check we have multiple tables. */
-        if ( nTable < 2 ) {
+        if ( nTable_ < 2 ) {
             throw new IllegalStateException( "Find matches only makes sense "
                                            + "for multiple tables" );
         }
 
         /* Check that there are the right number of options. */
-        if ( joinTypes.length != nTable ) {
+        if ( joinTypes.length != nTable_ ) {
             throw new IllegalArgumentException( 
                 "Options length " + joinTypes.length +
-                " differs from table count " + nTable );
+                " differs from table count " + nTable_ );
         }
         startMatch();
 
@@ -419,13 +421,13 @@ public class RowMatcher {
          * with one entry for each of two or more of the input tables.
          * In the case that we want to output some links with unmatched
          * parts, add new singleton row links as necessary. */
-        LinkSet[] missing = new LinkSet[ nTable ];
-        for ( int i = 0; i < nTable; i++ ) {
+        LinkSet[] missing = new LinkSet[ nTable_ ];
+        for ( int i = 0; i < nTable_; i++ ) {
             if ( joinTypes[ i ] == MultiJoinType.ALWAYS ) {
                 missing[ i ] = missingSingles( links, i );
             }
         }
-        for ( int i = 0; i < nTable; i++ ) {
+        for ( int i = 0; i < nTable_; i++ ) {
             if ( missing[ i ] != null ) {
                 for ( RowLink link : missing[ i ] ) {
                     links.addLink( link );
@@ -462,7 +464,7 @@ public class RowMatcher {
         checkRandom();
 
         /* Check we have a single table. */
-        if ( nTable != 1 ) {
+        if ( nTable_ != 1 ) {
             throw new IllegalStateException( "Internal matches only make sense "
                                            + "with a single table" );
         }
@@ -506,7 +508,7 @@ public class RowMatcher {
         LinkSet pairs = createLinkSet();
         double nLink = (double) possibleLinks.size();
         int iLink = 0;
-        indicator.startStage( "Locating pairs" );
+        indicator_.startStage( "Locating pairs" );
         for ( Iterator<RowLink> it = possibleLinks.iterator(); it.hasNext(); ) {
 
             /* Obtain the link and remove it from the input set for 
@@ -523,7 +525,7 @@ public class RowMatcher {
                 Object[][] binnedRows = new Object[ nref ][];
                 for ( int i = 0; i < nref; i++ ) {
                     RowRef ref = link.getRef( i );
-                    StarTable table = tables[ ref.getTableIndex() ];
+                    StarTable table = tables_[ ref.getTableIndex() ];
                     binnedRows[ i ] = table.getRow( ref.getRowIndex() );
                 }
 
@@ -534,8 +536,8 @@ public class RowMatcher {
                         RowLink2 pair = new RowLink2( link.getRef( i ),
                                                       link.getRef( j ) );
                         if ( ! pairs.containsLink( pair ) ) {
-                            double score = engine.matchScore( binnedRows[ i ],
-                                                              binnedRows[ j ] );
+                            double score = engine_.matchScore( binnedRows[ i ],
+                                                               binnedRows[ j ]);
                             if ( score >= 0 ) {
                                 pair.setScore( score );
                                 pairs.addLink( pair );
@@ -544,9 +546,9 @@ public class RowMatcher {
                     }
                 }
             }
-            indicator.setLevel( ++iLink / nLink );
+            indicator_.setLevel( ++iLink / nLink );
         }
-        indicator.endStage();
+        indicator_.endStage();
         return pairs;
     }
 
@@ -560,16 +562,16 @@ public class RowMatcher {
      */
     private LinkSet getAllPossibleLinks()
             throws IOException, InterruptedException {
-        NdRange range = new NdRange( tables[ 0 ].getColumnCount() );
+        NdRange range = new NdRange( tables_[ 0 ].getColumnCount() );
         ObjectBinner<Object,RowRef> binner = Binners.createObjectBinner();
         long totalRows = 0;
-        for ( int itab = 0; itab < nTable; itab++ ) {
+        for ( int itab = 0; itab < nTable_; itab++ ) {
             binRows( itab, range, binner, true );
-            totalRows += tables[ itab ].getRowCount();
+            totalRows += tables_[ itab ].getRowCount();
         }
         long nBin = binner.getBinCount();
-        indicator.logMessage( "Average bin count per row: " +
-                              (float) ( nBin / (double) totalRows ) );
+        indicator_.logMessage( "Average bin count per row: " +
+                               (float) ( nBin / (double) totalRows ) );
         LinkSet links = createLinkSet();
         binsToLinks( binner, links );
         return links;
@@ -585,15 +587,15 @@ public class RowMatcher {
      */
     private LinkSet getAllPossibleInternalLinks( int itable )
             throws IOException, InterruptedException {
-        StarTable table = tables[ itable ];
+        StarTable table = tables_[ itable ];
         long nRow = table.getRowCount();
         LongBinner binner = Binners.createLongBinner( nRow );
         ProgressRowSequence rseq =
-            new ProgressRowSequence( table, indicator, "Binning rows" );
+            new ProgressRowSequence( table, indicator_, "Binning rows" );
         try {
             for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
                 Object[] row = rseq.getRow();
-                Object[] keys = engine.getBins( row );
+                Object[] keys = engine_.getBins( row );
                 int nkey = keys.length;
                 for ( int ikey = 0; ikey < nkey; ikey++ ) {
                     binner.addItem( keys[ ikey ], lrow );
@@ -604,8 +606,8 @@ public class RowMatcher {
             rseq.close();
         }
         long nBin = binner.getBinCount();
-        indicator.logMessage( "Average bin count per row: " +
-                              (float) ( nBin / (double) nRow ) );
+        indicator_.logMessage( "Average bin count per row: " +
+                               (float) ( nBin / (double) nRow ) );
 
         LinkSet links = createLinkSet();
         binsToInternalLinks( binner, links, itable );
@@ -627,17 +629,17 @@ public class RowMatcher {
      */
     private Intersection getIntersection( int[] iTables )
             throws IOException, InterruptedException {
-        int ncol = tables[ iTables[ 0 ] ].getColumnCount();
+        int ncol = tables_[ iTables[ 0 ] ].getColumnCount();
         int nt = iTables.length;
         long[] inRangeCounts = new long[ nt ];
         for ( int iTable = 0; iTable < nt; iTable++ ) {
             int index = iTables[ iTable ];
-            inRangeCounts[ iTable ] = tables[ index ].getRowCount();
+            inRangeCounts[ iTable ] = tables_[ index ].getRowCount();
         }
         NdRange range;
-        if ( engine.canBoundMatch() && iTables.length > 1 ) {
-            indicator.logMessage( "Attempt to locate " +
-                                  "restricted common region" );
+        if ( engine_.canBoundMatch() && iTables.length > 1 ) {
+            indicator_.logMessage( "Attempt to locate " +
+                                   "restricted common region" );
             try {
                 NdRange[] inRanges = new NdRange[ nt ];
                 for ( int iTable = 0; iTable < nt; iTable++ ) {
@@ -647,22 +649,22 @@ public class RowMatcher {
                 NdRange[] extRanges = new NdRange[ nt ];
                 for ( int iTable = 0; iTable < nt; iTable++ ) {
                     extRanges[ iTable ] =
-                        engine.getMatchBounds( inRanges, iTable );
+                        engine_.getMatchBounds( inRanges, iTable );
                 }
                 range = extRanges[ 0 ];
                 for ( int iTable = 1; iTable < nt; iTable++ ) {
                     range = NdRange.intersection( range, extRanges[ iTable ] );
                 }
                 if ( range != null ) {
-                    indicator.logMessage( "Potential match region: " + range );
+                    indicator_.logMessage( "Potential match region: " + range );
                     for ( int iTable = 0; iTable < nt; iTable++ ) {
                         int index = iTables[ iTable ];
                         inRangeCounts[ iTable ] = countInRange( index, range );
                     }
                 }
                 else {
-                    indicator.logMessage( "No region overlap"
-                                        + " - matches not possible" );
+                    indicator_.logMessage( "No region overlap"
+                                         + " - matches not possible" );
                     return new Intersection( null, new long[ iTables.length ] );
                 }
             }
@@ -674,8 +676,8 @@ public class RowMatcher {
              * forget about trying to identify bounds, and move on.
              * This will only impact efficiency, not correctness. */ 
             catch ( ClassCastException e ) {
-                indicator.logMessage( "Common region location failed " +
-                                      "(incompatible value types)" );
+                indicator_.logMessage( "Common region location failed " +
+                                       "(incompatible value types)" );
                 range = new NdRange( ncol );
             }
         }
@@ -697,11 +699,11 @@ public class RowMatcher {
      */
     private void eliminateInternalLinks( LinkSet links )
             throws InterruptedException {
-        RowRef[] refs = new RowRef[ nTable ];
+        RowRef[] refs = new RowRef[ nTable_ ];
         LinkSet replacements = createLinkSet();
 
         /* Go through every link in the set. */
-        indicator.startStage( "Eliminating internal links" );
+        indicator_.startStage( "Eliminating internal links" );
         double nLink = (double) links.size();
         int iLink = 0;
         int nReplace = 0;
@@ -732,7 +734,7 @@ public class RowMatcher {
                 if ( dup ) {
                     it.remove();
                     List<RowRef> repRefs = new ArrayList<RowRef>();
-                    for ( int i = 0; i < nTable; i++ ) {
+                    for ( int i = 0; i < nTable_; i++ ) {
                         if ( refs[ i ] != null ) {
                             repRefs.add( refs[ i ] );
                         }
@@ -749,14 +751,14 @@ public class RowMatcher {
                     }
                 }
             }
-            indicator.setLevel( ++iLink / nLink );
+            indicator_.setLevel( ++iLink / nLink );
         }
-        indicator.endStage();
+        indicator_.endStage();
         if ( nReplace > 0 ) {
-            indicator.logMessage( "Internal links replaced: " + nReplace );
+            indicator_.logMessage( "Internal links replaced: " + nReplace );
         }
         if ( nRemove > 0 ) {
-            indicator.logMessage( "Internal links removed: " + nRemove );
+            indicator_.logMessage( "Internal links removed: " + nRemove );
         }
         for ( Iterator<RowLink> it = replacements.iterator(); it.hasNext(); ) {
             RowLink repLink = it.next();
@@ -791,7 +793,7 @@ public class RowMatcher {
 
         /* Construct and return a set with one new singleton RowRef for 
          * each row that is not present. */
-        int nrow = checkedLongToInt( tables[ iTable ].getRowCount() );
+        int nrow = checkedLongToInt( tables_[ iTable ].getRowCount() );
         LinkSet singles = createLinkSet();
         for ( int iRow = 0; iRow < nrow; iRow++ ) {
             if ( ! present.get( iRow ) ) {
@@ -811,30 +813,30 @@ public class RowMatcher {
      */
     private LinkSet getPossibleMultiPairLinks( int index0 )
             throws IOException, InterruptedException {
-        int ncol = tables[ index0 ].getColumnCount();
+        int ncol = tables_[ index0 ].getColumnCount();
 
         /* Attempt to restrict ranges for match assessments if we can. */
         NdRange range;
-        if ( engine.canBoundMatch() ) {
-            indicator.logMessage( "Attempt to locate "
-                                + "restricted common region" );
+        if ( engine_.canBoundMatch() ) {
+            indicator_.logMessage( "Attempt to locate "
+                                 + "restricted common region" );
             try {
 
                 /* Locate the ranges of all the tables. */
-                NdRange[] inRanges = new NdRange[ nTable ];
-                for ( int i = 0; i < nTable; i++ ) {
+                NdRange[] inRanges = new NdRange[ nTable_ ];
+                for ( int i = 0; i < nTable_; i++ ) {
                     inRanges[ i ] = readTupleRange( i );
                 }
-                NdRange[] extRanges = new NdRange[ nTable ];
-                for ( int i = 0; i < nTable; i++ ) {
-                    extRanges[ i ] = engine.getMatchBounds( inRanges, i );
+                NdRange[] extRanges = new NdRange[ nTable_ ];
+                for ( int i = 0; i < nTable_; i++ ) {
+                    extRanges[ i ] = engine_.getMatchBounds( inRanges, i );
                 }
 
                 /* Work out the range of the reference table which we are
                  * interested in.  This is its intersection with the union 
                  * of all the other tables. */
                 NdRange unionOthers = null;
-                for ( int i = 0; i < nTable; i++ ) {
+                for ( int i = 0; i < nTable_; i++ ) {
                     if ( i != index0 ) {
                         unionOthers = unionOthers == null
                                     ? extRanges[ i ]
@@ -844,11 +846,11 @@ public class RowMatcher {
                 }
                 range = NdRange.intersection( extRanges[ index0 ],
                                               unionOthers );
-                indicator.logMessage( "Potential match region: " + range );
+                indicator_.logMessage( "Potential match region: " + range );
             }
             catch ( ClassCastException e ) {
-                indicator.logMessage( "Region location failed "
-                                    + "(incompatible value types)" );
+                indicator_.logMessage( "Region location failed "
+                                     + "(incompatible value types)" );
                 range = new NdRange( ncol );
             }
         }
@@ -863,7 +865,7 @@ public class RowMatcher {
         /* Bin any rows in the other tables which have entries in the bins
          * we have already created for the reference table.  Rows without
          * such entries can be ignored. */
-        for ( int itab = 0; itab < nTable; itab++ ) {
+        for ( int itab = 0; itab < nTable_; itab++ ) {
             if ( itab != index0 ) {
                 binRows( itab, range, binner, false );
             }
@@ -903,8 +905,8 @@ public class RowMatcher {
         LinkSet pairs = createLinkSet();
         double nLink = (double) possibleLinks.size();
         int iLink = 0;
-        indicator.startStage( "Locating pair matches between " + index0
-                            + " and other tables");
+        indicator_.startStage( "Locating pair matches between " + index0
+                             + " and other tables");
         for ( Iterator<RowLink> it = possibleLinks.iterator(); it.hasNext(); ) {
 
             /* Get the next link and delete it from the input list, for
@@ -931,7 +933,7 @@ public class RowMatcher {
                 Object[][] binnedRows = new Object[ nref ][];
                 for ( int iref = 0; iref < nref; iref++ ) {
                     RowRef ref = link.getRef( iref );
-                    StarTable table = tables[ ref.getTableIndex() ];
+                    StarTable table = tables_[ ref.getTableIndex() ];
                     binnedRows[ iref ] = table.getRow( ref.getRowIndex() );
                 }
 
@@ -951,8 +953,8 @@ public class RowMatcher {
                                 RowLink2 pair = new RowLink2( ref0, ref1 );
                                 if ( ! pairs.containsLink( pair ) ) {
                                     double score =
-                                        engine.matchScore( binnedRows[ i0 ],
-                                                           binnedRows[ i1 ] );
+                                        engine_.matchScore( binnedRows[ i0 ],
+                                                            binnedRows[ i1 ] );
                                     if ( score >= 0 ) {
                                         pair.setScore( score );
                                         pairs.addLink( pair );
@@ -963,9 +965,9 @@ public class RowMatcher {
                     }
                 }
             }
-            indicator.setLevel( ++iLink / nLink );
+            indicator_.setLevel( ++iLink / nLink );
         }
-        indicator.endStage();
+        indicator_.endStage();
 
         /* Store all the pairs in a map keyed by row reference of the reference
          * table. */
@@ -1027,7 +1029,7 @@ public class RowMatcher {
      * @param  joinTypes  array of per-table inclusion criteria
      */
     private boolean acceptRow( RowLink link, MultiJoinType[] joinTypes ) {
-        boolean[] present = new boolean[ nTable ];
+        boolean[] present = new boolean[ nTable_ ];
         int nref = link.size();
         for ( int i = 0; i < nref; i++ ) {
             RowRef ref = link.getRef( i );
@@ -1089,7 +1091,7 @@ public class RowMatcher {
          * to the output set as we go. */
         double nPair = inPairs.size();
         int iPair = 0;
-        indicator.startStage( "Eliminating multiple row references" );
+        indicator_.startStage( "Eliminating multiple row references" );
         for ( Iterator<RowLink> it = inPairs.iterator(); it.hasNext(); ) {
             RowLink2 pair = (RowLink2) it.next();
             double score = pair.getScore();
@@ -1111,9 +1113,9 @@ public class RowMatcher {
             }
 
             /* Report on progress. */
-            indicator.setLevel( ++iPair / nPair );
+            indicator_.setLevel( ++iPair / nPair );
         }
-        indicator.endStage();
+        indicator_.endStage();
         return outPairs;
     }
 
@@ -1149,18 +1151,18 @@ public class RowMatcher {
          * links to a list of all the links it appears in. */
         ObjectBinner<RowRef,RowLink> refBinner =
             Binners.createModifiableObjectBinner();
-        indicator.startStage( "Mapping rows to links" );
+        indicator_.startStage( "Mapping rows to links" );
         double nlink1 = links.size();
         int ilink1 = 0;
         for ( RowLink link : links ) {
-            indicator.setLevel( ++ilink1 / nlink1 );
+            indicator_.setLevel( ++ilink1 / nlink1 );
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
                 RowRef ref = link.getRef( i );
                 refBinner.addItem( ref, link );
             }
         }
-        indicator.endStage();
+        indicator_.endStage();
 
         /* Prepare a new set to contain the agglomerated links.
          * We will populate this with disjoint links at the same time
@@ -1172,11 +1174,11 @@ public class RowMatcher {
         /* Check for any isolated links, that is ones none of whose members
          * appear in any other links.  These can be handled more efficiently
          * than ones with more complicated relationships. */
-        indicator.startStage( "Identifying isolated links" );
+        indicator_.startStage( "Identifying isolated links" );
         double nlink2 = links.size();
         int ilink2 = 0;
         for ( RowLink link : links ) {
-            indicator.setLevel( ++ilink2 / nlink2 );
+            indicator_.setLevel( ++ilink2 / nlink2 );
             int nref = link.size();
             boolean isolated = true;
             for ( int i = 0; isolated && i < nref; i++ ) {
@@ -1197,7 +1199,7 @@ public class RowMatcher {
                 }
             }
         }
-        indicator.endStage();
+        indicator_.endStage();
 
         /* Take a key from the map we have just constructed, and walk its
          * links recursively to see which nodes we can reach from it.
@@ -1208,9 +1210,9 @@ public class RowMatcher {
          * (and it's also good for memory usage).
          * Repeat until there are no nodes left in the input map. */
         double nRefs = refBinner.getBinCount();
-        indicator.startStage( "Walking links" );
+        indicator_.startStage( "Walking links" );
         while ( refBinner.getBinCount() > 0 ) {
-            indicator.setLevel( 1.0 - ( refBinner.getBinCount() / nRefs ) );
+            indicator_.setLevel( 1.0 - ( refBinner.getBinCount() / nRefs ) );
             RowRef ref1 = refBinner.getKeyIterator().next();
             Set<RowRef> refSet = new HashSet<RowRef>();
             walkLinks( ref1, refBinner, refSet );
@@ -1218,7 +1220,7 @@ public class RowMatcher {
             assert ! agglomeratedLinks.containsLink( link );
             agglomeratedLinks.addLink( link );
         }
-        indicator.endStage();
+        indicator_.endStage();
 
         /* Replace the contents of the used list with the new contents. */
         return agglomeratedLinks;
@@ -1234,8 +1236,8 @@ public class RowMatcher {
      * @return  number of columns for both tables
      */
     int getPairColumnCount( int index1, int index2 ) {
-        int ncol = tables[ index1 ].getColumnCount();
-        if ( tables[ index2 ].getColumnCount() != ncol ) {
+        int ncol = tables_[ index1 ].getColumnCount();
+        if ( tables_[ index2 ].getColumnCount() != ncol ) {
             throw new IllegalArgumentException( "Column count mismatch" );
         }
         return ncol;
@@ -1297,9 +1299,9 @@ public class RowMatcher {
      *          not provide random access
      */
     private void checkRandom() {
-        for ( int itab = 0; itab < tables.length; itab++ ) {
-            if ( ! tables[ itab ].isRandom() ) {
-                throw new IllegalArgumentException( "Table " + tables[ itab ]
+        for ( StarTable table : tables_ ) {
+            if ( ! table.isRandom() ) {
+                throw new IllegalArgumentException( "Table " + table
                                                   + " is not random access" );
             }
         }
@@ -1319,7 +1321,7 @@ public class RowMatcher {
      */
     private NdRange readTupleRange( int tIndex )
             throws IOException, InterruptedException {
-        StarTable table = tables[ tIndex ];
+        StarTable table = tables_[ tIndex ];
         int ncol = table.getColumnCount();
 
         /* See which columns are comparable. */
@@ -1343,7 +1345,7 @@ public class RowMatcher {
         Comparable<?>[] mins = new Comparable<?>[ ncol ];
         Comparable<?>[] maxs = new Comparable<?>[ ncol ];
         ProgressRowSequence rseq =
-            new ProgressRowSequence( table, indicator,
+            new ProgressRowSequence( table, indicator_,
                                      "Assessing range of coordinates " +
                                      "from table " + ( tIndex + 1 ) );
         try {
@@ -1394,7 +1396,7 @@ public class RowMatcher {
 
         /* Report and return. */
         NdRange range = new NdRange( mins, maxs );
-        indicator.logMessage( "Limits are: " + range );
+        indicator_.logMessage( "Limits are: " + range );
         return range;
     }
 
@@ -1421,9 +1423,9 @@ public class RowMatcher {
         if ( range == null ) {
             return;
         }
-        StarTable table = tables[ itab ];
+        StarTable table = tables_[ itab ];
         ProgressRowSequence rseq =
-            new ProgressRowSequence( table, indicator,
+            new ProgressRowSequence( table, indicator_,
                                      "Binning rows for table " + ( itab + 1 ) );
         long nrow = 0;
         long nexclude = 0;
@@ -1431,7 +1433,7 @@ public class RowMatcher {
             for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
                 Object[] row = rseq.getRow();
                 if ( range.isInside( row ) ) {
-                    Object[] keys = engine.getBins( row );
+                    Object[] keys = engine_.getBins( row );
                     int nkey = keys.length;
                     if ( nkey > 0 ) {
                         RowRef rref = new RowRef( itab, lrow );
@@ -1454,8 +1456,8 @@ public class RowMatcher {
             rseq.close();
         }
         if ( nexclude > 0 ) {
-            indicator.logMessage( nexclude + "/" + nrow + " rows excluded "
-                                + "(out of match region)" );
+            indicator_.logMessage( nexclude + "/" + nrow + " rows excluded "
+                                 + "(out of match region)" );
         }
     }
 
@@ -1480,10 +1482,10 @@ public class RowMatcher {
             throws InterruptedException {
         long nrow = binner.getItemCount();
         long nbin = binner.getBinCount();
-        indicator.logMessage( nrow + " row refs in " + nbin + " bins" );
-        indicator.logMessage( "(average bin occupancy " +
-                              ( (float) nrow / (float) nbin ) + ")" );
-        indicator.startStage( "Consolidating potential match groups" );
+        indicator_.logMessage( nrow + " row refs in " + nbin + " bins" );
+        indicator_.logMessage( "(average bin occupancy " +
+                               ( (float) nrow / (float) nbin ) + ")" );
+        indicator_.startStage( "Consolidating potential match groups" );
         double nl = (double) nbin;
         long il = 0;
         for ( Iterator<?> it = binner.getKeyIterator(); it.hasNext(); ) {
@@ -1500,10 +1502,10 @@ public class RowMatcher {
             /* Remove the entry from the map as we're going along,
              * to save on memory. */
             it.remove();
-            indicator.setLevel( ++il / nl );
+            indicator_.setLevel( ++il / nl );
         }
         assert binner.getBinCount() == 0;
-        indicator.endStage();
+        indicator_.endStage();
     }
 
     /**
@@ -1523,7 +1525,7 @@ public class RowMatcher {
                                       int itable )
             throws InterruptedException {
         long nbin = binner.getBinCount();
-        indicator.startStage( "Consolidating potential match groups" );
+        indicator_.startStage( "Consolidating potential match groups" );
         double nl = (double) nbin;
         long il = 0;
         for ( Iterator<?> it = binner.getKeyIterator(); it.hasNext(); ) {
@@ -1538,10 +1540,10 @@ public class RowMatcher {
                 linkSet.addLink( new RowLink( refs ) );
             }
             it.remove();
-            indicator.setLevel( ++il / nl );
+            indicator_.setLevel( ++il / nl );
         }
         assert binner.getBinCount() == 0;
-        indicator.endStage();
+        indicator_.endStage();
     }
 
     /**
@@ -1557,7 +1559,7 @@ public class RowMatcher {
     private long countInRange( int tIndex, NdRange range )
             throws IOException, InterruptedException {
         ProgressRowSequence rseq = 
-            new ProgressRowSequence( tables[ tIndex ], indicator, 
+            new ProgressRowSequence( tables_[ tIndex ], indicator_, 
                                      "Counting rows in match region " +
                                      "for table " + ( tIndex + 1 ) );
         long nInclude = 0;
@@ -1571,7 +1573,7 @@ public class RowMatcher {
         finally {
             rseq.close();
         }
-        indicator.logMessage( nInclude + " rows in match region" );
+        indicator_.logMessage( nInclude + " rows in match region" );
         return nInclude;
     }
 
@@ -1602,11 +1604,11 @@ public class RowMatcher {
      * Signals the start of a user-visible matching process.
      */
     private void startMatch() {
-        startTime = new Date().getTime();
-        indicator.logMessage( "Params:"
-                            + formatParams( engine.getMatchParameters() ) );
-        indicator.logMessage( "Tuning:"
-                            + formatParams( engine.getTuningParameters() ) );
+        startTime_ = new Date().getTime();
+        indicator_.logMessage( "Params:"
+                             + formatParams( engine_.getMatchParameters() ) );
+        indicator_.logMessage( "Tuning:"
+                             + formatParams( engine_.getTuningParameters() ) );
     }
 
     /**
@@ -1628,9 +1630,9 @@ public class RowMatcher {
      * Signals the end of a user-visible matching process.
      */
     private void endMatch() {
-        long millis = new Date().getTime() - startTime;
-        indicator.logMessage( "Elapsed time for match: " + ( millis / 1000 ) + 
-                              " seconds" );
+        long millis = new Date().getTime() - startTime_;
+        indicator_.logMessage( "Elapsed time for match: " + ( millis / 1000 ) + 
+                               " seconds" );
     }
 
     /**
