@@ -62,9 +62,9 @@ class Binners {
      * "listable" map values as lists.  A listable is an untyped object
      * which this class knows how to treat as if it were a list.
      */
-    private static abstract class MapObjectBinner implements ObjectBinner {
+    private static abstract class MapObjectBinner<L> implements ObjectBinner {
 
-        private final Map<Object,Object> map_ = new HashMap<Object,Object>();
+        private final Map<Object,L> map_ = new HashMap<>();
         private long nItem_;
 
         public void addItem( Object key, Object item ) {
@@ -98,16 +98,17 @@ class Binners {
 
         /**
          * Takes an existing listable, adds an item to it, and returns 
-         * a new listable containing the concatenation.
-         * The <code>listable</code> argument will be either on object
+         * a listable containing the concatenation.
+         * The <code>listable</code> argument will be either an object
          * returned by a previous call to this method,
          * or null indicating a previously empty list.
          *
          * @param   listable  existing listable or null
          * @param   item  object to append
-         * @return  new listable including added item
+         * @return  listable including added item;
+         *          may or may not be input listable
          */
-        protected abstract Object addToListable( Object listable, Object item );
+        protected abstract L addToListable( L listable, Object item );
 
         /**
          * Returns a List view of a listable.
@@ -118,24 +119,25 @@ class Binners {
          * @param  listable  existing listable or null
          * @return  List containing <code>listable</code>'s items
          */
-        protected abstract List<?> getListFromListable( Object listable );
+        protected abstract List<?> getListFromListable( L listable );
     }
 
     /**
      * Modifiable ObjectBinner implementation.
      */
-    private static class StorageListObjectBinner extends MapObjectBinner {
+    private static class StorageListObjectBinner
+            extends MapObjectBinner<StorageList> {
 
-        protected Object addToListable( Object listable, Object item ) {
-            @SuppressWarnings("unchecked")
-            List<Object> list = listable == null ? new StorageList()
-                                                 : (List<Object>) listable;
+        protected StorageList addToListable( StorageList list, Object item ) {
+            if ( list == null ) {
+                list = new StorageList();
+            }
             list.add( item );
             return list;
         }
 
-        protected List<?> getListFromListable( Object listable ) {
-            return (List<?>) listable;
+        protected List<?> getListFromListable( StorageList list ) {
+            return list;
         }
     }
 
@@ -149,7 +151,8 @@ class Binners {
      *     itself</li>
      * </ul>
      */
-    private static class CombinationObjectBinner extends MapObjectBinner {
+    private static class CombinationObjectBinner
+            extends MapObjectBinner<Object> {
 
         protected Object addToListable( Object listable, Object item ) {
             if ( item instanceof StorageList ) {
@@ -191,8 +194,8 @@ class Binners {
      * untyped object which this class knows how to treat as if it were 
      * a list of integer values.
      */
-    private static abstract class MapLongBinner implements LongBinner {
-        private final Map<Object,Object> map_ = new HashMap<Object,Object>();
+    private static abstract class MapLongBinner<L> implements LongBinner {
+        final Map<Object,L> map_ = new HashMap<>();
 
         public void addItem( Object key, long item ) {
             map_.put( key, addToListable( map_.get( key ), item ) );
@@ -212,16 +215,17 @@ class Binners {
 
         /**
          * Takes an existing listable, adds an item to it, and returns 
-         * a new listable containing the concatenation.
-         * The <code>listable</code> argument will be either on object
+         * a listable containing the concatenation.
+         * The <code>listable</code> argument will be either an object
          * returned by a previous call to this method,
          * or null indicating a previously empty list.
          *
          * @param   listable  existing listable or null
          * @param   item  object to append
-         * @return  new listable including added item
+         * @return  listable including added item;
+         *          may or may not be input listable
          */
-        protected abstract Object addToListable( Object listable, long item );
+        protected abstract L addToListable( L listable, long item );
 
         /**
          * Returns an array view of a listable.
@@ -232,44 +236,36 @@ class Binners {
          * @param  listable  existing listable or null
          * @return  array containing <code>listable</code>'s items
          */
-        protected abstract long[] getLongsFromListable( Object listable );
+        protected abstract long[] getLongsFromListable( L listable );
     }
 
     /**
      * LongBinner implementation which stores listables as LongLists.
      * Can store long values in any range.
      */
-    private static class LongListLongBinner extends MapLongBinner {
+    private static class LongListLongBinner extends MapLongBinner<LongList> {
 
-        protected Object addToListable( Object listable, long item ) {
-            if ( listable == null ) {
-                LongList list = new LongList( 1 );
-                list.add( item );
-                return list;
+        protected LongList addToListable( LongList list, long item ) {
+            if ( list == null ) {
+                list = new LongList( 1 );
             }
-            else {
-                LongList list = (LongList) listable;
-                list.add( item );
-                return list;
-            }
+            list.add( item );
+            return list;
         }
 
-        protected long[] getLongsFromListable( Object listable ) {
-            if ( listable == null ) {
-                return null;
-            }
-            else {
-                return ((LongList) listable).toLongArray();
-            }
+        protected long[] getLongsFromListable( LongList list ) {
+            return list == null ? null
+                                : list.toLongArray();
         }
     }
 
     /**
-     * LongBinner implemenation which uses a variety of tricks to store
+     * LongBinner implementation which uses a variety of tricks to store
      * values in a compact way.  It can only store values in the range
      * of integers.
      */
-    private static class CombinationIntLongBinner extends MapLongBinner {
+    private static class CombinationIntLongBinner
+            extends MapLongBinner<Object> {
         private static int MAX_ARRAY_SIZE = 32;
         private Integer lastInt_ = new Integer( -1 );
         private int[] lastInts_ = new int[ 0 ];
