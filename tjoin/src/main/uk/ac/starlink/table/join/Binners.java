@@ -46,14 +46,26 @@ class Binners {
     }
 
     /**
-     * Returns a new binner for storing long integer values.
+     * Returns a new binner for storing long integer values,
+     * given a value for the maximum row index.
      *
+     * @param   nrow   largest row index to be stored; negative for unknown
      * @return   new LongBinner
      */
     public static LongBinner createLongBinner( long nrow ) {
-        return nrow >= 0 && nrow < Integer.MAX_VALUE
-             ? (LongBinner) new CombinationIntLongBinner()
-             : (LongBinner) new LongListLongBinner();
+        return createLongBinner( nrow >=0 && nrow < Integer.MAX_VALUE );
+    }
+
+    /**
+     * Returns a new binner for storing integer values,
+     * given an int/long flag for the maximum row index.
+     *
+     * @param  isIntSize  true iff largest row index is known to be &lt;=2**31
+     * @return   new LongBinner
+     */
+    public static LongBinner createLongBinner( boolean isIntSize ) {
+        return isIntSize ? new CombinationIntLongBinner()
+                         : new LongListLongBinner();
     }
 
     /**
