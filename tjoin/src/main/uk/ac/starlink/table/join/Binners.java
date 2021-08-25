@@ -222,6 +222,32 @@ class Binners {
             return map_.size();
         }
 
+        public LongBinner combine( LongBinner o ) {
+            @SuppressWarnings("unchecked")
+            MapLongBinner<L> other = (MapLongBinner<L>) o;
+            if ( this.getBinCount() > other.getBinCount() ) {
+                addBinner( other );
+                return this;
+            }
+            else {
+                other.addBinner( this );
+                return other;
+            }
+        }
+
+        private void addBinner( MapLongBinner<L> other ) {
+            for ( Map.Entry<?,L> entry : other.map_.entrySet() ) {
+                Object key = entry.getKey();
+                L otherListable = entry.getValue();
+                L thisListable = map_.get( key );
+                L combinedListable =
+                      thisListable == null
+                    ? otherListable
+                    : combineListables( thisListable, otherListable );
+                map_.put( key, combinedListable );
+            }
+        }
+
         /**
          * Takes an existing listable, adds an item to it, and returns 
          * a listable containing the concatenation.
@@ -246,6 +272,17 @@ class Binners {
          * @return  array containing <code>listable</code>'s items
          */
         protected abstract long[] getLongsFromListable( L listable );
+
+        /**
+         * Returns an object which is the combination of two listables.
+         * Each argument will be an object returned by a previous call
+         * to {@addToListable}.
+         *
+         * @param  listable1  first listable, not null
+         * @param  listable2  second listable, not null
+         * @return   aggregation of arguments, suitable for use as a listable
+         */
+        protected abstract L combineListables( L listable1, L listable2 );
     }
 
     /**
@@ -265,6 +302,17 @@ class Binners {
         protected long[] getLongsFromListable( LongList list ) {
             return list == null ? null
                                 : list.toLongArray();
+        }
+
+        protected LongList combineListables( LongList list1, LongList list2 ) {
+            if ( list1.size() > list2.size() ) {
+                list1.addAll( list2 );
+                return list1;
+            }
+            else {
+                list2.addAll( list1 );
+                return list2;
+            }
         }
     }
 
@@ -356,6 +404,49 @@ class Binners {
             else {
                 assert false;
                 return null;
+            }
+        }
+
+        protected Object combineListables( Object listable1, Object listable2 ){
+            Object result;
+            Object addenda;
+            if ( getListableLength( listable1 ) >
+                 getListableLength( listable2 ) ) {
+                result = listable1;
+                addenda = listable2;
+            }
+            else {
+                result = listable2;
+                addenda = listable1;
+            }
+            for ( long ltem : getLongsFromListable( addenda ) ) {
+                result = addToListable( result, ltem );
+            }
+            return result;
+        }
+
+        /**
+         * Returns the number of entries in a listable from this binner.
+         *
+         * @param  listable
+         * @return   listable length
+         */
+        private int getListableLength( Object listable ) {
+            if ( listable == null ) {
+                return 0;
+            }
+            else if ( listable instanceof Integer ) {
+                return 1;
+            }
+            else if ( listable instanceof int[] ) {
+                return ((int[]) listable).length;
+            }
+            else if ( listable instanceof IntList ) {
+                return ((IntList) listable).size();
+            }
+            else {
+                assert false;
+                return -1;
             }
         }
     }

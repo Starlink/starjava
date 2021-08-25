@@ -44,4 +44,13 @@ interface LongBinner {
      * @return  bin count
      */
     long getBinCount();
+
+    /**
+     * Returns a LongBinner equivalent to the combination of this
+     * and another compatible one.
+     *
+     * @param  other  binner compatible with this one
+     * @return  binner combining items from this with items from other
+     */
+    LongBinner combine( LongBinner other );
 }
