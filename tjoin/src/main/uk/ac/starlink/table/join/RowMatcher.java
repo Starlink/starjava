@@ -41,10 +41,11 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor (Starlink)
  * @since    13 Jan 2004
  */
-public abstract class RowMatcher {
+public class RowMatcher {
 
     private final MatchEngine engine_;
     private final StarTable[] tables_;
+    private final MatchComputer computer_;
     private final int nTable_;
     private ProgressIndicator indicator_;
     private long startTime_;
@@ -55,10 +56,14 @@ public abstract class RowMatcher {
      *
      * @param  engine  matching engine
      * @param  tables  the array of tables on which matches are to be done
+     * @param  computer   implementation for computationally intensive
+     *                    operations
      */
-    protected RowMatcher( MatchEngine engine, StarTable[] tables ) {
+    public RowMatcher( MatchEngine engine, StarTable[] tables,
+                       MatchComputer computer ) {
         engine_ = engine;
         tables_ = tables;
+        computer_ = computer;
         nTable_ = tables.length;
         indicator_ = new NullProgressIndicator();
     }
@@ -208,11 +213,32 @@ public abstract class RowMatcher {
             throws IOException, InterruptedException {
 
         /* Bin the row indices for the random table. */
-        LongBinner binner = binRowIndices( indexR, range::isInside );
+        MatchComputer.BinnedRows binned =
+            computer_
+           .binRowIndices( engine_, range::isInside, tables_[ indexR ],
+                           indicator_, "Binning rows for table " + (indexR+1) );
+        LongBinner binnerR = binned.getLongBinner();
+        long nbin = binnerR.getBinCount();
+        long nexclude = binned.getNexclude();
+        long nref = binned.getNref();
+        long nrow = tables_[ indexR ].getRowCount();
+        if ( nexclude > 0 ) {
+            indicator_.logMessage( nexclude + "/" + nrow + " rows excluded "
+                                 + "(out of match region)" );
+        }
+        indicator_.logMessage( nref + " row refs for " + nrow + " rows in "
+                             + nbin + " bins" );
+        indicator_.logMessage( "(average bin occupancy " +
+                               ( (float) nref / (float) nbin ) + ")" );
 
         /* Scan the rows for the sequential table. */
-        return scanBinsForPairs( indexR, indexS, range::isInside, bestOnly,
-                                 binner);
+        return computer_
+              .scanBinsForPairs( engine_, range::isInside,
+                                 tables_[ indexR ], indexR,
+                                 tables_[ indexS ], indexS,
+                                 bestOnly, binnerR, this::createLinkSet,
+                                 indicator_,
+                                 "Scanning rows for table " + ( indexS + 1 ) );
     }
 
     /**
@@ -398,57 +424,6 @@ public abstract class RowMatcher {
     }
 
     /**
-     * Create a map from match bin to list of all the row indices
-     * associated with that bin, for a given table.
-     *
-     * @param   indexR  index of table to bin
-     * @param   rowSelector   filter for rows to be included;
-     *                        row values that fail this test are ignored
-     * @return   binner with keys that are match bins and values that
-     *           are lists of row indices
-     */
-    abstract LongBinner binRowIndices( int indexR,
-                                       Predicate<Object[]> rowSelector )
-            throws IOException, InterruptedException;
-
-    /**
-     * Scans a table S sequentially with reference to a supplied LongBinner
-     * containing bin assignments for a random-access table R,
-     * to identify matched pairs between rows in the two tables.
-     *
-     * @param  indexR  index of table R which will be accessed randomly
-     * @param  indexS  index of table S which will be accessed sequentially
-     * @param  rowSelector   filter for rows to be included;
-     *                       row values that fail this test are ignored
-     * @param  bestOnly  true iff only the best S-R match is required;
-     *                   if false multiple matches in R may be returned
-     *                   for each row in S
-     * @param  binnerR   map from bin value to list of row indices in R
-     *                   to which that bin relates
-     * @return  links representing pair matches
-     */
-    abstract LinkSet scanBinsForPairs( int indexR, int indexS,
-                                       Predicate<Object[]> rowSelector,
-                                       boolean bestOnly, LongBinner binnerR )
-            throws IOException, InterruptedException;
-
-    /**
-     * Determines the NdRange for selected columns from a given table
-     * by scanning through all its rows.
-     *
-     * @param   tIndex  index of table whose data is to be scanned
-     * @param   colFlags  array of same length as table column count
-     *                    indicating which columns are to be scanned
-     *                    for range; output NdRange will be blank in
-     *                    dimensions for which these flags are false
-     * @return   N-dimensional range for selected columns;
-     *           note this may contain null or infinite values even
-     *           in the selected columns, so may require post-processing
-     */
-    abstract NdRange rangeColumns( int tIndex, boolean[] colFlags )
-            throws IOException, InterruptedException;
-
-    /**
      * Identifies all the pairs of equivalent rows in a set of RowLinks.
      * Internal matches (ones corresponding to two rows of the same table)
      * are included as well as external ones.
@@ -524,7 +499,7 @@ public abstract class RowMatcher {
         ObjectBinner<Object,RowRef> binner = Binners.createObjectBinner();
         long totalRows = 0;
         for ( int itab = 0; itab < nTable_; itab++ ) {
-            binRows( itab, range, binner, true );
+            binRowRefs( itab, range, binner, true );
             totalRows += tables_[ itab ].getRowCount();
         }
         long nBin = binner.getBinCount();
@@ -545,8 +520,13 @@ public abstract class RowMatcher {
      */
     private LinkSet getAllPossibleInternalLinks( int itable )
             throws IOException, InterruptedException {
-        LongBinner binner = binRowIndices( itable, row -> true );
-        long nRow = tables_[ itable ].getRowCount();
+        StarTable table = tables_[ itable ];
+        MatchComputer.BinnedRows binned =
+            computer_
+           .binRowIndices( engine_, row -> true, table, indicator_,
+                           "Binning rows for table " + ( itable + 1 ) );
+        LongBinner binner = binned.getLongBinner();
+        long nRow = table.getRowCount();
         long nBin = binner.getBinCount();
         indicator_.logMessage( "Average bin count per row: " +
                                (float) ( nBin / (double) nRow ) );
@@ -600,8 +580,13 @@ public abstract class RowMatcher {
                     indicator_.logMessage( "Potential match region: " + range );
                     for ( int iTable = 0; iTable < nt; iTable++ ) {
                         int index = iTables[ iTable ];
-                        inRangeCounts[ iTable ] =
-                            countInRange( index, range::isInside );
+                        String msg = "Counting rows in match region for table "
+                                   + ( index + 1 );
+                        long nr = computer_
+                                 .countRows( tables_[ index ], range::isInside,
+                                             indicator_, msg );
+                        inRangeCounts[ iTable ] = nr;
+                        indicator_.logMessage( nr + " rows in match region" );
                     }
                 }
                 else {
@@ -802,14 +787,14 @@ public abstract class RowMatcher {
 
         /* Bin all the rows in the interesting region of the reference table. */
         ObjectBinner<Object,RowRef> binner = Binners.createObjectBinner();
-        binRows( index0, range, binner, true );
+        binRowRefs( index0, range, binner, true );
 
         /* Bin any rows in the other tables which have entries in the bins
          * we have already created for the reference table.  Rows without
          * such entries can be ignored. */
         for ( int itab = 0; itab < nTable_; itab++ ) {
             if ( itab != index0 ) {
-                binRows( itab, range, binner, false );
+                binRowRefs( itab, range, binner, false );
             }
         }
 
@@ -1194,7 +1179,7 @@ public abstract class RowMatcher {
      */
     public static RowMatcher createMatcher( MatchEngine engine,
                                             StarTable[] tables ) {
-        return new SequentialRowMatcher( engine, tables );
+        return new RowMatcher( engine, tables, new SequentialMatchComputer() );
     }
 
     /**
@@ -1295,7 +1280,11 @@ public abstract class RowMatcher {
         }
 
         /* Calculate the ranges. */
-        NdRange rawRange = rangeColumns( tIndex, isComparable );
+        NdRange rawRange =
+            computer_
+           .rangeColumns( tables_[ tIndex ], isComparable, indicator_,
+                          "Assessing range of coordinates from table "
+                          + ( tIndex + 1 ) );
         Comparable<?>[] mins = rawRange.getMins().clone();
         Comparable<?>[] maxs = rawRange.getMaxs().clone();
 
@@ -1332,7 +1321,7 @@ public abstract class RowMatcher {
      * will be started in the <code>bins</code> object.  If true, then
      * every relevant row in the table will be binned.  If false, then
      * only rows with entries in bins which are already present in 
-     * the <code>bins</code> object will be added and others will be ignored.
+     * the <code>binner</code> object will be added and others will be ignored.
      *
      * @param   itab   index of table to operate on
      * @param   range  range of row coordinates of interest - any rows outside
@@ -1340,44 +1329,20 @@ public abstract class RowMatcher {
      * @param   binner   binner object to modify
      * @param   newBins  whether new bins may be added to <code>bins</code>
      */
-    private void binRows( int itab, NdRange range,
-                          ObjectBinner<Object,RowRef> binner, boolean newBins )
+    private void binRowRefs( int itab, NdRange range,
+                             ObjectBinner<Object,RowRef> binner,
+                             boolean newBins )
             throws IOException, InterruptedException {
         if ( range == null ) {
             return;
         }
         StarTable table = tables_[ itab ];
-        ProgressRowSequence rseq =
-            new ProgressRowSequence( table, indicator_,
-                                     "Binning rows for table " + ( itab + 1 ) );
-        long nrow = 0;
-        long nexclude = 0;
-        try {
-            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
-                Object[] row = rseq.getRow();
-                if ( range.isInside( row ) ) {
-                    Object[] keys = engine_.getBins( row );
-                    int nkey = keys.length;
-                    if ( nkey > 0 ) {
-                        RowRef rref = new RowRef( itab, lrow );
-                        for ( int ikey = 0; ikey < nkey; ikey++ ) {
-                            Object key = keys[ ikey ];
-                            if ( newBins || binner.containsKey( key ) ) {
-                                binner.addItem( key, rref );
-                            }
-                        }
-                    }
-                }
-                else {
-                    nexclude++;
-                }
-                nrow++;
-            }
-            assert nrow == table.getRowCount();
-        }
-        finally {
-            rseq.close();
-        }
+        long ninclude =
+            computer_.binRowRefs( engine_, range::isInside, table, itab,
+                                  binner, newBins, indicator_,
+                                  "Binning rows for table " + ( itab + 1 ) );
+        long nrow = table.getRowCount();
+        long nexclude = nrow - ninclude;
         if ( nexclude > 0 ) {
             indicator_.logMessage( nexclude + "/" + nrow + " rows excluded "
                                  + "(out of match region)" );
@@ -1478,37 +1443,6 @@ public abstract class RowMatcher {
     }
 
     /**
-     * Returns the number of rows in a table which fall within a given
-     * range of min/max values.
-     * 
-     * @param  tIndex  index of table to assess
-     * @param  rowSelector   defines permissible rows
-     * @return  number of rows of <tt>table</tt> that fall within supplied
-     *          bounds
-     * @throws  ClassCastException  if objects are not mutually comparable
-     */
-    long countInRange( int tIndex, Predicate<Object[]> rowSelector )
-            throws IOException, InterruptedException {
-        ProgressRowSequence rseq = 
-            new ProgressRowSequence( tables_[ tIndex ], indicator_, 
-                                     "Counting rows in match region " +
-                                     "for table " + ( tIndex + 1 ) );
-        long nInclude = 0;
-        try {
-            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
-                if ( rowSelector.test( rseq.getRow() ) ) {
-                    nInclude++;
-                }
-            }
-        }
-        finally {
-            rseq.close();
-        }
-        indicator_.logMessage( nInclude + " rows in match region" );
-        return nInclude;
-    }
-
-    /**
      * Returns a list with the same content of RowLinks as the
      * input LinkSet, but ordered according to the given comparator.
      *
@@ -1540,6 +1474,7 @@ public abstract class RowMatcher {
                              + formatParams( engine_.getMatchParameters() ) );
         indicator_.logMessage( "Tuning:"
                              + formatParams( engine_.getTuningParameters() ) );
+        indicator_.logMessage( "Processing: " + computer_.getDescription() );
     }
 
     /**
