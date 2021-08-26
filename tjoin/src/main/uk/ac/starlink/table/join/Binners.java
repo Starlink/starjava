@@ -30,8 +30,8 @@ class Binners {
      *
      * @return   new binner
      */
-    public static ObjectBinner createObjectBinner() {
-        return new CombinationObjectBinner();
+    public static <K,E> ObjectBinner<K,E> createObjectBinner() {
+        return new CombinationObjectBinner<K,E>();
     }
 
     /**
@@ -41,8 +41,8 @@ class Binners {
      *
      * @return   new binner
      */
-    public static ObjectBinner createModifiableObjectBinner() {
-        return new StorageListObjectBinner();
+    public static <K,E> ObjectBinner<K,E> createModifiableObjectBinner() {
+        return new StorageListObjectBinner<K,E>();
     }
 
     /**
@@ -62,29 +62,30 @@ class Binners {
      * "listable" map values as lists.  A listable is an untyped object
      * which this class knows how to treat as if it were a list.
      */
-    private static abstract class MapObjectBinner<L> implements ObjectBinner {
+    private static abstract class MapObjectBinner<K,E,L>
+            implements ObjectBinner<K,E> {
 
-        private final Map<Object,L> map_ = new HashMap<>();
+        private final Map<K,L> map_ = new HashMap<>();
         private long nItem_;
 
-        public void addItem( Object key, Object item ) {
+        public void addItem( K key, E item ) {
             nItem_++;
             map_.put( key, addToListable( map_.get( key ), item ) );
         }
 
-        public List<?> getList( Object key ) {
+        public List<E> getList( K key ) {
             return getListFromListable( map_.get( key ) );
         }
 
-        public boolean containsKey( Object key ) {
+        public boolean containsKey( K key ) {
             return map_.containsKey( key );
         }
 
-        public void remove( Object key ) {
+        public void remove( K key ) {
             map_.remove( key );
         }
 
-        public Iterator<?> getKeyIterator() {
+        public Iterator<K> getKeyIterator() {
             return map_.keySet().iterator();
         }
 
@@ -108,7 +109,7 @@ class Binners {
          * @return  listable including added item;
          *          may or may not be input listable
          */
-        protected abstract L addToListable( L listable, Object item );
+        protected abstract L addToListable( L listable, E item );
 
         /**
          * Returns a List view of a listable.
@@ -119,24 +120,24 @@ class Binners {
          * @param  listable  existing listable or null
          * @return  List containing <code>listable</code>'s items
          */
-        protected abstract List<?> getListFromListable( L listable );
+        protected abstract List<E> getListFromListable( L listable );
     }
 
     /**
      * Modifiable ObjectBinner implementation.
      */
-    private static class StorageListObjectBinner
-            extends MapObjectBinner<StorageList> {
+    private static class StorageListObjectBinner<K,E>
+            extends MapObjectBinner<K,E,StorageList<E>> {
 
-        protected StorageList addToListable( StorageList list, Object item ) {
+        protected StorageList<E> addToListable( StorageList<E> list, E item ) {
             if ( list == null ) {
-                list = new StorageList();
+                list = new StorageList<E>();
             }
             list.add( item );
             return list;
         }
 
-        protected List<?> getListFromListable( StorageList list ) {
+        protected List<E> getListFromListable( StorageList<E> list ) {
             return list;
         }
     }
@@ -151,10 +152,10 @@ class Binners {
      *     itself</li>
      * </ul>
      */
-    private static class CombinationObjectBinner
-            extends MapObjectBinner<Object> {
+    private static class CombinationObjectBinner<K,E>
+            extends MapObjectBinner<K,E,Object> {
 
-        protected Object addToListable( Object listable, Object item ) {
+        protected Object addToListable( Object listable, E item ) {
             if ( item instanceof StorageList ) {
                 throw new IllegalArgumentException(
                     "Can't mix keys with values" );
@@ -163,26 +164,34 @@ class Binners {
                 return item;
             }
             else if ( listable instanceof StorageList ) {
-                ((StorageList) listable).add( item );
+                @SuppressWarnings("unchecked")
+                StorageList<E> list = (StorageList<E>) listable;
+                list.add( item );
                 return listable;
             }
             else {
-                StorageList list = new StorageList();
-                list.add( listable );
+                StorageList<E> list = new StorageList<E>();
+                @SuppressWarnings("unchecked")
+                E singleElement = (E) listable;
+                list.add( singleElement );
                 list.add( item );
                 return list;
             }
         }
 
-        protected List<?> getListFromListable( Object listable ) {
+        protected List<E> getListFromListable( Object listable ) {
             if ( listable == null ) {
                 return null;
             }
             else if ( listable instanceof StorageList ) {
-                return (List) listable;
+                @SuppressWarnings("unchecked")
+                StorageList<E> list = (StorageList<E>) listable;
+                return list;
             }
             else {
-                return Collections.singletonList( listable );
+                @SuppressWarnings("unchecked")
+                E singleElement = (E) listable;
+                return Collections.singletonList( singleElement );
             }
         }
     }
@@ -357,6 +366,6 @@ class Binners {
      * between Lists created/managed by <code>CombinationObjectBinner</code>
      * and those added as items.
      */
-    private static class StorageList extends LinkedList<Object> {
+    private static class StorageList<E> extends LinkedList<E> {
     }
 }

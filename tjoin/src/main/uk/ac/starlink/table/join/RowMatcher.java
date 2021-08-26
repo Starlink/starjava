@@ -561,7 +561,7 @@ public class RowMatcher {
     private LinkSet getAllPossibleLinks()
             throws IOException, InterruptedException {
         NdRange range = new NdRange( tables[ 0 ].getColumnCount() );
-        ObjectBinner binner = Binners.createObjectBinner();
+        ObjectBinner<Object,RowRef> binner = Binners.createObjectBinner();
         long totalRows = 0;
         for ( int itab = 0; itab < nTable; itab++ ) {
             binRows( itab, range, binner, true );
@@ -857,7 +857,7 @@ public class RowMatcher {
         }
 
         /* Bin all the rows in the interesting region of the reference table. */
-        ObjectBinner binner = Binners.createObjectBinner();
+        ObjectBinner<Object,RowRef> binner = Binners.createObjectBinner();
         binRows( index0, range, binner, true );
 
         /* Bin any rows in the other tables which have entries in the bins
@@ -969,7 +969,8 @@ public class RowMatcher {
 
         /* Store all the pairs in a map keyed by row reference of the reference
          * table. */
-        ObjectBinner pairBinner = Binners.createObjectBinner();
+        ObjectBinner<RowRef,ScoredRef> pairBinner =
+            Binners.createObjectBinner();
         for ( Iterator<RowLink> it = pairs.iterator(); it.hasNext(); ) {
             RowLink2 pair = (RowLink2) it.next();
             it.remove();
@@ -991,15 +992,16 @@ public class RowMatcher {
                 throw new IllegalArgumentException( "Pair doesn't contain "
                                                   + "reference table" );
             }
-            Object key = ref0;
-            Object value = new ScoredRef( ref1, pair.getScore() );
+            RowRef key = ref0;
+            ScoredRef value = new ScoredRef( ref1, pair.getScore() );
             pairBinner.addItem( key, value );
         }
 
         /* Convert the pairs in pairMap to a LinkSet. */
         LinkSet multiLinks = createLinkSet();
-        for ( Iterator<?> it = pairBinner.getKeyIterator(); it.hasNext(); ) {
-            RowRef ref0 = (RowRef) it.next();
+        for ( Iterator<RowRef> it = pairBinner.getKeyIterator();
+              it.hasNext(); ) {
+            RowRef ref0 = it.next();
             ScoredRef[] sref1s =
                 pairBinner.getList( ref0 ).toArray( new ScoredRef[ 0 ] );
             int nref1 = sref1s.length;
@@ -1145,7 +1147,8 @@ public class RowMatcher {
 
         /* Construct a new hash mapping each RowRef in the given set of
          * links to a list of all the links it appears in. */
-        ObjectBinner refBinner = Binners.createModifiableObjectBinner();
+        ObjectBinner<RowRef,RowLink> refBinner =
+            Binners.createModifiableObjectBinner();
         indicator.startStage( "Mapping rows to links" );
         double nlink1 = links.size();
         int ilink1 = 0;
@@ -1178,7 +1181,7 @@ public class RowMatcher {
             boolean isolated = true;
             for ( int i = 0; isolated && i < nref; i++ ) {
                 RowRef ref = link.getRef( i );
-                Collection<?> refLinks = refBinner.getList( ref );
+                Collection<RowLink> refLinks = refBinner.getList( ref );
                 assert refLinks.size() > 0;
                 isolated = isolated && refLinks.size() == 1;
             } 
@@ -1208,7 +1211,7 @@ public class RowMatcher {
         indicator.startStage( "Walking links" );
         while ( refBinner.getBinCount() > 0 ) {
             indicator.setLevel( 1.0 - ( refBinner.getBinCount() / nRefs ) );
-            RowRef ref1 = (RowRef) refBinner.getKeyIterator().next();
+            RowRef ref1 = refBinner.getKeyIterator().next();
             Set<RowRef> refSet = new HashSet<RowRef>();
             walkLinks( ref1, refBinner, refSet );
             RowLink link = new RowLink( refSet );
@@ -1248,7 +1251,8 @@ public class RowMatcher {
      * @param   outSet   an existing set of RowRefs into which new RowRefs
      *                   connected to baseRef should be inserted
      */
-    private static void walkLinks( RowRef baseRef, ObjectBinner refBinner,
+    private static void walkLinks( RowRef baseRef,
+                                   ObjectBinner<RowRef,RowLink> refBinner,
                                    Set<RowRef> outSet ) {
 
         /* Do nothing if the output set already contains the requested
@@ -1256,8 +1260,7 @@ public class RowMatcher {
         if ( ! outSet.contains( baseRef ) ) {
 
             /* Get all the links of which this reference is a member. */
-            @SuppressWarnings("unchecked")
-            List<RowLink> links = (List<RowLink>) refBinner.getList( baseRef );
+            List<RowLink> links = refBinner.getList( baseRef );
             if ( ! links.isEmpty() ) {
 
                 /* Add the current row to the output set. */
@@ -1412,8 +1415,8 @@ public class RowMatcher {
      * @param   binner   binner object to modify
      * @param   newBins  whether new bins may be added to <code>bins</code>
      */
-    private void binRows( int itab, NdRange range, ObjectBinner binner,
-                          boolean newBins )
+    private void binRows( int itab, NdRange range,
+                          ObjectBinner<Object,RowRef> binner, boolean newBins )
             throws IOException, InterruptedException {
         if ( range == null ) {
             return;
@@ -1472,7 +1475,8 @@ public class RowMatcher {
      *          contents may be disrupted
      * @param   linkSet  link set into which created RowLinks will be dumped
      */
-    private void binsToLinks( ObjectBinner binner, LinkSet linkSet )
+    private void binsToLinks( ObjectBinner<Object,RowRef> binner,
+                              LinkSet linkSet )
             throws InterruptedException {
         long nrow = binner.getItemCount();
         long nbin = binner.getBinCount();
@@ -1484,8 +1488,7 @@ public class RowMatcher {
         long il = 0;
         for ( Iterator<?> it = binner.getKeyIterator(); it.hasNext(); ) {
             Object key = it.next();
-            @SuppressWarnings("unchecked")
-            List<RowRef> refList = (List<RowRef>) binner.getList( key );
+            List<RowRef> refList = binner.getList( key );
 
             /* If there is more than one RowRef, create and store the
              * corresponding RowLink.  Items with 0 or 1 entry are not
