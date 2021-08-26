@@ -46,6 +46,7 @@ public class SequentialRowSplittable implements RowSplittable {
     public SequentialRowSplittable( RowSequence rseq, long nrow ) {
         rseq_ = rseq;
         nrow_ = nrow;
+        irow_ = -1;
     }
 
     public long splittableSize() {
