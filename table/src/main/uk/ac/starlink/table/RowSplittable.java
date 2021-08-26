@@ -29,6 +29,8 @@ public interface RowSplittable extends RowSequence, Splittable<RowSplittable> {
      *
      * <p>Before the {@link RowSequence#next} method has been called,
      * the return value will be one less than the first row index.
+     * After <code>RowSequence.next</code> has returned false,
+     * the value is undefined.
      *
      * <p>Depending on the implementation, it may not be possible to
      * determine the row index (for instance if the sequence is
