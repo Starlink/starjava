@@ -26,7 +26,9 @@ import uk.ac.starlink.util.IOUtils;
  * TableBuilder implementation for ECSV tables.
  * The format currently supported is ECSV 1.0, as documented at
  * <a href="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"
- *    >Astropy APE6</a>.
+ *    >Astropy APE6</a>
+ * (V1.0 <a href="https://doi.org/10.5281/zenodo.4792325"
+ *                           >DOI:10.5281/zenodo.4792325</a>).
  *
  * @author   Mark Taylor
  * @since    29 Apr 2020
@@ -74,7 +76,8 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
             + "to plain CSV files.\n"
             + "</p>",
         usage = "<filename-or-url>",
-        example = "http://andromeda.star.bris.ac.uk/gaia-edr3/edr3-header.ecsv"
+        example = "http://cdn.gea.esac.esa.int/Gaia/gedr3/ECSV_headers/"
+                + "gaia_source.header"
     )
     public void setHeader( String headerLoc ) {
         headerLoc_ = headerLoc;

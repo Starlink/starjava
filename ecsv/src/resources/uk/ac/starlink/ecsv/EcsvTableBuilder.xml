@@ -43,6 +43,21 @@ and it can also be read much more efficiently than a CSV file
 and its format can be detected automatically.
 </p>
 
+<p>The header information can be provided either in the ECSV file itself,
+or alongside a plain CSV file from a separate source
+referenced using the <code>header</code> configuration option.
+In Gaia EDR3 for instance, the ECSV headers are supplied alongside
+the CSV files available for raw download of all tables in the
+Gaia source catalogue, so e.g. STILTS can read
+one of the gaia_source CSV files with full metadata
+as follows:
+<pre>
+   stilts tpipe
+      ifmt='ecsv(header=http://cdn.gea.esac.esa.int/Gaia/gedr3/ECSV_headers/gaia_source.header)'
+      in=http://cdn.gea.esac.esa.int/Gaia/gedr3/gaia_source/GaiaSource_000000-003111.csv.gz
+</pre>
+</p>
+
 <p>The ECSV datatypes that work well with this reader are
 <code>bool</code>,
 <code>int8</code>, <code>int16</code>, <code>int32</code>, <code>int64</code>,
