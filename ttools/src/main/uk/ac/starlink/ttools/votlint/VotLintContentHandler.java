@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.votlint;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +33,8 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
     private final Set<String> namespaceSet_;
 
     private static final Pattern NS_PAT = getNamespaceNamePattern();
+    private static final Set<String> VOTABLE_ELEMENTNAMES =
+        createVOTableElementNames();
     private final static Map<String,String> EMPTY_MAP =
         Collections.unmodifiableMap( new HashMap<String,String>() );
 
@@ -126,10 +129,19 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
                 }
             }
             else if ( ! declaredNamespace.equals( versionNamespace ) ) {
-                context_.warning( new VotLintCode( "NSX" ),
-                                  "Element in wrong namespace ("
-                                + declaredNamespace + " not "
-                                + versionNamespace + ")" );
+                if ( isVOTableElementName( localName ) ) {
+                    context_.warning( new VotLintCode( "NSX" ),
+                                      "VOTable Element " + localName
+                                    + " in wrong namespace ("
+                                    + declaredNamespace + " not "
+                                    + versionNamespace + ")" );
+                }
+                else {
+                    context_.warning( new VotLintCode( "NSF" ),
+                                      "Element " + localName
+                                    + " in foreign namespace ("
+                                    + declaredNamespace + ")" );
+                }
             }
         }
 
@@ -263,4 +275,60 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
         return Pattern.compile( pats );
     }
 
+    /**
+     * Indicates whether the given localName appears to be the name of 
+     * an element in the VOTable schema.  This is not version dependent;
+     * it's used to report on whether an element appears to be misplaced,
+     * so it's really just trying to guess whether the element name has
+     * been misplaced to influence warning reports, rather than doing
+     * accurate parsing.
+     *
+     * @param  localName  element local name
+     * @return   true iff localName looks like it's supposed to be
+     *           a VOTable element
+     */
+    private static boolean isVOTableElementName( String localName ) {
+        return VOTABLE_ELEMENTNAMES.contains( localName );
+    }
+
+    /**
+     * Returns a list of localNames for known VOTable elements.
+     * This list is permissive rather than restrictive;
+     * elements from all known VOTable versions should be included.
+     *
+     * @return    unmodifiable set of VOTable element names
+     */
+    private static Set<String> createVOTableElementNames() {
+        return Collections
+              .unmodifiableSet( new HashSet<>( Arrays.asList( new String[] {
+            "BINARY",
+            "BINARY2",
+            "COOSYS",
+            "DATA",
+            "DEFINITIONS",
+            "DESCRIPTION",
+            "FIELD",
+            "FIELDref",
+            "FITS",
+            "GROUP",
+            "GROUP",
+            "INFO",
+            "LINK",
+            "MAX",
+            "MIN",
+            "OPTION",
+            "PARAM",
+            "PARAM",
+            "PARAMref",
+            "RESOURCE",
+            "STREAM",
+            "TABLE",
+            "TABLEDATA",
+            "TD",
+            "TIMESYS",
+            "TR",
+            "VALUES",
+            "VOTABLE",
+        } ) ) );
+    }
 }
