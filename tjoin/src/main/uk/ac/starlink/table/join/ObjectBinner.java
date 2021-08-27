@@ -73,4 +73,13 @@ interface ObjectBinner<K,E> {
      * @return   bin count
      */
     long getBinCount();
+
+    /**
+     * Adds the content of another binner to this one.
+     * The result is as if all the {@link #addItem} calls to both
+     * binners so far had been called on this one.
+     *
+     * @param  other  other binner
+     */
+    void addContent( ObjectBinner<K,E> other );
 }

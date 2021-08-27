@@ -97,6 +97,16 @@ class Binners {
             return map_.size();
         }
 
+        public void addContent( ObjectBinner<K,E> other ) {
+            for ( Iterator<K> keyIt = other.getKeyIterator();
+                  keyIt.hasNext(); ) {
+                K key = keyIt.next();
+                for ( E item : other.getList( key ) ) {
+                    addItem( key, item );
+                }
+            }
+        }
+
         /**
          * Takes an existing listable, adds an item to it, and returns 
          * a listable containing the concatenation.
