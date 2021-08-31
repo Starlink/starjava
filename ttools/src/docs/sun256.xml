@@ -13315,6 +13315,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         from fixed-length string fields during parallel processing,
         for instance statistics calculation,
         of large cached/randomised tables.</li>
+    <li>Distinguish <code>votlint</code> reports for recognised and
+        unrecognised (e.g. VODML) elements in foreign namespaces.</li>
     </ul>
     </p></dd>
 
