@@ -1213,7 +1213,7 @@ public class RowMatcher {
             walkLinks( ref1, refBinner, refSet );
             RowLink link = new RowLink( refSet );
             assert ! agglomeratedLinks.containsLink( link );
-            agglomeratedLinks.addLink( new RowLink( refSet ) );
+            agglomeratedLinks.addLink( link );
         }
         indicator.endStage();
 
