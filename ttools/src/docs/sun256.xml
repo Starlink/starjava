@@ -13317,6 +13317,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         of large cached/randomised tables.</li>
     <li>Distinguish <code>votlint</code> reports for recognised and
         unrecognised (e.g. VODML) elements in foreign namespaces.</li>
+    <li>Add <ref id="mode-checksum"><code>checksum</code></ref>
+        table output mode.</li>
     </ul>
     </p></dd>
 

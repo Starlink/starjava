@@ -211,6 +211,7 @@ public class Stilts {
         modeFactory_.register( "meta", modePkg + "MetadataMode" );
         modeFactory_.register( "stats", modePkg + "StatsMode" );
         modeFactory_.register( "count", modePkg + "CountMode" );
+        modeFactory_.register( "checksum", modePkg + "ChecksumMode" );
         modeFactory_.register( "cgi", modePkg + "CgiMode" );
         modeFactory_.register( "discard", modePkg + "NullMode" );
         modeFactory_.register( "topcat", modePkg + "TopcatMode" );
