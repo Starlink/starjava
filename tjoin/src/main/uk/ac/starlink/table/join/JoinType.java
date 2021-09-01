@@ -135,8 +135,8 @@ public abstract class JoinType {
             for ( int iTable = 0; iTable < 2; iTable++ ) {
                 for ( int iRow = 0; iRow < rowCounts[ iTable ]; iRow++ ) {
                     if ( ! present[ iTable ].get( iRow ) ) {
-                        links.addLink( new RowLink( new RowRef( iTable,
-                                                                iRow ) ) );
+                        links.addLink( new RowLink1( new RowRef( iTable,
+                                                                 iRow ) ) );
                     }
                 }
             }
@@ -170,7 +170,7 @@ public abstract class JoinType {
             BitSet present = getInclusion( links, iTable_ );
             for ( int irow = 0; irow < rowCounts[ iTable_ ]; irow++ ) {
                 if ( ! present.get( irow ) ) {
-                    links.addLink( new RowLink( new RowRef( iTable_, irow ) ) );
+                    links.addLink( new RowLink1( new RowRef( iTable_, irow ) ));
                 }
             }
             return links;
@@ -228,8 +228,8 @@ public abstract class JoinType {
             links = createLinkSet();
             for ( int irow = 0; irow < rowCounts[ yesTable_ ]; irow++ ) {
                 if ( ! matched.get( irow ) ) {
-                    links.addLink( new RowLink( new RowRef( yesTable_,
-                                                            irow ) ) );
+                    links.addLink( new RowLink1( new RowRef( yesTable_,
+                                                             irow ) ) );
                 }
             }
             return links;
@@ -277,8 +277,8 @@ public abstract class JoinType {
             for ( int iTable = 0; iTable < 2; iTable++ ) {
                 for ( int iRow = 0; iRow < rowCounts[ iTable ]; iRow++ ) {
                     if ( ! present[ iTable ].get( iRow ) ) {
-                        links.addLink( new RowLink( new RowRef( iTable,
-                                                                iRow ) ) );
+                        links.addLink( new RowLink1( new RowRef( iTable,
+                                                                 iRow ) ) );
                     }
                 }
             }

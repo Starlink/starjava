@@ -10,7 +10,7 @@ import java.util.Map;
  * @author   Mark Taylor
  * @since    3 Dec 2007
  */
-public class PairsRowLink extends RowLink {
+public class PairsRowLink extends RowLinkN {
 
     /**
      * Constructor.

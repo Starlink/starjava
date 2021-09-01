@@ -743,7 +743,7 @@ public class RowMatcher {
                     /* Only schedule a replacement if the link is
                      * non-trivial. */
                     if ( repRefs.size() > 1 ) {
-                        replacements.addLink( new RowLink( repRefs ) );
+                        replacements.addLink( RowLink.createLink( repRefs ) );
                         nReplace++;
                     }
                     else {
@@ -797,7 +797,7 @@ public class RowMatcher {
         LinkSet singles = createLinkSet();
         for ( int iRow = 0; iRow < nrow; iRow++ ) {
             if ( ! present.get( iRow ) ) {
-                singles.addLink( new RowLink( new RowRef( iTable, iRow ) ) );
+                singles.addLink( new RowLink1( new RowRef( iTable, iRow ) ) );
             }
         }
         return singles;
@@ -1216,7 +1216,7 @@ public class RowMatcher {
             RowRef ref1 = refBinner.getKeyIterator().next();
             Set<RowRef> refSet = new HashSet<RowRef>();
             walkLinks( ref1, refBinner, refSet );
-            RowLink link = new RowLink( refSet );
+            RowLink link = RowLink.createLink( refSet );
             assert ! agglomeratedLinks.containsLink( link );
             agglomeratedLinks.addLink( link );
         }
@@ -1496,7 +1496,7 @@ public class RowMatcher {
              * corresponding RowLink.  Items with 0 or 1 entry are not
              * potential matches - take no action. */
             if ( refList.size() > 1 ) {
-                linkSet.addLink( new RowLink( refList ) );
+                linkSet.addLink( RowLink.createLink( refList ) );
             }
 
             /* Remove the entry from the map as we're going along,
@@ -1533,11 +1533,19 @@ public class RowMatcher {
             long[] irs = binner.getLongs( key );
             int nir = irs.length;
             if ( nir > 1 ) {
-                RowRef[] refs = new RowRef[ nir ];
-                for ( int iir = 0; iir < nir; iir++ ) {
-                    refs[ iir ] = new RowRef( itable, irs[ iir ] );
+                final RowLink link;
+                if ( nir == 2 ) {
+                    link = new RowLink2( new RowRef( itable, irs[ 0 ] ),
+                                         new RowRef( itable, irs[ 1 ] ) );
                 }
-                linkSet.addLink( new RowLink( refs ) );
+                else {
+                    RowRef[] refs = new RowRef[ nir ];
+                    for ( int iir = 0; iir < nir; iir++ ) {
+                        refs[ iir ] = new RowRef( itable, irs[ iir ] );
+                    }
+                    link = RowLinkN.fromModifiableArray( refs );
+                }
+                linkSet.addLink( link );
             }
             it.remove();
             indicator_.setLevel( ++il / nl );

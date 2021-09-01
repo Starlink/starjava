@@ -15,16 +15,40 @@ package uk.ac.starlink.table.join;
  */
 public class RowLink2 extends RowLink {
 
+    private final RowRef ref1_;
+    private final RowRef ref2_;
     private double score_ = Double.NaN;
 
     /**
      * Constructor.
      *
-     * @param  rowA  one row
-     * @param  rowB  the other row
+     * @param  refA  one row
+     * @param  refB  the other row
      */
-    public RowLink2( RowRef rowA, RowRef rowB ) {
-        super( new RowRef[] { rowA, rowB } );
+    public RowLink2( RowRef refA, RowRef refB ) {
+        if ( refA.compareTo( refB ) <= 0 ) {
+            ref1_ = refA;
+            ref2_ = refB;
+        }
+        else {
+            ref1_ = refB;
+            ref2_ = refA;
+        }
+    }
+
+    public int size() {
+        return 2;
+    }
+
+    public RowRef getRef( int i ) {
+        switch ( i ) {
+            case 0:
+                return ref1_;
+            case 1:
+                return ref2_;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     /**
