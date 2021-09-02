@@ -1,5 +1,7 @@
 package uk.ac.starlink.table.join;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -12,7 +14,7 @@ import java.util.TreeSet;
  */
 class TreeSetLinkSet implements LinkSet {
 
-    SortedSet<RowLink> set_ = new TreeSet<RowLink>();
+    private final SortedSet<RowLink> set_ = new TreeSet<RowLink>();
 
     public void addLink( RowLink link ) {
         set_.add( link );
@@ -34,8 +36,7 @@ class TreeSetLinkSet implements LinkSet {
         return set_.size();
     }
 
-    public boolean sort() {
-        // no action required - the underlying set is sorted
-        return true;
+    public Collection<RowLink> toSorted() {
+        return Collections.unmodifiableSet( set_ );
     }
 }

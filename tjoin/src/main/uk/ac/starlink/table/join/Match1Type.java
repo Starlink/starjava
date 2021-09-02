@@ -2,6 +2,7 @@ package uk.ac.starlink.table.join;
 
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Iterator;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
@@ -16,21 +17,39 @@ import uk.ac.starlink.table.Tables;
  * This class contains several factory methods for generating sensible 
  * output tables from an internal match.  Others are possible.
  *
+ * <p>Basic use of this class looks something like:
+ * <pre>
+ *     LinkSet linkSet = type.processLinks(RowMatcher.findInternalMatches());
+ *     StarTable table = createMatchTable(inTable, linkSet.toSorted());
+ * </pre>
+ * (the sorting is optional).
+ *
  * @author   Mark Taylor
  * @since    15 Nov 2007
  */
 public abstract class Match1Type {
 
     /**
-     * Generates an output table given an input table and the LinkSet object
+     * Performs additional processing specific to this match type
+     * on the raw LinkSet produced by {RowMatcher#findInternalMatches}.
+     * The input linkset may be modified, and the output value may or
+     * may not be the same instance as the input.
+     *
+     * @param  rowLinks  link set representing a single-table
+     *                   (internal) match
+     * @return   link set ready for table creation
+     */
+    public abstract LinkSet processLinks( LinkSet rowLinks );
+
+    /**
+     * Generates an output table given an input table and the RowLink sequence
      * which defines how its rows are related to each other by matching.
      *
      * @param  inTable  input table
-     * @param  rowLinks  link set object giving the result of a 
-     *                   single-table match
+     * @param  rowLinks  links resulting from a call to {@link #processLinks}
      */
     public abstract StarTable createMatchTable( StarTable inTable,
-                                                LinkSet rowLinks );
+                                                Collection<RowLink> rowLinks );
 
     /**
      * Factory method returning a type object which identifies matched rows
@@ -44,8 +63,11 @@ public abstract class Match1Type {
                                    .makeRenameDuplicatesAction( "_old" );
         final JoinFixAction grpFix = JoinFixAction.NO_ACTION;
         return new Match1Type() {
+            public LinkSet processLinks( LinkSet rowLinks ) {
+                return rowLinks;
+            }
             public StarTable createMatchTable( StarTable inTable,
-                                               LinkSet rowLinks ) {
+                                               Collection<RowLink> rowLinks ) {
                 return createIdentifyMatch( inTable, rowLinks, inFix, grpFix );
             }
         };
@@ -64,8 +86,11 @@ public abstract class Match1Type {
     public static Match1Type
             createEliminateMatchesType( final int retainCount ) {
         return new Match1Type() {
+            public LinkSet processLinks( LinkSet rowLinks ) {
+                return rowLinks;
+            }
             public StarTable createMatchTable( StarTable inTable,
-                                               LinkSet rowLinks ) {
+                                               Collection<RowLink> rowLinks ) {
                 return createDeduplicateMatch( inTable, rowLinks, retainCount );
             }
         };
@@ -89,8 +114,25 @@ public abstract class Match1Type {
                           .makeRenameDuplicatesAction( "_" + ( i + 1 ) );
         }
         return new Match1Type() {
+            public LinkSet processLinks( LinkSet links ) {
+                for ( Iterator<RowLink> it = links.iterator(); it.hasNext(); ) {
+                    RowLink link = it.next();
+                    int nref = link.size();
+                    int n0ref = 0;
+                    for ( int i = 0; i < nref; i++ ) {
+                        RowRef ref = link.getRef( i );
+                        if ( ref.getTableIndex() == 0 ) {
+                            n0ref++;
+                        }
+                    }
+                    if ( n0ref != grpSize ) {
+                        it.remove();
+                    }
+                }
+                return links;
+            }
             public StarTable createMatchTable( StarTable inTable,
-                                               LinkSet rowLinks ) {
+                                               Collection<RowLink> rowLinks ) {
                 return makeParallelMatchTable( inTable, 0, rowLinks,
                                                grpSize, grpSize, grpSize,
                                                fixActs );
@@ -109,7 +151,7 @@ public abstract class Match1Type {
      * @param  grpFix    fix action for the added columns
      */
     private static StarTable createIdentifyMatch( StarTable inTable, 
-                                                  LinkSet rowLinks,
+                                                  Collection<RowLink> rowLinks,
                                                   JoinFixAction inFix,
                                                   JoinFixAction grpFix ) {
         long nrow = inTable.getRowCount();
@@ -128,9 +170,10 @@ public abstract class Match1Type {
      *                   single-table match
      * @param  retainCount  number of items to retain from each match group
      */
-    private static StarTable createDeduplicateMatch( StarTable inTable,
-                                                     LinkSet rowLinks,
-                                                     int retainCount ) {
+    private static StarTable
+            createDeduplicateMatch( StarTable inTable,
+                                    Collection<RowLink> rowLinks,
+                                    int retainCount ) {
         int nrow = Tables.checkedLongToInt( inTable.getRowCount() );
         BitSet bits = new BitSet( nrow );
         bits.set( 0, nrow );
@@ -187,25 +230,10 @@ public abstract class Match1Type {
      */
     private static StarTable makeParallelMatchTable( StarTable table,
                                                      int iTable,
-                                                     LinkSet links, int width,
+                                                     Collection<RowLink> links,
+                                                     int width,
                                                      int minSize, int maxSize,
                                                      JoinFixAction[] fixActs ) {
-
-        /* Get rid of any links which we won't be using. */
-        for ( Iterator<RowLink> it = links.iterator(); it.hasNext(); ) {
-            RowLink link = it.next();
-            int nref = link.size();
-            int n0ref = 0;
-            for ( int i = 0; i < nref; i++ ) {
-                RowRef ref = link.getRef( i );
-                if ( ref.getTableIndex() == iTable ) {
-                    n0ref++;
-                }
-            }
-            if ( n0ref < minSize || n0ref > maxSize ) {
-                it.remove();
-            }
-        }
 
         /* Get the number of rows. */
         int nrow = links.size();

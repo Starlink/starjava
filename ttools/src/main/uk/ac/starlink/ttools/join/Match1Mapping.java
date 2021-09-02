@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.join;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
@@ -9,7 +10,9 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.Match1Type;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.MatchStarTables;
 import uk.ac.starlink.table.join.ProgressIndicator;
+import uk.ac.starlink.table.join.RowLink;
 import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.TaskException;
@@ -90,10 +93,6 @@ public class Match1Mapping implements SingleTableMapping {
         catch ( InterruptedException e ) {
             throw new ExecutionException( "Match was interrupted", e );
         }
-        if ( ! matches.sort() ) {
-            logger.warning( "Can't sort matches - matched table rows may be "
-                          + "in an unhelpful order" );
-        }
 
         /* Check the result is not empty - it's not really worth returning
          * table if it is, since it's probably equivalent to the input. */
@@ -104,6 +103,8 @@ public class Match1Mapping implements SingleTableMapping {
         }
 
         /* Return a table representing the results. */
-        return type1_.createMatchTable( inTable, matches );
+        matches = type1_.processLinks( matches );
+        Collection<RowLink> links = MatchStarTables.orderLinks( matches );
+        return type1_.createMatchTable( inTable, links );
     }
 }

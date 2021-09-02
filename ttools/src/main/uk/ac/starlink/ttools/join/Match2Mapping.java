@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.join;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.logging.Logger;
+import java.util.Collection;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
@@ -14,6 +14,7 @@ import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
 import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.table.join.ProgressIndicator;
+import uk.ac.starlink.table.join.RowLink;
 import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.TaskException;
@@ -38,9 +39,6 @@ public class Match2Mapping implements TableMapping {
     final ValueInfo scoreInfo_;
     final ProgressIndicator progger_;
     final RowRunner runner_;
-
-    private static final Logger logger =
-        Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     /**
      * Constructor.
@@ -75,7 +73,7 @@ public class Match2Mapping implements TableMapping {
         join_ = join;
         pairMode_ = pairMode;
         fixacts_ = new JoinFixAction[] { fixact1, fixact2, };
-        scoreInfo_ = scoreInfo;
+        scoreInfo_ = join.getUsedMatchFlag() ? scoreInfo : null;
         progger_ = progger;
         runner_ = runner;
     }
@@ -108,20 +106,33 @@ public class Match2Mapping implements TableMapping {
         LinkSet matches;
         try {
             matches = matcher.findPairMatches( pairMode_ );
-            if ( ! matches.sort() ) {
-                logger.warning( "Implementation can't sort rows - "
-                              + "matched table rows may not be ordered" );
-            }
         }
         catch ( InterruptedException e ) {
             throw new ExecutionException( e.getMessage(), e );  
         }
         boolean addGroups = pairMode_.mayProduceGroups();
 
+        /* Process the row link lists according to the chosen join type.
+         * This will give a set of rows to be retained in
+         * the output table based in some way on the actual pair matches
+         * which were found. */
+        int nrows1 = Tables.checkedLongToInt( inTable1.getRowCount() );
+        int nrows2 = Tables.checkedLongToInt( inTable2.getRowCount() );
+        matches = join_.processLinks( matches, new int[] { nrows1, nrows2 } );
+
+        /* Work out which of the input tables will actually make an
+         * appearance in the output table (i.e. which of their columns
+         * will be required). */
+        boolean[] useFlags = join_.getUsedTableFlags();
+        StarTable[] tables = new StarTable[] {
+            useFlags[ 0 ] ? inTable1 : null,
+            useFlags[ 1 ] ? inTable2 : null,
+        };
+
         /* Create a new table from the result and return. */
-        return MatchStarTables.makeJoinTable( inTable1, inTable2, matches,
-                                              join_, addGroups, fixacts_,
-                                              scoreInfo_ );
+        Collection<RowLink> links = MatchStarTables.orderLinks( matches );
+        return MatchStarTables
+              .makeJoinTable( tables, links, addGroups, fixacts_, scoreInfo_ );
     }
 
     /**

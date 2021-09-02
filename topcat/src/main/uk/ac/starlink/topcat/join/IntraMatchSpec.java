@@ -3,15 +3,18 @@ package uk.ac.starlink.topcat.join;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.JOptionPane;
 import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.join.LinkSet;
+import uk.ac.starlink.table.join.Match1Type;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.MatchStarTables;
 import uk.ac.starlink.table.join.ProgressIndicator;
+import uk.ac.starlink.table.join.RowLink;
 import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.ControlWindow;
@@ -32,9 +35,6 @@ public class IntraMatchSpec extends MatchSpec {
     private final Supplier<RowRunner> runnerFact_;
     private StarTable result_;
     private int matchCount_;
-
-    private final static Logger logger =
-        Logger.getLogger( "uk.ac.starlink.topcat.join" );
 
     /**
      * Constructs a new IntraMatchSpec.
@@ -70,6 +70,7 @@ public class IntraMatchSpec extends MatchSpec {
         result_ = null;
 
         /* Interrogate components for tables to operate on. */
+        Match1Type type1 = type1Selector_.getType1();
         StarTable effTable = tupleSelector_.getEffectiveTable();
         StarTable appTable = tupleSelector_.getTable().getApparentStarTable();
 
@@ -79,17 +80,17 @@ public class IntraMatchSpec extends MatchSpec {
                                       runnerFact_.get() );
         matcher.setIndicator( indicator );
         LinkSet matches = matcher.findInternalMatches( false );
-        if ( ! matches.sort() ) {
-            logger.warning( "Can't sort matches - matched table rows may be "
-                          + "in an unhelpful order" );
-        }
+        matches = type1.processLinks( matches );
         matchCount_ = matches.size();
 
         /* Construct a result table. */
-        result_ = matchCount_ == 0
-                ? null
-                : type1Selector_.getType1()
-                                .createMatchTable( appTable, matches );
+        if ( matchCount_ == 0 ) {
+            result_ = null;
+        }
+        else {
+            Collection<RowLink> links = MatchStarTables.orderLinks( matches );
+            result_ = type1.createMatchTable( appTable, links );
+        }
     }
 
     public void matchSuccess( Component parent ) {

@@ -5,9 +5,9 @@ import java.awt.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -54,9 +54,6 @@ public class PairMatchSpec extends MatchSpec {
     private int pairCount_;
     private JoinType joinType_;
     private JoinFixAction[] fixActs_;
-
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.join" );
 
     /**
      * Constructs a new PairMatchSpec.
@@ -138,10 +135,6 @@ public class PairMatchSpec extends MatchSpec {
         matcher.setIndicator( indicator );
         LinkSet pairs = matcher.findPairMatches( pairMode );
         pairCount_ = pairs.size();
-        if ( ! pairs.sort() ) {
-            logger_.warning( "Can't sort matches - matched table rows may be "
-                           + "in an unhelpful order" );
-        }
 
         /* Process these pairs according to the chosen join type. */
         LinkSet links = joinType_.processLinks( pairs, rowCounts );
@@ -161,8 +154,10 @@ public class PairMatchSpec extends MatchSpec {
                 fixActs_[ i ] = null;
             }
         }
-        result_ = MatchStarTables.makeJoinTable( useBases, links, addGroups,
-                                                 fixActs_, scoreInfo );
+        Collection<RowLink> orderedLinks = MatchStarTables.orderLinks( links );
+        result_ = MatchStarTables
+                 .makeJoinTable( useBases, orderedLinks, addGroups,
+                                 fixActs_, scoreInfo );
         addMatchMetadata( result_, engine_, pairMode, joinType_, tcModels );
 
         /* If it makes sense to do so, record which rows count as matches. */

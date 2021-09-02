@@ -1,7 +1,7 @@
 package uk.ac.starlink.ttools.join;
 
 import java.io.IOException;
-import java.util.logging.Logger;
+import java.util.Collection;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
@@ -11,6 +11,7 @@ import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
 import uk.ac.starlink.table.join.MultiJoinType;
 import uk.ac.starlink.table.join.ProgressIndicator;
+import uk.ac.starlink.table.join.RowLink;
 import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
@@ -43,9 +44,6 @@ public class MatchMapper implements TableMapper {
 
     private static final String PAIRS_MODE = "pairs";
     private static final String GROUP_MODE = "group";
-
-    private static final Logger logger =
-        Logger.getLogger( "uk.ac.starlink.ttools.join" );
 
     /**
      * Constructor.
@@ -245,17 +243,15 @@ public class MatchMapper implements TableMapper {
             LinkSet matches;
             try { 
                 matches = findMatches( matcher );
-                if ( ! matches.sort() ) {
-                    logger.warning( "Implementation can't sort rows - "
-                                  + "matched table rows may not be sorted" );
-                }
             }
             catch ( InterruptedException e ) {
                 throw new ExecutionException( e.getMessage(), e );
             }
 
             /* Create a new table based on the matched rows. */
-            return createJoinTable( inTables, matches, fixActs_ );
+            Collection<RowLink> orderedMatches =
+                MatchStarTables.orderLinks( matches );
+            return createJoinTable( inTables, orderedMatches, fixActs_ );
         }
 
         /**
@@ -276,9 +272,10 @@ public class MatchMapper implements TableMapper {
          * @param   matches    row link set
          * @param   fixActs    actions for fixing up duplicated table columns
          */
-        protected abstract StarTable createJoinTable( StarTable[] inTables,
-                                                      LinkSet matches,
-                                                      JoinFixAction[] fixActs )
+        protected abstract StarTable
+                createJoinTable( StarTable[] inTables,
+                                 Collection<RowLink> matches,
+                                 JoinFixAction[] fixActs )
                 throws IOException;
       
 
@@ -341,7 +338,7 @@ public class MatchMapper implements TableMapper {
         }
 
         protected StarTable createJoinTable( StarTable[] inTables,
-                                             LinkSet matches,
+                                             Collection<RowLink> matches,
                                              JoinFixAction[] fixActs ) {
             return MatchStarTables
                   .makeJoinTable( inTables, matches, false, fixActs, null );
@@ -381,7 +378,7 @@ public class MatchMapper implements TableMapper {
         }
 
         protected StarTable createJoinTable( StarTable[] inTables,
-                                             LinkSet matches,
+                                             Collection<RowLink> matches,
                                              JoinFixAction[] fixActs ) {
             return MatchStarTables
                   .makeJoinTable( inTables, matches, false, fixActs, null );

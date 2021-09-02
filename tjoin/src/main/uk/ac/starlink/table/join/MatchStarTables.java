@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.join;
 
+import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -9,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ArrayColumn;
@@ -27,6 +29,13 @@ import uk.ac.starlink.table.ValueInfo;
 /**
  * Provides factory methods for producing tables which represent the
  * result of row matching.
+ *
+ * <p>The methods in this class operate on
+ * <code>Collection&lt;RowLink&gt;</code>s
+ * rather than on {@link LinkSet}s, to emphasise that they do not
+ * modify the contents of the collections.
+ * Such collections will typically be sorted into their natural sequence,
+ * see {@link #orderLinks}.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -52,88 +61,8 @@ public class MatchStarTables {
         Logger.getLogger( "uk.ac.starlink.table.join" );
 
     /**
-     * Constructs a table made out of two constituent tables joined together
-     * according to a {@link LinkSet} describing row matches and 
-     * a flag determining what conditions on a {@link RowLink} 
-     * give you an output row.
-     * The columns of the resulting table are made by appending the
-     * columns of the constituent tables side by side.
-     * <p>
-     * The <tt>tables</tt> array determines which tables columns appear
-     * in the output table.  It must have (at least) as many elements
-     * as the highest table index in the RowLink set.  Table data
-     * will be picked from the <i>n</i>'th table in this array for RowRef
-     * elements with a tableIndex of <i>n</i>.  If the <i>n</i>th 
-     * element is null, the corresponding columns will not appear in
-     * the output table.
-     * <p>
-     * The <code>matchScoreInfo</code> parameter is optional. 
-     * If it is non-null, then an additional column, described by 
-     * <code>matchScoreInfo</code>, will be added to the table containing 
-     * the <code>score</code> values from any <code>RowLink2</code>s in
-     * <code>links</code>.  The content class of <code>matchScoreInfo</code>
-     * should be <code>Number</code> or one of its subclasses.
-     * <p>
-     * This is a convenience method which calls the other
-     * <code>makeJoinTable</code> method.
-     * 
-     * @param  table1  first input table
-     * @param  table2  second input table
-     * @param  pairs  set of links each representing a matched pair of rows
-     *         between <code>table1</code> and <code>table2</code>.
-     *         Contents of this set may be modified by this routine
-     * @param  joinType  describes how the input list of matched pairs
-     *         is used to generate an output sequence of rows
-     * @param  addGroups  flag which indicates whether the output table
-     *         should, if appropriate, include {@link #GRP_ID_INFO} and
-     *         {@link #GRP_SIZE_INFO} columns
-     * @param  fixActs  actions to take for deduplicating column names
-     *         (array of the same length as <tt>tables</tt>)
-     * @param  matchScoreInfo  may supply information about the meaning
-     *         of the match scores
-     * @return   table representing the join
-     */
-    public static StarTable makeJoinTable( StarTable table1, StarTable table2,
-                                           LinkSet pairs, JoinType joinType,
-                                           boolean addGroups,
-                                           JoinFixAction[] fixActs,
-                                           ValueInfo matchScoreInfo ) {
-
-         /* Process the row link lists according to the chosen join type.
-          * This will give a set of rows to be retained in
-          * the output table based in some way on the actual pair matches
-          * which were found. */
-         int nrows1 = Tables.checkedLongToInt( table1.getRowCount() );
-         int nrows2 = Tables.checkedLongToInt( table2.getRowCount() );
-         LinkSet links = 
-             joinType.processLinks( pairs, new int[] { nrows1, nrows2 } );
-
-         /* Work out which of the input tables will actually make an
-          * appearance in the output table (i.e. which of their columns
-          * will be required). */
-         boolean[] useFlags = joinType.getUsedTableFlags();
-         StarTable[] tables = new StarTable[ 2 ];
-         if ( useFlags[ 0 ] ) {
-             tables[ 0 ] = table1;
-         }
-         if ( useFlags[ 1 ] ) {
-             tables[ 1 ] = table2;
-         }
-
-         /* If a match score column is going to be empty, make sure it's
-          * not entered. */
-         if ( ! joinType.getUsedMatchFlag() ) {
-             matchScoreInfo = null;
-         }
-
-         /* Finally construct and return the new table. */
-         return makeJoinTable( tables, links, addGroups, fixActs,
-                               matchScoreInfo );
-    }
-
-    /**
      * Constructs a table made out of a set of constituent tables
-     * joined together according to a {@link LinkSet} describing
+     * joined together according to a set of RowLinks describing
      * row matches.
      * The columns of the resulting table are made by appending the
      * columns of the constituent tables side by side.
@@ -171,7 +100,8 @@ public class MatchStarTables {
      *          of the link scores
      */
     public static StarTable makeJoinTable( StarTable[] tables,
-                                           LinkSet rowLinks, boolean addGroups,
+                                           Collection<RowLink> rowLinks,
+                                           boolean addGroups,
                                            JoinFixAction[] fixActs,
                                            ValueInfo matchScoreInfo ) {
 
@@ -380,10 +310,10 @@ public class MatchStarTables {
 
     /**
      * Constructs a non-random table made out of a set of possibly non-random
-     * constituent tables joined together according to a LinkSet.
+     * constituent tables joined together according to a RowLink collection.
      * Any input tables which do not have random access must have row
      * ordering consistent with (that is, monotonically increasing for)
-     * the ordering of the links in the LinkSet.
+     * the ordering of the links.
      * In practice, this is only likely to be the case if all the input tables
      * are random access except for (at most) one, and the links are
      * ordered with reference to that one.
@@ -397,10 +327,11 @@ public class MatchStarTables {
      * @param  matchScoreInfo  may suply information about the meaning of
      *                         the match scores, if present
      */
-    public static StarTable makeSequentialJoinTable( StarTable[] tables,
-                                                     final LinkSet rowLinks,
-                                                     JoinFixAction[] fixActs,
-                                                     ValueInfo matchScoreInfo ){
+    public static StarTable
+            makeSequentialJoinTable( StarTable[] tables,
+                                     final Collection<RowLink> rowLinks,
+                                     JoinFixAction[] fixActs,
+                                     ValueInfo matchScoreInfo ){
 
         /* Prepare subtables, one for each input table but based on the
          * given row links (these control row ordering). */
@@ -503,9 +434,9 @@ public class MatchStarTables {
      * @return  a new two-column table with a one-to-one row correspondance
      *          with the table describing internal row matches
      */
-    public static StarTable makeInternalMatchTable( int iTable, 
-                                                    LinkSet rowLinks, 
-                                                    long rowCount ) {
+    public static StarTable
+            makeInternalMatchTable( int iTable, Collection<RowLink> rowLinks, 
+                                    long rowCount ) {
         final int nrow = Tables.checkedLongToInt( rowCount );
 
         /* Construct and populate arrays containing per-row information
@@ -562,14 +493,14 @@ public class MatchStarTables {
 
     /**
      * Returns a mapping from {@link RowLink}s to {@link LinkGroup}s
-     * which describes connected groups of links in the input LinkSet.
+     * which describes connected groups of links in the input collection.
      * A related group is one in which the RowRefs of its constituent
      * RowLinks form a connected graph in which RowRefs are the nodes
      * and RowLinks are the edges.
      * A LinkGroup with a link count of more than one therefore
      * represents an ambiguous match, that is one in which one or more
      * of its RowRefs is contained in more than one RowLink in the
-     * original LinkSet.
+     * original RowLink collection.
      *
      * <p>The returned map contains entries only for non-trivial LinkGroups,
      * that is ones which contain more than one link.
@@ -578,7 +509,8 @@ public class MatchStarTables {
      * @return  RowLink -&gt; LinkGroup mapping describing connected groups
      *          in <code>links</code> 
      */
-    public static Map<RowLink,LinkGroup> findGroups( LinkSet links ) {
+    public static Map<RowLink,LinkGroup>
+            findGroups( Collection<RowLink> links ) {
  
         /* Populate a map from RowRefs to Tokens for every RowRef in
          * the input link set.  Each token is joined to any other tokens
@@ -666,6 +598,36 @@ public class MatchStarTables {
             }
         }
         return result;
+    }
+
+    /**
+     * Best-efforts Conversion of a LinkSet, which is what RowMatcher outputs,
+     * to a Collection of RowLinks, which is what's used by this class.
+     * This essentially calls {@link LinkSet#toSorted}, but in case
+     * that fails for lack of memory (not that likely, but could happen)
+     * it will write a message through the logging system and 
+     * return a value giving an unordered result instead.
+     *
+     * @param   linkSet  unordered LinkSet
+     * @return   input links as a collection, but if possible in natural order
+     */
+    public static Collection<RowLink> orderLinks( final LinkSet linkSet ) {
+        try {
+            return linkSet.toSorted();
+        }
+        catch ( OutOfMemoryError e ) {
+            logger_.log( Level.WARNING,
+                         "Can't sort matches - matched table rows may be "
+                       + "in an unhelpful order", e );
+            return new AbstractCollection<RowLink>() {
+                public int size() {
+                    return linkSet.size();
+                }
+                public Iterator<RowLink> iterator() {
+                    return linkSet.iterator();
+                }
+            };
+        }
     }
 
     /**

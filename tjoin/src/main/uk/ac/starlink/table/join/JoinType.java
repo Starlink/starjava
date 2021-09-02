@@ -42,7 +42,7 @@ public abstract class JoinType {
      * will represent a pair match (have two <code>RowRef</code>s,
      * with table indices of 0 and 1 respectively).
      * The ordering of <code>links</code> may influence the order of
-     * the returned collection.   <code>links</code> may be modified
+     * the returned collection.  <code>links</code> may be modified
      * by this method, and the returned value may or may not be the
      * same object as the input <code>links</code> itself.
      *

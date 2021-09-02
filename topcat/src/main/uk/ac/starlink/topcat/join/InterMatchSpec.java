@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -49,9 +49,6 @@ public class InterMatchSpec extends MatchSpec {
     private StarTable result;
     private int matchCount;
     private RowSubset[] matchSubsets;
-
-    private static final Logger logger =
-        Logger.getLogger( "uk.ac.starlink.topcat.join" );
 
     /**
      * Constructs a new InterMatchSpec.
@@ -134,15 +131,12 @@ public class InterMatchSpec extends MatchSpec {
             RowMatcher.createMatcher( engine, tables, runnerFact.get() );
         matcher.setIndicator( indicator );
         LinkSet matches = matcher.findGroupMatches( joinTypes );
-        if ( ! matches.sort() ) {
-            logger.warning( "Can't sort matches - matched table rows may be "
-                          + "in an unhelpful order" );
-        }
         int nrow = matches.size();
 
         /* Create a new table based on the matched lines we have identified. */
+        Collection<RowLink> links = MatchStarTables.orderLinks( matches );
         result = MatchStarTables
-                .makeJoinTable( bases, matches, false,
+                .makeJoinTable( bases, links, false,
                                 getDefaultFixActions( nTable ), null );
         addMatchMetadata( result, getDescription(), engine, tables );
 
