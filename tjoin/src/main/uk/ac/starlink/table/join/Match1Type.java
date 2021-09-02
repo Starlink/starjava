@@ -1,6 +1,9 @@
 package uk.ac.starlink.table.join;
 
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Iterator;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowPermutedStarTable;
@@ -88,8 +91,7 @@ public abstract class Match1Type {
         return new Match1Type() {
             public StarTable createMatchTable( StarTable inTable,
                                                LinkSet rowLinks ) {
-                return MatchStarTables
-                      .makeParallelMatchTable( inTable, 0, rowLinks,
+                return makeParallelMatchTable( inTable, 0, rowLinks,
                                                grpSize, grpSize, grpSize,
                                                fixActs );
             }
@@ -152,5 +154,139 @@ public abstract class Match1Type {
         }
         assert i == nbit;
         return new RowPermutedStarTable( inTable, rowMap );
+    }
+
+    /**
+     * Constructs a new wide table from a single given base table and a set of
+     * RowLinks.  The resulting table consists of a number of sections
+     * of the original table placed side by side, so it has
+     * <tt>width</tt> times the number of columns that <tt>table</tt> does.
+     * Each row is constructed from one or more rows of the original table;
+     * each output row corresponds to a single RowLink.
+     * Only row links which have at least <tt>minSize</tt> entries and
+     * no more than <tt>maxSize</tt> entries are converted into output rows;
+     * if there are more entries than the width of the table the extras
+     * are just discarded.
+     * Any row references in a RowLink not corresponding to table index
+     * <tt>iTable</tt> are ignored.
+     *
+     * @param  table  input table
+     * @param  iTable  index corresponding to this table in the
+     *                 <tt>rowLinks</tt> set
+     * @param  links     collection of {@link RowLink} objects describing the
+     *                   matches.  This collection is modified on exit
+     * @param  width     width of the output table as a multiple of the
+     *                   width of the input table
+     * @param  minSize   minimum number of entries in a RowLink to count as
+     *                   an output row
+     * @param  maxSize   maximum number of entries in a RowLink to count as
+     *                   an output row; also the width of the output table
+     *                   (as a multiple of the width of the input table)
+     * @param  fixActs   actions to take for deduplicating column names
+     *                   (<tt>width</tt>-element array, or <tt>null</tt>)
+     */
+    private static StarTable makeParallelMatchTable( StarTable table,
+                                                     int iTable,
+                                                     LinkSet links, int width,
+                                                     int minSize, int maxSize,
+                                                     JoinFixAction[] fixActs ) {
+
+        /* Get rid of any links which we won't be using. */
+        for ( Iterator<RowLink> it = links.iterator(); it.hasNext(); ) {
+            RowLink link = it.next();
+            int nref = link.size();
+            int n0ref = 0;
+            for ( int i = 0; i < nref; i++ ) {
+                RowRef ref = link.getRef( i );
+                if ( ref.getTableIndex() == iTable ) {
+                    n0ref++;
+                }
+            }
+            if ( n0ref < minSize || n0ref > maxSize ) {
+                it.remove();
+            }
+        }
+
+        /* Get the number of rows. */
+        int nrow = links.size();
+
+        /* Construct the constituent tables which will sit side by side
+         * in the returned table. */
+
+        /* Prepare a set of indices which describe where rows in the new
+         * constituent subtables will come from in the original table. */
+        long[][] rowIndices = new long[ width ][];
+        for ( int i = 0; i < width; i++ ) {
+            rowIndices[ i ] = new long[ nrow ];
+            Arrays.fill( rowIndices[ i ], -1L );
+        }
+
+        /* Populate these indices from the link set. */
+        int iLink = 0;
+        for ( RowLink link : links ) {
+            int nref = link.size();
+            int refPos = 0;
+            for ( int i = 0; i < nref && refPos < width; i++ ) {
+                RowRef ref = link.getRef( i );
+                if ( ref.getTableIndex() == iTable ) {
+                    rowIndices[ refPos++ ][ iLink ] = ref.getRowIndex();
+                }
+            }
+            assert refPos >= minSize && refPos <= maxSize;
+            iLink++;
+        }
+        assert iLink == nrow;
+
+        /* Construct a set of new tables, one for each set of columns
+         * in the output table. */
+        StarTable[] subTables = new StarTable[ width ];
+        for ( int i = 0; i < width; i++ ) {
+            subTables[ i ] = new RowPermutedStarTable( table, rowIndices[ i ] );
+        }
+
+        /* For each sub table, work out if it has any blank rows
+         * (missing entries from row link elements). */
+        boolean[] hasBlankRows = new boolean[ width ];
+        for ( int iw = 0; iw < width; iw++ ) {
+            for ( int ir = 0; ir < nrow; ir++ ) {
+                 hasBlankRows[ iw ] = hasBlankRows[ iw ]
+                                  || rowIndices[ iw ][ ir ] < 0;
+            }
+        }
+
+        /* Perform some additional adjustment of the columns in the
+         * constituent tables: doctor the column names to reduce confusion,
+         * and if there are blank rows ensure that the relevant columns
+         * are marked nullable. */
+        int ncol = table.getColumnCount();
+        int xNcol = ncol * width;
+        final ColumnInfo[] colinfos = new ColumnInfo[ xNcol ];
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            ColumnInfo cinfo = table.getColumnInfo( ic );
+            for ( int iw = 0; iw < width; iw++ ) {
+                ColumnInfo ci = new ColumnInfo( cinfo );
+                ci.setName( ci.getName() + "_" + ( iw + 1 ) );
+                if ( hasBlankRows[ iw ] ) {
+                    ci.setNullable( true );
+                }
+                colinfos[ ic + iw * ncol ] = ci;
+            }
+        }
+
+        /* Construct a new table from all the parallel ones. */
+        JoinStarTable joined = new JoinStarTable( subTables, fixActs ) {
+            public ColumnInfo getColumnInfo( int icol ) {
+                return colinfos[ icol ];
+            }
+        };
+        String name;
+        switch ( width ) {
+            case 2: name = "pairs"; break;
+            case 3: name = "triples"; break;
+            case 4: name = "quads"; break;
+            default: name = "setsOf" + width;
+        }
+        joined.setName( name );
+        return joined;
     }
 }
