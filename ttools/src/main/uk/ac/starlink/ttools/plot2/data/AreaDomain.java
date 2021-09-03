@@ -52,6 +52,9 @@ public class AreaDomain implements Domain<AreaMapper> {
     /** Mapper for ASCII format MOCs. */
     public static final AreaMapper ASCIIMOC_MAPPER = createAsciiMocMapper();
 
+    /** Mapper for single HEALPix UNIQ values. */
+    public static final AreaMapper UNIQ_MAPPER = createUniqMapper();
+
     private static final String WORDS_REGEX =
         "\\s*([A-Za-z]+)\\s+([A-Za-z][A-Za-z0-9]*\\s+)*";
     private static final String NUMBER_REGEX =
@@ -90,6 +93,7 @@ public class AreaDomain implements Domain<AreaMapper> {
             CIRCLE_MAPPER,
             POINT_MAPPER,
             ASCIIMOC_MAPPER,
+            UNIQ_MAPPER,
         };
     }
 
@@ -137,6 +141,14 @@ public class AreaDomain implements Domain<AreaMapper> {
                 return null;
             }
         }
+        else if ( Integer.class.equals( clazz ) || Long.class.equals( clazz ) ){
+            if ( "UNIQ".equalsIgnoreCase( name ) ) {
+                return UNIQ_MAPPER;
+            }
+            else {
+                return null;
+            }
+        }
         else {
             return null;
         }
@@ -178,6 +190,9 @@ public class AreaDomain implements Domain<AreaMapper> {
             else {
                 return null;
             }
+        }
+        else if ( Integer.class.equals( clazz ) || Long.class.equals( clazz ) ){
+            return UNIQ_MAPPER;
         }
         else {
             return null;
@@ -242,7 +257,7 @@ public class AreaDomain implements Domain<AreaMapper> {
         String descrip = new StringBuffer()
             .append( "Region description using ASCII MOC syntax;\n" )
             .append( "see <webref " )
-            .append( "url='http://www.ivoa.net/documents/MOC/index.html'>" )
+            .append( "url='http://www.ivoa.net/documents/MOC/'>" )
             .append( "MOC 1.1</webref> 2.3.2.\n" )
             .append( "Note there are currently a few issues\n" )
             .append( "with MOC plotting, especially for large pixels." )
@@ -253,6 +268,42 @@ public class AreaDomain implements Domain<AreaMapper> {
                     return obj -> obj instanceof String
                                 ? mocArea( (String) obj )
                                 : null;
+                }
+                else {
+                    return null;
+                }
+            }
+        };
+    }
+
+    /**
+     * Returns a mapper that can turn single HEALPix/MOC UNIQ values
+     * into areas.
+     *
+     * @return  UNIQ mapper instance
+     */
+    private static AreaMapper createUniqMapper() {
+        String descrip = String.join( "\n",
+            "Region description representing a single HEALPix cell",
+            "as defined by an UNIQ value, see",
+            "<webref url='http://www.ivoa.net/documents/MOC/'>MOC 1.1</webref>",
+            "sec 2.3.1."
+        );
+        return new AreaMapper( "UNIQ", descrip, Number.class ) {
+            public Function<Object,Area> areaFunction( Class<?> clazz ) {
+                if ( Integer.class.equals( clazz ) ||
+                     Long.class.equals( clazz ) ) {
+                    return obj -> {
+                        if ( obj instanceof Integer || obj instanceof Long ) {
+                            long uniq = ((Number) obj).longValue();
+                            double duniq = Double.longBitsToDouble( uniq );
+                            return new Area( Area.Type.MOC,
+                                             new double[] { duniq } );
+                        }
+                        else {
+                            return null;
+                        }
+                    };
                 }
                 else {
                     return null;

@@ -9220,10 +9220,16 @@ columns in the table.
     </p></dd>
 <dt>MOC-ASCII</dt>
 <dd><p>Region description using ASCII MOC syntax; see
-    <webref url="http://www.ivoa.net/documents/MOC/index.html">MOC 1.1</webref>
+    <webref url="http://www.ivoa.net/documents/MOC/">MOC 1.1</webref>
     section 2.3.2.
     Note there are currently a few issues with MOC plotting,
     especially for large tiles.
+    </p></dd>
+<dt>UNIQ</dt>
+<dd><p>Region description representing a single HEALPix cell as defined
+    by a UNIQ value; see
+    <webref url="http://www.ivoa.net/documents/MOC/">MOC 1.1</webref>
+    sec 2.3.1.
     </p></dd>
 </dl>
 
@@ -29955,6 +29961,9 @@ introduced since the last version:
     <li>Add <label>Auto-Invoke</label> option to 
         <ref id="ViewDatalinkActivationType">View Datalink Table</ref>
         activation action's Datalink display.</li>
+    <li>New Area type <label>UNIQ</label>
+        to plot single HEALPix tiles e.g. from MOC files in the
+        <ref id="GangLayerControl_area">Area Layer Control</ref>.</li>
     </ul>
     </p></dd>
 
