@@ -386,8 +386,11 @@ public abstract class BintableStarTable extends AbstractStarTable {
             setName( tname );
         }
 
-        /* Look for headers specific to the HEALPix-FITS encoding. */
-        if ( "HEALPIX".equals( cards.getStringValue( "PIXTYPE" ) ) ) {
+        /* Look for headers specific to the HEALPix-FITS encoding.
+         * Note a MOC is not suitable, since it won't have an NSIDE. */
+        if ( "HEALPIX".equals( cards.getStringValue( "PIXTYPE" ) ) &&
+             ! ( cards.containsKey( "MOCORDER" ) ||    // MOC v1
+                 cards.containsKey( "MOCVERS" ) ) ) {  // MOC v2
             HealpixTableInfo hpxInfo = null;
             try {
                 hpxInfo = extractHealpixInfo( cards, colInfos_ );
