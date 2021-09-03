@@ -550,10 +550,10 @@ public abstract class BintableStarTable extends AbstractStarTable {
 
         /* Get NSIDE/level value. */
         Long nSide = cards.getLongValue( "NSIDE" );
-        long nside = nSide.longValue();
         if ( nSide == null ) {
             throw new IllegalStateException( "No HEALPix NSIDE header" );
         }
+        long nside = nSide.longValue();
         final int level = Long.numberOfTrailingZeros( nside );
         if ( 1 << level != nside ) {
             throw new IllegalStateException( "Invalid HEALPix header value "
