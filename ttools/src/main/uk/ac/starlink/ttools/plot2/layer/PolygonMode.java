@@ -71,7 +71,10 @@ public class PolygonMode {
             new DrawingGlypher( OUTLINE_PAINTER ) {
         void drawPolygon( Drawing d, int x0, int y0,
                           int[] xs, int[] ys, int np ) {
-            d.draw( new Polygon( xs, ys, np ) );
+            for ( int ip = 0; ip < np; ip++ ) {
+                int ip1 = ( ip + 1 ) % np;
+                d.drawLine( xs[ ip ], ys[ ip ], xs[ ip1 ], ys[ ip1 ] );
+            }
         }
     };
     private static final Glypher FILL_DRAW_GLYPHER =
