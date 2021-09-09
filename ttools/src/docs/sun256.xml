@@ -13322,6 +13322,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New <code>areatype</code> value <code>UNIQ</code> for plotting
         single HEALPix tiles e.g. from MOC files in
         <ref id="layer-area">area</ref> (and similar) layer type.</li>
+    <li>Upgrade of cds-healpix-java library to v0.30.2; this fixes
+        some HEALPix cell plotting bugs.</li>
     </ul>
     </p></dd>
 
