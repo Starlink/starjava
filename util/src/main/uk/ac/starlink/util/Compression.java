@@ -160,7 +160,7 @@ public abstract class Compression {
                 throw new IllegalArgumentException( 
                     "Wrong magic number for bzip2 encoding" );
             }
-            return new CBZip2InputStream( raw );
+            return new CBZip2InputStream( raw, true );
         }
     };
 
