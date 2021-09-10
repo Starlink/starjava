@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Polygon;
 import java.awt.Rectangle;
-import uk.ac.starlink.ttools.plot.Drawing;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
@@ -69,7 +68,7 @@ public class PolygonMode {
     };
     private static final Glypher OUTLINE_DRAW_GLYPHER =
             new DrawingGlypher( OUTLINE_PAINTER ) {
-        void drawPolygon( Drawing d, int x0, int y0,
+        void drawPolygon( PixelDrawing d, int x0, int y0,
                           int[] xs, int[] ys, int np ) {
             for ( int ip = 0; ip < np; ip++ ) {
                 int ip1 = ( ip + 1 ) % np;
@@ -79,14 +78,14 @@ public class PolygonMode {
     };
     private static final Glypher FILL_DRAW_GLYPHER =
             new DrawingGlypher( FILL_PAINTER ) {
-        void drawPolygon( Drawing d, int x0, int y0,
+        void drawPolygon( PixelDrawing d, int x0, int y0,
                           int[] xs, int[] ys, int np ) {
             d.fill( new Polygon( xs, ys, np ) );
         }
     };
     private static final Glypher CROSS_DRAW_GLYPHER =
             new DrawingGlypher( CROSS_PAINTER ) {
-        void drawPolygon( Drawing d, int x0, int y0,
+        void drawPolygon( PixelDrawing d, int x0, int y0,
                           int[] xs, int[] ys, int np ) {
             for ( int ip = 0; ip < np; ip++ ) {
                 int ip1 = ( ip + 1 ) % np;
@@ -99,7 +98,7 @@ public class PolygonMode {
     };
     private static final Glypher STAR_DRAW_GLYPHER =
             new DrawingGlypher( STAR_PAINTER ) {
-        void drawPolygon( Drawing d, int x0, int y0,
+        void drawPolygon( PixelDrawing d, int x0, int y0,
                           int[] xs, int[] ys, int np ) {
             for ( int ip = 0; ip < np; ip++ ) {
                 int ip1 = ( ip + 1 ) % np;
@@ -402,7 +401,7 @@ public class PolygonMode {
 
     /**
      * Partial Glypher implementation for which concrete subclasses
-     * just have to be able to render the shape to a Drawing.
+     * just have to be able to render the shape to a PixelDrawing.
      */
     private static abstract class DrawingGlypher extends SingleGlypher {
 
@@ -416,7 +415,7 @@ public class PolygonMode {
         }
 
         /**
-         * Renders the required polygon shape to a Drawing object.
+         * Renders the required polygon shape to a PixelDrawing object.
          *
          * @param   d  drawing
          * @param   x0  X coordinate of nominal center
@@ -425,25 +424,14 @@ public class PolygonMode {
          * @param   xs  array of vertex Y coordinates
          * @param   np  number of vertices
          */
-        abstract void drawPolygon( Drawing d, int x0, int y0,
+        abstract void drawPolygon( PixelDrawing d, int x0, int y0,
                                    int[] xs, int[] ys, int np );
 
         Pixer createPolygonPixer( int x0, int y0, int[] xs, int[] ys, int np,
                                   Rectangle bounds ) {
-            final Drawing drawing = new Drawing( bounds );
+            final PixelDrawing drawing = new PixelDrawing( bounds );
             drawPolygon( drawing, x0, y0, xs, ys, np );
-            drawing.start();
-            return new Pixer() {
-                public boolean next() {
-                    return drawing.next();
-                }
-                public int getX() {
-                    return drawing.getX();
-                }
-                public int getY() {
-                    return drawing.getY();
-                }
-            };
+            return drawing.createPixer();
         }
     }
 

@@ -81,6 +81,51 @@ public class Pixers {
     }
 
     /**
+     * Returns an efficient copy of the given factory.
+     * This may be suitable if it is known that many copies will be
+     * required of a Pixer.
+     *
+     * @param  base  base implementation
+     * @return  new PixerFactory functionally equivalent to base implementation
+     */
+    public static PixerFactory copy( PixerFactory base ) {
+        final int xmin = base.getMinX();
+        final int xmax = base.getMaxX();
+        final int ymin = base.getMinY();
+        final int ymax = base.getMaxY();
+        final int npix = base.getPixelCount();
+        final int[] xs = new int[ npix ];
+        final int[] ys = new int[ npix ];
+        int ip = 0;
+        for ( Pixer pixer = base.createPixer(); pixer.next(); ) {
+            xs[ ip ] = pixer.getX();
+            ys[ ip ] = pixer.getY();
+            ip++;
+        }
+        assert ip == npix;
+        return new PixerFactory() {
+            public int getMinX() {
+                return xmin;
+            }
+            public int getMaxX() {
+                return xmax;
+            }
+            public int getMinY() {
+                return ymin;
+            }
+            public int getMaxY() {
+                return ymax;
+            }
+            public int getPixelCount() {
+                return npix;
+            }
+            public Pixer createPixer() {
+                return createArrayPixer( xs, ys, npix );
+            }
+        };
+    }
+
+    /**
      * Takes a given pixer and copies its data, returning an object that
      * can issue pixers that behave the same as the original.
      * Since pixers are one-use iterators, this may be a useful caching

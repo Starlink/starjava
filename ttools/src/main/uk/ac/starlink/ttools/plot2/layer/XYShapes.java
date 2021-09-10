@@ -5,7 +5,6 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
-import uk.ac.starlink.ttools.plot.Drawing;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
 
@@ -169,7 +168,7 @@ public class XYShapes {
                         public void paintShape( Graphics g ) {
                             g.fillOval( -dx, -dy, 2 * dx, 2 * dy );
                         }
-                        public void drawShape( Drawing d ) {
+                        public void drawShape( PixelDrawing d ) {
                             d.fillOval( -dx, -dy, 2 * dx, 2 * dy );
                         }
                     };
@@ -179,7 +178,7 @@ public class XYShapes {
                         public void paintShape( Graphics g ) {
                             g.drawOval( -dx, -dy, 2 * dx, 2 * dy );
                         }
-                        public void drawShape( Drawing d ) {
+                        public void drawShape( PixelDrawing d ) {
                             d.drawOval( -dx, -dy, 2 * dx, 2 * dy );
                         }
                     };
@@ -278,7 +277,7 @@ public class XYShapes {
                     public void paintShape( Graphics g ) {
                         g.fillPolygon( polygon );
                     }
-                    public void drawShape( Drawing d ) {
+                    public void drawShape( PixelDrawing d ) {
                         d.fill( polygon );
                     }
                 };
@@ -288,7 +287,7 @@ public class XYShapes {
                     public void paintShape( Graphics g ) {
                         g.drawPolygon( polygon );
                     }
-                    public void drawShape( Drawing d ) {
+                    public void drawShape( PixelDrawing d ) {
                         int n = polygon.npoints;
                         int[] xs = polygon.xpoints;
                         int[] ys = polygon.ypoints;
@@ -306,7 +305,7 @@ public class XYShapes {
 
     /**
      * Partial XYShape implementation which does pixel generation by using an
-     * instance of the Drawing class.  This is probably not very efficient,
+     * instance of the PixelDrawing class.  This is probably not very efficient,
      * so glyph caching will help.
      */
     private static abstract class DrawingShape extends XYShape {
@@ -348,16 +347,15 @@ public class XYShapes {
              * the cache size, and the number of pixels per glyph,
              * are both assumed relatively small. */
             if ( isCached( sx, sy ) ) {
-                Drawing drawing = new Drawing( bounds );
+                final PixelDrawing drawing = new PixelDrawing( bounds );
                 glypher.drawShape( drawing );
-                final PixellatorPixerFactory pfact =
-                    new PixellatorPixerFactory( drawing );
+                PixerFactory pfact = Pixers.copy( drawing );
                 return new Glyph() {
                     public void paintGlyph( Graphics g ) {
                         glypher.paintShape( g );
                     }
                     public Pixer createPixer( Rectangle clip ) {
-                        return pfact.createPixer( clip );
+                        return Pixers.createClippedPixer( pfact, clip );
                     }
                 };
             }
@@ -377,20 +375,9 @@ public class XYShapes {
                         else {
                             rect = bounds.intersection( clip );
                         }
-                        final Drawing drawing = new Drawing( rect );
+                        PixelDrawing drawing = new PixelDrawing( rect );
                         glypher.drawShape( drawing );
-                        drawing.start();
-                        return new Pixer() {
-                            public boolean next() {
-                                return drawing.next();
-                            }
-                            public int getX() {
-                                return drawing.getX();
-                            }
-                            public int getY() {
-                                return drawing.getY();
-                            }
-                        };
+                        return drawing.createPixer();
                     }
                 };
             }
@@ -417,7 +404,7 @@ public class XYShapes {
              *
              * @param  drawing  drawing
              */
-            void drawShape( Drawing drawing );
+            void drawShape( PixelDrawing drawing );
         }
     }
 }
