@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.util.IntList;
@@ -56,6 +57,30 @@ public class Pixers {
     }
 
     /**
+     * Returns a new pixer that iterates over an array of Points.
+     * Iteration is done in place, so the content of these points
+     * should not be altered for the lifetime of this pixer.
+     *
+     * @param  points  point array
+     * @return  pixel iterator
+     */
+    public static Pixer createPointsPixer( final Point[] points ) {
+        final int np = points.length;
+        return new Pixer() {
+            int ip = -1;
+            public boolean next() {
+                return ++ip < np;
+            }
+            public int getX() {
+                return points[ ip ].x;
+            }
+            public int getY() {
+                return points[ ip ].y;
+            }
+        };
+    }
+
+    /**
      * Takes a given pixer and copies its data, returning an object that
      * can issue pixers that behave the same as the original.
      * Since pixers are one-use iterators, this may be a useful caching
@@ -69,17 +94,46 @@ public class Pixers {
         IntList xlist = new IntList();
         IntList ylist = new IntList();
         int ip = 0;
+        int xmin = Integer.MAX_VALUE;
+        int xmax = Integer.MIN_VALUE;
+        int ymin = Integer.MAX_VALUE;
+        int ymax = Integer.MIN_VALUE;
         while ( pixer.next() ) {
-            xlist.add( pixer.getX() );
-            ylist.add( pixer.getY() );
+            int x = pixer.getX();
+            int y = pixer.getY();
+            xlist.add( x );
+            ylist.add( y );
+            xmin = Math.min( xmin, x );
+            xmax = Math.max( xmax, x );
+            ymin = Math.min( ymin, y );
+            ymax = Math.max( ymax, y );
             ip++;
         }
         final int[] xs = xlist.toIntArray();
         final int[] ys = ylist.toIntArray();
         final int np = ip;
+        final int xmin0 = xmin;
+        final int xmax0 = xmax;
+        final int ymin0 = ymin;
+        final int ymax0 = ymax;
         return new PixerFactory() {
             public Pixer createPixer() {
                 return createArrayPixer( xs, ys, np );
+            }
+            public int getPixelCount() {
+                return np;
+            }
+            public int getMinX() {
+                return xmin0;
+            }
+            public int getMaxX() {
+                return xmax0;
+            }
+            public int getMinY() {
+                return ymin0;
+            }
+            public int getMaxY() {
+                return ymax0;
             }
         };
     }
@@ -118,6 +172,45 @@ public class Pixers {
     public static Pixer clip( Pixer base, Rectangle clip ) {
         return new ClipPixer( base, clip.x, clip.x + clip.width - 1,
                                     clip.y, clip.y + clip.height - 1 );
+    }
+
+    /**
+     * Returns a pixer that results from applying a clip rectangle to
+     * the output of a given PixerFactory.
+     *
+     * @param  pfact  pixer factory
+     * @param  clip   clipping rectangle
+     * @return   pixer contiaining only points within the clip,
+     *           or null if no points fall within it
+     */
+    public static Pixer createClippedPixer( PixerFactory pfact,
+                                            Rectangle clip ) {
+        int xminBase = pfact.getMinX();
+        int xmaxBase = pfact.getMaxX();
+        int xminClip = clip.x;
+        int xmaxClip = clip.x + clip.width - 1;
+        int xcmp = compare( xminClip, xmaxClip, xminBase, xmaxBase );
+        if ( xcmp == 0 ) {
+            return null;
+        }
+        int yminBase = pfact.getMinY();
+        int ymaxBase = pfact.getMaxY();
+        int yminClip = clip.y;
+        int ymaxClip = clip.y + clip.height - 1;
+        int ycmp = compare( yminClip, ymaxClip, yminBase, ymaxBase );
+        if ( ycmp == 0 ) {
+            return null;
+        }
+        if ( xcmp == 1 && ycmp == 1 ) {
+            return pfact.createPixer();
+        }
+        else {
+            int xmin = Math.max( xminClip, xminBase );
+            int xmax = Math.min( xmaxClip, xmaxBase );
+            int ymin = Math.max( yminClip, yminBase );
+            int ymax = Math.min( ymaxClip, ymaxBase );
+            return new ClipPixer( pfact.createPixer(), xmin, xmax, ymin, ymax );
+        }
     }
 
     /**

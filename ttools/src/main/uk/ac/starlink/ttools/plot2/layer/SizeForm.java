@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -125,14 +124,14 @@ public class SizeForm implements ShapeForm {
 
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
-            StyleKeys.MARK_SHAPE,
+            StyleKeys.MARKER_SHAPE,
             StyleKeys.SCALE_PIX,
             StyleKeys.AUTOSCALE_PIX
         };
     }
 
     public Outliner createOutliner( ConfigMap config ) {
-        MarkShape shape = config.get( StyleKeys.MARK_SHAPE );
+        MarkerShape shape = config.get( StyleKeys.MARKER_SHAPE );
         boolean isAutoscale = config.get( StyleKeys.AUTOSCALE_PIX );
         double scale = config.get( StyleKeys.SCALE_PIX )
                      * ( isAutoscale ? PlotUtil.DEFAULT_MAX_PIXELS : 1 );
@@ -172,7 +171,7 @@ public class SizeForm implements ShapeForm {
      * Outliner implementation for use with SizeForm.
      */
     public static class SizeOutliner extends PixOutliner {
-        private final MarkShape shape_;
+        private final MarkerShape shape_;
         private final AuxScale autoscale_;
         private final double scale_;
         private final int sizeLimit_;
@@ -191,7 +190,7 @@ public class SizeForm implements ShapeForm {
          *                    if it's too large, plots may be slow or
          *                    run out of memory
          */
-        public SizeOutliner( MarkShape shape, double scale,
+        public SizeOutliner( MarkerShape shape, double scale,
                              AuxScale autoscale, int sizeLimit ) {
             shape_ = shape;
             scale_ = scale;

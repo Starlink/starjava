@@ -11,7 +11,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.DefaultListCellRenderer;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
@@ -291,7 +290,7 @@ public class PolygonForms {
             PolygonMode polyMode = config.get( POLYMODE_KEY );
             boolean isFast = config.get( ISFAST_KEY ).booleanValue();
             int minSize = config.get( PolygonOutliner.MINSIZE_KEY );
-            MarkShape minShape = config.get( PolygonOutliner.MINSHAPE_KEY );
+            MarkerShape minShape = config.get( PolygonOutliner.MINSHAPE_KEY );
             PolygonMode.Glypher polyGlypher = polyMode.getGlypher( isFast );
             return PolygonOutliner
                   .createFixedOutliner( np_, polyGlypher, minSize, minShape );

@@ -30,11 +30,10 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.MarkShape;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.layer.MarkerShape;
 
 /**
  * SpecifierPanel subclass that uses a JColorChooser to specify a colour.
@@ -391,9 +390,9 @@ public class ChooserColorSpecifier extends SpecifierPanel<Color> {
             g.setColor( Color.WHITE );
             g.fillRect( x, y, sizes_.length * markWidth_, iconHeight_ );
             for ( int i = 0; i < sizes_.length; i++ ) {
-                MarkShape.FILLED_CIRCLE.getStyle( color, sizes_[ i ] )
-                                       .getIcon( markWidth_, iconHeight_ )
-                                       .paintIcon( c, g, x, y );
+                MarkerShape.FILLED_CIRCLE.getStyle( color, sizes_[ i ] )
+                           .getLegendIcon( markWidth_, iconHeight_ )
+                           .paintIcon( c, g, x, y );
                 x += markWidth_;
             }
             x += gap_;

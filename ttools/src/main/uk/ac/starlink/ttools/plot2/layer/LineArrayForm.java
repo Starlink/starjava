@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -134,8 +133,8 @@ public class LineArrayForm implements ShapeForm {
             stroke_ = stroke;
             antialias_ = antialias;
             legendIcon_ = new Icon() {
-                final int width = MarkStyle.LEGEND_ICON_WIDTH;
-                final int height = MarkStyle.LEGEND_ICON_HEIGHT;
+                final int width = MarkerStyle.LEGEND_ICON_WIDTH;
+                final int height = MarkerStyle.LEGEND_ICON_HEIGHT;
                 public int getIconWidth() {
                     return width;
                 }

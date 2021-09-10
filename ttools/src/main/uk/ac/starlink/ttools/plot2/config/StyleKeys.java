@@ -15,8 +15,6 @@ import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.BarStyles;
 import uk.ac.starlink.ttools.plot.ErrorMode;
 import uk.ac.starlink.ttools.plot.ErrorRenderer;
-import uk.ac.starlink.ttools.plot.MarkShape;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Styles;
@@ -26,9 +24,11 @@ import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.Cumulation;
-import uk.ac.starlink.ttools.plot2.layer.FatMarkShapes;
+import uk.ac.starlink.ttools.plot2.layer.FatMarkerShapes;
 import uk.ac.starlink.ttools.plot2.layer.FillMode;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
+import uk.ac.starlink.ttools.plot2.layer.MarkerShape;
+import uk.ac.starlink.ttools.plot2.layer.MarkerStyle;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.XYShape;
 import uk.ac.starlink.ttools.plot2.layer.XYShapes;
@@ -42,17 +42,18 @@ import uk.ac.starlink.util.gui.RenderingComboBox;
  */
 public class StyleKeys {
 
-    private static final MarkShape[] SHAPES = createShapes();
+    private static final MarkerShape[] MARKER_SHAPES = createMarkerShapes();
 
     /** Config key for marker shape. */
-    public static final ConfigKey<MarkShape> MARK_SHAPE =
-        createMarkShapeKey( new ConfigMeta( "shape", "Shape" )
-                           .setShortDescription( "Marker shape" )
-                           .setXmlDescription( new String[] {
+    public static final ConfigKey<MarkerShape> MARKER_SHAPE =
+        createMarkerShapeKey( new ConfigMeta( "shape", "Shape" )
+                             .setShortDescription( "Marker shape" )
+                             .setXmlDescription( new String[] {
                                 "<p>Sets the shape of markers that are plotted",
                                 "at each position of the scatter plot.",
                                 "</p>", } ),
-                            MarkShape.FILLED_CIRCLE );
+                              MarkerShape.FILLED_CIRCLE );
+                      
 
     /** Config key for marker size. */
     public static final ConfigKey<Integer> SIZE =
@@ -654,18 +655,19 @@ public class StyleKeys {
      * @param   dflt  default shape value
      * @return  new key
      */
-    public static ConfigKey<MarkShape> createMarkShapeKey( ConfigMeta meta,
-                                                           MarkShape dflt ) {
-        OptionConfigKey<MarkShape> key =
-                new OptionConfigKey<MarkShape>( meta, MarkShape.class,
-                                                SHAPES, dflt ) {
-            public String getXmlDescription( MarkShape shape ) {
+    public static ConfigKey<MarkerShape>
+            createMarkerShapeKey( ConfigMeta meta, MarkerShape dflt ){
+        OptionConfigKey<MarkerShape> key =
+                new OptionConfigKey<MarkerShape>( meta, MarkerShape.class,
+                                                  MARKER_SHAPES, dflt ) {
+            public String getXmlDescription( MarkerShape shape ) {
                 return null;
             }
-            public Specifier<MarkShape> createSpecifier() {
-                return new ComboBoxSpecifier<MarkShape>(
-                           MarkShape.class,
-                           MarkStyleSelectors.createShapeSelector( SHAPES ) );
+            public Specifier<MarkerShape> createSpecifier() {
+                return new ComboBoxSpecifier<MarkerShape>(
+                           MarkerShape.class,
+                           MarkStyleSelectors
+                          .createMarkerShapeSelector( MARKER_SHAPES ) );
             }
         };
         key.setOptionUsage();
@@ -839,27 +841,27 @@ public class StyleKeys {
      *
      * @return  marker shapes
      */
-    private static MarkShape[] createShapes() {
-        return new MarkShape[] {
-            MarkShape.FILLED_CIRCLE,
-            MarkShape.OPEN_CIRCLE,
-            MarkShape.CROSS,
-            MarkShape.CROXX,
-            MarkShape.OPEN_SQUARE,
-            MarkShape.OPEN_DIAMOND,
-            MarkShape.OPEN_TRIANGLE_UP,
-            MarkShape.OPEN_TRIANGLE_DOWN,
-            FatMarkShapes.FAT_CIRCLE,
-            FatMarkShapes.FAT_CROSS,
-            FatMarkShapes.FAT_CROXX,
-            FatMarkShapes.FAT_SQUARE,
-            FatMarkShapes.FAT_DIAMOND,
-            FatMarkShapes.FAT_TRIANGLE_UP,
-            FatMarkShapes.FAT_TRIANGLE_DOWN,
-            MarkShape.FILLED_SQUARE,
-            MarkShape.FILLED_DIAMOND,
-            MarkShape.FILLED_TRIANGLE_UP,
-            MarkShape.FILLED_TRIANGLE_DOWN,
+    private static MarkerShape[] createMarkerShapes() {
+        return new MarkerShape[] {
+            MarkerShape.FILLED_CIRCLE,
+            MarkerShape.OPEN_CIRCLE,
+            MarkerShape.CROSS,
+            MarkerShape.CROXX,
+            MarkerShape.OPEN_SQUARE,
+            MarkerShape.OPEN_DIAMOND,
+            MarkerShape.OPEN_TRIANGLE_UP,
+            MarkerShape.OPEN_TRIANGLE_DOWN,
+            FatMarkerShapes.FAT_CIRCLE,
+            FatMarkerShapes.FAT_CROSS,
+            FatMarkerShapes.FAT_CROXX,
+            FatMarkerShapes.FAT_SQUARE,
+            FatMarkerShapes.FAT_DIAMOND,
+            FatMarkerShapes.FAT_TRIANGLE_UP,
+            FatMarkerShapes.FAT_TRIANGLE_DOWN,
+            MarkerShape.FILLED_SQUARE,
+            MarkerShape.FILLED_DIAMOND,
+            MarkerShape.FILLED_TRIANGLE_UP,
+            MarkerShape.FILLED_TRIANGLE_DOWN,
         };
     }
 

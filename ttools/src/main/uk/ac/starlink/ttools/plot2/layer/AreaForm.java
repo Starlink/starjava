@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -35,7 +34,7 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
             new AreaForm<PlaneDataGeom>( AreaCoord.PLANE_COORD, new Coord[0] ) {
         protected PolygonOutliner createOutliner( PolygonMode.Glypher pg,
                                                   int minSize,
-                                                  MarkShape minShape ) {
+                                                  MarkerShape minShape ) {
             return PolygonOutliner
                   .createPlaneAreaOutliner( getAreaCoord(), 0, pg,
                                             minSize, minShape );
@@ -47,7 +46,7 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
             new AreaForm<SkyDataGeom>( AreaCoord.SKY_COORD, new Coord[ 0 ] ) {
         protected PolygonOutliner createOutliner( PolygonMode.Glypher pg,
                                                   int minSize,
-                                                  MarkShape minShape ) {
+                                                  MarkerShape minShape ) {
             return PolygonOutliner
                   .createSkyAreaOutliner( getAreaCoord(), 0, pg,
                                           minSize, minShape );
@@ -60,7 +59,7 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
                                           new Coord[] { RADIAL_COORD } ) {
         protected PolygonOutliner createOutliner( PolygonMode.Glypher pg,
                                                   int minSize,
-                                                  MarkShape minShape ) {
+                                                  MarkerShape minShape ) {
             return PolygonOutliner
                   .createSphereAreaOutliner( getAreaCoord(), 0, RADIAL_COORD, 1,
                                              pg, minSize, minShape );
@@ -145,7 +144,7 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
         PolygonMode polyMode = config.get( POLYMODE_KEY );
         boolean isFast = config.get( ISFAST_KEY ).booleanValue();
         int minSize = config.get( PolygonOutliner.MINSIZE_KEY );
-        MarkShape minShape = config.get( PolygonOutliner.MINSHAPE_KEY );
+        MarkerShape minShape = config.get( PolygonOutliner.MINSHAPE_KEY );
         PolygonMode.Glypher polyGlypher = polyMode.getGlypher( isFast );
         return createOutliner( polyGlypher, minSize, minShape );
     }
@@ -160,7 +159,7 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
      */
     protected abstract PolygonOutliner
             createOutliner( PolygonMode.Glypher polyGlypher,
-                            int minSize, MarkShape minShape );
+                            int minSize, MarkerShape minShape );
 
     /**
      * Returns the coordinate associated with this form.

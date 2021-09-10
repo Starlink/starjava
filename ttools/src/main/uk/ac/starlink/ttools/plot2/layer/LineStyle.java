@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import javax.swing.Icon;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Style;
 
 /**
@@ -36,8 +35,8 @@ public class LineStyle implements Style {
         stroke_ = stroke;
         antialias_ = antialias;
         legendIcon_ = new Icon() {
-            final int width = MarkStyle.LEGEND_ICON_WIDTH;
-            final int height = MarkStyle.LEGEND_ICON_HEIGHT;
+            final int width = MarkerStyle.LEGEND_ICON_WIDTH;
+            final int height = MarkerStyle.LEGEND_ICON_HEIGHT;
             public int getIconWidth() {
                 return width;
             }

@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
-import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -133,7 +132,7 @@ public abstract class LineTracer3D {
                                                    BasicStroke.CAP_ROUND,
                                                    BasicStroke.JOIN_ROUND ) )
              : new MarkTracer( paperType, paper, surf,
-                               MarkForm.createMarkGlyph( MarkShape
+                               MarkForm.createMarkGlyph( MarkerShape
                                                         .FILLED_CIRCLE,
                                                          thickness - 1, true ),
                                pixgap );

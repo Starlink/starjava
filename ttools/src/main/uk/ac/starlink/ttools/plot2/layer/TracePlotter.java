@@ -10,7 +10,6 @@ import java.util.List;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.gui.ThicknessComboBox;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Axis;
@@ -647,8 +646,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         }
 
         public Icon getLegendIcon() {
-            final int width = MarkStyle.LEGEND_ICON_WIDTH;
-            final int height = MarkStyle.LEGEND_ICON_HEIGHT;
+            final int width = MarkerStyle.LEGEND_ICON_WIDTH;
+            final int height = MarkerStyle.LEGEND_ICON_HEIGHT;
             return new Icon() {
                 public int getIconWidth() {
                     return width;

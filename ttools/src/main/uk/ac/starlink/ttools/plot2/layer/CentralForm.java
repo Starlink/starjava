@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -85,7 +84,7 @@ public class CentralForm<DG extends DataGeom> implements ShapeForm {
 
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
-            StyleKeys.MARK_SHAPE,
+            StyleKeys.MARKER_SHAPE,
             StyleKeys.SIZE,
         };
     }
@@ -97,7 +96,7 @@ public class CentralForm<DG extends DataGeom> implements ShapeForm {
     }
 
     public Outliner createOutliner( ConfigMap config ) {
-        MarkShape shape = config.get( StyleKeys.MARK_SHAPE );
+        MarkerShape shape = config.get( StyleKeys.MARKER_SHAPE );
         int size = config.get( StyleKeys.SIZE );
         return MarkForm.createMarkOutliner( shape, size );
     }
