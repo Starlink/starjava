@@ -6,7 +6,7 @@
  *  (the "License"); you may not use this file except in compliance with
  *  the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,8 +27,8 @@
 // package org.apache.tools.bzip2;
 package uk.ac.starlink.util.bzip2;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * An input stream that decompresses from the BZip2 format (without the file
@@ -36,40 +36,18 @@ import java.io.IOException;
  *
  * <p>The decompression requires large amounts of memory. Thus you
  * should call the {@link #close() close()} method as soon as
- * possible, to force <tt>CBZip2InputStream</tt> to release the
+ * possible, to force <code>CBZip2InputStream</code> to release the
  * allocated memory.  See {@link CBZip2OutputStream
  * CBZip2OutputStream} for information about memory usage.</p>
  *
- * <p><tt>CBZip2InputStream</tt> reads bytes from the compressed
+ * <p><code>CBZip2InputStream</code> reads bytes from the compressed
  * source stream via the single byte {@link java.io.InputStream#read()
  * read()} method exclusively. Thus you should consider to use a
  * buffered source stream.</p>
- * 
+ *
  * <p>Instances of this class are not threadsafe.</p>
  */
 public class CBZip2InputStream extends InputStream implements BZip2Constants {
-
-    private static void reportCRCError() throws IOException {
-        // The clean way would be to throw an exception.
-        //throw new IOException("crc error");
-
-        // Just print a message, like the previous versions of this class did
-        System.err.println("BZip2 CRC error");
-    }
-
-    private void makeMaps() {
-        final boolean[] inUse   = this.data.inUse;
-        final byte[] seqToUnseq = this.data.seqToUnseq;
-
-        int nInUseShadow = 0;
-
-        for (int i = 0; i < 256; i++) {
-            if (inUse[i])
-                seqToUnseq[nInUseShadow++] = (byte) i;
-        }
-
-        this.nInUse = nInUseShadow;
-    }
 
     /**
      * Index of the last char in the block, so the block size == last + 1.
@@ -96,10 +74,11 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
     private int nInUse;
 
     private InputStream in;
+    private final boolean decompressConcatenated;
 
     private int currentChar = -1;
 
-    private static final int EOF                  = 0;
+    private static final int EOF               = 0;
     private static final int START_BLOCK_STATE = 1;
     private static final int RAND_PART_A_STATE = 2;
     private static final int RAND_PART_B_STATE = 3;
@@ -110,8 +89,10 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
 
     private int currentState = START_BLOCK_STATE;
 
-    private int storedBlockCRC, storedCombinedCRC;
-    private int computedBlockCRC, computedCombinedCRC;
+    private int storedBlockCRC;
+    private int storedCombinedCRC;
+    private int computedBlockCRC;
+    private int computedCombinedCRC;
 
     // Variables used by setup* methods exclusively
 
@@ -133,26 +114,62 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
 
     /**
      * Constructs a new CBZip2InputStream which decompresses bytes read from
-     * the specified stream.
+     * the specified stream. This doesn't support decompressing
+     * concatenated .bz2 files.
      *
      * <p>Although BZip2 headers are marked with the magic
-     * <tt>"Bz"</tt> this constructor expects the next byte in the
+     * <code>"Bz"</code> this constructor expects the next byte in the
      * stream to be the first one after the magic.  Thus callers have
      * to skip the first two bytes. Otherwise this constructor will
      * throw an exception. </p>
      *
+     * @param in InputStream
      * @throws IOException
      *  if the stream content is malformed or an I/O error occurs.
      * @throws NullPointerException
-     *  if <tt>in == null</tt>
+     *  if <code>in == null</code>
      */
     public CBZip2InputStream(final InputStream in) throws IOException {
+        this(in, false);
+    }
+
+    /**
+     * Constructs a new CBZip2InputStream which decompresses bytes
+     * read from the specified stream.
+     *
+     * <p>Although BZip2 headers are marked with the magic
+     * <code>"Bz"</code> this constructor expects the next byte in the
+     * stream to be the first one after the magic.  Thus callers have
+     * to skip the first two bytes. Otherwise this constructor will
+     * throw an exception. </p>
+     *
+     * @param in the InputStream from which this object should be created
+     * @param decompressConcatenated
+     *                     if true, decompress until the end of the input;
+     *                     if false, stop after the first .bz2 stream and
+     *                     leave the input position to point to the next
+     *                     byte after the .bz2 stream
+     *
+     * @throws IOException
+     *             if the stream content is malformed or an I/O error occurs.
+     * @throws NullPointerException
+     *             if <code>in == null</code>
+     */
+    public CBZip2InputStream(final InputStream in,
+                             final boolean decompressConcatenated)
+            throws IOException {
         super();
 
         this.in = in;
-        init();
+        this.decompressConcatenated = decompressConcatenated;
+
+        init(true);
+        initBlock();
+        setupBlock();
     }
 
+    /** {@inheritDoc} */
+    @Override
     public int read() throws IOException {
         if (this.in != null) {
             return read0();
@@ -161,6 +178,12 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
         }
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.io.InputStream#read(byte[], int, int)
+     */
+    @Override
     public int read(final byte[] dest, final int offs, final int len)
         throws IOException {
         if (offs < 0) {
@@ -185,6 +208,21 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
         }
 
         return (destOffs == offs) ? -1 : (destOffs - offs);
+    }
+
+    private void makeMaps() {
+        final boolean[] inUse   = this.data.inUse;
+        final byte[] seqToUnseq = this.data.seqToUnseq;
+
+        int nInUseShadow = 0;
+
+        for (int i = 0; i < 256; i++) {
+            if (inUse[i]) {
+                seqToUnseq[nInUseShadow++] = (byte) i;
+            }
+        }
+
+        this.nInUse = nInUseShadow;
     }
 
     private int read0() throws IOException {
@@ -226,48 +264,85 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
         return retChar;
     }
 
-    private void init() throws IOException {
+    private boolean init(boolean isFirstStream) throws IOException {
+        if (null == in) {
+            throw new IOException("No InputStream");
+        }
+
+        if (isFirstStream) {
+            if (in.available() == 0) {
+                throw new IOException("Empty InputStream");
+            }
+        } else {
+            int magic0 = this.in.read();
+            if (magic0 == -1) {
+                return false;
+            }
+            int magic1 = this.in.read();
+            if (magic0 != 'B' || magic1 != 'Z') {
+                throw new IOException("Garbage after a valid BZip2 stream");
+            }
+        }
+
         int magic2 = this.in.read();
         if (magic2 != 'h') {
-            throw new IOException("Stream is not BZip2 formatted: expected 'h'"
-                                  + " as first byte but got '" + (char) magic2
-                                  + "'");
+            throw new IOException(isFirstStream
+                    ? "Stream is not in the BZip2 format"
+                    : "Garbage after a valid BZip2 stream");
         }
 
         int blockSize = this.in.read();
-        if ((blockSize < '1') || (blockSize > '9')) {
+        if (blockSize < '1' || blockSize > '9') {
             throw new IOException("Stream is not BZip2 formatted: illegal "
                                   + "blocksize " + (char) blockSize);
         }
 
         this.blockSize100k = blockSize - '0';
 
-        initBlock();
-        setupBlock();
+        this.bsLive = 0;
+        this.computedCombinedCRC = 0;
+
+        return true;
     }
 
     private void initBlock() throws IOException {
-        char magic0 = bsGetUByte();
-        char magic1 = bsGetUByte();
-        char magic2 = bsGetUByte();
-        char magic3 = bsGetUByte();
-        char magic4 = bsGetUByte();
-        char magic5 = bsGetUByte();
+        char magic0;
+        char magic1;
+        char magic2;
+        char magic3;
+        char magic4;
+        char magic5;
 
-        if (magic0 == 0x17 &&
-            magic1 == 0x72 &&
-            magic2 == 0x45 &&
-            magic3 == 0x38 &&
-            magic4 == 0x50 &&
-            magic5 == 0x90) {
-            complete(); // end of file
-        } else if (magic0 != 0x31 || // '1'
-                   magic1 != 0x41 || // ')'
-                   magic2 != 0x59 || // 'Y'
-                   magic3 != 0x26 || // '&'
-                   magic4 != 0x53 || // 'S'
-                   magic5 != 0x59   // 'Y'
-                   ) {
+        while (true) {
+            // Get the block magic bytes.
+            magic0 = bsGetUByte();
+            magic1 = bsGetUByte();
+            magic2 = bsGetUByte();
+            magic3 = bsGetUByte();
+            magic4 = bsGetUByte();
+            magic5 = bsGetUByte();
+
+            // If isn't end of stream magic, break out of the loop.
+            if (magic0 != 0x17 || magic1 != 0x72 || magic2 != 0x45
+                    || magic3 != 0x38 || magic4 != 0x50 || magic5 != 0x90) {
+                break;
+            }
+
+            // End of stream was reached. Check the combined CRC and
+            // advance to the next .bz2 stream if decoding concatenated
+            // streams.
+            if (complete()) {
+                return;
+            }
+        }
+
+        if (magic0 != 0x31 || // '1'
+            magic1 != 0x41 || // ')'
+            magic2 != 0x59 || // 'Y'
+            magic3 != 0x26 || // '&'
+            magic4 != 0x53 || // 'S'
+            magic5 != 0x59 // 'Y'
+            ) {
             this.currentState = EOF;
             throw new IOException("bad block header");
         } else {
@@ -290,7 +365,7 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
         }
     }
 
-    private void endBlock() throws IOException {
+    private void endBlock() {
         this.computedBlockCRC = this.crc.getFinalCRC();
 
         // A bad CRC is considered a fatal error.
@@ -311,7 +386,7 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
         this.computedCombinedCRC ^= this.computedBlockCRC;
     }
 
-    private void complete() throws IOException {
+    private boolean complete() throws IOException {
         this.storedCombinedCRC = bsGetInt();
         this.currentState = EOF;
         this.data = null;
@@ -319,8 +394,13 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
         if (this.storedCombinedCRC != this.computedCombinedCRC) {
             reportCRCError();
         }
+
+        // Look for the next .bz2 stream if decompressing
+        // concatenated files.
+        return !decompressConcatenated || !init(false);
     }
 
+    @Override
     public void close() throws IOException {
         InputStream inShadow = this.in;
         if (inShadow != null) {
@@ -586,7 +666,7 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
         int minLens_zt  = minLens[zt];
 
         while (nextSym != eob) {
-            if ((nextSym == RUNA) || (nextSym == RUNB)) {
+            if (nextSym == RUNA || nextSym == RUNB) {
                 int s = -1;
 
                 for (int n = 1; true; n <<= 1) {
@@ -618,7 +698,6 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
                         if (thech >= 0) {
                             bsBuffShadow = (bsBuffShadow << 8) | thech;
                             bsLiveShadow += 8;
-                            continue;
                         } else {
                             throw new IOException("unexpected end of stream");
                         }
@@ -633,7 +712,6 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
                             if (thech >= 0) {
                                 bsBuffShadow = (bsBuffShadow << 8) | thech;
                                 bsLiveShadow += 8;
-                                continue;
                             } else {
                                 throw new IOException("unexpected end of stream");
                             }
@@ -698,7 +776,6 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
                     if (thech >= 0) {
                         bsBuffShadow = (bsBuffShadow << 8) | thech;
                         bsLiveShadow += 8;
-                        continue;
                     } else {
                         throw new IOException("unexpected end of stream");
                     }
@@ -713,7 +790,6 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
                         if (thech >= 0) {
                             bsBuffShadow = (bsBuffShadow << 8) | thech;
                             bsLiveShadow += 8;
-                            continue;
                         } else {
                             throw new IOException("unexpected end of stream");
                         }
@@ -749,7 +825,6 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
                 if (thech >= 0) {
                     bsBuffShadow = (bsBuffShadow << 8) | thech;
                     bsLiveShadow += 8;
-                    continue;
                 } else {
                     throw new IOException("unexpected end of stream");
                 }
@@ -784,7 +859,7 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
             tt[cftab[ll8[i] & 0xff]++] = i;
         }
 
-        if ((this.origPtr < 0) || (this.origPtr >= tt.length)) {
+        if (this.origPtr < 0 || this.origPtr >= tt.length) {
             throw new IOException("stream corrupted");
         }
 
@@ -914,7 +989,7 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
         }
     }
 
-    private static final class Data extends Object {
+    private static final class Data {
 
         // (with blockSize 900k)
         final boolean[] inUse   = new boolean[256];                                   //      256 byte
@@ -958,7 +1033,7 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
          *
          * This method is called when the required length of the array
          * is known.  I don't initialize it at construction time to
-         * avoid unneccessary memory allocation when compressing small
+         * avoid unnecessary memory allocation when compressing small
          * files.
          */
         final int[] initTT(int length) {
@@ -968,7 +1043,7 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
             // it can happen, if the compressor mixed small and large
             // blocks.  Normally only the last block will be smaller
             // than others.
-            if ((ttShadow == null) || (ttShadow.length < length)) {
+            if (ttShadow == null || ttShadow.length < length) {
                 this.tt = ttShadow = new int[length];
             }
 
@@ -976,5 +1051,13 @@ public class CBZip2InputStream extends InputStream implements BZip2Constants {
         }
 
     }
-}
 
+    private static void reportCRCError() {
+        // The clean way would be to throw an exception.
+        //throw new IOException("crc error");
+
+        // Just print a message, like the previous versions of this class did
+        System.err.println("BZip2 CRC error");
+    }
+
+}
