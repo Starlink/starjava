@@ -6,8 +6,6 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import uk.ac.starlink.ttools.plot.Drawing;
-import uk.ac.starlink.ttools.plot.ErrorRenderer;
-import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
 
@@ -56,9 +54,6 @@ public class XYShapes {
                                          false ) );
         shapes.add( createDiamondShape( "Filled Diamond", true ) );
         shapes.add( createEllipseShape( "Filled Ellipse", true ) );
-//      for ( ErrorRenderer renderer : ErrorRenderer.getOptionsXYSize() ) {
-//          shapes.add( new ErrorEllipseShape( renderer ) );
-//      }
         return shapes.toArray( new XYShape[ 0 ] );
     }
 
@@ -423,69 +418,6 @@ public class XYShapes {
              * @param  drawing  drawing
              */
             void drawShape( Drawing drawing );
-        }
-    }
-
-    /**
-     * Shape based on an ellipse-type ErrorRenderer.
-     * This is not the most efficient way to do it.
-     *
-     * @param   renderer  renderer expecting 4 input offsets
-     * @return  shape
-     */
-    private static class ErrorEllipseShape extends XYShape {
-
-        private final ErrorRenderer renderer_;
-
-        ErrorEllipseShape( ErrorRenderer renderer ) {
-            super( renderer.getName(), 20 );
-            renderer_ = renderer;
-        }
-
-        public Glyph createGlyph( short sx, short sy ) {
-            int x = sx;
-            int y = sy;
-            final int[] xoffs = new int[] { x, -x, 0, 0 };
-            final int[] yoffs = new int[] { 0, 0, -y, y };
-            if ( isCached( sx, sy ) ) {
-                Rectangle bounds =
-                    new Rectangle( -x, -y, x * 2 + 1, y * 2 + 1 );
-                Pixellator pixellator =
-                    renderer_.getPixels( bounds, 0, 0, xoffs, yoffs );
-                final PixellatorPixerFactory pfact =
-                    new PixellatorPixerFactory( pixellator );
-                return new Glyph() {
-                    public void paintGlyph( Graphics g ) {
-                        renderer_.drawErrors( g, 0, 0, xoffs, yoffs );
-                    }
-                    public Pixer createPixer( Rectangle clip ) {
-                        return pfact.createPixer( clip );
-                    }
-                };
-            }
-            else {
-                return new Glyph() {
-                    public void paintGlyph( Graphics g ) {
-                        renderer_.drawErrors( g, 0, 0, xoffs, yoffs );
-                    }
-                    public Pixer createPixer( Rectangle clip ) {
-                        final Pixellator pixellator =
-                            renderer_.getPixels( clip, 0, 0, xoffs, yoffs );
-                        pixellator.start();
-                        return new Pixer() {
-                            public boolean next() {
-                                return pixellator.next();
-                            }
-                            public int getX() {
-                                return pixellator.getX();
-                            }
-                            public int getY() {
-                                return pixellator.getY();
-                            }
-                        };
-                    }
-                };
-            }
         }
     }
 }
