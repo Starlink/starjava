@@ -1413,6 +1413,7 @@
           classname="uk.ac.starlink.ttools.build.Plot2Example"
           failonerror="yes"
           fork="yes">
+      <jvmarg value="-enableassertions"/>
       <arg value="-dataDir"/>
       <arg value="${plot2.figdata.dir}"/>
       <arg value="-outDir"/>
