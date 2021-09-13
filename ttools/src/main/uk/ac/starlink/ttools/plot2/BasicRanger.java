@@ -237,7 +237,7 @@ public class BasicRanger implements Ranger {
                 }
             }
             if ( ! Double.isNaN( hi ) && ! Double.isInfinite( hi ) &&
-                 hi >= lo1 ) {
+                 ! ( hi < lo1 ) ) {
                 hi1 = hi;
                 if ( ! ( hi <= 0.0 ) ) {
                     hiPos1 = hi;

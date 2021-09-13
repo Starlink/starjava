@@ -24723,6 +24723,7 @@ Some of the notable contributers are these:
 <li>Tim Jenness (JACH)</li>
 <li>JJ Kavelaars (NRC)</li>
 <li>Grant Kennedy (IoA)</li>
+<li>Sergei Klioner (Dresden)</li>
 <li>Christian Knigge (Southampton)</li>
 <li>Marina Kounkel (WWU)</li>
 <li>Gerard Lemson (MPE Garching)</li>
@@ -29969,6 +29970,9 @@ introduced since the last version:
     <li>Files compressed using multi-stream bzip2 compression
         (e.g. <code>pbzip2</code> output) are now supported
         alongside single-stream bzip2.</li>
+    <li>Fix aux ranging bug that meant supplying a fixed Maximum Aux
+        value was ignored without a fixed Minimum Aux value.
+        This was a regression bug introduced at v4.6-3.</li>
     </ul>
     </p></dd>
 

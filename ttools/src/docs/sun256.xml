@@ -13327,6 +13327,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Files compressed using multi-stream bzip2 compression
         (e.g. <code>pbzip2</code> output) are now supported
         alongside single-stream bzip2.</li>
+    <li>Fix aux ranging bug that meant <code>auxmax</code> without
+        <code>auxmin</code> was not honoured in plot commands.
+        This was a regression bug introduced at v3.1-5.</li>
     </ul>
     </p></dd>
 
