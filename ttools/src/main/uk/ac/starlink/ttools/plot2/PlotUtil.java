@@ -1030,9 +1030,10 @@ public class PlotUtil {
      */
     public static String formatNumberSf( double value, int nsf ) {
         String txt = doFormatNumberSf( value, nsf );
-        assert Double.isNaN( value ) || Double.isInfinite( value )
-            || Math.abs( value - Double.parseDouble( txt ) ) / value
-               < Math.pow( 10, -nsf );
+        assert Double.isNaN( value ) || Double.isInfinite( value ) || value == 0
+            || Math.abs( ( value - Double.parseDouble( txt ) ) / value )
+               < Math.pow( 10, - ( nsf - 1 ) )
+               : "nsf: " + nsf + "\t" + value + " -> " + txt;
         return txt;
     }
 
