@@ -77,14 +77,14 @@ public abstract class PlaneFigureMode implements FigureMode {
     private static final String F_ISINSIDE;
     private static final String F_POLYLINE;
     private static final String F_LOG10;
-    private static final String F_HYPOT;
+    private static final String F_SQUARE;
 
     /** JEL functions used when constructing expressions. */
     static final String[] JEL_FUNCTIONS = new String[] {
         F_ISINSIDE = "isInside",
         F_POLYLINE = "polyLine",
         F_LOG10 = "log10",
-        F_HYPOT = "hypot",
+        F_SQUARE = "square",
     };
 
     /**
@@ -716,7 +716,7 @@ public abstract class PlaneFigureMode implements FigureMode {
 
         public String createPlaneExpression( String xvar, String yvar ) {
             return new StringBuffer()
-                 .append( F_HYPOT )
+                 .append( F_SQUARE )
                  .append( "(" )
                  .append( "(" )
                  .append( referenceName( surf_, xvar, 0 ) )
@@ -724,7 +724,10 @@ public abstract class PlaneFigureMode implements FigureMode {
                  .append( ")" )
                  .append( "/" )
                  .append( PlotUtil.formatNumber( dx_, xEps_ ) )
-                 .append( ", " )
+                 .append( ")" )
+                 .append( " + " )
+                 .append( F_SQUARE )
+                 .append( "(" )
                  .append( "(" )
                  .append( referenceName( surf_, yvar, 1 ) )
                  .append( addFormattedValue( -cy_, yEps_ ) )
@@ -739,7 +742,6 @@ public abstract class PlaneFigureMode implements FigureMode {
 
         public String createPlaneAdql( String xvar, String yvar ) {
             return new StringBuffer()
-                .append( "SQRT(" )
                 .append( "POWER(" )
                 .append( "(" )
                 .append( referenceAdqlName( surf_, xvar, 0 ) )
@@ -757,7 +759,6 @@ public abstract class PlaneFigureMode implements FigureMode {
                 .append( "/" )
                 .append( PlotUtil.formatNumber( dy_, yEps_ ) )
                 .append( ", 2)" )
-                .append( ")" )
                 .append( " < " )
                 .append( "1" )
                 .toString();

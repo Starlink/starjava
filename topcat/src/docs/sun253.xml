@@ -7641,10 +7641,10 @@ unwieldy than they have to be.</p>
         and the next point is on the radius.  If later points are selected,
         they reset the radius.
         The expression generated is of the form
-        <code>hypot((x-x0)/a, (y-y0)/b)&lt;1</code>,
-        using <code>hypot</code> function from
+        <code>square((x-x0)/a) + square((y-y0)/b)&lt;1</code>,
+        using the <code>square</code> function from
         the <ref id="Maths">Maths</ref> class
-        (<code>hypot(x,y)=sqrt(x*x+y*y)</code>).
+        (<code>square(x)=x*x</code>).
         </li>
     <li><label>Below</label>,
         <label>Above</label>,
@@ -29973,6 +29973,8 @@ introduced since the last version:
     <li>Fix aux ranging bug that meant supplying a fixed Maximum Aux
         value was ignored without a fixed Minimum Aux value.
         This was a regression bug introduced at v4.6-3.</li>
+    <li>Simplify algebraic <ref id="FigurePanel">ellipse expression</ref>
+        (it doesn't need a square root).</li>
     </ul>
     </p></dd>
 
