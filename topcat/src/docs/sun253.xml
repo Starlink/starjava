@@ -7635,13 +7635,25 @@ unwieldy than they have to be.</p>
         The expression is just of the form
         <code><![CDATA[x>x0 && x<x1 && y>y0 && y<y1]]></code>.
         </li>
-    <li><label>Ellipse</label>:
+    <li><label>Aligned Ellipse</label>:
         Defines an ellipse aligned with the plot axes.
         The first point selected defines the ellipse center,
         and the next point is on the radius.  If later points are selected,
         they reset the radius.
         The expression generated is of the form
         <code>square((x-x0)/a) + square((y-y0)/b)&lt;1</code>,
+        using the <code>square</code> function from
+        the <ref id="Maths">Maths</ref> class
+        (<code>square(x)=x*x</code>).
+        </li>
+    <li><label>Rotated Ellipse</label>:
+        Defines an ellipse with arbitrary alignment.
+        the first point selected defines the ellipse center,
+        the second point is the end of the primary radius,
+        and the third point defines the extent of the secondary radius.
+        If later points are selected they reset the secondary radius.
+        The expression generated is of the form
+        <code>square(a(x-x0)+b(y-y0))+square(c(x-x0)+d(y-y0))&lt;1</code>,
         using the <code>square</code> function from
         the <ref id="Maths">Maths</ref> class
         (<code>square(x)=x*x</code>).
@@ -29975,6 +29987,11 @@ introduced since the last version:
         This was a regression bug introduced at v4.6-3.</li>
     <li>Simplify algebraic <ref id="FigurePanel">ellipse expression</ref>
         (it doesn't need a square root).</li>
+    <li>Ellipse selection in the
+        <ref id="FigurePanel">Draw Algebraic Subset</ref> action
+        can now be rotated rather than just aligned with the axes
+        ("Ellipse" is renamed "Aligned Ellipse", and there is a
+        new option "Rotated Ellipse").</li>
     </ul>
     </p></dd>
 
