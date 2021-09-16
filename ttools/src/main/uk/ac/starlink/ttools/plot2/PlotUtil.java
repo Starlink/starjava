@@ -45,6 +45,8 @@ import uk.ac.starlink.util.SplitCollector;
 public class PlotUtil {
 
     private static Boolean dfltAntialias_;
+    private static final DecimalFormatSymbols UK_SYMBOLS =
+        DecimalFormatSymbols.getInstance( Locale.UK );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -1006,15 +1008,74 @@ public class PlotUtil {
      */
     public static String formatNumber( double value, String baseFmt,
                                        int nFracDigits ) {
-        DecimalFormat fmt =
-           new DecimalFormat( baseFmt,
-                              DecimalFormatSymbols.getInstance( Locale.UK ) );
+        DecimalFormat fmt = new DecimalFormat( baseFmt, UK_SYMBOLS );
         fmt.setMaximumFractionDigits( nFracDigits );
         fmt.setMinimumFractionDigits( nFracDigits );
         String out = fmt.format( value );
         return out.matches( "-0+\\.0+" )
              ? out.substring( 1 )
              : out;
+    }
+
+    /**
+     * Numeric formatting utility function for writing a given number
+     * of significant figures.
+     * The output is not Locale-sensitive, so is suitable for formatting
+     * numbers that may be re-parsed as numbers (by non-Locale-sensitive code).
+     * Formatting is best-efforts and may suppress insignificant zeros.
+     *
+     * @param  value  numeric value to format
+     * @param  nsf   (approximate) number of significant figures
+     * @return  formatted string
+     */
+    public static String formatNumberSf( double value, int nsf ) {
+        String txt = doFormatNumberSf( value, nsf );
+        assert Double.isNaN( value ) || Double.isInfinite( value )
+            || Math.abs( value - Double.parseDouble( txt ) ) / value
+               < Math.pow( 10, -nsf );
+        return txt;
+    }
+
+    /**
+     * Does the work for {@link #formatNumberSf}.
+     *
+     * @param  value  numeric value to format
+     * @param  nsf   (approximate) number of significant figures
+     * @return  formatted string
+     */
+    private static String doFormatNumberSf( double value, int nsf ) { 
+        if ( value == 0 ) {
+            return "0";
+        }
+        else if ( Double.isNaN( value ) || Double.isInfinite( value ) ) {
+            return Double.toString( value );
+        }
+        else {
+            double absVal = Math.abs( value );
+            double log10 = Math.log10( absVal );
+            if ( log10 >= -1 && log10 < nsf ) {
+                int ndp = nsf - (int) Math.ceil( log10 );
+                StringBuffer fbuf = new StringBuffer( 2 + ndp );
+                fbuf.append( "0." );
+                for ( int i = 0; i < ndp; i++ ) {
+                    fbuf.append( '#' );
+                }
+                DecimalFormat fmt =
+                    new DecimalFormat( fbuf.toString(), UK_SYMBOLS );
+                return fmt.format( value );
+            }
+            else {
+                StringBuffer fbuf = new StringBuffer( 4 + nsf );
+                fbuf.append( "0." );
+                for ( int i = 0; i < nsf - 1; i++ ) {
+                    fbuf.append( '#' );
+                }
+                fbuf.append( "E0" );
+                DecimalFormat fmt =
+                    new DecimalFormat( fbuf.toString(), UK_SYMBOLS );
+                return fmt.format( value );
+            }
+        }
     }
 
     /**
