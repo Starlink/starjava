@@ -14,7 +14,6 @@ import javax.swing.Icon;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.ErrorMode;
-import uk.ac.starlink.ttools.plot.ErrorRenderer;
 import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -48,10 +47,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
  * The extra coordinates required (defining one or more non-central
  * data positions) are defined by a supplied {@link MultiPointCoordSet}
  * and those coordinates are then plotted by a corresponding
- * {@link uk.ac.starlink.ttools.plot.ErrorRenderer}.
- * ErrorRenderer may be a slightly misleading name in this context, but you
- * can think of any of these multi-point shapes as a generalisation of
- * error bars.
+ * {@link MultiPointShape}.
  *
  * @author   Mark Taylor
  * @since    18 Feb 2013
@@ -62,7 +58,7 @@ public abstract class MultiPointForm implements ShapeForm {
     private final Icon icon_;
     private final String description_;
     private final MultiPointCoordSet extraCoordSet_;
-    private final MultiPointConfigKey rendererKey_;
+    private final MultiPointConfigKey shapeKey_;
     private final ConfigKey<?>[] otherKeys_;
 
     /**
@@ -73,21 +69,21 @@ public abstract class MultiPointForm implements ShapeForm {
      * @param  description  XML description
      * @param  extraCoordSet  defines the extra positional coordinates 
      *                        used to plot multipoint shapes
-     * @param  rendererKey  config key for the renderer; provides option to
-     *                      vary the shape, but any renderer specified by it
-     *                      must be expecting data corresponding to the
-     *                      <code>extraCoordSet</code> parameter
+     * @param  shapeKey  config key for the shape; provides option to
+     *                   vary the shape, but any shape specified by it
+     *                   must be expecting data corresponding to the
+     *                   <code>extraCoordSet</code> parameter
      * @param  otherKeys    additional config keys
      */
     public MultiPointForm( String name, Icon icon, String description,
                            MultiPointCoordSet extraCoordSet,
-                           MultiPointConfigKey rendererKey,
+                           MultiPointConfigKey shapeKey,
                            ConfigKey<?>[] otherKeys ) {
         name_ = name;
         icon_ = icon;
         description_ = description;
         extraCoordSet_ = extraCoordSet;
-        rendererKey_ = rendererKey;
+        shapeKey_ = shapeKey;
         otherKeys_ = otherKeys;
     }
 
@@ -138,18 +134,17 @@ public abstract class MultiPointForm implements ShapeForm {
 
     public ConfigKey<?>[] getConfigKeys() {
         List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
-        list.add( rendererKey_ );
+        list.add( shapeKey_ );
         list.addAll( Arrays.asList( otherKeys_ ) );
         return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public Outliner createOutliner( ConfigMap config ) {
-        ErrorRenderer renderer = config.get( rendererKey_ );
-        ErrorMode[] errorModes = rendererKey_.getErrorModes();
+        MultiPointShape shape = config.get( shapeKey_ );
+        ErrorMode[] errorModes = shapeKey_.getErrorModes();
         double scale = getScaleFactor( config );
         boolean isAutoscale = isAutoscale( config );
-        return new MultiPointOutliner( renderer, errorModes, scale,
-                                       isAutoscale );
+        return new MultiPointOutliner( shape, errorModes, scale, isAutoscale );
     }
 
     /**
@@ -219,13 +214,13 @@ public abstract class MultiPointForm implements ShapeForm {
      *
      * @param  name  form name
      * @param  extraCoordSet  coord set specifying error bar position endpoints
-     * @param  rendererKey   config key for specifying error renderers
+     * @param  shapeKey   config key for specifying multipoint shape
      * @return  new error form instance
      */
     public static MultiPointForm
                   createErrorForm( String name,
                                    MultiPointCoordSet extraCoordSet,
-                                   MultiPointConfigKey rendererKey ) {
+                                   MultiPointConfigKey shapeKey ) {
         String descrip = PlotUtil.concatLines( new String[] {
             "<p>Plots symmetric or asymmetric error bars in some or",
             "all of the plot dimensions.",
@@ -235,7 +230,7 @@ public abstract class MultiPointForm implements ShapeForm {
             "</p>",
         } );
         return createDefaultForm( name, ResourceIcon.FORM_ERROR, descrip,
-                                  extraCoordSet, rendererKey, false );
+                                  extraCoordSet, shapeKey, false );
     }
 
     /**
@@ -249,21 +244,21 @@ public abstract class MultiPointForm implements ShapeForm {
      * @param  description  XML description
      * @param  extraCoordSet  defines the extra positional coordinates 
      *                        used to plot multipoint shapes
-     * @param  rendererKey  config key for the renderer; provides option to
-     *                      vary the shape, but any renderer specified by it
-     *                      must be expecting data corresponding to the
-     *                      <code>extraCoordSet</code> parameter
+     * @param  shapeKey  config key for the shape; provides option to
+     *                   vary the shape, but any shape specified by it
+     *                   must be expecting data corresponding to the
+     *                   <code>extraCoordSet</code> parameter
      * @param  canScale   true for standard scaling configuration,
      *                    false for no scaling
      */
     public static MultiPointForm
             createDefaultForm( String name, Icon icon, String description, 
                                MultiPointCoordSet extraCoordSet,
-                               MultiPointConfigKey rendererKey,
+                               MultiPointConfigKey shapeKey,
                                boolean canScale ) {
         if ( canScale ) {
             return new MultiPointForm( name, icon, description, extraCoordSet,
-                                       rendererKey, new ConfigKey<?>[] {
+                                       shapeKey, new ConfigKey<?>[] {
                                            StyleKeys.SCALE, StyleKeys.AUTOSCALE,
                                        } ) {
                 protected double getScaleFactor( ConfigMap config ) {
@@ -276,7 +271,7 @@ public abstract class MultiPointForm implements ShapeForm {
         }
         else {
             return new MultiPointForm( name, icon, description, extraCoordSet,
-                                       rendererKey, new ConfigKey<?>[ 0 ] ) {
+                                       shapeKey, new ConfigKey<?>[ 0 ] ) {
                 protected double getScaleFactor( ConfigMap config ) {
                     return 1;
                 }
@@ -303,7 +298,7 @@ public abstract class MultiPointForm implements ShapeForm {
      * Outliner implementation for use with MultiPointForms.
      */
     private class MultiPointOutliner extends PixOutliner {
-        private final ErrorRenderer renderer_;
+        private final MultiPointShape shape_;
         private final ErrorMode[] modes_;
         private final double scale_;
         private final boolean isAutoscale_;
@@ -312,19 +307,19 @@ public abstract class MultiPointForm implements ShapeForm {
         /**
          * Constructor.
          *
-         * @param  renderer  multi-point shape drawer
-         * @param  modes   used with renderer to define icon shape
+         * @param  shape     multi-point shape drawer
+         * @param  modes   used with shape to define icon
          * @param  scale   scaling adjustment factor
          * @param  isAutoscale  true if initial size scaling is done
          *                      from the data
          */
-        public MultiPointOutliner( ErrorRenderer renderer, ErrorMode[] modes,
+        public MultiPointOutliner( MultiPointShape shape, ErrorMode[] modes,
                                    double scale, boolean isAutoscale ) {
-            renderer_ = renderer;
+            shape_ = shape;
             modes_ = modes;
             scale_ = scale;
             isAutoscale_ = isAutoscale;
-            icon_ = renderer.getLegendIcon( modes, 14, 10, 1, 1 );
+            icon_ = shape.getLegendIcon( modes, 14, 10, 1, 1 );
         }
 
         public Icon getLegendIcon() {
@@ -364,7 +359,7 @@ public abstract class MultiPointForm implements ShapeForm {
                         offsetter.calculateOffsets( dpos0, gpos0, dposExtras,
                                                     xoffs, yoffs );
                         Glyph glyph =
-                            new MultiPointGlyph( renderer_, xoffs, yoffs );
+                            new MultiPointGlyph( shape_, xoffs, yoffs );
                         paperType.placeGlyph( paper, gpos0.x, gpos0.y,
                                               glyph, color );
                     }
@@ -396,7 +391,7 @@ public abstract class MultiPointForm implements ShapeForm {
                         offsetter.calculateOffsets( dpos0, gpos0, dposExtras,
                                                     xoffs, yoffs );
                         Glyph glyph =
-                            new MultiPointGlyph( renderer_, xoffs, yoffs );
+                            new MultiPointGlyph( shape_, xoffs, yoffs );
                         paperType.placeGlyph( paper, gpos0.x, gpos0.y, gpos0.z,
                                               glyph, color );
                     }
@@ -408,7 +403,7 @@ public abstract class MultiPointForm implements ShapeForm {
         public boolean equals( Object o ) {
             if ( o instanceof MultiPointOutliner ) {
                 MultiPointOutliner other = (MultiPointOutliner) o;
-                return this.renderer_.equals( other.renderer_ )
+                return this.shape_.equals( other.shape_ )
                     && Arrays.equals( this.modes_, other.modes_ )
                     && this.isAutoscale_ == other.isAutoscale_
                     && this.scale_ == other.scale_;
@@ -421,7 +416,7 @@ public abstract class MultiPointForm implements ShapeForm {
         @Override
         public int hashCode() {
             int code = 3203;
-            code = code * 23 + renderer_.hashCode();
+            code = code * 23 + shape_.hashCode();
             code = code * 23 + Arrays.hashCode( modes_ );
             code = code * 23 + ( isAutoscale_ ? 11 : 13 );
             code = code * 23 + Float.floatToIntBits( (float) scale_ );
@@ -491,7 +486,7 @@ public abstract class MultiPointForm implements ShapeForm {
 
         /**
          * Converts data values read from the tuple sequence into a list
-         * of graphics coordinates suitable for feeding to the ErrorRenderer.
+         * of graphics coordinates suitable for feeding to the MultiPointShape.
          * The result is returned by filling a supplied pair of arrays
          * giving X and Y offsets in graphics coordinates from the
          * (supplied) central point, so (0,0) indicates an extra point
@@ -535,42 +530,31 @@ public abstract class MultiPointForm implements ShapeForm {
      * Glyph implementation to draw a multipoint shape.
      */
     public static class MultiPointGlyph implements Glyph {
-        private final ErrorRenderer renderer_;
+        private final MultiPointShape shape_;
         private final int[] xoffs_;
         private final int[] yoffs_;
 
         /**
          * Constructor.
          *
-         * @param  renderer  multipoint shape renderer
+         * @param  shape  multipoint shape
          * @param  xoffs  graphics position X-coordinate offsets
          * @param  yoffs  graphics position Y-coordinate offsets.
          */
-        MultiPointGlyph( ErrorRenderer renderer, int[] xoffs, int[] yoffs ) {
-            renderer_ = renderer;
+        MultiPointGlyph( MultiPointShape shape, int[] xoffs, int[] yoffs ) {
+            shape_ = shape;
             xoffs_ = xoffs;
             yoffs_ = yoffs;
         }
 
         public void paintGlyph( Graphics g ) {
-            renderer_.drawErrors( g, 0, 0, xoffs_, yoffs_ );
+            shape_.drawShape( g, 0, 0, xoffs_, yoffs_ );
         }
 
         public Pixer createPixer( Rectangle clip ) {
-            final Pixellator pixellator =
-                renderer_.getPixels( clip, 0, 0, xoffs_, yoffs_ );
-            pixellator.start();
-            return new Pixer() {
-                public boolean next() {
-                    return pixellator.next();
-                }
-                public int getX() {
-                    return pixellator.getX();
-                }
-                public int getY() {
-                    return pixellator.getY();
-                }
-            };
+            PixerFactory pfact =
+                shape_.createPixerFactory( clip, 0, 0, xoffs_, yoffs_ );
+            return pfact == null ? null : pfact.createPixer();
         }
     }
 

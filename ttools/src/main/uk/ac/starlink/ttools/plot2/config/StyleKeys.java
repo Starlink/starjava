@@ -14,7 +14,6 @@ import uk.ac.starlink.ttools.gui.ThicknessComboBox;
 import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.BarStyles;
 import uk.ac.starlink.ttools.plot.ErrorMode;
-import uk.ac.starlink.ttools.plot.ErrorRenderer;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Styles;
@@ -29,6 +28,7 @@ import uk.ac.starlink.ttools.plot2.layer.FillMode;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
 import uk.ac.starlink.ttools.plot2.layer.MarkerShape;
 import uk.ac.starlink.ttools.plot2.layer.MarkerStyle;
+import uk.ac.starlink.ttools.plot2.layer.MultiPointShape;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.XYShape;
 import uk.ac.starlink.ttools.plot2.layer.XYShapes;
@@ -386,33 +386,34 @@ public class StyleKeys {
 
     /** Config key for vector marker style. */
     public static final MultiPointConfigKey VECTOR_SHAPE =
-        createMultiPointKey( "arrow", "Arrow", ErrorRenderer.getOptionsVector(),
+        createMultiPointKey( "arrow", "Arrow",
+                             MultiPointShape.getOptionsVector(),
                              new ErrorMode[] { ErrorMode.UPPER } );
 
     /** Config key for ellipse marker style. */
     public static final MultiPointConfigKey ELLIPSE_SHAPE =
         createMultiPointKey( "ellipse", "Ellipse",
-                             ErrorRenderer.getOptionsEllipse(),
+                             MultiPointShape.getOptionsEllipse(),
                              new ErrorMode[] { ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC } );
 
     /** Config key for 1d (vertical) error marker style. */
     public static final MultiPointConfigKey ERROR_SHAPE_1D =
         createMultiPointKey( "errorbar", "Error Bar",
-                             ErrorRenderer.getOptions1d(),
+                             MultiPointShape.getOptionsError1d(),
                              new ErrorMode[] { ErrorMode.SYMMETRIC } );
 
     /** Config key for 2d error marker style. */
     public static final MultiPointConfigKey ERROR_SHAPE_2D =
         createMultiPointKey( "errorbar", "Error Bar",
-                             ErrorRenderer.getOptions2d(),
+                             MultiPointShape.getOptionsError2d(),
                              new ErrorMode[] { ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC } );
 
     /** Config key for 3d error marker style. */
     public static final MultiPointConfigKey ERROR_SHAPE_3D =
         createMultiPointKey( "errorbar", "Error Bar",
-                             ErrorRenderer.getOptions3d(),
+                             MultiPointShape.getOptionsError3d(),
                              new ErrorMode[] { ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC } );
@@ -815,14 +816,13 @@ public class StyleKeys {
      *
      * @param   shortName   one-word name
      * @param   longName   GUI name
-     * @param   renderers   renderer options
-     * @param   modes   error mode objects, used with renderers to draw icon
+     * @param   shapes   shape options
+     * @param   modes   error mode objects, used with shapes to draw icon
      * @return  new key
      */
     private static MultiPointConfigKey
             createMultiPointKey( String shortName, String longName,
-                                 ErrorRenderer[] renderers,
-                                 ErrorMode[] modes ) {
+                                 MultiPointShape[] shapes, ErrorMode[] modes ) {
         ConfigMeta meta = new ConfigMeta( shortName, longName );
         meta.setShortDescription( longName + " shape" );
         meta.setXmlDescription( new String[] {
@@ -830,7 +830,7 @@ public class StyleKeys {
             "</p>",
         } );
         MultiPointConfigKey key =
-            new MultiPointConfigKey( meta, renderers, modes );
+            new MultiPointConfigKey( meta, shapes, modes );
         key.setOptionUsage();
         key.addOptionsXml();
         return key;
