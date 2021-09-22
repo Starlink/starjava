@@ -5,12 +5,12 @@
    Prerequisites
    -------------
 
-First make sure you have a 1.6.x or later JDK available. Downloads are
-available from:
+First make sure you have a 1.8.x (a.k.a. Java 8) or later JDK available.
+Downloads are available from:
 
    http://www.oracle.com/downloads
 
-At present all development is performed with version 1.6.x as the target
+At present all development is performed with version 1.8.x as the target
 platform. Note we cannot distribute the SDK for licensing reasons.
 
 You will also need to have JAI installed as part of the SDK. JAI is the "Java
