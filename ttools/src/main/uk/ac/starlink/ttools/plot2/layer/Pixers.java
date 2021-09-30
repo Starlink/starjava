@@ -305,6 +305,39 @@ public class Pixers {
     }
 
     /**
+     * Convolves two PixerFactories together, which can be used
+     * for instance to apply a smoothing kernel to a given shape.
+     * The output will paint only within a given clipping region.
+     *
+     * @param  shape   first supplier of pixels
+     * @param  kernel  second supplier of pixels
+     * @param  clip   clipping rectangle for output
+     * @return  convolution pixel supplier
+     */
+    public static PixelDrawing convolve( PixerFactory shape,
+                                         PixerFactory kernel,
+                                         Rectangle clip ) {
+        int xlo = Math.max( shape.getMinX() + kernel.getMinX(), clip.x );
+        int ylo = Math.max( shape.getMinY() + kernel.getMinY(), clip.y );
+        int xhi = Math.min( shape.getMaxX() + kernel.getMaxX(),
+                            clip.x + clip.width - 1 );
+        int yhi = Math.min( shape.getMaxY() + kernel.getMaxY(),
+                            clip.y + clip.height - 1 );
+        PixelDrawing drawing =
+            new PixelDrawing( xlo, ylo, xhi - xlo + 1, yhi - ylo + 1 );
+        for ( Pixer spixer = shape.createPixer(); spixer.next(); ) {
+            int sx = spixer.getX();
+            int sy = spixer.getY();
+            for ( Pixer kpixer = kernel.createPixer(); kpixer.next(); ) {
+                int kx = kpixer.getX();
+                int ky = kpixer.getY();
+                drawing.addPixel( sx + kx, sy + ky );
+            }
+        }
+        return drawing;
+    }
+
+    /**
      * Compares two intervals and returns a flag indicating their
      * relative positioning.
      *
