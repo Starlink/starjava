@@ -236,7 +236,8 @@ public class MultiPointConfigKey extends OptionConfigKey<MultiPointShape> {
                     modes[ imode ] = errModeSelections_[ imode ]
                                     .getErrorMode();
                 }
-                icon = shape.getLegendIcon( modes, 40, 15, 5, 1 );
+                icon = shape.getLegendIcon( shape.createScribe( 0 ),
+                                            modes, 40, 15, 5, 1 );
                 icon = IconUtils.colorIcon( icon, c.getForeground() );
                 label.setText( icon == null ? "??" : null );
                 label.setIcon( icon );

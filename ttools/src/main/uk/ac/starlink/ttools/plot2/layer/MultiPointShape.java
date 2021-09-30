@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -11,19 +12,18 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.BiFunction;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.ErrorMode;
 import uk.ac.starlink.ttools.plot.Matrices;
+import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
-import uk.ac.starlink.util.IconUtils;
 
 /**
  * Defines a graphical shape with coordinates supplied by a number of
@@ -40,6 +40,9 @@ import uk.ac.starlink.util.IconUtils;
 public abstract class MultiPointShape {
 
     private final String name_;
+    private final int iconDim_;
+    private final boolean canThick_;
+    private Icon icon_;
 
     /** Multi-point shape which draws nothing. */
     public static final MultiPointShape NONE = new Blank( "None" );
@@ -52,10 +55,6 @@ public abstract class MultiPointShape {
     public static final MultiPointShape EXAMPLE =
         new CappedLine( "Capped Lines", true, new BarCapper( 3 ) );
 
-    private static final Stroke CAP_ROUND =
-        new BasicStroke( 1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER );
-    private static final Stroke CAP_BUTT =
-        new BasicStroke( 1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER );
     private static final int DUMMY_SIZE = 10000;
     private static final int LEGEND_WIDTH = 40;
     private static final int LEGEND_HEIGHT = 16;
@@ -128,9 +127,14 @@ public abstract class MultiPointShape {
      * Constructor.
      *
      * @param  name  user-directed shape name
+     * @param  iconDim  dimensionality to use for basic icon generation
+     * @param  canThick  true iff this shape is available in different
+     *                   line thicknesses
      */
-    protected MultiPointShape( String name ) {
+    protected MultiPointShape( String name, int iconDim, boolean canThick ) {
         name_ = name;
+        iconDim_ = iconDim;
+        canThick_ = canThick;
     }
 
     /**
@@ -138,28 +142,31 @@ public abstract class MultiPointShape {
      *
      * @return  example icon
      */
-    public abstract Icon getLegendIcon();
+    public Icon getLegendIcon() {
+        if ( icon_ == null ) {
+            icon_ = new MultiPointIcon( this, iconDim_ );
+        }
+        return icon_;
+    }
 
     /**
      * Returns an icon giving an example of what this shape looks like in a
      * detailed context.
      *
+     * @param   scribe   shape painter
      * @param   modes  array of ErrorModes, one per error dimension (x, y, ...)
      * @param   width  total width of icon
      * @param   height total height of icon
      * @param   xpad   internal horizontal padding of icon
      * @param   ypad   internal vertical padding of icon
      */
-    public abstract Icon getLegendIcon( ErrorMode[] modes, int width,
-                                        int height, int xpad, int ypad );
-
-    /**
-     * Returns a user-readable name for this shape.
-     *
-     * @return   shape name
-     */
-    public String getName() {
-        return name_;
+    public Icon getLegendIcon( MultiPointScribe scribe, ErrorMode[] modes,
+                               int width, int height, int xpad, int ypad ) {
+        if ( isPadIcon() ) {
+            xpad += width / 6;
+            ypad += height / 6;
+        }
+        return new MultiPointIcon( scribe, modes, width, height, xpad, ypad );
     }
 
     /**
@@ -169,108 +176,83 @@ public abstract class MultiPointShape {
      * @return  true iff this object can do rendering
      */
     public abstract boolean supportsDimensionality( int ndim );
-        
-    /**
-     * Returns a rectangle which will contain the rendered shape graphics
-     * for a given point.  This may be oversized, but should not be too
-     * much so for efficiency reasons.
-     *      
-     * @param  x  data point X coordinate
-     * @param  y  data point Y coordinate
-     * @param  xoffs  X coordinates of shape limit offsets from (x,y)
-     * @param  yoffs  Y coordinates of shape limit offsets from (x,y)
-     * @return  bounding box
-     */ 
-    public abstract Rectangle getBounds( int x, int y, int[] xoffs,
-                                         int[] yoffs );
 
     /**
-     * Draws a multi-point shape around a given point.
-     * The positions defining the shape relative to the the point
-     * are given.  There may in general be (2*N) of these, though certain
-     * <code>MultiPointShape</code> implementations may impose restrictions
-     * on this count.  Error bars come in consecutive pairs which describe
-     * error bars along the same axis in different directions.
-     * Missing error bars are represented as (0,0).  The values must come
-     * in axis order where that makes sense, but note in some contexts
-     * (e.g. 3D) these may be data axes rather than graphics plane axes.
+     * Returns an object that can turn offset arrays into painted shapes.
+     * Line thickness is single pixel where applicable.
      *
-     * <p>This method is quite likely to get called from time to time with
-     * ridiculously large offset arrays.  Implementations should try to
-     * ensure that they don't attempt graphics operations which may
-     * cause the graphics system undue grief, such as filling an ellipse
-     * the size of a village.
-     *
-     * @param  g  graphics context
-     * @param  x  data point X coordinate
-     * @param  y  data point Y coordinate
-     * @param  xoffs  X coordinates of shape offsets from (x,y)
-     * @param  yoffs  Y coordinates of shape offsets from (x,y)
+     * @return  shape painter
      */
-    public abstract void drawShape( Graphics g,
-                                    int x, int y, int[] xoffs, int[] yoffs );
+    abstract MultiPointScribe createBasicScribe();
 
     /**
-     * Returns an factory for pixel positions which can be used to draw this
-     * marker onto a raster.  This can be used as an alternative to
-     * rendering the marker using the {@link #drawShape} method,
-     * for instance in situations where it might be more efficient.
-     * The assumption is that all the pixels are the same colour.
+     * Returns an object that can turn offset arrays into painted shapes
+     * with configurable line thickness.
+     * If {@link #canThick} returns false, the parameter makes no difference.
      *
-     * <p>The default implementation calculates this by painting
-     * onto a temporary BufferedImage and then examining the raster to see
-     * which pixels have been painted.  This is probably not very efficient.
-     * Subclasses are encouraged to override this method if they can
-     * calculate the pixels which will be painted directly.
-     *
-     * @param  clip  clipping region
-     * @param  x  data point X coordinate
-     * @param  y  data point Y coordinate
-     * @param  xoffs  X coordinates of error bar limit offsets from (x,y)
-     * @param  yoffs  Y coordinates of error bar limit offsets from (x,y)
-     * @return  factory for Pixers, or null if nothing to be drawn
+     * @param  nthick  non-negative line thickness, 0 is single-pixel
+     * @return  shape painter
      */
-    public PixerFactory createPixerFactory( Rectangle clip, int x, int y,
-                                            int[] xoffs, int[] yoffs ) {
+    public MultiPointScribe createScribe( int nthick ) {
+        MultiPointScribe scribe = createBasicScribe();
+        return canThick() && nthick > 0 && scribe instanceof LineScribe
+             ? new ThickScribe( (LineScribe) scribe, nthick,
+                                getKernel( nthick ), getStrokeKit( nthick ) )
+             : scribe;
+    }
 
-        /* Work out the size of raster we will need to paint onto. */
-        Rectangle bounds = getBounds( x, y, xoffs, yoffs ).intersection( clip );
-        int xdim = bounds.width;
-        int ydim = bounds.height;
+    /**
+     * Indicates whether variants of this shape with different line
+     * thicknesses are available.  For some shapes, for instance filled
+     * rectangles, the line thickness makes no difference.
+     *
+     * @return  true iff the argument to {@link #createScribe}
+     *          makes any difference
+     */
+    public boolean canThick() {
+        return canThick_;
+    }
 
-        /* Return null if it has zero size. */
-        if ( xdim <= 0 || ydim <= 0 ) {
-            return null;
-        }
+    /**
+     * Returns the smoothing kernel to use for thick lines.
+     * The default is reasonable, but it may be overridden.
+     *
+     * @param  nthick  non-negative line thickness, 0 is single-pixel
+     * @return   smoothing kernel
+     */
+    PixerFactory getKernel( int nthick ) {
+        return ( nthick == 1 ? MarkerShape.CROSS : MarkerShape.FILLED_CIRCLE )
+              .getStyle( Color.BLACK, nthick ).getPixerFactory();
+    }
 
-        /* Prepare an image of a suitable size and a graphics context which
-         * will render onto it. */
-        BufferedImage im =
-            new BufferedImage( xdim, ydim, BufferedImage.TYPE_INT_ARGB );
-        Graphics2D g2 = im.createGraphics();
-        g2.translate( -bounds.x, -bounds.y );
-        g2.setClip( bounds );
+    /**
+     * Returns the set of line strokes to use for thick lines.
+     * The default is reasonable, but it may be overridden.
+     *
+     * @param  nthick  non-negative line thickness, 0 is single-pixel
+     * @return  stroke painting kit
+     */
+    StrokeKit getStrokeKit( int nthick ) {
+        return new StrokeKit( 1f + 2 * nthick );
+    }
 
-        /* Paint the shape. */
-        drawShape( g2, x, y, xoffs, yoffs );
-
-        /* Examine each pixel from the raster and write its coordinates
-         * into the coordinate list if it has been painted on (alpha is
-         * non-zero). */
-        Raster raster = im.getData();
-        PixelDrawing drawing = new PixelDrawing( bounds );
-        for ( int ix = 0; ix < xdim; ix++ ) {
-            for ( int iy = 0; iy < ydim; iy++ ) {
-                int alpha = raster.getSample( ix, iy, 3 );
-                assert alpha == 0 || alpha == 255;
-                if ( alpha > 0 ) {
-                    drawing.addPixelUnchecked( ix + bounds.x, iy + bounds.y );
-                }
-            }
-        }
-
-        /* Return the result as a PixerFactory. */
-        return drawing;
+    /**
+     * Hacky flag that may be set to add a bit of extra padding for
+     * legend icons.
+     *
+     * @return  true for additional padding; default is false
+     */
+    boolean isPadIcon() {
+        return false;
+    }
+  
+    /**
+     * Returns a user-readable name for this shape.
+     *
+     * @return   shape name
+     */
+    public String getName() {
+        return name_;
     }
 
     @Override
@@ -355,54 +337,219 @@ public abstract class MultiPointShape {
     }
 
     /**
-     * MultiPointShape partial implementation that generates PixerFactory
-     * using a PixelDrawing.  This is likely to be more efficient than
-     * the default implementation and generally makes sense.
+     * Icon which represents a MultiPointShape in a form suitable for a legend.
      */
-    private static abstract class DrawingShape extends MultiPointShape {
+    private static class MultiPointIcon implements Icon {
+
+        private final int width_;
+        private final int height_;
+        private final Glyph glyph_;
+        private final int xoff_;
+        private final int yoff_;
+
+        /**
+         * Constructs an icon with default characteristics.
+         *
+         * @param  shape   shape
+         * @param  ndim    dimensionality
+         */
+        public MultiPointIcon( MultiPointShape shape, int ndim ) {
+            this( shape.createBasicScribe(),
+                  fillModeArray( ndim, ErrorMode.SYMMETRIC ),
+                  LEGEND_WIDTH, LEGEND_HEIGHT, LEGEND_XPAD, LEGEND_YPAD );
+        }
+
+        /**
+         * Constructs an icon with specified characteristics.
+         *
+         * @param   scribe shape painter
+         * @param   modes  array of ErrorModes, one per error dimension
+         * @param   width  total width of icon
+         * @param   height total height of icon
+         * @param   xpad   internal horizontal padding of icon
+         * @param   ypad   internal vertical padding of icon
+         */
+        public MultiPointIcon( MultiPointScribe scribe, ErrorMode[] modes,
+                               int width, int height, int xpad, int ypad ) {
+            width_ = width;
+            height_ = height;
+            int w2 = width / 2 - xpad;
+            int h2 = height / 2 - ypad;
+            int ndim = modes.length;
+            List<Point> offList = new ArrayList<>( ndim );
+            if ( ndim > 0 ) {
+                ErrorMode xmode = modes[ 0 ];
+                if ( ! ErrorMode.NONE.equals( xmode ) ) {
+                    float xlo = (float) xmode.getExampleLower();
+                    float xhi = (float) xmode.getExampleUpper();
+                    offList.add( new Point( Math.round( - xlo * w2 ), 0 ) );
+                    offList.add( new Point( Math.round( + xhi * w2 ), 0 ) );
+                }
+            }
+            if ( ndim > 1 ) {
+                ErrorMode ymode = modes[ 1 ];
+                if ( ! ErrorMode.NONE.equals( ymode ) ) {
+                    float ylo = (float) ymode.getExampleLower();
+                    float yhi = (float) ymode.getExampleUpper();
+                    offList.add( new Point( 0, Math.round( + ylo * h2 ) ) );
+                    offList.add( new Point( 0, Math.round( - yhi * h2 ) ) );
+                }
+            }
+            if ( ndim > 2 ) {
+                ErrorMode zmode = modes[ 2 ];
+                if ( ! ErrorMode.NONE.equals( zmode ) ) {
+                    float zlo = (float) zmode.getExampleLower();
+                    float zhi = (float) zmode.getExampleUpper();
+                    float theta = (float) Math.toRadians( 40 );
+                    float slant = 0.8f;
+                    float c = (float) Math.cos( theta ) * slant;
+                    float s = (float) Math.sin( theta ) * slant;
+                    offList.add( new Point( Math.round( - c * zlo * w2 ),
+                                            Math.round( + s * zlo * h2 ) ) );
+                    offList.add( new Point( Math.round( + c * zhi * w2 ),
+                                            Math.round( - s * zhi * h2 ) ) );
+                }
+            }
+            int np = offList.size();
+            int[] xoffs = new int[ np ];
+            int[] yoffs = new int[ np ];
+            for ( int ip = 0; ip < np; ip++ ) {
+                Point point = offList.get( ip );
+                xoffs[ ip ] = point.x;
+                yoffs[ ip ] = point.y;
+            }
+            glyph_ = scribe.createGlyph( xoffs, yoffs );
+            xoff_ = width / 2;
+            yoff_ = height / 2;
+        }
+
+        public int getIconWidth() {
+            return width_;
+        }
+
+        public int getIconHeight() {
+            return height_;
+        }
+
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+            Graphics2D g2 = (Graphics2D) g;
+            Object aaHint =
+                g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
+            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                                 RenderingHints.VALUE_ANTIALIAS_ON );
+            g2.translate( x + xoff_, y + yoff_ );
+            glyph_.paintGlyph( g2 );
+            g2.translate( - ( x + xoff_ ), - ( y + yoff_ ) );
+            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aaHint );
+        }
+
+        /**
+         * Utility method to return an array containing all the same modes.
+         *
+         * @param  leng  number of elements
+         * @param  mode  content of each element
+         * @return array filled with <code>mode</code>
+         */
+        private static ErrorMode[] fillModeArray( int leng, ErrorMode mode ) {
+            ErrorMode[] modes = new ErrorMode[ leng ];
+            Arrays.fill( modes, mode );
+            return modes;
+        }
+    }
+
+    /**
+     * MultiPointScribe implementation whose createGlyph method
+     * returns a LineGlyph.
+     * A lambda is supplied at construction time to provide the implemenation.
+     */
+    private static class LineScribe implements MultiPointScribe {
+        private final MultiPointShape shape_;
+        private final BiFunction<int[],int[],LineGlyph> createGlyph_;
 
         /**
          * Constructor.
          *
-         * @param  name  shape name
+         * @param  shape   basic shape
+         * @param  createGlyph  function corresponding to
+         *                      {@link MultiPointScribe#createGlyph}
          */
-        DrawingShape( String name ) {
-            super( name );
+        LineScribe( MultiPointShape shape,
+                    BiFunction<int[],int[],LineGlyph> createGlyph ) {
+            shape_ = shape;
+            createGlyph_ = createGlyph;
+        }
+
+        public LineGlyph createGlyph( int[] xoffs, int[] yoffs ) {
+            return createGlyph_.apply( xoffs, yoffs );
         }
 
         @Override
-        public PixerFactory createPixerFactory( Rectangle clip, int x, int y,
-                                                int[] xoffs, int[] yoffs ) {
-            Rectangle bounds = getBounds( x, y, xoffs, yoffs );
-            int xlo = Math.max( clip.x, bounds.x );
-            int xhi = Math.min( clip.x + clip.width, bounds.x + bounds.width );
-            int dw = xhi - xlo;
-            if ( dw > 0 ) {
-                int ylo = Math.max( clip.y, bounds.y );
-                int yhi = Math.min( clip.y + clip.height,
-                                    bounds.y + bounds.height );
-                int dh = yhi - ylo;
-                if ( dh > 0 ) {
-                    PixelDrawing drawing = new PixelDrawing( xlo, ylo, dw, dh );
-                    drawShape( drawing, x, y, xoffs, yoffs );
-                    return drawing;
-                }
-            }
-            return null;
+        public int hashCode() {
+            return shape_.hashCode();
         }
 
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof LineScribe ) {
+                LineScribe other = (LineScribe) o;
+                return this.shape_.equals( other.shape_ );
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * MultiPointScribe implementation for painting shapes with thick lines.
+     */
+    private static class ThickScribe implements MultiPointScribe {
+
+        private final LineScribe baseScribe_;
+        private final int nthick_;
+        private final PixerFactory kernel_;
+        private final StrokeKit strokeKit_;
+
         /**
-         * Draws this shape onto a given drawing, whose bounds have
-         * been set appropriately.
+         * Constructor.
          *
-         * @param  drawing   target for graphics output
-         * @param  x  data point X coordinate
-         * @param  y  data point Y coordinate
-         * @param  xoffs  X coordinates of error bar limit offsets from (x,y)
-         * @param  yoffs  Y coordinates of error bar limit offsets from (x,y)
+         * @param  baseScribe  draws basic shape
+         * @param  nthick  nominal line thickness for object identification
+         * @param  kernel   smoothing kernel for pixel drawings
+         * @param  strokeKit  line painting strokes
          */
-        abstract void drawShape( PixelDrawing drawing,
-                                 int x, int y, int[] xoffs, int[] yoffs );
+        ThickScribe( LineScribe baseScribe, int nthick,
+                     PixerFactory kernel, StrokeKit strokeKit ) {
+            baseScribe_ = baseScribe;
+            nthick_ = nthick;
+            kernel_ = kernel;
+            strokeKit_ = strokeKit;
+        }
+
+        public Glyph createGlyph( int[] xoffs, int[] yoffs ) {
+            return baseScribe_.createGlyph( xoffs, yoffs )
+                              .toThicker( kernel_, strokeKit_ );
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 92342;
+            code = 23 * code + baseScribe_.hashCode();
+            code = 23 * code + nthick_;
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof ThickScribe ) {
+                ThickScribe other = (ThickScribe) o;
+                return this.baseScribe_.equals( other.baseScribe_ )
+                    && this.nthick_ == other.nthick_;
+            }
+            else {
+                return false;
+            }
+        }
     }
 
     /**
@@ -410,39 +557,35 @@ public abstract class MultiPointShape {
      */
     private static class Blank extends MultiPointShape {
 
+        private final MultiPointScribe scribe_;
+
         /**
          * Constructor.
          *
          * @param  name   shape name
          */
         Blank( String name ) {
-            super( name );
+            super( name, 1, false );
+            final Glyph glyph = new Glyph() {
+                public Pixer createPixer( Rectangle clip ) {
+                    return null;
+                }
+                public void paintGlyph( Graphics g ) {
+                }
+            };
+            scribe_ = new MultiPointScribe() {
+                public Glyph createGlyph( int[] xoffs, int[] yoffs ) {
+                    return glyph;
+                }
+            };
         }
 
         public boolean supportsDimensionality( int ndim ) {
             return true;
         }
 
-        public Icon getLegendIcon() {
-            return IconUtils.emptyIcon( 0, 0 );
-        }
-
-        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
-                                   int xpad, int ypad ) {
-            return IconUtils.emptyIcon( width, height );
-        }
-
-        public void drawShape( Graphics g, int x, int y,
-                               int[] xoffs, int[] yoffs ) {
-        }
-
-        public PixerFactory createPixerFactory( Rectangle clip, int x, int y,
-                                                int[] xoffs, int[] yoffs ) {
-            return null;
-        }
-
-        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
-            return new Rectangle( x, y, 0, 0 );
+        public MultiPointScribe createBasicScribe() {
+            return scribe_;
         }
     }
 
@@ -451,11 +594,10 @@ public abstract class MultiPointShape {
      * to the given offset, and an (optional) cap normal to that line
      * at its furthest extent.  Works for any dimensionality.
      */
-    private static class CappedLine extends DrawingShape {
+    private static class CappedLine extends MultiPointShape {
 
         private final boolean hasLine_;
         private final Capper capper_;
-        private final Icon icon_;
 
         /**
          * Constructor.
@@ -465,94 +607,82 @@ public abstract class MultiPointShape {
          * @param  capper  if non-null causes caps to be drawn at end of lines
          */
         CappedLine( String name, boolean hasLine, Capper capper ) {
-            super( name );
+            super( name, 2, true );
             hasLine_ = hasLine;
             capper_ = capper;
-            icon_ = new MultiPointIcon( this, 2 );
         }
 
         public boolean supportsDimensionality( int ndim ) {
             return true;
         }
 
-        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
-            int np = xoffs.length;
-            boolean empty = true;
-            Rectangle box = new Rectangle();
-            for ( int ip = 0; ip < np; ip++ ) {
-                int xoff = xoffs[ ip ];
-                int yoff = yoffs[ ip ];
-                if ( xoff != 0 || yoff != 0 ) {
-                    empty = false;
-                    box.add( xoff, yoff );
-                    if ( capper_ != null ) {
-                        capper_.extendBounds( box, xoff, yoff );
+        public MultiPointScribe createBasicScribe() {
+            return new LineScribe( this, (xoffs, yoffs) -> new LineGlyph() {
+                public Rectangle getPixelBounds() {
+                    int np = xoffs.length;
+                    boolean empty = true;
+                    Rectangle box = new Rectangle();
+                    for ( int ip = 0; ip < np; ip++ ) {
+                        int xoff = xoffs[ ip ];
+                        int yoff = yoffs[ ip ];
+                        if ( xoff != 0 || yoff != 0 ) {
+                            empty = false;
+                            box.add( xoff, yoff );
+                            if ( capper_ != null ) {
+                                capper_.extendBounds( box, xoff, yoff );
+                            }
+                        }
+                    }
+                    if ( ! empty ) {
+                        box.width++;
+                        box.height++;
+                    }
+                    return box;
+                }
+                public void paintGlyph( Graphics g, StrokeKit strokeKit ) {
+                    drawCappedLine( g, xoffs, yoffs, hasLine_, capper_, false,
+                                    strokeKit );
+                }
+                public void drawShape( PixelDrawing drawing ) {
+                    int np = xoffs.length;
+                    for ( int ip = 0; ip < np; ip++ ) {
+                        int xoff = xoffs[ ip ];
+                        int yoff = yoffs[ ip ];
+                        if ( xoff != 0 || yoff != 0 ) {
+                            if ( hasLine_ ) {
+                                drawing.drawLine( 0, 0, xoff, yoff );
+                            }
+                            if ( capper_ != null ) {
+                                capper_.drawCap( drawing, xoff, yoff );
+                            }
+                        }
                     }
                 }
-            }
-            if ( ! empty ) {
-                box.width++;
-                box.height++;
-            }
-            box.x += x;
-            box.y += y;
-            return box;
-        }
-
-        public Icon getLegendIcon() {
-            return icon_;
-        }
-
-        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
-                                   int xpad, int ypad ) {
-            return new MultiPointIcon( this, modes, width, height, xpad, ypad );
-        }
-                                       
-
-        public void drawShape( Graphics g,
-                               int x, int y, int[] xoffs, int[] yoffs ) {
-            drawShape( g, x, y, xoffs, yoffs, hasLine_, capper_, false );
-        }
-
- 
-        public void drawShape( PixelDrawing drawing,
-                               int x, int y, int[] xoffs, int[] yoffs ) {
-            int np = xoffs.length;
-            for ( int ip = 0; ip < np; ip++ ) {
-                int xoff = xoffs[ ip ];
-                int yoff = yoffs[ ip ];
-                if ( xoff != 0 || yoff != 0 ) {
-                    if ( hasLine_ ) {
-                        drawing.drawLine( x, y, x + xoff, y + yoff );
-                    }
-                    if ( capper_ != null ) {
-                        capper_.drawCap( drawing, x, y, xoff, yoff );
-                    }
-                }
-            }
-        }
+            } );
+         }
 
         /**
          * Does the work for drawing a CappedLine to a graphics context.
          *
          * @param  g  graphics context
-         * @param  x  data point X coordinate
-         * @param  y  data point Y coordinate
-         * @param  xoffs  X coordinates of error bar limit offsets from (x,y)
-         * @param  yoffs  Y coordinates of error bar limit offsets from (x,y)
+         * @param  xoffs  X coordinates of shape points
+         * @param  yoffs  Y coordinates of shape points
          * @param  hasLine  whether to draw lines
          * @param  capper   cap drawing object, if any
          * @param  willCover  true if the ends of the radial lines will
          *                    subsequently be covered by more drawing
          *                    (affects line capping)
+         * @param  strokeKit  line painting stroke supplier
          */
-        private static void drawShape( Graphics g, int x, int y,
-                                      int[] xoffs, int[] yoffs,
-                                      boolean hasLine, Capper capper,
-                                      boolean willCover ) {
+        private static void drawCappedLine( Graphics g,
+                                            int[] xoffs, int[] yoffs,
+                                            boolean hasLine, Capper capper,
+                                            boolean willCover,
+                                            StrokeKit strokeKit ) {
             Graphics2D g2 = (Graphics2D) g;
             Stroke oldStroke = g2.getStroke();
-            g2.setStroke( capper != null || willCover ? CAP_BUTT : CAP_ROUND );
+            g2.setStroke( capper != null || willCover ? strokeKit.getButt()
+                                                      : strokeKit.getRound() );
             Dimension size = getApproxGraphicsSize( g2 );
             int xmax = size.width;
             int ymax = size.height;
@@ -600,19 +730,19 @@ public abstract class MultiPointShape {
 
                     /* Draw line if required. */
                     if ( hasLine ) {
-                        g.drawLine( x, y, x + xoff, y + yoff );
+                        g.drawLine( 0, 0, xoff, yoff );
                     }
 
                      /* Draw cap if required. */
                     if ( capper != null && ! clipped ) {
-                        g2.setStroke( CAP_ROUND );
+                        g2.setStroke( strokeKit.getRound() );
 
                         /* For rectilinear offsets, draw the cap manually. */
                         if ( xoff == 0 ) {
-                            capper.drawCapY( g2, x, y, yoff );
+                            capper.drawCapY( g2, yoff );
                         }
                         else if ( yoff == 0 ) {
-                            capper.drawCapX( g2, x, y, xoff );
+                            capper.drawCapX( g2, xoff );
                         }
 
                         /* For more general offsets, transform the graphics
@@ -623,11 +753,10 @@ public abstract class MultiPointShape {
                          * the difference may be visible). */
                         else {
                             AffineTransform oldTransform = g2.getTransform();
-                            g2.translate( x, y );
                             g2.rotate( Math.atan2( yoff, xoff ) );
                             double l2 = xoff * xoff + yoff * yoff;
                             int leng = (int) Math.round( Math.sqrt( l2 ) );
-                            capper.drawCapX( g2, 0, 0, leng );
+                            capper.drawCapX( g2, leng );
                             g2.setTransform( oldTransform );
                         }
                     }
@@ -638,17 +767,15 @@ public abstract class MultiPointShape {
     }
 
     /**
-     * MultiPointShape which draws an isosceles triangle with a fixed-length
+     * Shape which draws an isosceles triangle with a fixed-length
      * base centered at the data point and a point at the offset point.
      * Works for any dimensionality.
      */
-    private static class Dart extends DrawingShape {
+    private static class Dart extends MultiPointShape {
 
         private final boolean isFill_;
         private final int basepix_;
-        private final Icon legend_;
         private final int[] vys_;
-        private final Stroke stroke_;
 
         /**
          * Constructor.
@@ -658,104 +785,89 @@ public abstract class MultiPointShape {
          * @param  basepix  half-length of triangle base in pixels
          */
         public Dart( String name, boolean isFill, int basepix ) {
-            super( name );
+            super( name, 2, !isFill );
             isFill_ = isFill;
             basepix_ = basepix;
-            legend_ = new MultiPointIcon( this, 2 );
             vys_ = new int[] { basepix_, 0, -basepix_ };
-            stroke_ = new BasicStroke( 1, BasicStroke.CAP_ROUND,
-                                       BasicStroke.JOIN_ROUND );
         }
 
         public boolean supportsDimensionality( int ndim ) {
             return ndim > 0;
         }
 
-        public Icon getLegendIcon() {
-            return legend_;
-        }
-
-        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
-                                   int xpad, int ypad ) {
-            return new MultiPointIcon( this, modes, width, height, xpad, ypad );
-        }
-
-        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
-            Rectangle box = new Rectangle();
-            int np = xoffs.length;
-            for ( int ip = 0; ip < np; ip++ ) {
-                int xoff = xoffs[ ip ];
-                int yoff = yoffs[ ip ];
-                if ( xoff != 0 || yoff != 0 ) {
-                    box.add( xoff, yoff );
-                    Point bp = getBaseVertex( xoff, yoff );
-                    box.add( bp.x, bp.y );
-                    box.add( -bp.x, -bp.y );
-                    box.width++;
-                    box.height++;
-                }
-            }
-            box.x += x;
-            box.y += y;
-            return box;
-        }
-
-        public void drawShape( PixelDrawing drawing,
-                               int x, int y, int[] xoffs, int[] yoffs ) {
-            int np = xoffs.length;
-            for ( int ip = 0; ip < np; ip++ ) {
-                int xoff = xoffs[ ip ];
-                int yoff = yoffs[ ip ];
-                if ( xoff != 0 || yoff != 0 ) {
-                    Point bp = getBaseVertex( xoff, yoff );
-                    int x1 = x + xoff;
-                    int y1 = y + yoff;
-                    int x2 = x + bp.x;
-                    int y2 = y + bp.y;
-                    int x3 = x - bp.x;
-                    int y3 = y - bp.y;
-                    if ( isFill_ ) {
-                        drawing.fill( new Polygon( new int[] { x1, x2, x3 },
-                                                   new int[] { y1, y2, y3 },
-                                                   3 ) );
+        public MultiPointScribe createBasicScribe() {
+            return new LineScribe( this, (xoffs, yoffs) -> new LineGlyph() {
+                int np = xoffs.length;
+                public Rectangle getPixelBounds() {
+                    Rectangle box = new Rectangle();
+                    for ( int ip = 0; ip < np; ip++ ) {
+                        int xoff = xoffs[ ip ];
+                        int yoff = yoffs[ ip ];
+                        if ( xoff != 0 || yoff != 0 ) {
+                            box.add( xoff, yoff );
+                            Point bp = getBaseVertex( xoff, yoff );
+                            box.add( bp.x, bp.y );
+                            box.add( -bp.x, -bp.y );
+                            box.width++;
+                            box.height++;
+                        }
                     }
-                    else {
-                        drawing.drawLine( x1, y1, x2, y2 );
-                        drawing.drawLine( x2, y2, x3, y3 );
-                        drawing.drawLine( x3, y3, x1, y1 );
+                    return box;
+                }
+                public void drawShape( PixelDrawing drawing ) {
+                    for ( int ip = 0; ip < np; ip++ ) {
+                        int xoff = xoffs[ ip ];
+                        int yoff = yoffs[ ip ];
+                        if ( xoff != 0 || yoff != 0 ) {
+                            Point bp = getBaseVertex( xoff, yoff );
+                            int x1 = xoff;
+                            int y1 = yoff;
+                            int x2 = + bp.x;
+                            int y2 = + bp.y;
+                            int x3 = - bp.x;
+                            int y3 = - bp.y;
+                            if ( isFill_ ) {
+                                drawing.fillPolygon( new int[] { x1, x2, x3 },
+                                                     new int[] { y1, y2, y3 },
+                                                     3 );
+                            }
+                            else {
+                                drawing.drawLine( x1, y1, x2, y2 );
+                                drawing.drawLine( x2, y2, x3, y3 );
+                                drawing.drawLine( x3, y3, x1, y1 );
+                            }
+                        }
                     }
                 }
-            }
-        }
-
-        public void drawShape( Graphics g, int x, int y,
-                               int[] xoffs, int[] yoffs ) {
-            Rectangle clip = g.getClipBounds();
-            Graphics2D g2 = (Graphics2D) g;
-            Stroke stroke0 = g2.getStroke();
-            g2.setStroke( stroke_ );
-            Dimension size = getApproxGraphicsSize( g2 );
-            double dmax = Math.max( size.width, size.height );
-            int np = xoffs.length;
-            for ( int ip = 0; ip < np; ip++ ) {
-                double dx = xoffs[ ip ];
-                double dy = yoffs[ ip ];
-                if ( dx != 0 || dy != 0 ) {
-                    double dleng = Math.min( Math.hypot( dx, dy ), dmax );
-                    AffineTransform trans0 = g2.getTransform();
-                    g2.translate( x, y );
-                    g2.rotate( Math.atan2( dy, dx ) );
-                    int[] xs = new int[] { 0, (int) Math.round( dleng ), 0 };
-                    if ( isFill_ ) {
-                        g2.fillPolygon( xs, vys_, 3 );
+                public void paintGlyph( Graphics g, StrokeKit strokeKit ) {
+                    Rectangle clip = g.getClipBounds();
+                    Graphics2D g2 = (Graphics2D) g;
+                    Stroke stroke0 = g2.getStroke();
+                    g2.setStroke( strokeKit.getRound() );
+                    Dimension size = getApproxGraphicsSize( g2 );
+                    double dmax = Math.max( size.width, size.height );
+                    int np = xoffs.length;
+                    for ( int ip = 0; ip < np; ip++ ) {
+                        double dx = xoffs[ ip ];
+                        double dy = yoffs[ ip ];
+                        if ( dx != 0 || dy != 0 ) {
+                            double dleng = Math.min( Math.hypot( dx, dy ),
+                                                     dmax );
+                            AffineTransform trans0 = g2.getTransform();
+                            g2.rotate( Math.atan2( dy, dx ) );
+                            int[] xs = { 0, (int) Math.round( dleng ), 0 };
+                            if ( isFill_ ) {
+                                g2.fillPolygon( xs, vys_, 3 );
+                            }
+                            else {
+                                g2.drawPolygon( xs, vys_, 3 );
+                            }
+                            g2.setTransform( trans0 );
+                        }
                     }
-                    else {
-                        g2.drawPolygon( xs, vys_, 3 );
-                    }
-                    g2.setTransform( trans0 );
+                    g2.setStroke( stroke0 );
                 }
-            }
-            g2.setStroke( stroke0 );
+            } );
         }
 
         /**
@@ -779,15 +891,13 @@ public abstract class MultiPointShape {
     }
 
     /**
-     * MultiPointShape which renders an isosceles triangle, centered
-     * on the data point, with a variable-length base.
+     * Shape which renders an isosceles triangle, centered on the data point,
+     * with a variable-length base.
      * Used like an ellipse/rectangle/oblong (2d only).
      */
-    private static class Triangle extends DrawingShape {
+    private static class Triangle extends MultiPointShape {
 
         private final boolean isFill_;
-        private final Icon legend_;
-        private final Stroke stroke_;
 
         /**
          * Constructor.
@@ -796,293 +906,86 @@ public abstract class MultiPointShape {
          * @param  isFill  true for a filled triangle, false for open
          */
         public Triangle( String name, boolean isFill ) {
-            super( name );
+            super( name, 2, !isFill );
             isFill_ = isFill;
-            legend_ = new MultiPointIcon( this, 2 );
-            stroke_ = new BasicStroke( 1, BasicStroke.CAP_ROUND,
-                                       BasicStroke.JOIN_ROUND );
         }
 
         public boolean supportsDimensionality( int ndim ) {
             return ndim == 2;
         }
 
-        public Icon getLegendIcon() {
-            return legend_;
-        }
-
-        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
-                                   int xpad, int ypad ) {
-            return new MultiPointIcon( this, modes, width, height, xpad, ypad );
-        }
-
-
-        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
-            return getTriangle( x, y, xoffs, yoffs ).getBounds();
-        }
-
-        public void drawShape( PixelDrawing drawing,
-                               int x, int y, int[] xoffs, int[] yoffs ) {
-            Polygon triangle = getTriangle( x, y, xoffs, yoffs );
-            if ( isFill_ ) {
-                drawing.fill( triangle );
-            }
-            else {
-                int[] xs = triangle.xpoints;
-                int[] ys = triangle.ypoints;
-                drawing.drawLine( xs[ 1 ], ys[ 1 ], xs[ 2 ], ys[ 2 ] );
-                drawing.drawLine( xs[ 2 ], ys[ 2 ], xs[ 0 ], ys[ 0 ] );
-                drawing.drawLine( xs[ 0 ], ys[ 0 ], xs[ 1 ], ys[ 1 ] );
-            }
-        }
-
-        public void drawShape( Graphics g, int x, int y,
-                               int[] xoffs, int[] yoffs ) {
-            Dimension size = getApproxGraphicsSize( (Graphics2D) g );
-            int dmax = Math.max( size.width, size.height );
-            boolean ok = true;
-            for ( int ip = 0; ip < 4 && ok; ip++ ) {
-                ok = ok && Math.abs( xoffs[ ip ] ) < dmax
-                        && Math.abs( yoffs[ ip ] ) < dmax;
-            }
-            if ( ! ok ) {
-                xoffs = xoffs.clone();
-                yoffs = yoffs.clone();
-                for ( int ip = 0; ip < 4; ip++ ) {
-                    xoffs[ ip ] =
-                        Math.min( dmax, Math.max( -dmax, xoffs[ ip ] ) );
-                    yoffs[ ip ] =
-                        Math.min( dmax, Math.max( -dmax, yoffs[ ip ] ) );
+        public MultiPointScribe createBasicScribe() {
+            return new LineScribe( this, (xoffs, yoffs) -> new LineGlyph() {
+                final Polygon triangle = getTriangle( xoffs, yoffs );
+                public Rectangle getPixelBounds() {
+                    return triangle.getBounds();
                 }
-            }
-            Polygon triangle = getTriangle( x, y, xoffs, yoffs );
-            if ( isFill_ ) {
-                g.fillPolygon( triangle );
-            }
-            else {
-                g.drawPolygon( triangle );
-            }
+                public void drawShape( PixelDrawing drawing ) {
+                    int[] xs = triangle.xpoints;
+                    int[] ys = triangle.ypoints;
+                    if ( isFill_ ) {
+                        drawing.fillPolygon( xs, ys, 3 );
+                    }
+                    else {
+                        drawing.drawLine( xs[1], ys[1], xs[2], ys[2] );
+                        drawing.drawLine( xs[2], ys[2], xs[0], ys[0] );
+                        drawing.drawLine( xs[0], ys[0], xs[1], ys[1] );
+                    }
+                }
+                public void paintGlyph( Graphics g, StrokeKit strokeKit ) {
+                    Dimension size =
+                        getApproxGraphicsSize( (Graphics2D) g );
+                    int dmax = Math.max( size.width, size.height );
+                    boolean ok = true;
+                    for ( int ip = 0; ip < 4 && ok; ip++ ) {
+                        ok = ok && Math.abs( xoffs[ ip ] ) < dmax
+                                && Math.abs( yoffs[ ip ] ) < dmax;
+                    }
+                    final Polygon tri;
+                    if ( ok ) {
+                        tri = triangle;
+                    }
+                    else {
+                        int[] xoffs1 = xoffs.clone();
+                        int[] yoffs1 = yoffs.clone();
+                        for ( int ip = 0; ip < 4; ip++ ) {
+                            xoffs1[ ip ] =
+                                Math.min( dmax, Math.max( -dmax, xoffs[ ip ] ));
+                            yoffs1[ ip ] =
+                                Math.min( dmax, Math.max( -dmax, yoffs[ ip ] ));
+                        }
+                        tri = getTriangle( xoffs1, yoffs1 );
+                    }
+                    if ( isFill_ ) {
+                        g.fillPolygon( tri );
+                    }
+                    else {
+                        Graphics2D g2 = (Graphics2D) g;
+                        Stroke stroke0 = g2.getStroke();
+                        g2.setStroke( strokeKit.getRound() );
+                        g.drawPolygon( tri );
+                        g2.setStroke( stroke0 );
+                    }
+                }
+            } );
         }
 
         /**
          * Returns a polygon representing the required triangle.
          *
-         * @param   x  data point X coordinate
-         * @param   y  data point Y coordinate
          * @param  xoffs  offset point X coordinates (xlo, ylo, xhi, yhi)
          * @param  yoffs  offset point Y coordinates (xlo, ylo, xhi, yhi)
          */
-        private Polygon getTriangle( int x, int y, int[] xoffs, int[] yoffs ) {
+        private static Polygon getTriangle( int[] xoffs, int[] yoffs ) {
             int[] xs = new int[ 3 ];
             int[] ys = new int[ 3 ];
-            xs[ 0 ] = x + xoffs[ 1 ];
-            ys[ 0 ] = y + yoffs[ 1 ];
-            xs[ 1 ] = x + xoffs[ 0 ] + xoffs[ 2 ];
-            ys[ 1 ] = y + yoffs[ 0 ] + yoffs[ 2 ];
-            xs[ 2 ] = x + xoffs[ 0 ] + xoffs[ 3 ];
-            ys[ 2 ] = y + yoffs[ 0 ] + yoffs[ 3 ];
+            xs[ 0 ] = xoffs[ 1 ];
+            ys[ 0 ] = yoffs[ 1 ];
+            xs[ 1 ] = xoffs[ 0 ] + xoffs[ 2 ];
+            ys[ 1 ] = yoffs[ 0 ] + yoffs[ 2 ];
+            xs[ 2 ] = xoffs[ 0 ] + xoffs[ 3 ];
+            ys[ 2 ] = yoffs[ 0 ] + yoffs[ 3 ];
             return new Polygon( xs, ys, 3 );
-        }
-    }
-
-    /**
-     * Defines how caps are drawn on the end of error bar-type lines.
-     */
-    private interface Capper {
-
-        /**
-         * Draws a cap on a horizontal error bar in a graphics context.
-         *
-         * @param   g  graphics context
-         * @param   x  X position of data point
-         * @param   y  Y position of data point
-         * @param   xoff  X offset of the end of the error bar
-         */
-        void drawCapX( Graphics g, int x, int y, int xoff );
-    
-        /**
-         * Draws a cap on a vertical error bar in a graphics context.
-         * 
-         * @param   g  graphics context
-         * @param   x  X position of data point
-         * @param   y  Y position of data point
-         * @param   yoff  Y offset of the end of the error bar
-         */
-        void drawCapY( Graphics g, int x, int y, int yoff );
-
-        /**
-         * Draws a cap on an error bar in a pixel-mapped drawing.
-         *
-         * @param  drawing  pixel map
-         * @param  x  X position of data point
-         * @param  y  Y position of data point
-         * @param  xoff  X offset of the end of the error bar
-         * @param  yoff  Y offset of the end of the error bar
-         */
-        void drawCap( PixelDrawing drawing, int x, int y, int xoff, int yoff );
-
-        /**
-         * Notes the bounds of the caps of an error bar.
-         * The supplied <code>bounds</code> rectangle is extended to include
-         * any drawing associated with capping the given error offset
-         * (the data point is assumed to be at the origin).
-         * It is permissible to extend the bounds too far.
-         *
-         * @param   bounds  bounds rectangle, to be increased in size
-         *          as necessary
-         * @param   xoff  X offset of the end of the error bar (from origin)
-         * @param   yoff  Y offset of the end of the error bar (from origin)
-         */
-        void extendBounds( Rectangle bounds, int xoff, int yoff );
-    }
-
-    /**
-     * Capper implementation which simply draws a perpendicular bar.
-     */
-    private static class BarCapper implements Capper {
-
-        private final int capsize_;
-
-        /**
-         * Constructor.
-         *
-         * @param   capsize  number of pixels in each direction that
-         *          bar is drawn
-         */
-        public BarCapper( int capsize ) {
-            capsize_ = capsize;
-        }
-
-        public void drawCapX( Graphics g, int x, int y, int xoff ) {
-            g.drawLine( x + xoff, y - capsize_, x + xoff, y + capsize_ );
-        }
-
-        public void drawCapY( Graphics g, int x, int y, int yoff ) {
-            g.drawLine( x - capsize_, y + yoff, x + capsize_, y + yoff );
-        }
-
-        public void drawCap( PixelDrawing drawing,
-                             int x, int y, int xoff, int yoff ) {
-            if ( xoff == 0 ) {
-                drawing.drawLine( x - capsize_, y + yoff,
-                                  x + capsize_, y + yoff );
-            }
-            else if ( yoff == 0 ) {
-                drawing.drawLine( x + xoff, y - capsize_,
-                                  x + xoff, y + capsize_ );
-            }
-            else {
-                int x0 = x + xoff;
-                int y0 = y + yoff;
-                double r1 = Math.sqrt( xoff * xoff + yoff * yoff );
-                double capfact = capsize_ / r1;
-                int x1 = (int) Math.round( - capfact * yoff );
-                int y1 = (int) Math.round( + capfact * xoff );
-                drawing.drawLine( x0 - x1, y0 - y1,
-                                  x0 + x1, y0 + y1 );
-            }
-        }
-
-        public void extendBounds( Rectangle bounds, int xoff, int yoff ) {
-            int cs = capsize_ + 1;
-            if ( xoff == 0 ) {
-                bounds.add( - cs, yoff );
-                bounds.add( + cs, yoff );
-            }
-            else if ( yoff == 0 ) {
-                bounds.add( xoff, - cs );
-                bounds.add( xoff, + cs );
-            }
-            else {
-                bounds.add( xoff - cs, yoff - cs );
-                bounds.add( xoff - cs, yoff + cs );
-                bounds.add( xoff + cs, yoff - cs );
-                bounds.add( xoff + cs, yoff + cs );
-            }
-        }
-    }
-
-    /**
-     * Capper implementation which draws an outward-pointing open arrow.
-     */
-    private static class ArrowCapper implements Capper {
-
-        private final int capsize_;
-        private final int[] xs_;
-        private final int[] ys_;
-
-        /**
-         * Constructor.
-         *
-         * @param   capsize  number of pixels in each direction
-         */
-        ArrowCapper( int capsize ) {
-            capsize_ = capsize;
-            xs_ = new int[ 3 ];
-            ys_ = new int[ 3 ];
-        }
-
-        public void drawCapX( Graphics g, int x, int y, int xoff ) {
-            int sign = xoff > 0 ? +1 : -1;
-            int size = Math.min( capsize_, sign * xoff );
-            int xstart = x + xoff - sign * size;
-            xs_[ 0 ] = xstart;
-            ys_[ 0 ] = y - size;
-            xs_[ 1 ] = x + xoff;
-            ys_[ 1 ] = y;
-            xs_[ 2 ] = xstart;
-            ys_[ 2 ] = y + size;
-            g.drawPolyline( xs_, ys_, 3 );
-        }
-
-        public void drawCapY( Graphics g, int x, int y, int yoff ) {
-            int sign = yoff > 0 ? +1 : -1;
-            int size = Math.min( capsize_, sign * yoff );
-            int ystart = y + yoff - sign * size;
-            xs_[ 0 ] = x - size;
-            ys_[ 0 ] = ystart;
-            xs_[ 1 ] = x;
-            ys_[ 1 ] = y + yoff;
-            xs_[ 2 ] = x + size;
-            ys_[ 2 ] = ystart;
-            g.drawPolyline( xs_, ys_, 3 );
-        }
-
-        public void drawCap( PixelDrawing drawing,
-                             int x, int y, int xoff, int yoff ) {
-            if ( xoff == 0 ) {
-                int sign = yoff > 0 ? +1 : -1;
-                int size = Math.min( capsize_, sign * yoff );
-                int ystart = y + yoff - sign * size;
-                drawing.drawLine( x, y + yoff, x - size, ystart );
-                drawing.drawLine( x, y + yoff, x + size, ystart );
-            }
-            else if ( yoff == 0 ) {
-                int sign = xoff > 0 ? +1 : -1;
-                int size = Math.min( capsize_, sign * xoff );
-                int xstart = x + xoff - sign * size;
-                drawing.drawLine( x + xoff, y, xstart, y - size );
-                drawing.drawLine( x + xoff, y, xstart, y + size );
-            }
-            else {
-                double r1 = Math.sqrt( xoff * xoff + yoff * yoff );
-                double size = Math.min( capsize_, r1 );
-                double capfact = size / r1;
-                int ax = xoff + (int) Math.round( capfact * ( - xoff + yoff ) );
-                int ay = yoff + (int) Math.round( capfact * ( - xoff - yoff ) );
-                int bx = xoff + (int) Math.round( capfact * ( - xoff - yoff ) );
-                int by = yoff + (int) Math.round( capfact * ( + xoff - yoff ) );
-                drawing.drawLine( x + xoff, y + yoff, x + ax, y + ay );
-                drawing.drawLine( x + xoff, y + yoff, x + bx, y + by );
-            }
-        }
-
-        public void extendBounds( Rectangle bounds, int xoff, int yoff ) {
-            int cs = (int) Math.ceil( 1.5 * capsize_ );
-            bounds.add( xoff + cs, yoff );
-            bounds.add( xoff - cs, yoff );
-            bounds.add( xoff, yoff + cs );
-            bounds.add( xoff, yoff - cs );
         }
     }
 
@@ -1092,9 +995,8 @@ public abstract class MultiPointShape {
      * must implement {@link #drawOblong} to mark the space as appropriate.
      * Only works properly for two-dimensional errors.
      */
-    private static abstract class Oblong extends DrawingShape {
+    private static abstract class Oblong extends MultiPointShape {
 
-        private final Icon legend_;
         private final boolean withLines_;
 
         /**
@@ -1103,178 +1005,25 @@ public abstract class MultiPointShape {
          * @param  name   shape name
          * @param  withLines  true iff you want a crosshair drawn as well as
          *         the basic representation of this shape
+         * @param  canThick  true iff this basic shape (without lines)
+         *                   is available in different line thicknesses
          */
-        Oblong( String name, boolean withLines ) {
-            super( name );
+        Oblong( String name, boolean withLines, boolean canThick ) {
+            super( name, 2, withLines || canThick );
             withLines_ = withLines;
-            legend_ = new MultiPointIcon( this, 2 );
         }
 
         public boolean supportsDimensionality( int ndim ) {
             return ndim == 2;
         }
 
-        public Icon getLegendIcon() {
-            return legend_;
-        }
-
-        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
-                                   int xpad, int ypad ) {
-            return new MultiPointIcon( this, modes, width, height, xpad, ypad );
-        }
-
-        public void drawShape( Graphics g, int x, int y,
-                               int[] xoffs, int[] yoffs ) {
-            Graphics2D g2 = (Graphics2D) g;
-            int noff = xoffs.length;
-
-            /* Restrict the offsets to something sensible, to prevent the
-             * graphics system attempting to fill an ellipse with a
-             * kilometre semi-major axis.  This may result in some
-             * distortions for ellipses - too bad. */
-            Dimension size = getApproxGraphicsSize( g2 );
-            int maxcoord = Math.max( size.width, size.height );
-            boolean clipped = false;
-            for ( int ioff = 0; ioff < noff && ! clipped; ioff++ ) {
-                int xoff = xoffs[ ioff ];
-                int yoff = yoffs[ ioff ];
-                clipped = clipped || xoff < - maxcoord || xoff > + maxcoord
-                                  || yoff < - maxcoord || yoff > + maxcoord;
-            }
-            if ( clipped ) {
-                int[] xo = new int[ noff ];
-                int[] yo = new int[ noff ];
-                for ( int ioff = 0; ioff < noff; ioff++ ) {
-                    xo[ ioff ] =
-                        Math.max( - maxcoord,
-                                  Math.min( + maxcoord, xoffs[ ioff ] ) );
-                    yo[ ioff ] =
-                        Math.max( - maxcoord,
-                                  Math.min( + maxcoord, yoffs[ ioff ] ) );
-                }
-                xoffs = xo;
-                yoffs = yo;
-            }
-
-            /* If there are only 1-dimensional bounds, just draw a line.
-             * Actually, we don't claim to support dimensionality other than 2
-             * here, so this is probably never used. */
-            if ( noff == 2 ) {
-                g.drawLine( x + xoffs[ 0 ], y + yoffs[ 0 ],
-                            x + xoffs[ 1 ], y + yoffs[ 1 ] );
-            }
-
-            /* Otherwise we better have two dimensions. */
-            else if ( noff != 4 || yoffs.length != 4 ||
-                      ! ( g instanceof Graphics2D ) ) {
-                return;
-            }
-
-            /* If the X and Y offsets are aligned along X and Y axes we
-             * can do it easily. */
-            else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
-                      xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
-                int xlo = Math.min( xoffs[ 0 ], xoffs[ 1 ] );
-                int xhi = Math.max( xoffs[ 0 ], xoffs[ 1 ] );
-                int ylo = Math.min( yoffs[ 2 ], yoffs[ 3 ] );
-                int yhi = Math.max( yoffs[ 2 ], yoffs[ 3 ] );
-                int width = xhi - xlo;
-                int height = yhi - ylo;
-                if ( width > 0 || height > 0 ) {
-                    drawOblong( g, x + xlo, y + ylo, width, height );
-                }
-            }
-
-            /* Otherwise transform the space so that the error bounds are
-             * contained in a rectangle aligned along the axes. */
-            else {
-                double dx1 = xoffs[ 1 ] - xoffs[ 0 ];
-                double dy1 = yoffs[ 1 ] - yoffs[ 0 ];
-                double dx2 = xoffs[ 3 ] - xoffs[ 2 ];
-                double dy2 = yoffs[ 3 ] - yoffs[ 2 ];
-                double width = Math.sqrt( dx1 * dx1 + dy1 * dy1 );
-                double height = Math.sqrt( dx2 * dx2 + dy2 * dy2 );
-                double[] m1 = new double[] {
-                    width, 0,      0,
-                    0,     height, 0,
-                    1,     1,      1,
-                };
-                if ( Matrices.det( m1 ) != 0 ) {
-                    int[] xo = xoffs;
-                    int[] yo = yoffs;
-                    double[] m2 = new double[] {
-                        x + xo[1] + xo[2], x + xo[0] + xo[3], x + xo[0] + xo[2],
-                        y + yo[1] + yo[2], y + yo[0] + yo[3], y + yo[0] + yo[2],
-                        1,                 1,                 1,
-                    };
-                    double[] m3 = Matrices.mmMult( m2, Matrices.invert( m1 ) );
-                    AffineTransform trans =
-                        new AffineTransform( m3[ 0 ], m3[ 3 ],
-                                             m3[ 1 ], m3[ 4 ],
-                                             m3[ 2 ], m3[ 5 ] );
-                    if ( trans.getDeterminant() != 0 ) {
-                        AffineTransform oldTrans = g2.getTransform();
-                        g2.transform( trans );
-                        drawOblong( g2, 0, 0, (int) Math.round( width ),
-                                    (int) Math.round( height ) );
-                        g2.setTransform( oldTrans );
-                    }
-                }
-            }
-
-            /* Draw crosshair if required. */
-            if ( withLines_ ) {
-                CappedLine.drawShape( g, x, y, xoffs, yoffs, true, null, true );
-            }
-        }
-
-        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
-            int xmin = 0;
-            int xmax = 0;
-            int ymin = 0;
-            int ymax = 0;
-            int rmax = 0;
-            int np = xoffs.length;
-            for ( int ip = 0; ip < np; ip++ ) {
-                int xoff = xoffs[ ip ];
-                int yoff = yoffs[ ip ];
-                if ( xoff != 0 || yoff != 0 ) {
-                    if ( xoff == 0 ) {
-                        ymin = Math.min( ymin, yoff );
-                        ymax = Math.max( ymax, yoff );
-                    }
-                    else if ( yoff == 0 ) {
-                        xmin = Math.min( xmin, xoff );
-                        xmax = Math.max( xmax, xoff );
-                    }
-                    else {
-                        rmax = Math.max( rmax,
-                                         Math.abs( xoff ) + Math.abs( yoff ) );
-                    }
-                }
-            }
-            if ( rmax > 0 ) {
-                xmin = Math.min( xmin, - rmax );
-                xmax = Math.max( xmax, + rmax );
-                ymin = Math.min( ymin, - rmax );
-                ymax = Math.max( ymax, + rmax );
-            }
-            return new Rectangle( x + xmin, y + ymin,
-                                  xmax - xmin + 1, ymax - ymin + 1 );
-        }
-
         /**
-         * Does the actual drawing of the error region.
-         * The region covers the range (x..x+width, y..y+height).
-         *
-         * @param   g  graphics context
-         * @param   x  X coordinate of origin
-         * @param   y  Y coordinate of origin
-         * @param   width   X extent of region
-         * @param   height  Y extent of region
+         * This abstract class is overridden to return an
+         * implementation-specific MultiPointScribe subclass,
+         * because it can be, and because it's useful elsewhere.
          */
-        protected abstract void drawOblong( Graphics g, int x, int y,
-                                            int width, int height );
+        @Override
+        public abstract LineScribe createBasicScribe();
     }
 
     /**
@@ -1292,55 +1041,49 @@ public abstract class MultiPointShape {
          *         the ellipse
          */
         public OpenEllipse( String name, boolean withLines ) {
-            super( name, withLines );
+            super( name, withLines, true );
             withLines_ = withLines;
         }
 
-        protected void drawOblong( Graphics g, int x, int y,
-                                   int width, int height ) {
-            g.drawOval( x, y, width, height );
-        }
-
-        public void drawShape( PixelDrawing drawing,
-                               int x, int y, int[] xoffs, int[] yoffs ) {
-            if ( xoffs.length != 4 || yoffs.length != 4 ) {
-                return;
-            }
-            else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
-                      xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
-                int xlo = x + Math.min( xoffs[ 0 ], xoffs[ 1 ] );
-                int xhi = x + Math.max( xoffs[ 0 ], xoffs[ 1 ] );
-                int ylo = y + Math.min( yoffs[ 2 ], yoffs[ 3 ] );
-                int yhi = y + Math.max( yoffs[ 2 ], yoffs[ 3 ] );
-                int width = xhi - xlo;
-                int height = yhi - ylo;
-                drawing.drawOval( xlo, ylo, width, height );
-                if ( withLines_ ) {
-                    for ( int i = 0; i < 4; i++ ) {
-                        drawing.drawLine( x, y,
-                                          x + xoffs[ i ], y + yoffs[ i ] );
-                    }
+        public LineScribe createBasicScribe() {
+            return new LineScribe( this, (xoffs, yoffs) ->
+                    new OblongGlyph( xoffs, yoffs, withLines_ ) {
+                void paintOblong( Graphics g, int x, int y,
+                                  int width, int height ) {
+                    g.drawOval( x, y, width, height );
                 }
-            }
-            else {
-                int ax = ( xoffs[ 1 ] - xoffs[ 0 ] ) / 2;
-                int ay = ( yoffs[ 1 ] - yoffs[ 0 ] ) / 2;
-                int bx = ( xoffs[ 3 ] - xoffs[ 2 ] ) / 2;
-                int by = ( yoffs[ 3 ] - yoffs[ 2 ] ) / 2;
-                int x0 = x + Math.round( ( xoffs[ 0 ] + xoffs[ 1 ]
-                                         + xoffs[ 2 ] + xoffs[ 3 ] ) / 2f );
-                int y0 = y + Math.round( ( yoffs[ 0 ] + yoffs[ 1 ]
-                                         + yoffs[ 2 ] + yoffs[ 3 ] ) / 2f );
-                if ( drawing != null ) {
-                    drawing.drawEllipse( x0, y0, ax, ay, bx, by );
+                public void drawShape( PixelDrawing drawing ) {
+                    if ( xoffs.length != 4 || yoffs.length != 4 ) {
+                        return;
+                    }
+                    else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
+                              xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
+                        int xlo = Math.min( xoffs[ 0 ], xoffs[ 1 ] );
+                        int xhi = Math.max( xoffs[ 0 ], xoffs[ 1 ] );
+                        int ylo = Math.min( yoffs[ 2 ], yoffs[ 3 ] );
+                        int yhi = Math.max( yoffs[ 2 ], yoffs[ 3 ] );
+                        int width = xhi - xlo;
+                        int height = yhi - ylo;
+                        drawing.drawOval( xlo, ylo, width, height );
+                    }
+                    else {
+                        int ax = ( xoffs[ 1 ] - xoffs[ 0 ] ) / 2;
+                        int ay = ( yoffs[ 1 ] - yoffs[ 0 ] ) / 2;
+                        int bx = ( xoffs[ 3 ] - xoffs[ 2 ] ) / 2;
+                        int by = ( yoffs[ 3 ] - yoffs[ 2 ] ) / 2;
+                        int x0 = Math.round( ( xoffs[ 0 ] + xoffs[ 1 ]
+                                             + xoffs[ 2 ] + xoffs[ 3 ] ) / 2f );
+                        int y0 = Math.round( ( yoffs[ 0 ] + yoffs[ 1 ]
+                                             + yoffs[ 2 ] + yoffs[ 3 ] ) / 2f );
+                        drawing.drawEllipse( x0, y0, ax, ay, bx, by );
+                    }
                     if ( withLines_ ) {
                         for ( int i = 0; i < 4; i++ ) {
-                            drawing.drawLine( x, y,
-                                              x + xoffs[ i ], y + yoffs[ i ] );
+                            drawing.drawLine( 0, 0, xoffs[ i ], yoffs[ i ] );
                         }
                     }
                 }
-            }
+            } );
         }
     }
 
@@ -1355,40 +1098,43 @@ public abstract class MultiPointShape {
          * @param  name   shape name
          */
         public FilledEllipse( String name ) {
-            super( name, false );
+            super( name, false, false );
         }
 
-        protected void drawOblong( Graphics g, int x, int y,
-                                   int width, int height ) {
-            g.fillOval( x, y, width, height );
-        }
-
-        public void drawShape( PixelDrawing drawing,
-                               int x, int y, int[] xoffs, int[] yoffs ) {
-            if ( xoffs.length != 4 || yoffs.length != 4 ) {
-                return;
-            }
-            else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
-                      xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
-                int xlo = x + Math.min( xoffs[ 0 ], xoffs[ 1 ] );
-                int xhi = x + Math.max( xoffs[ 0 ], xoffs[ 1 ] );
-                int ylo = y + Math.min( yoffs[ 2 ], yoffs[ 3 ] );
-                int yhi = y + Math.max( yoffs[ 2 ], yoffs[ 3 ] );
-                int width = xhi - xlo;
-                int height = yhi - ylo;
-                drawing.fillOval( xlo, ylo, width, height );
-            }
-            else {
-                int ax = ( xoffs[ 1 ] - xoffs[ 0 ] ) / 2;
-                int ay = ( yoffs[ 1 ] - yoffs[ 0 ] ) / 2;
-                int bx = ( xoffs[ 3 ] - xoffs[ 2 ] ) / 2;
-                int by = ( yoffs[ 3 ] - yoffs[ 2 ] ) / 2;
-                int x0 = x + Math.round( ( xoffs[ 0 ] + xoffs[ 1 ]
-                                         + xoffs[ 2 ] + xoffs[ 3 ] ) / 2f );
-                int y0 = y + Math.round( ( yoffs[ 0 ] + yoffs[ 1 ]
-                                         + yoffs[ 2 ] + yoffs[ 3 ] ) / 2f );
-                drawing.fillEllipse( x0, y0, ax, ay, bx, by );
-            }
+        public LineScribe createBasicScribe() {
+            return new LineScribe( this, (xoffs, yoffs) ->
+                    new OblongGlyph( xoffs, yoffs, false ) {
+                void paintOblong( Graphics g, int x, int y,
+                                  int width, int height ) {
+                    g.fillOval( x, y, width, height );
+                }
+                public void drawShape( PixelDrawing drawing ) {
+                    if ( xoffs.length != 4 || yoffs.length != 4 ) {
+                        return;
+                    }
+                    else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
+                              xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
+                        int xlo = Math.min( xoffs[ 0 ], xoffs[ 1 ] );
+                        int xhi = Math.max( xoffs[ 0 ], xoffs[ 1 ] );
+                        int ylo = Math.min( yoffs[ 2 ], yoffs[ 3 ] );
+                        int yhi = Math.max( yoffs[ 2 ], yoffs[ 3 ] );
+                        int width = xhi - xlo;
+                        int height = yhi - ylo;
+                        drawing.fillOval( xlo, ylo, width, height );
+                    }
+                    else {
+                        int ax = ( xoffs[ 1 ] - xoffs[ 0 ] ) / 2;
+                        int ay = ( yoffs[ 1 ] - yoffs[ 0 ] ) / 2;
+                        int bx = ( xoffs[ 3 ] - xoffs[ 2 ] ) / 2;
+                        int by = ( yoffs[ 3 ] - yoffs[ 2 ] ) / 2;
+                        int x0 = Math.round( ( xoffs[ 0 ] + xoffs[ 1 ]
+                                             + xoffs[ 2 ] + xoffs[ 3 ] ) / 2f );
+                        int y0 = Math.round( ( yoffs[ 0 ] + yoffs[ 1 ]
+                                             + yoffs[ 2 ] + yoffs[ 3 ] ) / 2f );
+                        drawing.fillEllipse( x0, y0, ax, ay, bx, by );
+                    }
+                }
+            } );
         }
     }
 
@@ -1407,41 +1153,40 @@ public abstract class MultiPointShape {
          *         the rectangle
          */
         public OpenRectangle( String name, boolean withLines ) {
-            super( name, withLines );
+            super( name, withLines, true );
             withLines_ = withLines;
         }
 
-        protected void drawOblong( Graphics g, int x, int y,
-                                   int width, int height ) {
-            g.drawRect( x, y, width, height );
-        }
-
-        public boolean supportsDimensionality( int ndim ) {
-            return ndim == 2;
-        }
-
-        public void drawShape( PixelDrawing drawing,
-                               int x, int y, int[] xoffs, int[] yoffs ) {
-            if ( xoffs.length == 4 && yoffs.length == 4 ) {
-                int xa = x + xoffs[ 0 ] + xoffs[ 2 ];
-                int xb = x + xoffs[ 0 ] + xoffs[ 3 ];
-                int xc = x + xoffs[ 1 ] + xoffs[ 3 ];
-                int xd = x + xoffs[ 1 ] + xoffs[ 2 ];
-                int ya = y + yoffs[ 0 ] + yoffs[ 2 ];
-                int yb = y + yoffs[ 0 ] + yoffs[ 3 ];
-                int yc = y + yoffs[ 1 ] + yoffs[ 3 ];
-                int yd = y + yoffs[ 1 ] + yoffs[ 2 ];
-                drawing.drawLine( xa, ya, xb, yb );
-                drawing.drawLine( xb, yb, xc, yc );
-                drawing.drawLine( xc, yc, xd, yd );
-                drawing.drawLine( xd, yd, xa, ya );
-                if ( withLines_ ) {
-                    for ( int i = 0; i < 4; i++ ) {
-                        drawing.drawLine( x, y,
-                                          x + xoffs[ i ], y + yoffs[ i ] );
+        public LineScribe createBasicScribe() {
+            return new LineScribe( this, (xoffs, yoffs) -> 
+                    new OblongGlyph( xoffs, yoffs, withLines_ ) {
+                void paintOblong( Graphics g, int x, int y,
+                                  int width, int height ) {
+                    g.drawRect( x, y, width, height );
+                }
+                public void drawShape( PixelDrawing drawing ) {
+                    if ( xoffs.length != 4 || yoffs.length != 4 ) {
+                        return;
+                    }
+                    int xa = xoffs[ 0 ] + xoffs[ 2 ];
+                    int xb = xoffs[ 0 ] + xoffs[ 3 ];
+                    int xc = xoffs[ 1 ] + xoffs[ 3 ];
+                    int xd = xoffs[ 1 ] + xoffs[ 2 ];
+                    int ya = yoffs[ 0 ] + yoffs[ 2 ];
+                    int yb = yoffs[ 0 ] + yoffs[ 3 ];
+                    int yc = yoffs[ 1 ] + yoffs[ 3 ];
+                    int yd = yoffs[ 1 ] + yoffs[ 2 ];
+                    drawing.drawLine( xa, ya, xb, yb );
+                    drawing.drawLine( xb, yb, xc, yc );
+                    drawing.drawLine( xc, yc, xd, yd );
+                    drawing.drawLine( xd, yd, xa, ya );
+                    if ( withLines_ ) {
+                        for ( int i = 0; i < 4; i++ ) {
+                            drawing.drawLine( 0, 0, xoffs[ i ], yoffs[ i ] );
+                        }
                     }
                 }
-            }
+            } );
         }
     }
 
@@ -1456,51 +1201,50 @@ public abstract class MultiPointShape {
          * @param  name   shape name
          */
         public FilledRectangle( String name ) {
-            super( name, false );
+            super( name, false, false );
         }
 
-        protected void drawOblong( Graphics g, int x, int y,
-                                   int width, int height ) {
-            g.fillRect( x, y, width, height );
-        }
-
-        public void drawShape( PixelDrawing drawing,
-                               int x, int y, int[] xoffs, int[] yoffs ) {
-            if ( xoffs.length != 4 || yoffs.length != 4 ) {
-                return;
-            }
-            else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
-                      xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
-                int xlo = x + Math.min( xoffs[ 0 ], xoffs[ 1 ] );
-                int xhi = x + Math.max( xoffs[ 0 ], xoffs[ 1 ] );
-                int ylo = y + Math.min( yoffs[ 2 ], yoffs[ 3 ] );
-                int yhi = y + Math.max( yoffs[ 2 ], yoffs[ 3 ] );
-                int width = xhi - xlo;
-                int height = yhi - ylo;
-                drawing.fillRect( xlo, ylo, width, height );
-            }
-            else {
-                int[] xof = { xoffs[ 0 ] + xoffs[ 2 ],
-                              xoffs[ 1 ] + xoffs[ 2 ],
-                              xoffs[ 1 ] + xoffs[ 3 ],
-                              xoffs[ 0 ] + xoffs[ 3 ], };
-                int[] yof = { yoffs[ 0 ] + yoffs[ 2 ],
-                              yoffs[ 1 ] + yoffs[ 2 ],
-                              yoffs[ 1 ] + yoffs[ 3 ],
-                              yoffs[ 0 ] + yoffs[ 3 ], };
-                Polygon poly = new Polygon( xof, yof, 4 );
-                poly.translate( x, y );
-                drawing.fill( poly );
-            }
+        public LineScribe createBasicScribe() {
+            return new LineScribe( this, (xoffs, yoffs) ->
+                    new OblongGlyph( xoffs, yoffs, false ) {
+                void paintOblong( Graphics g, int x, int y,
+                                  int width, int height ) {
+                    g.fillRect( x, y, width, height );
+                }
+                public void drawShape( PixelDrawing drawing ) {
+                   if ( xoffs.length != 4 || yoffs.length != 4 ) {
+                        return;
+                    }
+                    else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
+                              xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
+                        int xlo = Math.min( xoffs[ 0 ], xoffs[ 1 ] );
+                        int xhi = Math.max( xoffs[ 0 ], xoffs[ 1 ] );
+                        int ylo = Math.min( yoffs[ 2 ], yoffs[ 3 ] );
+                        int yhi = Math.max( yoffs[ 2 ], yoffs[ 3 ] );
+                        int width = xhi - xlo;
+                        int height = yhi - ylo;
+                        drawing.fillRect( xlo, ylo, width, height );
+                    }
+                    else {
+                        int[] xof = { xoffs[ 0 ] + xoffs[ 2 ],
+                                      xoffs[ 1 ] + xoffs[ 2 ],
+                                      xoffs[ 1 ] + xoffs[ 3 ],
+                                      xoffs[ 0 ] + xoffs[ 3 ], };
+                        int[] yof = { yoffs[ 0 ] + yoffs[ 2 ],
+                                      yoffs[ 1 ] + yoffs[ 2 ],
+                                      yoffs[ 1 ] + yoffs[ 3 ],
+                                      yoffs[ 0 ] + yoffs[ 3 ], };
+                        drawing.fillPolygon( xof, yof, 4 );
+                    }
+                }
+            } );
         }
     }
 
     /**
      * Shape which draws a wire-net line/rectangle/cuboid in 1/2/3 dimensions.
      */
-    private static class OpenCuboid extends DrawingShape {
-
-        private final Icon legendIcon_;
+    private static class OpenCuboid extends MultiPointShape {
 
         /**
          * Constructor.
@@ -1508,100 +1252,94 @@ public abstract class MultiPointShape {
          * @param  name  shape name
          */
         OpenCuboid( String name ) {
-            super( name );
-            legendIcon_ = new MultiPointIcon( this, 3 );
+            super( name, 3, true );
+        }
+
+        @Override
+        boolean isPadIcon() {
+            return true;
         }
 
         public boolean supportsDimensionality( int ndim ) {
             return ndim == 3;
         }
 
-        public Icon getLegendIcon() {
-            return legendIcon_;
-        }
-
-        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
-                                   int xpad, int ypad ) {
-            return new MultiPointIcon( this, modes, width, height,
-                                       xpad + width / 6, ypad + height / 6 );
-        }
-
-        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
-            LineBounder bounder = new LineBounder();
-            doLines( x, y, xoffs, yoffs, bounder );
-            int width = bounder.xhi_ - bounder.xlo_;
-            int height = bounder.yhi_ - bounder.ylo_;
-            if ( width > 0 || height > 0 ) {
-                width++;
-                height++;
-            }
-            return new Rectangle( bounder.xlo_, bounder.ylo_, width, height );
-        }
-
-        public void drawShape( Graphics g, int x, int y,
-                               int[] xoffs, int[] yoffs ) {
-            Graphics2D g2 = (Graphics2D) g;
-            Stroke oldStroke = g2.getStroke();
-            g2.setStroke( CAP_ROUND );
-            doLines( x, y, xoffs, yoffs,
-                     (x1, y1, x2, y2) -> g.drawLine( x1, y1, x2, y2 ) );
-            g2.setStroke( oldStroke );
-        }
-
-        public void drawShape( PixelDrawing drawing,
-                               int x, int y, int[] xoffs, int[] yoffs ) {
-            doLines( x, y, xoffs, yoffs, 
-                     (x1, y1, x2, y2) -> drawing.drawLine( x1, y1, x2, y2 ) );
+        public LineScribe createBasicScribe() {
+            return new LineScribe( this, (xoffs, yoffs) -> new LineGlyph() {
+                public Rectangle getPixelBounds() {
+                    LineBounder bounder = new LineBounder();
+                    doLines( bounder );
+                    int width = bounder.xhi_ - bounder.xlo_;
+                    int height = bounder.yhi_ - bounder.ylo_;
+                    if ( width > 0 || height > 0 ) {
+                        width++;
+                        height++;
+                    }
+                    return new Rectangle( bounder.xlo_, bounder.ylo_,
+                                          width, height );
+                }
+                public void drawShape( PixelDrawing drawing ) {
+                    doLines( (x1, y1, x2, y2) ->
+                                  drawing.drawLine( x1, y1, x2, y2 ) );
+                }
+                public void paintGlyph( Graphics g, StrokeKit strokeKit ) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    Stroke stroke0 = g2.getStroke();
+                    g2.setStroke( strokeKit.getRound() );
+                    doLines( (x1, y1, x2, y2) -> g.drawLine( x1, y1, x2, y2 ) );
+                    g2.setStroke( stroke0 );
+                }
+                void doLines( LineConsumer liner ) {
+                    doCuboidLines( xoffs, yoffs, liner );
+                }
+            } );
         }
 
         /**
          * Presents the coordinates of lines drawn by this shape
          * to a given callback.
          *
-         * @param  x  data point X coordinate
-         * @param  y  data point Y coordinate
          * @param  xoffs  X coordinates of shape limit offsets from (x,y)
          * @param  yoffs  Y coordinates of shape limit offsets from (x,y)
          * @param  liner  destination for line start/end coordinates
          */
-        private void doLines( int x, int y, int[] xoffs, int[] yoffs,
-                              LineConsumer liner ) {
+        private static void doCuboidLines( int[] xoffs, int[] yoffs,
+                                           LineConsumer liner ) {
             int ndim = xoffs.length / 2;
             if ( ndim == 1 ) {
-                liner.line( x + xoffs[ 0 ], y + yoffs[ 0 ],
-                            x + xoffs[ 1 ], y + yoffs[ 1 ] );
+                liner.line( xoffs[ 0 ], yoffs[ 0 ], xoffs[ 1 ], yoffs[ 1 ] );
             }
             else if ( ndim == 2 ) {
-                int x00 = x + xoffs[ 0 ] + xoffs[ 2 ];
-                int x01 = x + xoffs[ 0 ] + xoffs[ 3 ];
-                int x11 = x + xoffs[ 1 ] + xoffs[ 3 ];
-                int x10 = x + xoffs[ 1 ] + xoffs[ 2 ];
-                int y00 = y + yoffs[ 0 ] + yoffs[ 2 ];
-                int y01 = y + yoffs[ 0 ] + yoffs[ 3 ];
-                int y11 = y + yoffs[ 1 ] + yoffs[ 3 ];
-                int y10 = y + yoffs[ 1 ] + yoffs[ 2 ];
+                int x00 = xoffs[ 0 ] + xoffs[ 2 ];
+                int x01 = xoffs[ 0 ] + xoffs[ 3 ];
+                int x11 = xoffs[ 1 ] + xoffs[ 3 ];
+                int x10 = xoffs[ 1 ] + xoffs[ 2 ];
+                int y00 = yoffs[ 0 ] + yoffs[ 2 ];
+                int y01 = yoffs[ 0 ] + yoffs[ 3 ];
+                int y11 = yoffs[ 1 ] + yoffs[ 3 ];
+                int y10 = yoffs[ 1 ] + yoffs[ 2 ];
                 liner.line( x00, y00, x01, y01 );
                 liner.line( x01, y01, x11, y11 );
                 liner.line( x11, y11, x10, y10 );
                 liner.line( x10, y10, x00, y00 );
             }
             else if ( ndim == 3 ) {
-                int x000 = x + xoffs[ 0 ] + xoffs[ 2 ] + xoffs[ 4 ];
-                int x001 = x + xoffs[ 0 ] + xoffs[ 2 ] + xoffs[ 5 ];
-                int x010 = x + xoffs[ 0 ] + xoffs[ 3 ] + xoffs[ 4 ];
-                int x011 = x + xoffs[ 0 ] + xoffs[ 3 ] + xoffs[ 5 ];
-                int x100 = x + xoffs[ 1 ] + xoffs[ 2 ] + xoffs[ 4 ];
-                int x101 = x + xoffs[ 1 ] + xoffs[ 2 ] + xoffs[ 5 ];
-                int x110 = x + xoffs[ 1 ] + xoffs[ 3 ] + xoffs[ 4 ];
-                int x111 = x + xoffs[ 1 ] + xoffs[ 3 ] + xoffs[ 5 ];
-                int y000 = y + yoffs[ 0 ] + yoffs[ 2 ] + yoffs[ 4 ];
-                int y001 = y + yoffs[ 0 ] + yoffs[ 2 ] + yoffs[ 5 ];
-                int y010 = y + yoffs[ 0 ] + yoffs[ 3 ] + yoffs[ 4 ];
-                int y011 = y + yoffs[ 0 ] + yoffs[ 3 ] + yoffs[ 5 ];
-                int y100 = y + yoffs[ 1 ] + yoffs[ 2 ] + yoffs[ 4 ];
-                int y101 = y + yoffs[ 1 ] + yoffs[ 2 ] + yoffs[ 5 ];
-                int y110 = y + yoffs[ 1 ] + yoffs[ 3 ] + yoffs[ 4 ];
-                int y111 = y + yoffs[ 1 ] + yoffs[ 3 ] + yoffs[ 5 ];
+                int x000 = xoffs[ 0 ] + xoffs[ 2 ] + xoffs[ 4 ];
+                int x001 = xoffs[ 0 ] + xoffs[ 2 ] + xoffs[ 5 ];
+                int x010 = xoffs[ 0 ] + xoffs[ 3 ] + xoffs[ 4 ];
+                int x011 = xoffs[ 0 ] + xoffs[ 3 ] + xoffs[ 5 ];
+                int x100 = xoffs[ 1 ] + xoffs[ 2 ] + xoffs[ 4 ];
+                int x101 = xoffs[ 1 ] + xoffs[ 2 ] + xoffs[ 5 ];
+                int x110 = xoffs[ 1 ] + xoffs[ 3 ] + xoffs[ 4 ];
+                int x111 = xoffs[ 1 ] + xoffs[ 3 ] + xoffs[ 5 ];
+                int y000 = yoffs[ 0 ] + yoffs[ 2 ] + yoffs[ 4 ];
+                int y001 = yoffs[ 0 ] + yoffs[ 2 ] + yoffs[ 5 ];
+                int y010 = yoffs[ 0 ] + yoffs[ 3 ] + yoffs[ 4 ];
+                int y011 = yoffs[ 0 ] + yoffs[ 3 ] + yoffs[ 5 ];
+                int y100 = yoffs[ 1 ] + yoffs[ 2 ] + yoffs[ 4 ];
+                int y101 = yoffs[ 1 ] + yoffs[ 2 ] + yoffs[ 5 ];
+                int y110 = yoffs[ 1 ] + yoffs[ 3 ] + yoffs[ 4 ];
+                int y111 = yoffs[ 1 ] + yoffs[ 3 ] + yoffs[ 5 ];
                 liner.line( x000, y000, x001, y001 );
                 liner.line( x000, y000, x010, y010 );
                 liner.line( x000, y000, x100, y100 );
@@ -1655,11 +1393,10 @@ public abstract class MultiPointShape {
      * Shape which draws N-dimensional (N probably equals 3)
      * error bars by rendering 2-d error bars in each of the N(N-1)
      * pairs of dimensions.
-     */ 
-    private static class MultiPlaneShape extends DrawingShape {
+     */
+    private static class MultiPlaneShape extends MultiPointShape {
 
-        private final DrawingShape shape2d_;
-        private final Icon legend_;
+        private final Oblong shape2d_;
 
         /**
          * Constructor.
@@ -1667,48 +1404,50 @@ public abstract class MultiPointShape {
          * @param  shape2d  2-dimensional shape on which this one is based;
          *         the name is taken from this
          */
-        MultiPlaneShape( DrawingShape shape2d ) {
-            super( shape2d.getName() );
+        MultiPlaneShape( Oblong shape2d ) {
+            super( shape2d.getName(), 3, shape2d.canThick() );
             shape2d_ = shape2d;
-            legend_ = new MultiPointIcon( this, 3 );
         }
-                        
+
         public boolean supportsDimensionality( int ndim ) {
             return ndim == 3
                 || ( ndim < 3 && shape2d_.supportsDimensionality( ndim ) );
         }
-         
-        public Icon getLegendIcon() {
-            return legend_; 
+
+        @Override
+        boolean isPadIcon() {
+            return true;
         }
 
-        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
-                                   int xpad, int ypad ) {
-            return new MultiPointIcon( this, modes, width, height,
-                                       xpad + width / 6,
-                                       ypad + height / 6 );
-        }
-
-        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
-            Rectangle bounds = new Rectangle( x, y, 0, 0 );
-            for ( int[][] offs : get2dOffsets( xoffs, yoffs ) ) {
-                bounds.add( shape2d_.getBounds( x, y, offs[ 0 ], offs[ 1 ] ) );
-            }
-            return bounds;
-        }
-
-        public void drawShape( Graphics g, int x, int y, int[] xoffs,
-                               int[] yoffs ) {
-            for ( int[][] offs : get2dOffsets( xoffs, yoffs ) ) {
-                shape2d_.drawShape( g, x, y, offs[ 0 ], offs[ 1 ] );
-            }
-        }
-
-        public void drawShape( PixelDrawing drawing,
-                               int x, int y, int[] xoffs, int[] yoffs ) {
-            for ( int[][] offs : get2dOffsets( xoffs, yoffs ) ) {
-                shape2d_.drawShape( drawing, x, y, offs[ 0 ], offs[ 1 ] );
-            }
+        public MultiPointScribe createBasicScribe() {
+            LineScribe scribe2d = shape2d_.createBasicScribe();
+            return new LineScribe( this, (xoffs, yoffs) -> {
+                Iterable<int[][]> offsets = get2dOffsets( xoffs, yoffs );
+                final List<LineGlyph> subGlyphs = new ArrayList<>();
+                for ( int[][] offs  : get2dOffsets( xoffs, yoffs ) ) {
+                    subGlyphs.add( scribe2d
+                                  .createGlyph( offs[ 0 ], offs[ 1 ] ) );
+                }
+                return new LineGlyph() {
+                    public Rectangle getPixelBounds() {
+                        Rectangle bounds = new Rectangle( 0, 0, 0, 0 );
+                        for ( LineGlyph subgl : subGlyphs ) {
+                            bounds.add( subgl.getPixelBounds() );
+                        }
+                        return bounds;
+                    }
+                    public void drawShape( PixelDrawing drawing ) {
+                        for ( LineGlyph subgl : subGlyphs ) {
+                            subgl.drawShape( drawing );
+                        }
+                    }
+                    public void paintGlyph( Graphics g, StrokeKit strokeKit ) {
+                        for ( LineGlyph subgl : subGlyphs ) {
+                            subgl.paintGlyph( g, strokeKit );
+                        }
+                    }
+                };
+            } );
         }
 
         /**
@@ -1724,14 +1463,14 @@ public abstract class MultiPointShape {
          * @param  yoffs  2*ndim-element Y offset point array
          * @return  iterable of X,Y point arrays
          */
-        private Iterable<int[][]> get2dOffsets( final int[] xoffs,
-                                                final int[] yoffs ) {
+        private static Iterable<int[][]> get2dOffsets( final int[] xoffs,
+                                                       final int[] yoffs ) {
 
             /* Number of dimensions is half the number of points (there
              * must be an upper and lower bound point in each dimension). */
             final int ndim = xoffs.length / 2;
 
-            /* If there are less than 3 dimensions, it's trivial. */
+            /* If there are fewer than 3 dimensions, it's trivial. */
             if ( ndim < 3 ) {
                 return Collections
                       .singletonList( new int[][] { xoffs, yoffs } );
@@ -1745,7 +1484,7 @@ public abstract class MultiPointShape {
                 for ( int idim = 0; idim < ndim; idim++ ) {
                     int i2 = idim * 2;
                     if ( xoffs[ i2 + 0 ] != 0 || yoffs[ i2 + 0 ] != 0 ||
-                         xoffs[ i2 + 1 ] != 0 || yoffs[ i2 + 0 ] != 0 ) {
+                         xoffs[ i2 + 1 ] != 0 || yoffs[ i2 + 1 ] != 0 ) {
                         activeDims[ iActiveDim++ ] = idim;
                     }
                 }
@@ -1769,12 +1508,11 @@ public abstract class MultiPointShape {
                 }
 
                 /* Otherwise return an iterator over non-blank 4-point arrays,
-                 * each formed from the coorindates from a pair of
+                 * each formed from the coordinates from a pair of
                  * non-blank dimensions. */
                 else {
                     assert nActiveDim >= 2;
                     return () -> new Iterator<int[][]>() {
-                        int[][] offPairs = new int[ 2 ][ 4 ];
                         boolean done;
                         int iActive = 0;
                         int jActive = 1;
@@ -1790,6 +1528,7 @@ public abstract class MultiPointShape {
                                     done = true;
                                 }
                             }
+                            int[][] offPairs = new int[ 2 ][ 4 ];
                             offPairs[ 0 ][ 0 ] = xoffs[ i2 + 0 ];
                             offPairs[ 1 ][ 0 ] = yoffs[ i2 + 0 ];
                             offPairs[ 0 ][ 1 ] = xoffs[ i2 + 1 ];
@@ -1815,119 +1554,375 @@ public abstract class MultiPointShape {
     }
 
     /**
-     * Icon which represents a MultiPointShape in a form suitable for a legend.
+     * Defines how caps are drawn on the end of error bar-type lines.
      */
-    private static class MultiPointIcon implements Icon {
-
-        private final MultiPointShape shape_;
-        private final int width_;
-        private final int height_;
-        private final int[] xoffs_;
-        private final int[] yoffs_;
+    private interface Capper {
 
         /**
-         * Constructs an icon with default characteristics.
+         * Draws a cap on a horizontal error bar in a graphics context.
          *
-         * @param  shape   shape
-         * @param  ndim    dimensionality
+         * @param   g  graphics context
+         * @param   xoff  X offset of the end of the error bar
          */
-        public MultiPointIcon( MultiPointShape shape, int ndim ) {
-            this( shape, fillModeArray( ndim, ErrorMode.SYMMETRIC ),
-                  LEGEND_WIDTH, LEGEND_HEIGHT, LEGEND_XPAD, LEGEND_YPAD );
-        }
+        void drawCapX( Graphics g, int xoff );
 
         /**
-         * Constructs an icon with specified characteristics.
+         * Draws a cap on a vertical error bar in a graphics context.
          *
-         * @param  shape   shape
-         * @param   modes  array of ErrorModes, one per error dimension
-         * @param   width  total width of icon
-         * @param   height total height of icon
-         * @param   xpad   internal horizontal padding of icon
-         * @param   ypad   internal vertical padding of icon
+         * @param   g  graphics context
+         * @param   yoff  Y offset of the end of the error bar
          */
-        public MultiPointIcon( MultiPointShape shape, ErrorMode[] modes,
-                               int width, int height, int xpad, int ypad ) {
-            shape_ = shape;
-            width_ = width;
-            height_ = height;
-            int w2 = width / 2 - xpad;
-            int h2 = height / 2 - ypad;
-            int ndim = modes.length;
-            List<Point> offList = new ArrayList<Point>( ndim );
-            if ( ndim > 0 ) {
-                ErrorMode xmode = modes[ 0 ];
-                if ( ! ErrorMode.NONE.equals( xmode ) ) {
-                    float xlo = (float) xmode.getExampleLower();
-                    float xhi = (float) xmode.getExampleUpper();
-                    offList.add( new Point( Math.round( - xlo * w2 ), 0 ) );
-                    offList.add( new Point( Math.round( + xhi * w2 ), 0 ) );
-                }
+        void drawCapY( Graphics g, int yoff );
+
+        /**
+         * Draws a cap on an error bar in a pixel-mapped drawing.
+         *
+         * @param  drawing  pixel map
+         * @param  xoff  X offset of the end of the error bar
+         * @param  yoff  Y offset of the end of the error bar
+         */
+        void drawCap( PixelDrawing drawing, int xoff, int yoff );
+
+        /**
+         * Notes the bounds of the caps of an error bar.
+         * The supplied <code>bounds</code> rectangle is extended to include
+         * any drawing associated with capping the given error offset
+         * (the data point is assumed to be at the origin).
+         * It is permissible to extend the bounds too far.
+         *
+         * @param   bounds  bounds rectangle, to be increased in size
+         *          as necessary
+         * @param   xoff  X offset of the end of the error bar (from origin)
+         * @param   yoff  Y offset of the end of the error bar (from origin)
+         */
+        void extendBounds( Rectangle bounds, int xoff, int yoff );
+    }
+
+    /**
+     * Capper implementation which simply draws a perpendicular bar.
+     */
+    private static class BarCapper implements Capper {
+
+        private final int capsize_;
+
+        /**
+         * Constructor.
+         *
+         * @param   capsize  number of pixels in each direction that
+         *          bar is drawn
+         */
+        public BarCapper( int capsize ) {
+            capsize_ = capsize;
+        }
+
+        public void drawCapX( Graphics g, int xoff ) {
+            g.drawLine( xoff, - capsize_, xoff, + capsize_ );
+        }
+
+        public void drawCapY( Graphics g, int yoff ) {
+            g.drawLine( - capsize_, yoff, + capsize_, yoff );
+        }
+
+        public void drawCap( PixelDrawing drawing, int xoff, int yoff ) {
+            if ( xoff == 0 ) {
+                drawing.drawLine( - capsize_, yoff, + capsize_, yoff );
             }
-            if ( ndim > 1 ) {
-                ErrorMode ymode = modes[ 1 ];
-                if ( ! ErrorMode.NONE.equals( ymode ) ) {
-                    float ylo = (float) ymode.getExampleLower();
-                    float yhi = (float) ymode.getExampleUpper();
-                    offList.add( new Point( 0, Math.round( + ylo * h2 ) ) );
-                    offList.add( new Point( 0, Math.round( - yhi * h2 ) ) );
-                }
+            else if ( yoff == 0 ) {
+                drawing.drawLine( xoff, - capsize_, xoff, + capsize_ );
             }
-            if ( ndim > 2 ) {
-                ErrorMode zmode = modes[ 2 ];
-                if ( ! ErrorMode.NONE.equals( zmode ) ) {
-                    float zlo = (float) zmode.getExampleLower();
-                    float zhi = (float) zmode.getExampleUpper();
-                    float theta = (float) Math.toRadians( 40 );
-                    float slant = 0.8f;
-                    float c = (float) Math.cos( theta ) * slant;
-                    float s = (float) Math.sin( theta ) * slant;
-                    offList.add( new Point( Math.round( - c * zlo * w2 ),
-                                            Math.round( + s * zlo * h2 ) ) );
-                    offList.add( new Point( Math.round( + c * zhi * w2 ),
-                                            Math.round( - s * zhi * h2 ) ) );
-                }
-            }
-            int np = offList.size();
-            xoffs_ = new int[ np ];
-            yoffs_ = new int[ np ];
-            for ( int ip = 0; ip < np; ip++ ) {
-                Point point = offList.get( ip );
-                xoffs_[ ip ] = point.x;
-                yoffs_[ ip ] = point.y;
+            else {
+                int x0 = xoff;
+                int y0 = yoff;
+                double r1 = Math.sqrt( xoff * xoff + yoff * yoff );
+                double capfact = capsize_ / r1;
+                int x1 = (int) Math.round( - capfact * yoff );
+                int y1 = (int) Math.round( + capfact * xoff );
+                drawing.drawLine( x0 - x1, y0 - y1, x0 + x1, y0 + y1 );
             }
         }
 
-        public int getIconWidth() {
-            return width_;
+        public void extendBounds( Rectangle bounds, int xoff, int yoff ) {
+            int cs = capsize_ + 1;
+            if ( xoff == 0 ) {
+                bounds.add( - cs, yoff );
+                bounds.add( + cs, yoff );
+            }
+            else if ( yoff == 0 ) {
+                bounds.add( xoff, - cs );
+                bounds.add( xoff, + cs );
+            }
+            else {
+                bounds.add( xoff - cs, yoff - cs );
+                bounds.add( xoff - cs, yoff + cs );
+                bounds.add( xoff + cs, yoff - cs );
+                bounds.add( xoff + cs, yoff + cs );
+            }
+        }
+    }
+
+    /**
+     * Capper implementation which draws an outward-pointing open arrow.
+     */
+    private static class ArrowCapper implements Capper {
+
+        private final int capsize_;
+        private final int[] xs_;
+        private final int[] ys_;
+
+        /**
+         * Constructor.
+         *
+         * @param   capsize  number of pixels in each direction
+         */
+        ArrowCapper( int capsize ) {
+            capsize_ = capsize;
+            xs_ = new int[ 3 ];
+            ys_ = new int[ 3 ];
         }
 
-        public int getIconHeight() {
-            return height_;
+        public void drawCapX( Graphics g, int xoff ) {
+            int sign = xoff > 0 ? +1 : -1;
+            int size = Math.min( capsize_, sign * xoff );
+            int xstart = xoff - sign * size;
+            xs_[ 0 ] = xstart;
+            ys_[ 0 ] = - size;
+            xs_[ 1 ] = + xoff;
+            ys_[ 1 ] = 0;
+            xs_[ 2 ] = xstart;
+            ys_[ 2 ] = + size;
+            g.drawPolyline( xs_, ys_, 3 );
         }
 
-        public void paintIcon( Component c, Graphics g, int x, int y ) {
+        public void drawCapY( Graphics g, int yoff ) {
+            int sign = yoff > 0 ? +1 : -1;
+            int size = Math.min( capsize_, sign * yoff );
+            int ystart = yoff - sign * size;
+            xs_[ 0 ] = - size;
+            ys_[ 0 ] = ystart;
+            xs_[ 1 ] = 0;
+            ys_[ 1 ] = + yoff;
+            xs_[ 2 ] = + size;
+            ys_[ 2 ] = ystart;
+            g.drawPolyline( xs_, ys_, 3 );
+        }
+
+        public void drawCap( PixelDrawing drawing, int xoff, int yoff ) {
+            if ( xoff == 0 ) {
+                int sign = yoff > 0 ? +1 : -1;
+                int size = Math.min( capsize_, sign * yoff );
+                int ystart = yoff - sign * size;
+                drawing.drawLine( 0, yoff, - size, ystart );
+                drawing.drawLine( 0, yoff, + size, ystart );
+            }
+            else if ( yoff == 0 ) {
+                int sign = xoff > 0 ? +1 : -1;
+                int size = Math.min( capsize_, sign * xoff );
+                int xstart = xoff - sign * size;
+                drawing.drawLine( xoff, 0, xstart, - size );
+                drawing.drawLine( xoff, 0, xstart, + size );
+            }
+            else {
+                double r1 = Math.sqrt( xoff * xoff + yoff * yoff );
+                double size = Math.min( capsize_, r1 );
+                double capfact = size / r1;
+                int ax = xoff + (int) Math.round( capfact * ( - xoff + yoff ) );
+                int ay = yoff + (int) Math.round( capfact * ( - xoff - yoff ) );
+                int bx = xoff + (int) Math.round( capfact * ( - xoff - yoff ) );
+                int by = yoff + (int) Math.round( capfact * ( + xoff - yoff ) );
+                drawing.drawLine( xoff, yoff, ax, ay );
+                drawing.drawLine( xoff, yoff, bx, by );
+            }
+        }
+
+        public void extendBounds( Rectangle bounds, int xoff, int yoff ) {
+            int cs = (int) Math.ceil( 1.5 * capsize_ );
+            bounds.add( xoff + cs, yoff );
+            bounds.add( xoff - cs, yoff );
+            bounds.add( xoff, yoff + cs );
+            bounds.add( xoff, yoff - cs );
+        }
+    }
+
+    /**
+     * Partial Glyph implementation for Oblong shapes.
+     */
+    private static abstract class OblongGlyph extends LineGlyph {
+
+        final int[] xoffs_;
+        final int[] yoffs_;
+        final boolean withLines_;
+
+        /**
+         * Constructor.
+         *
+         * @param  xoffs  X offsets of radius end points
+         * @param  yoffs  Y offsets of radius end points
+         * @param  withLines  true to include crosshairs as well as outline
+         */
+        OblongGlyph( int[] xoffs, int[] yoffs, boolean withLines ) {
+            xoffs_ = xoffs;
+            yoffs_ = yoffs;
+            withLines_ = withLines;
+        }
+
+        public void paintGlyph( Graphics g, StrokeKit strokeKit ) {
             Graphics2D g2 = (Graphics2D) g;
-            Object aaHint =
-                g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
-            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                                 RenderingHints.VALUE_ANTIALIAS_ON );
-            shape_.drawShape( g2, x + width_ / 2, y + height_ / 2,
-                              xoffs_, yoffs_ );
-            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aaHint );
+            Stroke stroke0 = g2.getStroke();
+            g2.setStroke( strokeKit.getRound() );
+            int noff = xoffs_.length;
+
+            /* Restrict the offsets to something sensible, to prevent the
+             * graphics system attempting to fill an ellipse with a
+             * kilometre semi-major axis.  This may result in some
+             * distortions for ellipses - too bad. */
+            Dimension size = getApproxGraphicsSize( g2 );
+            int maxcoord = Math.max( size.width, size.height );
+            boolean clipped = false;
+            for ( int ioff = 0; ioff < noff && ! clipped; ioff++ ) {
+                int xoff = xoffs_[ ioff ];
+                int yoff = yoffs_[ ioff ];
+                clipped = clipped || xoff < - maxcoord || xoff > + maxcoord
+                                  || yoff < - maxcoord || yoff > + maxcoord;
+            }
+            final int[] xoffs;
+            final int[] yoffs;
+            if ( clipped ) {
+                xoffs = new int[ noff ];
+                yoffs = new int[ noff ];
+                for ( int ioff = 0; ioff < noff; ioff++ ) {
+                    xoffs[ ioff ] =
+                        Math.max( - maxcoord,
+                                  Math.min( + maxcoord, xoffs[ ioff ] ) );
+                    yoffs[ ioff ] =
+                        Math.max( - maxcoord,
+                                  Math.min( + maxcoord, yoffs[ ioff ] ) );
+                }
+            }
+            else {
+                xoffs = xoffs_;
+                yoffs = yoffs_;
+            }
+
+            /* If there are only 1-dimensional bounds, just draw a line.
+             * Actually, we don't claim to support dimensionality other than 2
+             * here, so this is probably never used. */
+            if ( noff == 2 ) {
+                g.drawLine( xoffs[ 0 ], yoffs[ 0 ], xoffs[ 1 ], yoffs[ 1 ] );
+            }
+
+            /* Otherwise we better have two dimensions. */
+            else if ( noff != 4 || yoffs.length != 4 ||
+                      ! ( g instanceof Graphics2D ) ) {
+                return;
+            }
+
+            /* If the X and Y offsets are aligned along X and Y axes we
+             * can do it easily. */
+            else if ( yoffs[ 0 ] == 0 && yoffs[ 1 ] == 0 &&
+                      xoffs[ 2 ] == 0 && xoffs[ 3 ] == 0 ) {
+                int xlo = Math.min( xoffs[ 0 ], xoffs[ 1 ] );
+                int xhi = Math.max( xoffs[ 0 ], xoffs[ 1 ] );
+                int ylo = Math.min( yoffs[ 2 ], yoffs[ 3 ] );
+                int yhi = Math.max( yoffs[ 2 ], yoffs[ 3 ] );
+                int width = xhi - xlo;
+                int height = yhi - ylo;
+                if ( width > 0 || height > 0 ) {
+                    paintOblong( g, xlo, ylo, width, height );
+                }
+            }
+
+            /* Otherwise transform the space so that the error bounds are
+             * contained in a rectangle aligned along the axes. */
+            else {
+                double dx1 = xoffs[ 1 ] - xoffs[ 0 ];
+                double dy1 = yoffs[ 1 ] - yoffs[ 0 ];
+                double dx2 = xoffs[ 3 ] - xoffs[ 2 ];
+                double dy2 = yoffs[ 3 ] - yoffs[ 2 ];
+                double width = Math.sqrt( dx1 * dx1 + dy1 * dy1 );
+                double height = Math.sqrt( dx2 * dx2 + dy2 * dy2 );
+                double[] m1 = new double[] {
+                    width, 0,      0,
+                    0,     height, 0,
+                    1,     1,      1,
+                };
+                if ( Matrices.det( m1 ) != 0 ) {
+                    int[] xo = xoffs;
+                    int[] yo = yoffs;
+                    double[] m2 = new double[] {
+                        xo[1] + xo[2], xo[0] + xo[3], xo[0] + xo[2],
+                        yo[1] + yo[2], yo[0] + yo[3], yo[0] + yo[2],
+                        1,             1,             1,
+                    };
+                    double[] m3 = Matrices.mmMult( m2, Matrices.invert( m1 ) );
+                    AffineTransform trans =
+                        new AffineTransform( m3[ 0 ], m3[ 3 ],
+                                             m3[ 1 ], m3[ 4 ],
+                                             m3[ 2 ], m3[ 5 ] );
+                    if ( trans.getDeterminant() != 0 ) {
+                        AffineTransform oldTrans = g2.getTransform();
+                        g2.transform( trans );
+                        paintOblong( g2, 0, 0,
+                                    (int) Math.round( width ),
+                                    (int) Math.round( height ) );
+                        g2.setTransform( oldTrans );
+                    }
+                }
+            }
+
+            /* Draw crosshair if required. */
+            if ( withLines_ ) {
+                CappedLine.drawCappedLine( g, xoffs, yoffs, true, null, true,
+                                           strokeKit );
+            }
+            g2.setStroke( stroke0 );
+        }
+
+        public Rectangle getPixelBounds() {
+            int xmin = 0;
+            int xmax = 0;
+            int ymin = 0;
+            int ymax = 0;
+            int rmax = 0;
+            int np = xoffs_.length;
+            for ( int ip = 0; ip < np; ip++ ) {
+                int xoff = xoffs_[ ip ];
+                int yoff = yoffs_[ ip ];
+                if ( xoff != 0 || yoff != 0 ) {
+                    if ( xoff == 0 ) {
+                        ymin = Math.min( ymin, yoff );
+                        ymax = Math.max( ymax, yoff );
+                    }
+                    else if ( yoff == 0 ) {
+                        xmin = Math.min( xmin, xoff );
+                        xmax = Math.max( xmax, xoff );
+                    }
+                    else {
+                        rmax = Math.max( rmax,
+                                         Math.abs( xoff ) + Math.abs( yoff ) );
+                    }
+                }
+            }
+            if ( rmax > 0 ) {
+                xmin = Math.min( xmin, - rmax );
+                xmax = Math.max( xmax, + rmax );
+                ymin = Math.min( ymin, - rmax );
+                ymax = Math.max( ymax, + rmax );
+            }
+            return new Rectangle( xmin, ymin,
+                                  xmax - xmin + 1, ymax - ymin + 1 );
         }
 
         /**
-         * Utility method to return an array containing all the same modes.
+         * Does the actual drawing of the error region.
+         * The region covers the range (x..x+width, y..y+height).
          *
-         * @param  leng  number of elements
-         * @param  mode  content of each element
-         * @return array filled with <code>mode</code>
+         * @param   g  graphics context
+         * @param   x  X coordinate of origin
+         * @param   y  Y coordinate of origin
+         * @param   width   X extent of region
+         * @param   height  Y extent of region
          */
-        private static ErrorMode[] fillModeArray( int leng, ErrorMode mode ) {
-            ErrorMode[] modes = new ErrorMode[ leng ];
-            Arrays.fill( modes, mode );
-            return modes;
-        }
+        abstract void paintOblong( Graphics g, int x, int y,
+                                   int width, int height );
     }
 }

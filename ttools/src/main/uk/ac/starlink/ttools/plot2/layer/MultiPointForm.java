@@ -1,8 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -298,7 +296,7 @@ public abstract class MultiPointForm implements ShapeForm {
      * Outliner implementation for use with MultiPointForms.
      */
     private class MultiPointOutliner extends PixOutliner {
-        private final MultiPointShape shape_;
+        private final MultiPointScribe scribe_;
         private final ErrorMode[] modes_;
         private final double scale_;
         private final boolean isAutoscale_;
@@ -307,7 +305,7 @@ public abstract class MultiPointForm implements ShapeForm {
         /**
          * Constructor.
          *
-         * @param  shape     multi-point shape drawer
+         * @param  shape   shape
          * @param  modes   used with shape to define icon
          * @param  scale   scaling adjustment factor
          * @param  isAutoscale  true if initial size scaling is done
@@ -315,11 +313,11 @@ public abstract class MultiPointForm implements ShapeForm {
          */
         public MultiPointOutliner( MultiPointShape shape, ErrorMode[] modes,
                                    double scale, boolean isAutoscale ) {
-            shape_ = shape;
+            scribe_ = shape.createScribe( 0 );
             modes_ = modes;
             scale_ = scale;
             isAutoscale_ = isAutoscale;
-            icon_ = shape.getLegendIcon( modes, 14, 10, 1, 1 );
+            icon_ = shape.getLegendIcon( scribe_, modes, 14, 10, 1, 1 );
         }
 
         public Icon getLegendIcon() {
@@ -358,8 +356,7 @@ public abstract class MultiPointForm implements ShapeForm {
                         int[] yoffs = new int[ nextra ];
                         offsetter.calculateOffsets( dpos0, gpos0, dposExtras,
                                                     xoffs, yoffs );
-                        Glyph glyph =
-                            new MultiPointGlyph( shape_, xoffs, yoffs );
+                        Glyph glyph = scribe_.createGlyph( xoffs, yoffs);
                         paperType.placeGlyph( paper, gpos0.x, gpos0.y,
                                               glyph, color );
                     }
@@ -390,8 +387,7 @@ public abstract class MultiPointForm implements ShapeForm {
                         int[] yoffs = new int[ nextra ];
                         offsetter.calculateOffsets( dpos0, gpos0, dposExtras,
                                                     xoffs, yoffs );
-                        Glyph glyph =
-                            new MultiPointGlyph( shape_, xoffs, yoffs );
+                        Glyph glyph = scribe_.createGlyph( xoffs, yoffs);
                         paperType.placeGlyph( paper, gpos0.x, gpos0.y, gpos0.z,
                                               glyph, color );
                     }
@@ -403,7 +399,7 @@ public abstract class MultiPointForm implements ShapeForm {
         public boolean equals( Object o ) {
             if ( o instanceof MultiPointOutliner ) {
                 MultiPointOutliner other = (MultiPointOutliner) o;
-                return this.shape_.equals( other.shape_ )
+                return this.scribe_.equals( other.scribe_ )
                     && Arrays.equals( this.modes_, other.modes_ )
                     && this.isAutoscale_ == other.isAutoscale_
                     && this.scale_ == other.scale_;
@@ -416,7 +412,7 @@ public abstract class MultiPointForm implements ShapeForm {
         @Override
         public int hashCode() {
             int code = 3203;
-            code = code * 23 + shape_.hashCode();
+            code = code * 23 + scribe_.hashCode();
             code = code * 23 + Arrays.hashCode( modes_ );
             code = code * 23 + ( isAutoscale_ ? 11 : 13 );
             code = code * 23 + Float.floatToIntBits( (float) scale_ );
@@ -523,38 +519,6 @@ public abstract class MultiPointForm implements ShapeForm {
                 xoffs[ ie ] = gx;
                 yoffs[ ie ] = gy;
             }
-        }
-    }
-
-    /**
-     * Glyph implementation to draw a multipoint shape.
-     */
-    public static class MultiPointGlyph implements Glyph {
-        private final MultiPointShape shape_;
-        private final int[] xoffs_;
-        private final int[] yoffs_;
-
-        /**
-         * Constructor.
-         *
-         * @param  shape  multipoint shape
-         * @param  xoffs  graphics position X-coordinate offsets
-         * @param  yoffs  graphics position Y-coordinate offsets.
-         */
-        MultiPointGlyph( MultiPointShape shape, int[] xoffs, int[] yoffs ) {
-            shape_ = shape;
-            xoffs_ = xoffs;
-            yoffs_ = yoffs;
-        }
-
-        public void paintGlyph( Graphics g ) {
-            shape_.drawShape( g, 0, 0, xoffs_, yoffs_ );
-        }
-
-        public Pixer createPixer( Rectangle clip ) {
-            PixerFactory pfact =
-                shape_.createPixerFactory( clip, 0, 0, xoffs_, yoffs_ );
-            return pfact == null ? null : pfact.createPixer();
         }
     }
 
