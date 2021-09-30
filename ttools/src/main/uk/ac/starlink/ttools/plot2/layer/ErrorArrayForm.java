@@ -53,6 +53,7 @@ public class ErrorArrayForm implements ShapeForm {
     private final int icPys_;
     private final int icNys_;
     private final MultiPointConfigKey shapeKey_;
+    private final ConfigKey<Integer> thickKey_;
 
     /** ErrorArrayForm instance for Y-only error bars. */
     public static final ErrorArrayForm Y = new ErrorArrayForm( false );
@@ -93,6 +94,7 @@ public class ErrorArrayForm implements ShapeForm {
         extraCoords_ = extraCoords.toArray( new Coord[ 0 ] );
         assert ic == extraCoords_.length + 2;
         shapeKey_ = hasX ? StyleKeys.ERROR_SHAPE_2D : StyleKeys.ERROR_SHAPE_1D;
+        thickKey_ = MultiPointForm.createThicknessKey( shapeKey_ );
     }
 
     public int getPositionCount() {
@@ -132,12 +134,14 @@ public class ErrorArrayForm implements ShapeForm {
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
             shapeKey_,
+            thickKey_,
         };
     }
 
     public Outliner createOutliner( ConfigMap config ) {
         MultiPointShape shape = config.get( shapeKey_ );
-        return new ErrorsOutliner( shape );
+        int nthick = config.get( thickKey_ ).intValue();
+        return new ErrorsOutliner( shape, nthick );
     }
 
     /**
@@ -337,9 +341,10 @@ public class ErrorArrayForm implements ShapeForm {
          * Constructor.
          *
          * @param  shape  knows how to draw shape
+         * @param  nthick  line drawing thickness
          */
-        ErrorsOutliner( MultiPointShape shape ) {
-            scribe_ = shape.createScribe( 0 );
+        ErrorsOutliner( MultiPointShape shape, int nthick ) {
+            scribe_ = shape.createScribe( nthick );
             ErrorMode[] emodes = {
                 hasX_ ? ErrorMode.SYMMETRIC : ErrorMode.NONE,
                 ErrorMode.SYMMETRIC,

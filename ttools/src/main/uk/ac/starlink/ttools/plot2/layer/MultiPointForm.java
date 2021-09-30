@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.MultiPointConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -57,6 +58,7 @@ public abstract class MultiPointForm implements ShapeForm {
     private final String description_;
     private final MultiPointCoordSet extraCoordSet_;
     private final MultiPointConfigKey shapeKey_;
+    private final ConfigKey<Integer> thickKey_;
     private final ConfigKey<?>[] otherKeys_;
 
     /**
@@ -82,6 +84,7 @@ public abstract class MultiPointForm implements ShapeForm {
         description_ = description;
         extraCoordSet_ = extraCoordSet;
         shapeKey_ = shapeKey;
+        thickKey_ = createThicknessKey( shapeKey_ );
         otherKeys_ = otherKeys;
     }
 
@@ -133,16 +136,19 @@ public abstract class MultiPointForm implements ShapeForm {
     public ConfigKey<?>[] getConfigKeys() {
         List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( shapeKey_ );
+        list.add( thickKey_ );
         list.addAll( Arrays.asList( otherKeys_ ) );
         return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public Outliner createOutliner( ConfigMap config ) {
         MultiPointShape shape = config.get( shapeKey_ );
+        int nthick = config.get( thickKey_ ).intValue();
         ErrorMode[] errorModes = shapeKey_.getErrorModes();
         double scale = getScaleFactor( config );
         boolean isAutoscale = isAutoscale( config );
-        return new MultiPointOutliner( shape, errorModes, scale, isAutoscale );
+        return new MultiPointOutliner( shape, nthick, errorModes,
+                                       scale, isAutoscale );
     }
 
     /**
@@ -281,6 +287,29 @@ public abstract class MultiPointForm implements ShapeForm {
     }
 
     /**
+     * Creates a config key for line thickness to be used with
+     * MultiPointShapes.
+     *
+     * @param  shapeKey  configured shape to which this relates
+     * @return  key for line thickness
+     */
+    public static ConfigKey<Integer>
+            createThicknessKey( MultiPointConfigKey shapeKey ) {
+        ConfigMeta meta = new ConfigMeta( "thick", "Thickness" );
+        meta.setShortDescription( "Line thickness for "
+                                + shapeKey.getMeta().getShortDescription() );
+        meta.setXmlDescription( new String[] {
+            "<p>Controls the line thickness used when drawing shapes.",
+            "Zero, the default value, means a 1-pixel-wide line is used.",
+            "Larger values make drawn lines thicker,",
+            "but note changing this value will not affect all shapes,",
+            "for instance filled rectangles contain no line drawings.",
+            "</p>",
+        } );
+        return StyleKeys.createPaintThicknessKey( meta, 3 );
+    }
+
+    /**
      * Returns the column index in a tuple sequence at which the
      * extra (multi-point) coordinates start.
      *
@@ -306,14 +335,16 @@ public abstract class MultiPointForm implements ShapeForm {
          * Constructor.
          *
          * @param  shape   shape
+         * @param  nthick  line thickness
          * @param  modes   used with shape to define icon
          * @param  scale   scaling adjustment factor
          * @param  isAutoscale  true if initial size scaling is done
          *                      from the data
          */
-        public MultiPointOutliner( MultiPointShape shape, ErrorMode[] modes,
-                                   double scale, boolean isAutoscale ) {
-            scribe_ = shape.createScribe( 0 );
+        public MultiPointOutliner( MultiPointShape shape, int nthick,
+                                   ErrorMode[] modes, double scale,
+                                   boolean isAutoscale ) {
+            scribe_ = shape.createScribe( nthick );
             modes_ = modes;
             scale_ = scale;
             isAutoscale_ = isAutoscale;

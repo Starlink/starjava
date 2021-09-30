@@ -1,6 +1,9 @@
 package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.BasicStroke;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Stroke;
 import java.util.ArrayList;
@@ -789,6 +792,60 @@ public class StyleKeys {
                 return new ComboBoxSpecifier<Integer>(
                                Integer.class,
                                new ThicknessComboBox( 9 ) );
+            }
+        };
+    }
+
+    /**
+     * Returns a config key for painting stroke thickness.
+     * Zero corresponds to one pixel wide.
+     *
+     * @param  meta  metadata
+     * @param  max   maximum value
+     * @return  config key
+     */
+    public static ConfigKey<Integer>
+            createPaintThicknessKey( ConfigMeta meta, int max ) {
+        final int lineLength = 48;
+        final int linePad = 4;
+        final Integer[] numbers = new Integer[ max + 1 ];
+        for ( int i = 0; i <= max; i++ ) {
+            numbers[ i ] = Integer.valueOf( i );
+        }
+        return new IntegerConfigKey( meta, 0 ) {
+            public Specifier<Integer> createSpecifier() {
+                JComboBox<Integer> selector =
+                        new RenderingComboBox<Integer>( numbers ) {
+                    public Icon getRendererIcon( Integer nThick ) {
+                        return createLineIcon( nThick.intValue() );
+                    }
+                };
+                return new ComboBoxSpecifier<Integer>( Integer.class, selector);
+            }
+            private Icon createLineIcon( int nthick ) {
+                int strokeSize = nthick * 2 + 1;
+                final Stroke stroke = new BasicStroke( (float) strokeSize );
+                return new Icon() {
+                    public int getIconHeight() {
+                        return strokeSize;
+                    }
+                    public int getIconWidth() {
+                        return lineLength + 2 * linePad;
+                    }
+                    public void paintIcon( Component c, Graphics g,
+                                           int x, int y ) {
+                        Graphics2D g2 = (Graphics2D) g;
+                        Stroke stroke0 = g2.getStroke();
+                        Color color0 = g2.getColor();
+                        g2.setColor( Color.BLACK );
+                        g2.setStroke( stroke );
+                        int ypos = y + nthick;
+                        g2.drawLine( x + linePad, ypos,
+                                     x + linePad + lineLength, ypos );
+                        g2.setStroke( stroke0 );
+                        g2.setColor( color0 );
+                    }
+                };
             }
         };
     }
