@@ -909,7 +909,7 @@ public class EpnTapStage implements Stage {
                            "phys.size.diameter" ),
             new SingleCol( "semi_major_axis", Type.DOUBLE, "AU",
                            "phys.size.smajAxis" ),
-            new SingleCol( "inclination", Type.DOUBLE, null,
+            new SingleCol( "inclination", Type.DOUBLE, "deg",
                            "src.orbital.inclination" ),
             new SingleCol( "eccentricity", Type.DOUBLE, null,
                            "src.orbital.eccentricity" ),
