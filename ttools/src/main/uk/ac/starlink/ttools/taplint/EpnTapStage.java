@@ -761,12 +761,10 @@ public class EpnTapStage implements Stage {
         colMap.get( "processing_level" ).checker_ =
             rangeChecker( true, FixedCode.E_PNPL, "1", "6" );
         colMap.get( "target_class" ).checker_ =
-                optionsChecker( false, FixedCode.E_PNTG, new String[] {
+                hashlistOptionsChecker( false, FixedCode.E_PNTG, new String[] {
             "asteroid", "dwarf_planet", "planet", "satellite", "comet",
             "exoplanet", "interplanetary_medium", "sample", "sky",
             "spacecraft", "spacejunk", "star", "calibration",
-            // special case recommended
-            "dwarf_planet#asteroid", "asteroid#dwarf_planet",
         } );
 
         colMap.get( "service_title" ).checker_ = serviceTitleChecker();
