@@ -132,6 +132,7 @@ public enum FixedCode implements ReportCode {
     E_PNDP( "Epn_core dataproduct_type bad values" ),
     E_PNFT( "Epn_core spatial_frame_type bad values" ),
     E_PNGT( "Epn_core geometry_type bad values" ),
+    E_PNIK( "Bad InchiKey syntax" ),
     E_PNLT( "Epn_core local_time out of range" ),
     E_PNTN( "Epn_core table wrong name" ),
     E_PNMM( "Epn_core min/max constraints violated" ),

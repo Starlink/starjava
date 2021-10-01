@@ -943,6 +943,7 @@ public class EpnTapStage implements Stage {
             textCol( "sample_id", "meta.id;src" ),
             textCol( "sample_classification", "meta.note;phys.composition" ),
             textCol( "sample_desc", "meta.note" ),
+            textCol( "species_inchikey", "meta.id;phys.atmol" ),
             textCol( "data_calibration_desc", "meta.note" ),
             textCol( "setup_desc", "meta.note" ),
             textCol( "geometry_type", "meta.note;instr.setup" ),
@@ -970,6 +971,7 @@ public class EpnTapStage implements Stage {
             "hemispherical-conical", "bihemispherical", "directional",
             "conical", "hemispherical", "other geometry", "unknown",
         } );
+        colMap.get( "species_inchikey" ).checker_ = inchikeyListChecker();
 
         // Currently NOT tested but could be: particle_spectral_range,
         // which has UCDs and units dependent on particle_spectral_type value.
@@ -1403,6 +1405,80 @@ public class EpnTapStage implements Stage {
                 }
             }
         };
+    }
+
+    /**
+     * Creates a check that a column contains hashlists of inchikey strings.
+     * Inchikeys are fixed-length (27-char) chemistry specifiers.
+     *
+     * @return  new checker
+     */
+    private static ContentChecker inchikeyListChecker() {
+        return ( stdCol, runner ) -> {
+            String cname = stdCol.name_;
+            String tname = runner.tname_;
+            StringBuffer abuf = new StringBuffer()
+               .append( "SELECT DISTINCT TOP 30 " )
+               .append( cname )
+               .append( " FROM " )
+               .append( tname )
+               .append( " WHERE " )
+               .append( cname )
+               .append( " IS NOT NULL" );
+            TableData tdata = runner.runQuery( abuf.toString() );
+            if ( tdata != null && tdata.getRowCount() > 0 ) {
+                Object[] values = tdata.getColumn( 0 );
+                for ( Object val : values ) {
+                    String sval = val instanceof String ? (String) val : null;
+                    String badInchi = null;
+                    String errmsg = null;
+                    if ( sval != null && sval.trim().length() > 0 ) {
+                        String[] items = sval.split( "#", -1 );
+                        for ( String item : items ) {
+                            String err = inchikeyError( item );
+                            if ( err != null ) {
+                                badInchi = item;
+                                errmsg = err;
+                            }
+                        }
+                    }
+                    if ( badInchi != null ) {
+                        String msg = new StringBuffer()
+                           .append( "Bad InchiKey syntax (" )
+                           .append( errmsg )
+                           .append( ") in column " )
+                           .append( cname )
+                           .append( ": \"" )
+                           .append( badInchi )
+                           .append( '"' )
+                           .toString();
+                        runner.reporter_.report( FixedCode.E_PNIK, msg );
+                    }
+                }
+            }
+        };
+    }
+
+    /**
+     * Check InchiKey syntax.
+     *
+     * @see  <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4486400/"
+     *          >Heller et al. 2015 (10.1186/s13321-015-0068-4)</a>
+     * @param   txt  candidate inchikey
+     * @return  null for correct syntax;
+     *          if syntax is bad, a short explanation of what's wrong
+     */
+    private static String inchikeyError( String txt ) {
+        final int inchikeyLeng = 27;
+        if ( txt.length() != inchikeyLeng ) {
+            return "not " + inchikeyLeng + " chars";
+        }
+        else if ( ! txt.matches( "^[-A-Z]*$" ) ) {
+            return "chars not matching [-A-Z]";
+        }
+        else {
+            return null;
+        }
     }
 
     /**
