@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import uk.ac.starlink.ttools.plot2.Glyph;
@@ -101,6 +102,39 @@ public abstract class LineGlyph extends DrawingGlyph {
      */
     public DrawingGlyph toThicker( PixerFactory kernel, StrokeKit strokeKit ) {
         return new ThickerGlyph( this, kernel, strokeKit );
+    }
+
+    /**
+     * Returns a (roughly circular) smoothing kernel for a thick line.
+     *
+     * @param  nthick  line thickness, &gt;=0
+     * @return  standard smoothing kernel
+     */
+    public static PixerFactory createThickKernel( int nthick ) {
+        return createKernel( nthick == 1 ? MarkerShape.CROSS
+                                         : MarkerShape.FILLED_CIRCLE,
+                             nthick );
+    }
+
+    /**
+     * Returns a smoothing kernel derived from a given marker shape.
+     *
+     * @param  shape   shape
+     * @param  nthick  thickness index &gt;=0
+     * @return  smoothing kernel
+     */
+    public static PixerFactory createKernel( MarkerShape shape, int nthick ) {
+        return shape.getStyle( Color.BLACK, nthick ).getPixerFactory();
+    }
+
+    /**
+     * Returns a stroke kit for drawing a thick line.
+     *
+     * @param  nthick  line thickness, &gt;=0
+     * @return   thick stroke
+     */
+    public static StrokeKit createThickStrokeKit( int nthick ) {
+        return new StrokeKit( 1f + 2 * nthick );
     }
 
     /**

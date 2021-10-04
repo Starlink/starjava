@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -53,7 +52,7 @@ public abstract class MultiPointShape {
 
     /** Shape suitable for use in user controls. */
     public static final MultiPointShape EXAMPLE =
-        new CappedLine( "Capped Lines", true, new BarCapper( 3 ) );
+        new CappedLine( "Capped Lines", true, barCapper( 3 ) );
 
     private static final int DUMMY_SIZE = 10000;
     private static final int LEGEND_WIDTH = 40;
@@ -66,15 +65,15 @@ public abstract class MultiPointShape {
         NONE,
         DEFAULT,
         EXAMPLE,
-        new CappedLine( "Caps", false, new BarCapper( 3 ) ),
-        new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
+        new CappedLine( "Caps", false, barCapper( 3 ) ),
+        new CappedLine( "Arrows", true, arrowCapper( 3 ) ),
     };
     private static final MultiPointShape[] OPTIONS_2D = {
         NONE,
         DEFAULT,
         EXAMPLE,
-        new CappedLine( "Caps", false, new BarCapper( 3 ) ),
-        new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
+        new CappedLine( "Caps", false, barCapper( 3 ) ),
+        new CappedLine( "Arrows", true, arrowCapper( 3 ) ),
         new OpenEllipse( "Ellipse", false ),
         new OpenEllipse( "Crosshair Ellipse", true ),
         new OpenRectangle( "Rectangle", false ),
@@ -86,8 +85,8 @@ public abstract class MultiPointShape {
         NONE,
         DEFAULT,
         EXAMPLE,
-        new CappedLine( "Caps", false, new BarCapper( 3 ) ),
-        new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
+        new CappedLine( "Caps", false, barCapper( 3 ) ),
+        new CappedLine( "Arrows", true, arrowCapper( 3 ) ),
         new OpenCuboid( "Cuboid" ),
         new MultiPlaneShape( new OpenEllipse( "Ellipse", false ) ),
         new MultiPlaneShape( new OpenEllipse( "Crosshair Ellipse", true ) ),
@@ -97,9 +96,9 @@ public abstract class MultiPointShape {
         new MultiPlaneShape( new FilledRectangle( "Filled Rectangle" ) ),
     };
     private static final MultiPointShape[] OPTIONS_VECTOR = {
-        new CappedLine( "Small Arrow", true, new ArrowCapper( 3 ) ),
-        new CappedLine( "Medium Arrow", true, new ArrowCapper( 4 ) ),
-        new CappedLine( "Large Arrow", true, new ArrowCapper( 5 ) ),
+        new CappedLine( "Small Arrow", true, arrowCapper( 3 ) ),
+        new CappedLine( "Medium Arrow", true, arrowCapper( 4 ) ),
+        new CappedLine( "Large Arrow", true, arrowCapper( 5 ) ),
         new Dart( "Small Open Dart", false, 2 ),
         new Dart( "Medium Open Dart", false, 4 ),
         new Dart( "Large Open Dart", false, 6 ),
@@ -120,7 +119,7 @@ public abstract class MultiPointShape {
         new Triangle( "Filled Triangle", true ),
         DEFAULT,
         EXAMPLE,
-        new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
+        new CappedLine( "Arrows", true, arrowCapper( 3 ) ),
     };
 
     /**
@@ -178,14 +177,6 @@ public abstract class MultiPointShape {
     public abstract boolean supportsDimensionality( int ndim );
 
     /**
-     * Returns an object that can turn offset arrays into painted shapes.
-     * Line thickness is single pixel where applicable.
-     *
-     * @return  shape painter
-     */
-    abstract MultiPointScribe createBasicScribe();
-
-    /**
      * Returns an object that can turn offset arrays into painted shapes
      * with configurable line thickness.
      * If {@link #canThick} returns false, the parameter makes no difference.
@@ -193,13 +184,7 @@ public abstract class MultiPointShape {
      * @param  nthick  non-negative line thickness, 0 is single-pixel
      * @return  shape painter
      */
-    public MultiPointScribe createScribe( int nthick ) {
-        MultiPointScribe scribe = createBasicScribe();
-        return canThick() && nthick > 0 && scribe instanceof LineScribe
-             ? new ThickScribe( (LineScribe) scribe, nthick,
-                                getKernel( nthick ), getStrokeKit( nthick ) )
-             : scribe;
-    }
+    public abstract MultiPointScribe createScribe( int nthick );
 
     /**
      * Indicates whether variants of this shape with different line
@@ -211,29 +196,6 @@ public abstract class MultiPointShape {
      */
     public boolean canThick() {
         return canThick_;
-    }
-
-    /**
-     * Returns the smoothing kernel to use for thick lines.
-     * The default is reasonable, but it may be overridden.
-     *
-     * @param  nthick  non-negative line thickness, 0 is single-pixel
-     * @return   smoothing kernel
-     */
-    PixerFactory getKernel( int nthick ) {
-        return ( nthick == 1 ? MarkerShape.CROSS : MarkerShape.FILLED_CIRCLE )
-              .getStyle( Color.BLACK, nthick ).getPixerFactory();
-    }
-
-    /**
-     * Returns the set of line strokes to use for thick lines.
-     * The default is reasonable, but it may be overridden.
-     *
-     * @param  nthick  non-negative line thickness, 0 is single-pixel
-     * @return  stroke painting kit
-     */
-    StrokeKit getStrokeKit( int nthick ) {
-        return new StrokeKit( 1f + 2 * nthick );
     }
 
     /**
@@ -337,6 +299,59 @@ public abstract class MultiPointShape {
     }
 
     /**
+     * Partial MultiPointShape implementation that can turn single-pixel
+     * thickness scribes into arbitrarily thick ones.
+     */
+    private static abstract class ThickShape extends MultiPointShape {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  user-directed shape name
+         * @param  iconDim  dimensionality to use for basic icon generation
+         * @param  canThick  true iff this shape is available in different
+         *                   line thicknesses
+         */
+        protected ThickShape( String name, int iconDim, boolean canThick ) {
+            super( name, iconDim, canThick );
+        }
+
+        /**
+         * Returns a scribe using single-pixel width lines where applicable.
+         *
+         * @return  shape painter
+         */
+        abstract LineScribe createBasicScribe();
+
+        public MultiPointScribe createScribe( int nthick ) {
+            LineScribe scribe = createBasicScribe();
+            return canThick() && nthick > 0
+                 ? new ThickScribe( scribe, nthick )
+                 : scribe;
+        }
+    }
+
+    /**
+     * Returns a family of arrow-shaped cappers.
+     *
+     * @param  capsize  cap size suitable for single-pixel line thickness
+     * @return  capper factory
+     */
+    private static CapperFactory arrowCapper( int capsize ) {
+        return nthick -> new ArrowCapper( capsize + nthick );
+    }
+
+    /**
+     * Returns a family of bar-shaped cappers.
+     *
+     * @param  capsize  cap size suitable for single-pixel line thickness
+     * @return  capper factory
+     */
+    private static CapperFactory barCapper( int capsize ) {
+        return boost -> new BarCapper( capsize + boost );
+    }
+
+    /**
      * Icon which represents a MultiPointShape in a form suitable for a legend.
      */
     private static class MultiPointIcon implements Icon {
@@ -354,7 +369,7 @@ public abstract class MultiPointShape {
          * @param  ndim    dimensionality
          */
         public MultiPointIcon( MultiPointShape shape, int ndim ) {
-            this( shape.createBasicScribe(),
+            this( shape.createScribe( 0 ),
                   fillModeArray( ndim, ErrorMode.SYMMETRIC ),
                   LEGEND_WIDTH, LEGEND_HEIGHT, LEGEND_XPAD, LEGEND_YPAD );
         }
@@ -511,7 +526,18 @@ public abstract class MultiPointShape {
         private final StrokeKit strokeKit_;
 
         /**
-         * Constructor.
+         * Constructs a ThickScribe with default smoothing kernel and strokes.
+         *
+         * @param  baseScribe  draws basic shape
+         * @param  nthick  nominal line thickness for object identification
+         */
+        ThickScribe( LineScribe baseScribe, int nthick ) {
+            this( baseScribe, nthick, LineGlyph.createThickKernel( nthick ),
+                  LineGlyph.createThickStrokeKit( nthick ) );
+        }
+
+        /**
+         * Constructs a ThickScribe with custom smoothing kernel and strokes.
          *
          * @param  baseScribe  draws basic shape
          * @param  nthick  nominal line thickness for object identification
@@ -584,7 +610,7 @@ public abstract class MultiPointShape {
             return true;
         }
 
-        public MultiPointScribe createBasicScribe() {
+        public MultiPointScribe createScribe( int nthick ) {
             return scribe_;
         }
     }
@@ -597,26 +623,42 @@ public abstract class MultiPointShape {
     private static class CappedLine extends MultiPointShape {
 
         private final boolean hasLine_;
-        private final Capper capper_;
+        private final CapperFactory capperFact_;
 
         /**
          * Constructor.
          *
          * @param  name   shape name
          * @param  lines   true iff you want error lines drawn
-         * @param  capper  if non-null causes caps to be drawn at end of lines
+         * @param  capperFact   if non-null defines caps to be drawn
+         *                      at end of lines
          */
-        CappedLine( String name, boolean hasLine, Capper capper ) {
+        CappedLine( String name, boolean hasLine, CapperFactory capperFact ) {
             super( name, 2, true );
             hasLine_ = hasLine;
-            capper_ = capper;
+            capperFact_ = capperFact;
         }
 
         public boolean supportsDimensionality( int ndim ) {
             return true;
         }
 
-        public MultiPointScribe createBasicScribe() {
+        public MultiPointScribe createScribe( int nthick ) {
+            Capper capper = capperFact_ == null
+                          ? null
+                          : capperFact_.getCapper( nthick );
+            LineScribe scribe = createBasicScribe( capper );
+            return nthick > 0 ? new ThickScribe( scribe, nthick )
+                              : scribe;
+        }
+
+        /**
+         * Returns a scribe for a given capper using single-pixel width lines.
+         *
+         * @param  capper  cap representation or null
+         * @return   shape painter
+         */
+        private LineScribe createBasicScribe( final Capper capper ) {
             return new LineScribe( this, (xoffs, yoffs) -> new LineGlyph() {
                 public Rectangle getPixelBounds() {
                     int np = xoffs.length;
@@ -628,8 +670,8 @@ public abstract class MultiPointShape {
                         if ( xoff != 0 || yoff != 0 ) {
                             empty = false;
                             box.add( xoff, yoff );
-                            if ( capper_ != null ) {
-                                capper_.extendBounds( box, xoff, yoff );
+                            if ( capper != null ) {
+                                capper.extendBounds( box, xoff, yoff );
                             }
                         }
                     }
@@ -640,7 +682,7 @@ public abstract class MultiPointShape {
                     return box;
                 }
                 public void paintGlyph( Graphics g, StrokeKit strokeKit ) {
-                    drawCappedLine( g, xoffs, yoffs, hasLine_, capper_, false,
+                    drawCappedLine( g, xoffs, yoffs, hasLine_, capper, false,
                                     strokeKit );
                 }
                 public void drawShape( PixelDrawing drawing ) {
@@ -652,8 +694,8 @@ public abstract class MultiPointShape {
                             if ( hasLine_ ) {
                                 drawing.drawLine( 0, 0, xoff, yoff );
                             }
-                            if ( capper_ != null ) {
-                                capper_.drawCap( drawing, xoff, yoff );
+                            if ( capper != null ) {
+                                capper.drawCap( drawing, xoff, yoff );
                             }
                         }
                     }
@@ -775,7 +817,6 @@ public abstract class MultiPointShape {
 
         private final boolean isFill_;
         private final int basepix_;
-        private final int[] vys_;
 
         /**
          * Constructor.
@@ -788,14 +829,28 @@ public abstract class MultiPointShape {
             super( name, 2, !isFill );
             isFill_ = isFill;
             basepix_ = basepix;
-            vys_ = new int[] { basepix_, 0, -basepix_ };
         }
 
         public boolean supportsDimensionality( int ndim ) {
             return ndim > 0;
         }
 
-        public MultiPointScribe createBasicScribe() {
+        public MultiPointScribe createScribe( int nthick ) {
+            int basepix = basepix_ + ( canThick() ? nthick * 2 : 0 );
+            LineScribe scribe = createBasicScribe( basepix );
+            return canThick() && nthick > 0
+                 ? new ThickScribe( scribe, nthick )
+                 : scribe;
+        }
+
+        /**
+         * Returns a scribe for a given triangle base using single-pixel lines.
+         *
+         * @param  basepix  base of triangle in pixels
+         * @return  shape painter
+         */
+        private LineScribe createBasicScribe( int basepix ) {
+            final int[] vys = new int[] { basepix, 0, -basepix };
             return new LineScribe( this, (xoffs, yoffs) -> new LineGlyph() {
                 int np = xoffs.length;
                 public Rectangle getPixelBounds() {
@@ -805,7 +860,7 @@ public abstract class MultiPointShape {
                         int yoff = yoffs[ ip ];
                         if ( xoff != 0 || yoff != 0 ) {
                             box.add( xoff, yoff );
-                            Point bp = getBaseVertex( xoff, yoff );
+                            Point bp = getBaseVertex( basepix, xoff, yoff );
                             box.add( bp.x, bp.y );
                             box.add( -bp.x, -bp.y );
                             box.width++;
@@ -819,7 +874,7 @@ public abstract class MultiPointShape {
                         int xoff = xoffs[ ip ];
                         int yoff = yoffs[ ip ];
                         if ( xoff != 0 || yoff != 0 ) {
-                            Point bp = getBaseVertex( xoff, yoff );
+                            Point bp = getBaseVertex( basepix, xoff, yoff );
                             int x1 = xoff;
                             int y1 = yoff;
                             int x2 = + bp.x;
@@ -857,10 +912,10 @@ public abstract class MultiPointShape {
                             g2.rotate( Math.atan2( dy, dx ) );
                             int[] xs = { 0, (int) Math.round( dleng ), 0 };
                             if ( isFill_ ) {
-                                g2.fillPolygon( xs, vys_, 3 );
+                                g2.fillPolygon( xs, vys, 3 );
                             }
                             else {
-                                g2.drawPolygon( xs, vys_, 3 );
+                                g2.drawPolygon( xs, vys, 3 );
                             }
                             g2.setTransform( trans0 );
                         }
@@ -877,16 +932,17 @@ public abstract class MultiPointShape {
          * vertex is determined by negating both the returned X and Y
          * coordinates.
          *
+         * @param  basepix  base of triangle in pixels
          * @param  xoff  apex X coordinate
          * @param  yoff  apex Y coordinate
          * @return   coordinates of one base vertex
          */
-        private Point getBaseVertex( int xoff, int yoff ) {
+        private Point getBaseVertex( int basepix, int xoff, int yoff ) {
             double dx = xoff;
             double dy = yoff;
             double dscale = 1.0 / Math.hypot( dx, dy );
-            return new Point( - (int) Math.round( basepix_ * dy * dscale ),
-                              + (int) Math.round( basepix_ * dx * dscale ) );
+            return new Point( - (int) Math.round( basepix * dy * dscale ),
+                              + (int) Math.round( basepix * dx * dscale ) );
         }
     }
 
@@ -895,7 +951,7 @@ public abstract class MultiPointShape {
      * with a variable-length base.
      * Used like an ellipse/rectangle/oblong (2d only).
      */
-    private static class Triangle extends MultiPointShape {
+    private static class Triangle extends ThickShape {
 
         private final boolean isFill_;
 
@@ -914,7 +970,7 @@ public abstract class MultiPointShape {
             return ndim == 2;
         }
 
-        public MultiPointScribe createBasicScribe() {
+        public LineScribe createBasicScribe() {
             return new LineScribe( this, (xoffs, yoffs) -> new LineGlyph() {
                 final Polygon triangle = getTriangle( xoffs, yoffs );
                 public Rectangle getPixelBounds() {
@@ -995,7 +1051,7 @@ public abstract class MultiPointShape {
      * must implement {@link #drawOblong} to mark the space as appropriate.
      * Only works properly for two-dimensional errors.
      */
-    private static abstract class Oblong extends MultiPointShape {
+    private static abstract class Oblong extends ThickShape {
 
         private final boolean withLines_;
 
@@ -1016,14 +1072,6 @@ public abstract class MultiPointShape {
         public boolean supportsDimensionality( int ndim ) {
             return ndim == 2;
         }
-
-        /**
-         * This abstract class is overridden to return an
-         * implementation-specific MultiPointScribe subclass,
-         * because it can be, and because it's useful elsewhere.
-         */
-        @Override
-        public abstract LineScribe createBasicScribe();
     }
 
     /**
@@ -1244,7 +1292,7 @@ public abstract class MultiPointShape {
     /**
      * Shape which draws a wire-net line/rectangle/cuboid in 1/2/3 dimensions.
      */
-    private static class OpenCuboid extends MultiPointShape {
+    private static class OpenCuboid extends ThickShape {
 
         /**
          * Constructor.
@@ -1394,7 +1442,7 @@ public abstract class MultiPointShape {
      * error bars by rendering 2-d error bars in each of the N(N-1)
      * pairs of dimensions.
      */
-    private static class MultiPlaneShape extends MultiPointShape {
+    private static class MultiPlaneShape extends ThickShape {
 
         private final Oblong shape2d_;
 
@@ -1419,7 +1467,7 @@ public abstract class MultiPointShape {
             return true;
         }
 
-        public MultiPointScribe createBasicScribe() {
+        public LineScribe createBasicScribe() {
             LineScribe scribe2d = shape2d_.createBasicScribe();
             return new LineScribe( this, (xoffs, yoffs) -> {
                 Iterable<int[][]> offsets = get2dOffsets( xoffs, yoffs );
@@ -1596,6 +1644,20 @@ public abstract class MultiPointShape {
          * @param   yoff  Y offset of the end of the error bar (from origin)
          */
         void extendBounds( Rectangle bounds, int xoff, int yoff );
+    }
+
+    /**
+     * Provides a family of cappers.
+     */
+    @FunctionalInterface
+    private interface CapperFactory {
+
+        /**
+         * Returns a capper adjusted to cope with a given thickness index.
+         *
+         * @param   nthick  thickness index &gt;=0
+         */
+        Capper getCapper( int nthick );
     }
 
     /**
