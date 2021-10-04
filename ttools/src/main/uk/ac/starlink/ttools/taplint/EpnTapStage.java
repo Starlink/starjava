@@ -695,7 +695,7 @@ public class EpnTapStage implements Stage {
             new MinMaxCol( "spectral_range_", Type.DOUBLE, "Hz",
                            minMaxStats( "em.freq" ) ),
             new MinMaxCol( "spectral_sampling_step_", Type.DOUBLE, "Hz",
-                           minMaxStats( "em.freq;spect.binSize" ) ),
+                           minMaxStats( "em.freq;stat.interval" ) ),
             new MinMaxCol( "spectral_resolution_", Type.DOUBLE, "",
                            minMaxStats( "spect.resolution" ) ),
             new MinMaxCol( "c1", Type.DOUBLE, null, null ),
@@ -918,6 +918,7 @@ public class EpnTapStage implements Stage {
                            "src.orbital.periastron" ),
             new SingleCol( "mean_anomaly", Type.DOUBLE, "deg",
                            "src.orbital.meanAnomaly" ),
+            new SingleCol( "epoch", Type.DOUBLE, "d", "time.epoch" ),
             textCol( "dynamical_class", "meta.code.class;src" ),
             textCol( "dynamical_type", "meta.code.class;src" ),
             textCol( "taxonomy_code", "src.class.color" ),
@@ -963,6 +964,7 @@ public class EpnTapStage implements Stage {
 
         ((MinMaxCol) colMap.get( "azimuth_" )).couldBeLongitude_ = true;
 
+        colMap.get( "epoch" ).checker_ = jdChecker();
         colMap.get( "geometry_type" ).checker_ =
                 optionsChecker( true, FixedCode.E_PNGT, new String[] {
             "direct", "specular", "bidirectional", "directional-conical",
