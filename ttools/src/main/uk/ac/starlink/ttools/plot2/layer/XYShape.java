@@ -28,6 +28,7 @@ public abstract class XYShape {
 
     private final String name_;
     private final int maxCacheRadius_;
+    private final Glyph pointGlyph_;
 
     /** Glyph that paints a single pixel at the origin. */
     public static Glyph POINT = new PointGlyph( 0, 0 );
@@ -36,25 +37,29 @@ public abstract class XYShape {
         new ConcurrentHashMap<ShortPair,Glyph>();
 
     /**
-     * Constructs a shape with a specified cache limit.
+     * Constructs a shape with a specified cache limit and point glyph.
      *
      * @param  name  shape name
      * @param  maxCacheRadius  glyphs are cached if both input values
      *                         have an absolute value lower than or equal
      *                         to this limit
+     * @param  pointGlyph   glyph to dispense for zero-length lines;
+     *                      may be null for no special-case behaviour
      */
-    protected XYShape( String name, int maxCacheRadius ) {
+    protected XYShape( String name, int maxCacheRadius, Glyph pointGlyph ) {
         name_ = name;
         maxCacheRadius_ = maxCacheRadius;
+        pointGlyph_ = pointGlyph;
     }
 
     /**
-     * Constructs a shape with a default cache limit.
+     * Constructs a shape with a default cache limit
+     * and single-pixel point glyph.
      *
      * @param  name  shape name
      */
     protected XYShape( String name ) {
-        this( name, 16 );
+        this( name, 16, XYShape.POINT );
     }
 
     /**
@@ -90,8 +95,8 @@ public abstract class XYShape {
     public Glyph getGlyph( short sx, short sy ) {
 
         /* Zero extent, return a single pixel glyph. */
-        if ( sx == 0 && sy == 0 ) {
-            return POINT;
+        if ( sx == 0 && sy == 0 && pointGlyph_ != null ) {
+            return pointGlyph_;
         }
 
         /* If the coordinates are small, use a lazy cache of precomputed

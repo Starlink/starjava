@@ -36,7 +36,7 @@ public class LineXYShape extends XYShape {
      *                  line drawn
      */
     private LineXYShape( int pixSkip ) {
-        super( "Line", 16 );
+        super( "Line" );
         pixSkip_ = pixSkip;
     }
 

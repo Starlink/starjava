@@ -83,7 +83,7 @@ public class XYShapes {
          * Constructor.
          */
         BlockShape( String name ) {
-            super( name, 6 );
+            super( name, 6, XYShape.POINT );
         }
 
         protected Glyph createGlyph( short sx, final short sy ) {
@@ -317,7 +317,7 @@ public class XYShapes {
          * @param  maxCacheRadius   max extent size for glyph caching
          */
         DrawingShape( String name, int maxCacheRadius ) {
-            super( name, maxCacheRadius );
+            super( name, maxCacheRadius, XYShape.POINT );
         }
 
         /**
