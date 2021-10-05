@@ -17,6 +17,7 @@ import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.geom.GPoint3D;
@@ -43,6 +44,7 @@ public class SizeXyForm implements ShapeForm {
 
     private static final FloatingCoord XSIZE_COORD = createSizeCoord( false );
     private static final FloatingCoord YSIZE_COORD = createSizeCoord( true );
+    private static final ConfigKey<Integer> THICK_KEY = createThicknessKey();
     private static final AuxScale XSIZE_SCALE = new AuxScale( "globalsizex" );
     private static final AuxScale YSIZE_SCALE = new AuxScale( "globalsizey" );
     private static final SizeXyForm instance_ = new SizeXyForm();
@@ -118,13 +120,17 @@ public class SizeXyForm implements ShapeForm {
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
             StyleKeys.XYSHAPE,
+            THICK_KEY,
             StyleKeys.SCALE_PIX,
             StyleKeys.AUTOSCALE_PIX,
         };
     }
 
     public Outliner createOutliner( ConfigMap config ) {
-        XYShape shape = config.get( StyleKeys.XYSHAPE );
+        BasicXYShape bshape = config.get( StyleKeys.XYSHAPE );
+        int nthick = config.get( THICK_KEY ).intValue();
+        XYShape shape = nthick > 0 ? bshape.toThicker( nthick )
+                                   : bshape;
         boolean isAutoscale = config.get( StyleKeys.AUTOSCALE_PIX );
         double scale = config.get( StyleKeys.SCALE_PIX )
                      * ( isAutoscale ? PlotUtil.DEFAULT_MAX_PIXELS : 1 );
@@ -187,6 +193,25 @@ public class SizeXyForm implements ShapeForm {
             "</p>",
         } );
         return FloatingCoord.createCoord( meta, false );
+    }
+
+    /**
+     * Returns a config key for line thickness.
+     *
+     * @return  line thickness key
+     */
+    private static ConfigKey<Integer> createThicknessKey() {
+        ConfigMeta meta = new ConfigMeta( "thick", "Thickness" );
+        meta.setShortDescription( "Line thickness for open shapes" );
+        meta.setXmlDescription( new String[] {
+            "<p>Controls the line thickness used when drawing shapes.",
+            "Zero, the default value, means a 1-pixel-wide line is used.",
+            "Larger values make drawn lines thicker,",
+            "but note changing this value will not affect all shapes,",
+            "for instance filled rectangles contain no line drawings.",
+            "</p>",
+        } );
+        return StyleKeys.createPaintThicknessKey( meta, 3 );
     }
 
     /**

@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.BasicXYShape;
 import uk.ac.starlink.ttools.plot2.layer.Cumulation;
 import uk.ac.starlink.ttools.plot2.layer.FatMarkerShapes;
 import uk.ac.starlink.ttools.plot2.layer.FillMode;
@@ -34,7 +35,6 @@ import uk.ac.starlink.ttools.plot2.layer.MarkerStyle;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointShape;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.XYShape;
-import uk.ac.starlink.ttools.plot2.layer.XYShapes;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 
 /**
@@ -71,32 +71,32 @@ public class StyleKeys {
                                "</p>" } ),
                            1 );
 
-    private static final XYShape[] XYSHAPES = XYShapes.getXYShapes();
+    private static final BasicXYShape[] XYSHAPES = BasicXYShape.getXYShapes();
 
     /** Config key for XY shape. */
-    public static final ConfigKey<XYShape> XYSHAPE =
-        new OptionConfigKey<XYShape>(
+    public static final ConfigKey<BasicXYShape> XYSHAPE =
+        new OptionConfigKey<BasicXYShape>(
             new ConfigMeta( "shape", "Shape" )
            .setShortDescription( "Marker shape" )
            .setXmlDescription( new String[] {
             } )
-        , XYShape.class, XYSHAPES ) {
-        public String getXmlDescription( XYShape shape ) {
+        , BasicXYShape.class, XYSHAPES ) {
+        public String getXmlDescription( BasicXYShape shape ) {
             return null;
         }
-        public Specifier<XYShape> createSpecifier() {
-            JComboBox<XYShape> shapeSelector =
-                    new RenderingComboBox<XYShape>( XYSHAPES ) {
+        public Specifier<BasicXYShape> createSpecifier() {
+            JComboBox<BasicXYShape> shapeSelector =
+                    new RenderingComboBox<BasicXYShape>( XYSHAPES ) {
                 @Override
-                protected Icon getRendererIcon( XYShape shape ) {
+                protected Icon getRendererIcon( BasicXYShape shape ) {
                     return XYShape.createIcon( shape, 20, 12, true );
                 }
-                protected String getRendererText( XYShape shape ) {
+                protected String getRendererText( BasicXYShape shape ) {
                     return null;
                 }
             };
-            return new ComboBoxSpecifier<XYShape>( XYShape.class,
-                                                   shapeSelector );
+            return new ComboBoxSpecifier<BasicXYShape>( BasicXYShape.class,
+                                                        shapeSelector );
         }
     }.setOptionUsage()
      .addOptionsXml();
