@@ -32,11 +32,11 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
     /** Instance for use with Plane plot. */
     public static final AreaForm<PlaneDataGeom> PLANE_INSTANCE =
             new AreaForm<PlaneDataGeom>( AreaCoord.PLANE_COORD, new Coord[0] ) {
-        protected PolygonOutliner createOutliner( PolygonMode.Glypher pg,
+        protected PolygonOutliner createOutliner( PolygonShape polyShape,
                                                   int minSize,
                                                   MarkerShape minShape ) {
             return PolygonOutliner
-                  .createPlaneAreaOutliner( getAreaCoord(), 0, pg,
+                  .createPlaneAreaOutliner( getAreaCoord(), 0, polyShape,
                                             minSize, minShape );
         }
     };
@@ -44,11 +44,11 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
     /** Instance for use with Sky plot. */
     public static final AreaForm<SkyDataGeom> SKY_INSTANCE =
             new AreaForm<SkyDataGeom>( AreaCoord.SKY_COORD, new Coord[ 0 ] ) {
-        protected PolygonOutliner createOutliner( PolygonMode.Glypher pg,
+        protected PolygonOutliner createOutliner( PolygonShape polyShape,
                                                   int minSize,
                                                   MarkerShape minShape ) {
             return PolygonOutliner
-                  .createSkyAreaOutliner( getAreaCoord(), 0, pg,
+                  .createSkyAreaOutliner( getAreaCoord(), 0, polyShape,
                                           minSize, minShape );
         }
     };
@@ -57,22 +57,22 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
     public static final AreaForm<SphereDataGeom> SPHERE_INSTANCE =
             new AreaForm<SphereDataGeom>( AreaCoord.SPHERE_COORD,
                                           new Coord[] { RADIAL_COORD } ) {
-        protected PolygonOutliner createOutliner( PolygonMode.Glypher pg,
+        protected PolygonOutliner createOutliner( PolygonShape polyShape,
                                                   int minSize,
                                                   MarkerShape minShape ) {
             return PolygonOutliner
                   .createSphereAreaOutliner( getAreaCoord(), 0, RADIAL_COORD, 1,
-                                             pg, minSize, minShape );
+                                             polyShape, minSize, minShape );
         }
     };
 
     /** Config key for polygon painting mode option. */
-    public static final ConfigKey<PolygonMode> POLYMODE_KEY =
-        PolygonForms.POLYMODE_KEY;
+    public static final ConfigKey<PolygonShape> POLYSHAPE_KEY =
+        PolygonForms.POLYSHAPE_KEY;
 
-    /** Config key for polygon fast drawing flag key. */
-    public static final ConfigKey<Boolean> ISFAST_KEY =
-        PolygonForms.ISFAST_KEY;
+    /** Config key for polygon painting line thickness. */
+    public static final ConfigKey<Integer> POLYTHICK_KEY = 
+        PolygonForms.POLYTHICK_KEY;
 
     /**
      * Constructor.
@@ -133,32 +133,33 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
 
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
-            POLYMODE_KEY,
-            ISFAST_KEY,
+            POLYSHAPE_KEY,
+            POLYTHICK_KEY,
             PolygonOutliner.MINSIZE_KEY,
             PolygonOutliner.MINSHAPE_KEY,
         };
     }
 
     public Outliner createOutliner( ConfigMap config ) {
-        PolygonMode polyMode = config.get( POLYMODE_KEY );
-        boolean isFast = config.get( ISFAST_KEY ).booleanValue();
+        PolygonShape basicShape = config.get( POLYSHAPE_KEY );
+        int nthick = config.get( POLYTHICK_KEY ).intValue();
+        PolygonShape polyShape =
+            nthick == 0 ? basicShape : basicShape.toThicker( nthick );
         int minSize = config.get( PolygonOutliner.MINSIZE_KEY );
         MarkerShape minShape = config.get( PolygonOutliner.MINSHAPE_KEY );
-        PolygonMode.Glypher polyGlypher = polyMode.getGlypher( isFast );
-        return createOutliner( polyGlypher, minSize, minShape );
+        return createOutliner( polyShape, minSize, minShape );
     }
 
     /**
      * Constructs a PolygonOutliner from a glypher for this form.
      *
-     * @param  polyGlypher  glyph painter
+     * @param  polyShape  glyph painter
      * @param  minSize   threshold size for replacment markers
      * @param  minShape   shape for replacement markers
      * @return   new outliner
      */
     protected abstract PolygonOutliner
-            createOutliner( PolygonMode.Glypher polyGlypher,
+            createOutliner( PolygonShape polyShape,
                             int minSize, MarkerShape minShape );
 
     /**
