@@ -400,11 +400,45 @@ public class PixelDrawing implements PixerFactory {
     }
 
     /**
+     * Draws a filled polygon on this drawing.
+     *
+     * @param  xs   X coordinates of vertices
+     * @param  ys   Y coordinates of vertices
+     * @param  np   number of vertices
+     */
+    public void fillPolygon( int[] xs, int[] ys, int np ) {
+        if ( np > 0 ) {
+            int xlo = xs[ 0 ];
+            int xhi = xs[ 0 ];
+            int ylo = ys[ 0 ];
+            int yhi = ys[ 0 ];
+            for ( int ip = 1; ip < np; ip++ ) {
+                int x = xs[ ip ];
+                int y = ys[ ip ];
+                xlo = Math.min( xlo, x );
+                xhi = Math.max( xhi, x );
+                ylo = Math.min( ylo, y );
+                yhi = Math.max( yhi, y );
+            }
+            if ( ! ( xhi < x0_ || xlo > x0_ + width_ ||
+                     yhi < y0_ || ylo > y0_ + height_ ) ) {
+                Rectangle bounds = new Rectangle( x0_, y0_, width_, height_ );
+                Pixer pixer = new FillPixer( xs, ys, np, bounds );
+                while ( pixer.next() ) {
+                    addPixelUnchecked( pixer.getX(), pixer.getY() );
+                }
+            }
+        }
+    }
+
+    /**
      * Fills an arbitrary shape.
      *
      * @param  shape  shape to fill
      * @see   java.awt.Graphics2D#fill
+     * @deprecated  may be slow for large shapes; use fillPolygon if possible
      */
+    @Deprecated
     public void fill( Shape shape ) {
         Rectangle box = shape.getBounds();
         int xlo = Math.max( x0_, box.x );
