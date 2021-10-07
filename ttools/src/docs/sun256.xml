@@ -13330,6 +13330,33 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix aux ranging bug that meant <code>auxmax</code> without
         <code>auxmin</code> was not honoured in plot commands.
         This was a regression bug introduced at v3.1-5.</li>
+    <li>A new parameter <code>thick</code> has been added to several
+        plot layer types to enable lines thicker than a single pixel
+        when drawing error bars, arrows, outlines, pair links etc:
+        <ref id="layer-xyvector"><code>xyvector</code></ref>,
+        <ref id="layer-xyerror"><code>xyerror</code></ref>,
+        <ref id="layer-sizexy"><code>sizexy</code></ref>,
+        <ref id="layer-xyellipse"><code>xyellipse</code></ref>,
+        <ref id="layer-xycorr"><code>xycorr</code></ref>,
+        <ref id="layer-link2"><code>link2</code></ref>,
+        <ref id="layer-poly4"><code>poly4</code></ref>,
+        <ref id="layer-polygon"><code>polygon</code></ref>,
+        <ref id="layer-area"><code>area</code></ref>,
+        <ref id="layer-yerrors"><code>yerrors</code></ref>,
+        <ref id="layer-xyerrors"><code>xyerrors</code></ref>,
+        <ref id="layer-skyvector"><code>skyvector</code></ref>,
+        <ref id="layer-skyellipse"><code>skyellipse</code></ref>,
+        <ref id="layer-skycorr"><code>skycorr</code></ref>,
+        <ref id="layer-xyzvector"><code>xyzvector</code></ref>,
+        <ref id="layer-xyzerror"><code>xyzerror</code></ref>,
+        <ref id="layer-yerror"><code>yerror</code></ref>.</li>
+    <li>The <code>fast</code> parameter has been withdrawn from
+        polygon-plotting plot types
+        <ref id="layer-area"><code>area</code></ref>,
+        <ref id="layer-poly4"><code>poly4</code></ref>,
+        <ref id="layer-polygon"><code>polygon</code></ref>;
+        the shape-filling algorithm has been improved, and it's no
+        longer necessary to choose between speed and accuracy.</li>
     </ul>
     </p></dd>
 
