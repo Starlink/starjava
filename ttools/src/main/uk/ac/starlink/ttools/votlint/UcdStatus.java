@@ -3,8 +3,10 @@ package uk.ac.starlink.ttools.votlint;
 import ari.ucidy.UCD;
 import ari.ucidy.UCDParser;
 import ari.ucidy.UCDWord;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -34,6 +36,10 @@ public class UcdStatus {
     private static final UCDParser ucdParser_ = createParser();
     private static final Collection<String> ucd1s_ =
         Collections.unmodifiableSet( readUcd1s() );
+    private static final Collection<String> ucd1Or1plusses_ =
+        Collections.unmodifiableSet( new HashSet<>( Arrays.asList( new String[]{
+            "PHYS", "POS", "SPECT", "STAT", "TIME",
+        } ) ) );
     private static final Pattern VOX_REGEX =
         Pattern.compile( "VOX:[A-Za-z_]+" );
 
@@ -114,7 +120,8 @@ public class UcdStatus {
         if ( ucd == null || ucd.trim().length() == 0 ) {
             return null;
         }
-        if ( ucd1s_.contains( ucd ) ) {
+        if ( ucd1s_.contains( ucd.toUpperCase() ) &&
+             ! ucd1Or1plusses_.contains( ucd.toUpperCase() ) ) {
             return new UcdStatus( Code.UCD1, "UCD1, not UCD1+" );
         }
         if ( VOX_REGEX.matcher( ucd ).matches() ) {
