@@ -25,7 +25,7 @@ public class UnitChecker implements AttributeChecker {
             UnitStatus status = UnitStatus.getStatus( unit );
             if ( status != null ) {
                 UnitStatus.Code code = status.getCode();
-                if ( code.isError() ) {
+                if ( code.isError() || code.isWarning() ) {
                     context.warning( new VotLintCode( "VOU" ),
                                      "Bad VOUnit \"" + unit + "\""
                                    + " (" + code + "): "
