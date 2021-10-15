@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.LongSupplier;
+import java.util.zip.Adler32;
+import java.util.zip.Checksum;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.formats.TextTableWriter;
@@ -374,6 +376,46 @@ public class Tables {
         if ( nrow >= 0 ) {
             assertTrue( lrow == nrow );
         }
+    }
+
+    /**
+     * Returns a checksum of all the cell data in a given table.
+     * Currently, the Adler32 checksum is used.
+     *
+     * @param   table  table to checksum
+     * @return   checksum value
+     */
+    public static int checksumData( StarTable table ) throws IOException {
+        Checksum checksum = new Adler32();
+        try ( RowSequence rseq = table.getRowSequence() ) {
+            checksumData( rseq, checksum );
+        }
+        return (int) checksum.getValue();
+    }
+
+    /**
+     * Feeds the data from a row sequence to a supplied checksum accumulator.
+     *
+     * @param  rseq  row sequence containing data
+     * @param  checksum   checksum accumulator
+     * @return   number of rows checksummed
+     *           (note this is <em>not</em> the checksum value)
+     */
+    public static long checksumData( RowSequence rseq, Checksum checksum )
+            throws IOException {
+        long lrow = 0;
+        while ( rseq.next() ) {
+            Object[] row = rseq.getRow();
+            for ( Object cell : row ) {
+                int hash = isBlank( cell ) ? -654321 : cell.hashCode();
+                checksum.update( (byte) ( hash >>> 24 ) );
+                checksum.update( (byte) ( hash >>> 16 ) );
+                checksum.update( (byte) ( hash >>>  8 ) );
+                checksum.update( (byte) ( hash >>>  0 ) );
+            }
+            lrow++;
+        }
+        return lrow;
     }
 
     /**

@@ -66,8 +66,11 @@ public class DatalinkPanel extends JPanel {
      *                              this panel with a new table;
      *                              if false, such an invocation will open
      *                              a new window
+     * @param  hasAutoInvoke      true if URL panel should feature an
+     *                            auto-invoke button
      */
-    public DatalinkPanel( boolean canReplaceContents ) {
+    public DatalinkPanel( boolean canReplaceContents,
+                          boolean hasAutoInvoke ) {
         super( new BorderLayout() );
         jtable_ = new StarJTable( false );
         jtable_.setColumnSelectionAllowed( false );
@@ -92,10 +95,11 @@ public class DatalinkPanel extends JPanel {
 
         UrlOptions urlopts =
             UrlOptions.createOptions( canReplaceContents ? this : null );
-        linkPanel_ = new LinkRowPanel( urlopts );
+        linkPanel_ = new LinkRowPanel( urlopts, hasAutoInvoke );
+        int width = hasAutoInvoke ? 750 : 650;
 
-        tablePanel.setPreferredSize( new Dimension( 550, 150 ) );
-        linkPanel_.setPreferredSize( new Dimension( 550, 300 ) );
+        tablePanel.setPreferredSize( new Dimension( width, 150 ) );
+        linkPanel_.setPreferredSize( new Dimension( width, 300 ) );
         JSplitPane splitter =
             new JSplitPane( JSplitPane.VERTICAL_SPLIT, tablePanel, linkPanel_ );
         add( splitter, BorderLayout.CENTER );
@@ -134,6 +138,18 @@ public class DatalinkPanel extends JPanel {
         }
         jtable_.repaint();
         jtable_.revalidate();
+    }
+
+    /**
+     * Indicates whether this panel is currently set up for auto-invoke.
+     * If true, then selecting a row in the displayed links document
+     * will cause the link to be followed according to current settings
+     * without further manual user intervention.
+     *
+     * @return   whether auto-invoke is in effect
+     */
+    public boolean isAutoInvoke() {
+        return linkPanel_.isAutoInvoke();
     }
 
     /**

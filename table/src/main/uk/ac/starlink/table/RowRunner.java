@@ -77,6 +77,15 @@ public class RowRunner {
     }
 
     /**
+     * Returns the processor on which this runner is based.
+     *
+     * @return  processor
+     */
+    public SplitProcessor<RowSplittable> getSplitProcessor() {
+        return processor_;
+    }
+
+    /**
      * Returns the value of a supplier with custom exception handling.
      * If the invocation throws an exception, it will be rethrown by
      * this method.  However, if the exception is a RuntimeException whose

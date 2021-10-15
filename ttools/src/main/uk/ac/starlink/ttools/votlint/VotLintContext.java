@@ -24,6 +24,8 @@ public class VotLintContext {
     private final Map<String,UncheckedReference> refMap_;
     private final Map<String,String> namespaceMap_;
     private final Map<String,Collection<ElementRef>> linksMap_;
+    private boolean checkUcd_;
+    private boolean checkUnit_;
     private Locator locator_;
     private int errCount_;
 
@@ -44,6 +46,8 @@ public class VotLintContext {
         refMap_ = new HashMap<String,UncheckedReference>();
         namespaceMap_ = new HashMap<String,String>();
         linksMap_ = new LinkedHashMap<String,Collection<ElementRef>>();
+        checkUcd_ = true;
+        checkUnit_ = true;
     }
 
     /**
@@ -62,6 +66,46 @@ public class VotLintContext {
      */
     public boolean isValidating() {
         return validate_;
+    }
+
+    /**
+     * Indicates whether ucd attribute values will be checked.
+     * Checking is currently against the UCD1+ standard.
+     *
+     * @return   whether to check UCD syntax
+     */
+    public boolean isCheckUcd() {
+        return checkUcd_;
+    }
+
+    /**
+     * Sets whether ucd attribute values will be checked.
+     * Checking is currently against the UCD1+ standard.
+     *
+     * @param   checkUcd  whether to check UCD syntax
+     */
+    public void setCheckUcd( boolean checkUcd ) {
+        checkUcd_ = checkUcd;
+    }
+
+    /**
+     * Indicates whether unit attribute values will be checked.
+     * Checking is against the VOUnits standard.
+     *
+     * @return  whether to check unit syntax
+     */
+    public boolean isCheckUnit() {
+        return checkUnit_;
+    }
+
+    /**
+     * Sets whether unit attribute values will be checked.
+     * Checking is against the VOUnits standard.
+     *
+     * @param  checkUnit  whether to check unit syntax
+     */
+    public void setCheckUnit( boolean checkUnit ) {
+        checkUnit_ = checkUnit;
     }
 
     /**
@@ -102,7 +146,8 @@ public class VotLintContext {
         /* Check this one isn't already taken. */
         if ( idMap_.containsKey( id ) ) {
             ElementRef ref = idMap_.get( id );
-            error( "ID " + id + " already defined " + ref );
+            error( new VotLintCode( "DID" ),
+                   "ID " + id + " already defined " + ref );
         }
 
         /* If not, keep a record of it. */
@@ -157,7 +202,8 @@ public class VotLintContext {
             String id = entry.getKey();
             UncheckedReference unref = entry.getValue();
             ElementRef from = unref.from_;
-            error( "ID " + id + " referenced from " + from + " never found" );
+            error( new VotLintCode( "NFI" ),
+                   "ID " + id + " referenced from " + from + " never found" );
         }
     }
 
@@ -185,7 +231,7 @@ public class VotLintContext {
                         .append( id )
                         .append( "\" never referenced" )
                         .toString();
-                    warning( msg );
+                    warning( new VotLintCode( "HTI" ), msg );
                 }
             }
         }
@@ -194,29 +240,32 @@ public class VotLintContext {
     /**
      * Write an informative message to the user.
      *
-     * @param  msg  message
+     * @param  code  message identifier
+     * @param  msg  message text
      */
-    public void info( String msg ) {
-        messager_.reportMessage( SaxMessager.Level.INFO, msg, locator_ );
+    public void info( VotLintCode code, String msg ) {
+        messager_.reportMessage( SaxMessager.Level.INFO, code, msg, locator_ );
     }
 
     /**
      * Write a warning message to the user. 
      *
-     * @param  msg  message
+     * @param  code  message identifier
+     * @param  msg  message text
      */
-    public void warning( String msg ) {
-        messager_.reportMessage( SaxMessager.Level.WARNING, msg, locator_ );
+    public void warning( VotLintCode code, String msg ) {
+        messager_.reportMessage( SaxMessager.Level.WARNING, code, msg, locator_);
     }
 
     /**
      * Write an error message to the user.
      *
-     * @param  msg  message
+     * @param  code  message identifier
+     * @param  msg  message text
      */
-    public void error( String msg ) {
+    public void error( VotLintCode code, String msg ) {
         errCount_++;
-        messager_.reportMessage( SaxMessager.Level.ERROR, msg, locator_ );
+        messager_.reportMessage( SaxMessager.Level.ERROR, code, msg, locator_ );
     }
 
     /**

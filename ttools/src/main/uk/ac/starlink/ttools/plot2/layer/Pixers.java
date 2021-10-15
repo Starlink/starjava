@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.util.IntList;
@@ -56,6 +57,75 @@ public class Pixers {
     }
 
     /**
+     * Returns a new pixer that iterates over an array of Points.
+     * Iteration is done in place, so the content of these points
+     * should not be altered for the lifetime of this pixer.
+     *
+     * @param  points  point array
+     * @return  pixel iterator
+     */
+    public static Pixer createPointsPixer( final Point[] points ) {
+        final int np = points.length;
+        return new Pixer() {
+            int ip = -1;
+            public boolean next() {
+                return ++ip < np;
+            }
+            public int getX() {
+                return points[ ip ].x;
+            }
+            public int getY() {
+                return points[ ip ].y;
+            }
+        };
+    }
+
+    /**
+     * Returns an efficient copy of the given factory.
+     * This may be suitable if it is known that many copies will be
+     * required of a Pixer.
+     *
+     * @param  base  base implementation
+     * @return  new PixerFactory functionally equivalent to base implementation
+     */
+    public static PixerFactory copy( PixerFactory base ) {
+        final int xmin = base.getMinX();
+        final int xmax = base.getMaxX();
+        final int ymin = base.getMinY();
+        final int ymax = base.getMaxY();
+        final int npix = base.getPixelCount();
+        final int[] xs = new int[ npix ];
+        final int[] ys = new int[ npix ];
+        int ip = 0;
+        for ( Pixer pixer = base.createPixer(); pixer.next(); ) {
+            xs[ ip ] = pixer.getX();
+            ys[ ip ] = pixer.getY();
+            ip++;
+        }
+        assert ip == npix;
+        return new PixerFactory() {
+            public int getMinX() {
+                return xmin;
+            }
+            public int getMaxX() {
+                return xmax;
+            }
+            public int getMinY() {
+                return ymin;
+            }
+            public int getMaxY() {
+                return ymax;
+            }
+            public int getPixelCount() {
+                return npix;
+            }
+            public Pixer createPixer() {
+                return createArrayPixer( xs, ys, npix );
+            }
+        };
+    }
+
+    /**
      * Takes a given pixer and copies its data, returning an object that
      * can issue pixers that behave the same as the original.
      * Since pixers are one-use iterators, this may be a useful caching
@@ -69,17 +139,46 @@ public class Pixers {
         IntList xlist = new IntList();
         IntList ylist = new IntList();
         int ip = 0;
+        int xmin = Integer.MAX_VALUE;
+        int xmax = Integer.MIN_VALUE;
+        int ymin = Integer.MAX_VALUE;
+        int ymax = Integer.MIN_VALUE;
         while ( pixer.next() ) {
-            xlist.add( pixer.getX() );
-            ylist.add( pixer.getY() );
+            int x = pixer.getX();
+            int y = pixer.getY();
+            xlist.add( x );
+            ylist.add( y );
+            xmin = Math.min( xmin, x );
+            xmax = Math.max( xmax, x );
+            ymin = Math.min( ymin, y );
+            ymax = Math.max( ymax, y );
             ip++;
         }
         final int[] xs = xlist.toIntArray();
         final int[] ys = ylist.toIntArray();
         final int np = ip;
+        final int xmin0 = xmin;
+        final int xmax0 = xmax;
+        final int ymin0 = ymin;
+        final int ymax0 = ymax;
         return new PixerFactory() {
             public Pixer createPixer() {
                 return createArrayPixer( xs, ys, np );
+            }
+            public int getPixelCount() {
+                return np;
+            }
+            public int getMinX() {
+                return xmin0;
+            }
+            public int getMaxX() {
+                return xmax0;
+            }
+            public int getMinY() {
+                return ymin0;
+            }
+            public int getMaxY() {
+                return ymax0;
             }
         };
     }
@@ -118,6 +217,45 @@ public class Pixers {
     public static Pixer clip( Pixer base, Rectangle clip ) {
         return new ClipPixer( base, clip.x, clip.x + clip.width - 1,
                                     clip.y, clip.y + clip.height - 1 );
+    }
+
+    /**
+     * Returns a pixer that results from applying a clip rectangle to
+     * the output of a given PixerFactory.
+     *
+     * @param  pfact  pixer factory
+     * @param  clip   clipping rectangle
+     * @return   pixer contiaining only points within the clip,
+     *           or null if no points fall within it
+     */
+    public static Pixer createClippedPixer( PixerFactory pfact,
+                                            Rectangle clip ) {
+        int xminBase = pfact.getMinX();
+        int xmaxBase = pfact.getMaxX();
+        int xminClip = clip.x;
+        int xmaxClip = clip.x + clip.width - 1;
+        int xcmp = compare( xminClip, xmaxClip, xminBase, xmaxBase );
+        if ( xcmp == 0 ) {
+            return null;
+        }
+        int yminBase = pfact.getMinY();
+        int ymaxBase = pfact.getMaxY();
+        int yminClip = clip.y;
+        int ymaxClip = clip.y + clip.height - 1;
+        int ycmp = compare( yminClip, ymaxClip, yminBase, ymaxBase );
+        if ( ycmp == 0 ) {
+            return null;
+        }
+        if ( xcmp == 1 && ycmp == 1 ) {
+            return pfact.createPixer();
+        }
+        else {
+            int xmin = Math.max( xminClip, xminBase );
+            int xmax = Math.min( xmaxClip, xmaxBase );
+            int ymin = Math.max( yminClip, yminBase );
+            int ymax = Math.min( ymaxClip, ymaxBase );
+            return new ClipPixer( pfact.createPixer(), xmin, xmax, ymin, ymax );
+        }
     }
 
     /**
@@ -164,6 +302,39 @@ public class Pixers {
             int ymax = Math.min( ymaxClip, ymaxBase );
             return new ClipPixer( base, xmin, xmax, ymin, ymax );
         }
+    }
+
+    /**
+     * Convolves two PixerFactories together, which can be used
+     * for instance to apply a smoothing kernel to a given shape.
+     * The output will paint only within a given clipping region.
+     *
+     * @param  shape   first supplier of pixels
+     * @param  kernel  second supplier of pixels
+     * @param  clip   clipping rectangle for output
+     * @return  convolution pixel supplier
+     */
+    public static PixelDrawing convolve( PixerFactory shape,
+                                         PixerFactory kernel,
+                                         Rectangle clip ) {
+        int xlo = Math.max( shape.getMinX() + kernel.getMinX(), clip.x );
+        int ylo = Math.max( shape.getMinY() + kernel.getMinY(), clip.y );
+        int xhi = Math.min( shape.getMaxX() + kernel.getMaxX(),
+                            clip.x + clip.width - 1 );
+        int yhi = Math.min( shape.getMaxY() + kernel.getMaxY(),
+                            clip.y + clip.height - 1 );
+        PixelDrawing drawing =
+            new PixelDrawing( xlo, ylo, xhi - xlo + 1, yhi - ylo + 1 );
+        for ( Pixer spixer = shape.createPixer(); spixer.next(); ) {
+            int sx = spixer.getX();
+            int sy = spixer.getY();
+            for ( Pixer kpixer = kernel.createPixer(); kpixer.next(); ) {
+                int kx = kpixer.getX();
+                int ky = kpixer.getY();
+                drawing.addPixel( sx + kx, sy + ky );
+            }
+        }
+        return drawing;
     }
 
     /**

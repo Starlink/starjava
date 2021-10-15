@@ -25,11 +25,11 @@ public abstract class StreamingHandler extends ElementHandler {
                 table_ = (TableHandler) data.getAncestry().getParent();
             }
             else {
-                error( "DATA not child of TABLE" );
+                error( new VotLintCode( "DDS" ), "DATA not child of TABLE" );
             }
         }
         else {
-            error( this + " not child of DATA" );
+            error( new VotLintCode( "DDS" ), this + " not child of DATA" );
         }
 
         /* Store the fields. */
@@ -40,7 +40,7 @@ public abstract class StreamingHandler extends ElementHandler {
             }
         }
         else {
-            error( this + " outside DATA" );
+            error( new VotLintCode( "DDS" ), this + " outside DATA" );
         }
     }
 

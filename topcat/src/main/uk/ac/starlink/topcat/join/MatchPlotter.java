@@ -31,8 +31,6 @@ import uk.ac.starlink.topcat.plot2.PlanePlotWindow;
 import uk.ac.starlink.topcat.plot2.SkyPlotWindow;
 import uk.ac.starlink.topcat.plot2.SpherePlotWindow;
 import uk.ac.starlink.topcat.plot2.StackPlotWindow;
-import uk.ac.starlink.ttools.plot.MarkShape;
-import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
@@ -46,6 +44,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SphereDataGeom;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
+import uk.ac.starlink.ttools.plot2.layer.MarkerShape;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
@@ -60,11 +59,11 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  */
 public abstract class MatchPlotter {
 
-    private static final MarkShape[] SINGLE_SHAPES = new MarkShape[] {
-        MarkShape.CROXX,
-        MarkShape.CROSS,
-        MarkShape.OPEN_TRIANGLE_UP,
-        MarkShape.OPEN_TRIANGLE_DOWN,
+    private static final MarkerShape[] SINGLE_SHAPES = new MarkerShape[] {
+        MarkerShape.CROXX,
+        MarkerShape.CROSS,
+        MarkerShape.OPEN_TRIANGLE_UP,
+        MarkerShape.OPEN_TRIANGLE_DOWN,
     };
     private static final Color[] SINGLE_COLORS =
         ColorConfigKey.getPlottingColors();
@@ -283,7 +282,7 @@ public abstract class MatchPlotter {
             ConfigMap config = new ConfigMap();
             config.put( StyleKeys.COLOR,
                         SINGLE_COLORS[ iin % SINGLE_COLORS.length ] );
-            config.put( StyleKeys.MARK_SHAPE,
+            config.put( StyleKeys.MARKER_SHAPE,
                         SINGLE_SHAPES[ iin % SINGLE_SHAPES.length ] );
             config.put( StyleKeys.SIZE, 2 );
             return config;
@@ -297,7 +296,7 @@ public abstract class MatchPlotter {
         public ConfigMap createMarkConfigN() {
             ConfigMap config = new ConfigMap();
             config.put( StyleKeys.COLOR, Color.gray );
-            config.put( StyleKeys.MARK_SHAPE, MarkShape.OPEN_CIRCLE );
+            config.put( StyleKeys.MARKER_SHAPE, MarkerShape.OPEN_CIRCLE );
             config.put( StyleKeys.SIZE, 3 );
             return config;
         }

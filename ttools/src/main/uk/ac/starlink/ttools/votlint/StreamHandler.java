@@ -32,7 +32,8 @@ public class StreamHandler extends ElementHandler {
         String encoding = getAttribute( "encoding" );
         if ( ( href == null || href.trim().length() == 0 ) && 
              ! "base64".equals( encoding ) ) {
-            warning( this + " has no href but encoding is not base64" );
+            warning( new VotLintCode( "N64" ),
+                     this + " has no href but encoding is not base64" );
         }
 
         ElementHandler parent = getAncestry().getParent();
@@ -55,7 +56,8 @@ public class StreamHandler extends ElementHandler {
                         streamer.feed( in );
                     }
                     catch ( IOException e ) {
-                        warning( "Read error for external stream " + e );
+                        warning( new VotLintCode( "IOE" ),
+                                 "Read error for external stream " + e );
                     }
                     finally {
                         if ( in != null ) {
@@ -69,7 +71,8 @@ public class StreamHandler extends ElementHandler {
                     }
                 }
                 else {
-                    error( "Can't make sense of href '" + href + "'" );
+                    error( new VotLintCode( "HRQ" ),
+                           "Can't make sense of href '" + href + "'" );
                 }
             }
 
@@ -91,14 +94,16 @@ public class StreamHandler extends ElementHandler {
                                                          .getOutputStream() );
                 }
                 catch ( IOException e ) {
-                    error( "Trouble with STREAM content - can't validate" );
+                    error( new VotLintCode( "SRQ" ),
+                           "Trouble with STREAM content - can't validate" );
                     pipeReader_ = null;
                     dataSink_ = null;
                 }
             }
         }
         else {
-           error( "Illegal parent of STREAM " + parent );
+           error( new VotLintCode( "STS" ),
+                  "Illegal parent of STREAM " + parent );
         }
     }
 
@@ -118,7 +123,8 @@ public class StreamHandler extends ElementHandler {
             }
         }
         else {
-            error( "Unexpected content of STREAM " +
+            error( new VotLintCode( "SX1" ),
+                   "Unexpected content of STREAM " +
                    "(stream with href should be empty)" );
         }
     }
@@ -133,7 +139,7 @@ public class StreamHandler extends ElementHandler {
                 pipeReader_.finishReading();
             }
             catch ( IOException e ) {
-                error( "Streaming error " + e );
+                error( new VotLintCode( "STE" ), "Streaming error " + e );
             }
             dataSink_ = null;
             pipeReader_ = null;
@@ -161,7 +167,8 @@ public class StreamHandler extends ElementHandler {
             return new GZIPInputStream( in );
         }
         else if ( encoding.equals( "dynamic" ) ) {
-            warning( "Parser can't interpret dynamic stream " +
+            warning( new VotLintCode( "DYF" ),
+                     "Parser can't interpret dynamic stream " +
                      "encodings properly - sorry" );
 
             /* Pass it to the Compression class, which will probably be able
@@ -170,7 +177,8 @@ public class StreamHandler extends ElementHandler {
             return Compression.decompressStatic( in );
         }
         else {
-            error( "Unknown encoding type '" + encoding + "' (assume none)" );
+            error( new VotLintCode( "UKE" ),
+                   "Unknown encoding type '" + encoding + "' (assume none)" );
             return in;
         }
     }

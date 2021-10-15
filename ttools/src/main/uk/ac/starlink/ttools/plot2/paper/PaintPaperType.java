@@ -11,7 +11,6 @@ import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.PictureImageIcon;
 import uk.ac.starlink.ttools.plot2.Drawing;
@@ -19,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.layer.MarkerShape;
 
 /**
  * Vector paper type abstract superclass.
@@ -150,7 +150,7 @@ public abstract class PaintPaperType implements PaperType {
         @Slow
         public void paintIcon( Component c, Graphics g, int x, int y ) {
             Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint( MarkShape.OUTLINE_CIRCLE_HINT,
+            g2.setRenderingHint( MarkerShape.OUTLINE_CIRCLE_HINT,
                                  Boolean.valueOf( paperType_.isBitmap() ) );
             g2.translate( x - plotBounds_.x, y - plotBounds_.y );
             g2.clipRect( plotBounds_.x, plotBounds_.y,

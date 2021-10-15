@@ -26,12 +26,14 @@ public class FieldRefChecker extends RefChecker {
                 ((FieldHandler) to.getHandler()).getTableRef();
             if ( fromTable == null || toTable == null || 
                  ! fromTable.equals( toTable ) ) {
-                context.warning( from + " has ref to " + toName + 
+                context.warning( new VotLintCode( "RFT" ),
+                                 from + " has ref to " + toName + 
                                  " in a different table" );
             }
         }
         else {
-            context.warning( from + " has ref to element type " + toName + 
+            context.warning( new VotLintCode( "RFW" ),
+                             from + " has ref to element type " + toName + 
                              " - not meaningful" );
         }
     }

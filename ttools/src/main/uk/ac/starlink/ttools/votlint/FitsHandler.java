@@ -22,6 +22,7 @@ public class FitsHandler extends StreamingHandler
                          implements TableSink {
 
     public void feed( InputStream in ) throws IOException {
+        VotLintCode extnumCode = new VotLintCode( "EXT" );
 
         /* Stream the data from the stream to a TableSink - this object. */
         String extnum = getAttribute( "extnum" );
@@ -29,12 +30,14 @@ public class FitsHandler extends StreamingHandler
             try {
                 int en = Integer.parseInt( extnum );
                 if ( en <= 0 ) {
-                    error( "Non-positive extension number extnum=" + en );
+                    error( extnumCode,
+                           "Non-positive extension number extnum=" + en );
                     extnum = null;
                 }
             }
             catch ( NumberFormatException e ) {
-                error( "Bad extension number extnum='" + extnum + "'" );
+                error( extnumCode,
+                       "Bad extension number extnum='" + extnum + "'" );
                 extnum = null;
             }
         }
@@ -63,7 +66,8 @@ public class FitsHandler extends StreamingHandler
         Class<?> vClass = vParser.getContentClass();
         Class<?> fClass = cinfo.getContentClass();
         if ( ! vClass.equals( fClass ) ) {
-            warning( "VOTable/FITS type mismatch for column " + 
+            warning( new VotLintCode( "FVM" ),
+                     "VOTable/FITS type mismatch for column " + 
                      vField.getRef() + " (" +
                      vClass.getName() + " != " + fClass.getName() + ")" );
         }
@@ -83,7 +87,8 @@ public class FitsHandler extends StreamingHandler
             fSize = 1;
         }
         if ( vSize > 0 && fSize > 0 && vSize != fSize ) {
-            warning( "VOTable/FITS array size mismatch for column " + 
+            warning( new VotLintCode( "FVM" ),
+                     "VOTable/FITS array size mismatch for column " + 
                      vField.getRef() + " (" + vSize + " != " + fSize + ")" );
         }
     }
@@ -101,7 +106,8 @@ public class FitsHandler extends StreamingHandler
         int ncol = meta.getColumnCount();
         FieldHandler[] fields = getFields();
         if ( ncol != fields.length ) {
-            warning( "FITS table has " + ncol + " columns and VOTable has " +
+            warning( new VotLintCode( "FVI" ),
+                     "FITS table has " + ncol + " columns and VOTable has " +
                      fields.length + " - no type checking done" );
         }
 

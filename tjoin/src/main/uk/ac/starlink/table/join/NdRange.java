@@ -135,8 +135,8 @@ public class NdRange {
 
     public int hashCode() {
         int code = 23;
-        code = 37 * code + Arrays.asList( mins_ ).hashCode();
-        code = 37 * code + Arrays.asList( maxs_ ).hashCode();
+        code = 37 * code + Arrays.hashCode( mins_ );
+        code = 37 * code + Arrays.hashCode( maxs_ );
         return code;
     }
 

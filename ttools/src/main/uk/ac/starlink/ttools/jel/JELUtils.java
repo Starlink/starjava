@@ -40,6 +40,7 @@ import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.ttools.func.TrigDegrees;
 import uk.ac.starlink.ttools.func.URLs;
+import uk.ac.starlink.ttools.func.VO;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -153,6 +154,7 @@ public class JELUtils {
                 Times.class,
                 TrigDegrees.class,
                 URLs.class,
+                VO.class,
             } ) );
 
             /* Add classes specified by a system property. */

@@ -173,7 +173,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>10 June 2021</docdate>
+<docdate>15 October 2021</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -6127,7 +6127,7 @@ tests are confined to the presented document itself.
 
 <p>HTTP connections made by this validator are flagged in the
 <code>User-Agent</code> field with the token
-"<code>(IVOA-Validate)</code>".
+"<code>(IVOA-test)</code>".
 </p>
 
 &datalinklint-summary;
@@ -7394,8 +7394,12 @@ instance.
 <webref url="http://www.ivoa.net/documents/DALI/">DALI</webref>,
 <webref url="http://www.ivoa.net/Documents/ObsCore/">ObsCore</webref>,
 <webref url="http://www.ivoa.net/Documents/ObsLocTAP/">ObsLocTAP</webref>,
+<webref url="http://www.ivoa.net/Documents/EPNTAP/">EPN-TAP</webref>,
 <webref url="http://www.ivoa.net/Documents/VOTable/">VOTable</webref>,
+<webref url="http://www.ivoa.net/documents/UCD1+/">UCD</webref>,
+<webref url="http://www.ivoa.net/Documents/VOUnits/">VOUnits</webref>,
 <webref url="http://www.ivoa.net/documents/SSO/">SSO</webref>,
+<webref url="http://www.ivoa.net/documents/Notes/softid/">SoftID</webref>,
 <webref url="http://www.w3.org/Protocols/rfc2616/rfc2616.html">HTTP</webref>,
 <webref url="https://www.w3.org/TR/rdfa-lite/">RDFa Lite</webref>),
 and it is hard to write a validator which is comprehensive, especially
@@ -7416,7 +7420,7 @@ and service registration.
 
 <p>HTTP connections made by this validator are flagged in the
 <code>User-Agent</code> field with the token
-"<code>(IVOA-Validate)</code>".
+"<code>(IVOA-test)</code>".
 </p>
 
 &taplint-summary;
@@ -9420,8 +9424,7 @@ if required.
 
 <p>The VOTable standard, while not hugely complicated, has a number
 of subtleties and it's not difficult to produce VOTable documents
-which violate it in various ways.  In fact it's probably true to say
-that most VOTable documents out there are not strictly legal.
+which violate it in various ways.
 In some cases the errors are small and a parser is likely to
 process the document without noticing the trouble.  
 In other cases, the errors are so serious that it's hard for
@@ -9447,8 +9450,7 @@ It is meant for use in two main scenarios:
 </p>
 
 <p>Validating a VOTable document against the VOTable schema or DTD 
-of course goes a long way towards checking a VOTable document for errors
-(though it's clear that many VOTable authors don't even go this far),
+of course goes a long way towards checking a VOTable document for errors,
 but it by no means does the whole job, simply because the schema/DTD
 specification languages don't have the facilities 
 to understand the data structure
@@ -9469,10 +9471,13 @@ information is then up to you.
 The <code>votable</code> argument
 gives the location (filename or URL) of a VOTable document.
 Otherwise, the document will be read from standard input.
-Error and warning messages will be written on standard error.
+Error and warning messages will be written on standard output.
 Each message is prefixed with the location at which the error was
 found (if possible the line and column are shown, though this is
 dependent on your JVM's default XML parser).
+If multiple instances of the same problem are found,
+by default only a few repeats of the message are reported;
+this can be controlled with the <code>maxrepeat</code> parameter.
 The processing is SAX-based, so arbitrarily long tables can
 be processed without heavy memory use.
 </p>
@@ -9531,6 +9536,8 @@ and lead to ERROR reports if violations are found:
     but the external vocabularies are consulted if necessary to check
     for values added after build time
     (currently only applies to <code>TIMESYS</code> attributes).</li>
+<li>Values marked by <code>xtype</code> values as defined in DALI
+    are checked for formal compliance with DALI requirements.</li>
 </ul>
 </p>
 
@@ -9560,6 +9567,10 @@ wise at least to take a look at the input which caused them:
     though not <code>INFO</code>s) with the
     same <code>name</code> attributes</li>
 <li><code>TIMESYS</code> elements never referenced.</li>
+<li><code>ucd</code> attribute values are not legal UCD1+ strings
+    (if parameter <code>ucd=true</code>)</li>
+<li><code>unit</code> attribute values are not legal VOUnit strings
+    (if parameter <code>unit=true</code>)</li>
 </ul>
 </p>
 
@@ -13229,6 +13240,152 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             outside of data range.</li>
         <li>FITS TZERO headers are now written correctly with numeric values
             rather than string values.</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Version 3.4-2 (15 October 2021)</dt>
+<dd><p>
+    <dl>
+    <dt>Taplint and Votlint changes:</dt>
+    <dd><p>
+        <ul>
+        <li>New stage <code>UUC</code> added to
+            <ref id="taplint">taplint</ref>.
+            This checks units
+            (against the <webref url="https://www.ivoa.net/documents/VOUnits/"
+                                 >VOUnits</webref> standard)
+            and UCDs
+            (against the <webref url="https://www.ivoa.net/documents/UCD1+/"
+                                 >UCD1+</webref> standard
+             and legacy UCD1 list).</li>
+        <li>New stage <code>EPN</code> added to taplint.
+            This checks EPN-TAP (<code>*.epn_core</code>) tables
+            against some version of
+            <webref url="https://www.ivoa.net/documents/EPNTAP/"
+                    >EPN-TAP</webref> 2.0
+            (currently PR-EPNTAP-2.0-20211012).
+            Since EPN-TAP is still in draft at time of writing,
+            this stage is not currently run by default.</li>
+        <li>Modify taplint <code>stages</code> parameter usage;
+            you can now add and remove stages individually using
+            <code>+XXX</code>/<code>-XXX</code> syntax.</li>
+        <li>Taplint now does a better job of categorising VOTable parse
+            errors, so multiple repeats of similar messages can be avoided.
+            Ad-hoc VOTable error codes have changed from
+            "<code>VOxx</code>" to "<code>Yxxx</code>".</li>
+        <li><ref id="votlint">Votlint</ref>,
+            hence also taplint, now checks values in
+            FIELD/PARAMs marked with <code>xtype</code> attributes for
+            conformance to rules from
+            <webref url="https://www.ivoa.net/documents/DALI/20170517/"
+                    >DALI 1.1</webref> sec 3.3.</li>
+        <li>Taplint <code>MDQ</code> stage now reports mismatches
+            between declared and result Units, UCDs, Xtypes, and Utypes
+            as well as datatypes.</li>
+        <li>Taplint and <ref id="datalinklint">datalinklint</ref>
+            now identify themselves as validators
+            using the <code>User-Agent</code> token "<code>(IVOA-test)</code>"
+            rather than "<code>(IVOA-validate)</code>" as before;
+            this follows the published content of the
+            <webref url="https://www.ivoa.net/documents/Notes/softid/"
+                    >SoftID-1.0</webref> IVOA Note.</li>
+        <li>Taplint now examines the service <code>Server</code> header
+            and tries to check it for VO component identification
+            as recommended by <code>SoftID</code>.</li>
+        <li>Votlint now has a <code>maxrepeat</code>
+            parameter like <code>taplint</code>
+            (previously the repeat count was hard-wired to 4).</li>
+        <li>Votlint now does a better job of identifying similar errors,
+            so output suppressing repeated messages can be more compact.
+            Suppression of repeated messages is reported.</li>
+        <li>Votlint now optionally checks the content of <code>unit</code>
+            and <code>ucd</code> attributes, checking against the
+            VOUnits and UCD1+/UCD1 standards respectively.</li>
+        <li>Distinguish <code>votlint</code> reports for recognised and
+            unrecognised (e.g. VODML) elements in foreign XML namespaces.</li>
+        <li>Add timestamp line at start of <code>taplint</code> output.</li>
+        </ul>
+        </p></dd>
+    <dt>Other new functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>A new parameter <code>thick</code> has been added to several
+            plot layer types to enable lines thicker than a single pixel
+            when drawing error bars, arrows, outlines, pair links etc:
+            <ref id="layer-xyvector"><code>xyvector</code></ref>,
+            <ref id="layer-xyerror"><code>xyerror</code></ref>,
+            <ref id="layer-sizexy"><code>sizexy</code></ref>,
+            <ref id="layer-xyellipse"><code>xyellipse</code></ref>,
+            <ref id="layer-xycorr"><code>xycorr</code></ref>,
+            <ref id="layer-link2"><code>link2</code></ref>,
+            <ref id="layer-poly4"><code>poly4</code></ref>,
+            <ref id="layer-polygon"><code>polygon</code></ref>,
+            <ref id="layer-area"><code>area</code></ref>,
+            <ref id="layer-yerrors"><code>yerrors</code></ref>,
+            <ref id="layer-xyerrors"><code>xyerrors</code></ref>,
+            <ref id="layer-skyvector"><code>skyvector</code></ref>,
+            <ref id="layer-skyellipse"><code>skyellipse</code></ref>,
+            <ref id="layer-skycorr"><code>skycorr</code></ref>,
+            <ref id="layer-xyzvector"><code>xyzvector</code></ref>,
+            <ref id="layer-xyzerror"><code>xyzerror</code></ref>,
+            <ref id="layer-yerror"><code>yerror</code></ref>.</li>
+            <li>New functions in class 
+                <ref id="uk.ac.starlink.ttools.func.VO">VO</ref>
+                to check syntax of UCD and VOUnit strings.</li>
+        <li>New <code>areatype</code> value <code>UNIQ</code> for plotting
+            single HEALPix tiles e.g. from MOC files in
+            <ref id="layer-area">area</ref> (and similar) layer type.</li>
+        <li>New <ref id="mode-checksum"><code>checksum</code></ref>
+            table output mode.</li>
+        <li>Add Julian Day manipulation functions <code>jdToMjd</code>
+            and <code>mjdToJd</code> to class
+            <ref id="uk.ac.starlink.ttools.func.Times">Times</ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>The <code>fast</code> parameter has been withdrawn from
+            polygon-plotting plot types
+            <ref id="layer-area"><code>area</code></ref>,
+            <ref id="layer-polygon"><code>polygon</code></ref>,
+            <ref id="layer-poly4"><code>poly4</code></ref>;
+            the shape-filling algorithm has been improved, and it's no
+            longer necessary to choose between speed and accuracy.</li>
+        <li>Replace the <code>julianToUnixSec</code> function in class
+            <ref id="uk.ac.starlink.ttools.func.Times">Times</ref>,
+            which didn't do what it said it did,
+            with <code>jdToUnixSec</code>.</li>
+        <li>The <code>mjdToIso</code> and <code>mjdToDate</code> functions
+            in class <ref id="uk.ac.starlink.ttools.func.Times">Times</ref>
+            now prepend the string
+            "<code>(BCE)</code>" to dates before the Common Era.</li>
+        <li>Guess meaning for some non-standard COORDSYS values in
+            HEALPix-FITS files, e.g. allow "GALACTIC" instead of "G".</li>
+        <li>Revert to sequential processing in some cases for
+            HEALPix plot layer to reduce resource usage.</li>
+        <li>Columns that are all blank in ASCII-like tables
+            (CSV, ASCII, TST) are now interpreted as type String
+            not boolean.</li>
+        <li>Files compressed using multi-stream bzip2 compression
+            (e.g. <code>pbzip2</code> output) are now supported
+            alongside single-stream bzip2.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix serious threading bug that could return nonsense values
+            from fixed-length string fields during parallel processing,
+            for instance statistics calculation,
+            of large cached or randomised tables.</li>
+        <li>Upgrade of cds-healpix-java library to v0.30.2; this fixes
+            some HEALPix cell plotting bugs.</li>
+        <li>Fix aux ranging bug that meant <code>auxmax</code> without
+            <code>auxmin</code> was not honoured in plot commands.
+            This was a regression bug introduced at v3.1-5.</li>
         </ul>
         </p></dd>
     </dl>

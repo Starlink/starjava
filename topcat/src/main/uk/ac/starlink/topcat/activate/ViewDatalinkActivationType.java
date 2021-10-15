@@ -68,7 +68,25 @@ public class ViewDatalinkActivationType implements ActivationType {
             public void run() {
                 dlPanel.setLinksDoc( linksDoc );
                 if ( window != null ) {
-                    window.setVisible( true );
+
+                    /* In the case of auto-invoke, don't generally setVisible.
+                     * setVisible(true) (at least in some cases; this may be
+                     * platform-dependent) brings the window to the front and
+                     * grabs focus, but we want the thing to stay unobtrusive.
+                     * If the window has been closed however, bring it back,
+                     * since otherwise there's going to be no way for the user
+                     * to recover it. */
+                    if ( dlPanel.isAutoInvoke() ) {
+                        if ( ! window.isVisible() ) {
+                            window.setVisible( true );
+                        }
+                    }
+
+                    /* If no auto-invoke, the user needs have the window made
+                     * obvious so that they can optionally interact with it. */
+                    else {
+                        window.setVisible( true );
+                    }
                 }
             }
         } );
@@ -91,7 +109,7 @@ public class ViewDatalinkActivationType implements ActivationType {
         DatalinkConfigurator( TopcatModelInfo tinfo ) {
             super( tinfo, "Datalink",
                    new ColFlag[] { ColFlag.DATALINK, ColFlag.URL, } );
-            dlPanel_ = new DatalinkPanel( true );
+            dlPanel_ = new DatalinkPanel( true, true );
             String title = "TOPCAT(" + tinfo.getTopcatModel().getID() + "): "
                          + "Activation - View Datalink Table";
             window_ = new JFrame( title );

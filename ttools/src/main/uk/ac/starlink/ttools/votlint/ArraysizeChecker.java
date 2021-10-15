@@ -13,7 +13,8 @@ public class ArraysizeChecker implements AttributeChecker {
     public void check( String value, ElementHandler handler ) {
         if ( value != null && "1".equals( value.trim() ) ) {
             VotLintContext context = handler.getContext();
-            context.warning( "arraysize=\"1\" deprecated"
+            context.warning( new VotLintCode( "AR1" ),
+                             "arraysize=\"1\" deprecated"
                            + " since VOTable 1.3 Erratum #3" );
         }
     }

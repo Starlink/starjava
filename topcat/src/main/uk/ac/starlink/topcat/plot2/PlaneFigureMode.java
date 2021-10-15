@@ -4,9 +4,12 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
+import java.util.function.BinaryOperator;
 import uk.ac.starlink.topcat.TopcatJELUtils;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.Axis;
@@ -38,7 +41,12 @@ public abstract class PlaneFigureMode implements FigureMode {
     public static final FigureMode BOX = createBoxMode( "Box" );
 
     /** PlanarSurface area within a graphics ellipse (center+radius). */
-    public static final FigureMode ELLIPSE = createEllipseMode( "Ellipse" );
+    public static final FigureMode ELLIPSE =
+        createEllipseMode( "Aligned Ellipse" );
+
+    /** PlanarSurface area within a rotated ellipse. */
+    public static final FigureMode ROTATED_ELLIPSE =
+        createRotatedEllipseMode( "Rotated Ellipse" );
 
     /** Inverse of polygon mode. */
     public static final FigureMode OUTSIDE_POLYGON = invertMode( POLYGON );
@@ -61,7 +69,7 @@ public abstract class PlaneFigureMode implements FigureMode {
 
     /** Available polygon modes for use with planar surfaces. */
     public static final FigureMode[] MODES = {
-        POLYGON, BOX, ELLIPSE, BELOW, ABOVE, LEFT, RIGHT,
+        POLYGON, BOX, ELLIPSE, ROTATED_ELLIPSE, BELOW, ABOVE, LEFT, RIGHT,
     };
 
     /**
@@ -77,14 +85,14 @@ public abstract class PlaneFigureMode implements FigureMode {
     private static final String F_ISINSIDE;
     private static final String F_POLYLINE;
     private static final String F_LOG10;
-    private static final String F_HYPOT;
+    private static final String F_SQUARE;
 
     /** JEL functions used when constructing expressions. */
     static final String[] JEL_FUNCTIONS = new String[] {
         F_ISINSIDE = "isInside",
         F_POLYLINE = "polyLine",
         F_LOG10 = "log10",
-        F_HYPOT = "hypot",
+        F_SQUARE = "square",
     };
 
     /**
@@ -171,11 +179,11 @@ public abstract class PlaneFigureMode implements FigureMode {
 
     /**
      * Returns a string suitable for appending to an expression that
-     * adds a given value to it.
+     * adds a given value to it, with a given level of precision.
      *
      * @param  value  numeric value
      * @param  epsilon   precision level for formatting
-     * @return JEL-friendly string "+ <value>" or "- (-<value>)"
+     * @return JEL-friendly string "+ value" or "- (-value)"
      */
     private static String addFormattedValue( double value, double epsilon ) {
         return new StringBuffer()
@@ -183,6 +191,23 @@ public abstract class PlaneFigureMode implements FigureMode {
               .append( value >= 0 ? '+' : '-' )
               .append( ' ' )
               .append( PlotUtil.formatNumber( Math.abs( value ), epsilon ) )
+              .toString();
+    }
+
+    /**
+     * Returns a string suitable for appending to an expression that
+     * adds a given value to it, with a given number of significant figures.
+     *
+     * @param  value  numeric value
+     * @param  nsf  guideline number of significant figures
+     * @return JEL-friendly string "+ value" or "- (-value)"
+     */
+    private static String addFormattedValueSf( double value, int nsf ) {
+        return new StringBuffer()
+              .append( ' ' )
+              .append( value >= 0 ? '+' : '-' )
+              .append( ' ' )
+              .append( PlotUtil.formatNumberSf( Math.abs( value ), nsf ) )
               .toString();
     }
 
@@ -384,6 +409,33 @@ public abstract class PlaneFigureMode implements FigureMode {
                      ? new EllipseFigure( (PlanarSurface) surf,
                                           points[ 0 ], points[ np - 1 ] )
                      : null;
+            }
+        };
+    }
+
+    /**
+     * Returns a mode for drawing rotatable ellipses.
+     *
+     * @param  name  mode name
+     * @return  new instance
+     */
+    private static FigureMode createRotatedEllipseMode( String name ) {
+        return new PlaneFigureMode( name ) {
+            public Figure createFigure( Surface surf, Point[] points ) {
+                int np = points.length;
+                if ( surf instanceof PlanarSurface ) {
+                    PlanarSurface psurf = (PlanarSurface) surf;
+                    if ( np >= 3 ) {
+                        return new RotatedEllipseFigure( psurf, points[ 0 ],
+                                                         points[ 1 ],
+                                                         points[ np - 1 ] );
+                    }
+                    else if ( np == 2 ) {
+                        return new RotatedEllipseFigure( psurf, points[ 0 ],
+                                                         points[ 1 ], null );
+                    }
+                }
+                return null;
             }
         };
     }
@@ -716,7 +768,7 @@ public abstract class PlaneFigureMode implements FigureMode {
 
         public String createPlaneExpression( String xvar, String yvar ) {
             return new StringBuffer()
-                 .append( F_HYPOT )
+                 .append( F_SQUARE )
                  .append( "(" )
                  .append( "(" )
                  .append( referenceName( surf_, xvar, 0 ) )
@@ -724,7 +776,10 @@ public abstract class PlaneFigureMode implements FigureMode {
                  .append( ")" )
                  .append( "/" )
                  .append( PlotUtil.formatNumber( dx_, xEps_ ) )
-                 .append( ", " )
+                 .append( ")" )
+                 .append( " + " )
+                 .append( F_SQUARE )
+                 .append( "(" )
                  .append( "(" )
                  .append( referenceName( surf_, yvar, 1 ) )
                  .append( addFormattedValue( -cy_, yEps_ ) )
@@ -739,7 +794,6 @@ public abstract class PlaneFigureMode implements FigureMode {
 
         public String createPlaneAdql( String xvar, String yvar ) {
             return new StringBuffer()
-                .append( "SQRT(" )
                 .append( "POWER(" )
                 .append( "(" )
                 .append( referenceAdqlName( surf_, xvar, 0 ) )
@@ -757,10 +811,205 @@ public abstract class PlaneFigureMode implements FigureMode {
                 .append( "/" )
                 .append( PlotUtil.formatNumber( dy_, yEps_ ) )
                 .append( ", 2)" )
-                .append( ")" )
                 .append( " < " )
                 .append( "1" )
                 .toString();
+        }
+    }
+
+    /**
+     * Figure implementation for a rotatable ellipse.
+     */
+    private static class RotatedEllipseFigure extends PlaneFigure {
+        final Point p0_;
+        final Point pa_;
+        final Point pb_;
+        final boolean hasP2_;
+        final Shape ellipse_;
+        final BinaryOperator<String> fracA_;
+        final BinaryOperator<String> fracB_;
+        static final double rb0_ = 0.5;
+
+        /**
+         * Constructor.
+         *
+         * @param  surf  plot surface
+         * @param  p0    center
+         * @param  p1    point at end of primary radius
+         * @param  p2    point used to choose secondary radius,
+         *               or null if not chosen yet
+         */
+        RotatedEllipseFigure( PlanarSurface surf,
+                              Point p0, Point p1, Point p2 ) {
+            super( surf, new Point[] { p0, p1, p2 } );
+            p0_ = p0;
+            pa_ = p1;
+            hasP2_ = p2 != null;
+            double ra = Math.hypot( p1.x - p0.x, p1.y - p0.y );
+
+            /* Come up with a value for the secondary radius.
+             * If we have a user-chosen p2, take it to be the distance
+             * along a perpendicular dropped from there to the primary radius.
+             * If not, just call it some default fraction of the primary. */
+            double rb = p2 == null ? rb0_ * ra
+                                   : perpDistance( p0, p1, p2 );
+
+            /* Work out the vector corresponding to the end of the secondary
+             * radius. */
+            double theta = Math.atan2( pa_.y - p0_.y, pa_.x - p0_.x );
+            pb_ =
+                new Point( (int) Math.round( p0_.x + rb * Math.sin( theta ) ),
+                           (int) Math.round( p0_.y - rb * Math.cos( theta ) ) );
+
+            /* Prepare a shape to draw on the graphics surface. */
+            Ellipse2D ellipse0 =
+                new Ellipse2D.Double( p0_.x - ra, p0_.y - rb, 2 * ra, 2 * rb );
+            ellipse_ = AffineTransform
+                      .getRotateInstance( theta, p0_.x, p0_.y )
+                      .createTransformedShape( ellipse0 );
+
+            /* Prepare axis information we will need. */
+            Axis[] axes = surf_.getAxes();
+            Axis xAxis = axes[ 0 ];
+            Axis yAxis = axes[ 1 ];
+            boolean[] logFlags = surf_.getLogFlags();
+            boolean xlog = logFlags[ 0 ];
+            boolean ylog = logFlags[ 1 ];
+            int[] xbounds = xAxis.getGraphicsLimits();
+            int[] ybounds = yAxis.getGraphicsLimits();
+            int xdim = xbounds[ 1 ] - xbounds[ 0 ];
+            int ydim = ybounds[ 1 ] - ybounds[ 0 ];
+
+            /* Now determine the algebraic expression in data coordinates
+             * defining the same shape.  Note that the vectors we're using
+             * for primary and secondary radius, though orthogonal in
+             * graphics space, are not in general orthogonal in data space,
+             * so it's not as simple as rotating the coordinate space
+             * and using (x/a)^2+(y/b)^2<1.
+             * We need to decompose the offset position vector into
+             * multiples of the non-orthogonal basis vectors
+             * (ra and rb in data space), which requires a matrix inversion.
+             * It took me an embarrassingly long time to work this out.
+             * Calculate the coefficients here. */
+            double x0 = xAxis.graphicsToData( p0_.x );
+            double y0 = yAxis.graphicsToData( p0_.y );
+            double xa = xAxis.graphicsToData( pa_.x );
+            double ya = yAxis.graphicsToData( pa_.y );
+            double xb = xAxis.graphicsToData( pb_.x );
+            double yb = yAxis.graphicsToData( pb_.y );
+            double cx = xlog ? Math.log10( x0 ) : x0;
+            double cy = ylog ? Math.log10( y0 ) : y0;
+            double vax = xlog ? Math.log10( xa / x0 ) : xa - x0;
+            double vay = ylog ? Math.log10( ya / y0 ) : ya - y0;
+            double vbx = xlog ? Math.log10( xb / x0 ) : xb - x0;
+            double vby = ylog ? Math.log10( yb / y0 ) : yb - y0;
+            double det1 = 1. / ( vax * vby - vbx * vay );
+            double kxa =  vby * det1;
+            double kya = -vbx * det1;
+            double kxb = -vay * det1;
+            double kyb =  vax * det1;
+
+            /* Finally prepare the expressions for the components of
+             * the vector that must be within the unit circle for inclusion;
+             * these are used to generate the syntax-specific expression
+             * strings. */
+            double x1 = xAxis.graphicsToData( p0_.x + 1 );
+            double y1 = yAxis.graphicsToData( p0_.y + 1 );
+            double xEps = Math.abs( xlog ? Math.log10( x1 / x0 ) : x1 - x0 );
+            double yEps = Math.abs( ylog ? Math.log10( y1 / y0 ) : y1 - y0 );
+            int nsf = (int) Math.ceil( Math.log10( Math.max( xdim, ydim ) ) );
+            fracA_ = (xref, yref) -> new StringBuffer()
+                .append( PlotUtil.formatNumberSf( kxa, nsf ) )
+                .append( timesOffset( xref, cx, xEps ) )
+                .append( addFormattedValueSf( kya, nsf ) )
+                .append( timesOffset( yref, cy, yEps ) )
+                .toString();
+            fracB_ = (xref, yref) -> new StringBuffer()
+                .append( PlotUtil.formatNumberSf( kxb, nsf ) )
+                .append( timesOffset( xref, cx, xEps ) )
+                .append( addFormattedValueSf( kyb, nsf ) )
+                .append( timesOffset( yref, cy, yEps ) )
+                .toString();
+        }
+
+        public Area getArea() {
+            return new Area( ellipse_ );
+        }
+
+        public void paintPath( Graphics2D g ) {
+            g.draw( ellipse_ );
+            g.drawLine( p0_.x, p0_.y, pa_.x, pa_.y );
+            g.drawLine( p0_.x, p0_.y, pb_.x, pb_.y );
+        }
+
+        public Point[] getVertices() {
+            return hasP2_ ? new Point[] { p0_, pa_, pb_ }
+                          : new Point[] { p0_, pa_ };
+        }
+
+        public String createPlaneExpression( String xvar, String yvar ) {
+            String x = referenceName( surf_, xvar, 0 );
+            String y = referenceName( surf_, yvar, 1 );
+            return String.join( "",
+                F_SQUARE, "(", fracA_.apply( x, y ), ")",
+                " + ",
+                F_SQUARE, "(", fracB_.apply( x, y ), ")",
+                " < 1",
+            "" );
+        }
+
+        public String createPlaneAdql( String xvar, String yvar ) {
+            String x = referenceAdqlName( surf_, xvar, 0 );
+            String y = referenceAdqlName( surf_, yvar, 1 );
+            return String.join( "",
+                "POWER(", fracA_.apply( x, y ), ", 2)",
+                " + ",
+                "POWER(", fracB_.apply( x, y ), ", 2)",
+                " < 1",
+            "" );
+        }
+
+        /**
+         * Utility function to prepare an expression string giving a
+         * multiplier by an offset coordinate.
+         *
+         * @param  xref  textual representation of coordinate
+         * @param  x0    coordinate origin (negative offset)
+         * @param  eps   precision for offset
+         * @return  expression equivalent to "<code>*(xref-x0)</code>"
+         */
+        private static String timesOffset( String xref, double x0,
+                                           double eps ) {
+            return new StringBuffer()
+               .append( "*(" )
+               .append( xref )
+               .append( addFormattedValue( -x0, eps ) )
+               .append( ")" )
+               .toString();
+        }
+
+        /**
+         * Calculates the perpendicular distance from a point p2
+         * to the line between p0 and p1.
+         *
+         * @param  p0  one end of line
+         * @param  p1  other end of line
+         * @param  p2  point
+         * @return  length of perpendicular dropped from <code>p2</code>
+         *          to <code>p1-p0</code>
+         */
+        private static double perpDistance( Point p0, Point p1, Point p2 ) {
+            double v1x = p1.x - p0.x;
+            double v1y = p1.y - p0.y;
+            double r1 = Math.hypot( v1x, v1y );
+            double u1x = v1x / r1;
+            double u1y = v1y / r1;
+            double v2x = p2.x - p0.x;
+            double v2y = p2.y - p0.y;
+            double p12 = u1x * v2x + u1y * v2y;
+            double vpx = v2x - p12 * u1x;
+            double vpy = v2y - p12 * u1y;
+            return Math.hypot( vpx, vpy );
         }
     }
 

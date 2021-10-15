@@ -72,7 +72,8 @@ public abstract class VersionDetail {
             ElementHandler handler = createElementHandler( voTagname );
             if ( handler == null ) {
                 if ( ! context.isValidating() ) {
-                    context.error( "Element " + voTagname
+                    context.error( new VotLintCode( "VBE" ),
+                                   "Element " + voTagname
                                  + " not known at VOTable " + version_ );
                 }
                 handler = new ElementHandler();
@@ -114,7 +115,8 @@ public abstract class VersionDetail {
             return VERSION_MAP.get( version );
         }
         else {
-            context.warning( "No checking information available for version "
+            context.warning( new VotLintCode( "UKV" ),
+                             "No checking information available for version "
                            + version );
             return DUMMY;
         }
@@ -218,11 +220,15 @@ public abstract class VersionDetail {
                 map.put( "ref",
                          new RefChecker( new String[] { "COOSYS", "TIMESYS",
                                                         "GROUP" } ) );
+                map.put( "ucd", UcdChecker.INSTANCE );
+                map.put( "unit", UnitChecker.INSTANCE );
             }
             else if ( "FITS".equals( name ) ) {
             }
             else if ( "INFO".equals( name ) ) {
                 hasID = true;
+                map.put( "ucd", UcdChecker.INSTANCE );
+                map.put( "unit", UnitChecker.INSTANCE );
 
                 /* INFO has a name attribute.  However, we don't set hasName
                  * here, since multiple INFOs with the same name in the same
@@ -246,6 +252,8 @@ public abstract class VersionDetail {
                 map.put( "ref",
                          new RefChecker( new String[] { "COOSYS", "TIMESYS",
                                                         "FIELD", "GROUP" } ) );
+                map.put( "ucd", UcdChecker.INSTANCE );
+                map.put( "unit", UnitChecker.INSTANCE );
             }
             else if ( "RESOURCE".equals( name ) ) {
                 hasID = true;
@@ -258,6 +266,7 @@ public abstract class VersionDetail {
                 hasName = true;
                 map.put( "ref", new RefChecker( "TABLE" ) );
                 map.put( "nrows", new TableHandler.NrowsChecker() );
+                map.put( "ucd", UcdChecker.INSTANCE );
             }
             else if ( "TABLEDATA".equals( name ) ) {
             }
@@ -266,8 +275,10 @@ public abstract class VersionDetail {
             }
             else if ( "TIMESYS".equals( name ) ) {
                 hasID = true;
-                map.put( "timescale", VocabChecker.TIMESCALE );
-                map.put( "refposition", VocabChecker.REFPOSITION );
+                map.put( "timescale",
+                         new VocabAttributeChecker( VocabChecker.TIMESCALE ) );
+                map.put( "refposition",
+                         new VocabAttributeChecker( VocabChecker.REFPOSITION ));
             }
             else if ( "TR".equals( name ) ) {
             }
@@ -322,6 +333,7 @@ public abstract class VersionDetail {
             }
             else if ( "FIELDref".equals( name ) ) {
                 map.put( "ref", new RefChecker( "FIELD" ) );
+                map.put( "ucd", UcdChecker.INSTANCE );
             }
             else if ( "GROUP".equals( name ) ) {
                 map.put( "ref", new RefChecker( new String[] { "GROUP",
@@ -331,6 +343,7 @@ public abstract class VersionDetail {
             }
             else if ( "PARAMref".equals( name ) ) {
                 map.put( "ref", new RefChecker( "PARAM" ) );
+                map.put( "ucd", UcdChecker.INSTANCE );
             }
             return map;
         }
@@ -350,7 +363,8 @@ public abstract class VersionDetail {
                 return new ElementHandler() {
                     public void startElement() {
                         super.startElement();
-                        info( "COOSYS is deprecated at VOTable 1.2"
+                        info( new VotLintCode( "CD2" ),
+                              "COOSYS is deprecated at VOTable 1.2"
                             + " (though reprieved at 1.3)" );
                     }
                 };
@@ -368,6 +382,7 @@ public abstract class VersionDetail {
                 map.put( "ref", new RefChecker( new String[] { "GROUP",
                                                                "COOSYS",
                                                                "TABLE", } ) );
+                map.put( "ucd", UcdChecker.INSTANCE );
             }
             return map;
         }

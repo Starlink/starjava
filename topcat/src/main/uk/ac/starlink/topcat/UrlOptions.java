@@ -204,7 +204,7 @@ public class UrlOptions {
                 synchronized ( this ) {
                     isNewPanel = dlPanel_ == null;
                     if ( isNewPanel ) {
-                        dlPanel_ = new DatalinkPanel( true );
+                        dlPanel_ = new DatalinkPanel( true, true );
                     }
                 }
                 if ( isNewPanel ) {

@@ -1,17 +1,21 @@
 package uk.ac.starlink.vo;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.logging.Logger;
 
 /**
  * Utilities for manipulating the HTTP <code>User-Agent</code>
  * header from the JVM, following IVOA usage conventions.
- * At time of writing, these conventions are sketched in the
- * UserAgentUsage page on the IVOA wiki; they may be amended and/or
- * written up more formally in the future.
+ * These conventions are codified in the
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7231#section-5.5.3"
+ *    >SoftID IVOA Note</a>.
  *
- * <p>Typical usage would be:
+ * <p>Typical usage for a validator client would be:
  * <pre>
- *   String uaComment = UserAgentUtil.COMMENT_VALIDATE;   // "(IVOA-validate)"
+ *   String uaComment = UserAgentUtil.COMMENT_TEST;   // "(IVOA-test)"
  *   UserAgentUtil.pushUserAgentToken( uaComment );
  *   ... do validation ...
  *   UserAgentUtil.popUserAgentToken( uaComment );
@@ -19,37 +23,29 @@ import java.util.logging.Logger;
  *
  * @author   Mark Taylor
  * @since    12 Apr 2019
- * @see <a
- *      href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.43"
- *      >RFC 2616 sec 14.43</a>
- * @see <a href="https://wiki.ivoa.net/twiki/bin/view/IVOA/UserAgentUsage"
- *      >UserAgentUsage IVOA wiki page</a>
+ * @see <a href="https://datatracker.ietf.org/doc/html/rfc7231#section-5.5.3"
+           >RFC 7231 sec 5.5.3</a>
+ * @see <a href="https://www.ivoa.net/documents/Notes/softid/"
+ *         >NOTE-softid-1.0</a>
  */
 public class UserAgentUtil {
 
-    /** Purpose verb indicating validation: {@value}. */
-    public static final String PURPOSE_VALIDATE = "validate";
+    /** Purpose verb indicating testing/monitoring/validation: {@value}. */
+    public static final String PURPOSE_TEST = "test";
 
-    /** Purpose verb indicating service monitoring: {@value}. */
-    public static final String PURPOSE_MONITOR = "monitor";
-
-    /** Purpose verb indicating service harvesting: {@value}. */
-    public static final String PURPOSE_HARVEST = "harvest";
+    /** Purpose verb indicating copying/mirroring/harvesting: {@value}. */
+    public static final String PURPOSE_COPY = "copy";
 
     /** String prefixed to purpose verb to introduce IVOA operation comment. */
     public static final String IVOA_PREFIX = "IVOA-";
 
-    /** Comment token indicating client performs VO validation. */
-    public static final String COMMENT_VALIDATE =
-        createOpPurposeComment( PURPOSE_VALIDATE, null );
+    /** Comment token indicating client performs VO test/monitor/validate. */
+    public static final String COMMENT_TEST =
+        createOpPurposeComment( PURPOSE_TEST, null );
 
-    /** Comment token indicating client performs VO monitoring. */
-    public static final String COMMENT_MONITOR =
-        createOpPurposeComment( PURPOSE_MONITOR, null );
-
-    /** Comment token indicating client performs VO harvesting. */
-    public static final String COMMENT_HARVEST =
-        createOpPurposeComment( PURPOSE_HARVEST, null );
+    /** Comment token indicating client performs VO copy/mirror/harvest. */
+    public static final String COMMENT_COPY =
+        createOpPurposeComment( PURPOSE_COPY, null );
 
     /** System property that can be used to manipulate the UserAgent header. */
     public static final String AGENT_PROPNAME = "http.agent";
@@ -150,5 +146,54 @@ public class UserAgentUtil {
         }
         sbuf.append( ")" );
         return sbuf.toString();
+    }
+
+    /**
+     * Parses a products string as found in the HTTP User-Agent or Server
+     * header.  See RFC 7231 sec 5.5.3 and RFC 7230 sec 3.2.6 for the
+     * relevant syntax productions.
+     *
+     * @param  productsTxt   string giving product and comment tokens
+     *                       as found in User-Agent or Server header
+     * @return  array of tokens; each may be either a product or a comment;
+     *          comments start with a "("
+     * @throws  IllegalArgumentException  if the syntax is not as required
+     */
+    public static String[] parseProducts( String productsTxt ) {
+        final boolean allowComment = true;
+        String tchar = "[-!#$%&'*+.^_`|~a-zA-Z0-9]";
+        String token = tchar + "+";
+        String product = token + "(/" + token + ")?";
+        String comment = "\\(" + "([^\\\\)]|\\\\.)*" + "\\)";
+        String wordRegex =
+            "\\s+(" + product + ( allowComment ? ( "|" + comment ) : "" ) + ")";
+        Pattern wordPattern = Pattern.compile( wordRegex );
+        List<String> list = new ArrayList<>();
+        String txt = " " + productsTxt;
+        while ( txt.trim().length() > 0 ) {
+            Matcher matcher = wordPattern.matcher( txt );
+            if ( matcher.lookingAt() ) {
+                String word = matcher.group();
+                boolean isComment = word.trim().charAt( 0 ) == '(';
+                if ( isComment ) {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( int ic = 0; ic < word.length(); ic++ ) {
+                        char c = word.charAt( ic );
+                        if ( c != '\\' ) {
+                            sbuf.append( c );
+                        }
+                    }
+                    list.add( sbuf.toString().trim() );
+                }
+                else {
+                    list.add( word.trim() );
+                }
+                txt = txt.substring( matcher.end() );
+            }
+            else {
+                throw new IllegalArgumentException( "Bad product syntax" );
+            }
+        }
+        return list.toArray( new String[ 0 ] );
     }
 }

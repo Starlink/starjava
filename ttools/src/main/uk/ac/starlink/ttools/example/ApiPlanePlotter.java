@@ -5,7 +5,6 @@ import java.io.IOException;
 import javax.swing.Icon;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.plot.BarStyle;
-import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot2.BasicCaptioner;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -32,6 +31,7 @@ import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.ttools.plot2.layer.Cumulation;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
+import uk.ac.starlink.ttools.plot2.layer.MarkerShape;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.Outliner;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
@@ -206,7 +206,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         /* Prepare the graphical style of the scatter plot layer:
          * it's a scatter plot with single-position markers, plotted
          * in a single fixed colour. */
-        MarkShape shape = MarkShape.OPEN_CIRCLE;
+        MarkerShape shape = MarkerShape.OPEN_CIRCLE;
         int size = 2;
         Outliner outliner = MarkForm.createMarkOutliner( shape, size );
         Stamper stamper = new ShapeMode.FlatStamper( Color.RED );

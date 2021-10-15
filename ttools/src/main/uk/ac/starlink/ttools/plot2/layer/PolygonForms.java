@@ -11,7 +11,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.DefaultListCellRenderer;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
@@ -21,6 +20,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -40,27 +40,12 @@ public class PolygonForms {
     public static final ShapeForm ARRAY = new ArrayPolygonForm();
 
     /** Polygon mode configuration key. */
-    public static final ConfigKey<PolygonMode> POLYMODE_KEY =
-        createPolygonModeKey();
+    public static final ConfigKey<PolygonShape> POLYSHAPE_KEY =
+        createPolygonShapeKey();
 
-    /** Speed-over-accuracy configuration key. */
-    public static final ConfigKey<Boolean> ISFAST_KEY =
-        new BooleanConfigKey(
-            new ConfigMeta( "fast", "Fast" )
-           .setShortDescription( "Faviour speed over accuracy?" )
-           .setXmlDescription( new String[] {
-                "<p>Determines whether speed is favoured over accuracy",
-                "when drawing polygons.",
-                "In some cases setting this false",
-                "will give visually better results,",
-                "and in some cases setting it true will speed up plotting.",
-                "In other cases, the setting will make no difference",
-                "to either.",
-                "It may be necessary to set it false when filling",
-                "polygons that may be re-entrant.",
-                "</p>",
-            } )
-        , true );
+    /** Polygon thickness configuration key. */
+    public static final ConfigKey<Integer> POLYTHICK_KEY =
+        createPolygonThicknessKey();
 
     /** Reference position inclusion toggle key. */
     public static final ConfigKey<Boolean> INCLUDEPOS_KEY =
@@ -124,7 +109,7 @@ public class PolygonForms {
      *
      * @return  mode key
      */
-    private static ConfigKey<PolygonMode> createPolygonModeKey() {
+    private static ConfigKey<PolygonShape> createPolygonShapeKey() {
         ConfigMeta meta = new ConfigMeta( "polymode", "Polygon Mode" );
         meta.setXmlDescription( new String[] {
             "<p>Polygon drawing mode.",
@@ -132,19 +117,18 @@ public class PolygonForms {
             "round the edge and filling the interior with colour.",
             "</p>",
         } );
-        final PolygonMode[] modes = PolygonMode.MODES;
-        OptionConfigKey<PolygonMode> key =
-                new OptionConfigKey<PolygonMode>( meta, PolygonMode.class,
-                                                  modes ) {
-            public String getXmlDescription( PolygonMode polyMode ) {
-                return polyMode.getDescription();
+        final PolygonShape[] shapes = PolygonShape.POLYSHAPES;
+        OptionConfigKey<PolygonShape> key =
+                new OptionConfigKey<PolygonShape>( meta, PolygonShape.class,
+                                                   shapes ) {
+            public String getXmlDescription( PolygonShape polyShape ) {
+                return polyShape.getDescription();
             }
             @Override
-            public Specifier<PolygonMode> createSpecifier() {
-                JComboBox<PolygonMode> comboBox = new JComboBox<>( modes );
-                comboBox.setRenderer( new PolygonModeRenderer() );
-                return new ComboBoxSpecifier<PolygonMode>( PolygonMode.class,
-                                                           comboBox );
+            public Specifier<PolygonShape> createSpecifier() {
+                JComboBox<PolygonShape> comboBox = new JComboBox<>( shapes );
+                comboBox.setRenderer( new PolygonShapeRenderer() );
+                return new ComboBoxSpecifier<>( PolygonShape.class, comboBox );
             }
         };
         key.setOptionUsage();
@@ -153,19 +137,38 @@ public class PolygonForms {
     }
 
     /**
-     * ComboBox renderer for PolygonMode.  It draws a representation icon
-     * as well as displaying the mode name.
+     * Returns a config key for line drawing thickness.
+     *
+     * @return  new config key
      */
-    private static class PolygonModeRenderer extends DefaultListCellRenderer {
+    private static final ConfigKey<Integer> createPolygonThicknessKey() {
+        ConfigMeta meta = new ConfigMeta( "thick", "Thickness" );
+        meta.setShortDescription( "Line thickness for open shapes" );
+        meta.setXmlDescription( new String[] {
+            "<p>Controls the line thickness used when drawing polygons.",
+            "Zero, the default value, means a 1-pixel-wide line is used.",
+            "Larger values make drawn lines thicker,",
+            "but note changing this value will not affect all shapes,",
+            "for instance filled polygons contain no line drawings.",
+            "</p>",
+        } );
+        return StyleKeys.createPaintThicknessKey( meta, 4 );
+    }
+
+    /**
+     * ComboBox renderer for PolygonShape.  It draws a representation icon
+     * as well as displaying the shape name.
+     */
+    private static class PolygonShapeRenderer extends DefaultListCellRenderer {
 
         private int iconHeight_;
-        private PolygonMode polyMode_;
+        private PolygonShape polyShape_;
         private final Icon icon_;
 
         /**
          * Constructor.
          */
-        PolygonModeRenderer() {
+        PolygonShapeRenderer() {
             iconHeight_ = 0;
             icon_ = new Icon() {
                 public int getIconWidth() {
@@ -175,7 +178,7 @@ public class PolygonForms {
                     return iconHeight_;
                 }
                 public void paintIcon( Component c, Graphics g, int x, int y ) {
-                    if ( polyMode_ != null ) {
+                    if ( polyShape_ != null ) {
                         int w = getIconWidth();
                         int h = getIconHeight();
                         int[] xs = new int[] { x+0, x+w, x+w, x+0 };
@@ -184,8 +187,8 @@ public class PolygonForms {
                         int y0 = y + h / 2;
                         Color color0 = g.getColor();
                         g.setColor( c.getForeground() );
-                        polyMode_.getGlypher( false )
-                                 .paintPolygon( g, x0, y0, xs, ys, 4 );
+                        polyShape_.createPolygonGlyph( x0, y0, xs, ys, 4 )
+                                  .paintGlyph( g );
                         g.setColor( color0 );
                     }
                 }
@@ -203,10 +206,10 @@ public class PolygonForms {
             if ( iconHeight_ <= 0 ) {
                 iconHeight_ = c.getFontMetrics( c.getFont() ).getAscent();
             }
-            if ( c instanceof JLabel && value instanceof PolygonMode ) {
+            if ( c instanceof JLabel && value instanceof PolygonShape ) {
                 JLabel label = (JLabel) c;
-                polyMode_ = (PolygonMode) value;
-                label.setText( polyMode_.toString() );
+                polyShape_ = (PolygonShape) value;
+                label.setText( polyShape_.toString() );
                 label.setIcon( icon_ );
             }
             return c;
@@ -255,7 +258,7 @@ public class PolygonForms {
                 "supplied as " + np_ + " separate positions.",
                 "The way that the polygon is drawn (outline, fill etc)",
                 "is determined using the",
-                "<code>" + POLYMODE_KEY.getMeta().getShortName() + "</code>",
+                "<code>" + POLYSHAPE_KEY.getMeta().getShortName() + "</code>",
                 "option.",
                 "</p>",
                 "<p>Polygons smaller than a configurable threshold size",
@@ -280,21 +283,22 @@ public class PolygonForms {
 
         public ConfigKey<?>[] getConfigKeys() {
             return new ConfigKey<?>[] {
-                POLYMODE_KEY,
-                ISFAST_KEY,
+                POLYSHAPE_KEY,
+                POLYTHICK_KEY,
                 PolygonOutliner.MINSIZE_KEY,
                 PolygonOutliner.MINSHAPE_KEY,
             };
         }
 
         public Outliner createOutliner( ConfigMap config ) {
-            PolygonMode polyMode = config.get( POLYMODE_KEY );
-            boolean isFast = config.get( ISFAST_KEY ).booleanValue();
+            PolygonShape basicShape = config.get( POLYSHAPE_KEY );
+            int nthick = config.get( POLYTHICK_KEY ).intValue();
+            PolygonShape polyShape =
+                nthick == 0 ? basicShape : basicShape.toThicker( nthick );
             int minSize = config.get( PolygonOutliner.MINSIZE_KEY );
-            MarkShape minShape = config.get( PolygonOutliner.MINSHAPE_KEY );
-            PolygonMode.Glypher polyGlypher = polyMode.getGlypher( isFast );
+            MarkerShape minShape = config.get( PolygonOutliner.MINSHAPE_KEY );
             return PolygonOutliner
-                  .createFixedOutliner( np_, polyGlypher, minSize, minShape );
+                  .createFixedOutliner( np_, polyShape, minSize, minShape );
         }
     }
 
@@ -353,18 +357,19 @@ public class PolygonForms {
         public ConfigKey<?>[] getConfigKeys() {
             return new ConfigKey<?>[] {
                 INCLUDEPOS_KEY,
-                POLYMODE_KEY,
-                ISFAST_KEY,
+                POLYSHAPE_KEY,
+                POLYTHICK_KEY,
             };
         }
 
         public Outliner createOutliner( ConfigMap config ) {
             boolean includePos = config.get( INCLUDEPOS_KEY );
-            PolygonMode polyMode = config.get( POLYMODE_KEY );
-            boolean isFast = config.get( ISFAST_KEY ).booleanValue();
-            PolygonMode.Glypher glypher = polyMode.getGlypher( isFast );
+            PolygonShape basicShape = config.get( POLYSHAPE_KEY );
+            int nthick = config.get( POLYTHICK_KEY ).intValue();
+            PolygonShape polyShape =
+                nthick == 0 ? basicShape : basicShape.toThicker( nthick );
             return PolygonOutliner
-                  .createArrayOutliner( ARRAY_COORD, includePos, glypher );
+                  .createArrayOutliner( ARRAY_COORD, includePos, polyShape );
         }
     }
 }

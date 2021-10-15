@@ -30,7 +30,7 @@ public class StrokeXYShape extends XYShape {
      * @param  stroke  drawing stroke
      */
     public StrokeXYShape( Stroke stroke ) {
-        super( "Stroke", 16 );
+        super( "Stroke", 16, XYShape.POINT );
         stroke_ = stroke;
     }
 

@@ -29,7 +29,6 @@ import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Scaler;
@@ -54,6 +53,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
+import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.HealpixDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.Rotation;
@@ -621,7 +621,31 @@ public class HealpixPlotter
                     }
                 }
             };
-            return PlotUtil.tupleCollect( collector, dataSpec, dataStore )
+
+            /* Although the code is set up to assemble the bin list in
+             * parallel, in some cases it's better to do it sequentially
+             * instead.  The reason is that although the data scanning
+             * is accelerated by parallel processing, the (current) BinList
+             * implementations have data structure sizes which scale
+             * with thread count as well as with tile count (each thread
+             * has its own accumulator of a size scaling with 4^viewLevel).
+             * The additional memory required can exceed JVM heap limits,
+             * and its usage can also slow things down more than offsetting
+             * the gain from multithreading (e.g. managing bin insertion
+             * in multiple parallel hashmaps).  A sequential scan is usually
+             * not all that slow in any case at reasonable dataLevels.
+             * So if memory usage is in danger of getting out of hand,
+             * stick to sequential processing.
+             * This policy is obviously a bit ad hoc.  In its current form
+             * it was tested using a level=11 Healpix all-sky file with a
+             * 4Gb or 8Gb heap, for which parallel processing grinds to a
+             * halt but sequential processing works fine. */
+            final boolean forceSequential = viewLevel_ > 9
+                                         || combiner.hasBigBin();
+            return ( forceSequential ? TupleRunner.SEQUENTIAL
+                                     : dataStore.getTupleRunner() )
+                  .collect( collector,
+                            () -> dataStore.getTupleSequence( dataSpec ) )
                   .getResult();
         }
 

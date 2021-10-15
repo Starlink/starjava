@@ -9,7 +9,6 @@ import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.ErrorMode;
-import uk.ac.starlink.ttools.plot.ErrorRenderer;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -54,6 +53,7 @@ public class ErrorArrayForm implements ShapeForm {
     private final int icPys_;
     private final int icNys_;
     private final MultiPointConfigKey shapeKey_;
+    private final ConfigKey<Integer> thickKey_;
 
     /** ErrorArrayForm instance for Y-only error bars. */
     public static final ErrorArrayForm Y = new ErrorArrayForm( false );
@@ -94,6 +94,7 @@ public class ErrorArrayForm implements ShapeForm {
         extraCoords_ = extraCoords.toArray( new Coord[ 0 ] );
         assert ic == extraCoords_.length + 2;
         shapeKey_ = hasX ? StyleKeys.ERROR_SHAPE_2D : StyleKeys.ERROR_SHAPE_1D;
+        thickKey_ = MultiPointForm.createThicknessKey( shapeKey_ );
     }
 
     public int getPositionCount() {
@@ -133,19 +134,21 @@ public class ErrorArrayForm implements ShapeForm {
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
             shapeKey_,
+            thickKey_,
         };
     }
 
     public Outliner createOutliner( ConfigMap config ) {
-        ErrorRenderer renderer = config.get( shapeKey_ );
-        return new ErrorsOutliner( renderer );
+        MultiPointShape shape = config.get( shapeKey_ );
+        int nthick = config.get( thickKey_ ).intValue();
+        return new ErrorsOutliner( shape, nthick );
     }
 
     /**
      * Returns a glyph depicting a particular error bar.
      *
      * @param   surface  plot surface
-     * @param   renderer  error renderer
+     * @param   scribe   error shape
      * @param   dpos0   base position in data coordinates
      * @param   gpos0   base position in graphics coordinates
      * @param   ip      index into value arrays giving point/error coordinates
@@ -157,7 +160,7 @@ public class ErrorArrayForm implements ShapeForm {
      * @param   ysNeg   negative direction Y error bar extent array
      * @return   glyph depicting errors
      */
-    private Glyph createErrorGlyph( Surface surface, ErrorRenderer renderer,
+    private Glyph createErrorGlyph( Surface surface, MultiPointScribe scribe,
                                     double[] dpos0, Point2D.Double gpos0,
                                     int ip, double[] xs, double[] ys,
                                     double[] xsPos, double[] ysPos,
@@ -209,7 +212,7 @@ public class ErrorArrayForm implements ShapeForm {
         }
 
         /* Return a glyph based on these positions. */
-        return createErrorGlyph( surface, dpos0, gpos0, dp1s, renderer );
+        return createErrorGlyph( surface, dpos0, gpos0, dp1s, scribe );
     }
 
     /**
@@ -220,13 +223,13 @@ public class ErrorArrayForm implements ShapeForm {
      * @param   dpos0   base position in data coordinates
      * @param   gpos0   base position in graphics coordinates
      * @param   dp1s    2*n positions giving the end positions of error bars
-     * @param   renderer  error renderer
+     * @param   scribe  error shape
      * @return   glyph depicting errors
      */
     private static Glyph createErrorGlyph( Surface surface,
                                            double[] dpos0, Point2D.Double gpos0,
                                            double[][] dp1s,
-                                           ErrorRenderer renderer ) {
+                                           MultiPointScribe scribe ) {
         int np = dp1s.length;
         int[] xoffs = new int[ np ];
         int[] yoffs = new int[ np ];
@@ -240,7 +243,7 @@ public class ErrorArrayForm implements ShapeForm {
             xoffs[ ip ] = (int) Math.round( gpos1.x - gpos0.x );
             yoffs[ ip ] = (int) Math.round( gpos1.y - gpos0.y );
         }
-        return new MultiPointForm.MultiPointGlyph( renderer, xoffs, yoffs );
+        return scribe.createGlyph( xoffs, yoffs );
     }
 
     /**
@@ -331,21 +334,22 @@ public class ErrorArrayForm implements ShapeForm {
      * Outliner implementation for ErrorArrayForm.
      */
     private class ErrorsOutliner extends PixOutliner {
-        private final ErrorRenderer renderer_;
+        private final MultiPointScribe scribe_;
         private final Icon icon_;
 
         /**
          * Constructor.
          *
-         * @param  renderer  error renderer
+         * @param  shape  knows how to draw shape
+         * @param  nthick  line drawing thickness
          */
-        ErrorsOutliner( ErrorRenderer renderer ) {
-            renderer_ = renderer;
+        ErrorsOutliner( MultiPointShape shape, int nthick ) {
+            scribe_ = shape.createScribe( nthick );
             ErrorMode[] emodes = {
                 hasX_ ? ErrorMode.SYMMETRIC : ErrorMode.NONE,
                 ErrorMode.SYMMETRIC,
             };
-            icon_ = renderer.getLegendIcon( emodes, 14, 12, 1, 1 );
+            icon_ = shape.getLegendIcon( scribe_, emodes, 14, 12, 1, 1 );
         }
 
         public Icon getLegendIcon() {
@@ -390,7 +394,7 @@ public class ErrorArrayForm implements ShapeForm {
                             if ( surface
                                 .dataToGraphics( dpos0, true, gpos0 ) ) {
                                 Glyph glyph =
-                                    createErrorGlyph( surface, renderer_,
+                                    createErrorGlyph( surface, scribe_,
                                                       dpos0, gpos0, ip, xs, ys,
                                                       xsPos, ysPos,
                                                       xsNeg, ysNeg );
@@ -418,7 +422,7 @@ public class ErrorArrayForm implements ShapeForm {
         @Override
         public int hashCode() {
             int code = 53169;
-            code = 23 * code + renderer_.hashCode();
+            code = 23 * code + scribe_.hashCode();
             return code;
         }
 
@@ -426,7 +430,7 @@ public class ErrorArrayForm implements ShapeForm {
         public boolean equals( Object o ) {
             if ( o instanceof ErrorsOutliner ) {
                 ErrorsOutliner other = (ErrorsOutliner) o;
-                return this.renderer_.equals( other.renderer_ );
+                return this.scribe_.equals( other.scribe_ );
             }
             else {
                 return false;

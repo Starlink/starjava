@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TTOOLS"/>
   <property name="name" value="ttools"/>
-  <property name="version" value="3.4-1"/>
+  <property name="version" value="3.4-2"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ttools"/>
@@ -1413,6 +1413,7 @@
           classname="uk.ac.starlink.ttools.build.Plot2Example"
           failonerror="yes"
           fork="yes">
+      <jvmarg value="-enableassertions"/>
       <arg value="-dataDir"/>
       <arg value="${plot2.figdata.dir}"/>
       <arg value="-outDir"/>

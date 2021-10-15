@@ -82,7 +82,8 @@ public class InvokeDatalinkActivationType implements ActivationType {
             autoLine.add( Box.createHorizontalStrut( 5 ) );
             autoLine.add( autoButtons[ 1 ] );
 
-            linkPanel_ = new LinkRowPanel( UrlOptions.createOptions( null ) );
+            linkPanel_ =
+                new LinkRowPanel( UrlOptions.createOptions( null ), false );
             linkPanel_.setPreferredSize( new Dimension( 550, 300 ) );
             String title = "TOPCAT(" + tcModel.getID() + "): "
                          + "Activation - Invoke Datalink Row";
@@ -95,7 +96,7 @@ public class InvokeDatalinkActivationType implements ActivationType {
 
         public Activator getActivator() {
             final boolean isAuto = autoModel_.isSelected();
-            final StarTable table = tcModel_.getViewModel().getSnapshot();
+            final StarTable table = tcModel_.getDataModel();
             if ( LinksDoc.isLinksResponse( table, 4 ) ) {
                 return new Activator() {
                     public boolean invokeOnEdt() {

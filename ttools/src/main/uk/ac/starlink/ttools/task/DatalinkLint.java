@@ -102,7 +102,7 @@ public class DatalinkLint implements Task {
         return new Executable() {
             public void execute() {
                 reporter.start( announcements );
-                String uaToken = UserAgentUtil.COMMENT_VALIDATE;
+                String uaToken = UserAgentUtil.COMMENT_TEST;
                 UserAgentUtil.pushUserAgentToken( uaToken );
                 try {
                     runner.run();

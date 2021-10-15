@@ -105,22 +105,20 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
         /* Configure column widths and alignments. */
         TableColumnModel tcm = jtab.getColumnModel();
-        tcm.getColumn( tcm.getColumnIndex( CNAME_ID ) )
-           .setPreferredWidth( 64 );
+        tcm.getColumn( tcm.getColumnIndex( CNAME_ID ) ).setMaxWidth( 80 );
         tcm.getColumn( tcm.getColumnIndex( CNAME_NAME ) )
-           .setPreferredWidth( 200 );
+           .setPreferredWidth( 120 );
         tcm.getColumn( tcm.getColumnIndex( CNAME_SIZE ) )
-           .setPreferredWidth( 100 );
-        tcm.getColumn( tcm.getColumnIndex( CNAME_FRACTION ) )
-           .setPreferredWidth( 80 );
+           .setMaxWidth( 80 );
+        tcm.getColumn( tcm.getColumnIndex( CNAME_FRACTION ) ).setMaxWidth( 80 );
         tcm.getColumn( tcm.getColumnIndex( CNAME_EXPRESSION ) )
-           .setPreferredWidth( 200 );
-        tcm.getColumn( tcm.getColumnIndex( CNAME_COLID ) )
-           .setPreferredWidth( 80 );
+           .setPreferredWidth( 300 );
+        tcm.getColumn( tcm.getColumnIndex( CNAME_COLID ) ).setMaxWidth( 80 );
         DefaultTableCellRenderer rightRend = new DefaultTableCellRenderer();
         rightRend.setHorizontalAlignment( SwingConstants.RIGHT );
         tcm.getColumn( tcm.getColumnIndex( CNAME_FRACTION ) )
            .setCellRenderer( rightRend );
+        jtab.setAutoResizeMode( JTable.AUTO_RESIZE_LAST_COLUMN );
 
         /* Customise the JTable's column model to provide control over
          * which columns are displayed. */

@@ -20,6 +20,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.topcat.TopcatUtils;
 
 /**
@@ -53,6 +54,7 @@ public class ActivationLogPanel extends JPanel {
         jtable_.setCellSelectionEnabled( true );
         Dimension interCell = jtable_.getIntercellSpacing();
         jtable_.setIntercellSpacing( new Dimension( 5, interCell.height ) );
+        StarJTable.alignHeadersLeft( jtable_ );
         scroller_ = new JScrollPane( jtable_ );
 
         /* Arrange to do an initial column width configuration one time
@@ -251,6 +253,16 @@ public class ActivationLogPanel extends JPanel {
         @Override
         public Class<?> getColumnClass( int icol ) {
             return cols_[ icol ].clazz_;
+        }
+
+        /**
+         * Flag cells as editable as a quick hack to allow the cell contents
+         * to be selected for copy/paste.  Actual editing of the values
+         * doesn't do anything.
+         */
+        @Override
+        public boolean isCellEditable( int irow, int icol ) {
+            return true;
         }
 
         /**

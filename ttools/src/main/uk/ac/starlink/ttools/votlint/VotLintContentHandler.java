@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.votlint;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXParseException;
+import uk.ac.starlink.ttools.taplint.AdhocCode;
 import uk.ac.starlink.votable.VOTableVersion;
 
 /**
@@ -31,6 +33,8 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
     private final Set<String> namespaceSet_;
 
     private static final Pattern NS_PAT = getNamespaceNamePattern();
+    private static final Set<String> VOTABLE_ELEMENTNAMES =
+        createVOTableElementNames();
     private final static Map<String,String> EMPTY_MAP =
         Collections.unmodifiableMap( new HashMap<String,String>() );
 
@@ -119,14 +123,25 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
             String versionNamespace = contextVersion.getXmlNamespace();
             if ( declaredNamespace == null ) {
                 if ( versionNamespace != null ) {
-                    context_.warning( "Element not namespaced, "
+                    context_.warning( new VotLintCode( "NS0" ),
+                                      "Element not namespaced, "
                                     + "should be in " + versionNamespace );
                 }
             }
             else if ( ! declaredNamespace.equals( versionNamespace ) ) {
-                context_.warning( "Element in wrong namespace ("
-                                + declaredNamespace + " not "
-                                + versionNamespace + ")" );
+                if ( isVOTableElementName( localName ) ) {
+                    context_.warning( new VotLintCode( "NSX" ),
+                                      "VOTable Element " + localName
+                                    + " in wrong namespace ("
+                                    + declaredNamespace + " not "
+                                    + versionNamespace + ")" );
+                }
+                else {
+                    context_.warning( new VotLintCode( "NSF" ),
+                                      "Element " + localName
+                                    + " in foreign namespace ("
+                                    + declaredNamespace + ")" );
+                }
             }
         }
 
@@ -156,12 +171,13 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
     }
 
     public void processingInstruction( String target, String data ) {
-        context_.info( "Ignoring processing instruction <?" + target + 
+        context_.info( new VotLintCode( "PIY" ),
+                       "Ignoring processing instruction <?" + target + 
                        " " + data + "?>" );
     }
 
     public void skippedEntity( String name ) {
-        context_.info( "Skipping entity " + name );
+        context_.info( new VotLintCode( "ENY" ), "Skipping entity " + name );
     }
 
     // ErrorHandler implementation.
@@ -171,7 +187,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
         if ( msg == null ) {
             msg = e.toString();
         }
-        context_.warning( msg );
+        context_.warning( createSaxCode( msg ), msg );
     }
 
     public void error( SAXParseException e ) {
@@ -180,7 +196,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
             if ( msg == null ) {
                 msg = e.toString();
             }
-            context_.error( msg );
+            context_.error( createSaxCode( msg ), msg );
         }
     }
 
@@ -189,7 +205,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
         if ( msg == null ) {
             msg = e.toString();
         }
-        context_.error( msg );
+        context_.error( createSaxCode( msg ), msg );
     }
 
     /**
@@ -229,6 +245,18 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
     }
 
     /**
+     * Generates a VotLintCode corresponding to a given SAX error message.
+     * Multiple calls with the same input message will yield the same
+     * output code.
+     *
+     * @param  msg  message text
+     * @return  code
+     */
+    private VotLintCode createSaxCode( String msg ) {
+        return new VotLintCode( "J" + AdhocCode.createLabelChars( msg, 2 ) );
+    }
+
+    /**
      * Returns a pattern which matches a namespace-qualified XML name.
      * It contains two groups, the first giving the prefix and the second
      * giving the localName.
@@ -247,4 +275,60 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
         return Pattern.compile( pats );
     }
 
+    /**
+     * Indicates whether the given localName appears to be the name of 
+     * an element in the VOTable schema.  This is not version dependent;
+     * it's used to report on whether an element appears to be misplaced,
+     * so it's really just trying to guess whether the element name has
+     * been misplaced to influence warning reports, rather than doing
+     * accurate parsing.
+     *
+     * @param  localName  element local name
+     * @return   true iff localName looks like it's supposed to be
+     *           a VOTable element
+     */
+    private static boolean isVOTableElementName( String localName ) {
+        return VOTABLE_ELEMENTNAMES.contains( localName );
+    }
+
+    /**
+     * Returns a list of localNames for known VOTable elements.
+     * This list is permissive rather than restrictive;
+     * elements from all known VOTable versions should be included.
+     *
+     * @return    unmodifiable set of VOTable element names
+     */
+    private static Set<String> createVOTableElementNames() {
+        return Collections
+              .unmodifiableSet( new HashSet<>( Arrays.asList( new String[] {
+            "BINARY",
+            "BINARY2",
+            "COOSYS",
+            "DATA",
+            "DEFINITIONS",
+            "DESCRIPTION",
+            "FIELD",
+            "FIELDref",
+            "FITS",
+            "GROUP",
+            "GROUP",
+            "INFO",
+            "LINK",
+            "MAX",
+            "MIN",
+            "OPTION",
+            "PARAM",
+            "PARAM",
+            "PARAMref",
+            "RESOURCE",
+            "STREAM",
+            "TABLE",
+            "TABLEDATA",
+            "TD",
+            "TIMESYS",
+            "TR",
+            "VALUES",
+            "VOTABLE",
+        } ) ) );
+    }
 }

@@ -113,13 +113,13 @@ public class ServiceActivationType implements ActivationType {
         public Activator getActivator() {
             final ServiceDescriptor sd = servicePanel_.getServiceDescriptor();
             final UrlInvoker urler = invokePanel_.getUrlInvoker();
-            final StarTable table = tcModel_.getViewModel().getSnapshot();
             if ( sd == null || urler == null || paramPanel_ == null ) {
                 return null;
             }
             else {
                 final Map<ServiceParam,String> paramMap =
                     paramPanel_.getValueMap();
+                final StarTable table = tcModel_.getDataModel();
                 return new Activator() {
                     public boolean invokeOnEdt() {
                         return false;

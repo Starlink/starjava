@@ -19,6 +19,7 @@ import uk.ac.starlink.table.TimeMapper;
  */
 public class RowEvaluator {
 
+    private boolean[] maybeBlank_;
     private boolean[] maybeBoolean_;
     private boolean[] maybeShort_;
     private boolean[] maybeInteger_;
@@ -53,6 +54,18 @@ public class RowEvaluator {
     private static final Pattern INFINITY_REGEX = Pattern.compile(
         "([+-]?)(Infinity|inf)", Pattern.CASE_INSENSITIVE
     );
+
+    /** Decoder for values that are all blank. */
+    private static Decoder BLANK_DECODER = new StringDecoder() {
+        private Pattern blankRegex_ = Pattern.compile( " *" );
+        public Object decode( String value ) {
+            return null;
+        }
+        public boolean isValid( String value ) {
+            return value == null
+                || blankRegex_.matcher( value ).matches();
+        }
+    };
 
     /** Decoder for booleans. */
     private static Decoder BOOLEAN_DECODER = new Decoder( Boolean.class ) {
@@ -235,6 +248,7 @@ public class RowEvaluator {
 
         /* This data could be set up more compactly, indexing via type-specific
          * decoders rather than having a named array for each possible type. */
+        maybeBlank_ = makeFlagArray( true );
         maybeBoolean_ = makeFlagArray( true );
         maybeShort_ = makeFlagArray( true );
         maybeInteger_ = makeFlagArray( true );
@@ -275,6 +289,7 @@ public class RowEvaluator {
                 stringLength_[ icol ] = leng0;
             }
             if ( leng > 0 ) {
+                updateColFlag( icol, cell, maybeBlank_, BLANK_DECODER );
                 updateColFlag( icol, cell, maybeBoolean_, BOOLEAN_DECODER );
                 updateColFlag( icol, cell, maybeShort_, SHORT_DECODER );
                 updateColFlag( icol, cell, maybeInteger_, INTEGER_DECODER );
@@ -321,7 +336,10 @@ public class RowEvaluator {
         for ( int icol = 0; icol < ncol_; icol++ ) {
             final Decoder decoder;
             String name = "col" + ( icol + 1 );
-            if ( maybeBoolean_[ icol ] ) {
+            if ( maybeBlank_[ icol ] ) {
+                decoder = BLANK_DECODER;
+            }
+            else if ( maybeBoolean_[ icol ] ) {
                 decoder = BOOLEAN_DECODER;
             }
             else if ( maybeShort_[ icol ] ) {

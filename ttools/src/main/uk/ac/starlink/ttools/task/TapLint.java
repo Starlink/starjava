@@ -7,6 +7,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.IntegerParameter;
@@ -50,46 +53,51 @@ public class TapLint implements Task {
         stagesParam_.setPrompt( "Codes for validation stages to run" );
         tapLinter_ = new TapLinter();
         Map<String,Stage> stageMap = tapLinter_.getKnownStages();
-        StringBuffer slbuf = new StringBuffer();
-        StringBuffer subuf = new StringBuffer();
-        StringBuffer sdbuf = new StringBuffer();
+        StringBuffer sbuf = new StringBuffer();
         for ( String code : stageMap.keySet() ) {
             Stage stage = stageMap.get( code );
             boolean on = tapLinter_.isDefault( code );
-            slbuf.append( "<li>" )
-                 .append( "<code>" )
-                 .append( code )
-                 .append( "</code>" )
-                 .append( ": " )
-                 .append( stage.getDescription() )
-                 .append( "</li>" )
-                 .append( "\n" );
-            if ( subuf.length() > 0 ) {
-                subuf.append( '|' );
-            }
-            subuf.append( code );
-            if ( on ) {
-                if ( sdbuf.length() > 0 ) {
-                    sdbuf.append( ' ' );
-                }
-                sdbuf.append( code );
-            }
+            sbuf.append( "<li>" )
+                .append( "<code>" )
+                .append( code )
+                .append( "</code>" )
+                .append( ": " )
+                .append( stage.getDescription() )
+                .append( on ? "" : " (off)" )
+                .append( "</li>" )
+                .append( "\n" );
         }
-        stagesParam_.setUsage( subuf.toString() + "[ ...]" );
-        stagesParam_.setStringDefault( sdbuf.toString() );
+        stagesParam_.setUsage( "[+/-]XXX ..." );
+        stagesParam_.setNullPermitted( true );
         stagesParam_.setDescription( new String[] {
-            "<p>Lists the validation stages which the validator will perform.",
+            "<p>Determines the validation stages which the validator",
+            "will peform.",
             "Each stage is represented by a short code, as follows:",
             "<ul>",
-            slbuf.toString(),
+            sbuf.toString(),
             "</ul>",
-            "You can specify a list of stage codes, separated by spaces.",
-            "Order is not significant.",
+            "</p>",
+            "<p>This parameter can specify what stages to run",
+            "in the following ways:",
+            "<ul>",
+            "<li>if left blank, the default list of stages",
+            "    (which is most or all of them) will be run</li>",
+            "<li>if the value is a space-separated list of three-letter codes,",
+            "    it lists the stages that will be run</li>",
+            "<li>if the value is a space separated list of three-letter codes",
+            "    preceded by a \"+\" or \"-\" character, the named stages",
+            "    will be removed or added to the default list</li>",
+            "</ul>",
+            "So \"<code>TME CAP</code>\" will run only Table Metadata and",
+            "Capability stages,",
+            "while \"<code>-EXA -UPL</code>\" will run all the default stages",
+            "apart from Examples and Upload.",
+            "The order in which stages are listed is not significant.",
             "</p>",
             "<p>Note that removing some stages may affect the operation",
             "of others;",
             "for instance table metadata is acquired from the metadata stages,",
-            "and avoiding those will mean that later stages that use",
+            "and avoiding those will mean that later stages which use",
             "the table metadata to pose queries will not be able to do so",
             "with knowledge of the database schema.",
             "</p>",
@@ -134,25 +142,98 @@ public class TapLint implements Task {
 
     public Executable createExecutable( Environment env ) throws TaskException {
         TapService tapService = tapserviceParams_.getTapService( env );
-
         Integer maxTablesObj = maxtableParam_.objectValue( env );
         int maxTestTables = maxTablesObj == null ? -1 : maxTablesObj.intValue();
-        Set<String> stageSet = new HashSet<String>();
-        Collection<String> knownStages = tapLinter_.getKnownStages().keySet();
-        for ( String s : knownStages ) {
-            assert s.equals( s.toUpperCase() );
-        }
-        String[] stages = stagesParam_.stringsValue( env );
-        for ( int is = 0; is < stages.length; is++ ) {
-            String sc = stages[ is ];
-            if ( ! knownStages.contains( sc.toUpperCase() ) ) {
-                throw new ParameterValueException( stagesParam_,
-                                                   "Unknown stage " + sc );
-            }
-            stageSet.add( sc );
-        }
+        Set<String> stageSet = getStageSet( stagesParam_.stringsValue( env ) );
         OutputReporter reporter = reporterParam_.objectValue( env );
         return tapLinter_.createExecutable( reporter, tapService, stageSet,
                                             maxTestTables );
+    }
+
+    /**
+     * Returns a list of stage identifiers selected by the value
+     * of the stagesParameter.
+     *
+     * @param  stageStrings  a list of stage tokens as supplied by the
+     *                       values of the stagesParameter
+     * @return   a set of stage three-character codes to be executed
+     */
+    private Set<String> getStageSet( String[] stageStrings )
+            throws ParameterValueException {
+        Collection<String> knownStages = tapLinter_.getKnownStages().keySet();
+        Collection<String> dfltStages =
+            tapLinter_.getKnownStages().keySet().stream()
+                      .filter( tapLinter_::isDefault )
+                      .collect( Collectors.toSet() );
+
+        /* Ensure that the stages are named as expected. */
+        for ( String s : knownStages ) {
+            assert s.length() == 3 && s.equals( s.toUpperCase() );
+        }
+
+        /* If input is blank, just use the default list. */
+        if ( stageStrings == null || stageStrings.length == 0 ) {
+            return new HashSet<String>( dfltStages );
+        }
+        else {
+
+            /* Parse all the tokens as stage add, remove or select items. */
+            Pattern stageRegex = Pattern.compile( "([+-]?)([A-Za-z]{3})" );
+            Set<String> adds = new HashSet<>();
+            Set<String> removes = new HashSet<>();
+            Set<String> selects = new HashSet<>();
+            for ( String stageString : stageStrings ) {
+                Matcher matcher = stageRegex.matcher( stageString );
+                if ( matcher.matches() ) {
+                    String flagChar = matcher.group( 1 );
+                    String sname = matcher.group( 2 ).toUpperCase();
+                    if ( knownStages.contains( sname ) ) {
+                        if ( "+".equals( flagChar ) ) {
+                            adds.add( sname );
+                        }
+                        else if ( "-".equals( flagChar ) ) {
+                            removes.add( sname );
+                        }
+                        else {
+                            assert flagChar == null || flagChar.length() == 0;
+                            selects.add( sname );
+                        }
+                    }
+                    else {
+                        String msg = new StringBuffer()
+                           .append( "Unknown stage \"" )
+                           .append( sname )
+                           .append( "\": stages are " )
+                           .append( String.join( ", ", knownStages ) )
+                           .toString();
+                        throw new ParameterValueException( stagesParam_, msg );
+                    }
+                }
+                else {
+                    throw new ParameterValueException(
+                        stagesParam_,
+                        "Bad stage specification \"" + stageString + "\"" );
+                }
+            }
+
+            /* If all are add/remove, modify and return the defaults list. */
+            if ( selects.size() == 0 ) {
+                Set<String> stageSet = new HashSet<String>( dfltStages );
+                stageSet.addAll( adds );
+                stageSet.removeAll( removes );
+                return stageSet;
+            }
+
+            /* If all are selects, return the list specified. */
+            else if ( adds.size() == 0 && removes.size() == 0 ) {
+                return new HashSet<String>( selects );
+            }
+
+            /* Otherwise signal error. */
+            else {
+                throw new ParameterValueException(
+                    stagesParam_, "Can't mix +XXX/-XXX and XXX items" );
+            }
+        }
     }
 }

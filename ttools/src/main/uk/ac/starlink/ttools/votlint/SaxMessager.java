@@ -14,11 +14,13 @@ public interface SaxMessager {
      * Reports a message.
      *
      * @param  level  severity level of the message, not null
+     * @param  code   message identifier
      * @param  msg    message text
      * @param  locator  location in the XML document that provoked the message,
      *                  or null if unknown/inapplicable
      */
-    void reportMessage( Level level, String msg, Locator locator );
+    void reportMessage( Level level, VotLintCode code, String msg,
+                        Locator locator );
 
     /**
      * Defines the levels of severity at which messages can be reported.

@@ -11,18 +11,19 @@ public class TrHandler extends ElementHandler {
     public void endElement() {
         Ancestry family = getAncestry();
 
-        /* Checke we've had the right number of cells in this row. */
+        /* Check we've had the right number of cells in this row. */
         DataHandler data = family.getAncestor( DataHandler.class );
         if ( data != null ) {
             int ncol = data.getColumnCount();
             int nchild = family.getChildCount();
             if ( ncol != nchild ) {
-                warning( "Wrong number of TDs in row" +
+                warning( new VotLintCode( "TR9" ),
+                         "Wrong number of TDs in row" +
                          " (expecting " + ncol + " found " + nchild + ")" );
             }
         }
         else {
-            error( getName() + " outside DATA" );
+            error( new VotLintCode( "TRS" ), getName() + " outside DATA" );
         }
 
         /* Inform the table that another row has gone by. */
@@ -31,7 +32,7 @@ public class TrHandler extends ElementHandler {
             table.foundRow();
         }
         else {
-            error( getName() + " outside TABLE" );
+            error( new VotLintCode( "TRS" ), getName() + " outside TABLE" );
         }
     }
 }

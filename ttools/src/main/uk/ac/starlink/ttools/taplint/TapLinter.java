@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,6 +45,7 @@ public class TapLinter {
     private final TablesEndpointStage tmetaStage_;
     private final TapSchemaStage tapSchemaStage_;
     private final CompareMetadataStage cfTmetaStage_;
+    private final UnitUcdStage unitUcdStage_;
     private final XsdStage tcapXsdStage_;
     private final CapabilityStage tcapStage_;
     private final XsdStage availXsdStage_;
@@ -54,6 +57,7 @@ public class TapLinter {
     private final UploadStage uploadStage_;
     private final ObsTapStage obstapStage_;
     private final ObsLocStage obslocStage_;
+    private final EpnTapStage epntapStage_;
     private final ExampleStage exampleStage_;
     private final TapSchemaMetadataHolder tapSchemaMetadata_;
     private final CapabilitiesReader capabilitiesReader_;
@@ -91,6 +95,7 @@ public class TapLinter {
         } );
         cfTmetaStage_ = CompareMetadataStage
                        .createStage( tmetaStage_, tapSchemaStage_ );
+        unitUcdStage_ = new UnitUcdStage( declaredMetaHolder );
         tcapXsdStage_ = new XsdStage( IvoaSchemaResolver.CAPABILITIES_URI,
                                       "capabilities", true, "capabilities" ) {
             public URL getDocumentUrl( TapService tapService ) {
@@ -130,6 +135,9 @@ public class TapLinter {
         obslocStage_ =
             new ObsLocStage( VotLintTapRunner.createGetSyncRunner( true ),
                              capabilitiesReader_, metaHolder );
+        epntapStage_ =
+            new EpnTapStage( VotLintTapRunner.createGetSyncRunner( true ),
+                             metaHolder );
         exampleStage_ =
             new ExampleStage( VotLintTapRunner.createGetSyncRunner( true ),
                               capabilitiesReader_,
@@ -143,6 +151,7 @@ public class TapLinter {
         stageSet_.add( "TME", tmetaStage_, true );
         stageSet_.add( "TMS", tapSchemaStage_, true );
         stageSet_.add( "TMC", cfTmetaStage_, true );
+        stageSet_.add( "UUC", unitUcdStage_, true );
         stageSet_.add( "CPV", tcapXsdStage_, true );
         stageSet_.add( "CAP", tcapStage_, true );
         stageSet_.add( "AVV", availXsdStage_, true );
@@ -153,6 +162,7 @@ public class TapLinter {
         stageSet_.add( MDQ_NAME, colMetaStage_, true );
         stageSet_.add( "OBS", obstapStage_, true );
         stageSet_.add( "LOC", obslocStage_, true );
+        stageSet_.add( "EPN", epntapStage_, false );
         stageSet_.add( "UPL", uploadStage_, true );
         stageSet_.add( "EXA", exampleStage_, true );
     }
@@ -227,7 +237,7 @@ public class TapLinter {
         final String[] announcements = getAnnouncements();
         return new Executable() {
             public void execute() {
-                String uaToken = UserAgentUtil.COMMENT_VALIDATE;
+                String uaToken = UserAgentUtil.COMMENT_TEST;
                 UserAgentUtil.pushUserAgentToken( uaToken );
                 try {
                     reporter.start( announcements );
@@ -265,6 +275,11 @@ public class TapLinter {
             .append( Stilts.getStarjavaRevision() )
             .toString();
 
+        /* Timestamp. */
+        String dateLine = "Timestamp: "
+                        + new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss z" )
+                         .format( new Date() );
+
         /* Count by report type of known FixedCode instances. */
         Map<ReportType,int[]> codeMap = new LinkedHashMap<ReportType,int[]>();
         for ( ReportType type : ReportType.values() ) {
@@ -286,7 +301,7 @@ public class TapLinter {
         String codesLine = cbuf.toString();
 
         /* Return lines. */
-        return new String[] { versionLine, codesLine, };
+        return new String[] { versionLine, dateLine, codesLine, };
     }
 
     /**
@@ -417,6 +432,10 @@ public class TapLinter {
             return getCapabilityHolder().getInterfaces();
         }
 
+        public String getServerHeader() {
+            return getCapabilityHolder().getServerHeader();
+        }
+
         /**
          * Returns a lazily-read capabilities document.
          * May be a dummy if reading fails, but will not be null.
@@ -442,9 +461,11 @@ public class TapLinter {
                               "Reading capability metadata from " + capUrl );
             InputStream in = null;
             Element el;
+            String serverHdr;
             try {
                 URLConnection conn =
                     URLUtils.followRedirects( capUrl.openConnection(), null );
+                serverHdr = conn.getHeaderField( "server" );
                 in = new BufferedInputStream( conn.getInputStream() );
                 el = DocumentBuilderFactory.newInstance()
                     .newDocumentBuilder()
@@ -453,16 +474,19 @@ public class TapLinter {
             }
             catch ( SAXException e ) {
                 el = null;
+                serverHdr = null;
                 reporter_.report( FixedCode.E_CPSX,
                                   "Error parsing capabilities metadata", e );
             }
             catch ( ParserConfigurationException e ) {
                 el = null;
+                serverHdr = null;
                 reporter_.report( FixedCode.F_CAPC,
                                   "Trouble setting up XML parse", e );
             }
             catch ( IOException e ) {
                 el = null;
+                serverHdr = null;
                 reporter_.report( FixedCode.E_CPIO,
                                   "Error reading capabilities metadata", e );
             }
@@ -495,6 +519,7 @@ public class TapLinter {
             }
             final Element el0 = el;
             final TapCapability tapcap0 = tapcap;
+            final String serverHdr0 = serverHdr;
             return new CapabilityHolder() {
                 public Element getElement() {
                     return el0;
@@ -504,6 +529,9 @@ public class TapLinter {
                 }
                 public StdCapabilityInterface[] getInterfaces() {
                     return intfs;
+                }
+                public String getServerHeader() {
+                    return serverHdr0;
                 }
             };
         }

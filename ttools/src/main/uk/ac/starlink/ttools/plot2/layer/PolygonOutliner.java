@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
-import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
@@ -54,10 +53,10 @@ import uk.ac.starlink.util.DoubleList;
  */
 public class PolygonOutliner extends PixOutliner {
 
-    private final PolygonMode.Glypher polyGlypher_;
+    private final PolygonShape polyShape_;
     private final VertexReaderFactory vrfact_;
     private final int minSize_;
-    private final MarkShape minShape_;
+    private final MarkerShape minShape_;
     private final Glyph pointGlyph_;
     private final Icon icon_;
 
@@ -84,8 +83,8 @@ public class PolygonOutliner extends PixOutliner {
             1 );
 
     /** Config key for the replacement marker shape. */
-    public static final ConfigKey<MarkShape> MINSHAPE_KEY =
-        StyleKeys.createMarkShapeKey(
+    public static final ConfigKey<MarkerShape> MINSHAPE_KEY =
+        StyleKeys.createMarkerShapeKey(
             new ConfigMeta( "minshape", "Minimal Shape" )
            .setShortDescription( "Marker shape for very small shapes" )
            .setXmlDescription( new String[] {
@@ -96,7 +95,7 @@ public class PolygonOutliner extends PixOutliner {
                 "<code>" + MINSIZE_KEY.getMeta().getShortName() + "</code>.",
                 "</p>",
             } ),
-            MarkShape.CROXX );
+            MarkerShape.CROXX );
 
     /* Set up lookup tables for plotting circles. */
     private static final int NVERTEX_CIRCLE = 36;
@@ -133,16 +132,15 @@ public class PolygonOutliner extends PixOutliner {
     /**
      * Constructor.
      *
-     * @param  polyGlypher  object that knows how to paint a polygon
+     * @param  polyShape  object that knows how to paint a polygon
      * @param  vrfact   object that knows how to get vertex positions from
      *                  a data tuple
      * @param  minSize  threshold size for replacement markers
      * @param  minShape  shape for replacement markers
      */
-    private PolygonOutliner( PolygonMode.Glypher polyGlypher,
-                             VertexReaderFactory vrfact,
-                             int minSize, MarkShape minShape ) {
-        polyGlypher_ = polyGlypher;
+    private PolygonOutliner( PolygonShape polyShape, VertexReaderFactory vrfact,
+                             int minSize, MarkerShape minShape ) {
+        polyShape_ = polyShape;
         vrfact_ = vrfact;
         minSize_ = minSize;
         minShape_ = minShape;
@@ -163,7 +161,8 @@ public class PolygonOutliner extends PixOutliner {
                     tx += x;
                     ty += y;
                 }
-                polyGlypher_.paintPolygon( g, tx / np, ty / np, xs, ys, np );
+                polyShape_.createPolygonGlyph( tx / np, ty / np, xs, ys, np )
+                          .paintGlyph( g );
             }
         };
     }
@@ -351,9 +350,10 @@ public class PolygonOutliner extends PixOutliner {
                                               pointGlyph_, color );
                     }
                     else {
-                        polyGlypher_.placeGlyphs2D( paperType, paper,
-                                                    gx0, gy0, gxs, gys, np,
-                                                    color );
+                        Glyph glyph = 
+                            polyShape_
+                           .createPolygonGlyph( gx0, gy0, gxs, gys, np );
+                        paperType.placeGlyph( paper, 0, 0, glyph, color );
                     }
                 }
             }
@@ -484,9 +484,10 @@ public class PolygonOutliner extends PixOutliner {
                                               pointGlyph_, color );
                     }
                     else {
-                        polyGlypher_.placeGlyphs3D( paperType, paper,
-                                                    gx0, gy0, gxs, gys, np, gz,
-                                                    color );
+                        Glyph glyph =
+                            polyShape_
+                           .createPolygonGlyph( gx0, gy0, gxs, gys, np );
+                        paperType.placeGlyph( paper, 0, 0, gz, glyph, color );
                     }
                 }
             }
@@ -496,7 +497,7 @@ public class PolygonOutliner extends PixOutliner {
     @Override
     public int hashCode() {
         int code = 434482;
-        code = 23 * code + polyGlypher_.hashCode();
+        code = 23 * code + polyShape_.hashCode();
         code = 23 * code + vrfact_.hashCode();
         code = 23 * code + minSize_;
         code = 23 * code + minShape_.hashCode();
@@ -507,7 +508,7 @@ public class PolygonOutliner extends PixOutliner {
     public boolean equals( Object o ) {
         if ( o instanceof PolygonOutliner ) {
             PolygonOutliner other = (PolygonOutliner) o;
-            return this.polyGlypher_.equals( other.polyGlypher_ )
+            return this.polyShape_.equals( other.polyShape_ )
                 && this.vrfact_.equals( other.vrfact_ )
                 && this.minSize_ == other.minSize_
                 && this.minShape_.equals( other.minShape_ );
@@ -521,15 +522,15 @@ public class PolygonOutliner extends PixOutliner {
      * Returns an outliner for polygons with a fixed number of vertices.
      *
      * @param  np  number of vertices
-     * @param  polyGlypher  polygon painter
+     * @param  polyShape  polygon painter
      * @param  minSize  threshold size for replacement markers
      * @param  minShape  shape for replacement markers
      * @return  outliner
      */
     public static PolygonOutliner
-            createFixedOutliner( int np, PolygonMode.Glypher polyGlypher,
-                                 int minSize, MarkShape minShape ) {
-        return new PolygonOutliner( polyGlypher,
+            createFixedOutliner( int np, PolygonShape polyShape,
+                                 int minSize, MarkerShape minShape ) {
+        return new PolygonOutliner( polyShape,
                                     new FixedVertexReaderFactory( np ),
                                     minSize, minShape );
     }
@@ -539,16 +540,16 @@ public class PolygonOutliner extends PixOutliner {
      *
      * @param  coord  coordinate for reading area objects
      * @param  icArea   coordinate index in tuple for area coordinate
-     * @param  polyGlypher  polygon painter
+     * @param  polyShape  polygon painter
      * @param  minSize  threshold size for replacement markers
      * @param  minShape  shape for replacement markers
      * @return  outliner
      */
     public static PolygonOutliner
             createPlaneAreaOutliner( AreaCoord<PlaneDataGeom> coord, int icArea,
-                                     PolygonMode.Glypher polyGlypher,
-                                     int minSize, MarkShape minShape ) {
-        return new PolygonOutliner( polyGlypher,
+                                     PolygonShape polyShape,
+                                     int minSize, MarkerShape minShape ) {
+        return new PolygonOutliner( polyShape,
                                     new PlaneAreaVertexReaderFactory( coord,
                                                                       icArea ),
                                     minSize, minShape );
@@ -559,16 +560,16 @@ public class PolygonOutliner extends PixOutliner {
      *
      * @param  coord  coordinate for reading area objects
      * @param  icArea   coordinate index in tuple for area coordinate
-     * @param  polyGlypher  polygon painter
+     * @param  polyShape  polygon painter
      * @param  minSize  threshold size for replacement markers
      * @param  minShape  shape for replacement markers
      * @return  outliner
      */
     public static PolygonOutliner
            createSkyAreaOutliner( AreaCoord<SkyDataGeom> coord, int icArea,
-                                  PolygonMode.Glypher polyGlypher,
-                                  int minSize, MarkShape minShape ) {
-        return new PolygonOutliner( polyGlypher,
+                                  PolygonShape polyShape,
+                                  int minSize, MarkerShape minShape ) {
+        return new PolygonOutliner( polyShape,
                                     new SkyAreaVertexReaderFactory( coord,
                                                                     icArea ),
                                     minSize, minShape );
@@ -581,7 +582,7 @@ public class PolygonOutliner extends PixOutliner {
      * @param  icArea   coordinate index in tuple for area coordinate
      * @param  radialCoord  coordinate for reading radial distance of area
      * @param  icRadial  coordinate index in tuple for radial coordinate
-     * @param  polyGlypher  polygon painter
+     * @param  polyShape  polygon painter
      * @param  minSize  threshold size for replacement markers
      * @param  minShape  shape for replacement markers
      * @return  outliner
@@ -590,10 +591,10 @@ public class PolygonOutliner extends PixOutliner {
             createSphereAreaOutliner( AreaCoord<SphereDataGeom> areaCoord,
                                       int icArea,
                                       FloatingCoord radialCoord, int icRadial,
-                                      PolygonMode.Glypher polyGlypher,
-                                      int minSize, MarkShape minShape ) {
+                                      PolygonShape polyShape,
+                                      int minSize, MarkerShape minShape ) {
         return new PolygonOutliner(
-                polyGlypher,
+                polyShape,
                 new SphereAreaVertexReaderFactory( areaCoord, icArea,
                                                    radialCoord, icRadial ),
                 minSize, minShape );
@@ -612,17 +613,16 @@ public class PolygonOutliner extends PixOutliner {
      * @param  arrayCoord   array-valued coordinate
      * @param  includePos  if true, positional coordinate is included
      *                     as the first vertex, if false it is ignored
-     * @param  polyGlypher  polygon painter
+     * @param  polyShape  polygon painter
      * @return  outliner
      */
     public static PolygonOutliner
             createArrayOutliner( FloatingArrayCoord arrayCoord,
-                                 boolean includePos,
-                                 PolygonMode.Glypher polyGlypher ) {
-        return new PolygonOutliner( polyGlypher,
+                                 boolean includePos, PolygonShape polyShape ) {
+        return new PolygonOutliner( polyShape,
                                     new ArrayVertexReaderFactory( arrayCoord,
                                                                   includePos ),
-                                    0, MarkShape.POINT );
+                                    0, MarkerShape.POINT );
     }
 
     /**

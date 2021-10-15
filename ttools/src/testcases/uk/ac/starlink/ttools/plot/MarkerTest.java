@@ -11,7 +11,9 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import junit.framework.TestCase;
-import uk.ac.starlink.ttools.plot2.layer.FatMarkShapes;
+import uk.ac.starlink.ttools.plot2.layer.MarkerShape;
+import uk.ac.starlink.ttools.plot2.layer.MarkerStyle;
+import uk.ac.starlink.ttools.plot2.layer.FatMarkerShapes;
 
 public class MarkerTest extends TestCase {
 
@@ -81,26 +83,26 @@ class MarkSamples extends JPanel {
     final static int STEP = 16;
     final static int SIZES = 8;
 
-    final static MarkShape[] SHAPES = new MarkShape[] {
-        MarkShape.OPEN_CIRCLE,
-        MarkShape.FILLED_CIRCLE,
-        MarkShape.OPEN_SQUARE,
-        MarkShape.FILLED_SQUARE,
-        MarkShape.OPEN_DIAMOND,
-        MarkShape.FILLED_DIAMOND,
-        MarkShape.OPEN_TRIANGLE_UP,
-        MarkShape.FILLED_TRIANGLE_UP,
-        MarkShape.OPEN_TRIANGLE_DOWN,
-        MarkShape.FILLED_TRIANGLE_DOWN,
-        MarkShape.CROSS,
-        MarkShape.CROXX,
-        FatMarkShapes.FAT_CIRCLE,
-        FatMarkShapes.FAT_SQUARE,
-        FatMarkShapes.FAT_DIAMOND,
-        FatMarkShapes.FAT_TRIANGLE_UP,
-        FatMarkShapes.FAT_TRIANGLE_DOWN,
-        FatMarkShapes.FAT_CROSS,
-        FatMarkShapes.FAT_CROXX,
+    final static MarkerShape[] SHAPES = new MarkerShape[] {
+        MarkerShape.OPEN_CIRCLE,
+        MarkerShape.FILLED_CIRCLE,
+        MarkerShape.OPEN_SQUARE,
+        MarkerShape.FILLED_SQUARE,
+        MarkerShape.OPEN_DIAMOND,
+        MarkerShape.FILLED_DIAMOND,
+        MarkerShape.OPEN_TRIANGLE_UP,
+        MarkerShape.FILLED_TRIANGLE_UP,
+        MarkerShape.OPEN_TRIANGLE_DOWN,
+        MarkerShape.FILLED_TRIANGLE_DOWN,
+        MarkerShape.CROSS,
+        MarkerShape.CROXX,
+        FatMarkerShapes.FAT_CIRCLE,
+        FatMarkerShapes.FAT_SQUARE,
+        FatMarkerShapes.FAT_DIAMOND,
+        FatMarkerShapes.FAT_TRIANGLE_UP,
+        FatMarkerShapes.FAT_TRIANGLE_DOWN,
+        FatMarkerShapes.FAT_CROSS,
+        FatMarkerShapes.FAT_CROXX,
     };
 
     MarkSamples( boolean asLegend ) {
@@ -126,22 +128,22 @@ class MarkSamples extends JPanel {
         for ( int i = 0; i < SIZES; i++ ) {
             int size = i + 1;
             for ( int j = 0; j < SHAPES.length; j++ ) {
-                MarkStyle style = SHAPES[ j ].getStyle( color, size );
+                MarkerStyle style = SHAPES[ j ].getStyle( color, size );
                 TestCase.assertEquals( style,
                                        SHAPES[ j ].getStyle( color, size ) );
                 int px = ( i + 1 ) * STEP;
                 int py = ( j + 1 ) * STEP;
+                Color color0 = g2.getColor();
+                g2.setColor( color );
+                g2.translate( px, py );
                 if ( asLegend_ ) {
-                    Color color0 = g2.getColor();
-                    g2.setColor( color );
-                    g2.translate( px, py );
                     style.drawLegendShape( g2 );
-                    g2.translate( -px, -py );
-                    g2.setColor( color0 );
                 }
                 else {
-                    style.drawMarker( g2, px, py );
+                    style.drawShape( g2 );
                 }
+                g2.translate( -px, -py );
+                g2.setColor( color0 );
             }
         }
     }

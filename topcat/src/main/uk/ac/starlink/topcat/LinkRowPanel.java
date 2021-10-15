@@ -37,6 +37,7 @@ import uk.ac.starlink.votable.datalink.ServiceParam;
 public class LinkRowPanel extends JPanel {
 
     private final UrlOptions urlopts_;
+    private final boolean hasAutoInvoke_;
     private final JLabel typeLabel_;
     private final JComponent displayContainer_;
     private final JComponent extraContainer_;
@@ -51,10 +52,13 @@ public class LinkRowPanel extends JPanel {
      * Constructor.
      *
      * @param  urlopts   options for URL invocation
+     * @param  hasAutoInvoke  whether the URL panel should feature an
+     *                        auto-invoke button
      */
-    public LinkRowPanel( UrlOptions urlopts ) {
+    public LinkRowPanel( UrlOptions urlopts, boolean hasAutoInvoke ) {
         super( new BorderLayout() );
         urlopts_ = urlopts;
+        hasAutoInvoke_ = hasAutoInvoke;
 
         typeLabel_ = new JLabel();
         JComponent lineBox = Box.createVerticalBox();
@@ -154,6 +158,18 @@ public class LinkRowPanel extends JPanel {
     }
 
     /**
+     * Indicates whether this panel is currently set up for auto-invoke.
+     * If true, then selecting a row in the displayed links document
+     * will cause the link to be followed according to current settings
+     * without further manual user intervention.
+     *
+     * @return   whether auto-invoke is in effect
+     */
+    public boolean isAutoInvoke() {
+        return display_.isAutoInvoke();
+    }
+
+    /**
      * Returns the service descriptor corresponding to a given service_def
      * value.
      *
@@ -239,6 +255,14 @@ public class LinkRowPanel extends JPanel {
         void configureRow( Object[] row );
 
         /**
+         * Indicates whether this display has a currently active
+         * auto-invoke settting.
+         *
+         * @return  true iff auto-invoke is present and selected
+         */
+        boolean isAutoInvoke();
+
+        /**
          * Returns a short summary of the link described by the currently
          * configured row.
          *
@@ -269,6 +293,9 @@ public class LinkRowPanel extends JPanel {
             return null;
         }
         public void configureRow( Object[] row ) {
+        }
+        public boolean isAutoInvoke() {
+            return false;
         }
         public String getRowSummary() {
             return "Bad links table row";
@@ -312,6 +339,9 @@ public class LinkRowPanel extends JPanel {
             errorField_.setText( errorText_ );
             errorField_.setCaretPosition( 0 );
         }
+        public boolean isAutoInvoke() {
+            return false;
+        }
         public String getRowSummary() {
             return "Link Error: " + errorText_;
         }
@@ -341,7 +371,7 @@ public class LinkRowPanel extends JPanel {
             } );
             JComponent box = Box.createVerticalBox();
             box.add( infoStack_ );
-            urlPanel_ = new UrlPanel( urlopts_ );
+            urlPanel_ = new UrlPanel( urlopts_, hasAutoInvoke_ );
             box.add( placeUrlPanel( urlPanel_ ) );
             panel_ = new JPanel( new BorderLayout() );
             panel_.add( box, BorderLayout.NORTH );
@@ -373,6 +403,9 @@ public class LinkRowPanel extends JPanel {
             }
             String ctype = colMap.getContentType( row );
             urlPanel_.configure( url, ctype, null );
+        }
+        public boolean isAutoInvoke() {
+            return urlPanel_.isAutoInvoke();
         }
         public String getRowSummary() {
             return "Access URL: " + urlPanel_.getUrl();
@@ -407,7 +440,7 @@ public class LinkRowPanel extends JPanel {
             resourceIdField_ = infoStack_.addField( "Resource ID" );
             JComponent box = Box.createVerticalBox();
             box.add( infoStack_ );
-            urlPanel_ = new UrlPanel( urlopts_ );
+            urlPanel_ = new UrlPanel( urlopts_, hasAutoInvoke_ );
             box.add( placeUrlPanel( urlPanel_ ) );
             detailPanel_ = new JPanel( new BorderLayout() );
             detailPanel_.add( box, BorderLayout.NORTH );
@@ -466,6 +499,9 @@ public class LinkRowPanel extends JPanel {
                 urlPanel_.configure( null, null, null );
             }
             uiPanel_ = uiPanel;
+        }
+        public boolean isAutoInvoke() {
+            return urlPanel_.isAutoInvoke();
         }
         public String getRowSummary() {
             return "Access URL: " + urlPanel_.getUrl();

@@ -20,6 +20,8 @@ import uk.ac.starlink.ttools.plot.ErrorModeSelection;
 import uk.ac.starlink.ttools.plot.ErrorRenderer;
 import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.MarkStyle;
+import uk.ac.starlink.ttools.plot2.layer.MarkerShape;
+import uk.ac.starlink.ttools.plot2.layer.MarkerStyle;
 import uk.ac.starlink.util.IconUtils;
 
 /**
@@ -85,6 +87,33 @@ public class MarkStyleSelectors {
                 return Color.BLACK;
             }
             public int getMarkSize() {
+                return 5;
+            }
+        } );
+        return selector;
+    }
+
+    /**
+     * Returns a new JComboBox for marker shape selection
+     * with specified list of shapes.
+     *
+     * @param  shapes  shape options
+     * @return  new shape selection combo box
+     */
+    public static JComboBox<MarkerShape>
+            createMarkerShapeSelector( MarkerShape[] shapes ) {
+        final JComboBox<MarkerShape> selector = new JComboBox<>( shapes );
+        selector.setRenderer( new MarkerRenderer<MarkerShape>() {
+            public MarkerShape getMarkerShape( int index ) {
+                return selector.getItemAt( index );
+            }
+            public MarkerShape getMarkerShape() {
+                return selector.getItemAt( selector.getSelectedIndex() );
+            }
+            public Color getMarkerColor() {
+                return Color.BLACK;
+            }
+            public int getMarkerSize() {
                 return 5;
             }
         } );
@@ -389,6 +418,56 @@ public class MarkStyleSelectors {
                                             1, false, ErrorRenderer.NONE,
                                             null, 1, null,
                                             new ErrorModeSelection[ 0 ] );
+                label.setIcon( style.getLegendIcon() );
+            }
+            return c;
+        }
+    }
+
+    /**
+     * ComboBoxRenderer class suitable for rendering MarkerStyles.
+     */
+    private static abstract class MarkerRenderer<E>
+            implements ListCellRenderer<E> {
+        private boolean useText_;
+        private final BasicComboBoxRenderer baseRenderer_;
+        MarkerRenderer() {
+            this( false );
+        }
+        MarkerRenderer( boolean useText ) {
+            useText_ = useText;
+            baseRenderer_ = new BasicComboBoxRenderer();
+        }
+        MarkerShape getMarkerShape( int itemIndex ) {
+            return getMarkerShape();
+        }
+        abstract MarkerShape getMarkerShape();
+        int getMarkerSize( int itemIndex ) {
+            return getMarkerSize();
+        }
+        abstract int getMarkerSize();
+        Color getMarkerColor( int itemIndex ) {
+            return getMarkerColor();
+        }
+        abstract Color getMarkerColor();
+        public Component getListCellRendererComponent( JList<? extends E> list,
+                                                       E value, int index,
+                                                       boolean isSelected,
+                                                       boolean hasFocus ) {
+            Component c = baseRenderer_
+                         .getListCellRendererComponent( list, value, index,
+                                                        isSelected, hasFocus );
+            if ( c instanceof JLabel ) {
+                JLabel label = (JLabel) c;
+                if ( ! useText_ ) {
+                    label.setText( null );
+                }
+                MarkerStyle style =
+                      index >= 0
+                    ? getMarkerShape( index ).getStyle( getMarkerColor( index ),
+                                                        getMarkerSize( index ) )
+                    : getMarkerShape().getStyle( getMarkerColor(),
+                                                 getMarkerSize() );
                 label.setIcon( style.getLegendIcon() );
             }
             return c;

@@ -20,7 +20,8 @@ public class ParamHandler extends ElementHandler {
          * associated with this element. */
         parser_ = ValueParser.makeParser( this,
                                           getAttribute( "datatype" ),
-                                          getAttribute( "arraysize" ) );
+                                          getAttribute( "arraysize" ),
+                                          getAttribute( "xtype" ) );
         if ( parser_ != null ) {
             parser_.setContext( getContext() );
         }

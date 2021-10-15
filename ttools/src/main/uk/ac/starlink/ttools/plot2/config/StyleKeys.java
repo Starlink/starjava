@@ -1,6 +1,9 @@
 package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.BasicStroke;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Stroke;
 import java.util.ArrayList;
@@ -14,9 +17,6 @@ import uk.ac.starlink.ttools.gui.ThicknessComboBox;
 import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.BarStyles;
 import uk.ac.starlink.ttools.plot.ErrorMode;
-import uk.ac.starlink.ttools.plot.ErrorRenderer;
-import uk.ac.starlink.ttools.plot.MarkShape;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Styles;
@@ -25,13 +25,16 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.BasicXYShape;
 import uk.ac.starlink.ttools.plot2.layer.Cumulation;
-import uk.ac.starlink.ttools.plot2.layer.FatMarkShapes;
+import uk.ac.starlink.ttools.plot2.layer.FatMarkerShapes;
 import uk.ac.starlink.ttools.plot2.layer.FillMode;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
+import uk.ac.starlink.ttools.plot2.layer.MarkerShape;
+import uk.ac.starlink.ttools.plot2.layer.MarkerStyle;
+import uk.ac.starlink.ttools.plot2.layer.MultiPointShape;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.XYShape;
-import uk.ac.starlink.ttools.plot2.layer.XYShapes;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 
 /**
@@ -42,17 +45,18 @@ import uk.ac.starlink.util.gui.RenderingComboBox;
  */
 public class StyleKeys {
 
-    private static final MarkShape[] SHAPES = createShapes();
+    private static final MarkerShape[] MARKER_SHAPES = createMarkerShapes();
 
     /** Config key for marker shape. */
-    public static final ConfigKey<MarkShape> MARK_SHAPE =
-        createMarkShapeKey( new ConfigMeta( "shape", "Shape" )
-                           .setShortDescription( "Marker shape" )
-                           .setXmlDescription( new String[] {
+    public static final ConfigKey<MarkerShape> MARKER_SHAPE =
+        createMarkerShapeKey( new ConfigMeta( "shape", "Shape" )
+                             .setShortDescription( "Marker shape" )
+                             .setXmlDescription( new String[] {
                                 "<p>Sets the shape of markers that are plotted",
                                 "at each position of the scatter plot.",
                                 "</p>", } ),
-                            MarkShape.FILLED_CIRCLE );
+                              MarkerShape.FILLED_CIRCLE );
+                      
 
     /** Config key for marker size. */
     public static final ConfigKey<Integer> SIZE =
@@ -67,32 +71,32 @@ public class StyleKeys {
                                "</p>" } ),
                            1 );
 
-    private static final XYShape[] XYSHAPES = XYShapes.getXYShapes();
+    private static final BasicXYShape[] XYSHAPES = BasicXYShape.getXYShapes();
 
     /** Config key for XY shape. */
-    public static final ConfigKey<XYShape> XYSHAPE =
-        new OptionConfigKey<XYShape>(
+    public static final ConfigKey<BasicXYShape> XYSHAPE =
+        new OptionConfigKey<BasicXYShape>(
             new ConfigMeta( "shape", "Shape" )
            .setShortDescription( "Marker shape" )
            .setXmlDescription( new String[] {
             } )
-        , XYShape.class, XYSHAPES ) {
-        public String getXmlDescription( XYShape shape ) {
+        , BasicXYShape.class, XYSHAPES ) {
+        public String getXmlDescription( BasicXYShape shape ) {
             return null;
         }
-        public Specifier<XYShape> createSpecifier() {
-            JComboBox<XYShape> shapeSelector =
-                    new RenderingComboBox<XYShape>( XYSHAPES ) {
+        public Specifier<BasicXYShape> createSpecifier() {
+            JComboBox<BasicXYShape> shapeSelector =
+                    new RenderingComboBox<BasicXYShape>( XYSHAPES ) {
                 @Override
-                protected Icon getRendererIcon( XYShape shape ) {
+                protected Icon getRendererIcon( BasicXYShape shape ) {
                     return XYShape.createIcon( shape, 20, 12, true );
                 }
-                protected String getRendererText( XYShape shape ) {
+                protected String getRendererText( BasicXYShape shape ) {
                     return null;
                 }
             };
-            return new ComboBoxSpecifier<XYShape>( XYShape.class,
-                                                   shapeSelector );
+            return new ComboBoxSpecifier<BasicXYShape>( BasicXYShape.class,
+                                                        shapeSelector );
         }
     }.setOptionUsage()
      .addOptionsXml();
@@ -385,33 +389,34 @@ public class StyleKeys {
 
     /** Config key for vector marker style. */
     public static final MultiPointConfigKey VECTOR_SHAPE =
-        createMultiPointKey( "arrow", "Arrow", ErrorRenderer.getOptionsVector(),
+        createMultiPointKey( "arrow", "Arrow",
+                             MultiPointShape.getOptionsVector(),
                              new ErrorMode[] { ErrorMode.UPPER } );
 
     /** Config key for ellipse marker style. */
     public static final MultiPointConfigKey ELLIPSE_SHAPE =
         createMultiPointKey( "ellipse", "Ellipse",
-                             ErrorRenderer.getOptionsEllipse(),
+                             MultiPointShape.getOptionsEllipse(),
                              new ErrorMode[] { ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC } );
 
     /** Config key for 1d (vertical) error marker style. */
     public static final MultiPointConfigKey ERROR_SHAPE_1D =
         createMultiPointKey( "errorbar", "Error Bar",
-                             ErrorRenderer.getOptions1d(),
+                             MultiPointShape.getOptionsError1d(),
                              new ErrorMode[] { ErrorMode.SYMMETRIC } );
 
     /** Config key for 2d error marker style. */
     public static final MultiPointConfigKey ERROR_SHAPE_2D =
         createMultiPointKey( "errorbar", "Error Bar",
-                             ErrorRenderer.getOptions2d(),
+                             MultiPointShape.getOptionsError2d(),
                              new ErrorMode[] { ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC } );
 
     /** Config key for 3d error marker style. */
     public static final MultiPointConfigKey ERROR_SHAPE_3D =
         createMultiPointKey( "errorbar", "Error Bar",
-                             ErrorRenderer.getOptions3d(),
+                             MultiPointShape.getOptionsError3d(),
                              new ErrorMode[] { ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC } );
@@ -654,18 +659,19 @@ public class StyleKeys {
      * @param   dflt  default shape value
      * @return  new key
      */
-    public static ConfigKey<MarkShape> createMarkShapeKey( ConfigMeta meta,
-                                                           MarkShape dflt ) {
-        OptionConfigKey<MarkShape> key =
-                new OptionConfigKey<MarkShape>( meta, MarkShape.class,
-                                                SHAPES, dflt ) {
-            public String getXmlDescription( MarkShape shape ) {
+    public static ConfigKey<MarkerShape>
+            createMarkerShapeKey( ConfigMeta meta, MarkerShape dflt ){
+        OptionConfigKey<MarkerShape> key =
+                new OptionConfigKey<MarkerShape>( meta, MarkerShape.class,
+                                                  MARKER_SHAPES, dflt ) {
+            public String getXmlDescription( MarkerShape shape ) {
                 return null;
             }
-            public Specifier<MarkShape> createSpecifier() {
-                return new ComboBoxSpecifier<MarkShape>(
-                           MarkShape.class,
-                           MarkStyleSelectors.createShapeSelector( SHAPES ) );
+            public Specifier<MarkerShape> createSpecifier() {
+                return new ComboBoxSpecifier<MarkerShape>(
+                           MarkerShape.class,
+                           MarkStyleSelectors
+                          .createMarkerShapeSelector( MARKER_SHAPES ) );
             }
         };
         key.setOptionUsage();
@@ -791,6 +797,60 @@ public class StyleKeys {
     }
 
     /**
+     * Returns a config key for painting stroke thickness.
+     * Zero corresponds to one pixel wide.
+     *
+     * @param  meta  metadata
+     * @param  max   maximum value
+     * @return  config key
+     */
+    public static ConfigKey<Integer>
+            createPaintThicknessKey( ConfigMeta meta, int max ) {
+        final int lineLength = 48;
+        final int linePad = 4;
+        final Integer[] numbers = new Integer[ max + 1 ];
+        for ( int i = 0; i <= max; i++ ) {
+            numbers[ i ] = Integer.valueOf( i );
+        }
+        return new IntegerConfigKey( meta, 0 ) {
+            public Specifier<Integer> createSpecifier() {
+                JComboBox<Integer> selector =
+                        new RenderingComboBox<Integer>( numbers ) {
+                    public Icon getRendererIcon( Integer nThick ) {
+                        return createLineIcon( nThick.intValue() );
+                    }
+                };
+                return new ComboBoxSpecifier<Integer>( Integer.class, selector);
+            }
+            private Icon createLineIcon( int nthick ) {
+                int strokeSize = nthick * 2 + 1;
+                final Stroke stroke = new BasicStroke( (float) strokeSize );
+                return new Icon() {
+                    public int getIconHeight() {
+                        return strokeSize;
+                    }
+                    public int getIconWidth() {
+                        return lineLength + 2 * linePad;
+                    }
+                    public void paintIcon( Component c, Graphics g,
+                                           int x, int y ) {
+                        Graphics2D g2 = (Graphics2D) g;
+                        Stroke stroke0 = g2.getStroke();
+                        Color color0 = g2.getColor();
+                        g2.setColor( Color.BLACK );
+                        g2.setStroke( stroke );
+                        int ypos = y + nthick;
+                        g2.drawLine( x + linePad, ypos,
+                                     x + linePad + lineLength, ypos );
+                        g2.setStroke( stroke0 );
+                        g2.setColor( color0 );
+                    }
+                };
+            }
+        };
+    }
+
+    /**
      * Returns a colour specified by a basic colour key and a transparency key.
      *
      * @param   config   config map
@@ -813,14 +873,13 @@ public class StyleKeys {
      *
      * @param   shortName   one-word name
      * @param   longName   GUI name
-     * @param   renderers   renderer options
-     * @param   modes   error mode objects, used with renderers to draw icon
+     * @param   shapes   shape options
+     * @param   modes   error mode objects, used with shapes to draw icon
      * @return  new key
      */
     private static MultiPointConfigKey
             createMultiPointKey( String shortName, String longName,
-                                 ErrorRenderer[] renderers,
-                                 ErrorMode[] modes ) {
+                                 MultiPointShape[] shapes, ErrorMode[] modes ) {
         ConfigMeta meta = new ConfigMeta( shortName, longName );
         meta.setShortDescription( longName + " shape" );
         meta.setXmlDescription( new String[] {
@@ -828,7 +887,7 @@ public class StyleKeys {
             "</p>",
         } );
         MultiPointConfigKey key =
-            new MultiPointConfigKey( meta, renderers, modes );
+            new MultiPointConfigKey( meta, shapes, modes );
         key.setOptionUsage();
         key.addOptionsXml();
         return key;
@@ -839,27 +898,27 @@ public class StyleKeys {
      *
      * @return  marker shapes
      */
-    private static MarkShape[] createShapes() {
-        return new MarkShape[] {
-            MarkShape.FILLED_CIRCLE,
-            MarkShape.OPEN_CIRCLE,
-            MarkShape.CROSS,
-            MarkShape.CROXX,
-            MarkShape.OPEN_SQUARE,
-            MarkShape.OPEN_DIAMOND,
-            MarkShape.OPEN_TRIANGLE_UP,
-            MarkShape.OPEN_TRIANGLE_DOWN,
-            FatMarkShapes.FAT_CIRCLE,
-            FatMarkShapes.FAT_CROSS,
-            FatMarkShapes.FAT_CROXX,
-            FatMarkShapes.FAT_SQUARE,
-            FatMarkShapes.FAT_DIAMOND,
-            FatMarkShapes.FAT_TRIANGLE_UP,
-            FatMarkShapes.FAT_TRIANGLE_DOWN,
-            MarkShape.FILLED_SQUARE,
-            MarkShape.FILLED_DIAMOND,
-            MarkShape.FILLED_TRIANGLE_UP,
-            MarkShape.FILLED_TRIANGLE_DOWN,
+    private static MarkerShape[] createMarkerShapes() {
+        return new MarkerShape[] {
+            MarkerShape.FILLED_CIRCLE,
+            MarkerShape.OPEN_CIRCLE,
+            MarkerShape.CROSS,
+            MarkerShape.CROXX,
+            MarkerShape.OPEN_SQUARE,
+            MarkerShape.OPEN_DIAMOND,
+            MarkerShape.OPEN_TRIANGLE_UP,
+            MarkerShape.OPEN_TRIANGLE_DOWN,
+            FatMarkerShapes.FAT_CIRCLE,
+            FatMarkerShapes.FAT_CROSS,
+            FatMarkerShapes.FAT_CROXX,
+            FatMarkerShapes.FAT_SQUARE,
+            FatMarkerShapes.FAT_DIAMOND,
+            FatMarkerShapes.FAT_TRIANGLE_UP,
+            FatMarkerShapes.FAT_TRIANGLE_DOWN,
+            MarkerShape.FILLED_SQUARE,
+            MarkerShape.FILLED_DIAMOND,
+            MarkerShape.FILLED_TRIANGLE_UP,
+            MarkerShape.FILLED_TRIANGLE_DOWN,
         };
     }
 

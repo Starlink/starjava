@@ -10,8 +10,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import org.apache.tools.bzip2.CBZip2InputStream;
-import org.apache.tools.bzip2.CBZip2OutputStream;
+import uk.ac.starlink.util.bzip2.CBZip2OutputStream;
 import uk.ac.starlink.util.TestCase;
 
 public class DataSourceTest extends TestCase {

@@ -158,7 +158,8 @@ public class JELTable extends WrapperStarTable {
         RowSplittable baseSplit = baseTable_.getRowSplittable();
         Function<RowSplittable,RowData> mapper = split -> {
             try {
-                return jelMapper( new SequentialJELRowReader( this, split ) );
+                return jelMapper( new SequentialJELRowReader( baseTable_,
+                                                              split ) );
             }
             catch ( IOException e ) {
                 throw new RuntimeException( "Shouldn't happen", e );

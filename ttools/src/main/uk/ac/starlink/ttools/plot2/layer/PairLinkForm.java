@@ -18,6 +18,8 @@ import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
@@ -36,7 +38,9 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 public class PairLinkForm implements ShapeForm {
 
     private static final PairLinkForm instance_ = new PairLinkForm();
-    private static final LineXYShape LINE_SHAPE = LineXYShape.INSTANCE;
+
+    /** Line thickness config key. */
+    public static final ConfigKey<Integer> THICK_KEY = createThicknessKey();
 
     /**
      * Private constructor prevents instantiation.
@@ -74,11 +78,13 @@ public class PairLinkForm implements ShapeForm {
 
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
+            THICK_KEY,
         };
     }
 
     public Outliner createOutliner( ConfigMap config ) {
-        return new LinkOutliner();
+        int nthick = config.get( THICK_KEY ).intValue();
+        return new LinkOutliner( nthick );
     }
 
     /**
@@ -88,36 +94,6 @@ public class PairLinkForm implements ShapeForm {
      */
     public static PairLinkForm getInstance() {
         return instance_;
-    }
-
-    /**
-     * Returns an uncoloured icon suitable for use in a legend.
-     *
-     * @return  legend icon
-     */
-    private static Icon createLegendIcon() {
-        return new MultiPosIcon( 2 ) {
-            protected void paintPositions( Graphics g, Point[] positions ) {
-                Point p0 = positions[ 0 ];
-                Point p1 = positions[ 1 ];
-                int xoff = p0.x;
-                int yoff = p0.y;
-                g.translate( p0.x, p0.y );
-                getLineGlyph( p1.x - p0.x, p1.y - p0.y ).paintGlyph( g );
-                g.translate( -p0.x, -p0.y );
-            }
-        };
-    }
-
-    /**
-     * Returns a glyph to draw a line between the origin and a given point.
-     *
-     * @param   gx  destination X graphics coordinate
-     * @param   gy  destination Y graphics coordinate
-     * @return  glyph
-     */
-    private static Glyph getLineGlyph( int gx, int gy ) {
-        return LINE_SHAPE.getGlyph( (short) gx, (short) gy );
     }
 
     /**
@@ -163,16 +139,40 @@ public class PairLinkForm implements ShapeForm {
     }
 
     /**
+     * Constructs a config key for line thickness.
+     *
+     * @return  thickness key
+     */
+    private static ConfigKey<Integer> createThicknessKey() {
+        ConfigMeta meta = new ConfigMeta( "thick", "Thickness" );
+        meta.setShortDescription( "Line thickness" );
+        meta.setXmlDescription( new String[] {
+            "<p>Controls the line thickness used when drawing",
+            "point-to-point links.",
+            "Zero, the default value, means a 1-pixel-wide line is used,",
+            "and larger values make drawn lines thicker.",
+            "</p>",
+        } );
+        return StyleKeys.createPaintThicknessKey( meta, 3 );
+    }
+
+    /**
      * Outliner implementation for this form.
      */
     private static class LinkOutliner extends PixOutliner {
 
+        private final int nthick_;
+        private final XYShape xyLine_;
         private final Icon icon_;
 
         /**
          * Constructor.
+         *
+         * @param  nthick  line thickness index &gt;=0
          */
-        LinkOutliner() {
+        LinkOutliner( int nthick ) {
+            nthick_ = nthick;
+            xyLine_ = FatLineXYShape.getInstance( nthick );
             icon_ = createLegendIcon();
         }
 
@@ -268,6 +268,7 @@ public class PairLinkForm implements ShapeForm {
         @Override
         public int hashCode() {
             int code = -1045;
+            code = 23 * code + nthick_;
             return code;
         }
 
@@ -275,11 +276,41 @@ public class PairLinkForm implements ShapeForm {
         public boolean equals( Object o ) {
             if ( o instanceof LinkOutliner ) {
                 LinkOutliner other = (LinkOutliner) o;
-                return true;
+                return this.nthick_ == other.nthick_;
             }
             else {
                 return false;
             }
+        }
+
+        /**
+         * Returns a glyph to draw a line between the origin and a given point.
+         *
+         * @param   gx  destination X graphics coordinate
+         * @param   gy  destination Y graphics coordinate
+         * @return  glyph
+         */
+        private Glyph getLineGlyph( int gx, int gy ) {
+            return xyLine_.getGlyph( (short) gx, (short) gy );
+        }
+
+        /**
+         * Returns an uncoloured icon suitable for use in a legend.
+         *
+         * @return  legend icon
+         */
+        private Icon createLegendIcon() {
+            return new MultiPosIcon( 2 ) {
+                protected void paintPositions( Graphics g, Point[] positions ) {
+                    Point p0 = positions[ 0 ];
+                    Point p1 = positions[ 1 ];
+                    int xoff = p0.x;
+                    int yoff = p0.y;
+                    g.translate( p0.x, p0.y );
+                    getLineGlyph( p1.x - p0.x, p1.y - p0.y ).paintGlyph( g );
+                    g.translate( -p0.x, -p0.y );
+                }
+            };
         }
     }
 }

@@ -1,8 +1,8 @@
 <p>The Enhanced Character Separated Values format was developed within
 the <a href="https://www.astropy.org/">Astropy</a> project
-and is described at
-<a href="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst"
-        >https://github.com/astropy/astropy-APEs/blob/master/APE6.rst</a>.
+and is described in Astropy
+<a href="https://github.com/astropy/astropy-APEs/blob/master/APE6.rst">APE6</a>
+(<a href="https://doi.org/10.5281/zenodo.4792325">DOI</a>).
 It is composed of a YAML header followed by a CSV-like body,
 and is intended to be a human-readable and maybe even human-writable format
 with rich metadata.
@@ -41,6 +41,21 @@ This allows you to force the datatype of given columns
 (the CSV reader guesses datatype based on content, but can get it wrong)
 and it can also be read much more efficiently than a CSV file
 and its format can be detected automatically.
+</p>
+
+<p>The header information can be provided either in the ECSV file itself,
+or alongside a plain CSV file from a separate source
+referenced using the <code>header</code> configuration option.
+In Gaia EDR3 for instance, the ECSV headers are supplied alongside
+the CSV files available for raw download of all tables in the
+Gaia source catalogue, so e.g. STILTS can read
+one of the gaia_source CSV files with full metadata
+as follows:
+<pre>
+   stilts tpipe
+      ifmt='ecsv(header=http://cdn.gea.esac.esa.int/Gaia/gedr3/ECSV_headers/gaia_source.header)'
+      in=http://cdn.gea.esac.esa.int/Gaia/gedr3/gaia_source/GaiaSource_000000-003111.csv.gz
+</pre>
 </p>
 
 <p>The ECSV datatypes that work well with this reader are

@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.MarkShape;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -100,13 +98,13 @@ public class MarkArrayForm implements ShapeForm {
 
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
-            StyleKeys.MARK_SHAPE,
+            StyleKeys.MARKER_SHAPE,
             SIZE_KEY,
         };
     }
 
     public Outliner createOutliner( ConfigMap config ) {
-        MarkShape shape = config.get( StyleKeys.MARK_SHAPE );
+        MarkerShape shape = config.get( StyleKeys.MARKER_SHAPE );
         int size = config.get( SIZE_KEY );
         return new MarksOutliner( shape, size );
     }
@@ -132,7 +130,7 @@ public class MarkArrayForm implements ShapeForm {
      */
     private class MarksOutliner extends PixOutliner {
 
-        private final MarkStyle style_;
+        private final MarkerStyle style_;
         private final Glyph glyph_;
         private final Icon icon_;
 
@@ -142,7 +140,7 @@ public class MarkArrayForm implements ShapeForm {
          * @param  shape  marker shape
          * @param  size   marker size
          */
-        public MarksOutliner( MarkShape shape, int size ) {
+        public MarksOutliner( MarkerShape shape, int size ) {
             style_ = MarkForm.createMarkStyle( shape, size );
             glyph_ = MarkForm.createMarkGlyph( shape, size, true );
             icon_ = MarkForm.createLegendIcon( shape, size );

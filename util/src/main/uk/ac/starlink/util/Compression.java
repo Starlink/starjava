@@ -4,7 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
-import org.apache.tools.bzip2.CBZip2InputStream;
+import uk.ac.starlink.util.bzip2.CBZip2InputStream;
 
 /**
  * Characterises the compression status of a stream, and provides methods
@@ -160,7 +160,7 @@ public abstract class Compression {
                 throw new IllegalArgumentException( 
                     "Wrong magic number for bzip2 encoding" );
             }
-            return new CBZip2InputStream( raw );
+            return new CBZip2InputStream( raw, true );
         }
     };
 

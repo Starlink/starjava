@@ -58,7 +58,8 @@ public class RefChecker implements AttributeChecker {
         String toName = to.getName();
         String fromName = from.getName();
         if ( ! legalReferents_.contains( toName ) ) {
-            context.warning( fromName + " has ref '" + id + 
+            context.warning( new VotLintCode( "WRA" ),
+                             fromName + " has ref '" + id + 
                              "' to element type " + toName +
                              " - is this meaningful?" );
         }

@@ -42,10 +42,12 @@ this list up to date, but if there are missing entries please complain.
       astrogrid.jar
       cdf.jar
       connect.jar
+      ecsv.jar
       fits.jar
       gbin.jar
       mirage.jar
       pal.jar
+      parquet.jar
       plastic.jar
       registry.jar
       stilts-app.jar
@@ -59,12 +61,12 @@ this list up to date, but if there are missing entries please complain.
 
    LGPL (other):
       adqlParser.jar
+      ucidy-1.1.jar
       iText_shrunk.jar
       jcdf.jar
       dpac.jar
 
    Apache license:
-      apache-bzip2.jar
       commons-logging-1.0.4.jar
       commons-codec-1.3.jar
       commons-el.jar
@@ -72,6 +74,9 @@ this list up to date, but if there are missing entries please complain.
       jsamp.jar
       org.mortbay.jetty.jar
       snakeyaml-1.25.jar
+
+   BSD 2-clause:
+      unity-1.0.jar
 
    BSD 3-clause:
       cdshealpix.jar

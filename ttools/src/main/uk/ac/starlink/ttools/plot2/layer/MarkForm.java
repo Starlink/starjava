@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.MarkShape;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -130,12 +128,12 @@ public abstract class MarkForm implements ShapeForm {
             return new MarkForm( 1, "Mark", ResourceIcon.FORM_MARK ) {
                 public ConfigKey<?>[] getConfigKeys() {
                     return new ConfigKey<?>[] {
-                        StyleKeys.MARK_SHAPE,
+                        StyleKeys.MARKER_SHAPE,
                         StyleKeys.SIZE,
                     };
                 }
                 public Outliner createOutliner( ConfigMap config ) {
-                    MarkShape shape = config.get( StyleKeys.MARK_SHAPE );
+                    MarkerShape shape = config.get( StyleKeys.MARKER_SHAPE );
                     int size = config.get( StyleKeys.SIZE );
                     return createMarkOutliner( shape, size );
                 }
@@ -166,12 +164,12 @@ public abstract class MarkForm implements ShapeForm {
                 }
                 public ConfigKey<?>[] getConfigKeys() {
                     return new ConfigKey<?>[] {
-                        StyleKeys.MARK_SHAPE,
+                        StyleKeys.MARKER_SHAPE,
                         StyleKeys.SIZE,
                     };
                 }
                 public Outliner createOutliner( ConfigMap config ) {
-                    MarkShape shape = config.get( StyleKeys.MARK_SHAPE );
+                    MarkerShape shape = config.get( StyleKeys.MARKER_SHAPE );
                     int size = config.get( StyleKeys.SIZE );
                     return createMultiMarkOutliner( shape, size, npos );
                 }
@@ -186,7 +184,7 @@ public abstract class MarkForm implements ShapeForm {
      * @param   size   marker size
      * @return  single-point outliner
      */
-    public static Outliner createMarkOutliner( MarkShape shape, int size ) {
+    public static Outliner createMarkOutliner( MarkerShape shape, int size ) {
         return new SingleMarkOutliner( shape, size );
     }
 
@@ -198,7 +196,7 @@ public abstract class MarkForm implements ShapeForm {
      * @param  npos   number of positions per tuple
      * @return  multi-point outliner
      */
-    public static Outliner createMultiMarkOutliner( MarkShape shape, int size,
+    public static Outliner createMultiMarkOutliner( MarkerShape shape, int size,
                                                     int npos ) {
         return new MultiMarkOutliner( shape, size, npos );
     }
@@ -210,8 +208,8 @@ public abstract class MarkForm implements ShapeForm {
      * @param  size   marker size in pixels
      * @return   marker style
      */
-    public static MarkStyle createMarkStyle( MarkShape shape, int size ) {
-        return size == 0 ? MarkShape.POINT.getStyle( DUMMY_COLOR, 0 )
+    public static MarkerStyle createMarkStyle( MarkerShape shape, int size ) {
+        return size == 0 ? MarkerShape.POINT.getStyle( DUMMY_COLOR, 0 )
                          : shape.getStyle( DUMMY_COLOR, size );
     }
 
@@ -224,10 +222,10 @@ public abstract class MarkForm implements ShapeForm {
      * @param  size   marker size in pixels
      * @return   marker style
      */
-    private static MarkStyle createLegendMarkStyle( MarkShape shape,
-                                                    int size ) {
+    private static MarkerStyle createLegendMarkStyle( MarkerShape shape,
+                                                      int size ) {
         if ( size == 0 ) {
-            return MarkShape.FILLED_SQUARE
+            return MarkerShape.FILLED_SQUARE
                   .getStyle( DUMMY_COLOR, MIN_LEGEND_SIZE );
         }
         else {
@@ -245,32 +243,21 @@ public abstract class MarkForm implements ShapeForm {
      *                     createPixer called multiple times
      * @return  marker glyph
      */
-    public static Glyph createMarkGlyph( MarkShape shape, int size,
+    public static Glyph createMarkGlyph( MarkerShape shape, int size,
                                          boolean isMultipix ) {
-        final MarkStyle style = createMarkStyle( shape, size );
-        if ( isMultipix ) {
-            final PixellatorPixerFactory pfact =
-                new PixellatorPixerFactory( style.getPixelOffsets() );
-            return new Glyph() {
-                public void paintGlyph( Graphics g ) {
-                    style.drawShape( g );
-                }
-                public Pixer createPixer( Rectangle clip ) {
-                    return pfact.createPixer( clip );
-                }
-            };
-        }
-        else {
-            return new Glyph() {
-                public void paintGlyph( Graphics g ) {
-                    style.drawShape( g );
-                }
-                public Pixer createPixer( Rectangle clip ) {
-                    return new PixellatorPixerFactory( style.getPixelOffsets() )
-                          .createPixer( clip );
-                }
-            };
-        }
+        final MarkerStyle style = createMarkStyle( shape, size );
+        final PixerFactory pfact =
+              isMultipix
+            ? Pixers.createPixerCopier( style.getPixerFactory().createPixer() )
+            : style.getPixerFactory();
+        return new Glyph() {
+            public void paintGlyph( Graphics g ) {
+                style.drawShape( g );
+            }
+            public Pixer createPixer( Rectangle clip ) {
+                return Pixers.createClippedPixer( pfact, clip );
+            }
+        };
     }
 
     /**
@@ -280,8 +267,8 @@ public abstract class MarkForm implements ShapeForm {
      * @param  size  marker size
      * @return   legend icon
      */
-    public static Icon createLegendIcon( MarkShape shape, int size ) {
-        final MarkStyle style = createLegendMarkStyle( shape, size );
+    public static Icon createLegendIcon( MarkerShape shape, int size ) {
+        final MarkerStyle style = createLegendMarkStyle( shape, size );
         final Icon baseIcon = style.getLegendIcon();
         final int width = baseIcon.getIconWidth();
         final int height = baseIcon.getIconHeight();
@@ -309,9 +296,9 @@ public abstract class MarkForm implements ShapeForm {
      * @param   size   marker size
      * @param   npos   number of positions to show in icon
      */
-    private static Icon createMultiLegendIcon( MarkShape shape, int size,
+    private static Icon createMultiLegendIcon( MarkerShape shape, int size,
                                                final int npos ) {
-        final MarkStyle style = createLegendMarkStyle( shape, size );
+        final MarkerStyle style = createLegendMarkStyle( shape, size );
         return new MultiPosIcon( npos ) {
             protected void paintPositions( Graphics g, Point[] positions ) {
                 for ( int ip = 0; ip < npos; ip++ ) {
@@ -336,7 +323,7 @@ public abstract class MarkForm implements ShapeForm {
      * shave time off it.
      */
     private static abstract class MarkOutliner implements Outliner {
-        final MarkStyle style_;
+        final MarkerStyle style_;
         final Glyph glyph_;
         final Icon icon_;
 
@@ -347,7 +334,7 @@ public abstract class MarkForm implements ShapeForm {
          * @param  size   marker size in pixels
          * @param  icon   legend icon
          */
-        protected MarkOutliner( MarkShape shape, int size, Icon icon ) {
+        protected MarkOutliner( MarkerShape shape, int size, Icon icon ) {
             style_ = createMarkStyle( shape, size );
             glyph_ = createMarkGlyph( shape, size, true );
             icon_ = icon;
@@ -442,7 +429,7 @@ public abstract class MarkForm implements ShapeForm {
          * @param  shape  marker shape
          * @param  size   marker size in pixels
          */
-        public SingleMarkOutliner( MarkShape shape, int size ) {
+        public SingleMarkOutliner( MarkerShape shape, int size ) {
             super( shape, size, createLegendIcon( shape, size ) );
         }
 
@@ -518,7 +505,7 @@ public abstract class MarkForm implements ShapeForm {
          * @param  size   marker size in pixels
          * @param  npos   number of points per tuple
          */
-        public MultiMarkOutliner( MarkShape shape, int size, int npos ) {
+        public MultiMarkOutliner( MarkerShape shape, int size, int npos ) {
             super( shape, size, createMultiLegendIcon( shape, size, npos ) );
             npos_ = npos;
         }

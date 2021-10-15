@@ -28,6 +28,9 @@ public class TimesTest extends TestCase {
         assertEquals( "2004-10-25T12:00:00", Times.mjdToIso( 53303.5 ) );
         assertEquals( "18:00:00", Times.mjdToTime( -0.25 ) );
         assertEquals( "1858-11-17", Times.mjdToDate( 0.1 ) );
+
+        assertEquals( "(BCE)4713-01-01T12:00:00",
+                      Times.mjdToIso( Times.jdToMjd( 0 ) ) );
     } 
 
     public void testFormat() {
