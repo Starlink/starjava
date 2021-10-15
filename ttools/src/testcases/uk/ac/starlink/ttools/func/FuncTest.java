@@ -926,6 +926,21 @@ public class FuncTest extends TestCase {
         checkHealpix( 9, 1110787 );
     }
 
+    public void testVO() {
+        assertEquals( "OK", VO.ucdStatus( "pos.eq.ra;meta.main" ) );
+        assertEquals( "VOX", VO.ucdStatus( "VOX:Image_Naxes" ) );
+        assertEquals( "BAD_SEQUENCE", VO.ucdStatus( "meta.main;pos.eq.ra" ) );
+        assertNull( VO.ucdMessage( "pos.eq.ra;meta.main" ) );
+        assertTrue( VO.ucdMessage( "not a ucd" ).trim().length() > 0 );
+
+        assertEquals( "OK", VO.vounitStatus( "kg/m**2" ) );
+        assertEquals( "BAD_SYNTAX", VO.vounitStatus( "kg/m^2" ) );
+        assertEquals( "UNKNOWN_UNIT", VO.vounitStatus( "bag/fortnight" ) );
+        assertEquals( "WHITESPACE", VO.vounitStatus( "kg / m**2" ) );
+        assertNull( VO.vounitMessage( "kg/m**2" ) );
+        assertTrue( VO.vounitMessage( "kg/m^2" ).trim().length() > 0 );
+    }
+
     private void checkHealpix( int ik, long ipix ) {
         assertEquals( ipix, Tilings.healpixRingToNest( ik,
                             Tilings.healpixNestToRing( ik, ipix ) ) );
