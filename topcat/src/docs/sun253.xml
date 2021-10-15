@@ -477,7 +477,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>10 June 2021</docdate>
+<docdate>15 October 2021</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -30039,86 +30039,104 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 4.8-2 (15 October 2021)</dt>
 <dd><p>
-    <ul>
-    <li>Add Julian Day manipulation functions <code>jdToMjd</code>
-        and <code>mjdToJd</code> to class <ref id="Times">Times</ref>;
-        replace <code>julianToUnixSec</code>, which didn't do what
-        it said it did, with <code>jdToUnixSec</code>.</li>
-    <li>The <code>mjdToIso</code> and <code>mjdToDate</code> functions 
-        in class <ref id="Times">Times</ref> now prepend the string
-        "<code>(BCE)</code>" to dates before the common era.</li>
-    <li>Guess meaning for some non-standard COORDSYS values in 
-        HEALPix-FITS files, e.g. allow "GALACTIC" instead of "G".</li>
-    <li>Revert to sequential processing in some cases for
-        Healpix plots to reduce resource usage.</li>
-    <li>Columns that are all blank in ASCII-like tables
-        (CSV, ASCII, TST) are now interpreted as String
-        not boolean.</li>
-    <li>New functions in class <ref id="VO">VO</ref>
-        to check syntax of UCD and VOUnit strings.</li>
-    <li>Fix serious threading bug that could return nonsense values
-        from fixed-length string fields during parallel processing, 
-        for instance statistics calculation, 
-        of large cached/randomised tables.</li>
-    <li>Copy/paste is now possible from the
-        <ref id="ActivationWindow">Activation Window</ref>
-        Results panel.</li>
-    <li>The <ref id="LogWindow">Log Window</ref>, which has been broken
-        since v4.7-1, and not much use before that, has been rewritten.
-        It now presents logging information, including things like
-        external service access details, in a useful way.</li>
-    <li>Fix behaviour for a couple of activation actions
-        (<ref id="ServiceActivationType">Invoke Service</ref> and
-         <ref id="InvokeDatalinkActivationType">Invoke Datalink</ref>),
-        that invoked the wrong row for tables with sorted rows.</li>
-    <li>Add <label>Auto-Invoke</label> option to 
-        <ref id="ViewDatalinkActivationType">View Datalink Table</ref>
-        activation action's Datalink display.</li>
-    <li>New Area type <label>UNIQ</label>
-        to plot single HEALPix tiles e.g. from MOC files in the
-        <ref id="GangLayerControl_area">Area Layer Control</ref>.</li>
-    <li>Upgrade of cds-healpix-java library to v0.30.2; this fixes
-        some HEALPix cell plotting bugs.</li>
-    <li>Files compressed using multi-stream bzip2 compression
-        (e.g. <code>pbzip2</code> output) are now supported
-        alongside single-stream bzip2.</li>
-    <li>Fix aux ranging bug that meant supplying a fixed Maximum Aux
-        value was ignored without a fixed Minimum Aux value.
-        This was a regression bug introduced at v4.6-3.</li>
-    <li>Simplify algebraic <ref id="FigurePanel">ellipse expression</ref>
-        (it doesn't need a square root).</li>
-    <li>Ellipse selection in the
-        <ref id="FigurePanel">Draw Algebraic Subset</ref> action
-        can now be rotated rather than just aligned with the axes
-        ("Ellipse" is renamed "Aligned Ellipse", and there is a
-        new option "Rotated Ellipse").</li>
-    <li>A new <label>Thickness</label> control has been added to several
-        plot forms to enable lines thicker than a single pixel
-        when drawing error bars, arrows, outlines, pair links etc:
-        <ref id="form-vector"><code>Vector</code></ref>,
-        <ref id="form-error"><code>Error Bars</code></ref>,
-        <ref id="form-skyvector"><code>SkyVector</code></ref>,
-        <ref id="form-skyellipse"><code>SkyEllipse</code></ref>,
-        <ref id="form-skycorr"><code>SkyCorr</code></ref>,
-        <ref id="form-xyellipse"><code>XYEllipse</code></ref>,
-        <ref id="form-xycorr"><code>XYCorr</code></ref>,
-        <ref id="form-sizexy"><code>SizeXY</code></ref>,
-        <ref id="form-area"><code>Area</code></ref>,
-        <ref id="form-polygon"><code>Polygon</code></ref>,
-        <ref id="form-poly4"><code>Poly4</code></ref>,
-        <ref id="form-link2"><code>Link2</code></ref>,
-        <ref id="form-yerrors"><code>YErrors</code></ref>,
-        <ref id="form-xyerrors"><code>XYErrors</code></ref>.</li>
-    <li>The Fast config option has been withdrawn from
-        polygon-plotting forms
-        <ref id="form-area"><code>Area</code></ref>,
-        <ref id="form-polygon"><code>Polygon</code></ref>,
-        <ref id="form-poly4"><code>Poly4</code></ref>;
-        the shape-filling algorithm has been improved, and it's no
-        longer necessary to choose between speed and accuracy.</li>
-    </ul>
+    <dl>
+    <dt>New functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>Ellipse selection in the
+            <ref id="FigurePanel">Draw Algebraic Subset</ref> action
+            can now be rotated rather than just aligned with the axes
+            ("Ellipse" is renamed "Aligned Ellipse", and there is a
+            new option "Rotated Ellipse").</li>
+        <li>A new <label>Thickness</label> control has been added to several
+            plot forms to enable lines thicker than a single pixel
+            when drawing error bars, arrows, outlines, pair links etc:
+            <ref id="form-vector"><code>Vector</code></ref>,
+            <ref id="form-error"><code>Error Bars</code></ref>,
+            <ref id="form-skyvector"><code>SkyVector</code></ref>,
+            <ref id="form-skyellipse"><code>SkyEllipse</code></ref>,
+            <ref id="form-skycorr"><code>SkyCorr</code></ref>,
+            <ref id="form-xyellipse"><code>XYEllipse</code></ref>,
+            <ref id="form-xycorr"><code>XYCorr</code></ref>,
+            <ref id="form-sizexy"><code>SizeXY</code></ref>,
+            <ref id="form-area"><code>Area</code></ref>,
+            <ref id="form-polygon"><code>Polygon</code></ref>,
+            <ref id="form-poly4"><code>Poly4</code></ref>,
+            <ref id="form-link2"><code>Link2</code></ref>,
+            <ref id="form-yerrors"><code>YErrors</code></ref>,
+            <ref id="form-xyerrors"><code>XYErrors</code></ref>.</li>
+        <li>New Area type <label>UNIQ</label>
+            to plot single HEALPix tiles e.g. from MOC files in the
+            <ref id="GangLayerControl_area">Area Layer Control</ref>.</li>
+        <li>The <ref id="LogWindow">Log Window</ref>, which has been broken
+            since v4.7-1, and not much use before that, has been rewritten.
+            It now presents logging information, including things like
+            external service access details, in a useful way.</li>
+        <li>New functions in class <ref id="VO">VO</ref>
+            to check syntax of UCD and VOUnit strings.</li>
+        <li>Add <label>Auto-Invoke</label> option to 
+            <ref id="ViewDatalinkActivationType">View Datalink Table</ref>
+            activation action's Datalink display.</li>
+        <li>Copy/paste is now possible from the
+            <ref id="ActivationWindow">Activation Window</ref>
+            <label>Results</label> panel.</li>
+        <li>Add Julian Day manipulation functions <code>jdToMjd</code>
+            and <code>mjdToJd</code> to class <ref id="Times">Times</ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Replace function <code>julianToUnixSec</code>
+            in class <ref id="Times">Times</ref>,
+            which didn't do what it said it did,
+            with <code>jdToUnixSec</code>.</li>
+        <li>The <code>mjdToIso</code> and <code>mjdToDate</code> functions 
+            in class <ref id="Times">Times</ref> now prepend the string
+            "<code>(BCE)</code>" to dates before the common era.</li>
+        <li>Guess meaning for some non-standard COORDSYS values in 
+            HEALPix-FITS files, e.g. allow "GALACTIC" instead of "G".</li>
+        <li>Revert to sequential processing in some cases for
+            HEALPix plots to reduce resource usage.</li>
+        <li>Columns that are all blank in ASCII-like tables
+            (CSV, ASCII, TST) are now interpreted as String
+            not boolean.</li>
+        <li>Files compressed using multi-stream bzip2 compression
+            (e.g. <code>pbzip2</code> output) are now supported
+            alongside single-stream bzip2.</li>
+        <li>Simplify (aligned) ellipse expression in
+            <ref id="FigurePanel">algebraic subset</ref>;
+            it doesn't need a square root.</li>
+        <li>The Fast config option has been withdrawn from
+            polygon-plotting forms
+            <ref id="form-area"><code>Area</code></ref>,
+            <ref id="form-polygon"><code>Polygon</code></ref>,
+            <ref id="form-poly4"><code>Poly4</code></ref>;
+            the shape-filling algorithm has been improved, and it's no
+            longer necessary to choose between speed and accuracy.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix serious threading bug that could return nonsense values
+            from fixed-length string fields during parallel processing, 
+            for instance statistics calculation, 
+            of large cached or randomised tables.</li>
+        <li>Fix behaviour for a couple of activation actions
+            (<ref id="ServiceActivationType">Invoke Service</ref> and
+             <ref id="InvokeDatalinkActivationType">Invoke Datalink Row</ref>),
+            that invoked the wrong row for tables with sorted rows.</li>
+        <li>Fix aux ranging bug that meant supplying a fixed Maximum Aux
+            value was ignored without a fixed Minimum Aux value.
+            This was a regression bug introduced at v4.6-3.</li>
+        <li>Upgrade of cds-healpix-java library to v0.30.2; this fixes
+            some HEALPix cell plotting bugs.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
