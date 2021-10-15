@@ -225,7 +225,7 @@ public class UcdStatus {
         UNKNOWN_WORD( 'E' ),
 
         /** Contains apparently namespaced UCD words. */
-        NAMESPACE( 'W' ),
+        NAMESPACE( ' ' ),
 
         /** Contains deprecated UCD1+ words. */
         DEPRECATED( 'W' );

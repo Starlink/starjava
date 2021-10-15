@@ -64,10 +64,8 @@ public class VotLint implements Task {
         ucdParam_.setDescription( new String[] {
             "<p>If true, the <code>ucd</code> attributes",
             "on FIELD and PARAM elements etc",
-            "are checked for conformance against the UCD1+ standard,",
-            "and warnings are issued if the syntax does not match.",
-            "VOTable does not require UCD1+ ucd values however,",
-            "so this option controls whether such checking is done.",
+            "are checked for conformance against the UCD1+ standard",
+            "or a list of known UCD1 terms.",
             "</p>",
         } );
 
