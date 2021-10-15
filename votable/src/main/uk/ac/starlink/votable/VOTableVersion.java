@@ -165,6 +165,15 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
     public abstract boolean allowTimesys();
 
     /**
+     * Indicates whether this version of VOTable is supposed to use the
+     * VOUnit standard for the content of unit attributes.
+     *
+     * @return  true if VOUnits are supposed to be used
+     * @see  <a href="https://www.ivoa.net/documents/VOUnits/">VOUnits</a>
+     */
+    public abstract boolean isVOUnitSyntax();
+
+    /**
      * Returns a number-&gt;version map for all known versions.
      * The map keys are version number strings like "1.1".
      * The order of entries in this map is in ascending order
@@ -257,6 +266,9 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
             return false;
         }
         public boolean allowTimesys() {
+            return false;
+        }
+        public boolean isVOUnitSyntax() {
             return false;
         }
         public Schema getSchema() {
@@ -399,6 +411,11 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
 
         @Override
         public boolean allowTimesys() {
+            return true;
+        }
+
+        @Override
+        public boolean isVOUnitSyntax() {
             return true;
         }
     }
