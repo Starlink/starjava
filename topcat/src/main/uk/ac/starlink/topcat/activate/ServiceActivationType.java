@@ -371,8 +371,8 @@ public class ServiceActivationType implements ActivationType {
          */
         public ResourceType guessResourceType() {
             URL url = null;
-            String ctype = null;
             ServiceDescriptor sd = getServiceDescriptor();
+            String ctype = sd == null ? null : sd.getContentType();
             String standardId = sd == null ? null : sd.getStandardId();
             return ResourceType.guessResourceType( new ResourceInfo() {
                 public URL getUrl() {

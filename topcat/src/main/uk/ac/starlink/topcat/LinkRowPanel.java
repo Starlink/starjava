@@ -572,7 +572,11 @@ public class LinkRowPanel extends JPanel {
             urlPanel_ = urlPanel;
             ServiceDescriptor descriptor = invoker.getServiceDescriptor();
             standardId_ = descriptor.getStandardId();
-            contentType_ = colMap.getContentType( row );
+            String contentType = colMap.getContentType( row );
+            if ( contentType == null || contentType.trim().length() == 0 ) {
+                contentType = descriptor.getContentType();
+            }
+            contentType_ = contentType;
             Map<ServiceParam,String> suppliedMap =
                 new HashMap<ServiceParam,String>();
             suppliedMap.putAll( invoker.getFixedParamMap() );
