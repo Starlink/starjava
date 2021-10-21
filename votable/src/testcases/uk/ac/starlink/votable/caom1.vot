@@ -87,10 +87,16 @@
     </TABLE>
     <INFO name="QUERY_STATUS" value="OK" />
   </RESOURCE>
-  <RESOURCE type="meta" ID="soda-54fafffb-8cac-4278-b968-555b5496ab9f" utype="adhoc:service">
+  <RESOURCE type="meta" ID="soda-54fafffb-8cac-4278-b968-555b5496ab9f" utype="adhoc:service" name="soda-sync">
+    <DESCRIPTION>Synchronous cutout service</DESCRIPTION>
     <PARAM name="resourceIdentifier" datatype="char" arraysize="26" value="ivo://cadc.nrc.ca/caom2ops" />
     <PARAM name="standardID" datatype="char" arraysize="32" value="ivo://ivoa.net/std/SODA#sync-1.0" />
     <PARAM name="accessURL" datatype="char" arraysize="57" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/sync" />
+    <PARAM name="contentType" datatype="char" arraysize="*" value="application/fits" />
+    <PARAM name="exampleURL" datatype="char" arraysize="*" value="http://example.com/test1"/>
+    <PARAM name="exampleURL" datatype="char" arraysize="*" value="http://example.com/test2">
+      <DESCRIPTION>It's an example</DESCRIPTION>
+    </PARAM>
     <GROUP name="inputParams">
       <PARAM name="ID" datatype="char" arraysize="*" ucd="" value="ad:CFHT/1742833o.fits.fz" />
       <PARAM name="POS" datatype="char" arraysize="*" value="" />

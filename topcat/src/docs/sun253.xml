@@ -31902,6 +31902,9 @@ introduced since the last version:
     <li>Improve reporting and defaulting
         of activation action URL invocation.</li>
     <li>Better titling of Activation Action windows.</li>
+    <li>VOTable service descriptor I/O now preserves
+        <code>contentType</code> and <code>exampleURL</code> PARAMs,
+        introduced in DataLink 1.1</li>
     </ul>
     </p></dd>
 

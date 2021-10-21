@@ -14585,6 +14585,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Improve <ref id="datalinklint"><code>datalinklint</code></ref>
         validation of semantics terms, now checks online vocabularies
         not just hard-coded ones.</li>
+    <li>VOTable service descriptor I/O now preserves
+        <code>contentType</code> and <code>exampleURL</code> PARAMs,
+        introduced in DataLink 1.1</li>
     </ul>
     </p></dd>
 

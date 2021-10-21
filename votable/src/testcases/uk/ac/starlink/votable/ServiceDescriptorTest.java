@@ -14,6 +14,7 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
+import uk.ac.starlink.votable.datalink.ExampleUrl;
 import uk.ac.starlink.votable.datalink.ServiceDescriptor;
 import uk.ac.starlink.votable.datalink.ServiceParam;
 
@@ -85,6 +86,16 @@ public class ServiceDescriptorTest extends TestCase {
         assertEquals( "http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/"
                       + "caom2ops/sync",
                       sd1.getAccessUrl() );
+        assertEquals( "soda-sync", sd1.getName() );
+        assertEquals( "Synchronous cutout service", sd1.getDescription() );
+        assertEquals( "application/fits", sd1.getContentType() );
+        ExampleUrl[] examples1 = sd1.getExampleUrls();
+        assertEquals( 2, examples1.length );
+        assertEquals( "http://example.com/test1", examples1[ 0 ].getUrl() );
+        assertNull( examples1[ 0 ].getDescription() );
+        assertEquals( "http://example.com/test2", examples1[ 1 ].getUrl() );
+        assertEquals( "It's an example", examples1[ 1 ].getDescription() );
+        assertEquals( 0, sd2.getExampleUrls().length );
 
         ServiceParam[] params1 = sd1.getInputParams();
         assertEquals( 4, params1.length );
