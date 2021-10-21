@@ -19,7 +19,7 @@ import uk.ac.starlink.table.Tables;
  * @author   Mark Taylor
  * @since    22 Nov 2017
  * @see   <a href="http://www.ivoa.net/documents/DataLink/"
- *           >DataLink-1.0, sec 3.2</a>
+ *           >DataLink 1.0 or 1.1, sec 3.2</a>
  */
 public class LinkColMap {
 
@@ -49,31 +49,59 @@ public class LinkColMap {
     /** content_length column definition. */
     public static final ColDef<Number> COL_CONTENTLENGTH;
 
+    /** content_qualifier column definition. */
+    public static final ColDef<String> COL_CONTENTQUALIFIER;
+
+    /** local_semantics column definition. */
+    public static final ColDef<Object> COL_LOCALSEMANTICS;
+
+    /** link_auth column definition. */
+    public static final ColDef<String> COL_LINKAUTH;
+
+    /** link_authorized column definition. */
+    public static final ColDef<Boolean> COL_LINKAUTHORIZED;
+
     /** Map by column name of all columns required in a DataLink table. */
     public static final Map<String,ColDef<?>> COLDEF_MAP;
     static {
         Map<String,ColDef<?>> map = new LinkedHashMap<String,ColDef<?>>();
         ColDef<?>[] coldefs = {
             COL_ID =
-                new ColDef<String>( "ID", "meta.id;meta.main", String.class ),
+                new ColDef<String>( "ID", "meta.id;meta.main", true,
+                                    String.class ),
             COL_ACCESSURL =
-                new ColDef<String>( "access_url", "meta.ref.url",
+                new ColDef<String>( "access_url", "meta.ref.url", true,
                                     String.class ),
             COL_SERVICEDEF =
-                new ColDef<String>( "service_def", "meta.ref", String.class ),
+                new ColDef<String>( "service_def", "meta.ref", true,
+                                    String.class ),
             COL_ERRORMESSAGE =
-                new ColDef<String>( "error_message", "meta.code.error",
+                new ColDef<String>( "error_message", "meta.code.error", true,
                                     String.class ),
             COL_DESCRIPTION =
-                new ColDef<String>( "description", "meta.note", String.class ),
+                new ColDef<String>( "description", "meta.note", true,
+                                    String.class ),
             COL_SEMANTICS =
-                new ColDef<String>( "semantics", "meta.code", String.class ),
+                new ColDef<String>( "semantics", "meta.code", true,
+                                    String.class ),
             COL_CONTENTTYPE =
-                new ColDef<String>( "content_type", "meta.code.mime",
+                new ColDef<String>( "content_type", "meta.code.mime", true,
                                     String.class ),
             COL_CONTENTLENGTH =
                 new ColDef<Number>( "content_length", "phys.size;meta.file",
-                                    Number.class ),
+                                    true, Number.class ),
+            COL_CONTENTQUALIFIER =
+                new ColDef<String>( "content_qualifier", null, false,
+                                    String.class ),
+            COL_LOCALSEMANTICS =
+                new ColDef<Object>( "local_semantics", "meta.id.assoc", false,
+                                    Object.class ),
+            COL_LINKAUTH =
+                new ColDef<String>( "link_auth", "meta.code", false,
+                                    String.class ),
+            COL_LINKAUTHORIZED =
+                new ColDef<Boolean>( "link_authorized", "meta.code", false,
+                                     Boolean.class ),
         };
         for ( ColDef<?> coldef : coldefs ) {
             map.put( coldef.getName(), coldef );
@@ -188,6 +216,53 @@ public class LinkColMap {
     }
 
     /**
+     * Returns the value of the DataLink content_qualifier column
+     * in a given row.
+     *
+     * @param  row  row from the table for which this map was prepared
+     * @return   cell value for the <code>content_qualifier</code> column
+     */
+    public String getContentQualifier( Object[] row ) {
+        return getValue( COL_CONTENTQUALIFIER, row );
+    }
+
+    /**
+     * Returns the local semantics value for a given row.
+     *
+     * @param  row  row from the table for which this map was prepared
+     * @return  object corresponding to the cell value for the experimental
+     *          <code>local_semantics</code> column, may be null
+     */
+    public Object getLocalSemantics( Object[] row ) {
+        return getValue( COL_LOCALSEMANTICS, row );
+    }
+
+    /**
+     * Returns the value of the DataLink content_auth column
+     * in a given row.
+     * This is supposed to be one of
+     * "<code>false</code>", "<code>optional</code>", "<code>true</code>"
+     * or null.
+     *
+     * @param  row  row from the table for which this map was prepared
+     * @return   cell value for the <code>content_auth</code> column
+     */
+    public String getLinkAuth( Object[] row ) {
+        return getValue( COL_LINKAUTH, row );
+    }
+
+    /**
+     * Returns the declared authorization status for a given row.
+     *
+     * @param  row  row from the table for which this map was prepared
+     * @return   boolean corresponding to the cell value for the
+     *           <code>link_authorized</code> column, may be null
+     */
+    public Boolean getLinkAuthorized( Object[] row ) {
+        return getValue( COL_LINKAUTHORIZED, row );
+    }
+
+    /**
      * Returns the typed corresponding to a given column definition
      * in a given row.
      *
@@ -230,9 +305,10 @@ public class LinkColMap {
             ColDef<?> coldef = COLDEF_MAP.get( name );
             if ( coldef != null ) {
                 String ucd = info.getUCD();
+                String stdUcd = coldef.getUcd();
                 Class<?> clazz = info.getContentClass();
-                boolean isCorrectUcd = ucd != null
-                                   && coldef.getUcd().equals( coldef.getUcd() );
+                boolean isCorrectUcd = stdUcd == null
+                                    || stdUcd.equals( ucd );
                 boolean isCorrectClazz = ((Class<?>) coldef.getContentClass())
                                         .isAssignableFrom( clazz );
                 boolean hasValue = icolMap.containsKey( coldef );
@@ -254,7 +330,7 @@ public class LinkColMap {
                         else {
                             logger_.warning( "Wrong UCD for DataLink column "
                                            + name + ": " + ucd + " != "
-                                           + coldef.getUcd() );
+                                           + stdUcd );
                         }
                     }
                 }
@@ -270,6 +346,7 @@ public class LinkColMap {
     public static class ColDef<C> {
         private final String name_;
         private final String ucd_;
+        private final boolean isRequired_;
         private final Class<C> clazz_;
 
         /**
@@ -277,11 +354,14 @@ public class LinkColMap {
          *
          * @param  name  column name
          * @param  ucd   column UCD
+         * @param  isRequired  true for mandatory column in links output
          * @param  clazz   required content class
          */
-        private ColDef( String name, String ucd, Class<C> clazz ) {
+        private ColDef( String name, String ucd, boolean isRequired,
+                        Class<C> clazz ) {
             name_ = name;
             ucd_ = ucd;
+            isRequired_ = isRequired;
             clazz_ = clazz;
         }
 
@@ -297,10 +377,20 @@ public class LinkColMap {
         /**
          * Returns the column's UCD.
          *
-         * @return  ucd
+         * @return  ucd, may be null
          */
         public String getUcd() {
             return ucd_;
+        }
+
+        /**
+         * Indicates whether this column is required to be present
+         * in a links response table.
+         *
+         * @return  true for required columns, false for optional
+         */
+        public boolean isRequired() {
+            return isRequired_;
         }
 
         /**

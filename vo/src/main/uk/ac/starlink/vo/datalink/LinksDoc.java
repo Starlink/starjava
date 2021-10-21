@@ -216,7 +216,8 @@ public abstract class LinksDoc {
                 if ( ((Class<?>) coldef.getContentClass())
                     .isAssignableFrom( cinfo.getContentClass() ) ) {
                     presentDefs.add( coldef );
-                    if ( coldef.getUcd().equals( cinfo.getUCD() ) ) {
+                    String stdUcd = coldef.getUcd();
+                    if ( stdUcd == null || stdUcd.equals( cinfo.getUCD() ) ) {
                         correctDefs.add( coldef );
                     }
                 }
@@ -228,8 +229,14 @@ public abstract class LinksDoc {
             return false;
         }
         else {
-            return LinkColMap.COLDEF_MAP.size() - correctDefs.size()
-                   <= nMistake;
+            int nMissing = 0;
+            for ( LinkColMap.ColDef<?> stdCol :
+                  LinkColMap.COLDEF_MAP.values() ) {
+                if ( stdCol.isRequired() && ! correctDefs.contains( stdCol ) ) {
+                    nMissing++;
+                }
+            }
+            return nMissing <= nMistake;
         }
     }
 

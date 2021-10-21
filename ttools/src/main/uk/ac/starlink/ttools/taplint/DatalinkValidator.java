@@ -443,26 +443,29 @@ public class DatalinkValidator {
             /* See if it's a DataLink column. */
             LinkColMap.ColDef<?> coldef = LinkColMap.COLDEF_MAP.get( name );
             if ( coldef != null ) {
+                String stdUcd = coldef.getUcd();
 
                 /* Check UCD against DataLink specification. */
                 String ucd = info.getUCD();
                 if ( ucd == null ) {
-                    String msg = new StringBuffer()
-                        .append( "Missing UCD for column " )
-                        .append( name )
-                        .append( "; should be " )
-                        .append( coldef.getUcd() )
-                        .toString();
-                    reporter_.report( DatalinkCode.E_RUCD, msg );
+                    if ( stdUcd != null ) {
+                        String msg = new StringBuffer()
+                            .append( "Missing UCD for column " )
+                            .append( name )
+                            .append( "; should be " )
+                            .append( stdUcd )
+                            .toString();
+                        reporter_.report( DatalinkCode.E_RUCD, msg );
+                    }
                 }
-                else if ( ! ucd.equals( coldef.getUcd() ) ) {
+                else if ( ! ucd.equals( stdUcd ) ) {
                     String msg = new StringBuffer()
                         .append( "Wrong UCD for column " )
                         .append( name )
                         .append( "; " )
                         .append( ucd )
                         .append( " != " )
-                        .append( coldef.getUcd() )
+                        .append( stdUcd )
                         .toString();
                     reporter_.report( DatalinkCode.E_RUCD, msg );
                 }
@@ -533,7 +536,7 @@ public class DatalinkValidator {
         }
         StringBuffer missingBuf = new StringBuffer();
         for ( LinkColMap.ColDef<?> coldef : LinkColMap.COLDEF_MAP.values() ) {
-            if ( ! icolMap.containsKey( coldef ) ) {
+            if ( coldef.isRequired() && ! icolMap.containsKey( coldef ) ) {
                 if ( missingBuf.length() > 0 ) {
                     missingBuf.append( ", " );
                 }

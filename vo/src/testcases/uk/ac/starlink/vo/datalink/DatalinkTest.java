@@ -4,16 +4,23 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.datalink.ServiceDescriptor;
 import uk.ac.starlink.votable.datalink.ServiceParam;
 
 public class DatalinkTest extends TestCase {
+
+    public DatalinkTest() {
+        LogUtils.getLogger( "uk.ac.starlink.vo.datalink" )
+                .setLevel( Level.SEVERE );
+    }
 
     public void testFile() throws Exception {
         URL url = DatalinkTest.class.getResource( "dl2.vot" );
