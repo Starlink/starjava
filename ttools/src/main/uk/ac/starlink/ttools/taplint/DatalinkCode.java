@@ -67,6 +67,7 @@ public enum DatalinkCode implements ReportCode {
     W_PSDU( "Duplicated standard param", Doc.DATALINK, "4.1" ),
     W_QERR( "Datalink query failed" ),
     W_SAVV( "Both ref and value/values in inputParam" ),
+    W_SDND( "Insufficient @name/DESCRIPTION metadata", Doc.DATALINK11, "4.1" ),
     W_SMCO( "Preliminary/deprecated semantics term", Doc.DATALINK, "3.2.6" );
 
     private final String description_;

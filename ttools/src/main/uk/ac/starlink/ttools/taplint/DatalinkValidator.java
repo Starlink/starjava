@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -382,24 +383,52 @@ public class DatalinkValidator {
         }
         ServiceDescriptor[] servDescriptors =
             sdList.toArray( new ServiceDescriptor[ 0 ] );
-        int nIdSd = 0;
-        int nAnonSd = 0;
+        int nSd = servDescriptors.length;
+        int nIdentified = 0;
+        Set<String> nameSet = new HashSet<>();
+        Set<String> descriptionSet = new HashSet<>();
         for ( ServiceDescriptor sd : servDescriptors ) {
-            if ( sd.getDescriptorId() == null ) {
-                nAnonSd++;
+            if ( sd.getDescriptorId() != null ) {
+                nIdentified++;
             }
-            else {
-                nIdSd++;
+            String name = sd.getName();
+            String descrip = sd.getDescription();
+            if ( name != null && name.trim().length() > 0 ) {
+                nameSet.add( name.trim() );
+            }
+            if ( descrip != null && descrip.trim().length() > 0 ) {
+                descriptionSet.add( descrip.trim() );
             }
         }
         String msg = new StringBuffer()
             .append( "Service descriptors defined: " )
-            .append( nIdSd )
+            .append( nIdentified )
             .append( " referenceable, " )
-            .append( nAnonSd )
+            .append( nSd - nIdentified )
             .append( " anonymous" )
             .toString();
         reporter_.report( DatalinkCode.I_SDDF, msg );
+
+        /* Check if they are labelled with name attribute and DESCRIPTION
+         * element as recommended by Datalink 1.1 sec 4.1.
+         * Although this is not part of the Datalink 1.0 specification,
+         * warn even for DL 1.0 validation, since it's still a good idea. */
+        if ( nSd > 1 ) {
+            StringBuffer missBuf = new StringBuffer();
+            if ( nameSet.size() < nSd ) {
+                missBuf.append( "@names" );
+            }
+            if ( descriptionSet.size() < nSd ) {
+                missBuf.append( missBuf.length() == 0 ? "" : " and " )
+                       .append( "DESCRIPTIONs" );
+            }
+            String ndMsg = new StringBuffer()
+                .append( "Multiple service descriptors defined, " )
+                .append( "but not all have unique " )
+                .append( missBuf )
+                .toString();
+            reporter_.report( DatalinkCode.W_SDND, ndMsg );
+        }
 
         /* Assemble and return a parsed LinksDoc object. */
         return LinksDoc.createLinksDoc( resultTable, colMap, servDescriptors );
