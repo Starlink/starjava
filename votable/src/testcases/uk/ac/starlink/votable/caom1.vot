@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3">
+<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.4">
   <INFO name="query" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/datalink?runid=uvcjzy3rroe514qe&amp;ID=caom%3ACFHT%2F1742833%2F1742833og"/>
   <RESOURCE type="results">
     <TABLE>
@@ -93,13 +93,13 @@
     <PARAM name="accessURL" datatype="char" arraysize="57" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/sync" />
     <GROUP name="inputParams">
       <PARAM name="ID" datatype="char" arraysize="*" ucd="" value="ad:CFHT/1742833o.fits.fz" />
-      <PARAM name="POS" datatype="char" arraysize="*" ucd="obs.field" value="" />
-      <PARAM name="CIRCLE" datatype="double" arraysize="3" ucd="obs.field" unit="deg" xtype="circle" value="">
+      <PARAM name="POS" datatype="char" arraysize="*" value="" />
+      <PARAM name="CIRCLE" datatype="double" arraysize="3" ucd="pos.eq;obs.field" unit="deg" xtype="circle" value="">
         <VALUES>
           <MAX value="21.146975243848086 -33.923782327952054 0.2533289119106916" />
         </VALUES>
       </PARAM>
-      <PARAM name="POLYGON" datatype="double" arraysize="*" ucd="obs.field" unit="deg" xtype="polygon" value="">
+      <PARAM name="POLYGON" datatype="double" arraysize="*" ucd="pos.eq;obs.field" unit="deg" xtype="polygon" value="">
         <VALUES>
           <MAX value="21.362070230617867 -33.7441376627429 21.362985304335126 -34.10236751089079 20.930936321158566 -34.10291276565199 20.93248347703315 -33.744549867354536" />
         </VALUES>
@@ -112,13 +112,13 @@
     <PARAM name="accessURL" datatype="char" arraysize="58" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/async" />
     <GROUP name="inputParams">
       <PARAM name="ID" datatype="char" arraysize="*" ucd="" value="ad:CFHT/1742833o.fits.fz" />
-      <PARAM name="POS" datatype="char" arraysize="*" ucd="obs.field" value="" />
-      <PARAM name="CIRCLE" datatype="double" arraysize="3" ucd="obs.field" unit="deg" xtype="circle" value="">
+      <PARAM name="POS" datatype="char" arraysize="*" value="" />
+      <PARAM name="CIRCLE" datatype="double" arraysize="3" ucd="pos.eq;obs.field" unit="deg" xtype="circle" value="">
         <VALUES>
           <MAX value="21.146975243848086 -33.923782327952054 0.2533289119106916" />
         </VALUES>
       </PARAM>
-      <PARAM name="POLYGON" datatype="double" arraysize="*" ucd="obs.field" unit="deg" xtype="polygon" value="">
+      <PARAM name="POLYGON" datatype="double" arraysize="*" ucd="pos.eq;obs.field" unit="deg" xtype="polygon" value="">
         <VALUES>
           <MAX value="21.362070230617867 -33.7441376627429 21.362985304335126 -34.10236751089079 20.930936321158566 -34.10291276565199 20.93248347703315 -33.744549867354536" />
         </VALUES>

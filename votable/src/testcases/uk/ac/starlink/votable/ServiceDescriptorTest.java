@@ -102,7 +102,7 @@ public class ServiceDescriptorTest extends TestCase {
         assertEquals( "CIRCLE", circParam.getName() );
         assertEquals( "double", circParam.getDatatype() );
         assertArrayEquals( new int[] { 3 }, circParam.getArraysize() );
-        assertEquals( "obs.field", circParam.getUcd() );
+        assertEquals( "pos.eq;obs.field", circParam.getUcd() );
         assertEquals( "deg", circParam.getUnit() );
         assertEquals( "circle", circParam.getXtype() );
         assertEquals( 0, circParam.getOptions().length );
