@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import junit.framework.TestCase;
 import uk.ac.starlink.util.LogUtils;
+import uk.ac.starlink.vo.datalink.LinkColMap;
 import uk.me.nxg.unity.Syntax;
 import uk.me.nxg.unity.UnitExpr;
 import uk.me.nxg.unity.UnitParser;
@@ -102,6 +103,12 @@ public class DmTest extends TestCase {
         }
         for ( String unit : unitSet ) {
             checkUnitEpn( unit );
+        }
+    }
+
+    public void testDatalink() {
+        for ( LinkColMap.ColDef dlCol : LinkColMap.COLDEF_MAP.values() ) {
+            checkUcd( dlCol.getUcd() );
         }
     }
 
