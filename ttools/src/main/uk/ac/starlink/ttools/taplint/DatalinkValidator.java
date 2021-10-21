@@ -684,6 +684,7 @@ public class DatalinkValidator {
         paramCounts.put( "accessURL", new Integer( 0 ) );
         paramCounts.put( "standardID", new Integer( 0 ) );
         paramCounts.put( "resourceIdentifier", new Integer( 0 ) );
+        paramCounts.put( "contentType", new Integer( 0 ) );
         for ( VOElement pEl : resourceEl.getChildrenByName( "PARAM" ) ) {
             ParamElement paramEl = (ParamElement) pEl;
             String name = paramEl.getName();
@@ -879,6 +880,23 @@ public class DatalinkValidator {
             String standardId = sd.getStandardId();
             if ( standardId != null ) {
                 // try to check it??
+            }
+
+            /* Check ContentType if present. */
+            String contentType = sd.getContentType();
+            if ( contentType != null ) {
+                ContentType mimeType =
+                    ContentType.parseContentType( contentType );
+                if ( mimeType == null ) {
+                    String msg = new StringBuffer()
+                        .append( "Bad MIME type syntax for contentType PARAM " )
+                        .append( "in service descriptor " )
+                        .append( sdName )
+                        .append( ": " )
+                        .append( contentType )
+                        .toString();
+                    reporter_.report( DatalinkCode.E_DRCT, msg );
+                }
             }
 
             /* Look at all the input parameters. */
