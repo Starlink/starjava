@@ -18,7 +18,7 @@ import uk.ac.starlink.votable.ValuesElement;
  * @author   Mark Taylor
  * @since    7 Dec 2017
  * @see   <a href="http://www.ivoa.net/documents/DataLink/"
- *           >DataLink-1.0, sec 4</a>
+ *           >DataLink 1.0 or 1.1, Sec 4</a>
  */
 public class ServiceDescriptorFactory {
 
@@ -130,6 +130,7 @@ public class ServiceDescriptorFactory {
         final String accessUrl = paramMap.get( "accessURL" );
         final String standardId = paramMap.get( "standardID" );
         final String resourceIdentifier = paramMap.get( "resourceIdentifier" );
+        final String contentType = paramMap.get( "contentType" );
         List<ServiceParam> inParamList = new ArrayList<ServiceParam>();
         for ( VOElement groupEl : resourceEl.getChildrenByName( "GROUP" ) ) {
             if ( "inputParams".equals( groupEl.getName() ) ) {
@@ -156,6 +157,9 @@ public class ServiceDescriptorFactory {
             }
             public String getResourceIdentifier() {
                 return resourceIdentifier;
+            }
+            public String getContentType() {
+                return contentType;
             }
             public String getName() {
                 return name;

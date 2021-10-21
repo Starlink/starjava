@@ -8,7 +8,7 @@ package uk.ac.starlink.votable.datalink;
  * @author   Mark Taylor
  * @since    22 Nov 2017
  * @see   <a href="http://www.ivoa.net/documents/DataLink/"
- *           >DataLink-1.0, sec 4</a>
+ *           >DataLink 1.0 or 1.1, sec 4</a>
  */
 public interface ServiceDescriptor {
 
@@ -45,6 +45,15 @@ public interface ServiceDescriptor {
      * @return   ivoid, may be null
      */
     String getResourceIdentifier();
+
+    /**
+     * Returns the MIME type expected for results from this service.
+     * This corresponds to the PARAM with @name="contentType"
+     * (introduced at DataLink 1.1).
+     *
+     * @return  service output content type, may be null
+     */
+    String getContentType();
 
     /**
      * Returns a name for this service.

@@ -470,6 +470,7 @@ public abstract class VOSerializer {
         writeStringParam( writer, "standardID", sdesc.getStandardId() );
         writeStringParam( writer, "resourceIdentifier",
                                   sdesc.getResourceIdentifier() );
+        writeStringParam( writer, "contentType", sdesc.getContentType() );
         ServiceParam[] sdParams = sdesc.getInputParams();
         if ( sdParams.length > 0 ) {
             writer.write( "  <GROUP"
