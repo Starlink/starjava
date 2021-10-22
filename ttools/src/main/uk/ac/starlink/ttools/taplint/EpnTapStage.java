@@ -695,7 +695,7 @@ public class EpnTapStage implements Stage {
             new MinMaxCol( "spectral_range_", Type.DOUBLE, "Hz",
                            minMaxStats( "em.freq" ) ),
             new MinMaxCol( "spectral_sampling_step_", Type.DOUBLE, "Hz",
-                           minMaxStats( "em.freq;stat.interval" ) ),
+                           minMaxStats( "em.freq;spect.binSize" ) ),
             new MinMaxCol( "spectral_resolution_", Type.DOUBLE, "",
                            minMaxStats( "spect.resolution" ) ),
             new MinMaxCol( "c1", Type.DOUBLE, null, null ),
