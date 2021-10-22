@@ -13,6 +13,7 @@ public enum DatalinkCode implements ReportCode {
 
     E_BFLT( "Illegal error message syntax", Doc.DATALINK, "3.4" ),
     E_BVOT( "Datalink response is not VOTable" ),
+    E_CQCO( "Unknown content_qualifier term", Doc.DATALINK11, "3.2.9" ),
     E_DCER( "Document load error" ),
     E_DLCT( "Bad datalink Content-Type", Doc.DATALINK, "3.3" ),
     E_DRCT( "Bad Content-Type syntax", Doc.RFC2045, "5.1" ),
@@ -24,6 +25,7 @@ public enum DatalinkCode implements ReportCode {
     E_DRUR( "Bad access_url", Doc.DATALINK, "3.2.2" ),
     E_ENVO( "Error document not VOTable", Doc.DATALINK, "3.4" ),
     E_ERDC( "Bad VOTable error document" ),
+    E_LKAZ( "Bad link_auth value", Doc.DATALINK11, "3.2.11" ),
     E_PSNS( "Non-string standard param", Doc.DATALINK, "4.1" ),
     E_RCOL( "Wrong datalink columns" ),
     E_RTYP( "Incorrect column type", Doc.DATALINK, "3.2" ),
@@ -41,6 +43,7 @@ public enum DatalinkCode implements ReportCode {
 
     F_UNEX( "Unexpected validation failure" ),
 
+    I_CQCU( "Custom content_qualifier term", Doc.DATALINK11, "3.2.9" ),
     I_DLNR( "DataLink rows checked" ),
     I_DLVR( "Report DataLink validation version" ),
     I_EXCL( "Extra columns in results table" ),
@@ -54,6 +57,8 @@ public enum DatalinkCode implements ReportCode {
     I_SDPR( "Service decriptor input parameters" ),
     I_SMCU( "Custom semantics term", Doc.DATALINK, "3.2.6" ),
 
+    W_CQCO( "Preliminary/deprecated content_qualifier term",
+            Doc.DATALINK11, "3.2.9" ),
     W_DLCT( "Non-canonical service Content-Type", Doc.DATALINK, "3.3" ),
     W_DRCT( "Non-canonical link Content-Type?", Doc.DATALINK, "3.2.7" ),
     W_MTAB( "TABLE in meta RESOURCE", Doc.DATALINK, "4.1" ),
@@ -142,6 +147,9 @@ public enum DatalinkCode implements ReportCode {
         public static final Doc DATALINK =
             new Doc( "DataLink-1.0",
                      "http://www.ivoa.net/documents/DataLink/20150617/" );
+        public static final Doc DATALINK11 =
+            new Doc( "DataLink-1.1-PR-20230413",
+                     "https://www.ivoa.net/documents/DataLink/20230413/" );
         public static final Doc DALI =
             new Doc( "DALI-1.1",
                      "http://www.ivoa.net/documents/DALI/20170517/" );

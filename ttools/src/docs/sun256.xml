@@ -6430,12 +6430,15 @@ A non-exhaustive list of the items checked is:
     <ref id="votlint"><code>votlint</code></ref></li>
 <li>Correct RESOURCE structure of VOTable document</li>
 <li>All required columns are present with mandated metadata</li>
+<li>Optional but documented columns have mandated metadata if present</li>
 <li>Each row contains one of <code>access_url</code>,
     <code>service_def</code>, <code>error_message</code></li>
 <li>Service descriptors correctly specified and referenced</li>
 <li>Syntax of <code>error_message</code> column values</li>
 <li>Syntax of <code>content_type</code> column values</li>
 <li>Syntax of <code>semantics</code> column values</li>
+<li>Values of <code>content_qualifier</code> column values if present</li>
+<li>Syntax of <code>link_auth</code> column values if present</li>
 <li>Reported HTTP content-type, if applicable</li>
 <li>Correct serialization (TABLEDATA) is used</li>
 <li>DALI error-response checking, if applicable</li>
@@ -14588,6 +14591,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>VOTable service descriptor I/O now preserves
         <code>contentType</code> and <code>exampleURL</code> PARAMs,
         introduced in DataLink 1.1</li>
+    <li>The <ref id="datalinklint"><code>datalinklint</code></ref>
+        validator is upgraded to PR-DataLink-1.1-20230413.
+        It now has a <code>version</code> parameter.</li>
     </ul>
     </p></dd>
 

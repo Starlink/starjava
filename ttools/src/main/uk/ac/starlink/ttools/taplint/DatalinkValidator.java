@@ -70,6 +70,10 @@ public class DatalinkValidator {
     private static final VocabChecker SEMANTICS_CHECKER =
         VocabChecker.DATALINK_CORE;
 
+    /** DataLink 1.1 sec 3.2.9. */
+    private static final VocabChecker CONTENTQUALIFIER_CHECKER =
+        VocabChecker.PRODUCT_TYPE;
+
     /**
      * Constructor.
      *
@@ -264,7 +268,7 @@ public class DatalinkValidator {
 
         /* Check the content of each row in the results table. */
         try {
-            attemptValidateLinksDocRows( linksDoc, invokerMap );
+            attemptValidateLinksDocRows( linksDoc, invokerMap, version );
         }
         catch ( IOException e ) {
 
@@ -510,46 +514,41 @@ public class DatalinkValidator {
                     reporter_.report( DatalinkCode.E_RUCD, msg );
                 }
 
-                /* Check datatype and units against DataLink specification. */
+                /* Check datatype against DataLink specification. */
                 Class<?> clazz = info.getContentClass();
+                final Class<?> reqClazz;
+                if ( coldef == LinkColMap.COL_CONTENTLENGTH ) {
+                    reqClazz = Long.class;
+                }
+                else {
+                    reqClazz = coldef.getContentClass();
+                }
+                if ( ! reqClazz.isAssignableFrom( clazz ) ) {
+                    String datatype =
+                        info.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
+                                               String.class );
+                    String msg = new StringBuffer()
+                       .append( "Wrong datatype '" )
+                       .append( datatype )
+                       .append( "' for column " )
+                       .append( name )
+                       .append( ", should be " )
+                       .append( reqClazz.getSimpleName().toLowerCase() )
+                       .toString();
+                    reporter_.report( DatalinkCode.E_RTYP, msg );
+                }
 
-                /* Use special knowledge: content_length has
-                 * datatype="long" and units="byte". */
+                /* Only content_length has units ("byte"). */
                 if ( LinkColMap.COL_CONTENTLENGTH == coldef ) {
-                    if ( ! Long.class.equals( clazz ) ) {
-                        String datatype =
-                            info.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
-                                                   String.class );
-                        String msg = new StringBuffer()
-                            .append( "Wrong datatype '" )
-                            .append( datatype )
-                            .append( clazz.isArray() ? " array" : "" )
-                            .append( "' for column " )
-                            .append( name )
-                            .append( ", should be 'long'" )
-                            .toString();
-                        reporter_.report( DatalinkCode.E_RTYP, msg );
-                    }
                     if ( ! "byte".equals( info.getUnitString() ) ) {
                         String msg = new StringBuffer()
-                            .append( "Wrong units for column " )
+                            .append( "Wrong units (" )
+                            .append( info.getUnitString() )
+                            .append( ") for column " )
                             .append( name )
                             .append( " - should be 'byte'" )
                             .toString();
                         reporter_.report( DatalinkCode.E_RUNI, msg );
-                    }
-                }
-
-                /* All the others are unit-less strings. */
-                else {
-                    if ( ! String.class.equals( clazz ) ) {
-                        String msg = new StringBuffer()
-                            .append( "Column " )
-                            .append( name )
-                            .append( " should be string, not " )
-                            .append( clazz.getSimpleName() )
-                            .toString();
-                        reporter_.report( DatalinkCode.E_RTYP, msg );
                     }
                 }
 
@@ -913,11 +912,13 @@ public class DatalinkValidator {
      * @param  invokerMap  map with an entry for each service descriptor;
      *                     key is descriptor ID, and value is ServiceInvoker
      *                     if one could be built, or null otherwise
+     * @param  version   version of DataLink standard, not null
      * @throws  IOException   if there is a read error on the table
      */
     private void
             attemptValidateLinksDocRows( LinksDoc linksDoc,
-                                         Map<String,ServiceInvoker> invokerMap )
+                                         Map<String,ServiceInvoker> invokerMap,
+                                         DatalinkVersion version )
             throws IOException {
         LinkColMap colMap = linksDoc.getColumnMap();
         Map<ServiceParam,String> noParams = new HashMap<ServiceParam,String>();
@@ -1095,6 +1096,51 @@ public class DatalinkValidator {
                     reporter_.report( DatalinkCode.W_DRCT, msg );
                 }
             }
+
+            /* Check content_qualifier column. */
+            if ( version.is11() ) {
+                String cqual = colMap.getContentQualifier( row );
+                if ( cqual == null ) {
+                    // no problem, it's optional
+                }
+                else if ( cqual.startsWith( "#" ) ||
+                          cqual.startsWith( CONTENTQUALIFIER_CHECKER
+                                           .getVocabularyUri() + "#" ) ) {
+                    String frag = cqual.substring( cqual.indexOf( '#' ) + 1 );
+                    checkVocab( CONTENTQUALIFIER_CHECKER, frag,
+                                "content_qualifier", jrow,
+                                DatalinkCode.W_CQCO, DatalinkCode.E_CQCO );
+                }
+                else {
+                    String msg = new StringBuffer()
+                       .append( "Content qualifier from" )
+                       .append( " non-standard vocabulary" )
+                       .append( " at row " )
+                       .append( jrow )
+                       .append( ": " )
+                       .append( cqual )
+                       .toString();
+                    reporter_.report( DatalinkCode.I_CQCU, msg );
+                }
+            }
+
+            /* Check link_auth column. */
+            if ( version.is11() ) {
+                String linkAuth = colMap.getLinkAuth( row );
+                if ( linkAuth != null &&
+                     ! "false".equals( linkAuth ) &&
+                     ! "true".equals( linkAuth ) &&
+                     ! "optional".equals( linkAuth ) ) {
+                    String msg = new StringBuffer()
+                       .append( "Bad link_auth value \"" )
+                       .append( linkAuth )
+                       .append( "\", should be " )
+                       .append( "\"false\", \"true\", \"optional\"" )
+                       .append( " or null" )
+                       .toString();
+                    reporter_.report( DatalinkCode.E_LKAZ, msg );
+                }
+            }
         }
         rseq.close();
         reporter_.report( DatalinkCode.I_DLNR,
@@ -1130,6 +1176,7 @@ public class DatalinkValidator {
             private String message( String type, String msg ) {
                 return new StringBuffer()
                       .append( type )
+                      .append( ' ' )
                       .append( colName )
                       .append( " term at row " )
                       .append( jrow )
