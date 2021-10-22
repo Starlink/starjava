@@ -49,6 +49,19 @@ public class VocabChecker {
                               "HELIOCENTER", "EMBARYCENTER", "UNKNOWN",
                           } );
 
+    /** Instance for vocabulary at http://www.ivoa.net/rdf/datalink/core. */
+    /* Term list is from
+     * http://www.ivoa.net/rdf/datalink/core/2014-10-30/. */
+    public static final VocabChecker DATALINK_CORE =
+        new VocabChecker( "http://www.ivoa.net/rdf/datalink/core",
+                          new String[] {
+                              "this", "progenitor", "derivation", "auxiliary",
+                              "weight", "error", "noise", "calibration",
+                              "bias", "dark", "flat",
+                              "preview", "preview-image", "preview-plot",
+                              "proc", "cutout",
+                          } );
+
     /**
      * Constructor.
      *

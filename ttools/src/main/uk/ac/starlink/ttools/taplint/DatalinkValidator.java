@@ -20,6 +20,7 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.votlint.VocabChecker;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.util.DOMUtils;
@@ -64,29 +65,8 @@ public class DatalinkValidator {
                        + "(:.*)?" );
 
     /** DataLink 1.0 sec 3.2.6. */
-    private static final String DATALINK_CORE_URI =
-        "http://www.ivoa.net/rdf/datalink/core";
-
-    /** Content of http://www.ivoa.net/rdf/datalink/core/2014-10-30/. */
-    private static final Collection<String> DATALINK_CORE_PREDICATES =
-            Arrays.asList( new String[] {
-        "this",
-        "progenitor",
-        "derivation",
-        "auxiliary",
-        "weight",
-        "error",
-        "noise",
-        "calibration",
-        "bias",
-        "dark",
-        "flat",
-        "preview",
-        "preview-image",
-        "preview-plot",
-        "proc",
-        "cutout",
-    } );
+    private static final VocabChecker SEMANTICS_CHECKER =
+        VocabChecker.DATALINK_CORE;
 
     /**
      * Constructor.
@@ -1027,24 +1007,12 @@ public class DatalinkValidator {
                                   "Null semantics entry for row " + jrow );
             }
             else if ( semantics.startsWith( "#" ) ||
-                      semantics.startsWith( DATALINK_CORE_URI + "#" ) ) {
+                      semantics.startsWith( SEMANTICS_CHECKER
+                                           .getVocabularyUri() + "#" ) ) {
                 String frag =
                     semantics.substring( semantics.indexOf( '#' ) + 1 );
-
-                /* Note this is using a hard-coded list of the core datalink
-                 * semantics predicates.  I think that should be static,
-                 * but if not then I should be pulling RDF from the
-                 * relevant URL and parsing it to get a list of 
-                 * predicates instead. */
-                if ( ! DATALINK_CORE_PREDICATES.contains( frag ) ) {
-                    String msg = new StringBuffer()
-                        .append( "Unknown predicate '" )
-                        .append( frag )
-                        .append( "' from core DataLink vocabulary at row " )
-                        .append( jrow )
-                        .toString();
-                    reporter_.report( DatalinkCode.E_SMCO, msg );
-                }
+                checkVocab( SEMANTICS_CHECKER, frag, "semantics", jrow,
+                            DatalinkCode.W_SMCO, DatalinkCode.E_SMCO );
             }
             else {
                 String msg = new StringBuffer()
@@ -1088,6 +1056,45 @@ public class DatalinkValidator {
         rseq.close();
         reporter_.report( DatalinkCode.I_DLNR,
                           "Datalink table rows checked: " + jrow );
+    }
+
+    /**
+     * Checks a string against terms in a VO Vocabulary, and issues
+     * validation reports as appropriate.
+     *
+     * @param  checker  defines the vocabulary to check against
+     * @param  term    term to check
+     * @param  colName  name of datalink column in which term appears
+     * @param  jrow    1-based index of row in which term appears
+     * @param  warnCode  reporting code for deprecated/prelminary warnings
+     * @param  errCode  reporting code for unknown terms
+     */
+    private void checkVocab( VocabChecker checker, String term,
+                             final String colName, final int jrow,
+                             DatalinkCode warnCode, DatalinkCode errCode ) {
+        checker.checkTerm( term, new VocabChecker.TermReporter() {
+            public void termFound() {
+            }
+            public void termPreliminary( String msg ) {
+                reporter_.report( warnCode, message( "Preliminary", msg ) );
+            }
+            public void termDeprecated( String msg ) {
+                reporter_.report( warnCode, message( "Deprecated", msg ) );
+            }
+            public void termUnknown( String msg ) {
+                reporter_.report( errCode, message( "Unknown", msg ) );
+            }
+            private String message( String type, String msg ) {
+                return new StringBuffer()
+                      .append( type )
+                      .append( colName )
+                      .append( " term at row " )
+                      .append( jrow )
+                      .append( ": " )
+                      .append( msg )
+                      .toString();
+            }
+        } );
     }
 
     /**

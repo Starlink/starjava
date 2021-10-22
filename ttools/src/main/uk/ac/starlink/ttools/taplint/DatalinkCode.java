@@ -32,7 +32,7 @@ public enum DatalinkCode implements ReportCode {
     E_SAC0( "Missing service descriptor Access URL", Doc.DATALINK, "4.1" ),
     E_SACB( "Bad service descriptor Access URL", Doc.DATALINK, "4.1" ),
     E_SARF( "No FIELD with inputParam ID", Doc.DATALINK, "4.1" ),
-    E_SMCO( "Unknown vocabulary term", Doc.DATALINK, "3.6" ),
+    E_SMCO( "Unknown semantics term", Doc.DATALINK, "3.2.6" ),
     E_TDSR( "Non-TABLEDATA serialization", Doc.DATALINK, "3.3.1" ),
     E_URES( "No unique results resource", Doc.DALI, "4.4" ),
     E_UTAB( "No unique result table", Doc.DATALINK, "3.3.1" ),
@@ -60,7 +60,8 @@ public enum DatalinkCode implements ReportCode {
     W_PIDU( "Duplicated input param", Doc.DATALINK, "4.1" ),
     W_PSDU( "Duplicated standard param", Doc.DATALINK, "4.1" ),
     W_QERR( "Datalink query failed" ),
-    W_SAVV( "Both ref and value/values in inputParam" );
+    W_SAVV( "Both ref and value/values in inputParam" ),
+    W_SMCO( "Preliminary/deprecated semantics term", Doc.DATALINK, "3.2.6" );
 
     private final String description_;
     private final Doc document_;

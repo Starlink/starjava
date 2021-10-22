@@ -14582,6 +14582,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Update taplint in accordance with DALI 1.1 Erratum #1;
         example continuation elements without an empty
         resource attribute no longer provoke an Error.</li>
+    <li>Improve <ref id="datalinklint"><code>datalinklint</code></ref>
+        validation of semantics terms, now checks online vocabularies
+        not just hard-coded ones.</li>
     </ul>
     </p></dd>
 
