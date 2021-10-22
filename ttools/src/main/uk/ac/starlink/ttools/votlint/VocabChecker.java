@@ -27,6 +27,7 @@ import uk.ac.starlink.vo.Vocabulary;
 public class VocabChecker {
 
     private final URL vocabUrl_;
+    private final String vocabUri_;
     private final Collection<String> fixedTerms_;
     private Map<String,VocabTerm> retrievedTerms_;
     private static final Logger logger_ =
@@ -64,6 +65,7 @@ public class VocabChecker {
         catch ( MalformedURLException e ) {
             throw new IllegalArgumentException( "Not a URL: " + vocabUrl );
         }
+        vocabUri_ = vocabUrl;
         fixedTerms_ = Collections.unmodifiableSet(
                           new LinkedHashSet<String>(
                               Arrays.asList( fixedTerms ) ) );
@@ -141,6 +143,15 @@ public class VocabChecker {
      */
     public URL getVocabularyUrl() {
         return vocabUrl_;
+    }
+
+    /**
+     * Returns the URI of this object's vocabulary in string form.
+     *
+     * @return  vocabulary URL
+     */
+    public String getVocabularyUri() {
+        return vocabUri_;
     }
 
     /**
