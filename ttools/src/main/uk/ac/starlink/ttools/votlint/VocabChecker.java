@@ -64,9 +64,20 @@ public class VocabChecker {
                               "progenitor", "this", "thumbnail", "weight",
                           } );
 
+    /** Instance for vocabulary at http://www.ivoa.net/rdf/product-type. */
+    /* Term list is from https://www.ivoa.net/rdf/product-type/2021-11-18/;
+     * at time of writing all terms are marked Preliminary. */
+    public static final VocabChecker PRODUCT_TYPE =
+        new VocabChecker( "http://www.ivoa.net/rdf/product-type",
+                          new String[] {
+                              "cube", "dynamic-spectrum", "event", "image",
+                              "measurements", "sed", "spectrum", "timeseries",
+                              "visibility",
+                          } );
+
     /** Static instances of this class. */
     private static final VocabChecker[] INSTANCES = {
-        TIMESCALE, REFPOSITION, DATALINK_CORE,
+        TIMESCALE, REFPOSITION, DATALINK_CORE, PRODUCT_TYPE,
     };
 
     /**
