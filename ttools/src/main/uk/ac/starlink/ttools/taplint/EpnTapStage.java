@@ -966,7 +966,7 @@ public class EpnTapStage implements Stage {
 
         colMap.get( "epoch" ).checker_ = jdChecker();
         colMap.get( "geometry_type" ).checker_ =
-                optionsChecker( true, FixedCode.E_PNGT, new String[] {
+                hashlistOptionsChecker( true, FixedCode.E_PNGT, new String[] {
             "direct", "specular", "bidirectional", "directional-conical",
             "conical-directional", "biconical", "directional-hemispherical",
             "conical-hemispherical", "hemispherical-directional",
