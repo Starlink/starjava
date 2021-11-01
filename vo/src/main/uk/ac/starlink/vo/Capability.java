@@ -29,7 +29,10 @@ public class Capability {
 
     /** Table Access Protocol capability. */
     public static final Capability TAP =
-        new Capability( "ivo://ivoa.net/std/TAP", "TableAccess" );
+        new Capability( new String[] {
+                            "ivo://ivoa.net/std/TAP",
+                            "ivo://ivoa.net/std/TAP#aux",
+                        }, "TableAccess" );
 
     /**
      * Constructs a capability with a unique standardID.
