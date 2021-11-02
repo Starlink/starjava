@@ -30142,10 +30142,6 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
-    <li>SAMP <code>voresource.loadlist.tap</code> messages
-        now pick up resources with
-        <code>standard_id=ivo://ivoa.net/std/tap#aux</code>
-        as well as  <code>ivo://ivoa.net/std/tap</code>.</li>
     </ul>
     </p></dd>
 
