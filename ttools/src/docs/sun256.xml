@@ -13394,8 +13394,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <dt>Next Version</dt>
     <dd><p>
         <ul>
-        <li>Adjustments to taplint EPN-TAP validation,
-            tracking draft standard changes and fixing bugs.</li>
+        <li>Adjustments to taplint EPN-TAP validation:
+            track draft standard changes, fix bugs,
+            add UCD check for measurement_type column content.
+            This version currently corresponds to
+            PR-EPNTAP-2.0-20211022.</li>
         </ul>
         </p></dd>
 

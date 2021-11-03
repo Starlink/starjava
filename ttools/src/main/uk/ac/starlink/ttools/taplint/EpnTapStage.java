@@ -20,6 +20,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.func.Times;
+import uk.ac.starlink.ttools.votlint.UcdStatus;
 import uk.ac.starlink.ttools.votlint.VocabChecker;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.SchemaMeta;
@@ -768,6 +769,7 @@ public class EpnTapStage implements Stage {
         } );
 
         colMap.get( "service_title" ).checker_ = serviceTitleChecker();
+        colMap.get( "measurement_type" ).checker_ = ucdChecker();
         ContentChecker timestampChecker = timestampChecker( false );
         colMap.get( "creation_date" ).checker_ = timestampChecker;
         colMap.get( "modification_date" ).checker_ = timestampChecker;
@@ -1410,6 +1412,66 @@ public class EpnTapStage implements Stage {
     }
 
     /**
+     * Creates a check that a column contains hashlists of valid UCDs.
+     *
+     * @return  new checker
+     */
+    private static ContentChecker ucdChecker() {
+        return ( stdCol, runner ) -> {
+            String cname = stdCol.name_;
+            String tname = runner.tname_;
+            String adql = new StringBuffer()
+               .append( "SELECT DISTINCT TOP 30 " )
+               .append( cname )
+               .append( " FROM " )
+               .append( tname )
+               .append( " WHERE " )
+               .append( cname )
+               .append( " IS NOT NULL" )
+               .toString();
+            TableData tdata = runner.runQuery( adql );
+            if ( tdata != null && tdata.getRowCount() > 0 ) {
+                Object[] values = tdata.getColumn( 0 );
+                for ( Object val : values ) {
+                    String sval = val instanceof String ? (String) val : null;
+                    String badUcd = null;
+                    UcdStatus badStatus = null;
+                    if ( sval != null && sval.trim().length() > 0 ) {
+                        String[] items = sval.split( "#", -1 );
+                        for ( String item : items ) {
+                            UcdStatus ustat = UcdStatus.getStatus( item );
+                            if ( ustat != null &&
+                                 ustat.getCode() != UcdStatus.Code.OK ) {
+                                badUcd = item;
+                                badStatus = ustat;
+                            }
+                        }
+                    }
+                    if ( badUcd != null ) {
+                        UcdStatus.Code ucode = badStatus.getCode();
+                        String msg = new StringBuffer()
+                           .append( "Bad UCD \"" )
+                           .append( badUcd )
+                           .append( "\" in " )
+                           .append( tname )
+                           .append( " column " )
+                           .append( cname )
+                           .append( " (" )
+                           .append( ucode )
+                           .append( ": " )
+                           .append( badStatus.getMessage() )
+                           .append( ")" )
+                           .toString();
+                        ReportCode rcode = ucode.isError() ? FixedCode.E_PNMT
+                                                           : FixedCode.W_PNMT;
+                        runner.reporter_.report( rcode, msg );
+                    }
+                }
+            }
+        };
+    }
+
+    /**
      * Creates a check that a column contains hashlists of inchikey strings.
      * Inchikeys are fixed-length (27-char) chemistry specifiers.
      *
@@ -1448,7 +1510,9 @@ public class EpnTapStage implements Stage {
                         String msg = new StringBuffer()
                            .append( "Bad InchiKey syntax (" )
                            .append( errmsg )
-                           .append( ") in column " )
+                           .append( ") in " )
+                           .append( tname )
+                           .append( " column " )
                            .append( cname )
                            .append( ": \"" )
                            .append( badInchi )
