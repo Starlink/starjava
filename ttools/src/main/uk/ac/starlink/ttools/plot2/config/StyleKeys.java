@@ -1003,6 +1003,7 @@ public class StyleKeys {
             clip( Shaders.BREWER_ORRD, c * 0.15, false ),
             clip( Shaders.BREWER_PUBU, c * 0.15, false ),
             clip( Shaders.BREWER_PURD, c * 0.15, false ),
+            clip( Shaders.LUT_PAINBOW, 0, false ),
             clip( Shaders.HCL_POLAR, 0, false ),
             clip( Shaders.FIX_HUE, 0, false ),
             clip( Shaders.FIX_INTENSITY, 0, true ),

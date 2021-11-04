@@ -235,6 +235,9 @@ public class Shaders {
     /** Cividis shader derived from DOI:10.1371/journal.pone.0199239. */
     public static final Shader LUT_CIVIDIS;
 
+    /** Painbow shader scraped from https://xkcd.com/2537/.  Thanks Randall. */
+    public static final Shader LUT_PAINBOW;
+
     /** Selection of lookup table-based shaders. */
     public final static Shader[] LUT_SHADERS = new Shader[] {
         LUT_AIPS0 = new ResourceLutShader( "AIPS0", "aips0.lut" ),
@@ -272,6 +275,7 @@ public class Shaders {
                                                  "mpl2_viridis.lut" ),
         LUT_CIVIDIS = new ResourceLutShader( "Cividis", "cividis.lut" ),
         LUT_HOTCOLD = new ResourceLutShader( "HotCold", "hotcold.lut" ),
+        LUT_PAINBOW = new ResourceLutShader( "Painbow", "painbow.lut" ),
     };
 
     /* ColorBrewer.
