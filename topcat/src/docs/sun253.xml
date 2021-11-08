@@ -30144,6 +30144,12 @@ introduced since the last version:
     <ul>
     <li>Add new colour map
         <webref url="https://xkcd.com/2537/">Painbow</webref>.</li>
+    <li>Make a couple of adjustments to 
+        <ref id="plot2-export">SVG graphics output</ref>:
+        output is now to a bare <code>svg</code> element 
+        (no XML or DOCTYPE declaration),
+        and a <code>viewBox</code> attribute is included which
+        may improve scaling behaviour in some contexts.</li>
     </ul>
     </p></dd>
 

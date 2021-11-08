@@ -13402,6 +13402,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add new colour map
         <webref url="https://xkcd.com/2537/">Painbow</webref>.</li>
     <li>Taplint UUC stage now reports UCD word list versions.</li>
+    <li>Make a couple of adjustments to
+        <ref id="graphicExporter">SVG graphics output</ref>:
+        output is now to a bare <code>svg</code> element
+        (no XML or DOCTYPE declaration),
+        and a <code>viewBox</code> attribute is included which
+        may improve scaling behaviour in some contexts.</li>
     </ul>
     </p></dd>
 
