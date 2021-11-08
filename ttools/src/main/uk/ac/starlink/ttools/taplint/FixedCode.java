@@ -329,6 +329,7 @@ public enum FixedCode implements ReportCode {
     I_TMAX( "Table test count" ),
     I_TSNS( "Non-standard TAP_SCHEMA columns" ),
     I_TURL( "Reading table metadata" ),
+    I_UCDV( "UCD library/standard version" ),
     I_VURL( "Validation" ),
     I_VUWS( "UWS job document version" ),
     I_VVNL( "Undeclared VOTable version" ),

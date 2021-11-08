@@ -13401,6 +13401,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         PR-EPNTAP-2.0-20211022.</li>
     <li>Add new colour map
         <webref url="https://xkcd.com/2537/">Painbow</webref>.</li>
+    <li>Taplint UUC stage now reports UCD word list versions.</li>
     </ul>
     </p></dd>
 

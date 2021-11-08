@@ -67,10 +67,16 @@ public class UnitUcdStage implements Stage {
         }
 
         /* Otherwise check units and UCDs. */
-        reportBadValues( reporter, tmetas,
-                         "unit", ColumnMeta::getUnit, UNIT_CHECKER );
+        String uvmsg = new StringBuffer()
+           .append( "UCD validation details: " )
+           .append( UcdStatus.getParser().getFullVersion()
+                                         .replaceAll( "\n", ", " ) )
+           .toString();
+        reporter.report( FixedCode.I_UCDV, uvmsg );
         reportBadValues( reporter, tmetas,
                          "UCD", ColumnMeta::getUcd, UCD_CHECKER );
+        reportBadValues( reporter, tmetas,
+                         "unit", ColumnMeta::getUnit, UNIT_CHECKER );
     }
 
     /**
