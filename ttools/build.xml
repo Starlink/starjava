@@ -583,6 +583,8 @@
       <arg value="-file"/><arg value="${star.bin}/stilts"/>
       <arg value="-file"/><arg value="${star.etc.pkg}/stilts.py"/>
       <arg value="-file"/><arg value="${src.docs}/LICENSE.txt"/>
+      <arg value="-file"/>
+          <arg value="${build.classes}/uk/ac/starlink/ttools/stilts.version"/>
       <arg value="${star.lib.pkg}/stilts-app.jar"/>
       <arg value="${dist.lib.pkg}/stilts-version.zip"/>
     </java>

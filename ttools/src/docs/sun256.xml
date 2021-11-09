@@ -13408,6 +13408,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (no XML or DOCTYPE declaration),
         and a <code>viewBox</code> attribute is included which
         may improve scaling behaviour in some contexts.</li>
+    <li>The monolithic stilts.jar file and stilts_jars.zip archive
+        now contain the <code>stilts.version</code> file at the
+        top level, rather than just buried in
+        <code>uk/ac/starlink/ttools/</code>.</li>
     </ul>
     </p></dd>
 
