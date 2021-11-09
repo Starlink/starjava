@@ -778,6 +778,10 @@ public class ResourceIcon implements Icon {
                          toSaveIcon( TTRI.FORM_HISTOGRAM ) );
         putMap( nameMap, "IMPORT_FORM_HISTOGRAM",
                          toImportIcon( TTRI.FORM_HISTOGRAM ) );
+        putMap( nameMap, "SAVE_FORM_GRID",
+                         toSaveIcon( TTRI.FORM_GRID ) );
+        putMap( nameMap, "IMPORT_FORM_GRID",
+                         toImportIcon( TTRI.FORM_GRID ) );
 
         return nameMap;
     }

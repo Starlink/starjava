@@ -12,8 +12,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.DoubleFunction;
 import javax.swing.Icon;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Shader;
@@ -80,6 +85,11 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
     /** ReportKey for actual Y bin extent. */
     public static final ReportKey<Double> YBINWIDTH_KEY =
         createBinWidthReportKey( 'y' );
+
+    /** ReportKey for exported grid table. */
+    public static final ReportKey<StarTable> GRIDTABLE_KEY =
+        ReportKey.createTableKey( new ReportMeta( "grid_map", "Grid Map" ),
+                                  true );
 
     /** Config key for X bin size configuration. */
     public static final ConfigKey<BinSizer> XBINSIZER_KEY =
@@ -155,7 +165,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
     }
 
     public boolean hasReports() {
-        return false;
+        return true;
     }
 
     public String getPlotterDescription() {
@@ -462,6 +472,133 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         int g1 = (int) Math.floor( axis.dataToGraphics( dlimits[ 1 ] ) );
         return g0 <= g1 ? new int[] { g0, g1 }
                         : new int[] { g1, g0 };
+    }
+
+    /**
+     * Returns a table giving the contents of a given grid plan projected
+     * on to a given surface.
+     * Table contents are constructed lazily so this is not an expensive
+     * operation.
+     *
+     * @param  surface  plotting surface
+     * @param  gplan    plan containing grid data
+     */
+    private static StarTable createExportTable( PlanarSurface surface,
+                                                GridPlan gplan ) {
+        GridPixer pixer = gplan.pixer_;
+
+        /* Work out the bounds of the grid that the exported table will cover.
+         * Note this is derived from the plot surface, it's not necessarily
+         * the same as the grid from the GridPlan, which may be oversized. */
+        double[][] dataLimits = surface.getDataLimits();
+        int ixlo = pixer.xgrid_.mapper_.getBinIndex( dataLimits[ 0 ][ 0 ] );
+        int ixhi = pixer.xgrid_.mapper_.getBinIndex( dataLimits[ 0 ][ 1 ] );
+        int iylo = pixer.ygrid_.mapper_.getBinIndex( dataLimits[ 1 ][ 0 ] );
+        int iyhi = pixer.ygrid_.mapper_.getBinIndex( dataLimits[ 1 ][ 1 ] );
+
+        /* Prepare mappings from the exported table row indices
+         * to the binned grid. */
+        int tw = ixhi - ixlo + 1;
+        int th = iyhi - iylo + 1;
+        int nrow = tw * th;
+        XYMapper xyMapper = new XYMapper() {
+            public int getGridX( int irow ) {
+                return ( irow % tw ) + ixlo;
+            }
+            public int getGridY( int irow ) {
+                return ( irow / tw ) + iylo;
+            }
+        };
+
+        /* Prepare columns giving the grid cell coordinates and their values.
+         * Each exported table row corresponds to one cell of the grid. */
+        DataSpec dspec = gplan.dataSpec_;
+        int icPos = COORD_GROUP.getPosCoordIndex( 0, gplan.geom_ );
+        int icWeight = COORD_GROUP.getExtraCoordIndex( 0, gplan.geom_ );
+        ValueInfo[] xInfos = dspec.getUserCoordInfos( icPos + 0 );
+        ValueInfo[] yInfos = dspec.getUserCoordInfos( icPos + 1 );
+        String xlabel = xInfos.length == 1 ? xInfos[ 0 ].getName() : "X";
+        String ylabel = yInfos.length == 1 ? yInfos[ 0 ].getName() : "Y";
+        BinList.Result binResult = gplan.result_;
+        ValueInfo dataInfo =
+            getCombinedInfo( dspec, icWeight, gplan.combiner_ );
+        Class<?> dataClazz = dataInfo.getContentClass();
+        final DoubleFunction<Number> dataFunc;
+        if ( Integer.class.equals( dataClazz ) ) {
+            dataFunc = d -> Integer.valueOf( (int) d );
+        }
+        else if ( Short.class.equals( dataClazz ) ) {
+            dataFunc = d -> Short.valueOf( (short) d );
+        }
+        else if ( Long.class.equals( dataClazz ) ) {
+            dataFunc = d -> Long.valueOf( (long) d );
+        }
+        else {
+            assert Double.class.equals( dataClazz );
+            dataFunc = d -> Double.valueOf( d );
+        }
+        ColumnData[] cdatas = new ColumnData[] {
+            createCoordColumn( xyMapper, pixer, false, 0.5,
+                               xlabel, "X bin central value" ),
+            createCoordColumn( xyMapper, pixer, true, 0.5,
+                               ylabel, "Y bin central value" ),
+            new ColumnData( dataInfo ) {
+                public Number readValue( long lrow ) {
+                    int irow = (int) lrow;
+                    int ibin = pixer.getBinIndex( xyMapper.getGridX( irow ),
+                                                  xyMapper.getGridY( irow ) );
+                    double val = ibin >= 0 ? binResult.getBinValue( ibin )
+                                           : Double.NaN;
+                    return Double.isNaN( val ) ? null : dataFunc.apply( val );
+                }
+            },
+            createCoordColumn( xyMapper, pixer, false, 0.0,
+                               "LO_" + xlabel, "X bin lower bound" ),
+            createCoordColumn( xyMapper, pixer, false, 1.0,
+                               "HI_" + xlabel, "X bin upper bound" ),
+            createCoordColumn( xyMapper, pixer, true, 0.0,
+                               "LO_" + ylabel, "Y bin lower bound" ),
+            createCoordColumn( xyMapper, pixer, true, 1.0,
+                               "HI_" + ylabel, "Y bin upper bound" ),
+        };
+
+        /* Turn the columns into a table and return it. */
+        ColumnStarTable table = ColumnStarTable.makeTableWithRows( nrow );
+        for ( ColumnData cdata : cdatas ) {
+            table.addColumn( cdata );
+        }
+        return table;
+    }
+
+    /**
+     * Returns a column for an exported table giving an X or Y value in the
+     * exported grid.
+     *
+     * @param  xyMapper  maps exported table row index to bin grid coords
+     * @param  pixer     defines the geometry of the bin grid
+     * @param  isY       true for Y coord, false for X coord
+     * @param  frac      relative position in cell (0..1)
+     * @param  name      column name
+     * @param  descrip   column description
+     * @return  column in exported grid table
+     */
+    private static ColumnData
+            createCoordColumn( XYMapper xyMapper, GridPixer pixer,
+                               boolean isY, double frac,
+                               String name, String descrip ) {
+        final GridSpec tgrid = isY ? pixer.ygrid_ : pixer.xgrid_;
+        return new ColumnData( new ColumnInfo( name, Double.class, descrip ) ) {
+            public Double readValue( long lrow ) {
+                int irow = (int) lrow;
+                double[] limits =
+                    tgrid.mapper_
+                         .getBinLimits( isY ? xyMapper.getGridY( irow )
+                                            : xyMapper.getGridX( irow ) );
+                double dval = PlotUtil.scaleValue( limits[ 0 ], limits[ 1 ],
+                                                   frac, tgrid.isLog_ );
+                return Double.valueOf( dval );
+            }
+        };
     }
 
     /**
@@ -830,6 +967,11 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                             new Double( pixer.xgrid_.binWidth_ ) );
                 report.put( YBINWIDTH_KEY,
                             new Double( pixer.ygrid_.binWidth_ ) );
+                if ( plan instanceof GridPlan ) {
+                    report.put( GRIDTABLE_KEY,
+                                createExportTable( surface_,
+                                                   (GridPlan) plan ) );
+                }
                 return report;
             }
         }
@@ -1167,5 +1309,28 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
             int i1 = mapper_.getBinIndex( dataRange[ 1 ] );
             return new int[] { Math.min( i0, i1 ), Math.max( i0, i1 ) };
         }
+    }
+
+    /**
+     * Maps a row index in an exported table
+     * to an X, Y position in the bin grid.
+     */
+    private interface XYMapper {
+
+        /**
+         * Gets X grid coordinate for table row.
+         *
+         * @param  irow  exported table row index
+         * @return   X coordinate of bin grid
+         */
+        int getGridX( int irow );
+
+        /**
+         * Gets Y grid coordinate for table row.
+         *
+         * @param  irow  exported table row index
+         * @return   Y coordinate of bin grid
+         */
+        int getGridY( int irow );
     }
 }

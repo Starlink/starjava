@@ -11116,6 +11116,25 @@ range, ramp display etc.
 </dl>
 </p>
 
+<p>The <label>Report</label> panel provides information calculated
+by the plot:
+<dl>
+<dt>Grid Map</dt>
+<dd><p>This allows you to export the grid data that you can see in the plot
+    in the form of a table.
+    The table has one row for each plotted cell,
+    with columns giving the central, lower and upper bounds for each
+    the X and Y grid coordinates, as well as a column giving the bin value,
+    corresponding to the colour in the plot.
+    The <label>Import</label> (&IMG.IMPORT_FORM_GRID;) option
+    loads the data as a new table in the TOPCAT application, and
+    the <label>Save</label> (&IMG.SAVE_FORM_GRID;) option
+    lets you save it directly to disk in one of the available table formats.
+    This information is also available from the <label>Export</label> menu.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="form-skydensity">
@@ -30206,6 +30225,8 @@ introduced since the last version:
         case-insensitive, rather than case-sensitive, name matching.</li>
     <li>Permit leading '<code>s</code>' in ASCII-MOC area specifications,
         following MOC 2.0.</li>
+    <li>Plots using <ref id="form-grid">Grid Form</ref> now allow export
+        of the calculated density map to a table.</li>
     </ul>
     </p></dd>
 
