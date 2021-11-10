@@ -30150,6 +30150,10 @@ introduced since the last version:
         (no XML or DOCTYPE declaration),
         and a <code>viewBox</code> attribute is included which
         may improve scaling behaviour in some contexts.</li>
+    <li>Fix session save/load bug; row subsets created using the
+        Invert Subset action applied to an algebraic subset
+        were not being loaded correctly
+        (they always contained all rows).</li>
     </ul>
     </p></dd>
 

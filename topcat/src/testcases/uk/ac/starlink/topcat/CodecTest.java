@@ -71,16 +71,19 @@ public class CodecTest extends TableCase {
         mask.set( 0, 10 );
         RowSubset tenSet = new BitsRowSubset( "Ten", mask );
         RowSubset notTenSet = new InverseRowSubset( tenSet );
-        RowSubset evenSet =
-            new SyntheticRowSubset( "Even", tcModel, "$0 % 2 == 0" );
+        RowSubset quarterSet =
+            new SyntheticRowSubset( "Quarter", tcModel, "$0 % 4 == 0" );
+        RowSubset notQuarterSet = new InverseRowSubset( quarterSet );
         tcModel.addSubset( RowSubset.NONE );
         tcModel.addSubset( tenSet );
         tcModel.addSubset( notTenSet );
-        tcModel.addSubset( evenSet );
+        tcModel.addSubset( quarterSet );
+        tcModel.addSubset( notQuarterSet );
         assertEquals( 0, countSubset( RowSubset.NONE, nrow ) );
         assertEquals( 10, countSubset( tenSet, nrow ) );
         assertEquals( nrow - 10, countSubset( notTenSet, nrow ) );
-        assertEquals( ( nrow + 1 ) / 2, countSubset( evenSet, nrow ) );
+        assertEquals( ( nrow + 1 ) / 4, countSubset( quarterSet, nrow ) );
+        assertEquals( ( nrow + 1 ) * 3 / 4, countSubset( notQuarterSet, nrow ));
 
         RowSubset removed = (RowSubset) tcModel.getSubsets().remove( 3 );
         assertEquals( notTenSet, removed );
@@ -110,6 +113,8 @@ public class CodecTest extends TableCase {
     private void assertEqualTopcatModels( TopcatModel tc0, TopcatModel tc1 )
             throws IOException {
         assertEquals( tc0.getLabel(), tc1.getLabel() );
+        assertEquals( tc0.getSelectedSubset().getName(),
+                      tc1.getSelectedSubset().getName() );
         StarTable dm0 = tc0.getDataModel();
         StarTable dm1 = tc1.getDataModel();
         StarTable ap0 = tc0.getApparentStarTable();

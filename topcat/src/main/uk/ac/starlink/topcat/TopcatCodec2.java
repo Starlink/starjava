@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -427,7 +428,8 @@ public class TopcatCodec2 implements TopcatCodec {
         String[] rsetSpecs = (String[]) pset.getCodecValue( SUBSET_SPECS_INFO );
         int nset = rsetSpecs.length;
         RowSubset[] rsets = new RowSubset[ nset ];
-        Map<RowSubset,String> rsetExprMap = new HashMap<RowSubset,String>();
+        Map<RowSubset,String> rsetExprMap = new HashMap<>();
+        Map<RowSubset,Integer> rsetInvMap = new HashMap<>();
         for ( int is = 0; is < nset; is++ ) {
             String rsetName = rsetNames[ is ];
             String rsetSpec = rsetSpecs[ is ];
@@ -450,6 +452,7 @@ public class TopcatCodec2 implements TopcatCodec {
             else if ( INV_SETSPEC.isSpec( rsetSpec ) ) {
                 int subsetId = INV_SETSPEC.getSubsetId( rsetSpec );
                 rset = new InverseRowSubset( rsets[ subsetId ] );
+                rsetInvMap.put( rset, Integer.valueOf( subsetId ) );
             }
             else if ( COL_SETSPEC.isSpec( rsetSpec ) ) {
                 int ic = COL_SETSPEC.getColumnIndex( rsetSpec );
@@ -515,26 +518,11 @@ public class TopcatCodec2 implements TopcatCodec {
                            ? jndexCurrentSubset.intValue()
                            : -1;
 
-        /* Add row subsets to topcatmodel. */
-        int iCurrentSubset = -1;
-        for ( int js = 0; js < rsets.length; js++ ) {
-            RowSubset rset = rsets[ js ];
-
-            /* ALL is added at construction of the TopcatModel,
-             * so don't add it again. */
+        /* Add row subsets to the TopcatModel, except for ALL, which is
+         * added as part of TopcatModel construction. */
+        for ( RowSubset rset : rsets ) {
             if ( rset != RowSubset.ALL ) {
                 tcModel.addSubset( rset );
-
-                /* If the set is marked deleted, delete it here.
-                 * It's not good enough just to avoid adding it in the
-                 * first place, since that would get the unique identifiers
-                 * (_ID values) wrong. */
-                if ( rset == DELETED_SUBSET ) {
-                    tcModel.getSubsets().remove( rset );
-                }
-                else if ( jCurrentSubset == js ) {
-                    iCurrentSubset = tcModel.getSubsets().size() - 1;
-                }
             }
         }
 
@@ -570,13 +558,16 @@ public class TopcatCodec2 implements TopcatCodec {
             }
         }
 
-        /* Next do the algebraic subsets. */
+        /* Next do the algebraic and inverse subsets. */
         OptionsListModel<RowSubset> subsets = tcModel.getSubsets();
         for ( int is = 0; is < subsets.size(); is++ ) {
             RowSubset rset0 = subsets.get( is );
-            String expr = rsetExprMap.get( rset0 );
-            if ( expr != null ) {
-                String name = rset0.getName();
+            String name = rset0.getName();
+
+            /* If it was an algebraic subset, recompile it using the symbols
+             * that are now in place. */
+            if ( rsetExprMap.containsKey( rset0 ) ) {
+                String expr = rsetExprMap.get( rset0 );
                 try {
                     RowSubset rset1 =
                         new SyntheticRowSubset( name, tcModel, expr );
@@ -588,10 +579,31 @@ public class TopcatCodec2 implements TopcatCodec {
                                + "(" + expr + ")", e );
                 }
             }
+
+            /* If it was an inverse subset, reconstruct it pointing at the
+             * actual rather than placeholder complement it references. */
+            else if ( rsetInvMap.containsKey( rset0 ) ) {
+                int subsetId = rsetInvMap.get( rset0 ).intValue();
+                RowSubset rset1 =
+                    new InverseRowSubset( subsets.get( subsetId ) );
+                subsets.set( is, rset1 );
+            }
         }
 
         /* I don't think this is required, but it can't hurt. */
         tcModel.recompileSubsets();
+
+        /* Remove any subsets marked as deleted.  We have to add them first
+         * and then delete them here, so the unique identifiers (_ID values)
+         * and other setup uses the correct indices. */
+        RowSubset currentSubset = tcModel.getSubsets().get( jCurrentSubset );
+        for ( Iterator<RowSubset> rsIt = tcModel.getSubsets().iterator();
+              rsIt.hasNext(); ) {
+            if ( rsIt.next() == DELETED_SUBSET ) {
+                rsIt.remove();
+            }
+        }
+        int iCurrentSubset = tcModel.getSubsets().indexOf( currentSubset );
 
         /* Restore activation actions. */
         String activTxt = (String) pset.getCodecValue( ACTIVATION_INFO );
