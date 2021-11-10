@@ -465,6 +465,33 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
     }
 
     /**
+     * Returns the metadata for the combined values.
+     *
+     * @param  dataSpec  data specification
+     * @param  icWeight  coord index in DataSpec for weight coordinate
+     * @param  combiner  combination mode
+     * @return   metadata for gridded cells
+     */
+    private static ValueInfo getCombinedInfo( DataSpec dataSpec, int icWeight,
+                                              Combiner combiner ) {
+        final ValueInfo weightInfo;
+        if ( icWeight < 0 || dataSpec.isCoordBlank( icWeight ) ) {
+            weightInfo = new DefaultValueInfo( "1", Double.class,
+                                               "Weight unspecified"
+                                               + ", taken as unity" );
+        }
+        else {
+            ValueInfo[] winfos = dataSpec.getUserCoordInfos( icWeight );
+            weightInfo = winfos != null && winfos.length == 1
+                       ? winfos[ 0 ]
+                       : new DefaultValueInfo( "Weight", Double.class );
+        }
+        Unit unit = new Unit( "unit", "unit area", "area", 1,
+                              "X axis unit * Y axis unit" );
+        return combiner.createCombinedInfo( weightInfo, unit );
+    }
+
+    /**
      * Style for configuring the grid plot.
      */
     public static class GridStyle implements Style {
@@ -581,7 +608,8 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                     return icWeight_;
                 }
                 public ValueInfo getAxisInfo( DataSpec dataSpec ) {
-                    return getCombinedInfo( dataSpec );
+                    return getCombinedInfo( dataSpec, icWeight_,
+                                            gstyle_.combiner_ );
                 }
                 public Scaling getScaling() {
                     return gstyle_.scaling_;
@@ -731,30 +759,6 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                                       * binResult.getBinValue( ibin ) );
                 }
             }
-        }
-
-        /**
-         * Returns the metadata for the combined values.
-         *
-         * @param  dataSpec  data specification
-         * @return   metadata for gridded cells
-         */
-        private ValueInfo getCombinedInfo( DataSpec dataSpec ) {
-            final ValueInfo weightInfo;
-            if ( icWeight_ < 0 || dataSpec.isCoordBlank( icWeight_ ) ) {
-                weightInfo = new DefaultValueInfo( "1", Double.class,
-                                                   "Weight unspecified"
-                                                   + ", taken as unity" );
-            }
-            else {
-                ValueInfo[] winfos = dataSpec.getUserCoordInfos( icWeight_ );
-                weightInfo = winfos != null && winfos.length == 1
-                           ? winfos[ 0 ]
-                           : new DefaultValueInfo( "Weight", Double.class );
-            }
-            Unit unit = new Unit( "unit", "unit area", "area", 1,
-                                  "X axis unit * Y axis unit" );
-            return gstyle_.combiner_.createCombinedInfo( weightInfo, unit );
         }
 
         /**
