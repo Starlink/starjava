@@ -90,12 +90,6 @@ public class TopcatCodec2 implements TopcatCodec {
     private static final ColumnSetSpec COL_SETSPEC = new ColumnSetSpec();
     private static final BitSetSpec BIT_SETSPEC = new BitSetSpec();
 
-    private static final RowSubset DELETED_SUBSET = new RowSubset( "DELETED" ) {
-        public boolean isIncluded( long lrow ) {
-            return false;
-        }
-    };
-
     private final static int MAX_NBIT = Integer.SIZE;
 
     private static final Logger logger_ =
@@ -189,7 +183,7 @@ public class TopcatCodec2 implements TopcatCodec {
                 hadAll = true;
                 sspec = ALL_SETSPEC.createStringSpec();
             }
-            else if ( rset == DELETED_SUBSET ) {
+            else if ( rset instanceof DeletedSubset ) {
                 sspec = DEL_SETSPEC.createStringSpec();
             }
             else if ( rset instanceof SyntheticRowSubset ) {
@@ -438,7 +432,15 @@ public class TopcatCodec2 implements TopcatCodec {
                 rset = RowSubset.ALL;
             }
             else if ( DEL_SETSPEC.isSpec( rsetSpec ) ) {
-                rset = DELETED_SUBSET;
+                rset = new DeletedSubset();
+
+                /* The name picked up from the session file is "DELETED"
+                 * for all deleted subsets, which was a bad decision when
+                 * writing the serialization format.  Having multiple subsets
+                 * with the same name will confuse the subset indexing,
+                 * so do something to make sure the names are unique in case
+                 * there is more than one deleted subset. */
+                rsetName = "***DELETED***" + is;
             }
             else if ( EXPR_SETSPEC.isSpec( rsetSpec ) ) {
                 String expr = EXPR_SETSPEC.getExpression( rsetSpec );
@@ -586,6 +588,7 @@ public class TopcatCodec2 implements TopcatCodec {
                 int subsetId = rsetInvMap.get( rset0 ).intValue();
                 RowSubset rset1 =
                     new InverseRowSubset( subsets.get( subsetId ) );
+                assert rset0.getName().equals( rset1.getName() );
                 subsets.set( is, rset1 );
             }
         }
@@ -599,7 +602,7 @@ public class TopcatCodec2 implements TopcatCodec {
         RowSubset currentSubset = tcModel.getSubsets().get( jCurrentSubset );
         for ( Iterator<RowSubset> rsIt = tcModel.getSubsets().iterator();
               rsIt.hasNext(); ) {
-            if ( rsIt.next() == DELETED_SUBSET ) {
+            if ( rsIt.next() instanceof DeletedSubset ) {
                 rsIt.remove();
             }
         }
@@ -755,7 +758,7 @@ public class TopcatCodec2 implements TopcatCodec {
         for ( int id = 0; id < maxId + 1; id++ ) {
             int ix = subsetModel.idToIndex( id );
             subsetArray[ id ] = ix >= 0 ? subsetModel.get( ix )
-                                        : DELETED_SUBSET;
+                                        : new DeletedSubset();
         }
         return subsetArray;
     }
@@ -865,6 +868,18 @@ public class TopcatCodec2 implements TopcatCodec {
             return null;
         }
     }
+
+    /**
+     * RowSubset implementation to represent a subset that has been deleted.
+     */
+    private static class DeletedSubset extends RowSubset {
+        DeletedSubset() {
+            super( "DELETED" );
+        }
+        public boolean isIncluded( long lrow ) {
+            return false;
+        }
+    };
 
     /**
      * Utility class to package a list of table parameters and

@@ -74,19 +74,26 @@ public class CodecTest extends TableCase {
         RowSubset quarterSet =
             new SyntheticRowSubset( "Quarter", tcModel, "$0 % 4 == 0" );
         RowSubset notQuarterSet = new InverseRowSubset( quarterSet );
+        RowSubset sixthSet =
+            new SyntheticRowSubset( "Sixth", tcModel, "$0<" + (nrow/6) );
+        RowSubset notSixthSet = new InverseRowSubset( sixthSet );
         tcModel.addSubset( RowSubset.NONE );
         tcModel.addSubset( tenSet );
         tcModel.addSubset( notTenSet );
         tcModel.addSubset( quarterSet );
         tcModel.addSubset( notQuarterSet );
+        tcModel.addSubset( sixthSet );
+        tcModel.addSubset( notSixthSet );
         assertEquals( 0, countSubset( RowSubset.NONE, nrow ) );
         assertEquals( 10, countSubset( tenSet, nrow ) );
         assertEquals( nrow - 10, countSubset( notTenSet, nrow ) );
         assertEquals( ( nrow + 1 ) / 4, countSubset( quarterSet, nrow ) );
         assertEquals( ( nrow + 1 ) * 3 / 4, countSubset( notQuarterSet, nrow ));
 
-        RowSubset removed = (RowSubset) tcModel.getSubsets().remove( 3 );
-        assertEquals( notTenSet, removed );
+        RowSubset removed1 = (RowSubset) tcModel.getSubsets().remove( 3 );
+        assertEquals( notTenSet, removed1 );
+        RowSubset removed2 = (RowSubset) tcModel.getSubsets().remove( 3 );
+        assertEquals( quarterSet, removed2 );
         tcModel.applySubset( tenSet );
         tcModel.sortBy( new SortOrder( tcModel.getColumnModel()
                                               .getColumn( 2 ) ), true );
