@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://pds.nasa.gov/pds4/schema/released/pds/v1/PDS4_PDS_1000.sch"?>
+<Product_Observational xmlns="http://pds.nasa.gov/pds4/pds/v1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/schema/released/pds/v1/PDS4_PDS_1000.xsd">
+
+    <Identification_Area>
+
+        <logical_identifier>urn:nasa:pds:MER2_APXS:data_reduced:2A308528870XRCB1E5N1438N0P1</logical_identifier>
+
+        <version_id>1.0</version_id>
+
+        <title>MER2 APXS Reduced Data</title>
+
+        <information_model_version>1.0.0.0</information_model_version>
+
+        <product_class>Product_Observational</product_class>
+
+        <Alias_List>
+
+            <Alias>
+
+                <alternate_id>MER2-M-APXS-2-XRAYSPEC-SCI-V1.0</alternate_id>
+
+                <alternate_title>MER 2 MARS ALPHA PARTICLE X-RAY SPECTROMETER 2 XRAYSPEC V1.0</alternate_title>
+
+            </Alias>
+
+        </Alias_List>
+
+    </Identification_Area>
+
+    <Observation_Area>
+
+        <Time_Coordinates>
+
+            <start_date_time>2009-10-10T13:55:00.828Z</start_date_time>
+
+            <stop_date_time>2009-10-11T10:08:08.150Z</stop_date_time>
+
+            <local_true_solar_time>15:15:35</local_true_solar_time>
+
+        </Time_Coordinates>
+      
+        <Primary_Result_Summary>
+            <type>Null Result</type>
+            <purpose>Science</purpose>
+            <data_regime>X-Ray</data_regime>
+            <processing_level_id>Raw</processing_level_id>
+            <description>
+              This is where a generic description of the product goes            
+            </description>
+        </Primary_Result_Summary>          
+      
+        <Investigation_Area>
+
+            <name>Mars Exploration Rover</name>
+
+            <type>Mission</type>
+
+            <Internal_Reference>
+
+                <lid_reference>urn:nasa:pds:mission.MARS_EXPLORATION_ROVER</lid_reference>
+
+                <reference_type>has_investigation</reference_type>
+
+            </Internal_Reference>
+
+        </Investigation_Area>
+
+        <Observing_System>
+
+            <name>Mars Exploration Rover 2 APXS</name>
+
+            <Observing_System_Component>
+
+                <name>APXS</name>
+
+                <type>Instrument</type>
+
+                <Internal_Reference>
+
+                    <lid_reference>urn:nasa:pds:instrument.APXS__MER2</lid_reference>
+
+                    <reference_type>is_instrument</reference_type>
+
+                </Internal_Reference>
+
+            </Observing_System_Component>
+
+            <Observing_System_Component>
+
+                <name>Mars Exploration Rover 2</name>
+
+                <type>Spacecraft</type>
+
+                <Internal_Reference>
+
+                    <lid_reference>urn:nasa:pds:instrument_host.MER2</lid_reference>
+
+                    <reference_type>is_instrument_host</reference_type>
+
+                </Internal_Reference>
+
+            </Observing_System_Component>
+
+        </Observing_System>
+
+        <Target_Identification>
+
+            <name>Mars</name>
+
+            <type>planet</type>
+
+            <Internal_Reference>
+
+                <lid_reference>urn:nasa:pds:target.MARS</lid_reference>
+
+                <reference_type>data_to_target</reference_type>
+
+            </Internal_Reference>
+
+        </Target_Identification>
+
+        <Mission_Area>
+
+            <!-- Add from PDS3 label: PRODUCT_TYPE, SOURCE_PRODUCT_ID, RELEASE_ID, 
+
+            ROVER_MOTION_COUNTER, ROVER_MOTION_COUNTER_NAME, COMMAND_SEQUENCE_NUMBER,
+
+            MISSION_PHASE_NAME, OBSERVATION_ID, PLANET_DAY_NUMBER, PRODUCER_INSTITUTION_NAME,
+
+            SEQUENCE_ID, SEQUENCE_VERSION_ID, SPACECRAFT_CLOCK_CNT_PARTITION, SPACECRAFT_CLOCK_START_COUNT,
+
+            SPACECRAFT_CLOCK_STOP_COUNT, whole section TELEMETRY DATA ELEMENTS, whole section ROVER STATE -->
+
+        </Mission_Area>
+
+        <Discipline_Area>
+
+        </Discipline_Area>
+
+    </Observation_Area>
+
+    <File_Area_Observational>
+
+        <File>
+
+            <file_name>PDS4_TABLE_DELIMITED.csv</file_name>
+
+            <creation_date_time>2010-05-03T23:19:36</creation_date_time>
+
+        </File>
+
+        <Table_Delimited>
+
+            <offset unit="BYTE">0</offset>
+
+            <parsing_standard_id>PDS DSV 1</parsing_standard_id>
+
+            <description>APXS x-ray spectra in counts as a function
+
+                of channel number. The number of spectra in the file (maximum of 12)
+
+                depends on the length of the integration. Channel 1 contains the lifetime
+
+                for the spectrum in units of 10 seconds. Channel 2 is the unique id for
+
+                the spectrum. The value increments by one after every cycle start.
+
+                Channels 3 and 4 contain the temperature correction gain multiplier and
+
+                linear term, respectively. The measured x-ray data start with channel 5.
+
+                The last channel, number 512, contains the number of x-rays with energies
+
+                greater than full scale.</description>
+
+            <records>3</records>
+
+          <record_delimiter>carriage-return line-feed</record_delimiter>
+          
+          <field_delimiter>comma</field_delimiter>
+
+            <Record_Delimited>
+
+                <fields>13</fields>
+              
+                <groups>0</groups>
+
+                <Field_Delimited>
+
+                    <name>CHANNEL_NUMBER</name>
+
+                    <field_number>1</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Channel number representing a given
+
+                        energy level.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_01</name>
+
+                    <field_number>2</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_02</name>
+
+                    <field_number>3</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_03</name>
+
+                    <field_number>4</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_04</name>
+
+                    <field_number>5</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_05</name>
+
+                    <field_number>6</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_06</name>
+
+                    <field_number>7</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_07</name>
+
+                    <field_number>8</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_08</name>
+
+                    <field_number>9</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_09</name>
+
+                    <field_number>10</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_10</name>
+
+                    <field_number>11</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_11</name>
+
+                    <field_number>12</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+                <Field_Delimited>
+
+                    <name>SPECTRA_12</name>
+
+                    <field_number>13</field_number>
+
+                    <data_type>ASCII_Integer</data_type>
+
+                    <description>Number of x-rays detected per channel.</description>
+
+                </Field_Delimited>
+
+            </Record_Delimited>
+
+        </Table_Delimited>
+
+    </File_Area_Observational>
+
+</Product_Observational>
+

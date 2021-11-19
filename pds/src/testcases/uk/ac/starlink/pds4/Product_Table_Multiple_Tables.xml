@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://pds.nasa.gov/pds4/schema/released/pds/v1/PDS4_PDS_1000.sch"?>
+
+<Product_Observational xmlns="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:pds="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:dph="http://pds.nasa.gov/pds4/dph/v01"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/schema/released/pds/v1/PDS4_PDS_1000.xsd
+                        http://pds.nasa.gov/pds4/dph/v01 http://pds.jpl.nasa.gov/repository/pds4/examples/test_0100/dph_example_dict_0100.xsd">
+
+    <Identification_Area>
+        <logical_identifier>urn:nasa:pds:example.dph.sampleproducts:exampleproducts:tablechar.phx-m-tt-5-wind-vel-dir-v1.0</logical_identifier>
+        <version_id>1.0</version_id>
+        <title>PHOENIX Mars Wind Experiment</title>
+        <information_model_version>1.0.0.0</information_model_version>
+        <product_class>Product_Observational</product_class>
+        <Modification_History>
+            <Modification_Detail>
+                <modification_date>2012-01-10</modification_date>
+                <version_id>1.0</version_id>
+                <description>
+                    extracted metadata from PDS3 catalog and
+                    modified to comply with PDS4 Information Model
+                </description>
+            </Modification_Detail>
+        </Modification_History>
+    </Identification_Area>
+
+    <Observation_Area>
+        <comment>Observational Intent</comment>
+        <Time_Coordinates>
+            <start_date_time>2008-08-26T20:36:36.856Z</start_date_time>
+            <stop_date_time>2008-10-27T15:32:50.952Z</stop_date_time>
+            <local_mean_solar_time>not applicable</local_mean_solar_time>
+            <local_true_solar_time>not applicable</local_true_solar_time>
+        </Time_Coordinates>
+        <Primary_Result_Summary>
+            <type>Null Result</type>
+            <purpose>Science</purpose>
+            <data_regime>Visible</data_regime>
+            <processing_level_id>Raw</processing_level_id>
+            <description>
+                This is where a generic description of the product goes
+            </description>
+        </Primary_Result_Summary>
+        <Investigation_Area>
+            <name>PHOENIX</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lidvid_reference>urn:nasa:pds:context:investigation:mission.phoenix::1.0</lidvid_reference>
+                <reference_type>data_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+            <name>Observing System for PHX+TT</name>
+            <Observing_System_Component>
+                <name>PHX</name>
+                <type>Spacecraft</type>
+                <description>instrument_host PHX</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument_host:instrument_host.phx</lid_reference>
+                    <reference_type>is_instrument_host</reference_type>
+                </Internal_Reference>
+             </Observing_System_Component>
+             <Observing_System_Component>
+                <name>TT</name>
+                <type>Instrument</type>
+                <description>instrument TT</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:instrument.tt__phx</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+        </Observing_System>
+        <Target_Identification>
+            <name>MARS</name>
+            <type>planet</type>
+            <description>description of MARS goes here</description>
+            <Internal_Reference>
+                <lidvid_reference>urn:nasa:pds:context:target:target.mars::1.0</lidvid_reference>
+                <reference_type>data_to_target</reference_type>
+             </Internal_Reference>
+        </Target_Identification>
+
+        <!-- ============================================================ -->
+        <!-- Reference the attributes that were imported from the         -->
+        <!-- local dictionary (using the local namespace (dph)            -->
+        <!-- ============================================================ -->
+        <Mission_Area>
+            <dph:spacecraft_clock_start_count>904250279.448</dph:spacecraft_clock_start_count>
+            <dph:spacecraft_clock_stop_count>909588864.598</dph:spacecraft_clock_stop_count>
+        </Mission_Area>
+        <Discipline_Area>
+        </Discipline_Area>
+    </Observation_Area>
+
+    <Reference_List>
+        <Internal_Reference>
+            <lidvid_reference>urn:nasa:pds:context:investigation:mission.phoenix::1.0</lidvid_reference>
+            <reference_type>data_to_document</reference_type>
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>urn:nasa:pds:context:instrument_host:instrument_host.phx</lid_reference>
+            <reference_type>data_to_document</reference_type>
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>urn:nasa:pds:context:instrument:instrument.tt__phx</lid_reference>
+            <reference_type>data_to_document</reference_type>
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>urn:nasa:pds:context:target:target.mars</lid_reference>
+            <reference_type>data_to_document</reference_type>
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>urn:nasa:pds:context:node:node.atmos</lid_reference>
+            <reference_type>data_to_document</reference_type>
+        </Internal_Reference>
+    </Reference_List>
+
+    <File_Area_Observational>
+        <File>
+            <file_name>PDS4_ATM_TABLE_CHAR_MULTIPLE.TAB</file_name>
+            <local_identifier>ATM_PRODUCT_TABLE_CHAR_ID</local_identifier>
+            <creation_date_time>2009-04-30T12:12:12Z</creation_date_time>
+            <file_size unit="byte">4136</file_size>
+            <records>23</records>
+            <md5_checksum>d220dac0d1fe312f3f3b9c824f6ac294</md5_checksum>
+       </File>
+
+        <Table_Character>
+            <local_identifier>TABLE_CHAR_1</local_identifier>
+            <offset unit="byte">0</offset>
+            <records>23</records>
+            <record_delimiter>carriage-return line-feed</record_delimiter>
+
+            <Record_Character>
+                 <fields>10</fields>
+                <groups>0</groups>
+                 <record_length unit="byte">88</record_length>
+
+                 <Field_Character>
+                     <name>SOL</name>
+                     <field_number>1</field_number>
+                     <field_location unit="byte">1</field_location>
+                     <data_type>ASCII_Integer</data_type>
+                     <field_length unit="byte">3</field_length>
+                     <field_format>I3</field_format>
+                     <description>PHOENIX Sol number</description>
+                 </Field_Character>
+                 <Field_Character>
+                     <name>LTST</name>
+                     <field_number>2</field_number>
+                     <field_location unit="byte">5</field_location>
+                     <data_type>ASCII_Real</data_type>
+                     <field_length unit="byte">5</field_length>
+                     <field_format>F5.3</field_format>
+                     <description>Local True Solar Time</description>
+                 </Field_Character>
+                 <Field_Character>
+                     <name>LMST</name>
+                     <field_number>3</field_number>
+                     <field_location unit="byte">11</field_location>
+                     <data_type>ASCII_Real</data_type>
+                     <field_length unit="byte">9</field_length>
+                     <field_format>F9.5</field_format>
+                     <description>Local Mean Solar Time</description>
+                 </Field_Character>
+                 <Field_Character>
+                     <name>V</name>
+                     <field_number>4</field_number>
+                     <field_location unit="byte">21</field_location>
+                     <data_type>ASCII_Real</data_type>
+                     <field_length unit="byte">5</field_length>
+                     <field_format>F5.3</field_format>
+                     <unit>m/s</unit>
+                     <description>Wind speed in meters per second</description>
+                 </Field_Character>
+                 <Field_Character>
+                     <name>DV+</name>
+                     <field_number>5</field_number>
+                     <field_location unit="byte">27</field_location>
+                     <data_type>ASCII_Real</data_type>
+                     <field_length unit="byte">4</field_length>
+                     <field_format>F4.2</field_format>
+                     <unit>m/s</unit>
+                     <description>Error in wind speed (positive)</description>
+                 </Field_Character>
+                 <Field_Character>
+                     <name>DV-</name>
+                     <field_number>6</field_number>
+                     <field_location unit="byte">32</field_location>
+                     <data_type>ASCII_Real</data_type>
+                     <field_length unit="byte">7</field_length>
+                     <field_format>F7.5</field_format>
+                     <unit>m/s</unit>
+                     <description>Error in wind speed (negative)</description>
+                 </Field_Character>
+                 <Field_Character>
+                     <name>DIR</name>
+                     <field_number>7</field_number>
+                     <field_location unit="byte">40</field_location>
+                     <data_type>ASCII_Real</data_type>
+                     <field_length unit="byte">10</field_length>
+                     <field_format>F10.6</field_format>
+                     <unit>deg</unit>
+                     <description>Wind direction in degrees given in
+                         meteorological convention (0 = from N,
+                         90 = from E, 180 = from S, 270 = from W)
+                     </description>
+                 </Field_Character>
+                 <Field_Character>
+                     <name>DDIR</name>
+                     <field_number>8</field_number>
+                     <field_location unit="byte">51</field_location>
+                     <data_type>ASCII_Real</data_type>
+                     <field_length unit="byte">8</field_length>
+                     <field_format>F8.4</field_format>
+                     <unit>deg</unit>
+                     <description>Error in direction (given in degrees).
+                         If dv+ is larger than v, then this is
+                         set to 180</description>
+                 </Field_Character>
+                 <Field_Character>
+                     <name>EXPOSURE TIME</name>
+                     <field_number>9</field_number>
+                     <field_location unit="byte">60</field_location>
+                     <data_type>ASCII_Real</data_type>
+                     <field_length unit="byte">7</field_length>
+                     <field_format>F7.1</field_format>
+                     <unit>ms</unit>
+                     <description>Exposure time by SSI in milliseconds</description>
+                 </Field_Character>
+                 <Field_Character>
+                     <name>FILE NAME</name>
+                     <field_number>10</field_number>
+                     <field_location unit="byte">69</field_location>
+                     <data_type>ASCII_File_Name</data_type>
+                     <field_length unit="byte">17</field_length>
+                     <field_format>A17</field_format>
+                     <description>Image filename used for the analysis</description>
+                 </Field_Character>
+            </Record_Character>
+
+        </Table_Character>
+
+        <Table_Character>
+            <local_identifier>TABLE_CHAR_2</local_identifier>
+            <offset unit="byte">2112</offset>
+            <records>23</records>
+            <record_delimiter>carriage-return line-feed</record_delimiter>
+
+            <Record_Character>
+                <fields>10</fields>
+                <groups>0</groups>
+                <record_length unit="byte">88</record_length>
+
+                <Field_Character>
+                    <name>SOL</name>
+                    <field_number>1</field_number>
+                    <field_location unit="byte">1</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">3</field_length>
+                    <field_format>I3</field_format>
+                    <description>PHOENIX Sol number</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>LTST</name>
+                    <field_number>2</field_number>
+                    <field_location unit="byte">5</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">5</field_length>
+                    <field_format>F5.3</field_format>
+                    <description>Local True Solar Time</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>LMST</name>
+                    <field_number>3</field_number>
+                    <field_location unit="byte">11</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">9</field_length>
+                    <field_format>F9.5</field_format>
+                    <description>Local Mean Solar Time</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>V</name>
+                    <field_number>4</field_number>
+                    <field_location unit="byte">21</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">5</field_length>
+                    <field_format>F5.3</field_format>
+                    <unit>m/s</unit>
+                    <description>Wind speed in meters per second</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>DV+</name>
+                    <field_number>5</field_number>
+                    <field_location unit="byte">27</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <field_format>F4.2</field_format>
+                    <unit>m/s</unit>
+                    <description>Error in wind speed (positive)</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>DV-</name>
+                    <field_number>6</field_number>
+                    <field_location unit="byte">32</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <field_format>F7.5</field_format>
+                    <unit>m/s</unit>
+                    <description>Error in wind speed (negative)</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>DIR</name>
+                    <field_number>7</field_number>
+                    <field_location unit="byte">40</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <field_format>F10.6</field_format>
+                    <unit>deg</unit>
+                    <description>Wind direction in degrees given in
+                        meteorological convention (0 = from N,
+                        90 = from E, 180 = from S, 270 = from W)
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>DDIR</name>
+                    <field_number>8</field_number>
+                    <field_location unit="byte">51</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <field_format>F8.4</field_format>
+                    <unit>deg</unit>
+                    <description>Error in direction (given in degrees).
+                        If dv+ is larger than v, then this is
+                        set to 180</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>EXPOSURE TIME</name>
+                    <field_number>9</field_number>
+                    <field_location unit="byte">60</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <field_format>F7.1</field_format>
+                    <unit>ms</unit>
+                    <description>Exposure time by SSI in milliseconds</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>FILE NAME</name>
+                    <field_number>10</field_number>
+                    <field_location unit="byte">69</field_location>
+                    <data_type>ASCII_File_Name</data_type>
+                    <field_length unit="byte">17</field_length>
+                    <field_format>A17</field_format>
+                    <description>Image filename used for the analysis</description>
+                </Field_Character>
+            </Record_Character>
+
+        </Table_Character>
+    </File_Area_Observational>
+
+</Product_Observational>
