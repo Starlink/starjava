@@ -213,6 +213,9 @@
     <echo message="Executing ECSV target: ${what}"/>
     <ant dir="./ecsv" target="${what}"/>
 
+    <echo message="Executing PDS target: ${what}"/>
+    <ant dir="./pds" target="${what}"/>
+
     <echo message="Executing GBIN target: ${what}"/>
     <ant dir="./gbin" target="${what}"/>
 
@@ -496,6 +499,10 @@
       </packageset>
 
       <packageset dir="ecsv/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="pds/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
