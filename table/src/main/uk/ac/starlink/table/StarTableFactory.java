@@ -92,6 +92,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="cdf")
  * <li> {@link uk.ac.starlink.ecsv.EcsvTableBuilder}
  *      (format name="ecsv")
+ * <li> {@link uk.ac.starlink.pds4.Pds4TableBuilder}
+ *      (format name="pds4")
  * <li> {@link uk.ac.starlink.table.formats.MrtTableBuilder}
  *      (format name="mrt")
  * <li> {@link uk.ac.starlink.parquet.ParquetTableBuilder}
@@ -196,6 +198,7 @@ public class StarTableFactory {
         "uk.ac.starlink.votable.VOTableBuilder",
         "uk.ac.starlink.cdf.CdfTableBuilder",
         "uk.ac.starlink.ecsv.EcsvTableBuilder",
+        "uk.ac.starlink.pds4.Pds4TableBuilder",
         "uk.ac.starlink.table.formats.MrtTableBuilder",
         "uk.ac.starlink.parquet.ParquetTableBuilder",
         "uk.ac.starlink.feather.FeatherTableBuilder",

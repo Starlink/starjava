@@ -20,6 +20,7 @@
   <!ENTITY in-colfits SYSTEM 'in-colfits-basic.xml'>
   <!ENTITY in-csv SYSTEM 'in-csv.xml'>
   <!ENTITY in-ecsv SYSTEM 'in-ecsv.xml'>
+  <!ENTITY in-pds4 SYSTEM 'in-pds4.xml'>
   <!ENTITY in-parquet SYSTEM 'in-parquet.xml'>
   <!ENTITY in-feather SYSTEM 'in-feather.xml'>
   <!ENTITY in-fits SYSTEM 'in-fits.xml'>
@@ -677,7 +678,8 @@ something like
 <code>java -jar topcat-full.jar</code> (see <ref id="invoke"/> for
 more detail).  To view a table that you have on disk, you can either
 give its name on the command line or load it using the <label>Load</label>
-button from the GUI.  FITS, VOTable, ECSV, CDF, feather, Parquet and GBIN files
+button from the GUI.
+FITS, VOTable, ECSV, CDF, PDS4, feather, Parquet and GBIN files
 are recognised automatically;
 if your data is in another format such as ASCII (see <ref id="inFormats"/>)
 you need to tell the program (e.g. <code>-f ascii</code> on the command line).
@@ -1273,6 +1275,11 @@ similar and capable of storing more metadata.
 <subsubsubsect id="inIpac">
 <subhead><title>IPAC</title></subhead>
 &in-ipac;
+</subsubsubsect>
+
+<subsubsubsect id="inPds4">
+<subhead><title>PDS4</title></subhead>
+&in-pds4;
 </subsubsubsect>
 
 <subsubsubsect id="inMrt">
@@ -22369,7 +22376,8 @@ and loads that into TOPCAT as a new table.
 <dt>Table Format:</dt>
 <dd><p>Selects the file format of the table to load.
     If the table is in one of the formats that TOPCAT is able to
-    auto-detect (VOTable, FITS, ECSV, CDF, Feather) then the default value
+    auto-detect (VOTable, FITS, ECSV, CDF, PDS4, Feather)
+    then the default value
     <code>(auto)</code> may be used, otherwise the correct format
     must be chosen from the list.
     </p></dd>
@@ -22460,7 +22468,8 @@ are not included when a session is saved.
 <dt>Table Format:</dt>
 <dd><p>Selects the file format of the table to load.
     If the table is in one of the formats that TOPCAT is able to
-    auto-detect (VOTable, FITS, ECSV, CDF, Feather) then the default value
+    auto-detect (VOTable, FITS, ECSV, CDF, PDS4, Feather)
+    then the default value
     <code>(auto)</code> may be used, otherwise the correct format
     must be chosen from the list.
     </p></dd>
@@ -24760,12 +24769,14 @@ functionality:
 <li><webref url="https://bitbucket.org/asomov/snakeyaml"
             >Snakeyaml</webref> for YAML parsing in ECSV input handler</li>
 <li><webref url="https://github.com/gmantele/ucidy">Ucidy</webref>
-            (Gr&#x00e9;gory Mantelet, CDS) for UCD parsing.</li>
+            (Gr&#x00e9;gory Mantelet, CDS) for UCD parsing</li>
 <li><webref url="http://www.astro.gla.ac.uk/users/norman/ivoa/unity/"
             >Unity</webref> (Norman Gray, Glasgow) for VOUnits parsing</li>
 <li><webref url="http://www.jidesoft.com/products/oss.htm"
             >JIDE Common Layer</webref> (Jidesoft)
             for double-ended slider controls</li>
+<li><webref url="https://nasa-pds.github.io/pds4-jparser/">PDS4-JParser</webref>
+    (NASA), a few low-level classes used for PDS4 datatype parsing</li>
 <li><webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
             >IVOARegistry</webref>
     (NVO) for ADQL/X-&gt;S translations in registry searches</li>
@@ -30181,6 +30192,9 @@ introduced since the last version:
     <li>Fix bug in plotting <code>MOC-ASCII</code> strings in
         <ref id="form-area">Area</ref> plot;
         some cells near end of MOC omitted/misshapen.</li>
+    <li>The <ref id="inPds4">PDS4</ref>
+        (NASA's Planetary Data System v4) file format is now
+        supported for input tables.</li>
     </ul>
     </p></dd>
 

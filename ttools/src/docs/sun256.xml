@@ -50,6 +50,7 @@
   <!ENTITY in-colfits SYSTEM 'in-colfits-basic.xml'>
   <!ENTITY in-csv SYSTEM 'in-csv.xml'>
   <!ENTITY in-ecsv SYSTEM 'in-ecsv.xml'>
+  <!ENTITY in-pds4 SYSTEM 'in-pds4.xml'>
   <!ENTITY in-parquet SYSTEM 'in-parquet.xml'>
   <!ENTITY in-feather SYSTEM 'in-feather.xml'>
   <!ENTITY in-fits SYSTEM 'in-fits.xml'>
@@ -1523,7 +1524,7 @@ As with command-line STILTS, the <code>fmt</code> argument
 is one of the options in <ref id="inFormats"/>, but may be
 left as the default if the format auto-detectable,
 which currently means if the file is in
-VOTable, FITS, CDF, ECSV, Parquet, Feather or GBIN format.
+VOTable, FITS, CDF, ECSV, PDS4, Parquet, Feather or GBIN format.
 The <code>random</code> argument can be used to ensure that the returned file
 has random (i.e. not sequential-only) access;
 for some table formats the default way of reading them in means that
@@ -2158,6 +2159,11 @@ similar and capable of storing more metadata.
 <subsubsubsect id="inIpac">
 <subhead><title><code>ipac</code></title></subhead>
 &in-ipac;
+</subsubsubsect>
+
+<subsubsubsect id="inPds4">
+<subhead><title><code>pds4</code></title></subhead>
+&in-pds4;
 </subsubsubsect>
 
 <subsubsubsect id="inMrt">
@@ -13434,6 +13440,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>In the starjava distribution, the <code>jystilts</code> script
         now uses an internal copy of Jython 2.7.2, it no longer requires
         an external Jython installation.</li>
+    <li>The <ref id="inPds4">PDS4</ref>
+        (NASA's Planetary Data System v4) file format is now
+        supported for input tables.</li>
     </ul>
     </p></dd>
 

@@ -74,6 +74,7 @@ this list up to date, but if there are missing entries please complain.
       jsamp.jar
       org.mortbay.jetty.jar
       snakeyaml-1.25.jar
+      gov.nasa.pds.* in pds.jar
 
    BSD 2-clause:
       unity-1.0.jar
