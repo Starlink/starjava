@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1E00.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<Product_Ancillary xmlns="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:pds="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1E00.xsd">
+    <Identification_Area>
+        <logical_identifier>urn:nasa:pds:izenberg_pdart14_meap:data_imagecube:virs_wavelengths</logical_identifier>
+        <version_id>1.0</version_id>
+        <title>Wavelength centers of VIRS Spectral Cube bands</title>
+        <information_model_version>1.14.0.0</information_model_version>
+        <product_class>Product_Ancillary</product_class>
+    </Identification_Area>
+    <Context_Area>
+        <comment>Band widths are different for VIS detector and NIR detector. VIS detector bands (shortward of 900 nm)
+            are averages of 4 VIS detector pixels with total bandwidth of ~9.3 nm per band.
+            NIR bands are averages of 6 NIR detector pixels with bandwidths of ~14.0 nm per band.
+        </comment>
+        <Time_Coordinates>
+            <start_date_time>2004-08-13Z</start_date_time>
+            <stop_date_time>2015-04-30Z</stop_date_time>
+        </Time_Coordinates>
+        <Investigation_Area>
+            <name>MESSENGER</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:investigation:mission.messenger</lid_reference>
+                <reference_type>ancillary_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+            <name>MESSENGER MASCS</name>
+            <Observing_System_Component>
+                <name>MESSENGER</name>
+                <type>Host</type>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument_host:spacecraft.mess</lid_reference>
+                    <reference_type>is_instrument_host</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+            <Observing_System_Component>
+                <name>MASCS</name>
+                <type>Instrument</type>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:mascs.mess</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+        </Observing_System>
+        <Target_Identification>
+            <name>Mercury</name>
+            <type>Planet</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:planet.mercury</lid_reference>
+                <reference_type>ancillary_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+    </Context_Area>
+    <File_Area_Ancillary>
+        <File>
+            <file_name>virs_wavelengths.tab</file_name>
+            <local_identifier>VIRS_Wavelength_File</local_identifier>
+            <creation_date_time>2016-04-19T18:07:00</creation_date_time>
+        </File>
+        <Table_Character>
+            <offset unit="byte">0</offset>
+            <records>105</records>
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <Record_Character>
+                <fields>2</fields>
+                <groups>0</groups>
+                <record_length unit="byte">10</record_length>
+                <Field_Character>
+                    <name>Band Number</name>
+                    <field_number>1</field_number>
+                    <field_location unit="byte">1</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">3</field_length>
+                </Field_Character>
+                <Field_Character>
+                    <name>Center Wavelength</name>
+                    <field_number>2</field_number>
+                    <field_location unit="byte">5</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <unit>nm</unit>
+                </Field_Character>
+            </Record_Character>
+        </Table_Character>
+    </File_Area_Ancillary>
+</Product_Ancillary>
