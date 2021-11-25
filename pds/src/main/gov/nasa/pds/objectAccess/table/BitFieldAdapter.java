@@ -34,15 +34,11 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Implements a field adapter for binary bit fields.
  */
 public class BitFieldAdapter implements FieldAdapter {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(BitFieldAdapter.class);
 	private static final String NOT_SUPPORTED = "Operation not supported yet.";
 
 	/** A long constant that has all bits on. */
@@ -75,7 +71,6 @@ public class BitFieldAdapter implements FieldAdapter {
 		long value = getFieldValue(buf, offset, length, startBit, stopBit);
 		if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
 			String msg = "Binary integer value out of range for byte (" + value + ")";
-			LOGGER.error(msg);
 			throw new NumberFormatException();
 		}
 
@@ -87,7 +82,6 @@ public class BitFieldAdapter implements FieldAdapter {
 		long value = getFieldValue(buf, offset, length, startBit, stopBit);
 		if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
 			String msg = "Binary integer value out of range for short (" + value + ")";
-			LOGGER.error(msg);
 			throw new NumberFormatException(msg);
 		}
 
@@ -99,7 +93,6 @@ public class BitFieldAdapter implements FieldAdapter {
 		long value = getFieldValue(buf, offset, length, startBit, stopBit);
 		if (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
 			String msg = "Binary integer value out of range for int (" + value + ")";
-			LOGGER.error(msg);
 			throw new NumberFormatException(msg);
 		}
 
@@ -164,17 +157,14 @@ public class BitFieldAdapter implements FieldAdapter {
 	private long getFieldValue(byte[] b, int offset, int length, int startBit, int stopBit) {
 		if (startBit < 0) {
 			String msg = "Start bit is negative (" + startBit + ")";
-			LOGGER.error(msg);
 			throw new ArrayIndexOutOfBoundsException(msg);
 		}
 		if (stopBit >= length * Byte.SIZE) {
 			String msg = "Stop bit past end of packed field (" + stopBit + " > " + (length * Byte.SIZE - 1) + ")";
-			LOGGER.error(msg);
 			throw new ArrayIndexOutOfBoundsException(msg);
 		}
 		if (stopBit - startBit + 1 > Long.SIZE) {
 			String msg = "Bit field is wider than long (" + (stopBit-startBit+1) + " > " + Long.SIZE + ")";
-			LOGGER.error(msg);
 			throw new IllegalArgumentException(msg);
 		}
 
@@ -184,7 +174,6 @@ public class BitFieldAdapter implements FieldAdapter {
 		if (stopByte-startByte+1 > Long.SIZE / Byte.SIZE) {
 			String msg = "Bit field spans bytes that are wider than a long "
 				+ "(" + (stopByte-startByte+1) + " > " + (Long.SIZE / Byte.SIZE) + ")";
-			LOGGER.error(msg);
 			throw new NumberFormatException(msg);
 		}
 
