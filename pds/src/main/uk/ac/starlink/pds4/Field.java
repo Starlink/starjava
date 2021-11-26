@@ -58,4 +58,12 @@ public interface Field {
      * @return  description text, or null
      */
     String getDescription();
+
+    /**
+     * Returns a set of string values representing data values in this field
+     * which are to be mapped to null values when reading data.
+     *
+     * @return  array of blank value representations
+     */
+    String[] getBlankConstants();
 }

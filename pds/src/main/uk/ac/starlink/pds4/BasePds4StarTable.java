@@ -127,7 +127,8 @@ public class BasePds4StarTable extends Pds4StarTable {
          * @param   field  field information
          */
         ColumnReader( Field field ) {
-            fieldReader_ = FieldReader.getInstance( field.getFieldType() );
+            fieldReader_ = FieldReader.getInstance( field.getFieldType(),
+                                                    field.getBlankConstants() );
             offset_ = field.getFieldLocation() - 1; // field_location is 1-based
             length_ = field.getFieldLength();
             startBit_ = 0;

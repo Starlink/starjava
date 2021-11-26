@@ -10,6 +10,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -40,6 +42,7 @@ import uk.ac.starlink.util.URLUtils;
 public class LabelParser {
 
     private final boolean observationalOnly_;
+    private final Collection<String> blankSpecials_;
 
     /**
      * Default parser.
@@ -53,6 +56,18 @@ public class LabelParser {
      */
     public LabelParser( boolean observationalOnly ) {
         observationalOnly_ = observationalOnly;
+        blankSpecials_ = new HashSet<String>( Arrays.asList( new String[] {
+            "saturated_constant",
+            "missing_constant",
+            "error_constant",
+            "invalid_constant",
+            "unknown_constant",
+            "not_applicable_constant",
+            "high_instrument_saturation",
+            "high_representation_saturation",
+            "low_instrument_saturation",
+            "low_representation_saturation",
+        } ) );
     }
 
     /**
@@ -286,7 +301,7 @@ public class LabelParser {
      * @param   nameSuffix   suffix to be applied to field name
      * @return  field object
      */
-    private static Field createField( Element fEl, String nameSuffix ) {
+    private Field createField( Element fEl, String nameSuffix ) {
 
         /* Extract basic metadata. */
         String name = getChildContent( fEl, "name" ) + nameSuffix;
@@ -298,7 +313,7 @@ public class LabelParser {
         FieldType ftype = FieldType.getFieldType( dataType );
 
         /* Location and Length are only present for Field_Binary and
-         * Field_Character.  Use dummy values for Field_Delmited. */
+         * Field_Character.  Use dummy values for Field_Delimited. */
         String locationTxt = getChildContent( fEl, "field_location" );
         int location = locationTxt == null || locationTxt.trim().length() == 0
                      ? -1
@@ -307,6 +322,11 @@ public class LabelParser {
         int length = lengTxt == null || lengTxt.trim().length() == 0
                    ? -1
                    : Integer.parseInt( lengTxt );
+
+        /* Get special constant values. */
+        Element specialEl =
+            DOMUtils.getChildElementByName( fEl, "Special_Constants" );
+        String[] blankConstants = getBlankConstants( specialEl );
 
         /* Return a Field object based on the information retrieved. */
         return new Field() {
@@ -327,6 +347,9 @@ public class LabelParser {
             }
             public String getDescription() {
                 return description;
+            }
+            public String[] getBlankConstants() {
+                return blankConstants;
             }
         };
     }
@@ -386,6 +409,35 @@ public class LabelParser {
             sbuf.append( xpathEl( elName ) );
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Returns an array of strings representing values which are to be
+     * mapped to null data values on read.
+     *
+     * @param  specialEl  PDS4 Special_Constants element
+     * @return  non-null array of value representations to map to blank values
+     */
+    private String[] getBlankConstants( Element specialEl ) {
+        if ( specialEl == null ) {
+            return new String[ 0 ];
+        }
+        else {
+            List<String> list = new ArrayList<>();
+            for ( Node child = specialEl.getFirstChild(); child != null;
+                  child = child.getNextSibling() ) {
+                if ( child instanceof Element ) {
+                    Element el = (Element) child;
+                    if ( blankSpecials_.contains( el.getTagName() ) ) {
+                        String txt = DOMUtils.getTextContent( el );
+                        if ( txt != null && txt.trim().length() > 0 ) {
+                            list.add( txt.trim() );
+                        }
+                    }
+                }
+            }
+            return list.toArray( new String[ 0 ] );
+        }
     }
 
     /**

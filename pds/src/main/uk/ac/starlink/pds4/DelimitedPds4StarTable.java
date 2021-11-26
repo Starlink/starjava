@@ -38,7 +38,8 @@ public class DelimitedPds4StarTable extends Pds4StarTable {
         for ( int ic = 0; ic < ncol_; ic++ ) {
             Field field = fields[ ic ];
             FieldReader<?> rdr =
-                FieldReader.getInstance( field.getFieldType() );
+                FieldReader.getInstance( field.getFieldType(),
+                                         field.getBlankConstants() );
             ColumnInfo info =
                 new ColumnInfo( field.getName(), rdr.getContentClass(),
                                 field.getDescription() );
