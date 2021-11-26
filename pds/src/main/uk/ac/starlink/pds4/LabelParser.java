@@ -169,18 +169,18 @@ public class LabelParser {
      */
     private Table createTable( Element tEl )
             throws XPathExpressionException, TableFormatException {
+        XPath xpath = getXPath();
 
         /* Find what kind of table it is. */
         final TableType ttype =
             Arrays
            .stream( TableType.values() )
-           .filter( t -> t.getElementName().equals( tEl.getTagName() ) )
+           .filter( t -> t.getTableTag().equals( tEl.getTagName() ) )
            .findFirst()
            .get();
         assert ttype != null;
 
         /* Find the reference to the file containing the table data. */
-        XPath xpath = getXPath();
         String fileName =
             (String) xpath.evaluate( "../" + xpathEl( "File" ) +
                                       "/" + xpathEl( "file_name" ),
@@ -193,20 +193,11 @@ public class LabelParser {
         String localIdentifier = getChildContent( tEl, "local_identifier" );
         String description = getChildContent( tEl, "description" );
 
-        /* Locate elements representing record fields (table columns). */
-        NodeList fieldNodes =
-            (NodeList) xpath.evaluate( createFieldsXpath(), tEl,
-                                       XPathConstants.NODESET );
-
-        /* Turn field elements into Field objects. */
-        int nf = fieldNodes.getLength();
-        List<Field> fieldList = new ArrayList<Field>( nf );
-        for ( int i = 0; i < nf; i++ ) {
-            Field field = createField( (Element) fieldNodes.item( i ) );
-            if ( field != null ) {
-                fieldList.add( field );
-            }
-        }
+        /* Find field elements (column definitions). */
+        List<Field> fieldList = new ArrayList<>();
+        Element recordEl =
+            DOMUtils.getChildElementByName( tEl, ttype.getRecordTag() );
+        addFields( ttype, recordEl, fieldList, "" );
 
         /* Return a Pds4StarTable instance appropriate for the table element. */
         switch ( ttype ) {
@@ -292,12 +283,13 @@ public class LabelParser {
      * Constructs a Field object from a label element representing a field.
      *
      * @param   fEl   element Field_Binary, Field_Character or Field_Delimited
+     * @param   nameSuffix   suffix to be applied to field name
      * @return  field object
      */
-    private static Field createField( Element fEl ) {
+    private static Field createField( Element fEl, String nameSuffix ) {
 
         /* Extract basic metadata. */
-        String name = getChildContent( fEl, "name" );
+        String name = getChildContent( fEl, "name" ) + nameSuffix;
         String unit = getChildContent( fEl, "unit" );
         String description = getChildContent( fEl, "description" );
         String dataType = getChildContent( fEl, "data_type" );
@@ -340,6 +332,38 @@ public class LabelParser {
     }
 
     /**
+     * Recursively add Field objects found in a given element to a given list.
+     * Field_* children of the element are added directly, and Group_*
+     * elements are recursively handed back to this routine.
+     *
+     * @param  ttype  table type
+     * @param  parent   element with Field_* or Group_* children
+     * @param  fieldList   list into which to accumulate fields
+     * @param  suffix   suffix to apply to field names
+     */
+    private void addFields( TableType ttype, Element parent,
+                            List<Field> fieldList, String suffix ) {
+        for ( Node child = parent.getFirstChild(); child != null;
+              child = child.getNextSibling() ) {
+            if ( child instanceof Element ) {
+                Element el = (Element) child;
+                String tagName = el.getTagName();
+                if ( ttype.getFieldTag().equals( tagName ) ) {
+                    fieldList.add( createField( el, suffix ) );
+                }
+                else if ( ttype.getGroupTag().equals( tagName ) ) {
+                    int nrep = Integer
+                              .parseInt( getChildContent( el, "repetitions" ) );
+                    for ( int irep = 0; irep < nrep; irep++ ) {
+                        addFields( ttype, el, fieldList,
+                                   suffix + "_" + ( irep + 1 ) );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Returns an XPath expression to locate suitable Table elements within
      * a PDS4 label document.  The located elements are Table_Binary,
      * Table_Character or Table_Delimited elements, possibly restricted
@@ -350,7 +374,7 @@ public class LabelParser {
     private String createTablesXpath() {
         StringBuffer sbuf = new StringBuffer();
         for ( TableType ttype : TableType.values() ) {
-            String elName = ttype.getElementName();
+            String elName = ttype.getTableTag();
             if ( sbuf.length() > 0 ) {
                 sbuf.append( " | " );
             }
@@ -360,26 +384,6 @@ public class LabelParser {
                     .append( "/" );
             }
             sbuf.append( xpathEl( elName ) );
-        }
-        return sbuf.toString();
-    }
-
-    /**
-     * Returns an XPath expression to locate Field elements relative to a
-     * table node.
-     *
-     * @return  field location XPath returning a NODESET
-     */
-    private String createFieldsXpath() {
-        StringBuffer sbuf = new StringBuffer();
-        for ( String ftype : new String[] { "Field_Binary",
-                                            "Field_Character",
-                                            "Field_Delimited" } ) {
-            if ( sbuf.length() > 0 ) {
-                sbuf.append( " | " );
-            }
-            sbuf.append( ".//" )
-                .append( xpathEl( ftype ) );
         }
         return sbuf.toString();
     }

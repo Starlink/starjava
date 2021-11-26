@@ -138,7 +138,9 @@ public class DelimitedPds4StarTable extends Pds4StarTable {
                         inQuote = false;
                     }
                     else if ( ! inQuote && c == delim_ ) {
-                        iEnds[ iField ] = buf.size();
+                        if ( iField < ncol_ ) {
+                            iEnds[ iField ] = buf.size();
+                        }
                         iField++;
                         if ( iField < ncol_ ) {
                             iStarts[ iField ] = buf.size();
