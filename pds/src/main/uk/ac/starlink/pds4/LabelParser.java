@@ -44,30 +44,37 @@ public class LabelParser {
     private final boolean observationalOnly_;
     private final Collection<String> blankSpecials_;
 
+    static final String[] DEFAULT_BLANK_SPECIALS = new String[] {
+        "saturated_constant",
+        "missing_constant",
+        "error_constant",
+        "invalid_constant",
+        "unknown_constant",
+        "not_applicable_constant",
+        "high_instrument_saturation",
+        "high_representation_saturation",
+        "low_instrument_saturation",
+        "low_representation_saturation",
+    };
+
     /**
      * Default parser.
      */
     public LabelParser() {
-        this( true );
+        this( false, DEFAULT_BLANK_SPECIALS );
     }
 
     /**
      * Custom constructor.
+     *
+     * @param  observationalOnly  if true, only File_Observational tables
+     *                            are included; if false all are included
+     * @param  blankSpecials  list of special constant elements to map
+     *                        to null values in output table data
      */
-    public LabelParser( boolean observationalOnly ) {
+    public LabelParser( boolean observationalOnly, String[] blankSpecials ) {
         observationalOnly_ = observationalOnly;
-        blankSpecials_ = new HashSet<String>( Arrays.asList( new String[] {
-            "saturated_constant",
-            "missing_constant",
-            "error_constant",
-            "invalid_constant",
-            "unknown_constant",
-            "not_applicable_constant",
-            "high_instrument_saturation",
-            "high_representation_saturation",
-            "low_instrument_saturation",
-            "low_representation_saturation",
-        } ) );
+        blankSpecials_ = new HashSet<String>( Arrays.asList( blankSpecials ) );
     }
 
     /**

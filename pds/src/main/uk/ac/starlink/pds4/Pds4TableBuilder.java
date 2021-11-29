@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
@@ -39,24 +40,44 @@ public class Pds4TableBuilder extends DocumentedTableBuilder
 
     private boolean checkMagic_;
     private boolean observationalOnly_;
+    private String[] blankSpecials_;
 
-    private static final Collection<String> MAGIC_ELEMENTS =
-            new HashSet<>( Arrays.asList( new String[] {
-        "Product_Observational",
-        "Product_Ancillary",
-    } ) );
+    // From https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.xsd
     private static final Collection<String> MAGIC_NAMESPACES =
             new HashSet<>( Arrays.asList( new String[] {
         "http://pds.nasa.gov/pds4/pds/v1",
+    } ) );
+ 
+    // From PDS Data Provider's Handbook version 1.16.0, sec 6.2.1.
+    private static final Collection<String> MAGIC_ELEMENTS =
+            new HashSet<>( Arrays.asList( new String[] {
+        "Product_Ancillary",
+        "Product_Browse",
+        "Product_Bundle",
+        "Product_Collection",
+        "Product_Context",
+        "Product_Document",
+        "Product_File_Text",
+        "Product_Native",
+        "Product_Observational",
+        "Product_SPICE_Kernel",
+        "Product_Thumbnail",
+        "Product_XML_Schema",
+        "Product_Zipped",
     } ) );
 
     /**
      * Constructor.
      */
     public Pds4TableBuilder() {
-        super( new String[] {} );
+
+        // The .lblx extension is not yet current at PDS4 1.16.0,
+        // which mandates ".xml" for file extensions,
+        // but apparently will be in future PDS4 versions.
+        super( new String[] { ".lblx" } );
         checkMagic_ = true;
-        observationalOnly_ = true;
+        observationalOnly_ = false;
+        blankSpecials_ = LabelParser.DEFAULT_BLANK_SPECIALS;
     }
 
     public String getFormatName() {
@@ -84,12 +105,24 @@ public class Pds4TableBuilder extends DocumentedTableBuilder
             "</p>",
             "<p>If there are multiple tables in the label,",
             "you can refer to an individual one using the \"<code>#</code>\"",
-            "specifier after the label file name;",
-            "\"<code>label.xml#1</code>\" refers to the first table, etc.",
+            "specifier after the label file name by table <code>name</code>,",
+            "<code>local_identifier</code>, or 1-based index",
+            "(e.g. \"<code>label.xml#1</code>\" refers to the first table).",
             "</p>",
-            "<p>This input handler is somewhat experimental;",
-            "if it behaves strangely or does not offer expected behaviour,",
-            "please contact the author.",
+            "<p>If there are <code>Special_Constants</code> defined",
+            "in the label, they are in most cases interpreted as blank values",
+            "in the output table data.",
+            "At present, the following special values are interpreted",
+            "as blanks:",
+            Arrays.stream( blankSpecials_ )
+                  .map( s -> "  <code>" + s + "</code>" )
+                  .collect( Collectors.joining( ",\n" ) ),
+            ".",
+            "</p>",
+            "<p>This input handler is somewhat experimental,",
+            "and the author is not a PDS expert.",
+            "If it behaves strangely or you have suggestions for how it",
+            "could work better, please contact the author.",
             "</p>",
         "" );
     }
@@ -169,27 +202,22 @@ public class Pds4TableBuilder extends DocumentedTableBuilder
                                     StoragePolicy storage )
             throws IOException {
         String pos = datsrc.getPosition();
-        int ipos;  // zero-based
-        try {
-            int jpos = Integer.parseInt( pos );
-            ipos = jpos - 1;
-        }
-        catch ( RuntimeException e ) {
-            ipos = 0;
-        }
+
+
         int ifile = 0;
         Label label = parseLabel( datsrc );
         Table[] tables = label.getTables();
-        if ( ipos < tables.length ) {
-            return createStarTable( tables[ ipos ], label.getContextUrl() );
+        final Table table;
+        if ( tables.length == 0 ) {
+            throw new TableFormatException( "No tables in PDS4 label" );
+        }
+        else if ( pos != null && pos.trim().length() > 0 ) {
+            table = getPositionedTable( tables, pos.trim() );
         }
         else {
-            String msg = "No tables";
-            if ( ipos > 0 ) {
-                msg += " matching position #" + pos;
-            }
-            throw new TableFormatException( msg );
+            table = tables[ 0 ];
         }
+        return createStarTable( table, label.getContextUrl() );
     }
 
     public TableSequence makeStarTables( DataSource datsrc,
@@ -274,7 +302,8 @@ public class Pds4TableBuilder extends DocumentedTableBuilder
      */
     private Label parseLabel( DataSource datsrc ) throws IOException {
         if ( ( ! checkMagic_ ) || isMagic( datsrc.getIntro() ) ) {
-            LabelParser parser = new LabelParser( observationalOnly_ );
+            LabelParser parser =
+                new LabelParser( observationalOnly_, blankSpecials_ );
             if ( datsrc instanceof FileDataSource ) {
                 return parser.parseLabel( ((FileDataSource) datsrc).getFile() );
             }
@@ -308,6 +337,43 @@ public class Pds4TableBuilder extends DocumentedTableBuilder
             assert false;
             throw new TableFormatException( "what?" );
         }
+    }
+
+    /**
+     * Returns a table from a given array that matches the given position
+     * string.  If there is no match, an informative TableFormatException
+     * must be thrown.
+     *
+     * @param  tables  non-empty array of candidate tables
+     * @param  pos    non-empty, non-null position designator
+     * @return  selected table, not null
+     * @throws  TableFormatException  if no such table
+     */
+    private Table getPositionedTable( Table[] tables, String pos )
+            throws TableFormatException {
+        int nt = tables.length;
+        try {
+            int jpos = Integer.parseInt( pos );
+            if ( jpos > 0 && jpos <= nt ) {
+                return tables[ jpos - 1 ];
+            }
+            else {
+                String msg = "Table index " + pos + " out of range"
+                           + " 1-" + nt;
+                throw new TableFormatException( msg );
+            }
+        }
+        catch ( RuntimeException e ) {
+            // Not numeric, OK.
+        }
+        for ( Table table : tables ) {
+            if ( pos.equalsIgnoreCase( table.getName() ) ||
+                 pos.equalsIgnoreCase( table.getLocalIdentifier() ) ) {
+                return table;
+            }
+        }
+        throw new TableFormatException( "No table in label matching position "
+                                      + "\"" + pos + "\"" );
     }
 
     /**
@@ -346,8 +412,9 @@ public class Pds4TableBuilder extends DocumentedTableBuilder
         @Override
         public void processingInstruction( String target, String data ) {
             // PDS4 files often have <?xml-model> Processing Instructions.
-            // I don't know really what goes in there, but if it includes
-            // the nasa pds4 address it's probably OK.
+            // I don't know really what goes in there (something to do with
+            // schematron), but if it includes the nasa pds4 address
+            // it's probably OK.
             if ( data != null && data.indexOf( "pds.nasa.gov/pds4" ) >= 0 ) {
                 isPds4_ = true;
             }
