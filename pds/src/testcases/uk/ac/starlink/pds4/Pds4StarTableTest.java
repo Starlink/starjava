@@ -17,8 +17,8 @@ public class Pds4StarTableTest extends TestCase {
             new Pds4TableBuilder()
            .makeStarTable( getDataSource( "Product_Table_Binary.xml" ),
                            false, StoragePolicy.PREFER_MEMORY );
+        assertTrue( table.isRandom() );
         Tables.checkTable( table );
-        table = Tables.randomTable( table );
         assertEquals( 336, table.getRowCount() );
         assertEquals( 20, table.getColumnCount() );
         assertEquals( "BUTTERFLY_SWITCH_2",
@@ -37,8 +37,8 @@ public class Pds4StarTableTest extends TestCase {
             new Pds4TableBuilder()
            .makeStarTable( getDataSource( "Product_Table_Character.xml" ),
                            false, StoragePolicy.PREFER_MEMORY );
+        assertTrue( table.isRandom() );
         Tables.checkTable( table );
-        table = Tables.randomTable( table );
         assertEquals( 23, table.getRowCount() );
         assertEquals( 10, table.getColumnCount() );
         assertEquals( "DV+", table.getColumnInfo( 4 ).getName() );
@@ -52,6 +52,7 @@ public class Pds4StarTableTest extends TestCase {
            .makeStarTable( getDataSource( "Product_Table_Delimited.xml" ),
                            false, StoragePolicy.PREFER_MEMORY );
         Tables.checkTable( table );
+        assertFalse( table.isRandom() );
         table = Tables.randomTable( table );
         assertEquals( 3, table.getRowCount() );
         assertEquals( 13, table.getColumnCount() );

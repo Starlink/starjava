@@ -69,4 +69,23 @@ public abstract class Pds4StarTable extends AbstractStarTable {
         IOUtils.skip( in, dataOffset_ );
         return in;
     }
+
+    /**
+     * Returns the URL of the data file for this table.
+     *
+     * @return  data file URL
+     */
+    URL getDataUrl() {
+        return dataUrl_;
+    }
+
+    /**
+     * Returns the byte offset into the data file at which this table's
+     * data begins.
+     *
+     * @return  data file offset
+     */
+    long getDataOffset() {
+        return dataOffset_;
+    }
 }

@@ -1,11 +1,19 @@
 package uk.ac.starlink.pds4;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Concrete Pds4StarTable subclass for fixed-length-record
@@ -20,6 +28,9 @@ public class BasePds4StarTable extends Pds4StarTable {
     private final int recordLength_;
     private final ColumnInfo[] colInfos_;
     private final ColumnReader[] colRdrs_;
+    private final ByteBuffer dataBuf_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.pds4" );
 
     /**
      * Constructor.
@@ -46,6 +57,7 @@ public class BasePds4StarTable extends Pds4StarTable {
             colRdrs_[ ic ] = crdr;
             colInfos_[ ic ] = info;
         }
+        dataBuf_ = getDataBuffer();
     }
 
     public int getColumnCount() {
@@ -84,13 +96,13 @@ public class BasePds4StarTable extends Pds4StarTable {
             }
             public Object getCell( int icol ) {
                 checkRow();
-                return colRdrs_[ icol ].readCell( record_ );
+                return colRdrs_[ icol ].readFromRecord( record_ );
             }
             public Object[] getRow() {
                 checkRow();
                 Object[] row = new Object[ ncol_ ];
                 for ( int icol = 0; icol < ncol_; icol++ ) {
-                    row[ icol ] = colRdrs_[ icol ].readCell( record_ );
+                    row[ icol ] = colRdrs_[ icol ].readFromRecord( record_ );
                 }
                 return row;
             }
@@ -107,6 +119,89 @@ public class BasePds4StarTable extends Pds4StarTable {
                 }
             }
         };
+    }
+
+    @Override
+    public boolean isRandom() {
+        return dataBuf_ != null;
+    }
+
+    @Override
+    public Object[] getRow( long lrow ) throws IOException {
+        byte[] record = new byte[ recordLength_ ];
+        synchronized( dataBuf_ ) {
+            dataBuf_.position( recordLength_ * Tables.checkedLongToInt( lrow ));
+            dataBuf_.get( record );
+        }
+        Object[] row = new Object[ ncol_ ];
+        for ( int icol = 0; icol < ncol_; icol++ ) {
+            row[ icol ] = colRdrs_[ icol ].readFromRecord( record );
+        }
+        return row;
+    }
+
+    @Override
+    public Object getCell( long lrow, int icol ) throws IOException {
+        ColumnReader crdr = colRdrs_[ icol ];
+        byte[] cellBuf = new byte[ crdr.length_ ];
+        synchronized ( dataBuf_ ) {
+            dataBuf_.position( recordLength_ * Tables.checkedLongToInt( lrow )
+                             + crdr.offset_ );
+            dataBuf_.get( cellBuf );
+        }
+        return crdr.readFromCell( cellBuf );
+    }
+
+    @Override
+    public RowAccess getRowAccess() throws IOException {
+        ByteBuffer dbuf = dataBuf_.duplicate();
+        byte[] record = new byte[ recordLength_ ];
+        return new RowAccess() {
+            public void setRowIndex( long lrow ) {
+                dbuf.position( recordLength_ * Tables.checkedLongToInt( lrow ));
+                dbuf.get( record );
+            }
+            public Object[] getRow() {
+                Object[] row = new Object[ ncol_ ];
+                for ( int icol = 0; icol < ncol_; icol++ ) {
+                    row[ icol ] = colRdrs_[ icol ].readFromRecord( record );
+                }
+                return row;
+            }
+            public Object getCell( int icol ) {
+                return colRdrs_[ icol ].readFromRecord( record );
+            }
+            public void close() {
+            }
+        };
+    }
+
+    /**
+     * Attempts to return a mapped byte buffer corresponding to the region
+     * of the data file containing the data for this table.
+     *
+     * @return  data buffer, or null if buffer is unavailable or cannot
+     *          be mapped for some reason
+     */
+    private ByteBuffer getDataBuffer() throws IOException {
+        File file = URLUtils.urlToFile( getDataUrl().toString() );
+        if ( file == null || ! file.canRead() ) {
+            return null;
+        }
+        long size = getRowCount() * recordLength_;
+        if ( size > Integer.MAX_VALUE ) {
+            return null;
+        }
+        int isize = (int) size;
+        try {
+            FileChannel channel = new FileInputStream( file ).getChannel();
+            return channel.map( FileChannel.MapMode.READ_ONLY,
+                                getDataOffset(), isize );
+        }
+        catch ( IOException e ) {
+            logger_.log( Level.INFO, "Failed to map file: " + file, e );
+            return null;
+        }
     }
 
     /**
@@ -138,12 +233,24 @@ public class BasePds4StarTable extends Pds4StarTable {
         /**
          * Reads the typed content of this field from a record buffer.
          *
-         * @param  buf   byte buffer containing fixed-length record
+         * @param  recordBuf   byte buffer containing fixed-length record
          * @return   typed field value
          */
-        Object readCell( byte[] buf ) {
+        Object readFromRecord( byte[] recordBuf ) {
             return fieldReader_
-                  .readField( buf, offset_, length_, startBit_, endBit_ );
+                  .readField( recordBuf, offset_, length_, startBit_, endBit_ );
+        }
+
+        /**
+         * Reads the typed content of this field from a buffer containing
+         * only the value (at offset zero).
+         *
+         * @param  cellBuf  buffer containing cell content only
+         * @return   typed field value
+         */
+        Object readFromCell( byte[] cellBuf ) {
+            return fieldReader_
+                  .readField( cellBuf, 0, length_, startBit_, endBit_ );
         }
     }
 }
