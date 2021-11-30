@@ -41,7 +41,7 @@ public class CatMapper implements TableMapper {
     private final boolean hasLazy_;
 
     private static final ValueInfo SEQ_INFO =
-        new DefaultValueInfo( "iseq", Short.class,
+        new DefaultValueInfo( "iseq", Integer.class,
                               "Sequence number of input table " +
                               "from concatenation operation" );
     private static final ValueInfo LOC_INFO =
@@ -333,7 +333,7 @@ public class CatMapper implements TableMapper {
             if ( seqCol_ != null ) {
                 ColumnInfo seqInfo = new ColumnInfo( SEQ_INFO );
                 seqInfo.setName( seqCol_ );
-                Short iseq = new Short( (short) ( index + 1 ) );
+                Integer iseq = Integer.valueOf( index + 1 );
                 addTable.addColumn( new ConstantColumn( seqInfo, iseq ) );
             }
             if ( locCol_ != null ) {

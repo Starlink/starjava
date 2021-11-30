@@ -137,9 +137,9 @@ public class TableCatTest extends TableTestCase {
         assertArrayEquals(
             new String[] { "index", "name", "seq", "loc", "uloc" },
             getColNames( outN ) );
-        Short s1 = new Short( (short) 1 );
-        Short s2 = new Short( (short) 2 );
-        assertArrayEquals( new Object[] { s1, s1, s2, s2, s2 },
+        Integer i1 = Integer.valueOf( 1 );
+        Integer i2 = Integer.valueOf( 2 );
+        assertArrayEquals( new Object[] { i1, i1, i2, i2, i2 },
                            getColData( out2, 2 ) );
         String t1 = "table_1";
         String t2 = "table_2";

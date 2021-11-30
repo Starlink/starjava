@@ -13412,6 +13412,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         now contain the <code>stilts.version</code> file at the
         top level, rather than just buried in
         <code>uk/ac/starlink/ttools/</code>.</li>
+    <li>The <code>seqcol</code> column in output from the
+        <ref id="tcat"><code>tcat</code></ref> and
+        <ref id="tcatn"><code>tcatn</code></ref> commands
+        is now of type (32-bit) integer not (16-bit) short.</li>
     </ul>
     </p></dd>
 
