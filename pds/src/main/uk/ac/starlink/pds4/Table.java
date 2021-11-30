@@ -62,9 +62,10 @@ public interface Table {
     String getDescription();
 
     /**
-     * Returns the fields of this table.
+     * Returns the fields and groups defining the record structure
+     * of this table.
      *
-     * @return   field array
+     * @return   record item array
      */
-    Field[] getFields();
+    RecordItem[] getContents();
 }

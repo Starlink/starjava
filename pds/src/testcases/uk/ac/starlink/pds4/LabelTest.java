@@ -16,8 +16,12 @@ public class LabelTest extends TestCase {
         BaseTable binaryTable = (BaseTable) label.getTables()[ 0 ];
         assertEquals( TableType.BINARY, binaryTable.getTableType() );
         assertEquals( 336, binaryTable.getRecordCount() );
-        Field[] binaryFields = binaryTable.getFields();
-        assertEquals( 20, binaryFields.length );
+        RecordItem[] binaryContents = binaryTable.getContents();
+        assertEquals( 20, binaryContents.length );
+        Field[] binaryFields = new Field[ 20 ];
+        for ( int i = 0; i < 20; i++ ) {
+            binaryFields[ i ] = (Field) binaryContents[ i ];
+        }
         Field tempField = binaryFields[ 9 ];
         assertEquals( "TEMPERATURE_SENSOR", tempField.getName() );
         assertEquals( "degree celcius", tempField.getUnit() );  // sic

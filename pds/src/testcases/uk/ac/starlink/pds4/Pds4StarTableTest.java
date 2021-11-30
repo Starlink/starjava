@@ -1,13 +1,13 @@
 package uk.ac.starlink.pds4;
 
 import java.io.IOException;
-import junit.framework.TestCase;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
 
 public class Pds4StarTableTest extends TestCase {
@@ -106,6 +106,22 @@ public class Pds4StarTableTest extends TestCase {
         table = Tables.randomTable( table );
         assertEquals( 1, ((Number) table.getCell( 0, 0 )).intValue() );
         assertEquals( 303, ((Number) table.getCell( 0, 1 )).intValue() );
+    }
+
+    public void testArray() throws IOException {
+        StarTable table =
+            new Pds4TableBuilder()
+           .makeStarTable( getDataSource( "gf1.lblx" ), false,
+                           StoragePolicy.PREFER_MEMORY );
+        Tables.checkTable( table );
+        assertFalse( table.isRandom() );
+        table = Tables.randomTable( table );
+        assertArrayEquals( new int[] { 5 },
+                           table.getColumnInfo( 6 ).getShape() );
+        assertArrayEquals( new long[] { 2, 12, 22, 32, 42 },
+                           table.getCell( 0, 7 ) );
+        assertArrayEquals( new long[] { 2, 2, 2, 2, 2 },
+                           table.getCell( 1, 7 ) );
     }
 
     private static DataSource getDataSource( String tname ) {

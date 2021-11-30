@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.DoubleFunction;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.IntFunction;
 import java.util.function.LongFunction;
 import java.util.function.UnaryOperator;
@@ -22,31 +23,39 @@ import uk.ac.starlink.util.ShortList;
  * or text to turn them into some numeric or string value,
  * but this class augments that to provide an object that knows what
  * type of object should be read.
+ * An instance of this class may be used to read either scalar values
+ * or (within a Field_Group_*) array values.
  *
  * @author   Mark Taylor
  * @since    24 Nov 2021
  */
-public abstract class FieldReader<T> {
+public abstract class FieldReader<S,A> {
 
     private final FieldType ftype_;
     private final FieldAdapter adapter_;
-    private final Class<T> clazz_;
+    private final Class<S> scalarClazz_;
+    private final Class<A> arrayClazz_;
 
     /**
      * Constructor.
      *
      * @param  ftype   field type
-     * @param  clazz   field data content class
+     * @param  scalarClazz   field data content class for scalar values
+     * @param  arrayClazz    field data content class for array values
      */
-    private FieldReader( FieldType ftype, Class<T> clazz ) {
+    private FieldReader( FieldType ftype,
+                         Class<S> scalarClazz, Class<A> arrayClazz ) {
         ftype_ = ftype;
         adapter_ = ftype.getAdapter();
-        clazz_ = clazz;
+        scalarClazz_ = scalarClazz;
+        arrayClazz_ = arrayClazz;
     }
 
     /**
-     * Reads a typed object from a buffer in accordance with this field type.
-     * The startBit and endBit arguments reflect their appearence in
+     * Reads a typed scalar value from a buffer in accordance
+     * with this field type.
+     *
+     * <p>The startBit and endBit arguments reflect their appearence in
      * the corresponding NASA classes, but I don't know what they do.
      *
      * @param   buf   byte buffer containing data
@@ -56,16 +65,54 @@ public abstract class FieldReader<T> {
      * @param   endBit     ??
      * @return   typed data value
      */
-    public abstract T readField( byte[] buf, int offset, int length,
-                                 int startBit, int endBit );
+    public abstract S readScalar( byte[] buf, int offset, int length,
+                                  int startBit, int endBit );
 
     /**
-     * Returns the type of object that this reader will read.
+     * Reads an value from a buffer in accordance with this field type
+     * and stores it in one element of a supplied typed array.
+     * There is a limit to what null handling can be done in this case.
      *
-     * @return  content class
+     * <p>The startBit and endBit arguments reflect their appearence in
+     * the corresponding NASA classes, but I don't know what they do.
+     *
+     * @param   buf   byte buffer containing data
+     * @param   offset   index into buf of byte at which data value begins
+     * @param   length   number of bytes over which value is represented
+     * @param   startBit   ??
+     * @param   endBit     ??
+     * @param   array    array into which read value is stored
+     * @param   iel    index into array a wich value is written
      */
-    public Class<T> getContentClass() {
-        return clazz_;
+    public abstract void readElement( byte[] buf, int offset, int length,
+                                      int startBit, int endBit,
+                                      A array, int iel );
+
+    /**
+     * Creates a new instance of an array value corresponding to this
+     * reader's array type.
+     *
+     * @param  nel  array size
+     * @return   new array
+     */
+    public abstract A createArray( int nel );
+
+    /**
+     * Returns the type of scalar object that this reader will read.
+     *
+     * @return  scalar content class
+     */
+    public Class<S> getScalarClass() {
+        return scalarClazz_;
+    }
+
+    /**
+     * Returns the type of array value into which this reader can store values.
+     *
+     * @return  array content class
+     */
+    public Class<A> getArrayClass() {
+        return arrayClazz_;
     }
 
     /**
@@ -85,8 +132,8 @@ public abstract class FieldReader<T> {
      *                     that are to be mapped to null when read
      * @return   field reader
      */
-    public static FieldReader<?> getInstance( FieldType ftype,
-                                              String[] blankTxts ) {
+    public static FieldReader<?,?> getInstance( FieldType ftype,
+                                                String[] blankTxts ) {
         final FieldAdapter adapter = ftype.getAdapter();
         switch ( ftype ) {
             case UTF8_STRING:
@@ -138,13 +185,26 @@ public abstract class FieldReader<T> {
                         return s;
                     };
                 }
-                return new FieldReader<String>( ftype, String.class ) {
-                    public String readField( byte[] buf, int off, int leng,
-                                             int startBit, int endBit ) {
+                return new FieldReader<String,String[]>
+                                      ( ftype, String.class, String[].class ) {
+                    public String readScalar( byte[] buf, int off, int leng,
+                                              int startBit, int endBit ) {
                         String txt = adapter.getString( buf, off, leng,
                                                         startBit, endBit );
                         return txt == null ? null
                                            : wrapString.apply( txt.trim() );
+                    }
+                    public void readElement( byte[] buf, int off, int leng,
+                                             int startBit, int endBit,
+                                             String[] array, int iel ) {
+                        String txt = adapter.getString( buf, off, leng,
+                                                        startBit, endBit );
+                        array[ iel ] = txt == null
+                                     ? null
+                                     : wrapString.apply( txt.trim() );
+                    }
+                    public String[] createArray( int n ) {
+                        return new String[ n ];
                     }
                 };
             }
@@ -181,12 +241,22 @@ public abstract class FieldReader<T> {
                         return Short.valueOf( s );
                     };
                 }
-                return new FieldReader<Short>( ftype, Short.class ) { 
-                    public Short readField( byte[] buf, int off, int leng,
-                                            int startBit, int endBit ) {
+                return new FieldReader<Short,short[]>
+                                      ( ftype, Short.class, short[].class ) { 
+                    public Short readScalar( byte[] buf, int off, int leng,
+                                             int startBit, int endBit ) {
                         return wrapShort
                               .apply( adapter.getShort( buf, off, leng,
                                                         startBit, endBit ) );
+                    }
+                    public void readElement( byte[] buf, int off, int leng,
+                                             int startBit, int endBit,
+                                             short[] array, int iel ) {
+                        array[ iel ] = adapter.getShort( buf, off, leng,
+                                                         startBit, endBit );
+                    }
+                    public short[] createArray( int n ) {
+                        return new short[ n ];
                     }
                 };
             }
@@ -223,12 +293,22 @@ public abstract class FieldReader<T> {
                         return Integer.valueOf( j );
                     };
                 }
-                return new FieldReader<Integer>( ftype, Integer.class ) {
-                    public Integer readField( byte[] buf, int off, int leng,
-                                              int startBit, int endBit ) {
+                return new FieldReader<Integer,int[]>
+                                      ( ftype, Integer.class, int[].class ) {
+                    public Integer readScalar( byte[] buf, int off, int leng,
+                                               int startBit, int endBit ) {
                         return wrapInt
                               .apply( adapter.getInt( buf, off, leng,
                                                       startBit, endBit ) );
+                    }
+                    public void readElement( byte[] buf, int off, int leng,
+                                             int startBit, int endBit,
+                                             int[] array, int iel ) {
+                        array[ iel ] = adapter.getInt( buf, off, leng,
+                                                       startBit, endBit );
+                    }
+                    public int[] createArray( int n ) {
+                        return new int[ n ];
                     }
                 };
             }
@@ -270,12 +350,22 @@ public abstract class FieldReader<T> {
                         return Long.valueOf( l );
                     };
                 }
-                return new FieldReader<Long>( ftype, Long.class ) {
-                    public Long readField( byte[] buf, int off, int leng,
-                                           int startBit, int endBit ) {
+                return new FieldReader<Long,long[]>
+                                      ( ftype, Long.class, long[].class ) {
+                    public Long readScalar( byte[] buf, int off, int leng,
+                                            int startBit, int endBit ) {
                         return wrapLong
                               .apply( adapter.getLong( buf, off, leng,
                                                        startBit, endBit ) );
+                    }
+                    public void readElement( byte[] buf, int off, int leng,
+                                             int startBit, int endBit,
+                                             long[] array, int iel ) {
+                        array[ iel ] = adapter.getLong( buf, off, leng,
+                                                        startBit, endBit );
+                    }
+                    public long[] createArray( int n ) {
+                        return new long[ n ];
                     }
                 };
             }
@@ -293,12 +383,15 @@ public abstract class FieldReader<T> {
                 float[] blanks = blankList.toFloatArray();
                 int nblank = blanks.length;
                 final FloatFunction<Float> wrapFloat;
+                final FloatUnaryOperator maskFloat;
                 if ( nblank == 0 ) {
                     wrapFloat = Float::valueOf;
+                    maskFloat = f -> f;
                 }
                 else if ( nblank == 1 ) {
                     float blank = blanks[ 0 ];
                     wrapFloat = f -> f == blank ? null : Float.valueOf( f );
+                    maskFloat = f -> f == blank ? Float.NaN : f;
                 }
                 else {
                     wrapFloat = f -> {
@@ -309,13 +402,34 @@ public abstract class FieldReader<T> {
                         }
                         return Float.valueOf( f );
                     };
+                    maskFloat = f -> {
+                        for ( int i = 0; i < nblank; i++ ) {
+                            if ( f == blanks[ i ] ) {
+                                return Float.NaN;
+                            }
+                        }
+                        return f;
+                    };
                 }
-                return new FieldReader<Float>( ftype, Float.class ) {
-                    public Float readField( byte[] buf, int off, int leng,
-                                            int startBit, int endBit ) {
+                return new FieldReader<Float,float[]>
+                                      ( ftype, Float.class, float[].class ) {
+                    public Float readScalar( byte[] buf, int off, int leng,
+                                             int startBit, int endBit ) {
                         return wrapFloat
                               .apply( adapter.getFloat( buf, off, leng,
                                                         startBit, endBit ) );
+                    }
+                    public void readElement( byte[] buf, int off, int leng,
+                                             int startBit, int endBit,
+                                             float[] array, int iel ) {
+                        array[ iel ] =
+                            maskFloat
+                           .applyAsFloat( adapter
+                                         .getFloat( buf, off, leng,
+                                                    startBit, endBit ) );
+                    }
+                    public float[] createArray( int n ) {
+                        return new float[ n ];
                     }
                 };
             }
@@ -334,12 +448,15 @@ public abstract class FieldReader<T> {
                 double[] blanks = blankList.toDoubleArray();
                 int nblank = blanks.length;
                 final DoubleFunction<Double> wrapDouble;
+                final DoubleUnaryOperator maskDouble;
                 if ( nblank == 0 ) {
                     wrapDouble = Double::valueOf;
+                    maskDouble = d -> d;
                 }
                 else if ( nblank == 1 ) {
                     double blank = blanks[ 0 ];
                     wrapDouble = d -> d == blank ? null : Double.valueOf( d );
+                    maskDouble = d -> d == blank ? Double.NaN : d;
                 }
                 else {
                     wrapDouble = d -> {
@@ -350,13 +467,34 @@ public abstract class FieldReader<T> {
                         }
                         return Double.valueOf( d );
                     };
+                    maskDouble = d -> {
+                        for ( int i = 0; i < nblank; i++ ) {
+                            if ( d == blanks[ i ] ) {
+                                return Double.NaN;
+                            }
+                        }
+                        return d;
+                    };
                 }
-                return new FieldReader<Double>( ftype, Double.class ) {
-                    public Double readField( byte[] buf, int off, int leng,
-                                             int startBit, int endBit ) {
+                return new FieldReader<Double,double[]>
+                                      ( ftype, Double.class, double[].class ) {
+                    public Double readScalar( byte[] buf, int off, int leng,
+                                              int startBit, int endBit ) {
                         return wrapDouble
                               .apply( adapter.getDouble( buf, off, leng,
                                                          startBit, endBit ) );
+                    }
+                    public void readElement( byte[] buf, int off, int leng,
+                                             int startBit, int endBit,
+                                             double[] array, int iel ) {
+                        array[ iel ] =
+                            maskDouble
+                           .applyAsDouble( adapter
+                                          .getDouble( buf, off, leng,
+                                                      startBit, endBit ) );
+                    }
+                    public double[] createArray( int n ) {
+                        return new double[ n ];
                     }
                 };
             }
@@ -398,24 +536,45 @@ public abstract class FieldReader<T> {
                         return wrapBigint0.apply( b );
                     };
                 }
-                return new FieldReader<Long>( ftype, Long.class ) {
-                    public Long readField( byte[] buf, int off, int leng,
-                                           int startBit, int endBit ) {
+                return new FieldReader<Long,long[]>
+                                      ( ftype, Long.class, long[].class ) {
+                    public Long readScalar( byte[] buf, int off, int leng,
+                                            int startBit, int endBit ) {
                         return wrapBigint
                               .apply( adapter.getBigInteger( buf, off, leng,
                                                              startBit, endBit));
+                    }
+                    public void readElement( byte[] buf, int off, int leng,
+                                             int startBit, int endBit,
+                                             long[] array, int iel ) {
+                        array[ iel ] = adapter.getLong( buf, off, leng,
+                                                        startBit, endBit );
+                    }
+                    public long[] createArray( int n ) {
+                        return new long[ n ];
                     }
                 };
             }
 
             default:
                 assert false;
-                return new FieldReader<String>( ftype, String.class ) {
-                    public String readField( byte[] buf, int off, int leng,
-                                             int startBit, int endBit ) {
+                return new FieldReader<String,String[]>
+                                      ( ftype, String.class, String[].class ) {
+                    public String readScalar( byte[] buf, int off, int leng,
+                                              int startBit, int endBit ) {
                         String txt = adapter.getString( buf, off, leng,
                                                         startBit, endBit );
                         return txt == null ? null : txt.trim();
+                    }
+                    public void readElement( byte[] buf, int off, int leng,
+                                             int startBit, int endBit,
+                                             String[] array, int iel ) {
+                        String txt = adapter.getString( buf, off, leng,
+                                                        startBit, endBit );
+                        array[ iel ] = txt == null ? null : txt.trim();
+                    }
+                    public String[] createArray( int n ) {
+                        return new String[ n ];
                     }
                 };
         }
@@ -435,5 +594,13 @@ public abstract class FieldReader<T> {
     @FunctionalInterface
     private interface FloatFunction<R> {
         R apply( float value );
+    }
+
+    /**
+     * Functional interface missing from java.util.function.
+     */
+    @FunctionalInterface
+    private interface FloatUnaryOperator {
+        float applyAsFloat( float value );
     }
 }

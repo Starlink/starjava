@@ -219,7 +219,7 @@ public class LabelParser {
         List<Field> fieldList = new ArrayList<>();
         Element recordEl =
             DOMUtils.getChildElementByName( tEl, ttype.getRecordTag() );
-        addFields( ttype, recordEl, fieldList, "" );
+        RecordItem[] contents = getRecordItems( recordEl, ttype );
 
         /* Return a Pds4StarTable instance appropriate for the table element. */
         switch ( ttype ) {
@@ -257,8 +257,8 @@ public class LabelParser {
                     public String getDescription() {
                         return description;
                     }
-                    public Field[] getFields() {
-                        return fieldList.toArray( new Field[ 0 ] );
+                    public RecordItem[] getContents() {
+                        return contents;
                     }
                 };
 
@@ -292,8 +292,8 @@ public class LabelParser {
                     public String getDescription() {
                         return description;
                     }
-                    public Field[] getFields() {
-                        return fieldList.toArray( new Field[ 0 ] );
+                    public RecordItem[] getContents() {
+                        return contents;
                     }
                 };
         }
@@ -305,13 +305,12 @@ public class LabelParser {
      * Constructs a Field object from a label element representing a field.
      *
      * @param   fEl   element Field_Binary, Field_Character or Field_Delimited
-     * @param   nameSuffix   suffix to be applied to field name
      * @return  field object
      */
-    private Field createField( Element fEl, String nameSuffix ) {
+    private Field createField( Element fEl ) {
 
         /* Extract basic metadata. */
-        String name = getChildContent( fEl, "name" ) + nameSuffix;
+        String name = getChildContent( fEl, "name" );
         String unit = getChildContent( fEl, "unit" );
         String description = getChildContent( fEl, "description" );
         String dataType = getChildContent( fEl, "data_type" );
@@ -362,35 +361,81 @@ public class LabelParser {
     }
 
     /**
-     * Recursively add Field objects found in a given element to a given list.
-     * Field_* children of the element are added directly, and Group_*
-     * elements are recursively handed back to this routine.
+     * Constructs a Group object from a label element representing a group.
      *
-     * @param  ttype  table type
-     * @param  parent   element with Field_* or Group_* children
-     * @param  fieldList   list into which to accumulate fields
-     * @param  suffix   suffix to apply to field names
+     * @param  gEl  element Group_Field_Binary, Group_Field_Character or
+     *              Group_Field_Delimited
+     * @param  ttype  table type in which group is found
      */
-    private void addFields( TableType ttype, Element parent,
-                            List<Field> fieldList, String suffix ) {
-        for ( Node child = parent.getFirstChild(); child != null;
+    private Group createGroup( Element gEl, TableType ttype ) {
+        assert gEl.getTagName().equals( ttype.getGroupTag() );
+
+        /* Extract basic metadata. */
+        String name = getChildContent( gEl, "name" );
+        String description = getChildContent( gEl, "description" );
+        String repetitionsTxt = getChildContent( gEl, "repetitions" );
+        int repetitions = Integer.parseInt( repetitionsTxt );
+
+        /* Location and Length are only present for Group_Binary and
+         * Group_Character.  Use dummy values for Group_Delimited. */
+        String locationTxt = getChildContent( gEl, "group_location" );
+        int location = locationTxt == null || locationTxt.trim().length() == 0
+                     ? -1
+                     : Integer.parseInt( locationTxt );
+        String lengTxt = getChildContent( gEl, "group_length" );
+        int length = lengTxt == null || lengTxt.trim().length() == 0
+                   ? -1
+                   : Integer.parseInt( lengTxt );
+
+        /* Read child fields and groups. */
+        RecordItem[] contents = getRecordItems( gEl, ttype );
+        return new Group() {
+            public int getRepetitions() {
+                return repetitions;
+            }
+            public String getName() {
+                return name;
+            }
+            public String getDescription() {
+                return description;
+            }
+            public int getGroupLocation() {
+                return location;
+            }
+            public int getGroupLength() {
+                return length;
+            }
+            public RecordItem[] getContents() {
+                return contents;
+            }
+        };
+    }
+
+    /**
+     * Returns the Field and Group contents of a given element
+     * in a single array.
+     *
+     * @param  containerEl  element containing fields and groups as children
+     * @param  ttype  table type
+     * @return   array of Fields and Groups
+     */
+    private RecordItem[] getRecordItems( Element containerEl,
+                                         TableType ttype ) {
+        List<RecordItem> items = new ArrayList<>();
+        for ( Node child = containerEl.getFirstChild(); child != null;
               child = child.getNextSibling() ) {
             if ( child instanceof Element ) {
                 Element el = (Element) child;
                 String tagName = el.getTagName();
                 if ( ttype.getFieldTag().equals( tagName ) ) {
-                    fieldList.add( createField( el, suffix ) );
+                    items.add( createField( el ) );
                 }
                 else if ( ttype.getGroupTag().equals( tagName ) ) {
-                    int nrep = Integer
-                              .parseInt( getChildContent( el, "repetitions" ) );
-                    for ( int irep = 0; irep < nrep; irep++ ) {
-                        addFields( ttype, el, fieldList,
-                                   suffix + "_" + ( irep + 1 ) );
-                    }
+                    items.add( createGroup( el, ttype ) );
                 }
             }
         }
+        return items.toArray( new RecordItem[ 0 ] );
     }
 
     /**

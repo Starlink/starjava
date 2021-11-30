@@ -11,7 +11,7 @@ import gov.nasa.pds.label.object.FieldType;
  * @see <a href="https://pds.nasa.gov/datastandards/documents/dd/current/PDS4_PDS_DD_1G00.html"
  *         >PDS4 Common Data Dictionary</a>
  */
-public interface Field {
+public interface Field extends RecordItem {
 
     /**
      * Returns the field name.
@@ -29,19 +29,23 @@ public interface Field {
     FieldType getFieldType();
 
     /**
-     * Returns the 1-based byte offset into the record at which
+     * Returns the 1-based byte offset into the fixed-length record at which
      * this field is found.
-     * This is the PDS4 <code>field_location</code> item.
+     * This is the PDS4 <code>field_location</code> item,
+     * and only appears for Binary and Character fields.
      *
-     * @return  field location byte offset; note this is 1-based
+     * @return  1-based field location byte offset,
+     *          or negative value for Delimited fields
      */
     int getFieldLocation();
 
     /**
-     * Returns the number of bytes this field occupies in a record.
-     * This is the PDS4 <code>field_length</code> item.
+     * Returns the number of bytes this field occupies in a fixed-length record.
+     * This is the PDS4 <code>field_length</code> item,
+     * and only appears for Binary and Character fields.
      *
-     * @return  field byte count
+     * @return  field byte count,
+     *          or negative value for Delimited fields
      */
     int getFieldLength();
 

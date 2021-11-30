@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-model href="http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Observational xmlns="http://pds.nasa.gov/pds4/pds/v1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="      
+    http://pds.nasa.gov/pds4/pds/v1 http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.xsd">
+  
+  <Identification_Area>
+    <logical_identifier>urn:esa:psa:mission_host_instrument:data_raw:test_product</logical_identifier>
+    <version_id>0.1</version_id>
+    <title>PSA test product</title>
+    <information_model_version>1.11.0.0</information_model_version>
+    <product_class>Product_Observational</product_class>
+    <Modification_History>
+      <Modification_Detail>
+        <modification_date>2019-03-18</modification_date>
+        <version_id>0.1</version_id>
+        <description>This is the first version of this product</description>
+      </Modification_Detail>
+    </Modification_History>
+  </Identification_Area>
+
+
+    <Observation_Area>
+    <Time_Coordinates>
+      <start_date_time>1999-08-06T00:00:00Z</start_date_time>
+      <stop_date_time>1999-08-06T00:03:00Z</stop_date_time>
+    </Time_Coordinates>
+
+
+    <Investigation_Area>
+      <name>Test mission</name>
+      <type>Mission</type>
+      <Internal_Reference>
+        <lid_reference>urn:esa:psa:context:investigation:mission.test</lid_reference>
+        <reference_type>data_to_investigation</reference_type>
+      </Internal_Reference>
+    </Investigation_Area>
+    <Observing_System>
+      <name>Test host</name>
+      <Observing_System_Component>
+        <name>Test host spacecraft</name>
+        <type>Spacecraft</type>
+        <Internal_Reference>
+          <lid_reference>urn:esa:psa:context:instrument_host:spacecraft.test</lid_reference>
+          <reference_type>is_instrument_host</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+      <Observing_System_Component>
+        <name>Test instrument</name>
+        <type>Instrument</type>
+        <description>Test instrument</description>
+        <Internal_Reference>
+          <lid_reference>urn:esa:psa:context:instrument:test.test</lid_reference>
+          <reference_type>is_instrument</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+    </Observing_System>
+    <Target_Identification>
+      <name>SPACECRAFT_DECK</name>
+      <type>Calibrator</type>
+      <Internal_Reference>
+        <lid_reference>urn:nasa:pds:context:target:calibrator.spacecraft_deck</lid_reference>
+        <reference_type>data_to_target</reference_type>
+      </Internal_Reference>
+    </Target_Identification>
+    </Observation_Area>
+
+  <File_Area_Observational>
+    <File>
+      <file_name>gf1.csv</file_name>
+      <file_size unit="byte">608</file_size>
+      <md5_checksum>3a331c51b48571662a7df1e7e4f6dc4f</md5_checksum>
+    </File>
+
+    <Table_Delimited>
+      <name>Test Instrument data</name>
+      <offset unit='byte'>0</offset>
+      <parsing_standard_id>PDS DSV 1</parsing_standard_id>
+      <records>4</records>
+      <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+      <field_delimiter>Comma</field_delimiter>
+      
+      <Record_Delimited>
+        <fields>6</fields>
+        <groups>1</groups>
+        <Field_Delimited>
+          <name>TIME_UTC</name>
+          <data_type>ASCII_Date_Time_YMD</data_type>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>A text string</name>
+          <data_type>ASCII_String</data_type>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>Numeric #1</name>
+          <data_type>ASCII_Integer</data_type>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>Numeric #2</name>
+          <data_type>ASCII_Integer</data_type>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>Numeric #3</name>
+          <data_type>ASCII_Integer</data_type>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>Numeric #3</name>
+          <data_type>ASCII_Integer</data_type>
+        </Field_Delimited>
+        <Group_Field_Delimited>
+          <group_number>1</group_number>
+          <repetitions>5</repetitions>
+          <fields>3</fields>
+          <groups>0</groups>
+          <Field_Delimited>
+            <name>X</name>
+            <data_type>ASCII_Integer</data_type>
+          </Field_Delimited>
+          <Field_Delimited>
+            <name>Y</name>
+            <data_type>ASCII_Integer</data_type>
+          </Field_Delimited>
+          <Field_Delimited>
+            <name>Z</name>
+            <data_type>ASCII_Integer</data_type>
+          </Field_Delimited>
+        </Group_Field_Delimited>
+      </Record_Delimited>    
+    </Table_Delimited>
+  </File_Area_Observational>
+</Product_Observational>
