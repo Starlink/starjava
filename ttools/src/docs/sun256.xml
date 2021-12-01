@@ -13416,6 +13416,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="tcat"><code>tcat</code></ref> and
         <ref id="tcatn"><code>tcatn</code></ref> commands
         is now of type (32-bit) integer not (16-bit) short.</li>
+    <li>Improve identification of TIME_TT2000 columns as time values 
+        in certain CDF files.</li>
     </ul>
     </p></dd>
 

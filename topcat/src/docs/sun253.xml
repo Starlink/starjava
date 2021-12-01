@@ -30154,6 +30154,8 @@ introduced since the last version:
         Invert Subset action applied to an algebraic subset
         were not being loaded correctly
         (they always contained all rows).</li>
+    <li>Improve identification of TIME_TT2000 columns as time values
+        in certain CDF files.</li>
     </ul>
     </p></dd>
 

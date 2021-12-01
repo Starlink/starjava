@@ -30,6 +30,14 @@ public class CdfDomains {
      * @return   appropriate domain mapper, or null
      */
     public static DomainMapper getMapper( DataType dtype ) {
+
+        /* TIME_TT2000 has rather strange equality semantics, so map any
+         * TIME_TT2000 data type to the canonical one.
+         * It's a leap second thing. */
+        if ( dtype != null &&
+             dtype.getName().equals( DataType.TIME_TT2000.getName() ) ) {
+            dtype = DataType.TIME_TT2000;
+        }
         return mapperMap_.get( dtype );
     }
 
