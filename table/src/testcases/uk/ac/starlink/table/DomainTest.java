@@ -17,5 +17,8 @@ public class DomainTest extends TestCase {
         assertEquals( unixSec,
                       TimeMapper.ISO_8601
                                 .toUnixSeconds( "2000-01-01T00:00:00" ), tol );
+        assertEquals( unixSec,
+                      TimeMapper.ISO_8601
+                                .toUnixSeconds( "2000-001 00:00:00" ), tol );
     }
 }

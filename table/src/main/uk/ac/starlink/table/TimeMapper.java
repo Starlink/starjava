@@ -223,13 +223,14 @@ public abstract class TimeMapper implements DomainMapper {
 
     /**
      * TimeMapper implementation in which the source domain is
-     * strings giving ISO-8601 date/times.
+     * strings giving ISO-8601 date/times.  Both ISO-8601 "calendar"
+     * (YYYY-MM-DD) and "ordinal" (YYYY-DOY) dates are supported.
      */
     private static class Iso8601TimeMapper extends TimeMapper {
 
         /** Regular expression for parsing ISO 8601 dates. */
         private final static Pattern ISO_REGEX =
-            Pattern.compile( "([0-9]+)-([0-9]{1,2})-([0-9]{1,2})" +
+            Pattern.compile( "([0-9]+)-([0-9]{1,3})(?:-([0-9]{1,2}))?" +
                              "(?:[T ]([0-9]{1,2})" +
                                 "(?::([0-9]{1,2})" +
                                    "(?::([0-9]{1,2}(?:\\.[0-9]*)?))?" +
@@ -242,7 +243,6 @@ public abstract class TimeMapper implements DomainMapper {
 
         public double toUnixSeconds( Object value ) {
             if ( value instanceof String ) {
-                String sval = ((String) value).trim();
                 Matcher matcher = ISO_REGEX.matcher( ((String) value).trim() );
                 if ( matcher.matches() ) {
                     String[] groups = new String[ 6 ];
@@ -252,8 +252,6 @@ public abstract class TimeMapper implements DomainMapper {
                     }
                     try {
                         int year = Integer.parseInt( groups[ 0 ] );
-                        int month = Integer.parseInt( groups[ 1 ] );
-                        int dom = Integer.parseInt( groups[ 2 ] );
                         int hour = groups[ 3 ] == null
                                  ? 0
                                  : Integer.parseInt( groups[ 3 ] );
@@ -263,7 +261,20 @@ public abstract class TimeMapper implements DomainMapper {
                         double sec = groups[ 5 ] == null
                                    ? 0.0
                                    : Double.parseDouble( groups[ 5 ] );
-                        return dateToUnix( year, month, dom, hour, min, sec );
+
+                        /* ISO-8601 Calendar format: YYYY-DD-MM. */
+                        if ( groups[ 2 ] != null ) {
+                            int month = Integer.parseInt( groups[ 1 ] );
+                            int dom = Integer.parseInt( groups[ 2 ] );
+                            return calendarToUnix( year, month, dom,
+                                                   hour, min, sec );
+                        }
+
+                        /* ISO-8601 Ordinal format: YYYY-DOY. */
+                        else {
+                            int doy = Integer.parseInt( groups[ 1 ] );
+                            return ordinalToUnix( year, doy, hour, min, sec );
+                        }
                     }
                     catch ( NumberFormatException e ) {
                         return Double.NaN;
@@ -289,13 +300,29 @@ public abstract class TimeMapper implements DomainMapper {
          * @param  sec    second in minute
          * @return  seconds since unix epoch
          */
-        private static double dateToUnix( int year, int month, int dom,
-                                          int hour, int min, double sec ) {
+        private static double calendarToUnix( int year, int month, int dom,
+                                              int hour, int min, double sec ) {
             int intSec = (int) sec;
             double fracSec = sec - intSec;
             Calendar cal = new GregorianCalendar( UTC, Locale.UK );
             cal.clear();
-            cal.set( year, month - 1, dom, hour, min, (int) sec );
+            cal.set( year, month - 1, dom, hour, min, intSec );
+            double calMillis = cal.getTimeInMillis();
+            double calSec = calMillis * 1e-3;
+            return calSec + fracSec;
+        }
+
+        private static double ordinalToUnix( int year, int doy,
+                                             int hour, int min, double sec ) {
+            int intSec = (int) sec;
+            double fracSec = sec - intSec;
+            Calendar cal = new GregorianCalendar( UTC, Locale.UK );
+            cal.clear();
+            cal.set( Calendar.YEAR, year );
+            cal.set( Calendar.DAY_OF_YEAR, doy );
+            cal.set( Calendar.HOUR_OF_DAY, hour );
+            cal.set( Calendar.MINUTE, min );
+            cal.set( Calendar.SECOND, intSec );
             double calMillis = cal.getTimeInMillis();
             double calSec = calMillis * 1e-3;
             return calSec + fracSec;
