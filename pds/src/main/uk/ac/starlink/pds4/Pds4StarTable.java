@@ -1,12 +1,16 @@
 package uk.ac.starlink.pds4;
 
+import gov.nasa.pds.label.object.FieldType;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import uk.ac.starlink.table.AbstractStarTable;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.DomainMapper;
+import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.IOUtils;
 
@@ -87,5 +91,59 @@ public abstract class Pds4StarTable extends AbstractStarTable {
      */
     long getDataOffset() {
         return dataOffset_;
+    }
+
+    /**
+     * Creates column metadata description for a given field.
+     *
+     * @param  field  field to describe
+     * @param  clazz  content class of field (may be array or scalar)
+     * @return  configured column info
+     */
+    static ColumnInfo createColumnInfo( Field field, Class<?> clazz ) {
+        ColumnInfo info =
+            new ColumnInfo( field.getName(), clazz, field.getDescription() );
+        info.setUnitString( field.getUnit() );
+        DomainMapper mapper = getDomainMapper( field.getFieldType() );
+        if ( mapper != null &&
+             clazz.isAssignableFrom( mapper.getSourceClass() ) ) {
+            info.setDomainMappers( new DomainMapper[] { mapper } );
+        }
+        return info;
+    }
+
+    /**
+     * Returns a suitable domain mapper for a given PDS4 field type.
+     *
+     * @param  ftype  field type
+     * @return  potentially applicable domain mapper, may be null
+     */
+    private static DomainMapper getDomainMapper( FieldType ftype ) {
+        switch ( ftype ) {
+
+            /* These ASCII_DATE* types are defined in the PDS4 Standards
+             * Reference 1.16.0; they all return ISO-8601 dates, using
+             * either Calendar (YYYY-MM-DD) or Ordinal (YYYY-DOY) format.
+             * This ignores any distinction between UTC and local time zone. */
+            case ASCII_DATE_DOY:
+            case ASCII_DATE_TIME_DOY:
+            case ASCII_DATE_TIME_DOY_UTC:
+            case ASCII_DATE_TIME_YMD:
+            case ASCII_DATE_TIME_YMD_UTC:
+            case ASCII_DATE_YMD:
+
+            /* These ASCII_DATE* types don't seem to be referenced in the
+             * PDS4 standards, but they exist in the pds4-jparser enum.
+             * If they exist, presume that they are treated the same
+             * as the others. */
+            case ASCII_DATE:   // nope
+            case ASCII_DATE_TIME: // nope
+            case ASCII_DATE_TIME_UTC: // nope
+                return TimeMapper.ISO_8601;
+
+            /* No other domain mappers are applicable. */
+            default:
+                return null;
+        }
     }
 }

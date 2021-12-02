@@ -296,10 +296,7 @@ public class BasePds4StarTable extends Pds4StarTable {
                                                     field.getBlankConstants() );
             offset_ = field.getFieldLocation() - 1; // field_location is 1-based
             length_ = field.getFieldLength();
-            info_ = new ColumnInfo( field.getName(),
-                                    fieldReader_.getScalarClass(),
-                                    field.getDescription() );
-            info_.setUnitString( field.getUnit() );
+            info_ = createColumnInfo( field, fieldReader_.getScalarClass() );
             startBit_ = 0;
             endBit_ = 0;
         }
@@ -343,10 +340,7 @@ public class BasePds4StarTable extends Pds4StarTable {
                      + field.getFieldLocation() - 1;
             length_ = field.getFieldLength();
             step_ = group.getGroupLength() / nrep_;
-            info_ = new ColumnInfo( field.getName(),
-                                    fieldReader_.getArrayClass(),
-                                    field.getDescription() );
-            info_.setUnitString( field.getUnit() );
+            info_ = createColumnInfo( field, fieldReader_.getArrayClass() );
             info_.setShape( new int[] { nrep_ } );
             startBit_ = 0;
             endBit_ = 0;

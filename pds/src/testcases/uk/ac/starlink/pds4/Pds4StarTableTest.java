@@ -1,11 +1,13 @@
 package uk.ac.starlink.pds4;
 
 import java.io.IOException;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
@@ -25,6 +27,7 @@ public class Pds4StarTableTest extends TestCase {
                       table.getColumnInfo( 11 ).getName() );
         assertEquals( Short.class, table.getColumnInfo(13).getContentClass() );
         assertEquals( Double.class, table.getColumnInfo(17).getContentClass() );
+        assertEquals( "second", table.getColumnInfo(0).getUnitString() );
         assertEquals( 0, ((Number) table.getCell( 86, 19 )).intValue() );
         assertEquals( 2048, ((Number) table.getCell( 87, 19 )).intValue() );
         assertEquals( 0, ((Number) table.getCell( 88, 19 )).intValue() );
@@ -113,6 +116,10 @@ public class Pds4StarTableTest extends TestCase {
             new Pds4TableBuilder()
            .makeStarTable( getDataSource( "gf1.lblx" ), false,
                            StoragePolicy.PREFER_MEMORY );
+        assertEquals( 0, table.getColumnInfo( 1 ).getDomainMappers().length );
+        DomainMapper[] tmappers = table.getColumnInfo( 0 ).getDomainMappers();
+        assertEquals( 1, tmappers.length );
+        TimeMapper tmapper = (TimeMapper) tmappers[ 0 ];
         Tables.checkTable( table );
         assertFalse( table.isRandom() );
         table = Tables.randomTable( table );
@@ -122,6 +129,10 @@ public class Pds4StarTableTest extends TestCase {
                            table.getCell( 0, 7 ) );
         assertArrayEquals( new long[] { 2, 2, 2, 2, 2 },
                            table.getCell( 1, 7 ) );
+        String time0 = (String) table.getCell( 0, 0 );
+        assertEquals( "2019-08-06T01:00:00Z", time0 );
+        // uk.ac.starlink.ttools.func.Times.isoToUnixSec("2019-08-06T01:00:00Z")
+        assertEquals( 1565053200L, tmapper.toUnixSeconds( time0 ) );
     }
 
     private static DataSource getDataSource( String tname ) {

@@ -294,10 +294,7 @@ public class DelimitedPds4StarTable extends Pds4StarTable {
             fieldReader_ = FieldReader.getInstance( field.getFieldType(),
                                                     field.getBlankConstants() );
             iField_ = iField;
-            info_ = new ColumnInfo( field.getName(),
-                                    fieldReader_.getScalarClass(),
-                                    field.getDescription() );
-            info_.setUnitString( field.getUnit() );
+            info_ = createColumnInfo( field, fieldReader_.getScalarClass() );
             startBit_ = 0;            
             endBit_ = 0;
         }
@@ -341,10 +338,7 @@ public class DelimitedPds4StarTable extends Pds4StarTable {
             iField0_ = iField0;
             nrep_ = group.getRepetitions();
             step_ = getFieldCount( group ) / nrep_; // is it?
-            info_ = new ColumnInfo( field.getName(),
-                                    fieldReader_.getArrayClass(),
-                                    field.getDescription() );
-            info_.setUnitString( field.getUnit() );
+            info_ = createColumnInfo( field, fieldReader_.getArrayClass() );
             info_.setShape( new int[] { nrep_ } );
             startBit_ = 0;
             endBit_ = 0;
