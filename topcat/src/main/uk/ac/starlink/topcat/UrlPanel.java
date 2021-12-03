@@ -53,6 +53,10 @@ public class UrlPanel extends JPanel {
 
     /**
      * Constructor.
+     * An auto-invoke button may optionally be added; note however that
+     * this component will not auto-invoke the actions, that is the
+     * responsibility of calling code based on the result of calling
+     * the instance's {@link isAutoInvoke} method.
      *
      * @param  urlopts  options and defaults for URL invocation
      * @param  hasAutoInvoke      true iff an auto-invoke toggle button
@@ -173,9 +177,6 @@ public class UrlPanel extends JPanel {
     /**
      * Configures this panel for use with a given URL.
      *
-     * <p>If auto-invoke is set up, this will also cause the action
-     * to be invoked (when possible).
-     *
      * @param  url   resource URL
      * @param  contentType   known or inferred Content-Type string (RFC 2045),
      *                       or null if not known
@@ -192,10 +193,6 @@ public class UrlPanel extends JPanel {
             typeSelector_.setSelectedItem( guessType_ );
         }
         updateState();
-        if ( autoInvokeModel_.isSelected() && canInvoke() ) {
-            ActionEvent evt = new ActionEvent( this, 1, "Auto-Invoke" );
-            invokeAct_.actionPerformed( evt );
-        }
     }
 
     /**
@@ -246,11 +243,8 @@ public class UrlPanel extends JPanel {
 
     /**
      * Indicates whether this panel is currently set up for auto-invoke.
-     * If true, then calling the {@link #configure} method
-     * will cause the link to be followed according to current settings
-     * without further manual user intervention.
      *
-     * @return   whether auto-invoke is in effect
+     * @return   whether the auto-invoke toggle button is checked
      */
     public boolean isAutoInvoke() {
         return autoInvokeModel_.isSelected();

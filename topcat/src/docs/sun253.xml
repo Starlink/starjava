@@ -30156,6 +30156,11 @@ introduced since the last version:
         (they always contained all rows).</li>
     <li>Improve identification of TIME_TT2000 columns as time values
         in certain CDF files.</li>
+    <li>Improve the way that Auto-Invoke works for 
+              <ref id="ViewDatalinkActivationType">View</ref
+            >/<ref id="InvokeDatalinkActivationType">Invoke</ref>
+        Datalink Row activation types;
+        these now work properly with the sequence auto-play feature.</li>
     </ul>
     </p></dd>
 

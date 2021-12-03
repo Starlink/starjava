@@ -2,11 +2,13 @@ package uk.ac.starlink.topcat.activate;
 
 import java.awt.Window;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.DatalinkPanel;
+import uk.ac.starlink.topcat.LinkRowPanel;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.vo.datalink.LinksDoc;
@@ -51,6 +53,8 @@ public class ViewDatalinkActivationType implements ActivationType {
     public static Outcome invokeLocation( String loc,
                                           final DatalinkPanel dlPanel,
                                           final Window window ) {
+
+        /* Load a links table from the given location. */
         VOElementFactory voelFact = new VOElementFactory();
         final LinksDoc linksDoc;
         try {
@@ -64,33 +68,39 @@ public class ViewDatalinkActivationType implements ActivationType {
             return Outcome.failure( e );
         }
         long nrow = linksDoc.getResultTable().getRowCount();
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                dlPanel.setLinksDoc( linksDoc );
-                if ( window != null ) {
 
-                    /* In the case of auto-invoke, don't generally setVisible.
-                     * setVisible(true) (at least in some cases; this may be
-                     * platform-dependent) brings the window to the front and
-                     * grabs focus, but we want the thing to stay unobtrusive.
-                     * If the window has been closed however, bring it back,
-                     * since otherwise there's going to be no way for the user
-                     * to recover it. */
-                    if ( dlPanel.isAutoInvoke() ) {
-                        if ( ! window.isVisible() ) {
-                            window.setVisible( true );
-                        }
-                    }
+        /* If that worked, load the table into the datalink panel.
+         * We have to do this synchronously so that (a) we can work out
+         * whether auto-invoke is in effect before proceeding and
+         * (b) in the case of auto-invoke we need to return the result of
+         * the invocation rather than just the result of loading the table. */
+        try {
+            SwingUtilities
+           .invokeAndWait( () -> dlPanel.setLinksDoc( linksDoc ) );
+        }
+        catch ( InterruptedException | InvocationTargetException e ) {
+            return Outcome.failure( e );
+        }
+        LinkRowPanel linkPanel = dlPanel.getLinkRowPanel();
+        boolean autoInvoke = linkPanel.isAutoInvoke();
 
-                    /* If no auto-invoke, the user needs have the window made
-                     * obvious so that they can optionally interact with it. */
-                    else {
-                        window.setVisible( true );
-                    }
-                }
-            }
-        } );
-        return Outcome.success( "Loaded " + nrow + " rows (" + loc + ")" );
+        /* If there's no auto-invoke, make the window visible so the user
+         * can interact with it.  In the case of auto-invoke that's not
+         * generally necessary and it's annoying because it brings the window
+         * to the front and grabs focus, but if it's been closed altogther
+         * bring it back, since otherwise there's no way for the user to
+         * recover it. */
+        if ( window != null &&
+             ( ! autoInvoke ||
+               ( autoInvoke && ! window.isVisible() ) ) ) {
+            SwingUtilities.invokeLater( () -> window.setVisible( true ) );
+        }
+
+        /* In case of auto-invoke, invoke the row and return the result
+         * of doing so; otherwise just return success. */
+        return autoInvoke
+             ? linkPanel.invokeRow()
+             : Outcome.success( "Loaded " + nrow + " rows (" + loc + ")" );
     }
 
     /**

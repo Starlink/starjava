@@ -153,6 +153,15 @@ public class DatalinkPanel extends JPanel {
     }
 
     /**
+     * Returns the panel displaying the datalink rows.
+     *
+     * @return  link panel
+     */
+    public LinkRowPanel getLinkRowPanel() {
+        return linkPanel_;
+    }
+
+    /**
      * Updates this panel's JTable using the contents of the supplied LinksDoc.
      * This method is invoked by {@link #setLinksDoc} and simply sets
      * JTable's model and column model appropriately,
