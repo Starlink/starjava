@@ -401,6 +401,9 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 String expr = value.toString();
                 SyntheticRowSubset rset =
                    (SyntheticRowSubset) getSubset( irow );
+                if ( expr != null && expr.equals( rset.getExpression() ) ) {
+                    return;
+                }
                 int rsetId = subsets.indexToId( irow );
                 if ( TopcatJELUtils
                     .isSubsetReferenced( tcModel, rsetId, expr ) ) {

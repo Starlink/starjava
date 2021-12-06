@@ -30163,6 +30163,8 @@ introduced since the last version:
         these now work properly with the sequence auto-play feature.</li>
     <li>Fix failure when attempting to read unsigned 32-bit integer
         values from parquet files.</li>
+    <li>Subset row count is no longer recalculated when synthetic subset
+        expression is selected/highlighted but not changed.</li>
     </ul>
     </p></dd>
 
