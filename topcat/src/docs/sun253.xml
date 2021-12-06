@@ -30161,6 +30161,8 @@ introduced since the last version:
             >/<ref id="InvokeDatalinkActivationType">Invoke</ref>
         Datalink Row activation types;
         these now work properly with the sequence auto-play feature.</li>
+    <li>Fix failure when attempting to read unsigned 32-bit integer
+        values from parquet files.</li>
     </ul>
     </p></dd>
 

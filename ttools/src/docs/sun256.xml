@@ -13418,6 +13418,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         is now of type (32-bit) integer not (16-bit) short.</li>
     <li>Improve identification of TIME_TT2000 columns as time values 
         in certain CDF files.</li>
+    <li>Fix failure when attempting to read unsigned 32-bit integer
+        values from parquet files.</li>
     </ul>
     </p></dd>
 

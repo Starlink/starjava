@@ -235,8 +235,9 @@ public class InputColumns {
                 }
                 else if ( nbit == 32 || ! isSigned ) {
                     return new ScalarCol<Long>(
-                               Long.class,
-                               rdr -> Long.valueOf( rdr.getLong() ) );
+                        Long.class,
+                        rdr -> Long.valueOf(
+                               Integer.toUnsignedLong( rdr.getInteger() ) ) );
                 }
                 else {
                     return null;
@@ -321,7 +322,9 @@ public class InputColumns {
                 else if ( nbit == 32 || ! isSigned ) {
                     return new PrimitiveArrayCol<long[],LongList>(
                                long[].class, LongList::new,
-                               (rdr, list) -> list.add( rdr.getLong() ),
+                               (rdr, list) ->
+                                   list.add( Integer.toUnsignedLong(
+                                                 rdr.getInteger() ) ),
                                list -> list.add( BAD_LONG ) );
                 }
                 else {
