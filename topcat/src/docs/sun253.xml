@@ -30165,6 +30165,9 @@ introduced since the last version:
         values from parquet files.</li>
     <li>Subset row count is no longer recalculated when synthetic subset
         expression is selected/highlighted but not changed.</li>
+    <li>Fix bug in parsing <code>MOC-ASCII</code> strings in
+        <ref id="form-area">Area</ref> plot;
+        trailing depth specifier was interpreted as cell index.</li>
     </ul>
     </p></dd>
 

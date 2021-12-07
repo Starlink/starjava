@@ -13420,6 +13420,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in certain CDF files.</li>
     <li>Fix failure when attempting to read unsigned 32-bit integer
         values from parquet files.</li>
+    <li>Fix bug in parsing <code>MOC-ASCII</code> strings in
+        <ref id="layer-area">area</ref> plot;
+        trailing depth specifier was interpreted as cell index.</li>
     </ul>
     </p></dd>
 

@@ -65,8 +65,10 @@ public class AreaDomain implements Domain<AreaMapper> {
         Pattern.compile( NUMBER_REGEX );
     private static final Pattern PARENTHESIS_PATTERN =
         Pattern.compile( "\\s*\\((.*)\\)\\s*" );
+    private static final Pattern TOKENS_PATTERN =
+        Pattern.compile( "\\s*([^\\s]+)" );
     private static final Pattern MOC_PATTERN =
-        Pattern.compile( "\\s*(?:([0-9]+)/)?([0-9]+)(?:-([0-9]+))?" );
+        Pattern.compile( "(?:([0-9]+)/)?(?:([0-9]+)(?:-([0-9]+))?)?" );
 
     // Note the use of a possessive quantifier (++) for the number matching
     // here - this reduces the recursion depth, and hence the chance of
@@ -457,24 +459,29 @@ public class AreaDomain implements Domain<AreaMapper> {
     private static Area mocArea( CharSequence txt ) {
         LongList list = new LongList();
         Area.Type mocType = Area.Type.MOC;
-        Matcher matcher = MOC_PATTERN.matcher( txt );
+        Matcher tokenMatcher = TOKENS_PATTERN.matcher( txt );
         long order = -1;
         long kOrder = Integer.MIN_VALUE;
-        while ( matcher.find() ) {
-            String orderTxt = matcher.group( 1 );
-            String ipix0Txt = matcher.group( 2 );
-            String ipixnTxt = matcher.group( 3 );
-            if ( orderTxt != null ) {
-                order = Long.parseLong( orderTxt );
-                kOrder = 4L << ( 2 * order );
-            }
-            if ( order >= 0 ) {
-                long ipix0 = Long.parseLong( ipix0Txt );
-                long ipixn = ipixnTxt == null ? ipix0
-                                              : Long.parseLong( ipixnTxt );
-                for ( long ipix = ipix0; ipix <= ipixn; ipix++ ) {
-                    long nuniq = kOrder + ipix;
-                    list.add( nuniq );
+        while ( tokenMatcher.find() ) {
+            String token = tokenMatcher.group( 1 );
+            assert token.length() > 0;
+            Matcher matcher = MOC_PATTERN.matcher( token );
+            if ( matcher.matches() ) {
+                String orderTxt = matcher.group( 1 );
+                String ipix0Txt = matcher.group( 2 );
+                String ipixnTxt = matcher.group( 3 );
+                if ( orderTxt != null ) {
+                    order = Long.parseLong( orderTxt );
+                    kOrder = 4L << ( 2 * order );
+                }
+                if ( order >= 0 && ipix0Txt != null ) {
+                    long ipix0 = Long.parseLong( ipix0Txt );
+                    long ipixn = ipixnTxt == null ? ipix0
+                                                  : Long.parseLong( ipixnTxt );
+                    for ( long ipix = ipix0; ipix <= ipixn; ipix++ ) {
+                        long nuniq = kOrder + ipix;
+                        list.add( nuniq );
+                    }
                 }
             }
         }
