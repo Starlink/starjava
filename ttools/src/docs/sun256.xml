@@ -13423,6 +13423,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix bug in parsing <code>MOC-ASCII</code> strings in
         <ref id="layer-area">area</ref> plot;
         trailing depth specifier was interpreted as cell index.</li>
+    <li>Fix bug in plotting <code>MOC-ASCII</code> strings in
+        <ref id="layer-area">area</ref> plot;
+        some cells near end of MOC omitted/misshapen.</li>
     </ul>
     </p></dd>
 

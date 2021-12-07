@@ -1683,6 +1683,7 @@ public class PolygonOutliner extends PixOutliner {
                 if ( nvert > 0 ) {
                     lonList_.add( Double.NaN );
                     latList_.add( Double.NaN );
+                    nvert++;
                 }
                 for ( int iv = 0; iv < nv; iv++ ) {
                     double[] lonlat = vertworks[ iv ];
@@ -1691,6 +1692,8 @@ public class PolygonOutliner extends PixOutliner {
                 }
                 nvert += nv;
             }
+            assert lonList_.size() == latList_.size();
+            assert nvert == lonList_.size();
             nvert_ = nvert;
         }
 

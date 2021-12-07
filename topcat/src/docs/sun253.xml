@@ -30168,6 +30168,9 @@ introduced since the last version:
     <li>Fix bug in parsing <code>MOC-ASCII</code> strings in
         <ref id="form-area">Area</ref> plot;
         trailing depth specifier was interpreted as cell index.</li>
+    <li>Fix bug in plotting <code>MOC-ASCII</code> strings in
+        <ref id="form-area">Area</ref> plot;
+        some cells near end of MOC omitted/misshapen.</li>
     </ul>
     </p></dd>
 
