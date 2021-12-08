@@ -30201,6 +30201,9 @@ introduced since the last version:
         <ref id="interopReceive">format-specific table.load.*</ref>
         messages.</li>
     <li>Bugfix update of JCDF to v1.2-4.</li>
+    <li>The test for whether a newly-defined row subset adds an entry
+        to the subset list or replaces an existing entry is now based on
+        case-insensitive, rather than case-sensitive, name matching.</li>
     </ul>
     </p></dd>
 
