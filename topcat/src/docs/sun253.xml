@@ -8202,13 +8202,22 @@ using the <label>To Column</label> action (&IMG.TO_COLUMN;)
 from the <ref id="SubsetWindow">Subsets Window</ref>.
 Note STILTS does not understand TOPCAT's 
 <ref id="sessionSave">saved session</ref> format.
-Another thing that can cause trouble is quoted values
-in algebraic expressions, since STILTS quoting syntax
-does not always work well on the shell command line.
 There may also be bugs in the (rather complex) command-generation code
 that cause the command to fail or to generate a slightly different plot.
 Hopefully there are not too many of these,
 but if you find one please report it.
+</p>
+
+<p>Another thing that can cause trouble is quoted values
+in algebraic expressions, since STILTS quoting syntax
+does not always work well on the shell command line.
+If there are quoted expressions within a quoted argument it is
+sometimes helpful to escape the inner quotes,
+e.g. converting
+<code>cmd_1='select "gmag > rmag"'</code> to
+<code>cmd_1='select \"gmag > rmag\"'</code>.
+Another approach is to avoid unnecessary spaces,
+which may allow inner quotes to be omitted.
 </p>
 
 <p>An attempt is made to flag problems in the displayed command line.
