@@ -25007,7 +25007,7 @@ functionality:
             >Snakeyaml</webref> for YAML parsing in ECSV input handler</li>
 <li><webref url="https://github.com/gmantele/ucidy">Ucidy</webref>
             (Gr&#x00e9;gory Mantelet, CDS) for UCD parsing</li>
-<li><webref url="http://www.astro.gla.ac.uk/users/norman/ivoa/unity/"
+<li><webref url="https://purl.org/nxg/dist/unity"
             >Unity</webref> (Norman Gray, Glasgow) for VOUnits parsing</li>
 <li><webref url="https://github.com/douglascrockford/JSON-java"
             >JSON-java</webref> (Douglas Crockford, org.json)
@@ -30521,6 +30521,9 @@ introduced since the last version:
         but since it is less well tested than the sequential mode,
         at this release it is turned off by default.</li>
     <li>Other matching performance improvements.</li>
+    <li>Upgrade Unity library to 1.1 pre-release
+        and improve VOUnits validation reporting
+        (new status "GUESSED_UNIT").</li>
     </ul>
     </p></dd>
 

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import uk.me.nxg.unity.OneUnit;
 import uk.me.nxg.unity.Syntax;
+import uk.me.nxg.unity.UnitDefinition;
 import uk.me.nxg.unity.UnitExpr;
 import uk.me.nxg.unity.UnitParser;
 import uk.me.nxg.unity.UnitParserException;
@@ -83,7 +84,9 @@ public class UnitStatus {
         boolean hasWhitespace = ! cunit.equals( unit );
         UnitExpr punit;
         try {
-            punit = new UnitParser( syntax, cunit ).getParsed();
+            UnitParser parser = new UnitParser( syntax );
+            parser.setGuessing( true );
+            punit = parser.parse( cunit );
         }
         catch ( UnitParserException e ) {
             return new UnitStatus( Code.BAD_SYNTAX, e.getMessage() );
@@ -95,21 +98,48 @@ public class UnitStatus {
             return new UnitStatus( Code.WHITESPACE,
                                    "Whitespace illegal at VOUnits 1.0" );
         }
-        List<String> unknown = new ArrayList<>();
+        Map<String,String> unknown = new LinkedHashMap<>();
         List<String> deprecated = new ArrayList<>();
         for ( OneUnit word : punit ) {
-            if ( ! word.isRecognisedUnit( syntax ) ) {
-                unknown.add( word.getBaseUnitName() );
+            if ( ! word.isRecognisedUnit( syntax ) || word.wasGuessed() ) {
+                String utxt = word.getOriginalUnitString();
+                UnitDefinition udef = word.getBaseUnitDefinition();
+                String guess = udef == null
+                             ? null
+                             : udef.getRepresentation( syntax ).toString();
+                unknown.put( utxt, guess );
             }
             if ( ! word.isRecommendedUnit( syntax ) ) {
                 deprecated.add( word.getBaseUnitName() );
             }
         }
         if ( unknown.size() > 0 ) {
-            String txt = unknown.size() == 1
-                       ? "Unknown unit \"" + unknown.get( 0 ) + "\""
-                       : "Unknown units " + unknown;
-            return new UnitStatus( Code.UNKNOWN_UNIT, txt );
+            List<String> items = new ArrayList<>();
+            boolean allGuessed = true;
+            for ( Map.Entry<String,String> unkEntry : unknown.entrySet() ) {
+                String utxt = unkEntry.getKey();
+                String guess = unkEntry.getValue();
+                StringBuffer sbuf = new StringBuffer()
+                   .append( '"' )
+                   .append( utxt )
+                   .append( '"' );
+                if ( guess != null ) {
+                    sbuf.append( " (" )
+                        .append( "-> \"" )
+                        .append( guess )
+                        .append( "\"?)" );
+                }
+                else {
+                    allGuessed = false;
+                }
+                items.add( sbuf.toString() );
+            }
+            String txt = ( unknown.size() == 1 ? "Unknown unit "
+                                               : "Unknown units " )
+                       + String.join( ", ", items );
+            return new UnitStatus( allGuessed ? Code.GUESSED_UNIT
+                                              : Code.UNKNOWN_UNIT,
+                                   txt );
         }
         if ( ! punit.allUsageConstraintsSatisfied( syntax ) ) {
             return new UnitStatus( Code.USAGE, "Usage constraints violated" );
@@ -157,6 +187,9 @@ public class UnitStatus {
 
         /** Parsed as VOUnit but contains unknown base units. */
         UNKNOWN_UNIT( 'W' ),
+
+        /** Parsed as VOUnit but contains unknown though guessable units. */
+        GUESSED_UNIT( 'W' ),
 
         /** Cannot be parsed as VOUnit. */
         BAD_SYNTAX( 'E' ),

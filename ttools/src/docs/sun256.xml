@@ -13745,6 +13745,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Since it is less well tested than the legacy sequential mode,
         at this release sequential processing is still the default.</li>
     <li>Other matching performance improvements.</li>
+    <li>Upgrade Unity library to 1.1 pre-release
+        and improve VOUnits validation reporting
+        (new status "GUESSED_UNIT").</li>
     </ul>
     </p></dd>
 

@@ -937,6 +937,9 @@ public class FuncTest extends TestCase {
         assertEquals( "BAD_SYNTAX", VO.vounitStatus( "kg/m^2" ) );
         assertEquals( "UNKNOWN_UNIT", VO.vounitStatus( "bag/fortnight" ) );
         assertEquals( "WHITESPACE", VO.vounitStatus( "kg / m**2" ) );
+        assertEquals( "OK", VO.vounitStatus( "deg" ) );
+        assertEquals( "GUESSED_UNIT", VO.vounitStatus( "degree" ) );
+        assertTrue( VO.vounitMessage( "degree" ).indexOf( "\"deg\"" ) >= 0 );
         assertNull( VO.vounitMessage( "kg/m**2" ) );
         assertTrue( VO.vounitMessage( "kg/m^2" ).trim().length() > 0 );
     }

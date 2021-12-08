@@ -91,6 +91,9 @@ public class VO {
      *        conforms to VOUnits syntax</li>
      * <li>"UNKNOWN_UNIT":
      *        parsed as VOUnit but contains unknown base unit(s)</li>
+     * <li>"GUESSED_UNIT":
+     *        parsed as VOUnit but contains unknown, though guessable,
+     *        base unit(s)</li>
      * <li>"BAD_SYNTAX":
      *        cannot be parsed as VOUnit syntax</li>
      * <li>"PARSE_ERROR":
