@@ -379,6 +379,9 @@ public class TopcatSampControl {
             /* Load CDF table by reference. */
             new TableLoadHandler( "table.load.cdf", "cdf" ),
 
+            /* Load PDS4 table by reference. */
+            new TableLoadHandler( "table.load.pds4", "pds4" ),
+
             /* Load table with supplied format by reference. */
             new TableLoadHandler( TopcatSender.TOPCAT_LOAD_MTYPE, null ),
 

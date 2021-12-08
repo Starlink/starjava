@@ -3413,7 +3413,8 @@ unless you are a tool developer you can probably ignore these.
     <p>SAMP MType:
        <code>table.load.votable</code>,
        <code>table.load.fits</code>,
-       <code>table.load.cdf</code> or
+       <code>table.load.cdf</code>,
+       <code>table.load.pds4</code> or
        <code>table.load.stil</code>
     </p>
     <p>PLASTIC Message ID:
@@ -30195,6 +30196,10 @@ introduced since the last version:
     <li>The <ref id="inPds4">PDS4</ref>
         (NASA's Planetary Data System v4) file format is now
         supported for input tables.</li>
+    <li>The SAMP MType <code>table.load.pds4</code> is now supported
+        alongside some other
+        <ref id="interopReceive">format-specific table.load.*</ref>
+        messages.</li>
     </ul>
     </p></dd>
 
