@@ -13431,6 +13431,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         which was the previous target version.
         The JyStilts classes haven't changed, but the distributed
         <code>jystilts.jar</code> file now comes with Jython 2.7.2.</li>
+    <li>In the starjava distribution, the <code>jystilts</code> script
+        now uses an internal copy of Jython 2.7.2, it no longer requires
+        an external Jython installation.</li>
     </ul>
     </p></dd>
 

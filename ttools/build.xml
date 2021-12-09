@@ -732,7 +732,7 @@
    !  targets.
    !-->
   <target name="dist"
-          depends="build,jars,javadocs,docs,webstart"
+          depends="build,jars,javadocs,docs,webstart,download"
           unless="runonly.install"
           description="-> configures the local binary distribution">
 
@@ -758,6 +758,11 @@
     <!-- Copy extra files. -->
     <copy todir="${dist.etc.pkg}">
       <fileset dir="${build.etc}"/>
+    </copy>
+    <copy todir="${dist.lib.pkg}">
+      <fileset dir="${src.downloads.dir}">
+        <include name="*.jar"/>
+      </fileset>
     </copy>
 
     <!-- Set permissions on contents of distribution directories -->

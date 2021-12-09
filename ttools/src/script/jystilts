@@ -13,7 +13,7 @@
 #     JyStilts in other contexts (e.g. using the standalone stilts.jar
 #     file).
 #
-#     Jython must be on the PATH for this to work.
+#     Java must be on the PATH for this to work.
 
 #  Authors:
 #     MBT: Mark Taylor
@@ -22,18 +22,10 @@
 bindir="`dirname $0`"
 starjava=$bindir/..
 stilts_jar=$starjava/lib/ttools/stilts-app.jar
+jython_jar=`echo $starjava/lib/ttools/jython-standalone*.jar`
 pylib_dir=$starjava/etc/ttools
 pypath_def="-Dpython.path=$pylib_dir"
+classpath=${stilts_jar}:${jython_jar}
+main_class=org.python.util.jython
 
-if which jython >/dev/null 2>&1
-then
-   export CLASSPATH=$stilts_jar
-   jython $pypath_def "$@"
-else
-   echo 2>&1
-   echo "   Jython is not on your PATH." 2>&1
-   echo "   Install jython (www.jython.org) to run JyStilts" 2>&1
-   echo "   (or download monolithic jystilts.jar file)" 2>&1
-   echo 2>&1
-   exit 1
-fi
+java $pypath_def -classpath $classpath $main_class "$@"
