@@ -21,3 +21,4 @@
 *~
 *.toc
 splat/src/docs/sun243.pdf
+ttools/src/downloads/*.jar

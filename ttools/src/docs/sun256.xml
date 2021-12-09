@@ -1471,9 +1471,9 @@ using just the <code>stilts.jar</code> file.
 First, make sure that Jython is installed;
 it is available from <webref url="http://www.jython.org/"/>,
 and comes as a self-installing jar file.
-JyStilts has been tested, and appears to work, on versions
-2.5.0 and 2.5.1; it's recommended to use the latest version
-if you don't have some reason to use one of the others.
+JyStilts has been tested, and appears to work, with jython version 2.7.2.
+It also works with jython 2.5.* under Java 8 and Java 11,
+but jystilts with jython 2.5.* and Java 17 can fail with security problems.
 Some earlier versions of JyStilts worked with jython 2.2.1, 
 but that no longer seems to be the case; it might be possible
 to reinstate this if there is some pressing need.
@@ -13426,6 +13426,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix bug in plotting <code>MOC-ASCII</code> strings in
         <ref id="layer-area">area</ref> plot;
         some cells near end of MOC omitted/misshapen.</li>
+    <li>JyStilts is now intended to be run using Jython 2.7.2,
+        which means it works under Java 17, unlike Jython 2.5.3
+        which was the previous target version.
+        The JyStilts classes haven't changed, but the distributed
+        <code>jystilts.jar</code> file now comes with Jython 2.7.2.</li>
     </ul>
     </p></dd>
 

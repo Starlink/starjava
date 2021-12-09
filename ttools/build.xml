@@ -132,6 +132,9 @@
   <!-- Directory containing any JNI source code -->
   <property name="src.jni.dir" value="${src.dir}/jni"/>
 
+  <!-- Directory containing files downloaded at build time. -->
+  <property name="src.downloads.dir" value="${src.dir}/downloads"/>
+
   <!-- Directories for JUnit test cases and related files -->
   <property name="tests.dir" value="${src.dir}/testcases"/>
   <property name="tests.etc.dir" value="${src.dir}/etc/testcases"/>
@@ -329,6 +332,7 @@
     <pathelement location="${tests.etc.dir}"/>
     <pathelement location="${build.etc}"/>
     <fileset dir="src/testlib" includes="*.jar"/>
+    <fileset dir="${src.downloads.dir}" includes="*.jar"/>
     <path refid="classpath"/>
   </path>
 
@@ -1551,7 +1555,7 @@
    !   =================
    !-->
   <target name="compile-tests"
-          depends="build"
+          depends="build, download"
           if="junit.present">
 
     <mkdir dir="${build.tests}"/>
@@ -1566,6 +1570,26 @@
 
     </javac>
 
+  </target>
+
+  <!--
+   !   ==============================
+   !   Download external dependencies
+   !   ==============================
+   !-->
+  <property name="jython.lib" value="jython-standalone-2.7.2.jar"/>
+  <target name="download">
+    <condition property="downloads.present">
+      <and>
+        <available file="${src.downloads.dir}/${jython.lib}"/>
+      </and>
+    </condition>
+    <antcall target="do-downloads"/>
+    <checksum file="${src.downloads.dir}/${jython.lib}" algorithm="MD5"/>
+  </target>
+  <target name="do-downloads" unless="downloads.present">
+    <get src="https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.2/${jython.lib}"
+         dest="${src.downloads.dir}/${jython.lib}"/>
   </target>
 
   <!--
