@@ -9,6 +9,7 @@ import java.util.function.DoubleUnaryOperator;
 import java.util.function.IntFunction;
 import java.util.function.LongFunction;
 import java.util.function.UnaryOperator;
+import java.util.logging.Logger;
 import gov.nasa.pds.label.object.FieldType;
 import gov.nasa.pds.objectAccess.table.FieldAdapter;
 import uk.ac.starlink.util.DoubleList;
@@ -35,6 +36,8 @@ public abstract class FieldReader<S,A> {
     private final FieldAdapter adapter_;
     private final Class<S> scalarClazz_;
     private final Class<A> arrayClazz_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.pds4" );
 
     /**
      * Constructor.
@@ -557,6 +560,8 @@ public abstract class FieldReader<S,A> {
             }
 
             default:
+                logger_.warning( "Unknown PDS4 FieldType " + ftype
+                               + ", treat as String" );
                 assert false;
                 return new FieldReader<String,String[]>
                                       ( ftype, String.class, String[].class ) {
