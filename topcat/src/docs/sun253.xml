@@ -30200,6 +30200,7 @@ introduced since the last version:
         alongside some other
         <ref id="interopReceive">format-specific table.load.*</ref>
         messages.</li>
+    <li>Bugfix update of JCDF to v1.2-4.</li>
     </ul>
     </p></dd>
 

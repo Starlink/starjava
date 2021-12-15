@@ -13443,6 +13443,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>The <ref id="inPds4">PDS4</ref>
         (NASA's Planetary Data System v4) file format is now
         supported for input tables.</li>
+    <li>Bugfix update of JCDF to v1.2-4.</li>
     </ul>
     </p></dd>
 
