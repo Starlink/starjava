@@ -30204,6 +30204,8 @@ introduced since the last version:
     <li>The test for whether a newly-defined row subset adds an entry
         to the subset list or replaces an existing entry is now based on
         case-insensitive, rather than case-sensitive, name matching.</li>
+    <li>Permit leading '<code>s</code>' in ASCII-MOC area specifications,
+        following MOC 2.0.</li>
     </ul>
     </p></dd>
 

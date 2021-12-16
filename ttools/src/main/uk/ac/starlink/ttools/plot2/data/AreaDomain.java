@@ -65,8 +65,8 @@ public class AreaDomain implements Domain<AreaMapper> {
         Pattern.compile( NUMBER_REGEX );
     private static final Pattern PARENTHESIS_PATTERN =
         Pattern.compile( "\\s*\\((.*)\\)\\s*" );
-    private static final Pattern TOKENS_PATTERN =
-        Pattern.compile( "\\s*([^\\s]+)" );
+    private static final Pattern SMOC_TOKENS_PATTERN =
+        Pattern.compile( "(?:\\s*s)?\\s*([^\\s]+)" );
     private static final Pattern MOC_PATTERN =
         Pattern.compile( "(?:([0-9]+)/)?(?:([0-9]+)(?:-([0-9]+))?)?" );
 
@@ -459,7 +459,7 @@ public class AreaDomain implements Domain<AreaMapper> {
     private static Area mocArea( CharSequence txt ) {
         LongList list = new LongList();
         Area.Type mocType = Area.Type.MOC;
-        Matcher tokenMatcher = TOKENS_PATTERN.matcher( txt );
+        Matcher tokenMatcher = SMOC_TOKENS_PATTERN.matcher( txt );
         long order = -1;
         long kOrder = Integer.MIN_VALUE;
         while ( tokenMatcher.find() ) {
