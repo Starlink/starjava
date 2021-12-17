@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -280,6 +281,15 @@ public class MapEnvironment implements TableEnvironment {
          * set-from-string capability. */
         else if ( value instanceof String ) {
             param.setValueFromString( this, (String) value );
+        }
+
+        /* If we have a scalar corresponding to the element type of an
+         * array parameter, turn it into a 1-element array. */
+        else if ( pclazz.getComponentType() != null &&
+                  pclazz.getComponentType().isInstance( value ) ) {
+            Object array = Array.newInstance( pclazz.getComponentType(), 1 );
+            Array.set( array, 0, value );
+            setParamValueFromObject( param, array );
         }
 
         /* Special treatment for table consumers (see above). */
