@@ -88,7 +88,7 @@
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
-  <property name="source.version" value="1.6"/>
+  <property name="source.version" value="1.8"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -444,7 +444,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.6+"/>
+         <j2se version="1.8+"/>
          <jar href="${name}/${name}.jar"/>
        </resources>
        <component_desc/>
