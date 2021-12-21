@@ -702,8 +702,7 @@ public class EpnTapStage implements Stage {
             new MinMaxCol( "c1", Type.DOUBLE, null, null ),
             new MinMaxCol( "c2", Type.DOUBLE, null, null ),
             new MinMaxCol( "c3", Type.DOUBLE, null, null ),
-            new SingleCol( "s_region", Type.SPOLY, null,
-                           "pos.outline;obs.field" ),
+            textCol( "s_region", "pos.outline;obs.field" ),
             new MinMaxCol( "c1_resol_", Type.DOUBLE, null, null ),
             new MinMaxCol( "c2_resol_", Type.DOUBLE, null, null ),
             new MinMaxCol( "c3_resol_", Type.DOUBLE, null, null ),
@@ -1787,12 +1786,6 @@ public class EpnTapStage implements Stage {
                 else {
                     checkXtype( reporter, tmeta, info, "timestamp" );
                 }
-            }
-        },
-        SPOLY() {
-            void checkInfo( Reporter reporter, TableMeta tmeta,
-                            ValueInfo info ) {
-                // metadata checking is done elsewhere (sregionChecker)
             }
         };
 
