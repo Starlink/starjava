@@ -9133,6 +9133,17 @@ stilts tskymap in=tgas_source.fits tiling=hpx7 lon=l lat=b count=false
     </p></dd>
 
 <dt><verbatim>
+stilts tskymap in=gaia_source.colfits tiling=hpx8 lon=l lat=b count=true
+               cols='bp_rp;mean phot_bp_mean_mag;sum phot_rp_mean_mag;sum'
+               out=gaia-stats.fits
+</verbatim></dt>
+<dd><p>Simultaneously calculates the mean value of the <code>bp_rp</code>
+    column and the summed values of the <code>phot_bp_mean_mag</code> and
+    <code>phot_rp_mean_mag</code> columns for each HEALPix level 8 tile,
+    as well as the source density.
+    </p></dd>
+
+<dt><verbatim>
 stilts tskymap in=gums_lmc.fits lon=alpha lat=delta
                tiling=hpx14 complete=false omode=count
 </verbatim></dt>
@@ -13449,6 +13460,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Minor improvements to aggregated column output metadata.</li>
     <li>New <ref id="taplint">taplint</ref> parameter <code>tables</code>
         to restrict which tables are tested.</li>
+    <li>The <code>cols</code> parameter in
+        <ref id="tskymap">tskymap</ref> is generalised to allow
+        more flexible calculation of gridded quantities,
+        specifically calculations using different aggregation methods
+        for different quantities at the same time.</li>
     </ul>
     </p></dd>
 

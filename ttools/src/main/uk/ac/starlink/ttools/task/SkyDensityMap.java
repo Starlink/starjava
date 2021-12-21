@@ -48,12 +48,6 @@ import uk.ac.starlink.ttools.plot2.layer.SolidAngleUnit;
 /**
  * Calculates sky density maps and outputs them as tables.
  *
- * <p>The current implementation has the limitation that the same
- * combiner has to be used for all aggregated quantities.
- * If you want to calculate for instance the median of some quantities
- * and the mean of others, you're out of luck.  It's hard to work out
- * what the parameters would look like to do it more generally.
- *
  * @author   Mark Taylor
  * @since    18 Jul 2016
  */
@@ -73,6 +67,7 @@ public class SkyDensityMap extends SingleMapperTask {
      */
     public SkyDensityMap() {
         super( "Calculates sky density maps", new ChoiceMode(), true, true );
+        final String quantName = "cols";
 
         lonParam_ = new StringParameter( "lon" );
         lonParam_.setUsage( "<expr/deg>" );
@@ -132,7 +127,8 @@ public class SkyDensityMap extends SingleMapperTask {
         }
         String combinersDescrip = lbuf.toString();
         combinerParam_.setDescription( new String[] {
-            "<p>Defines how values contributing to the same density map bin",
+            "<p>Defines the default way that values contributing",
+            "to the same density map bin",
             "are combined together to produce the value assigned to that bin.",
             "Possible values are:",
             "<ul>",
@@ -144,6 +140,9 @@ public class SkyDensityMap extends SingleMapperTask {
             "<code>" + Combiner.WEIGHTED_DENSITY + "</code>)",
             "the scaling is additionally influenced by the",
             "<code>" + unitParam_.getName() + "</code> parameter.",
+            "</p>",
+            "<p>Note this value may be overridden on a per-column basis",
+            "by the <code>" + quantName + "</code> parameter.",
             "</p>",
         } );
         combinerParam_.setDefaultOption( Combiner.MEAN );
@@ -196,20 +195,9 @@ public class SkyDensityMap extends SingleMapperTask {
         } );
         completeParam_.setBooleanDefault( false );
 
-        quantParam_ = new StringMultiParameter( "cols", ' ' );
-        quantParam_.setPrompt( "Quantities to aggregate" );
-        quantParam_.setUsage( "<expr> ..." );
-        quantParam_.setDescription( new String[] {
-            "<p>Selects the columns to be aggregated into bins.",
-            "The value is a space-separated list of items,",
-            "where each item may be either a column name",
-            "or an expression using the",
-            "<ref id='jel'>expression language</ref>.",
-            "The output table will have one column for each of the",
-            "items in this list.",
-            "</p>",
-        } );
-        quantParam_.setNullPermitted( true );
+        quantParam_ =
+            CombinedColumn
+           .createCombinedColumnsParameter( quantName, combinerParam_ );
 
         getParameterList().addAll( Arrays.asList( new Parameter<?>[] {
             lonParam_,
@@ -229,7 +217,7 @@ public class SkyDensityMap extends SingleMapperTask {
         String latString = latParam_.stringValue( env );
         SkyTiling tiling = tilingParam_.objectValue( env );
         String[] quants = quantParam_.stringsValue( env );
-        Combiner combiner = combinerParam_.objectValue( env );
+        Combiner dfltCombiner = combinerParam_.objectValue( env );
         SolidAngleUnit unit = unitParam_.objectValue( env );
         boolean complete = completeParam_.booleanValue( env );
         List<AggregateQuantity> aqList = new ArrayList<AggregateQuantity>();
@@ -251,9 +239,17 @@ public class SkyDensityMap extends SingleMapperTask {
             countIndex = -1;
         }
         for ( String quantity : quants ) {
-            String expr = quantity;
-            final String label = quantity.replaceAll( "\\s+", "" )
-                                         .replaceAll( "[^0-9A-Za-z]+", "_" );
+            CombinedColumn parsedCol =
+                CombinedColumn
+               .parseSpecification( quantity, quantParam_, combinerParam_ );
+            String expr = parsedCol.getExpression();
+            Combiner qCombiner = parsedCol.getCombiner();
+            Combiner combiner = qCombiner == null ? dfltCombiner : qCombiner;
+            String qName = parsedCol.getName();
+            String label = qName == null
+                         ? expr.replaceAll( "\\s+", "" )
+                               .replaceAll( "[^0-9A-Za-z]+", "_" )
+                         : qName;
             aqList.add( new AggregateQuantity( combiner, expr ) {
                 public ValueInfo adjustInfo( ValueInfo combInfo ) {
                     DefaultValueInfo info = new DefaultValueInfo( combInfo );

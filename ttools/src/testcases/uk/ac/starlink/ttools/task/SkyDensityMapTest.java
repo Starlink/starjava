@@ -60,12 +60,13 @@ public class SkyDensityMapTest extends TestCase {
            .setValue( "lat", "abs((y_image-180)%90)" )   // fake
            .setValue( "count", Boolean.TRUE )
            .setValue( "combine", Combiner.MAX )
-           .setValue( "cols", "number x_image 0.5*gid_2" )
+           .setValue( "cols", "number x_image 0.5*gid_2 "
+                            + "number;count;ncount number;hit;nhit" )
            .setValue( "complete", Boolean.valueOf( isComplete ) );
         new SkyDensityMap().createExecutable( env ).execute();
         StarTable skymap = env.getOutputTable( "omode" );
         Tables.checkTable( skymap );
-        int ncol = 5;
+        int ncol = 7;
         assertEquals( ncol, skymap.getColumnCount() );
         ValueInfo numInfo = skymap.getColumnInfo( 2 );
         assertTrue( "number".equalsIgnoreCase( numInfo.getName() ) );
@@ -76,6 +77,8 @@ public class SkyDensityMapTest extends TestCase {
         assertEquals( Float.class, ximInfo.getContentClass() );
         assertEquals( "pixel", ximInfo.getUnitString() );
         assertEquals( dummyUcd_ + ";stat.max", ximInfo.getUCD() );
+        assertEquals( "ncount", skymap.getColumnInfo( 5 ).getName() );
+        assertEquals( "nhit", skymap.getColumnInfo( 6 ).getName() );
         double[] maxs = new double[ ncol ];
         Arrays.fill( maxs, Double.NEGATIVE_INFINITY );
         RowSequence rseq = skymap.getRowSequence();
@@ -99,6 +102,8 @@ public class SkyDensityMapTest extends TestCase {
         assertEquals( t.getRowCount(), sums[ 1 ] );
         assertEquals( 352.25, maxs[ 3 ], 0.001 );
         assertEquals( 13.5, maxs[ 4 ] );
+        assertEquals( t.getRowCount(), sums[ 5 ] );
+        assertEquals( 1, maxs[ 6 ] );
 
         HealpixTableInfo hpxInfo =
             HealpixTableInfo.fromParams( skymap.getParameters() );
