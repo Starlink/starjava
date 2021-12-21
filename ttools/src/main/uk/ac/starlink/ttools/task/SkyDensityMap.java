@@ -237,7 +237,7 @@ public class SkyDensityMap extends SingleMapperTask {
         final int countIndex;
         if ( hasCount ) {
             countIndex = aqList.size();
-            aqList.add( new AggregateQuantity( Combiner.COUNT, "1", unit ) {
+            aqList.add( new AggregateQuantity( Combiner.COUNT, "1" ) {
                 public ValueInfo adjustInfo( ValueInfo combInfo ) {
                     DefaultValueInfo info = new DefaultValueInfo( combInfo );
                     info.setName( "count" );
@@ -254,7 +254,7 @@ public class SkyDensityMap extends SingleMapperTask {
             String expr = quantity;
             final String label = quantity.replaceAll( "\\s+", "" )
                                          .replaceAll( "[^0-9A-Za-z]+", "_" );
-            aqList.add( new AggregateQuantity( combiner, expr, unit ) {
+            aqList.add( new AggregateQuantity( combiner, expr ) {
                 public ValueInfo adjustInfo( ValueInfo combInfo ) {
                     DefaultValueInfo info = new DefaultValueInfo( combInfo );
                     info.setName( label );
@@ -271,7 +271,7 @@ public class SkyDensityMap extends SingleMapperTask {
         }
         final SingleTableMapping mapping =
             new SkyMapMapping( lonString, latString, tiling, complete, aqs,
-                               countIndex );
+                               unit, countIndex );
         final DescribedValue[] params;
         if ( tiling instanceof HealpixTiling ) {
             HealpixTiling hpx = (HealpixTiling) tiling;
@@ -302,6 +302,7 @@ public class SkyDensityMap extends SingleMapperTask {
         private final SkyTiling tiling_;
         private final boolean complete_;
         private final AggregateQuantity[] aqs_;
+        private final SolidAngleUnit unit_;
         private final int countIndex_;
 
         /**
@@ -313,18 +314,20 @@ public class SkyDensityMap extends SingleMapperTask {
          * @param  complete  true to write all pixels,
          *                   false for only those represented in the input
          * @param  aqs     list of quantities to aggregate into bins
+         * @param  unit    solid angle unit affecting density-like combiners
          * @param  countIndex  index of the <code>aqs</code> element that
          *                     just counts input table rows,
          *                     or -1 if none of the aqs does that
          */
         SkyMapMapping( String lonStr, String latStr, SkyTiling tiling,
                        boolean complete, AggregateQuantity[] aqs,
-                       int countIndex ) {
+                       SolidAngleUnit unit, int countIndex ) {
             lonStr_ = lonStr;
             latStr_ = latStr;
             tiling_ = tiling;
             complete_ = complete;
             aqs_ = aqs;
+            unit_ = unit;
             countIndex_ = countIndex;
         }
 
@@ -367,7 +370,7 @@ public class SkyDensityMap extends SingleMapperTask {
                 }
                 ValueInfo qInfo =
                     aq.adjustInfo( aq.combiner_
-                       .createCombinedInfo( jq.getValueInfo(), aq.unit_ ) );
+                       .createCombinedInfo( jq.getValueInfo(), unit_ ) );
                 qInfos.add( qInfo );
             }
 
@@ -389,7 +392,7 @@ public class SkyDensityMap extends SingleMapperTask {
                 AggregateQuantity aq = aqs_[ iq ];
                 double binExtent = 4.0 * Math.PI / npix
                                  * ( 180 * 180 ) / ( Math.PI * Math.PI )
-                                 / aq.unit_.getExtentInSquareDegrees();
+                                 / unit_.getExtentInSquareDegrees();
                 double binFactor =
                     aq.combiner_.getType().getBinFactor( binExtent );
                 ColumnData qData =
@@ -497,20 +500,16 @@ public class SkyDensityMap extends SingleMapperTask {
     private static abstract class AggregateQuantity {
         final Combiner combiner_;
         final String expr_;
-        final SolidAngleUnit unit_;
 
         /**
          * Constructor.
          *
          * @param  combiner  combination mode
          * @param  expr     expression to evaluate giving aggregated quantity
-         * @param  unit    unit affecting density-like combiners
          */
-        AggregateQuantity( Combiner combiner, String expr,
-                           SolidAngleUnit unit ) {
+        AggregateQuantity( Combiner combiner, String expr ) {
             combiner_ = combiner;
             expr_ = expr;
-            unit_ = unit;
         }
 
         /**
