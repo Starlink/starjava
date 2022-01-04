@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.jel;
 
 import gnu.jel.CompiledExpression;
+import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import gnu.jel.CompilationException;
 import java.util.logging.Level;
@@ -208,6 +209,21 @@ public class JELTest extends TableTestCase {
         assertEquals( null, rdr.evaluateAtRow( sExpr, 1 ) );
     }
 
+    public void testStringComparison() throws Throwable {
+
+        // This tests for presence of a bug in JEL versions 0.9.8 to 2.1.2,
+        // which yielded a NullPointerException when a String was compared
+        // (==) against a null value.  Fixed in JEL 2.1.3.
+        Library lib = new Library( new Class[] { FuncLib.class },
+                                   null, null, null, null );
+        assertTrue( Evaluator
+                   .compile( "copyText(\"abc\", false)==\"abc\"", lib )
+                   .evaluate_boolean( null ) );
+        assertFalse( Evaluator
+                    .compile( "copyText(\"abc\", true)==\"abc\"", lib )
+                    .evaluate_boolean( null ) );
+    }
+
     public static class FuncLib {
         public static int triplePrim( int a ) {
             return 3 * a;
@@ -216,6 +232,10 @@ public class JELTest extends TableTestCase {
         public static int tripleObj( Object a ) {
             return a instanceof Number ? 3 * ((Number) a).intValue()
                                        : Integer.MIN_VALUE;
+        }
+
+        public static String copyText( String txt, boolean isNull ) {
+            return isNull ? null : txt;
         }
     }
 }
