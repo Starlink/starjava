@@ -53,6 +53,19 @@ public interface AuthContext {
      * Indicates whether this context is expected to be good for
      * authenticating against a given challenge.
      *
+     * <p>Note that if this returns true, the authentication information
+     * owned by this context may be sent to the supplied URL.
+     * It is therefore important to return false if the authentication
+     * information might be private from the supplied URL,
+     * otherwise a malevolent endpoint might issue a challenge with
+     * the parameters of a different service to obtain authentication
+     * information under false pretences.
+     * As a rule of thumb therefore, true should only be returned if the
+     * supplied URL is known to be owned by the same party for which this
+     * context was established.  However, schemes that include scoping
+     * rules preventing such information leakage may not require
+     * such restrictions.
+     *
      * @param  challenge   challenge
      * @param  url  URL from which the challenge was received
      * @return  true iff this context ought to be able to answer the

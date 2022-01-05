@@ -51,7 +51,6 @@ public class AuthManager {
 
     /** Authentication schemes used by default, in order of preference. */
     public static final AuthScheme[] DFLT_SCHEMES = new AuthScheme[] {
-        BearerIvoaAuthScheme.INSTANCE,
         X509IvoaAuthScheme.INSTANCE,
         CookieIvoaAuthScheme.INSTANCE,
         BasicAuthScheme.INSTANCE,

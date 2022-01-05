@@ -234,6 +234,14 @@ public class CookieIvoaAuthScheme extends IvoaAuthScheme {
         }
 
         public boolean isChallengeDomain( Challenge challenge, URL url ) {
+
+            /* Consider any ivoa_cookie challenge with the same login URL
+             * as suitable.  Evil services could falsely present the same
+             * login URL, but unlike for instance bearer tokens, the
+             * CookieManager used by this context will not pass the cookie
+             * on to any URL not allowed by the cookie's scoping rules,
+             * so this does not present a security risk.
+             * isUrlDomain will also return false for disallowed scopes. */
             try {
                 return scheme_.createContextFactory( challenge, url ) != null
                     && loginUrl_.equals( challenge.getParams()

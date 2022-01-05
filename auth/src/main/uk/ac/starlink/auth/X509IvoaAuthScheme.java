@@ -184,6 +184,12 @@ public class X509IvoaAuthScheme extends IvoaAuthScheme {
         }
 
         public boolean isChallengeDomain( Challenge challenge, URL url ) {
+
+            /* Consider any ivoa_x509 challenge with the same login URL
+             * as suitable.  An evil service could falsely present the same
+             * login URL, but unlike for example bearer tokens,
+             * leaking the content of a client certificate to a hostile
+             * service does not present a security risk. */
             try {
                 return scheme_.createContextFactory( challenge, url ) != null
                     && loginUrl_.equals( challenge.getParams()

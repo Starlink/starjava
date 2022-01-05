@@ -15,6 +15,12 @@ import java.net.URL;
  *    Authorization: Bearer &lt;token-text&gt;
  * </pre>
  *
+ * <p>Note that at time of writing
+ * <strong>it is not in general safe to use this scheme</strong>
+ * because the details of token scope have not been worked out,
+ * leading to the possibility of a third-party malevolent site
+ * issuing a challenge that would result in stealing tokens.
+ *
  * @author   Mark Taylor
  * @since    10 Dec 2021
  * @see    <a href="https://datatracker.ietf.org/doc/html/rfc6750">RFC 6750</a>
@@ -141,10 +147,15 @@ public class BearerIvoaAuthScheme extends IvoaAuthScheme {
         }
 
         public boolean isChallengeDomain( Challenge challenge, URL url ) {
+
+            /* Matching protection space here is a gesture to avoiding
+             * leakage of the token, but it's not robust and will also
+             * block cross-domain usage where it may be legitimate. */
             try {
                 return scheme_.createContextFactory( challenge, url ) != null
                     && loginUrl_
-                      .equals( challenge.getParams().get( ACCESSURL_PARAM ) );
+                      .equals( challenge.getParams().get( ACCESSURL_PARAM ) )
+                    && scope_.equals( new ProtectionSpace( url, null ) );
             }
             catch ( BadChallengeException e ) {
                 return false;
