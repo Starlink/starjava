@@ -309,6 +309,9 @@ public class JELUtils {
                               .replaceAll( "[^A-Za-z0-9]+", "_" );
             Class<?> exprClazz = getWrapperType( compEx.getTypeC() );
             info = new DefaultValueInfo( name, exprClazz );
+            if ( ! name.trim().equals( expr.trim() ) ) {
+                ((DefaultValueInfo) info).setDescription( expr );
+            }
         }
         return new JELQuantity() {
             public String getExpression() {
