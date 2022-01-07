@@ -823,6 +823,7 @@ public abstract class Combiner {
                                       getInfoDescription( dataInfo )
                                     + ", sum in bin" );
             info.setUnitString( dataInfo.getUnitString() );
+            info.setUCD( modifyUcd( dataInfo.getUCD(), "arith.sum", false ) );
             return info;
         }
     }
