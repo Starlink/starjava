@@ -8,7 +8,8 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    9 May 2006
  */
-public interface WordParser {
+@FunctionalInterface
+public interface WordParser<W> {
 
     /**
      * Parses a string to return a value of some kind.
@@ -20,5 +21,5 @@ public interface WordParser {
      * @param   word  string form
      * @return   parsed value
      */
-    Object parseWord( String word ) throws TaskException;
+    W parseWord( String word ) throws TaskException;
 }

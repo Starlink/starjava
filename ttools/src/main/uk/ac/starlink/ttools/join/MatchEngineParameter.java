@@ -38,8 +38,8 @@ import uk.ac.starlink.util.Loader;
 public class MatchEngineParameter extends Parameter<MatchEngine>
                                   implements ExtraParameter {
 
-    private final WordsParameter paramsParam_;
-    private final WordsParameter tuningParam_;
+    private final WordsParameter<String> paramsParam_;
+    private final WordsParameter<String> tuningParam_;
     private final StringParameter scoreParam_;
 
     private static final int MAX_CHARS = 78;
@@ -57,8 +57,8 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
     public MatchEngineParameter( String name ) {
         super( name, MatchEngine.class, true );
 
-        paramsParam_ = new WordsParameter( "params" );
-        tuningParam_ = new WordsParameter( "tuning" );
+        paramsParam_ = WordsParameter.createStringWordsParameter( "params" );
+        tuningParam_ = WordsParameter.createStringWordsParameter( "tuning" );
 
         setStringDefault( "sky" );
         setPreferExplicit( true );
@@ -239,9 +239,10 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
      *
      * @param   numLabel  identifier for the new parameter
      */
-    public WordsParameter createMatchTupleParameter( String numLabel ) {
+    public WordsParameter<String> createMatchTupleParameter( String numLabel ) {
         boolean isNumbered = numLabel != null && numLabel.length() > 0;
-        WordsParameter tupleParam = new WordsParameter( TUPLE_NAME + numLabel );
+        WordsParameter<String> tupleParam =
+            WordsParameter.createStringWordsParameter( TUPLE_NAME + numLabel );
         tupleParam.setUsage( "<expr-list>" );
         tupleParam.setPrompt( "Expressions for match values"
                             + ( isNumbered ? ( " from table " + numLabel )
@@ -277,8 +278,9 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
      *          earlier by {@link #createMatchTupleParameter}
      * @param   matcher   match engine which will be used 
      */
-    public static void configureTupleParameter( WordsParameter tupleParam,
-                                                MatchEngine matcher ) {
+    public static void
+            configureTupleParameter( WordsParameter<String> tupleParam,
+                                     MatchEngine matcher ) {
 
         /* Work out the number label of the tuple parameter. */
         String tname = tupleParam.getName();
@@ -379,7 +381,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
      *                   is mandatory
      */
     private void setConfigValues( Environment env, DescribedValue[] configs,
-                                  WordsParameter wordsParam,
+                                  WordsParameter<String> wordsParam,
                                   boolean required )
             throws TaskException {
 

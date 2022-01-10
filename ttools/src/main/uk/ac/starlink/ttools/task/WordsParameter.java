@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.task;
 
+import java.lang.reflect.Array;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
@@ -8,26 +9,32 @@ import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.Tokenizer;
 
 /**
- * Parameter which can split its value up into an array of words.
+ * Parameter which can split its value up into an array of words,
+ * each parsed as a parameterised type.
  * Words are generally delimited by whitespace, but can be quoted using
  * single or double quotes as in the shell.
  * You can specify the required number of words.
  *
+ * @param    <W> parsed type of each word
  * @author   Mark Taylor
  * @since    1 Sep 2005
  */
-public class WordsParameter extends Parameter<String[]> {
+public class WordsParameter<W> extends Parameter<W[]> {
 
     private int nWords_ = -1;
-    private WordParser parser_;
+    private final WordParser<W> parser_;
 
     /**
      * Constructor.
      *
      * @param   name  parameter name
+     * @param   arrayClazz   array output class of this parameter
+     * @param   parser  converts each input word string to a typed value
      */
-    public WordsParameter( String name ) {
-        super( name, String[].class, false );
+    public WordsParameter( String name, Class<W[]> arrayClazz,
+                           WordParser<W> parser ) {
+        super( name, arrayClazz, false );
+        parser_ = parser;
     }
 
     /**
@@ -55,24 +62,12 @@ public class WordsParameter extends Parameter<String[]> {
     }
 
     /**
-     * Sets a parser which will be used to validate and to parse each
-     * word in the supplied value string.  If null, no validation is 
-     * performed and the parsed words are just the tokenized strings.
-     *
-     * @param  parser   word parser to install
-     */
-    public void setWordParser( WordParser parser ) {
-        parser_ = parser;
-    }
-
-    /**
      * Returns the parser which is being used to validate and to parse each
-     * word in the supplied value string.  If null, no validation is being
-     * performed and the parsed words are just the tokenized strings.
+     * word in the supplied value string.
      *
      * @return   word parser
      */
-    public WordParser getWordParser() {
+    public WordParser<W> getWordParser() {
         return parser_;
     }
 
@@ -95,36 +90,22 @@ public class WordsParameter extends Parameter<String[]> {
     }
 
     /**
+     * Returns the typed value of this parameter.
      * If the required word count value of this parameter is non-negative,
      * then the return value is guaranteed to contain that number of elements.
+     *
+     * <p>This is just an alias for {@link #objectValue}.
      *
      * @param   env  execution environment
      * @return  array of words constituting the value of this parameter
      */
-    public String[] wordsValue( Environment env ) throws TaskException {
+    public W[] wordsValue( Environment env ) throws TaskException {
         return objectValue( env );
     }
 
-    /**
-     * Returns the value of this parameter as an array of objects which have
-     * resulted from the parsing of the {@link #wordsValue} using the
-     * currently installed <code>WordParser</code>.  If no word parser is
-     * installed, this will have the same contents (Strings) as the words.
-     * If the required word count value of this parameter is non-negative,
-     * then the return value is guaranteed to contain that number of elements.
-     *
-     * @param   env  execution environment
-     * @return  array of objects representing the value of this parameter
-     */
-    public Object[] parsedWordsValue( Environment env ) throws TaskException {
-        return parseWords( objectValue( env ) );
-    }
-
-    public String[] stringToObject( Environment env, String sval )
+    public W[] stringToObject( Environment env, String sval )
             throws TaskException {
-        String[] svals = stringToWords( sval );
-        parseWords( svals );  // validation
-        return svals;
+        return parseWords( stringToWords( sval ) );
     }
 
     /**
@@ -149,35 +130,89 @@ public class WordsParameter extends Parameter<String[]> {
     }
 
     /**
-     * Invokes the installed word parser, if any, on each of an array of words.
+     * Invokes the word parser on each of an array of words.
      *
      * @param  words  string array
      * @return  array of objects matching <code>words</code>
      */
-    private Object[] parseWords( String[] words ) throws TaskException {
+    private W[] parseWords( String[] words ) throws TaskException {
         if ( words == null ) {
             return null;
         }
-        WordParser parser = getWordParser();
-        if ( parser != null ) {
-            Object[] parsedWords = new Object[ words.length ];
-            for ( int i = 0; i < words.length; i++ ) {
+        int nw = words.length;
+        Class<W[]> arrayClazz = getValueClass();
+        W[] parsedWords =
+            arrayClazz.cast( Array.newInstance( arrayClazz.getComponentType(),
+                                                nw ) );
+        for ( int iw = 0; iw < nw; iw++ ) {
+            try {
+                parsedWords[ iw ] = parser_.parseWord( words[ iw ] );
+            }
+            catch ( TaskException e ) {
+                StringBuffer msg = new StringBuffer( e.getMessage() )
+                    .append( " in word \"" )
+                    .append( words[ iw ] )
+                    .append( '"' );
+                throw new ParameterValueException( this, msg.toString(), e );
+            }
+        }
+        return parsedWords;
+    }
+
+    /**
+     * Returns an instance for which words are simply parsed as strings.
+     *
+     * @param  name  parameter name
+     * @return  new WordsParameter
+     */
+    public static WordsParameter<String>
+            createStringWordsParameter( String name ) {
+        return new WordsParameter<String>( name, String[].class, s -> s );
+    }
+
+    /**
+     * Returns an instance for which words are parsed as Integers.
+     *
+     * @param  name  parameter name
+     * @return  new WordsParameter
+     */
+    public static WordsParameter<Integer>
+            createIntegerWordsParameter( String name ) {
+        return new WordsParameter<Integer>( name, Integer[].class,
+                                            new WordParser<Integer>() {
+            public Integer parseWord( String word ) throws TaskException {
                 try {
-                    parsedWords[ i ] = parser.parseWord( words[ i ] );
+                    return Integer.valueOf( word );
                 }
-                catch ( TaskException e ) {
-                    StringBuffer msg = new StringBuffer( e.getMessage() )
-                        .append( " in word \"" )
-                        .append( words[ i ] )
-                        .append( '"' );
-                    throw new ParameterValueException( this, msg.toString(),
-                                                       e );
+                catch ( NumberFormatException e ) {
+                    throw new UsageException( "Bad integer format"
+                                            + " \"" + word + "\"",
+                                              e );
                 }
             }
-            return parsedWords;
-        }
-        else {
-            return words;
-        }
+        } );
+    }
+
+    /**
+     * Returns an instance for which words are parsed as Doubles.
+     *
+     * @param  name  parameter name
+     * @return  new WordsParameter
+     */
+    public static WordsParameter<Double>
+            createDoubleWordsParameter( String name ) {
+        return new WordsParameter<Double>( name, Double[].class,
+                                           new WordParser<Double>() {
+            public Double parseWord( String word ) throws TaskException {
+                try {
+                    return Double.valueOf( word );
+                }
+                catch ( NumberFormatException e ) {
+                    throw new UsageException( "Bad number format"
+                                            + " \"" + word + "\"",
+                                            e );
+                }
+            }
+        } );
     }
 }

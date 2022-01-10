@@ -150,7 +150,7 @@ public class MatchMapper implements TableMapper {
         MultiJoinType[] joinTypes = new MultiJoinType[ nin ];
         for ( int i = 0; i < nin; i++ ) {
             String numLabel = Integer.toString( i + 1 );
-            WordsParameter tupleParam =
+            WordsParameter<String> tupleParam =
                 matcherParam_.createMatchTupleParameter( numLabel );
             MatchEngineParameter.configureTupleParameter( tupleParam, matcher );
             exprTuples[ i ] = tupleParam.wordsValue( env );

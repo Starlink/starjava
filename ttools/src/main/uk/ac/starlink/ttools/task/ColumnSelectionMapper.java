@@ -17,7 +17,7 @@ import uk.ac.starlink.ttools.jel.ColumnIdentifier;
  */
 public class ColumnSelectionMapper implements TableMapper {
 
-    private final WordsParameter colsParam_;
+    private final WordsParameter<String> colsParam_;
 
     /**
      * Constructor.
@@ -30,7 +30,7 @@ public class ColumnSelectionMapper implements TableMapper {
          * value metadata as well as the data, so don't do that.
          * Users will have to create new columns upstream if they want to
          * do algebraic manipulation. */
-        colsParam_ = new WordsParameter( "cols" );
+        colsParam_ = WordsParameter.createStringWordsParameter( "cols" );
         colsParam_.setUsage( "<col-id> ..." );
         colsParam_.setDescription( new String[] {
             "<p>Columns to use for this task.",
@@ -72,7 +72,7 @@ public class ColumnSelectionMapper implements TableMapper {
      *
      * @return  column list parameter
      */
-    public WordsParameter getColumnsParameter() {
+    public WordsParameter<String> getColumnsParameter() {
         return colsParam_;
     }
 }

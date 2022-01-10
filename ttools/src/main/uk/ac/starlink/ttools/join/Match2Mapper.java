@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.join;
 
 import gnu.jel.CompilationException;
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.JoinType;
@@ -27,7 +29,7 @@ import uk.ac.starlink.ttools.task.WordsParameter;
 public class Match2Mapper implements TableMapper {
 
     private final MatchEngineParameter matcherParam_;
-    private final WordsParameter[] tupleParams_;
+    private final List<WordsParameter<String>> tupleParams_;
     private final JoinTypeParameter joinParam_;
     private final FindModeParameter modeParam_;
     private final JoinFixActionParameter fixcolParam_;
@@ -38,10 +40,9 @@ public class Match2Mapper implements TableMapper {
      */
     public Match2Mapper() {
         matcherParam_ = new MatchEngineParameter( "matcher" );
-        tupleParams_ = new WordsParameter[] {
-            matcherParam_.createMatchTupleParameter( "1" ),
-            matcherParam_.createMatchTupleParameter( "2" ),
-        };
+        tupleParams_ = new ArrayList<WordsParameter<String>>( 2 );
+        tupleParams_.add( matcherParam_.createMatchTupleParameter( "1" ) );
+        tupleParams_.add( matcherParam_.createMatchTupleParameter( "2" ) );
         fixcolParam_ = new JoinFixActionParameter( "fixcols" );
         joinParam_ = new JoinTypeParameter( "join" );
         modeParam_ = new FindModeParameter( "find" );
@@ -51,8 +52,8 @@ public class Match2Mapper implements TableMapper {
     public Parameter<?>[] getParameters() {
         return new Parameter<?>[] {
             matcherParam_,
-            tupleParams_[ 0 ],
-            tupleParams_[ 1 ],
+            tupleParams_.get( 0 ),
+            tupleParams_.get( 1 ),
             matcherParam_.getMatchParametersParameter(),
             matcherParam_.getTuningParametersParameter(),
             joinParam_,
@@ -75,9 +76,9 @@ public class Match2Mapper implements TableMapper {
          * the values to the matcher for each table. */
         String[][] tupleExprs = new String[ 2 ][];
         for ( int i = 0; i < 2; i++ ) {
-            MatchEngineParameter.configureTupleParameter( tupleParams_[ i ],
-                                                          matcher );
-            tupleExprs[ i ] = tupleParams_[ i ].wordsValue( env );
+            WordsParameter<String> tupleParam = tupleParams_.get( i );
+            MatchEngineParameter.configureTupleParameter( tupleParam, matcher );
+            tupleExprs[ i ] = tupleParam.wordsValue( env );
         }
 
         /* Get other parameter values. */

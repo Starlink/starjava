@@ -15,7 +15,7 @@ import uk.ac.starlink.ttools.mode.CubeMode;
  */
 public class TableCube extends SingleMapperTask {
 
-    private final WordsParameter colsParam_;
+    private final WordsParameter<String> colsParam_;
 
     public TableCube() {
         super( "Calculates N-dimensional histograms", new CubeMode(),
@@ -23,7 +23,7 @@ public class TableCube extends SingleMapperTask {
         CubeMode mode = (CubeMode) getOutputMode();
         List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();
 
-        colsParam_ = new WordsParameter( "cols" );
+        colsParam_ = WordsParameter.createStringWordsParameter( "cols" );
         colsParam_.setWordUsage( "<expr> ..." );
         colsParam_.setPrompt( "Space-separated list of input columns" );
         colsParam_.setDescription( new String[] {

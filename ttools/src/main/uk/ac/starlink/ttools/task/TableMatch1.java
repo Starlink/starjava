@@ -26,7 +26,7 @@ import uk.ac.starlink.ttools.join.ProgressIndicatorParameter;
 public class TableMatch1 extends SingleMapperTask {
 
     private final MatchEngineParameter matcherParam_;
-    private final WordsParameter tupleParam_;
+    private final WordsParameter<String> tupleParam_;
     private final Match1TypeParameter type1Param_;
     private final ProgressIndicatorParameter progressParam_;
 

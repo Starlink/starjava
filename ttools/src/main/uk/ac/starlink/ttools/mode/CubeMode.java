@@ -29,14 +29,14 @@ import uk.ac.starlink.util.Destination;
  */
 public class CubeMode implements ProcessingMode {
 
-    private final WordsParameter boundsParam_;
-    private final WordsParameter binsizeParam_;
-    private final WordsParameter nbinParam_;
+    private final WordsParameter<double[]> boundsParam_;
+    private final WordsParameter<Double> binsizeParam_;
+    private final WordsParameter<Integer> nbinParam_;
     private final OutputStreamParameter outParam_;
     private final ChoiceParameter<Combiner> combinerParam_;
     private final ChoiceParameter<Class<?>> typeParam_;
     private final StringParameter scaleParam_;
-    private WordsParameter colsParam_;
+    private WordsParameter<String> colsParam_;
 
     /** Output data types for FITS output. */
     private static final Class<?>[] OUT_TYPES = new Class<?>[] {
@@ -48,10 +48,9 @@ public class CubeMode implements ProcessingMode {
      * Constructor.
      */
     public CubeMode() {
-        boundsParam_ = new WordsParameter( "bounds" );
+        boundsParam_ = createBoundsParameter( "bounds" );
         boundsParam_.setNullPermitted( true );
         boundsParam_.setStringDefault( null );
-        boundsParam_.setWordParser( new BoundsParser() );
         boundsParam_.setWordUsage( "[<lo>]:[<hi>]" );
         boundsParam_.setPrompt( "Data bounds for each dimension" );
         boundsParam_.setDescription( new String[] {
@@ -75,8 +74,7 @@ public class CubeMode implements ProcessingMode {
            "</p>",
         } );
 
-        binsizeParam_ = new WordsParameter( "binsizes" );
-        binsizeParam_.setWordParser( new DoubleParser() );
+        binsizeParam_ = WordsParameter.createDoubleWordsParameter( "binsizes" );
         binsizeParam_.setWordUsage( "<size>" );
         binsizeParam_.setPrompt( "Extent of bins in each dimension" );
         binsizeParam_.setDescription( new String[] {
@@ -89,8 +87,7 @@ public class CubeMode implements ProcessingMode {
             "</p>",
         } );
     
-        nbinParam_ = new WordsParameter( "nbins" );
-        nbinParam_.setWordParser( new IntegerParser() );
+        nbinParam_ = WordsParameter.createIntegerWordsParameter( "nbins" );
         nbinParam_.setWordUsage( "<num>" );
         nbinParam_.setNullPermitted( true );
         nbinParam_.setPrompt( "Number of bins in each dimension" );
@@ -207,12 +204,12 @@ public class CubeMode implements ProcessingMode {
         final String scaleExpr = scaleParam_.stringValue( env );
 
         /* Get the explicitly specified bounds for the output grid. */
-        Object[] boundsWords = boundsParam_.parsedWordsValue( env );
+        double[][] boundsWords = boundsParam_.wordsValue( env );
         final double[] loBounds = new double[ ndim ];
         final double[] hiBounds = new double[ ndim ];
         if ( boundsWords != null ) {
             for ( int i = 0; i < ndim; i++ ) {
-                double[] bounds = (double[]) boundsWords[ i ];
+                double[] bounds = boundsWords[ i ];
                 loBounds[ i ] = bounds[ 0 ];
                 hiBounds[ i ] = bounds[ 1 ];
             }
@@ -225,7 +222,7 @@ public class CubeMode implements ProcessingMode {
         /* Get either the number of bins or the extent of each pixel in 
          * each dimension.  If you have one, and the bounds, you can work
          * out the other. */
-        Object[] nbinWords = nbinParam_.parsedWordsValue( env );
+        Object[] nbinWords = nbinParam_.wordsValue( env );
         final int[] nbins;
         final double[] binsizes;
         if ( nbinWords != null ) {
@@ -243,10 +240,10 @@ public class CubeMode implements ProcessingMode {
         }
         else {
             binsizeParam_.setNullPermitted( false );
-            Object[] binsizeWords = binsizeParam_.parsedWordsValue( env );
+            Double[] binsizeWords = binsizeParam_.wordsValue( env );
             binsizes = new double[ ndim ];
             for ( int i = 0; i < ndim; i++ ) {
-                binsizes[ i ] = ((Double) binsizeWords[ i ]).doubleValue();
+                binsizes[ i ] = binsizeWords[ i ].doubleValue();
                 if ( ! ( binsizes[ i ] > 0 ) ) {
                     throw new ParameterValueException( binsizeParam_,
                                                        "Non-positive value" );
@@ -278,68 +275,49 @@ public class CubeMode implements ProcessingMode {
      *
      * @param  colsParam  column enumeration parameter
      */
-    public void setColumnsParameter( WordsParameter colsParam ) {
+    public void setColumnsParameter( WordsParameter<String> colsParam ) {
         colsParam_ = colsParam;
     }
 
     /**
-     * WordParser implementation for decoding "lo:hi"-type bounds strings.
+     * Returns a WordsParameter for decoding "lo:hi"-type bounds strings.
+     * Each word is parsed into a 2-element [lo,hi] double array.
+     * The returned value handles the parameter parsing, but is not
+     * configured with parameter metadata.
+     *
+     * @param  name  parameter name
+     * @return   new multi-bounds parameter
      */
-    private static class BoundsParser implements WordParser {
-        final Pattern boundsRegex_ = Pattern.compile( "(.*):(.*)" );
-        public Object parseWord( String word ) throws TaskException {
-            Matcher matcher = boundsRegex_.matcher( word );
-            if ( matcher.matches() ) {
-                double[] bounds = new double[] { Double.NaN, Double.NaN };
-                for ( int i = 0; i < 2; i++ ) {
-                    String sval = matcher.group( i + 1 ).trim();
-                    if ( sval.length() > 0 ) {
-                        try {
-                            bounds[ i ] = Double.parseDouble( sval );
-                        }
-                        catch ( NumberFormatException e ) {
-                            throw new UsageException( "Bad bound string \""
-                                                    + sval + "\"", e );
+    public static WordsParameter<double[]> createBoundsParameter( String name ){
+        final Pattern boundsRegex = Pattern.compile( "(.*):(.*)" );
+        return new WordsParameter<double[]>( name, double[][].class,
+                                             new WordParser<double[]>() {
+            public double[] parseWord( String word ) throws TaskException {
+                Matcher matcher = boundsRegex.matcher( word );
+                if ( matcher.matches() ) {
+                    double[] bounds = new double[] { Double.NaN, Double.NaN };
+                    for ( int i = 0; i < 2; i++ ) {
+                        String sval = matcher.group( i + 1 ).trim();
+                        if ( sval.length() > 0 ) {
+                            try {
+                                bounds[ i ] = Double.parseDouble( sval );
+                            }
+                            catch ( NumberFormatException e ) {
+                                throw new UsageException( "Bad bound string \""
+                                                        + sval + "\"", e );
+                            }
                         }
                     }
+                    if ( bounds[ 0 ] >= bounds[ 1 ] ) {
+                        throw new UsageException( "Bad bound string \""
+                                                + word + "\": lo>=hi" );
+                    }
+                    return bounds;
                 }
-                if ( bounds[ 0 ] >= bounds[ 1 ] ) {
-                    throw new UsageException( "Bad bound string \""
-                                            + word + "\": lo>=hi" );
+                else {
+                    throw new UsageException( "Bad <lo>:<hi> bounds string" );
                 }
-                return bounds;
             }
-            else {
-                throw new UsageException( "Bad <lo>:<hi> bounds string" );
-            }
-        }
-    }
-
-    /**
-     * WordParser implementation for decoding floating point numbers.
-     */
-    private static class DoubleParser implements WordParser {
-        public Object parseWord( String word ) throws TaskException {
-            try {
-                return new Double( Double.parseDouble( word ) );
-            }
-            catch ( NumberFormatException e ) {
-                throw new UsageException( "Bad number format", e );
-            }
-        }
-    }
-
-    /**
-     * WordParser implementation for decoding integers.
-     */
-    private static class IntegerParser implements WordParser {
-        public Object parseWord( String word ) throws TaskException {
-            try {
-                return new Integer( Integer.parseInt( word ) );
-            }
-            catch ( NumberFormatException e ) {
-                throw new UsageException( "Bad integer format", e );
-            }
-        }
+        } );
     }
 }
