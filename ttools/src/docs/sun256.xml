@@ -105,6 +105,7 @@
   <!ENTITY tcatn-summary SYSTEM 'tcatn-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
+  <!ENTITY tgridmap-summary SYSTEM 'tgridmap-summary.xml'>
   <!ENTITY tjoin-summary SYSTEM 'tjoin-summary.xml'>
   <!ENTITY tloop-summary SYSTEM 'tloop-summary.xml'>
   <!ENTITY tmatch1-summary SYSTEM 'tmatch1-summary.xml'>
@@ -259,7 +260,8 @@ same ground as the STIL and TOPCAT user documents
     <ref id="tcat"><code>tcat</code></ref>,
     <ref id="tcatn"><code>tcatn</code></ref>,
     <ref id="tloop"><code>tloop</code></ref>,
-    <ref id="tjoin"><code>tjoin</code></ref> and
+    <ref id="tjoin"><code>tjoin</code></ref>,
+    <ref id="tgridmap"><code>tgridmap</code></ref>, and
     <ref id="tcube"><code>tcube</code></ref>
     (see <ref id="pipes" plaintextref="yes"/>).
     </p></dd>
@@ -561,6 +563,7 @@ the available tasks are:
 <li><code>tcatn</code></li>
 <li><code>tcopy</code></li>
 <li><code>tcube</code></li>
+<li><code>tgridmap</code></li>
 <li><code>tjoin</code></li>
 <li><code>tloop</code></li>
 <li><code>tmatch1</code></li>
@@ -2013,6 +2016,7 @@ by parameters with the following names (or similar ones):
            <ref id="tcatn"><code>tcatn</code></ref>,
            <ref id="tloop"><code>tloop</code></ref>,
            <ref id="tjoin"><code>tjoin</code></ref>,
+           <ref id="tgridmap"><code>tgridmap</code></ref>,
            <ref id="tcube"><code>tcube</code></ref>,
            <ref id="tmatch1"><code>tmatch1</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
@@ -5374,6 +5378,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="tjoin" plaintextref="yes"><code>tjoin</code></ref>:
         &tjoin-purpose;
         </li>
+    <li><ref id="tgridmap" plaintextref="yes"><code>tgridmap</code></ref>:
+        &tgridmap-purpose;
+        </li>
     <li><ref id="tcube" plaintextref="yes"><code>tcube</code></ref>:
         &tcube-purpose;
         </li>
@@ -8121,6 +8128,11 @@ use of the <code>icmd</code> parameter before the actual cube
 counts are calculated.
 </p>
 
+<p>See also <ref id="tgridmap"><code>tgridmap</code></ref>,
+which does a similar job to this command but writes the output
+in table format.
+</p>
+
 &tcube-summary;
 
 <subsubsect id="tcubeExamples">
@@ -8220,6 +8232,121 @@ stilts tloop x start=1 end=11 ocmd='addcol x2 x*x' ocmd='addcol x3 x*x*x'
 </dl>
 </p>
 
+</subsubsect>
+
+</subsect>
+
+<subsect id="tgridmap" tocleaf="yes">
+<subhead><title><code>tgridmap</code>: &tgridmap-purpose;</title></subhead>
+
+<p><code>tgridmap</code> scans an input table to create one or more
+N-dimensional density maps, or equivalently N-dimensional histograms,
+of the values in an input table, and outputs the result as an,
+optionally sparse, table containing a row for each grid cell.
+The maps/histograms can optionally be weighted by some quantity from the
+input table, and various options such as summing, averaging and counting
+are available for aggregation of inputs into the output bins.
+</p>
+
+<p>The supplied <code>coords</code> parameter defines
+which N numeric columns of the input table form the coordinates
+of the bin grid, and the <code>cols</code> parameter defines which
+quantities are aggregated into each bin.
+Either the <code>binsizes</code> or <code>nbins</code> parameter must
+be supplied to define the extents of the bins on each axis.
+The output table contains a row for each bin,
+with columns giving the central (and upper/lower bound) values of each
+grid coordinate, and a column for each aggregated value.
+The rows are output in first-coordinate-slowest sequence,
+and the <code>sparse</code> parameter determines whether a row is
+written for every cell in the hypercube defined by the grid dimensions,
+or only for those cells with non-blank data.
+</p>
+
+<p>The tabular form of the output may not be the most appropriate or
+compact way to write a density map, especially for multi-dimensional grids,
+but it means the output can be manipulated later by other STILTS commands
+or by TOPCAT.
+To do a similar job with more compact output,
+see <ref id="tcube"><code>tcube</code></ref>.
+See also <ref id="tskymap"><code>tskymap</code></ref>,
+which does the same thing for sky geometry (and is probably a better
+choice if you find yourself accumulating onto a longitude-latitude grid).
+</p>
+
+&tgridmap-summary;
+
+<subsubsect id="tgridmapExamples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>tgridmap</code>:
+
+<dl>
+
+<dt><verbatim>
+stilts tgridmap in=ravedr4.fits coords=HRV nbins=20
+</verbatim></dt>
+<dd><p>Calculates a simple 1-dimensional unweighted histogram of the
+    HRV column from the input table <code>ravedr4.fits</code>.
+    The output is a table with columns
+    <code>HRV</code>, giving the central value of each bin, and
+    <code>COUNT</code>, giving the number of input rows with HRV
+    values in that bin;
+    additional columns <code>HRV_lo</code> and <code>HRV_hi</code> give the
+    lower and upper bounds of the bin.
+    The bin size is determined from the actual range of the HRV values
+    in the input table, combined with the requested bin count of 20;
+    however, the bin size will be chosen as some round number,
+    so the bin count (number of rows in the output table)
+    may not be exactly as requested.
+    </p></dd>
+
+<dt><verbatim>
+stilts tgridmap in=ravedr4.fits coords=HRV
+                binsizes=100 bounds=-450:450 sparse=false
+</verbatim></dt>
+<dd><p>Produces a similar histogram to the previous example,
+    but the bin dimensions, ranges and alignments are specified explicitly
+    rather than being worked out from the data.
+    There will be 9 output bins, [-450,-350), [-350,-250), ..., [350,450);
+    any values outside of these bins will be ignored.
+    The <code>sparse=false</code> parameter means that rows will be output
+    for all 9 bins, even if some of them are empty.
+    Note supplying bin geometry in this way allows control of bin boundaries;
+    in this case HRV=0 is in the middle of a bin not at a bin boundary.
+    This will also be faster, since no initial scan to determine
+    actual data ranges has to be performed.
+    </p></dd>
+
+<dt><verbatim>
+stilts tgridmap in=edr3-local.fits
+                icmd='addcol nobs astrometric_n_good_obs_al'
+                icmd='addcol g_abs phot_g_mean_mag+5*log10(parallax*0.01)'
+                coords='bp_rp g_abs'
+                binsizes='0.125 0.5' bounds='-1:6 -5:20'
+                cols='1;count;NUM nobs;sum;SUM_NOBS nobs;mean;MEAN_NOBS'
+                out=grid-stats.vot sparse=false
+</verbatim></dt>
+<dd><p>This assembles a table containing three weighted histograms on a
+    2-d colour vs. absolute-magnitude grid.
+    The output table contains columns giving
+    <code>bp_rp</code> and <code>g_abs</code> coordinate values
+    for each grid point,
+    as well as columns NUM containing source density,
+    and columns SUM_NOBS and MEAN_NOBS containing respectively
+    the sum and mean of the <code>nobs</code> column in each grid cell.
+    Since <code>sparse=false</code> the number and arrangement
+    of output rows is determined by the binsizes and bounds (57*51 rows)
+    independent of the input data, and could be compared
+    with similar runs on different input tables.
+    The <code>icmd=addcol...</code> parameters prepare values for accumulation
+    ahead of the actual gridding step for convenience though this isn't
+    essential, the relevant expressions could be used directly in the
+    <code>coords</code> and <code>cols</code> parameters if preferred.
+    </p></dd>
+
+</dl>
+</p>
 </subsubsect>
 
 </subsect>
@@ -9052,6 +9179,10 @@ understand the semi-standard
 <webref url="&URL.HEALPIX_FITS;">FITS-Healpix</webref> convention.
 Note in this case, for maximum compatibility,
 the <code>fits-healpix</code> output format should in general be used.
+</p>
+
+<p>See also <ref id="tgridmap"><code>tgridmap</code></ref>,
+which does the same thing for N-dimensional grid geometry.
 </p>
 
 &tskymap-summary;
@@ -13465,6 +13596,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         more flexible calculation of gridded quantities,
         specifically calculations using different aggregation methods
         for different quantities at the same time.</li>
+    <li>New task <ref id="tgridmap">tgridmap</ref> writes flexible
+        N-dimensional density maps/histograms as tables.</li>
     </ul>
     </p></dd>
 

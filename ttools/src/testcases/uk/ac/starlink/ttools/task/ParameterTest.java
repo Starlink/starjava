@@ -27,7 +27,7 @@ public class ParameterTest extends TestCase {
         "matcher", "values", "values1", "values2", "valuesN", "params",
         "in", "in1", "in2", "nin", "inN",
         "expression",
-        "cols", "binsizes",
+        "cols", "binsizes", "coords",
         "serviceurl", "ra", "dec", "sr",
         "tapurl", "joburl", "adql", "uploadN", "votable",
         "query",
