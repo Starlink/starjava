@@ -215,4 +215,33 @@ public class WordsParameter<W> extends Parameter<W[]> {
             }
         } );
     }
+
+    /**
+     * Returns an instance for which words are parsed as Booleans.
+     *
+     * @param  name  parameter name
+     * @return  new WordsParameter
+     */
+    public static WordsParameter<Boolean>
+            createBooleanWordsParameter( String name ) {
+        return new WordsParameter<Boolean>( name, Boolean[].class,
+                                            new WordParser<Boolean>() {
+            public Boolean parseWord( String cWord ) throws TaskException {
+                String word = cWord.toLowerCase();
+                if ( "true".equals( word ) || "yes".equals( word ) ||
+                     "t".equals( word ) || "y".equals( word ) ) {
+                    return Boolean.TRUE;
+                }
+                else if ( "false".equals( word ) || "no".equals( word ) ||
+                          "f".equals( word ) || "n".equals( word ) ) {
+                    return Boolean.FALSE;
+                }
+                else {
+                    throw new UsageException( "Not true/false/yes/no"
+                                            + " \"" + cWord + "\"" );
+                }
+            }
+        } );
+    }
+
 }
