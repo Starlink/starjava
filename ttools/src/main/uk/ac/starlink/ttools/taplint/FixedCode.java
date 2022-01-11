@@ -336,6 +336,7 @@ public enum FixedCode implements ReportCode {
     I_VVUN( "Unknown VOTable version" ),
 
     S_COLS( "ObsCore columns" ),
+    S_FILT( "Filter selected tables" ),
     S_FLGO( "Non-standard column flags" ),
     S_FLGS( "Standard column flags" ),
     S_PCLS( "ObsLocTAP columns" ),

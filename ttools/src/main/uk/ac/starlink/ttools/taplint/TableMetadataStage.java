@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import uk.ac.starlink.util.CountMap;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
@@ -30,6 +32,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
     private final String[] knownColFlags_;
     private final boolean reportOtherFlags_;
     private MetadataHolder metaHolder_;
+    private Predicate<TableMeta> tableFilter_;
     private static final AdqlSyntax syntax_ = AdqlSyntax.getInstance();
     private static final String[] KNOWN_COL_FLAGS =
         new String[] { "indexed", "primary", "nullable" };
@@ -80,11 +83,24 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
     public boolean hasDetail() {
         return metaHolder_ != null && metaHolder_.hasDetail();
     }
+
+    /**
+     * Installs a filter that restricts reported metadata
+     * to only selected tables.
+     * If a non-null filter has been set at {@link #run} time,
+     * subsequent calls to {@link #getTableMetadata} will return metadata
+     * referencing only those tables passed by the filter.
+     *
+     * @param  tableFilter  table selection, or null for unrestricted
+     */
+    public void setTableFilter( Predicate<TableMeta> tableFilter ) {
+        tableFilter_ = tableFilter;
+    }
    
     /**
      * Reads an object providing table metadata to check.
      *
-     * @param  reporter   destination for validation messages
+     * @param  reporter   destination for messages
      * @param  tapService  TAP service description
      * @return   fully populated metadata object
      */
@@ -92,9 +108,66 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
             readTableMetadata( Reporter reporter, TapService tapService );
 
     public void run( Reporter reporter, TapService tapService ) {
-        MetadataHolder meta = readTableMetadata( reporter, tapService );
+        MetadataHolder meta =
+            filterMetadata( reporter,
+                            readTableMetadata( reporter, tapService ) );
         checkSchemas( reporter, meta == null ? null : meta.getTableMetadata() );
         metaHolder_ = meta;
+    }
+
+    /**
+     * Applies any installed table filter to restrict the metadata in a
+     * given metadata collection.
+     *
+     * @param  reporter  messaged if a filter is applied
+     * @param  inMeta   input table metadata
+     * @return   filtered table metadata
+     */
+    private MetadataHolder filterMetadata( Reporter reporter,
+                                           MetadataHolder inMeta ) {
+        if ( inMeta == null || tableFilter_ == null ) {
+            return inMeta;
+        }
+        List<SchemaMeta> schemaList = new ArrayList<>();
+        int nTableIn = 0;
+        int nTableOut = 0;
+        for ( SchemaMeta schema : inMeta.getTableMetadata() ) {
+            nTableIn += schema.getTables().length;
+            TableMeta[] tables =
+                Arrays.stream( schema.getTables() )
+                      .filter( tableFilter_ )
+                      .collect( Collectors.toList() )
+                      .toArray( new TableMeta[ 0 ] );
+            nTableOut += tables.length;
+
+            /* Remove any schemas without remaining tables. */
+            if ( tables.length > 0 ) {
+                schema.setTables( tables );
+                schemaList.add( schema );
+            }
+        }
+        final SchemaMeta[] schemas = schemaList.toArray( new SchemaMeta[ 0 ] );
+        final boolean hasDetail = inMeta.hasDetail();
+        String msg = new StringBuffer()
+           .append( "Filter applied: " )
+           .append( nTableOut )
+           .append( "/" )
+           .append( nTableIn )
+           .append( " tables in " )
+           .append( schemas.length )
+           .append( "/" )
+           .append( inMeta.getTableMetadata().length )
+           .append( " schemas" )
+           .toString();
+        reporter.report( FixedCode.S_FILT, msg );
+        return new MetadataHolder() {
+            public SchemaMeta[] getTableMetadata() {
+                return schemas;
+            }
+            public boolean hasDetail() {
+                return hasDetail;
+            }
+        };
     }
 
     /**

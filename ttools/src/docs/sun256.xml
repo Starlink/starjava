@@ -13447,6 +13447,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Permit leading '<code>s</code>' in ASCII-MOC area specifications,
         following MOC 2.0.</li>
     <li>Minor improvements to aggregated column output metadata.</li>
+    <li>New <ref id="taplint">taplint</ref> parameter <code>tables</code>
+        to restrict which tables are tested.</li>
     </ul>
     </p></dd>
 

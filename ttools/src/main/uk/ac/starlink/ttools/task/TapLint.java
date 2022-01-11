@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -15,12 +16,14 @@ import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.taplint.OutputReporter;
 import uk.ac.starlink.ttools.taplint.Stage;
 import uk.ac.starlink.ttools.taplint.TextOutputReporter;
 import uk.ac.starlink.ttools.taplint.TapLinter;
+import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapService;
 
 /**
@@ -36,6 +39,7 @@ public class TapLint implements Task {
     private final TapServiceParams tapserviceParams_;
     private final StringMultiParameter stagesParam_;
     private final IntegerParameter maxtableParam_;
+    private final StringParameter tablesParam_;
     private final Parameter<?>[] params_;
 
     /**
@@ -121,6 +125,28 @@ public class TapLint implements Task {
         maxtableParam_.setNullPermitted( true );
         paramList.add( maxtableParam_ );
 
+        tablesParam_ = new StringParameter( "tables" );
+        tablesParam_.setPrompt( "Selected table names" );
+        tablesParam_.setDescription( new String[] {
+            "<p>If supplied, this specifies a list of tables to test.",
+            "It may be set to a space- or comma-separated list",
+            "of table names for consideration;",
+            "any tables not covered by this list are mostly ignored",
+            "for the purposes of reporting.",
+            "Matching against table names is case-insensitive,",
+            "and the asterisk character \"<code>*</code>\"",
+            "may be used as a wildcard to match any sequence of characters.",
+            "Note that matching is against the declared table name",
+            "which may or may not include a schema name prefix",
+            "depending on service behaviour.",
+            "</p>",
+            "<p>By default this parameter is not set,",
+            "which means that all tables are considered.",
+            "</p>",
+        } );
+        tablesParam_.setNullPermitted( true );
+        paramList.add( tablesParam_ );
+
         reporterParam_ = new OutputReporterParameter( "format" );
 
         paramList.add( reporterParam_ );
@@ -145,9 +171,11 @@ public class TapLint implements Task {
         Integer maxTablesObj = maxtableParam_.objectValue( env );
         int maxTestTables = maxTablesObj == null ? -1 : maxTablesObj.intValue();
         Set<String> stageSet = getStageSet( stagesParam_.stringsValue( env ) );
+        Predicate<TableMeta> tableFilter =
+            createTableNameFilter( tablesParam_.objectValue( env ) );
         OutputReporter reporter = reporterParam_.objectValue( env );
         return tapLinter_.createExecutable( reporter, tapService, stageSet,
-                                            maxTestTables );
+                                            maxTestTables, tableFilter );
     }
 
     /**
@@ -235,5 +263,48 @@ public class TapLint implements Task {
                     stagesParam_, "Can't mix +XXX/-XXX and XXX items" );
             }
         }
+    }
+
+    /**
+     * Converts a text specification for table names of interest to
+     * a TableMeta filter.
+     * The input format may have multiple space- or comma-separated entries,
+     * each one case insensitive, and the "*" wildcard is recognised.
+     *
+     * @param  txt  table name pattern
+     * @return   TableMeta filter, or null for no filtering
+     */
+    private static Predicate<TableMeta> createTableNameFilter( String txt ) {
+        if ( txt == null || txt.trim().length() == 0 ) {
+            return null;
+        }
+        final List<Pattern> patterns =
+            Arrays.stream( txt.split( "[\\s,]+", 0 ) )
+                  .map( TapLint::globToRegex )
+                  .collect( Collectors.toList() );
+        return tmeta -> {
+            String tname = tmeta == null ? null : tmeta.getName();
+            return tname != null
+                && patterns
+                  .stream()
+                  .anyMatch( p -> p.matcher( tname ).matches() );
+        };
+    }
+
+    /**
+     * Converts a simple glob-style pattern to a regular expression.
+     *
+     * @param   glob  case-insensitive string that may contain "*" wildcards
+     * @return  regular expression pattern
+     */
+    private static Pattern globToRegex( String glob ) {
+        final String regex;
+        if ( glob == null || glob.trim().length() == 0 ) {
+            regex = "";
+        }
+        else {
+            regex = "\\Q" + glob.replaceAll( "\\*", "\\\\E.*\\\\Q" ) + "\\E";
+        }
+        return Pattern.compile( regex, Pattern.CASE_INSENSITIVE );
     }
 }

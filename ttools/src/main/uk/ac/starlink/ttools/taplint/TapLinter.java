@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
@@ -26,6 +27,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.StdCapabilityInterface;
+import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapabilitiesDoc;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapService;
@@ -197,12 +199,15 @@ public class TapLinter {
      *         which stages should be run
      * @param  maxTestTables  limit on the number of tables to test,
      *                        or &lt;=0 for no limit
+     * @param  tableFilter  filter for tables to receive testing,
+     *                      or null for no restriction
      * @return   tap validator executable
      */
     public Executable createExecutable( final OutputReporter reporter,
                                         final TapService tapService,
                                         Set<String> stageCodeSet,
-                                        int maxTestTables )
+                                        int maxTestTables,
+                                        Predicate<TableMeta> tableFilter )
             throws TaskException {
 
         /* Prepare a checked and ordered sequence of codes determining
@@ -245,6 +250,11 @@ public class TapLinter {
                         String code = codes[ ic ];
                         Stage stage = stageSet_.getStage( code );
                         assert stage != null;
+                        if ( stage instanceof TableMetadataStage &&
+                             tableFilter != null ) {
+                            ((TableMetadataStage) stage)
+                                                 .setTableFilter( tableFilter );
+                        }
                         reporter.startSection( code, stage.getDescription() );
                         stage.run( reporter, tapService );
                         reporter.summariseUnreportedMessages( code );
