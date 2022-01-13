@@ -8,22 +8,21 @@ package uk.ac.starlink.ttools.jel;
  * @author   Mark Taylor
  * @since    10 Dec 2007
  */
-public interface Constant {
+public interface Constant<T> {
 
     /** 
      * Returns a class of which this object's value will be an instance.
      *
      * @return   content class
      */
-    Class<?> getContentClass();
+    Class<T> getContentClass();
 
     /**
      * Returns this object's value.  Not necessarily always the same.
-     * Must be an instance of {@link #getContentClass} (or null).
      *
      * @return  value
      */
-    Object getValue();
+    T getValue();
 
     /**
      * Indicates whether evaluation of this constant needs to know the row

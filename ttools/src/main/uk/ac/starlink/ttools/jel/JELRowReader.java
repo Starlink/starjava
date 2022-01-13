@@ -67,7 +67,7 @@ import java.util.stream.Collectors;
 public abstract class JELRowReader extends DVMap {
 
     private final Object[] args_;
-    private final List<NamedConstant> constantList_;
+    private final List<NamedConstant<?>> constantList_;
     private final Set<Integer> translatedIcols_;
     private boolean isNullExpression_;
     private boolean failOnNull_;
@@ -88,21 +88,24 @@ public abstract class JELRowReader extends DVMap {
     public static final char COLUMN_ID_CHAR = '$';
 
     /** Constant which returns a boolean True. */
-    private final Constant TRUE_CONST = new FixedConstant( Boolean.TRUE );
+    private final Constant<Boolean> TRUE_CONST =
+        FixedConstant.createConstant( Boolean.TRUE );
 
     /** Constant which returns a boolean False. */
-    private final Constant FALSE_CONST = new FixedConstant( Boolean.FALSE );
+    private final Constant<Boolean> FALSE_CONST =
+        FixedConstant.createConstant( Boolean.FALSE );
 
     /** Constant which returns a null Object. */
-    private final Constant NULL_CONST = new FixedConstant( null, Object.class );
+    private final Constant<Object> NULL_CONST =
+        new FixedConstant<Object>( null, Object.class );
 
     /** Constant which effectively returns a null primitive. */
-    private final Constant NULL_EXPRESSION_CONST = new Constant() {
-        private final Byte b0 = new Byte( (byte) 0 );
-        public Class<?> getContentClass() {
+    private final Constant<Byte> NULL_EXPRESSION_CONST = new Constant<Byte>() {
+        private final Byte b0 = Byte.valueOf( (byte) 0 );
+        public Class<Byte> getContentClass() {
             return Byte.class;
         }
-        public Object getValue() {
+        public Byte getValue() {
             foundNull();
             return b0;
         }
@@ -116,7 +119,7 @@ public abstract class JELRowReader extends DVMap {
      */
     public JELRowReader() {
         args_ = new Object[] { this };
-        constantList_ = new ArrayList<NamedConstant>();
+        constantList_ = new ArrayList<NamedConstant<?>>();
         translatedIcols_ = new LinkedHashSet<Integer>();
     }
 
@@ -156,7 +159,7 @@ public abstract class JELRowReader extends DVMap {
      * @param  name  constant name
      * @return  constant, or null
      */
-    protected abstract Constant getConstantByName( String name );
+    protected abstract Constant<?> getConstantByName( String name );
 
     /**
      * Indicates whether the value in a given column is null.
@@ -300,7 +303,7 @@ public abstract class JELRowReader extends DVMap {
      * @param   name  special name
      * @return  special, or null
      */
-    protected Constant getSpecialByName( String name ) {
+    protected Constant<?> getSpecialByName( String name ) {
         if ( name.equals( "null" ) ) {
             return NULL_CONST;
         }
@@ -511,12 +514,12 @@ public abstract class JELRowReader extends DVMap {
      * @return  list of constants which this row reader has had to reference
      *          in compiling JEL expressions
      */
-    public Constant[] getTranslatedConstants() {
+    public Constant<?>[] getTranslatedConstants() {
         return constantList_
               .stream()
               .map( c -> c.konst_ )
               .collect( Collectors.toList() )
-              .toArray( new Constant[ 0 ] );
+              .toArray( new Constant<?>[ 0 ] );
     }
 
     /**
@@ -658,9 +661,9 @@ public abstract class JELRowReader extends DVMap {
         }
 
         /* Otherwise see if we can identify it from the name. */
-        Constant konst = getSpecialByName( name );
+        Constant<?> konst = getSpecialByName( name );
         if ( konst != null ) {
-            constantList_.add( new NamedConstant( name, konst ) );
+            constantList_.add( createNamedConstant( name, konst ) );
             return constantList_.size() - 1;
         }
 
@@ -688,9 +691,9 @@ public abstract class JELRowReader extends DVMap {
         }
        
         /* If not search in normal constants. */
-        Constant konst = getConstantByName( name );
+        Constant<?> konst = getConstantByName( name );
         if ( konst != null ) {
-            constantList_.add( new NamedConstant( name, konst ) );
+            constantList_.add( createNamedConstant( name, konst ) );
             return constantList_.size() - 1;
         }
 
@@ -1035,11 +1038,23 @@ public abstract class JELRowReader extends DVMap {
     }
 
     /**
+     * Creates a NamedConstant instance.
+     *
+     * @param   name  key
+     * @param   konst  constant object
+     * @return  new named constant
+     */
+    private static <T> NamedConstant<T>
+            createNamedConstant( String name, Constant<T> konst ) {
+        return new NamedConstant<T>( name, konst );
+    }
+
+    /**
      * Utility class which associates a name with a Constant object.
      */
-    private static class NamedConstant {
+    private static class NamedConstant<T> {
         private final String name_;
-        private final Constant konst_;
+        private final Constant<T> konst_;
 
         /**
          * Constructor.
@@ -1047,7 +1062,7 @@ public abstract class JELRowReader extends DVMap {
          * @param   name  key
          * @param   konst  constant object
          */
-        NamedConstant( String name, Constant konst ) {
+        NamedConstant( String name, Constant<T> konst ) {
             name_ = name;
             konst_ = konst;
         }
@@ -1056,11 +1071,11 @@ public abstract class JELRowReader extends DVMap {
             return name_;
         }
 
-        public Class<?> getContentClass() {
+        public Class<T> getContentClass() {
             return konst_.getContentClass();
         }
 
-        public Object getValue() {
+        public T getValue() {
             return konst_.getValue();
         }
     }

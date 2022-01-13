@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.DescribedValue;
@@ -308,17 +309,17 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
     }
 
     @Override
-    protected Constant getSpecialByName( String name ) {
+    protected Constant<?> getSpecialByName( String name ) {
 
         /* Add some specials based on the apparent table. */
         if ( name.equalsIgnoreCase( "$index0" ) ||
              name.equals( "$00" ) ) {
             final ViewerTableModel viewModel = tcModel_.getViewModel();
-            return new Constant() {
-                public Class<?> getContentClass() {
+            return new Constant<Integer>() {
+                public Class<Integer> getContentClass() {
                     return Integer.class;
                 }
-                public Object getValue() {
+                public Integer getValue() {
                     int jrow = viewModel.getViewRow( getCurrentRow() );
                     return jrow >= 0 ? new Integer( 1 + jrow ) : null;
                 }
@@ -329,11 +330,11 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
         }
         else if ( name.equalsIgnoreCase( "$nrow0" ) ) {
             final ViewerTableModel viewModel = tcModel_.getViewModel();
-            return new Constant() {
-                public Class<?> getContentClass() {
+            return new Constant<Integer>() {
+                public Class<Integer> getContentClass() {
                     return Integer.class;
                 }
-                public Object getValue() {
+                public Integer getValue() {
                     return new Integer( viewModel.getRowCount() );
                 }
                 public boolean requiresRowIndex() {
@@ -343,12 +344,12 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
         }
         else if ( name.equalsIgnoreCase( "$ncol0" ) ) {
             final TableColumnModel colModel = tcModel_.getColumnModel();
-            return new Constant() {
-                public Class<?> getContentClass() {
+            return new Constant<Integer>() {
+                public Class<Integer> getContentClass() {
                     return Integer.class;
                 }
-                public Object getValue() {
-                    return new Integer( colModel.getColumnCount() );
+                public Integer getValue() {
+                    return Integer.valueOf( colModel.getColumnCount() );
                 }
                 public boolean requiresRowIndex() {
                     return false;
@@ -369,16 +370,23 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
      * result of user intervention during the lifetime of the returned object.
      */
     @Override
-    protected Constant createDescribedValueConstant( final
-                                                     DescribedValue dval ) {
+    protected Constant<?> createDescribedValueConstant( DescribedValue dval ) {
         final Class<?> clazz = dval.getInfo().getContentClass();
-        return new Constant() {
-            public Class<?> getContentClass() {
+        Supplier<Object> valueSupplier = () -> {
+            Object val = dval.getValue();
+            return Tables.isBlank( val ) ? null : val;
+        };
+        return createConstant( clazz, valueSupplier );
+    }
+    private static <T> Constant<T>
+            createConstant( Class<T> clazz, Supplier<Object> valueSupplier ) {
+        return new Constant<T>() {
+            public Class<T> getContentClass() {
                 return clazz;
             }
-            public Object getValue() {
-                Object val = dval.getValue();
-                return Tables.isBlank( val ) ? null : val;
+            public T getValue() {
+                Object value = valueSupplier.get();
+                return clazz.isInstance( value ) ? clazz.cast( value ) : null;
             }
             public boolean requiresRowIndex() {
                 return false;

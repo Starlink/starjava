@@ -58,7 +58,7 @@ public class ResultSetJELRowReader extends JELRowReader {
         return -1;
     }
 
-    protected Constant getConstantByName( String name ) {
+    protected Constant<?> getConstantByName( String name ) {
         return null;
     }
 
@@ -172,7 +172,7 @@ public class ResultSetJELRowReader extends JELRowReader {
         }
     }
 
-    protected Constant getSpecialByName( String name ) {
+    protected Constant<?> getSpecialByName( String name ) {
         return super.getSpecialByName( name );
     }
 }

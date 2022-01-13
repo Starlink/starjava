@@ -6,10 +6,10 @@ package uk.ac.starlink.ttools.jel;
  * @author   Mark Taylor
  * @since    10 Dec 2007
  */
-public class FixedConstant implements Constant {
+public class FixedConstant<T> implements Constant<T> {
 
-    private final Class<?> clazz_;
-    private final Object value_;
+    private final Class<T> clazz_;
+    private final T value_;
 
     /**
      * Constructs a constant with a given value and class.
@@ -17,30 +17,34 @@ public class FixedConstant implements Constant {
      * @param  clazz  content class
      * @param  value  value
      */
-    public FixedConstant( Object value, Class<?> clazz ) {
+    public FixedConstant( T value, Class<T> clazz ) {
         value_ = value;
         clazz_ = clazz;
     }
 
-    /**
-     * Constructs a constant with a given value.
-     * The class is the class of <code>value</code>.
-     *
-     * @param  value  value
-     */
-    public FixedConstant( Object value ) {
-        this( value, value.getClass() );
-    }
-
-    public Class<?> getContentClass() {
+    public Class<T> getContentClass() {
         return clazz_;
     }
 
-    public Object getValue() {
+    public T getValue() {
         return value_;
     }
 
     public boolean requiresRowIndex() {
         return false;
+    }
+
+    /**
+     * Constructs a constant with a given value.
+     * The constant parameterised type is the runtime type of
+     * the supplied value.
+     *
+     * @param   value  constant value
+     * @return  new constant
+     */
+    public static <T> FixedConstant<T> createConstant( T value ) {
+        @SuppressWarnings("unchecked")
+        Class<T> clazz = (Class<T>) value.getClass();
+        return new FixedConstant<T>( value, clazz );
     }
 }

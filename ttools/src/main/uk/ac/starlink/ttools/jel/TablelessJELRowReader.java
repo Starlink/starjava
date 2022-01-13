@@ -25,7 +25,7 @@ public class TablelessJELRowReader extends JELRowReader {
         return -1;
     }
 
-    protected Constant getConstantByName( String name ) {
+    protected Constant<?> getConstantByName( String name ) {
         return null;
     }
 

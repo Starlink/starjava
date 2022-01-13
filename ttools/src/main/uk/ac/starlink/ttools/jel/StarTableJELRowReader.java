@@ -142,7 +142,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      *            evaluation
      */
     public boolean requiresRowIndex() {
-        for ( Constant konst : getTranslatedConstants() ) {
+        for ( Constant<?> konst : getTranslatedConstants() ) {
             if ( konst.requiresRowIndex() ) {
                 return true;
             }
@@ -217,7 +217,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      * by UCD (using the {@link #UCD_PREFIX} prefix) or
      * by Utype (using the {@link #UTYPE_PREFIX} prefix).
      */
-    protected Constant getConstantByName( String name ) {
+    protected Constant<?> getConstantByName( String name ) {
         List<DescribedValue> paramList = table_.getParameters();
 
         /* Try it as a UCD specification. */
@@ -265,11 +265,11 @@ public abstract class StarTableJELRowReader extends JELRowReader {
 
         /* Try special values for row and column count. */
         if ( name.equalsIgnoreCase( "$nrow" ) ) {
-            return new Constant() {
-                public Class<?> getContentClass() {
+            return new Constant<Long>() {
+                public Class<Long> getContentClass() {
                     return Long.class;
                 }
-                public Object getValue() {
+                public Long getValue() {
                     return new Long( table_.getRowCount() );
                 }
                 public boolean requiresRowIndex() {
@@ -278,13 +278,13 @@ public abstract class StarTableJELRowReader extends JELRowReader {
             };
         }
         if ( name.equalsIgnoreCase( "$ncol" ) ) {
-            return new Constant() {
-                public Class<?> getContentClass() {
+            return new Constant<Integer>() {
+                public Class<Integer> getContentClass() {
                     return Integer.class;
                 }
-                public Object getValue() {
+                public Integer getValue() {
                     int ncol = table_.getColumnCount();
-                    return ncol >= 0 ? new Integer( ncol ) : null;
+                    return ncol >= 0 ? Integer.valueOf( ncol ) : null;
                 }
                 public boolean requiresRowIndex() {
                     return false;
@@ -306,15 +306,15 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      *      always the same for a given row
      * </ul>
      */
-    protected Constant getSpecialByName( String name ) {
+    protected Constant<?> getSpecialByName( String name ) {
         if ( name.equals( COLUMN_ID_CHAR + "0" ) ||
              name.equalsIgnoreCase( "Index" ) ||
              name.equalsIgnoreCase( "$index" ) ) {
-            return new Constant() {
-                public Class<?> getContentClass() {
+            return new Constant<Long>() {
+                public Class<Long> getContentClass() {
                     return Long.class;
                 }
-                public Object getValue() {
+                public Long getValue() {
                     return new Long( getCurrentRow() + 1 );
                 }
                 public boolean requiresRowIndex() {
@@ -325,11 +325,11 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         else if ( name.equalsIgnoreCase( "$random" ) ||
                   name.equals( "RANDOM" ) ) {
             final long seed0 = seeder_.incrementAndGet() * -2323;
-            return new Constant() {
-                public Class<?> getContentClass() {
+            return new Constant<Double>() {
+                public Class<Double> getContentClass() {
                     return Double.class;
                 }
-                public Object getValue() {
+                public Double getValue() {
                     long seed = seed0 + ( getCurrentRow() * 2000000011L );
                     return new Double( new Random( seed ).nextDouble() );
                 }
@@ -352,15 +352,27 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      * @param   dval  described value object
      * @return   constant which evaluates to dval's value
      */
-    protected Constant createDescribedValueConstant( DescribedValue dval ) {
-        final Class<?> clazz = dval.getInfo().getContentClass();
+    protected Constant<?> createDescribedValueConstant( DescribedValue dval ) {
         Object val = dval.getValue();
-        final Object value = Tables.isBlank( val ) ? null : val;
-        return new Constant() {
-            public Class<?> getContentClass() {
+        return createConstant( dval.getInfo().getContentClass(),
+                               Tables.isBlank( val ) ? null : val );
+    }
+
+    /**
+     * Returns a Constant object given its class and its typed fixed value.
+     *
+     * @param  clazz  content class
+     * @param  objValue  value which must be consistent with clazz
+     * @return   fixed-value constant
+     */
+    private static <T> Constant<T> createConstant( Class<T> clazz,
+                                                   Object objValue ) {
+        final T value = clazz.cast( objValue );
+        return new Constant<T>() {
+            public Class<T> getContentClass() {
                 return clazz;
             }
-            public Object getValue() {
+            public T getValue() {
                 return value;
             }
             public boolean requiresRowIndex() {
