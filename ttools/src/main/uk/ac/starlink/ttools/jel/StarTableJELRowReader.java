@@ -322,6 +322,21 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                 }
             };
         }
+
+        /* Use of this token is DEPRECATED.
+         * The implementation is fatally flawed, in that it won't always
+         * return the same value from the same table cell.
+         * It gets the row index (or at least tries to), but it needs also
+         * to obtain another seed component in case the $random token is
+         * used multiple times in the same row, since it doesn't want to
+         * return the same random value for e.g. different columns.
+         * It does that using the seeder_, which updates every time an
+         * expression is compiled by this JELRowReader, but the trouble is
+         * that the same expression may be compiled multiple times,
+         * especially in a multi-threaded context.
+         * But this functionality has been here for a long time,
+         * so leave it in place at least for now.
+         */
         else if ( name.equalsIgnoreCase( "$random" ) ||
                   name.equals( "RANDOM" ) ) {
             final long seed0 = seeder_.incrementAndGet() * -2323;

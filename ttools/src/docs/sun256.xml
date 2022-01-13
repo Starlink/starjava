@@ -4348,11 +4348,12 @@ for each row:
     <em>The deprecated alias "<code>INDEX</code>" may also be used.</em>
     </p></dd>
 
-<dt>$random</dt>
-<dd><p>Evaluates to a double-precision random number <code>0&lt;=x&lt;1</code>
-    with a value which is fixed for a given row in this expression.
-    The quality of the random numbers may not be particularly good.
-    <em>The deprecated alias "<code>RANDOM</code>" may also be used.</em>
+<dt>$random <em>(Deprecated)</em></dt>
+<dd><p>Evaluates to a double-precision random number <code>0&lt;=x&lt;1</code>.
+    <strong>NOTE:</strong> this token is deprecated since it can behave
+    unpredictably (the same cell does not always yield the same result).
+    Use instead the <code>random()</code> function in class
+    <ref id="uk.ac.starlink.ttools.func.Maths" plaintextref="yes">Maths</ref>.
     </p></dd>
 </dl>
 </p>
@@ -13598,6 +13599,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         for different quantities at the same time.</li>
     <li>New task <ref id="tgridmap">tgridmap</ref> writes flexible
         N-dimensional density maps/histograms as tables.</li>
+    <li>New functions <code>random</code> and <code>randomGaussian</code>
+        added to class
+        <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref>.
+        Special token <code>$random</code> is now deprecated.</li>
     </ul>
     </p></dd>
 

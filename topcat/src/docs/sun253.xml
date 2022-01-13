@@ -2416,11 +2416,12 @@ for each row:
     the table.  It has a null value for rows not in the current subset.
     </p></dd>
 
-<dt><code>$random</code></dt>
-<dd><p>A double-precision random number <code>0&lt;=x&lt;1</code>
-    with a value which is fixed for a given row in this expression.
-    The quality of the random numbers may not be particularly good.
-    <em>The deprecated alias "<code>RANDOM</code>" may also be used.</em>
+<dt><code>$random</code> <em>(Deprecated)</em></dt>
+<dd><p>A double-precision random number <code>0&lt;=x&lt;1</code>.
+    <strong>NOTE:</strong> this token is deprecated since it can behave
+    unpredictably (the same cell does not always yield the same result).
+    Use instead the <code>random()</code> function in class
+    <ref id="Maths" plaintextref="yes">Maths</ref>.
     </p></dd>
 </dl>
 </p>
@@ -30227,6 +30228,9 @@ introduced since the last version:
         following MOC 2.0.</li>
     <li>Plots using <ref id="form-grid">Grid Form</ref> now allow export
         of the calculated density map to a table.</li>
+    <li>New functions <code>random</code> and <code>randomGaussian</code>
+        added to class <ref id="Maths">Maths</ref>.
+        Special token <code>$random</code> is now deprecated.</li>
     </ul>
     </p></dd>
 

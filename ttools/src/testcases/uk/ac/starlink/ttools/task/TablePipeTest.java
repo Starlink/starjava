@@ -18,6 +18,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.LoopTableScheme;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
@@ -659,6 +660,49 @@ public class TablePipeTest extends TableTestCase {
                         apply( "seqview; random; randomview; every 1" ) );
         assertSameData( inTable_,
                         apply( "seqview; cache; randomview; every 1" ) );
+    }
+
+    public void testRandomNumbers() throws Exception {
+        int nr = 10_000;
+        StarTable rtable =
+            process( new LoopTableScheme().createTable( Integer.toString( nr )),
+                     "addcol r random($0); addcol g randomGaussian($0)" );
+        StarTable stable =
+            process( rtable,
+                     "stats name mean stDev skew kurtosis"
+                   + " minimum maximum nGood" );
+        Object[] rRow = stable.getRow( 1 );
+        Object[] gRow = stable.getRow( 2 );
+        double rMean = ((Number) rRow[ 1 ]).doubleValue();
+        double rStdev = ((Number) rRow[ 2 ]).doubleValue();
+        double rSkew = ((Number) rRow[ 3 ]).doubleValue();
+        double rKurt = ((Number) rRow[ 4 ]).doubleValue();
+        double rMin = ((Number) rRow[ 5 ]).doubleValue();
+        double rMax = ((Number) rRow[ 6 ]).doubleValue();
+        int rN = ((Number) rRow[ 7 ]).intValue();
+        double gMean = ((Number) gRow[ 1 ]).doubleValue();
+        double gStdev = ((Number) gRow[ 2 ]).doubleValue();
+        double gSkew = ((Number) gRow[ 3 ]).doubleValue();
+        double gKurt = ((Number) gRow[ 4 ]).doubleValue();
+        double gMin = ((Number) gRow[ 5 ]).doubleValue();
+        double gMax = ((Number) gRow[ 6 ]).doubleValue();
+        int gN = ((Number) gRow[ 7 ]).intValue();
+
+        assertEquals( 0.5, rMean, 0.001 );
+        assertEquals( Math.sqrt(1./12.), rStdev, .001 );
+        assertEquals( 0.0, rSkew, 0.01 );
+        assertEquals( -1.2, rKurt, 0.01 );
+        assertEquals( 0.0, rMin, 0.001 );
+        assertEquals( 1.0, rMax, 0.001 );
+        assertEquals( nr, rN );
+
+        assertEquals( 0.0, gMean, 0.02 );
+        assertEquals( 1.0, gStdev, 0.02 );
+        assertEquals( 0.0, gSkew, 0.1 );
+        assertEquals( 0.0, gKurt, 0.1 );
+        assertTrue( rMin > -6 && gMin < -3 );
+        assertTrue( gMax > 3 && gMax < 6 );
+        assertEquals( nr, gN );
     }
 
     public void testReplaceCol() throws Exception {
