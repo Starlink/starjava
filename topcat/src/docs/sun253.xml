@@ -30231,6 +30231,8 @@ introduced since the last version:
     <li>New class <ref id="Randoms">Randoms</ref>
         contains pseudo-random number generation functions.
         Special token <code>$random</code> is now deprecated.</li>
+    <li>Modify ADQL sent to DaCHS RegTAP services;
+        should speed up registry queries in some cases.</li>
     </ul>
     </p></dd>
 

@@ -315,7 +315,8 @@ public abstract class RegistryProtocol {
                                                  Capability capability,
                                                  URL regUrl ) {
             Set<String> failFields = new TreeSet<String>();
-            boolean useUnion = false;
+            boolean useUnion =
+                RegTapRegistryQuery.isSupportUnion( regUrl.toString() );
             String keywordWhere =
                   useUnion
                 ? createKeywordWhereUnion( keywords, fields, isOr, failFields )

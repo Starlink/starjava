@@ -5,7 +5,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -106,6 +109,15 @@ public class RegTapRegistryQuery implements RegistryQuery {
      * form "<code>intf_role='std'</code>".
      */
     private static final String AND_IS_STANDARD = " AND intf_role='std'";
+
+    /**
+     * List of RegTAP services known to support the optional ADQL 2.1 UNION
+     * construct.  Hard-coding this is obviously hacky.
+     */
+    private static Collection<String> HAS_UNIONS =
+            Collections.unmodifiableSet( new HashSet<String>( Arrays.asList(
+        GAVO_REG, ARI_REG, AIP_REG, PARIS_REG
+    ) ) );
 
     /**
      * Constructs a query which will return RegResource lists for
@@ -383,6 +395,18 @@ public class RegTapRegistryQuery implements RegistryQuery {
         }
         rseq.close();
         return urlList.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Indicates whether the given TAP endpoint is known to support the
+     * optional ADQL 2.1 UNION language feature.
+     *
+     * @param  tapEndpoint   stringified version of TAP base URL
+     * @return  true if service is known or strongly believed to support UNION;
+     *          false if no or not sure
+     */
+    static boolean isSupportUnion( String tapUrl ) {
+        return HAS_UNIONS.contains( tapUrl );
     }
 
     /**
