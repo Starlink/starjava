@@ -17,31 +17,37 @@ public class ResourceField {
     private final String label_;
     private final String xpath_;
     private final String rrName_;
+    private final String rrTable_;
 
     /** ShortName field. */
     public static final ResourceField SHORTNAME =
-        new ResourceField( "Short Name", "shortName", "short_name" );
+        new ResourceField( "Short Name", "shortName", "short_name",
+                           "rr.resource" );
 
     /** Title field. */
     public static final ResourceField TITLE =
-        new ResourceField( "Title", "title", "res_title" );
+        new ResourceField( "Title", "title", "res_title",
+                           "rr.resource" );
 
     /** Subjects field. */
     public static final ResourceField SUBJECTS =
-        new ResourceField( "Subjects", "content/subject", "res_subject" );
+        new ResourceField( "Subjects", "content/subject", "res_subject",
+                           "rr.res_subject" );
 
     /** IVO ID field. */
     public static final ResourceField ID =
-        new ResourceField( "ID", "identifier", "ivoid" );
+        new ResourceField( "ID", "identifier", "ivoid",
+                           "rr.resource" );
 
     /** Publisher field. */
     public static final ResourceField PUBLISHER =
-        new ResourceField( "Publisher", "curation/publisher", null );
+        new ResourceField( "Publisher", "curation/publisher", null,
+                           "rr.res_role" );
 
     /** Description field. */
     public static final ResourceField DESCRIPTION =
         new ResourceField( "Description", "content/description",
-                           "res_description" );
+                           "res_description", "rr.resource" );
 
     /**
      * Constructor.
@@ -49,11 +55,14 @@ public class ResourceField {
      * @param   label    user-directed short text label
      * @param   xpath    XPath into VOResource data model
      * @param   rrName   column name in Relational Registry schema
+     * @param   rrTable  fully qualified table name in Rel Registry schema
      */
-    private ResourceField( String label, String xpath, String rrName ) {
+    private ResourceField( String label, String xpath, String rrName,
+                           String rrTable ) {
         label_ = label;
         xpath_ = xpath;
         rrName_ = rrName;
+        rrTable_ = rrTable;
     }
 
     /**
@@ -81,5 +90,15 @@ public class ResourceField {
      */
     public String getRelationalName() {
         return rrName_;
+    }
+
+    /**
+     * Returns the fully qualified name of a table containing this column
+     * in the Registry Relational Schema.
+     *
+     * @return  relational registry table name
+     */
+    public String getRelationalTable() {
+        return rrTable_;
     }
 }
