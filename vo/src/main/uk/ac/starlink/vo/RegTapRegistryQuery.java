@@ -273,11 +273,16 @@ public class RegTapRegistryQuery implements RegistryQuery {
      *
      * @param   field  field whose content is to be tested
      * @param   keyword  value to test against
+     * @param   hasSubjectsTable  true iff the rr.res_subject table is
+     *                            available for the query
+     *                            (hack; if not it assumes the res_subjects
+     *                            field is available)
      * @return  ADQL snippet that may be inserted into WHERE clause,
      *          or null if it can't be done
      */
     public static String getAdqlCondition( ResourceField field,
-                                           String keyword ) {
+                                           String keyword,
+                                           boolean hasSubjectsTable ) {
         String rrName = field.getRelationalName();
         if ( field == ResourceField.ID ||
              field == ResourceField.SHORTNAME ) {
@@ -313,11 +318,19 @@ public class RegTapRegistryQuery implements RegistryQuery {
                 .toString();
         }
         else if ( field == ResourceField.SUBJECTS ) {
-            return new StringBuffer()
-                .append( "1=ivo_hasword(res_subjects, " )
-                .append( adqlCharLiteral( keyword ) )
-                .append( ")" )
-                .toString();
+            if ( hasSubjectsTable ) {
+                return new StringBuffer()
+                      .append( "res_subject=" )
+                      .append( adqlCharLiteral( keyword ) )
+                      .toString();
+            }
+            else {
+                return new StringBuffer()
+                    .append( "1=ivo_hasword(res_subjects, " )
+                    .append( adqlCharLiteral( keyword ) )
+                    .append( ")" )
+                    .toString();
+            }
         }
         else {
             return null;

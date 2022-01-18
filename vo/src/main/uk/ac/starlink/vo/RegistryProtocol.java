@@ -3,10 +3,15 @@ package uk.ac.starlink.vo;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Defines the details of a registry access protocol.
@@ -293,14 +298,61 @@ public abstract class RegistryProtocol {
                                             idsWhere );
         }
 
+        public boolean hasCapability( Capability stdCap,
+                                      RegCapabilityInterface resCap ) {
+            String resId = resCap.getStandardId();
+            for ( String stdId : stdCap.getStandardIds() ) {
+                if ( stdId.equalsIgnoreCase( resId ) ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public RegistryQuery createKeywordQuery( String[] keywords,
                                                  ResourceField[] fields,
                                                  boolean isOr,
                                                  Capability capability,
                                                  URL regUrl ) {
+            Set<String> failFields = new TreeSet<String>();
+            boolean useUnion = false;
+            String keywordWhere =
+                  useUnion
+                ? createKeywordWhereUnion( keywords, fields, isOr, failFields )
+                : createKeywordWhereOr( keywords, fields, isOr, failFields );
+            if ( ! failFields.isEmpty() ) {
+                logger_.warning( "Failed to set constraint for fields " 
+                               + failFields );
+            }
+            TapService service = TapServices.createDefaultTapService( regUrl );
+            return new RegTapRegistryQuery( service,
+                                            capability.getStandardIds(),
+                                            keywordWhere );
+        }
+
+        /**
+         * Returns a where clause that matches a given set of fields against
+         * a given set of keywords, using straightforward OR constraints.
+         *
+         * <p>This should work on any ADQL implementation, but is known to
+         * be slow in some cases for a Postgres back end, which is inefficient
+         * when combining OR constraints against different tables.
+         * It can result in timeouts for DaCHS.
+         *
+         * @param  keywords  single-word keywords to match independently
+         * @param  fields   resource fields against which keywords are to match
+         * @param  isOr  if false all keywords must match,
+         *               if true at least one keyword must match
+         * @param  failFields  writable collection to receive names of fields
+         *                     whose constraints cannot be applied
+         * @return  ADQL condition text
+         */
+        private String
+                createKeywordWhereOr( String[] keywords,
+                                      ResourceField[] fields, boolean isOr,
+                                      Collection<String> failFields ) {
             String conjunction = isOr ? " OR " : " AND ";
             StringBuffer sbuf = new StringBuffer();
-            Set<String> failFields = new TreeSet<String>();
             for ( int iw = 0; iw < keywords.length; iw++ ) {
                 String word = keywords[ iw ];
                 if ( iw > 0 ) {
@@ -310,8 +362,8 @@ public abstract class RegistryProtocol {
                 boolean hasField = false;
                 for ( int ip = 0; ip < fields.length; ip++ ) {
                     ResourceField field = fields[ ip ];
-                    String keyCond =
-                        RegTapRegistryQuery.getAdqlCondition( field, word );
+                    String keyCond = RegTapRegistryQuery
+                                    .getAdqlCondition( field, word, false );
                     if ( keyCond != null ) {
                         if ( hasField ) {
                             sbuf.append( " OR " );
@@ -328,26 +380,74 @@ public abstract class RegistryProtocol {
                 }
                 sbuf.append( ")" );
             }
-            if ( ! failFields.isEmpty() ) {
-                logger_.warning( "Failed to set constraint for fields " 
-                               + failFields );
-            }
-            String keywordWhere = sbuf.toString();
-            TapService service = TapServices.createDefaultTapService( regUrl );
-            return new RegTapRegistryQuery( service,
-                                            capability.getStandardIds(),
-                                            keywordWhere );
+            return sbuf.toString();
         }
 
-        public boolean hasCapability( Capability stdCap,
-                                      RegCapabilityInterface resCap ) {
-            String resId = resCap.getStandardId();
-            for ( String stdId : stdCap.getStandardIds() ) {
-                if ( stdId.equalsIgnoreCase( resId ) ) {
-                    return true;
+        /**
+         * Returns a where clause that matches a given set of fields against
+         * a given set of keywords, using the optional ADQL 2.1 UNION
+         * construction.
+         *
+         * <p>This is supposed to work for any ADQL 2.1 implementation that
+         * declares UNION support; it is known to work, and can be much faster
+         * than the OR-based implementation, for recent DaCHS services.
+         *
+         * @param  keywords  single-word keywords to match independently
+         * @param  fields   resource fields against which keywords are to match
+         * @param  isOr  if false all keywords must match,
+         *               if true at least one keyword must match
+         * @param  failFields  writable collection to receive names of fields
+         *                     whose constraints cannot be applied
+         * @return  ADQL condition text
+         */
+        private String
+                createKeywordWhereUnion( String[] keywords,
+                                         ResourceField[] fields, boolean isOr,
+                                         Collection<String> failFields ) {
+            Map<String,List<ResourceField>> tFields =
+                Arrays.stream( fields )
+                      .collect( Collectors.groupingBy( ResourceField::
+                                                       getRelationalTable ) );
+            List<String> kClauses = new ArrayList<>();
+            for ( String kw : keywords ) {
+                List<String> fClauses = new ArrayList<>();
+                for ( Map.Entry<String,List<ResourceField>> entry :
+                      tFields.entrySet() ) {
+                    String rrTable = entry.getKey();
+                    List<ResourceField> fieldList = entry.getValue();
+                    List<String> condList = new ArrayList<>();
+                    for ( ResourceField field : fieldList ) {
+                        String keyCond = RegTapRegistryQuery
+                                        .getAdqlCondition( field, kw, true );
+                        if ( keyCond != null ) {
+                            condList.add( keyCond );
+                        }
+                        else {
+                            failFields.add( field.getLabel() );
+                        }
+                    }
+                    if ( condList.size() > 0 ) {
+                        String fClause = new StringBuffer()
+                           .append( "SELECT ivoid FROM " )
+                           .append( rrTable )
+                           .append( " WHERE " )
+                           .append( String.join( " OR ", condList ) )
+                           .toString();
+                        fClauses.add( fClause );
+                    }
+                }
+                if ( fClauses.size() > 0 ) {
+                    String kClause = new StringBuffer()
+                       .append( "(ivoid IN (" )
+                       .append( String.join( " UNION ", fClauses ) )
+                       .append( "))" )
+                       .toString();
+                    kClauses.add( kClause );
                 }
             }
-            return false;
+            return kClauses.size() == 0
+                 ? "1=1"
+                 : String.join( isOr ? " OR " : " AND ", kClauses );
         }
     }
 }
