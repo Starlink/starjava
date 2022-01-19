@@ -30233,6 +30233,10 @@ introduced since the last version:
         Special token <code>$random</code> is now deprecated.</li>
     <li>Modify ADQL sent to DaCHS RegTAP services;
         should speed up registry queries in some cases.</li>
+    <li>Subject keyword matching in
+        <ref id="RegistryPanel">registry searches</ref> is relaxed;
+        a keyword can match part of a subject term, it doesn't have
+        to match the subject term exactly.</li>
     </ul>
     </p></dd>
 

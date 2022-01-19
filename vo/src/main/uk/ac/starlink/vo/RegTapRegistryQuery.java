@@ -332,14 +332,19 @@ public class RegTapRegistryQuery implements RegistryQuery {
         else if ( field == ResourceField.SUBJECTS ) {
             if ( hasSubjectsTable ) {
                 return new StringBuffer()
-                      .append( "res_subject=" )
-                      .append( adqlCharLiteral( keyword ) )
+                      .append( "1=ivo_nocasematch(" )
+                      .append( rrName )
+                      .append( ", " )
+                      .append( adqlCharLiteral( "%" + keyword + "%" ) )
+                      .append( ")" )
                       .toString();
             }
             else {
                 return new StringBuffer()
-                    .append( "1=ivo_hasword(res_subjects, " )
-                    .append( adqlCharLiteral( keyword ) )
+                    .append( "1=ivo_nocasematch(" )
+                    .append( "res_subjects" )
+                    .append( ", " )
+                    .append( adqlCharLiteral( "%" + keyword + "%" ) )
                     .append( ")" )
                     .toString();
             }
