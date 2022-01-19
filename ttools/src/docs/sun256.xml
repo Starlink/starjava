@@ -13599,9 +13599,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         for different quantities at the same time.</li>
     <li>New task <ref id="tgridmap">tgridmap</ref> writes flexible
         N-dimensional density maps/histograms as tables.</li>
-    <li>New functions <code>random</code> and <code>randomGaussian</code>
-        added to class
-        <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref>.
+    <li>New class
+        <ref id="uk.ac.starlink.ttools.func.Randoms">Randoms</ref>
+        contains pseudo-random number generation functions.
         Special token <code>$random</code> is now deprecated.</li>
     </ul>
     </p></dd>

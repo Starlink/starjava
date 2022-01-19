@@ -30228,8 +30228,8 @@ introduced since the last version:
         following MOC 2.0.</li>
     <li>Plots using <ref id="form-grid">Grid Form</ref> now allow export
         of the calculated density map to a table.</li>
-    <li>New functions <code>random</code> and <code>randomGaussian</code>
-        added to class <ref id="Maths">Maths</ref>.
+    <li>New class <ref id="Randoms">Randoms</ref>
+        contains pseudo-random number generation functions.
         Special token <code>$random</code> is now deprecated.</li>
     </ul>
     </p></dd>

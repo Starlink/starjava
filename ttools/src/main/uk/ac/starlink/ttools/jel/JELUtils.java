@@ -33,6 +33,7 @@ import uk.ac.starlink.ttools.func.Gaia;
 import uk.ac.starlink.ttools.func.KCorrections;
 import uk.ac.starlink.ttools.func.Lists;
 import uk.ac.starlink.ttools.func.Maths;
+import uk.ac.starlink.ttools.func.Randoms;
 import uk.ac.starlink.ttools.func.Shapes;
 import uk.ac.starlink.ttools.func.Sky;
 import uk.ac.starlink.ttools.func.Strings;
@@ -147,6 +148,7 @@ public class JELUtils {
                 KCorrections.class,
                 Lists.class,
                 Maths.class,
+                Randoms.class,
                 Shapes.class,
                 Sky.class,
                 Strings.class,

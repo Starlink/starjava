@@ -5,8 +5,6 @@
 
 package uk.ac.starlink.ttools.func;
 
-import java.util.Random;
-
 /**
  * Standard mathematical and trigonometric functions.
  * Trigonometric functions work with angles in radians.
@@ -291,49 +289,5 @@ public class Maths {
      */
     public static double atanh( double x ) {
         return 0.5 * Math.log( ( 1 + x ) / ( 1 - x ) );
-    }
-
-    /**
-     * Generates a pseudo-random number sampled from a uniform distribution
-     * between 0 and 1.
-     *
-     * <p>The <code>seed</code> value is required, and the same seed
-     * always gives the same result, though there is not supposed to be
-     * any obvious relationship between seed and output.
-     * Usually therefore, the row index (<code>$0</code>) is a suitable
-     * seed value when using this function.
-     * If multiple different random values are required in the same row
-     * however, different seeds must be supplied for each one
-     * (for instance <code>2*$0</code> and <code>2*$0+1</code>).
-     *
-     * <p>The quality of the randomness may not be particularly good.
-     *
-     * @param   seed  seed value, typically row index "<code>$0</code>"
-     * @return  pseudo-random number
-     */
-    public static double random( long seed ) {
-        return new Random( seed * - 9091183L ).nextDouble();
-    }
-
-    /**
-     * Generates a pseudo-random number sampled from a Gaussian distribution
-     * with mean of 0.0 and standard deviation of 1.0.
-     *
-     * <p>The <code>seed</code> value is required, and the same seed
-     * always gives the same result, though there is not supposed to be
-     * any obvious relationship between seed and output.
-     * Usually therefore, the row index (<code>$0</code>) is a suitable
-     * seed value when using this function.
-     * If multiple different random values are required in the same row
-     * however, different seeds must be supplied for each one
-     * (for instance <code>2*$0</code> and <code>2*$0+1</code>).
-     *
-     * <p>The quality of the randomness may not be particularly good.
-     *
-     * @param   seed  seed value, typically row index "<code>$0</code>"
-     * @return  pseudo-random number
-     */
-    public static double randomGaussian( long seed ) {
-        return new Random( seed * - 23321L ).nextGaussian();
     }
 }
