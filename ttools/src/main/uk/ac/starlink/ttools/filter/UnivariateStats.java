@@ -123,6 +123,14 @@ public abstract class UnivariateStats {
     public abstract Quantiler getQuantiler();
 
     /**
+     * Returns an object containing statistics applicable to
+     * numeric-array-valued columns.
+     *
+     * @return  array stats object, or null
+     */
+    public abstract ArrayStats getArrayStats();
+
+    /**
      * Factory method to construct an instance of this class for accumulating
      * particular types of values.
      *
@@ -144,6 +152,9 @@ public abstract class UnivariateStats {
         else if ( clazz == Boolean.class ) {
             return new BooleanStats();
         }
+        else if ( ArrayReader.forClass( clazz ) != null ) {
+            return new NumericArrayStats( ArrayReader.forClass( clazz ) );
+        }
         else {
             boolean doCompare = Comparable.class.isAssignableFrom( clazz );
             return new ObjectStats( doCard, doCompare );
@@ -161,6 +172,44 @@ public abstract class UnivariateStats {
         @SuppressWarnings("unchecked")
         int cmp = ((Comparable) c1).compareTo( (Comparable) c2 );
         return cmp;
+    }
+
+    /**
+     * Aggregates statistics acquired from a column whose values are
+     * fixed-length numeric arrays.
+     */
+    public interface ArrayStats {
+
+        /**
+         * Returns array length.
+         *
+         * @return  fixed array length
+         */
+        int getLength();
+
+        /**
+         * Returns a per-element count of the number of non-blank elements
+         * of submitted arrays.
+         *
+         * @return  n-value array of good value counts
+         */
+        long[] getCounts();
+
+        /**
+         * Returns a per-element sum of the non-blank elements
+         * of submitted arrays.
+         *
+         * @return  n-value array of per-element sums
+         */
+        double[] getSum1s();
+
+        /**
+         * Returns a per-element sum of squares of the non-blank elements
+         * of submitted arrays.
+         *
+         * @return  n-value array of per-element sums of squares
+         */
+        double[] getSum2s();
     }
 
     /**
@@ -301,6 +350,10 @@ public abstract class UnivariateStats {
         public Quantiler getQuantiler() {
             return null;
         }
+
+        public ArrayStats getArrayStats() {
+            return null;
+        }
     }
 
     /**
@@ -373,6 +426,10 @@ public abstract class UnivariateStats {
         }
 
         public Quantiler getQuantiler() {
+            return null;
+        }
+
+        public ArrayStats getArrayStats() {
             return null;
         }
     }
@@ -527,6 +584,196 @@ public abstract class UnivariateStats {
                 quantiler_.ready();
             }
             return quantiler_;
+        }
+
+        public ArrayStats getArrayStats() {
+            return null;
+        }
+    }
+
+    /**
+     * Stats implementation for numeric arrays.
+     */
+    private static class NumericArrayStats extends UnivariateStats {
+
+        private final ArrayReader ardr_;
+        private int aleng_;
+        private long nGood_;
+        private long[] sum0s_;
+        private double[] sum1s_;
+        private double[] sum2s_;
+
+        /**
+         * Constructor.
+         *
+         * @param  ardr  reader for the expected type of array data
+         */
+        public NumericArrayStats( ArrayReader ardr ) {
+            ardr_ = ardr;
+        }
+
+        public void acceptDatum( Object array, long irow ) {
+
+            /* Determine the length of the submitted array.
+             * If it's not a suitable array, this value will be -1. */
+            int leng = ardr_.getLength( array );
+
+            /* Only accumulate as long as all the submitted arrays are
+             * the same length (ignoring empty and non-arrays). */
+            if ( leng > 0 && aleng_ >= 0 ) {
+
+                /* If we haven't seen a good array yet, initialise the
+                 * fixed length. */
+                if ( aleng_ == 0 ) {
+                    initLeng( leng );
+                }
+
+                /* If the length matches the fixed length, accumulate. */
+                if ( leng == aleng_ ) {
+                    boolean hasGood = false;
+                    for ( int i = 0; i < leng; i++ ) {
+                        double d = ardr_.getValue( array, i );
+                        if ( !Double.isNaN( d ) ) {
+                            double d2 = d * d;
+                            hasGood = true;
+                            sum0s_[ i ]++;
+                            sum1s_[ i ] += d;
+                            sum2s_[ i ] += d2;
+                        }
+                    }
+                    if ( hasGood ) {
+                        nGood_++;
+                    }
+                }
+
+                /* If we've seen two different lengths, give up. */
+                else {
+                    initLeng( -1 );
+                }
+            }
+        }
+
+        public long getCount() {
+            return nGood_;
+        }
+
+        public double getSum() {
+            return Double.NaN;
+        }
+
+        public double getSum2() {
+            return Double.NaN;
+        }
+
+        public double getSum3() {
+            return Double.NaN;
+        }
+
+        public double getSum4() {
+            return Double.NaN;
+        }
+
+        public Comparable<?> getMinimum() {
+            return null;
+        }
+
+        public Comparable<?> getMaximum() {
+            return null;
+        }
+
+        public long getMinPos() {
+            return -1L;
+        }
+
+        public long getMaxPos() {
+            return -1L;
+        }
+
+        public int getCardinality() {
+            return -1;
+        }
+
+        public Quantiler getQuantiler() {
+            return null;
+        }
+
+        public ArrayStats getArrayStats() {
+            return aleng_ > 0
+                 ? new ArrayStats() {
+                       public int getLength() {
+                           return aleng_;
+                       }
+                       public long[] getCounts() {
+                           return sum0s_;
+                       }
+                       public double[] getSum1s() {
+                           return sum1s_;
+                       }
+                       public double[] getSum2s() {
+                           return sum2s_;
+                       }
+                   }
+                 : null;
+        }
+
+        public void addStats( UnivariateStats o ) {
+            NumericArrayStats other = (NumericArrayStats) o;
+
+            /* Failed, no merge required. */
+            if ( aleng_ < 0 ) {
+                return;
+            }
+
+            /* Other has failed, mark this one as failed. */
+            else if ( other.aleng_ < 0 ) {
+                initLeng( -1 );
+                return;
+            }
+
+            /* No results from other, no merge required. */
+            else if ( other.aleng_ == 0 ) {
+                return;
+            }
+            else {
+                assert other.aleng_ > 0;
+
+                /* No results from this one, prepare to merge from other. */
+                if ( aleng_ == 0 ) {
+                    initLeng( other.aleng_ );
+                }
+
+                /* Both have results; merge other to this. */
+                nGood_ += other.nGood_;
+                for ( int i = 0; i < aleng_; i++ ) {
+                    sum0s_[ i ] += other.sum0s_[ i ];
+                    sum1s_[ i ] += other.sum1s_[ i ];
+                    sum2s_[ i ] += other.sum2s_[ i ];
+                }
+            }
+        }
+
+        /**
+         * Prepare to accumulate values for a given fixed array length.
+         *
+         * @param  leng  if positive, fixed length for accumulation;
+         *               if negative, no further results will be accumulated
+         */
+        private void initLeng( int leng ) {
+            aleng_ = leng;    
+            if ( leng > 0 ) {
+                sum0s_ = new long[ leng ];
+                sum1s_ = new double[ leng ];
+                sum2s_ = new double[ leng ];
+            }
+            else if ( leng < 0 ) {
+                sum0s_ = null;
+                sum1s_ = null;
+                sum2s_ = null;
+                nGood_ = 0;
+            }
+            else {
+                assert false;
+            }
         }
     }
 }
