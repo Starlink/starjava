@@ -212,6 +212,38 @@ public abstract class FieldReader<S,A> {
                 };
             }
 
+            case ASCII_BOOLEAN:
+                return new FieldReader<Boolean,boolean[]>
+                                      ( ftype, Boolean.class, boolean[].class ){
+                    public Boolean readScalar( byte[] buf, int off, int leng,
+                                               int startBit, int endBit ) {
+                        String txt = adapter.getString( buf, off, leng,
+                                                        startBit, endBit );
+                        txt = txt == null ? null : txt.trim();
+                        if ( "true".equals( txt ) || "1".equals( txt ) ) {
+                            return Boolean.TRUE;
+                        }
+                        else if ( "false".equals( txt ) || "0".equals( txt ) ) {
+                            return Boolean.FALSE;
+                        }
+                        else {
+                            return null;
+                        }
+                    }
+                    public void readElement( byte[] buf, int off, int leng,
+                                             int startBit, int endBit,
+                                             boolean[] array, int iel ) {
+                        String txt = adapter.getString( buf, off, leng,
+                                                        startBit, endBit );
+                        txt = txt == null ? null : txt.trim();
+                        array[ iel ] = "true".equals( txt )
+                                    || "1".equals( txt );
+                    }
+                    public boolean[] createArray( int n ) {
+                        return new boolean[ n ];
+                    }
+                };
+
             case SIGNEDBYTE:
             case UNSIGNEDBYTE:
             case SIGNEDLSB2:
