@@ -55,6 +55,10 @@ public class StatsFilter extends BasicFilter {
     private static final ValueInfo Q1_INFO;
     private static final ValueInfo Q2_INFO;
     private static final ValueInfo Q3_INFO;
+    private static final ValueInfo ARRAY_NGOOD_INFO;
+    private static final ValueInfo ARRAY_SUM_INFO;
+    private static final ValueInfo ARRAY_MEAN_INFO;
+    private static final ValueInfo ARRAY_POPSD_INFO;
 
     /** All known statistical quantities. */
     private static final ValueInfo[] KNOWN_INFOS = new ValueInfo[] {
@@ -99,6 +103,22 @@ public class StatsFilter extends BasicFilter {
         Q1_INFO = new QuantileInfo( 0.25, "Quartile1", "First quartile" ),
         Q2_INFO = new QuantileInfo( 0.50, "Quartile2", "Second quartile" ),
         Q3_INFO = new QuantileInfo( 0.75, "Quartile3", "Third quartile" ),
+        ARRAY_NGOOD_INFO =
+            new DefaultValueInfo( "ArrayNGood", long[].class,
+                                  "Per-element non-blank counts"
+                                + " for fixed-length array columns" ),
+        ARRAY_SUM_INFO =
+            new DefaultValueInfo( "ArraySum", double[].class,
+                                  "Per-element sums"
+                                + " for fixed-length array columns" ),
+        ARRAY_MEAN_INFO =
+            new DefaultValueInfo( "ArrayMean", double[].class,
+                                  "Per-element means"
+                                + " for fixed-length array columns" ),
+        ARRAY_POPSD_INFO =
+            new DefaultValueInfo( "ArrayStDev", double[].class,
+                                  "Per-element population standard deviation"
+                                + " for fixed-length array columns" ),
     };
 
     /** Example Q.* infos for documentation only. */
@@ -334,7 +354,6 @@ public class StatsFilter extends BasicFilter {
             double nvar = ( sum2 - sum1 * sum1 / dcount );
             double popvar = nvar / dcount;
             double sampvar = nvar / ( dcount - 1 );
-          
             double skew = Math.sqrt( dcount ) / Math.pow( nvar, 1.5 )
                         * ( + 1 * sum3
                             - 3 * mean * sum2
@@ -349,6 +368,7 @@ public class StatsFilter extends BasicFilter {
                             - 3.0;
             Comparable<?> min = stats.getMinimum();
             Comparable<?> max = stats.getMaximum();
+            UnivariateStats.ArrayStats arrayStats = stats.getArrayStats();
 
             /* Add statistical quantities to the column's
              * info->values map. */
@@ -396,6 +416,28 @@ public class StatsFilter extends BasicFilter {
                         quantiler.getValueAtQuantile( quantInfo.getQuant() );
                     map.put( quantInfo, Float.valueOf( (float) quantile ) );
                 }
+            }
+            if ( arrayStats != null ) {
+                long[] sum0s = arrayStats.getCounts();
+                double[] sum1s = arrayStats.getSum1s();
+                double[] sum2s = arrayStats.getSum2s();
+                int leng = arrayStats.getLength();
+                double[] means = new double[ leng ];
+                double[] popsds = new double[ leng ];
+                for ( int i = 0; i < leng; i++ ) {
+                    double acount = sum0s[ i ];
+                    double asum1 = sum1s[ i ];
+                    double asum2 = sum2s[ i ];
+                    double amean = asum1 / acount;
+                    double anvar = ( asum2 - asum1 * asum1 / acount );
+                    double apopvar = anvar / acount;
+                    means[ i ] = amean;
+                    popsds[ i ] = Math.sqrt( apopvar );
+                }
+                map.put( ARRAY_NGOOD_INFO, sum0s );
+                map.put( ARRAY_SUM_INFO, sum1s );
+                map.put( ARRAY_MEAN_INFO, means );
+                map.put( ARRAY_POPSD_INFO, popsds );
             }
         }
 

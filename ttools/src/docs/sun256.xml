@@ -13603,6 +13603,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="uk.ac.starlink.ttools.func.Randoms">Randoms</ref>
         contains pseudo-random number generation functions.
         Special token <code>$random</code> is now deprecated.</li>
+    <li>New quantities
+        <code>ArrayNGood</code>, <code>ArraySum</code>,
+        <code>ArrayMean</code>, <code>ArrayStDev</code>
+        added to <ref id="stats"><code>stats</code></ref> filter,
+        allowing per-element statistics calculations for
+        fixed-length numeric array data.</li>
     </ul>
     </p></dd>
 
