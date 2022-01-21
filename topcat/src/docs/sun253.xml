@@ -6501,6 +6501,32 @@ You can reveal these by using the <label>Display</label> menu:
 </dl>
 </p>
 
+<p>Some of these quantities are suitable only for array-valued columns,
+and calculate per-element array statistics that are arrays of the same
+length as the input values (the input arrays must all be the same length):
+<dl>
+
+<dt>Array nGoods</dt>
+<dd><p>Per-element count of the number of non-blank values in the
+    input arrays.
+    </p></dd>
+
+<dt>Array Sums</dt>
+<dd><p>Per-element sum of the values in the input arrays.
+    </p></dd>
+
+<dt>Array Means</dt>
+<dd><p>Per-element mean of the values in the input arrays.
+    </p></dd>
+
+<dt>Array SDs</dt>
+<dd><p>Per-element population standard deviation of the values
+    in the input arrays.
+    </p></dd>
+
+</dl>
+</p>
+
 <p>In addition, some <label>quantile</label> values can calculated on demand 
 (by selecting their values in the <label>Display</label> menu, as for
 the previous list).  The available values are:
@@ -30237,6 +30263,9 @@ introduced since the last version:
         <ref id="RegistryPanel">registry searches</ref> is relaxed;
         a keyword can match part of a subject term, it doesn't have
         to match the subject term exactly.</li>
+    <li>New per-element Count, Sum, Mean, StDev quantities available 
+        in <ref id="StatsWindow">Statistics Window</ref> for
+        fixed-length-array-valued columns.</li>
     </ul>
     </p></dd>
 

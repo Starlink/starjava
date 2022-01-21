@@ -598,6 +598,39 @@ public class StatsWindow extends AuxWindow {
             metas.add( new QuantileColumn( entry.getKey(), entry.getValue() ) );
         }
 
+        /* Quantities for fixed-length arrays. */
+        String forArray = " for fixed-length array-valued column";
+        hideColumns_.set( metas.size() );
+        metas.add( new StatMetaColumn( "Array_nGoods", long[].class,
+                                       "Per-element counts of non-blank values"
+                                     + forArray ) {
+            public long[] getValue( ColStat cstat ) {
+                return cstat.arrayCounts_;
+            }
+        } );
+        hideColumns_.set( metas.size() );
+        metas.add( new StatMetaColumn( "Array_Sums", double[].class,
+                                       "Per-element sums" + forArray ) {
+            public double[] getValue( ColStat cstat ) {
+                return cstat.arraySums_;
+            }
+        } );
+        hideColumns_.set( metas.size() );
+        metas.add( new StatMetaColumn( "Array_Means", double[].class,
+                                       "Per-element means" + forArray ) {
+            public double[] getValue( ColStat cstat ) {
+                return cstat.arrayMeans_;
+            }
+        } );
+        hideColumns_.set( metas.size() );
+        metas.add( new StatMetaColumn( "Array_SDs", double[].class,
+                                       "Per-element population "
+                                     + "standard deviations" + forArray ) {
+            public double[] getValue( ColStat cstat ) {
+                return cstat.arrayPopstdevs_;
+            }
+        } );
+
         /* Construct a new TableModel based on these meta columns. */
         final MetaColumnTableModel tmodel = new MetaColumnTableModel( metas ) {
             public int getRowCount() {
@@ -826,6 +859,10 @@ public class StatsWindow extends AuxWindow {
         final double kurt_;
         final double median_;
         final Map<Double,Double> quantiles_;
+        final long[] arrayCounts_;
+        final double[] arraySums_;
+        final double[] arrayMeans_;
+        final double[] arrayPopstdevs_;
         double mad_;
 
         /**
@@ -881,6 +918,35 @@ public class StatsWindow extends AuxWindow {
             else {
                 median_ = Double.NaN;
                 quantiles_ = null;
+            }
+            UnivariateStats.ArrayStats arrayStats = ustat.getArrayStats();
+            if ( arrayStats == null ) {
+                arrayCounts_ = null;
+                arraySums_ = null;
+                arrayMeans_ = null;
+                arrayPopstdevs_ = null;
+            }
+            else {
+                long[] sum0s = arrayStats.getCounts();
+                double[] sum1s = arrayStats.getSum1s();
+                double[] sum2s = arrayStats.getSum2s();
+                int leng = arrayStats.getLength();
+                double[] means = new double[ leng ];
+                double[] popsds = new double[ leng ];
+                for ( int i = 0; i < leng; i++ ) {
+                    double acount = sum0s[ i ];
+                    double asum1 = sum1s[ i ];
+                    double asum2 = sum2s[ i ];
+                    double amean = asum1 / acount;
+                    double anvar = ( asum2 - asum1 * asum1 / acount );
+                    double apopvar = anvar / acount;
+                    means[ i ] = amean;
+                    popsds[ i ] = Math.sqrt( apopvar );
+                }
+                arrayCounts_ = sum0s;
+                arraySums_ = sum1s;
+                arrayMeans_ = means;
+                arrayPopstdevs_ = popsds;
             }
             mad_ = Double.NaN;
         }
