@@ -12,11 +12,13 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -399,14 +401,31 @@ public abstract class AxisController<P,A> implements Configger {
      *           associated with the layer, or null if no range
      */
     @Equality
-    protected DataId createDataId( PlotLayer layer ) {
+    private DataId createDataId( PlotLayer layer ) {
         DataGeom geom = layer.getDataGeom();
         DataSpec spec = layer.getDataSpec();
-        CoordGroup cgrp = layer.getPlotter().getCoordGroup();
+        Plotter<? extends Style> plotter = layer.getPlotter();
+        CoordGroup cgrp = plotter.getCoordGroup();
+        Object styleKey = getRangeStyleKey( plotter, layer );
         return spec == null ||
                cgrp.getRangeCoordIndices( geom ).length == 0
              ? null 
-             : new DataId( geom, spec, cgrp );
+             : new DataId( geom, spec, cgrp, styleKey );
+    }
+
+    /**
+     * Utility method to extract a RangeStyleKey from a plot layer.
+     * Required to work round generics; PlotLayer is not typed, but Plotter is.
+     *
+     * @param  plotter  plotter
+     * @param  layer   plot layer created by <code>plotter</code>
+     * @return  result of calling <code>plotter.getRangeStyleKey(style)</code>
+     */
+    private static <S extends Style> Object
+            getRangeStyleKey( Plotter<S> plotter, PlotLayer layer ) {
+        @SuppressWarnings("unchecked")
+        S style = (S) layer.getStyle();
+        return plotter.getRangeStyleKey( style );
     }
 
     /**
@@ -426,6 +445,7 @@ public abstract class AxisController<P,A> implements Configger {
         private final DataGeom geom_;
         private final StarTable srcTable_;
         private final Object[] coordIds_; 
+        private final Object styleKey_;
 
         /**
          * Constructor.
@@ -433,10 +453,13 @@ public abstract class AxisController<P,A> implements Configger {
          * @param  geom  data geom
          * @param  dataSpec  data spec, not null
          * @param  cgrp   coordinate group 
+         * @param  styleKey  object characterising style influence on range
          */
-        DataId( DataGeom geom, DataSpec dataSpec, CoordGroup cgrp ) {
+        DataId( DataGeom geom, DataSpec dataSpec, CoordGroup cgrp,
+                Object styleKey ) {
             geom_ = geom;
             srcTable_ = dataSpec.getSourceTable();
+            styleKey_ = styleKey;
 
             /* A CoordinateGroup explicitly labels those coordinates that
              * are relevant for ranging.  Use these. */ 
@@ -452,6 +475,7 @@ public abstract class AxisController<P,A> implements Configger {
             code = 23 * code + PlotUtil.hashCode( geom_ );
             code = 23 * code + srcTable_.hashCode();
             code = 23 * code + Arrays.hashCode( coordIds_ );
+            code = 23 * code + PlotUtil.hashCode( styleKey_ );
             return code; 
         }
         @Override  
@@ -460,7 +484,8 @@ public abstract class AxisController<P,A> implements Configger {
                 DataId other = (DataId) o;
                 return PlotUtil.equals( this.geom_, other.geom_ )
                     && this.srcTable_.equals( other.srcTable_ )
-                    && Arrays.equals( this.coordIds_, other.coordIds_ );
+                    && Arrays.equals( this.coordIds_, other.coordIds_ )
+                    && PlotUtil.equals( this.styleKey_, other.styleKey_ );
             }
             else {
                 return false;

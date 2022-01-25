@@ -30270,6 +30270,9 @@ introduced since the last version:
         in a few places that it didn't work before.</li>
     <li>Improved auto-ranging for
         <ref id="form-gaussian">Gaussian</ref> plot.</li>
+    <li>Improved auto-ranging for some histogram-like plotters;
+        changing style attributes like normalisation will now
+        reset the plot view as appropriate.</li>
     </ul>
     </p></dd>
 
