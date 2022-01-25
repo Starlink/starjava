@@ -26,10 +26,12 @@ import uk.ac.starlink.ttools.plot2.layer.GridPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.KnnKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LineArrayForm;
+import uk.ac.starlink.ttools.plot2.layer.LineCombineArrayPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinearFitPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkArrayForm;
+import uk.ac.starlink.ttools.plot2.layer.MarkCombineArrayPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
@@ -153,6 +155,8 @@ public class PlanePlotType
             ArrayShapePlotter
            .createArrayShapePlotters( arrayForms, ShapeMode.MODES_2D );
         list.addAll( Arrays.asList( arrayShapePlotters ) );
+        list.add( LineCombineArrayPlotter.INSTANCE );
+        list.add( MarkCombineArrayPlotter.INSTANCE );
         PerUnitConfigKey<Unit> unitKey = null;
         list.addAll( Arrays.asList( new Plotter<?>[] {
             new LinePlotter( LinePlotter.PLANE_SORTAXIS_KEY ),

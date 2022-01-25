@@ -40,6 +40,8 @@
   <!ENTITY FIG.plot2-layer-spheregrid 'plot2-layer-spheregrid.png'>
   <!ENTITY FIG.plot2-layer-lines 'plot2-layer-lines.png'>
   <!ENTITY FIG.plot2-layer-marks 'plot2-layer-marks.png'>
+  <!ENTITY FIG.plot2-layer-statline 'plot2-layer-statline.png'>
+  <!ENTITY FIG.plot2-layer-statmark 'plot2-layer-statmark.png'>
   <!ENTITY FIG.plot2-layer-yerrors 'plot2-layer-yerrors.png'>
   <!ENTITY FIG.plot2-layer-xyerrors 'plot2-layer-xyerrors.png'>
   <!ENTITY FIG.plot2-shading-flat 'plot2-shading-flat.png'>

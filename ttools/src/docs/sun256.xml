@@ -13613,6 +13613,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="layer-gaussian">gaussian</ref> plots.</li>
     <li>Provide quantile options for the <code>combiner</code>
         parameters of some commands.</li>
+    <li>New plot layers <ref id="layer-statline">statline</ref> and
+        <ref id="layer-statmark">statmark</ref>, to plot
+        quantities like the mean of array-valued input columns.</li>
     </ul>
     </p></dd>
 
