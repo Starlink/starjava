@@ -13609,6 +13609,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         added to <ref id="stats"><code>stats</code></ref> filter,
         allowing per-element statistics calculations for
         fixed-length numeric array data.</li>
+    <li>Improved autoranging for
+        <ref id="layer-gaussian">gaussian</ref> plots.</li>
     </ul>
     </p></dd>
 

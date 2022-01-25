@@ -30268,6 +30268,8 @@ introduced since the last version:
         fixed-length-array-valued columns.</li>
     <li>Follow HTTP-&gt;HTTPS 3xx redirects when parsing VOTables
         in a few places that it didn't work before.</li>
+    <li>Improved auto-ranging for
+        <ref id="form-gaussian">Gaussian</ref> plot.</li>
     </ul>
     </p></dd>
 

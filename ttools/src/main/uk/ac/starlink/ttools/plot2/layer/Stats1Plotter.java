@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -216,7 +217,75 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                 return new StatsDrawing( (PlanarSurface) surface, geom,
                                          dataSpec, style, paperType );
             }
+            @Override
+            public void extendCoordinateRanges( Range[] ranges,
+                                                boolean[] logFlags,
+                                                DataStore dataStore ) {
+                boolean isLog = logFlags[ 0 ];
+                WStats stats = collectStats( isLog, dataSpec, dataStore );
+                StatsPlan plan = new StatsPlan( isLog, stats, dataSpec );
+                double mean = stats.getMean();
+                double sd = stats.getSigma();
+                Range xRange = ranges[ 0 ];
+                xRange.submit( mean - sd * 2 );
+                xRange.submit( mean + sd * 2 );
+                if ( xRange.isFinite() ) {
+                    double[] xlims = xRange.getFiniteBounds( isLog );
+                    double yhi = plan.getFactor( xlims[ 0 ], xlims[ 1 ],
+                                                 Rounding.DECIMAL, style);
+                    Range yRange = ranges[ 1 ];
+                    yRange.submit( 0 );
+                    yRange.submit( yhi );
+                }
+            }
         };
+    }
+
+    /**
+     * Determines the stats by going through the data.
+     *
+     * @param  isLogX     true for X axis logarithmic, false for linear
+     * @param  dataSpec   data spec
+     * @param  dataStore  data store
+     * @return  calculated statistics
+     */
+    private WStats collectStats( boolean isLogX, DataSpec dataSpec,
+                                 DataStore dataStore ) {
+        final boolean isUnweighted = weightCoord_ == null
+                                  || dataSpec.isCoordBlank( icWeight_ );
+        SplitCollector<TupleSequence,WStats> collector =
+                new SplitCollector<TupleSequence,WStats>() {
+            public WStats createAccumulator() {
+                return new WStats();
+            }
+            public void accumulate( TupleSequence tseq, WStats stats ) {
+                if ( isUnweighted ) {
+                    while ( tseq.next() ) {
+                        double x = xCoord_.readDoubleCoord( tseq, icX_ );
+                        double s = isLogX ? log( x ) : x;
+                        if ( PlotUtil.isFinite( s ) ) {
+                            stats.addPoint( s );
+                        }
+                    }
+                }
+                else {
+                    while ( tseq.next() ) {
+                        double x = xCoord_.readDoubleCoord( tseq, icX_ );
+                        double s = isLogX ? log( x ) : x;
+                        if ( PlotUtil.isFinite( s ) ) {
+                            double w = weightCoord_
+                                      .readDoubleCoord( tseq, icWeight_ );
+                            stats.addPoint( s, w );
+                        }
+                    } 
+                }
+            }
+            public WStats combine( WStats stats1, WStats stats2 ) {
+                stats1.add( stats2 );
+                return stats1;
+            }
+        };
+        return PlotUtil.tupleCollect( collector, dataSpec, dataStore );
     }
 
     /**
@@ -330,42 +399,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             }
 
             /* Otherwise, accumulate statistics and return the result. */
-            final boolean isUnweighted = weightCoord_ == null
-                                      || dataSpec_.isCoordBlank( icWeight_ );
-            SplitCollector<TupleSequence,WStats> collector =
-                    new SplitCollector<TupleSequence,WStats>() {
-                public WStats createAccumulator() {
-                    return new WStats();
-                }
-                public void accumulate( TupleSequence tseq, WStats stats ) {
-                    if ( isUnweighted ) {
-                        while ( tseq.next() ) {
-                            double x = xCoord_.readDoubleCoord( tseq, icX_ );
-                            double s = isLog ? log( x ) : x;
-                            if ( PlotUtil.isFinite( s ) ) {
-                                stats.addPoint( s );
-                            }
-                        }
-                    }
-                    else {
-                        while ( tseq.next() ) {
-                            double x = xCoord_.readDoubleCoord( tseq, icX_ );
-                            double s = isLog ? log( x ) : x;
-                            if ( PlotUtil.isFinite( s ) ) {
-                                double w = weightCoord_
-                                          .readDoubleCoord( tseq, icWeight_ );
-                                stats.addPoint( s, w );
-                            }
-                        } 
-                    }
-                }
-                public WStats combine( WStats stats1, WStats stats2 ) {
-                    stats1.add( stats2 );
-                    return stats1;
-                }
-            };
-            WStats stats =
-                PlotUtil.tupleCollect( collector, dataSpec_, dataStore );
+            WStats stats = collectStats( isLog, dataSpec_, dataStore );
             return new StatsPlan( isLog, stats, dataSpec_ );
         }
 
@@ -479,14 +513,26 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
          * @param  style     stats style
          */
         private double getFactor( PlanarSurface surface, StatsStyle style ) {
-            boolean xlog = surface.getLogFlags()[ 0 ];
             double[] xlims = surface.getDataLimits()[ 0 ];
-            Rounding xround =
-                Rounding.getRounding( surface.getTimeFlags()[ 0 ] );
-            double bw = style.sizer_
-                       .getWidth( xlog, xlims[ 0 ], xlims[ 1 ], xround );
-            double binWidth = xlog ? log( bw )
-                                   : bw / style.unit_.getExtent();
+            boolean isTime = surface.getTimeFlags()[ 0 ];
+            Rounding xround = Rounding.getRounding( isTime );
+            return getFactor( xlims[ 0 ], xlims[ 1 ], xround, style );
+        }
+
+        /**
+         * Returns the multiplicative factor by which the <code>gaussian</code>
+         * method should be multiplied to give the plotted value.
+         *
+         * @param  xlo     approx X coordinate lower limit of surface
+         * @param  xhi     approx X coordinate upper limit of surface
+         * @param  xround  rounding behaviour on X axis
+         * @param  style     stats style
+         */
+        private double getFactor( double xlo, double xhi, Rounding xround,
+                                  StatsStyle style ) {
+            double bw = style.sizer_.getWidth( isLog_, xlo, xhi, xround );
+            double binWidth = isLog_ ? log( bw )
+                                     : bw / style.unit_.getExtent();
             double c = 1.0 / ( sigma_ * Math.sqrt( 2.0 * Math.PI ) );
             double sum = sum_;
             double max = c * sum * binWidth;
