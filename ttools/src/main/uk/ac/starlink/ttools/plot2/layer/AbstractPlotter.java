@@ -13,7 +13,7 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 /**
  * Skeleton implementation of Plotter.
  * This doesn't do anything clever, just manages the basic members
- * supplied at construction time.
+ * supplied at construction time.  It also returns a null range style key.
  *
  * @author   Mark Taylor
  * @since    22 Nov 2013
@@ -81,5 +81,12 @@ public abstract class AbstractPlotter<S extends Style> implements Plotter<S> {
 
     public boolean hasReports() {
         return hasReports_;
+    }
+
+    /**
+     * The AbstractPlotter implementation returns null.
+     */
+    public Object getRangeStyleKey( S style ) {
+        return null;
     }
 }

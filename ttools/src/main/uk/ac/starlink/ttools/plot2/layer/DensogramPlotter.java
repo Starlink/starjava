@@ -137,6 +137,10 @@ public class DensogramPlotter
                                sizer, cumul, extent, position );
     }
 
+    public Object getRangeStyleKey( DensoStyle style ) {
+        return null;
+    }
+
     protected void paintBins( PlanarSurface surface, BinArray binArray,
                               DensoStyle style, Graphics2D g ) {
 

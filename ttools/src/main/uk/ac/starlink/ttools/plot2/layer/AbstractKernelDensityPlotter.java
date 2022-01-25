@@ -319,6 +319,12 @@ public abstract class AbstractKernelDensityPlotter
         }
     }
 
+    @Override
+    public Object getRangeStyleKey( KDenseStyle style ) {
+        return Arrays.asList( style.combiner_, style.unit_,
+                              style.cumulative_, style.norm_ );
+    }
+
     protected ReportMap getPixel1dReport( Pixel1dPlan plan,
                                           KDenseStyle style,
                                           boolean xLog ) {

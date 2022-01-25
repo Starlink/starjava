@@ -216,6 +216,10 @@ public class SpectrogramPlotter
         return new SpectroStyle( shader, scaling, dataclip, nullColor, grid );
     }
 
+    public Object getRangeStyleKey( SpectroStyle style ) {
+        return null;
+    }
+
     public boolean hasReports() {
         return false;
     }

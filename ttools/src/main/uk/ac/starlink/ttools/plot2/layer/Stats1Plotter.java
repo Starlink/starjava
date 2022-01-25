@@ -206,6 +206,11 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                                norm, unit, sizer );
     }
 
+    @Override
+    public Object getRangeStyleKey( StatsStyle style ) {
+        return style.norm_;
+    }
+
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
                                   final StatsStyle style ) {
         LayerOpt layerOpt = new LayerOpt( style.getColor(), true );

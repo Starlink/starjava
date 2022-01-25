@@ -230,6 +230,10 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                               scaling, dataclip, shader, combiner );
     }
 
+    public Object getRangeStyleKey( GridStyle style ) {
+        return null;
+    }
+
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                   GridStyle style ) {
         return new GridLayer( this, geom, dataSpec, style );

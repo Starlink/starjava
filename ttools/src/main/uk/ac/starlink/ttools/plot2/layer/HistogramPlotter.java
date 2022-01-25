@@ -275,6 +275,12 @@ public class HistogramPlotter
                                unit, thick, dash, sizer, binPhase, combiner );
     }
 
+    @Override
+    public Object getRangeStyleKey( HistoStyle style ) {
+        return Arrays.asList( style.combiner_, style.sizer_,
+                              style.cumulative_, style.norm_ );
+    }
+
     public boolean hasReports() {
         return true;
     }

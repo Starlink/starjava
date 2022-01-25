@@ -290,6 +290,10 @@ public class SkyDensityPlotter
                                   unit );
     }
 
+    public Object getRangeStyleKey( SkyDenseStyle style ) {
+        return null;
+    }
+
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                   SkyDenseStyle style ) {
         return new SkyDensityLayer( (SkyDataGeom) geom, dataSpec, style );

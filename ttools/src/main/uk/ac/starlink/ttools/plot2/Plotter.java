@@ -86,6 +86,28 @@ public interface Plotter<S extends Style> {
     boolean hasReports();
 
     /**
+     * Returns an opaque object characterising the region of the plot surface
+     * covered when using a given plotter style.
+     * If this object changes between layers produced by this plotter,
+     * it provides a hint that it may be necessary to redetermine the
+     * axis ranges (using
+     * {@link PlotLayer#extendCoordinateRanges extendCoordinateRanges}).
+     *
+     * <p>In many cases, such as scatter-plot-like plotters, the range
+     * is determined only by the coordinate data
+     * (managed by {@link uk.ac.starlink.ttools.plot2.data.DataSpec} inputs)
+     * so a null value may be returned.
+     * This method is chiefly required by histogram-like plotters for which
+     * the region on the plot surface is not the union of the input positions.
+     *
+     * @param  style   plot style to assess
+     * @return  opaque object with equality semantics,
+     *          or null if axis range is not a function of style
+     */
+    @Equality
+    Object getRangeStyleKey( S style );
+
+    /**
      * Creates a PlotLayer based on the given geometry, data and style.
      *
      * <p>The <code>style</code> parameter is the result of a call to
