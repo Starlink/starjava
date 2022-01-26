@@ -11973,19 +11973,6 @@ you to use it.
 <dd><p>The base colour for the data set.
     Only certain shader colour maps respect this value, for others it
     is ignored.</p></dd>
-<dt>Combine</dt>
-<dd><p>If you have a non-blank <label>Weight</label> value,
-    this option controls how the weight values present at each X-axis pixel
-    are combined to give the densogram colour.
-    The default is <label>sum</label>, which makes sense for a weighted
-    or unweighted plot, but other options available are
-    <label>mean</label>,
-    <label>median</label>,
-    <label>min</label>,
-    <label>max</label>
-    and
-    <label>stdev</label>.
-    </p></dd>
 <dt>Density Shader</dt>                  
 <dd><p>The colour map for displaying density values.
     There are two types, relative and absolute.
