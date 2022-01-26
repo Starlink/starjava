@@ -13611,6 +13611,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         fixed-length numeric array data.</li>
     <li>Improved autoranging for
         <ref id="layer-gaussian">gaussian</ref> plots.</li>
+    <li>Provide quantile options for the <code>combiner</code>
+        parameters of some commands.</li>
     </ul>
     </p></dd>
 

@@ -50,6 +50,12 @@ public abstract class Combiner {
     /** Calculate the median of all submitted values (slow). */
     public static final Combiner MEDIAN;
 
+    /** Calculate the first quartile of all submitted values (slow). */
+    public static final Combiner Q1;
+
+    /** Calculate the third quartile of all submitted values (slow). */
+    public static final Combiner Q3;
+
     /** Calculate the sample standard deviation of all submitted values. */
     public static final Combiner SAMPLE_STDEV;
 
@@ -68,12 +74,22 @@ public abstract class Combiner {
         COUNT = new CountCombiner(),
         DENSITY = new DensityCombiner(),
         MEAN = new MeanCombiner(),
-        MEDIAN = new MedianCombiner(),
+        MEDIAN = createQuantileCombiner( "median", "the median", 0.5 ),
+        Q1 = createQuantileCombiner( "Q1", "first quartile", 0.25 ),
+        Q3 = createQuantileCombiner( "Q3", "third quartile", 0.75 ),
         MIN = new MinCombiner(),
         MAX = new MaxCombiner(),
         SAMPLE_STDEV = new StdevCombiner( true ),
         HIT = new HitCombiner(),
     };
+
+    /** Calculate the 1st percentile of all submitted values (slow). */
+    public static final Combiner Q01 =
+        createQuantileCombiner( "Q.01", "1st percentile", 0.01 );
+
+    /** Calculate the 99th percentile of all submitted values (slow). */
+    public static final Combiner Q99 =
+        createQuantileCombiner( "Q.99", "99th percentile", 0.99 );
 
     /**
      * Constructor.
@@ -235,6 +251,61 @@ public abstract class Combiner {
                 return ucd + ";" + word;
             }
         }
+    }
+
+    /**
+     * Creates a combiner that calculates a given quantile.
+     *
+     * @param  name  combiner name
+     * @param  descrip   minimal description, or null
+     * @param  quantile   quantile point, between 0 and 1
+     * @return  combiner
+     */
+    public static Combiner createQuantileCombiner( String name, String descrip,
+                                                   double quantile ) {
+        String description =
+              ( descrip == null ? ( "value below which " + quantile
+                                  + " of the values fall" )
+                                : ( descrip + " of the values" ) )
+            + " (may be slow)";
+        QuantileCombiner.Quantiler quantiler =
+                new QuantileCombiner.Quantiler() {
+            public double calculateValue( double[] sorted ) {
+                int nv = sorted.length;
+                if ( nv > 1 ) {
+                    double dpos = quantile * ( nv - 1 );
+                    int ipos = (int) dpos;
+                    double frac = dpos - ipos;
+                    double value = sorted[ ipos ];
+                    if ( frac > 0 ) {
+                        value += frac * ( sorted[ ipos + 1 ] - sorted[ ipos ] );
+                    }
+                    return value;
+                }
+                else if ( nv == 1 ) {
+                    return sorted[ 0 ];
+                }
+                else {
+                    assert nv == 0;
+                    return Double.NaN;
+                }
+            }
+        };
+        return new QuantileCombiner( name, descrip, quantiler ) {
+            public ValueInfo createCombinedInfo( ValueInfo dataInfo,
+                                                 Unit scaleUnit ) {
+                DefaultValueInfo info = new DefaultValueInfo( dataInfo );
+                info.setContentClass( Double.class );
+                info.setDescription( getInfoDescription( dataInfo ) + ", "
+                                   + ( descrip == null ? quantile + " quantile"
+                                                       : descrip ) );
+                if ( quantile == 0.5 ) {
+                    info.setUCD( modifyUcd( dataInfo.getUCD(), "stat.median",
+                                            false ) );
+                }
+                return info;
+            }
+        };
     }
 
     /**
@@ -421,42 +492,6 @@ public abstract class Combiner {
             public double getCombinedValue() {
                 return count_ == 0 ? Double.NaN : sum_ / (double) count_;
             }
-        }
-    }
-
-    /**
-     * Combiner implementation that calculates the median.
-     */
-    private static class MedianCombiner extends QuantileCombiner {
-        MedianCombiner() {
-            super( "median",
-                   "the median of the combined values (may be slow)",
-                   new QuantileCombiner.Quantiler() {
-                       public double calculateValue( double[] sortedValues ) {
-                           int nv = sortedValues.length;
-                           if ( nv % 2 == 1 ) {
-                               return sortedValues[ nv / 2 ];
-                           }
-                           else if ( nv > 0 ) {
-                               int nv2 = nv / 2;
-                               return 0.5 * ( sortedValues[ nv2 - 1 ]
-                                            + sortedValues[ nv2 ] );
-                           }
-                           else {
-                               return Double.NaN;
-                           }
-                       }
-                   } );
-        }
-
-        public ValueInfo createCombinedInfo( ValueInfo dataInfo,
-                                             Unit scaleUnit ) {
-            DefaultValueInfo info = new DefaultValueInfo( dataInfo );
-            info.setContentClass( Double.class );
-            info.setDescription( getInfoDescription( dataInfo )
-                               + ", median value in bin" );
-            info.setUCD( modifyUcd( dataInfo.getUCD(), "stat.median", false ) );
-            return info;
         }
     }
 
