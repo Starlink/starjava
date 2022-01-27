@@ -662,7 +662,7 @@ public class TablePipeTest extends TableTestCase {
                         apply( "seqview; cache; randomview; every 1" ) );
     }
 
-    public void testRandomNumbers() throws Exception {
+    public void testRandomNumbersIndexed() throws Exception {
         int nr = 10_000;
         StarTable rtable =
             process( new LoopTableScheme().createTable( Integer.toString( nr )),
@@ -702,6 +702,60 @@ public class TablePipeTest extends TableTestCase {
         assertEquals( 0.0, gKurt, 0.1 );
         assertTrue( rMin > -6 && gMin < -3 );
         assertTrue( gMax > 3 && gMax < 6 );
+        assertEquals( nr, gN );
+    }
+
+    public void testRandomNumbersSequential() throws Exception {
+        int nr = 10_000;
+        StarTable table =
+            new LoopTableScheme().createTable( Integer.toString( nr ) );
+        String cmd =
+               "addcol r nextRandom();"
+             + "addcol g nextRandomGaussian();"
+             + "stats name mean stDev skew kurtosis minimum maximum nGood";
+        MapEnvironment env = new MapEnvironment()
+                            .setValue( "in", table )
+                            .setValue( "cmd", cmd );
+        new TablePipe().createExecutable( env ).execute();
+        StarTable stable = env.getOutputTable( "omode" );
+        Object[] rRow = stable.getRow( 1 );
+        Object[] gRow = stable.getRow( 2 );
+        double rMean = ((Number) rRow[ 1 ]).doubleValue();
+        double rStdev = ((Number) rRow[ 2 ]).doubleValue();
+        double rSkew = ((Number) rRow[ 3 ]).doubleValue();
+        double rKurt = ((Number) rRow[ 4 ]).doubleValue();
+        double rMin = ((Number) rRow[ 5 ]).doubleValue();
+        double rMax = ((Number) rRow[ 6 ]).doubleValue();
+        int rN = ((Number) rRow[ 7 ]).intValue();
+        double gMean = ((Number) gRow[ 1 ]).doubleValue();
+        double gStdev = ((Number) gRow[ 2 ]).doubleValue();
+        double gSkew = ((Number) gRow[ 3 ]).doubleValue();
+        double gKurt = ((Number) gRow[ 4 ]).doubleValue();
+        double gMin = ((Number) gRow[ 5 ]).doubleValue();
+        double gMax = ((Number) gRow[ 6 ]).doubleValue();
+        int gN = ((Number) gRow[ 7 ]).intValue();
+
+        /* We can't control the seed for these random numbers, so we are
+         * at the mercy of what gets generated at runtime time by
+         * ThreadLocalRandom.  That means these tests might pass usually
+         * but fail one day.  So set the tolerances rather low.
+         * If a failure is observed, increase the tolerances some more.
+         * I haven't done the statistics to work out what are really
+         * reasonable numbers for the row count I'm using. */
+        assertEquals( 0.5, rMean, 0.1 );
+        assertEquals( Math.sqrt(1./12.), rStdev, 0.1 );
+        assertEquals( 0.0, rSkew, 0.1 );
+        assertEquals( -1.2, rKurt, 0.1 );
+        assertEquals( 0.0, rMin, 0.1 );
+        assertEquals( 1.0, rMax, 0.1 );
+        assertEquals( nr, rN );
+
+        assertEquals( 0.0, gMean, 0.1 );
+        assertEquals( 1.0, gStdev, 0.1 );
+        assertEquals( 0.0, gSkew, 0.2 );
+        assertEquals( 0.0, gKurt, 0.2 );
+        assertTrue( rMin > -8 && gMin < -2 );
+        assertTrue( gMax > 2 && gMax < 8 );
         assertEquals( nr, gN );
     }
 
