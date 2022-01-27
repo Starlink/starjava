@@ -6,7 +6,6 @@ import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.lang.reflect.Array;
-import java.util.HashMap;
 import java.util.function.IntFunction;
 
 /**
@@ -55,10 +54,8 @@ public class JELArrayFunction<I,O> {
             JELUtils.getStaticClasses().toArray( new Class<?>[ 0 ] );
         xResolver_ = new XResolver( ivarName, xvarName, inClazz );
         Class<?>[] dynamicLib = new Class<?>[] { xResolver_.getClass() };
-        Class<?>[] dotClasses = new Class<?>[ 0 ];
-        HashMap<String,Class<?>> cnmap = null;
-        Library lib = new Library( staticLib, dynamicLib, dotClasses,
-                                   xResolver_, cnmap );
+        Library lib =
+            JELUtils.createLibrary( staticLib, dynamicLib, xResolver_ );
         Class<?> reqElClazz = outClazz.isArray() ? outClazz.getComponentType()
                                                  : null;
         fCompex_ = Evaluator.compile( fexpr, lib, reqElClazz );

@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import gnu.jel.CompilationException;
 import gnu.jel.Library;
-import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import java.util.Date;
 import javax.swing.table.TableColumnModel;
@@ -89,10 +88,8 @@ public class TopcatJELUtils extends JELUtils {
         statix.addAll( activStatix );
         Class<?>[] staticLib = statix.toArray( new Class<?>[ 0 ] );
         Class<?>[] dynamicLib = { rowReader.getClass() };
-        Class<?>[] dotClasses = {};
-        DVMap resolver = rowReader;
-        Library lib = new Library( staticLib, dynamicLib, dotClasses,
-                                   resolver, null );
+        Library lib =
+            JELUtils.createLibrary( staticLib, dynamicLib, rowReader );
 
         /* Mark the activation methods as dynamic.  This is a bit obscure;
          * its purpose is to make sure that they get evaluated at run time

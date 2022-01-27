@@ -7,6 +7,8 @@ import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import gnu.jel.Parser;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -63,7 +65,7 @@ public class JELUtils {
     public static final String CLASSES_PROPERTY = "jel.classes";
 
     /** 
-     * Returns a JEL Library suitable for expression evaluation.
+     * Returns a JEL Library suitable for expression evaluation within a table.
      * 
      * @param    reader  object which can read rows from the table to
      *           be used for expression evaluation; may be null if
@@ -75,11 +77,32 @@ public class JELUtils {
         Class<?>[] dynamicLib = reader == null
                            ? new Class<?>[ 0 ]
                            : new Class<?>[] { reader.getClass() };
+        return createLibrary( staticLib, dynamicLib, reader );
+    }
+
+    /**
+     * Creates a JEL Library from basic information.
+     * This method should generally be used rather than the Library
+     * constructor, since it may apply additional customisation.
+     * Currently, it fixes static methods marked with the
+     * {@link StateDependent} annotation appropriately.
+     *
+     * @see  gnu.jel.Library#Library
+     * @param  staticLib  array of classes whose public static methods
+     *                    are exported
+     * @param  dynamicLib  array of classes whose public methods are exported
+     * @param  resolver   object used to resolve names
+     * @return   new library
+     */
+    public static Library createLibrary( Class<?>[] staticLib,
+                                         Class<?>[] dynamicLib,
+                                         DVMap resolver ) {
         Class<?>[] dotClasses = new Class<?>[ 0 ];
-        DVMap resolver = reader;
         HashMap<String,Class<?>> cnmap = null;
-        return new Library( staticLib, dynamicLib, dotClasses,
-                            resolver, cnmap );
+        Library lib =
+            new Library( staticLib, dynamicLib, dotClasses, resolver, cnmap );
+        markStateDependentFunctions( lib, staticLib );
+        return lib;
     }
 
     /**
@@ -411,6 +434,44 @@ public class JELUtils {
                 .append( ")" );
         }
         return (IOException) new IOException( sbuf.toString() ).initCause( e );
+    }
+
+    /**
+     * Identifies any public static method from the given classes
+     * that has been marked with the {@link StateDependent} annotation,
+     * and notifies the given JEL library that it must be evaluated
+     * at runtime not compile time, even if its arguments can be
+     * evaluated at compile time.
+     *
+     * @param  lib  library to adjust
+     * @param  staticLib  array of classes that may have state-dependent
+     *                    public static methods
+     */
+    private static void markStateDependentFunctions( Library lib,
+                                                     Class<?>[] staticLib ) {
+        for ( Class<?> clazz : staticLib ) {
+            for ( Method method : clazz.getMethods() ) {
+                if ( method.getAnnotation( StateDependent.class ) != null ) {
+                    String mname = method.getName();
+                    Class<?>[] argtypes = method.getParameterTypes();
+                    int mods = method.getModifiers();
+                    if ( ! Modifier.isPublic( mods ) ||
+                         ! Modifier.isStatic( mods ) ) {
+                        logger_.warning( "Attempting to mark state-dependent " 
+                                       + "non-public-static method "
+                                       + clazz.getName() + "." + method + "?" );
+                    }
+                    try {
+                        lib.markStateDependent( mname, argtypes );
+                    }
+                    catch ( CompilationException e ) {
+                        assert false;
+                        logger_.warning( "Can't mark state-dependent "
+                                       + clazz.getName() + "." + method + "?" );
+                    }
+                }
+            }
+        }
     }
 
     /**

@@ -186,8 +186,7 @@ public class JELTest extends TableTestCase {
                          : RandomJELRowReader.createAccessReader( t2 );
         Class[] staticLib = new Class[] { FuncLib.class };
         Class[] dynamicLib = new Class[] { rdr.getClass() };
-        Library lib = new Library( staticLib, dynamicLib, new Class[ 0 ],
-                                   rdr, null );
+        Library lib = JELUtils.createLibrary( staticLib, dynamicLib, rdr );
         CompiledExpression pExpr =
             JELUtils.compile( lib, t2, "triplePrim(a)" );
         CompiledExpression oExpr =

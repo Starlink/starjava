@@ -5,7 +5,6 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
-import java.util.HashMap;
 import uk.ac.starlink.ttools.jel.JELUtils;
 
 /**
@@ -43,10 +42,8 @@ public class JELFunction {
             JELUtils.getStaticClasses().toArray( new Class<?>[ 0 ] );
         xResolver_ = new XResolver( xvarname );
         Class<?>[] dynamicLib = new Class<?>[] { xResolver_.getClass() };
-        Class<?>[] dotClasses = new Class<?>[ 0 ];
-        HashMap<String,Class<?>> cnmap = null;
-        Library lib = new Library( staticLib, dynamicLib, dotClasses,
-                                   xResolver_, cnmap );
+        Library lib =
+            JELUtils.createLibrary( staticLib, dynamicLib, xResolver_ );
         fCompex_ = Evaluator.compile( fexpr, lib, double.class );
         args_ = new Object[] { xResolver_ };
     }
