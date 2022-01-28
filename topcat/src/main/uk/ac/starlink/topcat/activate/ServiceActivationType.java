@@ -136,7 +136,10 @@ public class ServiceActivationType implements ActivationType {
                             return Outcome.failure( e );
                         }
                         URL url = si.getUrl( row, paramMap );
-                        return urler.invokeUrl( url );
+                        Outcome outcome = urler.invokeUrl( url );
+                        String urlTxt = url == null ? null : url.toString();
+                        return UrlColumnConfigurator
+                              .decorateOutcomeWithUrl( outcome, urlTxt );
                     }
                 };
             }

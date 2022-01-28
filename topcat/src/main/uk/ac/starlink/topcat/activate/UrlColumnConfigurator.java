@@ -97,9 +97,49 @@ public abstract class UrlColumnConfigurator
 
     public Activator getActivator() {
         Object item = colSelector_.getSelectedItem();
-        return item instanceof ColumnData
-             ? createActivator( (ColumnData) item )
-             : null;
+        if ( item instanceof ColumnData ) {
+            ColumnData cdata = (ColumnData) item;
+
+            /* Acquire an activator provided by the concrete subclass. */
+            final Activator baseActivator = createActivator( cdata );
+            if ( baseActivator == null ) {
+                return null;
+            }
+            else {
+
+                /* Decorate it so that Outcome messages always contain
+                 * the invocation URL, which otherwise may or may not be there;
+                 * in this context the GUI will not take other steps to display
+                 * the URL, so it's important to have it in the Outcome. */
+                return new Activator() {
+                    public boolean invokeOnEdt() {
+                        return baseActivator.invokeOnEdt();
+                    }
+                    public Outcome activateRow( long lrow,
+                                                ActivationMeta meta ) {
+                        Outcome baseOutcome =
+                            baseActivator.activateRow( lrow, meta );
+                        if ( baseOutcome == null ) {
+                            return null;
+                        }
+                        Object urlObj;
+                        try {
+                            urlObj = cdata.readValue( lrow );
+                        }
+                        catch ( IOException e ) {
+                            return baseOutcome;
+                        }
+                        return urlObj instanceof String
+                             ? decorateOutcomeWithUrl( baseOutcome,
+                                                       (String) urlObj )
+                             : baseOutcome;
+                    }
+                };
+            }
+        }
+        else {
+            return null;
+        }
     }
 
     public String getConfigMessage() {
@@ -200,6 +240,37 @@ public abstract class UrlColumnConfigurator
      */
     public void setLocationLabel( String label ) {
         colLabel_.setText( label + ": " );
+    }
+
+    /**
+     * Ensures that an outcome contains a given URL in its message.
+     *
+     * @param  outcome  input outcome
+     * @param  url   context URL
+     * @return  outcome like the input one, but with the <code>url</code>
+     *          text guaranteed to appear somewhere in its message
+     */
+    public static Outcome decorateOutcomeWithUrl( Outcome outcome,
+                                                  String url ) {
+        if ( outcome == null || url == null ) {
+            return outcome;
+        }
+        else {
+            String baseMsg = outcome.getMessage();
+            final String msg;
+            if ( baseMsg == null || baseMsg.trim().length() == 0 ) {
+                msg = url;
+            }
+            else if ( baseMsg.indexOf( url ) >= 0 ) {
+                return outcome;
+            }
+            else {
+                msg = baseMsg + " - " + url;
+            }
+            return outcome.isSuccess()
+                 ? Outcome.success( msg )
+                 : Outcome.failure( msg );
+        }
     }
 
     /**
