@@ -175,7 +175,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>15 October 2021</docdate>
+<docdate>31 January 2022</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -9266,12 +9266,12 @@ stilts tskymap in=tgas_source.fits tiling=hpx7 lon=l lat=b count=false
 
 <dt><verbatim>
 stilts tskymap in=gaia_source.colfits tiling=hpx8 lon=l lat=b count=true
-               cols='bp_rp;mean phot_bp_mean_mag;sum phot_rp_mean_mag;sum'
+               cols='bp_rp;mean phot_bp_mean_flux;sum phot_rp_mean_flux;sum'
                out=gaia-stats.fits
 </verbatim></dt>
 <dd><p>Simultaneously calculates the mean value of the <code>bp_rp</code>
-    column and the summed values of the <code>phot_bp_mean_mag</code> and
-    <code>phot_rp_mean_mag</code> columns for each HEALPix level 8 tile,
+    column and the summed values of the <code>phot_bp_mean_flux</code> and
+    <code>phot_rp_mean_flux</code> columns for each HEALPix level 8 tile,
     as well as the source density.
     </p></dd>
 
@@ -13540,83 +13540,96 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 3.4-3 (31 January 2022)</dt>
 <dd><p>
-    <ul>
-    <li>Adjustments to taplint EPN-TAP validation:
-        track draft standard changes, fix bugs,
-        add UCD check for measurement_type column content.
-        This version currently corresponds to
-        PR-EPNTAP-2.0-20211022.</li>
-    <li>Add new colour map
-        <webref url="https://xkcd.com/2537/">Painbow</webref>.</li>
-    <li>Taplint UUC stage now reports UCD word list versions.</li>
-    <li>Make a couple of adjustments to
-        <ref id="graphicExporter">SVG graphics output</ref>:
-        output is now to a bare <code>svg</code> element
-        (no XML or DOCTYPE declaration),
-        and a <code>viewBox</code> attribute is included which
-        may improve scaling behaviour in some contexts.</li>
-    <li>The monolithic stilts.jar file and stilts_jars.zip archive
-        now contain the <code>stilts.version</code> file at the
-        top level, rather than just buried in
-        <code>uk/ac/starlink/ttools/</code>.</li>
-    <li>The <code>seqcol</code> column in output from the
-        <ref id="tcat"><code>tcat</code></ref> and
-        <ref id="tcatn"><code>tcatn</code></ref> commands
-        is now of type (32-bit) integer not (16-bit) short.</li>
-    <li>Improve identification of TIME_TT2000 columns as time values 
-        in certain CDF files.</li>
-    <li>Fix failure when attempting to read unsigned 32-bit integer
-        values from parquet files.</li>
-    <li>Fix bug in parsing <code>MOC-ASCII</code> strings in
-        <ref id="layer-area">area</ref> plot;
-        trailing depth specifier was interpreted as cell index.</li>
-    <li>Fix bug in plotting <code>MOC-ASCII</code> strings in
-        <ref id="layer-area">area</ref> plot;
-        some cells near end of MOC omitted/misshapen.</li>
-    <li>JyStilts is now intended to be run using Jython 2.7.2,
-        which means it works under Java 17, unlike Jython 2.5.3
-        which was the previous target version.
-        The JyStilts classes haven't changed, but the distributed
-        <code>jystilts.jar</code> file now comes with Jython 2.7.2.</li>
-    <li>In the starjava distribution, the <code>jystilts</code> script
-        now uses an internal copy of Jython 2.7.2, it no longer requires
-        an external Jython installation.</li>
-    <li>The <ref id="inPds4">PDS4</ref>
-        (NASA's Planetary Data System v4) file format is now
-        supported for input tables.</li>
-    <li>Bugfix update of JCDF to v1.2-4.</li>
-    <li>Permit leading '<code>s</code>' in ASCII-MOC area specifications,
-        following MOC 2.0.</li>
-    <li>Minor improvements to aggregated column output metadata.</li>
-    <li>New <ref id="taplint">taplint</ref> parameter <code>tables</code>
-        to restrict which tables are tested.</li>
-    <li>The <code>cols</code> parameter in
-        <ref id="tskymap">tskymap</ref> is generalised to allow
-        more flexible calculation of gridded quantities,
-        specifically calculations using different aggregation methods
-        for different quantities at the same time.</li>
-    <li>New task <ref id="tgridmap">tgridmap</ref> writes flexible
-        N-dimensional density maps/histograms as tables.</li>
-    <li>New class
-        <ref id="uk.ac.starlink.ttools.func.Randoms">Randoms</ref>
-        contains pseudo-random number generation functions.
-        Special token <code>$random</code> is now deprecated.</li>
-    <li>New quantities
-        <code>ArrayNGood</code>, <code>ArraySum</code>,
-        <code>ArrayMean</code>, <code>ArrayStDev</code>
-        added to <ref id="stats"><code>stats</code></ref> filter,
-        allowing per-element statistics calculations for
-        fixed-length numeric array data.</li>
-    <li>Improved autoranging for
-        <ref id="layer-gaussian">gaussian</ref> plots.</li>
-    <li>Provide quantile options for the <code>combiner</code>
-        parameters of some commands.</li>
-    <li>New plot layers <ref id="layer-statline">statline</ref> and
-        <ref id="layer-statmark">statmark</ref>, to plot
-        quantities like the mean of array-valued input columns.</li>
-    </ul>
+    <dl>
+    <dt>New functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>The <ref id="inPds4">PDS4</ref>
+            (NASA's Planetary Data System v4) file format is now
+            supported for input tables.</li>
+        <li>New task <ref id="tgridmap">tgridmap</ref> writes flexible
+            N-dimensional density maps/histograms as tables.</li>
+        <li>The <code>cols</code> parameter in
+            <ref id="tskymap">tskymap</ref> is generalised to allow
+            more flexible calculation of gridded quantities,
+            specifically calculations using different aggregation methods
+            for different quantities at the same time.</li>
+        <li>New plot2plane layers <ref id="layer-statline">statline</ref>
+            and <ref id="layer-statmark">statmark</ref>, to plot
+            quantities like the mean of array-valued input columns.</li>
+        <li>New class
+            <ref id="uk.ac.starlink.ttools.func.Randoms">Randoms</ref>
+            contains pseudo-random number generation functions.
+            Special token <code>$random</code> is now deprecated.</li>
+        <li>New quantities
+            <code>ArrayNGood</code>, <code>ArraySum</code>,
+            <code>ArrayMean</code>, <code>ArrayStDev</code>
+            added to <ref id="stats"><code>stats</code></ref> filter,
+            allowing per-element statistics calculations for
+            fixed-length numeric array data.</li>
+        <li>New <ref id="taplint">taplint</ref> parameter <code>tables</code>
+            to restrict which tables are tested.</li>
+        <li>Provide quantile options for the <code>combiner</code>
+            parameters of some commands.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Add new colour map
+            <webref url="https://xkcd.com/2537/">Painbow</webref>.</li>
+        <li>Improve identification of TIME_TT2000 columns as time values 
+            in certain CDF files.</li>
+        <li>Improved autoranging for
+            <ref id="layer-gaussian">gaussian</ref> plots.</li>
+        <li>Minor improvements to aggregated column output metadata.</li>
+        <li>JyStilts is now intended to be run using Jython 2.7.2,
+            which means it works under Java 17, unlike Jython 2.5.3
+            which was the previous target version.
+            The JyStilts classes haven't changed, but the distributed
+            <code>jystilts.jar</code> file now comes with Jython 2.7.2.</li>
+        <li>In the starjava distribution, the <code>jystilts</code> script
+            now uses an internal copy of Jython 2.7.2, it no longer requires
+            an external Jython installation.</li>
+        <li>Taplint UUC stage now reports UCD word list versions.</li>
+        <li>Adjustments to taplint EPN-TAP validation:
+            track draft standard changes, fix bugs,
+            add UCD check for measurement_type column content.
+            This version currently corresponds to
+            PR-EPNTAP-2.0-20211022.</li>
+        <li>Make a couple of adjustments to
+            <ref id="graphicExporter">SVG graphics output</ref>:
+            output is now to a bare <code>svg</code> element
+            (no XML or DOCTYPE declaration),
+            and a <code>viewBox</code> attribute is included which
+            may improve scaling behaviour in some contexts.</li>
+        <li>The monolithic stilts.jar file and stilts_jars.zip archive
+            now contain the <code>stilts.version</code> file at the
+            top level, rather than just buried in
+            <code>uk/ac/starlink/ttools/</code>.</li>
+        <li>The <code>seqcol</code> column in output from the
+            <ref id="tcat"><code>tcat</code></ref> and
+            <ref id="tcatn"><code>tcatn</code></ref> commands
+            is now of type (32-bit) integer not (16-bit) short.</li>
+        <li>Permit leading '<code>s</code>' in ASCII-MOC area specifications,
+            following MOC 2.0.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix bugs in parsing <code>MOC-ASCII</code> strings in
+            <ref id="layer-area">area</ref> plot;
+            trailing depth specifier was interpreted as cell index
+            and some cells near end of MOC were omitted/misshapen.</li>
+        <li>Fix failure when attempting to read unsigned 32-bit integer
+            values from parquet files.</li>
+        <li>Bugfix update of JCDF to v1.2-4.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

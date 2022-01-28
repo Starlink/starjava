@@ -486,7 +486,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>15 October 2021</docdate>
+<docdate>31 January 2022</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -12782,7 +12782,7 @@ including error ellipses, rectangles etc.
 <p>The <label>StatLine</label> form (&IMG.PLOT_STATLINE;),
 available from the
 <ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>,
-Plots a single line based on a combination (typically the mean) of
+plots a single line based on a combination (typically the mean) of
 input array-valued coordinates. The input X and Y coordinates must be
 fixed-length arrays of length N; a line with N points is plotted, each
 point representing the mean (or median, minimum, maximum, ...) of all
@@ -30364,78 +30364,93 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.8-3 (31 January 2022)</dt>
 <dd><p>
-    <ul>
-    <li>Add new colour map
-        <webref url="https://xkcd.com/2537/">Painbow</webref>.</li>
-    <li>Make a couple of adjustments to 
-        <ref id="plot2-export">SVG graphics output</ref>:
-        output is now to a bare <code>svg</code> element 
-        (no XML or DOCTYPE declaration),
-        and a <code>viewBox</code> attribute is included which
-        may improve scaling behaviour in some contexts.</li>
-    <li>Fix session save/load bug; row subsets created using the
-        Invert Subset action applied to an algebraic subset
-        were not being loaded correctly
-        (they always contained all rows).</li>
-    <li>Improve identification of TIME_TT2000 columns as time values
-        in certain CDF files.</li>
-    <li>Improve the way that Auto-Invoke works for 
-              <ref id="ViewDatalinkActivationType">View</ref
-            >/<ref id="InvokeDatalinkActivationType">Invoke</ref>
-        Datalink Row activation types;
-        these now work properly with the sequence auto-play feature.</li>
-    <li>Fix failure when attempting to read unsigned 32-bit integer
-        values from parquet files.</li>
-    <li>Subset row count is no longer recalculated when synthetic subset
-        expression is selected/highlighted but not changed.</li>
-    <li>Fix bug in parsing <code>MOC-ASCII</code> strings in
-        <ref id="form-area">Area</ref> plot;
-        trailing depth specifier was interpreted as cell index.</li>
-    <li>Fix bug in plotting <code>MOC-ASCII</code> strings in
-        <ref id="form-area">Area</ref> plot;
-        some cells near end of MOC omitted/misshapen.</li>
-    <li>The <ref id="inPds4">PDS4</ref>
-        (NASA's Planetary Data System v4) file format is now
-        supported for input tables.</li>
-    <li>The SAMP MType <code>table.load.pds4</code> is now supported
-        alongside some other
-        <ref id="interopReceive">format-specific table.load.*</ref>
-        messages.</li>
-    <li>Bugfix update of JCDF to v1.2-4.</li>
-    <li>The test for whether a newly-defined row subset adds an entry
-        to the subset list or replaces an existing entry is now based on
-        case-insensitive, rather than case-sensitive, name matching.</li>
-    <li>Permit leading '<code>s</code>' in ASCII-MOC area specifications,
-        following MOC 2.0.</li>
-    <li>Plots using <ref id="form-grid">Grid Form</ref> now allow export
-        of the calculated density map to a table.</li>
-    <li>New class <ref id="Randoms">Randoms</ref>
-        contains pseudo-random number generation functions.
-        Special token <code>$random</code> is now deprecated.</li>
-    <li>Modify ADQL sent to DaCHS RegTAP services;
-        should speed up registry queries in some cases.</li>
-    <li>Subject keyword matching in
-        <ref id="RegistryPanel">registry searches</ref> is relaxed;
-        a keyword can match part of a subject term, it doesn't have
-        to match the subject term exactly.</li>
-    <li>New per-element Count, Sum, Mean, StDev quantities available 
-        in <ref id="StatsWindow">Statistics Window</ref> for
-        fixed-length-array-valued columns.</li>
-    <li>Follow HTTP-&gt;HTTPS 3xx redirects when parsing VOTables
-        in a few places that it didn't work before.</li>
-    <li>Improved auto-ranging for
-        <ref id="form-gaussian">Gaussian</ref> plot.</li>
-    <li>Improved auto-ranging for some histogram-like plotters;
-        changing style attributes like normalisation will now
-        reset the plot view as appropriate.</li>
-    <li>Provide quantile options for some Combine selectors.</li>
-    <li>Add new plot types <ref id="form-statline">StatLine</ref>
-        and <ref id="form-statmark">StatMark</ref>;
-        these can plot per-element averages etc of
-        fixed-length-array-valued columns such as spectra.</li>
-    </ul>
+    <dl>
+    <dt>New functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>The <ref id="inPds4">PDS4</ref>
+            (NASA's Planetary Data System v4) file format is now
+            supported for input tables.</li>
+        <li>The SAMP MType <code>table.load.pds4</code> is now supported
+            alongside some other
+            <ref id="interopReceive">format-specific table.load.*</ref>
+            messages.</li>
+        <li>Add new plane plot forms <ref id="form-statline">StatLine</ref>
+            and <ref id="form-statmark">StatMark</ref>;
+            these can plot per-element averages etc of
+            fixed-length-array-valued columns such as spectra.</li>
+        <li>Plots using <ref id="form-grid">Grid Form</ref> now allow export
+            of the calculated density map to a table.</li>
+        <li>New per-element quantities available in
+            <ref id="StatsWindow">Statistics Window</ref> for
+            fixed-length-array-valued columns
+            (Array Means, Array Sums etc).</li>
+        <li>New class <ref id="Randoms">Randoms</ref>
+            contains pseudo-random number generation functions.
+            Special token <code>$random</code> is now deprecated.</li>
+        <li>Provide quantile options for some Combine selectors.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Add new colour map
+            <webref url="https://xkcd.com/2537/">Painbow</webref>.</li>
+        <li>Improve the way that Auto-Invoke works for 
+                  <ref id="ViewDatalinkActivationType">View</ref
+                >/<ref id="InvokeDatalinkActivationType">Invoke</ref>
+            Datalink Row activation types;
+            these now work properly with the sequence auto-play feature.</li>
+        <li>Modify ADQL sent to DaCHS RegTAP services;
+            should speed up registry queries in some cases,
+            especially when using the Description field.</li>
+        <li>Subject keyword matching in
+            <ref id="RegistryPanel">registry searches</ref> is relaxed;
+            a keyword can match part of a subject term, it doesn't have
+            to match the subject term exactly.</li>
+        <li>Follow HTTP-&gt;HTTPS 3xx redirects when parsing VOTables
+            in a few places that it didn't work before.</li>
+        <li>The test for whether a newly-defined row subset adds an entry
+            to the subset list or replaces an existing entry is now based on
+            case-insensitive, rather than case-sensitive, name matching.</li>
+        <li>Subset row count is no longer recalculated when synthetic subset
+            expression is selected/highlighted but not changed.</li>
+        <li>Improve identification of TIME_TT2000 columns as time values
+            in certain CDF files.</li>
+        <li>Improved auto-ranging for some histogram-like plotters;
+            changing style attributes like normalisation will now
+            reset the plot view as appropriate.</li>
+        <li>Improved auto-ranging for
+            <ref id="form-gaussian">Gaussian</ref> plot.</li>
+        <li>Make a couple of adjustments to 
+            <ref id="plot2-export">SVG graphics output</ref>:
+            output is now to a bare <code>svg</code> element 
+            (no XML or DOCTYPE declaration),
+            and a <code>viewBox</code> attribute is included which
+            may improve scaling behaviour in some contexts.</li>
+        <li>Permit leading '<code>s</code>' in ASCII-MOC area specifications,
+            following MOC 2.0.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix Session Save/Load bug; row subsets created using the
+            Invert Subset action applied to an algebraic subset
+            were not being loaded correctly
+            (they always contained all rows).</li>
+        <li>Fix bug in parsing <code>MOC-ASCII</code> strings in
+            <ref id="form-area">Area</ref> plot;
+            trailing depth specifier was interpreted as cell index
+            and some cells near end of MOC were omitted/misshapen.</li>
+        <li>Fix failure when attempting to read unsigned 32-bit integer
+            values from parquet files.</li>
+        <li>Bugfix update of JCDF to v1.2-4.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
