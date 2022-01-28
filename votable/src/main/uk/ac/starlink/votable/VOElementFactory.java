@@ -3,7 +3,9 @@ package uk.ac.starlink.votable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -25,6 +27,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.StarEntityResolver;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Provides methods for constructing VOElements from a variety
@@ -250,7 +253,32 @@ public class VOElementFactory {
      */
     public VOElement makeVOElement( String uri )
             throws SAXException, IOException {
-        Source saxsrc = new SAXSource( new InputSource( uri ) );
+        InputSource inSrc = new InputSource( uri );
+
+        /* In case of an HTTP URL, manage the connection by hand.
+         * In most cases just setting the URI on the InputSource is enough,
+         * but doing it like this will fail if an HTTP->HTTPS (or HTTPS->HTTP)
+         * 3xx redirect is encountered, because HTTPURLConnection refuses
+         * to follow those even when setFollowRedirects is set.
+         * See URLUtils.followRedirects for more discussion. */
+        URL httpUrl;
+        if ( uri.toLowerCase().startsWith( "http" ) ) {
+            try {
+                httpUrl = new URL( uri );
+            }
+            catch ( MalformedURLException e ) {
+                httpUrl = null;
+            }
+        }
+        else {
+            httpUrl = null;
+        }
+        if ( httpUrl != null ) {
+            URLConnection conn = httpUrl.openConnection();
+            conn = URLUtils.followRedirects( conn, null );
+            inSrc.setByteStream( conn.getInputStream() );
+        }
+        Source saxsrc = new SAXSource( inSrc );
         saxsrc.setSystemId( uri );
         return makeVOElement( saxsrc );
     }

@@ -30266,6 +30266,8 @@ introduced since the last version:
     <li>New per-element Count, Sum, Mean, StDev quantities available 
         in <ref id="StatsWindow">Statistics Window</ref> for
         fixed-length-array-valued columns.</li>
+    <li>Follow HTTP-&gt;HTTPS 3xx redirects when parsing VOTables
+        in a few places that it didn't work before.</li>
     </ul>
     </p></dd>
 
