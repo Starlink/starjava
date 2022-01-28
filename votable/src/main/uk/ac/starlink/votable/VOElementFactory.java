@@ -23,11 +23,11 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.StarEntityResolver;
-import uk.ac.starlink.util.URLUtils;
 
 /**
  * Provides methods for constructing VOElements from a variety
@@ -255,12 +255,8 @@ public class VOElementFactory {
             throws SAXException, IOException {
         InputSource inSrc = new InputSource( uri );
 
-        /* In case of an HTTP URL, manage the connection by hand.
-         * In most cases just setting the URI on the InputSource is enough,
-         * but doing it like this will fail if an HTTP->HTTPS (or HTTPS->HTTP)
-         * 3xx redirect is encountered, because HTTPURLConnection refuses
-         * to follow those even when setFollowRedirects is set.
-         * See URLUtils.followRedirects for more discussion. */
+        /* Be prepared to manage the connection by hand, to take care of
+         * potential authentication and also HTTP redirects. */
         URL httpUrl;
         if ( uri.toLowerCase().startsWith( "http" ) ) {
             try {
@@ -274,8 +270,7 @@ public class VOElementFactory {
             httpUrl = null;
         }
         if ( httpUrl != null ) {
-            URLConnection conn = httpUrl.openConnection();
-            conn = URLUtils.followRedirects( conn, null );
+            URLConnection conn = AuthManager.getInstance().connect( httpUrl );
             inSrc.setByteStream( conn.getInputStream() );
         }
         Source saxsrc = new SAXSource( inSrc );
