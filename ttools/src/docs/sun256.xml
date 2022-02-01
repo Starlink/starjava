@@ -13635,6 +13635,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix taplint bug: EPN validation failed for
+        <code>spatial_frame_type=none</code>.</li>
     </ul>
     </p></dd>
 

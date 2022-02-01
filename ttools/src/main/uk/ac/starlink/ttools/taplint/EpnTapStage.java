@@ -399,7 +399,8 @@ public class EpnTapStage implements Stage {
                 Object ftypeName = ftypeData.getCell( 0, 0 );
                 FrameType ftype =
                       ftypeName instanceof String
-                    ? FrameType.valueOf( ((String) ftypeName).toUpperCase() )
+                    ? FrameType.NAME_MAP
+                               .get( ((String) ftypeName).toLowerCase() )
                     : null;
                 if ( ftype != null ) {
                     String msg = "Checking coordinate metadata for "
@@ -1885,6 +1886,12 @@ public class EpnTapStage implements Stage {
         final String[][] ucds_;
         final String[] units_;
         final boolean[] isAngular_;
+
+        /** Map from lower-case name to FrameType instance. */
+        final static Map<String,FrameType> NAME_MAP =
+            Arrays.stream( values() )
+                  .collect( Collectors.toMap( f -> f.toString().toLowerCase(),
+                                              f -> f ) );
 
         /**
          * Constructor with multiple UCD options per axis.
