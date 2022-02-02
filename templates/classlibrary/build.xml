@@ -478,12 +478,15 @@
     </jar>
 
     <!-- Sign all jar files -->
+    <antcall target="signjars"/>
+  </target>
+
+  <target name="signjars" if="sign.jars">
     <signjar jar="${dist.lib.pkg}/${name}.jar"
              alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}"/>
-
   </target>
 
   <!--
