@@ -1,0 +1,35 @@
+{
+  "type": "Feature",
+  "crs": {
+    "type": "Cartesian",
+    "properties": {
+      "name": "Time-Frequency",
+      "time_coords": {
+        "id": "unix",
+        "name": "Timestamp (Unix Time)",
+        "unit": "s",
+        "time_origin": "1970-01-01T00:00:00.000Z",
+        "time_scale": "TT"
+      },
+      "spectral_coords": {
+        "name": "Frequency",
+        "unit": "MHz"
+      },
+      "ref_position": {
+        "id": "GEOCENTER"
+      }
+    }
+  },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [252703800.0, 10.0],
+        [252720000.0, 10.0],
+        [252720000.0, 50.0],
+        [252703800.0, 50.0],
+        [252703800.0, 10.0]
+      ]
+    ]
+  }
+}

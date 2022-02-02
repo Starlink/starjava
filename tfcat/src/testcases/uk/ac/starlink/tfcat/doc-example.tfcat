@@ -1,0 +1,60 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "id": 0,
+            "geometry": {
+                "type": "Point",
+                "coordinates": [1158051858, 24730.0]
+            },
+            "properties": {
+                "quality": "3"
+            }
+        },
+        {
+            "type": "Feature",
+            "id": 1,
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [[1158051874, 34130.0], [1158051882, 22770.0]]
+            },
+            "properties": {
+                "quality": "2"
+            }
+        }
+    ],
+     "properties": {
+        "facility_name": "Cassini",
+        "instrument_name: ": "RPWS",
+        "receiver_name": "HFR",
+        "title": "Faraday Rotation (FR) patches",
+    },
+    "fields": {
+      "quality": {
+        "info": "Quality parameter: -1 (not set), 1 (good), 2 (medium) and 3 (bad quality).",
+        "datatype": "str",
+        "ucd": "meta.code.qual"
+      }
+    },
+    "crs": {
+        "type": "Time-Frequency",
+        "properties": {
+            "name": "Time-Spectrogram",
+            "time_coords": {
+                "name": "Timestamp",
+                "id": "unix",
+                "unit": "s",
+                "time_origin": "1970-01-01T00:00:00.000Z",
+                "time_scale": "UTC"
+            },
+            "spectral_coords": {
+                "name": "Frequency",
+                "unit": "Hz"
+            },
+            "ref_position":{
+              "id": "Cassini"
+            }
+        }
+    }
+}
