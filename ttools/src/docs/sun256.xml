@@ -14138,6 +14138,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         failed to inherit configuration items from base grid.</li>
     <li>New function <code>sequence(n,start,step)</code> in
         class <ref id="Arrays-sequence">Arrays</ref>.</li>
+    <li>New functions <code>tfcatStatus</code> and
+        <code>tfcatMessage</code> in class
+        <ref id="VO-tfcatStatus">VO</ref> for validating instances of
+        the Time-Frequency Radio Catalogue format.</li>
     </ul>
     </p></dd>
 

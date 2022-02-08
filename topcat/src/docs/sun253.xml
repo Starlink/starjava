@@ -31463,6 +31463,10 @@ introduced since the last version:
         <ref id="activation">activation</ref>.</li>
     <li>New function <code>sequence(n,start,step)</code> in
         class <ref id="Arrays-sequence">Arrays</ref>.</li>
+    <li>New functions <code>tfcatStatus</code> and
+        <code>tfcatMessage</code> in class
+        <ref id="VO-tfcatStatus">VO</ref> for validating instances of
+        the Time-Frequency Radio Catalogue format.</li>
     </ul>
     </p></dd>
 

@@ -5,6 +5,7 @@
 
 package uk.ac.starlink.ttools.func;
 
+import uk.ac.starlink.tfcat.TfcatStatus;
 import uk.ac.starlink.vo.UcdStatus;
 import uk.ac.starlink.vo.UnitStatus;
 
@@ -20,6 +21,9 @@ import uk.ac.starlink.vo.UnitStatus;
  * <a href="https://purl.org/nxg/dist/unity">Unity</a>
  * corresponding to
  * <a href="https://www.ivoa.net/documents/VOUnits/20140523/">VOUnits 1.0</a>.
+ *
+ * <p>TFCat refers to the Time-Frequency Radio Catalogues format,
+ * <a href="https://doi.org/10.25935/6068-8528">TFCat 1.0</a>.
  *
  * @author   Mark Taylor
  * @since    8 Jul 2021
@@ -84,7 +88,6 @@ public class VO {
     /**
      * Returns a token string giving the category of VOUnits compliance.
      *
-     *
      * <p>Possible return values are currently:
      * <ul>
      * <li>"OK":
@@ -127,6 +130,41 @@ public class VO {
      */
     public static String vounitMessage( String unit ) {
         UnitStatus status = UnitStatus.getStatus( unit );
+        return status == null ? null : status.getMessage();
+    }
+
+    /**
+     * Returns a token string giving the category of TFCat compliance.
+     *
+     * <p>Possible return values are currently:
+     * <ul>
+     * <li>"OK": conforms to TFCat syntax</li>
+     * <li>"ERROR": parsed as TFCat, but with one or more errors</li>
+     * <li>"FAIL": could not be parsed as a TFCat object</li>
+     * </ul>
+     *
+     * <p>For non-OK values, more information can be found
+     * using the <code>tfcatMessage</code> function.
+     *
+     * @param tfcat  JSON string giving TFCat text
+     * @return  "OK" for conformant TFCat, otherwise some other value
+     */
+    public static String tfcatStatus( String tfcat ) {
+        TfcatStatus status = TfcatStatus.getStatus( tfcat );
+        return status == null ? null : status.getCode().toString();
+    }
+
+    /**
+     * Returns a human-readable message associated with the parsing of a
+     * TFCat text.
+     * This will be empty for a string fully compliant with the TFCat standard,
+     * but will contain error messages otherwise.
+     *
+     * @param tfcat  JSON string giving TFCat text
+     * @return  message text
+     */
+    public static String tfcatMessage( String tfcat ) {
+        TfcatStatus status = TfcatStatus.getStatus( tfcat );
         return status == null ? null : status.getMessage();
     }
 }
