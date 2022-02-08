@@ -14142,6 +14142,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>tfcatMessage</code> in class
         <ref id="VO-tfcatStatus">VO</ref> for validating instances of
         the Time-Frequency Radio Catalogue format.</li>
+    <li>Provide new option <code>TFCAT</code> option for
+        <code>areatype</code> parameter
+        in <ref id="layer-area">area</ref>-like plots,
+        giving partial support for TFCat shape descriptions.</li>
     </ul>
     </p></dd>
 

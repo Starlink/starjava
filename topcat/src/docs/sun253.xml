@@ -9416,7 +9416,7 @@ the <label>Position</label> and <label>Form</label> tabs
 are described in more detail below.
 </p>
 
-<subdiv>
+<subdiv id="GangLayerControl_area_position">
 <subhead><title>Position Tab</title></subhead>
 
 <figure>
@@ -9473,6 +9473,14 @@ columns in the table.
     by a UNIQ value; see
     <webref url="http://www.ivoa.net/documents/MOC/">MOC 1.1</webref>
     sec 2.3.1.
+    </p></dd>
+<dt>TFCAT</dt>
+<dd><p>Time-Frequency region defined by the
+    <webref url="https://doi.org/10.25935/6068-8528">TFCat standard</webref>.
+    Support is currently incomplete;
+    holes in Polygons and MultiPolygons are not displayed correctly,
+    single Points may not be displayed,
+    and Coordinate Reference System information is ignored.
     </p></dd>
 </dl>
 
@@ -31467,6 +31475,9 @@ introduced since the last version:
         <code>tfcatMessage</code> in class
         <ref id="VO-tfcatStatus">VO</ref> for validating instances of
         the Time-Frequency Radio Catalogue format.</li>
+    <li>Provide new option TFCAT for Area type in
+        <ref id="GangLayerControl_area_position">Area Layer Control</ref>,
+        giving partial support for TFCat shape descriptions.</li>
     </ul>
     </p></dd>
 

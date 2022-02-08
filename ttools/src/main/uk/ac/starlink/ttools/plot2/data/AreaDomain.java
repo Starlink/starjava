@@ -8,6 +8,11 @@ import java.util.regex.Pattern;
 import uk.ac.starlink.table.Domain;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.tfcat.Geometry;
+import uk.ac.starlink.tfcat.LinearRing;
+import uk.ac.starlink.tfcat.Position;
+import uk.ac.starlink.tfcat.TfcatObject;
+import uk.ac.starlink.tfcat.TfcatUtil;
 import uk.ac.starlink.util.DoubleList;
 import uk.ac.starlink.util.LongList;
 
@@ -55,6 +60,9 @@ public class AreaDomain implements Domain<AreaMapper> {
     /** Mapper for single HEALPix UNIQ values. */
     public static final AreaMapper UNIQ_MAPPER = createUniqMapper();
 
+    /** Mapper for TFCat strings. */
+    public static final AreaMapper TFCAT_MAPPER = createTfcatMapper();
+
     private static final String WORDS_REGEX =
         "\\s*([A-Za-z]+)\\s+([A-Za-z][A-Za-z0-9]*\\s+)*";
     private static final String NUMBER_REGEX =
@@ -96,6 +104,7 @@ public class AreaDomain implements Domain<AreaMapper> {
             POINT_MAPPER,
             ASCIIMOC_MAPPER,
             UNIQ_MAPPER,
+            TFCAT_MAPPER,
         };
     }
 
@@ -124,6 +133,10 @@ public class AreaDomain implements Domain<AreaMapper> {
                       "pos.outline;obs.field".equals( ucd ) ||
                       ( ucd != null && ucd.startsWith( "pos.outline" ) ) ) {
                 return STCS_MAPPER;
+            }
+            else if ( "tfcat".equals( name ) ||
+                      "tfcat".equalsIgnoreCase( xtype ) ) { // non-standard
+                return TFCAT_MAPPER;
             }
             else {
                 return null;
@@ -306,6 +319,37 @@ public class AreaDomain implements Domain<AreaMapper> {
                             return null;
                         }
                     };
+                }
+                else {
+                    return null;
+                }
+            }
+        };
+    }
+
+    /**
+     * Returns a mapper that makes an attempt at turning TFCat texts
+     * into areas.  Support is partial.
+     *
+     * @return  TFCat mapper
+     */
+    private static AreaMapper createTfcatMapper() {
+        String stdUrl = "https://doi.org/10.25935/6068-8528";
+        String descrip = String.join( "\n",
+            "Time-Frequency region defined by the",
+            "<webref url='https://doi.org/10.25935/6068-8528'" +
+                     ">TFCat standard</webref>.",
+            "Support is currently incomplete;",
+            "holes in Polygons and MultiPolygons are not displayed correctly,",
+            "single Points may not be displayed,",
+            "and Coordinate Reference System information is ignored.",
+        "" );
+        return new AreaMapper( "TFCAT", descrip, String.class ) {
+            public Function<Object,Area> areaFunction( Class<?> clazz ) {
+                if ( String.class.equals( clazz ) ) {
+                    return obj -> obj instanceof String
+                                ? tfcatArea( (String) obj )
+                                : null;
                 }
                 else {
                     return null;
@@ -499,6 +543,71 @@ public class AreaDomain implements Domain<AreaMapper> {
     }
 
     /**
+     * Performs best-efforts decoding of a TFCat text as an Area object.
+     *
+     * @param  txt  TFCat text
+     * @return   area specified, or null
+     */
+    private static Area tfcatArea( CharSequence txt ) {
+        TfcatObject tfcat = TfcatUtil.parseTfcat( txt.toString(), null );
+        if ( tfcat == null ) {
+            return null;
+        }
+        List<Geometry<?>> geoms = TfcatUtil.getAllGeometries( tfcat );
+        TfcatPointList plist = new TfcatPointList();
+        for ( Geometry<?> geom : geoms ) {
+            Object shape = geom.getShape();
+
+            /* TFCat Point. */
+            if ( shape instanceof Position ) {
+                plist.addPosition( (Position) shape );
+                plist.addBreak();
+            }
+
+            /* TFCat MultiPoint or LineString. */
+            else if ( shape instanceof Position[] ) {
+                plist.addLine( (Position[]) shape );
+                plist.addBreak();
+            }
+
+            /* TFCat MultiLineString. */
+            else if ( shape instanceof Position[][] ) {
+                for ( Position[] line : (Position[][]) shape ) {
+                    plist.addLine( line );
+                    plist.addBreak();
+                }
+            }
+
+            /* TFCat Polygon - holes not handled correctly. */
+            else if ( shape instanceof LinearRing[] ) {
+                plist.addPolygon( (LinearRing[]) shape );
+                plist.addBreak();
+            }
+
+            /* TFCat MultiPolygon - holes not handled correctly. */
+            else if ( shape instanceof LinearRing[][] ) {
+                for ( LinearRing[] lrings : (LinearRing[][]) shape ) {
+                    plist.addPolygon( lrings );
+                    plist.addBreak();
+                }
+            }
+            else {
+                assert false;
+            }
+        }
+        int n2 = plist.dlist_.size();
+        if ( n2 > 2 ) {
+            int n = n2 - 2;
+            double[] data = new double[ n ];
+            System.arraycopy( plist.dlist_.getDoubleBuffer(), 0, data, 0, n );
+            return new Area( Area.Type.POLYGON, data );
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
      * Parses a whitespace-separated list of floating-point values.
      *
      * @param   cseq   input text 
@@ -511,5 +620,78 @@ public class AreaDomain implements Domain<AreaMapper> {
             dlist.add( Double.parseDouble( matcher.group( 1 ) ) );
         }
         return dlist.toDoubleArray(); 
+    }
+
+    /**
+     * Helper class for decoding TFCat geometries.
+     * You can feed it TFCat shapes, and it accumulates a list of
+     * coordinate values suitable for feeding to an Area.Type.POLYGON-type
+     * Area constructor.
+     *
+     * <p>Note however that it currently does not correctly handle TFCat
+     * (Multi)Polygon geometries that contain holes.
+     */
+    private static class TfcatPointList {
+        final DoubleList dlist_;
+
+        TfcatPointList() {
+            dlist_ = new DoubleList();
+        }
+
+        /**
+         * Adds a single position geometry to the coordinate list.
+         *
+         * @param  position  position to accumuate
+         */
+        void addPosition( Position position ) {
+            dlist_.add( position.getTime() );
+            dlist_.add( position.getSpectral() );
+        }
+
+        /**
+         * Adds an array of positions to the coordinate list as a line.
+         * They are made to look like a line by turning them into
+         * a zero-width polygon.
+         *
+         * @param  positions   position array
+         */
+        void addLine( Position[] positions ) {
+            int np = positions.length;
+            for ( int ip = 0; ip < np; ip++ ) {
+                addPosition( positions[ ip ] );
+            }
+            for ( int ip = np - 1; ip >= 0; ip-- ) {
+                addPosition( positions[ ip ] );
+            }
+        }
+
+        /**
+         * Adds an array of linear rings representing a polygon
+         * to the coordinate list.  According to TFCat, the first one
+         * in the list is an actual polygon, and subsequent ones represent
+         * holes in the outer one.
+         * Since the AreaType coordinate array doesn't currently have the
+         * capability to represent holes, at present this just adds
+         * the holes alongside the outer one, which is clearly wrong.
+         *
+         * @param  lrings  list of one or more rings which together represent
+         *                 a single, possibly holey, polygon
+         */
+        void addPolygon( LinearRing[] lrings ) {
+            if ( lrings.length > 0 ) {
+                for ( Position pos : lrings[ 0 ].getDistinctPositions() ) {
+                    addPosition( pos );
+                }
+                addBreak();
+            }
+        }
+ 
+        /**
+         * Adds an inter-polygon break in the coordinate list.
+         */
+        void addBreak() {
+            dlist_.add( Double.NaN );
+            dlist_.add( Double.NaN );
+        }
     }
 }
