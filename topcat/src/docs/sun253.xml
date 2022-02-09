@@ -10769,6 +10769,13 @@ The reported items are:
 <dt>Correlation</dt>
 <dd><p>Pearson's product moment correlation coefficient.
     </p></dd>
+<dt>RMS Deviation</dt>
+<dd><p>The root-mean-squared deviation of the data from the fitted line, i.e.
+    for the case where both axes are linear,
+    Sqrt( Sum[ <m> w<sub>i</sub>
+                   (y<sub>i</sub> - m.x<sub>i</sub> - c)<sup>2</sup> </m> ]
+          / <m>N</m> )
+    </p></dd>
 </dl>
 </p>
 
@@ -30456,6 +30463,8 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Add RMS Deviation report to
+        <ref id="form-linearfit">LinearFit</ref> plot output.</li>
     </ul>
     </p></dd>
 

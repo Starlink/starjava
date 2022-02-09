@@ -66,6 +66,11 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
         ReportKey.createDoubleKey( new ReportMeta( "correlation",
                                                    "Correlation" ), true );
 
+    /** Report key for RMS deviation from fitted line. */
+    public static final ReportKey<Double> RMSD_KEY =
+        ReportKey.createDoubleKey( new ReportMeta( "RMSD", "RMS Deviation" ),
+                                   true );
+
     /** Report key for order zero polynomial coefficient. */
     private static final ReportKey<Double> C0_KEY =
         ReportKey.createDoubleKey( new ReportMeta( "c", "c" ), true );
@@ -383,6 +388,7 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
             report.put( C0_KEY, coeffs[ 0 ] );
             report.put( C1_KEY, coeffs[ 1 ] );
             report.put( CORRELATION_KEY, stats_.getCorrelation() );
+            report.put( RMSD_KEY, stats_.getRmsDeviation() );
             report.put( COEFFS_KEY, coeffs );
             return report; 
         }
@@ -471,6 +477,22 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
             double sw2x = sw_ * swXX_ - swX_ * swX_;
             double sw2y = sw_ * swYY_ - swY_ * swY_;
             return ( sw_ * swXY_ - swX_ * swY_ ) / Math.sqrt( sw2x * sw2y );
+        }
+
+        /**
+         * Returns the root-mean-squared deviation of the data points from
+         * the fitted line.
+         * This value is sqrt(Sum((y-mx-c)**2)/N).
+         *
+         * @return  RMS deviation:
+         */
+        public double getRmsDeviation() {
+            double[] cm = getLinearCoefficients();
+            double c = cm[ 0 ];
+            double m = cm[ 1 ];
+            double nK2 =
+                m*m*swXX_ + swYY_ - 2*m*swXY_ + 2*m*c*swX_ - 2*c*swY_ + c*c*sw_;
+            return Math.sqrt( nK2 / sw_ );
         }
     }
 }
