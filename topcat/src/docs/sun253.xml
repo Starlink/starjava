@@ -23669,6 +23669,10 @@ and what columns are included in the output
 please consult the
 <webref url="http://cdsxmatch.u-strasbg.fr/xmatch/doc/"
         >service documentation</webref>.
+Note that because of the way the service is implemented
+not all the columns from the VizieR table may be present in the result;
+if the columns you need are not present, you're out of luck,
+there's no way to request additional ones.
 </p>
 
 <p>The window has three panels, described below.
@@ -23711,6 +23715,14 @@ will be disabled.
 <p>Sky coverage information is also displayed, including the proportion
 of the sky covered by the table and a graphical indication of the
 covered regions on the sky.
+</p>
+
+<p>Service interaction is monitored by the little "lights" to the right
+of this panel.
+If things are operating correctly they should be, or quickly turn, green.
+If they are amber or red, the service may be slow or not responding.
+Hovering over them with the mouse will give more information
+(apologies to red-green colourblind users).
 </p>
 
 <p>The <label>Local Table</label> panel allows you to indicate the
