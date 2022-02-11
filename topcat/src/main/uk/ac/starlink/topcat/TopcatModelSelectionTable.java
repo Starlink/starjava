@@ -199,6 +199,19 @@ public class TopcatModelSelectionTable {
     }
 
     /**
+     * Performs wholesale selection or deselection of all tables in the list.
+     *
+     * @param  isSelect  true to select, false to deselect
+     */
+    public void setAllSelected( boolean isSelect ) {
+        Boolean isSel = Boolean.valueOf( isSelect );
+        int nt = tableList_.getSize();
+        for ( int it = 0; it < nt; it++ ) {
+            tModel_.setValueAt( isSel, it, icolFlag_ );
+        }
+    }
+
+    /**
      * Makes sure that we're listening to all the right TopcatModels.
      * This should be called whenever the content of the set of tables
      * currently being displayed changes.

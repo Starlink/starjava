@@ -18827,7 +18827,7 @@ option described below.
 
 </subsubsubsect>
 
-<subsubsubsect>
+<subsubsubsect id="MultiSavePanel">
 <subhead><title>Multiple Tables</title></subhead>
 
 <p>The <label>Multiple Tables</label> save option allows you to save 
@@ -18839,7 +18839,10 @@ be individually loaded in.
 
 <p>The list of loaded tables is shown, with a column of checkboxes
 on the left.  By default these are selected, but you can select or
-unselect them by clicking.  When the save is performed, only those
+unselect them by clicking.
+The <label>Select All</label> and <label>Unselect All</label> buttons
+are also provided for convenience.
+When the save is performed, only those
 tables with the checkbox selected will be saved.
 </p>
 
@@ -18878,7 +18881,10 @@ The saved items include:
 
 <p>The list of loaded tables is shown, with a column of checkboxes
 on the left.  By default these are selected, but you can select or
-unselect them by clicking.  When the save is performed, only those
+unselect them by clicking.
+The <label>Select All</label> and <label>Unselect All</label> buttons
+are also provided for convenience.
+When the save is performed, only those
 tables with the checkbox selected will be saved.
 </p>
 
@@ -30477,6 +30483,9 @@ introduced since the last version:
     <ul>
     <li>Add RMS Deviation report to
         <ref id="form-linearfit">LinearFit</ref> plot output.</li>
+    <li>Add Select All and Deselect All buttons to the
+        <ref id="MultiSavePanel">Multiple Table Save</ref> and
+        <ref id="sessionSave">Session Save</ref> panels.</li>
     </ul>
     </p></dd>
 

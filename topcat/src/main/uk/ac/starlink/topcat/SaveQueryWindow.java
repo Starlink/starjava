@@ -107,7 +107,7 @@ public class SaveQueryWindow extends QueryWindow {
         chooserLine.add( chooser_ );
         chooserLine.add( Box.createHorizontalGlue() );
         mainBox.add( chooserLine, BorderLayout.SOUTH );
-        tabber_.setPreferredSize( new Dimension( 400, 120 ) );
+        tabber_.setPreferredSize( new Dimension( 400, 160 ) );
 
         /* Toolbar buttons. */
         List<Action> saveActList = new ArrayList<Action>();

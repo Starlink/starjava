@@ -3,7 +3,10 @@ package uk.ac.starlink.topcat;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
@@ -49,6 +52,12 @@ public class SessionSavePanel extends SavePanel {
             }
         };
 
+        /* Buttons for select/deselect all. */
+        Action allAct =
+            MultiSavePanel.createSelectAllAction( tSelector_, true );
+        Action noneAct =
+            MultiSavePanel.createSelectAllAction( tSelector_, false );
+
         /* Place components. */
         setLayout( new BorderLayout() );
         JTable jtable = new JTable( tSelector_.getTableModel() );
@@ -64,6 +73,12 @@ public class SessionSavePanel extends SavePanel {
             new JScrollPane( jtable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                      JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
         add( scroller, BorderLayout.CENTER );
+        Box buttBox = Box.createHorizontalBox();
+        buttBox.add( new JButton( allAct ) );
+        buttBox.add( Box.createHorizontalStrut( 5 ) );
+        buttBox.add( new JButton( noneAct ) );
+        buttBox.add( Box.createHorizontalGlue() );
+        add( buttBox, BorderLayout.SOUTH );
     }
 
     public StarTable[] getTables() {

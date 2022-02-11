@@ -1,7 +1,11 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
 import java.util.List;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
@@ -83,6 +87,10 @@ public class MultiSavePanel extends SavePanel {
             }
         };
 
+        /* Actions for select/deselect all. */
+        Action allAct = createSelectAllAction( tSelector_, true );
+        Action noneAct = createSelectAllAction( tSelector_, false );
+
         /* Place components. */
         setLayout( new BorderLayout() );
         JTable jtable = new JTable( tModel );
@@ -98,6 +106,12 @@ public class MultiSavePanel extends SavePanel {
             new JScrollPane( jtable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                      JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
         add( scroller, BorderLayout.CENTER );
+        Box buttBox = Box.createHorizontalBox();
+        buttBox.add( new JButton( allAct ) );
+        buttBox.add( Box.createHorizontalStrut( 5 ) );
+        buttBox.add( new JButton( noneAct ) );
+        buttBox.add( Box.createHorizontalGlue() );
+        add( buttBox, BorderLayout.SOUTH );
     }
 
     public StarTable[] getTables() {
@@ -120,5 +134,28 @@ public class MultiSavePanel extends SavePanel {
             saveChooser_.setEnabled( tSelector_.getSelectedTables()
                                                .length > 0 );
         }
+    }
+
+    /**
+     * Returns an action which will select or deselect all of the tables
+     * for saving.
+     *
+     * @param  tSelector  table selection model
+     * @param  isSelect  true for wholesale selection, false for deselection
+     * @return  action
+     */
+    public static Action
+            createSelectAllAction( final TopcatModelSelectionTable tSelector,
+                                   boolean isSelect ) {
+        final Boolean isSel = Boolean.valueOf( isSelect );
+        return new BasicAction( isSelect ? "Select All" : "Unselect All",
+                                isSelect ? ResourceIcon.REVEAL_ALL_TINY
+                                         : ResourceIcon.HIDE_ALL_TINY,
+                                "Mark " + ( isSelect ? "all" : "none" )
+                                        + " of the tables for saving" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                tSelector.setAllSelected( isSelect );
+            }
+        };
     }
 }
