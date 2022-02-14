@@ -30486,6 +30486,9 @@ introduced since the last version:
     <li>Add Select All and Deselect All buttons to the
         <ref id="MultiSavePanel">Multiple Table Save</ref> and
         <ref id="sessionSave">Session Save</ref> panels.</li>
+    <li>Fix bug that broke plots (and other things?) using
+        expressions that generated RuntimeExceptions.
+        This was a regression bug since TOPCAT 4.8.</li>
     </ul>
     </p></dd>
 

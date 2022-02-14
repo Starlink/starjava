@@ -258,6 +258,9 @@ public abstract class TopcatJELEvaluator implements Closeable {
             try {
                 return evaluate( compEx_ );
             }
+            catch ( RuntimeException e ) {
+                throw e;
+            }
             catch ( IOException e ) {
                 throw e;
             }
@@ -275,6 +278,9 @@ public abstract class TopcatJELEvaluator implements Closeable {
             try {
                 return evaluateDouble( compEx_ );
             }
+            catch ( RuntimeException e ) {
+                throw e;
+            }
             catch ( IOException e ) {
                 throw e;
             }
@@ -291,6 +297,9 @@ public abstract class TopcatJELEvaluator implements Closeable {
         public boolean evaluateBoolean() throws IOException {
             try {
                 return evaluateBoolean( compEx_ );
+            }
+            catch ( RuntimeException e ) {
+                throw e;
             }
             catch ( IOException e ) {
                 throw e;
