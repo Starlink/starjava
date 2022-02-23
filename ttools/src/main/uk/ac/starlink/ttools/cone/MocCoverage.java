@@ -68,7 +68,13 @@ public abstract class MocCoverage implements Coverage {
             return knownResult.booleanValue();
         }
         int mocOrder = moc_.getMaxOrder();
+        double alphaRad = Math.toRadians( alphaDeg );
+        double deltaRad = Math.toRadians( deltaDeg );
+        double radiusRad = Math.toRadians( radiusDeg );
         try {
+
+            /* If the cell at the MOC's deepest order into which the given
+             * position falls is in the MOC, it's an overlap. */
             long centerPixel = hpi_.ang2pix( mocOrder, alphaDeg, deltaDeg );
             if ( moc_.isIntersecting( mocOrder, centerPixel ) ) {
                 return true;
@@ -76,11 +82,29 @@ public abstract class MocCoverage implements Coverage {
             if ( radiusDeg == 0 ) {
                 return false;
             }
+
+            /* Otherwise, create a BMOC corresponding to the disc,
+             * and test whether each of its tiles overlaps with this MOC.
+             * For the BMOC construction use the MOC maximum order under normal
+             * circumstances, since that will give the most accurate result.  
+             * However, place a limit on the order that scales with the
+             * requested radius, since in the case of a BMOC with tiles
+             * much smaller than the radius, it can lead to a very large
+             * data structure and in extreme cases an OutOfMemoryError.
+             * The effect of this is to introduce a small degradation of
+             * the accuracy of the test near the edge of the disc. */
+            int orderLimit = Healpix.getBestStartingDepth( radiusRad * 0.01 );
+            int scanOrder = mocOrder;
+            if ( scanOrder > orderLimit ) {
+                logger_.config( "Limit MOC order " + scanOrder + " -> "
+                              + orderLimit + " for radius "
+                              + radiusDeg + "deg" );
+                scanOrder = orderLimit;
+            }
             HealpixNestedBMOC bmoc =
                 Healpix.getNested( mocOrder )
-                       .newConeComputerApprox( Math.toRadians( radiusDeg ) )
-                       .overlappingCells( Math.toRadians( alphaDeg ),
-                                          Math.toRadians( deltaDeg ) );
+                       .newConeComputerApprox( radiusRad )
+                       .overlappingCells( alphaRad, deltaRad );
             for ( HealpixNestedBMOC.CurrentValueAccessor vac : bmoc ) {
                 if ( moc_.isIntersecting( vac.getDepth(), vac.getHash() ) ) {
                     return true;

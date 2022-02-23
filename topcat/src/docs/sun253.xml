@@ -30489,6 +30489,8 @@ introduced since the last version:
     <li>Fix bug that broke plots (and other things?) using
         expressions that generated RuntimeExceptions.
         This was a regression bug since TOPCAT 4.8.</li>
+    <li>Defend against OutOfMemoryErrors in the presence of
+        very deep MOCs.</li>
     </ul>
     </p></dd>
 
