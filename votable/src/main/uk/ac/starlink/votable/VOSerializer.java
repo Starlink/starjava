@@ -2,7 +2,6 @@ package uk.ac.starlink.votable;
 
 import java.io.BufferedWriter;
 import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -31,6 +30,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.util.Base64OutputStream;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.IntList;
 import uk.ac.starlink.votable.datalink.ServiceDescriptor;
 import uk.ac.starlink.votable.datalink.ServiceParam;
@@ -1142,7 +1142,8 @@ public abstract class VOSerializer {
             writer.newLine();
             Base64OutputStream b64out = 
                 new Base64OutputStream( new WriterOutputStream( writer ), 16 );
-            DataOutputStream dataout = new DataOutputStream( b64out );
+            DataBufferedOutputStream dataout =
+                new DataBufferedOutputStream( b64out );
             streamData( dataout );
             dataout.flush();
             b64out.endBase64();

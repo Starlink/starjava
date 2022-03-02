@@ -3,7 +3,6 @@ package uk.ac.starlink.votable;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
@@ -21,6 +20,7 @@ import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 
 /**
  * TableWriter which writes table data into the first extension of a FITS file,
@@ -82,7 +82,7 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
         }
 
         /* Prepare destination stream. */
-        DataOutputStream dout = new DataOutputStream( out );
+        DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
         out = null;
 
         /* Write the primary HDU. */

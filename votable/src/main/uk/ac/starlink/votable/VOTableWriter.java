@@ -2,20 +2,17 @@ package uk.ac.starlink.votable;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.fits.AbstractFitsTableWriter;
-import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
@@ -26,6 +23,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.formats.DocumentedIOHandler;
 import uk.ac.starlink.util.Base64OutputStream;
 import uk.ac.starlink.util.ConfigMethod;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.IOUtils;
 
 /**
@@ -223,16 +221,9 @@ public class VOTableWriter
          * new line, we don't use a PrintWriter here, since that doesn't
          * throw any exceptions; we would like exceptions to be thrown
          * where they occur. */
-        OutputStreamWriter osw;
-        try {
-            osw = new OutputStreamWriter( out, "UTF-8" );
-        }
-        catch ( UnsupportedEncodingException e ) {
-            logger.log( Level.WARNING, "What? UTF-8 unsupported?", e );
-            assert false;  // Java requires UTF-8 support
-            osw = new OutputStreamWriter( out );
-        }
-        BufferedWriter writer = new BufferedWriter( osw );
+        BufferedWriter writer =
+            new BufferedWriter(
+                new OutputStreamWriter( out, StandardCharsets.UTF_8 ) );
 
         /* Output preamble. */
         writePreTableXML( writer );
@@ -300,7 +291,8 @@ public class VOTableWriter
                     Base64OutputStream b64strm = 
                         new Base64OutputStream( new BufferedOutputStream( out ),
                                                 16 );
-                    DataOutputStream dataout = new DataOutputStream( b64strm );
+                    DataBufferedOutputStream dataout =
+                        new DataBufferedOutputStream( b64strm );
                     streamer.streamData( dataout );
                     dataout.flush();
                     b64strm.endBase64();
@@ -335,10 +327,9 @@ public class VOTableWriter
                              + extension;
                 File datafile = new File( file.getParentFile(), dataname );
                 logger.info( "Writing VOTable href data at " + datafile );
-                DataOutputStream dataout =
-                    new DataOutputStream( 
-                        new BufferedOutputStream( 
-                            new FileOutputStream( datafile ) ) );
+                DataBufferedOutputStream dataout =
+                    new DataBufferedOutputStream(
+                        new FileOutputStream( datafile ) );
                 serializer.writeHrefDataElement( writer, dataname, dataout );
                 dataout.close();
             }

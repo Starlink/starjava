@@ -1,14 +1,12 @@
 package uk.ac.starlink.votable;
 
-import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PushbackInputStream;
 import java.util.zip.GZIPInputStream;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.util.Base64InputStream;
+import uk.ac.starlink.util.DataBufferedInputStream;
 
 /**
  * RowSequence implementation which reads streamed data in VOTable BINARY
@@ -19,8 +17,7 @@ import uk.ac.starlink.util.Base64InputStream;
  */
 class BinaryRowSequence implements RowSequence {
 
-    private final PushbackInputStream pIn_;
-    private final DataInput dataIn_;
+    private final DataBufferedInputStream dataIn_;
     private final int ncol_;
     private final RowReader rowReader_;
     private Object[] row_;
@@ -45,8 +42,7 @@ class BinaryRowSequence implements RowSequence {
         else if ( "base64".equals( encoding ) ) {
             in = new Base64InputStream( in );
         }
-        pIn_ = new PushbackInputStream( in );
-        dataIn_ = new DataInputStream( pIn_ );
+        dataIn_ = new DataBufferedInputStream( in );
         rowReader_ = isBinary2
             ? new RowReader() {
                   final boolean[] nullFlags = new boolean[ ncol_ ];
@@ -77,22 +73,14 @@ class BinaryRowSequence implements RowSequence {
     }
 
     public boolean next() throws IOException {
-        final int b;
         try {
-            b = pIn_.read();
-        }
-        catch ( EOFException e ) {
-            return false;
-        }
-        if ( b < 0 ) {
-            return false;
-        }
-        else {
-            pIn_.unread( b );
             Object[] row = new Object[ ncol_ ];
             rowReader_.readRow( row );
             row_ = row;
             return true;
+        }
+        catch ( EOFException e ) {
+            return false;
         }
     }
 
@@ -115,7 +103,7 @@ class BinaryRowSequence implements RowSequence {
     }
 
     public void close() throws IOException {
-        pIn_.close();
+        dataIn_.close();
     }
 
     /**
