@@ -2,7 +2,6 @@ package uk.ac.starlink.fits;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
@@ -18,6 +17,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 
 /**
  * FitsTableSerializer which can write variable array-valued columns
@@ -133,12 +133,9 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
     public void writeData( DataOutput out ) throws IOException {
         VariableArrayColumnWriter[] vcws = getVariableArrayColumnWriters();
         ByteStore byteStore = storagePolicy_.makeByteStore();
-        int bufsiz = 64 * 1024;
         long[] counter = new long[ 1 ];
-        DataOutputStream dataOut =
-            new DataOutputStream(
-                new BufferedOutputStream( byteStore.getOutputStream(),
-                                          bufsiz ) );
+        DataBufferedOutputStream dataOut =
+            new DataBufferedOutputStream( byteStore.getOutputStream() );
         for ( int iv = 0; iv < vcws.length; iv++ ) {
             vcws[ iv ].setDataOutput( dataOut, counter );
         }
@@ -166,7 +163,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
 
         /* Tidy up. */
         for ( int iv = 0; iv < vcws.length; iv++ ) {
-            vcws[ iv ].setDataOutput( (DataOutputStream) null, (long[]) null );
+            vcws[ iv ].setDataOutput( (DataOutput) null, (long[]) null );
         }
     }
 
@@ -225,7 +222,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         private final long totalElements_;
         private final int elSize_;
         private PQMode pqMode_;
-        private DataOutputStream dataOut_;
+        private DataOutput dataOut_;
         private long[] counter_;
 
         /**
@@ -259,10 +256,10 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
          * writer, and it must be updated by this writer in accordance
          * with any output it makes to that stream.
          *
-         * @param  byteStore  byte store
+         * @param  dataOut   destination for output (heap)
          * @param  counter   1-element array containing output byte count
          */
-        public void setDataOutput( DataOutputStream dataOut, long[] counter ) {
+        public void setDataOutput( DataOutput dataOut, long[] counter ) {
             dataOut_ = dataOut;
             counter_ = counter;
         }

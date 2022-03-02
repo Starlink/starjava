@@ -1,11 +1,7 @@
 package uk.ac.starlink.fits;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
 import java.io.DataInput;
 import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,10 +14,10 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
-import nom.tam.util.BufferedDataInputStream;
-import nom.tam.util.BufferedDataOutputStream;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.DataBufferedInputStream;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 
 /**
  * Column store implementation which stores data in (temporary) disk files.
@@ -74,7 +70,7 @@ abstract class FileColumnStore implements ColumnStore {
         // out_ = new DataOutputStream(
         //            new BufferedOutputStream(
         //                new FileOutputStream( file_ ) ) );
-        out_ = new BufferedDataOutputStream( new FileOutputStream( file_ ) );
+        out_ = new DataBufferedOutputStream( new FileOutputStream( file_ ) );
     }
 
     /**
@@ -128,7 +124,7 @@ abstract class FileColumnStore implements ColumnStore {
             //                    new BufferedInputStream(
             //                        new FileInputStream( file_ ) ) );
             DataInput in =
-                new BufferedDataInputStream( new FileInputStream( file_ ) );
+                new DataBufferedInputStream( new FileInputStream( file_ ) );
             try {
                 for ( long irow = 0; irow < nrow_; irow++ ) {
                     copyValue( in, out );

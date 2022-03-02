@@ -1,9 +1,7 @@
 package uk.ac.starlink.fits;
 
-import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +14,7 @@ import java.util.logging.Logger;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.Compression;
+import uk.ac.starlink.util.DataBufferedInputStream;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IOUtils;
@@ -99,9 +98,7 @@ public abstract class InputFactory implements Closeable {
                     throws IOException {
                 InputStream baseIn = datsrc.getInputStream();
                 IOUtils.skip( baseIn, offset );
-                DataInputStream dataIn =
-                    new DataInputStream(
-                        new BufferedInputStream( baseIn ) );
+                DataInput dataIn = new DataBufferedInputStream( baseIn );
                 return createSequentialInput( dataIn );
             }
             public void close() {
