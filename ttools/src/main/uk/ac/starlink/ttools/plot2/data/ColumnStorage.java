@@ -1,8 +1,6 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import java.io.BufferedOutputStream;
 import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -16,6 +14,7 @@ import uk.ac.starlink.table.storage.ByteStoreAccess;
 import uk.ac.starlink.table.storage.FileByteStore;
 import uk.ac.starlink.table.storage.NioByteStoreAccess;
 import uk.ac.starlink.table.storage.Codec;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 
 /**
  * Arranges for storage of column data (arrays of typed values)
@@ -382,7 +381,7 @@ public abstract class ColumnStorage {
     private static abstract class StreamColumn implements CachedColumn {
 
         final ByteStore store_;
-        final DataOutputStream out_;
+        final DataBufferedOutputStream out_;
         long nrow_;
         ByteBuffer[] bufs_;
 
@@ -393,8 +392,7 @@ public abstract class ColumnStorage {
          */
         StreamColumn( ByteStore store ) {
             store_ = store;
-            out_ = new DataOutputStream(
-                       new BufferedOutputStream( store.getOutputStream() ) );
+            out_ = new DataBufferedOutputStream( store.getOutputStream() );
         }
 
         /**
@@ -661,12 +659,10 @@ public abstract class ColumnStorage {
          */
         CachedColumn createIndexedColumn( final ByteStore dataStore,
                                           final ByteStore indexStore ) {
-            final DataOutputStream dataOut =
-                new DataOutputStream(
-                    new BufferedOutputStream( dataStore.getOutputStream() ) );
-            final DataOutputStream indexOut =
-                new DataOutputStream(
-                    new BufferedOutputStream( indexStore.getOutputStream() ) );
+            final DataBufferedOutputStream dataOut =
+                new DataBufferedOutputStream( dataStore.getOutputStream() );
+            final DataBufferedOutputStream indexOut =
+                new DataBufferedOutputStream( indexStore.getOutputStream() );
             return new CachedColumn() {
                 long index_;
                 long nrow_;

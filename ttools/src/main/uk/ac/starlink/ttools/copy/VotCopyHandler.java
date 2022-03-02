@@ -1,8 +1,6 @@
 package uk.ac.starlink.ttools.copy;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,6 +23,7 @@ import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.UnrepeatableSequenceException;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableContentHandler;
 import uk.ac.starlink.votable.TableHandler;
@@ -378,9 +377,8 @@ public class VotCopyHandler
                                  " in file " + file );
             }
             String href = file.toString();
-            DataOutputStream datstrm = new DataOutputStream(
-                                           new BufferedOutputStream(
-                                               new FileOutputStream( file ) ) );
+            DataBufferedOutputStream datstrm =
+                new DataBufferedOutputStream( new FileOutputStream( file ) );
             voser.writeHrefDataElement( out_, href, datstrm );
             datstrm.flush();
             datstrm.close();

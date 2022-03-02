@@ -1,9 +1,7 @@
 package uk.ac.starlink.ttools.mode;
 
 import gnu.jel.CompilationException;
-import java.io.BufferedOutputStream;
 import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
@@ -25,6 +23,7 @@ import uk.ac.starlink.ttools.jel.JELTable;
 import uk.ac.starlink.ttools.plot2.layer.BinList;
 import uk.ac.starlink.ttools.plot2.layer.BinListCollector;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.Destination;
 
 /**
@@ -124,12 +123,12 @@ public class CubeWriter implements TableConsumer {
             calculateCube( asTable, combiner_, loBounds_, nbins_, binSizes_ );
 
         /* Write the cube to the output stream as FITS. */
-        DataOutputStream out = new DataOutputStream(
-                                   new BufferedOutputStream(
-                                       dest_.createStream() ) );
+        DataBufferedOutputStream out =
+            new DataBufferedOutputStream( dest_.createStream() );
         try {
             writeFits( Tables.getColumnInfos( aTable ),
                        asTable.getColumnInfo( ndim ), cube, outType_, out );
+            out.flush();
         }
         finally {
             out.close();
@@ -335,8 +334,7 @@ public class CubeWriter implements TableConsumer {
      * @param   out    output stream
      */
     private void writeFits( ValueInfo[] axInfos, ValueInfo binInfo,
-                            double[] cube, Class<?> outType,
-                            DataOutputStream out )
+                            double[] cube, Class<?> outType, DataOutput out )
             throws IOException {
         int npix = cube.length;
         int ndim = nbins_.length;
@@ -449,7 +447,6 @@ public class CubeWriter implements TableConsumer {
         if ( over > 0 ) {
             out.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
         }
-        out.flush();
     }
 
     /**
