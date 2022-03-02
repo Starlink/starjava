@@ -1,7 +1,5 @@
 package uk.ac.starlink.table.storage;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
@@ -15,6 +13,7 @@ import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.IntList;
 
 /**
@@ -31,7 +30,7 @@ import uk.ac.starlink.util.IntList;
 public class ByteStoreRowStore implements RowStore {
 
     private final ByteStore byteStore_;
-    private final DataOutputStream out_;
+    private final DataBufferedOutputStream out_;
     private int ncol_;
     private int nrow_;
     private Codec[] codecs_;
@@ -50,8 +49,7 @@ public class ByteStoreRowStore implements RowStore {
      */
     public ByteStoreRowStore( ByteStore byteStore ) {
         byteStore_ = byteStore;
-        out_ = new DataOutputStream(
-                   new BufferedOutputStream( byteStore.getOutputStream() ) );
+        out_ = new DataBufferedOutputStream( byteStore.getOutputStream() );
     }
 
     /**

@@ -1,11 +1,10 @@
 package uk.ac.starlink.table.storage;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 
 /**
  * ColumnStore implementation which uses two streamed files to store a 
@@ -19,8 +18,8 @@ public class IndexedStreamColumnStore implements ColumnStore {
     private final Codec codec_;
     private final File dataFile_;
     private final File indexFile_;
-    private final DataOutputStream dataOut_;
-    private final DataOutputStream indexOut_;
+    private final DataBufferedOutputStream dataOut_;
+    private final DataBufferedOutputStream indexOut_;
     private long dataOffset_;
     private long nrow_;
     private ByteBuffer[] dataBufs_;
@@ -41,12 +40,10 @@ public class IndexedStreamColumnStore implements ColumnStore {
         codec_ = codec;
         dataFile_ = dataFile;
         indexFile_ = indexFile;
-        dataOut_ = new DataOutputStream(
-                       new BufferedOutputStream(
-                           new FileOutputStream( dataFile ) ) );
-        indexOut_ = new DataOutputStream(
-                        new BufferedOutputStream(
-                            new FileOutputStream( indexFile ) ) );
+        dataOut_ =
+            new DataBufferedOutputStream( new FileOutputStream( dataFile ) );
+        indexOut_ =
+            new DataBufferedOutputStream( new FileOutputStream( indexFile ) );
     }
 
     public void acceptCell( Object value ) throws IOException {

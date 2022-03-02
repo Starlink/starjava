@@ -1,11 +1,10 @@
 package uk.ac.starlink.table.storage;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 
 /**
  * ColumnStore implementation which uses a streamed file to store a 
@@ -18,7 +17,7 @@ public class StreamColumnStore implements ColumnStore {
 
     private final Codec codec_;
     private final File dataFile_;
-    private final DataOutputStream dataOut_;
+    private final DataBufferedOutputStream dataOut_;
     private final int itemSize_;
     private long nrow_;
     private ByteBuffer[] bbufs_;
@@ -38,9 +37,8 @@ public class StreamColumnStore implements ColumnStore {
         if ( itemSize_ < 0 ) {
             throw new IllegalArgumentException( "Must have fixed size codec" );
         }
-        dataOut_ = new DataOutputStream(
-                       new BufferedOutputStream(
-                           new FileOutputStream( dataFile ) ) );
+        dataOut_ =
+            new DataBufferedOutputStream( new FileOutputStream( dataFile ) );
     }
 
     public void acceptCell( Object value ) throws IOException {
