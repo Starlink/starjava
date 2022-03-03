@@ -1,6 +1,5 @@
 package uk.ac.starlink.votable;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +7,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.util.Base64;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
@@ -18,7 +18,7 @@ import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
-import uk.ac.starlink.util.Base64InputStream;
+import uk.ac.starlink.util.DataBufferedInputStream;
 import uk.ac.starlink.util.PipeReaderThread;
 import uk.ac.starlink.util.URLUtils;
 
@@ -358,7 +358,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
             reader_ = new PipeReaderThread() {
                 protected void doReading( InputStream datain )
                         throws IOException {
-                    InputStream in = new BufferedInputStream( datain );
+                    InputStream in = new DataBufferedInputStream( datain );
                     RowSequence rseq =
                         new BinaryRowSequence( decoders, in, "base64",
                                                isBinary2 );
@@ -464,8 +464,9 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
             reader_ = new PipeReaderThread() {
                 protected void doReading( InputStream datain )
                         throws IOException {
-                    InputStream in = new Base64InputStream(
-                                         new BufferedInputStream( datain ) );
+                    InputStream in =
+                        Base64.getMimeDecoder()
+                       .wrap( new DataBufferedInputStream( datain ) );
                     new FitsTableBuilder().streamStarTable( in, sink, ihdu );
                 }
             };

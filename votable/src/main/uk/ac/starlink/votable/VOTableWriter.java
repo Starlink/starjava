@@ -261,8 +261,7 @@ public class VOTableWriter
                  * is wrapped round the base OutputStream.
                  * But we could omit this stanza altogether and let the 
                  * work get done by serializer.writeInlineDataElement.
-                 * I don't know whether the efficiency hit is significant
-                 * or not. */
+                 * It seems to make a difference at the 5-10% level. */
                 if ( serializer instanceof
                      VOSerializer.StreamableVOSerializer ) {
                     VOSerializer.StreamableVOSerializer streamer =

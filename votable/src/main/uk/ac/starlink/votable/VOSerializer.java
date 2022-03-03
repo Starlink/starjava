@@ -1140,6 +1140,15 @@ public abstract class VOSerializer {
             /* Write the STREAM element. */
             writer.write( "<STREAM encoding='base64'>" );
             writer.newLine();
+
+            /* Note this implementation seems to be faster than the Java 8
+             * java.util.Base64 implementation; it's also more suitable because
+             * the Base64 output can be terminated without closing the
+             * underlying output stream (or jumping through hoops to avoid
+             * doing so).  Experiments suggest that there is not much gain
+             * to be had by buffering the output differently since the
+             * rate-limiting process is the CPU load of the Base64 encoding
+             * itself.  Possibly multithreading that might speed things up. */
             Base64OutputStream b64out = 
                 new Base64OutputStream( new WriterOutputStream( writer ), 16 );
             DataBufferedOutputStream dataout =

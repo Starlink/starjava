@@ -3,6 +3,7 @@ package uk.ac.starlink.votable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.zip.GZIPInputStream;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.util.Base64InputStream;
@@ -40,7 +41,11 @@ class BinaryRowSequence implements RowSequence {
             in = new GZIPInputStream( in );
         }
         else if ( "base64".equals( encoding ) ) {
-            in = new Base64InputStream( in );
+
+            /* This is considerably faster than java.util.Base64InputStream,
+             * and especially if the underlying input stream is a
+             * uk.ac.starlink.util.DataBufferedInputStream. */
+            in = Base64.getMimeDecoder().wrap( in );
         }
         dataIn_ = new DataBufferedInputStream( in );
         rowReader_ = isBinary2
