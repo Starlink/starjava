@@ -46,9 +46,15 @@ public abstract class EcsvStarTable extends AbstractStarTable {
         Map<?,?> tableMeta = meta.getTableMeta();
         if ( tableMeta != null ) {
             for ( Map.Entry<?,?> entry : tableMeta.entrySet() ) {
-                DescribedValue dval = toDescribedValue( entry );
-                if ( dval != null ) {
-                    setParameter( dval );
+                if ( EcsvTableWriter.TABLENAME_METAKEY.equals( entry.getKey() )
+                     && entry.getValue() instanceof String ) {
+                    setName( (String) entry.getValue() );
+                }
+                else {
+                    DescribedValue dval = toDescribedValue( entry );
+                    if ( dval != null ) {
+                        setParameter( dval );
+                    }
                 }
             }
         }

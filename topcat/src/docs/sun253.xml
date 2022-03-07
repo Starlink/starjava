@@ -30491,6 +30491,7 @@ introduced since the last version:
         This was a regression bug since TOPCAT 4.8.</li>
     <li>Defend against OutOfMemoryErrors in the presence of
         very deep MOCs.</li>
+    <li>ECSV format now preserves table name.</li>
     </ul>
     </p></dd>
 

@@ -50,6 +50,9 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ecsv" );
 
+    /** Meta map key for table name string value. */
+    public static final String TABLENAME_METAKEY = "name";
+
     /** Meta map key for UCD string value. */
     public static final String UCD_METAKEY = "ucd";
 
@@ -212,7 +215,13 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
         }
 
         /* Write per-table metadata. */
-        writeMetaMap( out, 0, "meta", getMetaMap( table.getParameters() ) );
+        Map<String,Object> tmetaMap = new LinkedHashMap<>();
+        String tname = table.getName();
+        if ( tname != null && tname.trim().length() > 0 ) {
+            tmetaMap.put( TABLENAME_METAKEY, tname );
+        }
+        tmetaMap.putAll( getMetaMap( table.getParameters() ) );
+        writeMetaMap( out, 0, "meta", tmetaMap );
 
         /* Write the required row giving non-YAML column names. */
         writeLine( out, nbuf );

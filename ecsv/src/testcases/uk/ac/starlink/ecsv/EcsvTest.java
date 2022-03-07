@@ -53,6 +53,7 @@ public class EcsvTest extends TestCase {
 
     public void testData1() throws IOException {
         StarTable table = readTable( "test1.ecsv" );
+        table.setName( "DATA1" );
         table = Tables.randomTable( table );
         Tables.checkTable( table );
         checkRoundTripSerialize( table );
@@ -132,6 +133,7 @@ public class EcsvTest extends TestCase {
         int nrow = (int) t2.getRowCount();
         assertEquals( ncol, t2.getColumnCount() );
         assertEquals( nrow, t2.getRowCount() );
+        assertEquals( t1.getName(), t2.getName() );
         int ndummy = 0;
         for ( int ic = 0; ic < ncol; ic++ ) {
             ColumnInfo c1 = t1.getColumnInfo( ic );
