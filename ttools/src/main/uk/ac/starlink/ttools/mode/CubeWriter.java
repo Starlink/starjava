@@ -360,14 +360,14 @@ public class CubeWriter implements TableConsumer {
                 isInt = isInt && ( isNaN || (int) datum == datum );
             }
         }
-        if ( min == Double.NaN ) {
+        if ( Double.isNaN( min ) ) {
             assert max == Double.NaN;
         }
 
         /* Get a suitable writer for writing the numeric data to FITS. */
         Class<?> clazz = outType;
         if ( clazz == null ) {
-            if ( min == Double.NaN ) {
+            if ( Double.isNaN( min ) ) {
                 clazz = byte.class;
             }
             else if ( isInt ) {
