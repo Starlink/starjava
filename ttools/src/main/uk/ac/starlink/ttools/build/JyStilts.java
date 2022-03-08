@@ -394,6 +394,8 @@ public class JyStilts {
             "        self._buffer = StringUtil.toBytes(buf)",
             "        if hasattr(file, 'name'):",
             "            self.setName(file.name)",
+            "        else:",
+            "            self.setName('unnamed')",
             "    def getRawInputStream(self):",
             "        return " + getImportName( ByteArrayInputStream.class )
                               + "(self._buffer)",
