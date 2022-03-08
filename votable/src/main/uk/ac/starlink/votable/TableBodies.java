@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.EmptyRowSequence;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
