@@ -556,7 +556,9 @@
       <arg value="-xjar"/><arg value="jaiutil.jar"/>
       <arg value="-xjar"/><arg value="jniast.jar"/>
       <arg value="-xjar"/><arg value="junit.jar"/>
+      <arg value="-xjar"/><arg value="oldfits.jar"/>
       <arg value="-xjar"/><arg value="ndx.jar"/>
+      <arg value="-xjar"/><arg value="tamfits.jar"/>
       <arg value="-xjar"/><arg value="parquet-mr-stil.jar"/>
       <arg value="-xjar"/><arg value="sog.jar"/>
       <arg value="-xjar"/><arg value="soapserver.jar"/>
@@ -579,6 +581,8 @@
       <arg value="-xjar"/><arg value="log4j-core.jar"/>
       <arg value="-xjar"/><arg value="jsky/jel.jar"/>
       <arg value="-xjar"/><arg value="gsi-classes.jar"/>
+      <arg value="-xjar"/><arg value="oldfits.jar"/>
+      <arg value="-xjar"/><arg value="tamfits.jar"/>
       <arg value="-xjar"/><arg value="parquet-mr-stil.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
@@ -598,6 +602,8 @@
       <arg value="-xjar"/><arg value="log4j-core.jar"/>
       <arg value="-xjar"/><arg value="jsky/jel.jar"/>
       <arg value="-xjar"/><arg value="gsi-classes.jar"/>
+      <arg value="-xjar"/><arg value="oldfits.jar"/>
+      <arg value="-xjar"/><arg value="tamfits.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
       <arg value="-file"/><arg value="${star.bin}/topcat"/>

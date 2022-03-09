@@ -13730,6 +13730,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         rather than failing with an exception.</li>
     <li>New command <ref id="xsdvalidate"><code>xsdvalidate</code></ref>
         added.</li>
+    <li>Dependency on nom.tam.fits removed.</li>
+    <li>Substantial I/O performance improvements, e.g.:
+        writing to FITS 2x, reading FITS from a stream 2x,
+        streaming VOTable with inline BINARY/BINARY2 4x,
+        caching VOTable with inline BINARY/BINARY2 4x.</li>
     </ul>
     </p></dd>
 

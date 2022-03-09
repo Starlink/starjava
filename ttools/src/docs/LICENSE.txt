@@ -86,7 +86,6 @@ this list up to date, but if there are missing entries please complain.
       javax.servlet.jar
 
    Other permissive licenses:
-      tamfits.jar (Unlicense)
       json.jar (JSON license)
       rayreg.jar (JUNX license)
 
