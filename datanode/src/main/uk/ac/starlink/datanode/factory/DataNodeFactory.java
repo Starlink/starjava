@@ -37,6 +37,7 @@ import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.datanode.nodes.PlainDataNode;
 import uk.ac.starlink.datanode.nodes.StarTableDataNode;
 import uk.ac.starlink.datanode.nodes.TarStreamDataNode;
+import uk.ac.starlink.datanode.nodes.TfitsDataNode;
 import uk.ac.starlink.datanode.nodes.VOComponentDataNode;
 import uk.ac.starlink.datanode.nodes.VOTableDataNode;
 import uk.ac.starlink.datanode.nodes.VOTableTableDataNode;
@@ -670,6 +671,7 @@ public class DataNodeFactory {
                 HistoryDataNode.class.getName(),
                 HDSDataNode.class.getName(),
                 FITSFileDataNode.class.getName(),
+                TfitsDataNode.class.getName(),
                 NdxDataNode.class.getName(),
                 VOTableDataNode.class.getName(),
                 ZipFileDataNode.class.getName(),
@@ -702,6 +704,13 @@ public class DataNodeFactory {
             }
             if ( ! NodeUtil.hasAST() ) {
                 classNameList.remove( WCSDataNode.class.getName() );
+            }
+            if ( ! NodeUtil.hasTAMFITS() ) {
+                classNameList.remove( FITSFileDataNode.class.getName() );
+                classNameList.remove( FITSStreamDataNode.class.getName() );
+            }
+            else {
+                classNameList.remove( TfitsDataNode.class.getName() );
             }
 
             /* Now construct a corresponding list of the classes themselves.

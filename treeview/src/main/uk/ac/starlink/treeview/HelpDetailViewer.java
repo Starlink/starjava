@@ -56,6 +56,8 @@ class HelpDetailViewer extends ApplicationDetailViewer {
                                                   : "not installed" );
         addKeyedItem( "JAI", NodeUtil.hasJAI() ? "installed" 
                                                : "not installed" );
+        addKeyedItem( "TAMFITS", NodeUtil.hasTAMFITS() ? "installed"
+                                                       : "not installed" );
 
         addSubHead( "Java" );
         addKeyedItem( "JRE", System.getProperty( "java.vendor" ) + " " 

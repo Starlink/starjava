@@ -120,8 +120,10 @@ public class Driver {
         usageMsg +=       "\n         [item ...]\n";
 
         /* Ensure that we will load the right HDX factories. */
-        System.setProperty( "HdxDocumentFactory.load." +
-                            FitsNdxHandler.class.getName(), "true" );
+        if ( NodeUtil.hasTAMFITS() ) {
+            System.setProperty( "HdxDocumentFactory.load."
+                              + FitsNdxHandler.class.getName(), "true" );
+        }
         if ( hasHDS ) {
             System.setProperty( "HdxDocumentFactory.load." +
                                 NDFNdxHandler.class.getName(), "true" );

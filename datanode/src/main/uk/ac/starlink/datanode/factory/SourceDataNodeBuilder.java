@@ -11,10 +11,13 @@ import uk.ac.starlink.datanode.nodes.DataNode;
 import uk.ac.starlink.datanode.nodes.FITSDataNode;
 import uk.ac.starlink.datanode.nodes.FITSStreamDataNode;
 import uk.ac.starlink.datanode.nodes.NoSuchDataException;
+import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.datanode.nodes.TarStreamDataNode;
+import uk.ac.starlink.datanode.nodes.TfitsDataNode;
 import uk.ac.starlink.datanode.nodes.XMLDocument;
 import uk.ac.starlink.datanode.nodes.ZipArchiveDataNode;
 import uk.ac.starlink.datanode.nodes.ZipStreamDataNode;
+import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -73,8 +76,10 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
         }
 
         /* FITS stream? */
-        if ( FITSDataNode.isMagic( magic ) ) {
-            return new FITSStreamDataNode( datsrc );
+        if ( FitsUtil.isMagic( magic ) ) {
+            return NodeUtil.hasTAMFITS()
+                 ? TamFitsUtil.getFitsStreamDataNode( datsrc )
+                 : new TfitsDataNode( datsrc );
         }
 
         /* Tar stream? */

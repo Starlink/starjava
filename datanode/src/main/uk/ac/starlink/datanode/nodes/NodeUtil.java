@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.datanode.factory.CreationState;
+import uk.ac.starlink.datanode.factory.TamFitsUtil;
 import uk.ac.starlink.hds.HDSPackage;
 
 /**
@@ -18,6 +19,7 @@ public class NodeUtil {
     private static Boolean hasHDS_;
     private static Boolean hasJAI_;
     private static Boolean hasGUI_;
+    private static Boolean hasTAMFITS_;
 
     private static Logger logger =
         Logger.getLogger( "uk.ac.starlink.datanode.nodes" );
@@ -102,6 +104,26 @@ public class NodeUtil {
             }
         }
         return hasJAI_.booleanValue();
+    }
+
+    /**
+     * Indicates whether the nom.tam.fits FITS I/O library is available.
+     *
+     * @return true iff nom.tam.fits is available
+     */
+    public static boolean hasTAMFITS() {
+        if ( hasTAMFITS_ == null ) {
+            boolean hasTamfits;
+            try {
+                new TamFitsUtil();
+                hasTamfits = true;
+            }
+            catch ( NoClassDefFoundError e ) {
+                hasTamfits = false;
+            }
+            hasTAMFITS_ = Boolean.valueOf( hasTamfits );
+        }
+        return hasTAMFITS_.booleanValue();
     }
 
     /**

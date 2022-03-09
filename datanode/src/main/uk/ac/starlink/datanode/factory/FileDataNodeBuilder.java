@@ -1,31 +1,24 @@
 package uk.ac.starlink.datanode.factory;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.IOException;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
-import nom.tam.util.ArrayDataInput;
-import nom.tam.util.BufferedDataInputStream;
 import uk.ac.starlink.datanode.nodes.DataNode;
 import uk.ac.starlink.datanode.nodes.HDSDataNode;
-import uk.ac.starlink.datanode.nodes.FITSDataNode;
 import uk.ac.starlink.datanode.nodes.FITSFileDataNode;
 import uk.ac.starlink.datanode.nodes.FileDataNode;
 import uk.ac.starlink.datanode.nodes.NDFDataNode;
-import uk.ac.starlink.datanode.nodes.NdxDataNode;
 import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.datanode.nodes.NoSuchDataException;
 import uk.ac.starlink.datanode.nodes.TarStreamDataNode;
+import uk.ac.starlink.datanode.nodes.TfitsDataNode;
 import uk.ac.starlink.datanode.nodes.XMLDocument;
 import uk.ac.starlink.datanode.nodes.ZipArchiveDataNode;
 import uk.ac.starlink.datanode.nodes.ZipFileDataNode;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.HDSReference;
+import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
@@ -100,27 +93,10 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
             /* If it's a FITS file, make it an NDX (if it looks like it
              * was created as one) or a FITS node. */
-            if ( FITSDataNode.isMagic( magic ) ) {
-                ArrayDataInput istrm = null;
-                try {
-                    InputStream strm1 = datsrc.getInputStream();
-                    istrm = new BufferedDataInputStream( strm1 );
-                    Header hdr = new Header( istrm );
-                    if ( hdr.containsKey( "NDX_XML" ) ) {
-                        return new NdxDataNode( file );
-                    }
-                    else {
-                        return new FITSFileDataNode( file );
-                    }
-                }
-                catch ( FitsException e ) {
-                    throw new NoSuchDataException( e );
-                }
-                finally {
-                    if ( istrm != null ) {
-                        istrm.close();
-                    }
-                }
+            if ( FitsUtil.isMagic( magic ) ) {
+                return NodeUtil.hasTAMFITS()
+                     ? TamFitsUtil.getFitsDataNode( file, magic, datsrc )
+                     : new TfitsDataNode( datsrc );
             }
 
             /* If it's an HDS file, make it an NDF (if it is one) 

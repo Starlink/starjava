@@ -18,6 +18,7 @@ import uk.ac.starlink.votable.VOTableWriter;
 import uk.ac.starlink.datanode.nodes.DataNode;
 import uk.ac.starlink.datanode.nodes.DataObjectException;
 import uk.ac.starlink.datanode.nodes.DataType;
+import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.hdx.HdxException;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.util.SourceReader;
@@ -65,8 +66,10 @@ public class DataNodeTransferable extends BasicTransferable {
 
                 /* In any case, we can squirt the whole lot as a FITS file
                  * with data inline. */
-                addDataSource( new FitsNdxDataSource( ndx ),
-                               "application/fits" );
+                if ( NodeUtil.hasTAMFITS() ) {
+                    addDataSource( new FitsNdxDataSource( ndx ),
+                                   "application/fits" );
+                }
             }
             catch ( DataObjectException e ) {
                 e.printStackTrace();
