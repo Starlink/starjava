@@ -6,7 +6,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import nom.tam.util.ArrayDataInput;
-import uk.ac.starlink.fits.MappedFile;
+import uk.ac.starlink.oldfits.MappedFile;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 

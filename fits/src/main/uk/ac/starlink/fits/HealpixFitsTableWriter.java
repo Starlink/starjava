@@ -3,7 +3,6 @@ package uk.ac.starlink.fits;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.DescribedValue;
@@ -117,12 +116,7 @@ public class HealpixFitsTableWriter extends AbstractFitsTableWriter {
          * but on that occasion exceptions will be logged and swallowed.
          * Here, the exceptions are uncaught so that tables that are
          * not HEALPix will cause a write error. */
-        try {
-            fitser.getHealpixHeaders( hpxInfo );
-        }
-        catch ( HeaderCardException e ) {
-            throw new IOException( "Unexpected header exception", e );
-        }
+        fitser.getHealpixHeaders( hpxInfo );
 
         /* If we've got this far, the serializer will be able to write
          * a HEALPix FITS file. */

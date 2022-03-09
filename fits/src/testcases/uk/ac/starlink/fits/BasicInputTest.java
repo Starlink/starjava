@@ -1,14 +1,11 @@
 package uk.ac.starlink.fits;
 
-import java.io.BufferedOutputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -18,8 +15,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nom.tam.util.BufferedDataInputStream;
-import nom.tam.util.BufferedFile;
+import uk.ac.starlink.util.DataBufferedInputStream;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.TestCase;
 
 public class BasicInputTest extends TestCase {
@@ -34,9 +31,8 @@ public class BasicInputTest extends TestCase {
 
     public void testInput() throws IOException {
         File file = File.createTempFile( "tmp", ".dat" );
-        DataOutputStream out =
-            new DataOutputStream(
-                new BufferedOutputStream( new FileOutputStream( file ) ) );
+        DataBufferedOutputStream out =
+            new DataBufferedOutputStream( new FileOutputStream( file ) );
         byte[] buf10 = new byte[ 10 ];
         for ( int i = 0; i < count; i++ ) {
             out.write( byteFor( i ) );
@@ -55,17 +51,13 @@ public class BasicInputTest extends TestCase {
         int leng1 = leng - isiz;
 
         FileChannel chan = new RandomAccessFile( file, "r" ).getChannel();
+        exerciseInput( seqOffInput( off1, new FileInputStream( file ) ) );
         exerciseInput( seqOffInput( off1,
-                                    new DataInputStream(
+                                    new DataBufferedInputStream(
                                         new FileInputStream( file ) ) ) );
         exerciseInput( seqOffInput( off1,
-                                    new BufferedFile( file.getPath() ) ) );
-        exerciseInput( new BufferedRandomInput( new RandomAccessFile( file,
-                                                                      "r" ),
-                                                off1 ) );
-        exerciseInput( new BufferedRandomInput( new RandomAccessFile( file,
-                                                                      "r" ),
-                                                off1, 29 ) );
+                                    new DataBufferedInputStream(
+                                        new FileInputStream( file ), 29 ) ) );
         exerciseInput( new SimpleMappedInput( chan, off1, leng1, "test" ) );
         exerciseInput( BlockMappedInput
                       .createInput( chan, off1, leng1, "test", isiz + 3, 0 ) );
@@ -134,9 +126,9 @@ public class BasicInputTest extends TestCase {
         in.close();
     }
 
-    private static BasicInput seqOffInput( int offset, DataInput dataIn )
+    private static BasicInput seqOffInput( int offset, InputStream in )
             throws IOException {
-        BasicInput input = InputFactory.createSequentialInput( dataIn );
+        BasicInput input = InputFactory.createSequentialInput( in );
         input.skip( offset );
         return input;
     }

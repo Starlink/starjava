@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import nom.tam.fits.FitsException;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 
 /**
@@ -158,13 +158,14 @@ abstract class ColumnReader {
                                                    long blank, int[] tdims,
                                                    String ttype,
                                                    final long heapStart )
-            throws FitsException {
+            throws TableFormatException {
 
         /* Parse TFORM to find repeat count and data type. */
         Matcher fmatch = Pattern.compile( "([0-9]*)([LXBIJKAEDCMPQ])(.*)" )
                                 .matcher( tform );
         if ( ! fmatch.lookingAt() ) {
-            throw new FitsException( "Error parsing TFORM value " + tform );
+            throw new TableFormatException( "Error parsing TFORM value "
+                                          + tform );
         }
         String scount = fmatch.group( 1 );
         final int count = scount.length() == 0

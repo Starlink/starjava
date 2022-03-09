@@ -1,26 +1,24 @@
 package uk.ac.starlink.votable;
 
 import java.awt.datatransfer.DataFlavor;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Logger;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCard;
-import nom.tam.util.ArrayDataInput;
-import nom.tam.util.BufferedDataInputStream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.BasicInput;
 import uk.ac.starlink.fits.BintableStarTable;
-import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.fits.FitsHeader;
+import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.fits.InputFactory;
+import uk.ac.starlink.fits.ParsedCard;
 import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.MultiTableBuilder;
@@ -100,41 +98,32 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
         }
 
         /* Get an input stream. */
-        ArrayDataInput strm = FitsConstants.getInputStreamStart( datsrc );
-        try {
+        InputStream in = datsrc.getInputStream();
 
-            /* Read the metadata from the primary HDU. */
-            long[] pos = new long[ 1 ]; 
-            TableElement[] tabels = readMetadata( strm, pos );
+        /* Read the metadata from the primary HDU. */
+        long[] pos = new long[ 1 ]; 
+        TableElement[] tabels = readMetadata( in, pos );
 
-            /* Get the metadata for the table we are interested in. */
-            int iTable = getTableIndex( datsrc.getPosition(), tabels.length );
-            TableElement tabel = tabels[ iTable ];
+        /* Get the metadata for the table we are interested in. */
+        int iTable = getTableIndex( datsrc.getPosition(), tabels.length );
+        TableElement tabel = tabels[ iTable ];
 
-            /* Skip HDUs if required.  They should all be BINTABLE HDUs
-             * corresponding to tables earlier than the one we need. */
-            pos[ 0 ] += FitsConstants.skipHDUs( strm, iTable );
+        /* Skip HDUs if required.  They should all be BINTABLE HDUs
+         * corresponding to tables earlier than the one we need. */
+        pos[ 0 ] += FitsUtil.skipHDUs( in, iTable );
 
-            /* Now get the StarTable from the next HDU. */
-            StarTable starTable =
-                FitsTableBuilder
-               .attemptReadTable( strm, wantRandom, datsrc, wide_, pos,
-                                  storagePolicy );
-            if ( starTable == null ) {
-                throw new TableFormatException( "No BINTABLE HDU found" );
-            }
-
-            /* Return a StarTable with data from the BINTABLE but metadata
-             * from the VOTable header. */
-            return createFitsPlusTable( tabel, starTable );
+        /* Now get the StarTable from the next HDU. */
+        StarTable starTable =
+            FitsTableBuilder
+           .attemptReadTable( in, wantRandom, datsrc, wide_, pos,
+                              storagePolicy );
+        if ( starTable == null ) {
+            throw new TableFormatException( "No BINTABLE HDU found" );
         }
-        catch ( FitsException e ) {
-            throw new TableFormatException( e.getMessage(), e );
-        }
-        catch ( NullPointerException e ) {  // don't like this
-            throw new TableFormatException( "Table not quite in " +
-                                            "fits-plus format", e );
-        }
+
+        /* Return a StarTable with data from the BINTABLE but metadata
+         * from the VOTable header. */
+        return createFitsPlusTable( tabel, starTable );
     }
 
     public TableSequence makeStarTables( DataSource datsrc,
@@ -165,11 +154,10 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
     public void streamStarTable( InputStream in, final TableSink sink,
                                  String pos )
             throws IOException {
-        ArrayDataInput strm = new BufferedDataInputStream( in );
         try {
 
             /* Read the metadata from the primary HDU. */
-            TableElement[] tabels = readMetadata( strm, new long[ 1 ] );
+            TableElement[] tabels = readMetadata( in, new long[ 1 ] );
 
             /* Get the metadata for the table we are interested in. */
             int iTable = getTableIndex( pos, tabels.length );
@@ -177,7 +165,7 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
 
             /* Skip HDUs if required.  They should all be BINTABLE HDUs
              * corresponding to tables earlier than the one we need. */
-            FitsConstants.skipHDUs( strm, iTable );
+            FitsUtil.skipHDUs( in, iTable );
 
             /* Prepare a modified sink which behaves like the one we were
              * given but will pass on the VOTable metadata rather than that 
@@ -198,16 +186,12 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
 
             /* Write the table data from the upcoming BINTABLE element to the
              * sink. */
-            Header hdr = new Header();
-            FitsConstants.readHeader( hdr, strm );
-            BasicInput input = InputFactory.createSequentialInput( strm );
+            FitsHeader hdr = FitsUtil.readHeader( in );
+            BasicInput input = InputFactory.createSequentialInput( in );
             BintableStarTable.streamStarTable( hdr, input, wide_, wsink );
         }
-        catch ( FitsException e ) {
-            throw new TableFormatException( e.getMessage(), e );
-        }
         finally {
-            strm.close();
+            in.close();
         }
     }
 
@@ -218,78 +202,73 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
      * be positioned at the start of the first non-primary HDU 
      * (which should contain a BINTABLE).
      *
-     * @param   strm  stream holding the data (positioned at the start)
+     * @param   in    stream holding the data (positioned at the start)
      * @param   pos   1-element array for returning the number of bytes read
      *                into the stream
      * @return  array of TABLE elements in the primary HDU
      */
-    private static TableElement[] readMetadata( ArrayDataInput strm,
-                                                long[] pos )
+    private static TableElement[] readMetadata( InputStream in, long[] pos )
             throws IOException {
 
         /* Read the first FITS block from the stream into a buffer. 
          * This should contain the entire header of the primary HDU. */
-        byte[] headBuf = new byte[ 2880 ];
-        strm.readFully( headBuf );
+        byte[] headBuf = IOUtils.readBytes( in, FitsUtil.BLOCK_LENG );
 
         /* Check it seems to have the right form. */
-        if ( ! isMagic( headBuf ) ) {
+        if ( headBuf.length < FitsUtil.BLOCK_LENG || ! isMagic( headBuf ) ) {
             throw new TableFormatException( "Primary header not FITS-plus" );
         }
-        try {
 
-            /* Turn it into a header and find out the length of the 
-             * data unit. */
-            Header hdr = new Header();
-            ArrayDataInput hstrm = 
-                new BufferedDataInputStream(
-                    new ByteArrayInputStream( headBuf ) );
-            int headsize = FitsConstants.readHeader( hdr, hstrm );
-            int datasize = (int) FitsConstants.getDataSize( hdr );
-            pos[ 0 ] = headsize + datasize;
-            assert headsize == 2880;
-            assert hdr.getIntValue( "NAXIS" ) == 1;
-            assert hdr.getIntValue( "BITPIX" ) == 8;
-            int nbyte = hdr.getIntValue( "NAXIS1" );
+        /* Turn it into a header and find out the length of the data unit. */
+        FitsHeader hdr =
+            FitsUtil.readHeader( new ByteArrayInputStream( headBuf ) );
+        long headsize = hdr.getHeaderByteCount();
+        long datasize = hdr.getDataByteCount();
+        pos[ 0 ] = headsize + datasize;
+        assert headsize == FitsUtil.BLOCK_LENG;
+        assert hdr.getRequiredIntValue( "NAXIS" ) == 1;
+        assert hdr.getRequiredIntValue( "BITPIX" ) == 8;
+        int nbyte = hdr.getRequiredIntValue( "NAXIS1" );
 
-            /* Read the data from the primary HDU into a byte buffer. */
-            byte[] vobuf = new byte[ nbyte ];
-            strm.readFully( vobuf );
-
-            /* Advance to the end of the primary HDU. */
-            int pad = datasize - nbyte;
-            IOUtils.skipBytes( strm, pad );
-
-            /* Read XML from the byte buffer, performing a custom
-             * parse to DOM. */
-            VOElementFactory vofact = new VOElementFactory();
-            DOMSource domsrc =
-                vofact.transformToDOM( 
-                    new StreamSource( new ByteArrayInputStream( vobuf ) ),
-                    false );
-
-            /* Obtain the TABLE elements, which ought to be empty. */
-            VODocument doc = (VODocument) domsrc.getNode();
-            VOElement topel = (VOElement) doc.getDocumentElement();
-            NodeList tlist = topel.getElementsByVOTagName( "TABLE" );
-            int nTable = tlist.getLength();
-            TableElement[] tabels = new TableElement[ nTable ];
-            for ( int i = 0; i < nTable; i++ ) {
-                tabels[ i ] = (TableElement) tlist.item( i );
-                if ( tabels[ i ].getChildByName( "DATA" ) != null ) {
-                    throw new TableFormatException(
-                        "TABLE #" + ( i + i ) + " in embedded VOTable document "
-                      + "has unexpected DATA element" );
-                }
-            }
-            return tabels;
+        /* Read the data from the primary HDU into a byte buffer. */
+        byte[] vobuf = IOUtils.readBytes( in, nbyte );
+        if ( vobuf.length < nbyte ) {
+            throw new TableFormatException( "Primary HDU truncated" );
         }
-        catch ( FitsException e ) {
-            throw new TableFormatException( e.getMessage(), e );
+
+        /* Advance to the end of the primary HDU. */
+        int pad = (int) ( datasize - nbyte );
+        IOUtils.skip( in, pad );
+
+        /* Read XML from the byte buffer, performing a custom parse to DOM. */
+        VOElementFactory vofact = new VOElementFactory();
+        final DOMSource domsrc;
+        try {
+            domsrc =
+                vofact.transformToDOM( 
+                    new StreamSource( new BufferedInputStream(
+                                          new ByteArrayInputStream( vobuf ) ) ),
+                    false );
         }
         catch ( SAXException e ) {
-            throw new TableFormatException( e.getMessage(), e );
+            throw new TableFormatException( "VOTable parse failed", e );
         }
+
+        /* Obtain the TABLE elements, which ought to be empty. */
+        VODocument doc = (VODocument) domsrc.getNode();
+        VOElement topel = (VOElement) doc.getDocumentElement();
+        NodeList tlist = topel.getElementsByVOTagName( "TABLE" );
+        int nTable = tlist.getLength();
+        TableElement[] tabels = new TableElement[ nTable ];
+        for ( int i = 0; i < nTable; i++ ) {
+            tabels[ i ] = (TableElement) tlist.item( i );
+            if ( tabels[ i ].getChildByName( "DATA" ) != null ) {
+                throw new TableFormatException(
+                    "TABLE #" + ( i + i ) + " in embedded VOTable document "
+                  + "has unexpected DATA element" );
+            }
+        }
+        return tabels;
     }
 
     /**
@@ -436,30 +415,19 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
      * @return  true  if it looks like a FitsPlus file
      */
     public static boolean isMagic( byte[] buffer ) {
-        if ( buffer.length < 2 * 80 ) {
+        final int ntest = 5;
+        if ( buffer.length < ntest * 80 ) {
             return false;
         }
-        final int ntest = 5;
-        int pos = 0;
-        int ncard = 0;
-        boolean ok = true;
-        for ( int il = 0; ok && il < ntest; il++ ) {
-            if ( buffer.length > pos + 80 ) {
-                char[] cbuf = new char[ 80 ];
-                for ( int ic = 0; ic < 80; ic++ ) {
-                    cbuf[ ic ] = (char) ( buffer[ pos++ ] & 0xff );
-                }
-                try {
-                    HeaderCard card =
-                        FitsConstants.createHeaderCard( new String( cbuf ) );
-                    ok = ok && cardOK( il, card );
-                }
-                catch ( FitsException e ) {
-                    ok = false;
-                }
+        byte[] cbuf = new byte[ 80 ];
+        for ( int il = 0; il < ntest; il++ ) {
+            System.arraycopy( buffer, il * 80, cbuf, 0, 80 );
+            ParsedCard<?> card = FitsUtil.parseCard( cbuf );
+            if ( ! cardOK( il, card ) ) {
+                return false;
             }
         }
-        return ok;
+        return true;
     }
 
     /**
@@ -471,21 +439,27 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
      * @return  true  if <tt>card</tt> looks like the <tt>icard</tt>'th
      *          header card of a FitsPlus primary header should do
      */
-    private static boolean cardOK( int icard, HeaderCard card )
-            throws FitsException {
+    private static boolean cardOK( int icard, ParsedCard<?> card ) {
         String key = card.getKey();
-        String value = card.getValue();
+        Object value = card.getValue();
         switch ( icard ) {
             case 0:
-                return "SIMPLE".equals( key ) && "T".equals( value );
+                return "SIMPLE".equals( key )
+                    && Boolean.TRUE.equals( value );
             case 1:
-                return "BITPIX".equals( key ) && "8".equals( value );
+                return "BITPIX".equals( key )
+                    && value instanceof Number
+                    && ((Number) value).intValue() == 8;
             case 2:
-                return "NAXIS".equals( key ) && "1".equals( value );
+                return "NAXIS".equals( key )
+                    && value instanceof Number
+                    && ((Number) value).intValue() == 1;
             case 3:
-                return "NAXIS1".equals( key );
+                return "NAXIS1".equals( key )
+                    && value instanceof Number;
             case 4:
-                return "VOTMETA".equals( key ) && "T".equals( value );
+                return "VOTMETA".equals( key )
+                    && Boolean.TRUE.equals( value );
             default:
                 return true;
         }
@@ -539,44 +513,44 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
         /**
          * Do the work for loading tables.
          */
-        private void multiLoad() throws IOException, FitsException {
+        private void multiLoad() throws IOException {
+            try ( InputStream in = datsrc_.getInputStream() ) {
 
-            /* Get an input stream. */
-            ArrayDataInput in = FitsConstants.getInputStreamStart( datsrc_ );
+                /* Read the metadata from the primary HDU. */
+                long[] posptr = new long[ 1 ]; 
+                TableElement[] tabEls = readMetadata( in, posptr );
+                long pos = posptr[ 0 ];
+                int nTable = tabEls.length;
 
-            /* Read the metadata from the primary HDU. */
-            long[] posptr = new long[ 1 ]; 
-            TableElement[] tabEls = readMetadata( in, posptr );
-            long pos = posptr[ 0 ];
-            int nTable = tabEls.length;
+                /* Read each table HDU in turn. */
+                for ( int itab = 0; itab < nTable; itab++ ) {
 
-            /* Read each table HDU in turn. */
-            for ( int itab = 0; itab < nTable; itab++ ) {
+                    /* Read the HDU header. */
+                    FitsHeader hdr = FitsUtil.readHeader( in );
+                    long headsize = hdr.getHeaderByteCount();
+                    long datasize = hdr.getDataByteCount();
+                    long datpos = pos + headsize;
+                    if ( ! "BINTABLE"
+                          .equals( hdr.getStringValue( "XTENSION" ) ) ) {
+                        throw new TableFormatException( "Non-BINTABLE at ext #"
+                                                      + itab
+                                                      + " - not FITS-plus" );
+                    }
 
-                /* Read the HDU header. */
-                Header hdr = new Header();
-                int headsize = FitsConstants.readHeader( hdr, in );
-                long datasize = FitsConstants.getDataSize( hdr );
-                long datpos = pos + headsize;
-                if ( ! "BINTABLE".equals( hdr.getStringValue( "XTENSION" ) ) ) {
-                    throw new TableFormatException( "Non-BINTABLE at ext #"
-                                                  + itab + " - not FITS-plus" );
+                    /* Read the BINTABLE. */
+                    InputFactory inFact =
+                        InputFactory.createFactory( datsrc_, datpos, datasize );
+                    StarTable dataTable =
+                        BintableStarTable.createTable( hdr, inFact, wide_ );
+
+                    /* Combine the data from the BINTABLE with the header from
+                     * the VOTable to create an output table. */
+                    tqueue_.addTable( createFitsPlusTable( tabEls[ itab ],
+                                                           dataTable ) );
+                    IOUtils.skip( in, datasize );
+                    pos += headsize + datasize;
                 }
-
-                /* Read the BINTABLE. */
-                InputFactory inFact =
-                    InputFactory.createFactory( datsrc_, datpos, datasize );
-                StarTable dataTable =
-                    BintableStarTable.createTable( hdr, inFact, wide_ );
-
-                /* Combine the data from the BINTABLE with the header from
-                 * the VOTable to create an output table. */
-                tqueue_.addTable( createFitsPlusTable( tabEls[ itab ],
-                                                       dataTable ) );
-                IOUtils.skipBytes( in, datasize );
-                pos += headsize + datasize;
             }
-            in.close();
         }
     }
 }

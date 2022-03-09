@@ -1,4 +1,4 @@
-package uk.ac.starlink.fits;
+package uk.ac.starlink.oldfits;
 
 import java.io.DataInputStream;
 import java.io.DataOutput;
@@ -50,7 +50,7 @@ import nom.tam.util.ArrayDataOutput;
 public abstract class AbstractArrayDataIO
         implements ArrayDataInput, ArrayDataOutput {
 
-    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.fits" );
+    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.oldfits");
 
     /**
      * Reads one byte from the current position.

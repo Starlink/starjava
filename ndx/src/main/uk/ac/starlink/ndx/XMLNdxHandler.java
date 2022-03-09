@@ -658,7 +658,7 @@ public class XMLNdxHandler implements NdxHandler {
               it.hasNext(); ) {
             ArrayBuilder builder = (ArrayBuilder) it.next();
             if ( builder.getClass().getName()
-                .equals( "uk.ac.starlink.fits.FitsArrayBuilder" ) ) {
+                .equals( "uk.ac.starlink.oldfits.FitsArrayBuilder" ) ) {
                 return builder;
             }
         }

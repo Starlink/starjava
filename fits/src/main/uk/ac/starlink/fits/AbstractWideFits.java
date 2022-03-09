@@ -1,9 +1,8 @@
 package uk.ac.starlink.fits;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
-import nom.tam.fits.FitsFactory;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCardException;
 
 /**
  * Implementations of the WideFits interface.
@@ -20,6 +19,7 @@ public abstract class AbstractWideFits implements WideFits {
 
     private final int icolContainer_;
     private final int extColMax_;
+    private final CardFactory cardFactory_;
     private final String name_;
 
     /** Index of container column hosting extended column data. */
@@ -40,16 +40,19 @@ public abstract class AbstractWideFits implements WideFits {
      * @param  extColMax    maximum number of extended columns
      *                      (including standard columns) that can be
      *                      represented by this convention
+     * @param  cardFactory  object which should be used to construct
+     *                      header cards associated with this implementation
      * @param  implName   base name of this implementation
      */
     protected AbstractWideFits( int icolContainer, int extColMax,
-                                String implName ) {
+                                CardFactory cardFactory, String implName ) {
         icolContainer_ = icolContainer;
         if ( icolContainer_ > MAX_NCOLSTD ) {
             throw new IllegalArgumentException( "Container column index > "
                                               + MAX_NCOLSTD );
         }
         extColMax_ = extColMax;
+        cardFactory_ = cardFactory;
         name_ = implName
               + ( icolContainer == MAX_NCOLSTD ? "" : icolContainer );
     }
@@ -62,8 +65,7 @@ public abstract class AbstractWideFits implements WideFits {
         return extColMax_;
     }
 
-    public void addContainerColumnHeader( Header hdr, long nbyteExt,
-                                          long nslice ) {
+    public CardImage[] getContainerColumnCards( long nbyteExt, long nslice ) {
 
         /* Work out how we will declare the data type for this column
          * in the FITS header.  Since this column data is not supposed
@@ -123,41 +125,41 @@ public abstract class AbstractWideFits implements WideFits {
         /* Add the relevant entries to the header. */
         BintableColumnHeader colhead =
             BintableColumnHeader.createStandardHeader( icolContainer_ );
+        List<CardImage> cards = new ArrayList<>();
         String forcol = " for column " + icolContainer_;
-        try {
-            hdr.addValue( colhead.getKeyName( "TTYPE" ), "XT_MORECOLS",
-                          "label" + forcol );
-            hdr.addValue( colhead.getKeyName( "TFORM" ), nEl + "" + formChr,
-                          "format" + forcol );
-            if ( dimStr != null ) {
-                hdr.addValue( colhead.getKeyName( "TDIM" ), dimStr,
-                              "dimensions" + forcol );
-
-            }
-            hdr.addValue( colhead.getKeyName( "TCOMM" ),
-                          "Extension buffer for columns beyond "
-                         + icolContainer_, null );
+        cards.add( cardFactory_
+                  .createStringCard( colhead.getKeyName( "TTYPE" ),
+                                     "XT_MORECOLS",
+                                     "label" + forcol ) );
+        cards.add( cardFactory_
+                  .createStringCard( colhead.getKeyName( "TFORM" ),
+                                     Long.toString( nEl ) + formChr,
+                                     "format" + forcol ) );
+        if ( dimStr != null ) {
+            cards.add( cardFactory_
+                      .createStringCard( colhead.getKeyName( "TDIM" ),
+                                         dimStr,
+                                         "dimensions" + forcol ) );
         }
-        catch ( HeaderCardException e ) {
-            throw new RuntimeException( e );  // shouldn't happen
-        }
+        cards.add( cardFactory_
+                  .createStringCard( colhead.getKeyName( "TCOMM" ),
+                                     "Extension buffer for columns beyond "
+                                   + icolContainer_, null ) );
+        return cards.toArray( new CardImage[ 0 ] );
     }
 
-    public void addExtensionHeader( Header hdr, int ncolExt ) {
-        try {
-            hdr.addValue( KEY_ICOL_CONTAINER, icolContainer_,
-                          "index of container column" );
-            hdr.addValue( KEY_NCOL_EXT, ncolExt,
-                          "total columns including extended" );
-        }
-        catch ( HeaderCardException e ) {
-            throw new RuntimeException( e );  // shouldn't happen
-        }
+    public CardImage[] getExtensionCards( int ncolExt ) {
+        return new CardImage[] {
+            cardFactory_.createIntegerCard( KEY_ICOL_CONTAINER, icolContainer_,
+                                            "index of container column" ),
+            cardFactory_.createIntegerCard( KEY_NCOL_EXT, ncolExt,
+                                            "total columns including extended" )
+        };
     }
 
-    public int getExtendedColumnCount( HeaderCards cards, int ncolStd ) {
-        Integer icolContainerValue = cards.getIntValue( KEY_ICOL_CONTAINER );
-        Integer ncolExtValue = cards.getIntValue( KEY_NCOL_EXT );
+    public int getExtendedColumnCount( FitsHeader hdr, int ncolStd ) {
+        Integer icolContainerValue = hdr.getIntValue( KEY_ICOL_CONTAINER );
+        Integer ncolExtValue = hdr.getIntValue( KEY_NCOL_EXT );
         if ( icolContainerValue == null && ncolExtValue == null ) {
             return ncolStd;
         }
@@ -177,7 +179,7 @@ public abstract class AbstractWideFits implements WideFits {
             return ncolStd;
         }
         for ( String tkey : new String[] { "TTYPE", "TFORM", "TCOMM" } ) {
-            cards.useKey( tkey + icolContainer );
+            hdr.useKey( tkey + icolContainer );
         }
         logger_.config( "Located extended columns in wide FITS file" );
         return ncolExt;
@@ -275,13 +277,13 @@ public abstract class AbstractWideFits implements WideFits {
         public AlphaWideFits( int icolContainer ) {
             super( icolContainer,
                    icolContainer - 1 + NDIGIT * NDIGIT * NDIGIT,
-                   "alpha" );
+                   CardFactory.DEFAULT, "alpha" );
         }
 
         public BintableColumnHeader createExtendedHeader( int icolContainer,
                                                           int jcol ) {
             final String jcolStr = encodeInteger( jcol - icolContainer );
-            return new BintableColumnHeader() {
+            return new BintableColumnHeader( CardFactory.DEFAULT ) {
                 public String getKeyName( String stdName ) {
                     return stdName + jcolStr;
                 }
@@ -334,52 +336,24 @@ public abstract class AbstractWideFits implements WideFits {
          *                        used for storing extended column data
          */
         public HierarchWideFits( int icolContainer ) {
-            super( icolContainer, Integer.MAX_VALUE, "hierarch" );
+            super( icolContainer, Integer.MAX_VALUE, CardFactory.HIERARCH,
+                   "hierarch" );
         }
 
         public BintableColumnHeader createExtendedHeader( int icolContainer,
                                                           final int jcol ) {
-            return new BintableColumnHeader() {
+            return new BintableColumnHeader( CardFactory.HIERARCH ) {
                 public String getKeyName( String stdName ) {
                     return new StringBuffer()
                         .append( "HIERARCH" )
-                        .append( "." )
+                        .append( " " )
                         .append( NAMESPACE )
-                        .append( "." )
+                        .append( " " )
                         .append( stdName )
                         .append( jcol )
                         .toString();
                 }
             };
-        }
-
-        @Override
-        public void addExtensionHeader( Header hdr, int ncolExt ) {
-            checkHasHierarch( false );
-            super.addExtensionHeader( hdr, ncolExt );
-        }
-
-        @Override
-        public int getExtendedColumnCount( HeaderCards cards, int ncolStd ) {
-            int ncolExt = super.getExtendedColumnCount( cards, ncolStd );
-            if ( ncolExt > ncolStd ) {
-                checkHasHierarch( true );
-            }
-            return ncolExt;
-        }
-
-        /**
-         * Check that the FITS HIERARCH convention is in operation.
-         * If not, complain about it or something.
-         *
-         * @param  isRead  true for read, false for write
-         */
-        private void checkHasHierarch( boolean isRead ) {
-            if ( ! FitsFactory.getUseHierarch() ) {
-                logger_.severe( "FitsFactory.useHierarch=false: "
-                              + "HIERARCH-based wide FITS table convention "
-                              + ( isRead ? "read" : "write" ) + " will fail!" );
-            }
         }
     }
 }

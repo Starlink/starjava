@@ -25,7 +25,6 @@ import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import nom.tam.fits.FitsException;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.ClientProfile;
@@ -341,7 +340,7 @@ public class SampCommunicator implements TopcatCommunicator {
             densWin_ = densWin;
         }
 
-        protected Map<?,?> createMessage() throws IOException, FitsException {
+        protected Map<?,?> createMessage() throws IOException {
 
             /* Write the FITS image to a byte array. */
             ByteArrayOutputStream bout = new ByteArrayOutputStream();

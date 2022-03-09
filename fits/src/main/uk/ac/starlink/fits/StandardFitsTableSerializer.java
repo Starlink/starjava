@@ -10,10 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCard;
-import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.HealpixTableInfo;
@@ -318,7 +314,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         }
 
         /* Check column count is permissible. */
-        FitsConstants.checkColumnCount( config_.getWide(), nUseCol );
+        FitsUtil.checkColumnCount( config_.getWide(), nUseCol );
     }
 
     /**
@@ -332,7 +328,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         return colWriters;
     }
 
-    public Header getHeader() throws HeaderCardException {
+    public CardImage[] getHeader() {
 
         /* Work out the dimensions in columns and bytes of the table. */
         int rowLength = 0;
@@ -362,29 +358,33 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                     : nUseCol;
         boolean hasExtCol = nUseCol > nStdCol;
 
-        /* Prepare a FITS header block. */
-        Header hdr = new Header();
-
         /* Add HDU layout metadata. */
-        hdr.addValue( "XTENSION", "BINTABLE", "binary table extension" );
-        hdr.addValue( "BITPIX", 8, "8-bit bytes" );
-        hdr.addValue( "NAXIS", 2, "2-dimensional table" );
-        hdr.addValue( "NAXIS1", rowLength, "width of table in bytes" );
-        hdr.addValue( "NAXIS2", rowCount, "number of rows in table" );
-        hdr.addValue( "PCOUNT", 0, "size of special data area" );
-        hdr.addValue( "GCOUNT", 1, "one data group" );
-        hdr.addValue( "TFIELDS", nStdCol, "number of columns" );
+        CardFactory cfact = CardFactory.DEFAULT;
+        List<CardImage> cards = new ArrayList<>();
+        cards.addAll( Arrays.asList( new CardImage[] {
+            cfact.createStringCard( "XTENSION", "BINTABLE",
+                                    "binary table extension" ),
+            cfact.createIntegerCard( "BITPIX", 8, "8-bit bytes" ),
+            cfact.createIntegerCard( "NAXIS", 2, "2-dimensional table" ),
+            cfact.createIntegerCard( "NAXIS1", rowLength,
+                                     "width of table in bytes" ),
+            cfact.createIntegerCard( "NAXIS2", rowCount,
+                                     "number of rows in table" ),
+            cfact.createIntegerCard( "PCOUNT", 0, "size of special data area" ),
+            cfact.createIntegerCard( "GCOUNT", 1, "one data group" ),
+            cfact.createIntegerCard( "TFIELDS", nStdCol, "number of columns" ),
+        } ) );
 
         /* Add EXTNAME record containing table name. */
         String tname = table.getName();
         if ( tname != null && tname.trim().length() > 0 ) {
-            FitsConstants
-           .addTrimmedValue( hdr, "EXTNAME", tname, "table name" );
+            cards.add( cfact
+                      .createStringCard( "EXTNAME", tname, "table name" ) );
         }
 
         /* Add extended column header information if applicable. */
         if ( hasExtCol ) {
-            wide.addExtensionHeader( hdr, nUseCol );
+            cards.addAll( Arrays.asList( wide.getExtensionCards( nUseCol ) ) );
             AbstractWideFits.logWideWrite( logger, nStdCol, nUseCol );
         }
 
@@ -394,7 +394,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         List<DescribedValue> tparams = table.getParameters();
         if ( HealpixTableInfo.isHealpix( tparams ) ) {
             HealpixTableInfo hpxInfo = HealpixTableInfo.fromParams( tparams );
-            HeaderCard[] hpxCards = null;
+            CardImage[] hpxCards = null;
             try {
                 hpxCards = getHealpixHeaders( hpxInfo );
             }
@@ -405,9 +405,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             }
             if ( hpxCards != null && hpxCards.length > 0 ) {
                 logger.info( "Adding HEALPix-specific FITS headers" );
-                for ( HeaderCard c : hpxCards ) {
-                    hdr.addValue( c.getKey(), c.getValue(), c.getComment() );
-                }
+                cards.addAll( Arrays.asList( hpxCards ) );
             }
         }
 
@@ -418,56 +416,62 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             if ( colwriter != null ) {
                 jcol++;
                 if ( hasExtCol && jcol == nStdCol ) {
-                    wide.addContainerColumnHeader( hdr, extLength, 0 );
+                    cards.addAll( Arrays.asList(
+                        wide.getContainerColumnCards( extLength, 0 ) ) );
                 }
                 BintableColumnHeader colhead =
                       hasExtCol && jcol >= nStdCol
                     ? wide.createExtendedHeader( nStdCol, jcol )
                     : BintableColumnHeader.createStandardHeader( jcol );
-                addHeader( hdr, colhead, colInfos[ icol ], colwriter, jcol );
+                cards.addAll( Arrays.asList( getHeaders( colhead,
+                                                         colInfos[ icol ],
+                                                         colwriter, jcol ) ) );
             }
         }
-        return hdr;
+        return cards.toArray( new CardImage[ 0 ] );
     }
 
     /**
-     * Writes header information for a given column into a header object.
+     * Returns header information for a given column.
      *
-     * @param  hdr  destination header
      * @param  colhead   header key handler for column to write
      * @param  colinfo   column metadata
      * @param  colwriter   column writer
      * @param  column index; first column is 1
+     * @return  header cards
      */
-    private void addHeader( Header hdr, BintableColumnHeader colhead,
-                            ColumnInfo colinfo, ColumnWriter colwriter,
-                            int jcol )
-            throws HeaderCardException {
+    private CardImage[] getHeaders( BintableColumnHeader colhead,
+                                    ColumnInfo colinfo, ColumnWriter colwriter,
+                                    int jcol ) {
+        CardFactory cfact = colhead.getCardFactory();
         String forcol = " for column " + jcol;
+        List<CardImage> cards = new ArrayList<>();
 
         /* Name. */
         String name = colinfo.getName();
         if ( name != null && name.trim().length() > 0 ) {
-            FitsConstants.addTrimmedValue( hdr, colhead.getKeyName( "TTYPE" ),
-                                           name, "label" + forcol );
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TTYPE" ), 
+                                               name, "label" + forcol ) );
         }
 
         /* Format. */
         String form = colwriter.getFormat();
-        hdr.addValue( colhead.getKeyName( "TFORM" ), form, "format" + forcol );
+        cards.add( cfact.createStringCard( colhead.getKeyName( "TFORM" ), form,
+                                           "format" + forcol ) );
 
         /* Units. */
         String unit = colinfo.getUnitString();
         if ( unit != null && unit.trim().length() > 0 ) {
-            FitsConstants.addTrimmedValue( hdr, colhead.getKeyName( "TUNIT" ),
-                                           unit, "units" + forcol );
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TUNIT" ),
+                                               unit, "units" + forcol ) );
         }
 
         /* Blank. */
         Number bad = colwriter.getBadNumber();
         if ( bad != null ) {
-            hdr.addValue( colhead.getKeyName( "TNULL" ), bad.longValue(),
-                          "blank value" + forcol );
+            cards.add( cfact.createIntegerCard( colhead.getKeyName( "TNULL" ),
+                                                bad.longValue(),
+                                                "blank value" + forcol ) );
         }
 
         /* Shape. */
@@ -479,50 +483,45 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 sbuf.append( dims[ i ] );
             }
             sbuf.append( ')' );
-            hdr.addValue( colhead.getKeyName( "TDIM" ), sbuf.toString(),
-                          "dimensions" + forcol );
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TDIM" ),
+                                               sbuf.toString(),
+                                               "dimensions" + forcol ) );
         }
 
         /* Scaling. */
         BigDecimal zero = colwriter.getZero();
         double scale = colwriter.getScale();
         if ( zero != null && ! BigDecimal.ZERO.equals( zero ) ) {
-
-            /* The version of nom.tam.fits packaged with starjava has no
-             * good way to write an unquoted text value to a header card,
-             * so we have to do it more or less by hand.
-             * In later nom.tam.fits versions there are ways to do this. */
-            String tzeroKey = colhead.getKeyName( "TZERO" );
-            HeaderCard tzeroCard =
-                FitsConstants.createRawHeaderCard( tzeroKey, zero.toString(),
-                                                   "base" + forcol );
-            hdr.addLine( tzeroCard );
+            cards.add( cfact.createLiteralCard( colhead.getKeyName( "TZERO" ),
+                                                zero.toString(),
+                                                "base" + forcol ) );
         }
         if ( scale != 1.0 ) {
-            hdr.addValue( colhead.getKeyName( "TSCALE" ), scale,
-                          "factor" + forcol );
+            cards.add( cfact.createRealCard( colhead.getKeyName( "TSCALE" ),
+                                             scale, "factor" + forcol ) );
         }
 
         /* Comment (non-standard). */
         String comm = colinfo.getDescription();
         if ( comm != null && comm.trim().length() > 0 ) {
-            FitsConstants
-           .addStringValue( hdr, colhead.getKeyName( "TCOMM" ), comm, null );
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TCOMM" ),
+                                               comm, null ) );
         }
 
         /* UCD (non-standard). */
         String ucd = colinfo.getUCD();
         if ( ucd != null && ucd.trim().length() > 0 ) {
-            FitsConstants
-           .addStringValue( hdr, colhead.getKeyName( "TUCD" ), ucd, null );
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TUCD" ),
+                                               ucd, null ) );
         }
 
         /* Utype (non-standard). */
         String utype = colinfo.getUtype();
         if ( utype != null && utype.trim().length() > 0 ) {
-            FitsConstants
-           .addStringValue( hdr, colhead.getKeyName( "TUTYP" ), utype, null );
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TUTYP" ),
+                                               utype, null ) );
         }
+        return cards.toArray( new CardImage[ 0 ] );
     }
 
     public void writeData( DataOutput strm ) throws IOException {
@@ -770,10 +769,9 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      *
      * @param  hpxInfo  non-null healpix description
      * @return   array of FITS headers describing healpix information
-     * @throws  TableFormatException  if HEALPix headers could not be generated
      */
-    protected HeaderCard[] getHealpixHeaders( HealpixTableInfo hpxInfo )
-            throws TableFormatException, HeaderCardException {
+    protected CardImage[] getHealpixHeaders( HealpixTableInfo hpxInfo )
+            throws TableFormatException {
         String ipixColName = hpxInfo.getPixelColumnName();
         int level = hpxInfo.getLevel();
         String ordering = hpxInfo.isNest() ? "NESTED" : "RING";
@@ -820,39 +818,44 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         final long nside = 1L << level;
 
         /* Prepare HEALPix format FITS headers. */
-        List<HeaderCard> cards = new ArrayList<HeaderCard>();
-        cards.add( new HeaderCard( "PIXTYPE", "HEALPIX", "HEALPix map" ) );
-        cards.add( new HeaderCard( "NSIDE", nside,
-                                   "HEALPix level parameter" ) );
-        cards.add( new HeaderCard( "ORDERING", ordering,
-                                   "HEALPix index ordering scheme" ) );
+        List<CardImage> cards = new ArrayList<>();
+        CardFactory cfact = CardFactory.DEFAULT;
+        cards.addAll( Arrays.asList( new CardImage[] {
+            cfact.createStringCard( "PIXTYPE", "HEALPIX", "HEALPix map" ),
+            cfact.createIntegerCard( "NSIDE", nside, "HEALPix level parameter"),
+            cfact.createStringCard( "ORDERING", ordering,
+                                    "HEALPix index ordering scheme" ),
+        } ) );
         if ( csys != null ) {
-            cards.add( new HeaderCard( "COORDSYS", csys.getCharString(),
-                                       "HEALPix coordinate system "
-                                     + csys.getWord() ) );
+            cards.add( cfact.createStringCard( "COORDSYS", csys.getCharString(),
+                                               "HEALPix coordinate system "
+                                             + csys.getWord() ) );
         }
         if ( isExplicit ) {
-            cards.add( new HeaderCard( "INDXSCHM", "EXPLICIT",
-                                       "HEALPix indices given explicitly" ) );
-            cards.add( new HeaderCard( "OBS_NPIX", nrow,
-                                       "HEALPix pixel count" ) );
+            cards.add( cfact
+                      .createStringCard( "INDXSCHM", "EXPLICIT",
+                                         "HEALPix indices given explicitly" ) );
+            cards.add( cfact
+                      .createIntegerCard( "OBS_NPIX", nrow,
+                                          "HEALPix pixel count" ) );
             if ( nrow < npix ) {
-                cards.add( new HeaderCard( "OBJECT", "PARTIAL",
-                                           "HEALPix sky coverage "
-                                         + "is partial" ) );
+                cards.add( cfact.createStringCard( "OBJECT", "PARTIAL",
+                                                   "HEALPix sky coverage "
+                                                 + "is partial" ) );
             }
         }
         else {
-            cards.add( new HeaderCard( "INDXSCHM", "IMPLICIT",
-                                       "HEALPix indices given implicitly" ) );
-            cards.add( new HeaderCard( "FIRSTPIX", 0,
-                                       "First HEALPix index" ) );
-            cards.add( new HeaderCard( "LASTPIX", npix - 1,
-                                       "Last HEALPix index" ) );
-            cards.add( new HeaderCard( "OBJECT", "FULLSKY",
-                                       "HEALPix sky coverage is full" ) );
+            cards.addAll( Arrays.asList( new CardImage[] {
+                cfact.createStringCard( "INDXSCHM", "IMPLICIT",
+                                        "HEALPix indices given implicitly" ),
+                cfact.createIntegerCard( "FIRSTPIX", 0, "First HEALPix index" ),
+                cfact.createIntegerCard( "LASTPIX", npix - 1,
+                                         "Last HEALPix index" ),
+                cfact.createStringCard( "OBJECT", "FULLSKY",
+                                        "HEALPix sky coverage is full" ),
+            } ) );
         }
-        return cards.toArray( new HeaderCard[ 0 ] );
+        return cards.toArray( new CardImage[ 0 ] );
     }
 
     /**

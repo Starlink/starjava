@@ -195,6 +195,9 @@
     <echo message="Executing FITS target: ${what}"/>
     <ant dir="./fits" target="${what}"/>
 
+    <echo message="Executing OLDFITS target: ${what}"/>
+    <ant dir="./oldfits" target="${what}"/>
+
     <echo message="Executing JSky target: ${what}"/>
     <ant dir="./jsky" target="${what}"/>
 
@@ -479,6 +482,10 @@
       </packageset>
 
       <packageset dir="fits/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="oldfits/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 

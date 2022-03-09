@@ -1,4 +1,4 @@
-package uk.ac.starlink.fits;
+package uk.ac.starlink.oldfits;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -22,7 +22,7 @@ public class FitsNDArrayTest extends TestCase {
 
     public FitsNDArrayTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.oldfits" ).setLevel( Level.WARNING );
     }
 
     public void testBuilder() throws MalformedURLException, IOException {

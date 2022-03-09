@@ -1,8 +1,8 @@
 package uk.ac.starlink.votable;
 
 import java.io.IOException;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCardException;
+import uk.ac.starlink.fits.CardFactory;
+import uk.ac.starlink.fits.CardImage;
 import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.fits.StandardFitsTableSerializer;
 import uk.ac.starlink.fits.WideFits;
@@ -74,15 +74,19 @@ public class FitsPlusTableWriter extends VOTableFitsTableWriter
         return readText( "/uk/ac/starlink/fits/FitsTableWriter.xml" );
     }
 
-    protected void customisePrimaryHeader( Header hdr )
-            throws HeaderCardException {
-        hdr.addValue( "VOTMETA", true, "Table metadata in VOTable format" );
+    protected CardImage[] getCustomPrimaryHeaderCards() {
+        return new CardImage[] {
+            CardFactory.STRICT
+           .createLogicalCard( "VOTMETA", true,
+                               "Table metadata in VOTable format" ),
+        };
     }
 
-    protected boolean isMagic( int icard, String key, String value ) {
+    @Override
+    protected boolean isMagic( int icard, String key, Object value ) {
         switch ( icard ) {
             case 4:
-                return "VOTMETA".equals( key ) && "T".equals( value );
+                return "VOTMETA".equals( key ) && Boolean.TRUE.equals( value );
             default:
                 return super.isMagic( icard, key, value );
         }

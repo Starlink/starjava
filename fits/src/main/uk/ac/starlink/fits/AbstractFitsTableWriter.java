@@ -1,19 +1,18 @@
 package uk.ac.starlink.fits;
 
 import java.io.BufferedOutputStream;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.logging.Logger;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
@@ -109,7 +108,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
     }
 
     /**
-     * Writes tables.  Calls {@link #writePrimaryHDU(java.io.DataOutput)}
+     * Writes tables.  Calls {@link #writePrimaryHDU(java.io.OutputStream)}
      * to write the primary HDU.
      * Subclasses which want to put something related to the input tables
      * into the primary HDU will need to override this method
@@ -117,12 +116,11 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      */
     public void writeStarTables( TableSequence tableSeq, OutputStream out )
             throws IOException {
-        DataBufferedOutputStream ostrm = new DataBufferedOutputStream( out );
-        writePrimaryHDU( ostrm );
+        writePrimaryHDU( out );
         for ( StarTable table; ( table = tableSeq.nextTable() ) != null; ) {
-            writeTableHDU( table, createSerializer( table ), ostrm );
+            writeTableHDU( table, createSerializer( table ), out );
         }
-        ostrm.flush();
+        out.flush();
     }
 
     /**
@@ -150,8 +148,8 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      *
      * @param  out  destination stream
      */
-    public void writePrimaryHDU( DataOutput out ) throws IOException {
-        FitsConstants.writeEmptyPrimary( out );
+    public void writePrimaryHDU( OutputStream out ) throws IOException {
+        FitsUtil.writeEmptyPrimary( out );
     }
 
     /**
@@ -162,17 +160,15 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      * @param   out  destination stream
      */
     public void writeTableHDU( StarTable table, FitsTableSerializer fitser,
-                               DataOutput out ) throws IOException {
-        try {
-            Header hdr = fitser.getHeader();
-            addMetadata( hdr );
-            FitsConstants.writeHeader( out, hdr );
-        }
-        catch ( FitsException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
-        }
-        fitser.writeData( out );
+                               OutputStream out ) throws IOException {
+        List<CardImage> cards =
+            new ArrayList<CardImage>( Arrays.asList( fitser.getHeader() ) );
+        cards.addAll( getMetadataCards() );
+        cards.add( CardFactory.END_CARD );
+        FitsUtil.writeHeader( cards.toArray( new CardImage[ 0 ] ), out );
+        DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
+        fitser.writeData( dout );
+        dout.flush();
     }
 
     /**
@@ -228,24 +224,22 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      * Adds some standard metadata header cards to a FITS table header.
      * This includes date stamp, STIL version, etc.
      *
-     * @param   hdr  header to modify
+     * @return   list of cards giving write-specific metadata
      */
-    protected void addMetadata( Header hdr ) {
-        try {
-            if ( getWriteDate() ) {
-                hdr.addValue( "DATE-HDU", getCurrentDate(),
-                              "Date of HDU creation (UTC)" );
-            }
-            hdr.addValue( "STILVERS",
-                          IOUtils.getResourceContents( StarTable.class,
-                                                       "stil.version", null ),
-                          "Version of STIL software" );
-            hdr.addValue( "STILCLAS", getClass().getName(),
-                          "STIL Author class" );
+    protected List<CardImage> getMetadataCards() {
+        List<CardImage> cards = new ArrayList<>();
+        CardFactory cfact = CardFactory.DEFAULT;
+        if ( getWriteDate() ) {
+            cards.add( cfact.createStringCard( "DATE-HDU", getCurrentDate(),
+                                               "Date of HDU creation (UTC)" ) );
         }
-        catch ( HeaderCardException e ) {
-            logger_.warning( "Trouble adding metadata header cards " + e );
-        }
+        String stilVers = IOUtils.getResourceContents( StarTable.class,
+                                                       "stil.version", null );
+        cards.add( cfact.createStringCard( "STILVERS", stilVers,
+                                           "Version of STIL software" ) );
+        cards.add( cfact.createStringCard( "STILCLAS", getClass().getName(),
+                                           "STIL Author class" ) );
+        return cards;
     }
 
     /**

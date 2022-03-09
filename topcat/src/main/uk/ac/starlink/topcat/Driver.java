@@ -19,7 +19,6 @@ import org.astrogrid.samp.Response;
 import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.UtilServer;
-import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.plastic.PlasticHub;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -206,7 +205,6 @@ public class Driver {
                            + TopcatUtils.getVersion() );
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
-        FitsConstants.configureHierarch();
 
         /* Fine tune the logging - we don't need HDS or AST here, so 
          * stop them complaining when they can't be loaded. */

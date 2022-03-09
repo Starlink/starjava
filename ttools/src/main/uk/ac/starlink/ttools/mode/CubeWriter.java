@@ -4,11 +4,13 @@ import gnu.jel.CompilationException;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCardException;
-import uk.ac.starlink.fits.FitsConstants;
+import java.util.List;
+import uk.ac.starlink.fits.CardFactory;
+import uk.ac.starlink.fits.CardImage;
+import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -334,7 +336,8 @@ public class CubeWriter implements TableConsumer {
      * @param   out    output stream
      */
     private void writeFits( ValueInfo[] axInfos, ValueInfo binInfo,
-                            double[] cube, Class<?> outType, DataOutput out )
+                            double[] cube, Class<?> outType,
+                            DataBufferedOutputStream out )
             throws IOException {
         int npix = cube.length;
         int ndim = nbins_.length;
@@ -389,52 +392,56 @@ public class CubeWriter implements TableConsumer {
         NumberWriter writer = createNumberWriter( out, clazz );
 
         /* Assemble and write the FITS header. */
-        Header hdr = new Header();
-        try {
-            hdr.addValue( "SIMPLE", true, "" );
-            hdr.addValue( "BITPIX", writer.getBitpix(), "Data type" );
-            hdr.addValue( "NAXIS", nbins_.length, "Number of axes" );
-            for ( int id = 0; id < ndim; id++ ) {
-                hdr.addValue( "NAXIS" + ( id + 1 ), nbins_[ id ],
-                              "Dimension " + ( id + 1 ) );
-            }
-            hdr.addValue( "DATE", Times.mjdToIso( Times.unixMillisToMjd(
-                                                System.currentTimeMillis() ) ),
-                          "HDU creation date" );
-            hdr.addValue( "BUNIT", "COUNTS",
-                          "Number of points per pixel (bin)" );
-            if ( hasBlank && writer.blank_ != 0 ) {
-                hdr.addValue( "BLANK", writer.blank_, "Blank value" );
-            }
-            hdr.addValue( "DATAMIN", min, "Minimum value" );
-            hdr.addValue( "DATAMAX", max, "Maximum value" );
-            for ( int id = 0; id < ndim; id++ ) {
-                ValueInfo info = axInfos[ id ];
-                String units = info.getUnitString();
-                String desc = info.getDescription();
-                hdr.addValue( "CTYPE" + ( id + 1 ), info.getName(),
-                              desc != null ? desc : "" );
-                if ( units != null ) {
-                    hdr.addValue( "CUNIT" + ( id + 1 ),  // unofficial card name
-                                  info.getUnitString(), "Units" );
-                }
-                hdr.addValue( "CRVAL" + ( id + 1 ), 0.0,
-                              "Reference pixel position (" + ( id + 1 ) + ")" );
-                hdr.addValue( "CDELT" + ( id + 1 ), binSizes_[ id ],
-                              "Reference pixel extent (" + ( id + 1 ) + ")" );
-                hdr.addValue( "CRPIX" + ( id + 1 ),
-                              - loBounds_[ id ] / binSizes_[ id ],
-                              "Reference pixel index (" + ( id + 1 ) + ")" );
-            }
-            hdr.addValue( "ORIGIN", "STILTS version " + Stilts.getVersion()
-                                  + " (" + getClass().getName() + ")", null );
-            FitsConstants.writeHeader( out, hdr );
+        CardFactory cf = CardFactory.STRICT;
+        List<CardImage> cards = new ArrayList<>();
+        cards.addAll( Arrays.asList( new CardImage[] {
+            cf.createLogicalCard( "SIMPLE", true, null ),
+            cf.createIntegerCard( "BITPIX", writer.getBitpix(), "Data type" ),
+            cf.createIntegerCard( "NAXIS", nbins_.length, "Number of axes" ),
+        } ) );
+        for ( int id = 0; id < ndim; id++ ) {
+            cards.add( cf.createIntegerCard( "NAXIS" + ( id + 1 ), nbins_[ id ],
+                                             "Dimension " + ( id + 1 ) ) );
         }
-        catch ( HeaderCardException e ) {
-            throw (IOException) new IOException( "Trouble with FITS headers: "
-                                               + e.getMessage() )
-                               .initCause( e );
+        String isoDate =
+            Times
+           .mjdToIso( Times.unixMillisToMjd( System.currentTimeMillis() ) );
+        cards.add( cf.createStringCard( "DATE", isoDate, "HDU creation date" ));
+        cards.add( cf.createStringCard( "BUNIT", "COUNTS",
+                                        "Number of points per pixel (bin)" ) );
+        if ( hasBlank && writer.blank_ != 0 ) {
+            cards.add( cf.createIntegerCard( "BLANK", writer.blank_,
+                                             "Blank value" ) );
         }
+        if ( !Double.isNaN( min ) && !Double.isNaN( max ) ) {
+            cards.add( cf.createRealCard( "DATAMIN", min, "Minimum value" ) );
+            cards.add( cf.createRealCard( "DATAMAX", max, "Maximum value" ) );
+        }
+        for ( int id = 0; id < ndim; id++ ) {
+            int id1 = id + 1;
+            String pd1 = " (" + id1 + ")";
+            ValueInfo info = axInfos[ id ];
+            String units = info.getUnitString();
+            String desc = info.getDescription();
+            cards.add( cf.createStringCard( "CTYPE" + id1, info.getName(),
+                                            desc ) );
+            if ( units != null ) {
+                cards.add( cf.createStringCard( "CUNIT" + id1, // non-standard
+                                                units, "Units" ) );
+            }
+            cards.add( cf.createRealCard( "CRVAL" + id1, 0.0,
+                                          "Reference pixel position" + pd1 ) );
+            cards.add( cf.createRealCard( "CDELT" + id1, binSizes_[ id ],
+                                          "Reference pixel extent" + pd1 ) );
+            cards.add( cf.createRealCard( "CRPIX" + id1,
+                                          - loBounds_[ id ] / binSizes_[ id ],
+                                          "Reference pixel index" + pd1 ) );
+        }
+        cards.add( cf.createStringCard( "ORIGIN", "STILTS version "
+                                      + Stilts.getVersion() + " ("
+                                      + getClass().getName() + ")", null ) );
+        cards.add( CardFactory.END_CARD );
+        FitsUtil.writeHeader( cards.toArray( new CardImage[ 0 ] ), out );
 
         /* Write the data. */
         for ( int ip = 0; ip < npix; ip++ ) {
@@ -443,9 +450,9 @@ public class CubeWriter implements TableConsumer {
 
         /* Pad to the end of a FITS block. */
         long nbyte = ( Math.abs( writer.getBitpix() ) / 8 ) * (long) npix;
-        int over = (int) ( nbyte % FitsConstants.FITS_BLOCK );
+        int over = (int) ( nbyte % FitsUtil.BLOCK_LENG );
         if ( over > 0 ) {
-            out.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
+            out.write( new byte[ FitsUtil.BLOCK_LENG - over ] );
         }
     }
 

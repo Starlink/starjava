@@ -1,4 +1,4 @@
-package uk.ac.starlink.fits;
+package uk.ac.starlink.oldfits;
 
 import java.io.IOException;
 import java.lang.reflect.Array;

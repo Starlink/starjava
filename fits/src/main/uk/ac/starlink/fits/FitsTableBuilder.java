@@ -2,20 +2,13 @@ package uk.ac.starlink.fits;
 
 import java.awt.datatransfer.DataFlavor;
 import java.io.EOFException;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 import java.util.logging.Logger;
-import nom.tam.fits.AsciiTable;
-import nom.tam.fits.AsciiTableHDU;
-import nom.tam.fits.Data;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
-import nom.tam.fits.TableHDU;
-import nom.tam.util.ArrayDataInput;
-import nom.tam.util.BufferedDataInputStream;
-import nom.tam.util.RandomAccess;
 import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.QueueTableSequence;
 import uk.ac.starlink.table.StarTable;
@@ -27,6 +20,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.IOSupplier;
 import uk.ac.starlink.util.IOUtils;
 
 /**
@@ -116,16 +110,11 @@ public class FitsTableBuilder extends DocumentedTableBuilder
             throws IOException {
 
         /* Check if this looks like a FITS file. */
-        if ( ! FitsConstants.isMagic( datsrc.getIntro() ) ) {
+        if ( ! FitsUtil.isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( "Doesn't look like a FITS file" );
         }
 
-        ArrayDataInput strm = null;
-        StarTable table = null;
-        try {
-
-            /* Get a FITS data stream. */
-            strm = FitsConstants.getInputStreamStart( datsrc );
+        try ( InputStream in = datsrc.getInputStream() ) {
 
             /* Keep track of the position in the stream. */
             long[] pos = new long[] { 0L };
@@ -143,15 +132,16 @@ public class FitsTableBuilder extends DocumentedTableBuilder
                 catch ( NumberFormatException e ) {
                     ihdu = -1;
                 }
+                final StarTable table;
                 if ( ihdu >= 0 ) {
                     try {
-                        pos[ 0 ] += FitsConstants.skipHDUs( strm, ihdu );
-                        table = attemptReadTable( strm, wantRandom, datsrc,
+                        pos[ 0 ] += FitsUtil.skipHDUs( in, ihdu );
+                        table = attemptReadTable( in, wantRandom, datsrc,
                                                   wide_, pos, policy );
                     }
                     catch ( EOFException e ) {
                         throw new IOException( "Fell off end of file "
-                                             + "looking for HDU #" + ihdu );
+                                             + "looking for HDU #" + ihdu, e );
                     }
                 }
 
@@ -159,13 +149,13 @@ public class FitsTableBuilder extends DocumentedTableBuilder
                  * string (EXTNAME and EXTVER headers, see FITS standard). */
                 else {
                     try {
-                        table = findNamedTable( strm, datsrc, spos, wide_,
+                        table = findNamedTable( in, datsrc, spos, wide_,
                                                 pos, policy );
                     }
                     catch ( EOFException e ) {
                         throw new IOException( "No extension found with "
                                              + "EXTNAME or EXTNAME-EXTVER "
-                                             + "\"" + spos + "\"" );
+                                             + "\"" + spos + "\"", e );
                     }
                 }
 
@@ -187,8 +177,9 @@ public class FitsTableBuilder extends DocumentedTableBuilder
             else {
                 try {
                     while ( true ) {
-                        table = attemptReadTable( strm, wantRandom,
-                                                  datsrc, wide_, pos, policy );
+                        StarTable table =
+                            attemptReadTable( in, wantRandom, datsrc,
+                                              wide_, pos, policy );
                         if ( table != null ) {
                             if ( table.getName() == null ) {
                                 table.setName( datsrc.getName() );
@@ -197,20 +188,10 @@ public class FitsTableBuilder extends DocumentedTableBuilder
                             return table;
                         }
                     }
-                    // can't get here
                 }
                 catch ( EOFException e ) {
                     throw new IOException( "No table HDUs in " + datsrc );
                 }
-            }
-        }
-        catch ( FitsException e ) {
-            throw (TableFormatException)
-                  new TableFormatException( e.getMessage() ).initCause( e );
-        }
-        finally {
-            if ( strm != null ) {
-                strm.close();
             }
         }
     }
@@ -224,7 +205,7 @@ public class FitsTableBuilder extends DocumentedTableBuilder
                   .singleTableSequence( makeStarTable( datsrc, false,
                                                        policy ) );
         }
-        if ( ! FitsConstants.isMagic( datsrc.getIntro() ) ) {
+        if ( ! FitsUtil.isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( "Doesn't look like a FITS file" );
         }
         MultiLoadWorker loadWorker =
@@ -247,38 +228,29 @@ public class FitsTableBuilder extends DocumentedTableBuilder
     /**
      * Reads a FITS table from an input stream and writes it to a sink.
      *
-     * @param  istrm  input stream containing the FITS data
+     * @param  in  input stream containing the FITS data
      * @param  sink  destination for table data
      * @param  extnum  may contain a string representation of the HDU
      *         number in which the required table is found (otherwise the
      *         first table HDU will be used)
      */
-    public void streamStarTable( InputStream istrm, TableSink sink,
+    public void streamStarTable( InputStream in, TableSink sink,
                                  String extnum ) throws IOException {
-        ArrayDataInput in = new BufferedDataInputStream( istrm );
-        
-        try {
-            if ( extnum != null && extnum.matches( "[1-9][0-9]*" ) ) {
-                int ihdu = Integer.parseInt( extnum );
-                FitsConstants.skipHDUs( in, ihdu );
-                if ( ! attemptStreamStarTable( in, sink, false ) ) {
-                    throw new IOException( "No table HDU at extension " 
-                                         + ihdu );
-                }
-            }
-            else {
-                boolean done = false;
-                while ( ! done ) {
-                    done = attemptStreamStarTable( in, sink, true );
-                }
-                if ( ! done ) {
-                    throw new IOException( "No table extensions found" );
-                }
+        if ( extnum != null && extnum.matches( "[1-9][0-9]*" ) ) {
+            int ihdu = Integer.parseInt( extnum );
+            FitsUtil.skipHDUs( in, ihdu );
+            if ( ! attemptStreamStarTable( in, sink, false ) ) {
+                throw new IOException( "No table HDU at extension " + ihdu );
             }
         }
-        catch ( FitsException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
+        else {
+            boolean done = false;
+            while ( ! done ) {
+                done = attemptStreamStarTable( in, sink, true );
+            }
+            if ( ! done ) {
+                throw new IOException( "No table extensions found" );
+            }
         }
     }
 
@@ -305,16 +277,10 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      *         even if it does not contain a table
      * @return  <tt>true</tt> if the table was successfully copied
      */
-    private boolean attemptStreamStarTable( ArrayDataInput in, TableSink sink,
+    private boolean attemptStreamStarTable( InputStream in, TableSink sink,
                                             boolean readAnyway )
-            throws IOException, FitsException {
-        Header hdr = new Header();
-        try {
-            FitsConstants.readHeader( hdr, in );
-        }
-        catch ( IOException e ) {
-            throw new TableFormatException( "Can't read FITS header", e );
-        }
+            throws IOException {
+        FitsHeader hdr = FitsUtil.readHeader( in );
         String xtension = hdr.getStringValue( "XTENSION" );
         if ( "BINTABLE".equals( xtension ) ) {
             BasicInput input = InputFactory.createSequentialInput( in );
@@ -322,17 +288,14 @@ public class FitsTableBuilder extends DocumentedTableBuilder
             return true;
         }
         else if ( "TABLE".equals( xtension ) ) {
-            AsciiTable tdata = new AsciiTable( hdr );
-            tdata.read( in );
-            tdata.getData();
-            TableHDU thdu = new AsciiTableHDU( hdr, tdata );
-            Tables.streamStarTable( new FitsStarTable( thdu ), sink );
+            BasicInput input = InputFactory.createSequentialInput( in );
+            AsciiTableStarTable.streamStarTable( hdr, input, sink );
             return true;
         }
         else {
             if ( readAnyway ) {
-                long datasize = FitsConstants.getDataSize( hdr );
-                IOUtils.skipBytes( in, datasize );
+                long datasize = hdr.getDataByteCount();
+                IOUtils.skip( in, datasize );
             }
             return false;
         }
@@ -345,7 +308,7 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * header value (if present), and if that fails, against EXTNAME-EXTVER
      * (if EXTVER is present too).  Matching is case-insensitive.
      *
-     * @param  strm  stream to read from, positioned at the start of an HDU
+     * @param  in  stream to read from, positioned at the start of an HDU
      *         (before the header)
      * @param  datsrc  a DataSource which can supply the data 
      *         in <tt>strm</tt>
@@ -358,26 +321,26 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * @param  policy  storage policy, or null for default (normally not used)
      * @return  a new table
      */
-    public static StarTable findNamedTable( ArrayDataInput strm,
+    public static StarTable findNamedTable( InputStream in,
                                             DataSource datsrc, String name,
                                             WideFits wide, long[] pos,
                                             StoragePolicy policy )
-            throws FitsException, IOException {
+            throws IOException {
         while ( true ) {
-            Header hdr = new Header();
-            int headsize = FitsConstants.readHeader( hdr, strm );
-            long datasize = FitsConstants.getDataSize( hdr );
+            FitsHeader hdr = FitsUtil.readHeader( in );
+            long headsize = hdr.getHeaderByteCount();
+            long datasize = hdr.getDataByteCount();
             long datpos = pos[ 0 ] + headsize;
             pos[ 0 ] += headsize + datasize;
             if ( headerName( hdr, name ) ) {
                 TableResult tres =
-                    attemptReadTableData( strm, datsrc, datpos, hdr, wide,
+                    attemptReadTableData( in, datsrc, datpos, hdr, wide,
                                           policy );
                 assert pos[ 0 ] == tres.afterPos_;
                 return tres.table_;
             }
             else {
-                IOUtils.skipBytes( strm, datasize );
+                IOUtils.skip( in, datasize );
             }
         }
     }
@@ -394,7 +357,7 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * <p>On exit, the first element of the <code>pos</code> array 
      * contains the position after the current HDU.
      * 
-     * @param  strm  stream to read from, positioned at the start of an HDU
+     * @param  in  stream to read from, positioned at the start of an HDU
      *         (before the header)
      * @param  wantRandom  whether a random-access table is preferred
      * @param  datsrc  a DataSource which can supply the data 
@@ -408,14 +371,14 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * @return   a StarTable made from the HDU at the start of <tt>strm</tt>
      *           or null
      */
-    public static StarTable attemptReadTable( ArrayDataInput strm,
+    public static StarTable attemptReadTable( InputStream in,
                                               boolean wantRandom, 
                                               DataSource datsrc,
                                               WideFits wide, long[] pos,
                                               StoragePolicy policy )
-            throws FitsException, IOException {
+            throws IOException {
         TableResult tres =
-            attemptReadTable( strm, datsrc, wide, pos[ 0 ], policy );
+            attemptReadTable( in, datsrc, wide, pos[ 0 ], policy );
         pos[ 0 ] = tres.afterPos_;
         return tres.table_;
     }
@@ -438,17 +401,16 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * @param  policy  storage policy, or null for default (normally not used)
      * @return  an object which may contain a table and other information
      */
-    private static TableResult attemptReadTable( ArrayDataInput strm,
+    private static TableResult attemptReadTable( InputStream in,
                                                  DataSource datsrc,
                                                  WideFits wide, long pos,
                                                  StoragePolicy policy )
-           throws FitsException, IOException {
+           throws IOException {
 
         /* Read the header. */
-        Header hdr = new Header();
-        int headsize = FitsConstants.readHeader( hdr, strm );
-        long datpos = pos + headsize;
-        return attemptReadTableData( strm, datsrc, datpos, hdr, wide, policy );
+        FitsHeader hdr = FitsUtil.readHeader( in );
+        long datpos = pos + hdr.getHeaderByteCount();
+        return attemptReadTableData( in, datsrc, datpos, hdr, wide, policy );
     }
 
     /**
@@ -470,21 +432,22 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * @param  policy  storage policy, or null for default (normally not used)
      * @return  an object which may contain a table and other information
      */
-    private static TableResult attemptReadTableData( ArrayDataInput strm,
+    private static TableResult attemptReadTableData( InputStream in,
                                                      DataSource datsrc,
-                                                     long datpos, Header hdr,
+                                                     long datpos,
+                                                     FitsHeader hdr,
                                                      WideFits wide,
                                                      StoragePolicy policy )
-            throws FitsException, IOException {
-        long datasize = FitsConstants.getDataSize( hdr );
+            throws IOException {
+        long datasize = hdr.getDataByteCount();
         long afterpos = datpos + datasize;
         String xtension = hdr.getStringValue( "XTENSION" );
 
         /* If it's a BINTABLE HDU, make a BintableStarTable out of it. */
         if ( "BINTABLE".equals( xtension ) ) {
-            long pcount = hdr.getLongValue( "PCOUNT", -1 );
+            Long pcount = hdr.getLongValue( "PCOUNT" );
             final InputFactory inFact;
-            if ( pcount > 0 ) {
+            if ( pcount != null && pcount.longValue() > 0 ) {
 
                 /* If there is a non-zero heap, the table presumably(?)
                  * has P or Q descriptors, meaning that sequential data access
@@ -501,22 +464,22 @@ public class FitsTableBuilder extends DocumentedTableBuilder
             }
             StarTable table =
                 BintableStarTable.createTable( hdr, inFact, wide );
-            IOUtils.skipBytes( strm, datasize );
+            IOUtils.skip( in, datasize );
             return new TableResult( table, afterpos );
         }
 
-        /* If it's a TABLE HDU (ASCII table) make a FitsStarTable. */
+        /* If it's a TABLE HDU (ASCII table) make an AsciiTableStarTable. */
         else if ( "TABLE".equals( xtension ) ) {
-            AsciiTable tdata = new AsciiTable( hdr );
-            tdata.read( strm );
-            tdata.getData();
-            TableHDU thdu = new AsciiTableHDU( hdr, tdata );
-            return new TableResult( new FitsStarTable( thdu ), afterpos );
+            InputFactory inFact =
+                InputFactory.createFactory( datsrc, datpos, datasize );
+            StarTable table = AsciiTableStarTable.createTable( hdr, inFact );
+            IOUtils.skip( in, datasize );
+            return new TableResult( table, afterpos );
         }
 
         /* It's not a table HDU - skip over it and return no table. */
         else {
-            IOUtils.skipBytes( strm, datasize );
+            IOUtils.skip( in, datasize );
             return new TableResult( null, afterpos );
         }
     }
@@ -529,7 +492,7 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * @param  name  required name
      * @return  true iff <code>hdr</code> appears to be named <code>name</code>
      */
-    private static boolean headerName( Header hdr, String name ) {
+    private static boolean headerName( FitsHeader hdr, String name ) {
         String extname = hdr.getStringValue( "EXTNAME" );
         if ( extname == null || extname.trim().length() == 0 ) {
             return false;
@@ -537,8 +500,8 @@ public class FitsTableBuilder extends DocumentedTableBuilder
         if ( extname.trim().equalsIgnoreCase( name ) ) {
             return true;
         }
-        int extver = hdr.getIntValue( "EXTVER", Integer.MIN_VALUE );
-        if ( extver != Integer.MIN_VALUE ) {
+        Integer extver = hdr.getIntValue( "EXTVER" );
+        if ( extver != null ) {
             return (extname + "-" + extver).equalsIgnoreCase( name );
         }
         return false;
@@ -554,60 +517,39 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * @return  true if <code>in</code> is known to contain no more bytes;
      *          false if it may contain more
      */
-    private static boolean isEof( ArrayDataInput in ) throws IOException {
-
-        /* The following test is commented out because there is a bug
-         * in java.util.zip.InflaterInputStream that makes it dangerously
-         * unusable.  Compressed input streams can report available bytes
-         * even when the end of stream has been reached.
-         * Sun's bug ID is 4795134 - they fixed it, then the fix caused
-         * problems so they re-assessed the behaviour as not a bug, so 
-         * it's unlikely to be fixed again.  A belt'n'braces fix has
-         * also been applied to the compression stream used by
-         * uk.ac.starlink.util.DataSource, but the assessment appears 
-         * to be that available() is not reliable. */
-        //  if ( in instanceof InputStream &&
-        //       ((InputStream) in).available() > 0 ) {
-        //      return false;
-        //  }
-
-        if ( in instanceof RandomAccess ) {
-            RandomAccess rin = (RandomAccess) in;
-            long pos = rin.getFilePointer();
-            boolean eof;
-            try {
-                rin.readByte();
-                eof = false;
-            }
-            catch ( EOFException e ) {
-                eof = true;
-            }
-            catch ( IOException e ) {
-                // ?? call it an EOF
-                eof = true;
-            }
-            if ( ! eof ) {
-                rin.seek( pos );
-            }
-            return eof;
+    private static IOSupplier<Boolean> eofFunction( InputStream in ) {
+        if ( in instanceof FileInputStream ) {
+            final FileChannel chan = ((FileInputStream) in).getChannel();
+            return () -> Boolean.valueOf( chan.position() >= chan.size() );
         }
-        else if ( in instanceof InputStream &&
-                  ((InputStream) in).markSupported() ) {
-            InputStream is = (InputStream) in;
-            is.mark( 1 );
-            boolean eof = is.read() < 0;
-            try {
-                is.reset();
-            }
-            catch ( IOException e ) {
-                if ( ! eof ) {
-                    throw e;
+        else if ( in.markSupported() ) {
+            return () -> {
+                in.mark( 1 );
+                boolean eof = in.read() < 0;
+                try {
+                    in.reset();
                 }
-            }
-            return eof;
+                catch ( IOException e ) {
+                    if ( ! eof ) {
+                        throw e;
+                    }
+                }
+                return Boolean.valueOf( eof );
+            };
         }
         else {
-            return false;
+            /* The following test is commented out because there is a bug
+             * in java.util.zip.InflaterInputStream that makes it dangerously
+             * unusable.  Compressed input streams can report available bytes
+             * even when the end of stream has been reached.
+             * Sun's bug ID is 4795134 - they fixed it, then the fix caused
+             * problems so they re-assessed the behaviour as not a bug, so 
+             * it's unlikely to be fixed again.  A belt'n'braces fix has
+             * also been applied to the compression stream used by
+             * uk.ac.starlink.util.DataSource, but the assessment appears 
+             * to be that available() is not reliable. */
+            //  return () -> Boolean.valueOf( in.available() > 0 );
+            return () -> Boolean.FALSE;
         }
     }
 
@@ -667,9 +609,9 @@ public class FitsTableBuilder extends DocumentedTableBuilder
          * are added to the table sequence, ready for readout on a different
          * thread, as they are encountered.
          */
-        private void multiLoad() throws IOException, FitsException {
-            ArrayDataInput in = FitsConstants.getInputStreamStart( datsrc_ );
-            try {
+        private void multiLoad() throws IOException {
+            try ( InputStream in = datsrc_.getInputStream() ) {
+                IOSupplier<Boolean> isEof = eofFunction( in );
                 long pos = 0L;
                 boolean done = false;
                 for ( int ihdu = 0; ! done ; ihdu++ ) {
@@ -694,12 +636,7 @@ public class FitsTableBuilder extends DocumentedTableBuilder
                         }
                         tqueue_.addTable( table );
                     }
-                    done = isEof( in );
-                }
-            }
-            finally {
-                if ( in != null ) {
-                    in.close();
+                    done = Boolean.TRUE.equals( isEof.get() );
                 }
             }
         }

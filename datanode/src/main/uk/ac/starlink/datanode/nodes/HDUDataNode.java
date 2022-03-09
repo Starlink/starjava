@@ -7,7 +7,7 @@ import nom.tam.fits.BasicHDU;
 import nom.tam.fits.BinaryTableHDU;
 import nom.tam.fits.ImageHDU;
 import nom.tam.fits.RandomGroupsHDU;
-import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.oldfits.FitsConstants;
 import uk.ac.starlink.datanode.viewers.TextViewer;
 
 /**

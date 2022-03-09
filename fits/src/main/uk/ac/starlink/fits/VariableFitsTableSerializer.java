@@ -1,6 +1,5 @@
 package uk.ac.starlink.fits;
 
-import java.io.BufferedOutputStream;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -8,10 +7,6 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCard;
-import nom.tam.fits.HeaderCardException;
-import nom.tam.util.Cursor;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
@@ -66,33 +61,19 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         }
     }
 
-    public Header getHeader() throws HeaderCardException {
-        Header hdr = super.getHeader();
+    @Override
+    public CardImage[] getHeader() {
+        CardImage[] cards = super.getHeader();
         long heapSize = getHeapSize();
-
-        /* Header manipulation methods leave a bit to be desired.
-         * It is a bit fiddly to make sure these cards go in the right place. */
-        final List<HeaderCard> cardList = new ArrayList<HeaderCard>();
-        assert hdr.containsKey( "PCOUNT" );
-        assert hdr.containsKey( "GCOUNT" );
-        assert hdr.containsKey( "NAXIS2" );
-        for ( HeaderCard card : FitsConstants.headerIterable( hdr ) ) {
-            String key = card.getKey();
-            if ( "PCOUNT".equals( key ) ) {
-                cardList.add( new HeaderCard( "PCOUNT", heapSize,
-                                              "heap size (no gap)" ) );
-            }
-            else {
-                cardList.add( card );
+        for ( int ic = 0; ic < cards.length; ic++ ) {
+            ParsedCard<?> card = FitsUtil.parseCard( cards[ ic ].getBytes() );
+            if ( card != null && "PCOUNT".equals( card.getKey() ) ) {
+                cards[ ic ] = CardFactory.DEFAULT
+                             .createIntegerCard( "PCOUNT", heapSize,
+                                                 "heap size (no gap)" );
             }
         }
-        return new Header() {
-            {
-                for ( HeaderCard card : cardList ) {
-                    addLine( card );
-                }
-            }
-        };
+        return cards;
     }
 
     /**

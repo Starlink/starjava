@@ -3,16 +3,14 @@ package uk.ac.starlink.ttools.task;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nom.tam.util.BufferedDataInputStream;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
 import uk.ac.starlink.fits.AbstractFitsTableWriter;
-import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.fits.FitsHeader;
 import uk.ac.starlink.fits.FitsTableWriter;
-import uk.ac.starlink.fits.HeaderCards;
+import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.fits.HealpixFitsTableWriter;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -405,7 +403,7 @@ public class TablePipeTest extends TableTestCase {
             process( pixTable,
                      "healpixmeta -level 0 -implicit -csys G -nested" );
         {
-            HeaderCards hdr1 = getFitsHeaders( p1, new FitsTableWriter() );
+            FitsHeader hdr1 = getFitsHeaders( p1, new FitsTableWriter() );
             assertEquals( "HEALPIX", hdr1.getStringValue( "PIXTYPE" ) );
             assertEquals( "NESTED", hdr1.getStringValue( "ORDERING" ) );
             assertEquals( "G", hdr1.getStringValue( "COORDSYS" ) );
@@ -417,7 +415,7 @@ public class TablePipeTest extends TableTestCase {
         }
         StarTable p2 = process( p1, "healpixmeta -csys c -column hpx0" );
         {
-            HeaderCards hdr2 = getFitsHeaders( p2, new FitsPlusTableWriter() );
+            FitsHeader hdr2 = getFitsHeaders( p2, new FitsPlusTableWriter() );
             assertEquals( "HEALPIX", hdr2.getStringValue( "PIXTYPE" ) );
             assertEquals( "NESTED", hdr2.getStringValue( "ORDERING" ) );
             assertEquals( "C", hdr2.getStringValue( "COORDSYS" ) );
@@ -430,7 +428,7 @@ public class TablePipeTest extends TableTestCase {
                                 "keepcols 'VALUE HPX0';"
                               + "healpixmeta -level 0 -column HPX0 -ring" );
         {
-            HeaderCards hdr3 =
+            FitsHeader hdr3 =
                 getFitsHeaders( p3, new HealpixFitsTableWriter() );
             assertEquals( new Integer( 2 ), hdr3.getIntValue( "TFIELDS" ) );
             assertEquals( "PIXEL", hdr3.getStringValue( "TTYPE1" ) );
@@ -445,19 +443,18 @@ public class TablePipeTest extends TableTestCase {
         }
     }
 
-    private static HeaderCards
+    private static FitsHeader
             getFitsHeaders( StarTable table,
                             AbstractFitsTableWriter fitsWriter )
-            throws IOException, FitsException {
+            throws IOException {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         fitsWriter.writeStarTable( table, bout );
+        bout.close();
         byte[] buf = bout.toByteArray();
-        BufferedDataInputStream dataIn =
-            new BufferedDataInputStream( new ByteArrayInputStream( buf ),
-                                         buf.length );
-        FitsConstants.skipHDUs( dataIn, 1 );
-        Header hdr = new Header( dataIn );
-        return new HeaderCards( hdr );
+        try ( InputStream in = new ByteArrayInputStream( buf ) ) {
+            FitsUtil.skipHDUs( in, 1 );
+            return FitsUtil.readHeader( in );
+        }
     }
 
     public void testImplode() throws Exception {

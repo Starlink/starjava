@@ -1,4 +1,4 @@
-package uk.ac.starlink.fits;
+package uk.ac.starlink.oldfits;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutput;
@@ -33,7 +33,7 @@ public class ArrayDataTest extends TestCase {
             throw new AssertionError();
         }
         cblock_ = 8 + 4 + 4 + 2 + 2 + 1 + nc_;
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.oldfits" ).setLevel( Level.WARNING );
     }
 
     public void testIo() throws IOException {

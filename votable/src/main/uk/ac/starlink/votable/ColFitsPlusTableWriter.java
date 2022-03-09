@@ -1,8 +1,8 @@
 package uk.ac.starlink.votable;
 
 import java.io.IOException;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCardException;
+import uk.ac.starlink.fits.CardFactory;
+import uk.ac.starlink.fits.CardImage;
 import uk.ac.starlink.fits.ColFitsTableSerializer;
 import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.fits.WideFits;
@@ -66,17 +66,21 @@ public class ColFitsPlusTableWriter extends VOTableFitsTableWriter
         return readText( "/uk/ac/starlink/fits/ColFitsTableWriter.xml" );
     }
 
-    protected void customisePrimaryHeader( Header hdr )
-            throws HeaderCardException {
-        hdr.addValue( "COLFITS", true,
-                      "Table extension stored column-oriented" );
-        hdr.addValue( "VOTMETA", true, "Table metadata in VOTable format" );
+    protected CardImage[] getCustomPrimaryHeaderCards() {
+        CardFactory cf = CardFactory.STRICT;
+        return new CardImage[] {
+            cf.createLogicalCard( "COLFITS", true,
+                                  "Table extension stored column-oriented" ),
+            cf.createLogicalCard( "VOTMETA", true,
+                                  "Table metadata in VOTable format" ),
+        };
     }
 
-    protected boolean isMagic( int icard, String key, String value ) {
+    @Override
+    protected boolean isMagic( int icard, String key, Object value ) {
         switch ( icard ) {
             case 4:
-                return "COLFITS".equals( key ) && "T".equals( value );
+                return "COLFITS".equals( key ) && Boolean.TRUE.equals( value );
             case 5:
                 return "VOTMETA".equals( key );
             default:

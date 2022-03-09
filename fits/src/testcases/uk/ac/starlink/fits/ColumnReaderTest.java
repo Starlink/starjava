@@ -7,11 +7,12 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCardException;
-import nom.tam.util.BufferedDataOutputStream;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -23,6 +24,7 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.formats.TextTableWriter;
+import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
@@ -42,7 +44,7 @@ public class ColumnReaderTest extends TestCase {
     /**
      * Writes a table then reads it back in again and tests the contents.
      */
-    public void testWriteRead() throws IOException, HeaderCardException {
+    public void testWriteRead() throws IOException {
         File f = File.createTempFile( "table", ".fits" );
         f.deleteOnExit();
         OutputStream out = new FileOutputStream( f );
@@ -183,7 +185,7 @@ public class ColumnReaderTest extends TestCase {
      * @param  out  output stream
      */
     public static void writeIntegersBintable( int nrow, OutputStream out )
-            throws IOException, HeaderCardException {
+            throws IOException {
 
         /* Set up table. */
         ExampleTable table = new ExampleTable( nrow );
@@ -348,7 +350,6 @@ public class ColumnReaderTest extends TestCase {
         int id4s = table.addCol( dData4s );
 
         /* Write to a FITS file. */
-        BufferedDataOutputStream fout = new BufferedDataOutputStream( out );
         FitsTableSerializerConfig config = new FitsTableSerializerConfig() {
             public WideFits getWide() {
                 return null;
@@ -365,54 +366,79 @@ public class ColumnReaderTest extends TestCase {
         };
         FitsTableSerializer ser =
             new StandardFitsTableSerializer( config, table );
-        FitsConstants.writeEmptyPrimary( fout );
-        Header hdr = ser.getHeader();
+        FitsUtil.writeEmptyPrimary( out );
 
-        hdr.removeCard( "TZERO" + ( ib2 + 1 ) );
-        hdr.addValue( "TZERO" + ( is2 + 1 ), "32768", "unsigned offset" );
-        hdr.addValue( "TZERO" + ( ii2 + 1 ), "2147483648", "unsigned offset" );
-        hdr.addValue( "TZERO" + ( il2 + 1 ), "9223372036854775808",
-                                             "unsigned offset" );
+        List<CardImage> cards =
+            new ArrayList<>( Arrays.asList( ser.getHeader() ) );
+        removeCard( cards, "TZERO" + ( ib2 + 1 ) );
+        removeCard( cards, "TZERO" + ( ib4 + 1 ) );
+        removeCard( cards, "TZERO" + ( ib2s + 1 ) );
+        removeCard( cards, "TZERO" + ( ib4s + 1 ) );
 
-        hdr.addValue( "TZERO" + ( ib3 + 1 ), -128 + xoff, "offset" );
-        hdr.addValue( "TZERO" + ( is3 + 1 ), xoff, "offset" );
-        hdr.addValue( "TZERO" + ( ii3 + 1 ), xoff, "offset" );
-        hdr.addValue( "TZERO" + ( il3 + 1 ), xoff, "offset" );
-        hdr.addValue( "TZERO" + ( if3 + 1 ), xoff, "offset" );
-        hdr.addValue( "TZERO" + ( id3 + 1 ), xoff, "offset" );
-       
-        hdr.removeCard( "TZERO" + ( ib4 + 1 ) );
-        hdr.addValue( "TSCAL" + ( ib4 + 1 ), 1.0 / xscale, "scaling" );
-        hdr.addValue( "TSCAL" + ( is4 + 1 ), 1.0 / xscale, "scaling" );
-        hdr.addValue( "TSCAL" + ( ii4 + 1 ), 1.0 / xscale, "scaling" );
-        hdr.addValue( "TSCAL" + ( il4 + 1 ), 1.0 / xscale, "scaling" );
-        hdr.addValue( "TSCAL" + ( if4 + 1 ), 1.0 / xscale, "scaling" );
-        hdr.addValue( "TSCAL" + ( id4 + 1 ), 1.0 / xscale, "scaling" );
+        CardFactory cf = CardFactory.DEFAULT;
+        cards.addAll( Arrays.asList( new CardImage[] {
+            cf.createIntegerCard( "TZERO" + ( is2 + 1 ), 32768,
+                                  "unsigned offset" ),
+            cf.createIntegerCard( "TZERO" + ( ii2 + 1 ), 2147483648L,
+                                  "unsigned offset" ),
+            cf.createLiteralCard( "TZERO" + ( il2 + 1 ), "9223372036854775808",
+                                  "unsigned offset" ),
 
-        hdr.removeCard( "TZERO" + ( ib2s + 1 ) );
-        hdr.addValue( "TZERO" + ( is2s + 1 ), "32768", "unsigned offset" );
-        hdr.addValue( "TZERO" + ( ii2s + 1 ), "2147483648", "unsigned offset" );
-        hdr.addValue( "TZERO" + ( il2s + 1 ), "9223372036854775808",
-                                              "unsigned offset" );
+            cf.createIntegerCard( "TZERO" + ( ib3 + 1 ), -128 + xoff,
+                                  "offset" ),
+            cf.createIntegerCard( "TZERO" + ( is3 + 1 ), xoff, "offset" ),
+            cf.createIntegerCard( "TZERO" + ( ii3 + 1 ), xoff, "offset" ),
+            cf.createIntegerCard( "TZERO" + ( il3 + 1 ), xoff, "offset" ),
+            cf.createIntegerCard( "TZERO" + ( if3 + 1 ), xoff, "offset" ),
+            cf.createIntegerCard( "TZERO" + ( id3 + 1 ), xoff, "offset" ),
 
-        hdr.addValue( "TZERO" + ( ib3s + 1 ), -128 + xoff, "offset" );
-        hdr.addValue( "TZERO" + ( is3s + 1 ), xoff, "offset" );
-        hdr.addValue( "TZERO" + ( ii3s + 1 ), xoff, "offset" );
-        hdr.addValue( "TZERO" + ( il3s + 1 ), xoff, "offset" );
-        hdr.addValue( "TZERO" + ( if3s + 1 ), xoff, "offset" );
-        hdr.addValue( "TZERO" + ( id3s + 1 ), xoff, "offset" );
+            cf.createRealCard( "TSCAL" + ( ib4 + 1 ), 1.0 / xscale, "scaling" ),
+            cf.createRealCard( "TSCAL" + ( is4 + 1 ), 1.0 / xscale, "scaling" ),
+            cf.createRealCard( "TSCAL" + ( ii4 + 1 ), 1.0 / xscale, "scaling" ),
+            cf.createRealCard( "TSCAL" + ( il4 + 1 ), 1.0 / xscale, "scaling" ),
+            cf.createRealCard( "TSCAL" + ( if4 + 1 ), 1.0 / xscale, "scaling" ),
+            cf.createRealCard( "TSCAL" + ( id4 + 1 ), 1.0 / xscale, "scaling" ),
 
-        hdr.removeCard( "TZERO" + ( ib4s + 1 ) );
-        hdr.addValue( "TSCAL" + ( ib4s + 1 ), 1.0 / xscale, "scaling" );
-        hdr.addValue( "TSCAL" + ( is4s + 1 ), 1.0 / xscale, "scaling" );
-        hdr.addValue( "TSCAL" + ( ii4s + 1 ), 1.0 / xscale, "scaling" );
-        hdr.addValue( "TSCAL" + ( il4s + 1 ), 1.0 / xscale, "scaling" );
-        hdr.addValue( "TSCAL" + ( if4s + 1 ), 1.0 / xscale, "scaling" );
-        hdr.addValue( "TSCAL" + ( id4s + 1 ), 1.0 / xscale, "scaling" );
+            cf.createIntegerCard( "TZERO" + ( is2s + 1 ), 32768,
+                                  "unsigned offset" ),
+            cf.createIntegerCard( "TZERO" + ( ii2s + 1 ), 2147483648L,
+                                  "unsigned offset" ),
+            cf.createLiteralCard( "TZERO" + ( il2s + 1 ), "9223372036854775808",
+                                  "unsigned offset" ),
 
-        FitsConstants.writeHeader( fout, hdr );
-        ser.writeData( fout );
-        fout.flush();
+            cf.createIntegerCard( "TZERO" + ( ib3s + 1 ), -128 + xoff,
+                                  "offset" ),
+            cf.createIntegerCard( "TZERO" + ( is3s + 1 ), xoff, "offset" ),
+            cf.createIntegerCard( "TZERO" + ( ii3s + 1 ), xoff, "offset" ),
+            cf.createIntegerCard( "TZERO" + ( il3s + 1 ), xoff, "offset" ),
+            cf.createIntegerCard( "TZERO" + ( if3s + 1 ), xoff, "offset" ),
+            cf.createIntegerCard( "TZERO" + ( id3s + 1 ), xoff, "offset" ),
+
+            cf.createRealCard( "TSCAL" + ( ib4s + 1 ), 1. / xscale, "scaling" ),
+            cf.createRealCard( "TSCAL" + ( is4s + 1 ), 1. / xscale, "scaling" ),
+            cf.createRealCard( "TSCAL" + ( ii4s + 1 ), 1. / xscale, "scaling" ),
+            cf.createRealCard( "TSCAL" + ( il4s + 1 ), 1. / xscale, "scaling" ),
+            cf.createRealCard( "TSCAL" + ( if4s + 1 ), 1. / xscale, "scaling" ),
+            cf.createRealCard( "TSCAL" + ( id4s + 1 ), 1. / xscale, "scaling" ),
+            CardFactory.END_CARD,
+        } ) );
+
+        FitsUtil.writeHeader( cards.toArray( new CardImage[ 0 ] ), out );
+        DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
+        ser.writeData( dout );
+        dout.flush();
+    }
+
+    private static void removeCard( List<CardImage> list, String key ) {
+        int nRemove = 0;
+        for ( Iterator<CardImage> it = list.iterator(); it.hasNext(); ) {
+            ParsedCard pcard = FitsUtil.parseCard( it.next().getBytes() );
+            if ( key.equals( pcard.getKey() ) ) {
+                nRemove++;
+                it.remove();
+            }
+        }
+        assertEquals( 1, nRemove );
     }
 
     /**
@@ -440,8 +466,7 @@ public class ColumnReaderTest extends TestCase {
     /**
      * Writes an example integer FITS file into the current directory.
      */
-    public static void main( String[] args )
-            throws IOException, HeaderCardException {
+    public static void main( String[] args ) throws IOException {
         int nrow = 10;
         File f = new File( "0-" + ( nrow - 1 ) + ".fits" );
         OutputStream out = new FileOutputStream( f );

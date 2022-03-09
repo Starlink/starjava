@@ -2,22 +2,20 @@ package uk.ac.starlink.votable;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCard;
-import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.fits.AbstractFitsTableWriter;
-import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.fits.CardFactory;
+import uk.ac.starlink.fits.CardImage;
 import uk.ac.starlink.fits.FitsTableSerializer;
+import uk.ac.starlink.fits.FitsUtil;
+import uk.ac.starlink.fits.ParsedCard;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.util.DataBufferedOutputStream;
@@ -116,19 +114,16 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      */
     private void writePrimaryHDU( StarTable[] tables,
                                   FitsTableSerializer[] fitsers,
-                                  DataOutput strm )
+                                  OutputStream out )
             throws IOException {
 
         /* Try to write the metadata as VOTable text in the primary HDU. */
         Exception thrown = null;
         try {
-            writeVOTablePrimary( tables, fitsers, strm );
+            writeVOTablePrimary( tables, fitsers, out );
             return;
         }
         catch ( IOException e ) {
-            thrown = e;
-        }
-        catch ( FitsException e ) {
             thrown = e;
         }
 
@@ -137,7 +132,7 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
         logger.log( Level.WARNING,
                     "Failed to write VOTable metadata to primary HDU",
                     thrown );
-        FitsConstants.writeEmptyPrimary( strm );
+        FitsUtil.writeEmptyPrimary( out );
     }
 
     /**
@@ -150,8 +145,8 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      */
     private void writeVOTablePrimary( StarTable[] tables,
                                       FitsTableSerializer[] fitsers,
-                                      DataOutput out )
-            throws IOException, FitsException {
+                                      OutputStream out )
+            throws IOException {
 
         /* Get a serializer that knows how to write VOTable metadata for
          * this table. */
@@ -207,13 +202,17 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
         int nbyte = textBytes.length;
 
         /* Prepare and write a FITS header describing the character data. */
-        Header hdr = FitsConstants.createUnsortedHeader();
-        hdr.addValue( "SIMPLE", true, "Standard FITS format" );
-        hdr.addValue( "BITPIX", 8, "Character data" );
-        hdr.addValue( "NAXIS", 1, "Text string" );
-        hdr.addValue( "NAXIS1", nbyte, "Number of characters" );
-        customisePrimaryHeader( hdr );
-        hdr.addValue( "EXTEND", true, "There are standard extensions" );
+        List<CardImage> cards = new ArrayList<>();
+        CardFactory cf = CardFactory.STRICT;
+        cards.addAll( Arrays.asList( new CardImage[] {
+            cf.createLogicalCard( "SIMPLE", true, "Standard FITS format" ),
+            cf.createIntegerCard( "BITPIX", 8, "Character data" ),
+            cf.createIntegerCard( "NAXIS", 1, "Text string" ),
+            cf.createIntegerCard( "NAXIS1", nbyte, "Number of characters" ),
+        } ) );
+        cards.addAll( Arrays.asList( getCustomPrimaryHeaderCards() ) );
+        cards.add( cf.createLogicalCard( "EXTEND", true,
+                                         "There are standard extensions" ) );
         String plural = ntable == 1 ? "" : "s";
         String[] comments = new String[] {
             " ",
@@ -229,34 +228,32 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
                           : "There are " + ntable + " following BINTABLEs." ),
         };
         for ( int i = 0; i < comments.length; i++ ) {
-            hdr.insertComment( comments[ i ] );
+            cards.add( cf.createCommentCard( comments[ i ] ) );
         }
-        hdr.addValue( "NTABLE", ntable, "Number of following BINTABLE HDUs" );
-        hdr.insertCommentStyle( "END", "" );
-        assert primaryHeaderOK( hdr );
-        FitsConstants.writeHeader( out, hdr );
+        cards.add( cf.createIntegerCard( "NTABLE", ntable,
+                                         "Number of following BINTABLE HDUs" ));
+        cards.add( CardFactory.END_CARD );
+        assert primaryHeaderOK( cards.toArray( new CardImage[ 0 ] ) );
+        FitsUtil.writeHeader( cards.toArray( new CardImage[ 0 ] ), out );
 
         /* Write the character data itself. */
         out.write( textBytes );
 
         /* Write padding to the end of the FITS block. */
-        int partial = textBytes.length % FitsConstants.FITS_BLOCK;
+        int partial = textBytes.length % FitsUtil.BLOCK_LENG;
         if ( partial > 0 ) {
-            int pad = FitsConstants.FITS_BLOCK - partial;
+            int pad = FitsUtil.BLOCK_LENG - partial;
             out.write( new byte[ pad ] );
         }
     }
 
     /**
-     * Hook for adding custom entries to the FITS header which is written
-     * to the primary HDU.  This is called just after the required 
-     * cards (SIMPLE, BITPIX, NAXIS, NAXIS1 ) are added and just before
-     * the EXTEND card.
+     * Returns implementation-specific header cards to be added
+     * to the Primary HDU of FITS files written by this writer.
      *
-     * @param   hdr  header
+     * @return   header cards
      */
-    protected abstract void customisePrimaryHeader( Header hdr )
-            throws HeaderCardException;
+    protected abstract CardImage[] getCustomPrimaryHeaderCards();
 
     /**
      * Performs assertion-type checks on a primary HDU header written by 
@@ -265,44 +262,38 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      * @param  hdr  header to check
      * @return   true iff the header looks OK
      */
-    private boolean primaryHeaderOK( Header hdr ) {
-        boolean ok = true;
-        ByteArrayOutputStream bstrm = new ByteArrayOutputStream();
-        for ( @SuppressWarnings("unchecked")
-              Iterator<HeaderCard> it = hdr.iterator(); it.hasNext(); ) {
-            String card = it.next().toString();
-            ok = ok && card.length() == 80;
-            for ( int i = 0; i < card.length(); i++ ) {
-                bstrm.write( (byte) card.charAt( i ) );
-            }
+    private boolean primaryHeaderOK( CardImage[] cards ) {
+        try {
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            FitsUtil.writeHeader( cards, bout );
+            bout.close();
+            return isMagic( bout.toByteArray() );
         }
-        return ok && isMagic( bstrm.toByteArray() );
+        catch ( IOException e ) {
+            assert false;
+            return false;
+        }
     }
 
     /**
      * Determines whether a given byte buffer looks like it contains
      * the start of a primary header written by this writer.
      * Calls the protected 
-     * {@link #isMagic(int,java.lang.String,java.lang.String)} method.
+     * {@link #isMagic(int,java.lang.String,java.lang.Object)} method.
      *
      * @param  buffer  start of a file
      * @return  true  iff <code>buffer</code> looks like it contains a 
      *          file written by this handler
      */
     public boolean isMagic( byte[] buffer ) {
-        if ( buffer.length < 2 * 80 ) {
+        final int ntest = 6;
+        if ( buffer.length < ntest * 80 ) {
             return false;
         }
-        final int ntest = FitsConstants.FITS_BLOCK / 80;
-        int pos = 0;
-        int ncard = 0;
-        for ( int il = 0; il < ntest && buffer.length > pos + 80; il++ ) {
-            char[] cbuf = new char[ 80 ];
-            for ( int ic = 0; ic < 80; ic++ ) {
-                cbuf[ ic ] = (char) ( buffer[ pos++ ] & 0xff );
-            }
-            HeaderCard card =
-                FitsConstants.createHeaderCard( new String( cbuf ) );
+        byte[] cbuf = new byte[ 80 ];
+        for ( int il = 0; il < ntest; il++ ) {
+            System.arraycopy( buffer, il * 80, cbuf, 0, 80 );
+            ParsedCard<?> card = FitsUtil.parseCard( cbuf );
             if ( ! isMagic( il, card.getKey(), card.getValue() ) ) {
                 return false;
             }
@@ -322,7 +313,7 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      *    NAXIS1 = ???
      * </pre>
      * Subclasses may override this to add tests for later cards
-     * (as written in {@link #customisePrimaryHeader}).
+     * (as provided by {@link #getCustomPrimaryHeaderCards}).
      *
      * @param   icard  0-based card index
      * @param   key    card name
@@ -330,14 +321,18 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      * @return   true iff the presented card is one that could have been
      *           written by this writer
      */
-    protected boolean isMagic( int icard, String key, String value ) {
+    protected boolean isMagic( int icard, String key, Object value ) {
         switch ( icard ) {
             case 0:
-                return "SIMPLE".equals( key ) && "T".equals( value );
+                return "SIMPLE".equals( key ) && Boolean.TRUE.equals( value );
             case 1: 
-                return "BITPIX".equals( key ) && "8".equals( value );
+                return "BITPIX".equals( key )
+                    && value instanceof Number
+                    && ((Number) value).intValue() == 8;
             case 2:
-                return "NAXIS".equals( key ) && "1".equals( value );
+                return "NAXIS".equals( key )
+                    && value instanceof Number
+                    && ((Number) value).intValue() == 1;
             case 3:
                 return "NAXIS1".equals( key );
             default:

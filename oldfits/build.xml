@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 
 <!--
- !   FITS build file
+ !   OLDFITS build file
  !
- !   This file describes how to build the FITS package from a source
+ !   This file describes how to build the OLDFITS package from a source
  !   release. It requires Apache ANT and a Java Development Kit.
  !
- !   In addition FITS may have requirements for other "core" and
+ !   In addition OLDFITS may have requirements for other "core" and
  !   "third-party" packages to complete the compilation and any
  !   testing.
  !
@@ -36,7 +36,7 @@
  !
  !-->
 
-<project name="Build file for FITS" default="build" basedir=".">
+<project name="Build file for OLDFITS" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -85,12 +85,12 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="FITS"/>
-  <property name="name" value="fits"/>
+  <property name="Name" value="OLDFITS"/>
+  <property name="name" value="oldfits"/>
   <property name="version" value="0.1"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="uk.ac.starlink.fits"/>
+  <property name="package.name" value="uk.ac.starlink.oldfits"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
@@ -198,6 +198,18 @@
     <!-- JUnit -->
     <pathelement location="${star.jar.dir}/junit/junit.jar"/>
 
+    <!-- TAMFITS -->
+    <pathelement location="${star.jar.dir}/tamfits/tamfits.jar"/>
+
+    <!-- Array -->
+    <pathelement location="${star.jar.dir}/array/array.jar"/>
+
+    <!-- NDX -->
+    <pathelement location="${star.jar.dir}/ndx/ndx.jar"/>
+
+    <!-- JNIAST -->
+    <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
+
     <!-- Table -->
     <pathelement location="${star.jar.dir}/table/table.jar"/>
 
@@ -224,6 +236,10 @@
    !-->
   <extclasspath id="built.jarpath">
     <pathelement location="${star.build.dir}/junit/lib/junit/junit.jar"/>
+    <pathelement location="${star.build.dir}/tamfits/lib/tamfits/tamfits.jar"/>
+    <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
+    <pathelement location="${star.build.dir}/ndx/lib/ndx/ndx.jar"/>
+    <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
     <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
   </extclasspath>
@@ -288,6 +304,30 @@
    !-->
   <target name="check_packages" 
           unless="runonly.install">
+
+    <!--  Need TAMFITS -->
+    <available property="tamfits.present"
+               classpathref="classpath"
+               classname="nom.tam.fits.Fits"/>
+    <fail message="No TAMFITS available" unless="tamfits.present"/>
+
+    <!--  Need Array -->
+    <available property="array.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.array.NDArray"/>
+    <fail message="No Array available" unless="array.present"/>
+
+    <!--  Need NDX -->
+    <available property="ndx.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.ndx.Ndx"/>
+    <fail message="No NDX available" unless="ndx.present"/>
+
+    <!--  Need JNIAST -->
+    <available property="jniast.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.ast.Grf"/>
+    <fail message="No JNIAST available" unless="jniast.present"/>
 
     <!--  Need Table -->
     <available property="table.present"
@@ -365,9 +405,11 @@
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
+ <!--
     <copy todir="${build.classes}">
       <fileset dir="${src.dir}/resources"/>
     </copy>
+  -->
 
   </target>
 
@@ -425,11 +467,11 @@
     <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
           codebase="${webstart.codebase}">
       <information>
-         <title>FITS</title>
+         <title>OLDFITS</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink FITS classes - Webstart edition"</description>
+         <description>"Starlink OLDFITS classes - Webstart edition"</description>
          <offline_allowed/>
        </information>
        <security>
@@ -437,7 +479,12 @@
        </security>
        <resources>
          <j2se version="1.8+"/>
-         <jar href="fits/fits.jar"/>
+         <jar href="oldfits/oldfits.jar"/>
+         <extension name="TAMFITS" href="tamfits.jnlp"/>
+         <extension name="ARRAY" href="array.jnlp"/>
+         <extension name="HDX" href="hdx.jnlp"/>
+         <extension name="NDX" href="ndx.jnlp"/>
+         <extension name="JNIAST" href="jniast.jnlp"/>
          <extension name="TABLE" href="table.jnlp"/>
        </resources>
        <component_desc/>

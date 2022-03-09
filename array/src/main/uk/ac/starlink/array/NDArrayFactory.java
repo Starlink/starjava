@@ -27,7 +27,7 @@ import uk.ac.starlink.util.URLUtils;
  * ArrayBuilders are installed:
  * <ul>
  * <li> {@link uk.ac.starlink.hds.HDSArrayBuilder}
- * <li> {@link uk.ac.starlink.fits.FitsArrayBuilder}
+ * <li> {@link uk.ac.starlink.oldfits.FitsArrayBuilder}
  * </ul>
  * Consult the documentation of these classes to find out about the format
  * of URLs understood by each.
@@ -87,7 +87,7 @@ public class NDArrayFactory {
         }
 
         /* Attempt to add a FitsArrayBuilder if the class is available. */
-        className = "uk.ac.starlink.fits.FitsArrayBuilder";
+        className = "uk.ac.starlink.oldfits.FitsArrayBuilder";
         try {
             Class clazz = this.getClass().forName( className );
             Method meth = clazz.getMethod( "getInstance", noParams );

@@ -199,7 +199,6 @@
     <!-- {Other packages} -->
     <pathelement location="${star.jar.dir}/table/table.jar"/>
     <pathelement location="${star.jar.dir}/util/util.jar"/>
-    <pathelement location="${star.jar.dir}/tamfits/tamfits.jar"/>
 
   </extclasspath>
 
@@ -223,7 +222,6 @@
 
     <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
     <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
-    <pathelement location="${star.build.dir}/tamfits/lib/tamfits/tamfits.jar"/>
 
   </extclasspath>
 
@@ -299,12 +297,6 @@
                classpathref="classpath"
                classname="uk.ac.starlink.util.URLUtils"/>
     <fail message="No Util available" unless="util.present"/>
-
-    <!--  TAMFITS -->
-    <available property="tamfits.present"
-               classpathref="classpath"
-               classname="nom.tam.fits.Fits"/>
-    <fail message="No TAMFITS available" unless="tamfits.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"

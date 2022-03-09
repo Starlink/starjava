@@ -1,6 +1,6 @@
 package uk.ac.starlink.fits;
 
-import java.io.DataOutput;
+import java.io.OutputStream;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 
@@ -42,7 +42,8 @@ public class HduFitsTableWriter extends AbstractFitsTableWriter {
     /**
      * Does nothing.
      */
-    public void writePrimaryHDU( DataOutput out ) {
+    @Override
+    public void writePrimaryHDU( OutputStream out ) {
         // no action
     }
 

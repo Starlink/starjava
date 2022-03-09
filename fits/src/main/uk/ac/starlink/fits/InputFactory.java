@@ -1,7 +1,6 @@
 package uk.ac.starlink.fits;
 
 import java.io.Closeable;
-import java.io.DataInput;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -96,10 +95,9 @@ public abstract class InputFactory implements Closeable {
         return new AbstractInputFactory( false ) {
             public BasicInput createInput( boolean isSeq )
                     throws IOException {
-                InputStream baseIn = datsrc.getInputStream();
-                IOUtils.skip( baseIn, offset );
-                DataInput dataIn = new DataBufferedInputStream( baseIn );
-                return createSequentialInput( dataIn );
+                InputStream in = datsrc.getInputStream();
+                IOUtils.skip( in, offset );
+                return createSequentialInput( in );
             }
             public void close() {
                 datsrc.close();
@@ -255,36 +253,37 @@ public abstract class InputFactory implements Closeable {
 
     /**
      * Returns a non-random-access BasicInput based on a supplied input stream.
-     * The result is just an adapter wrapping the supplied DataInput.
      *
      * @param  in  input stream
      * @return  non-random BasicInput
      */
-    public static BasicInput createSequentialInput( final DataInput in ) {
+    public static BasicInput createSequentialInput( final InputStream in ) {
+        final DataBufferedInputStream dataIn =
+            new DataBufferedInputStream( in );
         return new BasicInput() {
             public byte readByte() throws IOException {
-                return in.readByte();
+                return dataIn.readByte();
             }
             public short readShort() throws IOException {
-                return in.readShort();
+                return dataIn.readShort();
             }
             public int readInt() throws IOException {
-                return in.readInt();
+                return dataIn.readInt();
             }
             public long readLong() throws IOException {
-                return in.readLong();
+                return dataIn.readLong();
             }
             public float readFloat() throws IOException {
-                return in.readFloat();
+                return dataIn.readFloat();
             }
             public double readDouble() throws IOException {
-                return in.readDouble();
+                return dataIn.readDouble();
             }
             public void readBytes( byte[] bbuf ) throws IOException {
-                in.readFully( bbuf );
+                dataIn.readFully( bbuf );
             }
             public void skip( long nbyte ) throws IOException {
-                IOUtils.skipBytes( in, nbyte );
+                IOUtils.skip( dataIn, nbyte );
             }
             public boolean isRandom() {
                 return false;

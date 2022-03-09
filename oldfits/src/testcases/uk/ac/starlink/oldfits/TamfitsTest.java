@@ -1,4 +1,4 @@
-package uk.ac.starlink.fits;
+package uk.ac.starlink.oldfits;
 
 import java.io.IOException;
 import java.net.URL;
@@ -15,21 +15,6 @@ import uk.ac.starlink.util.URLDataSource;
  * versions, those versions should be fixed.
  */
 public class TamfitsTest extends TestCase {
-
-    /**
-     * ASCII table extensions with TFORM values of In should be 64-bit
-     * for n>=10, not n>10.
-     */
-    public void testI10() throws IOException {
-        URL i10Url = getClass().getResource( "i10_test.fits" );
-        StarTable i10Table =
-            new FitsTableBuilder()
-           .makeStarTable( new URLDataSource( i10Url ), false,
-                           StoragePolicy.PREFER_MEMORY );
-        assertEquals( "ASCII table I10 should be a long not an int",
-                      Long.class,
-                      i10Table.getColumnInfo( 0 ).getContentClass() );
-    }
 
     public void testString() throws Exception {
 

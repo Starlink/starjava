@@ -1,5 +1,7 @@
 package uk.ac.starlink.fits;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.EOFException;
@@ -10,10 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataBufferedInputStream;
@@ -148,22 +150,24 @@ abstract class FileColumnStore implements ColumnStore {
         return multiply( itemShape_ ) * typeBytes_ * nrow_;
     }
 
-    public void addHeaderInfo( Header hdr, BintableColumnHeader colhead,
-                               int jcol )
-            throws HeaderCardException {
+    public List<CardImage> getHeaderInfo( BintableColumnHeader colhead,
+                                          int jcol ) {
         String forcol = " for column " + jcol;
+        CardFactory cfact = colhead.getCardFactory();
+        List<CardImage> cards = new ArrayList<>();
 
         /* Column name. */
         String name = info_.getName();
         if ( name != null && name.trim().length() > 0 ) {
-            FitsConstants.addTrimmedValue( hdr, colhead.getKeyName( "TTYPE" ),
-                                           name, "label" + forcol );
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TTYPE" ),
+                                               name, "label" + forcol ) );
         }
 
         /* Column format. */
         long nItem = multiply( itemShape_ ) * nrow_;
-        hdr.addValue( colhead.getKeyName( "TFORM" ), nItem + "" + formatChar_,
-                      "format" + forcol );
+        cards.add( cfact.createStringCard( colhead.getKeyName( "TFORM" ),
+                                           nItem + "" + formatChar_,
+                                           "format" + forcol ) );
 
         /* Column dimensions. */
         StringBuffer dimbuf = new StringBuffer( "(" );
@@ -173,36 +177,38 @@ abstract class FileColumnStore implements ColumnStore {
         }
         dimbuf.append( nrow_ )
               .append( ')' );
-        hdr.addValue( colhead.getKeyName( "TDIM" ), dimbuf.toString(),
-                      "dimensions" + forcol );
+        cards.add( cfact.createStringCard( colhead.getKeyName( "TDIM" ),
+                                           dimbuf.toString(),
+                                           "dimensions" + forcol ) );
 
         /* Column units. */
         String unit = info_.getUnitString();
         if ( unit != null && unit.trim().length() > 0 ) {
-            FitsConstants.addTrimmedValue( hdr, colhead.getKeyName( "TUNIT" ),
-                                           unit, "units" + forcol );
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TUNIT" ),
+                                               unit, "units" + forcol ) );
         }
 
         /* Column description. */
         String comm = info_.getDescription();
         if ( comm != null && comm.trim().length() > 0 ) {
-            FitsConstants
-           .addStringValue( hdr, colhead.getKeyName( "TCOMM" ), comm, null );
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TCOMM" ),
+                                               comm, null ) );
         }
 
         /* UCD. */
         String ucd = info_.getUCD();
         if ( ucd != null && ucd.trim().length() > 0 ) {
-            FitsConstants
-           .addStringValue( hdr, colhead.getKeyName( "TUCD" ), ucd, null );
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TUCD" ),
+                                               ucd, null ) );
         }
 
         /* Utype. */
         String utype = info_.getUtype();
         if ( utype != null && utype.trim().length() > 0 ) {
-            FitsConstants
-           .addStringValue( hdr, colhead.getKeyName( "TUTYP" ), utype, null );
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TUTYP" ),
+                                               utype, null ) );
         }
+        return cards;
     }
 
     public void dispose() throws IOException {
@@ -309,13 +315,16 @@ abstract class FileColumnStore implements ColumnStore {
             if ( config.allowSignedByte() ) {
                 return new IntegerColumnStore( info, IntegerStorage
                                                     .createByteStorage() ) {
-                    public void addHeaderInfo( Header hdr,
-                                               BintableColumnHeader colhead,
-                                               int jcol )
-                            throws HeaderCardException {
-                        super.addHeaderInfo( hdr, colhead, jcol );
-                        hdr.addValue( colhead.getKeyName( "TZERO" ), -128.0,
-                                      "unsigned offset" );
+                    public List<CardImage>
+                            getHeaderInfo( BintableColumnHeader colhead,
+                                           int jcol ) {
+                        List<CardImage> cards =
+                            new ArrayList<>( super.getHeaderInfo( colhead,
+                                                                  jcol ) );
+                        cards.add( colhead.getCardFactory()
+                                  .createRealCard( colhead.getKeyName( "TZERO"),
+                                                   -128.0, "unsigned offset" ));
+                        return cards;
                     }
                 };
             }
@@ -411,24 +420,34 @@ abstract class FileColumnStore implements ColumnStore {
             return ( dims != null &&
                      dims.length > 0 &&
                      dims[ dims.length - 1 ] > 0 )
-                 ? (ColumnStore) new FixedArrayColumnStore( info, handler ) {
-                       public void addHeaderInfo( Header hdr,
-                                                  BintableColumnHeader colhead,
-                                                  int jcol )
-                               throws HeaderCardException {
-                           super.addHeaderInfo( hdr, colhead, jcol );
-                           hdr.addValue( colhead.getKeyName( "TZERO" ), -128.0,
-                                         "unsigned offset" );
+                 ? new FixedArrayColumnStore( info, handler ) {
+                       public List<CardImage>
+                               getHeaderInfo( BintableColumnHeader colhead,
+                                              int jcol ) {
+                           List<CardImage> cards =
+                               new ArrayList<>( super.getHeaderInfo( colhead,
+                                                                     jcol ) );
+                           cards.add( colhead.getCardFactory()
+                                     .createRealCard( colhead
+                                                     .getKeyName( "TZERO" ),
+                                                      -128.0,
+                                                      "unsigned offset" ) );
+                           return cards;
                        }
                    }
-                 : (ColumnStore) new VariableArrayColumnStore( info, handler ) {
-                       public void addHeaderInfo( Header hdr,
-                                                  BintableColumnHeader colhead,
-                                                  int jcol )
-                               throws HeaderCardException {
-                           super.addHeaderInfo( hdr, colhead, jcol );
-                           hdr.addValue( colhead.getKeyName( "TZERO" ), -128.0,
-                                         "unsigned offset" );
+                 : new VariableArrayColumnStore( info, handler ) {
+                       public List<CardImage>
+                               getHeaderInfo( BintableColumnHeader colhead,
+                                              int jcol ) {
+                           List<CardImage> cards =
+                               new ArrayList<>( super.getHeaderInfo( colhead,
+                                                                     jcol ) );
+                           cards.add( colhead.getCardFactory()
+                                     .createRealCard( colhead
+                                                     .getKeyName( "TZERO" ),
+                                                      -128.0,
+                                                      "unsigned offset" ) );
+                           return cards;
                        }
                    };
         }
@@ -730,18 +749,20 @@ abstract class FileColumnStore implements ColumnStore {
             out.write( buf );
         }
 
-        public void addHeaderInfo( Header hdr, BintableColumnHeader colhead,
-                                   int jcol )
-                throws HeaderCardException {
-            super.addHeaderInfo( hdr, colhead, jcol );
+        public List<CardImage> getHeaderInfo( BintableColumnHeader colhead,
+                                              int jcol ) {
+            List<CardImage> cards =
+                new ArrayList<>( super.getHeaderInfo( colhead, jcol ) );
             if ( hasNulls_ ) {
                 Number bad = handler_.getBadNumber();
                 if ( bad != null ) {
-                    hdr.addValue( colhead.getKeyName( "TNULL" ),
-                                  bad.longValue(), "blank value" );
+                    cards.add( colhead.getCardFactory()
+                              .createIntegerCard( colhead.getKeyName( "TNULL" ),
+                                                  bad.longValue(),
+                                                  "blank value" ) );
                 }
             }
+            return cards;
         }
     }
-
 }

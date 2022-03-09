@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
-import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.task.Task;
@@ -51,7 +50,6 @@ public class Stilts {
         int status = invoker.invoke( args, new Runnable() {
             public void run() {
                 URLUtils.installCustomHandlers();
-                FitsConstants.configureHierarch();
                 PropertyAuthenticator.installInstance( true );
             }
         } );

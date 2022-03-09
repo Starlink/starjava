@@ -1,25 +1,18 @@
 package uk.ac.starlink.datanode.nodes;
 
+import java.io.EOFException;
 import java.io.IOException;
-import javax.swing.JComponent;
-import nom.tam.fits.AsciiTable;
+import java.io.InputStream;
 import nom.tam.fits.AsciiTableHDU;
-import nom.tam.fits.BinaryTable;
 import nom.tam.fits.BinaryTableHDU;
 import nom.tam.fits.FitsException;
-import nom.tam.fits.TableData;
-import nom.tam.fits.TableHDU;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
-import uk.ac.starlink.fits.BintableStarTable;
-import uk.ac.starlink.fits.FitsConstants;
-import uk.ac.starlink.fits.FitsStarTable;
 import uk.ac.starlink.fits.FitsTableBuilder;
-import uk.ac.starlink.fits.InputFactory;
 import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.IOUtils;
 
 /**
  * An implementation of the {@link DataNode} interface for 
@@ -31,9 +24,7 @@ import uk.ac.starlink.util.IOUtils;
 public class TableHDUDataNode extends HDUDataNode {
 
     private String hduType;
-    private TableData tdata;
     private String description;
-    private Header header;
     private FITSDataNode.ArrayDataMaker hdudata;
     private StarTable starTable;
 
@@ -49,32 +40,23 @@ public class TableHDUDataNode extends HDUDataNode {
                              FITSDataNode.ArrayDataMaker hdudata ) 
             throws NoSuchDataException {
         super( header, hdudata );
-        this.header = header;
         this.hdudata = hdudata;
         hduType = getHduType();
-        String type;
-        try {
-            if ( BinaryTableHDU.isHeader( header ) ) {
-                tdata = new BinaryTable( header );
-                type = "Binary";
-            }
-            else if ( AsciiTableHDU.isHeader( header ) ) {
-                tdata = new AsciiTable( header );
-                type = "ASCII";
-            }
-            else {
-                throw new NoSuchDataException( "Not a table" );
-            }
-
-            /* Get the column information from the header. */
-            int ncols = header.getIntValue( "TFIELDS" );
-            int nrows = header.getIntValue( "NAXIS2" );
-
-            description = type + " table (" + ncols + "x" + nrows + ")";
+        final String type;
+        if ( BinaryTableHDU.isHeader( header ) ) {
+            type = "Binary";
         }
-        catch ( FitsException e ) {
-            throw new NoSuchDataException( e );
+        else if ( AsciiTableHDU.isHeader( header ) ) {
+            type = "ASCII";
         }
+        else {
+            throw new NoSuchDataException( "Not a table" );
+        }
+
+        /* Get the column information from the header. */
+        int ncols = header.getIntValue( "TFIELDS" );
+        int nrows = header.getIntValue( "NAXIS2" );
+        description = type + " table (" + ncols + "x" + nrows + ")";
         setIconID( IconFactory.TABLE );
     }
 
@@ -152,18 +134,6 @@ public class TableHDUDataNode extends HDUDataNode {
      * StarTable out of it and returns.  If it is some other kind of HDU, 
      * <tt>null</tt> is returned.  In either case, the stream is advanced
      * the end of that HDU.
-     *
-     * NOTE: This code has been copied from a slightly earlier version of
-     * uk.ac.starlink.fits.FitsTableBuilder.attemptReadTable.
-     * That code was rationalised, and that stopped this class from working
-     * properly (attempting to access table data usually resulted in 
-     * MappedFile.seek() out of bounds errors).  
-     * I haven't looked into it in full detail, but probably
-     * this class was relying for its behaviour on undocumented misfeatures
-     * of the implementation below.  Since the datanode package is 
-     * unsupported at time of writing, a proper fix is not on the cards.
-     * Copying the 'working' code here so that existing behaviour continues
-     * correctly is therefore the best option.  - MBT 23 Oct 2009
      * 
      * @param  strm  stream to read from, positioned at the start of an HDU
      *         (before the header)
@@ -175,40 +145,38 @@ public class TableHDUDataNode extends HDUDataNode {
      * @return   a StarTable made from the HDU at the start of <tt>strm</tt>
      *           or null
      */
-    private static StarTable attemptReadTable( ArrayDataInput strm,
+    private static StarTable attemptReadTable( final ArrayDataInput strm,
                                                DataSource datsrc, long[] pos )
-        throws FitsException, IOException {
-
-        /* Read the header. */
-        Header hdr = new Header();
-        int headsize = FitsConstants.readHeader( hdr, strm );
-        long datasize = FitsConstants.getDataSize( hdr );
-        long datpos = pos[ 0 ] + headsize;
-        pos[ 0 ] += headsize + datasize;
-        String xtension = hdr.getStringValue( "XTENSION" );
-          
-        /* If it's a BINTABLE HDU, make a BintableStarTable out of it. */ 
-        if ( "BINTABLE".equals( xtension ) ) {
-            IOUtils.skipBytes( strm, datasize );
-            InputFactory inFact =
-                InputFactory.createFactory( datsrc, datpos, datasize );
-            return BintableStarTable.createTable( hdr, inFact,
-                                                  WideFits.DEFAULT );
-        }
-
-        /* If it's a TABLE HDU (ASCII table), make a FitsStarTable. */
-        else if ( "TABLE".equals( xtension ) ) {
-            AsciiTable tdata = new AsciiTable( hdr );
-            tdata.read( strm );
-            tdata.getData();
-            TableHDU thdu = new AsciiTableHDU( hdr, tdata );
-            return new FitsStarTable( thdu );
-        }
-
-        /* It's not a table HDU - just skip over it and return null. */
-        else {
-            IOUtils.skipBytes( strm, datasize );
-            return null;
-        }
+            throws FitsException, IOException {
+        InputStream in = new InputStream() {
+            public int read() throws IOException {
+                try {
+                    return strm.readUnsignedByte();
+                }
+                catch ( EOFException e ) {
+                    return -1;
+                }
+            }
+            @Override
+            public int read( byte[] buf ) throws IOException {
+                return strm.read( buf );
+            }
+            @Override
+            public int read( byte[] buf, int offset, int size )
+                    throws IOException {
+                return strm.read( buf, offset, size );
+            }
+            @Override
+            public long skip( long n ) throws IOException {
+                return strm.skip( n );
+            }
+            @Override
+            public void close() throws IOException {
+                strm.close();
+            }
+        };
+        return FitsTableBuilder
+              .attemptReadTable( in, false, datsrc, WideFits.DEFAULT,
+                                 pos, (StoragePolicy) null );
     }
 }

@@ -6,14 +6,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
-import nom.tam.util.ArrayDataInput;
-import nom.tam.util.BufferedDataInputStream;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.ColFitsStarTable;
-import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.fits.FitsHeader;
+import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -101,22 +98,18 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
         }
 
         /* Try to read the table metadata from the primary HDU. */
-        Header hdr = new Header();
+        InputStream in = datsrc.getInputStream();
         long dataPos;
         TableElement tableMeta;
-        ArrayDataInput in = FitsConstants.getInputStreamStart( datsrc );
+        FitsHeader hdr;
         try {
             long[] pos = new long[ 1 ];
             tableMeta = readMetadata( in, pos );
 
             /* Read the table data from the next HDU. */
-            hdr = new Header();
-            pos[ 0 ] += FitsConstants.readHeader( hdr, in );
+            hdr = FitsUtil.readHeader( in );
+            pos[ 0 ] += hdr.getHeaderByteCount();
             dataPos = pos[ 0 ];
-        }
-        catch ( FitsException e ) {
-            throw (IOException) new IOException( "FITS read error" )
-                               .initCause( e );
         }
         finally {
             in.close();
@@ -161,79 +154,68 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
      * value T[rue], then null will be returned; this indicates that
      * table metadata should be got directly from the BINTABLE HDU.
      *
-     * @param   strm  stream holding the data (positioned at the start)
+     * @param   in    stream holding the data (positioned at the start)
      * @param   pos   1-element array for returning the number of bytes read
      *                into the stream
      * @return  TABLE element in the primary HDU
      */
-    private TableElement readMetadata( ArrayDataInput in, long[] pos )
+    private TableElement readMetadata( InputStream in, long[] pos )
             throws IOException {
 
-        /* Read the first FITS block from the stream into a buffer.
-         * This should contain the entire header of the primary HDU. */
-        byte[] headBuf = new byte[ FitsConstants.FITS_BLOCK ];
-        in.readFully( headBuf );
-        try {
+        /* Read a FITS header.  This should be the Primary header. */
+        FitsHeader hdr = FitsUtil.readHeader( in );
+        long headsize = hdr.getHeaderByteCount();
+        long datasize = hdr.getDataByteCount();
+        pos[ 0 ] = headsize + datasize;
+        int nbyte = hdr.getRequiredIntValue( "NAXIS1" );
 
-            /* Turn it into a header and find out the length of the
-             * data unit. */
-            Header hdr = new Header();
-            ArrayDataInput hstrm =
-                new BufferedDataInputStream(
-                    new ByteArrayInputStream( headBuf ) );
-            int headsize = FitsConstants.readHeader( hdr, hstrm );
-            int datasize = (int) FitsConstants.getDataSize( hdr );
-            pos[ 0 ] = headsize + datasize;
-            int nbyte = hdr.getIntValue( "NAXIS1" );
-
-            /* Read the data from the primary HDU into a byte buffer. */
-            byte[] vobuf = new byte[ nbyte ];
-            in.readFully( vobuf );
-
-            /* Advance to the end of the primary HDU. */
-            int pad = datasize - nbyte;
-            IOUtils.skipBytes( in, pad );
-
-            /* If there's no VOTMETA = T card in the header, just return
-             * a null element now. */
-            if ( ! hdr.getBooleanValue( "VOTMETA" ) ) {
-                return null;
-            }
-
-            /* Read XML from the byte buffer, performing a custom
-             * parse to DOM. */
-            VOElementFactory vofact = new VOElementFactory();
-            DOMSource domsrc =
-                vofact.transformToDOM(
-                    new StreamSource( new ByteArrayInputStream( vobuf ) ),
-                                      false );
-
-            /* Obtain the TABLE element, which ought to be empty. */
-            VODocument doc = (VODocument) domsrc.getNode();
-            VOElement topel = (VOElement) doc.getDocumentElement();
-            NodeList tabelList = topel.getElementsByVOTagName( "TABLE" );
-            int ntabel = tabelList.getLength();
-            if ( ntabel == 0 ) {
-                throw new TableFormatException(
-                    "Embedded VOTable document has no TABLE element" );
-            }
-            else if ( ntabel > 1 ) {
-                throw new TableFormatException(
-                      "Embedded VOTable document has multiple"
-                    + "(" + ntabel + ") TABLE elements" );
-            }
-            TableElement tabel = (TableElement) tabelList.item( 0 );
-            if ( tabel.getChildByName( "DATA" ) != null ) {
-                throw new TableFormatException(
-                    "Embedded VOTable document has unexpected DATA element" );
-            }
-            return tabel;
+        /* Read the data from the primary HDU into a byte buffer. */
+        byte[] vobuf = IOUtils.readBytes( in, nbyte );
+        if ( vobuf.length < nbyte ) {
+            throw new TableFormatException( "Primary HDU truncated" );
         }
-        catch ( FitsException e ) {
-            throw new TableFormatException( e.getMessage(), e );
+
+        /* Advance to the end of the primary HDU. */
+        int pad = (int) ( datasize - nbyte );
+        IOUtils.skip( in, pad );
+
+        /* If there's no VOTMETA = T card in the header, just return
+         * a null element now. */
+        if ( ! Boolean.TRUE.equals( hdr.getBooleanValue( "VOTMETA" ) ) ) {
+            return null;
+        }
+
+        /* Read XML from the byte buffer, performing a custom
+         * parse to DOM. */
+        VOElementFactory vofact = new VOElementFactory();
+        final DOMSource domsrc;
+        try {
+            domsrc = vofact.transformToDOM(
+                new StreamSource( new ByteArrayInputStream( vobuf ) ), false );
         }
         catch ( SAXException e ) {
-            throw new TableFormatException( e.getMessage(), e );
+            throw new TableFormatException( "VOTable parse failed", e );
         }
+
+        /* Obtain the TABLE element, which ought to be empty. */
+        VODocument doc = (VODocument) domsrc.getNode();
+        VOElement topel = (VOElement) doc.getDocumentElement();
+        NodeList tabelList = topel.getElementsByVOTagName( "TABLE" );
+        int ntabel = tabelList.getLength();
+        if ( ntabel == 0 ) {
+            throw new TableFormatException(
+                "Embedded VOTable document has no TABLE element" );
+        }
+        else if ( ntabel > 1 ) {
+            throw new TableFormatException(
+                  "Embedded VOTable document has multiple"
+                + "(" + ntabel + ") TABLE elements" );
+        }
+        TableElement tabel = (TableElement) tabelList.item( 0 );
+        if ( tabel.getChildByName( "DATA" ) != null ) {
+            throw new TableFormatException(
+                "Embedded VOTable document has unexpected DATA element" );
+        }
+        return tabel;
     }
 }

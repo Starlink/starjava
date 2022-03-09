@@ -20,7 +20,6 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.event.ChangeListener;
-import nom.tam.fits.FitsException;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.HubManager;
@@ -297,11 +296,6 @@ public class PlasticCommunicator implements TopcatCommunicator {
         catch ( IOException e ) {
             tmpfile.delete();
             throw e;
-        }
-        catch ( FitsException e ) {
-            tmpfile.delete();
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
         }
         finally {
             ostrm.close();

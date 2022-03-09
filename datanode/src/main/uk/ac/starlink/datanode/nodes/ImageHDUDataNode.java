@@ -22,9 +22,9 @@ import uk.ac.starlink.ast.FitsChan;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.SkyFrame;
-import uk.ac.starlink.fits.FitsArrayBuilder;
-import uk.ac.starlink.fits.FitsConstants;
-import uk.ac.starlink.fits.MappedFile;
+import uk.ac.starlink.oldfits.FitsArrayBuilder;
+import uk.ac.starlink.oldfits.FitsConstants;
+import uk.ac.starlink.oldfits.MappedFile;
 import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.Ndx;
 

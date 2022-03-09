@@ -3,12 +3,10 @@ package uk.ac.starlink.fits;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
@@ -64,7 +62,7 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
                 nUseCol++;
             }
         }
-        FitsConstants.checkColumnCount( config.getWide(), nUseCol );
+        FitsUtil.checkColumnCount( config.getWide(), nUseCol );
 
         /* Store the table data into these storage objects. */
         boolean ok = false;
@@ -110,7 +108,7 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
         }
     }
 
-    public Header getHeader() throws HeaderCardException {
+    public CardImage[] getHeader() {
         WideFits wide = config_.getWide();
 
         /* Work out the length of the single table row. */
@@ -139,25 +137,31 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
         boolean hasExtCol = nUseCol > nStdCol;
 
         /* Write the standard part of the FITS header. */
-        Header hdr = new Header();
-        hdr.addValue( "XTENSION", "BINTABLE", "binary table extension" );
-        hdr.addValue( "BITPIX", 8, "8-bit bytes" );
-        hdr.addValue( "NAXIS", 2, "2-dimensional table" );
-        hdr.addValue( "NAXIS1", size, "width of single row in bytes" );
-        hdr.addValue( "NAXIS2", 1, "single-row table" );
-        hdr.addValue( "PCOUNT", 0, "size of special data area" );
-        hdr.addValue( "GCOUNT", 1, "one data group" );
-        hdr.addValue( "TFIELDS", nStdCol, "number of columns" );
+        List<CardImage> cards = new ArrayList<>();
+        CardFactory cfact = CardFactory.DEFAULT;
+        cards.addAll( Arrays.asList( new CardImage[] {
+         
+            cfact.createStringCard( "XTENSION", "BINTABLE",
+                                    "binary table extension" ),
+            cfact.createIntegerCard( "BITPIX", 8, "8-bit bytes" ),
+            cfact.createIntegerCard( "NAXIS", 2, "2-dimensional table" ),
+            cfact.createIntegerCard( "NAXIS1", size,
+                                     "width of single row in bytes" ),
+            cfact.createIntegerCard( "NAXIS2", 1, "single-row table" ),
+            cfact.createIntegerCard( "PCOUNT", 0, "size of special data area" ),
+            cfact.createIntegerCard( "GCOUNT", 1, "one data group" ),
+            cfact.createIntegerCard( "TFIELDS", nStdCol, "number of columns" ),
+        } ) );
 
         /* Add EXTNAME record containing table name. */
         if ( tname_ != null && tname_.trim().length() > 0 ) {
-            FitsConstants
-           .addTrimmedValue( hdr, "EXTNAME", tname_, "table name" );
+            cards.add( cfact.createStringCard( "EXTNAME", tname_,
+                                               "table name" ) );
         }
 
         /* Add extended column header information if applicable. */
         if ( hasExtCol ) {
-            wide.addExtensionHeader( hdr, nUseCol );
+            cards.addAll( Arrays.asList( wide.getExtensionCards( nUseCol ) ) );
             AbstractWideFits.logWideWrite( logger_, nStdCol, nUseCol ); 
         }
 
@@ -169,16 +173,17 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
             if ( colStore != null ) {
                 jcol++;
                 if ( hasExtCol && jcol == nStdCol ) {
-                    wide.addContainerColumnHeader( hdr, extSize, nrow_ );
+                    cards.addAll( Arrays.asList(
+                        wide.getContainerColumnCards( extSize, nrow_ ) ) );
                 }
                 BintableColumnHeader colhead =
                       hasExtCol && jcol >= nStdCol
                     ? wide.createExtendedHeader( nStdCol, jcol )
                     : BintableColumnHeader.createStandardHeader( jcol );
-                colStore.addHeaderInfo( hdr, colhead, jcol );
+                cards.addAll( colStore.getHeaderInfo( colhead, jcol ) );
             }
         }
-        return hdr;
+        return cards.toArray( new CardImage[ 0 ] );
     }
 
     /**
@@ -251,27 +256,16 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
     }
 
     private static String getCardValue( ColumnStore colStore, String tcard ) {
-        Header hdr = new Header();
         int icol = 99;
         BintableColumnHeader colhead =
             BintableColumnHeader.createStandardHeader( icol );
-
-        /* Avoid unwanted logging messages that might occur in case of
-         * truncated card values. */
-        Level level = logger_.getLevel();
-        logger_.setLevel( Level.SEVERE );
-        try {
-            colStore.addHeaderInfo( hdr, colhead, icol );
-        }
-        catch ( HeaderCardException e ) {
-            throw new AssertionError( e );
-        }
-        finally {
-            logger_.setLevel( level );
-        }
         String key = colhead.getKeyName( tcard );
-        return hdr.containsKey( key )
-             ? hdr.findCard( key ).getValue().trim()
-             : null;
+        for ( CardImage card : colStore.getHeaderInfo( colhead, icol ) ) {
+            ParsedCard<?> pcard = FitsUtil.parseCard( card.getBytes() );
+            if ( pcard != null && key.equals( pcard.getKey() ) ) {
+                return String.valueOf( pcard.getValue() );
+            }
+        }
+        return null;
     }
 }

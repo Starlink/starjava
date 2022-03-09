@@ -10,7 +10,7 @@ import java.net.MalformedURLException;
 import javax.xml.transform.Source;
 import nom.tam.util.ArrayDataOutput;
 import nom.tam.util.BufferedDataOutputStream;
-import uk.ac.starlink.fits.FitsNdxHandler;
+import uk.ac.starlink.oldfits.FitsNdxHandler;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.votable.DataFormat;
@@ -208,13 +208,13 @@ public class DataNodeTransferable extends BasicTransferable {
      * DataSource which provides a FITS stream representing an NDX.
      */
     private static class FitsNdxDataSource extends DataSource {
-
+  
         final Ndx ndx_;
- 
+  
         FitsNdxDataSource( Ndx ndx ) {
             ndx_ = ndx;
         }
-
+  
         public InputStream getRawInputStream() throws IOException {
             final PipedOutputStream ostrm = new PipedOutputStream();
             InputStream istrm = new PipedInputStream( ostrm );
@@ -246,11 +246,11 @@ public class DataNodeTransferable extends BasicTransferable {
             }.start();
             return istrm;
         }
-
+  
         public String getName() {
             return ndx_.hasTitle() ? ndx_.getTitle() : "NDX";
         }
-
+  
         public URL getURL() {
             return null;
         }

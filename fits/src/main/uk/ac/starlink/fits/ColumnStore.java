@@ -2,8 +2,7 @@ package uk.ac.starlink.fits;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCardException;
+import java.util.List;
 
 /**
  * Defines an object which can provide serial storage and serial 
@@ -51,15 +50,14 @@ interface ColumnStore {
     void streamData( DataOutput out ) throws IOException;
 
     /**
-     * Modifies (typically, adds cards to) a FITS header in a way 
-     * which describes the column data which is output by {@link #streamData}.
+     * Returns FITS header cards describing the column data
+     * which is output by {@link #streamData}.
      *
-     * @param  hdr   header to modify
      * @param  colhead   header key handler for column
      * @param  icol  index (1-based) of the column represented by this store
+     * @return   header cards associated with column
      */
-    void addHeaderInfo( Header hdr, BintableColumnHeader colhead, int icol )
-            throws HeaderCardException;
+    List<CardImage> getHeaderInfo( BintableColumnHeader colhead, int icol );
 
     /**
      * Releases any resources associated with this object.

@@ -1,7 +1,5 @@
 package uk.ac.starlink.fits;
 
-import nom.tam.fits.Header;
-
 /**
  * Defines a convention for storing extended column data in a FITS
  * BINTABLE extension.  The general idea assumes storing the
@@ -61,38 +59,38 @@ public interface WideFits {
     int getExtColumnMax();
 
     /**
-     * Adds the per-HDU header cards that announce the operation of this
-     * convention in a BINTABLE HDU.
+     * Returns an array of per-HDU header cards that announce the operation
+     * of this convention in a BINTABLE HDU.
      *
-     * @param   hdr   header to append to
      * @param   ncolExt   total column count including extended
+     * @return  cards to append to BINTABLE header
      */
-    void addExtensionHeader( Header hdr, int ncolExt );
+    CardImage[] getExtensionCards( int ncolExt );
 
     /**
-     * Adds the per-HDU header cards that describe the single container
-     * column (with index icolContainer)
+     * Returns an array of per-HDU header cards
+     * that describe the single container column (with index icolContainer)
      * used to implement this convention in a BINTABLE HDU.
      *
-     * @param   hdr   header to append to
      * @param   nbyteExt  number of bytes per row in container column
      * @param   nslice  if &gt;0 this will result in a TDIMnnn header
      *                  that gives a 2-element shape, with the supplied
      *                  value being the second element;
      *                  if you don't want TDIMnnn, use 0
+     * @return  cards to append to BINTABLE header
      */
-    void addContainerColumnHeader( Header hdr, long nbyteExt, long nslice );
+    CardImage[] getContainerColumnCards( long nbyteExt, long nslice );
 
     /**
      * Returns the total number of columns, including extended ones,
      * described by a FITS header according to this convention.
      *
-     * @param   cards   FITS header
+     * @param   hdr   FITS header
      * @param   ncolStd  number of 'standard' BINTABLE columns,
      *          got from TFIELDS header
      * @return   extended number of columns, includes standard ones
      */
-    int getExtendedColumnCount( HeaderCards cards, int ncolStd );
+    int getExtendedColumnCount( FitsHeader hdr, int ncolStd );
 
     /**
      * Creates a BintableColumnHeader instance suitable for use with

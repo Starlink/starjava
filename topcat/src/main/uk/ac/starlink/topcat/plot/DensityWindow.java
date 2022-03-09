@@ -33,10 +33,9 @@ import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
 import javax.swing.filechooser.FileFilter;
-import nom.tam.fits.BasicHDU;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
-import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.fits.CardFactory;
+import uk.ac.starlink.fits.CardImage;
+import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.BasicAction;
@@ -257,13 +256,7 @@ public class DensityWindow extends GraphicsWindow {
                                         "Save image as FITS array",
                                         fitsFilter_ ) {
             public void exportTo( OutputStream out ) throws IOException {
-                try {
-                    exportFits( out );
-                }
-                catch ( FitsException e ) {
-                    throw (IOException) new IOException( e.getMessage() )
-                                       .initCause( e );
-                }
+                exportFits( out );
             }
         };
 
@@ -540,9 +533,8 @@ public class DensityWindow extends GraphicsWindow {
      *
      * @param   ostrm   output stream
      */
-    public void exportFits( OutputStream ostrm )
-            throws IOException, FitsException {
-        final DataOutputStream out = new DataOutputStream( ostrm );
+    public void exportFits( OutputStream ostrm ) throws IOException {
+        DataOutputStream out = new DataOutputStream( ostrm );
 
         DensityPlot plot = (DensityPlot) getPlot();
         BinGrid[] grids = plot.getBinnedData();
@@ -565,7 +557,7 @@ public class DensityWindow extends GraphicsWindow {
         };
         NumWriter numWriter;
         if ( weighted ) {
-            bitpix = BasicHDU.BITPIX_DOUBLE;
+            bitpix = -64;
             numWriter = new NumWriter() {
                 void writeNum( double value ) throws IOException {
                     out.writeDouble( value );
@@ -576,7 +568,7 @@ public class DensityWindow extends GraphicsWindow {
             };
         }
         else if ( max < Math.pow( 2, 7 ) ) {
-            bitpix = BasicHDU.BITPIX_BYTE;
+            bitpix = 8;
             numWriter = new NumWriter() {
                 void writeNum( double value ) throws IOException {
                     out.writeByte( (int) value );
@@ -587,7 +579,7 @@ public class DensityWindow extends GraphicsWindow {
             };
         }
         else if ( max < Math.pow( 2, 15 ) ) {
-            bitpix = BasicHDU.BITPIX_SHORT;
+            bitpix = 16;
             numWriter = new NumWriter() {
                 void writeNum( double value ) throws IOException {
                     out.writeShort( (int) value );
@@ -598,7 +590,7 @@ public class DensityWindow extends GraphicsWindow {
             };
         }
         else {
-            bitpix = BasicHDU.BITPIX_INT;
+            bitpix = 32;
             numWriter = new NumWriter() {
                 void writeNum( double value ) throws IOException {
                     out.writeInt( (int) value );
@@ -642,73 +634,90 @@ public class DensityWindow extends GraphicsWindow {
         int y0 = bbox.y;
         double[] p0 = surface.graphicsToData( x0, y0, false );
         double[] p1 = surface.graphicsToData( x0 + psize, y0 + psize, false );
-        Header hdr = new Header();
-        hdr.addValue( "SIMPLE", true, "" );
-        hdr.addValue( "BITPIX", bitpix, "Data type" );
-        hdr.addValue( "NAXIS", ngrid == 1 ? 2 : 3, "Number of axes" );
-        hdr.addValue( "NAXIS1", nx, "X dimension" );
-        hdr.addValue( "NAXIS2", ny, "Y dimension" );
+        List<CardImage> cards = new ArrayList<>();
+        CardFactory cf = CardFactory.DEFAULT;
+        cards.addAll( Arrays.asList( new CardImage[] {
+            cf.createLogicalCard( "SIMPLE", true, null ),
+            cf.createIntegerCard( "BITPIX", bitpix, "Data type" ),
+            cf.createIntegerCard( "NAXIS", ngrid == 1 ? 2 : 3,
+                                  "Number of axes" ),
+            cf.createIntegerCard( "NAXIS1", nx, "X dimension" ),
+            cf.createIntegerCard( "NAXIS2", ny, "Y dimension" ),
+        } ) );
         if ( ngrid > 1 ) {
-            hdr.addValue( "NAXIS3", ngrid, "Number of channels" );
+            cards.add( cf.createIntegerCard( "NAXIS3", ngrid,
+                                             "Number of channels" ) );
         }
-        hdr.addValue( "DATE", Times.mjdToIso( Times.unixMillisToMjd( 
-                                           System.currentTimeMillis() ) ),
-                      "HDU creation date" );
-
-        hdr.addValue( "CTYPE1", name1, axes[ 0 ].getDescription() );
-        hdr.addValue( "CTYPE2", name2, axes[ 1 ].getDescription() );
+        cards.addAll( Arrays.asList( new CardImage[] {
+            cf.createStringCard( "DATE",
+                                 Times.mjdToIso( Times.unixMillisToMjd( 
+                                                 System.currentTimeMillis() ) ),
+                                 "HDU creation date" ),
+            cf.createStringCard( "CTYPE1", name1, axes[ 0 ].getDescription() ),
+            cf.createStringCard( "CTYPE2", name2, axes[ 1 ].getDescription() ),
+        } ) );
         if ( ngrid > 1 ) {
             /* Note "RGB" is a special value recognised by Aladin for CTYPE3. */
-            hdr.addValue( "CTYPE3", "RGB",
-                          "Separate histograms stored in different planes" );
+            cards.add( cf.createStringCard( "CTYPE3", "RGB",
+                                            "Separate histograms stored in "
+                                          + "different planes" ) );
         }
         if ( ! weighted ) {
-            hdr.addValue( "BUNIT", "COUNTS",
-                          "Number of points per pixel (bin)" );
+            cards.add( cf.createStringCard( "BUNIT", "COUNTS",
+                                        "Number of points per pixel (bin)" ) );
         }
         if ( max >= min ) {
-            hdr.addValue( "DATAMIN", min, "Minimum value" );
-            hdr.addValue( "DATAMAX", max, "Maximum value" );
+            cards.add( cf.createRealCard( "DATAMIN", min, "Minimum value" ) );
+            cards.add( cf.createRealCard( "DATAMAX", max, "Maximum value" ) );
         }
 
         /* For -CAR projections, it's essential that the CRVALn values are
          * at zero, and the CRPIXn ones are set to whatever makes the
          * mapping right. */
-        hdr.addValue( "CRVAL1", 0.0, "Reference pixel X position" );
-        hdr.addValue( "CRVAL2", 0.0, "Reference pixel Y position" );
+        cards.add( cf.createRealCard( "CRVAL1", 0.0,
+                                      "Reference pixel X position" ) );
+        cards.add( cf.createRealCard( "CRVAL2", 0.0,
+                                      "Reference pixel Y position" ) );
 
         Point origin =
             surface.dataToGraphics( log1 ? 1.0 : 0.0, log2 ? 1.0 : 0.0, false );
         if ( origin != null ) {
-            hdr.addValue( "CRPIX1",
-                          ( origin.x - x0 ) / (double) psize,
-                          "Reference pixel X index" );
-            hdr.addValue( "CRPIX2",
-                          ( y0 + bbox.height - origin.y ) / (double) psize,
-                          "Reference pixel Y index" );
-
+            cards.add( cf.createRealCard( "CRPIX1",
+                                          ( origin.x - x0 ) / (double) psize,
+                                          "Reference pixel X index" ) );
+            cards.add( cf.createRealCard( "CRPIX2",
+                                          ( y0 + bbox.height - origin.y )
+                                          / (double) psize,
+                                          "Reference pixel Y index" ) );
             if ( ngrid > 1 ) {
-                hdr.addValue( "CRVAL3", 0.0,
-                              "Reference pixel plane index position" );
-                hdr.addValue( "CRPIX3", 0.0, "Reference pixel plane index" );
+                cards.add( cf.createRealCard( "CRVAL3", 0.0,
+                                              "Reference pixel plane "
+                                            + "index position" ) );
+                cards.add( cf.createRealCard( "CRPIX3", 0.0,
+                                              "Reference pixel plane index" ) );
             }
-
-            hdr.addValue( "CDELT1", log1 ? Maths.log10( p1[ 0 ] / p0[ 0 ] )
-                                         : ( p1[ 0 ] - p0[ 0 ] ),
-                                    "X extent of reference pixel" );
-            hdr.addValue( "CDELT2", log2 ? Maths.log10( p0[ 1 ] / p1[ 1 ] )
-                                         : ( p0[ 1 ] - p1[ 1 ] ),
-                                    "Y extent of reference pixel" );
+            cards.add( cf.createRealCard( "CDELT1",
+                                          log1 ? Maths.log10( p1[0] / p0[0] )
+                                               : ( p1[0] - p0[0] ),
+                                          "X extent of reference pixel" ) );
+            cards.add( cf.createRealCard( "CDELT2",
+                                          log2 ? Maths.log10( p0[1] / p1[1] )
+                                               : ( p0[1] - p1[1] ),
+                                          "Y extent of reference pixel" ) );
             if ( ngrid > 1 ) {
-                hdr.addValue( "CDELT3", 1.0,
-                              "Plane index extent of reference pixel" );
+                cards.add( cf.createRealCard( "CDELT3", 1.0,
+                                              "Plane index extent "
+                                            + "of reference pixel" ) );
             }
         }
-        hdr.addValue( "ORIGIN", "TOPCAT " + TopcatUtils.getVersion() + 
-                      " (" + getClass().getName() + ")", null );
+        cards.add( cf.createStringCard( "ORIGIN",
+                                        "TOPCAT " + TopcatUtils.getVersion()
+                                      + " (" + getClass().getName() + ")",
+                                        null ) );
+        cards.add( CardFactory.END_CARD );
 
         /* Write the FITS header. */
-        FitsConstants.writeHeader( out, hdr );
+        FitsUtil.writeHeader( cards.toArray( new CardImage[ 0 ] ), out );
 
         /* Write the data. */
         for ( int i = 0; i < ngrid; i++ ) {
@@ -723,9 +732,9 @@ public class DensityWindow extends GraphicsWindow {
 
         /* Write padding to an integral number of FITS block sizes. */
         int nbyte = nx * ny * ngrid * numWriter.size();
-        int over = nbyte % FitsConstants.FITS_BLOCK;
+        int over = nbyte % FitsUtil.BLOCK_LENG;
         if ( over > 0 ) {
-            out.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
+            out.write( new byte[ FitsUtil.BLOCK_LENG - over ] );
         }
 
         /* Flush. */

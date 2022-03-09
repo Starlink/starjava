@@ -9,8 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -18,14 +16,14 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
  * An implementation of the StarTable interface which uses a FITS BINTABLE
- * extension.  The nom.tam.fits classes are used for header parsing,
- * but not for data access.
+ * extension.
  *
  * <p>The implementation varies according to whether random or sequential-only
  * access is provided by the underlying data access.
@@ -53,8 +51,8 @@ public abstract class BintableStarTable extends AbstractStarTable {
     private final long nrow_;
     private final ColumnInfo[] colInfos_;
     private final ColumnReader[] colReaders_;
-    private final int rowLength_;
-    private final int[] colOffsets_;
+    private final long rowLength_;
+    private final long[] colOffsets_;
 
     /** Column aux metadata key for TNULLn cards. */
     public final static ValueInfo TNULL_INFO = new DefaultValueInfo(
@@ -120,21 +118,20 @@ public abstract class BintableStarTable extends AbstractStarTable {
      * @param   wide  convention for representing extended columns;
      *                use null to avoid use of extended columns
      */
-    protected BintableStarTable( Header hdr, boolean isRandom,
+    protected BintableStarTable( FitsHeader hdr, boolean isRandom,
                                  WideFits wide )
-            throws FitsException {
-        HeaderCards cards = new HeaderCards( hdr );
+            throws IOException {
 
         /* Check we have a BINTABLE header. */
-        if ( ! cards.getStringValue( "XTENSION" ).equals( "BINTABLE" ) ) {
-            throw new IllegalArgumentException( "Not a binary table header" );
+        if ( ! hdr.getStringValue( "XTENSION" ).equals( "BINTABLE" ) ) {
+            throw new TableFormatException( "Not a binary table header" );
         }
 
         /* Get Table characteristics. */
-        nrow_ = cards.getLongValue( "NAXIS2" ).intValue();
-        int ncolStd = cards.getIntValue( "TFIELDS" ).intValue();
+        nrow_ = hdr.getRequiredLongValue( "NAXIS2" );
+        int ncolStd = hdr.getRequiredIntValue( "TFIELDS" );
         ncol_ = wide != null
-              ? wide.getExtendedColumnCount( cards, ncolStd )
+              ? wide.getExtendedColumnCount( hdr, ncolStd )
               : ncolStd;
         boolean hasExtCol = ncol_ > ncolStd;
         if ( hasExtCol ) {
@@ -145,9 +142,10 @@ public abstract class BintableStarTable extends AbstractStarTable {
         /* Record heap start if available. */
         final long heapOffset;
         if ( isRandom ) {
-            heapOffset = cards.containsKey( "THEAP" )
-                       ? cards.getLongValue( "THEAP" ).longValue()
-                       : nrow_ * cards.getIntValue( "NAXIS1" ).intValue();
+            Long theap = hdr.getLongValue( "THEAP" );
+            heapOffset =
+                  theap != null ? theap.longValue()
+                                : nrow_ * hdr.getRequiredLongValue( "NAXIS1" );
         }
         else {
             heapOffset = -1;
@@ -167,31 +165,31 @@ public abstract class BintableStarTable extends AbstractStarTable {
             colInfos_[ icol ] = cinfo;
 
             /* Name. */
-            String ttype = colhead.getStringValue( cards, "TTYPE" );
+            String ttype = hdr.getStringValue( colhead.getKeyName( "TTYPE" ) );
             if ( ttype != null ) {
                 cinfo.setName( ttype );
             }
     
             /* Units. */
-            String tunit = colhead.getStringValue( cards, "TUNIT" );
+            String tunit = hdr.getStringValue( colhead.getKeyName( "TUNIT" ) );
             if ( tunit != null ) {
                 cinfo.setUnitString( tunit );
             }
     
             /* Format string. */
-            String tdisp = colhead.getStringValue( cards, "TDISP" );
+            String tdisp = hdr.getStringValue( colhead.getKeyName( "TDISP" ) );
             if ( tdisp != null ) {
                 auxdata.add( new DescribedValue( TDISP_INFO, tdisp ) );
             }
             
             /* Blank value. */
-            long blank;
-            boolean hasBlank;
-            if ( colhead.containsKey( cards, "TNULL" ) ) {
-                blank = colhead.getLongValue( cards, "TNULL" ).longValue();
+            final long blank;
+            final boolean hasBlank;
+            Long tnull = hdr.getLongValue( colhead.getKeyName( "TNULL" ) );
+            if ( tnull != null ) {
+                blank = tnull.longValue();
                 hasBlank = true; 
-                auxdata.add( new DescribedValue( TNULL_INFO,
-                                                 new Long( blank ) ) );
+                auxdata.add( new DescribedValue( TNULL_INFO, tnull ) );
             }
             else {
                 cinfo.setNullable( false );
@@ -201,7 +199,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             
             /* Shape. */ 
             int[] dims = null;
-            String tdim = colhead.getStringValue( cards, "TDIM" );
+            String tdim = hdr.getStringValue( colhead.getKeyName( "TDIM" ) );
             if ( tdim != null ) {
                 tdim = tdim.trim(); 
                 if ( tdim.charAt( 0 ) == '(' &&
@@ -227,15 +225,16 @@ public abstract class BintableStarTable extends AbstractStarTable {
             /* Scaling. */
             final double scale;
             final Number zero;
-            if ( colhead.containsKey( cards, "TSCAL" ) ) {
-                scale = colhead.getDoubleValue( cards, "TSCAL" ).doubleValue();
-                auxdata.add( new DescribedValue( TSCAL_INFO,
-                                                 new Double( scale ) ) );
+            Double tScal = hdr.getDoubleValue( colhead.getKeyName( "TSCAL" ) );
+            if ( tScal != null ) {
+                scale = tScal.doubleValue();
+                auxdata.add( new DescribedValue( TSCAL_INFO, tScal ) );
             }
             else {
                 scale = 1.0;
             }
-            if ( colhead.containsKey( cards, "TZERO" ) ) {
+            Number tZero = hdr.getNumberValue( colhead.getKeyName( "TZERO" ) );
+            if ( tZero != null ) {
 
                 /* Careful here.  For unsigned long values, the TZERO value
                  * is 9223372036854775808 == 2^63 == Long.MAX_VALUE+1,
@@ -243,8 +242,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
                  * (loses precision).  So we need to be prepared to use
                  * arbitrary precision numbers.  Check the javadocs when
                  * manipulating these, behaviour is sometimes surprising. */
-                String zstr = colhead.getStringValue( cards, "TZERO" );
-                BigDecimal zbig = new BigDecimal( zstr );
+                BigDecimal zbig = new BigDecimal( tZero.toString() );
                 boolean zIsInt =
                     zbig.compareTo( new BigDecimal( zbig.toBigInteger() ) )
                     == 0;
@@ -256,7 +254,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
                 Object zval;
                 if ( zbig.compareTo( new BigDecimal( TWO63 ) ) == 0 ) {
                     zero = TWO63;
-                    zval = zstr;
+                    zval = tZero;
                 }
                 else if ( zIsInt && zInLongRange ) {
                     zero = new Long( zbig.longValue() );
@@ -271,11 +269,11 @@ public abstract class BintableStarTable extends AbstractStarTable {
                 auxdata.add( new DescribedValue( zInfo, zval ) );
             }
             else {
-                zero = new Long( 0 );
+                zero = Long.valueOf( 0 );
             }
 
             /* Format code (recorded but otherwise ignored). */
-            String tbcol = colhead.getStringValue( cards, "TBCOL" );
+            String tbcol = hdr.getStringValue( colhead.getKeyName( "TBCOL" ) );
             if ( tbcol != null ) {
                 int bcolval = Integer.parseInt( tbcol );
                 auxdata.add( new DescribedValue( TBCOL_INFO,
@@ -283,29 +281,24 @@ public abstract class BintableStarTable extends AbstractStarTable {
             }
 
             /* Data type. */
-            String tform = colhead.getStringValue( cards, "TFORM" );
-            if ( tform != null ) {
-                auxdata.add( new DescribedValue( TFORM_INFO, tform ) );
-            }
-            else {
-                throw new FitsException( "Missing column format header "
-                                       + colhead.getKeyName( "TFORM" ) );
-            }
+            final String tform =
+                hdr.getRequiredStringValue( colhead.getKeyName( "TFORM" ) );
+            auxdata.add( new DescribedValue( TFORM_INFO, tform ) );
 
             /* Comment (non-standard). */
-            String tcomm = colhead.getStringValue( cards, "TCOMM" );
+            String tcomm = hdr.getStringValue( colhead.getKeyName( "TCOMM" ) );
             if ( tcomm != null ) {
                 cinfo.setDescription( tcomm );
             }
 
             /* UCD (non-standard). */
-            String tucd = colhead.getStringValue( cards, "TUCD" );
+            String tucd = hdr.getStringValue( colhead.getKeyName( "TUCD" ) );
             if ( tucd != null ) {
                 cinfo.setUCD( tucd );
             }
 
             /* Utype (non-standard). */
-            String tutype = colhead.getStringValue( cards, "TUTYP" );
+            String tutype = hdr.getStringValue( colhead.getKeyName( "TUTYP" ) );
             if ( tutype != null ) {
                 cinfo.setUtype( tutype );
             }
@@ -317,11 +310,10 @@ public abstract class BintableStarTable extends AbstractStarTable {
                         .createColumnReader( tform, scale, zero, hasBlank,
                                              blank, dims, ttype, heapOffset );
             }
-            catch ( FitsException e ) {
-                throw (FitsException)
-                      new FitsException( "Error parsing header line TFORM"
-                                         + jcol + " = " + tform )
-                     .initCause( e );
+            catch ( TableFormatException e ) {
+                throw new TableFormatException( "Error parsing header line "
+                                              + "TFORM" + jcol + " = " + tform,
+                                                e );
             }
 
             /* Adjust nullability of strings - they can always be
@@ -357,15 +349,15 @@ public abstract class BintableStarTable extends AbstractStarTable {
         }
 
         /* Calculate offsets so we know where to look for each cell. */
-        int leng = 0;
-        colOffsets_ = new int[ ncol_ ];
+        long leng = 0;
+        colOffsets_ = new long[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
             colOffsets_[ icol ] = leng;
             leng += colReaders_[ icol ].getLength();
         }
 
         /* Set the row length in bytes. */
-        rowLength_ = cards.getIntValue( "NAXIS1" ).intValue();
+        rowLength_ = hdr.getRequiredLongValue( "NAXIS1" );
 
         /* Check it against the sum of column lengths, unless we are
          * using extended lengths, in which case they are not guaranteed
@@ -374,28 +366,30 @@ public abstract class BintableStarTable extends AbstractStarTable {
          * but it's not very easy to do here. */
         if ( ! hasExtCol ) {
             if ( rowLength_ != leng ) {
-                throw new FitsException( "Got wrong row length: " + rowLength_ +
-                                         " != " + leng );
+                throw new TableFormatException( "Got wrong row length: "
+                                              + rowLength_ + " != " + leng );
             }
         }
 
         /* Get table name. */
-        if ( cards.containsKey( "EXTNAME" ) ) {
-            String tname = cards.getStringValue( "EXTNAME" );
-            if ( cards.containsKey( "EXTVER" ) ) {
-                tname += "-" + cards.getStringValue( "EXTVER" );
+        String extname = hdr.getStringValue( "EXTNAME" );
+        if ( extname != null ) {
+            String tname = extname;
+            String extver = hdr.getStringValue( "EXTVER" );
+            if ( extver != null ) {
+                tname += "-" + extver;
             }
             setName( tname );
         }
 
         /* Look for headers specific to the HEALPix-FITS encoding.
          * Note a MOC is not suitable, since it won't have an NSIDE. */
-        if ( "HEALPIX".equals( cards.getStringValue( "PIXTYPE" ) ) &&
-             ! ( cards.containsKey( "MOCORDER" ) ||    // MOC v1
-                 cards.containsKey( "MOCVERS" ) ) ) {  // MOC v2
+        if ( "HEALPIX".equals( hdr.getStringValue( "PIXTYPE" ) ) &&
+             ! ( hdr.getIntValue( "MOCORDER" ) != null  ||      // MOC v1
+                 hdr.getStringValue( "MOCVERS" ) != null ) ) {  // MOC v2
             HealpixTableInfo hpxInfo = null;
             try {
-                hpxInfo = extractHealpixInfo( cards, colInfos_ );
+                hpxInfo = extractHealpixInfo( hdr, colInfos_ );
             }
             catch ( Exception e ) {
                 logger_.log( Level.WARNING,
@@ -408,7 +402,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
         }
 
         /* Any unused header cards become table parameters. */
-        getParameters().addAll( Arrays.asList( cards.getUnusedParams() ) );
+        getParameters().addAll( Arrays.asList( hdr.getUnusedParams() ) );
     }
 
     public long getRowCount() {
@@ -462,7 +456,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
      *
      * @return  row length in bytes
      */
-    protected int getRowLength() {
+    protected long getRowLength() {
         return rowLength_;
     }
 
@@ -472,7 +466,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
      *
      * @return  <tt>ncol</tt>-element array of byte offsets
      */
-    protected int[] getColumnOffsets() {
+    protected long[] getColumnOffsets() {
         return colOffsets_;
     }
 
@@ -487,10 +481,10 @@ public abstract class BintableStarTable extends AbstractStarTable {
      * @return  StarTable instance; it will be random-access according to
      *                    whether the input factory is
      */
-    public static BintableStarTable createTable( Header hdr,
+    public static BintableStarTable createTable( FitsHeader hdr,
                                                  InputFactory inputFact,
                                                  WideFits wide )
-            throws IOException, FitsException {
+            throws IOException {
         return inputFact.isRandom()
              ? new RandomBintableStarTable( hdr, inputFact, wide )
              : new SequentialBintableStarTable( hdr, inputFact, wide );
@@ -507,9 +501,9 @@ public abstract class BintableStarTable extends AbstractStarTable {
      *                use null to avoid use of extended columns
      * @param   sink   destination for the table
      */
-    public static void streamStarTable( Header hdr, BasicInput input,
+    public static void streamStarTable( FitsHeader hdr, BasicInput input,
                                         WideFits wide, TableSink sink )
-            throws FitsException, IOException {
+            throws IOException {
         InputFactory dummyFact = new InputFactory() {
             public boolean isRandom() {
                 return false;
@@ -529,11 +523,6 @@ public abstract class BintableStarTable extends AbstractStarTable {
             sink.acceptRow( row );
         }
         sink.endRows();
-        long datasize = nrow * meta.rowLength_;
-        int over = (int) ( datasize % (long) FitsConstants.FITS_BLOCK );
-        if ( over > 0 ) {
-            input.skip( over );
-        }
     }
 
     /**
@@ -542,7 +531,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
      * a corresponding HealpixTableInfo object is returned,
      * otherwise a RuntimeException with an informative message is thrown.
      *
-     * @param  cards  header
+     * @param  hdr  header
      * @param  infos  column metadata
      * @return   healpix metadata object if the headers look appropriate
      * @throws   RuntimeException  if the headers don't look appropriate
@@ -550,11 +539,11 @@ public abstract class BintableStarTable extends AbstractStarTable {
      href="https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf"
      *         >HEALPix-FITS convention</a>
      */
-    private static HealpixTableInfo extractHealpixInfo( HeaderCards cards,
+    private static HealpixTableInfo extractHealpixInfo( FitsHeader hdr,
                                                         ColumnInfo[] infos ) {
 
         /* Get NSIDE/level value. */
-        Long nSide = cards.getLongValue( "NSIDE" );
+        Long nSide = hdr.getLongValue( "NSIDE" );
         if ( nSide == null ) {
             throw new IllegalStateException( "No HEALPix NSIDE header" );
         }
@@ -567,7 +556,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
 
         /* Get ordering scheme. */
         final boolean isNest;
-        String ordering = cards.getStringValue( "ORDERING" );
+        String ordering = hdr.getStringValue( "ORDERING" );
         if ( ordering == null ) {
             throw new IllegalStateException( "Missing HEALPix header "
                                            + "ORDERING" );
@@ -585,7 +574,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
 
         /* Get HEALPix index column, if any. */
         final String ipixColName;
-        String indxschm = cards.getStringValue( "INDXSCHM" );
+        String indxschm = hdr.getStringValue( "INDXSCHM" );
         if ( indxschm == null ) {
             logger_.warning( "Missing nominally required HEALPix header "
                            + "INDXSCHM, assuming IMPLICIT" );
@@ -604,7 +593,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
 
         /* Get coordinate system indicator, if any. */
         final HealpixTableInfo.HpxCoordSys csys;
-        String coordsys = cards.getStringValue( "COORDSYS" );
+        String coordsys = hdr.getStringValue( "COORDSYS" );
         if ( coordsys != null ) {
             if ( coordsys.trim().length() == 1 ) {
                 csys = HealpixTableInfo.HpxCoordSys
@@ -678,9 +667,10 @@ public abstract class BintableStarTable extends AbstractStarTable {
          * @param   wide  convention for representing extended columns;
          *                use null to avoid use of extended columns
          */
-        public SequentialBintableStarTable( Header hdr, InputFactory inputFact,
+        public SequentialBintableStarTable( FitsHeader hdr,
+                                            InputFactory inputFact,
                                             WideFits wide )
-                throws FitsException {
+                throws IOException {
             super( hdr, false, wide );
             inputFact_ = inputFact;
         }
@@ -701,7 +691,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             final BasicInput input = inputFact_.createInput( true );
             final Object[] beforeStart = new Object[ 0 ];
             final long nrow = getRowCount();
-            final int rowLength = getRowLength();
+            final long rowLength = getRowLength();
             return new RowSequence() {
                 long lrow_ = -1;
                 Object[] row_ = beforeStart;
@@ -760,8 +750,8 @@ public abstract class BintableStarTable extends AbstractStarTable {
     private static class RandomBintableStarTable extends BintableStarTable {
         private final InputFactory inputFact_;
         private final BasicInputThreadLocal randomInputThreadLocal_;
-        private final int rowLength_;
-        private final int[] colOffsets_;
+        private final long rowLength_;
+        private final long[] colOffsets_;
 
         /**
          * Constructor.
@@ -773,9 +763,9 @@ public abstract class BintableStarTable extends AbstractStarTable {
          * @param   wide  convention for representing extended columns;
          *                use null to avoid use of extended columns
          */
-        RandomBintableStarTable( Header hdr, InputFactory inputFact,
+        RandomBintableStarTable( FitsHeader hdr, InputFactory inputFact,
                                  WideFits wide )
-                throws IOException, FitsException {
+                throws IOException {
             super( hdr, true, wide );
             inputFact_ = inputFact;
             if ( ! inputFact.isRandom() ) {

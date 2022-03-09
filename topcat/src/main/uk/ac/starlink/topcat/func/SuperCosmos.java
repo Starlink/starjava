@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
@@ -237,7 +237,7 @@ public class SuperCosmos {
                 try {
                     final File file = query.executeAsLocalFile( ".fits.gz" );
                     DataSource datsrc = new FileDataSource( file );
-                    if ( FitsConstants.isMagic( datsrc.getIntro() ) ) {
+                    if ( FitsUtil.isMagic( datsrc.getIntro() ) ) {
                         SwingUtilities.invokeLater( new Runnable() {
                             public void run() {
                                 Image.displayImage( label, file.toString() );

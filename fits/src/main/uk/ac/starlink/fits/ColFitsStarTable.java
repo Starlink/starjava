@@ -7,7 +7,6 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import nom.tam.fits.Header;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowAccess;
@@ -58,26 +57,25 @@ public class ColFitsStarTable extends AbstractStarTable {
      * @param   wide  convention for representing extended columns;
      *                use null to avoid use of extended columns
      */
-    public ColFitsStarTable( DataSource datsrc, Header hdr, long dataPos,
+    public ColFitsStarTable( DataSource datsrc, FitsHeader hdr, long dataPos,
                              boolean force, WideFits wide )
             throws IOException {
-        HeaderCards cards = new HeaderCards( hdr );
 
         /* Check it's a BINTABLE. */
-        if ( ! cards.getStringValue( "XTENSION" ).equals( "BINTABLE" ) ) {
+        if ( ! "BINTABLE".equals( hdr.getStringValue( "XTENSION" ) ) ) {
             throw new TableFormatException( "HDU 1 not BINTABLE" );
         }
 
         /* Check it has exactly one row. */
-        if ( cards.getIntValue( "NAXIS2" ).intValue() != 1 ) {
+        if ( hdr.getRequiredIntValue( "NAXIS2" ) != 1 ) {
             throw new TableFormatException( "Doesn't have exactly one row" );
         }
 
         /* Find the number of columns. */
-        int ncolStd = cards.getIntValue( "TFIELDS" ).intValue();
+        int ncolStd = hdr.getRequiredIntValue( "TFIELDS" );
         ncol_ = wide == null
               ? ncolStd
-              : wide.getExtendedColumnCount( cards, ncolStd );
+              : wide.getExtendedColumnCount( hdr, ncolStd );
         boolean hasExtCol = ncol_ > ncolStd;
         if ( hasExtCol ) {
             assert wide != null;
@@ -95,11 +93,11 @@ public class ColFitsStarTable extends AbstractStarTable {
          * See http://marvinweb.astro.uni-bonn.de/
          *     data_products/THELIWWW/LDAC/LDAC_concepts.html */
         if ( ! force &&
-             "LDAC_IMHEAD".equals( cards.getStringValue( "EXTNAME" ) ) ) {
+             "LDAC_IMHEAD".equals( hdr.getStringValue( "EXTNAME" ) ) ) {
             throw new TableFormatException( "Reject LDAC_IMHEAD table" );
         }
 
-        /* Read metadata for each column from the FITS header cards. */
+        /* Read metadata for each column from the FITS header. */
         long nrow = 0;
         valReaders_ = new ValueReader[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
@@ -111,23 +109,22 @@ public class ColFitsStarTable extends AbstractStarTable {
             ColumnInfo cinfo = new ColumnInfo( "col" + jcol );
 
             /* Format character and length. */
-            String tform = colhead.getStringValue( cards, "TFORM" ).trim();
-            if ( tform == null ) {
-                throw new TableFormatException( "Missing column format header "
-                                              + colhead.getKeyName( "TFORM" ) );
-            }
+            String tform =
+                hdr.getRequiredStringValue( colhead.getKeyName( "TFORM" ) )
+                   .trim();
             char formatChar = tform.charAt( tform.length() - 1 );
 
             /* Use a special value if we have byte values offset by 128
-             * (which allows one to represent signed bytes as unigned ones). */
-            if ( formatChar == 'B' &&
-                 ( colhead.containsKey( cards, "TZERO" )
-                   && colhead.getDoubleValue( cards, "TZERO" ).doubleValue()
-                                                              == -128.0 ) &&
-                 ( ! colhead.containsKey( cards, "TSCALE" )
-                   || colhead.getDoubleValue( cards, "TSCALE" ).doubleValue()
-                                                               == 1.0 ) ) {
-                formatChar = 'b';
+             * (which allows one to represent signed bytes as unsigned ones). */
+            if ( formatChar == 'B' ) {
+                Number tzero =
+                    hdr.getNumberValue( colhead.getKeyName( "TZERO" ) );
+                Number tscale =
+                    hdr.getNumberValue( colhead.getKeyName( "TSCALE" ) );
+                if ( ( tzero != null && tzero.doubleValue() == -128.0 ) &&
+                     ( tscale == null || tscale.doubleValue() == 1.0 ) ) {
+                   formatChar = 'b';
+                }
             }
 
             long nitem;
@@ -142,7 +139,7 @@ public class ColFitsStarTable extends AbstractStarTable {
             }
 
             /* Row count and item shape. */
-            String tdims = colhead.getStringValue( cards, "TDIM" );
+            String tdims = hdr.getStringValue( colhead.getKeyName( "TDIM" ) );
             long[] dims = parseTdim( tdims );
             if ( dims == null ) {
                 logger_.info( "No " + colhead.getKeyName( "TDIM" )
@@ -169,26 +166,26 @@ public class ColFitsStarTable extends AbstractStarTable {
             }
 
             /* Null value. */
-            Long blank = colhead.getLongValue( cards, "TNULL" );
+            Long blank = hdr.getLongValue( colhead.getKeyName( "TNULL" ) );
 
             /* Informational metadata. */
-            String ttype = colhead.getStringValue( cards, "TTYPE" );
+            String ttype = hdr.getStringValue( colhead.getKeyName( "TTYPE" ) );
             if ( ttype != null ) {
                 cinfo.setName( ttype );
             }
-            String tunit = colhead.getStringValue( cards, "TUNIT" );
+            String tunit = hdr.getStringValue( colhead.getKeyName( "TUNIT" ) );
             if ( tunit != null ) {
                 cinfo.setUnitString( tunit );
             }
-            String tcomm = colhead.getStringValue( cards, "TCOMM" );
+            String tcomm = hdr.getStringValue( colhead.getKeyName( "TCOMM" ) );
             if ( tcomm != null ) {
                 cinfo.setDescription( tcomm );
             }
-            String tucd = colhead.getStringValue( cards, "TUCD" );
+            String tucd = hdr.getStringValue( colhead.getKeyName( "TUCD" ) );
             if ( tucd != null ) {
                 cinfo.setUCD( tucd );
             }
-            String tutype = colhead.getStringValue( cards, "TUTYP" );
+            String tutype = hdr.getStringValue( colhead.getKeyName( "TUTYP" ) );
             if ( tutype != null ) {
                 cinfo.setUtype( tutype );
             }
@@ -270,16 +267,17 @@ public class ColFitsStarTable extends AbstractStarTable {
         }
 
         /* Get table name. */
-        if ( cards.containsKey( "EXTNAME" ) ) {
-            String tname = cards.getStringValue( "EXTNAME" );
-            if ( cards.containsKey( "EXTVER" ) ) {
-                tname += "-" + cards.getStringValue( "EXTVER" );
+        String tname = hdr.getStringValue( "EXTNAME" );
+        if ( tname != null ) {
+            String extver = hdr.getStringValue( "EXTVER" );
+            if ( extver != null ) {
+                tname += "-" + extver;
             }
             setName( tname );
         }
 
         /* Add table params containing header card information. */
-        getParameters().addAll( Arrays.asList( cards.getUnusedParams() ) );
+        getParameters().addAll( Arrays.asList( hdr.getUnusedParams() ) );
 
         /* Prepare readers for random access. */
         if ( isRandom_ ) {

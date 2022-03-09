@@ -1,4 +1,4 @@
-package uk.ac.starlink.fits;
+package uk.ac.starlink.oldfits;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,7 +45,7 @@ public class FitsNdxTest extends TestCase {
     public FitsNdxTest( String name ) {
         super( name );
         Logger.getLogger( "uk.ac.starlink.ndx" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.oldfits" ).setLevel( Level.WARNING );
     }
 
     public void setUp() {

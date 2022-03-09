@@ -1,4 +1,4 @@
-package uk.ac.starlink.fits;
+package uk.ac.starlink.oldfits;
 
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;

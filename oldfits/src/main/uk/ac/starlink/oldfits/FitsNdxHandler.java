@@ -1,4 +1,4 @@
-package uk.ac.starlink.fits;
+package uk.ac.starlink.oldfits;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -117,7 +117,7 @@ public class FitsNdxHandler
 
     private List<String> extensions = 
         new ArrayList<String>( FitsConstants.defaultFitsExtensions() );
-    private static Logger logger = Logger.getLogger( "uk.ac.starlink.fits" );
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.oldfits" );
 
     
 

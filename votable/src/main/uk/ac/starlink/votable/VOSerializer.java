@@ -1,7 +1,6 @@
 package uk.ac.starlink.votable;
 
 import java.io.BufferedWriter;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -15,7 +14,7 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
-import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.fits.FitsTableSerializerConfig;
 import uk.ac.starlink.fits.FitsTableWriter;
@@ -216,7 +215,7 @@ public abstract class VOSerializer {
      */
     public abstract void writeHrefDataElement( BufferedWriter xmlwriter,
                                                String href,
-                                               DataOutput streamout )
+                                               OutputStream streamout )
             throws IOException;
 
     /**
@@ -234,7 +233,7 @@ public abstract class VOSerializer {
     }
 
     public void writeHrefTableElement( BufferedWriter xmlwriter, String href,
-                                       DataOutput streamout )
+                                       OutputStream streamout )
             throws IOException {
         writePreDataXML( xmlwriter );
         writeHrefDataElement( xmlwriter, href, streamout );
@@ -1089,7 +1088,7 @@ public abstract class VOSerializer {
         }
 
         public void writeHrefDataElement( BufferedWriter writer, String href,
-                                          DataOutput streamout ) {
+                                          OutputStream streamout ) {
             throw new UnsupportedOperationException( 
                 "TABLEDATA only supports inline output" );
         }
@@ -1126,7 +1125,8 @@ public abstract class VOSerializer {
          * 
          * @param  out  destination stream
          */
-        public abstract void streamData( DataOutput out ) throws IOException;
+        public abstract void streamData( OutputStream out )
+                throws IOException;
 
         public void writeInlineDataElement( BufferedWriter writer ) 
                 throws IOException {
@@ -1167,7 +1167,7 @@ public abstract class VOSerializer {
         }
 
         public void writeHrefDataElement( BufferedWriter xmlwriter, String href,
-                                          DataOutput streamout )
+                                          OutputStream streamout )
                 throws IOException {
 
             /* Start the DATA element. */
@@ -1209,8 +1209,9 @@ public abstract class VOSerializer {
                           writer );
         }
 
-        public void streamData( DataOutput out ) throws IOException {
+        public void streamData( OutputStream out ) throws IOException {
             int ncol = encoders.length;
+            DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
             RowSequence rseq = getTable().getRowSequence();
             try {
                 while ( rseq.next() ) {
@@ -1218,7 +1219,7 @@ public abstract class VOSerializer {
                     for ( int icol = 0; icol < ncol; icol++ ) {
                         Encoder encoder = encoders[ icol ];
                         if ( encoder != null ) {
-                            encoder.encodeToStream( row[ icol ], out );
+                            encoder.encodeToStream( row[ icol ], dout );
                         }
                     }
                 }
@@ -1226,6 +1227,7 @@ public abstract class VOSerializer {
             finally {
                 rseq.close();
             }
+            dout.flush();
         }
     }
 
@@ -1246,7 +1248,7 @@ public abstract class VOSerializer {
                           writer );
         }
 
-        public void streamData( DataOutput out ) throws IOException {
+        public void streamData( OutputStream out ) throws IOException {
 
             /* Restrict attention to columns with non-null encoders,
              * that is those which we will actually be writing out. */
@@ -1262,6 +1264,7 @@ public abstract class VOSerializer {
 
             /* Read data from table. */
             RowSequence rseq = getTable().getRowSequence();
+            DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
             try {
                 while ( rseq.next() ) {
  
@@ -1272,19 +1275,20 @@ public abstract class VOSerializer {
                         Object cell = row[ icol ];
                         nullFlags[ jcol ] = cell == null;
                     }
-                    FlagIO.writeFlags( out, nullFlags );
+                    FlagIO.writeFlags( dout, nullFlags );
 
                     /* Write the data cells. */
                     for ( int jcol = 0; jcol < ncol; jcol++ ) {
                         int icol = icols[ jcol ];
                         Object cell = row[ icol ];
-                        encoders[ icol ].encodeToStream( cell, out );
+                        encoders[ icol ].encodeToStream( cell, dout );
                     }
                 }
             }
             finally {
                 rseq.close();
             }
+            dout.flush();
         }
     }
 
@@ -1379,8 +1383,8 @@ public abstract class VOSerializer {
             }
         }
 
-        public void streamData( DataOutput out ) throws IOException {
-            FitsConstants.writeEmptyPrimary( out );
+        public void streamData( OutputStream out ) throws IOException {
+            FitsUtil.writeEmptyPrimary( out );
             new FitsTableWriter().writeTableHDU( getTable(), fitser, out );
         }
 

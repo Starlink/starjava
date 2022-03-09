@@ -32,7 +32,7 @@ import uk.ac.starlink.task.TerminalInvoker;
  * will be
  * <ul>
  * <li>{@link uk.ac.starlink.hds.NDFNdxHandler}
- * <li>{@link uk.ac.starlink.fits.FitsNdxHandler}
+ * <li>{@link uk.ac.starlink.oldfits.FitsNdxHandler}
  * <li>{@link uk.ac.starlink.ndx.XMLNdxHandler}
  * </ul>
  * - see the documentation of those classes for URL formats.

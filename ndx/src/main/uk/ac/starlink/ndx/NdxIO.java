@@ -33,7 +33,7 @@ import uk.ac.starlink.util.URLUtils;
  * NdxHandlers are installed:
  * <ul>
  * <li>{@link uk.ac.starlink.hds.NDFNdxHandler}
- * <li>{@link uk.ac.starlink.fits.FitsNdxHandler}
+ * <li>{@link uk.ac.starlink.oldfits.FitsNdxHandler}
  * <li>{@link uk.ac.starlink.ndx.XMLNdxHandler}
  * </ul>
  * Consult the documentation of these classes to find out about the format 
@@ -106,7 +106,7 @@ public class NdxIO {
             }
 
             /* Attempt to add a FitsNdxHandler if the class is available. */
-            className = "uk.ac.starlink.fits.FitsNdxHandler";
+            className = "uk.ac.starlink.oldfits.FitsNdxHandler";
             try {
                 Class clazz = this.getClass().forName( className );
                 Method meth = clazz.getMethod( "getInstance", noParams );

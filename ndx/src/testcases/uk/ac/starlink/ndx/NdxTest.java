@@ -61,7 +61,7 @@ public class NdxTest extends TestCase {
         catch ( ClassNotFoundException e ) {
         }
         try {
-            Class.forName( "uk.ac.starlink.fits.FitsNdxHandler" );
+            Class.forName( "uk.ac.starlink.oldfits.FitsNdxHandler" );
             fitsPresent = true;
         }
         catch ( ClassNotFoundException e ) {

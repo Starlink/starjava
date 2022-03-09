@@ -2,8 +2,6 @@ package uk.ac.starlink.fits;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -15,11 +13,13 @@ import uk.ac.starlink.table.StarTable;
 public interface FitsTableSerializer {
 
     /**
-     * Returns a header suitable for the HDU which will contain the table.
+     * Returns header cards suitable for the HDU which will contain the table.
+     * Additional metadata and an END marker will be added after these cards,
+     * so the returned array must not contain the END card.
      *
-     * @return  header object 
+     * @return  header cards
      */
-    Header getHeader() throws HeaderCardException;
+    CardImage[] getHeader();
 
     /**
      * Writes the HDU data for the table to an output stream.

@@ -4,9 +4,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import nom.tam.fits.FitsException;
-import nom.tam.fits.Header;
-import nom.tam.util.ArrayDataInput;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
@@ -68,31 +65,19 @@ public class ColFitsTableBuilder extends DocumentedTableBuilder {
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storagePolicy )
             throws IOException {
-
-        if ( ! FitsConstants.isMagic( datsrc.getIntro() ) ) {
+        if ( ! FitsUtil.isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( "Doesn't look like a FITS file" );
         }
-
-        ArrayDataInput in = FitsConstants.getInputStreamStart( datsrc );
-        long pos = 0;
-        Header hdr = new Header();
-        try {
-            pos += FitsConstants.skipHDUs( in, 1 );
-            pos += FitsConstants.readHeader( hdr, in );
-        }
-        catch ( FitsException e ) {
-            throw (TableFormatException)
-                  new TableFormatException( "FITS read error" ).initCause( e );
+        try ( InputStream in = datsrc.getInputStream() ) {
+            long pos = 0;
+            pos += FitsUtil.skipHDUs( in, 1 );
+            FitsHeader hdr = FitsUtil.readHeader( in );
+            pos += hdr.getHeaderByteCount();
+            return new ColFitsStarTable( datsrc, hdr, pos, false, wide_ );
         }
         catch ( EOFException e ) {
-            throw (TableFormatException)
-                  new TableFormatException( "No extensions" ).initCause( e );
+            throw new TableFormatException( "No extensions", e );
         }
-        finally {
-            in.close();
-        }
-
-        return new ColFitsStarTable( datsrc, hdr, pos, false, wide_ );
     }
 
     public boolean canStream() {

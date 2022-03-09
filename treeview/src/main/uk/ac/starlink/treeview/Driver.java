@@ -37,8 +37,8 @@ import uk.ac.starlink.datanode.nodes.XMLDataNode;
 import uk.ac.starlink.datanode.nodes.ZipFileDataNode;
 import uk.ac.starlink.datanode.nodes.ZipStreamDataNode;
 import uk.ac.starlink.datanode.factory.DataNodeFactory;
-import uk.ac.starlink.fits.FitsNdxHandler;
 import uk.ac.starlink.hds.NDFNdxHandler;
+import uk.ac.starlink.oldfits.FitsNdxHandler;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.URLUtils;
 
@@ -120,7 +120,7 @@ public class Driver {
         usageMsg +=       "\n         [item ...]\n";
 
         /* Ensure that we will load the right HDX factories. */
-        System.setProperty( "HdxDocumentFactory.load." + 
+        System.setProperty( "HdxDocumentFactory.load." +
                             FitsNdxHandler.class.getName(), "true" );
         if ( hasHDS ) {
             System.setProperty( "HdxDocumentFactory.load." +

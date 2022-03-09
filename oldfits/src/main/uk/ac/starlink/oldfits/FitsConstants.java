@@ -1,4 +1,4 @@
-package uk.ac.starlink.fits;
+package uk.ac.starlink.oldfits;
 
 import java.io.DataOutput;
 import java.io.EOFException;
@@ -82,7 +82,7 @@ public class FitsConstants {
     };
 
     private static final Logger logger =
-        Logger.getLogger( "uk.ac.starlink.fits" );
+        Logger.getLogger( "uk.ac.starlink.oldfits" );
 
     /**
      * Gets the default permitted list of extensions which identify a 
@@ -93,31 +93,6 @@ public class FitsConstants {
      */
     public static List<String> defaultFitsExtensions() {
         return Collections.unmodifiableList( Arrays.asList( extensions ) );
-    }
-
-    /**
-     * Ensures that use of the HIERARCH convention when dealing with
-     * FITS headers is set to the state expected for STIL operation.
-     * If this involves changing the current setting, a warning is
-     * issued through the logging system.
-     *
-     * <p>The general idea is that this is only issued once per JVM.
-     * If other components are resetting the hierarch handling that
-     * might not be enough, but there's no mechanism to ensure that
-     * it stays set anyway.
-     *
-     * <p>The main reason this is necessary is that WideFits handling
-     * requires HIERARCH, but there is no per-call configuration of
-     * whether the convention is in use, so it has to be set on a
-     * global basis.
-     */
-    public static void configureHierarch() {
-        boolean isReq = REQUIRE_HIERARCH;
-        if ( FitsFactory.getUseHierarch() != isReq ) {
-            logger.info( "Resetting FITS use of HIERARCH convention "
-                       + ! isReq + " -> " + isReq );
-        }
-        FitsFactory.setUseHierarch( isReq );
     }
 
     static String originCardName( int naxis ) {
@@ -531,46 +506,6 @@ public class FitsConstants {
                 logger.log( Level.WARNING,
                             "Failed to add FITS header card " + key + " = "
                              + value, e );
-            }
-        }
-    }
-
-    /**
-     * Checks that a table with the given number of columns can be written.
-     * If the column count is not exceeded, nothing happens,
-     * but if there are too many columns an informative IOException
-     * is thrown.
-     *
-     * @param  wide   extended column convention
-     *                - may be null for FITS standard behaviour only
-     * @param  ncol   number of columns to write
-     * @throws   IOException  if there are too many columns
-     */
-    public static void checkColumnCount( WideFits wide, int ncol )
-            throws IOException {
-        if ( wide == null ) {
-            if ( ncol > MAX_NCOLSTD ) { 
-                String msg = new StringBuffer()
-                    .append( "Too many columns " ) 
-                    .append( ncol )
-                    .append( " > " ) 
-                    .append( MAX_NCOLSTD )
-                    .append( " (FITS standard hard limit)" )
-                    .toString();
-                throw new IOException( msg );
-            }   
-        }
-        else {
-            int nmax = wide.getExtColumnMax();
-            if ( ncol > nmax ) {
-                String msg = new StringBuffer()
-                    .append( "Too many column " )
-                    .append( ncol )
-                    .append( " > " )
-                    .append( nmax )
-                    .append( " (limit of extended column convention" )
-                    .toString();
-                throw new IOException( msg );
             }
         }
     }

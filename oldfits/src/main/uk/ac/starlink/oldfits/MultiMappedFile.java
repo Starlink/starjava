@@ -1,4 +1,4 @@
-package uk.ac.starlink.fits;
+package uk.ac.starlink.oldfits;
 
 import java.io.EOFException;
 import java.io.File;
@@ -33,7 +33,7 @@ public class MultiMappedFile extends AbstractArrayDataIO
     private long markPos_;
 
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.fits" );
+        Logger.getLogger( "uk.ac.starlink.oldfits" );
 
     /**
      * Constructs a MultiMappedFile from a channel.
