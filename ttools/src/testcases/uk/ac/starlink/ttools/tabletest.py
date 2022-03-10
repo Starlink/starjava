@@ -5,7 +5,7 @@ import uk.ac.starlink
 import os.path
 import sys
 import re
-import StringIO
+import io
 import cStringIO
 
 class TableTest(unittest.TestCase):
@@ -164,19 +164,19 @@ class TableTest(unittest.TestCase):
         self.assertEquals(51910, stilts.Times.isoToMjd('2001-01-01'))
 
     def ioRoundTrip(self, table, fmt):
-        ofile = _UnclosedStringIO()
+        ofile = _UnclosedBytesIO()
         table.write(ofile, fmt=fmt)
-        ifile = cStringIO.StringIO(ofile.getvalue())
+        ifile = io.BytesIO(ofile.getvalue())
         table2 = stilts.tread(ifile, fmt=fmt)
         self.assertEqualTable(table, table2)
 
     def ioMultiRoundTrip(self, tables, fmt):
-        ofile = _UnclosedStringIO()
+        ofile = _UnclosedBytesIO()
         stilts.twrites(tables, ofile, fmt=fmt)
-        ifile = cStringIO.StringIO(ofile.getvalue())
+        ifile = io.BytesIO(ofile.getvalue())
         tables2 = stilts.treads(ifile)
         for otable, itable in zip(tables, tables2):
-            self.assertEqualTable(otable, itable)
+           self.assertEqualTable(otable, itable)
 
     def assertEqualTable(self, t1, t2):
         self.assertEquals([str(col) for col in t1.columns()],
@@ -214,9 +214,9 @@ def captureJavaOutput(callable, *args, **kwargs):
     return buf.toByteArray().tostring()
     
 
-class _UnclosedStringIO(StringIO.StringIO):
+class _UnclosedBytesIO(io.BytesIO):
     def __init__(self):
-        StringIO.StringIO.__init__(self)
+        io.BytesIO.__init__(self)
     def close(self):
         pass
 
