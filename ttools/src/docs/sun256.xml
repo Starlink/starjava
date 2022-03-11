@@ -13638,6 +13638,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix taplint bug: EPN validation failed for
         <code>spatial_frame_type=none</code>.</li>
     <li>ECSV format now preserves table name.</li>
+    <li>FITS BINTABLE reader now copes with (illegal?) embedded spaces
+        in TDIMn headers.</li>
     </ul>
     </p></dd>
 

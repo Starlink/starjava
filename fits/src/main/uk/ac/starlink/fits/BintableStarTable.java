@@ -212,10 +212,12 @@ public abstract class BintableStarTable extends AbstractStarTable {
                         try {
                             dims = new int[ sdims.length ];
                             for ( int i = 0; i < sdims.length; i++ ) {
-                                dims[ i ] = Integer.parseInt( sdims[ i ] );
+                                dims[ i ] =
+                                    Integer.parseInt( sdims[ i ].trim() );
                             }
                         }
                         catch ( NumberFormatException e ) {
+                            dims = null;
                             // can't set shape
                         }
                     }
