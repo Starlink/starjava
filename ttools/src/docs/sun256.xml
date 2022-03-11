@@ -13640,6 +13640,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>ECSV format now preserves table name.</li>
     <li>FITS BINTABLE reader now copes with (illegal?) embedded spaces
         in TDIMn headers.</li>
+    <li>Adjust MRT null handling; "-" in a single-character field no
+        longer interpreted as null.</li>
     </ul>
     </p></dd>
 

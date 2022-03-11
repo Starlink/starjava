@@ -23,6 +23,7 @@ public class MrtTest extends TestCase {
             "apjsab521at1-sub.mrt",
             "apjsab521at5.mrt",
             "apjsab530at1-sub.mrt",
+            "datafileB1-sub.mrt",
         };
         MrtTableBuilder builder = new MrtTableBuilder( ErrorMode.FAIL, true );
         int nt = fnames.length;
@@ -47,6 +48,14 @@ public class MrtTest extends TestCase {
         ColumnInfo t1c1 = t1.getColumnInfo( 1 );
         assertEquals( "Tmag", t1c1.getName() );
         assertEquals( "mag", t1c1.getUnitString() );
+
+        StarTable t2 = tmap.get( "apjsab530at1-sub.mrt" );
+        assertEquals( "NGC_1817", t2.getCell( 0, 20 ) );
+        assertNull( t2.getCell( 1, 20 ) );
+
+        StarTable t3 = tmap.get( "datafileB1-sub.mrt" );
+        assertEquals( "+", t3.getCell( 1, 6 ) );
+        assertEquals( "-", t3.getCell( 2, 6 ) );
     }
 
     private StarTable readMrt( String fname, MrtTableBuilder builder )

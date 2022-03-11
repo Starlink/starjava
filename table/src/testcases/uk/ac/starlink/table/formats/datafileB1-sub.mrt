@@ -1,0 +1,39 @@
+Title: Identification and spectroscopic characterization of 128 new Herbig stars
+Authors: Vioque M., Oudmaijer R.D., Wichittanakom C., Mendigutia I., Baines D.,
+         Panic O., Iglesias D., Miley J., Perez-Martinez R.
+Table: Log of observations
+================================================================================
+Byte-by-byte Description of file: datafileB1.txt
+--------------------------------------------------------------------------------
+   Bytes Format Units  Label    Explanations
+--------------------------------------------------------------------------------
+   1-  8 A8     ---    Name     Identifier from this work
+  10- 28 I19    ---    Gaia     Gaia EDR3 source identifier
+  30- 43 A14    ---    AName    Alternative name from literature
+  45- 46 I2     h      RAh      Hour of Right Ascension (J2016) (1)
+  48- 49 I2     min    RAm      Minute of Right Ascension (J2016) (1)
+  51- 55 F5.2   s      RAs      Second of Right Ascension (J2016) (1)
+      57 A1     ---    DE-      Sign of the Declination (J2016 (1)
+  58- 59 I2     deg    DEd      Degree of Declination (J2016) (1)
+  61- 62 I2     arcmin DEm      Arcminute of Declination (J2016) (1)
+  64- 67 F4.1   arcsec DEs      Arcsecond of Declination (J2016) (1)
+  69- 82 A14    ---    ObsBlue  Observation date of Blue spectra (2)
+  84- 93 A10    ---    ObsRed   Observation date of Red spectra (2)
+  95-107 A13    s      ExpBlue  Blue spectra exposure time
+ 109-112 I4     s      ExpRed   ? Red spectra exposure time
+ 114-119 A6     ---    Spec     Spectrograph identifier  
+ 121-125 F5.2   mag    Bpmag    Gaia EDR3 Blue passband magnitude
+ 127-131 F5.2   mag    Gmag     Gaia EDR3 white G passband magnitude
+ 133-137 F5.2   mag    Rpmag    Gaia EDR3 Red passband magnitude
+--------------------------------------------------------------------------------
+Note (1): Coordinates from Gaia EDR3. 
+Note (2): YYYY-MM-DD format.
+--------------------------------------------------------------------------------
+VOS 4    5524619735681532160                08 51 11.43 -41 38 49.9 2020-03-12     2020-03-20 900           1100 EFOSC2 13.45 13.20 12.64 
+VOS 7    2013474586693428096                22 54 03.79 +58 54 01.5 2019-09-04                450                CAFOS  13.59 12.82 12.22 
+VOS 15   4054609866596686336 V731 Sco       17 33 20.78 -32 34 25.7 2020-03-13     2020-03-20 1000          2000 EFOSC2 14.02 13.62 12.99 
+VOS 20   2206875422143048960                22 50 57.07 +61 23 37.7 2019-08-06     2019-08-12 1000          1800 IDS    14.99 14.22 13.37 
+VOS 22   2164505844663760768                21 11 19.06 +47 38 47.6 2019-08-06     2019-08-10 600            900 IDS    12.68 12.30 11.68 
+VOS 24   4267078153499687296 V868 Aql       18 56 47.65 +01 48 51.2 2019-08-06     2019-08-11 750           1300 IDS    14.00 13.15 12.22 
+VOS 26   5337719389118815488 ES Car         11 10 13.23 -60 14 03.4 2020-03-12     2020-03-20 1000          1600 EFOSC2 13.56 13.19 12.70 
+VOS 32    425559107889037568 FY Cas         00 38 50.08 +59 54 10.0 2019-08-06     2019-08-12 1200          1500 IDS    15.60 14.58 13.56 

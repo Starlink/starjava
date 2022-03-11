@@ -377,7 +377,7 @@ class MrtReader implements RowSequence {
                 return false;
             }
         }
-        return true;
+        return leng > 0;
     }
 
     /**
@@ -575,9 +575,27 @@ class MrtReader implements RowSequence {
             iStart0_ = iStart0;
             iEnd0_ = iEnd0;
             readCell_ = readCell;
-            isBlank_ = blankTxt == null
-                     ? txt -> allDash( txt )
-                     : txt -> txt.startsWith( blankTxt );
+
+            /* If there is a null representation, test for that. */
+            if ( blankTxt != null ) {
+                isBlank_ = txt -> txt.startsWith( blankTxt );
+            }
+
+            /* If the field is longer than one character, take a sequence
+             * of "-" characters to mean null, which is common practice in
+             * some MRT files. */
+            else if ( iEnd0 - iStart0 > 1 ) {
+                isBlank_ = txt -> allDash( txt );
+            }
+
+            /* But don't do that for a single-character field.
+             * The reason is that in some MRT files a single character field
+             * is assigned for the "+" or "-" sign qualifying a sexagesimal
+             * latitude, e.g. with column name "DE-", and we don't want to
+             * interpret those particular minus signs as nulls. */
+            else {
+                isBlank_ = txt -> false;
+            }
         }
 
         /**
