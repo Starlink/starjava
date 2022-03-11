@@ -168,6 +168,9 @@ public class CapabilityStage implements Stage {
      * @return   hierarchy of capabilities represented by document
      */
     private static Cap[] readCaps( Reporter reporter, Element capsEl ) {
+        if ( capsEl == null ) {
+            return null;
+        }
         List<Cap> caps = new ArrayList<Cap>();
         for ( Element capEl :
               DOMUtils.getChildElementsByName( capsEl, "capability" ) ) {
