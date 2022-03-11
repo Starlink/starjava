@@ -166,6 +166,7 @@ public enum FixedCode implements ReportCode {
     E_SRXT( "Wrong xtype for s_region" ),
     E_SVRB( "Bad HTTP Server header syntax" ),
     E_TADH( "Tables endpoint declaration/presence mismatch" ),
+    E_TAP0( "No TAP service found" ),
     E_TBIO( "Error reading TAP_SCHEMA.tables table" ),
     E_TMCD( "Upload result column value mismatch" ),
     E_TMCN( "Upload result column name mismatch" ),

@@ -239,7 +239,7 @@ public class TapLinter {
 
         /* Create and return an executable which will run the
          * requested stages. */
-        final String[] announcements = getAnnouncements();
+        final String[] announcements = getAnnouncements( true );
         return new Executable() {
             public void execute() {
                 String uaToken = UserAgentUtil.COMMENT_TEST;
@@ -273,45 +273,49 @@ public class TapLinter {
      * Returns a list of startup announcements with which the taplint
      * application introduces itself.
      *
+     * @param   includeCodes  if true include a summary of taplint report codes
      * @return   announcement lines
      */
-    private static String[] getAnnouncements() {
+    public static String[] getAnnouncements( boolean includeCodes ) {
+        List<String> lines = new ArrayList<>();
 
         /* Version report. */
-        String versionLine = new StringBuffer()
-            .append( "This is STILTS taplint, " )
-            .append( Stilts.getVersion() )
-            .append( "/" )
-            .append( Stilts.getStarjavaRevision() )
-            .toString();
+        lines.add( new StringBuffer()
+                  .append( "This is STILTS taplint, " )
+                  .append( Stilts.getVersion() )
+                  .append( "/" )
+                  .append( Stilts.getStarjavaRevision() )
+                  .toString() );
 
         /* Timestamp. */
-        String dateLine = "Timestamp: "
-                        + new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss z" )
-                         .format( new Date() );
+        lines.add( "Timestamp: "
+                 + new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss z" )
+                  .format( new Date() ) );
 
         /* Count by report type of known FixedCode instances. */
-        Map<ReportType,int[]> codeMap = new LinkedHashMap<ReportType,int[]>();
-        for ( ReportType type : ReportType.values() ) {
-            codeMap.put( type, new int[ 1 ] );
+        if ( includeCodes ) {
+            Map<ReportType,int[]> codeMap = new LinkedHashMap<>();
+            for ( ReportType type : ReportType.values() ) {
+                codeMap.put( type, new int[ 1 ] );
+            }
+            for ( FixedCode code : FixedCode.values() ) {
+                codeMap.get( code.getType() )[ 0 ]++;
+            }
+            StringBuffer cbuf = new StringBuffer()
+                .append( "Static report types: " );
+            for ( Map.Entry<ReportType,int[]> entry : codeMap.entrySet() ) {
+                cbuf.append( entry.getKey() )
+                    .append( "(" )
+                    .append( entry.getValue()[ 0 ] )
+                    .append( ")" )
+                    .append( ", " );
+            }
+            cbuf.setLength( cbuf.length() - 2 );
+            lines.add( cbuf.toString() );
         }
-        for ( FixedCode code : FixedCode.values() ) {
-            codeMap.get( code.getType() )[ 0 ]++;
-        }
-        StringBuffer cbuf = new StringBuffer()
-            .append( "Static report types: " );
-        for ( Map.Entry<ReportType,int[]> entry : codeMap.entrySet() ) {
-            cbuf.append( entry.getKey() )
-                .append( "(" )
-                .append( entry.getValue()[ 0 ] )
-                .append( ")" )
-                .append( ", " );
-        }
-        cbuf.setLength( cbuf.length() - 2 );
-        String codesLine = cbuf.toString();
 
         /* Return lines. */
-        return new String[] { versionLine, dateLine, codesLine, };
+        return lines.toArray( new String[ 0 ] );
     }
 
     /**

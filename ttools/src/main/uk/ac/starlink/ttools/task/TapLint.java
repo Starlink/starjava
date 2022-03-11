@@ -13,12 +13,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
+import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.taplint.FixedCode;
 import uk.ac.starlink.ttools.taplint.OutputReporter;
 import uk.ac.starlink.ttools.taplint.Stage;
 import uk.ac.starlink.ttools.taplint.TextOutputReporter;
@@ -167,13 +169,41 @@ public class TapLint implements Task {
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
-        TapService tapService = tapserviceParams_.getTapService( env );
+        OutputReporter reporter = reporterParam_.objectValue( env );
         Integer maxTablesObj = maxtableParam_.objectValue( env );
         int maxTestTables = maxTablesObj == null ? -1 : maxTablesObj.intValue();
         Set<String> stageSet = getStageSet( stagesParam_.stringsValue( env ) );
         Predicate<TableMeta> tableFilter =
             createTableNameFilter( tablesParam_.objectValue( env ) );
-        OutputReporter reporter = reporterParam_.objectValue( env );
+
+        /* Acquire the service, which may (depending on chosen interface type)
+         * involve reading the capabilities document. */
+        TapService tapService;
+        try {
+            tapService = tapserviceParams_.getTapService( env );
+        }
+
+        /* The service acquisition may fail if the service just doesn't exist.
+         * Treat that eventuality as a special case and report it through
+         * the reporter in a special ad hoc stage PRE.
+         * This is a bit hacky but it's hard to do it better since the rest
+         * of the linting hasn't been set up yet, and it's better than
+         * the alternative which is to fail with an exception, which a
+         * validator ought not to do as a result of service deficiencies. */
+        catch ( ExecutionException e ) {
+            return new Executable() {
+                public void execute() {
+                    reporter.start( TapLinter.getAnnouncements( false ) );
+                    reporter.startSection( "PRE", "Preparation" );
+                    reporter.report( FixedCode.E_TAP0,
+                                     "TAP service not present", e );
+                    reporter.endSection();
+                    reporter.end();
+                }
+            };
+        }
+
+        /* If we have a service, set up validation in the usual way. */
         return tapLinter_.createExecutable( reporter, tapService, stageSet,
                                             maxTestTables, tableFilter );
     }

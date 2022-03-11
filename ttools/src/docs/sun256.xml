@@ -13642,6 +13642,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in TDIMn headers.</li>
     <li>Adjust MRT null handling; "-" in a single-character field no
         longer interpreted as null.</li>
+    <li>Taplint now reports absent TAP service with an error code
+        rather than failing with an exception.</li>
     </ul>
     </p></dd>
 
