@@ -216,6 +216,7 @@
       export CFLAGS
       export JAVA_SYSTEM
       export JAVA_INCLUDE
+      export JAVA_SYSTEM_INCLUDE
       export LINK
       export SOURCE_VARIANT
       export RANLIB
@@ -286,7 +287,7 @@
 #  -----------------------
             MacOSX)
                AR_IN='ar r'
-               BLD_SHR='f() { $(CC) -arch $(JAVA_SYSTEM) -framework JavaVM -dynamiclib -install_name $(STARJAVA_LIB)/`basename $$1` -single_module $(ADDCFLAGS) -o $$1 $$2 ;}; f'
+               BLD_SHR='f() { $(CC) -arch $(JAVA_SYSTEM) -framework JavaVM -dynamiclib -install_name $(STARJAVA_LIB)/`basename $$1` -L$(STARLINK_DIR)/lib -lyaml -single_module $(ADDCFLAGS) -o $$1 $$2 ;}; f'
                CC='gcc'
                CFLAGS='-I/System/Library/Frameworks/JavaVM.framework/Headers -arch $(JAVA_SYSTEM) -I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O $(ADDCFLAGS)'
                LINK='ln -s'
@@ -294,7 +295,10 @@
                SHARE='.jnilib'
                TAR_IN='tar -cvhf'
                TAR_OUT='tar -xf'
-               JAVA_INCLUDE='$(JDK)/Headers'
+               f="`find $JAVA_HOME -name jni.h`"
+               JAVA_INCLUDE="`dirname $f`"
+               f="`find $JAVA_HOME -name jni_md.h`"
+               JAVA_SYSTEM_INCLUDE="`dirname $f`"
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 

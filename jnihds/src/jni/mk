@@ -224,6 +224,7 @@
       export CFLAGS
       export JAVA_SYSTEM
       export JAVA_INCLUDE
+      export JAVA_SYSTEM_INCLUDE
       export LINK
       export SOURCE_VARIANT
       export RANLIB
@@ -305,7 +306,10 @@
                SHARE='.jnilib'
                TAR_IN='tar -cvhf'
                TAR_OUT='tar -xf'
-               JAVA_INCLUDE='$(JDK)/Headers'
+               f="`find $JAVA_HOME -name jni.h`"
+               JAVA_INCLUDE="`dirname $f`"
+               f="`find $JAVA_HOME -name jni_md.h`"
+               JAVA_SYSTEM_INCLUDE="`dirname $f`"
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
