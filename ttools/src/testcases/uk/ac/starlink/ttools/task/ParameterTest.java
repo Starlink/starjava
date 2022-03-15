@@ -45,6 +45,7 @@ public class ParameterTest extends TestCase {
         "layerN",
         "syncurl", "asyncurl", "tablesurl", "capabilitiesurl",
         "availabilityurl", "examplesurl",
+        "doc",
         "end",
     } ) );
 

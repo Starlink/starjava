@@ -185,6 +185,7 @@ public class Stilts {
         taskFactory_.register( "tskymatch2", taskPkg + "SkyMatch2" );
         taskFactory_.register( "votcopy", taskPkg + "VotCopy" );
         taskFactory_.register( "votlint", taskPkg + "VotLint" );
+        taskFactory_.register( "xsdvalidate", taskPkg + "XsdValidate" );
 
         /* Add entries for plot2 tasks to both the generic factory and
          * the plot2-specific one. */

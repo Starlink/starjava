@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.ivoa.net/xml/UWS/v1.0 http://www.ivoa.net/xml/UWS/v1.0">
+  <dummy/>
+</uws:job>

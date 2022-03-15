@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         version="1.1"
+         xsi:schemaLocation="http://www.ivoa.net/xml/UWS/v1.0 http://www.ivoa.net/xml/UWS/v1.0">
+  <uws:jobId>hzktyzsv</uws:jobId>
+  <uws:ownerId xsi:nil="true"/>
+  <uws:phase>COMPLETED</uws:phase>
+  <uws:quote>2022-03-17T13:10:58Z</uws:quote>
+  <uws:creationTime>2022-03-17T13:10:34Z</uws:creationTime>
+  <uws:startTime>2022-03-17T13:10:35Z</uws:startTime>
+  <uws:endTime>2022-03-17T13:10:35Z</uws:endTime>
+  <uws:executionDuration>7200</uws:executionDuration>
+  <uws:destruction>2022-03-19T13:10:34Z</uws:destruction>
+  <uws:parameters>
+    <uws:parameter id="request">doQuery</uws:parameter>
+    <uws:parameter id="lang">ADQL</uws:parameter>
+    <uws:parameter id="query">select top 3 s_ra, s_dec from ivoa.obscore</uws:parameter>
+    <uws:parameter id="version"/>
+    <uws:parameter id="format"/>
+    <uws:parameter id="upload"/>
+    <uws:parameter id="responseformat"/>
+    <uws:parameter id="maxrec"/>
+    <uws:parameter id="verb"/>
+  </uws:parameters>
+  <uws:results>
+    <uws:result id="result" xlink:href="https://dc.zah.uni-heidelberg.de/__system__/tap/run/async/hzktyzsv/results/result"/>
+  </uws:results>
+</uws:job>

@@ -118,6 +118,7 @@
   <!ENTITY tskymatch2-summary SYSTEM 'tskymatch2-summary.xml'>
   <!ENTITY votcopy-summary SYSTEM 'votcopy-summary.xml'>
   <!ENTITY votlint-summary SYSTEM 'votlint-summary.xml'>
+  <!ENTITY xsdvalidate-summary SYSTEM 'xsdvalidate-summary.xml'>
   
   <!-- Raw usage messages for some commands. -->
   <!ENTITY stilts-usage SYSTEM 'stilts-usage.xml'>
@@ -318,8 +319,9 @@ same ground as the STIL and TOPCAT user documents
 <dt>Miscellaneous</dt>
 <dd><p>
     <ref id="calc" plaintextref="yes"><code>calc</code></ref>,
-    <ref id="funcs" plaintextref="yes"><code>funcs</code></ref> and
-    <ref id="server" plaintextref="yes"><code>server</code></ref>.
+    <ref id="funcs" plaintextref="yes"><code>funcs</code></ref>,
+    <ref id="server" plaintextref="yes"><code>server</code></ref> and
+    <ref id="xsdvalidate" plaintextref="yes"><code>xsdvalidate</code></ref>.
     </p></dd>
 </dl>
 See <ref id="classified"/> for an expanded version of this list.
@@ -576,6 +578,7 @@ the available tasks are:
 <li><code>tskymatch2</code></li>
 <li><code>votcopy</code></li>
 <li><code>votlint</code></li>
+<li><code>xsdvalidate</code></li>
 </ul>
 </p>
 
@@ -5541,6 +5544,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="funcs" plaintextref="yes"><code>funcs</code></ref>:
         &funcs-purpose;
         </li>
+    <li><ref id="xsdvalidate" plaintextref="yes"><code>xsdvalidate</code></ref>:
+        &xsdvalidate-purpose;
+        </li>
     </ul>
     </p></dd>
 
@@ -9805,6 +9811,84 @@ When fed this version, <code>votlint</code> gives no warnings.
 
 </subsect>
 
+<subsect id="xsdvalidate" tocleaf="yes">
+<subhead><title><code>xsdvalidate</code>:
+                &xsdvalidate-purpose;</title></subhead>
+
+<p><code>xsdvalidate</code> is a utility for validating XML documents
+against XML Schemas.
+This is not very specific to STILTS, and does not claim to do a better
+job than other XSD validators out there, so if you can find another one
+that suits your purposes, please use it.
+It was added to the package however since it seems hard to find
+suitable tools that do this job.
+</p>
+
+<p>The schema is not specified by runtime parameters,
+elements in a given XML document are validated against any schemas
+associated with the namespaces defined in that document.
+However, it is possible to override the locations of schemas
+using runtime parameters.
+By using the <code>schemaloc</code> parameter, you can tell the validator
+to validate against a local copy of a schema or one at a given URL,
+rather than the copy that is referenced by
+<code>xsi:schemaLocation</code> attributes in the document itself.
+That can be convenient when developing a schema with a public namespace
+that is fixed, but content which is still subject to change.
+Moreover, some local copies of W3C and IVOA schemas are kept within the
+application, so that external network accesses are not required during
+validation.
+</p>
+
+<p>By default, successful validation results in no output and a
+success exit status, but if there are validation errors then
+some indication of what went wrong is printed to standard output
+and the command exits with an error.
+This makes it suitable for use in makefiles.
+</p>
+
+&xsdvalidate-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>xsdvalidate</code>:
+
+<dl>
+
+<dt><verbatim>
+stilts xsdvalidate example-voresource.xml
+</verbatim></dt>
+<dd><p>Validates the given file against whatever schemas it declares.
+    Success is indicated with a non-error exit.
+    </p></dd>
+
+<dt><verbatim>
+stilts xsdvalidate
+       doc=example-voresource.xml
+       schemaloc='http://www.ivoa.net/xml/VOResource/v1.0=vor-local.xsd'
+       topel='{http://www.ivoa.net/xml/RegistryInterface/v1.0}Resource'
+       verbose=true
+</verbatim></dt>
+<dd><p>Validates the named file against whatever schemas it declares,
+    but uses the local file "<code>vor-local.xsd</code>" in the current
+    directory as the schema associated with the
+    "<code>http://www.ivoa.net/xml/VOResource/v1.0</code>" namespace,
+    rather than using any schema location given in the validated file.
+    It also requires that the top-level element has the given URI and
+    local name; if not, the validation will fail.
+    The <code>verbose=true</code> parameter provides some diagnostics
+    to standard output, including indications of which schemas were
+    used and where they were acquired from.
+    </p></dd>
+
+</dl>
+
+</p>
+</subsubsect>
+
+</subsect>
+
 </sect>
 
 
@@ -13644,6 +13728,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         longer interpreted as null.</li>
     <li>Taplint now reports absent TAP service with an error code
         rather than failing with an exception.</li>
+    <li>New command <ref id="xsdvalidate"><code>xsdvalidate</code></ref>
+        added.</li>
     </ul>
     </p></dd>
 
