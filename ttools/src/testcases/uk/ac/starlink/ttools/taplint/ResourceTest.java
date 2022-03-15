@@ -13,8 +13,9 @@ public class ResourceTest extends TestCase {
 
     public void testResources()
             throws IOException, SAXException, ParserConfigurationException {
-        for ( Map.Entry<String,URL> entry :
-              IvoaSchemaResolver.getSchemaMap().entrySet() ) {
+        int nSchema = 0;
+        Map<String,URL> schemaMap = new IvoaSchemaResolver().getSchemaMap();
+        for ( Map.Entry<String,URL> entry : schemaMap.entrySet() ) {
             String namespace = entry.getKey();
             URL url = entry.getValue();
             assertNotNull( "No resource for " + namespace, url );
@@ -22,7 +23,10 @@ public class ResourceTest extends TestCase {
                 assertEquals( "Wrong namespace for " + url,
                               namespace, getTargetNamespace( url ) );
             }
+            nSchema++;
         }
+        assertTrue( nSchema > 8 );
+        assertTrue( schemaMap.containsKey( IvoaSchemaResolver.UWS_URI ) );
     }
 
     private String getTargetNamespace( URL schemaUrl )

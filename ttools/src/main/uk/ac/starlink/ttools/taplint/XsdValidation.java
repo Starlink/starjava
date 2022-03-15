@@ -99,7 +99,7 @@ public class XsdValidation {
          * parse, but in that case the entity resolver doesn't seem to
          * get invoked for schema entities.  Even like this, it only seems
          * to work for java6 and greater (I'm using Oracle J2SE). */
-        IvoaSchemaResolver resolver = new IvoaSchemaResolver( reporter );
+        IvoaSchemaResolver resolver = new IvoaSchemaResolver();
         val.setResourceResolver( resolver );
 
         /* Install a reporting error handler on the validator. */
@@ -116,7 +116,14 @@ public class XsdValidation {
                           new SAXResult( topelHandler ) );
 
             /* If we get this far, the validating parse succeeded.
-             * Now check to see what the top-level document element was,
+             * Report on any unrecognised schemas that were used. */
+            for ( String unresolved : resolver.getUnresolvedNamespaces() ) {
+                reporter.report( FixedCode.W_UNSC,
+                                 "Schema from unknown namespace "
+                               + "during validation: " + unresolved );
+            }
+
+            /* Now check to see what the top-level document element was,
              * to ensure that the document is not only valid, but contains
              * the kind of structure we're expecting for this document.
              * I did experiment with testing whether the validated
@@ -147,8 +154,7 @@ public class XsdValidation {
             }
 
             /* Check that the resolver was actually asked to resolve some
-             * schemas.  If it wasn't (resolvedCount==0) there are two
-             * likely explanations, either
+             * schemas.  If it wasn't, there are two likely explanations:
              * (1) the validated document uses some completely non-standard
              *     namespace(s) (though it might just be misspelt etc)
              * (2) the resolution mechanism was not getting invoked by the
@@ -157,18 +163,16 @@ public class XsdValidation {
              * I'm not entirely sure about the legitimacy of using alternative
              * namespaces for the same schema types.
              * But it might be (2) depending on the details of the XSD
-             * validator implementation.  In my tests, Oracle J2SE5 doesn't
+             * validator implementation.
+             * Historical note: in my tests, Oracle J2SE5 doesn't
              * invoke the entity resolver in a way that makes this work,
-             * but java 6 and 7 do.  
-             * It looks to me like a bug or misfeature for this to happen,
-             * but I don't see JAXP documentation detailed enough to
-             * say that's definitely the case.  Java 5 is pretty ancient
-             * though, so it's probably not a serious problem. */
-            if ( resolver.getResolvedCount() == 0 ) {
+             * but java 6 and 7 do.  It looks to me like a bug or misfeature
+             * for this to happen, but I don't see JAXP documentation
+             * detailed enough to say that's definitely the case. */
+            if ( resolver.getResolvedNamespaces().size() == 0 ) {
                 String msg = new StringBuffer()
                     .append( "No resources from known namespaces resolved" )
                     .append( "; resolver not used??" )
-                    .append( " (can happen for JRE version<=5)" )
                     .toString();
                 reporter.report( FixedCode.W_ZRES, msg );
             }
