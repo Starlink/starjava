@@ -9,6 +9,7 @@ import java.io.IOException;
  * @author   Mark Taylor
  * @since    19 Aug 2005
  */
+@FunctionalInterface
 public interface Executable {
 
     /**
