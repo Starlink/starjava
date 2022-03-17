@@ -19,7 +19,8 @@ public class ResourceTest extends TestCase {
             String namespace = entry.getKey();
             URL url = entry.getValue();
             assertNotNull( "No resource for " + namespace, url );
-            if ( url != null ) {
+            if ( url != null &&
+                 IvoaSchemaResolver.IVOA_SCHEMA_MAP.containsKey( namespace ) ) {
                 assertEquals( "Wrong namespace for " + url,
                               namespace, getTargetNamespace( url ) );
             }
@@ -27,6 +28,7 @@ public class ResourceTest extends TestCase {
         }
         assertTrue( nSchema > 8 );
         assertTrue( schemaMap.containsKey( IvoaSchemaResolver.UWS_URI ) );
+        assertTrue( schemaMap.containsKey( "http://www.w3.org/2001/XMLSchema"));
     }
 
     private String getTargetNamespace( URL schemaUrl )

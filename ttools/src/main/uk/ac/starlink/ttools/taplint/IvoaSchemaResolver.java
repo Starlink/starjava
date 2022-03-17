@@ -60,6 +60,13 @@ public class IvoaSchemaResolver implements LSResourceResolver {
     public static final Map<String,URL> IVOA_SCHEMA_MAP =
         Collections.unmodifiableMap( createIvoaSchemaMap() );
 
+    /**
+     * Unmodifiable map of namespace URIs to local schema URLs for
+     * a selection of schemas from http://www.w3.org.
+     */
+    public static final Map<String,URL> W3C_SCHEMA_MAP =
+        Collections.unmodifiableMap( createW3cSchemaMap() );
+
     private static final String SCHEMA_TYPE =
         "http://www.w3.org/2001/XMLSchema";
 
@@ -71,6 +78,7 @@ public class IvoaSchemaResolver implements LSResourceResolver {
     public IvoaSchemaResolver( Map<String,URL> schemaMap ) {
         if ( schemaMap == null ) {
             schemaMap = new HashMap<String,URL>();
+            schemaMap.putAll( W3C_SCHEMA_MAP );
             schemaMap.putAll( IVOA_SCHEMA_MAP );
         }
         schemaMap_ = schemaMap;
@@ -176,8 +184,22 @@ public class IvoaSchemaResolver implements LSResourceResolver {
                  getResource( "stc-v1.30.xsd" ) );
         map.put( "http://www.ivoa.net/xml/VODataService/v1.0",
                  getResource( "VODataService-v1.0.xsd" ) );
+        return map;
+    }
+
+    /**
+     * Returns a namespace-&gt;URL map for a selection of W3C schemas.
+     *
+     * @return  map
+     */
+    private static Map<String,URL> createW3cSchemaMap() {
+        Map<String,URL> map = new HashMap<>();
         map.put( "http://www.w3.org/1999/xlink",
                  getResource( "xlink.xsd" ) );
+        map.put( "http://www.w3.org/2001/XMLSchema",
+                 getResource( "XMLSchema.xsd" ) );
+        map.put( "http://www.w3.org/XML/1998/namespace",
+                 getResource( "xmlnamespace.xsd" ) );
         return map;
     }
 
