@@ -565,6 +565,7 @@
       <arg value="-xjar"/><arg value="srb.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
+      <arg value="-xent"/><arg value="META-INF/maven/"/>
       <arg value="-file"/><arg value="${star.bin}/topcat"/>
       <arg value="-file"/><arg value="${star.bin}/stilts"/>
       <arg value="-file"/><arg value="${star.etc}/ttools/stilts.py"/>
@@ -586,6 +587,7 @@
       <arg value="-xjar"/><arg value="parquet-mr-stil.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
+      <arg value="-xent"/><arg value="META-INF/maven/"/>
       <arg value="-file"/><arg value="${star.bin}/topcat"/>
       <arg value="-file"/><arg value="${star.bin}/stilts"/>
       <arg value="-file"/><arg value="${star.etc}/ttools/stilts.py"/>
@@ -606,6 +608,7 @@
       <arg value="-xjar"/><arg value="tamfits.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
+      <arg value="-xent"/><arg value="META-INF/maven/"/>
       <arg value="-file"/><arg value="${star.bin}/topcat"/>
       <arg value="-file"/><arg value="${star.bin}/stilts"/>
       <arg value="-file"/><arg value="${star.etc}/ttools/stilts.py"/>
