@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.table.Tables;
 
@@ -31,6 +32,15 @@ public class FitsUtil {
 
     /** Maximum No. of columns in standard FITS BINTABLE extension (@value). */
     public static final int MAX_NCOLSTD = 999;
+
+    /** Regex pattern matching floating point value, no grouping. */
+    public static final String FLOAT_REGEX =
+        "(?:[+-]?(?:[0-9]*\\.[0-9]+|[0-9]+\\.?))(?:[ED][+-]?[0-9]+)?";
+
+    private static final Pattern FLOATARRAY_PATTERN =
+        Pattern.compile( "\\s*[(]\\s*" + FLOAT_REGEX
+                       + "(\\s*[,]\\s*" + FLOAT_REGEX + ")*"
+                       + "\\s*[)]\\s*" );
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
@@ -249,6 +259,46 @@ public class FitsUtil {
                     .toString();
                 throw new IOException( msg );
             }
+        }
+    }
+
+    /**
+     * Attempts to interpret a string as a formatted numeric array.
+     * The string has to be of the form "(x, x, ...)", where x has the
+     * same form as a floating point header value.  Whitespace is permitted.
+     * The output will be an int[] array if the tokens all look like 32-bit
+     * integers, or a double[] array if the tokens all look like floating
+     * point numbers, or null otherwise.
+     *
+     * <p>This is a bit hacky, it doesn't correspond to prescriptions in
+     * the FITS stanard, but it's useful for some purposes.
+     *
+     * @param  txt  string
+     * @return  int[] array or double[] array or null
+     */
+    public static Object asNumericArray( String txt ) {
+        if ( FLOATARRAY_PATTERN.matcher( txt ).matches() ) {
+            String[] tokens =
+                txt.substring( txt.indexOf( '(' ) + 1, txt.indexOf( ')' ) )
+                   .split( "\\s*,\\s*" );
+            int n = tokens.length;
+            boolean isInts = true;
+            int[] ivals = new int[ n ];
+            double[] dvals = new double[ n ];
+            try {
+                for ( int i = 0; i < n; i++ ) {
+                    dvals[ i ] = Double.parseDouble( tokens[ i ] );
+                    ivals[ i ] = (int) dvals[ i ];
+                    isInts &= ivals[ i ] == dvals[ i ];
+                }
+            }
+            catch ( NumberFormatException e ) {
+                return null;
+            }
+            return isInts ? ivals : dvals;
+        }
+        else {
+            return null;
         }
     }
 }

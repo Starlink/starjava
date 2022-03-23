@@ -33,8 +33,7 @@ public class CardType<T> {
     private static final String B_QUOTED = " *'((?:[^']|'')*)'";
     private static final String B_LOGICAL = " *([TF])";
     private static final String B_INT = " *([-+]?[0-9]+)";
-    private static final String U_FLOAT =
-        "(?:[+-]?(?:[0-9]*\\.[0-9]+|[0-9]+\\.?))(?:[ED][+-]?[0-9]+)?";
+    private static final String U_FLOAT = FitsUtil.FLOAT_REGEX;
     private static final String B_FLOAT = " *(" + U_FLOAT + ")";
     private static final String B_COMPLEX =
         " *\\( *(" + U_FLOAT + " *, *" + U_FLOAT + ") *\\)";

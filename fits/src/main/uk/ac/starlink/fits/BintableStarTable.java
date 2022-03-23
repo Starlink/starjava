@@ -1,6 +1,7 @@
 package uk.ac.starlink.fits;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -402,7 +403,13 @@ public abstract class BintableStarTable extends AbstractStarTable {
         }
 
         /* Any unused header cards become table parameters. */
-        getParameters().addAll( Arrays.asList( hdr.getUnusedParams() ) );
+        List<DescribedValue> params = getParameters();
+        for ( DescribedValue dval0 : hdr.getUnusedParams() ) {
+            DescribedValue dval1 = adjustParameter( dval0 );
+            if ( dval1 != null ) {
+                params.add( dval1 );
+            }
+        }
     }
 
     public long getRowCount() {
@@ -649,6 +656,34 @@ public abstract class BintableStarTable extends AbstractStarTable {
         }
         else {
             return null;
+        }
+    }
+
+    /**
+     * Hook for modifying a DescribedValue to used as a table parameter.
+     *
+     * @param  dval0  raw described value from header parsing
+     * @return   described value to use as parameter; may be the same as the
+     *           input, or different, or null if not suitable for use
+     */
+    private static DescribedValue adjustParameter( DescribedValue dval0 ) {
+        Object value = dval0.getValue();
+        if ( value instanceof String ) {
+            Object array = FitsUtil.asNumericArray( (String) value );
+            if ( array instanceof int[] || array instanceof double[] ) {
+                ValueInfo info0 = dval0.getInfo();
+                DefaultValueInfo info1 =
+                    new DefaultValueInfo( info0.getName(), array.getClass(),
+                                          info0.getDescription() );
+                info1.setShape( new int[] { Array.getLength( array ) } );
+                return new DescribedValue( info1, array );
+            }
+            else {
+                return dval0;
+            }
+        }
+        else {
+            return dval0;
         }
     }
 

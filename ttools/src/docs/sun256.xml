@@ -13748,6 +13748,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Upgrade Unity library to 1.1 pre-release
         and improve VOUnits validation reporting
         (new status "GUESSED_UNIT").</li>
+    <li>FITS header values of the form "(a, b, c)" are now interpreted
+        where possible as numeric arrays; this works for long string
+        values (CONTINUE records) as well.</li>
     </ul>
     </p></dd>
 

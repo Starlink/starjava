@@ -1,5 +1,6 @@
 package uk.ac.starlink.fits;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +8,9 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.nio.charset.StandardCharsets;
-import junit.framework.TestCase;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.storage.DiscardByteStore;
+import uk.ac.starlink.util.TestCase;
 
 public class HeaderTest extends TestCase {
 
@@ -132,6 +134,42 @@ public class HeaderTest extends TestCase {
            .createStringCard( "HIERARCH ESO INS OPTI-3 ID", "ESO#427",
                               "Optical element identifier" )
         );
+    }
+
+    public void testArrayMeta() throws IOException {
+        FitsHeader hdr = headerFromLines( new String[] {
+            "XTENSION= 'BINTABLE'           / binary table extension",
+            "BITPIX  =                    8 / array data type",
+            "NAXIS   =                    2 / number of array dimensions",
+            "NAXIS1  =                    0 / length of dimension 1",
+            "NAXIS2  =                    0 / length of dimension 2",
+            "PCOUNT  =                    0 / number of group parameters",
+            "GCOUNT  =                    1 / number of groups",
+            "TFIELDS =                    0 / number of table fields",
+            "SAMPLING= '(336.0, 338.0, 340.0, 342.0, 344.0, &'",
+            "CONTINUE  '570.0, 572.0, 574.0, 576.0, 578.0, &'",
+            "CONTINUE  '1018.0, 1020.0)'",
+            "",
+            "DUMPLING=  '  (  1,  2, 3, 3.1415, 4, 5  )  '  ",
+            "END",
+        } );
+        InputFactory dummyFact =
+            InputFactory.createByteStoreFactory( new DiscardByteStore() );
+        BintableStarTable table =
+            BintableStarTable.createTable( hdr, dummyFact, (WideFits) null );
+        DescribedValue samplingParam = table.getParameterByName( "SAMPLING" );
+        DescribedValue dumplingParam = table.getParameterByName( "DUMPLING" );
+        DescribedValue wimplingParam = table.getParameterByName( "WIMPLING" );
+        assertNull( wimplingParam );
+        assertEquals( int[].class, samplingParam.getInfo().getContentClass() );
+        assertEquals( double[].class,
+                      dumplingParam.getInfo().getContentClass() );
+        int[] sampling = (int[]) samplingParam.getValue();
+        double[] dumpling = (double[]) dumplingParam.getValue();
+        assertArrayEquals( new double[] { 1, 2, 3, 3.1415, 4, 5 }, dumpling,
+                           1e-10 );
+        assertEquals( 12, sampling.length );
+        assertEquals( 1020, sampling[ 11 ] );
     }
 
     private void exerciseCardFactory( CardFactory cf ) {
