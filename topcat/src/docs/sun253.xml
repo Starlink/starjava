@@ -24999,6 +24999,9 @@ functionality:
             (Gr&#x00e9;gory Mantelet, CDS) for UCD parsing</li>
 <li><webref url="http://www.astro.gla.ac.uk/users/norman/ivoa/unity/"
             >Unity</webref> (Norman Gray, Glasgow) for VOUnits parsing</li>
+<li><webref url="https://github.com/douglascrockford/JSON-java"
+            >JSON-java</webref> (Douglas Crockford, org.json)
+            for JSON de/serialization</li>
 <li><webref url="http://www.jidesoft.com/products/oss.htm"
             >JIDE Common Layer</webref> (Jidesoft)
             for double-ended slider controls</li>
