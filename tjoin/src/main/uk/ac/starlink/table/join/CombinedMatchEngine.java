@@ -32,12 +32,10 @@ public class CombinedMatchEngine implements MatchEngine {
     private final int nPart;
     private String name;
 
-    // Some work arrays for holding subtuples - benchmarking shows that
+    // ThreadLocal work arrays for holding subtuples - benchmarking shows that
     // there actually is a bottleneck if you create new empty arrays
     // every time you need one.
-    private final Object[][] work0;
-    private final Object[][] work1;
-    private final Object[][] work2;
+    private final ThreadLocal<CWork> workLocal_;
 
     private static final ValueInfo SCORE_INFO =
         new DefaultValueInfo( "Separation", Double.class,
@@ -57,21 +55,17 @@ public class CombinedMatchEngine implements MatchEngine {
         this.engines = engines;
         nPart = engines.length;
         tupleSizes = new int[ nPart ];
-        for ( int i = 0; i < nPart; i++ ) {
-            tupleSizes[ i ] = engines[ i ].getTupleInfos().length;
-        }
         tupleStarts = new int[ nPart ];
         int ts = 0;
-        work0 = new Object[ nPart ][];
-        work1 = new Object[ nPart ][];
-        work2 = new Object[ nPart ][];
         for ( int i = 0; i < nPart; i++ ) {
             tupleStarts[ i ] = ts;
+            tupleSizes[ i ] = engines[ i ].getTupleInfos().length;
             ts += tupleSizes[ i ];
-            work0[ i ] = new Object[ tupleSizes[ i ] ];
-            work1[ i ] = new Object[ tupleSizes[ i ] ];
-            work2[ i ] = new Object[ tupleSizes[ i ] ];
         }
+
+        /* Set up workspace. */
+        workLocal_ = ThreadLocal
+                    .withInitial( () -> new CWork( nPart, tupleSizes ) );
 
         /* Set the name. */
         StringBuffer buf = new StringBuffer( "(" );
@@ -87,9 +81,10 @@ public class CombinedMatchEngine implements MatchEngine {
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
         double sum2 = 0.0;
+        CWork cwork = workLocal_.get();
         for ( int i = 0; i < nPart; i++ ) {
-            Object[] subTuple1 = work1[ i ];
-            Object[] subTuple2 = work2[ i ];
+            Object[] subTuple1 = cwork.work1_[ i ];
+            Object[] subTuple2 = cwork.work2_[ i ];
             System.arraycopy( tuple1, tupleStarts[ i ], 
                               subTuple1, 0, tupleSizes[ i ] );
             System.arraycopy( tuple2, tupleStarts[ i ],
@@ -131,12 +126,13 @@ public class CombinedMatchEngine implements MatchEngine {
     }
 
     public Object[] getBins( Object[] tuple ) {
+        CWork cwork = workLocal_.get();
 
         /* Work out the bin set for each region of the tuple handled by a
          * different match engine. */
         Object[][] binBag = new Object[ nPart ][];
         for ( int i = 0; i < nPart; i++ ) {
-            Object[] subTuple = work0[ i ];
+            Object[] subTuple = cwork.work0_[ i ];
             System.arraycopy( tuple, tupleStarts[ i ], 
                               subTuple, 0, tupleSizes[ i ] );
             binBag[ i ] = engines[ i ].getBins( subTuple );
@@ -254,5 +250,24 @@ public class CombinedMatchEngine implements MatchEngine {
 
     public String toString() {
         return name;
+    }
+
+    /**
+     * Object for holding work arrays used during calculations.
+     */
+    private static class CWork {
+        final Object[][] work0_;
+        final Object[][] work1_;
+        final Object[][] work2_;
+        CWork( int nPart, int[] tupleSizes ) {
+            work0_ = new Object[ nPart ][];
+            work1_ = new Object[ nPart ][];
+            work2_ = new Object[ nPart ][];
+            for ( int i = 0; i < nPart; i++ ) {
+                work0_[ i ] = new Object[ tupleSizes[ i ] ];
+                work1_[ i ] = new Object[ tupleSizes[ i ] ];
+                work2_[ i ] = new Object[ tupleSizes[ i ] ];
+            }
+        }
     }
 }
