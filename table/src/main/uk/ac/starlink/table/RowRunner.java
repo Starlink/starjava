@@ -36,6 +36,9 @@ public class RowRunner {
         }
     };
 
+    /** Testing instance; force parallel processing even for small tables. */
+    public static final RowRunner PARTEST = createParallelTestRunner( 10 );
+
     /**
      * Constructor.
      *
@@ -129,5 +132,22 @@ public class RowRunner {
             }
         }
         return null;
+    }
+
+    /**
+     * Creates a runner that forces parallel execution for all row counts
+     * above a given value.  Generally useful for testing only.
+     *
+     * @param  minTaskSize  parallel execution threshold
+     * @return  new runner
+     */
+    private static RowRunner createParallelTestRunner( int minTaskSize ) {
+        short maxTasksPerCore = -1;
+        SplitPolicy policy =
+            new SplitPolicy( null, minTaskSize, maxTasksPerCore );
+        SplitProcessor<RowSplittable> processor =
+            STD_IS_POOL ? SplitProcessor.createPoolParallelProcessor( policy )
+                        : SplitProcessor.createBasicParallelProcessor( policy );
+        return new RowRunner( processor );
     }
 }
