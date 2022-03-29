@@ -343,7 +343,7 @@ public class MatchStarTables {
                     if ( lrow < Integer.MAX_VALUE ) {
                         int irow = (int) lrow;
                         if ( grpSizeData[ irow ] > 1 ) {
-                            return new Integer( grpSizeData[ irow ] );
+                            return Integer.valueOf( grpSizeData[ irow ] );
                         }
                     }
                     return null;
@@ -546,7 +546,8 @@ public class MatchStarTables {
                 }
                 else {
                     int grpId = grpIds[ (int) lrow ];
-                    return grpId > 0 ? new Integer( grpSizes[ grpId ] ) : null;
+                    return grpId > 0 ? Integer.valueOf( grpSizes[ grpId ] )
+                                     : null;
                 }
             }
         };

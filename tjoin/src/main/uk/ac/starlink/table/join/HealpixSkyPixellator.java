@@ -125,7 +125,7 @@ public abstract class HealpixSkyPixellator implements SkyPixellator {
         }
         public Object getValue() {
             int k = getHealpixK();
-            return k >= 0 ? new Integer( k ) : null;
+            return k >= 0 ? Integer.valueOf( k ) : null;
         }
         public void setValue( Object value ) {
             setHealpixK( value == null ? -1 : ((Integer) value).intValue() );

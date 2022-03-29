@@ -71,7 +71,7 @@ public class PairsRowLink extends RowLink {
                 new HashMap<Integer,ScoredRowRef>();
             for ( int i = 0; i < sref1s.length; i++ ) {
                 ScoredRowRef ref = sref1s[ i ];
-                Integer key = new Integer( ref.getTableIndex() );
+                Integer key = Integer.valueOf( ref.getTableIndex() );
                 if ( refMap.containsKey( key ) ) {
                     ScoredRowRef bestRef = refMap.get( key );
                     if ( ref.getScore() < bestRef.getScore() ) {

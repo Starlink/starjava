@@ -276,7 +276,7 @@ class Binners {
     private static class CombinationIntLongBinner
             extends MapLongBinner<Object> {
         private static int MAX_ARRAY_SIZE = 32;
-        private Integer lastInt_ = new Integer( -1 );
+        private Integer lastInt_ = Integer.valueOf( -1 );
         private int[] lastInts_ = new int[ 0 ];
 
         protected Object addToListable( Object listable, long ltem ) {
