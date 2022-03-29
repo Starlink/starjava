@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -72,6 +73,7 @@ public class CombinedMatchTest extends TestCase {
         env.setValue( "in2", tycho_ );
         env.setValue( "values1", "ra2mass de2mass jmag hmag" );
         env.setValue( "values2", "raTycho deTycho btmag vtmag" );
+        env.setValue( "runner", RowRunner.PARTEST );
         env.setValue( "params", "" + skyErr + " " + mag1Err + " " + mag2Err );
         env.setValue( "ocmd",
                       "addcol skydist "

@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -26,6 +27,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.CdsHealpixSkyPixellator;
 import uk.ac.starlink.table.join.CombinedMatchEngine;
@@ -69,6 +71,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
     private final Action stopAct;
     private final JProgressBar progBar;
     private final ToggleButtonModel profileModel;
+    private final ToggleButtonModel parallelModel;
     private MatchProgressIndicator currentIndicator;
 
     /**
@@ -119,6 +122,13 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             }
         } );
 
+        /* Set up an action to control parallel implementation. */
+        parallelModel =
+            new ToggleButtonModel( "Parallel execution", ResourceIcon.PARALLEL,
+                                   "Set to run match using multithreaded "
+                                 + "execution" );
+        parallelModel.setSelected( false );
+
         /* Set up an action to perform profiling during match. */
         profileModel =
             new ToggleButtonModel( "Full Profiling", ResourceIcon.PROFILE,
@@ -158,10 +168,12 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         /* Place actions. */
         getToolBar().add( tuningModel.createToolbarButton() );
         getToolBar().add( profileModel.createToolbarButton() );
+        getToolBar().add( parallelModel.createToolbarButton() );
         JMenu tuningMenu = new JMenu( "Tuning" );
         tuningMenu.setMnemonic( KeyEvent.VK_T );
         tuningMenu.add( tuningModel.createMenuItem() );
         tuningMenu.add( profileModel.createMenuItem() );
+        tuningMenu.add( parallelModel.createMenuItem() );
         getJMenuBar().add( tuningMenu );
 
         /* Add standard help actions. */
@@ -222,13 +234,15 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * @return  new MatchSpec
      */
     private MatchSpec makeMatchSpec( MatchEngine engine ) {
+        Supplier<RowRunner> runnerFact =
+            () -> parallelModel.isSelected() ? RowRunner.DEFAULT : null;
         switch( nTable ) {
             case 1:
-                return new IntraMatchSpec( engine );
+                return new IntraMatchSpec( engine, runnerFact );
             case 2:
-                return new PairMatchSpec( engine );
+                return new PairMatchSpec( engine, runnerFact );
             default:
-                return new InterMatchSpec( engine, nTable );
+                return new InterMatchSpec( engine, runnerFact, nTable );
         }
     }
 

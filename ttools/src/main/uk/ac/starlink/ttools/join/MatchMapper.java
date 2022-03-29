@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.join;
 import java.io.IOException;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.join.LinkSet;
@@ -38,6 +39,7 @@ public class MatchMapper implements TableMapper {
     private final ChoiceParameter<String> mmodeParam_;
     private final IntegerParameter irefParam_;
     private final ProgressIndicatorParameter progressParam_;
+    private final Parameter<RowRunner> runnerParam_;
 
     private static final String PAIRS_MODE = "pairs";
     private static final String GROUP_MODE = "group";
@@ -114,6 +116,7 @@ public class MatchMapper implements TableMapper {
         matcherParam_ = new MatchEngineParameter( "matcher" );
         fixcolsParam_ = new JoinFixActionParameter( "fixcols" );
         progressParam_ = new ProgressIndicatorParameter( "progress" );
+        runnerParam_ = new MatchRunnerParameter( "runner" );
     }
 
     public Parameter<?>[] getParameters() {
@@ -128,6 +131,7 @@ public class MatchMapper implements TableMapper {
             fixcolsParam_,
             fixcolsParam_.createSuffixParameter( "N" ),
             progressParam_,
+            runnerParam_,
         };
     }
 
@@ -162,13 +166,14 @@ public class MatchMapper implements TableMapper {
         }
         ProgressIndicator progger =
             progressParam_.progressIndicatorValue( env );
+        RowRunner runner = runnerParam_.objectValue( env );
         if ( GROUP_MODE.equalsIgnoreCase( mmode ) ) {
             return new GroupMatchMapping( matcher, exprTuples, fixActs, progger,
-                                          joinTypes );
+                                          runner, joinTypes );
         }
         else if ( PAIRS_MODE.equalsIgnoreCase( mmode ) ) {
             return new PairsMatchMapping( matcher, exprTuples, fixActs, progger,
-                                          iref, joinTypes );
+                                          runner, iref, joinTypes );
         }
         else {
             throw new AssertionError( "Unknown multimode " + mmode + "???" );
@@ -185,6 +190,7 @@ public class MatchMapper implements TableMapper {
         private final String[][] exprTuples_;
         private final JoinFixAction[] fixActs_;
         private final ProgressIndicator progger_;
+        private final RowRunner runner_;
 
         /**
          * Constructor.
@@ -195,13 +201,17 @@ public class MatchMapper implements TableMapper {
          * @param   fixActs   nin-element array of actions for fixing up 
          *                    duplicated table columns
          * @param   progger   progress indicator
+         * @param   runner    controls parallel implementation,
+         *                    or null for sequential
          */
         MatchMapping( MatchEngine matchEngine, String[][] exprTuples,
-                      JoinFixAction[] fixActs, ProgressIndicator progger ) {
+                      JoinFixAction[] fixActs, ProgressIndicator progger,
+                      RowRunner runner ) {
             matchEngine_ = matchEngine;
             exprTuples_ = exprTuples;
             fixActs_ = fixActs;
             progger_ = progger;
+            runner_ = runner;
             nin_ = exprTuples_.length;
         }
 
@@ -230,7 +240,7 @@ public class MatchMapper implements TableMapper {
 
             /* Do the match. */
             RowMatcher matcher =
-                RowMatcher.createMatcher( matchEngine_, subTables );
+                RowMatcher.createMatcher( matchEngine_, subTables, runner_ );
             matcher.setIndicator( progger_ );
             LinkSet matches;
             try { 
@@ -311,13 +321,16 @@ public class MatchMapper implements TableMapper {
          * @param   fixActs   nin-element array of actions for fixing up 
          *                    duplicated table columns
          * @param   progger   progress indicator
+         * @param   runner    controls parallel implementation,
+         *                    or null for sequential
          * @param   iref      index (0-based) of reference table
          * @param   joinTypes inclusion criteria for links in output table
          */
         PairsMatchMapping( MatchEngine matchEngine, String[][] exprTuples,
                            JoinFixAction[] fixActs, ProgressIndicator progger,
+                           RowRunner runner,
                            int iref, MultiJoinType[] joinTypes ) {
-            super( matchEngine, exprTuples, fixActs, progger );
+            super( matchEngine, exprTuples, fixActs, progger, runner );
             iref_ = iref;
             joinTypes_ = joinTypes;
         }
@@ -351,12 +364,14 @@ public class MatchMapper implements TableMapper {
          * @param   fixActs   nin-element array of actions for fixing up 
          *                    duplicated table columns
          * @param   progger   progress indicator
+         * @param   runner    controls parallel implementation,
+         *                    or null for sequential
          * @param   joinTypes inclusion criteria for links in output table
          */
         GroupMatchMapping( MatchEngine matchEngine, String[][] exprTuples,
                            JoinFixAction[] fixActs, ProgressIndicator progger,
-                           MultiJoinType[] joinTypes ) {
-            super( matchEngine, exprTuples, fixActs, progger );
+                           RowRunner runner, MultiJoinType[] joinTypes ) {
+            super( matchEngine, exprTuples, fixActs, progger, runner );
             joinTypes_ = joinTypes;
         }
 

@@ -3,9 +3,11 @@ package uk.ac.starlink.topcat.join;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.io.IOException;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.JOptionPane;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
@@ -27,6 +29,7 @@ public class IntraMatchSpec extends MatchSpec {
     private final TupleSelector tupleSelector_;
     private final Match1TypeSelector type1Selector_;
     private final MatchEngine engine_;
+    private final Supplier<RowRunner> runnerFact_;
     private StarTable result_;
     private int matchCount_;
 
@@ -37,9 +40,12 @@ public class IntraMatchSpec extends MatchSpec {
      * Constructs a new IntraMatchSpec.
      *
      * @param  engine the match engine defining the match type
+     * @param  runnerFact   supplier for RowRunner
      */
-    public IntraMatchSpec( MatchEngine engine ) {
+    public IntraMatchSpec( MatchEngine engine,
+                           Supplier<RowRunner> runnerFact ) {
         engine_ = engine;
+        runnerFact_ = runnerFact;
         Box main = Box.createVerticalBox();
         setLayout( new BorderLayout() );
         add( main, BorderLayout.NORTH );
@@ -69,7 +75,8 @@ public class IntraMatchSpec extends MatchSpec {
 
         /* Do the matching. */
         RowMatcher matcher =
-            RowMatcher.createMatcher( engine_, new StarTable[] { effTable } );
+            RowMatcher.createMatcher( engine_, new StarTable[] { effTable },
+                                      runnerFact_.get() );
         matcher.setIndicator( indicator );
         LinkSet matches = matcher.findInternalMatches( false );
         if ( ! matches.sort() ) {

@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.join;
 
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.ProgressIndicator;
@@ -34,18 +35,21 @@ public class SkyMatch2Mapping extends Match2Mapping {
      * @param   fixact1    deduplication fix action for first input table
      * @param   fixact2    deduplication fix action for second input table
      * @param   progger    progress indicator for match process
+     * @param   runner    controls parallel implementation,
+     *                    or null for sequential
      */
     public SkyMatch2Mapping( FixedSkyMatchEngine matcher, 
                              String raExpr1, String decExpr1,
                              String raExpr2, String decExpr2,
                              JoinType join, PairMode pairMode,
                              JoinFixAction fixact1, JoinFixAction fixact2,
-                             ProgressIndicator progger ) {
+                             ProgressIndicator progger, RowRunner runner ) {
         super( new HumanMatchEngine( matcher ),
                new String[] { raExpr1, decExpr1, }, 
                new String[] { raExpr2, decExpr2, }, join, pairMode,
                fixact1, fixact2, 
-               new HumanMatchEngine( matcher ).getMatchScoreInfo(), progger );
+               new HumanMatchEngine( matcher ).getMatchScoreInfo(), progger,
+               runner );
     }
 
     protected StarTable makeSubTable( StarTable inTable, String[] exprTuple )

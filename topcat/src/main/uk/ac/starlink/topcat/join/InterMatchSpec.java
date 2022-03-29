@@ -8,12 +8,14 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -41,6 +43,7 @@ public class InterMatchSpec extends MatchSpec {
 
     private final int nTable;
     private final MatchEngine engine;
+    private final Supplier<RowRunner> runnerFact;
     private final TupleSelector[] tupleSelectors;
     private final OutputRequirements[] outReqs;
     private StarTable result;
@@ -54,11 +57,14 @@ public class InterMatchSpec extends MatchSpec {
      * Constructs a new InterMatchSpec.
      *
      * @param  engine   match algorithm object
+     * @param  runnerFact  supplier for RowRunner
      * @param  nTable   number of tables on which this InterMatch will operate
      */
-    public InterMatchSpec( MatchEngine engine, int nTable ) {
+    public InterMatchSpec( MatchEngine engine, Supplier<RowRunner> runnerFact,
+                           int nTable ) {
         this.nTable = nTable;
         this.engine = engine;
+        this.runnerFact = runnerFact;
 
         Box main = Box.createVerticalBox();
         setLayout( new BorderLayout() );
@@ -124,7 +130,8 @@ public class InterMatchSpec extends MatchSpec {
 
         /* Do the matching. */
         MultiJoinType[] joinTypes = getJoinTypes();
-        RowMatcher matcher = RowMatcher.createMatcher( engine, tables );
+        RowMatcher matcher =
+            RowMatcher.createMatcher( engine, tables, runnerFact.get() );
         matcher.setIndicator( indicator );
         LinkSet matches = matcher.findGroupMatches( joinTypes );
         if ( ! matches.sort() ) {

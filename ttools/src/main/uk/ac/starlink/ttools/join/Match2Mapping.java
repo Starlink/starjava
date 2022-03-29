@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -36,6 +37,7 @@ public class Match2Mapping implements TableMapping {
     final JoinType join_;
     final ValueInfo scoreInfo_;
     final ProgressIndicator progger_;
+    final RowRunner runner_;
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -59,11 +61,14 @@ public class Match2Mapping implements TableMapping {
      * @param   scoreInfo  column description for inter-table match score
      *                     values, or null for no score column
      * @param   progger    progress indicator for matching
+     * @param   runner    controls parallel implementation,
+     *                    or null for sequential
      */
     Match2Mapping( MatchEngine matchEngine, String[] exprTuple1,
                    String[] exprTuple2, JoinType join, PairMode pairMode,
                    JoinFixAction fixact1, JoinFixAction fixact2,
-                   ValueInfo scoreInfo, ProgressIndicator progger ) {
+                   ValueInfo scoreInfo, ProgressIndicator progger,
+                   RowRunner runner ) {
         matchEngine_ = matchEngine;
         exprTuple1_ = exprTuple1;
         exprTuple2_ = exprTuple2;
@@ -72,6 +77,7 @@ public class Match2Mapping implements TableMapping {
         fixacts_ = new JoinFixAction[] { fixact1, fixact2, };
         scoreInfo_ = scoreInfo;
         progger_ = progger;
+        runner_ = runner;
     }
 
     public StarTable mapTables( InputTableSpec[] inSpecs )
@@ -97,7 +103,7 @@ public class Match2Mapping implements TableMapping {
         RowMatcher matcher =
             RowMatcher
            .createMatcher( matchEngine_,
-                           new StarTable[] { subTable1, subTable2 } );
+                           new StarTable[] { subTable1, subTable2 }, runner_ );
         matcher.setIndicator( progger_ );
         LinkSet matches;
         try {

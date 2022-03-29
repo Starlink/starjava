@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.Match1Type;
@@ -15,6 +16,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.join.Match1Mapping;
 import uk.ac.starlink.ttools.join.Match1TypeParameter;
 import uk.ac.starlink.ttools.join.MatchEngineParameter;
+import uk.ac.starlink.ttools.join.MatchRunnerParameter;
 import uk.ac.starlink.ttools.join.ProgressIndicatorParameter;
 
 /**
@@ -29,6 +31,7 @@ public class TableMatch1 extends SingleMapperTask {
     private final WordsParameter<String> tupleParam_;
     private final Match1TypeParameter type1Param_;
     private final ProgressIndicatorParameter progressParam_;
+    private final Parameter<RowRunner> runnerParam_;
 
     /**
      * Constructor.
@@ -52,6 +55,9 @@ public class TableMatch1 extends SingleMapperTask {
         progressParam_ = new ProgressIndicatorParameter( "progress" );
         paramList.add( progressParam_ );
 
+        runnerParam_ = new MatchRunnerParameter( "runner" );
+        paramList.add( runnerParam_ );
+
         getParameterList().addAll( 0, paramList );
     }
 
@@ -70,9 +76,12 @@ public class TableMatch1 extends SingleMapperTask {
         ProgressIndicator progger =
             progressParam_.progressIndicatorValue( env );
 
+        /* Get parallel implementation option. */
+        RowRunner runner = runnerParam_.objectValue( env );
+
         /* Construct and return a table producer which will do the work. */
         final SingleTableMapping mapping = 
-            new Match1Mapping( matcher, type1, tupleExprs, progger );
+            new Match1Mapping( matcher, type1, tupleExprs, progger, runner );
         final TableProducer inProd = createInputProducer( env );
         return new TableProducer() {
             public StarTable getTable() throws IOException, TaskException {

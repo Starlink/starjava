@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -16,6 +17,7 @@ import javax.swing.JOptionPane;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -43,6 +45,7 @@ import uk.ac.starlink.topcat.TupleSelector;
 public class PairMatchSpec extends MatchSpec {
 
     private final MatchEngine engine_;
+    private final Supplier<RowRunner> runnerFact_;
     private final TupleSelector[] tupleSelectors_;
     private final PairModeSelector pairModeSelector_;
     private final JoinSelector joinSelector_;
@@ -59,9 +62,11 @@ public class PairMatchSpec extends MatchSpec {
      * Constructs a new PairMatchSpec.
      *
      * @param  engine  match algorithm object
+     * @param  runnerFact  supplier for RowRunner
      */
-    public PairMatchSpec( MatchEngine engine ) {
+    public PairMatchSpec( MatchEngine engine, Supplier<RowRunner> runnerFact ) {
         engine_ = engine;
+        runnerFact_ = runnerFact;
 
         Box main = Box.createVerticalBox();
         setLayout( new BorderLayout() );
@@ -128,7 +133,8 @@ public class PairMatchSpec extends MatchSpec {
         PairMode pairMode = pairModeSelector_.getMode();
 
         /* Find the matching row pairs. */
-        RowMatcher matcher = RowMatcher.createMatcher( engine_, tables );
+        RowMatcher matcher =
+            RowMatcher.createMatcher( engine_, tables, runnerFact_.get() );
         matcher.setIndicator( indicator );
         LinkSet pairs = matcher.findPairMatches( pairMode );
         pairCount_ = pairs.size();

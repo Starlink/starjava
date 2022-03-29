@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -1175,11 +1176,17 @@ public class RowMatcher {
      *
      * @param  engine  matching engine
      * @param  tables  the array of tables on which matches are to be done
+     * @param  runner  RowRunner to control multithreading,
+     *                 or null to fall back to sequential implementation
      * @return   new RowMatcher
      */
     public static RowMatcher createMatcher( MatchEngine engine,
-                                            StarTable[] tables ) {
-        return new RowMatcher( engine, tables, new SequentialMatchComputer() );
+                                            StarTable[] tables,
+                                            RowRunner runner ) {
+        return new RowMatcher( engine, tables,
+                               runner == null
+                                   ? new SequentialMatchComputer()
+                                   : new ParallelMatchComputer( runner ) );
     }
 
     /**

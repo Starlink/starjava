@@ -119,6 +119,7 @@ public class ResourceIcon implements Icon {
         CLEAR = makeIcon( "newdoc1.png" ),
         HIDE_WINDOWS = makeIcon( "hide1.png" ),
         SCROLLER = makeIcon( "scroll2.png" ),
+        PARALLEL = makeIcon( "parallel1.png" ),
         STILTS = makeIcon( "stilts.png" ),
 
         /* Windows. */

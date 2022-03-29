@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.join;
 
 import java.io.PrintStream;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.join.CdsHealpixSkyPixellator;
 import uk.ac.starlink.table.join.FixedSkyMatchEngine;
 import uk.ac.starlink.table.join.HealpixSkyPixellator;
@@ -35,6 +36,7 @@ public class SkyMatch2Mapper implements TableMapper {
     private final JoinTypeParameter joinParam_;
     private final FindModeParameter modeParam_;
     private final IntegerParameter healpixkParam_;
+    private final Parameter<RowRunner> runnerParam_;
 
     /**
      * Constructor.
@@ -89,6 +91,7 @@ public class SkyMatch2Mapper implements TableMapper {
 
         joinParam_ = new JoinTypeParameter( "join" );
         modeParam_ = new FindModeParameter( "find" );
+        runnerParam_ = new MatchRunnerParameter( "runner" );
     }
 
     public Parameter<?>[] getParameters() {
@@ -101,6 +104,7 @@ public class SkyMatch2Mapper implements TableMapper {
             healpixkParam_,
             joinParam_,
             modeParam_,
+            runnerParam_,
         }; 
     }
 
@@ -132,11 +136,12 @@ public class SkyMatch2Mapper implements TableMapper {
         JoinFixAction fixact2 =
             JoinFixAction.makeRenameDuplicatesAction( "_2", false, true );
         PrintStream err = env.getErrorStream();
-        ProgressIndicator progger =
-            err == null
-                ? (ProgressIndicator) new NullProgressIndicator()
-                : (ProgressIndicator) new TextProgressIndicator( err, false );
+        ProgressIndicator progger = err == null
+                                  ? new NullProgressIndicator()
+                                  : new TextProgressIndicator( err, false );
+        RowRunner runner = runnerParam_.objectValue( env );
         return new SkyMatch2Mapping( matcher, ra1, dec1, ra2, dec2, join,
-                                     pairMode, fixact1, fixact2, progger );
+                                     pairMode, fixact1, fixact2, progger,
+                                     runner );
     }
 }

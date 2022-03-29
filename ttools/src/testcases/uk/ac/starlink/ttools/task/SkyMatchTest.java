@@ -26,10 +26,9 @@ public class SkyMatchTest extends TableTestCase {
     private final StarTable t2;
     private static final double ARCSEC_PER_DEGREE = 60 * 60;
     private static int NROW = 1000;
+    private static final Logger logger = Logger.getLogger( "uk.ac.starlink" );
     static {
-        Logger.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.table.join" )
-              .setLevel( Level.WARNING );
+        logger.setLevel( Level.WARNING );
     }
 
     public SkyMatchTest( String name ) {
@@ -189,7 +188,7 @@ public class SkyMatchTest extends TableTestCase {
         env21.setValue( "values1", values2 );
         new TableMatch2().createExecutable( env21 ).execute();
         StarTable m21 = env21.getOutputTable( "omode" );
-     
+
         assertTrue( m21 != null );
         assertEquals( m12.getRowCount(), m21.getRowCount() );
         assertEquals( m12.getColumnCount(), m21.getColumnCount() );
@@ -224,6 +223,14 @@ public class SkyMatchTest extends TableTestCase {
         env21.setValue( "error", Double.toString( error ) );
         new SkyMatch2().createExecutable( env21 ).execute();
         StarTable m21 = env21.getOutputTable( "omode" );
+
+        for ( String runner : new String[] {
+                 "classic", "sequential", "parallel", "partest" } ) {
+            env21.setValue( "runner", runner );
+            new SkyMatch2().createExecutable( env21 ).execute();
+            StarTable m21v = env21.getOutputTable( "omode" );
+            assertSameData( m21, env21.getOutputTable( "omode" ) );
+        }
 
         assertTrue( m21 != null );
         assertEquals( m12.getRowCount(), m21.getRowCount() );

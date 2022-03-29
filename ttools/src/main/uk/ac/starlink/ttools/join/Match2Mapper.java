@@ -4,6 +4,7 @@ import gnu.jel.CompilationException;
 import java.util.ArrayList;
 import java.util.List;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.MatchEngine;
@@ -34,6 +35,7 @@ public class Match2Mapper implements TableMapper {
     private final FindModeParameter modeParam_;
     private final JoinFixActionParameter fixcolParam_;
     private final ProgressIndicatorParameter progressParam_;
+    private final Parameter<RowRunner> runnerParam_;
 
     /**
      * Constructor.
@@ -47,6 +49,7 @@ public class Match2Mapper implements TableMapper {
         joinParam_ = new JoinTypeParameter( "join" );
         modeParam_ = new FindModeParameter( "find" );
         progressParam_ = new ProgressIndicatorParameter( "progress" );
+        runnerParam_ = new MatchRunnerParameter( "runner" );
     }
 
     public Parameter<?>[] getParameters() {
@@ -63,6 +66,7 @@ public class Match2Mapper implements TableMapper {
             fixcolParam_.createSuffixParameter( "2" ),
             matcherParam_.getScoreParameter(),
             progressParam_,
+            runnerParam_,
         };
     }
 
@@ -88,10 +92,11 @@ public class Match2Mapper implements TableMapper {
         ValueInfo scoreInfo = matcherParam_.getScoreInfo( env );
         ProgressIndicator progger =
             progressParam_.progressIndicatorValue( env );
+        RowRunner runner = runnerParam_.objectValue( env );
 
         /* Construct and return a mapping based on this lot. */
         return new Match2Mapping( matcher, tupleExprs[ 0 ], tupleExprs[ 1 ],
                                   join, pairMode, fixacts[ 0 ], fixacts[ 1 ],
-                                  scoreInfo, progger );
+                                  scoreInfo, progger, runner );
     }
 }

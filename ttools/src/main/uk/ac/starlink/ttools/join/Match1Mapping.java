@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.join;
 
 import java.io.IOException;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -28,6 +29,7 @@ public class Match1Mapping implements SingleTableMapping {
     private final Match1Type type1_;
     private final String[] tupleExprs_;
     private final ProgressIndicator progger_;
+    private final RowRunner runner_;
     private final static Logger logger =
         Logger.getLogger( "uk.ac.starlink.ttools.join" );
 
@@ -41,13 +43,17 @@ public class Match1Mapping implements SingleTableMapping {
      *                      of the input table, one for each element of
      *                      the matchEngine's tuple
      * @param   progger   progress indicator
+     * @param   runner    controls parallel implementation,
+     *                    or null for sequential
      */
     public Match1Mapping( MatchEngine matchEngine, Match1Type type1,
-                          String[] tupleExprs, ProgressIndicator progger ) {
+                          String[] tupleExprs, ProgressIndicator progger,
+                          RowRunner runner ) {
         matchEngine_ = matchEngine;
         type1_ = type1;
         tupleExprs_ = tupleExprs.clone();
         progger_ = progger;
+        runner_ = runner;
     }
 
     /**
@@ -75,7 +81,7 @@ public class Match1Mapping implements SingleTableMapping {
         /* Do the matching. */
         RowMatcher matcher =
             RowMatcher.createMatcher( matchEngine_,
-                                      new StarTable[] { subTable } );
+                                      new StarTable[] { subTable }, runner_ );
         matcher.setIndicator( progger_ );
         LinkSet matches; 
         try {
