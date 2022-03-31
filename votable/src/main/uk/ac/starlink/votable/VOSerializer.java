@@ -30,7 +30,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.util.Base64OutputStream;
+import uk.ac.starlink.util.BufferedBase64OutputStream;
 import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.IntList;
 import uk.ac.starlink.votable.datalink.ServiceDescriptor;
@@ -1281,20 +1281,15 @@ public abstract class VOSerializer {
             writer.write( "<STREAM encoding='base64'>" );
             writer.newLine();
 
-            /* Note this implementation seems to be faster than the Java 8
+            /* Note this implementation is considerably faster than the Java 8
              * java.util.Base64 implementation; it's also more suitable because
              * the Base64 output can be terminated without closing the
              * underlying output stream (or jumping through hoops to avoid
-             * doing so).  Experiments suggest that there is not much gain
-             * to be had by buffering the output differently since the
-             * rate-limiting process is the CPU load of the Base64 encoding
-             * itself.  Possibly multithreading that might speed things up. */
-            Base64OutputStream b64out = 
-                new Base64OutputStream( new WriterOutputStream( writer ), 16 );
-            DataBufferedOutputStream dataout =
-                new DataBufferedOutputStream( b64out );
-            streamData( dataout );
-            dataout.flush();
+             * doing so). */
+            BufferedBase64OutputStream b64out = 
+                new BufferedBase64OutputStream(
+                    new WriterOutputStream( writer ) );
+            streamData( b64out );
             b64out.endBase64();
             writer.write( "</STREAM>" );
             writer.newLine();
@@ -1314,11 +1309,10 @@ public abstract class VOSerializer {
             out.write( NL_BYTES );
             out.write( toAsciiBytes( "<STREAM encoding='base64'>" ) );
             out.write( NL_BYTES );
-            DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
-            Base64OutputStream b64out = new Base64OutputStream( dout );
+            BufferedBase64OutputStream b64out =
+                new BufferedBase64OutputStream( out );
             streamData( b64out );
             b64out.endBase64();
-            dout.flush();
             out.write( toAsciiBytes( "</STREAM>" ) );
             out.write( NL_BYTES );
             out.write( toAsciiBytes( "</" + tagname + ">" ) );
