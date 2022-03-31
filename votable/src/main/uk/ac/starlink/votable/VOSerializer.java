@@ -3,9 +3,11 @@ package uk.ac.starlink.votable;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Array;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -61,6 +63,11 @@ public abstract class VOSerializer {
 
     final static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
     private static final AtomicLong idSeq_ = new AtomicLong();
+    private static final String NL_STRING = getNewline();
+    private static final byte[] NL_BYTES = toAsciiBytes( NL_STRING );
+    private static final byte[] LT_BYTES = toAsciiBytes( "&lt;" );
+    private static final byte[] GT_BYTES = toAsciiBytes( "&gt;" );
+    private static final byte[] AMP_BYTES = toAsciiBytes( "&amp;" );
 
     /**
      * Constructs a new serializer which can write a given StarTable.
@@ -200,6 +207,17 @@ public abstract class VOSerializer {
             throws IOException;
 
     /**
+     * Writes this serializer's table data as a self-contained
+     * &lt;DATA&gt; element to an output stream using UTF8 encoding.
+     * This may be substantially faster than the otherwise equivalent
+     * {@link #writeInlineDataElement(java.io.BufferedWriter)} method.
+     *
+     * @param   out  output stream
+     */
+    public abstract void writeInlineDataElementUTF8( OutputStream out )
+            throws IOException;
+
+    /**
      * Writes this serializer's table data to a &lt;DATA&gt; element 
      * containing a &lt;STREAM&gt; element which references an external
      * data source (optional method).  
@@ -227,9 +245,32 @@ public abstract class VOSerializer {
      */
     public void writeInlineTableElement( BufferedWriter writer )
             throws IOException {
-         writePreDataXML( writer );
-         writeInlineDataElement( writer );
-         writePostDataXML( writer );
+        writePreDataXML( writer );
+        writeInlineDataElement( writer );
+        writePostDataXML( writer );
+    }
+
+    /**
+     * Writes this serializer's table as a complete TABLE element
+     * to an output stream using UTF8 encoding.
+     * If this serializer's format is binary (non-XML) the bytes
+     * will get written base64-encoded into a STREAM element.
+     *
+     * <p>This may be substantially faster than the otherwise equivalent
+     * {@link #writeInlineTableElement(java.io.BufferedWriter)} method.
+     *
+     * @param   out  output stream
+     */
+    public void writeInlineTableElementUTF8( OutputStream out )
+            throws IOException {
+        BufferedWriter bw =
+            new BufferedWriter(
+                new OutputStreamWriter( out, StandardCharsets.UTF_8 ) );
+        writePreDataXML( bw );
+        bw.flush();
+        writeInlineDataElementUTF8( out );
+        writePostDataXML( bw );
+        bw.flush();
     }
 
     public void writeHrefTableElement( BufferedWriter xmlwriter, String href,
@@ -719,6 +760,69 @@ public abstract class VOSerializer {
     }
 
     /**
+     * Writes the content of an arbitrary string as XML content to a
+     * given output stream in UTF8 representation.
+     * Unsafe characters '&lt;', '&gt;' and '&amp;'
+     * will be escaped appropriately,
+     * and characters that are not legal XML will be substituted.
+     *
+     * @param  txt  text
+     * @param  out  destination stream
+     */
+    private static void writeEscapedTextUTF8( String txt,
+                                              DataBufferedOutputStream out )
+            throws IOException {
+        int leng = txt.length();
+        for ( int i = 0; i < leng; i++ ) {
+            char c = txt.charAt( i );
+            switch ( c ) {
+                case '<':
+                    out.write( LT_BYTES );
+                    break;
+                case '>':
+                    out.write( GT_BYTES );
+                    break;
+                case '&':
+                    out.write( AMP_BYTES );
+                    break;
+                default:
+                    out.writeCharUTF8( ensureLegalXml( c ) );
+            }
+        }
+    }
+
+    /**
+     * Returns the content of a string as an array of ASCII bytes.
+     * The upper 8 bits are ignored.
+     * Should not be called on text that may contain strange characters.
+     *
+     * @param   txt  text
+     * @return   byte array
+     */
+    private static byte[] toAsciiBytes( String txt ) {
+        int leng = txt.length();
+        byte[] buf = new byte[ leng ];
+        for ( int i = 0; i < leng; i++ ) {
+            buf[ i ] = (byte) txt.charAt( i );
+        }
+        return buf;
+    }
+
+    /**
+     * Returns a string containing the platform-specific newline string.
+     *
+     * @return  newline string, one or two characters usually
+     */
+    private static String getNewline() {
+        try {
+            return System.getProperty( "line.separator" );
+        }
+        catch ( Throwable e ) {
+            return "\n";
+        }
+    }
+
+    /**
      * Returns a legal XML character corresponding to an input character.
      * Certain characters are simply illegal in XML (regardless of encoding).
      * If the input character is legal in XML, it is returned;
@@ -1087,6 +1191,42 @@ public abstract class VOSerializer {
             writer.flush();
         }
 
+        public void writeInlineDataElementUTF8( OutputStream out )
+                throws IOException {
+            DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
+            byte[] preTr = toAsciiBytes( "  <TR>" + NL_STRING );
+            byte[] preTd = toAsciiBytes( "    <TD>" );
+            byte[] postTd = toAsciiBytes( "</TD>" + NL_STRING );
+            byte[] postTr = toAsciiBytes( "  </TR>" + NL_STRING );
+            dout.writeBytes( "<DATA>" );
+            dout.write( NL_BYTES );
+            dout.writeBytes( "<TABLEDATA>" );
+            dout.write( NL_BYTES );
+            int ncol = encoders.length;
+            try ( RowSequence rseq = getTable().getRowSequence() ) {
+                while ( rseq.next() ) {
+                    dout.write( preTr );
+                    Object[] rowdata = rseq.getRow();
+                    for ( int icol = 0; icol < ncol; icol++ ) {
+                        Encoder encoder = encoders[ icol ];
+                        if ( encoder != null ) {
+                            String text =
+                                encoder.encodeAsText( rowdata[ icol ] );
+                            dout.write( preTd );
+                            writeEscapedTextUTF8( text, dout );
+                            dout.write( postTd );
+                        }
+                    }
+                    dout.write( postTr );
+                }
+            }
+            dout.writeBytes( "</TABLEDATA>" );
+            dout.write( NL_BYTES );
+            dout.writeBytes( "</DATA>" );
+            dout.write( NL_BYTES );
+            dout.flush();
+        }
+
         public void writeHrefDataElement( BufferedWriter writer, String href,
                                           OutputStream streamout ) {
             throw new UnsupportedOperationException( 
@@ -1166,6 +1306,27 @@ public abstract class VOSerializer {
             writer.newLine();
         }
 
+        public void writeInlineDataElementUTF8( OutputStream out )
+                throws IOException {
+            out.write( toAsciiBytes( "<DATA>" ) );
+            out.write( NL_BYTES );
+            out.write( toAsciiBytes( "<" + tagname + ">" ) );
+            out.write( NL_BYTES );
+            out.write( toAsciiBytes( "<STREAM encoding='base64'>" ) );
+            out.write( NL_BYTES );
+            DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
+            Base64OutputStream b64out = new Base64OutputStream( dout );
+            streamData( b64out );
+            b64out.endBase64();
+            dout.flush();
+            out.write( toAsciiBytes( "</STREAM>" ) );
+            out.write( NL_BYTES );
+            out.write( toAsciiBytes( "</" + tagname + ">" ) );
+            out.write( NL_BYTES );
+            out.write( toAsciiBytes( "</DATA>" ) );
+            out.write( NL_BYTES );
+        }
+
         public void writeHrefDataElement( BufferedWriter xmlwriter, String href,
                                           OutputStream streamout )
                 throws IOException {
@@ -1212,8 +1373,7 @@ public abstract class VOSerializer {
         public void streamData( OutputStream out ) throws IOException {
             int ncol = encoders.length;
             DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
-            RowSequence rseq = getTable().getRowSequence();
-            try {
+            try ( RowSequence rseq = getTable().getRowSequence() ) {
                 while ( rseq.next() ) {
                     Object[] row = rseq.getRow();
                     for ( int icol = 0; icol < ncol; icol++ ) {
@@ -1223,9 +1383,6 @@ public abstract class VOSerializer {
                         }
                     }
                 }
-            }
-            finally {
-                rseq.close();
             }
             dout.flush();
         }
@@ -1263,9 +1420,8 @@ public abstract class VOSerializer {
             boolean[] nullFlags = new boolean[ ncol ];
 
             /* Read data from table. */
-            RowSequence rseq = getTable().getRowSequence();
             DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
-            try {
+            try ( RowSequence rseq = getTable().getRowSequence() ) {
                 while ( rseq.next() ) {
  
                     /* Prepare and write the null-flag array. */
@@ -1284,9 +1440,6 @@ public abstract class VOSerializer {
                         encoders[ icol ].encodeToStream( cell, dout );
                     }
                 }
-            }
-            finally {
-                rseq.close();
             }
             dout.flush();
         }
