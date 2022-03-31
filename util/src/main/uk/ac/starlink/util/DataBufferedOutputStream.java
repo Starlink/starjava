@@ -143,6 +143,31 @@ public class DataBufferedOutputStream extends BufferedOutputStream
     }
 
     /**
+     * Writes a single character in UTF8 format.
+     *
+     * @param   c  character to write
+     */
+    public void writeCharUTF8( char c ) throws IOException {
+
+        // Implementation copied from existing static writeUTF method.
+        if ( ( c >= 0x0001 ) && ( c <= 0x007F ) ) {
+            checkBuf( 1 );
+            buf[ count++ ] = (byte) c;
+        }
+        else if ( c > 0x07FF ) {
+            checkBuf( 3 );
+            buf[ count++ ] = (byte) (0xE0 | ((c >> 12) & 0x0F));
+            buf[ count++ ] = (byte) (0x80 | ((c >>  6) & 0x3F));
+            buf[ count++ ] = (byte) (0x80 | ((c >>  0) & 0x3F));
+        }
+        else {
+            checkBuf( 2 );
+            buf[ count++ ] = (byte) (0xC0 | ((c >>  6) & 0x1F));
+            buf[ count++ ] = (byte) (0x80 | ((c >>  0) & 0x3F));
+        }
+    }
+
+    /**
      * Try to ensure there is a given number of bytes in the buffer.
      * If it's nearly full, it will be flushed ready for more data.
      * This call does not guarantee that the requested number of bytes
