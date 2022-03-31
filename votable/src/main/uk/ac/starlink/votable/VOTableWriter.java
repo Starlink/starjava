@@ -1,6 +1,5 @@
 package uk.ac.starlink.votable;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,7 +20,6 @@ import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.formats.DocumentedIOHandler;
-import uk.ac.starlink.util.Base64OutputStream;
 import uk.ac.starlink.util.ConfigMethod;
 import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.IOUtils;
@@ -252,62 +250,8 @@ public class VOTableWriter
                     logger.warning( "Writing VOTable inline - can't do href "
                                   + "when no filename is supplied" );
                 }
-
-                /* For elements which stream data to a Base64 encoding we
-                 * write the element by hand using some package-private methods.
-                 * This is just an efficiency measure - it means the 
-                 * writing is done directly to the base OutputStream rather 
-                 * than wrapping a new OutputStream round the Writer which 
-                 * is wrapped round the base OutputStream.
-                 * But we could omit this stanza altogether and let the 
-                 * work get done by serializer.writeInlineDataElement.
-                 * It seems to make a difference at the 5-10% level. */
-                if ( serializer instanceof
-                     VOSerializer.StreamableVOSerializer ) {
-                    VOSerializer.StreamableVOSerializer streamer =
-                        (VOSerializer.StreamableVOSerializer) serializer;
-                    String tagname;
-                    if ( dataFormat == DataFormat.FITS ) {
-                        tagname = "FITS";
-                    }
-                    else if ( dataFormat == DataFormat.BINARY ) {
-                        tagname = "BINARY";
-                    }
-                    else if ( dataFormat == DataFormat.BINARY2 ) {
-                        tagname = "BINARY2";
-                    }
-                    else {
-                        throw new AssertionError( "Unknown format " 
-                                                + dataFormat.toString() );
-                    }
-                    writer.write( "<DATA>" );
-                    writer.newLine();
-                    writer.write( '<' + tagname + '>' );
-                    writer.newLine();
-                    writer.write( "<STREAM encoding='base64'>" );
-                    writer.newLine();
-                    writer.flush();
-                    Base64OutputStream b64strm = 
-                        new Base64OutputStream( new BufferedOutputStream( out ),
-                                                16 );
-                    DataBufferedOutputStream dataout =
-                        new DataBufferedOutputStream( b64strm );
-                    streamer.streamData( dataout );
-                    dataout.flush();
-                    b64strm.endBase64();
-                    b64strm.flush();
-                    writer.write( "</STREAM>" );
-                    writer.newLine();
-                    writer.write( "</" + tagname + ">" );
-                    writer.newLine();
-                    writer.write( "</DATA>" );
-                    writer.newLine();
-                }
-
-                /* Non-optimized/non-STREAM case. */
-                else {
-                    serializer.writeInlineDataElement( writer );
-                }
+                writer.flush();
+                serializer.writeInlineDataElementUTF8( out );
             }
 
             /* Treat the case where the data is streamed to an external file. */
