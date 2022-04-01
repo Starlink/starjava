@@ -17,7 +17,7 @@ public class Base64Test extends TestCase {
 
     public Base64Test() {
         rnd_ = new Random( 893325 );
-        legacy_ = out -> new Base64OutputStream( out, 16 );
+        legacy_ = out -> new LegacyBase64OutputStream( out, 16 );
         Base64.Encoder j2seEnc =
             Base64.getMimeEncoder( 64, new byte[] { (byte) '\n' } );
         j2se_ = out -> j2seEnc.wrap( out );

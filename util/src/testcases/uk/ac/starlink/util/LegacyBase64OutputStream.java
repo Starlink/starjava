@@ -54,7 +54,7 @@ import java.io.IOException;
  * @author  Mozilla project
  * @author  Mark Taylor (Starlink)
  */
-public class Base64OutputStream extends FilterOutputStream {
+public class LegacyBase64OutputStream extends FilterOutputStream {
 
         static byte[] endLine;
         static {
@@ -70,7 +70,7 @@ public class Base64OutputStream extends FilterOutputStream {
 	 * Create a stream that does not insert line breaks.  To have line
 	 * breaks, use the other constructor.
 	 */
-	public Base64OutputStream(OutputStream out) {
+	public LegacyBase64OutputStream(OutputStream out) {
 		super(out);
 		charsOnLine = 0;
 		inputCount = 0;
@@ -83,7 +83,7 @@ public class Base64OutputStream extends FilterOutputStream {
 	 * 	outputting a line break.  For example, for 76-characters per line,
 	 *	pass in 76/4 = 19.
 	 */
-	public Base64OutputStream(OutputStream out, int quadsPerLine) {
+	public LegacyBase64OutputStream(OutputStream out, int quadsPerLine) {
 		this(out);
 		doLineBreaks = true;
 		assert quadsPerLine>0 : "quadsPerLine must be > 0";
