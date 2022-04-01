@@ -3,11 +3,11 @@ package uk.ac.starlink.util;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * A DataSource implementation based on a {@link java.net.URL}.
@@ -134,18 +134,8 @@ public class URLDataSource extends DataSource {
      * @return   encoded version of txt
      */
     private static String b64encode( String txt ) {
-        try {
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            OutputStream b64out =
-                new Base64OutputStream( bout, txt.length() * 2 );
-            for ( int i = 0; i < txt.length(); i++ ) {
-                b64out.write( (byte) txt.charAt( i ) );
-            }
-            b64out.close();
-            return new String( bout.toByteArray(), "UTF-8" ).trim();
-        }
-        catch ( IOException e ) {
-            throw new AssertionError( e );
-        }
+        byte[] inBuf = txt.getBytes( StandardCharsets.UTF_8 );
+        byte[] outBuf = Base64.getEncoder().encode( inBuf );
+        return new String( outBuf, StandardCharsets.US_ASCII );
     }
 }
