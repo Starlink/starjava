@@ -3,6 +3,7 @@ package uk.ac.starlink.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -415,6 +416,9 @@ public class BeanConfig {
         else if ( clazz.equals( String.class ) ) {
             return (T) txt.replaceAll( "\\,", "," )
                           .replaceAll( "\\\\", "\\" );
+        }
+        else if ( clazz.equals( Charset.class ) ) {
+            return (T) Charset.forName( txt );
         }
         else if ( Enum.class.isAssignableFrom( clazz ) ) {
             @SuppressWarnings("unchecked")
