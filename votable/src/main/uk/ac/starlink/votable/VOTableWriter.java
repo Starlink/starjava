@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +63,7 @@ public class VOTableWriter
     private DataFormat dataFormat_;
     private boolean inline_;
     private VOTableVersion version_;
+    private Charset encoding_;
     private boolean writeSchemaLocation_;
     private String xmlDeclaration_ = DEFAULT_XML_DECLARATION;
 
@@ -106,6 +108,7 @@ public class VOTableWriter
         dataFormat_ = dataFormat;
         inline_ = inline;
         version_ = version;
+        encoding_ = StandardCharsets.UTF_8;
     }
 
     /**
@@ -204,24 +207,11 @@ public class VOTableWriter
                                  File file )
             throws IOException {
 
-        /* For most of the output we write to a Writer; it is obtained
-         * here and uses the default encoding.  If we write bulk data
-         * into the XML (using Base64 encoding) we write that direct to
-         * the underlying output stream, taking care to flush before and
-         * after.  This relies on the fact that the characters output
-         * from the base64 encoding have 1-byte representations in the
-         * XML encoding we are using which are identical to their base64
-         * byte equivalents.  So in the line below which constructs a
-         * Writer from an OutputStream, don't do it using e.g. UTF-16 
-         * encoding for which that wouldn't hold.
-         *
-         * Although we frequently want to write a string followed by a 
-         * new line, we don't use a PrintWriter here, since that doesn't
-         * throw any exceptions; we would like exceptions to be thrown
-         * where they occur. */
+        /* Set up the XML output. */
+        Charset encoding = encoding_;
         BufferedWriter writer =
-            new BufferedWriter(
-                new OutputStreamWriter( out, StandardCharsets.UTF_8 ) );
+            new BufferedWriter( new OutputStreamWriter( out, encoding ) );
+        boolean isUtf8 = StandardCharsets.UTF_8.equals( encoding );
 
         /* Output preamble. */
         writePreTableXML( writer );
@@ -251,7 +241,17 @@ public class VOTableWriter
                                   + "when no filename is supplied" );
                 }
                 writer.flush();
-                serializer.writeInlineDataElementUTF8( out );
+
+                /* Treat UTF8 using the dedicated method, which may be
+                 * optimised.  This is the usual case. */
+                if ( isUtf8 ) {
+                    serializer.writeInlineDataElementUTF8( out );
+                }
+
+                /* Otherwise use generic XML output. */
+                else {
+                    serializer.writeInlineDataElement( writer );
+                }
             }
 
             /* Treat the case where the data is streamed to an external file. */
@@ -593,6 +593,37 @@ public class VOTableWriter
      */
     public VOTableVersion getVotableVersion() {
         return version_;
+    }
+
+    /**
+     * Sets the XML encoding used for the output VOTable.
+     * The default value is UTF-8.
+     * Note that certain optimisations are in place for UTF-8 output
+     * which means that other encodings may be significantly slower.
+     *
+     * @param  encoding  encoding charset
+     */
+    @ConfigMethod(
+        property = "encoding",
+        usage = "UTF-8|UTF-16|...",
+        example = "UTF-16",
+        doc = "<p>Specifies the XML encoding used in the output VOTable.\n"
+            + "The default value is UTF-8.\n"
+            + "Note that certain optimisations are in place for UTF-8 output\n"
+            + "which means that other encodings may be significantly slower.\n"
+            + "</p>" 
+    )
+    public void setEncoding( Charset encoding ) {
+        encoding_ = encoding;
+    }
+
+    /**
+     * Returns the character encoding used for XML output.
+     *
+     * @return  encoding charset
+     */
+    public Charset getEncoding() {
+        return encoding_;
     }
 
     /**

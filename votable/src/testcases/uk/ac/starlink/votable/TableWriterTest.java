@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
-import junit.framework.TestCase;
 import org.xml.sax.InputSource;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
@@ -19,7 +18,9 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.TestCase;
 
 public class TableWriterTest extends TestCase {
 
@@ -56,6 +57,43 @@ public class TableWriterTest extends TestCase {
                                     "<BINARY>" ) );
     }
 
+    public void testXmlConfigs() throws Exception {
+        StarTable t1 = createTestTable( 1 );
+        assertOutputStartsWith(
+            t1, "votable",
+            new byte[] { '<', '?', 'x', 'm', 'l', } );
+        assertOutputStartsWith(
+            t1, "votable(encoding=UTF-8)",
+            new byte[] { '<', '?', 'x', 'm', 'l', } );
+        assertOutputStartsWith(
+            t1, "votable(encoding=UTF-16LE)",
+            new byte[] { '<', 0, '?', 0, 'x', 0, 'm', 0, 'l', 0, } );
+
+        StarTable t23 = createTestTable( 23 ); 
+        assertDOMEquals(
+            toDom( t23, "format=BINARY" ),
+            toDom( t23, "format=BINARY,encoding=UTF-8" ) );
+        assertDOMEquals(
+            toDom( t23, "format=BINARY2" ),
+            toDom( t23, "format=BINARY2,encoding=UTF-16" ) );
+        assertDOMEquals(
+            toDom( t23, "format=TABLEDATA" ),
+            toDom( t23, "format=TABLEDATA,encoding=UTF-16LE" ) );
+    }
+
+    private VOElement toDom( StarTable table, String votOptions )
+            throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        StarTableOutput sto = new StarTableOutput();
+        StarTableWriter handler =
+            sto.getHandler( "votable(" + votOptions + ")");
+        handler.writeStarTable( table, out );
+        out.close();
+        return new VOElementFactory( StoragePolicy.PREFER_MEMORY )
+              .makeVOElement( new ByteArrayInputStream( out.toByteArray() ),
+                              (String) null );
+    }
+
     private boolean outputContains( StarTable table, String handlerName,
                                     String txt )
             throws Exception {
@@ -65,6 +103,18 @@ public class TableWriterTest extends TestCase {
         handler.writeStarTable( table, out );
         String ser = new String( out.toByteArray(), "UTF-8" );
         return ser.indexOf( txt ) >= 0;
+    }
+
+    private void assertOutputStartsWith( StarTable table, String handlerName,
+                                         byte[] testBuf )
+            throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        StarTableOutput sto = new StarTableOutput();
+        StarTableWriter handler = sto.getHandler( handlerName );
+        handler.writeStarTable( table, out );
+        byte[] outBuf = new byte[ testBuf.length ];
+        System.arraycopy( out.toByteArray(), 0, outBuf, 0, testBuf.length );
+        assertArrayEquals( testBuf, outBuf );
     }
 
     public static void checkTable( StarTable table ) throws Exception {

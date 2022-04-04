@@ -1,6 +1,8 @@
 package uk.ac.starlink.table;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -365,6 +367,24 @@ public class FormatsTest extends TableCase {
         for ( VOTableVersion vers :
               VOTableVersion.getKnownVersions().values() ) {
             exerciseVOTableVersion( vers );
+        }
+
+        StarTableOutput sto = new StarTableOutput();
+        StarTableFactory tfact = new StarTableFactory( false );
+        StarTable t1 = table;
+        for ( String config :
+              new String[] {
+                  "format=BINARY2,encoding=UTF-16",
+              } ) {
+            VOTableWriter writer =
+                (VOTableWriter) sto.getHandler( "votable(" + config + ")" );
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            writer.writeStarTable( t1, bout );
+            StarTable t2 =
+                tfact
+               .makeStarTable( new ByteArrayInputStream( bout.toByteArray() ),
+                               new VOTableBuilder() );
+            assertVOTableEquals( t1, t2, false );
         }
     }
 
