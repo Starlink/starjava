@@ -10,6 +10,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -233,10 +234,7 @@ public class HandlerDoc {
     private String getConfigExample( String handlerName, Object handler ) {
         StringBuffer sbuf = new StringBuffer( handlerName.toLowerCase() );
         List<String> examplePairs = new ArrayList<>();
-        List<Method> meths =
-             Arrays.stream( handler.getClass().getMethods() )
-            .filter( m -> m.getAnnotation( ConfigMethod.class ) != null )
-            .collect( Collectors.toList() );
+        List<Method> meths = getConfigMethods( handler.getClass() );
         for ( Method meth : meths ) {
             ConfigMethod ann = meth.getAnnotation( ConfigMethod.class );
             String propName = ann.property();
@@ -270,10 +268,7 @@ public class HandlerDoc {
      * @return   XML text, a p elementn or the empty string
      */
     private String getConfigOptionXml( String handlerName, Object handler ) {
-        List<Method> meths =
-             Arrays.stream( handler.getClass().getMethods() )
-            .filter( m -> m.getAnnotation( ConfigMethod.class ) != null )
-            .collect( Collectors.toList() );
+        List<Method> meths = getConfigMethods( handler.getClass() );
         StringBuffer sbuf = new StringBuffer();
         if ( meths.size() > 0 ) {
             sbuf.append( String.join( "\n",
@@ -300,6 +295,22 @@ public class HandlerDoc {
                 .append( "</p>\n" );
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Returns a list of those methods of a class which are decorated
+     * with the {@link uk.ac.starlink.util.ConfigMethod} annotation.
+     *
+     * @param  clazz  class
+     * @return  ordered list of configuration methods
+     */
+    private static List<Method> getConfigMethods( Class<?> clazz ) {
+        return Arrays.stream( clazz.getMethods() )
+              .filter( m -> m.getAnnotation( ConfigMethod.class ) != null )
+              .sorted( Comparator
+                      .comparingInt( m -> m.getAnnotation( ConfigMethod.class )
+                                           .sequence() ) )
+              .collect( Collectors.toList() );
     }
 
     /**
