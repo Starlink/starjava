@@ -30535,6 +30535,10 @@ introduced since the last version:
         <ref id="outVotable">VOTable output</ref>.
         By default thin TABLEDATA VOTables are now written with 
         reduced whitespace.</li>
+    <li>New class <ref id="Bits">Bits</ref> 
+        with bit manipulation functions
+        <code>bitCount</code>, <code>hasBit</code>,
+        <code>toBinary</code>, <code>fromBinary</code>.</li>
     </ul>
     </p></dd>
 

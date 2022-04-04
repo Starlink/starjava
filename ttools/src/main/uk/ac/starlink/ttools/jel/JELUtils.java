@@ -24,6 +24,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.ttools.func.Arithmetic;
+import uk.ac.starlink.ttools.func.Bits;
 import uk.ac.starlink.ttools.func.Conversions;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.ttools.func.CoordsRadians;
@@ -159,6 +160,7 @@ public class JELUtils {
             List<Class<?>> classList =
                     new ArrayList<Class<?>>( Arrays.asList( new Class<?>[] {
                 Arithmetic.class,
+                Bits.class,
                 uk.ac.starlink.ttools.func.Arrays.class,
                 Conversions.class,
                 CoordsDegrees.class,

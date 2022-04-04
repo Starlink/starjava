@@ -84,6 +84,25 @@ public class FuncTest extends TestCase {
         assertEquals( 99.2, Arithmetic.phase( 23, 10, 1, 99 ) );
     }
 
+    public void testBits() {
+        assertEquals( 1, Bits.bitCount( 64 ) );
+        assertEquals( 2, Bits.bitCount( 3 ) );
+        assertEquals( 64, Bits.bitCount( -1 ) );
+
+        assertEquals( "101010", Bits.toBinary( 42 ) );
+        assertEquals( 42, Bits.fromBinary( "101010" ) );
+        assertEquals( "11111000", Bits.toBinary( 255 ^ 7 ) );
+
+        assertTrue( Bits.hasBit( 5, 0 ) );
+        assertFalse( Bits.hasBit( 5, 1 ) );
+        assertTrue( Bits.hasBit( 64, 6 ) );
+        assertFalse( Bits.hasBit( 63, 6 ) );
+        assertTrue( Bits.hasBit( Integer.MAX_VALUE, 30 ) );
+        assertFalse( Bits.hasBit( Integer.MAX_VALUE, 31 ) );
+        assertTrue( Bits.hasBit( Long.MAX_VALUE, 62 ) );
+        assertTrue( Bits.hasBit( -1L, 63 ) );
+    }
+
     private static double maxtedPhase( double t, double period, double t0,
                                        double phase0 ) {
         return ((1 - phase0 + ((t-t0)/period % 1)) % 1) + phase0;
