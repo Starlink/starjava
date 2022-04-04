@@ -504,7 +504,9 @@ public class VOTableWriter
         property = "format",
         usage = "TABLEDATA|BINARY|BINARY2|FITS",
         doc = "<p>Gives the serialization type (DATA element content) "
-            + "of output VOTables.</p>"
+            + "of output VOTables.</p>",
+        example = "BINARY2",
+        sequence = 1
     )
     public void setDataFormat( DataFormat format ) {
         dataFormat_ = format;
@@ -533,7 +535,8 @@ public class VOTableWriter
             + "and if false they are written to a new external binary file "
             + "whose name is derived from that of the output VOTable document. "
             + "This is only applicable to BINARY, BINARY2 and FITS formats "
-            + "where output is not to a stream."
+            + "where output is not to a stream.",
+        sequence = 3
     )
     public void setInline( boolean inline ) {
         inline_ = inline;
@@ -580,10 +583,11 @@ public class VOTableWriter
     @ConfigMethod(
         property = "version",
         usage = "V10|V11|V12|V13|V14",
-        example = "V14",
+        example = "V13",
         doc = "<p>Gives the version of the VOTable format which will be used "
             + "when writing the VOTable.\n"
-            + "\"<code>V10</code>\" is version 1.0 etc.</p>"
+            + "\"<code>V10</code>\" is version 1.0 etc.</p>",
+        sequence = 2
     )
     public void setVotableVersion( VOTableVersion version ) {
         version_ = version;
@@ -615,7 +619,8 @@ public class VOTableWriter
         doc = "<p>Controls whitespace formatting for TABLEDATA output,\n"
             + "ignored for other formats.\n"
             + "By default a decision will be taken dependent on table width.\n"
-            + "</p>"
+            + "</p>",
+        sequence = 4
     )
     public void setCompact( Boolean compact ) {
         compact_ = compact;
@@ -647,7 +652,8 @@ public class VOTableWriter
             + "The default value is UTF-8.\n"
             + "Note that certain optimisations are in place for UTF-8 output\n"
             + "which means that other encodings may be significantly slower.\n"
-            + "</p>" 
+            + "</p>",
+        sequence = 5
     )
     public void setEncoding( Charset encoding ) {
         encoding_ = encoding;

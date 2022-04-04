@@ -86,7 +86,8 @@ public class CsvTableBuilder extends DocumentedTableBuilder {
  
             + "</p>",
         usage = "true|false|null",
-        example = "true"
+        example = "true",
+        sequence = 1
     )
     public void setHasHeader( Boolean hasHeader ) {
         hasHeader_ = hasHeader;
@@ -117,7 +118,8 @@ public class CsvTableBuilder extends DocumentedTableBuilder {
             + "it can also result in getting the datatypes wrong.\n"
             + "</p>",
         usage = "<int>",
-        example = "100000"
+        example = "100000",
+        sequence = 2
     )
     public void setMaxSample( int maxSample ) {
         maxSample_ = maxSample;

@@ -54,7 +54,8 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
         doc = "<p>If true, the first line of the CSV output will be "
             + "a header containing the column names; "
             + "if false, no header line is written and all lines "
-            + "represent data rows.</p>"
+            + "represent data rows.</p>",
+        sequence = 1
     )
     public void setWriteHeader( boolean writeHeader ) {
         writeHeader_ = writeHeader;
@@ -80,7 +81,8 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
         property = "maxCell",
         doc = "<p>Maximum width in characters of an output table cell. "
             + "Cells longer than this will be truncated.</p>",
-        example = "160"
+        example = "160",
+        sequence = 2
     )
     public void setMaxFieldChars( int maxFieldChars ) {
         maxFieldChars_ = maxFieldChars;

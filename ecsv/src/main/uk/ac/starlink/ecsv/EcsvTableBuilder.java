@@ -77,7 +77,8 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
             + "</p>",
         usage = "<filename-or-url>",
         example = "http://cdn.gea.esac.esa.int/Gaia/gedr3/ECSV_headers/"
-                + "gaia_source.header"
+                + "gaia_source.header",
+        sequence = 1
     )
     public void setHeader( String headerLoc ) {
         headerLoc_ = headerLoc;
@@ -89,7 +90,8 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
             + "in the YAML header differ from the columns named in the\n"
             + "first line of the CSV part of the file.\n"
             + "</p>",
-        example = "FAIL"
+        example = "FAIL",
+        sequence = 2
     )
     public void setColcheck( MessagePolicy colCheck ) {
         colCheck_ = colCheck;
