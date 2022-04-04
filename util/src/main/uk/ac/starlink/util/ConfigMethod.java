@@ -68,4 +68,12 @@ public @interface ConfigMethod {
      * @return   true to hide
      */
     boolean hide() default false;
+
+    /**
+     * Gives a sequence index indicating the order in which the different
+     * ConfigMethods in a given class should be listed.
+     *
+     * @return   sequence index for listing in documentation
+     */
+    int sequence() default 1000;
 }
