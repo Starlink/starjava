@@ -59,11 +59,11 @@ import uk.ac.starlink.util.IOUtils;
 public class VOTableWriter
         implements StarTableWriter, MultiStarTableWriter, DocumentedIOHandler {
 
-    private DataFormat dataFormat;
-    private boolean inline;
-    private VOTableVersion version;
-    private boolean writeSchemaLocation;
-    private String xmlDeclaration = DEFAULT_XML_DECLARATION;
+    private DataFormat dataFormat_;
+    private boolean inline_;
+    private VOTableVersion version_;
+    private boolean writeSchemaLocation_;
+    private String xmlDeclaration_ = DEFAULT_XML_DECLARATION;
 
     /** Default XML declaration in written documents. */
     public static final String DEFAULT_XML_DECLARATION =
@@ -103,9 +103,9 @@ public class VOTableWriter
      */
     public VOTableWriter( DataFormat dataFormat, boolean inline,
                           VOTableVersion version ) {
-        this.dataFormat = dataFormat;
-        this.inline = inline;
-        this.version = version;
+        dataFormat_ = dataFormat;
+        inline_ = inline;
+        version_ = version;
     }
 
     /**
@@ -140,7 +140,7 @@ public class VOTableWriter
             File file = out instanceof FileOutputStream
                       ? new File( location )
                       : null;
-            if ( ! inline && file == null ) {
+            if ( ! inline_ && file == null ) {
                 throw new TableFormatException( "Can't write non-inline format"
                                               + " to a stream" );
             }
@@ -237,15 +237,15 @@ public class VOTableWriter
             /* Get the format to provide a configuration object which describes
              * exactly how the data from each cell is going to get written. */
             VOSerializer serializer = 
-                VOSerializer.makeSerializer( dataFormat, version, startab );
+                VOSerializer.makeSerializer( dataFormat_, version_, startab );
 
             /* Begin TABLE element including FIELDs etc. */
             serializer.writePreDataXML( writer );
 
             /* Now write the DATA element. */
             /* First Treat the case where we write data inline. */
-            if ( inline || file == null ) {
-                if ( ! inline ) {
+            if ( inline_ || file == null ) {
+                if ( ! inline_ ) {
                     assert file == null;
                     logger.warning( "Writing VOTable inline - can't do href "
                                   + "when no filename is supplied" );
@@ -261,7 +261,7 @@ public class VOTableWriter
                 int dotpos = basename.lastIndexOf( '.' );
                 basename = dotpos > 0 ? basename.substring( 0, dotpos )
                                       : basename;
-                String extension = dataFormat == DataFormat.FITS
+                String extension = dataFormat_ == DataFormat.FITS
                                  ? ".fits"
                                  : ".bin";
                 String dataname =
@@ -311,7 +311,7 @@ public class VOTableWriter
             if ( i > 0 ) {
                 writeBetweenTableXML( writer );
             }
-            VOSerializer.makeSerializer( dataFormat, version, startabs[ i ] )
+            VOSerializer.makeSerializer( dataFormat_, version_, startabs[ i ] )
                         .writeInlineTableElement( writer );
         }
         writePostTableXML( writer );
@@ -330,13 +330,13 @@ public class VOTableWriter
             throws IOException {
 
         /* Output XML declaration if required. */
-        if ( xmlDeclaration != null && xmlDeclaration.length() > 0 ) {
-            writer.write( xmlDeclaration );
+        if ( xmlDeclaration_ != null && xmlDeclaration_.length() > 0 ) {
+            writer.write( xmlDeclaration_ );
             writer.newLine();
         }
 
         /* Output document declaration if required. */
-        String doctypeDeclaration = version.getDoctypeDeclaration();
+        String doctypeDeclaration = version_.getDoctypeDeclaration();
         if ( doctypeDeclaration != null && doctypeDeclaration.length() > 0 ) {
             writer.write( doctypeDeclaration );
             writer.newLine();
@@ -344,15 +344,15 @@ public class VOTableWriter
 
         /* Output the VOTABLE start tag. */
         writer.write( "<VOTABLE" );
-        String versionNumber = version.getVersionNumber();
+        String versionNumber = version_.getVersionNumber();
         if ( versionNumber != null ) {
             writer.write( VOSerializer.formatAttribute( "version",
                                                         versionNumber ) );
         }
-        String xmlNamespace = version.getXmlNamespace();
-        String schemaLocation = version.getSchemaLocation();
+        String xmlNamespace = version_.getXmlNamespace();
+        String schemaLocation = version_.getSchemaLocation();
         if ( xmlNamespace != null ) {
-            if ( writeSchemaLocation && schemaLocation != null ) {
+            if ( writeSchemaLocation_ && schemaLocation != null ) {
                 writer.newLine();
                 writer.write( VOSerializer.formatAttribute(
                                   "xmlns:xsi",
@@ -445,39 +445,39 @@ public class VOTableWriter
 
     public String getFormatName() {
         StringBuffer fname = new StringBuffer( "votable" );
-        if ( dataFormat == DataFormat.TABLEDATA ) {
+        if ( dataFormat_ == DataFormat.TABLEDATA ) {
             return fname.toString();
         }
 
-        if ( dataFormat == DataFormat.FITS ) {
+        if ( dataFormat_ == DataFormat.FITS ) {
             fname.append( "-fits" );
         }
-        else if ( dataFormat == DataFormat.BINARY ) {
+        else if ( dataFormat_ == DataFormat.BINARY ) {
             fname.append( "-binary" );
         }
-        else if ( dataFormat == DataFormat.BINARY2 ) {
+        else if ( dataFormat_ == DataFormat.BINARY2 ) {
             fname.append( "-binary2" );
         }
         else {
             assert false;
         }
-        fname.append( inline ? "-inline" : "-href" );
+        fname.append( inline_ ? "-inline" : "-href" );
         return fname.toString();
     }
 
     public String getMimeType() {
         String type = "application/x-votable+xml";
         String serialization;
-        if ( dataFormat == DataFormat.TABLEDATA ) {
+        if ( dataFormat_ == DataFormat.TABLEDATA ) {
             serialization = "TABLEDATA";
         }
-        else if ( dataFormat == DataFormat.BINARY ) {
+        else if ( dataFormat_ == DataFormat.BINARY ) {
             serialization = "BINARY";
         }
-        else if ( dataFormat == DataFormat.BINARY2 ) {
+        else if ( dataFormat_ == DataFormat.BINARY2 ) {
             serialization = "BINARY2";
         }
-        else if ( dataFormat == DataFormat.FITS ) {
+        else if ( dataFormat_ == DataFormat.FITS ) {
             serialization = "FITS";
         }
         else {
@@ -503,7 +503,7 @@ public class VOTableWriter
             + "of output VOTables.</p>"
     )
     public void setDataFormat( DataFormat format ) {
-        this.dataFormat = format;
+        dataFormat_ = format;
     }
 
     /**
@@ -512,7 +512,7 @@ public class VOTableWriter
      * @return  bulk data format
      */
     public DataFormat getDataFormat() {
-        return dataFormat;
+        return dataFormat_;
     }
 
     /**
@@ -532,7 +532,7 @@ public class VOTableWriter
             + "where output is not to a stream."
     )
     public void setInline( boolean inline ) {
-        this.inline = inline;
+        inline_ = inline;
     }
 
     /**
@@ -543,7 +543,7 @@ public class VOTableWriter
      *          the STREAM element
      */
     public boolean getInline() {
-        return inline;
+        return inline_;
     }
 
     /**
@@ -554,7 +554,7 @@ public class VOTableWriter
      * @param  xmlDecl  new XML declaration
      */
     public void setXMLDeclaration( String xmlDecl ) {
-        this.xmlDeclaration = xmlDecl;
+        xmlDeclaration_ = xmlDecl;
     }
 
     /**
@@ -564,7 +564,7 @@ public class VOTableWriter
      * @return  XML declaration
      */
     public String getXMLDeclaration() {
-        return xmlDeclaration;
+        return xmlDeclaration_;
     }
 
     /**
@@ -582,7 +582,7 @@ public class VOTableWriter
             + "\"<code>V10</code>\" is version 1.0 etc.</p>"
     )
     public void setVotableVersion( VOTableVersion version ) {
-        this.version = version;
+        version_ = version;
     }
 
     /**
@@ -592,7 +592,7 @@ public class VOTableWriter
      * @return  version
      */
     public VOTableVersion getVotableVersion() {
-        return version;
+        return version_;
     }
 
     /**
@@ -602,7 +602,7 @@ public class VOTableWriter
      * @param  writeSchemaLocation  whether to write xsi:schemaLocation atts
      */
     public void setWriteSchemaLocation( boolean writeSchemaLocation ) {
-        this.writeSchemaLocation = writeSchemaLocation;
+        writeSchemaLocation_ = writeSchemaLocation;
     }
 
     /**
@@ -612,19 +612,19 @@ public class VOTableWriter
      * @return  whether xsi:schemaLocation attributes will be written
      */
     public boolean getWriteSchemaLocation() {
-        return writeSchemaLocation;
+        return writeSchemaLocation_;
     }
 
     @Override
     public String toString() {
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append( dataFormat.toString() );
-        if ( dataFormat != DataFormat.TABLEDATA ) {
+        sbuf.append( dataFormat_.toString() );
+        if ( dataFormat_ != DataFormat.TABLEDATA ) {
             sbuf.append( "," )
-                .append( inline ? "inline" : "href" );
+                .append( inline_ ? "inline" : "href" );
         }
         sbuf.append( ",v" )
-            .append( version.getVersionNumber() );
+            .append( version_.getVersionNumber() );
         return sbuf.toString();
     }
 
