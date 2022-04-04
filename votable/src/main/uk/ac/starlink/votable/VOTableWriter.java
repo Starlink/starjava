@@ -63,6 +63,7 @@ public class VOTableWriter
     private DataFormat dataFormat_;
     private boolean inline_;
     private VOTableVersion version_;
+    private Boolean compact_;
     private Charset encoding_;
     private boolean writeSchemaLocation_;
     private String xmlDeclaration_ = DEFAULT_XML_DECLARATION;
@@ -228,6 +229,9 @@ public class VOTableWriter
              * exactly how the data from each cell is going to get written. */
             VOSerializer serializer = 
                 VOSerializer.makeSerializer( dataFormat_, version_, startab );
+            if ( compact_ != null ) {
+                serializer.setCompact( compact_.booleanValue() );
+            }
 
             /* Begin TABLE element including FIELDs etc. */
             serializer.writePreDataXML( writer );
@@ -593,6 +597,38 @@ public class VOTableWriter
      */
     public VOTableVersion getVotableVersion() {
         return version_;
+    }
+
+    /**
+     * Controls whitespace formatting for TABLEDATA output,
+     * ignored for other formats.
+     * If null (the default),
+     * a decision will be taken dependent on table width.
+     *
+     * @param   compact  TRUE for compact TABLEDATA output,
+     *                   FALSE for more whitespace,
+     *                   null for auto
+     */
+    @ConfigMethod(
+        property = "compact",
+        example = "true",
+        doc = "<p>Controls whitespace formatting for TABLEDATA output,\n"
+            + "ignored for other formats.\n"
+            + "By default a decision will be taken dependent on table width.\n"
+            + "</p>"
+    )
+    public void setCompact( Boolean compact ) {
+        compact_ = compact;
+    }
+
+    /**
+     * Returns whitespace formatting policy for TABLEDATA output.
+     *
+     * @return  TRUE for compact TABLEDATA output, FALSE for more whitespace,
+     *          null for auto
+     */
+    public Boolean isCompact() {
+        return compact_;
     }
 
     /**

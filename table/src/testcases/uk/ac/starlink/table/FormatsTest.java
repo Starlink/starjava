@@ -374,6 +374,8 @@ public class FormatsTest extends TableCase {
         StarTable t1 = table;
         for ( String config :
               new String[] {
+                  "format=TABLEDATA,compact=false",
+                  "format=TABLEDATA,compact=true",
                   "format=BINARY2,encoding=UTF-16",
               } ) {
             VOTableWriter writer =

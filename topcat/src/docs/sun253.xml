@@ -30531,6 +30531,10 @@ introduced since the last version:
         values (CONTINUE records) as well.</li>
     <li>Add XML <code>encoding</code> configuration option for
         <ref id="outVotable">VOTable output</ref>.</li>
+    <li>Add <code>compact</code> configuration option for
+        <ref id="outVotable">VOTable output</ref>.
+        By default thin TABLEDATA VOTables are now written with 
+        reduced whitespace.</li>
     </ul>
     </p></dd>
 

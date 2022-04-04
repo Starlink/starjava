@@ -60,6 +60,7 @@ public abstract class VOSerializer {
     private final ServiceDescriptor[] servDescrips_;
     final Map<MetaEl,String> coosysMap_;
     final Map<MetaEl,String> timesysMap_;
+    private boolean isCompact_;
 
     final static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
     private static final AtomicLong idSeq_ = new AtomicLong();
@@ -185,6 +186,26 @@ public abstract class VOSerializer {
      */
     public StarTable getTable() {
         return table_;
+    }
+
+    /**
+     * Controls whitespace formatting for TABLEDATA format;
+     * no effect for other DataFormats.
+     *
+     * @param   isCompact  if true, add whitespace round TR/TD elements
+     */
+    public void setCompact( boolean isCompact ) {
+        isCompact_ = isCompact;
+    }
+
+    /**
+     * Indicates compactness of whitespace formatting for TABLEDATA format;
+     * no effect for other DataFormats.
+     *
+     * @return  if true, add whitespace round TR/TD elements
+     */
+    public boolean isCompact() {
+        return isCompact_;
     }
 
     /**
@@ -1003,7 +1024,10 @@ public abstract class VOSerializer {
 
         /* Return a serializer. */
         if ( dataFormat == DataFormat.TABLEDATA ) {
-            return new TabledataVOSerializer( table, version, magicNulls );
+            TabledataVOSerializer tdser =
+                new TabledataVOSerializer( table, version, magicNulls );
+            tdser.setCompact( table.getColumnCount() <= 4 );
+            return tdser;
         }
         else if ( dataFormat == DataFormat.FITS ) {
 
@@ -1159,26 +1183,24 @@ public abstract class VOSerializer {
             writer.newLine();
             writer.write( "<TABLEDATA>" );
             writer.newLine();
+            TdTags tdTags = new TdTags( isCompact() );
             int ncol = encoders.length;
             RowSequence rseq = getTable().getRowSequence();
             try {
                 while ( rseq.next() ) {
-                    writer.write( "  <TR>" );
-                    writer.newLine();
+                    writer.write( tdTags.preTr_ );
                     Object[] rowdata = rseq.getRow();
                     for ( int icol = 0; icol < ncol; icol++ ) {
                         Encoder encoder = encoders[ icol ];
                         if ( encoder != null ) {
                             String text =
                                 encoder.encodeAsText( rowdata[ icol ] );
-                            writer.write( "    <TD>" );
+                            writer.write( tdTags.preTd_ );
                             writer.write( formatText( text ) );
-                            writer.write( "</TD>" );
-                            writer.newLine();
+                            writer.write( tdTags.postTd_ );
                         }
                     }
-                    writer.write( "  </TR>" );
-                    writer.newLine();
+                    writer.write( tdTags.postTr_ );
                 }
             }
             finally {
@@ -1194,10 +1216,11 @@ public abstract class VOSerializer {
         public void writeInlineDataElementUTF8( OutputStream out )
                 throws IOException {
             DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
-            byte[] preTr = toAsciiBytes( "  <TR>" + NL_STRING );
-            byte[] preTd = toAsciiBytes( "    <TD>" );
-            byte[] postTd = toAsciiBytes( "</TD>" + NL_STRING );
-            byte[] postTr = toAsciiBytes( "  </TR>" + NL_STRING );
+            TdTags tdTags = new TdTags( isCompact() );
+            byte[] preTr = toAsciiBytes( tdTags.preTr_ );
+            byte[] preTd = toAsciiBytes( tdTags.preTd_ );
+            byte[] postTd = toAsciiBytes( tdTags.postTd_ );
+            byte[] postTr = toAsciiBytes( tdTags.postTr_ );
             dout.writeBytes( "<DATA>" );
             dout.write( NL_BYTES );
             dout.writeBytes( "<TABLEDATA>" );
@@ -1231,6 +1254,37 @@ public abstract class VOSerializer {
                                           OutputStream streamout ) {
             throw new UnsupportedOperationException( 
                 "TABLEDATA only supports inline output" );
+        }
+
+        /**
+         * Provides tag representations for TD and TR elements.
+         */
+        private static class TdTags {
+            final String preTr_;
+            final String preTd_;
+            final String postTd_;
+            final String postTr_;
+
+            /**
+             * Constructor.
+             *
+             * @param  isCompact  true for compact output,
+                                  false for whitespace padding
+             */
+            TdTags( boolean isCompact ) {
+                if ( isCompact ) {
+                    preTr_ = "<TR>";
+                    preTd_ = "<TD>";
+                    postTd_ = "</TD>";
+                    postTr_ = "</TR>" + NL_STRING;
+                }
+                else {
+                    preTr_ = "  <TR>" + NL_STRING;
+                    preTd_ = "    <TD>";
+                    postTd_ = "</TD>" + NL_STRING;
+                    postTr_ = "  </TR>" + NL_STRING;
+                }
+            }
         }
     }
 

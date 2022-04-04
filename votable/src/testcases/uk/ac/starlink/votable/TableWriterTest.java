@@ -79,6 +79,11 @@ public class TableWriterTest extends TestCase {
         assertDOMEquals(
             toDom( t23, "format=TABLEDATA" ),
             toDom( t23, "format=TABLEDATA,encoding=UTF-16LE" ) );
+
+        // I don't think this test works.  Not sure about assertDOMEquals.
+        assertDOMEquals(
+            toDom( t23, "format=TABLEDATA,compact=false" ),
+            toDom( t23, "format=TABLEDATA,compact=true" ) );
     }
 
     private VOElement toDom( StarTable table, String votOptions )
