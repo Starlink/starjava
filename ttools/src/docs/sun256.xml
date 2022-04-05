@@ -13848,6 +13848,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="layer-arrayquantile">arrayquantile</ref>,
         that can plot e.g. medians of multiple per-row spectra
         with arbitrary wavelength coordinates.</li>
+    <li>Minor taplint updates to latest EPN-TAP draft;
+        now matches PR-EPN-TAP-20220420.</li>
     </ul>
     </p></dd>
 

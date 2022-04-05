@@ -800,6 +800,7 @@ public class EpnTapStage implements Stage {
             textCol( "target_region", "meta.id;src;obs.field" ),
             textCol( "feature_name", "meta.id;src;obs.field" ),
             textCol( "publisher", "meta.curation" ),
+            textCol( "processing_level_desc", "meta.note" ),
             textCol( "bib_reference", "meta.bib" ),
             textCol( "internal_reference", "meta.id.cross" ),
             textCol( "external_link", "meta.ref.url" ),
@@ -889,11 +890,13 @@ public class EpnTapStage implements Stage {
             new SingleCol( "platesc", Type.DOUBLE, "arcsec/pix",
                            "instr.scale" ),
             new SingleCol( "orientation", Type.DOUBLE, "deg", "pos.posAng" ),
-            textCol( "observer_name", "obs.observer;meta.main" ),
+            textCol( "measurement_unit", "meta.unit" ),
+            textCol( "observer_name", "meta.id.PI;obs.observer" ),
             textCol( "observer_institute", "meta.note" ),
             new SingleCol( "observer_id", Type.INTEGER, null, "meta.id.PI" ),
             textCol( "observer_code", "meta.id.PI" ),
             textCol( "observer_country", "meta.note;obs.observer" ),
+            textCol( "observer_location", "pos;obs.observer" ),
             new SingleCol( "observer_lon", Type.DOUBLE, "deg",
                            "obs.observer;pos.earth.lon" ),
             new SingleCol( "observer_lat", Type.DOUBLE, "deg",
@@ -934,6 +937,10 @@ public class EpnTapStage implements Stage {
             new MinMaxCol( "pixelscale_", Type.DOUBLE, "km/pix",
                            minMaxStats( "instr.scale" ) ),
             textCol( "particle_spectral_type", "meta.id;phys.particle" ),
+
+            // There are actually two legal values for the UCD of
+            // particle_spectral_range.  I am currently too lazy to
+            // check this unusual case.
             new MinMaxCol( "particle_spectral_range_", Type.DOUBLE, null,
                            null ),
             new MinMaxCol( "particle_spectral_sampling_step_", Type.DOUBLE,null,
@@ -1864,7 +1871,7 @@ public class EpnTapStage implements Stage {
                    new boolean[] { true, true, false } ),
         BODY( new String[][] { { "pos.bodyrc.lon" },
                                { "pos.bodyrc.lat" },
-                               { "pos.bodyrc.alt", "pos.distance;pos.bodyrc" }},
+                               { "pos.bodyrc.alt" }},
               new String[] { "deg", "deg", "km" },
               new boolean[] { true, true, false } ),
         CARTESIAN( new String[] { "pos.cartesian.x",
