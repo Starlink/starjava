@@ -6508,7 +6508,7 @@ This can be represented in a number of ways, controlled by the
 <code>projection</code> parameter; by default the view is of a rotatable
 sphere seen from the outside
 (which approximates to a tangent projection for small regions of the sky),
-but Aitoff and Plate Car&#x00e9;e projections are also available.
+but Hammer-Aitoff and Plate Car&#x00e9;e projections are also available.
 A number of options are also provided for drawing and labelling the
 grid showing celestial coordinates.
 </p>
@@ -6568,7 +6568,7 @@ stilts plot2sky xpix=1000 ypix=500 fontsize=18 crowd=2
                 lon1=alpha lat1=delta datasys1=equatorial 
                 icmd1=progress out=mw.pdf
 </verbatim></dt>
-<dd><p>Makes an all-sky plot using an Aitoff projection into
+<dd><p>Makes an all-sky plot using a Hammer-Aitoff projection into
     galactic coordinates of a large dataset.
     <ref id="shading-density">Density</ref> shading
     means that the colour at each point is dependent on
@@ -13787,6 +13787,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Aitoff sky projections are now more correctly documented
+        as Hammer-Aitoff (though not renamed).</li>
     </ul>
     </p></dd>
 

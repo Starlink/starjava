@@ -13993,7 +13993,7 @@ It also affects some other things like the legend.
 <p>The <label>Sky Plot</label> (&IMG.PLOT2_SKY;)
 plots longitude/latitude positions onto the celestial sphere.
 It can plot to a number of projections
-(currently Sin, Aitoff and Plate Carr&#x00e9;e).
+(currently Sin, Hammer-Aitoff and Plate Carr&#x00e9;e).
 </p>
 
 <p>The positional coordinates are
@@ -14081,7 +14081,7 @@ tab of the <ref id="SkyAxisControl">Axes control</ref>.
     if the mouse starts on the sphere and ends up off it the navigation
     will be jerky.
     </p>
-    <p>The Aitoff and Plate Carr&#x00e9;e projections act like a piece of
+    <p>The Hammer-Aitoff and Plate Carr&#x00e9;e projections act like a piece of
     paper that can be dragged around in two dimensions in the usual way.
     </p></dd>
 <dt>&GESTURE.WHEEL;</dt>
@@ -14138,7 +14138,7 @@ coordinates are projected onto the screen.
 <dt>Projection</dt>
 <dd><p>Selects the sky projection to use.
     The options are <label>Sin</label>;
-    <label>Aitoff</label> or <label>Aitoff0</label> for Aitoff; and
+    <label>Aitoff</label> or <label>Aitoff0</label> for Hammer-Aitoff; and
     <label>Car</label> or <label>Car0</label> for Plate Carr&#x00e9;e.
     Sin is rotatable, the other two are essentially flat all-sky projections.
     Car and Aitoff have longitude=0 at the center of the plot, while
@@ -30564,6 +30564,8 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Aitoff sky projections are now more correctly documented
+        as Hammer-Aitoff (though not renamed).</li>
     </ul>
     </p></dd>
 

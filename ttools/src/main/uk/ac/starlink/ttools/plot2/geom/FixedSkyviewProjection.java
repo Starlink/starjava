@@ -29,13 +29,13 @@ public abstract class FixedSkyviewProjection extends SkyviewProjection {
     /** Aitoff projection, lon=0 at center. */
     public static final FixedSkyviewProjection AIT =
          createProjection( new Ait(), "Aitoff",
-                           "Aitoff projection with lon=0 at center",
+                           "Hammer-Aitoff projection with lon=0 at center",
                            FixedRotation.UNIT );
 
     /** Aitoff projection, lon=0 at edge. */
     public static final FixedSkyviewProjection AIT0 =
          createProjection( new Ait(), "Aitoff0",
-                           "Aitoff projection with lon=180 at center",
+                           "Hammer-Aitoff projection with lon=180 at center",
                            FixedRotation.LON_PI );
 
     /** Cartesian projection, lon=0 at center. */
