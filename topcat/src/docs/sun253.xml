@@ -14143,6 +14143,14 @@ coordinates are projected onto the screen.
     Sin is rotatable, the other two are essentially flat all-sky projections.
     Car and Aitoff have longitude=0 at the center of the plot, while
     Car0 and Aitoff0 have it at the left/right edge.
+    Note that for historical reasons the projections named Aitoff
+    denote the equal-area Hammer-Aitoff projection and not the Aitoff
+    projection itself.
+    The Hammer-Aitoff projection is defined as:
+    <verbatim>
+       x = [2sqrt(2)/sqrt(1+cos(lat)cos(lon/2))]cos(lat)sin(lon/2)
+       y = [sqrt(2)/sqrt(1+cos(lat)cos(lon/2))]sin(lat)
+    </verbatim>
     </p></dd>
 <dt>Reflect longitude axis</dt>
 <dd><p>Determines whether longitude increases left to right or right to left.

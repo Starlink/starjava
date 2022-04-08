@@ -425,6 +425,22 @@ public class SkySurfaceFactory
         };
         key.setOptionUsage();
         key.addOptionsXml();
+        meta.setXmlDescription( meta.getXmlDescription() + String.join( "\n",
+            "<p>Note that for historical reasons the projections named",
+            "\"<code>aitoff</code>\"",
+            "denote the equal-area Hammer-Aitoff projection",
+            "and not the Aitoff projection itself.",
+            "The Hammer-Aitoff projection is defined as:",
+            "<ul>",
+            "<li><code>x = "
+              + "[2sqrt(2)/sqrt(1+cos(lat)cos(lon/2))]cos(lat)sin(lon/2)"
+              + "</code></li>",
+            "<li><code>y = "
+              + "[sqrt(2)/sqrt(1+cos(lat)cos(lon/2))]sin(lat)"
+              + "</code></li>",
+            "</ul>",
+            "</p>",
+        "" ) );
         return key;
     }
 
