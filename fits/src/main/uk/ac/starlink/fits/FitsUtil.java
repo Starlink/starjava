@@ -37,9 +37,11 @@ public class FitsUtil {
     public static final String FLOAT_REGEX =
         "(?:[+-]?(?:[0-9]*\\.[0-9]+|[0-9]+\\.?))(?:[ED][+-]?[0-9]+)?";
 
+    // Note use of possessive quantifier to avoid an exponentially growing
+    // stack when parsing many-element arrays.
     private static final Pattern FLOATARRAY_PATTERN =
         Pattern.compile( "\\s*[(]\\s*" + FLOAT_REGEX
-                       + "(\\s*[,]\\s*" + FLOAT_REGEX + ")*"
+                       + "(\\s*[,]\\s*" + FLOAT_REGEX + ")*+"
                        + "\\s*[)]\\s*" );
 
     private static final Logger logger_ =

@@ -13789,6 +13789,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <ul>
     <li>Aitoff sky projections are now more correctly documented
         as Hammer-Aitoff (though not renamed).</li>
+    <li>Fix FITS parsing issue that could result in StackOverflowError
+        for long array-valued headers.</li>
     </ul>
     </p></dd>
 

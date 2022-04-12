@@ -30574,6 +30574,8 @@ introduced since the last version:
     <ul>
     <li>Aitoff sky projections are now more correctly documented
         as Hammer-Aitoff (though not renamed).</li>
+    <li>Fix FITS parsing issue that could result in StackOverflowError 
+        for long array-valued headers.</li>
     </ul>
     </p></dd>
 
