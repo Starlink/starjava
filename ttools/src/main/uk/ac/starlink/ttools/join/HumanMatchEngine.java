@@ -30,6 +30,7 @@ public class HumanMatchEngine implements MatchEngine {
     private final ValueWrapper scoreWrapper_;
     private final ValueInfo scoreInfo_;
     private final int nval_;
+    private final boolean isIdentity_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.join" );
@@ -42,6 +43,7 @@ public class HumanMatchEngine implements MatchEngine {
      */
     public HumanMatchEngine( MatchEngine baseEngine ) {
         baseEngine_ = baseEngine;
+        boolean isIdentity = true;
 
         /* Get translators for each element of this engine's tuples,
          * and store appropriately modified tuple descriptors. */
@@ -52,6 +54,7 @@ public class HumanMatchEngine implements MatchEngine {
         for ( int i = 0; i < nval_; i++ ) {
             tupleWrappers_[ i ] = createWrapper( tinfos[ i ] );
             tupleInfos_[ i ] = tupleWrappers_[ i ].wrapValueInfo( tinfos[ i ] );
+            isIdentity &= tupleWrappers_[ i ].isIdentity();
         }
 
         /* Get translators for each of this engine's match parameters,
@@ -60,8 +63,9 @@ public class HumanMatchEngine implements MatchEngine {
         matchParams_ = new DescribedValue[ mParams.length ];
         for ( int i = 0; i < mParams.length; i++ ) {
             DescribedValue param = mParams[ i ];
-            matchParams_[ i ] = createWrapper( param.getInfo() )
-                               .wrapDescribedValue( param );
+            ValueWrapper pWrapper = createWrapper( param.getInfo() );
+            matchParams_[ i ] = pWrapper.wrapDescribedValue( param );
+            isIdentity &= pWrapper.isIdentity();
         }
 
         /* Do the same for tuning parameters. */
@@ -69,8 +73,9 @@ public class HumanMatchEngine implements MatchEngine {
         tuningParams_ = new DescribedValue[ tParams.length ];
         for ( int i = 0; i < tParams.length; i++ ) {
             DescribedValue param = tParams[ i ];
-            tuningParams_[ i ] = createWrapper( param.getInfo() )
-                                .wrapDescribedValue( param );
+            ValueWrapper tWrapper = createWrapper( param.getInfo() );
+            tuningParams_[ i ] = tWrapper.wrapDescribedValue( param );
+            isIdentity &= tWrapper.isIdentity();
         }
 
         /* Get and store a wrapper for this engine's match score. */
@@ -78,11 +83,24 @@ public class HumanMatchEngine implements MatchEngine {
         if ( minfo != null ) {
             scoreWrapper_ = createWrapper( minfo );
             scoreInfo_ = scoreWrapper_.wrapValueInfo( minfo );
+            isIdentity &= scoreWrapper_.isIdentity();
         }
         else {
             scoreWrapper_ = NULL_WRAPPER;
             scoreInfo_ = null;
         }
+        isIdentity_ = isIdentity;
+    }
+
+    /**
+     * Indicates whether this object simply duplicates the underlying
+     * MatchEngine.
+     *
+     * @return   true if this wrapper makes no changes to underlying behaviour,
+     *           false if it may make changes
+     */
+    public boolean isIdentity() {
+        return isIdentity_;
     }
 
     public DescribedValue[] getMatchParameters() {
@@ -266,6 +284,18 @@ public class HumanMatchEngine implements MatchEngine {
     }
 
     /**
+     * Returns a human-friendly version of a supplied MatchEngine.
+     * If no changes are required, the original instance is returned.
+     *
+     * @param  base  original match engine
+     * @return   human-friendly version
+     */
+    public static MatchEngine getHumanMatchEngine( MatchEngine base ) {
+        HumanMatchEngine human = new HumanMatchEngine( base );
+        return human.isIdentity() ? base : human;
+    }
+
+    /**
      * Defines the interface for an adapter which can modify values
      * (e.g. change their units.).
      */
@@ -310,6 +340,15 @@ public class HumanMatchEngine implements MatchEngine {
          * @return  wrapped described value
          */
         public abstract DescribedValue wrapDescribedValue( DescribedValue dv );
+
+        /**
+         * Indicates whether this wrapper simply duplicates the underlying
+         * values.
+         *
+         * @return   true if this wrapper makes no changes to values,
+         *           false if it may change them
+         */
+        public abstract boolean isIdentity();
     }
 
     /**
@@ -330,6 +369,9 @@ public class HumanMatchEngine implements MatchEngine {
         }
         public DescribedValue wrapDescribedValue( DescribedValue dval ) {
             return dval;
+        }
+        public boolean isIdentity() {
+            return true;
         }
     };
 
@@ -381,6 +423,9 @@ public class HumanMatchEngine implements MatchEngine {
                     dval.setValue( unwrapValue( value ) );
                 }
             };
+        }
+        public boolean isIdentity() {
+            return false;
         }
     }
 }

@@ -509,7 +509,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
                                             + cName );
                 }
             }
-            components[ i ] = new HumanMatchEngine( component );
+            components[ i ] = HumanMatchEngine.getHumanMatchEngine( component );
         }
         return components.length == 1
              ? components[ 0 ]
