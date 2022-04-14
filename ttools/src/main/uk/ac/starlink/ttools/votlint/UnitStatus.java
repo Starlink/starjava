@@ -11,6 +11,7 @@ import uk.me.nxg.unity.UnitDefinition;
 import uk.me.nxg.unity.UnitExpr;
 import uk.me.nxg.unity.UnitParser;
 import uk.me.nxg.unity.UnitParserException;
+import uk.me.nxg.unity.UnitRepresentation;
 
 /**
  * Categorises VOUnit validity.
@@ -104,9 +105,10 @@ public class UnitStatus {
             if ( ! word.isRecognisedUnit( syntax ) || word.wasGuessed() ) {
                 String utxt = word.getOriginalUnitString();
                 UnitDefinition udef = word.getBaseUnitDefinition();
-                String guess = udef == null
-                             ? null
-                             : udef.getRepresentation( syntax ).toString();
+                UnitRepresentation urep = udef == null
+                                        ? null
+                                        : udef.getRepresentation( syntax );
+                String guess = urep == null ? null : urep.toString();
                 unknown.put( utxt, guess );
             }
             if ( ! word.isRecommendedUnit( syntax ) ) {

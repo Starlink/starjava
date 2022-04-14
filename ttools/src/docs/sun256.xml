@@ -13791,6 +13791,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         as Hammer-Aitoff (though not renamed).</li>
     <li>Fix FITS parsing issue that could result in StackOverflowError
         for long array-valued headers.</li>
+    <li>Fix NullPointerException failure in taplint UUC stage or
+        votlint for unknown units recognised only in non-VOUnit
+        syntaxes (e.g. "Crab").</li>
     </ul>
     </p></dd>
 
