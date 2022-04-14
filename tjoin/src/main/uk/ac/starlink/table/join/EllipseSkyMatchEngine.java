@@ -48,7 +48,7 @@ import uk.ac.starlink.table.ValueInfo;
 public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
 
     private final DescribedValue[] matchParams_;
-    private boolean recogniseCircles_;
+    boolean recogniseCircles_;
 
     private static final DefaultValueInfo SCALE_INFO =
         new DefaultValueInfo( "Scale", Number.class,
@@ -201,7 +201,7 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
      *
      * @param   tuple  alpha, delta, mu, nu, zeta coordinates
      */
-    private SkyEllipse toSkyEllipse( Object[] tuple ) {
+    SkyEllipse toSkyEllipse( Object[] tuple ) {
         double alpha = getNumberValue( tuple[ 0 ] );
         double delta = getNumberValue( tuple[ 1 ] );
         double mu = getNumberValue( tuple[ 2 ] );
@@ -441,6 +441,72 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
                     return isPoint;
                 }
             };
+        }
+    }
+
+    /**
+     * MatchEngine class that behaves like EllipseSkyMatchEngine but uses
+     * human-friendly units (degrees and arcseconds) rather than radians
+     * for tuple elements and match parameters.
+     */
+    public static class InDegrees extends EllipseSkyMatchEngine {
+        private final ValueInfo[] tupleInfos_;
+        private final DescribedValue[] matchParams_;
+
+        /**
+         * Constructor.
+         *
+         * @param  pixellator  handles sky pixellisation
+         * @param  scaleRadians    initial value for length scale, in radians
+         */
+        public InDegrees( SkyPixellator pixellator, double scaleRadians ) {
+            super( pixellator, scaleRadians );
+            ValueInfo[] infos0 = super.getTupleInfos();
+            tupleInfos_ = new ValueInfo[] {
+                inDegreeInfo( infos0[ 0 ] ),
+                inDegreeInfo( infos0[ 1 ] ),
+                inArcsecInfo( infos0[ 2 ] ),
+                inArcsecInfo( infos0[ 3 ] ),
+                inDegreeInfo( infos0[ 4 ] ),
+            };
+            DescribedValue[] params0 = super.getMatchParameters();
+            matchParams_ = new DescribedValue[] {
+                radiansToArcsecParam( params0[ 0 ] ),
+            };
+            assert tupleInfos_.length == infos0.length;
+            assert matchParams_.length == params0.length;
+        }
+        @Override
+        public ValueInfo[] getTupleInfos() {
+            return tupleInfos_;
+        }
+        @Override
+        public DescribedValue[] getMatchParameters() {
+            return matchParams_;
+        }
+        @Override
+        SkyEllipse toSkyEllipse( Object[] tuple ) {
+            double alpha = getNumberValue( tuple[ 0 ] ) * FROM_DEG;
+            double delta = getNumberValue( tuple[ 1 ] ) * FROM_DEG;
+            double mu = getNumberValue( tuple[ 2 ] ) * FROM_ARCSEC;
+            double nu = getNumberValue( tuple[ 3 ] ) * FROM_ARCSEC;
+            double zeta = getNumberValue( tuple[ 4 ] ) * FROM_DEG;
+            return createSkyEllipse( alpha, delta, mu, nu, zeta,
+                                     recogniseCircles_ );
+        }
+        @Override
+        public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+            double maxRadiusArcsec = 0;
+            for ( NdRange inRange : inRanges ) {
+                Comparable<?>[] maxs = inRange.getMaxs();
+                maxRadiusArcsec =
+                    Math.max( maxRadiusArcsec,
+                              Math.max( getNumberValue( maxs[ 2 ] ),
+                                        getNumberValue( maxs[ 3 ] ) ) );
+            }
+            double maxRadius = maxRadiusArcsec * FROM_ARCSEC;
+            return createExtendedSkyBoundsDegrees( inRanges[ index ], 0, 1,
+                                                   2 * maxRadius );
         }
     }
 

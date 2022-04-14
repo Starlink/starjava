@@ -154,7 +154,7 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
      * @param   tuple  object tuple intended for this matcher
      * @return  right ascension coordinate in radians
      */
-    private double getAlpha( Object[] tuple ) {
+    double getAlpha( Object[] tuple ) {
         return getNumberValue( tuple[ 0 ] );
     }
 
@@ -164,7 +164,7 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
      * @param   tuple  object tuple intended for this matcher
      * @return  declination coordinate in radians
      */
-    private double getDelta( Object[] tuple ) {
+    double getDelta( Object[] tuple ) {
         return getNumberValue( tuple[ 1 ] );
     }
 
@@ -174,7 +174,71 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
      * @param   tuple  object tuple intended for this matcher
      * @return  error radius in radians
      */
-    private double getError( Object[] tuple ) {
+    double getError( Object[] tuple ) {
         return getNumberValue( tuple[ 2 ] );
+    }
+
+    /**
+     * MatchEngine class that behaves like ErrorSkyMatchEngine but uses
+     * human-friendly units (degrees and arcseconds) rather than radians
+     * for tuple elements and match parameters.
+     */
+    public static class InDegrees extends ErrorSkyMatchEngine {
+        private final ValueInfo[] tupleInfos_;
+        private final DescribedValue[] matchParams_;
+
+        /**
+         * Constructor.
+         *
+         * @param  pixellator  handles sky pixellisation
+         * @param  scaleRadians  initial value for length scale, in radians
+         */
+        public InDegrees( SkyPixellator pixellator, double scaleRadians ) {
+            super( pixellator, scaleRadians );
+            ValueInfo[] infos0 = super.getTupleInfos();
+            tupleInfos_ = new ValueInfo[] {
+                inDegreeInfo( infos0[ 0 ] ),
+                inDegreeInfo( infos0[ 1 ] ),
+                inArcsecInfo( infos0[ 2 ] ),
+            };
+            DescribedValue[] params0 = super.getMatchParameters();
+            matchParams_ = new DescribedValue[] {
+                radiansToArcsecParam( params0[ 0 ] ),
+            };
+            assert tupleInfos_.length == infos0.length;
+            assert matchParams_.length == params0.length;
+        }
+        @Override
+        public ValueInfo[] getTupleInfos() {
+            return tupleInfos_;
+        }
+        @Override
+        public DescribedValue[] getMatchParameters() {
+            return matchParams_;
+        }
+        @Override
+        double getAlpha( Object[] tuple ) {
+            return super.getAlpha( tuple ) * FROM_DEG;
+        }
+        @Override
+        double getDelta( Object[] tuple ) {
+            return super.getDelta( tuple ) * FROM_DEG;
+        }
+        @Override
+        double getError( Object[] tuple ) {
+            return super.getError( tuple ) * FROM_ARCSEC;
+        }
+        @Override
+        public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
+            double maxRadiusArcsec = 0;
+            for ( NdRange inRange : inRanges ) {
+                maxRadiusArcsec =
+                    Math.max( maxRadiusArcsec,
+                              getNumberValue( inRange.getMaxs()[ 2 ] ) );
+            }
+            double maxRadius = maxRadiusArcsec * FROM_ARCSEC;
+            return createExtendedSkyBoundsDegrees( inRanges[ index ], 0, 1,
+                                                   2 * maxRadius );
+        }
     }
 }

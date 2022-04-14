@@ -107,23 +107,69 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
     /**
      * Converts a submitted match tuple to Cartesian coordinates.
      *
-     * @param   (alpha,delta,r) array
+     * @param   tuple  input tuple
      * @return  (x,y,z) array
      */
-    private static double[] toXyz( Object[] tuple ) {
-        double ra = getNumberValue( tuple[ 0 ] );
-        double dec = getNumberValue( tuple[ 1 ] );
-        double r = getNumberValue( tuple[ 2 ] );
+    double[] toXyz( Object[] tuple ) {
+        return toXyz( getNumberValue( tuple[ 0 ] ),
+                      getNumberValue( tuple[ 1 ] ),
+                      getNumberValue( tuple[ 2 ] ) );
+    }
 
-        double cd = Math.cos( dec );
-        double sd = Math.sin( dec );
-        double cr = Math.cos( ra );
-        double sr = Math.sin( ra );
+    /**
+     * Converts spherical polar to Cartesian coordinates.
+     *
+     * @param  raRad  RA in radians
+     * @param  decRad  declination in radians
+     * @param  r   radius
+     * @return  (x,y,z) array
+     */
+    static double[] toXyz( double raRad, double decRad, double r ) {
+        double cd = Math.cos( decRad );
+        double sd = Math.sin( decRad );
+        double cr = Math.cos( raRad );
+        double sr = Math.sin( raRad );
 
         double x = r * cr * cd;
         double y = r * sr * cd;
         double z = r * sd;
 
         return new double[] { x, y, z };
+    }
+
+    /**
+     * MatchEngine class that behaves like SphericalPolarSkyMatchEngine but
+     * uses human-friendly units (degrees and arcseconds) rather than radians
+     * for tuple elements and match parameters.
+     */
+    public static class InDegrees extends SphericalPolarMatchEngine {
+        private final ValueInfo[] tupleInfos_;
+        private static final double FROM_DEG = AbstractSkyMatchEngine.FROM_DEG;
+
+        /**
+         * Constructor.
+         *
+         * @param   err  maximum separation for a match
+         */
+        public InDegrees( double err ) {
+            super( err );
+            ValueInfo[] infos0 = super.getTupleInfos();
+            tupleInfos_ = new ValueInfo[] {
+                AbstractSkyMatchEngine.inDegreeInfo( infos0[ 0 ] ),
+                AbstractSkyMatchEngine.inDegreeInfo( infos0[ 1 ] ),
+                infos0[ 2 ],
+            };
+            assert tupleInfos_.length == infos0.length;
+        }
+        @Override
+        double[] toXyz( Object[] tuple ) {
+            return toXyz( getNumberValue( tuple[ 0 ] ) * FROM_DEG,
+                          getNumberValue( tuple[ 1 ] ) * FROM_DEG,
+                          getNumberValue( tuple[ 2 ] ) );
+        }
+        @Override
+        public ValueInfo[] getTupleInfos() {
+            return tupleInfos_;
+        }
     }
 }

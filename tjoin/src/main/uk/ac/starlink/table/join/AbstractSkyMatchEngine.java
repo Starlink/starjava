@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.join;
 
 import cds.healpix.common.math.FastMath;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 
@@ -15,6 +16,11 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
     private final SkyPixellator pixellator_;
 
     static final double INVERSE_ARC_SECOND = ( 180. * 60. * 60. ) / Math.PI;
+
+    static final double FROM_DEG = Math.PI / 180.;
+    static final double TO_DEG = 180. / Math.PI;
+    static final double FROM_ARCSEC = Math.PI / ( 180. * 3600. );
+    static final double TO_ARCSEC = ( 180. * 3600. ) / Math.PI;
 
     /**
      * Constructor.
@@ -124,6 +130,87 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
     public static double calculateSeparation( double alpha1, double delta1,
                                               double alpha2, double delta2 ) {
         return haversineSeparationFormula( alpha1, delta1, alpha2, delta2 );
+    }
+
+    /**
+     * Returns a ValueInfo like a supplied one but with units of "degrees".
+     *
+     * @param  info  input metadata
+     * @return  output metadata
+     */
+    static ValueInfo inDegreeInfo( ValueInfo info ) {
+        DefaultValueInfo dinfo1 = new DefaultValueInfo( info );
+        dinfo1.setUnitString( "degrees" );
+        return dinfo1;
+    }
+
+    /**
+     * Returns a ValueInfo like a supplied one but with unts of "arcsec".
+     *
+     * @param  info  input metadata
+     * @return  output metadata
+     */
+    static ValueInfo inArcsecInfo( ValueInfo info ) {
+        DefaultValueInfo dinfo1 = new DefaultValueInfo( info );
+        dinfo1.setUnitString( "arcsec" );
+        return dinfo1;
+    }
+
+    /**
+     * Returns a DescribedValue based on a supplied radians-based one
+     * but with units of arcseconds.
+     * The documentation is modified and getting or setting the value
+     * in arcseconds will modify the radians-based value of the supplied
+     * object appropriately.
+     *
+     * @param  param  input described value
+     * @return  output described value
+     */
+    static DescribedValue radiansToArcsecParam( DescribedValue param ) {
+        return new DescribedValue( inArcsecInfo( param.getInfo() ),
+                                   multiply( param.getValue(), TO_ARCSEC ) ) {
+            @Override
+            public Object getValue() {
+                return multiply( param.getValue(), TO_ARCSEC );
+            }
+            @Override
+            public void setValue( Object value ) {
+                param.setValue( multiply( value, FROM_ARCSEC ) );
+            }
+        };
+    }
+
+    /**
+     * Multiplies a number supplied as a Number object by a given factor,
+     * returning a Number object.
+     *
+     * @param  value  numeric value as wrapper object
+     * @param  factor  multiplicand
+     * @return  product as Double value, or null if trouble
+     */
+    static Double multiply( Object value, double factor ) {
+        return value instanceof Number
+             ? new Double( ((Number) value).doubleValue() * factor )
+             : null;
+    }
+
+    /**
+     * Multiplies all the min and max values in a given NdRange by a
+     * supplied factor.
+     *
+     * @param   range  input range
+     * @param   factor  multiplicand
+     * @return   rescaled NdRange
+     */
+    static NdRange multiplyNdRange( NdRange range, double factor ) {
+        Comparable<?>[] mins = range.getMins().clone();
+        Comparable<?>[] maxs = range.getMaxs().clone();
+        int ndim = mins.length;
+        for ( int i = 0; i < ndim; i++ ) {
+            mins[ i ] = multiply( mins[ i ], factor );
+            maxs[ i ] = multiply( maxs[ i ], factor );
+        }
+        return new NdRange( mins, maxs );
     }
 
     /**
@@ -249,6 +336,27 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
         maxOuts[ ialpha ] = toFloatingNumber( alphaMaxOut, maxTuple[ ialpha ] );
         maxOuts[ idelta ] = toFloatingNumber( deltaMaxOut, maxTuple[ idelta ] );
         return new NdRange( minOuts, maxOuts );
+    }
+
+    /**
+     * Invokes {@link #createExtendedSkyBounds} with input and output
+     * NdRanges in degrees rather than radians.
+     *
+     * @param  inRange   input bounds, RA and Dec limits in degrees
+     * @param  ialphaDeg index in tuples of the right ascension coordinate
+     *                   measured in degrees
+     * @param  ideltaDeg index in tuples of the declination coordinate
+     *                   measured in degrees
+     * @param  errRadians    amount in radians to extend bounds by
+     * @return output bounds - effectively input bounds broadened by errors
+     */
+    static NdRange createExtendedSkyBoundsDegrees( NdRange inRange,
+                                                   int ialphaDeg, int ideltaDeg,
+                                                   double errRadians ) {
+        return multiplyNdRange(
+               createExtendedSkyBounds( multiplyNdRange( inRange, FROM_DEG ),
+                                        ialphaDeg, ideltaDeg, errRadians ),
+               TO_DEG );
     }
 
     /**

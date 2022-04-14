@@ -156,7 +156,7 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
      * Turns a tuple as accepted by this match engine into an Ellipse object
      * as used by the internal calculations.
      */
-    private static Ellipse toEllipse( Object[] tuple ) {
+    private Ellipse toEllipse( Object[] tuple ) {
         double x = ((Number) tuple[ 0 ]).doubleValue();
         double y = ((Number) tuple[ 1 ]).doubleValue();
         if ( tuple[ 2 ] instanceof Number &&
@@ -164,12 +164,23 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
              tuple[ 4 ] instanceof Number ) {
             double a = ((Number) tuple[ 2 ]).doubleValue();
             double b = ((Number) tuple[ 3 ]).doubleValue();
-            double theta = ((Number) tuple[ 4 ]).doubleValue();
+            double theta = getTheta( ((Number) tuple[ 4 ]) );
             return new Ellipse( x, y, a, b, theta );
         }
         else {
             return new Ellipse( x, y );
         }
+    }
+
+    /**
+     * Returns the position angle in radians given the corresponding
+     * tuple element.
+     *
+     * @param  thetaNum  tuple element giving position angle value, not null
+     * @return   angle in radians
+     */
+    double getTheta( Number thetaNum ) {
+        return thetaNum.doubleValue();
     }
 
     /**
@@ -462,6 +473,42 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
         double yb = r2[1] - r1[1];
         double crossprod = xa * yb - ya * xb;
         return Math.abs( crossprod ) < 1e-10;
+    }
+
+    /**
+     * MatchEngine class that behaves like EllipseCartesianSkyMatchEngine but
+     * uses human-friendly units (degrees and arcseconds) rather than radians
+     * for tuple elements and match parameters.
+     * The difference is only in position angle.
+     */
+    public static class InDegrees extends EllipseCartesianMatchEngine {
+        private final ValueInfo[] tupleInfos_;
+
+        /**
+         * Constructor.
+         *
+         * @param  scale  rough scale of ellipse dimensions
+         */
+        public InDegrees( double scale) {
+            super( scale );
+            ValueInfo[] infos0 = super.getTupleInfos();
+            tupleInfos_ = new ValueInfo[] {
+                infos0[ 0 ],
+                infos0[ 1 ],
+                infos0[ 2 ],
+                infos0[ 3 ],
+                AbstractSkyMatchEngine.inDegreeInfo( infos0[ 4 ] ),
+            };
+            assert tupleInfos_.length == infos0.length;
+        }
+        @Override
+        public ValueInfo[] getTupleInfos() {
+            return tupleInfos_;
+        }
+        @Override
+        double getTheta( Number thetaNum ) {
+            return thetaNum.doubleValue() * AbstractSkyMatchEngine.FROM_DEG;
+        }
     }
 
     /**
