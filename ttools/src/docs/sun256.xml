@@ -13794,6 +13794,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix NullPointerException failure in taplint UUC stage or
         votlint for unknown units recognised only in non-VOUnit
         syntaxes (e.g. "Crab").</li>
+    <li>Crossmatching performance improvements.</li>
     </ul>
     </p></dd>
 

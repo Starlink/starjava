@@ -38,18 +38,17 @@ public class SkyMatch2Mapping extends Match2Mapping {
      * @param   runner    controls parallel implementation,
      *                    or null for sequential
      */
-    public SkyMatch2Mapping( FixedSkyMatchEngine matcher, 
+    public SkyMatch2Mapping( FixedSkyMatchEngine.InDegrees matcher, 
                              String raExpr1, String decExpr1,
                              String raExpr2, String decExpr2,
                              JoinType join, PairMode pairMode,
                              JoinFixAction fixact1, JoinFixAction fixact2,
                              ProgressIndicator progger, RowRunner runner ) {
-        super( new HumanMatchEngine( matcher ),
+        super( matcher,
                new String[] { raExpr1, decExpr1, }, 
                new String[] { raExpr2, decExpr2, }, join, pairMode,
                fixact1, fixact2, 
-               new HumanMatchEngine( matcher ).getMatchScoreInfo(), progger,
-               runner );
+               matcher.getMatchScoreInfo(), progger, runner );
     }
 
     protected StarTable makeSubTable( StarTable inTable, String[] exprTuple )

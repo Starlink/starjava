@@ -121,7 +121,8 @@ public class SkyMatch2Mapper implements TableMapper {
                                                "Negative value illegal" );
         }
         HealpixSkyPixellator pixer = new CdsHealpixSkyPixellator();
-        FixedSkyMatchEngine matcher = new FixedSkyMatchEngine( pixer, error );
+        FixedSkyMatchEngine.InDegrees matcher =
+            new FixedSkyMatchEngine.InDegrees( pixer, error );
         int defk = pixer.getHealpixK();
         if ( defk >= 0 ) {
             healpixkParam_.setIntDefault( defk );

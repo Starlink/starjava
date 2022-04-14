@@ -444,38 +444,38 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
             if ( "sky".equalsIgnoreCase( cName ) ||
                  "healpix".equalsIgnoreCase( cName ) ) {
                 component =
-                    new FixedSkyMatchEngine( new CdsHealpixSkyPixellator(),
-                                             ARC_SECOND );
+                    new FixedSkyMatchEngine
+                       .InDegrees( new CdsHealpixSkyPixellator(), ARC_SECOND );
             }
             else if ( "skyerr".equalsIgnoreCase( cName ) ) {
                 component =
-                    new ErrorSkyMatchEngine( new CdsHealpixSkyPixellator(),
-                                             ARC_SECOND );
+                    new ErrorSkyMatchEngine
+                       .InDegrees( new CdsHealpixSkyPixellator(), ARC_SECOND );
             }
             else if ( "skyellipse".equalsIgnoreCase( cName ) ) {
                 component =
-                    new EllipseSkyMatchEngine(
-                        new CdsHealpixSkyPixellator(), ARC_SECOND );
+                    new EllipseSkyMatchEngine
+                       .InDegrees( new CdsHealpixSkyPixellator(), ARC_SECOND );
             }
             else if ( "skyellipse-nocirc".equalsIgnoreCase( cName ) ) {
                 EllipseSkyMatchEngine matcher =
-                    new EllipseSkyMatchEngine(
-                        new CdsHealpixSkyPixellator(), ARC_SECOND );
+                    new EllipseSkyMatchEngine
+                       .InDegrees( new CdsHealpixSkyPixellator(), ARC_SECOND );
                 matcher.setRecogniseCircles( false );
                 component = matcher;
             }
             else if ( "sky3d".equalsIgnoreCase( cName ) ) {
-                component = new SphericalPolarMatchEngine( 0. );
+                component = new SphericalPolarMatchEngine.InDegrees( 0. );
             }
             else if ( "exact".equalsIgnoreCase( cName ) ) {
                 component = new EqualsMatchEngine();
             }
             else if ( "2d_ellipse".equalsIgnoreCase( cName ) ) {
-                component = new EllipseCartesianMatchEngine( 1 );
+                component = new EllipseCartesianMatchEngine.InDegrees( 1 );
             }
             else if ( "2d_ellipse-nocirc".equalsIgnoreCase( cName ) ) {
                 EllipseCartesianMatchEngine matcher =
-                    new EllipseCartesianMatchEngine( 1 );
+                    new EllipseCartesianMatchEngine.InDegrees( 1 );
                 matcher.setRecogniseCircles( false );
                 component = matcher;
             }
@@ -499,8 +499,8 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
                    new CuboidCartesianMatchEngine( new double[ ndim ] );
             }
             else if ( cName.equalsIgnoreCase( "htm" ) ) {
-                component = new FixedSkyMatchEngine( new HtmSkyPixellator(),
-                                                     ARC_SECOND );
+                component = new FixedSkyMatchEngine
+                           .InDegrees( new HtmSkyPixellator(), ARC_SECOND );
             }
             else {
                 component = Loader.getClassInstance( cName, MatchEngine.class );
@@ -509,7 +509,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
                                             + cName );
                 }
             }
-            components[ i ] = HumanMatchEngine.getHumanMatchEngine( component );
+            components[ i ] = component;
         }
         return components.length == 1
              ? components[ 0 ]

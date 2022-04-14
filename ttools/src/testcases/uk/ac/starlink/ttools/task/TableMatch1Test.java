@@ -154,7 +154,8 @@ public class TableMatch1Test extends TableTestCase {
         return result;
     }
 
-    public static class TestSkyMatchEngine extends FixedSkyMatchEngine {
+    public static class TestSkyMatchEngine
+            extends FixedSkyMatchEngine.InDegrees {
         public TestSkyMatchEngine() {
             super( new HtmSkyPixellator(), 0.1 );
         }
