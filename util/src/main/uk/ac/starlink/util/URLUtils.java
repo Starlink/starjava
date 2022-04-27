@@ -445,7 +445,8 @@ public class URLUtils {
             String proto1 = url1.getProtocol().toLowerCase();
             if ( "https".equals( proto0 ) && ! "https".equals( proto1 ) ) {
                 throw new IOException( "Refuse to redirect " + proto0
-                                     + " URL to " + proto1 );
+                                     + " URL to " + proto1
+                                     + " (" + url0 + " -> " + url1 + ")" );
             }
             logger_.info( "HTTP " + hcode0 + " redirect to " + url1 );
             URLConnection conn1 = url1.openConnection();
