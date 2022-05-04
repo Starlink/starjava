@@ -3918,11 +3918,6 @@ if you're feeling adventurous you may be able to find out about these
 by typing "<code>java -X</code>".
 </p>
 
-<p><strong>Note</strong> however: using the <code>-disk</code> flag
-described in <ref id="topcatArgs"/> may be a better solution; this
-makes the program store data from large tables on disk rather than in memory.
-</p>
-
 </subsubsect>
 
 <subsubsect id="jvmProperties">
@@ -3958,8 +3953,11 @@ The following ones have special significance within TOPCAT:
 
 <dt><code>java.io.tmpdir</code></dt>
 <dd><p>The directory in which TOPCAT will write any temporary files it needs.
-    This is usually only done if the <code>-disk</code> flag has been
-    specified (see <ref id="topcatArgs"/>).
+    This defaults to the system temporary directory
+    (e.g. <code>/tmp</code> on Unix),
+    so if working with large unmapped (e.g. CSV) tables
+    on a machine with limited space on the default disk,
+    it may be necessary to change it.
     </p></dd>
 
 <dt><code>java.util.concurrent.ForkJoinPool.common.parallelism</code></dt>

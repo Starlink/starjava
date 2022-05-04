@@ -1003,8 +1003,11 @@ on the command line is equivalent to having the following in your
 
 <dt><code>java.io.tmpdir</code></dt>
 <dd><p>The directory in which STILTS will write any temporary files it needs.
-    This is usually only done if the <code>-disk</code> flag has been
-    specified (see <ref id="stilts-flags"/>).
+    This defaults to the system temporary directory
+    (e.g. <code>/tmp</code> on Unix),
+    so if working with large unmapped (e.g. CSV) tables
+    on a machine with limited space on the default disk,
+    it may be necessary to change it.
     </p></dd>
 
 <dt><code>java.util.concurrent.ForkJoinPool.common.parallelism</code></dt>
