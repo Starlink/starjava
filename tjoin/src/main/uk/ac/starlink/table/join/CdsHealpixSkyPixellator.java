@@ -2,7 +2,10 @@ package uk.ac.starlink.table.join;
 
 import cds.healpix.FlatHashIterator;
 import cds.healpix.Healpix;
+import cds.healpix.HealpixNested;
 import cds.healpix.HealpixNestedBMOC;
+import cds.healpix.HealpixNestedFixedRadiusConeComputer;
+import java.util.function.Supplier;
 import uk.ac.starlink.table.Tables;
 
 /**
@@ -38,21 +41,16 @@ public class CdsHealpixSkyPixellator extends HealpixSkyPixellator {
         depth_ = k;
     }
 
-    public Object[] getPixels( double alpha, double delta, double radius ) {
-        HealpixNestedBMOC bmoc =
-            Healpix.getNested( depth_ )
-                   .newConeComputerApprox( radius )
-                   .overlappingCells( alpha, delta );
-        assert bmoc.getDepthMax() == depth_;
-        int npix = Tables.checkedLongToInt( bmoc.computeDeepSize() );
-        Long[] pixels = new Long[ npix ];
-        FlatHashIterator flit = bmoc.flatHashIterator();
-        for ( int ipix = 0; ipix < npix; ipix++ ) {
-            assert flit.hasNext();
-            pixels[ ipix ] = new Long( flit.next() );
-        }
-        assert ! flit.hasNext();
-        return pixels;
+    public Supplier<VariableRadiusConePixer>
+            createVariableRadiusPixerFactory() {
+        final int depth = depth_;
+        return () -> new CdsHealpixVariablePixer( depth );
+    }
+
+    public Supplier<FixedRadiusConePixer>
+            createFixedRadiusPixerFactory( final double radius ) {
+        final int depth = depth_;
+        return () -> new CdsHealpixFixedPixer( depth, radius );
     }
 
     /**
@@ -69,5 +67,75 @@ public class CdsHealpixSkyPixellator extends HealpixSkyPixellator {
         return Math.max( 0,
                          Healpix.getBestStartingDepth( DEFAULT_SCALE_FACTOR *
                                                        scale ) );
+    }
+
+    /**
+     * VariableRadiusConePixer implementation for use with this class.
+     */
+    private static class CdsHealpixVariablePixer
+            implements VariableRadiusConePixer {
+        final int depth_;
+        final HealpixNested healpixNested_;
+
+        /**
+         * Constructor.
+         *
+         * @param  depth   healpix depth
+         */
+        CdsHealpixVariablePixer( int depth ) {
+            depth_ = depth;
+            healpixNested_ = Healpix.getNested( depth_ );
+        }
+
+        public Long[] getPixels( double alpha, double delta, double radius ) {
+            HealpixNestedBMOC bmoc = healpixNested_
+                                    .newConeComputerApprox( radius )
+                                    .overlappingCells( alpha, delta );
+            assert bmoc.getDepthMax() == depth_;
+            int npix = Tables.checkedLongToInt( bmoc.computeDeepSize() );
+            Long[] pixels = new Long[ npix ];
+            FlatHashIterator flit = bmoc.flatHashIterator();
+            for ( int ipix = 0; ipix < npix; ipix++ ) {
+                assert flit.hasNext();
+                pixels[ ipix ] = new Long( flit.next() );
+            }
+            assert ! flit.hasNext();
+            return pixels;
+        }
+    }
+
+    /**
+     * FixedRadiusConePixer implementation for use with this class.
+     */
+    private static class CdsHealpixFixedPixer implements FixedRadiusConePixer {
+        final int depth_;
+        final HealpixNestedFixedRadiusConeComputer coneComputer_;
+
+        /**
+         * Constructor.
+         *
+         * @param  depth   healpix depth
+         * @param  radius  fixed search radius in radians
+         */
+        CdsHealpixFixedPixer( int depth, double radius ) {
+            depth_ = depth;
+            coneComputer_ = Healpix.getNested( depth_ )
+                           .newConeComputerApprox( radius );
+        }
+
+        public Long[] getPixels( double alpha, double delta ) {
+            HealpixNestedBMOC bmoc =
+                coneComputer_.overlappingCells( alpha, delta );
+            assert bmoc.getDepthMax() == depth_;
+            int npix = Tables.checkedLongToInt( bmoc.computeDeepSize() );
+            Long[] pixels = new Long[ npix ];
+            FlatHashIterator flit = bmoc.flatHashIterator();
+            for ( int ipix = 0; ipix < npix; ipix++ ) {
+                assert flit.hasNext();
+                pixels[ ipix ] = new Long( flit.next() );
+            }
+            assert ! flit.hasNext();
+            return pixels;
+        }
     }
 }

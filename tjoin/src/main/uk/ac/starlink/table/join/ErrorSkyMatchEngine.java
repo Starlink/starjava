@@ -127,8 +127,13 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
     }
 
     public Object[] getBins( Object[] tuple ) {
-        return getBins( getAlpha( tuple ), getDelta( tuple ),
-                        getError( tuple ) );
+        double alpha = getAlpha( tuple );
+        double delta = getDelta( tuple );
+        double error = getError( tuple );
+        return ! Double.isNaN( alpha ) && ! Double.isNaN( delta ) && error >= 0
+             ? getPixellator().createVariableRadiusPixerFactory().get()
+                              .getPixels( alpha, delta, error )
+             : NO_BINS;
     }
 
     public boolean canBoundMatch() {

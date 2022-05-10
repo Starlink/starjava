@@ -9,6 +9,7 @@ import edu.jhu.htm.geometry.Circle;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -30,7 +31,6 @@ public class HtmSkyPixellator implements SkyPixellator {
     private final DescribedValue levelParam_;
     private double scale_;
     private int level_;
-    private HTMindexImp htm_;
 
     /**
      * Scale factor which determines the sky pixel size to use,
@@ -59,7 +59,6 @@ public class HtmSkyPixellator implements SkyPixellator {
 
     public void setScale( double scale ) {
         scale_ = scale;
-        configureLevel();
     }
 
     public double getScale() {
@@ -70,34 +69,27 @@ public class HtmSkyPixellator implements SkyPixellator {
         return levelParam_;
     }
 
-    public Object[] getPixels( double alpha, double delta, double radius ) {
-        double arcminRadius = Math.toDegrees( radius ) * 60.0;
-        Circle zone = new Circle( alpha, delta, arcminRadius );
-
-        /* Get the intersection as a range of HTM pixels.
-         * The more obvious
-         *      range = htm_.intersect( zone.getDomain() );
-         * is flawed, since it can return pixel IDs which refer to
-         * pixels at different HTM levels (i.e. of different sizes).
-         * By doing it as below (on advice from Wil O'Mullane) we
-         * ensure that all the pixels are at the HTM's natural level. */
-        Domain domain = zone.getDomain();
-        domain.setOlevel( htm_.maxlevel_ );
-        HTMrange range = new HTMrange();
-        domain.intersect( htm_, range, false );
-
-        /* Accumulate a list of the pixel IDs. */
-        List<Object> binList = new ArrayList<Object>();
-        try {
-            for ( Iterator<?> it = new HTMrangeIterator( range, false );
-                  it.hasNext(); ) {
-                binList.add( it.next() );
+    public Supplier<VariableRadiusConePixer>
+            createVariableRadiusPixerFactory() {
+        int level = getLevel();
+        final HTMindexImp htm = new HTMindexImp( level, Math.min( level, 2 ) );
+        return () -> new VariableRadiusConePixer() {
+            public Long[] getPixels( double alpha, double delta,
+                                     double radius ) {
+                return calculateConePixels( htm, alpha, delta, radius );
             }
-        }
-        catch ( HTMException e ) {
-            throw new RuntimeException( "Uh-oh", e );
-        }
-        return binList.toArray();
+        };
+    }
+
+    public Supplier<FixedRadiusConePixer>
+            createFixedRadiusPixerFactory( final double radius ) {
+        int level = getLevel();
+        final HTMindexImp htm = new HTMindexImp( level, Math.min( level, 2 ) );
+        return () -> new FixedRadiusConePixer() {
+            public Long[] getPixels( double alpha, double delta ) {
+                return calculateConePixels( htm, alpha, delta, radius );
+            }
+        };
     }
 
     /**
@@ -113,7 +105,6 @@ public class HtmSkyPixellator implements SkyPixellator {
                                               + " out of range 0..24" );
         }
         level_ = level;
-        configureLevel();
     }
 
     /**
@@ -136,14 +127,6 @@ public class HtmSkyPixellator implements SkyPixellator {
     }
 
     /**
-     * Updates internal state for the current values of scale and level.
-     */
-    private void configureLevel() {
-        int level = getLevel();
-        htm_ = new HTMindexImp( level, Math.min( level, 2 ) );
-    }
-
-    /**
      * Determines a default value to use for the level paramer
      * based on a given scale.
      *
@@ -163,7 +146,49 @@ public class HtmSkyPixellator implements SkyPixellator {
         return lev;
     }
 
-     /**
+    /**
+     * Does the work of determining which pixels fall within a specified cone.
+     *
+     * @param  htm  HTM object
+     * @param  alpha   longitude in radians
+     * @param  delta   latitude in radians
+     * @param  radius  radius in radians
+     * @return  pixel list of HTM cells at level of htm object
+     *          that may partially overlap the cone
+     */
+    private static Long[] calculateConePixels( HTMindexImp htm,
+                                               double alpha, double delta,
+                                               double radius ) {
+        double arcminRadius = Math.toDegrees( radius ) * 60.0;
+        Circle zone = new Circle( alpha, delta, arcminRadius );
+
+        /* Get the intersection as a range of HTM pixels.
+         * The more obvious
+         *      range = htm.intersect( zone.getDomain() );
+         * is flawed, since it can return pixel IDs which refer to
+         * pixels at different HTM levels (i.e. of different sizes).
+         * By doing it as below (on advice from Wil O'Mullane) we
+         * ensure that all the pixels are at the HTM's natural level. */
+        Domain domain = zone.getDomain();
+        domain.setOlevel( htm.maxlevel_ );
+        HTMrange range = new HTMrange();
+        domain.intersect( htm, range, false );
+
+        /* Accumulate a list of the pixel IDs. */
+        List<Object> binList = new ArrayList<>();
+        try {
+            for ( Iterator<?> it = new HTMrangeIterator( range, false );
+                  it.hasNext(); ) {
+                binList.add( it.next() );
+            }
+        }
+        catch ( HTMException e ) {
+            throw new RuntimeException( "Uh-oh", e );
+        }
+        return binList.toArray( new Long[ 0 ] );
+    }
+
+    /**
      * Implements the tuning parameter which controls the level value.
      * This determines the absolute size of the bins.
      */

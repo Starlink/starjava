@@ -1,11 +1,14 @@
 package uk.ac.starlink.ttools.cone;
 
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import healpix.essentials.HealpixBase;
 import healpix.essentials.Pointing;
 import healpix.essentials.RangeSet;
 import healpix.essentials.Scheme;
+import uk.ac.starlink.table.join.FixedRadiusConePixer;
 import uk.ac.starlink.table.join.HealpixSkyPixellator;
+import uk.ac.starlink.table.join.VariableRadiusConePixer;
 
 /**
  * HEALpix pixellator based on semi-official HEALPix java library,
@@ -56,7 +59,33 @@ public class JplHealpixSkyPixellator extends HealpixSkyPixellator {
         this( false, 4 );
     }
 
-    public Object[] getPixels( double alpha, double delta, double radius ) {
+    public Supplier<VariableRadiusConePixer>
+            createVariableRadiusPixerFactory() {
+        final HealpixBase healpixBase = healpixBase_;
+        final int qdiscFactor = qdiscFactor_;
+        return () -> new VariableRadiusConePixer() {
+            public Long[] getPixels( double alpha, double delta,
+                                     double radius ) {
+                return getConePixels( healpixBase, qdiscFactor,
+                                      alpha, delta, radius );
+            }
+        };
+    }
+
+    public Supplier<FixedRadiusConePixer>
+            createFixedRadiusPixerFactory( final double radius ) {
+        final HealpixBase healpixBase = healpixBase_;
+        final int qdiscFactor = qdiscFactor_;
+        return () -> new FixedRadiusConePixer() {
+            public Long[] getPixels( double alpha, double delta ) {
+                return getConePixels( healpixBase, qdiscFactor,
+                                      alpha, delta, radius );
+            }
+        };
+    }
+
+    static Long[] getConePixels( HealpixBase healpixBase, int qdiscFactor,
+                                 double alpha, double delta, double radius ) {
         double theta = Math.PI * 0.5 - delta;
         alpha = alpha % ( 2 * Math.PI );
         if ( alpha < 0 ) {
@@ -65,8 +94,8 @@ public class JplHealpixSkyPixellator extends HealpixSkyPixellator {
         Pointing pointing = new Pointing( theta, alpha );
         RangeSet rset;
         try {
-            rset = healpixBase_
-                  .queryDiscInclusive( pointing, radius, qdiscFactor_ );
+            rset = healpixBase
+                  .queryDiscInclusive( pointing, radius, qdiscFactor );
         }
         catch ( Exception e ) {
             logger_.warning( "Healpix error for "

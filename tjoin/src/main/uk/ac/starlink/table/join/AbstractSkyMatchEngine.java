@@ -56,6 +56,15 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
     }
 
     /**
+     * Returns this object's pixellator.
+     *
+     * @return   pixellator
+     */
+    public SkyPixellator getPixellator() {
+        return pixellator_;
+    }
+
+    /**
      * Utility function to provide a match score between two points on the
      * sphere.
      *
@@ -95,25 +104,6 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
      */
     static double maxScore( double maxerr ) {
         return INVERSE_ARC_SECOND * maxerr;
-    }
-
-    /**
-     * Uses the pixellator to get a list of bin objects for a given
-     * small circle.
-     *
-     * @param   alpha  right ascension of circle centre in radians
-     * @param   delta  declination of circle centre in radians
-     * @param   radius  radius of circle centre in radians
-     * @return  list of opaque pixel objects, comparable for equality,
-     *          representing all pixels which are at least partially
-     *          overlapped by the given circle
-     */
-    Object[] getBins( double alpha, double delta, double radius ) {
-        return ( ! Double.isNaN( alpha ) &&
-                 ! Double.isNaN( delta ) &&
-                 radius >= 0 )
-             ? pixellator_.getPixels( alpha, delta, radius )
-             : NO_BINS;
     }
 
     public abstract String toString();

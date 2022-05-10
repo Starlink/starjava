@@ -171,8 +171,13 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
 
     public Object[] getBins( Object[] tuple ) {
         SkyEllipse ellipse = toSkyEllipse( tuple );
-        return getBins( ellipse.alpha_, ellipse.delta_,
-                        ellipse.getMaxRadius() );
+        double alpha = ellipse.alpha_;
+        double delta = ellipse.delta_;
+        double radius = ellipse.getMaxRadius();
+        return ! Double.isNaN( alpha ) && ! Double.isNaN( delta ) && radius >= 0
+             ? getPixellator().createVariableRadiusPixerFactory().get()
+                              .getPixels( alpha, delta, radius )
+             : NO_BINS;
     }
 
     public boolean canBoundMatch() {

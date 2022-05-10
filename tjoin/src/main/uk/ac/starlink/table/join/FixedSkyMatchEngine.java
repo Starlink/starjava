@@ -18,7 +18,6 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
 
-    private double separation_;
     private final DescribedValue[] matchParams_;
 
     private static final DefaultValueInfo SEP_INFO =
@@ -91,8 +90,13 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
     }
 
     public Object[] getBins( Object[] tuple ) {
-        return getBins( getAlpha( tuple ), getDelta( tuple ),
-                        getSeparation() * 0.5 );
+        double alpha = getAlpha( tuple );
+        double delta = getDelta( tuple );
+        double radius = getSeparation() * 0.5;
+        return ! Double.isNaN( alpha ) && ! Double.isNaN( delta )
+             ? getPixellator().createFixedRadiusPixerFactory( radius ).get()
+                              .getPixels( alpha, delta )
+             : NO_BINS;
     }
 
     public boolean canBoundMatch() {

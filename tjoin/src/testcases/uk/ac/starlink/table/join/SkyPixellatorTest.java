@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
+import uk.ac.starlink.util.TestCase;
 
 public class SkyPixellatorTest extends TestCase {
 
@@ -48,9 +48,15 @@ public class SkyPixellatorTest extends TestCase {
         for ( int i = 0; i < 5; i++ ) {
             scale *= 2;
             pixellator.setScale( scale );
-            Object[] disc1 = pixellator.getPixels( ra1, dec1, radius );
-            Object[] disc2 = pixellator.getPixels( ra2, dec2, radius );
+            FixedRadiusConePixer fp =
+                pixellator.createFixedRadiusPixerFactory( radius ).get();
+            Object[] disc1 = fp.getPixels( ra1, dec1 );
+            Object[] disc2 = fp.getPixels( ra2, dec2 );
             assertTrue( hasOverlap( disc1, disc2 ) );
+            VariableRadiusConePixer vp =
+                pixellator.createVariableRadiusPixerFactory().get();
+            assertArrayEquals( disc1, vp.getPixels( ra1, dec1, radius ) );
+            assertArrayEquals( disc2, vp.getPixels( ra2, dec2, radius ) );
         }
     }
 
