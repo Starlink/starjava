@@ -25,12 +25,12 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class CombinedMatchEngine implements MatchEngine {
 
-    private final boolean inSphere;
-    private final MatchEngine[] engines;
-    private final int[] tupleSizes;
-    private final int[] tupleStarts;
-    private final int nPart;
-    private String name;
+    private final boolean inSphere_;
+    private final MatchEngine[] engines_;
+    private final int[] tupleSizes_;
+    private final int[] tupleStarts_;
+    private final int nPart_;
+    private String name_;
 
     // ThreadLocal work arrays for holding subtuples - benchmarking shows that
     // there actually is a bottleneck if you create new empty arrays
@@ -51,45 +51,45 @@ public class CombinedMatchEngine implements MatchEngine {
      * @param   engines  match engine sequence to be combined
      */
     public CombinedMatchEngine( MatchEngine[] engines ) {
-        this.inSphere = false;
-        this.engines = engines;
-        nPart = engines.length;
-        tupleSizes = new int[ nPart ];
-        tupleStarts = new int[ nPart ];
+        inSphere_ = false;
+        engines_ = engines;
+        nPart_ = engines.length;
+        tupleSizes_ = new int[ nPart_ ];
+        tupleStarts_ = new int[ nPart_ ];
         int ts = 0;
-        for ( int i = 0; i < nPart; i++ ) {
-            tupleStarts[ i ] = ts;
-            tupleSizes[ i ] = engines[ i ].getTupleInfos().length;
-            ts += tupleSizes[ i ];
+        for ( int i = 0; i < nPart_; i++ ) {
+            tupleStarts_[ i ] = ts;
+            tupleSizes_[ i ] = engines_[ i ].getTupleInfos().length;
+            ts += tupleSizes_[ i ];
         }
 
         /* Set up workspace. */
         workLocal_ = ThreadLocal
-                    .withInitial( () -> new CWork( nPart, tupleSizes ) );
+                    .withInitial( () -> new CWork( nPart_, tupleSizes_ ) );
 
         /* Set the name. */
         StringBuffer buf = new StringBuffer( "(" );
-        for ( int i = 0; i < nPart; i++ ) {
+        for ( int i = 0; i < nPart_; i++ ) {
             if ( i > 0 ) {
                 buf.append( ", " );
             }
-            buf.append( engines[ i ].toString() );
+            buf.append( engines_[ i ].toString() );
         }
         buf.append( ")" );
-        name = buf.toString();
+        name_ = buf.toString();
     }
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
         double sum2 = 0.0;
         CWork cwork = workLocal_.get();
-        for ( int i = 0; i < nPart; i++ ) {
+        for ( int i = 0; i < nPart_; i++ ) {
             Object[] subTuple1 = cwork.work1_[ i ];
             Object[] subTuple2 = cwork.work2_[ i ];
-            System.arraycopy( tuple1, tupleStarts[ i ], 
-                              subTuple1, 0, tupleSizes[ i ] );
-            System.arraycopy( tuple2, tupleStarts[ i ],
-                              subTuple2, 0, tupleSizes[ i ] );
-            MatchEngine engine = engines[ i ];
+            System.arraycopy( tuple1, tupleStarts_[ i ], 
+                              subTuple1, 0, tupleSizes_[ i ] );
+            System.arraycopy( tuple2, tupleStarts_[ i ],
+                              subTuple2, 0, tupleSizes_[ i ] );
+            MatchEngine engine = engines_[ i ];
             double score = engine.matchScore( subTuple1, subTuple2 );
             if ( score < 0 ) {
                 return -1.;
@@ -99,7 +99,7 @@ public class CombinedMatchEngine implements MatchEngine {
             sum2 += d1 * d1;
         }
         double sum1 = Math.sqrt( sum2 );
-        if ( inSphere ) {
+        if ( inSphere_ ) {
             return sum1 <= 1 ? sum1 : -1.0;
         }
         else {
@@ -113,12 +113,12 @@ public class CombinedMatchEngine implements MatchEngine {
      * Otherwise, returns NaN.
      */
     public double getScoreScale() {
-        for ( int i = 0; i < nPart; i++ ) {
-            if ( ! ( engines[ i ].getScoreScale() > 0 ) ) {
+        for ( int i = 0; i < nPart_; i++ ) {
+            if ( ! ( engines_[ i ].getScoreScale() > 0 ) ) {
                 return Double.NaN;
             }
         }
-        return Math.sqrt( nPart );
+        return Math.sqrt( nPart_ );
     }
 
     public ValueInfo getMatchScoreInfo() {
@@ -130,12 +130,12 @@ public class CombinedMatchEngine implements MatchEngine {
 
         /* Work out the bin set for each region of the tuple handled by a
          * different match engine. */
-        Object[][] binBag = new Object[ nPart ][];
-        for ( int i = 0; i < nPart; i++ ) {
+        Object[][] binBag = new Object[ nPart_ ][];
+        for ( int i = 0; i < nPart_; i++ ) {
             Object[] subTuple = cwork.work0_[ i ];
-            System.arraycopy( tuple, tupleStarts[ i ], 
-                              subTuple, 0, tupleSizes[ i ] );
-            binBag[ i ] = engines[ i ].getBins( subTuple );
+            System.arraycopy( tuple, tupleStarts_[ i ], 
+                              subTuple, 0, tupleSizes_[ i ] );
+            binBag[ i ] = engines_[ i ].getBins( subTuple );
         }
 
         /* "Multiply" these bin sets together to provide a number of possible
@@ -145,21 +145,21 @@ public class CombinedMatchEngine implements MatchEngine {
          * List equals() and hashCode() methods make these suitable for
          * use as matching bins. */
         int nBin = 1;
-        for ( int i = 0; i < nPart; i++ ) {
+        for ( int i = 0; i < nPart_; i++ ) {
             nBin *= binBag[ i ].length;
         }
 
         Object[] bins = new Object[ nBin ];
-        int[] offset = new int[ nPart ];
+        int[] offset = new int[ nPart_ ];
         for ( int ibin = 0; ibin < nBin; ibin++ ) {
-            List<Object> bin = new ArrayList<Object>( nPart );
-            for ( int i = 0; i < nPart; i++ ) {
+            List<Object> bin = new ArrayList<Object>( nPart_ );
+            for ( int i = 0; i < nPart_; i++ ) {
                 bin.add( binBag[ i ][ offset[ i ] ] );
             }
             bins[ ibin ] = bin;
 
             /* Bump the n-dimensional offset to the next cell. */
-            for ( int j = 0; j < nPart; j++ ) {
+            for ( int j = 0; j < nPart_; j++ ) {
                 if ( ++offset[ j ] < binBag[ j ].length ) {
                     break;
                 }
@@ -170,7 +170,7 @@ public class CombinedMatchEngine implements MatchEngine {
         }
 
         /* Sanity check. */
-        for ( int i = 0; i < nPart; i++ ) {
+        for ( int i = 0; i < nPart_; i++ ) {
             assert offset[ i ] == 0;
         }
         
@@ -179,35 +179,35 @@ public class CombinedMatchEngine implements MatchEngine {
     }
 
     public ValueInfo[] getTupleInfos() {
-        int nargs = tupleStarts[ nPart - 1 ] + tupleSizes[ nPart - 1 ];
+        int nargs = tupleStarts_[ nPart_ - 1 ] + tupleSizes_[ nPart_ - 1 ];
         ValueInfo[] infos = new ValueInfo[ nargs ];
-        for ( int i = 0; i < nPart; i++ ) {
-            System.arraycopy( engines[ i ].getTupleInfos(), 0, 
-                              infos, tupleStarts[ i ], tupleSizes[ i ] );
+        for ( int i = 0; i < nPart_; i++ ) {
+            System.arraycopy( engines_[ i ].getTupleInfos(), 0, 
+                              infos, tupleStarts_[ i ], tupleSizes_[ i ] );
         }
         return infos;
     }
 
     public DescribedValue[] getMatchParameters() {
         List<DescribedValue> params = new ArrayList<DescribedValue>();
-        for ( int i = 0; i < nPart; i++ ) {
-            params.addAll( Arrays.asList( engines[ i ].getMatchParameters() ) );
+        for ( int i = 0; i < nPart_; i++ ) {
+            params.addAll( Arrays.asList( engines_[ i ].getMatchParameters() ));
         }
         return params.toArray( new DescribedValue[ 0 ] );
     }
 
     public DescribedValue[] getTuningParameters() {
         List<DescribedValue> params = new ArrayList<DescribedValue>();
-        for ( int i = 0; i < nPart; i++ ) {
-            params.addAll( Arrays.asList( engines[ i ]
+        for ( int i = 0; i < nPart_; i++ ) {
+            params.addAll( Arrays.asList( engines_[ i ]
                                          .getTuningParameters() ) );
         }
         return params.toArray( new DescribedValue[ 0 ] );
     }
 
     public boolean canBoundMatch() {
-        for ( int i = 0; i < nPart; i++ ) {
-            if ( engines[ i ].canBoundMatch() ) {
+        for ( int i = 0; i < nPart_; i++ ) {
+            if ( engines_[ i ].canBoundMatch() ) {
                 return true;
             }
         }
@@ -218,11 +218,11 @@ public class CombinedMatchEngine implements MatchEngine {
         int nr = inRanges.length;
         Comparable<?>[] outMins = inRanges[ index ].getMins().clone();
         Comparable<?>[] outMaxs = inRanges[ index ].getMaxs().clone();
-        for ( int ip = 0; ip < nPart; ip++ ) {
-            MatchEngine engine = engines[ ip ];
+        for ( int ip = 0; ip < nPart_; ip++ ) {
+            MatchEngine engine = engines_[ ip ];
             if ( engine.canBoundMatch() ) {
-                int size = tupleSizes[ ip ];
-                int start = tupleStarts[ ip ];
+                int size = tupleSizes_[ ip ];
+                int start = tupleStarts_[ ip ];
                 NdRange[] subInRanges = new NdRange[ nr ];
                 for ( int ir = 0; ir < nr; ir++ ) {
                     Comparable<?>[] subInMins = new Comparable<?>[ size ];
@@ -245,11 +245,11 @@ public class CombinedMatchEngine implements MatchEngine {
     }
 
     public void setName( String name ) {
-        this.name = name;
+        name_ = name;
     }
 
     public String toString() {
-        return name;
+        return name_;
     }
 
     /**
