@@ -23,7 +23,7 @@ class SequentialMatchComputer implements MatchComputer {
         return "Sequential";
     }
 
-    public BinnedRows binRowIndices( MatchEngine engine,
+    public BinnedRows binRowIndices( Supplier<MatchKit> kitFact,
                                      Predicate<Object[]> rowSelector,
                                      StarTable tableR,
                                      ProgressIndicator indicator,
@@ -34,12 +34,13 @@ class SequentialMatchComputer implements MatchComputer {
         long nrow = 0;
         long nref = 0;
         long nexclude = 0;
+        MatchKit matchKit = kitFact.get();
         try ( ProgressRowSequence rseq =
                   new ProgressRowSequence( tableR, indicator, stageTxt ) ) {
             for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
                 Object[] row = rseq.getRow();
                 if ( rowSelector.test( row ) ) {
-                    Object[] keys = engine.getBins( row );
+                    Object[] keys = matchKit.getBins( row );
                     int nkey = keys.length;
                     for ( int ikey = 0; ikey < nkey; ikey++ ) {
                         binner.addItem( keys[ ikey ], lrow );
@@ -68,20 +69,22 @@ class SequentialMatchComputer implements MatchComputer {
         };
     }
 
-    public long binRowRefs( MatchEngine engine, Predicate<Object[]> rowSelector,
+    public long binRowRefs( Supplier<MatchKit> kitFact,
+                            Predicate<Object[]> rowSelector,
                             StarTable table, int tIndex,
                             ObjectBinner<Object,RowRef> binner, boolean newBins,
                             ProgressIndicator indicator, String stageTxt )
             throws IOException, InterruptedException {
         long nrow = 0;
         long ninclude = 0;
+        MatchKit matchKit = kitFact.get();
         try ( ProgressRowSequence rseq =
                   new ProgressRowSequence( table, indicator, stageTxt ) ) {
             for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
                 Object[] row = rseq.getRow();
                 if ( rowSelector.test( row ) ) {
                     ninclude++;
-                    Object[] keys = engine.getBins( row );
+                    Object[] keys = matchKit.getBins( row );
                     if ( keys.length > 0 ) {
                         RowRef rref = new RowRef( tIndex, lrow );
                         for ( Object key : keys ) {
@@ -98,7 +101,7 @@ class SequentialMatchComputer implements MatchComputer {
         return ninclude;
     }
 
-    public LinkSet scanBinsForPairs( MatchEngine engine,
+    public LinkSet scanBinsForPairs( Supplier<MatchKit> kitFact,
                                      Predicate<Object[]> rowSelector,
                                      StarTable tableR, int indexR,
                                      StarTable tableS, int indexS,
@@ -108,6 +111,7 @@ class SequentialMatchComputer implements MatchComputer {
                                      String stageTxt )
             throws IOException, InterruptedException {
         LinkSet linkSet = linksetCreator.get();
+        MatchKit matchKit = kitFact.get();
         try ( ProgressRowSequence sseq =
                   new ProgressRowSequence( tableS, indicator, stageTxt ) ) {
             List<RowLink2> linkList = new ArrayList<>();
@@ -117,7 +121,7 @@ class SequentialMatchComputer implements MatchComputer {
                 if ( rowSelector.test( srowData ) ) {
 
                     /* Identify rows from table R which may match table S. */
-                    Object[] keys = engine.getBins( srowData );
+                    Object[] keys = matchKit.getBins( srowData );
                     int nkey = keys.length;
                     rrowSet.clear();
                     for ( int ikey = 0; ikey < nkey; ikey++ ) {
@@ -141,7 +145,8 @@ class SequentialMatchComputer implements MatchComputer {
                     for ( ir = 0; ir < rrows.length; ir++ ) {
                         long irrow = rrows[ ir ];
                         Object[] rrowData = tableR.getRow( irrow );
-                        double score = engine.matchScore( srowData, rrowData );
+                        double score =
+                            matchKit.matchScore( srowData, rrowData );
                         if ( score >= 0 &&
                              ( ! bestOnly || score < bestScore ) ) {
                             RowRef rref = new RowRef( indexR, irrow );

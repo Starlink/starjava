@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.join;
 
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.Tables;
@@ -95,28 +96,11 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
         return SCORE_INFO;
     }
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        double delta1 = getDelta( tuple1 );
-        double delta2 = getDelta( tuple2 );
-        double maxerr = getError( tuple1 ) + getError( tuple2 );
-
-        /* Cheap test which will throw out most comparisons straight away:
-         * see if the separation in declination is greater than the maximum
-         * acceptable separation. */
-        if ( Math.abs( delta1 - delta2 ) > maxerr ) {
-            return -1.0;
-        }
-
-        /* Otherwise declinations at least are close; do a proper test. */
-        double alpha1 = getAlpha( tuple1 );
-        double alpha2 = getAlpha( tuple2 );
-        double sep = calculateSeparation( alpha1, delta1, alpha2, delta2 );
-        if ( sep <= maxerr ) {
-            return maxerr > 0 ? sep / maxerr : 0.0;
-        }
-        else {
-            return -1.0;
-        }
+    public Supplier<MatchKit> createMatchKitFactory() {
+        final Supplier<VariableRadiusConePixer> pixerFact =
+            getPixellator().createVariableRadiusPixerFactory();
+        final CoordReader coordReader = getCoordReader();
+        return () -> new ErrorMatchKit( pixerFact.get(), coordReader );
     }
 
     /**
@@ -126,16 +110,6 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
         return 1.0;
     }
 
-    public Object[] getBins( Object[] tuple ) {
-        double alpha = getAlpha( tuple );
-        double delta = getDelta( tuple );
-        double error = getError( tuple );
-        return ! Double.isNaN( alpha ) && ! Double.isNaN( delta ) && error >= 0
-             ? getPixellator().createVariableRadiusPixerFactory().get()
-                              .getPixels( alpha, delta, error )
-             : NO_BINS;
-    }
-
     public boolean canBoundMatch() {
         return true;
     }
@@ -143,7 +117,9 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
     public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
         double maxRadius = 0;
         for ( NdRange inRange : inRanges ) {
-            maxRadius = Math.max( maxRadius, getError( inRange.getMaxs() ) );
+            maxRadius =
+                Math.max( maxRadius,
+                          getCoordReader().getError( inRange.getMaxs() ) );
         }
         return createExtendedSkyBounds( inRanges[ index ], 0, 1,
                                         2 * maxRadius );
@@ -154,33 +130,123 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
     }
 
     /**
-     * Extracts the RA value from a tuple.
+     * Returns an object which can decode tuples.
      *
-     * @param   tuple  object tuple intended for this matcher
-     * @return  right ascension coordinate in radians
+     * @return  coord reader
      */
-    double getAlpha( Object[] tuple ) {
-        return getNumberValue( tuple[ 0 ] );
+    CoordReader getCoordReader() {
+        return CoordReader.RADIANS;
     }
 
     /**
-     * Extracts the Declination value from a tuple.
-     *
-     * @param   tuple  object tuple intended for this matcher
-     * @return  declination coordinate in radians
+     * MatchKit implementation for use with this class.
      */
-    double getDelta( Object[] tuple ) {
-        return getNumberValue( tuple[ 1 ] );
+    private static class ErrorMatchKit implements MatchKit {
+        final VariableRadiusConePixer conePixer_;
+        final CoordReader coordReader_;
+
+        /**
+         * Constructor.
+         *
+         * @param   conePixer  sky pixellation implementation
+         * @param   coordReader  extracts coords from tuple
+         */
+        ErrorMatchKit( VariableRadiusConePixer conePixer,
+                       CoordReader coordReader ) {
+            conePixer_ = conePixer;
+            coordReader_ = coordReader;
+        }
+
+        public Object[] getBins( Object[] tuple ) {
+            double alpha = coordReader_.getAlpha( tuple );
+            double delta = coordReader_.getDelta( tuple );
+            double error = coordReader_.getError( tuple );
+            return ! Double.isNaN( alpha ) && ! Double.isNaN( delta )
+                     && error >= 0
+                 ? conePixer_.getPixels( alpha, delta, error )
+                 : NO_BINS;
+        }
+
+        public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+            double delta1 = coordReader_.getDelta( tuple1 );
+            double delta2 = coordReader_.getDelta( tuple2 );
+            double maxerr = coordReader_.getError( tuple1 )
+                          + coordReader_.getError( tuple2 );
+
+            /* Cheap test which will throw out most comparisons straight away:
+             * see if the separation in declination is greater than the maximum
+             * acceptable separation. */
+            if ( Math.abs( delta1 - delta2 ) > maxerr ) {
+                return -1.0;
+            }
+
+            /* Otherwise declinations at least are close; do a proper test. */
+            double alpha1 = coordReader_.getAlpha( tuple1 );
+            double alpha2 = coordReader_.getAlpha( tuple2 );
+            double sep = calculateSeparation( alpha1, delta1, alpha2, delta2 );
+            if ( sep <= maxerr ) {
+                return maxerr > 0 ? sep / maxerr : 0.0;
+            }
+            else {
+                return -1.0;
+            }
+        }
     }
 
     /**
-     * Extracts the per-object error radius from a tuple.
-     *
-     * @param   tuple  object tuple intended for this matcher
-     * @return  error radius in radians
+     * Extracts coordinates from a tuple.
      */
-    double getError( Object[] tuple ) {
-        return getNumberValue( tuple[ 2 ] );
+    private interface CoordReader {
+
+        /** CoordReader instance for input in radians. */
+        public static CoordReader RADIANS = new CoordReader() {
+            public double getAlpha( Object[] tuple ) {
+                return getNumberValue( tuple[ 0 ] );
+            }
+            public double getDelta( Object[] tuple ) {
+                return getNumberValue( tuple[ 1 ] );
+            }
+            public double getError( Object[] tuple ) {
+                return getNumberValue( tuple[ 2 ] );
+            }
+        };
+
+        /** CoordReader instance for input in degrees and arcseconds. */
+        public static CoordReader DEGREES = new CoordReader() {
+            public double getAlpha( Object[] tuple ) {
+                return RADIANS.getAlpha( tuple ) * FROM_DEG;
+            }
+            public double getDelta( Object[] tuple ) {
+                return RADIANS.getDelta( tuple ) * FROM_DEG;
+            }
+            public double getError( Object[] tuple ) {
+                return RADIANS.getError( tuple ) * FROM_ARCSEC;
+            }
+        };
+        
+        /**
+         * Extracts the RA value from a tuple.
+         *
+         * @param   tuple  object tuple intended for this matcher
+         * @return  right ascension coordinate in radians
+         */
+        double getAlpha( Object[] tuple );
+
+        /**
+         * Extracts the Declination value from a tuple.
+         *
+         * @param   tuple  object tuple intended for this matcher
+         * @return  declination coordinate in radians
+         */
+        double getDelta( Object[] tuple );
+
+        /**
+         * Extracts the per-object error radius from a tuple.
+         *
+         * @param   tuple  object tuple intended for this matcher
+         * @return  error radius in radians
+         */
+        double getError( Object[] tuple );
     }
 
     /**
@@ -222,16 +288,8 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
             return matchParams_;
         }
         @Override
-        double getAlpha( Object[] tuple ) {
-            return super.getAlpha( tuple ) * FROM_DEG;
-        }
-        @Override
-        double getDelta( Object[] tuple ) {
-            return super.getDelta( tuple ) * FROM_DEG;
-        }
-        @Override
-        double getError( Object[] tuple ) {
-            return super.getError( tuple ) * FROM_ARCSEC;
+        CoordReader getCoordReader() {
+            return CoordReader.DEGREES;
         }
         @Override
         public NdRange getMatchBounds( NdRange[] inRanges, int index ) {

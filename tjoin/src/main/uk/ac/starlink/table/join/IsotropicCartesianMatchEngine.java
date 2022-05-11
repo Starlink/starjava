@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.join;
 
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -79,17 +80,14 @@ public class IsotropicCartesianMatchEngine
         return SCORE_INFO;
     }
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        return matchScore( ndim_, toCoords( tuple1 ), toCoords( tuple2 ),
-                           getError() );
-    }
-
     public double getScoreScale() {
         return getError();
     }
 
-    public Object[] getBins( Object[] tuple ) {
-        return getRadiusBins( toCoords( tuple ), getError() * 0.5 );
+    public Supplier<MatchKit> createMatchKitFactory() {
+        final Supplier<CartesianBinner> binnerFact = createBinnerFactory();
+        final double error = getError();
+        return () -> new IsotropicMatchKit( error, binnerFact.get() );
     }
 
     public boolean canBoundMatch() {
@@ -106,16 +104,42 @@ public class IsotropicCartesianMatchEngine
     }
 
     /**
-     * Returns the Cartesian coordinates for a given match tuple.
-     *
-     * @param  tuple  input tuple
-     * @return  numeric ndim-element coordinate array
+     * MatchKit implementation for use with this class.
      */
-    private double[] toCoords( Object[] tuple ) {
-        double[] coords = new double[ ndim_ ];
-        for ( int id = 0; id < ndim_; id++ ) {
-            coords[ id ] = getNumberValue( tuple[ id ] );
+    private static class IsotropicMatchKit implements MatchKit {
+
+        final double error_;
+        final CartesianBinner binner_;
+        final int ndim_;
+        final double[] work0_;
+        final double[] work1_;
+        final double[] work2_;
+
+        /**
+         * Constructor.
+         *
+         * @param  error  maximum permissible separation
+         * @param  binner  binner
+         */
+        IsotropicMatchKit( double error, CartesianBinner binner ) {
+            error_ = error;
+            binner_ = binner;
+            ndim_ = binner.getNdim();
+            work0_ = new double[ ndim_ ];
+            work1_ = new double[ ndim_ ];
+            work2_ = new double[ ndim_ ];
         }
-        return coords;
+
+        public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+            binner_.toCoords( tuple1, work1_ );
+            binner_.toCoords( tuple2, work2_ );
+            return AbstractCartesianMatchEngine
+                  .matchScore( ndim_, work1_, work2_, error_ );
+        }
+
+        public Object[] getBins( Object[] tuple ) {
+            binner_.toCoords( tuple, work0_ );
+            return binner_.getRadiusBins( work0_, error_ * 0.5 );
+        }
     }
 }

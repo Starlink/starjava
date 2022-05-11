@@ -20,11 +20,6 @@ import uk.ac.starlink.table.Tables;
 /**
  * Multithreaded MatchComputer implementation.
  *
- * <p>Note that {@link MatchEngine}s passed to the computation methods
- * of this object have to be effectively thread-safe, or there will be trouble.
- * I think that will usually be the case in practice,
- * though it's not guaranteed by the MatchEngine contract.
- *
  * @author   Mark Taylor
  * @since    25 Aug 2021
  */
@@ -45,7 +40,7 @@ class ParallelMatchComputer implements MatchComputer {
         return "Split, " + runner_.getSplitProcessor();
     }
 
-    public BinnedRows binRowIndices( MatchEngine engine,
+    public BinnedRows binRowIndices( Supplier<MatchKit> kitFact,
                                      Predicate<Object[]> rowSelector,
                                      StarTable tableR,
                                      ProgressIndicator indicator,
@@ -54,11 +49,12 @@ class ParallelMatchComputer implements MatchComputer {
         long nrowR = tableR.getRowCount();
         boolean isIntSizeR = nrowR >= 0 && nrowR < Integer.MAX_VALUE;
         BinCollector collector =
-            new BinCollector( engine, isIntSizeR, rowSelector );
+            new BinCollector( kitFact, isIntSizeR, rowSelector );
         return progressCollect( collector, tableR, indicator, stageTxt );
     }
 
-    public long binRowRefs( MatchEngine engine, Predicate<Object[]> rowSelector,
+    public long binRowRefs( Supplier<MatchKit> kitFact,
+                            Predicate<Object[]> rowSelector,
                             StarTable table, int tIndex,
                             ObjectBinner<Object,RowRef> binner, boolean newBins,
                             ProgressIndicator indicator, String stageTxt )
@@ -69,7 +65,7 @@ class ParallelMatchComputer implements MatchComputer {
         Supplier<ObjectBinner<Object,RowRef>> binnerFactory =
             Binners::createObjectBinner;
         RefCollector collector =
-            new RefCollector( engine, rowSelector, tIndex, canAddKey,
+            new RefCollector( kitFact, rowSelector, tIndex, canAddKey,
                               binnerFactory );
         SplitBinnedRefs binned =
             progressCollect( collector, table, indicator, stageTxt );
@@ -82,7 +78,7 @@ class ParallelMatchComputer implements MatchComputer {
         return binned.ninclude_;
     }
 
-    public LinkSet scanBinsForPairs( MatchEngine engine,
+    public LinkSet scanBinsForPairs( Supplier<MatchKit> kitFact,
                                      Predicate<Object[]> rowSelector,
                                      StarTable tableR, int indexR,
                                      StarTable tableS, int indexS,
@@ -92,7 +88,7 @@ class ParallelMatchComputer implements MatchComputer {
                                      String stageTxt )
             throws IOException, InterruptedException {
         PairCollector collector =
-            new PairCollector( engine, indexR, indexS, rowSelector,
+            new PairCollector( kitFact, indexR, indexS, rowSelector,
                                bestOnly, tableR, binnerR, linksetCreator );
         return progressCollect( collector, tableS, indicator, stageTxt );
     }
@@ -219,20 +215,20 @@ class ParallelMatchComputer implements MatchComputer {
      */
     private static class BinCollector extends RowCollector<SplitBinnedRows> {
 
-        private final MatchEngine engine_;
+        private final Supplier<MatchKit> kitFact_;
         private final boolean isIntSize_;
         private final Predicate<Object[]> rowSelector_;
 
         /**
          * Constructor.
          *
-         * @param  engine  defines matching semantics
+         * @param  kitFact  defines matching criteria
          * @param  isIntSize  true if maximum row index known to be &lt;=2**31
          * @param  rowSelector  rows that fail this test are ignored
          */
-        BinCollector( MatchEngine engine, boolean isIntSize,
+        BinCollector( Supplier<MatchKit> kitFact, boolean isIntSize,
                       Predicate<Object[]> rowSelector ) {
-            engine_ = engine;
+            kitFact_ = kitFact;
             isIntSize_ = isIntSize;
             rowSelector_ = rowSelector;
         }
@@ -248,10 +244,11 @@ class ParallelMatchComputer implements MatchComputer {
             LongBinner binner = binned.binner_;
             LongSupplier rowIndex = rseq.rowIndex();
             assert rowIndex != null;
+            MatchKit matchKit = kitFact_.get();
             while( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 if ( rowSelector_.test( row ) ) {
-                    Object[] keys = engine_.getBins( row );
+                    Object[] keys = matchKit.getBins( row );
                     int nkey = keys.length;
                     if ( nkey > 0 ) {
                         long lrow = rowIndex.getAsLong();
@@ -274,7 +271,7 @@ class ParallelMatchComputer implements MatchComputer {
      */
     private static class RefCollector extends RowCollector<SplitBinnedRefs> {
 
-        private final MatchEngine engine_;
+        private final Supplier<MatchKit> kitFact_;
         private final Predicate<Object[]> rowSelector_; 
         private final int tIndex_;
         private final Predicate<Object> canAddKey_;
@@ -283,7 +280,7 @@ class ParallelMatchComputer implements MatchComputer {
         /**
          * Constructor.
          *
-         * @param   engine  match engine
+         * @param   kitFact  defines matching criteria
          * @param   rowSelector   filter for rows to be included;
          *                        row values that fail this test are ignored
          * @param   tIndex  index of table for use in row references
@@ -294,10 +291,11 @@ class ParallelMatchComputer implements MatchComputer {
          * @param   binnerFactory  factory for new ObjectBinner instances
          *                         to use in accumulators
          */
-        RefCollector( MatchEngine engine, Predicate<Object[]> rowSelector,
+        RefCollector( Supplier<MatchKit> kitFact,
+                      Predicate<Object[]> rowSelector,
                       int tIndex, Predicate<Object> canAddKey,
                       Supplier<ObjectBinner<Object,RowRef>> binnerFactory ) {
-            engine_ = engine;
+            kitFact_ = kitFact;
             rowSelector_ = rowSelector;
             tIndex_ = tIndex;
             canAddKey_ = canAddKey;
@@ -321,6 +319,7 @@ class ParallelMatchComputer implements MatchComputer {
         public void accumulateRows( RowSplittable rseq,
                                     SplitBinnedRefs binned )
                 throws IOException {
+            MatchKit matchKit = kitFact_.get();
             ObjectBinner<Object,RowRef> binner = binned.binner_;
             int nin = 0;
             LongSupplier rowIndex = rseq.rowIndex();
@@ -328,7 +327,7 @@ class ParallelMatchComputer implements MatchComputer {
                 Object[] row = rseq.getRow();
                 if ( rowSelector_.test( row ) ) {
                     nin++;
-                    Object[] keys = engine_.getBins( row );
+                    Object[] keys = matchKit.getBins( row );
                     if ( keys.length > 0 ) {
                         long lrow = rowIndex.getAsLong();
                         RowRef rref = new RowRef( tIndex_, lrow );
@@ -349,7 +348,7 @@ class ParallelMatchComputer implements MatchComputer {
      */
     private static class PairCollector extends RowCollector<LinkSet> {
 
-        private final MatchEngine engine_;
+        private final Supplier<MatchKit> kitFact_;
         private final int indexR_;
         private final int indexS_;
         private final Predicate<Object[]> rowSelector_;
@@ -361,7 +360,7 @@ class ParallelMatchComputer implements MatchComputer {
         /**
          * Constructor.
          *
-         * @param  engine  defines matching semantics
+         * @param  kitFact  defines matching criteria
          * @param  indexR  index of table R for use in row references
          * @param  indexS  index of table S for use in row references
          * @param  rowSelector  rows that fail this test are ignored
@@ -371,11 +370,11 @@ class ParallelMatchComputer implements MatchComputer {
          *                   to which that bin relates
          * @param  linksetCreator  LinkSet factory
          */
-        PairCollector( MatchEngine engine, int indexR, int indexS,
+        PairCollector( Supplier<MatchKit> kitFact, int indexR, int indexS,
                        Predicate<Object[]> rowSelector, boolean bestOnly,
                        StarTable tableR, LongBinner binnerR,
                        Supplier<LinkSet> linksetCreator ) {
-            engine_ = engine;
+            kitFact_ = kitFact;
             indexR_ = indexR;
             indexS_ = indexS;
             rowSelector_ = rowSelector;
@@ -405,6 +404,7 @@ class ParallelMatchComputer implements MatchComputer {
         }
         public void accumulateRows( RowSplittable rseqS, LinkSet linkSet )
                 throws IOException {
+            MatchKit matchKit = kitFact_.get();
             LongSupplier rowIndexS = rseqS.rowIndex();
             assert rowIndexS != null;
             try ( RowAccess accessR = tableR_.getRowAccess() ) {
@@ -415,7 +415,7 @@ class ParallelMatchComputer implements MatchComputer {
                     if ( rowSelector_.test( rowS ) ) {
 
                         /* Identify rows from table R which may match table S.*/
-                        Object[] keys = engine_.getBins( rowS );
+                        Object[] keys = matchKit.getBins( rowS );
                         rrowSet.clear();
                         for ( Object key : keys ) {
                             long[] rrows = binnerR_.getLongs( key );
@@ -443,7 +443,8 @@ class ParallelMatchComputer implements MatchComputer {
                             for ( long irR : rrows ) {
                                 accessR.setRowIndex( irR );
                                 Object[] rowR = accessR.getRow();
-                                double score = engine_.matchScore( rowS, rowR );
+                                double score =
+                                    matchKit.matchScore( rowS, rowR );
                                 if ( score >= 0 &&
                                      ( ! bestOnly_ || score < bestScore ) ) {
                                     RowRef refR = new RowRef( indexR_, irR );

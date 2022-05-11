@@ -2,6 +2,7 @@ package uk.ac.starlink.table.join;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -88,22 +89,9 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return ndim_ + "-d Cartesian with Errors";
     }
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        double[] coords1 = getTupleCoords( tuple1 );
-        double[] coords2 = getTupleCoords( tuple2 );
-        double err = getTupleError( tuple1 ) + getTupleError( tuple2 );
-        double err2 = err * err;
-        double dist2 = 0;
-        for ( int id = 0; id < ndim_; id++ ) {
-            double d = coords2[ id ] - coords1[ id ];
-            dist2 += d * d;
-            if ( ! ( dist2 <= err2 ) ) {
-                return -1;
-            }
-        }
-        double score = err2 > 0 ? Math.sqrt( dist2 / err2 ) : 0.0;
-        assert score >= 0 && score <= 1;
-        return score;
+    public Supplier<MatchKit> createMatchKitFactory() {
+        final Supplier<CartesianBinner> binnerFact = createBinnerFactory();
+        return () -> new ErrorCartesianMatchKit( binnerFact.get() );
     }
 
     /**
@@ -111,10 +99,6 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
      */
     public double getScoreScale() {
         return 1.0;
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-        return getRadiusBins( getTupleCoords( tuple ), getTupleError( tuple ) );
     }
 
     public boolean canBoundMatch() {
@@ -154,5 +138,62 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
      */
     private double getTupleError( Object[] tuple ) {
         return getNumberValue( tuple[ ndim_ ] );
+    }
+
+    /**
+     * MatchKit implementation for use with this class.
+     */
+    private static class ErrorCartesianMatchKit implements MatchKit {
+        final CartesianBinner binner_;
+        final int ndim_;
+        final double[] work0_;
+        final double[] work1_;
+        final double[] work2_;
+
+        /**
+         * Constructor.
+         *
+         * @param  binner  binner
+         */
+        ErrorCartesianMatchKit( CartesianBinner binner ) {
+            binner_ = binner;
+            ndim_ = binner_.getNdim();
+            work0_ = new double[ ndim_ ];
+            work1_ = new double[ ndim_ ];
+            work2_ = new double[ ndim_ ];
+        }
+
+        public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+            binner_.toCoords( tuple1, work1_ );
+            binner_.toCoords( tuple2, work2_ );
+            double err = getTupleError( tuple1 ) + getTupleError( tuple2 );
+            double err2 = err * err;
+            double dist2 = 0;
+            for ( int id = 0; id < ndim_; id++ ) {
+                double d = work2_[ id ] - work1_[ id ];
+                dist2 += d * d;
+                if ( ! ( dist2 <= err2 ) ) {
+                    return -1;
+                }
+            }
+            double score = err2 > 0 ? Math.sqrt( dist2 / err2 ) : 0.0;
+            assert score >= 0 && score <= 1;
+            return score;
+        }
+
+        public Object[] getBins( Object[] tuple ) {
+            binner_.toCoords( tuple, work0_ );
+            return binner_.getRadiusBins( work0_, getTupleError( tuple ) );
+        }
+
+        /**
+         * Returns the error value associated with an input tuple.
+         *
+         * @param  tuple  (ndim+1)-element coords,error array
+         * @return   error value
+         */
+        private double getTupleError( Object[] tuple ) {
+            return getNumberValue( tuple[ ndim_ ] );
+        }
     }
 }

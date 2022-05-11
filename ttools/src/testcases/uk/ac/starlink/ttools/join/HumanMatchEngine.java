@@ -1,10 +1,12 @@
 package uk.ac.starlink.ttools.join;
 
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.MatchKit;
 import uk.ac.starlink.table.join.NdRange;
 import uk.ac.starlink.ttools.func.CoordsRadians;
 
@@ -115,14 +117,20 @@ public class HumanMatchEngine implements MatchEngine {
         return tupleInfos_;
     }
 
-    public Object[] getBins( Object[] tuple ) {
-        return baseEngine_.getBins( unwrapTuple( tuple ) );
-    }
-
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        return scoreWrapper_
-              .wrapDouble( baseEngine_.matchScore( unwrapTuple( tuple1 ),
-                                                   unwrapTuple( tuple2 ) ) );
+    public Supplier<MatchKit> createMatchKitFactory() {
+        Supplier<MatchKit> baseKitFact = baseEngine_.createMatchKitFactory();
+        return () -> new MatchKit() {
+            final MatchKit baseKit = baseKitFact.get();
+            public Object[] getBins( Object[] tuple ) {
+                return baseKit.getBins( unwrapTuple( tuple ) );
+            }
+            public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+                return scoreWrapper_
+                      .wrapDouble( baseKit
+                                  .matchScore( unwrapTuple( tuple1 ),
+                                               unwrapTuple( tuple2 ) ) );
+            }
+        };
     }
 
     public double getScoreScale() {

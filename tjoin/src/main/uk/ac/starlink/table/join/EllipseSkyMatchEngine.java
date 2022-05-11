@@ -1,6 +1,8 @@
 package uk.ac.starlink.table.join;
 
 import cds.healpix.common.math.FastMath;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.pal.AngleDR;
@@ -159,25 +161,15 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
         return SCORE_INFO;
     }
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        Match match = getMatch( toSkyEllipse( tuple1 ),
-                                toSkyEllipse( tuple2 ), false );
-        return match == null ? -1 : match.score_;
+    public Supplier<MatchKit> createMatchKitFactory() {
+        final Supplier<VariableRadiusConePixer> pixerFact =
+            getPixellator().createVariableRadiusPixerFactory();
+        final Function<Object[],SkyEllipse> ellipseReader = getEllipseReader();
+        return () -> new EllipseMatchKit( pixerFact.get(), ellipseReader );
     }
 
     public double getScoreScale() {
         return 2.0;
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-        SkyEllipse ellipse = toSkyEllipse( tuple );
-        double alpha = ellipse.alpha_;
-        double delta = ellipse.delta_;
-        double radius = ellipse.getMaxRadius();
-        return ! Double.isNaN( alpha ) && ! Double.isNaN( delta ) && radius >= 0
-             ? getPixellator().createVariableRadiusPixerFactory().get()
-                              .getPixels( alpha, delta, radius )
-             : NO_BINS;
     }
 
     public boolean canBoundMatch() {
@@ -206,14 +198,17 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
      *
      * @param   tuple  alpha, delta, mu, nu, zeta coordinates
      */
-    SkyEllipse toSkyEllipse( Object[] tuple ) {
-        double alpha = getNumberValue( tuple[ 0 ] );
-        double delta = getNumberValue( tuple[ 1 ] );
-        double mu = getNumberValue( tuple[ 2 ] );
-        double nu = getNumberValue( tuple[ 3 ] );
-        double zeta = getNumberValue( tuple[ 4 ] );
-        return createSkyEllipse( alpha, delta, mu, nu, zeta,
-                                 recogniseCircles_ );
+    Function<Object[],SkyEllipse> getEllipseReader() {
+        final boolean recogniseCircles = recogniseCircles_;
+        return tuple -> {
+            double alpha = getNumberValue( tuple[ 0 ] );
+            double delta = getNumberValue( tuple[ 1 ] );
+            double mu = getNumberValue( tuple[ 2 ] );
+            double nu = getNumberValue( tuple[ 3 ] );
+            double zeta = getNumberValue( tuple[ 4 ] );
+            return createSkyEllipse( alpha, delta, mu, nu, zeta,
+                                     recogniseCircles );
+        };
     }
 
     /**
@@ -450,6 +445,43 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
     }
 
     /**
+     * MatchKit implementation for use with this class.
+     */
+    private static class EllipseMatchKit implements MatchKit {
+        final VariableRadiusConePixer conePixer_;
+        final Function<Object[],SkyEllipse> ellipseReader_;
+
+        /**
+         * Constructor.
+         *
+         * @param  conePixer  pixellisation implementation
+         * @param  ellipseReader  converts tuple to SkyEllipse
+         */
+        EllipseMatchKit( VariableRadiusConePixer conePixer,
+                         Function<Object[],SkyEllipse> ellipseReader ) {
+            conePixer_ = conePixer;
+            ellipseReader_ = ellipseReader;
+        }
+
+        public Object[] getBins( Object[] tuple ) {
+            SkyEllipse ellipse = ellipseReader_.apply( tuple );
+            double alpha = ellipse.alpha_;
+            double delta = ellipse.delta_;
+            double radius = ellipse.getMaxRadius();
+            return ! Double.isNaN( alpha ) && ! Double.isNaN( delta )
+                   && radius >= 0 
+                 ? conePixer_.getPixels( alpha, delta, radius )
+                 : NO_BINS;
+        }
+
+        public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+            Match match = getMatch( ellipseReader_.apply( tuple1 ),
+                                    ellipseReader_.apply( tuple2 ), false );
+            return match == null ? -1 : match.score_;
+        }
+    }
+
+    /**
      * MatchEngine class that behaves like EllipseSkyMatchEngine but uses
      * human-friendly units (degrees and arcseconds) rather than radians
      * for tuple elements and match parameters.
@@ -490,14 +522,17 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
             return matchParams_;
         }
         @Override
-        SkyEllipse toSkyEllipse( Object[] tuple ) {
-            double alpha = getNumberValue( tuple[ 0 ] ) * FROM_DEG;
-            double delta = getNumberValue( tuple[ 1 ] ) * FROM_DEG;
-            double mu = getNumberValue( tuple[ 2 ] ) * FROM_ARCSEC;
-            double nu = getNumberValue( tuple[ 3 ] ) * FROM_ARCSEC;
-            double zeta = getNumberValue( tuple[ 4 ] ) * FROM_DEG;
-            return createSkyEllipse( alpha, delta, mu, nu, zeta,
-                                     recogniseCircles_ );
+        Function<Object[],SkyEllipse> getEllipseReader() {
+            final boolean recogniseCircles = recogniseCircles_;
+            return tuple -> {
+                double alpha = getNumberValue( tuple[ 0 ] ) * FROM_DEG;
+                double delta = getNumberValue( tuple[ 1 ] ) * FROM_DEG;
+                double mu = getNumberValue( tuple[ 2 ] ) * FROM_ARCSEC;
+                double nu = getNumberValue( tuple[ 3 ] ) * FROM_ARCSEC;
+                double zeta = getNumberValue( tuple[ 4 ] ) * FROM_DEG;
+                return createSkyEllipse( alpha, delta, mu, nu, zeta,
+                                         recogniseCircles );
+            };
         }
         @Override
         public NdRange getMatchBounds( NdRange[] inRanges, int index ) {

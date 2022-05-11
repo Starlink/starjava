@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.join;
 
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -85,27 +86,14 @@ public class AnisotropicCartesianMatchEngine
         return SCORE_INFO;
     }
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        double[] coords1 = toCoords( tuple1 );
-        double[] coords2 = toCoords( tuple2 );
-        double normDist2 = 0;
-        for ( int id = 0; id < ndim_; id++ ) {
-            double d = coords2[ id ] - coords1[ id ];
-            normDist2 += d * d * err2rs_[ id ];
-            if ( ! ( normDist2 <= 1.0 ) ) {
-                return -1.0;
-            }
-        }
-        assert normDist2 >= 0 && normDist2 <= 1.0;
-        return Math.sqrt( normDist2 );
+    public Supplier<MatchKit> createMatchKitFactory() {
+        final Supplier<CartesianBinner> binnerFact = createBinnerFactory();
+        final double[] err2rs = err2rs_.clone();
+        return () -> new AnisotropicMatchKit( err2rs, binnerFact.get() );
     }
 
     public double getScoreScale() {
         return 1.0;
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-        return getScaleBins( toCoords( tuple ) );
     }
 
     public boolean canBoundMatch() {
@@ -131,17 +119,51 @@ public class AnisotropicCartesianMatchEngine
     }
 
     /**
-     * Returns the Cartesian coordinates for a given match tuple.
-     *
-     * @param  tuple  input tuple
-     * @return  numeric ndim-element coordinate array
+     * MatchKit implementation for use with this class.
      */
-    private double[] toCoords( Object[] tuple ) {
-        double[] coords = new double[ ndim_ ];
-        for ( int id = 0; id < ndim_; id++ ) {
-            coords[ id ] = getNumberValue( tuple[ id ] );
+    private static class AnisotropicMatchKit implements MatchKit {
+
+        final double[] err2rs_;
+        final CartesianBinner binner_;
+        final int ndim_;
+        final double[] work0_;
+        final double[] work1_;
+        final double[] work2_;
+
+        /**
+         * Constructor.
+         *
+         * @param   ndim-element array of per-dimension err**-2 values
+         * @param   binner  binner object
+         */
+        AnisotropicMatchKit( double[] err2rs, CartesianBinner binner ) {
+            err2rs_ = err2rs;
+            binner_ = binner;
+            ndim_ = binner_.getNdim();
+            work0_ = new double[ ndim_ ];
+            work1_ = new double[ ndim_ ];
+            work2_ = new double[ ndim_ ];
         }
-        return coords;
+
+        public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+            binner_.toCoords( tuple1, work1_ );
+            binner_.toCoords( tuple2, work2_ );
+            double normDist2 = 0;
+            for ( int id = 0; id < ndim_; id++ ) {
+                double d = work2_[ id ] - work1_[ id ];
+                normDist2 += d * d * err2rs_[ id ];
+                if ( ! ( normDist2 <= 1.0 ) ) {
+                    return -1.0;
+                }
+            }
+            assert normDist2 >= 0 && normDist2 <= 1.0;
+            return Math.sqrt( normDist2 );
+        }
+
+        public Object[] getBins( Object[] tuple ) {
+            binner_.toCoords( tuple, work0_ );
+            return binner_.getScaleBins( work0_ );
+        }
     }
 
     /**

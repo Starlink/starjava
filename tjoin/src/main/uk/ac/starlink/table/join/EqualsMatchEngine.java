@@ -2,6 +2,7 @@ package uk.ac.starlink.table.join;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.Tables;
@@ -27,19 +28,25 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class EqualsMatchEngine implements MatchEngine {
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        return isEqual( tuple1[ 0 ], tuple2[ 0 ] ) ? 0.0 : -1.0;
-    }
+    /** Stateless MatchKit instance for use with this class. */
+    private static final MatchKit KIT = new MatchKit() {
+        public Object[] getBins( Object[] tuple ) {
+            Object obj = tuple[ 0 ];
+            return Tables.isBlank( obj )
+                 ? NO_BINS
+                 : new Object[] { new Integer( getHash( obj ) ) };
+        }
+        public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+            return isEqual( tuple1[ 0 ], tuple2[ 0 ] ) ? 0.0 : -1.0;
+        }
+    };
+
+    public Supplier<MatchKit> createMatchKitFactory() {
+        return () -> KIT;
+    };
 
     public double getScoreScale() {
         return 1.0;
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-        Object obj = tuple[ 0 ];
-        return Tables.isBlank( obj )
-             ? NO_BINS
-             : new Object[] { new Integer( getHash( obj ) ) };
     }
 
     /**

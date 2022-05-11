@@ -18,7 +18,7 @@ interface MatchComputer {
      * Create a map from match bin to list of all the row indices
      * associated with that bin, for a given table.
      *
-     * @param   engine  match criteria
+     * @param   kitFact  match criteria
      * @param   rowSelector   filter for rows to be included;
      *                        row values that fail this test are ignored
      * @param   tableR  table to bin, random access is available
@@ -26,7 +26,7 @@ interface MatchComputer {
      * @param   stageTxt  message describing this stage of the matching
      * @return   binning results
      */
-    BinnedRows binRowIndices( MatchEngine engine,
+    BinnedRows binRowIndices( Supplier<MatchKit> kitFact,
                               Predicate<Object[]> rowSelector, StarTable tableR,
                               ProgressIndicator indicator, String stageTxt )
             throws IOException, InterruptedException;
@@ -40,7 +40,7 @@ interface MatchComputer {
      * only rows with entries in bins which are already present in
      * the supplied binner will be added and others will be ignored.
      *
-     * @param   engine  match engine
+     * @param   kitFact   match criteria
      * @param   rowSelector   filter for rows to be included;
      *                        row values that fail this test are ignored
      * @param   table  table to bin
@@ -51,7 +51,8 @@ interface MatchComputer {
      * @param   stageTxt  message describing this stage of the matching
      * @return   number of rows actually considered (not excluded)
      */
-    long binRowRefs( MatchEngine engine, Predicate<Object[]> rowSelector,
+    long binRowRefs( Supplier<MatchKit> kitFact,
+                     Predicate<Object[]> rowSelector,
                      StarTable table, int tIndex,
                      ObjectBinner<Object,RowRef> binner, boolean newBins,
                      ProgressIndicator indicator, String stageTxt )
@@ -62,13 +63,14 @@ interface MatchComputer {
      * containing bin assignments for a random-access table R,
      * to identify matched pairs between rows in the two tables.
      *
+     * @param  kitFact   match criteria
+     * @param  rowSelector   filter for rows to be included;
+     *                       row values in table S that fail this test
+     *                       are ignored
      * @param  tableR  table R which will be accessed randomly
      * @param  indexR  index of table R for use in row references
      * @param  tableS  table S which will be access sequentially
      * @param  indexS  index of table S for use in row references
-     * @param  rowSelector   filter for rows to be included;
-     *                       row values in table S that fail this test
-     *                       are ignored
      * @param  bestOnly  true iff only the best S-R match is required;
      *                   if false multiple matches in R may be returned
      *                   for each row in S
@@ -79,7 +81,7 @@ interface MatchComputer {
      * @param  stageTxt  message describing this stage of the matching
      * @return  links representing pair matches
      */
-    LinkSet scanBinsForPairs( MatchEngine engine,
+    LinkSet scanBinsForPairs( Supplier<MatchKit> kitFact,
                               Predicate<Object[]> rowSelector,
                               StarTable tableR, int indexR,
                               StarTable tableS, int indexS,

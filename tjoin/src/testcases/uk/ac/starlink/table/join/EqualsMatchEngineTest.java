@@ -1,13 +1,15 @@
 package uk.ac.starlink.table.join;
 
+import java.util.function.Supplier;
 import uk.ac.starlink.util.TestCase;
 
 public class EqualsMatchEngineTest extends TestCase {
 
-    private final MatchEngine engine_ = new EqualsMatchEngine();
+    private final Supplier<MatchKit> kitFact_;
 
     public EqualsMatchEngineTest( String name ) {
         super( name );
+        kitFact_ = new EqualsMatchEngine().createMatchKitFactory();
     }
 
     public void testEquals() {
@@ -49,13 +51,13 @@ public class EqualsMatchEngineTest extends TestCase {
     }
 
     private void assertMatch( boolean match, Object o1, Object o2 ) {
+        MatchKit kit = kitFact_.get();
         assertEquals( match ? 0.0 : -1.0,
-                      engine_.matchScore( new Object[] { o1 },
-                                          new Object[] { o2 } ) );
+                      kit.matchScore( new Object[] { o1 },
+                                      new Object[] { o2 } ) );
         if ( match ) {
-            assertEquals( engine_.getBins( new Object[] { o1 } )[ 0 ],
-                          engine_.getBins( new Object[] { o2 } )[ 0 ] );
+            assertEquals( kit.getBins( new Object[] { o1 } )[ 0 ],
+                          kit.getBins( new Object[] { o2 } )[ 0 ] );
         }
     }
-
 }

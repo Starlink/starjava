@@ -3,6 +3,7 @@ package uk.ac.starlink.table.join;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -12,7 +13,7 @@ import uk.ac.starlink.table.ValueInfo;
  * characteristics of a number of other matching engines.
  * Because of the way it calculates bins (effectively multiplying one
  * bin array by another), it is a good idea for efficiency's sake to
- * keep down the number of bins returned by the {@link MatchEngine#getBins}
+ * keep down the number of bins returned by the {@link MatchKit#getBins}
  * method of the component match engines.
  *
  * <p>The match score is formed by taking the scaled match scores of the
@@ -31,11 +32,6 @@ public class CombinedMatchEngine implements MatchEngine {
     private final int[] tupleStarts_;
     private final int nPart_;
     private String name_;
-
-    // ThreadLocal work arrays for holding subtuples - benchmarking shows that
-    // there actually is a bottleneck if you create new empty arrays
-    // every time you need one.
-    private final ThreadLocal<CWork> workLocal_;
 
     private static final ValueInfo SCORE_INFO =
         new DefaultValueInfo( "Separation", Double.class,
@@ -63,10 +59,6 @@ public class CombinedMatchEngine implements MatchEngine {
             ts += tupleSizes_[ i ];
         }
 
-        /* Set up workspace. */
-        workLocal_ = ThreadLocal
-                    .withInitial( () -> new CWork( nPart_, tupleSizes_ ) );
-
         /* Set the name. */
         StringBuffer buf = new StringBuffer( "(" );
         for ( int i = 0; i < nPart_; i++ ) {
@@ -79,32 +71,24 @@ public class CombinedMatchEngine implements MatchEngine {
         name_ = buf.toString();
     }
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        double sum2 = 0.0;
-        CWork cwork = workLocal_.get();
+    public Supplier<MatchKit> createMatchKitFactory() {
+        final boolean inSphere = inSphere_;
+        final int[] tupleStarts = tupleStarts_.clone();
+        final int[] tupleSizes = tupleSizes_.clone();
+        final List<Supplier<MatchKit>> kitFacts = new ArrayList<>( nPart_ );
+        final double[] scales = new double[ nPart_ ];
         for ( int i = 0; i < nPart_; i++ ) {
-            Object[] subTuple1 = cwork.work1_[ i ];
-            Object[] subTuple2 = cwork.work2_[ i ];
-            System.arraycopy( tuple1, tupleStarts_[ i ], 
-                              subTuple1, 0, tupleSizes_[ i ] );
-            System.arraycopy( tuple2, tupleStarts_[ i ],
-                              subTuple2, 0, tupleSizes_[ i ] );
-            MatchEngine engine = engines_[ i ];
-            double score = engine.matchScore( subTuple1, subTuple2 );
-            if ( score < 0 ) {
-                return -1.;
+            kitFacts.add( engines_[ i ].createMatchKitFactory() );
+            scales[ i ] = engines_[ i ].getScoreScale();
+        }
+        return () -> {
+            MatchKit[] subKits = new MatchKit[ nPart_ ];
+            for ( int i = 0; i < nPart_; i++ ) {
+                subKits[ i ] = kitFacts.get( i ).get();
             }
-            double scale = engine.getScoreScale();
-            double d1 = scale > 0 ? ( score / scale ) : score;    
-            sum2 += d1 * d1;
-        }
-        double sum1 = Math.sqrt( sum2 );
-        if ( inSphere_ ) {
-            return sum1 <= 1 ? sum1 : -1.0;
-        }
-        else {
-            return sum1;
-        }
+            return new CombinedMatchKit( subKits, scales, inSphere,
+                                         tupleStarts, tupleSizes );
+        };
     }
 
     /**
@@ -123,59 +107,6 @@ public class CombinedMatchEngine implements MatchEngine {
 
     public ValueInfo getMatchScoreInfo() {
         return SCORE_INFO;
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-        CWork cwork = workLocal_.get();
-
-        /* Work out the bin set for each region of the tuple handled by a
-         * different match engine. */
-        Object[][] binBag = new Object[ nPart_ ][];
-        for ( int i = 0; i < nPart_; i++ ) {
-            Object[] subTuple = cwork.work0_[ i ];
-            System.arraycopy( tuple, tupleStarts_[ i ], 
-                              subTuple, 0, tupleSizes_[ i ] );
-            binBag[ i ] = engines_[ i ].getBins( subTuple );
-        }
-
-        /* "Multiply" these bin sets together to provide a number of possible
-         * bins in nPart-dimensional space.  If you see what I mean.
-         * Each bin object in the returned array is an nPart-element List 
-         * containing one entry for each part.  The definition of the
-         * List equals() and hashCode() methods make these suitable for
-         * use as matching bins. */
-        int nBin = 1;
-        for ( int i = 0; i < nPart_; i++ ) {
-            nBin *= binBag[ i ].length;
-        }
-
-        Object[] bins = new Object[ nBin ];
-        int[] offset = new int[ nPart_ ];
-        for ( int ibin = 0; ibin < nBin; ibin++ ) {
-            List<Object> bin = new ArrayList<Object>( nPart_ );
-            for ( int i = 0; i < nPart_; i++ ) {
-                bin.add( binBag[ i ][ offset[ i ] ] );
-            }
-            bins[ ibin ] = bin;
-
-            /* Bump the n-dimensional offset to the next cell. */
-            for ( int j = 0; j < nPart_; j++ ) {
-                if ( ++offset[ j ] < binBag[ j ].length ) {
-                    break;
-                }
-                else {
-                    offset[ j ] = 0;
-                }
-            }
-        }
-
-        /* Sanity check. */
-        for ( int i = 0; i < nPart_; i++ ) {
-            assert offset[ i ] == 0;
-        }
-        
-        /* Return the array of bins. */
-        return bins;
     }
 
     public ValueInfo[] getTupleInfos() {
@@ -253,21 +184,127 @@ public class CombinedMatchEngine implements MatchEngine {
     }
 
     /**
-     * Object for holding work arrays used during calculations.
+     * MatchKit implementation for use with this class.
      */
-    private static class CWork {
+    private static class CombinedMatchKit implements MatchKit {
+
+        final MatchKit[] subKits_;
+        final double[] scales_;
+        final boolean inSphere_;
+        final int[] tupleStarts_;
+        final int[] tupleSizes_;
+        final int nPart_;
         final Object[][] work0_;
         final Object[][] work1_;
         final Object[][] work2_;
-        CWork( int nPart, int[] tupleSizes ) {
-            work0_ = new Object[ nPart ][];
-            work1_ = new Object[ nPart ][];
-            work2_ = new Object[ nPart ][];
-            for ( int i = 0; i < nPart; i++ ) {
-                work0_[ i ] = new Object[ tupleSizes[ i ] ];
-                work1_[ i ] = new Object[ tupleSizes[ i ] ];
-                work2_[ i ] = new Object[ tupleSizes[ i ] ];
+
+        /**
+         * Constructor.
+         *
+         * @param  subKits  nPart-element array of match kits for
+         *                  component MatchEngines
+         * @param  scales  nPart-element arra of score scales
+         * @param  inSphere   require matches to be within unit sphere
+         * @param  tupleStarts  nPart-element array of sub-engine start index
+         *                      in combined tuple
+         * @param  tupleSizes   nPart-element array of sub-engine element
+         *                      counts in combined tuple
+         */
+        CombinedMatchKit( MatchKit[] subKits, double[] scales, boolean inSphere,
+                          int[] tupleStarts, int[] tupleSizes ) {
+            subKits_ = subKits;
+            scales_ = scales;
+            inSphere_ = inSphere;
+            tupleStarts_ = tupleStarts;
+            tupleSizes_ = tupleSizes;
+            nPart_ = subKits.length;
+            work0_ = new Object[ nPart_ ][];
+            work1_ = new Object[ nPart_ ][];
+            work2_ = new Object[ nPart_ ][];
+            for ( int i = 0; i < nPart_; i++ ) {
+                int ts = tupleSizes[ i ];
+                work0_[ i ] = new Object[ ts ];
+                work1_[ i ] = new Object[ ts ];
+                work2_[ i ] = new Object[ ts ];
             }
+        }
+
+        public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+            double sum2 = 0.0;
+            for ( int i = 0; i < nPart_; i++ ) {
+                Object[] subTuple1 = work1_[ i ];
+                Object[] subTuple2 = work2_[ i ];
+                int tStart = tupleStarts_[ i ];
+                int tSize = tupleSizes_[ i ];
+                System.arraycopy( tuple1, tStart, subTuple1, 0, tSize );
+                System.arraycopy( tuple2, tStart, subTuple2, 0, tSize );
+                double score = subKits_[ i ].matchScore( subTuple1, subTuple2 );
+                if ( score < 0 ) {
+                    return -1.;
+                }
+                double scale = scales_[ i ];
+                double d1 = scale > 0 ? ( score / scale ) : score;    
+                sum2 += d1 * d1;
+            }
+            double sum1 = Math.sqrt( sum2 );
+            if ( inSphere_ ) {
+                return sum1 <= 1 ? sum1 : -1.0;
+            }
+            else {
+                return sum1;
+            }
+        }
+
+        public Object[] getBins( Object[] tuple ) {
+
+            /* Work out the bin set for each region of the tuple handled by a
+             * different match engine. */
+            Object[][] binBag = new Object[ nPart_ ][];
+            for ( int i = 0; i < nPart_; i++ ) {
+                Object[] subTuple = work0_[ i ];
+                System.arraycopy( tuple, tupleStarts_[ i ], 
+                                  subTuple, 0, tupleSizes_[ i ] );
+                binBag[ i ] = subKits_[ i ].getBins( subTuple );
+            }
+
+            /* "Multiply" these bin sets together to provide a number of
+             * possible bins in nPart-dimensional space. If you see what I mean.
+             * Each bin object in the returned array is an nPart-element List 
+             * containing one entry for each part.  The definition of the
+             * List equals() and hashCode() methods make these suitable for
+             * use as matching bins. */
+            int nBin = 1;
+            for ( int i = 0; i < nPart_; i++ ) {
+                nBin *= binBag[ i ].length;
+            }
+
+            Object[] bins = new Object[ nBin ];
+            int[] offset = new int[ nPart_ ];
+            for ( int ibin = 0; ibin < nBin; ibin++ ) {
+                List<Object> bin = new ArrayList<>( nPart_ );
+                for ( int i = 0; i < nPart_; i++ ) {
+                    bin.add( binBag[ i ][ offset[ i ] ] );
+                }
+                bins[ ibin ] = bin;
+
+                /* Bump the n-dimensional offset to the next cell. */
+                for ( int j = 0; j < nPart_; j++ ) {
+                    if ( ++offset[ j ] < binBag[ j ].length ) {
+                        break;
+                    }
+                    else {
+                        offset[ j ] = 0;
+                    }
+                }
+            }
+
+            /* Sanity check. */
+            for ( int i = 0; i < nPart_; i++ ) {
+                assert offset[ i ] == 0;
+            }
+        
+            /* Return the array of bins. */
+            return bins;
         }
     }
 }

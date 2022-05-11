@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.join;
 
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.Tables;
@@ -76,16 +77,16 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
         return SCORE_INFO;
     }
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        return matchScore( 3, toXyz( tuple1 ), toXyz( tuple2 ), getError() );
+    public Supplier<MatchKit> createMatchKitFactory() {
+        final Supplier<CartesianBinner> binnerFact = createBinnerFactory();
+        final double error = getError();
+        final XyzReader xyzReader = this::toXyz;
+        return () ->
+            new SphericalPolarMatchKit( error, binnerFact.get(), xyzReader );
     }
 
     public double getScoreScale() {
         return getError();
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-        return getRadiusBins( toXyz( tuple ), getError() * 0.5 );
     }
 
     /**
@@ -108,12 +109,12 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
      * Converts a submitted match tuple to Cartesian coordinates.
      *
      * @param   tuple  input tuple
-     * @return  (x,y,z) array
+     * @param   xyz  3-element array into which (x,y,z) will be written on exit
      */
-    double[] toXyz( Object[] tuple ) {
-        return toXyz( getNumberValue( tuple[ 0 ] ),
+    void toXyz( Object[] tuple, double[] xyz ) {
+        toXyzRadians( getNumberValue( tuple[ 0 ] ),
                       getNumberValue( tuple[ 1 ] ),
-                      getNumberValue( tuple[ 2 ] ) );
+                      getNumberValue( tuple[ 2 ] ), xyz );
     }
 
     /**
@@ -122,9 +123,10 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
      * @param  raRad  RA in radians
      * @param  decRad  declination in radians
      * @param  r   radius
-     * @return  (x,y,z) array
+     * @param   xyz  3-element array into which (x,y,z) will be written on exit
      */
-    static double[] toXyz( double raRad, double decRad, double r ) {
+    static void toXyzRadians( double raRad, double decRad, double r,
+                              double[] xyz ) {
         double cd = Math.cos( decRad );
         double sd = Math.sin( decRad );
         double cr = Math.cos( raRad );
@@ -134,7 +136,66 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
         double y = r * sr * cd;
         double z = r * sd;
 
-        return new double[] { x, y, z };
+        xyz[ 0 ] = x;
+        xyz[ 1 ] = y;
+        xyz[ 2 ] = z;
+    }
+
+    /**
+     * Converts tuple values to Cartesian coordinates.
+     */
+    @FunctionalInterface
+    private interface XyzReader {
+
+        /**
+         * In place conversion.
+         *
+         * @param  tuple   tuple intended for this matcher
+         * @param  xyz  3-element array into which Cartesian coordinates
+         *              are written on exit
+         */
+        void toXyz( Object[] tuple, double[] xyz );
+    }
+
+    /**
+     * MatchKit implementation for use with this class.
+     */
+    private static class SphericalPolarMatchKit implements MatchKit {
+        final double error_;
+        final CartesianBinner binner_;
+        final XyzReader xyzReader_;
+        final double[] xyz0_;
+        final double[] xyz1_;
+        final double[] xyz2_;
+
+        /**
+         * Constructor.
+         *
+         * @param  error   maximum permissible distance
+         * @param  binner  binner
+         * @param  xyzReader   converts from tuples to Cartesian coords
+         */
+        SphericalPolarMatchKit( double error, CartesianBinner binner,
+                                XyzReader xyzReader ) {
+            error_ = error;
+            binner_ = binner;
+            xyzReader_ = xyzReader;
+            xyz0_ = new double[ 3 ];
+            xyz1_ = new double[ 3 ];
+            xyz2_ = new double[ 3 ];
+        }
+
+        public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+            xyzReader_.toXyz( tuple1, xyz1_ );
+            xyzReader_.toXyz( tuple2, xyz2_ );
+            return AbstractCartesianMatchEngine
+                  .matchScore( 3, xyz1_, xyz2_, error_ );
+        }
+
+        public Object[] getBins( Object[] tuple ) {
+            xyzReader_.toXyz( tuple, xyz0_ );
+            return binner_.getRadiusBins( xyz0_, error_ * 0.5 );
+        }
     }
 
     /**
@@ -162,10 +223,10 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
             assert tupleInfos_.length == infos0.length;
         }
         @Override
-        double[] toXyz( Object[] tuple ) {
-            return toXyz( getNumberValue( tuple[ 0 ] ) * FROM_DEG,
+        void toXyz( Object[] tuple, double[] xyz ) {
+            toXyzRadians( getNumberValue( tuple[ 0 ] ) * FROM_DEG,
                           getNumberValue( tuple[ 1 ] ) * FROM_DEG,
-                          getNumberValue( tuple[ 2 ] ) );
+                          getNumberValue( tuple[ 2 ] ), xyz );
         }
         @Override
         public ValueInfo[] getTupleInfos() {

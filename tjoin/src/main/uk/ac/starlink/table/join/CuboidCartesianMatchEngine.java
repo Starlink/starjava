@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.join;
 
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -90,23 +91,10 @@ public class CuboidCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return SCORE_INFO;
     }
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        double[] coords1 = toCoords( tuple1 );
-        double[] coords2 = toCoords( tuple2 );
-        double dist2 = 0;
-        for ( int id = 0; id < ndim_; id++ ) {
-            double d = coords2[ id ] - coords1[ id ];
-            double d2 = d * d;
-            if ( d2 > err2s_[ id ] ) {
-                return -1;
-            }
-            dist2 += d2;
-        }
-        return Math.sqrt( dist2 );
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-        return getScaleBins( toCoords( tuple ) );
+    public Supplier<MatchKit> createMatchKitFactory() {
+        final Supplier<CartesianBinner> binnerFact = createBinnerFactory();
+        final double[] err2s = err2s_.clone();
+        return () -> new CuboidCartesianMatchKit( err2s, binnerFact.get() );
     }
 
     public boolean canBoundMatch() {
@@ -135,17 +123,51 @@ public class CuboidCartesianMatchEngine extends AbstractCartesianMatchEngine {
     }
 
     /**
-     * Returns the Cartesian coordinates for a given match tuple.
-     *
-     * @param  tuple  input tuple
-     * @return  numeric ndim-element coordinate array
+     * MatchKit implementation for use with this class.
      */
-    private double[] toCoords( Object[] tuple ) {
-        double[] coords = new double[ ndim_ ];
-        for ( int id = 0; id < ndim_; id++ ) {
-            coords[ id ] = getNumberValue( tuple[ id ] );
+    private static class CuboidCartesianMatchKit implements MatchKit {
+
+        final double[] err2s_;
+        final CartesianBinner binner_;
+        final int ndim_;
+        final double[] work0_;
+        final double[] work1_;
+        final double[] work2_;
+
+        /**
+         * Constructor.
+         *
+         * @param  err2s  per-dimension array of squared error values
+         * @param  binner  binner
+         */
+        CuboidCartesianMatchKit( double[] err2s, CartesianBinner binner ) {
+            err2s_ = err2s;
+            binner_ = binner;
+            ndim_ = binner.getNdim();
+            work0_ = new double[ ndim_ ];
+            work1_ = new double[ ndim_ ];
+            work2_ = new double[ ndim_ ];
         }
-        return coords;
+
+        public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+            binner_.toCoords( tuple1, work1_ );
+            binner_.toCoords( tuple2, work2_ );
+            double dist2 = 0;
+            for ( int id = 0; id < ndim_; id++ ) {
+                double d = work2_[ id ] - work1_[ id ];
+                double d2 = d * d;
+                if ( d2 > err2s_[ id ] ) {
+                    return -1;
+                }
+                dist2 += d2;
+            }
+            return Math.sqrt( dist2 );
+        }
+
+        public Object[] getBins( Object[] tuple ) {
+            binner_.toCoords( tuple, work0_ );
+            return binner_.getScaleBins( work0_ );
+        }
     }
 
     /**

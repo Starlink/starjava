@@ -1,104 +1,36 @@
 package uk.ac.starlink.table.join;
 
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Defines the details of object matching criteria.
- * This interface provides methods for ascertaining whether two table
- * rows are to be linked - this usually means that they are to be
- * assumed to refer to the same object.
- * The methods act on 'tuples' - an array of objects defining the relevant
- * characteristics of a row.  Of course these tuples have to be prepared
- * with understanding of what a particular implementation of this interface
- * knows how to deal with, which can be obtained from the {@link #getTupleInfos}
- * method.  Typically a tuple will be a list of coordinates,
- * such as RA and Dec.
- * <p>
- * The business end of the interface consists of two methods.  
- * One tests whether two tuples count as matching or not,
- * and assigns a closeness score if they are (in practice, this is likely to 
- * compare corresponding elements of the two submitted tuples allowing
- * for some error in each one).  The second is a bit more subtle:
- * it must identify a set of bins into which possible matches for the tuple
- * might fall.  For the case of coordinate matching with errors, you 
- * would need to chop the whole possible space into a discrete set of 
- * zones, each with a given key, and return the key for each zone 
- * near enough to the submitted tuple (point) that it might contain a
- * match for it.
- * <p>
- * Formally, the requirements for correct implementations of this 
- * interface are as follows:
- * <ol>
- * <li><tt>matchScore(t1,t2)</tt> == <tt>matchScore(t2,t1)</tt>
- * <li><tt>matchScore(t1,t2)&gt;=0</tt> implies a non-zero intersection of 
- *     <tt>getBins(t1)</tt> and <tt>getBins(t2)</tt>
- * </ol>
- * The best efficiency will be achieved when:
- * <ol>
- * <li>the intersection of <tt>getBins(t1)</tt> and <tt>getBins(t2)</tt> 
- *     is as small as possible for non-matching <tt>t1</tt> and <tt>t2</tt>
- *     (preferably 0)
- * <li>the number of bins returned by <tt>getBins</tt> is as small as
- *     possible (preferably 1)
- * </ol>
- * These two efficiency requirements are usually conflicting to some extent.
- * <p>
- * It may help to think of all this as a sort of fuzzy hash.
+ *
+ * <p>This class manages the configuration of matching criteria.
+ * Application code can manipulate the
+ * {@link uk.ac.starlink.table.DescribedValue}s provided by
+ * this class in accordance with user preferences, and then
+ * call the {@link #createMatchKitFactory} method to supply objects
+ * which implement the configured matching functionality itself.
  * 
  * @author   Mark Taylor (Starlink)
  */
 public interface MatchEngine {
 
     /**
-     * Convenience constant - it's a zero-length array of objects, suitable
-     * for returning from {@link #getBins} if no match can result.
-     */
-    static final Object[] NO_BINS = new Object[ 0 ];
-
-    /**
-     * Returns a set of keys for bins into which possible matches for 
-     * a given tuple might fall.
-     * The returned objects can be anything, but should have their
-     * <tt>equals</tt> and <tt>hashCode</tt> methods implemented 
-     * properly for comparison.
+     * Returns a factory for MatchKit instances corresponding
+     * to the current settings of this object.
+     * The returned value is immutable, and is not affected by subsequent
+     * changes of the settings of this object.
      *
-     * @param  tuple   tuple
-     * @return   set of bin keys which might be returned by invoking this
-     *           method on other tuples which count as matches for the
-     *           submitted <tt>tuple</tt>
+     * @return  match kit supplier
      */
-    Object[] getBins( Object[] tuple );
-
-    /**
-     * Indicates whether two tuples count as matching each other, and if
-     * so how closely.  If <tt>tuple1</tt> and <tt>tuple2</tt> are
-     * considered as a matching pair, then a non-negative value should
-     * be returned indicating how close the match is - the higher the 
-     * number the worse the match, and a return value of zero indicates
-     * a 'perfect' match.  
-     * If the two tuples do not consitute a matching pair, then 
-     * a negative number (conventionally -1.0) should be returned.
-     * This return value can be thought of as (and will often
-     * correspond physically with) the distance in some real or notional
-     * space between the points represented by the two submitted tuples.
-     *
-     * <p>If there's no reason to do otherwise, the range 0..1 is 
-     * recommended for successul matches.  However, if the result has 
-     * some sort of physical meaning (such as a distance in real space) 
-     * that may be used instead.
-     *
-     * @param  tuple1  one tuple
-     * @param  tuple2  the other tuple
-     * @return  'distance' between <tt>tuple1</tt> and <tt>tuple2</tt>; 
-     *          0 is a perfect match, larger values indicate worse matches,
-     *          negative values indicate no match
-     */
-    double matchScore( Object[] tuple1, Object[] tuple2 );
+    Supplier<MatchKit> createMatchKitFactory();
 
     /**
      * Returns a description of the value returned by the 
-     * {@link #matchScore} method.  The content class should be numeric
+     * {@link MatchKit#matchScore} method.  The content class should be numeric
      * (though need not be <code>Double</code>), and the name,
      * description and units should be descriptive of whatever the
      * physical significance of the value is.
@@ -113,7 +45,7 @@ public interface MatchEngine {
     /**
      * Returns a scale value for the match score.
      * The intention is that the result of
-     * {@link #matchScore matchScore}/{@link #getScoreScale}
+     * {@link MatchKit#matchScore matchScore}/{@link #getScoreScale}
      * is of order unity, and is thus comparable between
      * different match engines.
      *
@@ -165,7 +97,8 @@ public interface MatchEngine {
      * returned objects.
      *
      * <p>Changing these values will make no difference to the output of
-     * {@link #matchScore}, but may change the output of {@link #getBins}.
+     * {@link MatchKit#matchScore}, but may change the output of
+     * {@link MatchKit#getBins}.
      * This may change the CPU and memory requirements of the match,
      * but will not change the result.  The default value should be
      * something sensible, so that setting the value of these parameters

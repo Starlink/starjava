@@ -216,7 +216,8 @@ public class RowMatcher {
         /* Bin the row indices for the random table. */
         MatchComputer.BinnedRows binned =
             computer_
-           .binRowIndices( engine_, range::isInside, tables_[ indexR ],
+           .binRowIndices( engine_.createMatchKitFactory(),
+                           range::isInside, tables_[ indexR ],
                            indicator_, "Binning rows for table " + (indexR+1) );
         LongBinner binnerR = binned.getLongBinner();
         long nbin = binnerR.getBinCount();
@@ -234,7 +235,8 @@ public class RowMatcher {
 
         /* Scan the rows for the sequential table. */
         return computer_
-              .scanBinsForPairs( engine_, range::isInside,
+              .scanBinsForPairs( engine_.createMatchKitFactory(),
+                                 range::isInside,
                                  tables_[ indexR ], indexR,
                                  tables_[ indexS ], indexS,
                                  bestOnly, binnerR, this::createLinkSet,
@@ -443,6 +445,7 @@ public class RowMatcher {
         double nLink = (double) possibleLinks.size();
         int iLink = 0;
         indicator_.startStage( "Locating pairs" );
+        MatchKit matchKit = engine_.createMatchKitFactory().get();
         for ( Iterator<RowLink> it = possibleLinks.iterator(); it.hasNext(); ) {
 
             /* Obtain the link and remove it from the input set for 
@@ -470,8 +473,9 @@ public class RowMatcher {
                         RowLink2 pair = new RowLink2( link.getRef( i ),
                                                       link.getRef( j ) );
                         if ( ! pairs.containsLink( pair ) ) {
-                            double score = engine_.matchScore( binnedRows[ i ],
-                                                               binnedRows[ j ]);
+                            double score =
+                                matchKit.matchScore( binnedRows[ i ],
+                                                     binnedRows[ j ] );
                             if ( score >= 0 ) {
                                 pair.setScore( score );
                                 pairs.addLink( pair );
@@ -524,7 +528,8 @@ public class RowMatcher {
         StarTable table = tables_[ itable ];
         MatchComputer.BinnedRows binned =
             computer_
-           .binRowIndices( engine_, row -> true, table, indicator_,
+           .binRowIndices( engine_.createMatchKitFactory(), row -> true,
+                           table, indicator_,
                            "Binning rows for table " + ( itable + 1 ) );
         LongBinner binner = binned.getLongBinner();
         long nRow = table.getRowCount();
@@ -835,6 +840,7 @@ public class RowMatcher {
         int iLink = 0;
         indicator_.startStage( "Locating pair matches between " + index0
                              + " and other tables");
+        MatchKit matchKit = engine_.createMatchKitFactory().get();
         for ( Iterator<RowLink> it = possibleLinks.iterator(); it.hasNext(); ) {
 
             /* Get the next link and delete it from the input list, for
@@ -881,8 +887,8 @@ public class RowMatcher {
                                 RowLink2 pair = new RowLink2( ref0, ref1 );
                                 if ( ! pairs.containsLink( pair ) ) {
                                     double score =
-                                        engine_.matchScore( binnedRows[ i0 ],
-                                                            binnedRows[ i1 ] );
+                                        matchKit.matchScore( binnedRows[ i0 ],
+                                                             binnedRows[ i1 ] );
                                     if ( score >= 0 ) {
                                         pair.setScore( score );
                                         pairs.addLink( pair );
@@ -1345,7 +1351,8 @@ public class RowMatcher {
         }
         StarTable table = tables_[ itab ];
         long ninclude =
-            computer_.binRowRefs( engine_, range::isInside, table, itab,
+            computer_.binRowRefs( engine_.createMatchKitFactory(),
+                                  range::isInside, table, itab,
                                   binner, newBins, indicator_,
                                   "Binning rows for table " + ( itab + 1 ) );
         long nrow = table.getRowCount();

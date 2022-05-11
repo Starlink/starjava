@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.join;
 
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.Tables;
@@ -79,24 +80,17 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
         return SCORE_INFO;
     }
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        return matchScore( getAlpha( tuple1 ), getDelta( tuple1 ),
-                           getAlpha( tuple2 ), getDelta( tuple2 ),
-                           getSeparation() );
+    public Supplier<MatchKit> createMatchKitFactory() {
+        final double separation = getSeparation();
+        final Supplier<FixedRadiusConePixer> pixerFact =
+            getPixellator().createFixedRadiusPixerFactory( 0.5 * separation );
+        final CoordReader coordReader = getCoordReader();
+        return () -> new FixedMatchKit( separation, pixerFact.get(),
+                                        coordReader );
     }
 
     public double getScoreScale() {
         return maxScore( getSeparation() );
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-        double alpha = getAlpha( tuple );
-        double delta = getDelta( tuple );
-        double radius = getSeparation() * 0.5;
-        return ! Double.isNaN( alpha ) && ! Double.isNaN( delta )
-             ? getPixellator().createFixedRadiusPixerFactory( radius ).get()
-                              .getPixels( alpha, delta )
-             : NO_BINS;
     }
 
     public boolean canBoundMatch() {
@@ -113,23 +107,95 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
     }
 
     /**
-     * Extracts the RA value from a tuple.
+     * Returns an object for decoding tuples.
      *
-     * @param   tuple  object tuple intended for this matcher
-     * @return  right ascension coordinate in radians
+     * @return   coord reader
      */
-    double getAlpha( Object[] tuple ) {
-        return getNumberValue( tuple[ 0 ] );
+    CoordReader getCoordReader() {
+        return CoordReader.RADIANS;
     }
 
     /**
-     * Extracts the Declination value from a tuple.
-     *
-     * @param   tuple  object tuple intended for this matcher
-     * @return  declination coordinate in radians
+     * MatchKit implementation for use with this class.
      */
-    double getDelta( Object[] tuple ) {
-        return getNumberValue( tuple[ 1 ] );
+    private static class FixedMatchKit implements MatchKit {
+
+        final double separation_;
+        final FixedRadiusConePixer conePixer_;
+        final CoordReader coordReader_;
+
+        /**
+         * Constructor.
+         *
+         * @param  separation  maximum separation in radians
+         * @param  conePixer   sky pixellation implementation
+         * @param  coordReader  converts tuples to coordinates in radians
+         */
+        FixedMatchKit( double separation, FixedRadiusConePixer conePixer,
+                       CoordReader coordReader ) {
+            separation_ = separation;
+            conePixer_ = conePixer;
+            coordReader_ = coordReader;
+        }
+
+        public Object[] getBins( Object[] tuple ) {
+            double alpha = coordReader_.getAlpha( tuple );
+            double delta = coordReader_.getDelta( tuple );
+            return ! Double.isNaN( alpha ) && ! Double.isNaN( delta )
+                 ? conePixer_.getPixels( alpha, delta )
+                 : NO_BINS;
+        }
+
+        public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+            return AbstractSkyMatchEngine
+                  .matchScore( coordReader_.getAlpha( tuple1 ),
+                               coordReader_.getDelta( tuple1 ),
+                               coordReader_.getAlpha( tuple2 ),
+                               coordReader_.getDelta( tuple2 ),
+                               separation_ );
+        }
+    }
+
+    /**
+     * Can read numeric sky coordinates from a supplied tuple.
+     */
+    private interface CoordReader {
+
+        /** Instance for use with tuples supplied in radians. */
+        public static CoordReader RADIANS = new CoordReader() {
+            public double getAlpha( Object[] tuple ) {
+                return getNumberValue( tuple[ 0 ] );
+            }
+            public double getDelta( Object[] tuple ) {
+                return getNumberValue( tuple[ 1 ] );
+            }
+        };
+
+        /** Instance for use with tuples supplied in degrees. */
+        public static CoordReader DEGREES = new CoordReader() {
+            public double getAlpha( Object[] tuple ) {
+                return RADIANS.getAlpha( tuple ) * FROM_DEG;
+            }
+            public double getDelta( Object[] tuple ) {
+                return RADIANS.getDelta( tuple ) * FROM_DEG;
+            }
+        };
+
+        /**
+         * Extracts the RA value from a tuple.
+         *
+         * @param   tuple  object tuple intended for this matcher
+         * @return  right ascension coordinate in radians
+         */
+        double getAlpha( Object[] tuple );
+
+        /**
+         * Extracts the Declination value from a tuple.
+         *
+         * @param   tuple  object tuple intended for this matcher
+         * @return  declination coordinate in radians
+         */
+        double getDelta( Object[] tuple );
     }
 
     /**
@@ -171,12 +237,8 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
             return matchParams_;
         }
         @Override
-        double getAlpha( Object[] tuple ) {
-            return super.getAlpha( tuple ) * FROM_DEG;
-        }
-        @Override
-        double getDelta( Object[] tuple ) {
-            return super.getDelta( tuple ) * FROM_DEG;
+        CoordReader getCoordReader() {
+            return CoordReader.DEGREES;
         }
         @Override
         public NdRange getMatchBounds( NdRange[] inRanges, int index ) {

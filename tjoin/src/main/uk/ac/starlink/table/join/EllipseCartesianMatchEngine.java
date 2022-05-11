@@ -1,5 +1,7 @@
 package uk.ac.starlink.table.join;
 
+import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -124,16 +126,13 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return "2-d Cartesian Ellipses";
     }
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        Match match = getMatch( toEllipse( tuple1 ), toEllipse( tuple2 ),
-                                recogniseCircles_ );
-        return match == null ? -1 : match.score_;
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-        Ellipse ellipse = toEllipse( tuple );
-        return getRadiusBins( new double[] { ellipse.x_, ellipse.y_ },
-                              ellipse.getMaxRadius() );
+    public Supplier<MatchKit> createMatchKitFactory() {
+        final Supplier<CartesianBinner> binnerFact = createBinnerFactory();
+        final ToDoubleFunction<Number> thetaReader = this::getTheta;
+        final boolean recogniseCircles = recogniseCircles_;
+        return () -> new EllipseCartesianMatchKit( binnerFact.get(),
+                                                   thetaReader,
+                                                   recogniseCircles );
     }
 
     public boolean canBoundMatch() {
@@ -150,26 +149,6 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
         }
         return createExtendedBounds( inRanges[ index ], 2 * maxRadius,
                                      indexRange( 0, 2 ) );
-    }
-
-    /**
-     * Turns a tuple as accepted by this match engine into an Ellipse object
-     * as used by the internal calculations.
-     */
-    private Ellipse toEllipse( Object[] tuple ) {
-        double x = ((Number) tuple[ 0 ]).doubleValue();
-        double y = ((Number) tuple[ 1 ]).doubleValue();
-        if ( tuple[ 2 ] instanceof Number &&
-             tuple[ 3 ] instanceof Number &&
-             tuple[ 4 ] instanceof Number ) {
-            double a = ((Number) tuple[ 2 ]).doubleValue();
-            double b = ((Number) tuple[ 3 ]).doubleValue();
-            double theta = getTheta( ((Number) tuple[ 4 ]) );
-            return new Ellipse( x, y, a, b, theta );
-        }
-        else {
-            return new Ellipse( x, y );
-        }
     }
 
     /**
@@ -473,6 +452,67 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
         double yb = r2[1] - r1[1];
         double crossprod = xa * yb - ya * xb;
         return Math.abs( crossprod ) < 1e-10;
+    }
+
+    /**
+     * MatchKit implementation for use with this class.
+     */
+    private static class EllipseCartesianMatchKit implements MatchKit {
+
+        final CartesianBinner binner_;
+        final ToDoubleFunction<Number> thetaReader_;
+        final boolean recogniseCircles_;
+        final double[] workXy_;
+
+        /**
+         * Constructor.
+         *
+         * @param  binner  binner
+         * @param  thetaRader  turns a tuple element into an angle in radians
+         * @param  recogniseCircles  true to take circle-specific short cuts
+         */
+        EllipseCartesianMatchKit( CartesianBinner binner,
+                                  ToDoubleFunction<Number> thetaReader,
+                                  boolean recogniseCircles ) {
+            binner_ = binner;
+            thetaReader_ = thetaReader;
+            recogniseCircles_ = recogniseCircles;
+            workXy_ = new double[ 2 ];
+        }
+
+        public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+            Match match = getMatch( toEllipse( tuple1 ), toEllipse( tuple2 ),
+                                    recogniseCircles_ );
+            return match == null ? -1 : match.score_;
+        }
+
+        public Object[] getBins( Object[] tuple ) {
+            Ellipse ellipse = toEllipse( tuple );
+            workXy_[ 0 ] = ellipse.x_;
+            workXy_[ 1 ] = ellipse.y_;
+            return binner_.getRadiusBins( workXy_, ellipse.getMaxRadius() );
+        }
+
+        /**
+         * Turns a tuple as accepted by this match engine into an Ellipse object
+         * as used by the internal calculations.
+         */
+        private Ellipse toEllipse( Object[] tuple ) {
+            double x = ((Number) tuple[ 0 ]).doubleValue();
+            double y = ((Number) tuple[ 1 ]).doubleValue();
+            if ( tuple[ 2 ] instanceof Number &&
+                 tuple[ 3 ] instanceof Number &&
+                 tuple[ 4 ] instanceof Number ) {
+                double a = ((Number) tuple[ 2 ]).doubleValue();
+                double b = ((Number) tuple[ 3 ]).doubleValue();
+                double theta =
+                    thetaReader_.applyAsDouble( ((Number) tuple[ 4 ]) );
+                return new Ellipse( x, y, a, b, theta );
+            }
+            else {
+                return new Ellipse( x, y );
+            }
+        }
     }
 
     /**

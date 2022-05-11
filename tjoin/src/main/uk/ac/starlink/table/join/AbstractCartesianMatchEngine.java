@@ -2,6 +2,7 @@ package uk.ac.starlink.table.join;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -145,103 +146,16 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     }
 
     /**
-     * Returns an array of the bin objects that may be covered within a
-     * given distance of a given position.  Not all returned bins are
-     * guaranteed to be so covered.  Validation is performed on the
-     * arguments (NaNs will result in an empty return).
+     * Returns an immutable factory for CartesianBinner objects
+     * associated with the current state of this object.
      *
-     * @param  coords  central position
-     * @param  radius  error radius
-     * @return  bin objects that may be within <code>radius</code>
-     *          of <code>coords</code>
+     * @return  CartesianBinner factory
      */
-    protected Object[] getRadiusBins( double[] coords, double radius ) {
-        return radius >= 0 ? doGetBins( coords, radius )
-                           : NO_BINS;
-    }
-
-    /**
-     * Returns an array of the bin objects that may be covered within the
-     * current anisotropic scale length in each direction of a given position.
-     * Not all returned bins are guaranteed to be so covered.
-     * Validation is performed on the arguments (NaNs will result in
-     * an empty return.
-     *
-     * @param  coords  central position
-     * @return  bin objects within a scale length of <code>coords</code>
-     */
-    protected Object[] getScaleBins( double[] coords ) {
-        return doGetBins( coords, Double.NaN );
-    }
-
-    /**
-     * Does the work for the get*Bins methods.
-     * Returns bins within some range of the given position.
-     * If radius is a number, it is used;
-     * if it's NaN, the scale length is used instead.
-     *
-     * @param   coords  central position
-     * @param  radius  error radius or NaN
-     * @return  list of bin objects
-     */
-    private Object[] doGetBins( double[] coords, double radius ) {
-        boolean useScale = Double.isNaN( radius );
-
-        /* Work out the range of cell label coordinates in each dimension
-         * corresponding to a cube extending + and -err away from the
-         * submitted position. */
-        int[] llo = new int[ ndim_ ];     // lowest coord label index
-        int[] lhi = new int[ ndim_ ];     // highest coord label index
-        int ncell = 1;                    // total number of cells in cube
-        for ( int id = 0; id < ndim_; id++ ) {
-            double c0 = coords[ id ];
-            if ( Double.isNaN( c0 ) ) {
-                return NO_BINS;
-            }
-            else {
-                double r = useScale ? scales_[ id ] : radius;
-                llo[ id ] = getLabelComponent( id, c0 - r );
-                lhi[ id ] = getLabelComponent( id, c0 + r );
-                ncell *= lhi[ id ] - llo[ id ] + 1;
-            }
-        }
-
-        /* Iterate over the cube of cells in ndim dimensions to construct
-         * a list of all the cells inside it. */
-        Cell[] cells = new Cell[ ncell ];
-        int[] label = llo.clone();
-        for ( int ic = 0; ic < ncell; ic++ ) {
-            cells[ ic ] = new Cell( label.clone() );
-            for ( int jd = 0; jd < ndim_; jd++ ) {
-                if ( ++label[ jd ] <= lhi[ jd ] ) {
-                    break;
-                }
-                else {
-                    label[ jd ] = llo[ jd ];
-                }
-            }
-        }
-
-        /* Sanity check. */
-        assert Arrays.equals( label, llo );
-        assert new HashSet<Cell>( Arrays.asList( cells ) ).size()
-               == cells.length;
-
-        /* Return the list of cells. */
-        return cells;
-    }
-
-    /** 
-     * Returns the integer label of a cell position in a given dimension.
-     * This identifies one of the coordinates of the discrete cube 
-     * corresponding to any continuous position.
-     *      
-     * @param   idim  dimension index 
-     * @param   coord  position in space in dimension <code>idim</code>
-     * @return   index of cell coordinate in dimension <code>idim</code>
-     */     
-    private int getLabelComponent( int idim, double coord ) { 
-        return (int) Math.floor( coord * rBinSizes_[ idim ] ); 
+    Supplier<CartesianBinner> createBinnerFactory() {
+        final int ndim = ndim_;
+        final double[] scales = scales_.clone();
+        final double[] rBinSizes = rBinSizes_.clone();
+        return () -> new CartesianBinner( ndim, scales, rBinSizes );
     }
 
     /**
@@ -445,6 +359,156 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         else {
             assert incr == 0;
             return in instanceof Comparable ? (Comparable<?>) in : null;
+        }
+    }
+
+    /**
+     * Utility class providing functions required when manipulating
+     * Cartesian grid bins.
+     */
+    static class CartesianBinner {
+
+        private final int ndim_;
+        private final double[] scales_;
+        private final double[] rBinSizes_;
+
+        private static final Object[] NO_BINS = new Object[ 0 ];
+
+        /**
+         * Constructor.
+         *
+         * @param  ndim  dimensionality
+         * @param  scales  ndim-element array of per-dimension scale values
+         * @param  rBinSizes  ndim-element array of per-dimension
+         *                    reciprocal bin extents
+         */
+        CartesianBinner( int ndim, double[] scales, double[] rBinSizes ) {
+            ndim_ = ndim;
+            scales_ = scales;
+            rBinSizes_ = rBinSizes;
+        }
+
+        /**
+         * Returns the dimensionality of this binner.
+         *
+         * @return  dimension count
+         */
+        public int getNdim() {
+            return ndim_;
+        }
+
+        /**
+         * Returns an array of the bin objects that may be covered within a
+         * given distance of a given position.  Not all returned bins are
+         * guaranteed to be so covered.  Validation is performed on the
+         * arguments (NaNs will result in an empty return).
+         *
+         * @param  coords  central position
+         * @param  radius  error radius
+         * @return  bin objects that may be within <code>radius</code>
+         *          of <code>coords</code>
+         */
+        public Object[] getRadiusBins( double[] coords, double radius ) {
+            return radius >= 0 ? doGetBins( coords, radius )
+                               : NO_BINS;
+        }
+
+        /**
+         * Returns an array of the bin objects that may be covered within the
+         * current anisotropic scale length in each direction of a given
+         * position.
+         * Not all returned bins are guaranteed to be so covered.
+         * Validation is performed on the arguments (NaNs will result in
+         * an empty return).
+         *
+         * @param  coords  central position
+         * @return  bin objects within a scale length of <code>coords</code>
+         */
+        public Object[] getScaleBins( double[] coords ) {
+            return doGetBins( coords, Double.NaN );
+        }
+
+        /**
+         * Calculates the Cartesian coordinates for a given match tuple.
+         *
+         * @param  tuple  input tuple
+         * @param  ndim-element coordinate array,
+         *         populated on output with numeric coordinate values
+         */
+        public void toCoords( Object[] tuple, double[] coords ) {
+            for ( int id = 0; id < ndim_; id++ ) {
+                coords[ id ] = getNumberValue( tuple[ id ] );
+            }
+        }
+
+        /**
+         * Does the work for the get*Bins methods.
+         * Returns bins within some range of the given position.
+         * If radius is a number, it is used;
+         * if it's NaN, the scale length is used instead.
+         *
+         * @param   coords  central position
+         * @param  radius  error radius or NaN
+         * @return  list of bin objects
+         */
+        private Object[] doGetBins( double[] coords, double radius ) {
+            boolean useScale = Double.isNaN( radius );
+
+            /* Work out the range of cell label coordinates in each dimension
+             * corresponding to a cube extending + and -err away from the
+             * submitted position. */
+            int[] llo = new int[ ndim_ ];     // lowest coord label index
+            int[] lhi = new int[ ndim_ ];     // highest coord label index
+            int ncell = 1;                    // total number of cells in cube
+            for ( int id = 0; id < ndim_; id++ ) {
+                double c0 = coords[ id ];
+                if ( Double.isNaN( c0 ) ) {
+                    return NO_BINS;
+                }
+                else {
+                    double r = useScale ? scales_[ id ] : radius;
+                    llo[ id ] = getLabelComponent( id, c0 - r );
+                    lhi[ id ] = getLabelComponent( id, c0 + r );
+                    ncell *= lhi[ id ] - llo[ id ] + 1;
+                }
+            }
+
+            /* Iterate over the cube of cells in ndim dimensions to construct
+             * a list of all the cells inside it. */
+            Cell[] cells = new Cell[ ncell ];
+            int[] label = llo.clone();
+            for ( int ic = 0; ic < ncell; ic++ ) {
+                cells[ ic ] = new Cell( label.clone() );
+                for ( int jd = 0; jd < ndim_; jd++ ) {
+                    if ( ++label[ jd ] <= lhi[ jd ] ) {
+                        break;
+                    }
+                    else {
+                        label[ jd ] = llo[ jd ];
+                    }
+                }
+            }
+
+            /* Sanity check. */
+            assert Arrays.equals( label, llo );
+            assert new HashSet<Cell>( Arrays.asList( cells ) ).size()
+                   == cells.length;
+    
+            /* Return the list of cells. */
+            return cells;
+        }
+
+        /** 
+         * Returns the integer label of a cell position in a given dimension.
+         * This identifies one of the coordinates of the discrete cube 
+         * corresponding to any continuous position.
+         *      
+         * @param   idim  dimension index 
+         * @param   coord  position in space in dimension <code>idim</code>
+         * @return   index of cell coordinate in dimension <code>idim</code>
+         */     
+        private int getLabelComponent( int idim, double coord ) { 
+            return (int) Math.floor( coord * rBinSizes_[ idim ] ); 
         }
     }
 
