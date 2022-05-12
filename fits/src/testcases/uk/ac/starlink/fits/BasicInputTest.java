@@ -58,17 +58,15 @@ public class BasicInputTest extends TestCase {
         exerciseInput( seqOffInput( off1,
                                     new DataBufferedInputStream(
                                         new FileInputStream( file ), 29 ) ) );
-        exerciseInput( new SimpleMappedInput( chan, off1, leng1, "test" ) );
-        exerciseInput( BlockMappedInput
-                      .createInput( chan, off1, leng1, "test", isiz + 3, 0 ) );
-        exerciseInput( BlockMappedInput
-                      .createInput( chan, off1, leng1, "test", isiz + 8, 10 ) );
-        exerciseInput( BlockMappedInput
-                      .createInput( chan, off1, leng1, "test", leng1/2, 100 ) );
-        exerciseInput( BlockMappedInput
-                      .createInput( chan, off1, leng1, "test", leng1, 0 ) );
-        exerciseInput( BlockMappedInput
-                      .createInput( chan, off1, leng1, "test", leng1*2, 0 ) );
+        BufferManager simpleMan =
+            new BufferManager( chan, off1, leng1, "test", (Unmapper) null );
+        exerciseInput( new SimpleMappedInput( simpleMan ) );
+        simpleMan.close();
+        exerciseBlockInput( chan, off1, leng1, isiz + 3, 0 );
+        exerciseBlockInput( chan, off1, leng1, isiz + 8, 10 );
+        exerciseBlockInput( chan, off1, leng1, leng1/2, 100 );
+        exerciseBlockInput( chan, off1, leng1, leng1, 0 );
+        exerciseBlockInput( chan, off1, leng1, leng1*2, 0 );
 
         // Note this one fails: the EOFException is not thrown at the
         // right place.  Hmm.
@@ -76,6 +74,16 @@ public class BasicInputTest extends TestCase {
 //                                  new BufferedDataInputStream(
 //                                      new FileInputStream( file ) ) ) );
 
+    }
+
+    private void exerciseBlockInput( FileChannel chan, long off, long leng,
+                                     int blockSize, int expiryMillis )
+            throws IOException {
+        BlockManager blockMan =
+            new BlockManager( chan, off, leng, "test", Unmapper.getInstance(),
+                              blockSize );
+        exerciseInput( BlockMappedInput.createInput( blockMan, expiryMillis ) );
+        blockMan.close();
     }
 
     private void exerciseInput( BasicInput in ) throws IOException {

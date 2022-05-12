@@ -1,12 +1,7 @@
 package uk.ac.starlink.fits;
 
-import java.io.EOFException;
 import java.io.IOException;
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.logging.Logger;
 
 /**
  * Random-access BasicInput implementation that maps a given region of a file
@@ -15,7 +10,7 @@ import java.util.logging.Logger;
  * what to do with less-recently used ones.  Concrete subclasses are
  * provided that either discard them automatically or keep them around
  * for a period of time before discarding them.
- * If and when a buffer is discarded, an attempt is made to unmap it.
+ * If and when a buffer is discarded, an attempt is made to release resources.
  *
  * <p><strong>Note:</strong> <strong>DO NOT</strong> use an instance
  * of this class from multiple threads - see {@link Unmapper}.
@@ -25,19 +20,9 @@ import java.util.logging.Logger;
  */
 public abstract class BlockMappedInput extends BlockInput {
 
-    private final FileChannel channel_;
-    private final long pos_;
-    private final long size_;
-    private final String logName_;
+    private final BlockManager blockManager_;
     private final long blockSize_;
     private final int nblock_;
-    private final Unmapper unmapper_;
-
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.fits" );
-
-    /** Default maximum size in bytes for mapped blocks. */
-    public static final int DEFAULT_BLOCKSIZE = 256 * 1024 * 1024;
 
     /** Default time in milliseconds after which buffers will be discarded. */
     public static final long DEFAULT_EXPIRYMILLIS = 20 * 1000;
@@ -45,30 +30,13 @@ public abstract class BlockMappedInput extends BlockInput {
     /**
      * Constructor.
      *
-     * @param   channel  file channel, preferably read-only
-     * @param   pos   offset into file of stream start
-     * @param   size  number of bytes in stream
-     * @param   logName  name for mapped region used in logging messages
-     * @param   blockSize  (maximum) number of bytes per mapped block
+     * @param   blockManager  manages file mapping using byte buffers
      */
-    protected BlockMappedInput( FileChannel channel, long pos, long size,
-                                String logName, int blockSize )
-            throws IOException {
-        super( (int) ( ( size - 1 ) / blockSize ) + 1 );
-        long nb = ( ( size - 1 ) / blockSize ) + 1;
-        channel_ = channel;
-        pos_ = pos;
-        size_ = size;
-        logName_ = logName;
-        blockSize_ = blockSize;
-        nblock_ = getBlockCount();
-        if ( nblock_ != nb ) {
-            throw new IllegalArgumentException( "Block count " + nb
-                                              + " too high" );
-        }
-        logger_.info( logName_ + " mapping as " + nblock_ + " blocks of "
-                    + blockSize_ + " bytes" );
-        unmapper_ = Unmapper.getInstance();
+    protected BlockMappedInput( BlockManager blockManager ) {
+        super( blockManager.getBlockCount() );
+        blockManager_ = blockManager;
+        nblock_ = blockManager.getBlockCount();
+        blockSize_ = blockManager.getBlockSize();
     }
 
     public int[] getBlockPos( long offset ) {
@@ -82,42 +50,33 @@ public abstract class BlockMappedInput extends BlockInput {
         return iblock * blockSize_ + offsetInBlock;
     }
 
+    /**
+     * This does not close the BlockManager.
+     */
     public void close() {
         super.close();
     }
 
     /**
-     * Performs the actual file mapping to create a new mapped buffer.
+     * Creates a new byte buffer for a given block.
      *
      * @param  iblock  block index
-     * @return  newly mapped buffer
+     * @return  new buffer
      */
-    MappedByteBuffer mapBlock( int iblock ) throws IOException {
-        long offset = iblock * blockSize_;
-        long leng = Math.min( blockSize_, size_ - offset );
-        logger_.config( "Mapping file region " + ( iblock + 1 ) + "/"
-                      + nblock_ );
-        return channel_.map( FileChannel.MapMode.READ_ONLY,
-                             pos_ + offset, leng );
+    ByteBuffer createBuffer( int iblock ) throws IOException {
+        return blockManager_.getBufferManager( iblock ).createBuffer();
     }
 
     /**
-     * Unmaps a block.  The buffer must not be used following this call.
+     * Disposes of a buffer formerly obtained by {@link #createBuffer}.
+     * The buffer must not be used following this call.
      *
-     * @param   iblock  block index
-     * @param   buf  mapped buffer - must not be used subsequently
+     * @param   iblock  block index for which buffer was obtained
+     * @param   buf   buffer which will no longer be used
      */
-    void unmapBlock( int iblock, ByteBuffer buf ) {
+    void disposeBuffer( int iblock, ByteBuffer buf ) {
         if ( iblock >= 0 ) {
-            assert buf instanceof MappedByteBuffer;
-            if ( buf instanceof MappedByteBuffer ) {
-                boolean unmapped = unmapper_.unmap( (MappedByteBuffer) buf );
-                logger_.config( "Expiring cached buffer "
-                              + ( iblock + 1 ) + "/" + nblock_
-                              + " of " + logName_
-                              + ( unmapped ? " (unmapped)"
-                                           : " (not unmapped)" ) );
-            }
+            blockManager_.getBufferManager( iblock ).disposeBuffer( buf );
         }
     }
 
@@ -126,49 +85,35 @@ public abstract class BlockMappedInput extends BlockInput {
      * If caching is requested, recently used block buffers are kept around
      * for a while in case they are needed again.  If not, as soon as
      * a new block is used, any others are discarded.
-     * A default block size is used.
      *
-     * @param   channel  file channel, preferably read-only
-     * @param   pos   offset into file of stream start
-     * @param   size  number of bytes in stream
-     * @param   logName  name for mapped region used in logging messages
+     * @param   blockManager  manages buffer in blocks
      * @param   caching  whether buffers are cached
      * @return  new instance
      */
-    public static BlockMappedInput createInput( FileChannel channel, long pos,
-                                                long size, String logName,
+    public static BlockMappedInput createInput( BlockManager blockManager,
                                                 boolean caching )
             throws IOException {
-        return createInput( channel, pos, size, logName, DEFAULT_BLOCKSIZE,
-                            caching ? DEFAULT_EXPIRYMILLIS : 0 );
+        return createInput( blockManager, caching ? DEFAULT_EXPIRYMILLIS : 0 );
     }
 
     /**
      * Constructs an instance with explicit configuration.
      * The <code>expiryMillis</code> parameter controls caching.
-     * If zero, the current buffer is discarded an unmapped as soon
+     * If zero, the current buffer is discarded as soon
      * as a different one is used.  Otherwise, an attempt is made to
      * discard buffers only after they have been unused for a certain
      * number of milliseconds.
      *
-     * @param   channel  file channel, preferably read-only
-     * @param   pos   offset into file of stream start
-     * @param   size  number of bytes in stream
-     * @param   logName  name for mapped region used in logging messages
-     * @param   blockSize   maximum number of bytes per block
+     * @param   blockManager  manages buffer in blocks
      * @param   expiryMillis  buffer caching period in milliseconds
      * @return  new instance
      */
-    public static BlockMappedInput createInput( FileChannel channel, long pos,
-                                                long size, String logName,
-                                                int blockSize,
+    public static BlockMappedInput createInput( BlockManager blockManager,
                                                 long expiryMillis )
             throws IOException {
         return expiryMillis > 0
-             ? new CachingBlockMappedInput( channel, pos, size, logName,
-                                            blockSize, expiryMillis )
-             : new UniqueBlockMappedInput( channel, pos, size, logName,
-                                           blockSize );
+             ? new CachingBlockMappedInput( blockManager, expiryMillis )
+             : new UniqueBlockMappedInput( blockManager );
     }
 
     /**
@@ -177,30 +122,24 @@ public abstract class BlockMappedInput extends BlockInput {
     private static class UniqueBlockMappedInput extends BlockMappedInput {
 
         private int iblock_;
-        private MappedByteBuffer buffer_;
+        private ByteBuffer buffer_;
 
         /**
          * Constructor.
          *
-         * @param   channel  file channel, preferably read-only
-         * @param   pos   offset into file of stream start
-         * @param   size  number of bytes in stream
-         * @param   logName  name for mapped region used in logging messages
-         * @param   blockSize   maximum number of bytes per block
+         * @param   blockManager  manages buffer in blocks
          */
-        public UniqueBlockMappedInput( FileChannel channel, long pos,
-                                       long size, String logName,
-                                       int blockSize ) throws IOException {
-            super( channel, pos, size, logName, blockSize );
+        public UniqueBlockMappedInput( BlockManager blockManager ) {
+            super( blockManager );
         }
 
         protected ByteBuffer acquireBlock( int iblock ) throws IOException {
             int oldIndex = iblock_;
             ByteBuffer oldBuffer = buffer_;
             if ( oldBuffer != null ) {
-                unmapBlock( oldIndex, oldBuffer );
+                disposeBuffer( oldIndex, oldBuffer );
             }
-            buffer_ = mapBlock( iblock );
+            buffer_ = createBuffer( iblock );
             iblock_ = iblock;
             return buffer_;
         }
@@ -208,11 +147,11 @@ public abstract class BlockMappedInput extends BlockInput {
         public void close() {
             super.close();
             int oldIndex = iblock_;
-            MappedByteBuffer oldBuffer = buffer_;
+            ByteBuffer oldBuffer = buffer_;
             if ( oldBuffer != null ) {
                 iblock_ = -1;
                 buffer_ = null;
-                unmapBlock( oldIndex, oldBuffer );
+                disposeBuffer( oldIndex, oldBuffer );
             }
         }
     }
@@ -232,18 +171,12 @@ public abstract class BlockMappedInput extends BlockInput {
         /**
          * Constructor.
          *
-         * @param   channel  file channel, preferably read-only
-         * @param   pos   offset into file of stream start
-         * @param   size  number of bytes in stream
-         * @param   logName  name for mapped region used in logging messages
-         * @param   blockSize   maximum number of bytes per block
+         * @param   blockManager  manages buffer in blocks
          * @param   expiryMillis  buffer caching period in milliseconds
          */
-        public CachingBlockMappedInput( FileChannel channel, long pos,
-                                        long size, String logName,
-                                        int blockSize, long expiryMillis )
-                throws IOException {
-            super( channel, pos, size, logName, blockSize );
+        public CachingBlockMappedInput( BlockManager blockManager,
+                                        long expiryMillis ) {
+            super( blockManager );
             expiryMillis_ = expiryMillis;
             tidyMillis_ = expiryMillis / 4;
             nblock_ = getBlockCount();
@@ -255,7 +188,7 @@ public abstract class BlockMappedInput extends BlockInput {
         protected ByteBuffer acquireBlock( int iblock ) throws IOException {
             ByteBuffer buf = bufs_[ iblock ];
             if ( buf == null ) {
-                buf = mapBlock( iblock );
+                buf = createBuffer( iblock );
                 long now = System.currentTimeMillis();
                 if ( now - lastTidy_ > tidyMillis_ ) {
                     tidyCache( now - expiryMillis_ );
@@ -288,7 +221,7 @@ public abstract class BlockMappedInput extends BlockInput {
                 long useEpoch = useEpochs_[ i ];
                 if ( buf != null && useEpoch < lastOkUse ) {
                     bufs_[ i ] = null;
-                    unmapBlock( i, buf );
+                    disposeBuffer( i, buf );
                 }
             }
         }

@@ -223,24 +223,10 @@ public class ColFitsStarTable extends AbstractStarTable {
                 final long offset = pos;
                 final long leng = valReaders_[ icol ].getItemBytes() * nrow_;
                 pos += leng;
-                final String logName =
+                String logName =
                     file.getName() + ":col" + ( icol + 1 ) + "/" + ncol_;
-                inputFacts_[ icol ] = new InputFactory() {
-                    public boolean isRandom() {
-                        return true;
-                    }
-                    public BasicInput createInput( boolean isSeq )
-                            throws IOException {
-                        return leng <= BlockMappedInput.DEFAULT_BLOCKSIZE
-                             ? new SimpleMappedInput( chan, offset, (int) leng,
-                                                      logName )
-                             : BlockMappedInput
-                              .createInput( chan, offset, leng, logName,
-                                            ! isSeq );
-                    }
-                    public void close() {
-                    }
-                };
+                inputFacts_[ icol ] =
+                    createInputFactory( chan, offset, leng, logName );
             }
         }
 
@@ -748,6 +734,55 @@ public class ColFitsStarTable extends AbstractStarTable {
 
         /* Unknown. */
         throw new IOException( "Unknown TFORM character '" + formatChar + "'" );
+    }
+
+    /**
+     * Returns an input factory suitable for accessing column data.
+     * Closing the factory will not close the channel.
+     *
+     * @param  chan  file channel
+     * @param  offset  offset into file of column data start
+     * @param  leng   size of column data in bytes
+     * @param  logName  column description suitable for logging messages
+     * @return   input factory
+     */
+    private static InputFactory createInputFactory( FileChannel chan,
+                                                    long offset, long leng,
+                                                    String logName ) {
+        Unmapper unmapper = Unmapper.getInstance();
+        if ( leng <= BlockManager.DEFAULT_BLOCKSIZE ) {
+            final BufferManager bufManager =
+                new BufferManager( chan, offset, (int) leng, logName, unmapper);
+            return new InputFactory() {
+                public boolean isRandom() {
+                    return true;
+                }
+                public BasicInput createInput( boolean isSeq )
+                        throws IOException {
+                    return new SimpleMappedInput( bufManager );
+                }
+                public void close() {
+                    bufManager.close();
+                }
+            };
+        }
+        else {
+            final BlockManager blockManager =
+                new BlockManager( chan, offset, leng, logName, unmapper,
+                                  BlockManager.DEFAULT_BLOCKSIZE );
+            return new InputFactory() {
+                public boolean isRandom() {
+                    return true;
+                }
+                public BasicInput createInput( boolean isSeq )
+                        throws IOException {
+                    return BlockMappedInput.createInput( blockManager, !isSeq );
+                }
+                public void close() {
+                    blockManager.close();
+                }
+            };
+        }
     }
 
     /**

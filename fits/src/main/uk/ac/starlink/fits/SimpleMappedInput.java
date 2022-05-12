@@ -2,16 +2,12 @@ package uk.ac.starlink.fits;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.BufferUnderflowException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.logging.Logger;
 
 /**
- * Random-access BasicInput implementation that maps a given region of a file
- * as a monolithic byte buffer.
- * On close, an attempt is made to unmap the buffer.
- *
+ * Random-access BasicInput implementation based on a single byte buffer.
+ *   
  * <p><strong>Note:</strong> <strong>DO NOT</strong> use an instance
  * of this class from multiple threads - see {@link Unmapper}.
  *
@@ -20,28 +16,17 @@ import java.util.logging.Logger;
  */
 public class SimpleMappedInput implements BasicInput {
 
-    private MappedByteBuffer niobuf_;
-    private final String logName_;
-    private final Unmapper unmapper_;
-
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.fits" );
+    private final BufferManager bufManager_;
+    private ByteBuffer niobuf_;
 
     /**
      * Constructor.
      *
-     * @param   chan  file channel, preferably read-only
-     * @param   pos   offset into file of stream start
-     * @param   size  number of bytes in stream
-     * @param   logName  name for mapped region used in logging messages
+     * @param   bufManager  buffer manager for the file region
      */
-    public SimpleMappedInput( FileChannel chan, long pos, int size,
-                              String logName )
-            throws IOException {
-        niobuf_ = chan.map( FileChannel.MapMode.READ_ONLY, pos, size );
-        logger_.info( "Mapping as single file: " + logName );
-        logName_ = logName;
-        unmapper_ = Unmapper.getInstance();
+    public SimpleMappedInput( BufferManager bufManager ) throws IOException {
+        bufManager_ = bufManager;
+        niobuf_ = bufManager.createBuffer();
     }
 
     public boolean isRandom() {
@@ -139,13 +124,13 @@ public class SimpleMappedInput implements BasicInput {
         }
     }
 
+    /**
+     * This does not close the BufManager.
+     */
     public void close() {
-        MappedByteBuffer niobuf = niobuf_;
-        niobuf_ = null;
-        if ( niobuf != null ) {
-            boolean success = unmapper_.unmap( niobuf );
-            logger_.config( "Attempt to unmap " + logName_ 
-                          + ": " + ( success ? "succeed" : "fail" ) );
+        if ( niobuf_ != null ) {
+            bufManager_.disposeBuffer( niobuf_ );
+            niobuf_ = null;
         }
     }
 }

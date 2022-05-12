@@ -13800,6 +13800,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Crossmatching performance improvements.</li>
     <li>Fix bug in multi-threaded read of string columns from
         colfits files.</li>
+    <li>Reduce number of file mapping calls by FITS readers.</li>
     </ul>
     </p></dd>
 

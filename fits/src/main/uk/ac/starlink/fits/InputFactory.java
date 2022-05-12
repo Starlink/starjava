@@ -121,34 +121,42 @@ public abstract class InputFactory implements Closeable {
            throws IOException {
         final File file = uncompressedFile;
         final String logName = file.getName();
-        if ( leng <= BlockMappedInput.DEFAULT_BLOCKSIZE * 2 ) {
+        Unmapper unmapper = Unmapper.getInstance();
+        if ( leng <= BlockManager.DEFAULT_BLOCKSIZE * 2 ) {
             logger_.info( "Will map as single block: " + logName );
             final int ileng = (int) leng;
             RandomAccessFile raf = new RandomAccessFile( file, "r" );
             final FileChannel chan = raf.getChannel();
+            final BufferManager bufManager =
+                new BufferManager( chan, offset, ileng, logName, unmapper );
             return new AbstractInputFactory( true ) {
                 public BasicInput createInput( boolean isSeq )
                         throws IOException {
-                    return new SimpleMappedInput( chan, offset, ileng,
-                                                  logName );
+                    return new SimpleMappedInput( bufManager );
                 }
                 public void close() throws IOException {
                     chan.close();
+                    bufManager.close();
                 }
             };
         }
         else if ( Loader.is64Bit() ) {
-            logger_.info( "Will map as multiple blocks: " + file );
             RandomAccessFile raf = new RandomAccessFile( file, "r" );
             final FileChannel chan = raf.getChannel();
+            final BlockManager blockManager =
+                new BlockManager( chan, offset, leng, logName, unmapper,
+                                  BlockManager.DEFAULT_BLOCKSIZE );
+            logger_.info( "Will map as multiple blocks ("
+                        + blockManager.getBlockCount() + " * "
+                        + blockManager.getBlockSize() + "): " + logName );
             return new AbstractInputFactory( true ) {
                 public BasicInput createInput( boolean isSeq )
                         throws IOException {
-                    return BlockMappedInput
-                          .createInput( chan, offset, leng, logName, ! isSeq );
+                    return BlockMappedInput.createInput( blockManager, !isSeq );
                 }
                 public void close() throws IOException {
                     chan.close();
+                    blockManager.close();
                 }
             };
         }

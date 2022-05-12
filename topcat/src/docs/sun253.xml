@@ -30576,6 +30576,7 @@ introduced since the last version:
         for long array-valued headers.</li>
     <li>Fix bug in multi-threaded read of string columns from
         colfits files.</li>
+    <li>Reduce number of file mapping calls by FITS readers.</li>
     </ul>
     </p></dd>
 
