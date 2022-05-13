@@ -683,13 +683,13 @@ public class ColFitsStarTable extends AbstractStarTable {
 
             else if ( formatChar == 'A' ) {
                 final int sleng = itemShape[ 0 ];
-                final char[] charBuf = new char[ sleng ];
                 info.setElementSize( sleng );
                 info.setNullable( true );
                 if ( itemShape.length == 1 ) {
                     info.setContentClass( String.class );
                     return new ValueReader( info, sleng, SCALAR ) {
                         Object readValue( BasicInput in ) throws IOException {
+                            final char[] charBuf = new char[ sleng ];
                             int iend = 0;
                             boolean end = false;
                             for ( int i = 0; i < sleng; i++ ) {
@@ -719,6 +719,7 @@ public class ColFitsStarTable extends AbstractStarTable {
                     return new ValueReader( info, sleng, sshape ) {
                         Object readValue( BasicInput in ) throws IOException {
                             String[] val = new String[ nstring ];
+                            char[] charBuf = new char[ sleng ];
                             for ( int is = 0; is < nstring; is++ ) {
                                 int iend = 0;
                                 boolean end = false;
@@ -876,6 +877,7 @@ public class ColFitsStarTable extends AbstractStarTable {
 
     /**
      * Knows how to read data items of a particular type from a byte store.
+     * Instances of this class are thread-safe.
      */
     private static abstract class ValueReader {
 

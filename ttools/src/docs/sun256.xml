@@ -13798,6 +13798,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         votlint for unknown units recognised only in non-VOUnit
         syntaxes (e.g. "Crab").</li>
     <li>Crossmatching performance improvements.</li>
+    <li>Fix bug in multi-threaded read of string columns from
+        colfits files.</li>
     </ul>
     </p></dd>
 

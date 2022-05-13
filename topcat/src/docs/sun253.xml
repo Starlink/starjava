@@ -30574,6 +30574,8 @@ introduced since the last version:
         as Hammer-Aitoff (though not renamed).</li>
     <li>Fix FITS parsing issue that could result in StackOverflowError 
         for long array-valued headers.</li>
+    <li>Fix bug in multi-threaded read of string columns from
+        colfits files.</li>
     </ul>
     </p></dd>
 
