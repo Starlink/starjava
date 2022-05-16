@@ -30577,6 +30577,8 @@ introduced since the last version:
     <li>Fix bug in multi-threaded read of string columns from
         colfits files.</li>
     <li>Reduce number of file mapping calls by FITS readers.</li>
+    <li>Table columns in <ref id="TableViewerWindow">Data Window</ref>
+        are now always wide enough for column name.</li>
     </ul>
     </p></dd>
 

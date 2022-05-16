@@ -304,12 +304,12 @@ public class StarJTable extends JTable {
      * @return  minimum size for column in pixels
      */
     private static int getHeaderWidth( JTable jtab, int icol ) {
-        TableCellRenderer headRend = 
-            jtab.getColumnModel().getColumn( icol ).getHeaderRenderer();
+        TableColumn tcol = jtab.getColumnModel().getColumn( icol );
+        TableCellRenderer headRend = tcol.getHeaderRenderer();
         if ( headRend == null ) {
             headRend = jtab.getTableHeader().getDefaultRenderer();
         }
-        String headObj = jtab.getColumnName( icol );
+        Object headObj = tcol.getHeaderValue();
         Component headComp = 
             headRend.getTableCellRendererComponent( jtab, headObj, false,
                                                     false, 0, icol );
