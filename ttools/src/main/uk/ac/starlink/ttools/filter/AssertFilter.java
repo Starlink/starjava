@@ -64,14 +64,30 @@ public class AssertFilter extends BasicFilter {
         }
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
-                try {
-                    return new JELAssertionTable( base, expr );
-                }
-                catch ( CompilationException e ) {
-                    throw JELUtils.toIOException( e, expr );
-                }
+                return new JELAssertionTable( base, expr );
             }
         };
+    }
+
+    /**
+     * Utility method to compile an expression.
+     * Any compilation exception is converted to an informative IOException.
+     *
+     * @param  lib  library
+     * @param  table   table context
+     * @param  expr   expression to compile
+     * @return  compiled expression
+     * @throws  IOException in case of compilation failure
+     */
+    private static CompiledExpression compile( Library lib, StarTable table,
+                                               String expr ) 
+            throws IOException {
+        try {
+            return JELUtils.compile( lib, table, expr );
+        }
+        catch ( CompilationException e ) {
+            throw JELUtils.toIOException( e, expr );
+        }
     }
 
     /**
@@ -94,16 +110,22 @@ public class AssertFilter extends BasicFilter {
          * @param  expr  JEL expression to assert
          */
         public JELAssertionTable( StarTable baseTable, String expr )
-                throws CompilationException {
+                throws IOException {
             super( baseTable );
             baseTable_ = baseTable;
             expr_ = expr;
             randomReader_ =
                 RandomJELRowReader.createConcurrentReader( baseTable );
             Library lib = JELUtils.getLibrary( randomReader_ );
-            compEx_ = JELUtils.compile( lib, baseTable, expr );
+            compEx_ = compile( lib, baseTable, expr );
             requiresRowIndex_ = randomReader_.requiresRowIndex();
-            JELUtils.checkExpressionType( lib, baseTable, expr, boolean.class );
+            try {
+                JELUtils
+               .checkExpressionType( lib, baseTable, expr, boolean.class );
+            }
+            catch ( CompilationException e ) {
+                throw JELUtils.toIOException( e, expr );
+            }
         }
 
         public Object getCell( long irow, int icol ) throws IOException {
@@ -139,13 +161,7 @@ public class AssertFilter extends BasicFilter {
             final RandomJELRowReader accReader =
                 RandomJELRowReader.createAccessReader( baseTable_, baseAcc );
             Library lib = JELUtils.getLibrary( accReader );
-            final CompiledExpression compEx;
-            try {
-                compEx = JELUtils.compile( lib, baseTable_, expr_ );
-            }
-            catch ( CompilationException e ) {
-                throw JELUtils.toIOException( e, expr_ );
-            }
+            final CompiledExpression compEx = compile( lib, baseTable_, expr_ );
             return new WrapperRowAccess( baseAcc ) {
                 public void setRowIndex( long irow ) throws IOException {
                     super.setRowIndex( irow );
@@ -158,13 +174,7 @@ public class AssertFilter extends BasicFilter {
             final SequentialJELRowReader seqReader =
                 new SequentialJELRowReader( baseTable_ );
             Library lib = JELUtils.getLibrary( seqReader );
-            final CompiledExpression compEx;
-            try {
-                compEx = JELUtils.compile( lib, baseTable_, expr_ );
-            }
-            catch ( CompilationException e ) {
-                throw JELUtils.toIOException( e, expr_ );
-            }
+            final CompiledExpression compEx = compile( lib, baseTable_, expr_ );
             return new WrapperRowSequence( seqReader ) {
                 long lrow_;
                 public boolean next() throws IOException {
@@ -235,12 +245,7 @@ public class AssertFilter extends BasicFilter {
                     rowIndex_ = rowIndex;
                 }
                 Library lib = JELUtils.getLibrary( seqReader_ );
-                try {
-                    compEx1_ = JELUtils.compile( lib, baseTable_, expr_ );
-                }
-                catch ( CompilationException e ) {
-                    throw JELUtils.toIOException( e, expr_ );
-                }
+                compEx1_ = compile( lib, baseTable_, expr_ );
             }
             public long splittableSize() {
                 return baseSplit_.splittableSize();
