@@ -224,6 +224,17 @@ public class TablePipeTest extends TableTestCase {
         }
         catch ( AssertException e ) {
         }
+        apply( "select index<4; assert '((int) a+b) % 11 == 0'" );
+        try {
+            apply( "select index<4;"
+                 + "assert '((int) a+b) % 12 == 0' "
+                        + "'\"Value(\"+a+\",\"+b+\")\"'" );
+            fail();
+        }
+        catch ( AssertException e ) {
+            assertTrue( e.getMessage().indexOf( "row 1" ) > 0 );
+            assertTrue( e.getMessage().indexOf( "Value(1,10.0)" ) > 0 );
+        }
     }
 
     public void testBadval() throws Exception {

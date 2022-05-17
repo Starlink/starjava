@@ -13801,6 +13801,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix bug in multi-threaded read of string columns from
         colfits files.</li>
     <li>Reduce number of file mapping calls by FITS readers.</li>
+    <li><ref id="assert"><code>assert</code></ref> filter now takes
+        optional <code>&lt;msg-expr&gt;</code> argument.</li>
     </ul>
     </p></dd>
 
