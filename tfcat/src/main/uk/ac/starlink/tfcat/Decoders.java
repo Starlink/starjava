@@ -4,9 +4,11 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -415,7 +417,7 @@ public abstract class Decoders {
                   : Decoders.BBOX
                    .decode( reporter.createReporter( "bbox" ), bboxJson );
             String id = new JsonTool( reporter.createReporter( "id" ) )
-                       .asStringOrNumber( jobj.opt( "id" ), false );
+                       .asStringOrNumber( jobj.opt( "id" ), true );
             Object propsJson = jobj.opt( "properties" );
             JSONObject properties =
                   propsJson == null
@@ -453,19 +455,29 @@ public abstract class Decoders {
             for ( Field field : fields ) {
                 fieldMap.put( field.getName(), field );
             }
-            Feature[] features = createArrayDecoder( FEATURE, Feature.class )
-                                .decode( reporter.createReporter( "features" ),
-                                         jobj.opt( "features" ) );
+            Reporter featsReporter = reporter.createReporter( "features" );
+            Feature[] features =
+                createArrayDecoder( FEATURE, Feature.class )
+               .decode( featsReporter, jobj.opt( "features" ) );
             if ( features == null ) {
                 return null;
             }
+            Set<String> idSet = new HashSet<>();
             for ( int ifeat = 0; ifeat < features.length; ifeat++ ) {
                 Feature feat = features[ ifeat ];
+                Reporter featReporter = featsReporter.createReporter( ifeat );
+                String id = feat.getId();
+                if ( id != null ) {
+                    boolean isNewId = idSet.add( id );
+                    if ( ! isNewId ) {
+                        featReporter.report( "id attribute not unique: "
+                                           + "\"" + id + "\"" );
+                    }
+                }
                 JSONObject props = feat.getProperties();
-                Reporter propsReporter =
-                    reporter.createReporter( ifeat )
-                            .createReporter( "properties" );
                 if ( props != null ) {
+                    Reporter propsReporter =
+                        featReporter.createReporter( "properties" );
                     checkProperties( propsReporter, props, fieldMap );
                 }
             }

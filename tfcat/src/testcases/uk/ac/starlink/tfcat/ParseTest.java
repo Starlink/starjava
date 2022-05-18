@@ -12,7 +12,7 @@ public class ParseTest extends TestCase {
 
     public void testExampleReports() throws Exception {
         assertEquals( 0, getReports( "example1.tfcat" ).length );
-        assertEquals( 0, getReports( "jupiter-obs.tfcat" ).length );
+        assertEquals( 1, getReports( "jupiter-obs.tfcat" ).length );
         assertEquals( 1, getReports( "doc-example.tfcat" ).length );
     }
 
