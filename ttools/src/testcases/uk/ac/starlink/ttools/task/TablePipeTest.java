@@ -517,10 +517,15 @@ public class TablePipeTest extends TableTestCase {
     public void testKeepcols() throws Exception {
         assertSameData( inTable_, apply( "keepcols *" ) );
         assertSameData( inTable_, apply( "keepcols '1 2 3 4'" ) );
+        assertSameData( inTable_, apply( "keepcols 1-4" ) );
+        assertSameData( inTable_, apply( "keepcols 1-" ) );
+        assertSameData( inTable_, apply( "keepcols -$4" ) );
         assertArrayEquals( new String[] { "a", "b", "b", "a" },
                            getColNames( apply( "keepcols 'a b b a'" ) ) );
         assertArrayEquals( new String[] { "a", "b", "b", "a" },
                            getColNames( apply( "keepcols '1 2 2 1'" ) ) );
+        assertArrayEquals( new String[] { "b", "c", "d", "c", },
+                           getColNames( apply( "keepcols 'b-d c'" ) ) );
         StarTable dup = apply( "keepcols '3 3'" );
         assertArrayEquals( getColData( dup, 0 ), getColData( dup, 1 ) );
         assertArrayEquals( getColData( inTable_, 2 ), getColData( dup, 0 ) );

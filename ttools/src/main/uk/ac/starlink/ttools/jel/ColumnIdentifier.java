@@ -90,9 +90,15 @@ public class ColumnIdentifier {
      * Returns an array of column indices from a 
      * <code>&lt;colid-list&gt;</code> string.
      * The string is split up into whitespace-separated tokens, 
+     * each of which must be one of:
+     * <ul>
+     * <li>identifier for an individual column
+     * <li>glob-like pattern containing "*", matching zero or more columns
+     * <li>column range of the form &lt;col1&gt;-&lt;colN&gt; (inclusive)
+     * </ul>
      * and each element must either be the identifier of an individual
      * column or a non-trivial glob-like pattern which may match
-     * zero or more columns.
+     * zero or more columns, or a column range.
      * 
      * @param   colidList  string containing a representation of a list
      *          of columns
@@ -110,12 +116,12 @@ public class ColumnIdentifier {
 
     /**
      * Returns an array of column indices identified by a single
-     * col-id-list token.
+     * colid-list token.
      *
      * @param  token  indicating zero or more columns
      * @return   array of column indices; may be empty but not null
-     * @throws  IOException  if <tt>colid</tt> doesn't look like a 
-     *          col-id specifier
+     * @throws  IOException  if <tt>token</tt> doesn't look like a 
+     *          colid-list specifier
      */
     private int[] tokenToColumnIndices( String token ) throws IOException {
 
@@ -129,6 +135,28 @@ public class ColumnIdentifier {
         Pattern regex = globToRegex( token, isCaseSensitive() );
         if ( regex != null ) {
             return findMatchingColumns( regex );
+        }
+
+        /* Range? */
+        int iMinus = token.indexOf( '-' );
+        if ( iMinus >= 0 && token.length() > 1 ) {
+            int ic0 = iMinus > 0
+                    ? getScalarColumnIndex( token.substring( 0, iMinus ),
+                                            NotFoundMode.FAIL )
+                    : 0;
+            int icN = iMinus < token.length() - 1
+                    ? getScalarColumnIndex( token.substring( iMinus + 1 ),
+                                            NotFoundMode.FAIL )
+                    : ncol_ - 1;
+            if ( icN < ic0 ) {
+                throw new IOException( "Negative column range \"" + token + "\""
+                                     + " (" + ic0 + "-" + icN + ")" );
+            }
+            int[] icols = new int[ icN - ic0 + 1 ];
+            for ( int ic = ic0; ic <= icN; ic++ ) {
+                icols[ ic - ic0 ] = ic;
+            }
+            return icols;
         }
 
         /* Fail, producing informative error message. */
@@ -176,12 +204,6 @@ public class ColumnIdentifier {
         /* Empty string not allowed. */
         if ( colid.length() == 0 ) {
             return notFound.returnValue( "Blank column ID not allowed" );
-        }
-
-        /* Initial minus sign not allowed (why?). */
-        if ( colid.charAt( 0 ) == '-' ) {
-            return notFound.returnValue( "Found " + colid + 
-                                         " while looking for column ID" );
         }
 
         /* Column index or _index. */
@@ -240,7 +262,7 @@ public class ColumnIdentifier {
         }
 
         /* No luck. */
-        return notFound.returnValue( "No column matching " + colid );
+        return notFound.returnValue( "No column matching \"" + colid + "\"" );
     }
 
     /**

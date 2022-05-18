@@ -2613,8 +2613,7 @@ existing columns in a table.
 <p>There are several ways you can specify a column in this context:
 <dl>
 <dt>Column Name</dt>
-<dd><p>The name of the column may be used if it contains no spaces
-    and doesn't start with a minus character ('<code>-</code>').
+<dd><p>The name of the column may be used if it contains no spaces.
     It is usually matched case insensitively.  If multiple columns
     have the same name, the first one that matches is selected.
     </p></dd>
@@ -2687,23 +2686,14 @@ that it is treated as a single argument and not several of them.
 <p>Each token in the <code>&lt;colid-list&gt;</code> string may be one of
 the following:
 <dl>
-<dt>Column Name</dt>
-<dd><p>The name of a column may be used if it contains no spaces
-    and doesn't start with a minus character ('<code>-</code>').
-    It is usually matched case insensitively.  If multiple 
-    columns have the same name, the first one that matches is selected.
-    </p></dd>
-
-<dt>Column Index or &column.id.char;ID</dt>
-<dd><p>The index of the column may always be used; this is a useful
-    fallback if the column name isn't suitable for some reason.
-    The first column is '1', the second is '2' and so on.
-    You may alternatively use the forms 
-    '&column.id.char;1', '&column.id.char;2' etc.
-    </p>
-    <p>Tip: if counting which column has which index is giving you a
-    headache, running <code>tpipe</code> with <code>omode=meta</code> or 
-    <code>omode=stats</code> on the table may help.
+<dt>Single Column Identifier</dt>
+<dd><p>The identifier for a single column, as described in <ref id="col-id"/>:
+    one of
+    <code>&lt;name&gt;</code>,
+    <code>&lt;index&gt;</code>,
+    <code>&column.id.char;&lt;index&gt;</code>,
+    <code>&ucd.prefix;&lt;ucd-expr&gt;</code> or
+    <code>&utype.prefix;&lt;utype-expr&gt;</code>.
     </p></dd>
 
 <dt>Wildcard Expression</dt>
@@ -2725,6 +2715,31 @@ the following:
     "<code>*</code>" on its own 
     expands to a list of all the columns of the table in order.
     </p></dd>
+
+<dt>Column Range</dt>
+<dd><p>You can specify a range of columns in order using a token of the form
+    <code>&lt;first-colid&gt;-&lt;last-colid&gt;</code>,
+    where the syntax for
+    <code>&lt;first-colid&gt;</code> and <code>&lt;last-colid&gt;</code>
+    is a <label>Single Column Identifier</label> as above
+    (as long as it doesn't contain a "<code>-</code>" character).
+    The range is inclusive, so the first and last column are both included.
+    The <code>&lt;first-colid&gt;</code> or <code>&lt;last-colid&gt;</code>
+    part (but not both) may be omitted, to indicate all the columns from the
+    start or all the columns to the end, respectively.
+    </p>
+
+    <p>So "<code>RA-PARALLAX</code>" means all the columns starting with
+    the one named <code>RA</code> and ending with
+    the one named <code>PARALLAX</code> (inclusive);
+    "<code>1-100</code>" or "<code>&column.id.char;1-&column.id.char;100</code>"
+    means the first hundred columns in the table;
+    "<code>101-</code>" or "<code>&column.id.char;101-</code>"
+    means all the columns apart from the first hundred,
+    "<code>PARALLAX-</code>" means <code>PARALLAX</code> and all
+    subsequent columns, etc.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -13808,6 +13823,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add offset options <code>xoff</code> and <code>yoff</code>
         for <ref id="layer-label"><code>label</code></ref>
         plot layer type.</li>
+    <li>The <ref id="colid-list"><code>&lt;colid-list&gt;</code></ref>
+        syntax used by
+        <ref id="keepcols"><code>keepcols</code></ref>,
+        <ref id="delcols"><code>delcols</code></ref> etc
+        now allows column ranges to be specified with the syntax
+        <code>&lt;first-colid&gt;-&lt;last-colid&gt;</code>.</li>
     </ul>
     </p></dd>
 
