@@ -173,10 +173,10 @@ public abstract class Decoders {
                 if ( fieldObj != null ) {
                     String info =
                         new JsonTool( fieldReporter.createReporter( "info" ) )
-                       .asString( fieldObj.opt( "info" ), false );
+                       .asString( fieldObj.opt( "info" ), true );
                     String ucd =
                         new JsonTool( fieldReporter.createReporter( "ucd" ) )
-                       .asString( fieldObj.opt( "ucd" ), false );
+                       .asString( fieldObj.opt( "ucd" ), true );
                     String unit =
                         new JsonTool( fieldReporter.createReporter( "unit" ) )
                        .asString( fieldObj.opt( "unit" ), false );
