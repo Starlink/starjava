@@ -1,11 +1,10 @@
 package uk.ac.starlink.ttools.jel;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.util.IntList;
 
 /**
  * Can identify columns of a table using string identifiers.
@@ -84,13 +83,7 @@ public class ColumnIdentifier {
      * @throws  IOException  if <tt>colid</tt> does not name a column
      */
     public int getColumnIndex( String colid ) throws IOException {
-        int ix = getScalarColumnIndex( colid );
-        if ( ix < 0 ) {
-            throw new IOException( "No such column " + colid );
-        }
-        else {
-            return ix;
-        }
+        return getScalarColumnIndex( colid, NotFoundMode.FAIL );
     }
 
     /**
@@ -108,48 +101,40 @@ public class ColumnIdentifier {
      *          colid-list specifier
      */
     public int[] getColumnIndices( String colidList ) throws IOException {
-        String[] colIds = colidList.trim().split( "\\s+" );
-        List<Integer> icolList = new ArrayList<Integer>();
-        for ( int i = 0; i < colIds.length; i++ ) {
-            String colId = colIds[ i ];
-            int icol = getScalarColumnIndex( colId );
-            if ( icol >= 0 ) {
-                icolList.add( new Integer( icol ) );
-            }
-            else {
-                int[] jcols;
-                try {
-                    jcols = findMatchingColumns( colId );
-                }
-                catch ( IllegalArgumentException e ) {
-                    String ucdSpec = JELRowReader
-                       .stripPrefix( colId, StarTableJELRowReader.UCD_PREFIX );
-                    String utypeSpec = JELRowReader
-                       .stripPrefix( colId,
-                                     StarTableJELRowReader.UTYPE_PREFIX );
-                    final String msg;
-                    if ( ucdSpec != null ) {
-                        msg = "No column with UCD matching " + ucdSpec;
-                    }
-                    else if ( utypeSpec != null ) {
-                        msg = "No column with Utype matching " + utypeSpec;
-                    }
-                    else {
-                        msg = "Not a column ID or wildcard: " + colId;
-                    }
-                    throw new IOException( msg );
-                }
-                for ( int j = 0; j < jcols.length; j++ ) {
-                    icolList.add( new Integer( jcols[ j ] ) );
-                }
-            }
+        IntList colIds = new IntList();
+        for ( String token : colidList.trim().split( "\\s+" ) ) {
+            colIds.addAll( tokenToColumnIndices( token ) );
         }
-        int ncol = icolList.size();
-        int[] icols = new int[ ncol ];
-        for ( int i = 0; i < ncol; i++ ) {
-            icols[ i ] = icolList.get( i ).intValue();
+        return colIds.toIntArray();
+    }
+
+    /**
+     * Returns an array of column indices identified by a single
+     * col-id-list token.
+     *
+     * @param  token  indicating zero or more columns
+     * @return   array of column indices; may be empty but not null
+     * @throws  IOException  if <tt>colid</tt> doesn't look like a 
+     *          col-id specifier
+     */
+    private int[] tokenToColumnIndices( String token ) throws IOException {
+
+        /* Single column identifier? */
+        int icol = getScalarColumnIndex( token, NotFoundMode.RETURN );
+        if ( icol >= 0 ) {
+            return new int[] { icol };
         }
-        return icols;
+
+        /* Glob pattern? */
+        Pattern regex = globToRegex( token, isCaseSensitive() );
+        if ( regex != null ) {
+            return findMatchingColumns( regex );
+        }
+
+        /* Fail, producing informative error message. */
+        getScalarColumnIndex( token, NotFoundMode.FAIL );
+        assert false;
+        return new int[ 0 ];
     }
 
     /**
@@ -176,21 +161,30 @@ public class ColumnIdentifier {
 
     /**
      * Returns the column index associated with a given string.
-     * If the string can't be identified as a column name, -1 is returned.
+     * If the string can't be identified as a column name,
+     * behaviour depends on the <code>notFound</code> parameter.
      *
      * @param   colid  identifying string
-     * @return  column index, or -1
-     * @throws  IOException  if the index is out of range
+     * @param   notFound  describes behaviour if column is not found
+     * @return  column index, or -1 if not found and notFound == RETURN
+     * @throws  IOException  if not found and notFound == FAIL
      */
-    private int getScalarColumnIndex( String colid ) throws IOException {
+    private int getScalarColumnIndex( String colid, NotFoundMode notFound )
+            throws IOException {
         colid = colid.trim();
+
+        /* Empty string not allowed. */
         if ( colid.length() == 0 ) {
-            throw new IOException( "Blank column ID not allowed" );
+            return notFound.returnValue( "Blank column ID not allowed" );
         }
-        else if ( colid.charAt( 0 ) == '-' ) {
-            throw new IOException( "Found " + colid + 
-                                   " while looking for column ID" );
+
+        /* Initial minus sign not allowed (why?). */
+        if ( colid.charAt( 0 ) == '-' ) {
+            return notFound.returnValue( "Found " + colid + 
+                                         " while looking for column ID" );
         }
+
+        /* Column index or _index. */
         if ( colid.matches( "\\Q" + JELRowReader.COLUMN_ID_CHAR + "\\E?" +
                             "[0-9]+" ) ) {
             if ( colid.charAt( 0 ) == JELRowReader.COLUMN_ID_CHAR ) {
@@ -198,89 +192,76 @@ public class ColumnIdentifier {
             }
             int ix1 = Integer.parseInt( colid );
             if ( ix1 < 1 || ix1 > ncol_ ) {
-                throw new IOException( "Column index " + ix1 + " out of range "
-                                      + "1.." + ncol_ );
+                return notFound
+                      .returnValue( "Column index " + ix1 + " out of range "
+                                  + "1.." + ncol_ );
             }
             return ix1 - 1;
         }
-        else if ( JELRowReader
-                 .stripPrefix( colid,
-                               StarTableJELRowReader.UCD_PREFIX ) != null ) {
-            Pattern ucdRegex =
-                StarTableJELRowReader
-               .getUcdRegex( JELRowReader
-                            .stripPrefix( colid,
-                                          StarTableJELRowReader.UCD_PREFIX ) );
+
+        /* Prefixed UCD designator. */
+        String ucd = JELRowReader
+                    .stripPrefix( colid, StarTableJELRowReader.UCD_PREFIX );
+        if ( ucd != null ) {
+            Pattern ucdRegex = StarTableJELRowReader.getUcdRegex( ucd );
             for ( int icol = 0; icol < ncol_; icol++ ) {
-                String ucd = colUcds_[ icol ];
-                if ( ucd != null && ucdRegex.matcher( ucd ).matches() ) {
+                String colUcd = colUcds_[ icol ];
+                if ( colUcd != null && ucdRegex.matcher( colUcd ).matches() ) {
                     return icol;
                 }
             }
-            return -1;
+            return notFound.returnValue( "No column with UCD matching " + ucd );
         }
-        else if ( JELRowReader
-                 .stripPrefix( colid,
-                               StarTableJELRowReader.UTYPE_PREFIX ) != null ) {
-            Pattern utypeRegex =
-                StarTableJELRowReader
-               .getUtypeRegex( JELRowReader
-                              .stripPrefix( colid,
-                                            StarTableJELRowReader
-                                           .UTYPE_PREFIX ) );
+
+        /* Prefixed Utype designator. */
+        String utype = JELRowReader
+                      .stripPrefix( colid, StarTableJELRowReader.UTYPE_PREFIX );
+        if ( utype != null ) {
+            Pattern utypeRegex = StarTableJELRowReader.getUtypeRegex( utype );
             for ( int icol = 0; icol < ncol_; icol++ ) {
-                String utype = colUtypes_[ icol ];
-                if ( utype != null && utypeRegex.matcher( utype ).matches() ) {
+                String colUtype = colUtypes_[ icol ];
+                if ( colUtype != null &&
+                     utypeRegex.matcher( colUtype ).matches() ) {
                     return icol;
                 }
             }
-            return -1;
+            return notFound
+                  .returnValue( "No column with Utype matching " + utype );
         }
-        else {
-            for ( int icol = 0; icol < ncol_; icol++ ) {
-                String name = colNames_[ icol ];
-                if ( isCaseSensitive() ? colid.equals( name )
-                                       : colid.equalsIgnoreCase( name ) ) {
-                    return icol;
-                }
+
+        /* If none of the above succeeded,
+         * look for a direct match to the column name. */
+        for ( int icol = 0; icol < ncol_; icol++ ) {
+            String name = colNames_[ icol ];
+            if ( isCaseSensitive() ? colid.equals( name )
+                                   : colid.equalsIgnoreCase( name ) ) {
+                return icol;
             }
-            return -1;
         }
+
+        /* No luck. */
+        return notFound.returnValue( "No column matching " + colid );
     }
 
     /**
      * Returns an array of column indices whose names match the given
-     * match pattern.  It is not an error for no columns to match, but
-     * it is an error if the match pattern contains no wild cards.
+     * match pattern.  It is not an error for no columns to match.
      *
-     * @param   glob  pattern to match column names
+     * @param   regex   pattern to match column names
      * @return  array of matched column indices 
-     * @throws  IllegalArgumentException   if <code>glob</code> doesn't
-     *          contain any wildcard expressions
-     * @see  #globToRegex
      */
-    private int[] findMatchingColumns( String glob ) {
-        Pattern regex = globToRegex( glob, isCaseSensitive() );
-        if ( regex == null ) {
-            throw new IllegalArgumentException( "Not a wildcard expression: "
-                                              + glob );
-        }
+    private int[] findMatchingColumns( Pattern regex ) {
         int ncol = table_.getColumnCount();
-        List<Integer> icolList = new ArrayList<Integer>();
+        IntList icolList = new IntList();
         for ( int icol = 0; icol < ncol; icol++ ) {
             String colName = table_.getColumnInfo( icol ).getName();
             if ( colName != null ) {
                 if ( regex.matcher( colName.trim() ).matches() ) {
-                    icolList.add( new Integer( icol ) );
+                    icolList.add( icol );
                 }
             }
         }
-        int nfound = icolList.size();
-        int[] icols = new int[ nfound ];
-        for ( int i = 0; i < nfound; i++ ) {
-            icols[ i ] = icolList.get( i ).intValue();
-        }
-        return icols;
+        return icolList.toIntArray();
     }
 
     /**
@@ -329,5 +310,34 @@ public class ColumnIdentifier {
             int flags = caseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
             return Pattern.compile( regex, flags );
         }
+    }
+
+    /**
+     * Describes behaviour when a column is not found.
+     */
+    private enum NotFoundMode {
+
+        /** Return value is -1. */
+        RETURN() {
+            int returnValue( String msg ) {
+                return -1;
+            }
+        },
+
+        /** Return value throws exception. */
+        FAIL() {
+            int returnValue( String msg ) throws IOException {
+                throw new IOException( msg );
+            }
+        };
+
+        /**
+         * Provides the integer return value indicating not found status.
+         *
+         * @param  msg  message describing why finding failed
+         * @return  -1  for mode RETURN
+         * @throws   IOException  for mode FAIL
+         */
+        abstract int returnValue( String msg ) throws IOException;
     }
 }
