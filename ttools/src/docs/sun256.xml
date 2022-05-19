@@ -13803,6 +13803,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Reduce number of file mapping calls by FITS readers.</li>
     <li><ref id="assert"><code>assert</code></ref> filter now takes
         optional <code>&lt;msg-expr&gt;</code> argument.</li>
+    <li>Fix legend positioning bug for <code>label</code>
+        layer type.</li>
     </ul>
     </p></dd>
 

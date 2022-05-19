@@ -30579,6 +30579,7 @@ introduced since the last version:
     <li>Reduce number of file mapping calls by FITS readers.</li>
     <li>Table columns in <ref id="TableViewerWindow">Data Window</ref>
         are now always wide enough for column name.</li>
+    <li>Fix legend positioning bug for Label form.</li>
     </ul>
     </p></dd>
 

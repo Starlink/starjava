@@ -170,9 +170,9 @@ public class LabelStyle implements Style {
             g.setColor( color_ );
             int gx = x + xoff_;
             int gy = y + yoff_;
-            g.translate( x, y );
+            g.translate( gx, gy );
             LabelStyle.this.drawLabel( g, label_ );
-            g.translate( -x, -y );
+            g.translate( -gx, -gy );
             g.setColor( color0 );
         }
     }
