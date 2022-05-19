@@ -809,11 +809,8 @@ public abstract class LabelPlotter extends AbstractPlotter<LabelStyle> {
         }
 
         public Pixer createPixer( Rectangle clip ) {
-            Anchor anchor = style_.getAnchor();
-            Captioner captioner = style_.getCaptioner();
             Caption caption = Caption.createCaption( label_ );
-            Rectangle labelBox =
-                anchor.getCaptionBounds( caption, 0, 0, captioner );
+            Rectangle labelBox = style_.getCaptionBounds( caption );
             Rectangle drawBox = labelBox.intersection( clip );
             if ( drawBox.isEmpty() ) {
                 return null;
@@ -823,8 +820,8 @@ public abstract class LabelPlotter extends AbstractPlotter<LabelStyle> {
 
             /* We don't do anything clever with antialiased text. */
             Graphics g = bitmap.getImage().createGraphics();
-            anchor.drawCaption( caption, -labelBox.x, -labelBox.y,
-                                captioner, g );
+            g.translate( -labelBox.x, -labelBox.y );
+            style_.drawLabel( g, caption );
             return Pixers.translate( bitmap.createPixer(),
                                      drawBox.x, drawBox.y );
         }

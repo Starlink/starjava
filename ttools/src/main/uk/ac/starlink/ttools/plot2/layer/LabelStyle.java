@@ -104,6 +104,16 @@ public class LabelStyle implements Style {
         anchor_.drawCaption( label, 0, 0, captioner_, g );
     }
 
+    /**
+     * Returns a rectangle within which all of the given label will fall.
+     *
+     * @param  label  text content
+     * @return  bounding box
+     */
+    public Rectangle getCaptionBounds( Caption label ) {
+        return anchor_.getCaptionBounds( label, 0, 0, captioner_ );
+    }
+
     @Override
     public boolean equals( Object o ) {
         if ( o instanceof LabelStyle ) {
@@ -145,8 +155,7 @@ public class LabelStyle implements Style {
          */
         LabelStyleIcon() {
             label_ = Caption.createCaption( "a" );
-            Rectangle box0 =
-                anchor_.getCaptionBounds( label_, 0, 0, captioner_ );
+            Rectangle box0 = getCaptionBounds( label_ );
             int w = Math.max( -box0.x, box0.x + box0.width );
             int h = Math.max( -box0.y, box0.y + box0.height );
             int size = Math.max( w, h );
