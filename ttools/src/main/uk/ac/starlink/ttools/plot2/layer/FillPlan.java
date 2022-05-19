@@ -9,6 +9,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
@@ -185,6 +186,33 @@ public class FillPlan {
                                        DataStore dataStore ) {
         FillCollector fcollector =
             new PointsFillCollector( surface, geom, icPos );
+        FillData fdata =
+            PlotUtil.tupleCollect( fcollector, dataSpec, dataStore );
+        return new FillPlan( dataSpec, fcollector, fdata );
+    }
+
+    /**
+     * Creates a fill plan object for XY array data.
+     *
+     * @param   surface  plot surface
+     * @param  dataSpec  data specification
+     * @param  geom   data geom
+     * @param  xsCoord  coordinate reader for X coordinate array
+     * @param  ysCoord  coordinate reader for Y coordinate array
+     * @param  icXs   index in tuple of line X coordinate array
+     * @param  icYs   index in tuple of line Y coordinate array
+     * @param  dataStore   data store
+     * @return  new plan object
+     */
+    public static FillPlan createPlanArrays( Surface surface, DataSpec dataSpec,
+                                             DataGeom geom,
+                                             FloatingArrayCoord xsCoord,
+                                             FloatingArrayCoord ysCoord,
+                                             int icXs, int icYs,
+                                             DataStore dataStore ) {
+        FillCollector fcollector =
+            new ArraysFillCollector( surface, geom,
+                                     xsCoord, ysCoord, icXs, icYs );
         FillData fdata =
             PlotUtil.tupleCollect( fcollector, dataSpec, dataStore );
         return new FillPlan( dataSpec, fcollector, fdata );
@@ -447,6 +475,104 @@ public class FillPlan {
             fdata.cpXhi_ = cpXhi;
             fdata.cpYlo_ = cpYlo;
             fdata.cpYhi_ = cpYhi;
+        }
+    }
+
+    /**
+     * FillCollector implementation for use with line data.
+     */
+    private static class ArraysFillCollector extends FillCollector {
+
+        final FloatingArrayCoord xsCoord_;
+        final FloatingArrayCoord ysCoord_;
+        final int icXs_;
+        final int icYs_;
+
+        /**
+         * Constructor.
+         *
+         * @param  surface  plot surface
+         * @param  geom   data geom
+         * @param  xsCoord  coordinate reader for X coordinate array
+         * @param  ysCoord  coordinate reader for Y coordinate array
+         * @param  icXs   tuple index for X coordinate array
+         * @param  icYs   tuple index for Y coordinate array
+         */
+        ArraysFillCollector( Surface surface, DataGeom geom,
+                             FloatingArrayCoord xsCoord,
+                             FloatingArrayCoord ysCoord,
+                             int icXs, int icYs ) {
+            super( surface, geom );
+            xsCoord_ = xsCoord;
+            ysCoord_ = ysCoord;
+            icXs_ = icXs;
+            icYs_ = icYs;
+        }
+
+        public void accumulate( TupleSequence tseq, FillData fdata ) {
+            double[] dpos = new double[ 2 ];
+            Point2D.Double gp = new Point2D.Double();
+            Binner binner = fdata.binner_;
+            int[] xlos = fdata.xlos_;
+            int[] xhis = fdata.xhis_;
+            int[] ylos = fdata.ylos_;
+            int[] yhis = fdata.yhis_;
+            Point cpXlo = fdata.cpXlo_;
+            Point cpXhi = fdata.cpXhi_;
+            Point cpYlo = fdata.cpYlo_;
+            Point cpYhi = fdata.cpYhi_;
+            while ( tseq.next() ) {
+                double[] xs = xsCoord_.readArrayCoord( tseq, icXs_ );
+                double[] ys = ysCoord_.readArrayCoord( tseq, icYs_ );
+                if ( xs != null && ys != null && xs.length == ys.length ) {
+                    int np = xs.length;
+                    for ( int ip = 0; ip < np; ip++ ) {
+                        dpos[ 0 ] = xs[ ip ];
+                        dpos[ 1 ] = ys[ ip ];
+                        if ( gconv_.dataToGraphics( dpos, gp ) ) {
+                            int x = (int) ( gp.x - x0_ );
+                            int y = (int) ( gp.y - y0_ );
+                            boolean inX = x >= 0 && x < nx_;
+                            boolean inY = y >= 0 && y < ny_;
+                            if ( inX && inY ) {
+                                binner.increment( gridder_.getIndex( x, y ) );
+                            }
+                            else if ( inX ) {
+                                if ( y < 0 ) {
+                                    xlos[ x ]++;
+                                    if ( cpYlo == null || y > cpYlo.y ) {
+                                        cpYlo = new Point( x, y );
+                                    }
+                                }
+                                else {
+                                    xhis[ x ]++;
+                                    if ( cpYhi == null || y < cpYhi.y ) {
+                                        cpYhi = new Point( x, y );
+                                    }
+                                }
+                            }
+                            else if ( inY ) {
+                                if ( x < 0 ) {
+                                    ylos[ y ]++;
+                                    if ( cpXlo == null || x > cpXlo.x ) {
+                                       cpXlo = new Point( x, y );
+                                    }
+                                }
+                                else {
+                                    yhis[ y ]++;
+                                    if ( cpXhi == null || x < cpXhi.x ) {
+                                        cpXhi = new Point( x, y );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    fdata.cpXlo_ = cpXlo;
+                    fdata.cpXhi_ = cpXhi;
+                    fdata.cpYlo_ = cpYlo;
+                    fdata.cpYhi_ = cpYhi;
+                }
+            }
         }
     }
 }
