@@ -171,7 +171,7 @@ public class FillPlan {
     }
 
     /**
-     * Creates a fill plan object.
+     * Creates a fill plan object for point cloud data.
      *
      * @param   surface  plot surface
      * @param  dataSpec  data specification
@@ -183,7 +183,8 @@ public class FillPlan {
     public static FillPlan createPlan( Surface surface, DataSpec dataSpec,
                                        DataGeom geom, int icPos,
                                        DataStore dataStore ) {
-        FillCollector fcollector = new FillCollector( surface, geom, icPos );
+        FillCollector fcollector =
+            new PointsFillCollector( surface, geom, icPos );
         FillData fdata =
             PlotUtil.tupleCollect( fcollector, dataSpec, dataStore );
         return new FillPlan( dataSpec, fcollector, fdata );
@@ -291,14 +292,13 @@ public class FillPlan {
     }
 
     /**
-     * SplitCollector for accumulating fill data.
+     * Abstract superclass for SplitCollector to accumulate fill data.
      */
-    private static class FillCollector
+    private static abstract class FillCollector
             implements SplitCollector<TupleSequence,FillData> {
 
         final Surface surface_;
         final DataGeom geom_;
-        final int icPos_;
         final int x0_;
         final int y0_;
         final int nx_;
@@ -311,12 +311,10 @@ public class FillPlan {
          *
          * @param  surface  plot surface
          * @param  geom   data geom
-         * @param  icPos   position index
          */
-        FillCollector( Surface surface, DataGeom geom, int icPos ) {
+        FillCollector( Surface surface, DataGeom geom ) {
             surface_ = surface;
             geom_ = geom;
-            icPos_ = icPos;
             Rectangle bounds = surface.getPlotBounds();
             x0_ = bounds.x;
             y0_ = bounds.y;
@@ -328,6 +326,69 @@ public class FillPlan {
 
         public FillData createAccumulator() {
             return new FillData( nx_, ny_ );
+        }
+
+        public FillData combine( FillData fdata1, FillData fdata2 ) {
+            fdata1.binner_.add( fdata2.binner_ );
+            for ( int ix = 0; ix < nx_; ix++ ) {
+                fdata1.xlos_[ ix ] = addInt( fdata1.xlos_[ ix ],
+                                             fdata2.xlos_[ ix ] );
+                fdata1.xhis_[ ix ] = addInt( fdata1.xhis_[ ix ],
+                                             fdata2.xhis_[ ix ] );
+            }
+            for ( int iy = 0; iy < ny_; iy++ ) {
+                fdata1.ylos_[ iy ] = addInt( fdata1.ylos_[ iy ],
+                                             fdata2.ylos_[ iy ] );
+                fdata1.yhis_[ iy ] = addInt( fdata1.yhis_[ iy ],
+                                             fdata2.yhis_[ iy ] );
+            }
+            if ( fdata1.cpXlo_ == null ) {
+                fdata1.cpXlo_ = fdata2.cpXlo_;
+            }
+            if ( fdata1.cpXhi_ == null ) {
+                fdata1.cpXhi_ = fdata2.cpXhi_;
+            }
+            if ( fdata1.cpYlo_ == null ) {
+                fdata1.cpYlo_ = fdata2.cpYlo_;
+            }
+            if ( fdata1.cpYhi_ == null ) {
+                fdata1.cpYhi_ = fdata2.cpYhi_;
+            }
+            return fdata1;
+        }
+
+        /**
+         * Adds two integers together, returning Integer.MAX_VALUE
+         * in case of overflow.  Input values are assumed to be positive.
+         *
+         * @param  i1  first value
+         * @param  i2  second value
+         * @return  sum or Integer.MAX_VALUE
+         */
+        private static int addInt( int i1, int i2 ) {
+            long sum = i1 + i2;
+            int isum = (int) sum;
+            return isum == sum ? isum : Integer.MAX_VALUE;
+        }
+    }
+
+    /**
+     * FillCollector implementation for use with point clouds.
+     */
+    private static class PointsFillCollector extends FillCollector {
+
+        final int icPos_;
+
+        /**
+         * Constructor.
+         *
+         * @param  surface  plot surface
+         * @param  geom   data geom
+         * @param  icPos   position index
+         */
+        PointsFillCollector( Surface surface, DataGeom geom, int icPos ) {
+            super( surface, geom );
+            icPos_ = icPos;
         }
 
         public void accumulate( TupleSequence tseq, FillData fdata ) {
@@ -386,49 +447,6 @@ public class FillPlan {
             fdata.cpXhi_ = cpXhi;
             fdata.cpYlo_ = cpYlo;
             fdata.cpYhi_ = cpYhi;
-        }
-
-        public FillData combine( FillData fdata1, FillData fdata2 ) {
-            fdata1.binner_.add( fdata2.binner_ );
-            for ( int ix = 0; ix < nx_; ix++ ) {
-                fdata1.xlos_[ ix ] = addInt( fdata1.xlos_[ ix ],
-                                             fdata2.xlos_[ ix ] );
-                fdata1.xhis_[ ix ] = addInt( fdata1.xhis_[ ix ],
-                                             fdata2.xhis_[ ix ] );
-            }
-            for ( int iy = 0; iy < ny_; iy++ ) {
-                fdata1.ylos_[ iy ] = addInt( fdata1.ylos_[ iy ],
-                                             fdata2.ylos_[ iy ] );
-                fdata1.yhis_[ iy ] = addInt( fdata1.yhis_[ iy ],
-                                             fdata2.yhis_[ iy ] );
-            }
-            if ( fdata1.cpXlo_ == null ) {
-                fdata1.cpXlo_ = fdata2.cpXlo_;
-            }
-            if ( fdata1.cpXhi_ == null ) {
-                fdata1.cpXhi_ = fdata2.cpXhi_;
-            }
-            if ( fdata1.cpYlo_ == null ) {
-                fdata1.cpYlo_ = fdata2.cpYlo_;
-            }
-            if ( fdata1.cpYhi_ == null ) {
-                fdata1.cpYhi_ = fdata2.cpYhi_;
-            }
-            return fdata1;
-        }
-
-        /**
-         * Adds two integers together, returning Integer.MAX_VALUE
-         * in case of overflow.  Input values are assumed to be positive.
-         *
-         * @param  i1  first value
-         * @param  i2  second value
-         * @return  sum or Integer.MAX_VALUE
-         */
-        private static int addInt( int i1, int i2 ) {
-            long sum = i1 + i2;
-            int isum = (int) sum;
-            return isum == sum ? isum : Integer.MAX_VALUE;
         }
     }
 }
