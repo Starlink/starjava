@@ -68,9 +68,6 @@ public abstract class Anchor {
         }
     };
 
-
-    
-
     /**
      * Returns a rectangle within which all of the given label will fall.
      *
