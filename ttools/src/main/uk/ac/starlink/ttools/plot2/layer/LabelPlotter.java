@@ -73,6 +73,12 @@ public abstract class LabelPlotter extends AbstractPlotter<LabelStyle> {
         , true );
     private static final int MAX_CROWDLIMIT = Byte.MAX_VALUE / 2 - 1;
 
+    /** Config key to control X pixel offset. */
+    public static final ConfigKey<Integer> XOFF_KEY = createOffsetKey( "X" );
+
+    /** Config key to control Y pixel offset. */
+    public static final ConfigKey<Integer> YOFF_KEY = createOffsetKey( "Y" );
+
     /** Config key to control minimum pixel label spacing. */
     public static final ConfigKey<Integer> SPACING_KEY =
         IntegerConfigKey.createSliderKey(
@@ -189,6 +195,8 @@ public abstract class LabelPlotter extends AbstractPlotter<LabelStyle> {
         list.addAll( Arrays.asList( new ConfigKey<?>[] {
             StyleKeys.ANCHOR,
             StyleKeys.COLOR,
+            XOFF_KEY,
+            YOFF_KEY,
             SPACING_KEY,
             CROWDLIMIT_KEY,
         } ) );
@@ -204,10 +212,12 @@ public abstract class LabelPlotter extends AbstractPlotter<LabelStyle> {
         }
         byte crowdLimit = (byte) iclimit;
         assert crowdLimit == iclimit;
+        Point offset = new Point( config.get( XOFF_KEY ).intValue(),
+                                  - config.get( YOFF_KEY ).intValue() );
         return new LabelStyle( CAPTIONER_KEYSET.createValue( config ),
                                config.get( StyleKeys.ANCHOR ),
                                config.get( StyleKeys.COLOR ),
-                               config.get( SPACING_KEY ), crowdLimit );
+                               config.get( SPACING_KEY ), crowdLimit, offset );
     }
 
     public PlotLayer createLayer( DataGeom geom0,
@@ -466,6 +476,28 @@ public abstract class LabelPlotter extends AbstractPlotter<LabelStyle> {
                 return geom;
             }
         };
+    }
+
+    /**
+     * Returns a config key for specifying pixel offset in a named direction.
+     *
+     * @param  axName  axis name
+     * @return  config key
+     */
+    private static ConfigKey<Integer> createOffsetKey( String axisName ) {
+        String axName = axisName.toUpperCase();
+        String axname = axisName.toLowerCase();
+        ConfigMeta meta = new ConfigMeta( axname + "off", axName + " Offset" );
+        meta.setStringUsage( "<pixels>" );
+        meta.setShortDescription( "Pixel offset in " + axName + " direction" );
+        meta.setXmlDescription( new String[] {
+            "<p>Allows fine adjustment of label positioning in the",
+            axName + " direction.",
+            "The value is a positive or negative pixel offset",
+            "applied to the position of each plotted label.",
+            "</p>",
+        } );
+        return IntegerConfigKey.createSpinnerKey( meta, 0, -999, 999 );
     }
 
     /**

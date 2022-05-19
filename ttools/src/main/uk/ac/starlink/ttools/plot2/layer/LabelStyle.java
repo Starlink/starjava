@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.Style;
@@ -25,6 +26,8 @@ public class LabelStyle implements Style {
     private final Color color_;
     private final int spacing_;
     private final byte crowdLimit_;
+    private final int xoff_;
+    private final int yoff_;
 
     /**
      * Constructor.
@@ -34,14 +37,17 @@ public class LabelStyle implements Style {
      * @param  color  text colour
      * @param  spacing  minimum pixel distance between labels
      * @param  crowdLimit  number of labels allowed within spacing
+     * @param  offset   pixel offset for label positioning
      */
     public LabelStyle( Captioner captioner, Anchor anchor, Color color,
-                       int spacing, byte crowdLimit ) {
+                       int spacing, byte crowdLimit, Point offset ) {
         captioner_ = captioner;
         anchor_ = anchor;
         color_ = color;
         spacing_ = spacing;
         crowdLimit_ = crowdLimit;
+        xoff_ = offset == null ? 0 : offset.x;
+        yoff_ = offset == null ? 0 : offset.y;
     }
 
     public Icon getLegendIcon() {
@@ -101,7 +107,7 @@ public class LabelStyle implements Style {
      * @param  label  text content
      */
     public void drawLabel( Graphics g, Caption label ) {
-        anchor_.drawCaption( label, 0, 0, captioner_, g );
+        anchor_.drawCaption( label, xoff_, yoff_, captioner_, g );
     }
 
     /**
@@ -111,7 +117,7 @@ public class LabelStyle implements Style {
      * @return  bounding box
      */
     public Rectangle getCaptionBounds( Caption label ) {
-        return anchor_.getCaptionBounds( label, 0, 0, captioner_ );
+        return anchor_.getCaptionBounds( label, xoff_, yoff_, captioner_ );
     }
 
     @Override
@@ -122,7 +128,10 @@ public class LabelStyle implements Style {
                 && this.anchor_.equals( other.anchor_ )
                 && this.color_.equals( other.color_ )
                 && this.spacing_ == other.spacing_
-                && this.crowdLimit_ == other.crowdLimit_;
+                && this.crowdLimit_ == other.crowdLimit_
+                && this.xoff_ == other.xoff_
+                && this.yoff_ == other.yoff_;
+ 
         }
         else {
             return false;
@@ -137,6 +146,8 @@ public class LabelStyle implements Style {
         code = 23 * code + color_.hashCode();
         code = 23 * code + spacing_;
         code = 23 * code + crowdLimit_;
+        code = 23 * code + xoff_;
+        code = 23 * code + yoff_;
         return code;
     }
 
@@ -146,8 +157,8 @@ public class LabelStyle implements Style {
     private class LabelStyleIcon implements Icon {
         private final int width_;
         private final int height_;
-        private final int xoff_;
-        private final int yoff_;
+        private final int xoff1_;
+        private final int yoff1_;
         private final Caption label_;
 
         /**
@@ -160,8 +171,8 @@ public class LabelStyle implements Style {
             int h = Math.max( -box0.y, box0.y + box0.height );
             int size = Math.max( w, h );
             assert size > 0;
-            xoff_ = size / 2;
-            yoff_ = size / 2;
+            xoff1_ = xoff_ + size / 2;
+            yoff1_ = yoff_ + size / 2;
             width_ = size;
             height_ = size;
         }
@@ -177,8 +188,8 @@ public class LabelStyle implements Style {
         public void paintIcon( Component c, Graphics g, int x, int y ) {
             Color color0 = g.getColor();
             g.setColor( color_ );
-            int gx = x + xoff_;
-            int gy = y + yoff_;
+            int gx = x + xoff1_;
+            int gy = y + yoff1_;
             g.translate( gx, gy );
             LabelStyle.this.drawLabel( g, label_ );
             g.translate( -gx, -gy );
