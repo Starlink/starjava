@@ -83,7 +83,7 @@ public class TimePlotType
                                                       ShapeMode.MODES_2D ) ) );
         plotters.addAll( Arrays.asList( new Plotter<?>[] {
             new FillPlotter( false ),
-            new TracePlotter( false ),
+            TracePlotter.createPointsTracePlotter( false ),
             new GridPlotter( true ),
             new HistogramPlotter( TimeDataGeom.T_COORD, true, unitKey ),
             new FixedKernelDensityPlotter( TimeDataGeom.T_COORD, true,

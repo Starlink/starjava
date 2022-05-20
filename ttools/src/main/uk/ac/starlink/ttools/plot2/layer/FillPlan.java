@@ -166,7 +166,7 @@ public class FillPlan {
      */
     public boolean matches( DataGeom geom, DataSpec dataSpec,
                             Surface surface ) {
-        return geom_.equals( geom )
+        return PlotUtil.equals( geom_, geom )
             && dataSpec_.equals( dataSpec )
             && surface_.equals( surface );
     }

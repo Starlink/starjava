@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -40,8 +41,10 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.config.SubrangeConfigKey;
 import uk.ac.starlink.ttools.plot2.config.UnitRangeSpecifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
@@ -53,9 +56,11 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
  * @author   Mark Taylor
  * @since    9 Dec 2016
  */
-public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
+public abstract class TracePlotter
+        extends AbstractPlotter<TracePlotter.TraceStyle> {
 
     private final boolean hasVertical_;
+    private final String basicDescription_;
 
     /** Key to configure whether trace is vertical or horizontal. */
     public static final ConfigKey<Boolean> HORIZONTAL_KEY =
@@ -65,10 +70,10 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
            .setXmlDescription( new String[] {
                 "<p>Determines whether the trace bins are horizontal",
                 "or vertical.",
-                "If <code>true</code>, there is a <m>y</m> value calculated",
+                "If <code>true</code>, <m>y</m> quantiles are calculated",
                 "for each pixel column, and",
-                "if <code>false</code>, there is an <m>x</m> value for each",
-                "pixel row.",
+                "if <code>false</code>, <m>x</m> quantiles are calculated",
+                "for each pixel row.",
                 "</p>",
             } )
         , true );
@@ -129,27 +134,29 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
     /**
      * Constructor.
      *
+     * @param   name   plotter name
+     * @param   icon   plotter icon
+     * @param   coordGrp  coordinate group
      * @param  hasVertical  true iff vertical fill is offered
      *                      (otherwise only horizontal)
+     * @param  basicDescription  main part of XML description,
+     *                           may be augmented by the base class
      */
-    public TracePlotter( boolean hasVertical ) {
-        super( "Quantile", ResourceIcon.FORM_QUANTILE, 1, new Coord[ 0 ] );
+    public TracePlotter( String name, Icon icon, CoordGroup coordGrp,
+                         boolean hasVertical, String basicDescription ) {
+        super( name, icon, coordGrp, false );
         hasVertical_ = hasVertical;
+        basicDescription_ = basicDescription;
     }
 
     public String getPlotterDescription() {
         return PlotUtil.concatLines( new String[] {
-            "<p>Plots a line through a given quantile of the values",
-            "binned within each pixel column (or row) of a plot.",
-            "The line is optionally smoothed",
-            "using a configurable kernel and width,",
-            "to even out noise arising from the pixel binning.",
-            "Instead of a simple line through a given quantile,",
-            "it is also possible to fill the region between two quantiles.",
-            "</p>",
-            "<p>One way to use this is to draw a line estimating a function",
-            "<m>y=f(x)</m> (or <m>x=g(y)</m>) sampled by a noisy set",
-            "of data points in two dimensions.",
+            basicDescription_,
+            "<p>Note: in the current implementation,",
+            "depending on the details of the configuration and the data,",
+            "there may be some distortions or missing graphics",
+            "near the edges of the plot.",
+            "This may be improved in future releases, depending on feedback.",
             "</p>",
         } );
     }
@@ -191,7 +198,6 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
         LayerOpt layerOpt = new LayerOpt( color, isOpaque );
         return new AbstractPlotLayer( this, geom, dataSpec, style, layerOpt ) {
             final boolean isHorizontal = style.isHorizontal_;
-            final int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
             public Drawing createDrawing( final Surface surface,
                                           Map<AuxScale,Span> auxSpans,
                                           final PaperType paperType ) {
@@ -207,8 +213,8 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
                                 return plan;
                             }
                         }
-                        return FillPlan.createPlan( surface, dataSpec, geom,
-                                                    icPos, dataStore );
+                        return createFillPlan( surface, dataSpec, geom,
+                                               dataStore );
                     }
                     public void paintData( Object plan, Paper paper,
                                            DataStore dataStore ) {
@@ -229,6 +235,20 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
             }
         };
     }
+
+    /**
+     * Creates a plan object suitable for this layer.
+     *
+     * @param  surface  plot surface
+     * @param  dataSpec  data spec
+     * @param  geom   geom
+     * @param  dataStore   data store
+     * @return  populated plan
+     */
+    @Slow
+    protected abstract FillPlan
+            createFillPlan( Surface surface, DataSpec dataSpec,
+                            DataGeom geom, DataStore dataStore );
 
     /**
      * Prepares a report characterising the state of the plot when
@@ -358,6 +378,96 @@ public class TracePlotter extends AbstractPlotter<TracePlotter.TraceStyle> {
 
         /* Restore graphics context. */
         g.setColor( color0 );
+    }
+
+    /**
+     * Creates a TracePlotter instance for standard 2-d point cloud data.
+     *
+     * @param  hasVertical  true iff vertical fill is offered
+     *                      (otherwise only horizontal)
+     * @return   plotter instance
+     */
+    public static TracePlotter createPointsTracePlotter( boolean hasVertical ) {
+        String descrip = String.join( "\n",
+            "<p>Plots a line through a given quantile of the values",
+            "binned within each pixel column (or row) of a plot.",
+            "The line is optionally smoothed",
+            "using a configurable kernel and width,",
+            "to even out noise arising from the pixel binning.",
+            "Instead of a simple line through a given quantile,",
+            "it is also possible to fill the region between two quantiles.",
+            "</p>",
+            "<p>One way to use this is to draw a line estimating a function",
+            "<m>y=f(x)</m> (or <m>x=g(y)</m>) sampled by a noisy set",
+            "of data points in two dimensions.",
+            "</p>",
+        "" );
+        final CoordGroup cgrp =
+            CoordGroup.createCoordGroup( 1, new Coord[ 0 ] );
+        return new TracePlotter( "Quantile", ResourceIcon.FORM_QUANTILE, cgrp,
+                                 hasVertical, descrip ) {
+            protected FillPlan
+                    createFillPlan( Surface surface, DataSpec dataSpec,
+                                    DataGeom geom, DataStore dataStore ) {
+                int icPos = cgrp.getPosCoordIndex( 0, geom );
+                return FillPlan
+                      .createPlan( surface, dataSpec, geom, icPos, dataStore );
+            }
+        };
+    }
+
+    /**
+     * Creates a TracePlotter instance for X/Y array data.
+     *
+     * @param  hasVertical  true iff vertical fill is offered
+     *                      (otherwise only horizontal)
+     * @return   plotter instance
+     */
+    public static TracePlotter createArraysTracePlotter( boolean hasVertical ) {
+        final FloatingArrayCoord xsCoord = FloatingArrayCoord.X;
+        final FloatingArrayCoord ysCoord = FloatingArrayCoord.Y;
+        final int icXs = 0;
+        final int icYs = 1;
+        String descrip = String.join( "\n",
+            "<p>Displays a quantile or quantile range",
+            "for a set of plotted X/Y array pairs.",
+            "If a table contains one spectrum per row in array-valued",
+            "wavelength and flux columns,",
+            "this plotter can be used to display a median of all the spectra,",
+            "or a range between two quantiles.",
+            "Smoothing options are available to even out noise arising from",
+            "the pixel binning.",
+            "</p>",
+            "<p>For each row, the",
+            "<code>" + xsCoord.getInputs()[ 0 ].getMeta().getShortName()
+                     + "</code> and",
+            "<code>" + ysCoord.getInputs()[ 0 ].getMeta().getShortName()
+                     + "</code> arrays",
+            "must be the same length as each other,",
+            "but this plot type does not require all the arrays",
+            "to be sampled into the same bins.",
+            "</p>",
+            "<p>The algorithm calculates quantiles for all the X,Y points",
+            "plotted in each column of pixels.",
+            "This means that more densely sampled spectra have more influence",
+            "on the output than sparser ones.",
+            "</p>",
+        "" );
+        CoordGroup cgrp =
+            CoordGroup
+           .createPartialCoordGroup( new Coord[] { xsCoord, ysCoord },
+                                     new boolean[] { true, true } );
+        return new TracePlotter( "ArrayQuantile", ResourceIcon.FORM_QUANTILE,
+                                 cgrp, hasVertical, descrip ) {
+            protected FillPlan
+                    createFillPlan( Surface surface, DataSpec dataSpec,
+                                    DataGeom geom, DataStore dataStore ) {
+                return FillPlan
+                      .createPlanArrays( surface, dataSpec, geom,
+                                         xsCoord, ysCoord, icXs, icYs,
+                                         dataStore );
+            }
+        };
     }
 
     /**

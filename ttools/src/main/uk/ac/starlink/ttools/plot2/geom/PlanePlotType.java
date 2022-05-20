@@ -157,6 +157,7 @@ public class PlanePlotType
         list.addAll( Arrays.asList( arrayShapePlotters ) );
         list.add( LineCombineArrayPlotter.INSTANCE );
         list.add( MarkCombineArrayPlotter.INSTANCE );
+        list.add( TracePlotter.createArraysTracePlotter( true ) );
         PerUnitConfigKey<Unit> unitKey = null;
         list.addAll( Arrays.asList( new Plotter<?>[] {
             new LinePlotter( LinePlotter.PLANE_SORTAXIS_KEY ),
@@ -166,7 +167,7 @@ public class PlanePlotType
             new ContourPlotter( true ),
             new GridPlotter( true ),
             new FillPlotter( true ),
-            new TracePlotter( true ),
+            TracePlotter.createPointsTracePlotter( true ),
             new HistogramPlotter( PlaneDataGeom.X_COORD, true, unitKey ),
             new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true,
                                            unitKey ),
