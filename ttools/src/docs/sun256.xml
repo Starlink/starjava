@@ -13829,6 +13829,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="delcols"><code>delcols</code></ref> etc
         now allows column ranges to be specified with the syntax
         <code>&lt;first-colid&gt;-&lt;last-colid&gt;</code>.</li>
+    <li>Fix bug in <ref id="layer-statline">statline</ref
+                 >/<ref id="layer-statmark">statmark</ref> layers
+        that treated blank array values incorrectly.</li>
     </ul>
     </p></dd>
 

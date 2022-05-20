@@ -460,16 +460,12 @@ public abstract class CombineArrayPlotter
                             return;
                         }
                         if ( hasX_ ) {
-                            double[] xs = XS_COORD.readArrayCoord( tseq, IC_XS);
-                            for ( int ip = 0; ip < npx; ip++ ) {
-                                xyData.xBins_.submitToBin( ip, xs[ ip ] );
-                            }
+                            submitArray( XS_COORD.readArrayCoord( tseq, IC_XS ),
+                                         npx, xyData.xBins_ );
                         }
                         if ( hasY_ ) {
-                            double[] ys = YS_COORD.readArrayCoord( tseq, IC_YS);
-                            for ( int ip = 0; ip < npy; ip++ ) {
-                                xyData.yBins_.submitToBin( ip, ys[ ip ] );
-                            }
+                            submitArray( YS_COORD.readArrayCoord( tseq, IC_YS ),
+                                         npy, xyData.yBins_ );
                         }
                     }
                     else {
@@ -546,6 +542,24 @@ public abstract class CombineArrayPlotter
             else {
                 xyData.xBins_ = null;
                 xyData.yBins_ = null;
+            }
+        }
+
+        /**
+         * Adds an array of samples to the corresponding bins of a given
+         * bin list.
+         *
+         * @param  samples  data array
+         * @param  np    size of data array
+         * @param  binList  list of bins for data accumulation
+         */
+        private static void submitArray( double[] samples, int np,
+                                         BinList binList ) {
+            for ( int ip = 0; ip < np; ip++ ) {
+                double d = samples[ ip ];
+                if ( ! Double.isNaN( d ) ) {
+                    binList.submitToBin( ip, d );
+                }
             }
         }
     }

@@ -30589,6 +30589,9 @@ introduced since the last version:
     <li>Fix legend positioning bug for Label form.</li>
     <li>Add X/Y Offset options for <ref id="form-label">Label</ref>
         plot form.</li>
+    <li>Fix bug in <ref id="form-statline">StatLine</ref
+                 >/<ref id="form-statmark">StatMark</ref> forms
+        that treated blank array values incorrectly.</li>
     </ul>
     </p></dd>
 
