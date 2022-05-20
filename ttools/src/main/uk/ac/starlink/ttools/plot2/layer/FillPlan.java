@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -10,8 +11,8 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
 import uk.ac.starlink.util.SplitCollector;
-
 
 /**
  * Plan object for fill plots.
@@ -219,6 +220,77 @@ public class FillPlan {
     }
 
     /**
+     * Converts data to graphics coordinates for a FillPlan.
+     * Instances of this interface are thread-safe.
+     */
+    @FunctionalInterface
+    private static interface GraphicsConverter {
+
+        /**
+         * Maps a data position to a graphics position.
+         * This does a similar job to Surface.dataToGraphics(),
+         * but makes sure that all reasonable input data points end up
+         * in a representative place on the output graphics plane,
+         * even if they are unplottable.  Specifically, negative data values
+         * will appear below the visible graphics region even for log axes.
+         *
+         * @param  dpos  input position in data coordinates
+         * @param  gpos  updated with position in graphics coordinates on output
+         * @return  true iff the resulting point can be used for a FillPlan
+         */
+        boolean dataToGraphics( double[] dpos, Point2D.Double gpos );
+    }
+
+    /**
+     * Creates a graphics converter for a given surface.
+     *
+     * @param  surf  plotting surface
+     * @return  converter
+     */
+    private static GraphicsConverter createGraphicsConverter( Surface surf ) {
+
+        /* We know how to locate log axes on a PlaneSurface. */
+        if ( surf instanceof PlaneSurface ) {
+            PlaneSurface psurf = (PlaneSurface) surf;
+            boolean xflip = psurf.getFlipFlags()[ 0 ];
+            boolean yflip = psurf.getFlipFlags()[ 1 ];
+            boolean xlog = psurf.getLogFlags()[ 0 ];
+            boolean ylog = psurf.getLogFlags()[ 1 ];
+            Axis xAxis = psurf.getAxes()[ 0 ];
+            Axis yAxis = psurf.getAxes()[ 1 ];
+            double big = Integer.MAX_VALUE / 2;
+            double xMinusInf = xflip ? big : -big;
+            double yMinusInf = yflip ? -big : big;
+            if ( xlog || ylog ) {
+                return ( dpos, gpos ) -> {
+                    double dx = dpos[ 0 ];
+                    double dy = dpos[ 1 ];
+                    gpos.x = xlog && dx <= 0
+                           ? xMinusInf
+                           : xAxis.dataToGraphics( dx );
+                    gpos.y = ylog && dy <= 0
+                           ? yMinusInf
+                           : yAxis.dataToGraphics( dy );
+                    return PlotUtil.isPointReal( gpos );
+                };
+            }
+            else {
+                return ( dpos, gpos ) ->
+                    surf.dataToGraphics( dpos, false, gpos ) &&
+                    PlotUtil.isPointReal( gpos );
+            }
+        }
+
+        /* Probably this won't be called on other surface types,
+         * bug if they do just fall back to default behaviour. */
+        else {
+            return ( dpos, gpos ) ->
+                surf.dataToGraphics( dpos, false, gpos ) &&
+                PlotUtil.isPointReal( gpos );
+        }
+    }
+
+    /**
      * SplitCollector for accumulating fill data.
      */
     private static class FillCollector
@@ -232,6 +304,7 @@ public class FillPlan {
         final int nx_;
         final int ny_;
         final Gridder gridder_;
+        final GraphicsConverter gconv_;
 
         /**
          * Constructor.
@@ -250,6 +323,7 @@ public class FillPlan {
             nx_ = bounds.width;
             ny_ = bounds.height;
             gridder_ = new Gridder( nx_, ny_ );
+            gconv_ = createGraphicsConverter( surface );
         }
 
         public FillData createAccumulator() {
@@ -270,10 +344,9 @@ public class FillPlan {
             Point cpYhi = fdata.cpYhi_;
             while ( tseq.next() ) {
                 if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
-                     surface_.dataToGraphics( dpos, false, gp ) &&
-                     PlotUtil.isPointReal( gp ) ) {
-                    int x = (int) gp.x - x0_;
-                    int y = (int) gp.y - y0_;
+                     gconv_.dataToGraphics( dpos, gp ) ) {
+                    int x = (int) ( gp.x - x0_ );
+                    int y = (int) ( gp.y - y0_ );
                     boolean inX = x >= 0 && x < nx_;
                     boolean inY = y >= 0 && y < ny_;
                     if ( inX && inY ) {
