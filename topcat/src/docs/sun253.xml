@@ -235,6 +235,7 @@
   <!ENTITY FIG.form_xyerrors '&figs;form_xyerrors.png'>
   <!ENTITY FIG.form_statline '&figs;form_statline.png'>
   <!ENTITY FIG.form_statmark '&figs;form_statmark.png'>
+  <!ENTITY FIG.form_arrayquantile '&figs;form_arrayquantile.png'>
   <!ENTITY FIG.font_tab '&figs;font_tab.png'>
   <!ENTITY FIG.size_tab '&figs;size_tab.png'>
   <!ENTITY FIG.title_tab '&figs;title_tab.png'>
@@ -351,6 +352,7 @@
   <!ENTITY FIG.plot2-layer-xyerrors '&figs;plot2-layer-xyerrors.png'>
   <!ENTITY FIG.plot2-layer-statline '&figs;plot2-layer-statline.png'>
   <!ENTITY FIG.plot2-layer-statmark '&figs;plot2-layer-statmark.png'>
+  <!ENTITY FIG.plot2-layer-arrayquantile '&figs;plot2-layer-arrayquantile.png'>
   <!ENTITY FIG.plot2-shading-flat '&figs;plot2-shading-flat.png'>
   <!ENTITY FIG.plot2-shading-auto '&figs;plot2-shading-auto.png'>
   <!ENTITY FIG.plot2-shading-density '&figs;plot2-shading-density.png'>
@@ -460,6 +462,8 @@
                           <ref id="form-statline">StatLine</ref>'>
   <!ENTITY FORM.statmark '&IMG.PLOT_STATMARK;
                           <ref id="form-statmark">StatMark</ref>'>
+  <!ENTITY FORM.arrayquantile '&IMG.FORM_QUANTILE;
+                             <ref id="form-arrayquantile">ArrayQuantile</ref>'>
   <!ENTITY GESTURE.DRAG1 '&IMG.DRAG1; Left drag'>
   <!ENTITY GESTURE.DRAG2 '&IMG.DRAG2; Center drag (SHIFT-drag)'>
   <!ENTITY GESTURE.DRAG3 '&IMG.DRAG3; Right drag (CTRL-drag)'>
@@ -9520,6 +9524,8 @@ are currently
 <li>&IMG.PLOT_STATMARK; <ref id="form-statmark">StatMark</ref>:
     draws a marker for each per-element combination (e.g. mean)
     of the input array values</li>
+<li>&IMG.FORM_QUANTILE; <ref id="form-arrayquantile">ArrayQuantile</ref>:
+    draws quantile ranges for samples from the input array values</li>
 </ul>
 You can have zero or more of each form and configure them separately.
 The detail panel for these forms is dependent on the form itself
@@ -10793,6 +10799,13 @@ possible to fill the region between two quantiles.
 <p>One way to use this is to draw a line estimating a function
 <m>y=f(x)</m> (or <m>x=g(y)</m>) sampled by a noisy set of data points
 in two dimensions.
+</p>
+
+<p><em>Note:</em>
+In the current implementation, depending on the details of the
+configuration and the data, there may be some distortions or missing
+graphics near the edges of the plot.
+This may be improved in future releases, depending on feedback.
 </p>
 
 <figure>
@@ -12940,6 +12953,151 @@ input array elements at the corresponding position.
 
 </subsubsubsect>
 
+<subsubsubsect id="form-arrayquantile">
+<subhead><title>ArrayQuantile Form</title></subhead>
+
+<p>The <label>ArrayQuantile</label> form (&IMG.FORM_QUANTILE;),
+available from the
+<ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>,
+displays a quantile or quantile range for a set of plotted X/Y array pairs.
+If a table contains one spectrum per row in array-valued wavelength
+and flux columns, this plotter can be used to display a median of all
+the spectra, or a range between two quantiles. Smoothing options are
+available to even out noise arising from the pixel binning.
+</p>
+
+<p>For each row, the <label>X Values</label> and <label>Y Values</label>
+arrays must be the same length as each other,
+but this plot type does not
+(unlike <ref id="form-statmark">StatMark</ref> and
+        <ref id="form-statline">StatLine</ref>)
+require the arrays to be sampled into the same bins for each row.
+</p>
+
+<p>The algorithm calculates quantiles for all the X,Y points plotted in
+each column of pixels. This means that more densely sampled spectra have
+more influence on the output than sparser ones.
+</p>
+
+<p><em>Note:</em>
+In the current implementation, depending on the details of the
+configuration and the data, there may be some distortions or missing
+graphics near the edges of the plot.
+This may be improved in future releases, depending on feedback.
+</p>
+
+<figure>
+<caption><px>Example ArrayQuantile plot</px></caption>
+<figureimage src="&FIG.plot2-layer-arrayquantile;"/>
+</figure>
+
+<figure>
+<caption><px>ArrayQuantile form configuration panel</px></caption>
+<figureimage src="&FIG.form_arrayquantile;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Transparency</dt>
+<dd><p>Transparency with which components are plotted,
+    from opaque to invisible.
+    </p></dd>
+<dt>Quantiles</dt>
+<dd><p>Defines the quantile or quantile range of values that should be
+    marked in each pixel column (or row).
+    The slider control goes from 0 (minimum in pixel column/row)
+    to 1 (maximum in pixel column/row), so 0.5 indicates the median.
+    This control is a double-slider, so you can drag out a range
+    of values.  If the values are the same as each other, a single
+    point will be indicated, but if there is a range then the area
+    between the indicated quantiles will be filled.
+    </p>
+    <p>The radio buttons let you toggle between using the slider to
+    set the quantile value(s) or entering them in the text fields.
+    If the two values are identical, you can leave the second text field blank.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Sets the minimum extent of the markers that are plotted in each
+    pixel column (or row) to indicate the designated value range. If the
+    range is zero sized (two bounding quantiles are equal)
+    this will give the actual thickness of the plotted line.
+    If the range is non-zero however, the line may be thicker than this in
+    places according to the quantile positions.
+    </p></dd>
+<dt>Smoothing</dt>
+<dd><p>Configures the smoothing width.
+    This is the characteristic width of the <label>Kernel</label>
+    function to be convolved with the density in one dimension
+    to smooth the quantile function.
+    </p>
+    <p>You can adjust it using the slider (wider smoothing to the right)
+    or enter a value in data coordinates explicitly in the text field.
+    If the smoothed axis is logarithmic, the value is a multiplication factor
+    rather than an additive increment.
+    </p></dd>
+<dt>Kernel</dt>
+<dd><p>The functional form of the smoothing kernel. The functions listed
+    refer to the unscaled shape; all kernels are normalised to give a
+    total area of unity.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>square</label>:
+        Uniform value: f(x)=1, |x|=0..1
+        </li>
+    <li><label>linear</label>:
+        Triangle: f(x)=1-|x|, |x|=0..1
+        </li>
+    <li><label>epanechnikov</label>:
+        Parabola: f(x)=1-x*x, |x|=0..1
+        </li>
+    <li><label>cos</label>:
+        Cosine: f(x)=cos(x*pi/2), |x|=0..1
+        </li>
+    <li><label>cos2</label>:
+        Cosine squared: f(x)=cos^2(x*pi/2), |x|=0..1
+        </li>
+    <li><label>gauss3</label>: Gaussian truncated at 3.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..3
+        </li>
+    <li><label>gauss6</label>: Gaussian truncated at 6.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..6
+        </li>
+    </ul>
+    </p></dd>
+<dt>Join Mode</dt>
+<dd><p>Defines the graphical style for connecting distinct quantile values.
+    If smoothed samples are packed more closely than the pixel grid
+    the option chosen here doesn't make much difference,
+    but if there are gaps in the data along the sampled axis,
+    it's useful to have a guide to the eye to join one quantile
+    determination to the next.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>none</label>:
+        displayed quantile ranges are not joined
+        </li>
+    <li><label>polygon</label>:
+        the area between a line connecting the upper quantiles
+        and a line connecting the lower quantiles is filled
+        </li>
+    <li><label>lines</label>:
+        a line of thickness given by <label>Thickness</label>
+        is drawn from the center of each quantile range to the next
+        </li>
+    </ul>
+    </p></dd>
+<dt>Horizontal</dt>
+<dd><p>Determines whether the trace bins are horizontal or vertical.
+    If true, <em>y</em> quantiles are calculated for each pixel column,
+    and if false, <em>x</em> quantiles are calculated for each pixel row.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 </subsubsect>
 
 <subsubsect id="ShapeMode">
@@ -13749,6 +13907,9 @@ see the <label>Coords</label> tab of the
     <li>&FORM.marks;</li>
     <li>&FORM.yerrors;</li>
     <li>&FORM.xyerrors;</li>
+    <li>&FORM.statline;</li>
+    <li>&FORM.statmark;</li>
+    <li>&FORM.arrayquantile;</li>
     </ul></li>
 <li>&CONTROL.histogram;, with these form options:
     <ul>
@@ -30616,6 +30777,10 @@ introduced since the last version:
                   >/<ref id="form-statmark">StatMark</ref> forms
         that incorrectly treated blank array values
         and negative array values on logarithmic axes.</li>
+    <li>Add new plane plot form
+        <ref id="form-arrayquantile">ArrayQuantile</ref>.
+        This can be used to e.g. to plot medians of multiple spectra
+        that are not aligned on the same wavelength grid.</li>
     </ul>
     </p></dd>
 

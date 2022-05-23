@@ -44,6 +44,7 @@
   <!ENTITY FIG.plot2-layer-statmark 'plot2-layer-statmark.png'>
   <!ENTITY FIG.plot2-layer-yerrors 'plot2-layer-yerrors.png'>
   <!ENTITY FIG.plot2-layer-xyerrors 'plot2-layer-xyerrors.png'>
+  <!ENTITY FIG.plot2-layer-arrayquantile 'plot2-layer-arrayquantile.png'>
   <!ENTITY FIG.plot2-shading-flat 'plot2-shading-flat.png'>
   <!ENTITY FIG.plot2-shading-auto 'plot2-shading-auto.png'>
   <!ENTITY FIG.plot2-shading-transparent 'plot2-shading-transparent.png'>

@@ -13833,6 +13833,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
                   >/<ref id="layer-statmark">statmark</ref> layers
         that incorrectly treated blank array values
         and negative array values on logarithmic axes.</li>
+    <li>New plot2plane layer
+        <ref id="layer-arrayquantile">arrayquantile</ref>,
+        that can plot e.g. medians of multiple per-row spectra
+        with arbitrary wavelength coordinates.</li>
     </ul>
     </p></dd>
 

@@ -1108,6 +1108,17 @@ public class Plot2Example {
          */
         public static final String COUNTRIES;
 
+        /**
+         * Derived from XQ-100 (X-shooter quasar spectra, 2016MNRAS.462.3285P)
+         * with spectral data got from ESO TAP_OBS with the query
+         *    SELECT * FROM ivoa.obscore
+         *    WHERE obs_collection = 'XQ-100'
+         *    AND obs_creator_did LIKE '%rescale.fits'
+         * giving spectra as one FITS binary tables per spectrum;
+         * then custom java to put all those into one table.
+         */
+        public static final String XQ100;
+
         /** All tables used for these examples. */
         public static final String[] NAMES = {
             RR = "rrlyrae.fits",
@@ -1128,6 +1139,7 @@ public class Plot2Example {
             VIRVIS = "big_tab_VIR_VIS_CSA_public.fits",
             CRISM = "crism.fits",
             COUNTRIES = "countries.vot",
+            XQ100 = "xq100sub.fits",
         };
     }
 
@@ -1667,6 +1679,23 @@ public class Plot2Example {
                 "xmin=125", "xmax=144", "ymin=-184", "ymax=-145", "xpix=660",
                 "icmd='every 1000'", null,
                 "auxmap=viridis", "auxvisible=false",
+            } ),
+            new Plot2Example( "layer-arrayquantile", c, PlotTask.PLANE,
+                              new String[] {
+                "*in=" + TName.XQ100,
+                "*xs=subWave", "*ys=multiply(subFlux,1./mean(subFlux))", null,
+                "layer1=lines", "shading1=density", "densemap1=greyscale", null,
+                "denseclip1=0.2,1", "densefunc1=linear",
+                "leglabel1=Spectra", null,
+                "*layer_q13=ArrayQuantile", "*color_q13=DodgerBlue",
+                "*transparency_q13=0.5", null, "*quantiles_q13=0.25,0.75",
+                "*leglabel_q13='Quartile Range'", null,
+                "*layer_med=ArrayQuantile", "*color_med=blue",
+                "*join_med=lines",
+                "*leglabel_med=Median", null,
+                "legend=true", "legpos=0.95,0.95", null,
+                "xpix=600", "ypix=350", null,
+                "xmin=1348", "xmax=1358", "ymin=-0.2", "ymax=2.2",
             } ),
             createShadingExample( "flat", c, new String[ 0 ] ),
             createShadingExample( "auto", c, new String[ 0 ] ),
