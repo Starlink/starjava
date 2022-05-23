@@ -1,9 +1,12 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
@@ -61,6 +64,7 @@ public abstract class TracePlotter
 
     private final boolean hasVertical_;
     private final String basicDescription_;
+    private final ConfigKey<QJoin> joinKey_;
 
     /** Key to configure whether trace is vertical or horizontal. */
     public static final ConfigKey<Boolean> HORIZONTAL_KEY =
@@ -141,12 +145,24 @@ public abstract class TracePlotter
      *                      (otherwise only horizontal)
      * @param  basicDescription  main part of XML description,
      *                           may be augmented by the base class
+     * @param  dfltJoin  default join mode
      */
     public TracePlotter( String name, Icon icon, CoordGroup coordGrp,
-                         boolean hasVertical, String basicDescription ) {
+                         boolean hasVertical, String basicDescription,
+                         QJoin dfltJoin ) {
         super( name, icon, coordGrp, false );
         hasVertical_ = hasVertical;
         basicDescription_ = basicDescription;
+        joinKey_ = createJoinKey( dfltJoin );
+    }
+
+    /**
+     * Returns the config key for the Join Mode used by this plotter.
+     *
+     * @return  join mode config key
+     */
+    public ConfigKey<QJoin> getJoinModeKey() {
+        return joinKey_;
     }
 
     public String getPlotterDescription() {
@@ -169,6 +185,7 @@ public abstract class TracePlotter
         list.add( THICK_KEY );
         list.add( SMOOTHSIZER_KEY );
         list.add( KERNEL_KEY );
+        list.add( joinKey_ );
         if ( hasVertical_ ) {
             list.add( HORIZONTAL_KEY );
         }
@@ -183,9 +200,10 @@ public abstract class TracePlotter
         int thickness = config.get( THICK_KEY );
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
         BinSizer smoothSizer = config.get( SMOOTHSIZER_KEY );
+        QJoin join = config.get( joinKey_ );
         return new TraceStyle( color, isHorizontal, thickness,
                                qrange.getLow(), qrange.getHigh(),
-                               kernelShape, smoothSizer );
+                               kernelShape, smoothSizer, join );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
@@ -385,16 +403,7 @@ public abstract class TracePlotter
         int x0 = bounds.x;
         int y0 = bounds.y;
         g.translate( x0, y0 );
-        boolean isHorizontal = style.isHorizontal_;
-        for ( QRange qr : ranges ) {
-            int yleng = qr.iyhi_ - qr.iylo_;
-            if ( isHorizontal ) {
-                g.fillRect( qr.ix_, qr.iylo_, 1, yleng );
-            }
-            else {
-                g.fillRect( qr.iylo_, qr.ix_, yleng, 1 );
-            }
-        }
+        style.join_.paintTrace( ranges, style, g );
         g.translate( -x0, -y0 );
         g.setColor( color0 );
     }
@@ -424,7 +433,7 @@ public abstract class TracePlotter
         final CoordGroup cgrp =
             CoordGroup.createCoordGroup( 1, new Coord[ 0 ] );
         return new TracePlotter( "Quantile", ResourceIcon.FORM_QUANTILE, cgrp,
-                                 hasVertical, descrip ) {
+                                 hasVertical, descrip, QJoin.NO_JOIN ) {
             protected FillPlan
                     createFillPlan( Surface surface, DataSpec dataSpec,
                                     DataGeom geom, DataStore dataStore ) {
@@ -477,7 +486,7 @@ public abstract class TracePlotter
            .createPartialCoordGroup( new Coord[] { xsCoord, ysCoord },
                                      new boolean[] { true, true } );
         return new TracePlotter( "ArrayQuantile", ResourceIcon.FORM_QUANTILE,
-                                 cgrp, hasVertical, descrip ) {
+                                 cgrp, hasVertical, descrip, QJoin.POLYGON ) {
             protected FillPlan
                     createFillPlan( Surface surface, DataSpec dataSpec,
                                     DataGeom geom, DataStore dataStore ) {
@@ -701,6 +710,172 @@ public abstract class TracePlotter
     }
 
     /**
+     * Returns a config key for selecting sample join mode.
+     *
+     * @param  dfltJoin   default value
+     * @return  new config key
+     */
+    private static ConfigKey<QJoin> createJoinKey( QJoin dfltJoin ) {
+        ConfigMeta meta = new ConfigMeta( "join", "Join Mode" );
+        meta.setShortDescription( "Drawing style for joining samples" );
+        meta.setXmlDescription( new String[] {
+            "<p>Defines the graphical style for connecting",
+            "distinct quantile values.",
+            "If smoothed samples are packed more closely than the pixel grid",
+            "the option chosen here doesn't make much difference,",
+            "but if there are gaps in the data along the sampled axis,",
+            "it's useful to have a guide to the eye",
+            "to join one quantile determination to the next.",
+            "</p>",
+        } );
+        OptionConfigKey<QJoin> key =
+                new OptionConfigKey<QJoin>( meta, QJoin.class, QJoin.OPTIONS,
+                                            dfltJoin ) {
+            public String getXmlDescription( QJoin join ) {
+                return join.description_;
+            }
+        };
+        key.setOptionUsage();
+        key.addOptionsXml();
+        return key;
+    };
+
+    /**
+     * Defines the graphial style for joining sparse samples.
+     */
+    public static abstract class QJoin {
+
+        final String name_;
+        final String description_;
+
+        /** No graphical elements between samples. */
+        public static final QJoin NO_JOIN;
+
+        /** Fill between upper and lower quantiles all along. */
+        public static final QJoin POLYGON;
+
+        /* Draw a line between centers of each quantile pair. */
+        public static final QJoin LINES;
+
+        /** All available options. */
+        public static final QJoin[] OPTIONS = {
+            NO_JOIN = new QJoin( "None",
+                                 "displayed quantile ranges are not joined" ) {
+                public void paintTrace( QRange[] ranges, TraceStyle style,
+                                        Graphics g ) {
+                    boolean isHorizontal = style.isHorizontal_;
+                    for ( QRange qr : ranges ) {
+                        int yleng = qr.iyhi_ - qr.iylo_;
+                        if ( isHorizontal ) {
+                            g.fillRect( qr.ix_, qr.iylo_, 1, yleng );
+                        }
+                        else {
+                            g.fillRect( qr.iylo_, qr.ix_, yleng, 1 );
+                        }
+                    }
+                }
+            },
+            POLYGON = new QJoin( "Polygon",
+                                 "the area between "
+                               + "a line connecting the upper quantiles and "
+                               + "a line connecting the lower quantiles "
+                               + "is filled" ) {
+                public void paintTrace( QRange[] ranges, TraceStyle style,
+                                        Graphics g ) {
+                    boolean isHorizontal = style.isHorizontal_;
+                    int n = ranges.length;
+                    int[] xs = new int[ 2 * n ];
+                    int[] ys = new int[ 2 * n ];
+                    for ( int i = 0; i < n; i++ ) {
+                        QRange qr = ranges[ i ];
+                        int i1 = i;
+                        int i2 = 2 * n - 1 - i;
+                        if ( isHorizontal ) {
+                            xs[ i1 ] = qr.ix_;
+                            xs[ i2 ] = qr.ix_;
+                            ys[ i1 ] = qr.iylo_;
+                            ys[ i2 ] = qr.iyhi_;
+                        }
+                        else {
+                            ys[ i1 ] = qr.ix_;
+                            ys[ i2 ] = qr.ix_;
+                            xs[ i1 ] = qr.iylo_;
+                            xs[ i2 ] = qr.iyhi_;
+                        }
+                    }
+                    g.fillPolygon( xs, ys, 2 * n );
+                }
+            },
+            LINES = new QJoin( "Lines",
+                               "a line of thickness given by "
+                             + "<code>" + THICK_KEY.getMeta().getShortName()
+                                        + "</code> "
+                             + "is drawn from the center of each "
+                             + "quantile range to the next" ) {
+                public void paintTrace( QRange[] ranges, TraceStyle style,
+                                        Graphics g ) {
+                    boolean isHorizontal = style.isHorizontal_;
+                    int thick = style.thickness_;
+                    int nr = ranges.length;
+                    for ( int ir = 0; ir < nr; ir++ ) {
+                        QRange qr = ranges[ ir ];
+                        int yleng = qr.iyhi_ - qr.iylo_;
+                        if ( isHorizontal ) {
+                            g.fillRect( qr.ix_, qr.iylo_, 1, yleng );
+                        }
+                        else {
+                            g.fillRect( qr.iylo_, qr.ix_, yleng, 1 );
+                        }
+                    }
+                    Graphics2D g2 = (Graphics2D) g;
+                    Stroke stroke0 = g2.getStroke();
+                    g2.setStroke( new BasicStroke( thick, BasicStroke.CAP_ROUND,
+                                                   BasicStroke.JOIN_ROUND ) );
+                    for ( int ir = 1; ir < nr; ir++ ) {
+                        QRange qr0 = ranges[ ir - 1 ];
+                        QRange qr1 = ranges[ ir ];
+                        int y0 = ( qr0.iylo_ + qr0.iyhi_ ) / 2;
+                        int y1 = ( qr1.iylo_ + qr1.iyhi_ ) / 2;
+                        if ( isHorizontal ) {
+                            g2.drawLine( qr0.ix_, y0, qr1.ix_, y1 );
+                        }
+                        else {
+                            g2.drawLine( y0, qr0.ix_, y1, qr1.ix_ );
+                        }
+                    }
+                    g2.setStroke( stroke0 );
+                }
+            },
+        };
+
+        /**
+         * Constructor.
+         *
+         * @param  name  option name
+         * @param  description   option description in XML
+         */
+        public QJoin( String name, String description ) {
+            name_ = name;
+            description_ = description;
+        }
+
+        /**
+         * Paints graphics representing a set of quantile pairs.
+         *
+         * @param  ranges  quantile pair data
+         * @param  style   plot style
+         * @param  g       graphics context for output
+         */
+        public abstract void paintTrace( QRange[] ranges, TraceStyle style,
+                                         Graphics g );
+
+        @Override
+        public String toString() {
+            return name_;
+        }
+    }
+
+    /**
      * Describes a calculated per-column quantile range.
      */
     private static class QRange {
@@ -766,6 +941,7 @@ public abstract class TracePlotter
         private final double qhi_;
         private final Kernel1dShape kernelShape_;
         private final BinSizer smoothSizer_;
+        private final QJoin join_;
         private final int[] TDATA = new int[] {
              3,  3,  3,  4,  5,  5,  6, 6, 6, 5, 5, 4, 4, 3, 3, 4, 4, 4, 3, 3,
         };
@@ -783,10 +959,11 @@ public abstract class TracePlotter
          * @param  qhi   target upper quantile in range 0..1
          * @param  kernelShape     smoothing kernel
          * @param  smoothSizer     smoothing extent control
+         * @param  join           join type
          */
         public TraceStyle( Color color, boolean isHorizontal, int thickness,
                            double qlo, double qhi, Kernel1dShape kernelShape,
-                           BinSizer smoothSizer ) {
+                           BinSizer smoothSizer, QJoin join ) {
             color_ = color;
             isHorizontal_ = isHorizontal;
             thickness_ = thickness;
@@ -794,6 +971,7 @@ public abstract class TracePlotter
             qhi_ = qhi;
             kernelShape_ = kernelShape;
             smoothSizer_ = smoothSizer;
+            join_ = join;
         }
 
         public Icon getLegendIcon() {
@@ -839,6 +1017,7 @@ public abstract class TracePlotter
             code = 23 * code + Float.floatToIntBits( (float) qhi_ );
             code = 23 * code + PlotUtil.hashCode( kernelShape_ );
             code = 23 * code + smoothSizer_.hashCode();
+            code = 23 * code + join_.hashCode();
             return code;
         }
 
@@ -852,7 +1031,8 @@ public abstract class TracePlotter
                     && this.qlo_ == other.qlo_
                     && this.qhi_ == other.qhi_
                     && PlotUtil.equals( this.kernelShape_, other.kernelShape_)
-                    && this.smoothSizer_.equals( other.smoothSizer_ );
+                    && this.smoothSizer_.equals( other.smoothSizer_ )
+                    && this.join_.equals( other.join_ );
             }
             else {
                 return false;

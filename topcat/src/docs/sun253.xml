@@ -10874,10 +10874,33 @@ in two dimensions.
         </li>
     </ul>
     </p></dd>
+<dt>Join Mode</dt>
+<dd><p>Defines the graphical style for connecting distinct quantile values.
+    If smoothed samples are packed more closely than the pixel grid
+    the option chosen here doesn't make much difference,
+    but if there are gaps in the data along the sampled axis,
+    it's useful to have a guide to the eye to join one quantile
+    determination to the next.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>none</label>:
+        displayed quantile ranges are not joined
+        </li>
+    <li><label>polygon</label>:
+        the area between a line connecting the upper quantiles
+        and a line connecting the lower quantiles is filled
+        </li>
+    <li><label>lines</label>:
+        a line of thickness given by <label>Thickness</label>
+        is drawn from the center of each quantile range to the next
+        </li>
+    </ul>
+    </p></dd>
 <dt>Horizontal</dt>
 <dd><p>Determines whether the trace bins are horizontal or vertical.
-    If true, there is a <em>y</em> value calculated for each pixel column, and
-    if false, there is an <em>x</em> value for each pixel row.
+    If true, <em>y</em> quantiles are calculated for each pixel column,
+    and if false, <em>x</em> quantiles are calculated for each pixel row.
     </p></dd>
 </dl>
 </p>
