@@ -271,15 +271,17 @@ public abstract class TracePlotter
     }
 
     /**
-     * Performs the actual painting of a trace plot onto a graphics context.
+     * Calculates the per-pixel-column quantile range values that will
+     * form the basis of the plot.
      *
      * @param  surface  plot surface
      * @param  plan    plan object appropriate for plot
      * @param  style   trace style
-     * @param  g     target graphics context
+     * @return  ordered array of QRange objects giving quantile ranges
+     *          for each pixel column
      */
-    private void paintTrace( PlanarSurface surface, FillPlan plan,
-                             TraceStyle style, Graphics g ) {
+    private QRange[] getRanges( PlanarSurface surface, FillPlan plan,
+                                TraceStyle style ) {
         boolean isHorizontal = style.isHorizontal_;
         int minThick = style.thickness_;
         Binner binner = plan.getBinner();
@@ -321,17 +323,11 @@ public abstract class TracePlotter
                           false );
         GridData gdata = createGridData( kernel, xlos, xhis, binner, gridder );
 
-        /* Prepare to paint lines. */
-        Color color0 = g.getColor();
-        g.setColor( style.color_ );
-        Rectangle bounds = surface.getPlotBounds();
-        int x0 = bounds.x;
-        int y0 = bounds.y;
-
         /* Iterate over each column of pixels. */
         int nx = gridder.getWidth();
         int ny = gridder.getHeight();
         double[] line = new double[ ny ];
+        List<QRange> qranges = new ArrayList<>();
         for ( int ix = 0; ix < nx; ix++ ) {
             double xlo = gdata.getSumBelow( ix );
             double xhi = gdata.getSumAbove( ix );
@@ -348,16 +344,17 @@ public abstract class TracePlotter
 
             /* Identify the Y graphics coordinates corresponding to the
              * desired quantile range. */
-            int jylo = getRankIndex( xlo, xhi, count, line, qlo );
-            int jyhi = qlo == qhi
-                     ? jylo
-                     : getRankIndex( xlo, xhi, count, line, qhi );
-            if ( ! ( jylo < 0 && jyhi < 0 || jylo >= ny && jyhi >= ny ) ) {
+            if ( count > 0 ) {
+                int jylo = getRankIndex( xlo, xhi, count, line, qlo );
+                int jyhi = qlo == qhi
+                         ? jylo
+                         : getRankIndex( xlo, xhi, count, line, qhi );
                 int natThick = jyhi - jylo;
                 assert natThick >= 0 : jylo + " - " + jyhi;
                 int jy0;
                 int thick;
-                if ( natThick >= minThick ) {
+                if ( natThick >= minThick ||
+                     ( jylo < 0 && jyhi < 0 || jylo >= ny && jyhi >= ny ) ) {
                     jy0 = jylo;
                     thick = natThick;
                 }
@@ -365,18 +362,40 @@ public abstract class TracePlotter
                     jy0 = jylo - minThick / 2;
                     thick = minThick;
                 }
-
-                /* Plot a marker. */
-                if ( isHorizontal ) {
-                    g.fillRect( x0 + ix, y0 + jy0, 1, thick );
-                }
-                else {
-                    g.fillRect( x0 + jy0, y0 + ix, thick, 1 );
-                }
+                qranges.add( new QRange( ix, jy0, jy0 + thick ) );
             }
         }
+        return qranges.toArray( new QRange[ 0 ] );
+    }
 
-        /* Restore graphics context. */
+    /**
+     * Performs the actual painting of a trace plot onto a graphics context.
+     *
+     * @param  surface  plot surface
+     * @param  plan    plan object appropriate for plot
+     * @param  style   trace style
+     * @param  g     target graphics context
+     */
+    private void paintTrace( PlanarSurface surface, FillPlan plan,
+                             TraceStyle style, Graphics g ) {
+        QRange[] ranges = getRanges( surface, plan, style );
+        Color color0 = g.getColor();
+        g.setColor( style.color_ );
+        Rectangle bounds = surface.getPlotBounds();
+        int x0 = bounds.x;
+        int y0 = bounds.y;
+        g.translate( x0, y0 );
+        boolean isHorizontal = style.isHorizontal_;
+        for ( QRange qr : ranges ) {
+            int yleng = qr.iyhi_ - qr.iylo_;
+            if ( isHorizontal ) {
+                g.fillRect( qr.ix_, qr.iylo_, 1, yleng );
+            }
+            else {
+                g.fillRect( qr.iylo_, qr.ix_, yleng, 1 );
+            }
+        }
+        g.translate( -x0, -y0 );
         g.setColor( color0 );
     }
 
@@ -679,6 +698,28 @@ public abstract class TracePlotter
                 return txt;
             }
         };
+    }
+
+    /**
+     * Describes a calculated per-column quantile range.
+     */
+    private static class QRange {
+        int ix_;
+        int iylo_;
+        int iyhi_;
+
+        /**
+         * Constructor.
+         *
+         * @param  ix     pixel horizontal index
+         * @param  iylo   pixel vertical index of lower quantile
+         * @param  iyhi   pixel vertical index of upper quantile
+         */
+        QRange( int ix, int iylo, int iyhi ) {
+            ix_ = ix;
+            iylo_ = iylo;
+            iyhi_ = iyhi;
+        }
     }
 
     /**
