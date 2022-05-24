@@ -4464,6 +4464,17 @@ be done like this:
 Some more examples are given in <ref id="jelExamples"/>.
 </p>
 
+<p>Note that for floating point data,
+STILTS treats <code>null</code> and NaN (Not-a-Number) values
+somewhat interchangeably.
+Blank values arising either from an input file format that can represent
+missing values, or from processing that fails to provide a definite value,
+are in most cases represented internally as <code>null</code> 
+for integer-type values and NaN for floating point values.
+However in general users should not rely on distinguishing between
+<code>null</code> and NaN.
+</p>
+
 </subsect>
 
 <subsect>
