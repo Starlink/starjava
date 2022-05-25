@@ -156,6 +156,7 @@ public class ParameterDetailPanel extends JPanel {
             if ( ! text.equals( textField.getText() ) ) {
                 textField.setEditable( false );
                 textField.setText( text );
+                textField.setCaretPosition( 0 );
             }
             textField.setEditable( irow_ >= 0 &&
                                    model_.isCellEditable( irow_, icol ) );
