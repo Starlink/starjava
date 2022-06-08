@@ -89,6 +89,29 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
                                         coordReader );
     }
 
+    public Supplier<Coverage> createCoverageFactory() {
+        final double sep = getSeparation();
+        final CoordReader coordReader = getCoordReader();
+        final SkyCoverage.TupleDecoder posDecoder = ( tuple, lonlat ) -> {
+            double alpha = coordReader.getAlpha( tuple );
+            if ( Double.isFinite( alpha ) ) {
+                double delta = coordReader.getDelta( tuple );
+                if ( Double.isFinite( delta ) ) {
+                    lonlat[ 0 ] = alpha;
+                    lonlat[ 1 ] = delta;
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
+        };
+        return () -> SkyCoverage.createFixedErrorCoverage( sep, posDecoder );
+    }
+
     public double getScoreScale() {
         return maxScore( getSeparation() );
     }

@@ -45,6 +45,14 @@ public class EqualsMatchEngine implements MatchEngine {
         return () -> KIT;
     };
 
+    /**
+     * Returns null.  You could check bounds on hashcodes, but it's not
+     * likely to be very revealing.
+     */
+    public Supplier<Coverage> createCoverageFactory() {
+        return null;
+    }
+
     public double getScoreScale() {
         return 1.0;
     }

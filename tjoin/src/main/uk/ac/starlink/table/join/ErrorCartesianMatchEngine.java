@@ -94,6 +94,15 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return () -> new ErrorCartesianMatchKit( binnerFact.get() );
     }
 
+    public Supplier<Coverage> createCoverageFactory() {
+        final CuboidCoverage.PointDecoder pointDecoder =
+            CuboidCoverage.createCartesianPointDecoder( ndim_ );
+        final CuboidCoverage.ErrorDecoder errDecoder = this::getTupleError;
+        return () ->
+            CuboidCoverage
+           .createVariableErrorCoverage( ndim_, pointDecoder, errDecoder );
+    }
+
     /**
      * Returns unity.
      */

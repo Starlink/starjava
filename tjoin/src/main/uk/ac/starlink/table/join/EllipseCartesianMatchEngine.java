@@ -135,6 +135,16 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
                                                    recogniseCircles );
     }
 
+    public Supplier<Coverage> createCoverageFactory() {
+        final CuboidCoverage.PointDecoder pointDecoder =
+            CuboidCoverage.createCartesianPointDecoder( 2 );
+        final CuboidCoverage.ErrorDecoder errDecoder =
+            tuple -> Math.max( getNumberValue( tuple[ 2 ] ),
+                               getNumberValue( tuple[ 3 ] ) );
+        return () -> CuboidCoverage
+                    .createVariableErrorCoverage( 2, pointDecoder, errDecoder );
+    }
+
     public boolean canBoundMatch() {
         return true;
     }

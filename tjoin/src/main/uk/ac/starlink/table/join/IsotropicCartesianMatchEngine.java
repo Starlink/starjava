@@ -90,6 +90,11 @@ public class IsotropicCartesianMatchEngine
         return () -> new IsotropicMatchKit( error, binnerFact.get() );
     }
 
+    public Supplier<Coverage> createCoverageFactory() {
+        final double err = getError();
+        return () -> CuboidCoverage.createFixedCartesianCoverage( ndim_, err );
+    }
+
     public boolean canBoundMatch() {
         return true;
     }

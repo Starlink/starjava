@@ -85,6 +85,13 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
             new SphericalPolarMatchKit( error, binnerFact.get(), xyzReader );
     }
 
+    public Supplier<Coverage> createCoverageFactory() {
+        double error = getError();
+        final double[] errs = new double[] { error, error, error };
+        return () ->
+            CuboidCoverage.createFixedErrorCoverage( 3, errs, this::toXyz );
+    }
+
     public double getScoreScale() {
         return getError();
     }
@@ -110,11 +117,12 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
      *
      * @param   tuple  input tuple
      * @param   xyz  3-element array into which (x,y,z) will be written on exit
+     * @return  true iff xyz is a valid position
      */
-    void toXyz( Object[] tuple, double[] xyz ) {
-        toXyzRadians( getNumberValue( tuple[ 0 ] ),
-                      getNumberValue( tuple[ 1 ] ),
-                      getNumberValue( tuple[ 2 ] ), xyz );
+    boolean toXyz( Object[] tuple, double[] xyz ) {
+        return toXyzRadians( getNumberValue( tuple[ 0 ] ),
+                             getNumberValue( tuple[ 1 ] ),
+                             getNumberValue( tuple[ 2 ] ), xyz );
     }
 
     /**
@@ -124,21 +132,33 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
      * @param  decRad  declination in radians
      * @param  r   radius
      * @param   xyz  3-element array into which (x,y,z) will be written on exit
+     * @return  true iff xyz is a valid position
      */
-    static void toXyzRadians( double raRad, double decRad, double r,
-                              double[] xyz ) {
-        double cd = Math.cos( decRad );
-        double sd = Math.sin( decRad );
-        double cr = Math.cos( raRad );
-        double sr = Math.sin( raRad );
+    static boolean toXyzRadians( double raRad, double decRad, double r,
+                                 double[] xyz ) {
+        if ( Double.isNaN( raRad ) ||
+             Double.isNaN( decRad ) || 
+             Double.isNaN( r ) ) {
+            xyz[ 0 ] = Double.NaN;
+            xyz[ 1 ] = Double.NaN;
+            xyz[ 2 ] = Double.NaN;
+            return false;
+        }
+        else {
+            double cd = Math.cos( decRad );
+            double sd = Math.sin( decRad );
+            double cr = Math.cos( raRad );
+            double sr = Math.sin( raRad );
 
-        double x = r * cr * cd;
-        double y = r * sr * cd;
-        double z = r * sd;
+            double x = r * cr * cd;
+            double y = r * sr * cd;
+            double z = r * sd;
 
-        xyz[ 0 ] = x;
-        xyz[ 1 ] = y;
-        xyz[ 2 ] = z;
+            xyz[ 0 ] = x;
+            xyz[ 1 ] = y;
+            xyz[ 2 ] = z;
+            return true;
+        }
     }
 
     /**
@@ -153,8 +173,9 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
          * @param  tuple   tuple intended for this matcher
          * @param  xyz  3-element array into which Cartesian coordinates
          *              are written on exit
+         * @return  true iff xyz is a valid point on exit
          */
-        void toXyz( Object[] tuple, double[] xyz );
+        boolean toXyz( Object[] tuple, double[] xyz );
     }
 
     /**
@@ -223,10 +244,10 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
             assert tupleInfos_.length == infos0.length;
         }
         @Override
-        void toXyz( Object[] tuple, double[] xyz ) {
-            toXyzRadians( getNumberValue( tuple[ 0 ] ) * FROM_DEG,
-                          getNumberValue( tuple[ 1 ] ) * FROM_DEG,
-                          getNumberValue( tuple[ 2 ] ), xyz );
+        boolean toXyz( Object[] tuple, double[] xyz ) {
+            return toXyzRadians( getNumberValue( tuple[ 0 ] ) * FROM_DEG,
+                                 getNumberValue( tuple[ 1 ] ) * FROM_DEG,
+                                 getNumberValue( tuple[ 2 ] ), xyz );
         }
         @Override
         public ValueInfo[] getTupleInfos() {

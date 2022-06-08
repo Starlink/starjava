@@ -96,6 +96,14 @@ public class AnisotropicCartesianMatchEngine
         return 1.0;
     }
 
+    public Supplier<Coverage> createCoverageFactory() {
+        final double[] errs = new double[ ndim_ ];
+        for ( int idim = 0; idim < ndim_; idim++ ) {
+            errs[ idim ] = getError( idim );
+        }
+        return () -> CuboidCoverage.createFixedCartesianCoverage( ndim_, errs );
+    }
+
     public boolean canBoundMatch() {
         return true;
     }

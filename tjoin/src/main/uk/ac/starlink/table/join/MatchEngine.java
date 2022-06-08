@@ -21,12 +21,31 @@ public interface MatchEngine {
     /**
      * Returns a factory for MatchKit instances corresponding
      * to the current settings of this object.
-     * The returned value is immutable, and is not affected by subsequent
+     *
+     * <p>The returned value is immutable, and is not affected by subsequent
      * changes of the settings of this object.
      *
      * @return  match kit supplier
      */
     Supplier<MatchKit> createMatchKitFactory();
+
+    /**
+     * Returns a supplier for coverage objects.
+     * Each such coverage can be used to characterise a region of tuple space.
+     * When populated with a set of tuples A,
+     * any tuple for which the inclusion function defined by its
+     * {@link Coverage#createTestFactory} method returns false
+     * is guaranteed not to match any tuple in A according to this object's
+     * match criteria.
+     *
+     * <p>The returned value is immutable, and is not affected by subsequent
+     * changes of the settings of this object.
+     *
+     * <p>If no suitable implementation is available, null may be returned.
+     *
+     * @return  supplier of coverage objects, or null
+     */
+    Supplier<Coverage> createCoverageFactory();
 
     /**
      * Returns a description of the value returned by the 

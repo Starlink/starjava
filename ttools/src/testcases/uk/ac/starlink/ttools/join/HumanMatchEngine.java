@@ -1,10 +1,12 @@
 package uk.ac.starlink.ttools.join;
 
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.join.Coverage;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchKit;
 import uk.ac.starlink.table.join.NdRange;
@@ -12,7 +14,7 @@ import uk.ac.starlink.ttools.func.CoordsRadians;
 
 /**
  * MatchEngine adaptor which transforms the base engine so that it
- * uses more human-friendly units.  Currently, this means that it uses 
+ * uses more human-friendly units.  Currently, this means that it
  * eschews radians in favour of degrees or arcseconds for angular quantities;
  * it decides which on the basis of UCDs.
  * In other respects, this engine will behave
@@ -129,6 +131,33 @@ public class HumanMatchEngine implements MatchEngine {
                       .wrapDouble( baseKit
                                   .matchScore( unwrapTuple( tuple1 ),
                                                unwrapTuple( tuple2 ) ) );
+            }
+        };
+    }
+
+    public Supplier<Coverage> createCoverageFactory() {
+        Supplier<Coverage> baseFact = baseEngine_.createCoverageFactory();
+        return () -> new Coverage() {
+            final Coverage baseCoverage = baseFact.get();
+            public boolean isEmpty() {
+                return baseCoverage.isEmpty();
+            }
+            public void intersection( Coverage other ) {
+                baseCoverage.intersection( other );
+            }
+            public void union( Coverage other ) {
+                baseCoverage.union( other );
+            }
+            public void extend( Object[] tuple ) {
+                baseCoverage.extend( unwrapTuple( tuple ) );
+            }
+            public Supplier<Predicate<Object[]>> createTestFactory() {
+                Predicate<Object[]> baseTest =
+                    baseCoverage.createTestFactory().get();
+                return () -> ( tuple -> baseTest.test( unwrapTuple( tuple ) ) );
+            }
+            public String coverageText() {
+                return "WRONG UNITS[" + baseCoverage.coverageText() + "]";
             }
         };
     }

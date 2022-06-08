@@ -168,6 +168,25 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
         return () -> new EllipseMatchKit( pixerFact.get(), ellipseReader );
     }
 
+    public Supplier<Coverage> createCoverageFactory() {
+        final double scale = getScale();
+        final Function<Object[],SkyEllipse> ellipseReader = getEllipseReader();
+        final SkyCoverage.TupleDecoder coneDecoder = ( tuple, lonLatErr ) -> {
+            SkyEllipse ellipse = ellipseReader.apply( tuple );
+            if ( ellipse != null ) {
+                lonLatErr[ 0 ] = ellipse.alpha_;
+                lonLatErr[ 1 ] = ellipse.delta_;
+                lonLatErr[ 2 ] = ellipse.getMaxRadius();
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+        return () -> SkyCoverage
+                    .createVariableErrorCoverage( scale, coneDecoder );
+    }
+
     public double getScoreScale() {
         return 2.0;
     }

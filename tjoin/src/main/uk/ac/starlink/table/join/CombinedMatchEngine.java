@@ -3,6 +3,7 @@ package uk.ac.starlink.table.join;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -88,6 +89,23 @@ public class CombinedMatchEngine implements MatchEngine {
             }
             return new CombinedMatchKit( subKits, scales, inSphere,
                                          tupleStarts, tupleSizes );
+        };
+    }
+
+    public Supplier<Coverage> createCoverageFactory() {
+        final boolean inSphere = inSphere_;
+        final int[] tupleStarts = tupleStarts_.clone();
+        final int[] tupleSizes = tupleSizes_.clone();
+        final List<Supplier<Coverage>> subFacts = new ArrayList<>( nPart_ );
+        for ( int i = 0; i < nPart_; i++ ) {
+            subFacts.add( engines_[ i ].createCoverageFactory() );
+        }
+        return () -> {
+            Coverage[] subCovs = new Coverage[ nPart_ ];
+            for ( int i = 0; i < nPart_; i++ ) {
+                subCovs[ i ] = subFacts.get( i ).get();
+            }
+            return new CombinedCoverage( subCovs, tupleStarts, tupleSizes );
         };
     }
 
@@ -305,6 +323,127 @@ public class CombinedMatchEngine implements MatchEngine {
         
             /* Return the array of bins. */
             return bins;
+        }
+    }
+
+    /**
+     * Coverage implementation for use with this class.
+     */
+    private static class CombinedCoverage implements Coverage {
+
+        private final Coverage[] subCoverages_;
+        private final int[] tupleStarts_;
+        private final int[] tupleSizes_;
+        private final int nPart_;
+        private final Object[][] work_;
+
+        /**
+         * Constructor.
+         *
+         * @param  subCoverages  nPart-element array of coverages for
+         *                       component MatchEngines
+         * @param  tupleStarts  nPart-element array of sub-engine start index
+         *                      in combined tuple
+         * @param  tupleSizes   nPart-element array of sub-engine element
+         *                      counts in combined tuple
+         */
+        public CombinedCoverage( Coverage[] subCoverages, 
+                                 int[] tupleStarts, int[] tupleSizes ) {
+            subCoverages_ = subCoverages;
+            tupleStarts_ = tupleStarts;
+            tupleSizes_ = tupleSizes;
+            nPart_ = subCoverages.length;
+            work_ = createWorkspace( tupleSizes );
+        }
+
+        public boolean isEmpty() {
+            for ( Coverage cov : subCoverages_ ) {
+                if ( cov.isEmpty() ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void extend( Object[] tuple ) {
+            for ( int i = 0; i < nPart_; i++ ) {
+                Object[] subTuple = work_[ i ];
+                int tStart = tupleStarts_[ i ];
+                int tSize = tupleSizes_[ i ];
+                System.arraycopy( tuple, tStart, subTuple, 0, tSize );
+                subCoverages_[ i ].extend( subTuple );
+            }
+        }
+
+        public Supplier<Predicate<Object[]>> createTestFactory() {
+            final int[] tupleStarts = tupleStarts_.clone();
+            final int[] tupleSizes = tupleSizes_.clone();
+            final List<Supplier<Predicate<Object[]>>> subTestFacts =
+                new ArrayList<>();
+            for ( int i = 0; i < nPart_; i++ ) {
+                subTestFacts.add( subCoverages_[ i ].createTestFactory() );
+            }
+            return () -> {
+                final Object[][] work = createWorkspace( tupleSizes );
+                final List<Predicate<Object[]>> subTests = new ArrayList<>();
+                for ( int i = 0; i < nPart_; i++ ) {
+                    subTests.add( subTestFacts.get( i ).get() );
+                }
+                return tuple -> {
+                    for ( int i = 0; i < nPart_; i++ ) {
+                        Object[] subTuple = work[ i ];
+                        int tStart = tupleStarts[ i ];
+                        int tSize = tupleSizes[ i ];
+                        System.arraycopy( tuple, tStart, subTuple, 0, tSize );
+                        if ( ! subTests.get( i ).test( subTuple ) ) {
+                            return false;
+                        }
+                    }
+                    return true;
+                };
+            };
+        }
+
+        public void intersection( Coverage other ) {
+            Coverage[] otherSubcovs = ((CombinedCoverage) other).subCoverages_;
+            for ( int i = 0; i < nPart_; i++ ) {
+                subCoverages_[ i ].intersection( otherSubcovs[ i ] );
+            }
+        }
+
+        public void union( Coverage other ) {
+            Coverage[] otherSubcovs = ((CombinedCoverage) other).subCoverages_;
+            for ( int i = 0; i < nPart_; i++ ) {
+                subCoverages_[ i ].union( otherSubcovs[ i ] );
+            }
+        }
+
+        public String coverageText() {
+            StringBuffer sbuf = new StringBuffer();
+            sbuf.append( "(" );
+            for ( int i = 0; i < nPart_; i++ ) {
+                if ( i > 0 ) {
+                    sbuf.append( ", " );
+                }
+                sbuf.append( subCoverages_[ i ].coverageText() );
+            }
+            sbuf.append( ")" );
+            return sbuf.toString();
+        }
+
+        /**
+         * Creates a new workspace array with a sub-array for each sub-tuple.
+         *
+         * @param  tupleSizes  array of tuple sizes
+         * @return  array of arrays, each the right size for a sub-tuple
+         */
+        private static Object[][] createWorkspace( int[] tupleSizes ) {
+            int nPart = tupleSizes.length;
+            Object[][] work = new Object[ nPart ][];
+            for ( int i = 0; i < nPart; i++ ) {
+                work[ i ] = new Object[ tupleSizes[ i ] ];
+            }
+            return work;
         }
     }
 }

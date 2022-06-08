@@ -97,6 +97,14 @@ public class CuboidCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return () -> new CuboidCartesianMatchKit( err2s, binnerFact.get() );
     }
 
+    public Supplier<Coverage> createCoverageFactory() {
+        final double[] errs = new double[ ndim_ ];
+        for ( int idim = 0; idim < ndim_; idim++ ) {
+            errs[ idim ] = getError( idim );
+        }
+        return () -> CuboidCoverage.createFixedCartesianCoverage( ndim_, errs );
+    }
+
     public boolean canBoundMatch() {
         return true;
     }

@@ -103,6 +103,26 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
         return () -> new ErrorMatchKit( pixerFact.get(), coordReader );
     }
 
+    public Supplier<Coverage> createCoverageFactory() {
+        final double scale = getScale();
+        final CoordReader coordReader = getCoordReader();
+        final SkyCoverage.TupleDecoder coneDecoder = ( tuple, lonLatErr ) -> {
+            double alpha = coordReader.getAlpha( tuple );
+            double delta = coordReader.getDelta( tuple );
+            if ( Double.isFinite( alpha ) && Double.isFinite( delta ) ) {
+                lonLatErr[ 0 ] = alpha;
+                lonLatErr[ 1 ] = delta;
+                lonLatErr[ 2 ] = coordReader.getError( tuple );
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+        return () -> SkyCoverage
+                    .createVariableErrorCoverage( scale, coneDecoder );
+    }
+
     /**
      * Returns unity.
      */
