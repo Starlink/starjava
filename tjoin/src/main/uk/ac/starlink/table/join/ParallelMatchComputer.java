@@ -41,7 +41,7 @@ class ParallelMatchComputer implements MatchComputer {
     }
 
     public BinnedRows binRowIndices( Supplier<MatchKit> kitFact,
-                                     Predicate<Object[]> rowSelector,
+                                     Supplier<Predicate<Object[]>> rowSelector,
                                      StarTable tableR,
                                      ProgressIndicator indicator,
                                      String stageTxt )
@@ -54,7 +54,7 @@ class ParallelMatchComputer implements MatchComputer {
     }
 
     public long binRowRefs( Supplier<MatchKit> kitFact,
-                            Predicate<Object[]> rowSelector,
+                            Supplier<Predicate<Object[]>> rowSelector,
                             StarTable table, int tIndex,
                             ObjectBinner<Object,RowRef> binner, boolean newBins,
                             ProgressIndicator indicator, String stageTxt )
@@ -79,7 +79,7 @@ class ParallelMatchComputer implements MatchComputer {
     }
 
     public LinkSet scanBinsForPairs( Supplier<MatchKit> kitFact,
-                                     Predicate<Object[]> rowSelector,
+                                     Supplier<Predicate<Object[]>> rowSelector,
                                      StarTable tableR, int indexR,
                                      StarTable tableS, int indexS,
                                      boolean bestOnly, LongBinner binnerR,
@@ -93,16 +93,15 @@ class ParallelMatchComputer implements MatchComputer {
         return progressCollect( collector, tableS, indicator, stageTxt );
     }
 
-    public NdRange rangeColumns( StarTable table, boolean[] colFlags,
-                                 ProgressIndicator indicator, String stageTxt )
+    public Coverage readCoverage( Supplier<Coverage> covFact, StarTable table,
+                                  ProgressIndicator indicator, String stageTxt )
             throws IOException, InterruptedException {
-        RowCollector<NdRange[]> collector = new RangeCollector( colFlags );
-        NdRange[] rangeHolder =
-            progressCollect( collector, table, indicator, stageTxt );
-        return rangeHolder[ 0 ];
+        RowCollector<Coverage> collector = new CoverageCollector( covFact );
+        return progressCollect( collector, table, indicator, stageTxt );
     }
 
-    public long countRows( StarTable table, Predicate<Object[]> rowSelector,
+    public long countRows( StarTable table,
+                           Supplier<Predicate<Object[]>> rowSelector,
                            ProgressIndicator indicator, String stageTxt )
             throws IOException, InterruptedException {
         RowCollector<long[]> collector = new CountCollector( rowSelector );
@@ -217,7 +216,7 @@ class ParallelMatchComputer implements MatchComputer {
 
         private final Supplier<MatchKit> kitFact_;
         private final boolean isIntSize_;
-        private final Predicate<Object[]> rowSelector_;
+        private final Supplier<Predicate<Object[]>> rowSelector_;
 
         /**
          * Constructor.
@@ -227,7 +226,7 @@ class ParallelMatchComputer implements MatchComputer {
          * @param  rowSelector  rows that fail this test are ignored
          */
         BinCollector( Supplier<MatchKit> kitFact, boolean isIntSize,
-                      Predicate<Object[]> rowSelector ) {
+                      Supplier<Predicate<Object[]>> rowSelector ) {
             kitFact_ = kitFact;
             isIntSize_ = isIntSize;
             rowSelector_ = rowSelector;
@@ -245,9 +244,10 @@ class ParallelMatchComputer implements MatchComputer {
             LongSupplier rowIndex = rseq.rowIndex();
             assert rowIndex != null;
             MatchKit matchKit = kitFact_.get();
+            Predicate<Object[]> inclusion = rowSelector_.get();
             while( rseq.next() ) {
                 Object[] row = rseq.getRow();
-                if ( rowSelector_.test( row ) ) {
+                if ( inclusion.test( row ) ) {
                     Object[] keys = matchKit.getBins( row );
                     int nkey = keys.length;
                     if ( nkey > 0 ) {
@@ -272,7 +272,7 @@ class ParallelMatchComputer implements MatchComputer {
     private static class RefCollector extends RowCollector<SplitBinnedRefs> {
 
         private final Supplier<MatchKit> kitFact_;
-        private final Predicate<Object[]> rowSelector_; 
+        private final Supplier<Predicate<Object[]>> rowSelector_; 
         private final int tIndex_;
         private final Predicate<Object> canAddKey_;
         private final Supplier<ObjectBinner<Object,RowRef>> binnerFactory_;
@@ -292,7 +292,7 @@ class ParallelMatchComputer implements MatchComputer {
          *                         to use in accumulators
          */
         RefCollector( Supplier<MatchKit> kitFact,
-                      Predicate<Object[]> rowSelector,
+                      Supplier<Predicate<Object[]>> rowSelector,
                       int tIndex, Predicate<Object> canAddKey,
                       Supplier<ObjectBinner<Object,RowRef>> binnerFactory ) {
             kitFact_ = kitFact;
@@ -320,12 +320,13 @@ class ParallelMatchComputer implements MatchComputer {
                                     SplitBinnedRefs binned )
                 throws IOException {
             MatchKit matchKit = kitFact_.get();
+            Predicate<Object[]> inclusion = rowSelector_.get();
             ObjectBinner<Object,RowRef> binner = binned.binner_;
             int nin = 0;
             LongSupplier rowIndex = rseq.rowIndex();
             while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
-                if ( rowSelector_.test( row ) ) {
+                if ( inclusion.test( row ) ) {
                     nin++;
                     Object[] keys = matchKit.getBins( row );
                     if ( keys.length > 0 ) {
@@ -351,7 +352,7 @@ class ParallelMatchComputer implements MatchComputer {
         private final Supplier<MatchKit> kitFact_;
         private final int indexR_;
         private final int indexS_;
-        private final Predicate<Object[]> rowSelector_;
+        private final Supplier<Predicate<Object[]>> rowSelector_;
         private final boolean bestOnly_;
         private final StarTable tableR_;
         private final LongBinner binnerR_;
@@ -371,8 +372,8 @@ class ParallelMatchComputer implements MatchComputer {
          * @param  linksetCreator  LinkSet factory
          */
         PairCollector( Supplier<MatchKit> kitFact, int indexR, int indexS,
-                       Predicate<Object[]> rowSelector, boolean bestOnly,
-                       StarTable tableR, LongBinner binnerR,
+                       Supplier<Predicate<Object[]>> rowSelector,
+                       boolean bestOnly, StarTable tableR, LongBinner binnerR,
                        Supplier<LinkSet> linksetCreator ) {
             kitFact_ = kitFact;
             indexR_ = indexR;
@@ -405,6 +406,7 @@ class ParallelMatchComputer implements MatchComputer {
         public void accumulateRows( RowSplittable rseqS, LinkSet linkSet )
                 throws IOException {
             MatchKit matchKit = kitFact_.get();
+            Predicate<Object[]> inclusion = rowSelector_.get();
             LongSupplier rowIndexS = rseqS.rowIndex();
             assert rowIndexS != null;
             try ( RowAccess accessR = tableR_.getRowAccess() ) {
@@ -412,7 +414,7 @@ class ParallelMatchComputer implements MatchComputer {
                 Set<Long> rrowSet = new HashSet<>();
                 while ( rseqS.next() ) {
                     Object[] rowS = rseqS.getRow();
-                    if ( rowSelector_.test( rowS ) ) {
+                    if ( inclusion.test( rowS ) ) {
 
                         /* Identify rows from table R which may match table S.*/
                         Object[] keys = matchKit.getBins( rowS );
@@ -474,75 +476,31 @@ class ParallelMatchComputer implements MatchComputer {
     }
 
     /**
-     * RowCollector implementation for determining column value ranges.
-     *
-     * <p>The accumulator is a 1-element array of NdRanges with
-     * the range information contained in its sole element.
-     * That's because the NdRange object is effectively immutable,
-     * its min/max values can't be changed.
+     * RowCollector implementation for accumulating coordinate coverage.
      */
-    private static class RangeCollector extends RowCollector<NdRange[]> {
-        private final boolean[] colFlags_;
+    private static class CoverageCollector extends RowCollector<Coverage> {
+        private final Supplier<Coverage> covFact_;
 
         /**
          * Constructor.
          *
-         * @param   colFlags  array of same length as table column count
-         *                    indicating which columns are to be scanned
-         *                    for range; output NdRange will be blank in
-         *                    dimensions for which these flags are false
+         * @param   covFact  factory for suitable Coverage objects
          */
-        RangeCollector( boolean[] colFlags ) {
-            colFlags_ = colFlags;
+        CoverageCollector( Supplier<Coverage> covFact ) {
+            covFact_ = covFact;
         }
-        public NdRange[] createAccumulator() {
-            return new NdRange[] { new NdRange( colFlags_.length ) };
+        public Coverage createAccumulator() {
+            return covFact_.get();
         }
-        public NdRange[] combine( NdRange[] rh1, NdRange[] rh2 ) {
-            if ( ! rh1[ 0 ].isBounded() ) {
-                return rh2;
-            }
-            else if ( ! rh2[ 0 ].isBounded() ) {
-                return rh1;
-            }
-            else {
-                // NdRange.union would almost be OK here, but the null
-                // handling is not quite right.
-                int ndim = colFlags_.length;
-                Comparable<?>[] mins1 = rh1[ 0 ].getMins();
-                Comparable<?>[] maxs1 = rh1[ 0 ].getMaxs();
-                Comparable<?>[] mins2 = rh2[ 0 ].getMins();
-                Comparable<?>[] maxs2 = rh2[ 0 ].getMaxs();
-                Comparable<?>[] mins = new Comparable<?>[ ndim ];
-                Comparable<?>[] maxs = new Comparable<?>[ ndim ];
-                for ( int i = 0; i < ndim; i++ ) {
-                    mins[ i ] = NdRange.min( mins1[ i ], mins2[ i ], false );
-                    maxs[ i ] = NdRange.max( maxs1[ i ], maxs2[ i ], false );
-                }
-                return new NdRange[] { new NdRange( mins, maxs ) };
-            }
+        public Coverage combine( Coverage cov1, Coverage cov2 ) {
+            cov1.union( cov2 );
+            return cov1;
         }
-        public void accumulateRows( RowSplittable rseq, NdRange[] rh )
+        public void accumulateRows( RowSplittable rseq, Coverage cov )
                 throws IOException {
-            int ncol = colFlags_.length;
-            Comparable<?>[] mins = rh[ 0 ].getMins();
-            Comparable<?>[] maxs = rh[ 0 ].getMaxs();
-            while( rseq.next() ) {
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    if ( colFlags_[ icol ] ) {
-                        Object cell = rseq.getCell( icol );
-                        if ( cell instanceof Comparable &&
-                             ! Tables.isBlank( cell ) ) {
-                            Comparable<?> val = (Comparable<?>) cell;
-                            mins[ icol ] =
-                                NdRange.min( mins[ icol ], val, false );
-                            maxs[ icol ] =
-                                NdRange.max( maxs[ icol ], val, false );
-                        }
-                    }
-                }
+            while ( rseq.next() ) {
+                cov.extend( rseq.getRow() );
             }
-            rh[ 0 ] = new NdRange( mins, maxs );
         }
     }
 
@@ -552,14 +510,14 @@ class ParallelMatchComputer implements MatchComputer {
      * is the count.
      */
     private static class CountCollector extends RowCollector<long[]> {
-        private final Predicate<Object[]> rowSelector_;
+        private final Supplier<Predicate<Object[]>> rowSelector_;
 
         /**
          * Constructor.
          *
          * @param  rowSelector  filter for rows to be counted
          */
-        CountCollector( Predicate<Object[]> rowSelector ) {
+        CountCollector( Supplier<Predicate<Object[]>> rowSelector ) {
             rowSelector_ = rowSelector;
         }
         public long[] createAccumulator() {
@@ -570,9 +528,10 @@ class ParallelMatchComputer implements MatchComputer {
         }
         public void accumulateRows( RowSplittable rseq, long[] acc )
                 throws IOException {
+            Predicate<Object[]> inclusion = rowSelector_.get();
             long count = acc[ 0 ];
             while ( rseq.next() ) {
-                if ( rowSelector_.test( rseq.getRow() ) ) {
+                if ( inclusion.test( rseq.getRow() ) ) {
                     count++;
                 }
             }

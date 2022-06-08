@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.Tables;
 
 /**
  * Sequential MatchComputer implementation.
@@ -24,7 +23,7 @@ class SequentialMatchComputer implements MatchComputer {
     }
 
     public BinnedRows binRowIndices( Supplier<MatchKit> kitFact,
-                                     Predicate<Object[]> rowSelector,
+                                     Supplier<Predicate<Object[]>> rowSelector,
                                      StarTable tableR,
                                      ProgressIndicator indicator,
                                      String stageTxt )
@@ -35,11 +34,12 @@ class SequentialMatchComputer implements MatchComputer {
         long nref = 0;
         long nexclude = 0;
         MatchKit matchKit = kitFact.get();
+        Predicate<Object[]> inclusion = rowSelector.get();
         try ( ProgressRowSequence rseq =
                   new ProgressRowSequence( tableR, indicator, stageTxt ) ) {
             for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
                 Object[] row = rseq.getRow();
-                if ( rowSelector.test( row ) ) {
+                if ( inclusion.test( row ) ) {
                     Object[] keys = matchKit.getBins( row );
                     int nkey = keys.length;
                     for ( int ikey = 0; ikey < nkey; ikey++ ) {
@@ -70,7 +70,7 @@ class SequentialMatchComputer implements MatchComputer {
     }
 
     public long binRowRefs( Supplier<MatchKit> kitFact,
-                            Predicate<Object[]> rowSelector,
+                            Supplier<Predicate<Object[]>> rowSelector,
                             StarTable table, int tIndex,
                             ObjectBinner<Object,RowRef> binner, boolean newBins,
                             ProgressIndicator indicator, String stageTxt )
@@ -78,11 +78,12 @@ class SequentialMatchComputer implements MatchComputer {
         long nrow = 0;
         long ninclude = 0;
         MatchKit matchKit = kitFact.get();
+        Predicate<Object[]> inclusion = rowSelector.get();
         try ( ProgressRowSequence rseq =
                   new ProgressRowSequence( table, indicator, stageTxt ) ) {
             for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
                 Object[] row = rseq.getRow();
-                if ( rowSelector.test( row ) ) {
+                if ( inclusion.test( row ) ) {
                     ninclude++;
                     Object[] keys = matchKit.getBins( row );
                     if ( keys.length > 0 ) {
@@ -102,7 +103,7 @@ class SequentialMatchComputer implements MatchComputer {
     }
 
     public LinkSet scanBinsForPairs( Supplier<MatchKit> kitFact,
-                                     Predicate<Object[]> rowSelector,
+                                     Supplier<Predicate<Object[]>> rowSelector,
                                      StarTable tableR, int indexR,
                                      StarTable tableS, int indexS,
                                      boolean bestOnly, LongBinner binnerR,
@@ -112,13 +113,14 @@ class SequentialMatchComputer implements MatchComputer {
             throws IOException, InterruptedException {
         LinkSet linkSet = linksetCreator.get();
         MatchKit matchKit = kitFact.get();
+        Predicate<Object[]> inclusion = rowSelector.get();
         try ( ProgressRowSequence sseq =
                   new ProgressRowSequence( tableS, indicator, stageTxt ) ) {
             List<RowLink2> linkList = new ArrayList<>();
             Set<Long> rrowSet = new HashSet<>();
             for ( long isrow = 0; sseq.nextProgress(); isrow++ ) {
                 Object[] srowData = sseq.getRow();
-                if ( rowSelector.test( srowData ) ) {
+                if ( inclusion.test( srowData ) ) {
 
                     /* Identify rows from table R which may match table S. */
                     Object[] keys = matchKit.getBins( srowData );
@@ -173,45 +175,29 @@ class SequentialMatchComputer implements MatchComputer {
         return linkSet;
     }
 
-    public NdRange rangeColumns( StarTable table, boolean[] colFlags,
-                                 ProgressIndicator indicator, String stageTxt )
+    public Coverage readCoverage( Supplier<Coverage> covFact, StarTable table,
+                                  ProgressIndicator indicator, String stageTxt )
             throws IOException, InterruptedException {
-        int ncol = colFlags.length;
-
-        /* Go through each row finding the minimum and maximum value
-         * for each column (coordinate). */
-        Comparable<?>[] mins = new Comparable<?>[ ncol ];
-        Comparable<?>[] maxs = new Comparable<?>[ ncol ];
+        Coverage cov = covFact.get();
         try ( ProgressRowSequence rseq =
                   new ProgressRowSequence( table, indicator, stageTxt ) ) {
             while ( rseq.nextProgress() ) {
-                Object[] row = rseq.getRow();
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    if ( colFlags[ icol ] ) {
-                        Object cell = row[ icol ];
-                        if ( cell instanceof Comparable &&
-                             ! Tables.isBlank( cell ) ) {
-                            Comparable<?> val = (Comparable<?>) cell;
-                            mins[ icol ] =
-                                NdRange.min( mins[ icol ], val, false );
-                            maxs[ icol ] =
-                                NdRange.max( maxs[ icol ], val, false );
-                        }
-                    }
-                }
+                cov.extend( rseq.getRow() );
             }
         }
-        return new NdRange( mins, maxs );
+        return cov;
     }
 
-    public long countRows( StarTable table, Predicate<Object[]> rowSelector,
+    public long countRows( StarTable table,
+                           Supplier<Predicate<Object[]>> rowSelector,
                            ProgressIndicator indicator, String stageTxt )
             throws IOException, InterruptedException {
+        Predicate<Object[]> inclusion = rowSelector.get();
         long nInclude = 0;
         try ( ProgressRowSequence rseq =
                   new ProgressRowSequence( table, indicator, stageTxt ) ) {
             while ( rseq.nextProgress() ) {
-                if ( rowSelector.test( rseq.getRow() ) ) {
+                if ( inclusion.test( rseq.getRow() ) ) {
                     nInclude++;
                 }
             }

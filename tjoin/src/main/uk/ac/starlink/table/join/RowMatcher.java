@@ -10,10 +10,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.RowSequence;
@@ -136,15 +138,14 @@ public class RowMatcher {
      */
     LinkSet findAllPairs( int index1, int index2, boolean bestOnly )
              throws IOException, InterruptedException {
-        int ncol = getPairColumnCount( index1, index2 );
 
         /* Work out which table will have its rows cached in bins 
          * (R for Random) and which will just be scanned (S for Sequential),
-         * and possibly calculate a common range within which any matches
+         * and possibly calculate a common coverage within which any matches
          * must fall. */
         final int indexR;
         final int indexS;
-        final NdRange range;
+        final Coverage coverage;
 
         /* If neither table has random access, we can't proceed. */
         if ( ! tables_[ index1 ].isRandom() &&
@@ -157,13 +158,13 @@ public class RowMatcher {
             assert tables_[ index2 ].isRandom();
             indexS = index1;
             indexR = index2;
-            range = new NdRange( ncol );
+            coverage = Coverage.FULL;
         }
         else if ( ! tables_[ index2 ].isRandom() ) {
             assert tables_[ index1 ].isRandom();
             indexS = index2;
             indexR = index1;
-            range = new NdRange( ncol );
+            coverage = Coverage.FULL;
         }
 
         /* If both tables have random access, calculate the possible match
@@ -172,10 +173,10 @@ public class RowMatcher {
         else {
             Intersection intersect =
                 getIntersection( new int[] { index1, index2 } );
-            range = intersect.range_;
+            coverage = intersect.coverage_;
 
             /* No overlap means no matches. */
-            if ( range == null ) {
+            if ( coverage.isEmpty() ) {
                 return createLinkSet();
             }
             else {
@@ -194,7 +195,8 @@ public class RowMatcher {
 
         /* Perform the actual match given the table ordering and range we
          * have calculated. */
-        return scanForPairs( indexR, indexS, range, bestOnly );
+        return scanForPairs( indexR, indexS, coverage.createTestFactory(),
+                             bestOnly );
     }
 
     /**
@@ -203,13 +205,15 @@ public class RowMatcher {
      *
      * @param  indexR  index of table which will be accessed randomly
      * @param  indexS  index of table which will be accessed sequentially
-     * @param  range   range outside which pairs can be ignored
+     * @param   rowSelector   filter for rows to be included;
+     *                        tuples that fail this test are ignored
      * @param  bestOnly  if false, all matches will be included in the result;
      *         if true, for each row in the sequential table, only the best
      *         match in the random table will be included
      * @return  links representing pair matches
      */
-    LinkSet scanForPairs( int indexR, int indexS, NdRange range,
+    LinkSet scanForPairs( int indexR, int indexS,
+                          Supplier<Predicate<Object[]>> rowSelector,
                           boolean bestOnly )
             throws IOException, InterruptedException {
 
@@ -217,7 +221,7 @@ public class RowMatcher {
         MatchComputer.BinnedRows binned =
             computer_
            .binRowIndices( engine_.createMatchKitFactory(),
-                           range::isInside, tables_[ indexR ],
+                           rowSelector, tables_[ indexR ],
                            indicator_, "Binning rows for table " + (indexR+1) );
         LongBinner binnerR = binned.getLongBinner();
         long nbin = binnerR.getBinCount();
@@ -235,8 +239,7 @@ public class RowMatcher {
 
         /* Scan the rows for the sequential table. */
         return computer_
-              .scanBinsForPairs( engine_.createMatchKitFactory(),
-                                 range::isInside,
+              .scanBinsForPairs( engine_.createMatchKitFactory(), rowSelector,
                                  tables_[ indexR ], indexR,
                                  tables_[ indexS ], indexS,
                                  bestOnly, binnerR, this::createLinkSet,
@@ -500,11 +503,10 @@ public class RowMatcher {
      */
     private LinkSet getAllPossibleLinks()
             throws IOException, InterruptedException {
-        NdRange range = new NdRange( tables_[ 0 ].getColumnCount() );
         ObjectBinner<Object,RowRef> binner = Binners.createObjectBinner();
         long totalRows = 0;
         for ( int itab = 0; itab < nTable_; itab++ ) {
-            binRowRefs( itab, range, binner, true );
+            binRowRefs( itab, Coverage.FULL, binner, true );
             totalRows += tables_[ itab ].getRowCount();
         }
         long nBin = binner.getBinCount();
@@ -528,8 +530,8 @@ public class RowMatcher {
         StarTable table = tables_[ itable ];
         MatchComputer.BinnedRows binned =
             computer_
-           .binRowIndices( engine_.createMatchKitFactory(), row -> true,
-                           table, indicator_,
+           .binRowIndices( engine_.createMatchKitFactory(),
+                           Coverage.FULL.createTestFactory(), table, indicator_,
                            "Binning rows for table " + ( itable + 1 ) );
         LongBinner binner = binned.getLongBinner();
         long nRow = table.getRowCount();
@@ -556,68 +558,51 @@ public class RowMatcher {
      */
     private Intersection getIntersection( int[] iTables )
             throws IOException, InterruptedException {
-        int ncol = tables_[ iTables[ 0 ] ].getColumnCount();
         int nt = iTables.length;
-        long[] inRangeCounts = new long[ nt ];
-        for ( int iTable = 0; iTable < nt; iTable++ ) {
-            int index = iTables[ iTable ];
-            inRangeCounts[ iTable ] = tables_[ index ].getRowCount();
-        }
-        NdRange range;
-        if ( engine_.canBoundMatch() && iTables.length > 1 ) {
+        Supplier<Coverage> covFact = engine_.createCoverageFactory();
+        if ( covFact != null && nt > 1 ) {
             indicator_.logMessage( "Attempt to locate " +
                                    "restricted common region" );
-            try {
-                NdRange[] inRanges = new NdRange[ nt ];
+            Coverage[] covs = new Coverage[ nt ];
+            for ( int iTable = 0; iTable < nt; iTable++ ) {
+                int index = iTables[ iTable ];
+                covs[ iTable ] = readCoverage( covFact, index );
+            }
+            Coverage coverage = covs[ 0 ];
+            for ( int iTable = 1; iTable < nt; iTable++ ) {
+                coverage.intersection( covs[ iTable ] );
+            }
+            if ( ! coverage.isEmpty() ) {
+                indicator_.logMessage( "Potential match region: "
+                                     + coverage.coverageText() );
+                long[] inRangeCounts = new long[ nt ];
                 for ( int iTable = 0; iTable < nt; iTable++ ) {
                     int index = iTables[ iTable ];
-                    inRanges[ iTable ] = readTupleRange( index );
+                    String msg = "Counting rows in match region for table "
+                               + ( index + 1 );
+                    long nr = computer_
+                             .countRows( tables_[ index ],
+                                         coverage.createTestFactory(),
+                                         indicator_, msg );
+                    inRangeCounts[ iTable ] = nr;
+                    indicator_.logMessage( nr + " rows in match region" );
                 }
-                NdRange[] extRanges = new NdRange[ nt ];
-                for ( int iTable = 0; iTable < nt; iTable++ ) {
-                    extRanges[ iTable ] =
-                        engine_.getMatchBounds( inRanges, iTable );
-                }
-                range = extRanges[ 0 ];
-                for ( int iTable = 1; iTable < nt; iTable++ ) {
-                    range = NdRange.intersection( range, extRanges[ iTable ] );
-                }
-                if ( range != null ) {
-                    indicator_.logMessage( "Potential match region: " + range );
-                    for ( int iTable = 0; iTable < nt; iTable++ ) {
-                        int index = iTables[ iTable ];
-                        String msg = "Counting rows in match region for table "
-                                   + ( index + 1 );
-                        long nr = computer_
-                                 .countRows( tables_[ index ], range::isInside,
-                                             indicator_, msg );
-                        inRangeCounts[ iTable ] = nr;
-                        indicator_.logMessage( nr + " rows in match region" );
-                    }
-                }
-                else {
-                    indicator_.logMessage( "No region overlap"
-                                         + " - matches not possible" );
-                    return new Intersection( null, new long[ iTables.length ] );
-                }
+                return new Intersection( coverage, inRangeCounts );
             }
-
-            /* The compare() method used in the above processing could
-             * result in ClassCastExceptions if some of the columns 
-             * are comparable, but not mutually comparable.
-             * This is not very likely, but in that case catch the error,
-             * forget about trying to identify bounds, and move on.
-             * This will only impact efficiency, not correctness. */ 
-            catch ( ClassCastException e ) {
-                indicator_.logMessage( "Common region location failed " +
-                                       "(incompatible value types)" );
-                range = new NdRange( ncol );
+            else {
+                indicator_.logMessage( "No region overlap"
+                                     + " - matches not possible" );
+                return new Intersection( coverage, new long[ nt ] );
             }
         }
         else {
-            range = new NdRange( ncol );
+            long[] nrows = new long[ nt ];
+            for ( int iTable = 0; iTable < nt; iTable++ ) {
+                int index = iTables[ iTable ];
+                nrows[ iTable ] = tables_[ index ].getRowCount();
+            }
+            return new Intersection( Coverage.FULL, nrows );
         }
-        return new Intersection( range, inRangeCounts );
     }
 
     /**
@@ -746,61 +731,53 @@ public class RowMatcher {
      */
     private LinkSet getPossibleMultiPairLinks( int index0 )
             throws IOException, InterruptedException {
-        int ncol = tables_[ index0 ].getColumnCount();
 
-        /* Attempt to restrict ranges for match assessments if we can. */
-        NdRange range;
-        if ( engine_.canBoundMatch() ) {
+        /* Attempt to restrict coverage for match assessments if we can. */
+        Supplier<Coverage> coverageFact = engine_.createCoverageFactory();
+        final Coverage coverage;
+        if ( coverageFact != null ) {
             indicator_.logMessage( "Attempt to locate "
                                  + "restricted common region" );
-            try {
-
-                /* Locate the ranges of all the tables. */
-                NdRange[] inRanges = new NdRange[ nTable_ ];
-                for ( int i = 0; i < nTable_; i++ ) {
-                    inRanges[ i ] = readTupleRange( i );
+            Coverage cov0 = null;
+            List<Coverage> covOthers = new LinkedList<>();
+            for ( int i = 0; i < nTable_; i++ ) {
+                Coverage cov = readCoverage( coverageFact, i );
+                if ( i == index0 ) {
+                    cov0 = cov;
                 }
-                NdRange[] extRanges = new NdRange[ nTable_ ];
-                for ( int i = 0; i < nTable_; i++ ) {
-                    extRanges[ i ] = engine_.getMatchBounds( inRanges, i );
+                else {
+                    covOthers.add( cov );
                 }
-
-                /* Work out the range of the reference table which we are
-                 * interested in.  This is its intersection with the union 
-                 * of all the other tables. */
-                NdRange unionOthers = null;
-                for ( int i = 0; i < nTable_; i++ ) {
-                    if ( i != index0 ) {
-                        unionOthers = unionOthers == null
-                                    ? extRanges[ i ]
-                                    : NdRange.union( unionOthers,
-                                                     extRanges[ i ] );
-                    }
-                }
-                range = NdRange.intersection( extRanges[ index0 ],
-                                              unionOthers );
-                indicator_.logMessage( "Potential match region: " + range );
             }
-            catch ( ClassCastException e ) {
-                indicator_.logMessage( "Region location failed "
-                                     + "(incompatible value types)" );
-                range = new NdRange( ncol );
+            assert cov0 != null;
+            assert ! covOthers.isEmpty();
+
+            /* Work out the range of the reference table which we are
+             * interested in.  This is its intersection with the union 
+             * of all the other tables. */
+            Coverage unionOthers = covOthers.remove( 0 );
+            while ( ! covOthers.isEmpty() ) {
+                unionOthers.union( covOthers.remove( 0 ) );
             }
+            cov0.intersection( unionOthers );
+            coverage = cov0;
+            indicator_.logMessage( "Potential match region: "
+                                 + coverage.coverageText() );
         }
         else {
-            range = new NdRange( ncol );
+            coverage = Coverage.FULL;
         }
 
         /* Bin all the rows in the interesting region of the reference table. */
         ObjectBinner<Object,RowRef> binner = Binners.createObjectBinner();
-        binRowRefs( index0, range, binner, true );
+        binRowRefs( index0, coverage, binner, true );
 
         /* Bin any rows in the other tables which have entries in the bins
          * we have already created for the reference table.  Rows without
          * such entries can be ignored. */
         for ( int itab = 0; itab < nTable_; itab++ ) {
             if ( itab != index0 ) {
-                binRowRefs( itab, range, binner, false );
+                binRowRefs( itab, coverage, binner, false );
             }
         }
 
@@ -1161,23 +1138,6 @@ public class RowMatcher {
     }
 
     /**
-     * Returns the common number of columns for two tables owned by this
-     * matcher.  If the number differs between the two, an exception is
-     * thrown.
-     * 
-     * @param  index1  index of one table
-     * @param  index2  index of other table
-     * @return  number of columns for both tables
-     */
-    int getPairColumnCount( int index1, int index2 ) {
-        int ncol = tables_[ index1 ].getColumnCount();
-        if ( tables_[ index2 ].getColumnCount() != ncol ) {
-            throw new IllegalArgumentException( "Column count mismatch" );
-        }
-        return ncol;
-    }
-
-    /**
      * Creates a RowMatcher instance.
      *
      * @param  engine  matching engine
@@ -1260,69 +1220,21 @@ public class RowMatcher {
     }
 
     /**
-     * Calculates the upper and lower bounds of the region in tuple-space
-     * for one of this matcher's tables.  The result represents a rectangular
-     * region in tuple-space.  Any of the bounds may be null to indicate
-     * no limit in that direction.
-     * Note that this range does not include any padding to accommodate
-     * matches within a search radius (or similar concept) of the edge.
+     * Determines the coverage of all the rows in one of this matcher's tables.
      *
-     * @param   tIndex  index of the table to calculate limits for
-     * @return  range   bounds of tuple-space region inhabited by table
-     * @throws  ClassCastException  if objects are not mutually comparable
+     * @param   tIndex  index of the table to calculate coverage for
+     * @return  coverage of tuples in table
      */
-    private NdRange readTupleRange( int tIndex )
+    private Coverage readCoverage( Supplier<Coverage> coverageFact, int tIndex )
             throws IOException, InterruptedException {
         StarTable table = tables_[ tIndex ];
-        int ncol = table.getColumnCount();
-
-        /* See which columns are comparable. */
-        boolean[] isComparable = new boolean[ ncol ];
-        int ncomp = 0;
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            if ( Comparable.class.isAssignableFrom( table.getColumnInfo( icol )
-                                                   .getContentClass() ) ) {
-                isComparable[ icol ] = true;
-                ncomp++;
-            }
-        }
-
-        /* If none of the columns is comparable, there's no point. */
-        if ( ncomp == 0 ) {
-            return new NdRange( ncol );
-        }
-
-        /* Calculate the ranges. */
-        NdRange rawRange =
+        Coverage cov =
             computer_
-           .rangeColumns( tables_[ tIndex ], isComparable, indicator_,
+           .readCoverage( coverageFact, table, indicator_,
                           "Assessing range of coordinates from table "
-                          + ( tIndex + 1 ) );
-        Comparable<?>[] mins = rawRange.getMins().clone();
-        Comparable<?>[] maxs = rawRange.getMaxs().clone();
-
-        /* Deal sensibly with funny numbers. */
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            if ( mins[ icol ] instanceof Number ) {
-                double min = ((Number) mins[ icol ]).doubleValue();
-                assert ! Double.isNaN( min );
-                if ( Double.isInfinite( min ) ) {
-                    mins[ icol ] = null;
-                }
-            }
-            if ( maxs[ icol ] instanceof Number ) {
-                double max = ((Number) maxs[ icol ]).doubleValue();
-                assert ! Double.isNaN( max );
-                if ( Double.isInfinite( max ) ) {
-                    maxs[ icol ] = null;
-                }
-            }
-        }
-
-        /* Report and return. */
-        NdRange range = new NdRange( mins, maxs );
-        indicator_.logMessage( "Limits are: " + range );
-        return range;
+                        + ( tIndex + 1 ) );
+        indicator_.logMessage( "Coverage is: " + cov.coverageText() );
+        return cov;
     }
 
     /**
@@ -1337,22 +1249,22 @@ public class RowMatcher {
      * the <code>binner</code> object will be added and others will be ignored.
      *
      * @param   itab   index of table to operate on
-     * @param   range  range of row coordinates of interest - any rows outside
-     *                 this range are ignored
+     * @param   coverage  range of row coordinates of interest;
+     *                    any rows outside coverage are ignored
      * @param   binner   binner object to modify
      * @param   newBins  whether new bins may be added to <code>bins</code>
      */
-    private void binRowRefs( int itab, NdRange range,
+    private void binRowRefs( int itab, Coverage coverage,
                              ObjectBinner<Object,RowRef> binner,
                              boolean newBins )
             throws IOException, InterruptedException {
-        if ( range == null ) {
+        if ( coverage.isEmpty() ) {
             return;
         }
         StarTable table = tables_[ itab ];
         long ninclude =
             computer_.binRowRefs( engine_.createMatchKitFactory(),
-                                  range::isInside, table, itab,
+                                  coverage.createTestFactory(), table, itab,
                                   binner, newBins, indicator_,
                                   "Binning rows for table " + ( itab + 1 ) );
         long nrow = table.getRowCount();
@@ -1546,17 +1458,17 @@ public class RowMatcher {
      * Encapsulates information about a range intersection of multiple tables.
      */
     private static class Intersection {
-        final NdRange range_;
+        final Coverage coverage_;
         final long[] inRangeCounts_;
 
         /**
          * Constructor.
          *
-         * @param   range  common range
-         * @param   inRangeCounts  per-table count of rows within the range
+         * @param  coverage  common coverage
+         * @param  inRangeCounts per-table count of rows within the coverage
          */
-        public Intersection( NdRange range, long[] inRangeCounts ) {
-            range_ = range;
+        public Intersection( Coverage coverage, long[] inRangeCounts ) {
+            coverage_ = coverage;
             inRangeCounts_ = inRangeCounts;
         }
     }

@@ -41,9 +41,9 @@ public enum PairMode {
     BEST1( true, "Best match for each Table 1 row" ) {
         LinkSet findPairMatches( RowMatcher rowMatcher )
                 throws IOException, InterruptedException {
-            NdRange range =
-                new NdRange( rowMatcher.getPairColumnCount( 0, 1 ) );
-            return rowMatcher.scanForPairs( 1, 0, range, true );
+            return rowMatcher
+                  .scanForPairs( 1, 0, Coverage.FULL.createTestFactory(),
+                                 true );
         }
     },
 
@@ -55,9 +55,9 @@ public enum PairMode {
     BEST2( true, "Best match for each Table 2 row" ) {
         LinkSet findPairMatches( RowMatcher rowMatcher )
                 throws IOException, InterruptedException {
-            NdRange range =
-                new NdRange( rowMatcher.getPairColumnCount( 0, 1 ) );
-            return rowMatcher.scanForPairs( 0, 1, range, true );
+            return rowMatcher
+                  .scanForPairs( 0, 1, Coverage.FULL.createTestFactory(),
+                                 true );
         }
     };
 
