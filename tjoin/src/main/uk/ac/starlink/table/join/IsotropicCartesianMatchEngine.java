@@ -95,15 +95,6 @@ public class IsotropicCartesianMatchEngine
         return () -> CuboidCoverage.createFixedCartesianCoverage( ndim_, err );
     }
 
-    public boolean canBoundMatch() {
-        return true;
-    }
-
-    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-        return createExtendedBounds( inRanges[ index ], getError(),
-                                     indexRange( 0, ndim_ ) );
-    }
-
     public String toString() {
         return ndim_ + "-d Cartesian";
     }

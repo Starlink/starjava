@@ -191,22 +191,6 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
         return 2.0;
     }
 
-    public boolean canBoundMatch() {
-        return true;
-    }
-
-    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-        double maxRadius = 0;
-        for ( NdRange inRange : inRanges ) {
-            Comparable<?>[] maxs = inRange.getMaxs();
-            maxRadius = Math.max( maxRadius,
-                                  Math.max( getNumberValue( maxs[ 2 ] ),
-                                            getNumberValue( maxs[ 3 ] ) ) );
-        }
-        return createExtendedSkyBounds( inRanges[ index ], 0, 1,
-                                        2 * maxRadius );
-    }
-
     public String toString() {
         return "Sky Ellipses";
     }
@@ -552,20 +536,6 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
                 return createSkyEllipse( alpha, delta, mu, nu, zeta,
                                          recogniseCircles );
             };
-        }
-        @Override
-        public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-            double maxRadiusArcsec = 0;
-            for ( NdRange inRange : inRanges ) {
-                Comparable<?>[] maxs = inRange.getMaxs();
-                maxRadiusArcsec =
-                    Math.max( maxRadiusArcsec,
-                              Math.max( getNumberValue( maxs[ 2 ] ),
-                                        getNumberValue( maxs[ 3 ] ) ) );
-            }
-            double maxRadius = maxRadiusArcsec * FROM_ARCSEC;
-            return createExtendedSkyBoundsDegrees( inRanges[ index ], 0, 1,
-                                                   2 * maxRadius );
         }
     }
 

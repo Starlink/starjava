@@ -185,25 +185,6 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
     }
 
     /**
-     * Multiplies all the min and max values in a given NdRange by a
-     * supplied factor.
-     *
-     * @param   range  input range
-     * @param   factor  multiplicand
-     * @return   rescaled NdRange
-     */
-    static NdRange multiplyNdRange( NdRange range, double factor ) {
-        Comparable<?>[] mins = range.getMins().clone();
-        Comparable<?>[] maxs = range.getMaxs().clone();
-        int ndim = mins.length;
-        for ( int i = 0; i < ndim; i++ ) {
-            mins[ i ] = multiply( mins[ i ], factor );
-            maxs[ i ] = multiply( maxs[ i ], factor );
-        }
-        return new NdRange( mins, maxs );
-    }
-
-    /**
      * Law of cosines for spherical trigonometry.
      * This is ill-conditioned for small angles (the cases we are generally
      * interested in here).  So don't use it!
@@ -253,103 +234,6 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
     }
 
     /**
-     * Utility method to return a pair of min/max comparable arrays
-     * based on an input pair, but with RA and Dec coordinates extended
-     * according to a known error radius.
-     * For the indicated RA and Dec elements the bounds will be widened
-     * appropriately.  Other elements will be null.
-     * If the RA/Dec bounds cannot be extended appropriately for some reason,
-     * null will be used.
-     *
-     * @param  inRange   input bounds
-     * @param  ialpha    index in tuples of the right ascension coordinate
-     * @param  idelta    index in tuples of the declination coordinate
-     * @param  err       amount in radians to extend bounds by
-     * @return output bounds - effectively input bounds broadened by errors
-     */
-    static NdRange createExtendedSkyBounds( NdRange inRange, int ialpha,
-                                            int idelta, double err ) {
-        Comparable<?>[] minTuple = inRange.getMins();
-        Comparable<?>[] maxTuple = inRange.getMaxs();
-
-        /* Get numeric values of sky coordinate input limits. */
-        double alphaMinIn = getNumberValue( minTuple[ ialpha ] );
-        double deltaMinIn = getNumberValue( minTuple[ idelta ] );
-        double alphaMaxIn = getNumberValue( maxTuple[ ialpha ] );
-        double deltaMaxIn = getNumberValue( maxTuple[ idelta ] );
-
-        /* Calculate the corresponding output limits - these are similar,
-         * but including an extra error of separation in any direction.
-         * Any that we can't work out for one reason or another is stored
-         * as NaN. */
-        double alphaMinOut;
-        double alphaMaxOut;
-        double deltaMinOut = deltaMinIn - err;
-        double deltaMaxOut = deltaMaxIn + err;
-        if ( ! Double.isNaN( deltaMinOut ) && ! Double.isNaN( deltaMaxOut ) ) {
-
-            /* Use trig to adjust right ascension limits accordingly. */
-            double alphaDiffMax =
-                Math.max( Math.abs( err / Math.cos( deltaMinOut ) ),
-                          Math.abs( err / Math.cos( deltaMaxOut ) ) );
-            alphaMinOut = alphaMinIn - alphaDiffMax;
-            alphaMaxOut = alphaMaxIn + alphaDiffMax;
-
-            /* Check that the RA limits are in the range 0-360 degrees.
-             * If not, the range may be straddling RA=0, or may be using
-             * an unconventional range for RA.  In either case, attempting
-             * to use box-like bounds to confine the possible match range
-             * may do the wrong thing.  There's nothing magic about the
-             * range 0..360 (as opposed to, e.g., -180..180), but it is
-             * necessary that all the datasets for a given match use the
-             * same range convention.  If any of the limits are out of
-             * range in this way, give up on attempting to provide
-             * bounding values for RA.  Note this test will catch values
-             * which are infinite or NaN as well. */
-            if ( ! ( alphaMinOut >= 0 && alphaMinOut <= 2 * Math.PI &&
-                     alphaMaxOut >= 0 && alphaMaxOut <= 2 * Math.PI ) ) {
-                alphaMinOut = Double.NaN;
-                alphaMaxOut = Double.NaN;
-            }
-        }
-        else {
-            alphaMinOut = Double.NaN;
-            alphaMaxOut = Double.NaN;
-        }
-
-        /* Finally insert the values as objects into appropriate output
-         * Comparable arrays and return the result. */
-        Comparable<?>[] minOuts = new Comparable<?>[ minTuple.length ];
-        Comparable<?>[] maxOuts = new Comparable<?>[ maxTuple.length ];
-        minOuts[ ialpha ] = toFloatingNumber( alphaMinOut, minTuple[ ialpha ] );
-        minOuts[ idelta ] = toFloatingNumber( deltaMinOut, minTuple[ idelta ] );
-        maxOuts[ ialpha ] = toFloatingNumber( alphaMaxOut, maxTuple[ ialpha ] );
-        maxOuts[ idelta ] = toFloatingNumber( deltaMaxOut, maxTuple[ idelta ] );
-        return new NdRange( minOuts, maxOuts );
-    }
-
-    /**
-     * Invokes {@link #createExtendedSkyBounds} with input and output
-     * NdRanges in degrees rather than radians.
-     *
-     * @param  inRange   input bounds, RA and Dec limits in degrees
-     * @param  ialphaDeg index in tuples of the right ascension coordinate
-     *                   measured in degrees
-     * @param  ideltaDeg index in tuples of the declination coordinate
-     *                   measured in degrees
-     * @param  errRadians    amount in radians to extend bounds by
-     * @return output bounds - effectively input bounds broadened by errors
-     */
-    static NdRange createExtendedSkyBoundsDegrees( NdRange inRange,
-                                                   int ialphaDeg, int ideltaDeg,
-                                                   double errRadians ) {
-        return multiplyNdRange(
-               createExtendedSkyBounds( multiplyNdRange( inRange, FROM_DEG ),
-                                        ialphaDeg, ideltaDeg, errRadians ),
-               TO_DEG );
-    }
-
-    /**
      * Returns the numeric value for an object if it is a Number,
      * and NaN otherwise.
      *
@@ -360,32 +244,6 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
         return numobj instanceof Number
              ? ((Number) numobj).doubleValue()
              : Double.NaN;
-    }
-
-    /**
-     * Turn a numeric value into a floating point number object
-     * of the same type as a template object.  If the template is not
-     * Float or Double, or if the value is NaN, null is returned.
-     *
-     * @param   value  numeric value
-     * @param   template  object with template type
-     * @return  Float or Double object of same type as template and value
-     *          as value, or null
-     */
-    private static Comparable<?> toFloatingNumber( double value,
-                                                   Comparable<?> template ) {
-        if ( Double.isNaN( value ) ) {
-            return null;
-        }
-        else if ( template instanceof Double ) {
-            return new Double( value );
-        }
-        else if ( template instanceof Float ) {
-            return new Float( (float) value );
-        }
-        else {
-            return null;
-        }
     }
 
     /**

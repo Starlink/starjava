@@ -145,22 +145,6 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
                     .createVariableErrorCoverage( 2, pointDecoder, errDecoder );
     }
 
-    public boolean canBoundMatch() {
-        return true;
-    }
-
-    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-        double maxRadius = 0;
-        for ( NdRange inRange : inRanges ) {
-            Comparable<?>[] maxs = inRange.getMaxs();
-            double maxA = getNumberValue( maxs[ 2 ] );
-            double maxB = getNumberValue( maxs[ 3 ] );
-            maxRadius = Math.max( maxRadius, Math.max( maxA, maxB ) );
-        }
-        return createExtendedBounds( inRanges[ index ], 2 * maxRadius,
-                                     indexRange( 0, 2 ) );
-    }
-
     /**
      * Returns the position angle in radians given the corresponding
      * tuple element.

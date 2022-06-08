@@ -9,7 +9,6 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.Coverage;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchKit;
-import uk.ac.starlink.table.join.NdRange;
 import uk.ac.starlink.ttools.func.CoordsRadians;
 
 /**
@@ -170,27 +169,6 @@ public class HumanMatchEngine implements MatchEngine {
         return scoreInfo_;
     }
 
-    public boolean canBoundMatch() {
-        return baseEngine_.canBoundMatch();
-    }
-
-    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-        int nr = inRanges.length;
-        NdRange[] unwrappedInRanges = new NdRange[ nr ];
-        for ( int ir = 0; ir < nr; ir++ ) {
-            NdRange inRng = inRanges[ ir ];
-            unwrappedInRanges[ ir ] =
-                new NdRange( toComparables( unwrapTuple( inRng.getMins() ) ),
-                             toComparables( unwrapTuple( inRng.getMaxs() ) ) );
-        }
-        NdRange unwrappedResult =
-            baseEngine_.getMatchBounds( unwrappedInRanges, index );
-        return new NdRange( toComparables( wrapTuple( unwrappedResult
-                                                     .getMins() ) ),
-                            toComparables( wrapTuple( unwrappedResult
-                                                     .getMaxs() ) ) );
-    }
-
     /**
      * Unwraps a tuple of objects from a client of this engine, providing
      * one suitable for the base engine.
@@ -219,24 +197,6 @@ public class HumanMatchEngine implements MatchEngine {
             wrapped[ i ] = tupleWrappers_[ i ].wrapValue( unwrapped[ i ] );
         }
         return wrapped;
-    }
-
-    /**
-     * Converts an array of <code>Object[]</code> to an array of
-     * <code>Comparable[]</code>.  Anything which is not comparable is
-     * replaced by null.
-     *
-     * @param  objs  objects
-     * @return   comparable array with the same contents as <code>objs</code>
-     */
-    private Comparable<?>[] toComparables( Object[] objs ) {
-        Comparable<?>[] comps = new Comparable<?>[ objs.length ];
-        for ( int i = 0; i < comps.length; i++ ) {
-            comps[ i ] = objs[ i ] instanceof Comparable 
-                       ? (Comparable<?>) objs[ i ]
-                       : null;
-        }
-        return comps;
     }
 
     /** 

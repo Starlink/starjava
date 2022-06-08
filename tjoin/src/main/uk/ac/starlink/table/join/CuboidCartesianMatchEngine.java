@@ -105,25 +105,8 @@ public class CuboidCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return () -> CuboidCoverage.createFixedCartesianCoverage( ndim_, errs );
     }
 
-    public boolean canBoundMatch() {
-        return true;
-    }
-
     public double getScoreScale() {
         return scoreScale_;
-    }
-
-    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-        Comparable<?>[] inMins = inRanges[ index ].getMins();
-        Comparable<?>[] inMaxs = inRanges[ index ].getMaxs();
-        Comparable<?>[] outMins = new Comparable<?>[ ndim_ ];
-        Comparable<?>[] outMaxs = new Comparable<?>[ ndim_ ];
-        for ( int id = 0; id < ndim_; id++ ) {
-            double err = getError( id );
-            outMins[ id ] = add( inMins[ id ], -err );
-            outMaxs[ id ] = add( inMaxs[ id ], +err );
-        }
-        return new NdRange( outMins, outMaxs );
     }
 
     public String toString() {

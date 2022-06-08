@@ -154,45 +154,6 @@ public class CombinedMatchEngine implements MatchEngine {
         return params.toArray( new DescribedValue[ 0 ] );
     }
 
-    public boolean canBoundMatch() {
-        for ( int i = 0; i < nPart_; i++ ) {
-            if ( engines_[ i ].canBoundMatch() ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-        int nr = inRanges.length;
-        Comparable<?>[] outMins = inRanges[ index ].getMins().clone();
-        Comparable<?>[] outMaxs = inRanges[ index ].getMaxs().clone();
-        for ( int ip = 0; ip < nPart_; ip++ ) {
-            MatchEngine engine = engines_[ ip ];
-            if ( engine.canBoundMatch() ) {
-                int size = tupleSizes_[ ip ];
-                int start = tupleStarts_[ ip ];
-                NdRange[] subInRanges = new NdRange[ nr ];
-                for ( int ir = 0; ir < nr; ir++ ) {
-                    Comparable<?>[] subInMins = new Comparable<?>[ size ];
-                    Comparable<?>[] subInMaxs = new Comparable<?>[ size ];
-                    System.arraycopy( inRanges[ ir ].getMins(), start,
-                                      subInMins, 0, size );
-                    System.arraycopy( inRanges[ ir ].getMaxs(), start,
-                                      subInMaxs, 0, size );
-                    subInRanges[ ir ] = new NdRange( subInMins, subInMaxs );
-                }
-                NdRange subOutRange =
-                     engine.getMatchBounds( subInRanges, index );
-                System.arraycopy( subOutRange.getMins(), 0,
-                                  outMins, start, size );
-                System.arraycopy( subOutRange.getMaxs(), 0,
-                                  outMaxs, start, size );
-            }
-        }
-        return new NdRange( outMins, outMaxs );
-    }
-
     public void setName( String name ) {
         name_ = name;
     }

@@ -96,18 +96,6 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
         return getError();
     }
 
-    /**
-     * Returns false.  It would probably be possible to implement this,
-     * but not very easy.
-     */
-    public boolean canBoundMatch() {
-        return false;
-    }
-
-    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-        throw new UnsupportedOperationException();
-    }
-
     public String toString() {
         return "Sky 3D";
     }

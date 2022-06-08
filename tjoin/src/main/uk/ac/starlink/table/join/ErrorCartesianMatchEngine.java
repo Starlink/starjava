@@ -110,20 +110,6 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return 1.0;
     }
 
-    public boolean canBoundMatch() {
-        return true;
-    }
-
-    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-        double maxRadius = 0;
-        for ( NdRange inRange : inRanges ) {
-            maxRadius = Math.max( maxRadius,
-                                  getTupleError( inRange.getMaxs() ) );
-        }
-        return createExtendedBounds( inRanges[ index ], 2 * maxRadius,
-                                     indexRange( 0, ndim_ ) );
-    }
-
     /**
      * Returns the Cartesian position coordinates associated with an
      * input tuple.

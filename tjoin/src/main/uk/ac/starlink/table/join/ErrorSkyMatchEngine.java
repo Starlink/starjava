@@ -130,21 +130,6 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
         return 1.0;
     }
 
-    public boolean canBoundMatch() {
-        return true;
-    }
-
-    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-        double maxRadius = 0;
-        for ( NdRange inRange : inRanges ) {
-            maxRadius =
-                Math.max( maxRadius,
-                          getCoordReader().getError( inRange.getMaxs() ) );
-        }
-        return createExtendedSkyBounds( inRanges[ index ], 0, 1,
-                                        2 * maxRadius );
-    }
-
     public String toString() {
         return "Sky with Errors";
     }
@@ -310,18 +295,6 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
         @Override
         CoordReader getCoordReader() {
             return CoordReader.DEGREES;
-        }
-        @Override
-        public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-            double maxRadiusArcsec = 0;
-            for ( NdRange inRange : inRanges ) {
-                maxRadiusArcsec =
-                    Math.max( maxRadiusArcsec,
-                              getNumberValue( inRange.getMaxs()[ 2 ] ) );
-            }
-            double maxRadius = maxRadiusArcsec * FROM_ARCSEC;
-            return createExtendedSkyBoundsDegrees( inRanges[ index ], 0, 1,
-                                                   2 * maxRadius );
         }
     }
 }

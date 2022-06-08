@@ -83,15 +83,6 @@ public class EqualsMatchEngine implements MatchEngine {
         return new DescribedValue[ 0 ];
     }
 
-    public boolean canBoundMatch() {
-        return true;
-    }
-
-    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-        NdRange inRange = inRanges[ index ];
-        return new NdRange( inRange.getMins(), inRange.getMaxs() );
-    }
-
     public String toString() {
         return "Exact Value";
     }

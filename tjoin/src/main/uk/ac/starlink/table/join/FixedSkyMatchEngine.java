@@ -116,15 +116,6 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
         return maxScore( getSeparation() );
     }
 
-    public boolean canBoundMatch() {
-        return true;
-    }
-
-    public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-        return createExtendedSkyBounds( inRanges[ index ], 0, 1,
-                                        getSeparation() );
-    }
-
     public String toString() {
         return "Sky";
     }
@@ -262,11 +253,6 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
         @Override
         CoordReader getCoordReader() {
             return CoordReader.DEGREES;
-        }
-        @Override
-        public NdRange getMatchBounds( NdRange[] inRanges, int index ) {
-            return createExtendedSkyBoundsDegrees( inRanges[ index ], 0, 1,
-                                                   getSeparation() );
         }
     }
 }

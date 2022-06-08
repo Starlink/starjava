@@ -187,52 +187,6 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     }
 
     /**
-     * Utility method to return output tuple bounds based on given
-     * input bounds, but with some coordinates extended
-     * by a given scalar value.  For the indicated tuple elements,
-     * the output minima will be reduced, and maxima will be increased,
-     * by the supplied error value.  Other elements will be null.
-     * Elements which cannot be increased/reduced appropriately for some
-     * reason will also be null.
-     *
-     * @param  inRange  input range, 
-     * @param  err    amount to extend min/max values
-     * @param  idims  array of array indices for which minTuple and maxTuple
-     *                should be extended
-     * @return  input range broadened by errors
-     * @see   MatchEngine#getMatchBounds
-     */
-    static NdRange createExtendedBounds( NdRange inRange, double err,
-                                         int[] idims ) {
-        Comparable<?>[] inMins = inRange.getMins();
-        Comparable<?>[] inMaxs = inRange.getMaxs();
-        Comparable<?>[] outMins = new Comparable<?>[ inMins.length ];
-        Comparable<?>[] outMaxs = new Comparable<?>[ inMaxs.length ];
-        for ( int jd = 0; jd < idims.length; jd++ ) {
-            int id = idims[ jd ];
-            outMins[ id ] = add( inMins[ id ], -err );
-            outMaxs[ id ] = add( inMaxs[ id ], +err );
-        }
-        return new NdRange( outMins, outMaxs );
-    }
-
-    /**
-     * Utility method to create a array which contains a given continuous
-     * range of integer values.
-     *
-     * @param  ibase  lowest value
-     * @param  icount  number of values
-     * @return   icount-element array [ibase, ibase+1, ... ibase+icount-1]
-     */
-    static int[] indexRange( int ibase, int icount ) {
-        int[] jxs = new int[ icount ];
-        for ( int i = 0; i < icount; i++ ) {
-            jxs[ i ] = ibase + i;
-        }
-        return jxs;
-    }
-
-    /**
      * Returns a description of the tuple element containing one of
      * the Cartesian coordinates.
      *
