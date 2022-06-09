@@ -1684,6 +1684,7 @@ public class Plot2Example {
                               new String[] {
                 "*in=" + TName.XQ100,
                 "*xs=subWave", "*ys=multiply(subFlux,1./mean(subFlux))", null,
+                "*xlabel=Wavelength/nm", "*ylabel='Normalised Flux'", null,
                 "layer1=lines", "shading1=density", "densemap1=greyscale", null,
                 "denseclip1=0.2,1", "densefunc1=linear",
                 "leglabel1=Spectra", null,
