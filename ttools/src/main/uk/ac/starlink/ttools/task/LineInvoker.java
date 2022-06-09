@@ -374,36 +374,6 @@ public class LineInvoker {
                 }
                 return 1;
             }
-            catch ( NoClassDefFoundError e ) {
-                reportError( env, e );
-                if ( env.isDebug() ) {
-                    e.printStackTrace( err );
-                }
-                try {
-                    String msg = new StringBuffer()
-                        .append( "\n" )
-                        .append( e )
-                        .append( "\n" )
-                        .append( "The runtime Java Runtime Environment (JRE) " )
-                        .append( "is missing some compile-time classes.\n" )
-                        .append( "The most likely reason is that you are " )
-                        .append( "using an incomplete java such as GNU gcj.\n" )
-                        .append( "The JVM you are using is " )
-                        .append( System.getProperty( "java.vm.name",
-                                                     "unknown" ) )
-                        .append( " version " )
-                        .append( System.getProperty( "java.vm.version", "?" ) )
-                        .append( ".\n" )
-                        .append( "The recommended JRE is Sun's J2SE " )
-                        .append( "version 1.5 or greater.\n" )
-                        .toString();
-                    err.println( msg );
-                }
-                catch ( Throwable e1 ) {
-                    e1.printStackTrace( err );
-                }
-                return 1;
-            }
             finally {
                 out.flush();
                 err.flush();

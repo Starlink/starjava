@@ -469,7 +469,7 @@ public class Loader {
     /**
      * Checks that the JRE contains classes that you'd expect it to.
      * This is chiefly useful for bailing out if we find ourself running
-     * in Gnu GCJ, which at time of writing is hopelessly incomplete.
+     * in Gnu GCJ, which in at least some early versions is rather incomplete.
      * In the case that J2SE classes are missing, an exception will be
      * thrown.  The text of this exception will be a user-friendly message
      * about what has gone wrong.
@@ -486,16 +486,18 @@ public class Loader {
             String msg = new StringBuffer()
                 .append( "\n" )
                 .append( "The runtime Java Runtime Environment (JRE) " )
-                .append( "is missing some compile-time classes.\n" )
-                .append( "The most likely reason is that you are " )
-                .append( "using an incomplete java such as GNU gcj.\n" )
+                .append( "is missing some standard compile-time classes.\n" )
+                .append( "A possible reason is that you are using " )
+                .append( "an incomplete java such as\n" )
+                .append( "certain versions of GNU gcj.\n" )
                 .append( "The JVM you are using is " )
                 .append( System.getProperty( "java.vm.name", "unknown" ) )
                 .append( " version " )
                 .append( System.getProperty( "java.vm.version", "?" ) )
                 .append( ".\n" )
-                .append( "The recommended JRE is Sun's J2SE " )
-                .append( "version 1.5 or greater.\n" )
+                .append( "The recommended JRE is Oracle's J2SE " )
+                .append( "version 1.8 or greater,\n" )
+                .append( "though others may also work.\n" )
                 .toString();
              throw new ClassNotFoundException( msg, e );
         }
