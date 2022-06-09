@@ -176,7 +176,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>6 April 2022</docdate>
+<docdate>10 June 2022</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -13813,53 +13813,69 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 3.4-5 (10 June 2022)</dt>
 <dd><p>
-    <ul>
-    <li>Aitoff sky projections are now more correctly documented
-        as Hammer-Aitoff (though not renamed).</li>
-    <li>Fix FITS parsing issue that could result in StackOverflowError
-        for long array-valued headers.</li>
-    <li>Fix NullPointerException failure in taplint UUC stage or
-        votlint for unknown units recognised only in non-VOUnit
-        syntaxes (e.g. "Crab").</li>
-    <li>Crossmatching performance improvements.</li>
-    <li>Fix bug in multi-threaded read of string columns from
-        colfits files.</li>
-    <li>Reduce number of file mapping calls by FITS readers.</li>
-    <li><ref id="assert"><code>assert</code></ref> filter now takes
-        optional <code>&lt;msg-expr&gt;</code> argument.</li>
-    <li>Fix legend positioning bug for <code>label</code>
-        layer type.</li>
-    <li>Add offset options <code>xoff</code> and <code>yoff</code>
-        for <ref id="layer-label"><code>label</code></ref>
-        plot layer type.</li>
-    <li>The <ref id="colid-list"><code>&lt;colid-list&gt;</code></ref>
-        syntax used by
-        <ref id="keepcols"><code>keepcols</code></ref>,
-        <ref id="delcols"><code>delcols</code></ref> etc
-        now allows column ranges to be specified with the syntax
-        <code>&lt;first-colid&gt;-&lt;last-colid&gt;</code>.</li>
-    <li>Fix bugs in <ref id="layer-statline">statline</ref
-                  >/<ref id="layer-statmark">statmark</ref> layers
-        that incorrectly treated blank array values
-        and negative array values on logarithmic axes.</li>
-    <li>New plot2plane layer
-        <ref id="layer-arrayquantile">arrayquantile</ref>,
-        that can plot e.g. medians of multiple per-row spectra
-        with arbitrary wavelength coordinates.</li>
-    <li>Minor taplint updates to latest EPN-TAP draft;
-        now matches PR-EPN-TAP-20220420.</li>
-    <li>X/Y array-valued plot layer types
-        <ref id="layer-lines">lines</ref>,
-        <ref id="layer-marks">marks</ref>,
-        <ref id="layer-yerrors">yerrors</ref>,
-        <ref id="layer-xyerrors">xyerrors</ref>,
-        <ref id="layer-statline">statline</ref> and
-        <ref id="layer-statmark">statmark</ref>
-        will now accept a missing <code>xs</code> or <code>ys</code>
-        array coordinate, and assume a suitable linear sequence.</li>
-    </ul>
+    <dl>
+    <dt>New Functionality</dt>
+    <dd><p>
+        <ul>
+        <li>New plot2plane layer
+            <ref id="layer-arrayquantile">arrayquantile</ref>,
+            that can plot e.g. medians of multiple per-row spectra
+            with arbitrary wavelength coordinates.</li>
+        <li>X/Y array-valued plot layer types
+            <ref id="layer-lines">lines</ref>,
+            <ref id="layer-marks">marks</ref>,
+            <ref id="layer-yerrors">yerrors</ref>,
+            <ref id="layer-xyerrors">xyerrors</ref>,
+            <ref id="layer-statline">statline</ref> and
+            <ref id="layer-statmark">statmark</ref>
+            will now accept a missing <code>xs</code> or <code>ys</code>
+            array coordinate, and assume a suitable linear sequence.</li>
+        <li>The <ref id="colid-list"><code>&lt;colid-list&gt;</code></ref>
+            syntax used by
+            <ref id="keepcols"><code>keepcols</code></ref>,
+            <ref id="delcols"><code>delcols</code></ref> etc
+            now allows column ranges to be specified with the syntax
+            <code>&lt;first-colid&gt;-&lt;last-colid&gt;</code>.</li>
+        <li>The <ref id="assert"><code>assert</code></ref> filter now takes
+            optional <code>&lt;msg-expr&gt;</code> argument.</li>
+        <li>Add offset options <code>xoff</code> and <code>yoff</code>
+            for <ref id="layer-label"><code>label</code></ref>
+            plot layer type.</li>
+        <li>Minor <ref id="taplint"><code>taplint</code></ref> EPN stage
+            updates corresponding to latest EPN-TAP draft;
+            now matches PR-EPNTAP-20220420.</li>
+        </ul>
+        </p></dd>
+    <dt>Performance</dt>
+    <dd><p>
+        <ul>
+        <li>Sky crossmatching performance improvements.</li>
+        <li>Reduce number of file mapping calls by FITS readers.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug Fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix FITS parsing issue that could result in StackOverflowError
+            for long array-valued headers.</li>
+        <li>Fix bugs in <ref id="layer-statline">statline</ref
+                      >/<ref id="layer-statmark">statmark</ref> layers
+            that incorrectly treated blank array values
+            and negative array values on logarithmic axes.</li>
+        <li>Fix bug in multi-threaded read of string columns from
+            colfits files.</li>
+        <li>Fix NullPointerException failure in taplint UUC stage or
+            votlint for unknown units recognised only in non-VOUnit
+            syntaxes (e.g. "Crab").</li>
+        <li>Fix legend positioning bug for <code>label</code>
+            layer type.</li>
+        <li>Aitoff sky projections are now more correctly documented
+            as Hammer-Aitoff (though not renamed in the UI).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

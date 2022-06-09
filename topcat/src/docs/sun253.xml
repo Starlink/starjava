@@ -489,7 +489,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>6 April 2022</docdate>
+<docdate>10 June 2022</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -30790,34 +30790,49 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.8-5 (10 June 2022)</dt>
 <dd><p>
-    <ul>
-    <li>Aitoff sky projections are now more correctly documented
-        as Hammer-Aitoff (though not renamed).</li>
-    <li>Fix FITS parsing issue that could result in StackOverflowError 
-        for long array-valued headers.</li>
-    <li>Fix bug in multi-threaded read of string columns from
-        colfits files.</li>
-    <li>Reduce number of file mapping calls by FITS readers.</li>
-    <li>Table columns in <ref id="TableViewerWindow">Data Window</ref>
-        are now always wide enough for column name.</li>
-    <li>Fix legend positioning bug for Label form.</li>
-    <li>Add X/Y Offset options for <ref id="form-label">Label</ref>
-        plot form.</li>
-    <li>Fix bugs in <ref id="form-statline">StatLine</ref
-                  >/<ref id="form-statmark">StatMark</ref> forms
-        that incorrectly treated blank array values
-        and negative array values on logarithmic axes.</li>
-    <li>Add new plane plot form
-        <ref id="form-arrayquantile">ArrayQuantile</ref>.
-        This can be used to e.g. to plot medians of multiple spectra
-        that are not aligned on the same wavelength grid.</li>
-    <li>When using the
-        <ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>,
-        you can now omit either the X or Y array value,
-        and a suitable linear sequence will be assumed.</li>
-    </ul>
+    <dl>
+    <dt>New Functionality</dt>
+    <dd><p>
+        <ul>
+        <li>Add new plane plot form
+            <ref id="form-arrayquantile">ArrayQuantile</ref>.
+            This can be used to e.g. to plot medians of multiple spectra
+            that are not aligned on the same wavelength grid.</li>
+        <li>When using the
+            <ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>,
+            you can now omit either the X or Y array value,
+            and a suitable linear sequence will be assumed.</li>
+        <li>Add X/Y Offset options for <ref id="form-label">Label</ref>
+            plot form.</li>
+        </ul>
+        </p></dd>
+    <dt>Performance</dt>
+    <dd><p>
+        <ul>
+        <li>Reduce number of file mapping calls by FITS readers.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug Fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix FITS parsing issue that could result in StackOverflowError 
+            for long array-valued headers.</li>
+        <li>Fix bugs in <ref id="form-statline">StatLine</ref
+                      >/<ref id="form-statmark">StatMark</ref> forms
+            that incorrectly treated blank array values
+            and negative array values on logarithmic axes.</li>
+        <li>Fix bug in multi-threaded read of string columns from
+            colfits files.</li>
+        <li>Table columns in <ref id="TableViewerWindow">Data Window</ref>
+            are now always wide enough for column name.</li>
+        <li>Fix legend positioning bug for Label form.</li>
+        <li>Aitoff sky projections are now more correctly documented
+            as Hammer-Aitoff (though not renamed in the UI).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
