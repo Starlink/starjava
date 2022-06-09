@@ -14,6 +14,7 @@ import java.util.function.Function;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.gui.ThicknessComboBox;
+import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Axis;
@@ -23,6 +24,7 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.RangeCollector;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
@@ -50,6 +52,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
+import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
@@ -494,9 +497,49 @@ public abstract class TracePlotter
             @Override
             public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                           TraceStyle style ) {
-                return createXYArrayReader( dataSpec, style ) == null
-                     ? null
-                     : super.createLayer( geom, dataSpec, style );
+                Function<Tuple,XYArrayData> xyReader =
+                    createXYArrayReader( dataSpec, style );
+                if ( xyReader == null ) {
+                    return null;
+                }
+                PlotLayer baseLayer = super.createLayer( geom, dataSpec, style);
+                if ( baseLayer == null ) {
+                    return null;
+                }
+                return new WrapperPlotLayer( baseLayer ) {
+                    @Override
+                    public void extendCoordinateRanges( Range[] ranges,
+                                                        boolean[] logFlags,
+                                                        DataStore dataStore ) {
+                        super.extendCoordinateRanges( ranges, logFlags,
+                                                      dataStore );
+                        RangeCollector<TupleSequence> rangeCollector =
+                                new RangeCollector<TupleSequence>( 2 ) {
+                            public void accumulate( TupleSequence tseq,
+                                                    Range[] ranges ) {
+                                Range xRange = ranges[ 0 ];
+                                Range yRange = ranges[ 1 ];
+                                while ( tseq.next() ) {
+                                    XYArrayData xyData = xyReader.apply( tseq );
+                                    if ( xyData != null ) {
+                                        int np = xyData.getLength();
+                                        for ( int i = 0; i < np; i++ ) {
+                                            xRange.submit( xyData.getX( i ) );
+                                            yRange.submit( xyData.getY( i ) );
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                        Range[] arrayRanges =
+                            dataStore
+                           .getTupleRunner()
+                           .collect( rangeCollector,
+                                     () -> dataStore
+                                          .getTupleSequence( dataSpec ) );
+                        rangeCollector.mergeRanges( ranges, arrayRanges );
+                    }
+                };
             }
             protected FillPlan
                     createFillPlan( Surface surface, DataSpec dataSpec,
