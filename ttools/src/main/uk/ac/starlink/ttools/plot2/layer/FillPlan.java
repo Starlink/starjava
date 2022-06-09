@@ -3,13 +3,14 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import java.util.function.Function;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
-import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
@@ -197,22 +198,17 @@ public class FillPlan {
      * @param   surface  plot surface
      * @param  dataSpec  data specification
      * @param  geom   data geom
-     * @param  xsCoord  coordinate reader for X coordinate array
-     * @param  ysCoord  coordinate reader for Y coordinate array
-     * @param  icXs   index in tuple of line X coordinate array
-     * @param  icYs   index in tuple of line Y coordinate array
+     * @param  xyReader  function to map tuples to XYArrayData;
+     *                   null returns mean don't plot that tuple
      * @param  dataStore   data store
      * @return  new plan object
      */
-    public static FillPlan createPlanArrays( Surface surface, DataSpec dataSpec,
-                                             DataGeom geom,
-                                             FloatingArrayCoord xsCoord,
-                                             FloatingArrayCoord ysCoord,
-                                             int icXs, int icYs,
-                                             DataStore dataStore ) {
+    public static FillPlan
+            createPlanArrays( Surface surface, DataSpec dataSpec, DataGeom geom,
+                              Function<Tuple,XYArrayData> xyReader,
+                              DataStore dataStore ) {
         FillCollector fcollector =
-            new ArraysFillCollector( surface, geom,
-                                     xsCoord, ysCoord, icXs, icYs );
+            new ArraysFillCollector( surface, geom, xyReader );
         FillData fdata =
             PlotUtil.tupleCollect( fcollector, dataSpec, dataStore );
         return new FillPlan( dataSpec, fcollector, fdata );
@@ -483,30 +479,21 @@ public class FillPlan {
      */
     private static class ArraysFillCollector extends FillCollector {
 
-        final FloatingArrayCoord xsCoord_;
-        final FloatingArrayCoord ysCoord_;
-        final int icXs_;
-        final int icYs_;
+        final Function<Tuple,XYArrayData> xyReader_;
 
         /**
          * Constructor.
          *
          * @param  surface  plot surface
          * @param  geom   data geom
-         * @param  xsCoord  coordinate reader for X coordinate array
-         * @param  ysCoord  coordinate reader for Y coordinate array
-         * @param  icXs   tuple index for X coordinate array
-         * @param  icYs   tuple index for Y coordinate array
+         * @param  xyReader  reads X and Y array data from tuples;
+         *                   a null return means don't attempt to accumulate
+         *                   data for that tuple
          */
         ArraysFillCollector( Surface surface, DataGeom geom,
-                             FloatingArrayCoord xsCoord,
-                             FloatingArrayCoord ysCoord,
-                             int icXs, int icYs ) {
+                             Function<Tuple,XYArrayData> xyReader ) {
             super( surface, geom );
-            xsCoord_ = xsCoord;
-            ysCoord_ = ysCoord;
-            icXs_ = icXs;
-            icYs_ = icYs;
+            xyReader_ = xyReader;
         }
 
         public void accumulate( TupleSequence tseq, FillData fdata ) {
@@ -522,13 +509,12 @@ public class FillPlan {
             Point cpYlo = fdata.cpYlo_;
             Point cpYhi = fdata.cpYhi_;
             while ( tseq.next() ) {
-                double[] xs = xsCoord_.readArrayCoord( tseq, icXs_ );
-                double[] ys = ysCoord_.readArrayCoord( tseq, icYs_ );
-                if ( xs != null && ys != null && xs.length == ys.length ) {
-                    int np = xs.length;
+                XYArrayData xyData = xyReader_.apply( tseq );
+                if ( xyData != null ) {
+                    int np = xyData.getLength();
                     for ( int ip = 0; ip < np; ip++ ) {
-                        dpos[ 0 ] = xs[ ip ];
-                        dpos[ 1 ] = ys[ ip ];
+                        dpos[ 0 ] = xyData.getX( ip );
+                        dpos[ 1 ] = xyData.getY( ip );
                         if ( gconv_.dataToGraphics( dpos, gp ) ) {
                             int x = (int) ( gp.x - x0_ );
                             int y = (int) ( gp.y - y0_ );

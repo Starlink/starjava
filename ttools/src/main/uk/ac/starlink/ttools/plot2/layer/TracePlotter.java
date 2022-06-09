@@ -10,6 +10,7 @@ import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
+import java.util.function.Function;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.gui.ThicknessComboBox;
@@ -48,6 +49,7 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
@@ -487,13 +489,51 @@ public abstract class TracePlotter
                                      new boolean[] { true, true } );
         return new TracePlotter( "ArrayQuantile", ResourceIcon.FORM_QUANTILE,
                                  cgrp, hasVertical, descrip, QJoin.POLYGON ) {
+            @Override
+            public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
+                                          TraceStyle style ) {
+                return createXYArrayReader( dataSpec ) == null
+                     ? null
+                     : super.createLayer( geom, dataSpec, style );
+            }
             protected FillPlan
                     createFillPlan( Surface surface, DataSpec dataSpec,
                                     DataGeom geom, DataStore dataStore ) {
                 return FillPlan
                       .createPlanArrays( surface, dataSpec, geom,
-                                         xsCoord, ysCoord, icXs, icYs,
+                                         createXYArrayReader( dataSpec ),
                                          dataStore );
+            }
+
+            /**
+             * Returns a reader for matched X/Y array data.
+             * If null is returned from this function,
+             * no plotting should be done.
+             *
+             * @param  dataSpec  data specification
+             * @return  function to map tuples to XYArrayData;
+             *          the function returns null for tuples
+             *          that should not be plotted/accumulated
+             */
+            Function<Tuple,XYArrayData>
+                    createXYArrayReader( DataSpec dataSpec ) {
+                return tuple -> {
+                    double[] xs = xsCoord.readArrayCoord( tuple, icXs );
+                    double[] ys = ysCoord.readArrayCoord( tuple, icYs );
+                    return xs != null && ys != null && xs.length == ys.length
+                         ? new XYArrayData() {
+                               public int getLength() {
+                                   return xs.length;
+                               }         
+                               public double getX( int i ) {
+                                   return xs[ i ]; 
+                               } 
+                               public double getY( int i ) { 
+                                   return ys[ i ];
+                               }
+                           } 
+                         : null; 
+                };       
             }
         };
     }
