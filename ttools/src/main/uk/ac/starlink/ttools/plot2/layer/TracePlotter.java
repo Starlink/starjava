@@ -233,7 +233,7 @@ public abstract class TracePlotter
                                 return plan;
                             }
                         }
-                        return createFillPlan( surface, dataSpec, geom,
+                        return createFillPlan( surface, dataSpec, geom, style,
                                                dataStore );
                     }
                     public void paintData( Object plan, Paper paper,
@@ -262,13 +262,14 @@ public abstract class TracePlotter
      * @param  surface  plot surface
      * @param  dataSpec  data spec
      * @param  geom   geom
+     * @param  style  style
      * @param  dataStore   data store
      * @return  populated plan
      */
     @Slow
     protected abstract FillPlan
-            createFillPlan( Surface surface, DataSpec dataSpec,
-                            DataGeom geom, DataStore dataStore );
+            createFillPlan( Surface surface, DataSpec dataSpec, DataGeom geom,
+                            TraceStyle style, DataStore dataStore );
 
     /**
      * Prepares a report characterising the state of the plot when
@@ -438,7 +439,8 @@ public abstract class TracePlotter
                                  hasVertical, descrip, QJoin.NO_JOIN ) {
             protected FillPlan
                     createFillPlan( Surface surface, DataSpec dataSpec,
-                                    DataGeom geom, DataStore dataStore ) {
+                                    DataGeom geom, TraceStyle style,
+                                    DataStore dataStore ) {
                 int icPos = cgrp.getPosCoordIndex( 0, geom );
                 return FillPlan
                       .createPlan( surface, dataSpec, geom, icPos, dataStore );
@@ -492,16 +494,17 @@ public abstract class TracePlotter
             @Override
             public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                           TraceStyle style ) {
-                return createXYArrayReader( dataSpec ) == null
+                return createXYArrayReader( dataSpec, style ) == null
                      ? null
                      : super.createLayer( geom, dataSpec, style );
             }
             protected FillPlan
                     createFillPlan( Surface surface, DataSpec dataSpec,
-                                    DataGeom geom, DataStore dataStore ) {
+                                    DataGeom geom, TraceStyle style,
+                                    DataStore dataStore ) {
                 return FillPlan
                       .createPlanArrays( surface, dataSpec, geom,
-                                         createXYArrayReader( dataSpec ),
+                                         createXYArrayReader( dataSpec, style ),
                                          dataStore );
             }
 
@@ -511,29 +514,75 @@ public abstract class TracePlotter
              * no plotting should be done.
              *
              * @param  dataSpec  data specification
+             * @param  style   plot style
              * @return  function to map tuples to XYArrayData;
              *          the function returns null for tuples
              *          that should not be plotted/accumulated
              */
             Function<Tuple,XYArrayData>
-                    createXYArrayReader( DataSpec dataSpec ) {
-                return tuple -> {
-                    double[] xs = xsCoord.readArrayCoord( tuple, icXs );
-                    double[] ys = ysCoord.readArrayCoord( tuple, icYs );
-                    return xs != null && ys != null && xs.length == ys.length
-                         ? new XYArrayData() {
-                               public int getLength() {
-                                   return xs.length;
-                               }         
-                               public double getX( int i ) {
-                                   return xs[ i ]; 
+                    createXYArrayReader( DataSpec dataSpec, TraceStyle style ) {
+                boolean isHorizontal = style.isHorizontal_;
+                boolean hasX = ! dataSpec.isCoordBlank( icXs );
+                boolean hasY = ! dataSpec.isCoordBlank( icYs );
+                if ( hasX && hasY ) {
+                    return tuple -> {
+                        double[] xs = xsCoord.readArrayCoord( tuple, icXs );
+                        double[] ys = ysCoord.readArrayCoord( tuple, icYs );
+                        return xs != null && ys != null &&
+                               xs.length == ys.length
+                             ? new XYArrayData() {
+                                   public int getLength() {
+                                       return xs.length;
+                                   }         
+                                   public double getX( int i ) {
+                                       return xs[ i ]; 
+                                   } 
+                                   public double getY( int i ) { 
+                                       return ys[ i ];
+                                   }
                                } 
-                               public double getY( int i ) { 
-                                   return ys[ i ];
+                             : null; 
+                    };       
+                }
+                else if ( hasY && isHorizontal ) {
+                    return tuple -> {
+                        double[] ys = ysCoord.readArrayCoord( tuple, icYs );
+                        return ys != null
+                             ? new XYArrayData() {
+                                   public int getLength() {
+                                       return ys.length;
+                                   }
+                                   public double getX( int i ) {
+                                       return (double) i;
+                                   }
+                                   public double getY( int i ) {
+                                       return ys[ i ];
+                                   }
                                }
-                           } 
-                         : null; 
-                };       
+                             : null;
+                    };
+                }
+                else if ( hasX && ! isHorizontal ) {
+                    return tuple -> {
+                        double[] xs = xsCoord.readArrayCoord( tuple, icXs );
+                        return xs != null
+                             ? new XYArrayData() {
+                                   public int getLength() {
+                                       return xs.length;
+                                   }
+                                   public double getX( int i ) {
+                                       return xs[ i ];
+                                   }
+                                   public double getY( int i ) {
+                                       return (double) i;
+                                   }
+                               }
+                             : null;
+                    };
+                }
+                else {
+                    return null;
+                }
             }
         };
     }
