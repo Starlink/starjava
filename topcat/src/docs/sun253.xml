@@ -12846,6 +12846,15 @@ point representing the mean (or median, minimum, maximum, ...) of all
 the input array elements at the corresponding position.
 </p>
 
+<p>Note that because the X and Y arrays must be of a fixed size for all rows,
+and because combination is performed in both X and Y directions,
+this is typically only suitable for plotting combined spectra if
+they all share a common horizontal axis,
+e.g. are all sampled into the same wavelength bins.
+To visually combine spectra with non-uniform sampling,
+the <ref id="form-arrayquantile">ArrayQuantile</ref> form may be more useful.
+</p>
+
 <figure>
 <caption><px>Example StatLine plot</px></caption>
 <figureimage src="&FIG.plot2-layer-statline;"/>
@@ -12910,6 +12919,15 @@ of input array-valued coordinates. The input X and Y coordinates must
 be fixed-length arrays of length N; N markers are plotted, each one
 representing the mean (or median, minimum, maximum, ...) of all the
 input array elements at the corresponding position.
+</p>
+
+<p>Note that because the X and Y arrays must be of a fixed size for all rows,
+and because combination is performed in both X and Y directions,
+this is typically only suitable for plotting combined spectra if
+they all share a common horizontal axis,
+e.g. are all sampled into the same wavelength bins.
+To visually combine spectra with non-uniform sampling,
+the <ref id="form-arrayquantile">ArrayQuantile</ref> form may be more useful.
 </p>
 
 <figure>

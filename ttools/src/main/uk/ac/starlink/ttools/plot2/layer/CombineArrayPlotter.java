@@ -234,6 +234,26 @@ public abstract class CombineArrayPlotter
     }
 
     /**
+     * Returns a comment about suitability for non-uniformly sampled spectra.
+     *
+     * @return  XML text suitable for insertion in description text
+     */
+    static String getXYCombineComment() {
+        return String.join( "\n",
+            "<p>Note that because the X and Y arrays must be of a fixed size",
+            "for all rows, and because combination is performed in both",
+            "X and Y directions,",
+            "this is typically only suitable for plotting combined spectra",
+            "if they all share a common horizontal axis,",
+            "e.g. are all sampled into the same wavelength bins.",
+            "To visually combine spectra with non-uniform sampling,",
+            "the <ref id='layer-arrayquantile'>arrayquantile</ref> plotter",
+            "may be more useful.",
+            "</p>",
+        "" );
+    }
+
+    /**
      * Partial Style implementation for use with this class.
      */
     public static abstract class CombineArrayStyle implements Style {

@@ -63,6 +63,7 @@ public class MarkCombineArrayPlotter
             "the mean (or median, minimum, maximum, ...)",
             "of all the input array elements at the corresponding position.",
             "</p>",
+            getXYCombineComment(),
         "" );
     }
 
