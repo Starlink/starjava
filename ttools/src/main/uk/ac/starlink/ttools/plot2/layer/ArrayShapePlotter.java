@@ -69,6 +69,9 @@ public class ArrayShapePlotter extends ShapePlotter {
                                   ShapeStyle style ) {
         final PlotLayer baseLayer =
             super.createLayer( pointDataGeom, dataSpec, style );
+        if ( baseLayer == null ) {
+            return null;
+        }
         final Function<Tuple,XYArrayData> xyReader =
             createXYArrayReader( xsCoord_, ysCoord_, icXs_, icYs_, dataSpec );
         return new WrapperPlotLayer( baseLayer ) {
@@ -183,27 +186,71 @@ public class ArrayShapePlotter extends ShapePlotter {
             createXYArrayReader( FloatingArrayCoord xsCoord,
                                  FloatingArrayCoord ysCoord,
                                  int icXs, int icYs, DataSpec dataSpec ) {
-        return tuple -> {
-            int np = xsCoord.getArrayCoordLength( tuple, icXs );
-            if ( np > 0 && np == ysCoord.getArrayCoordLength( tuple, icYs ) ) {
+        boolean hasX = ! dataSpec.isCoordBlank( icXs );
+        boolean hasY = ! dataSpec.isCoordBlank( icYs );
+        if ( hasX && hasY ) {
+            return tuple -> {
+                int np = xsCoord.getArrayCoordLength( tuple, icXs );
+                if ( np > 0 &&
+                     np == ysCoord.getArrayCoordLength( tuple, icYs ) ) {
+                    double[] xs = xsCoord.readArrayCoord( tuple, icXs );
+                    double[] ys = ysCoord.readArrayCoord( tuple, icYs );
+                    return new XYArrayData() {
+                        public int getLength() {
+                            return np;
+                        }
+                        public double getX( int i ) {
+                            return xs[ i ];
+                        }
+                        public double getY( int i ) {
+                            return ys[ i ];
+                        }
+                    };
+                }
+                else {
+                    return null;
+                }
+            };
+        }
+        else if ( hasX ) {
+            return tuple -> {
                 double[] xs = xsCoord.readArrayCoord( tuple, icXs );
+                return xs != null && xs.length > 0
+                     ? new XYArrayData() {
+                           public int getLength() {
+                               return xs.length;
+                           }
+                           public double getX( int i ) {
+                               return xs[ i ];
+                           }
+                           public double getY( int i ) {
+                               return (double) i;
+                           }
+                       }
+                     : null;
+            };
+        }
+        else if ( hasY ) {
+            return tuple -> {
                 double[] ys = ysCoord.readArrayCoord( tuple, icYs );
-                return new XYArrayData() {
-                    public int getLength() {
-                        return np;
-                    }
-                    public double getX( int i ) {
-                        return xs[ i ];
-                    }
-                    public double getY( int i ) {
-                        return ys[ i ];
-                    }
-                };
-            }
-            else {
-                return null;
-            }
-        };
+                return ys != null && ys.length > 0
+                     ? new XYArrayData() {
+                           public int getLength() {
+                               return ys.length;
+                           }
+                           public double getX( int i ) {
+                               return (double) i;
+                           }
+                           public double getY( int i ) {
+                               return ys[ i ];
+                           }
+                       }
+                     : null;
+            };
+        }
+        else {
+            return null;
+        }
     }
 
     /**
