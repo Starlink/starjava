@@ -1633,7 +1633,7 @@ public class Plot2Example {
             new Plot2Example( "layer-statmark", c, PlotTask.PLANE,
                               new String[] {
                 "*in=" + TName.LRS,
-                "*xs=sequence(512)", "*ys=RX1", null,
+                "*ys=RX1", null,
                 "xmin=115", "xmax=145", "ymin=-183", "ymax=-149", "xpix=700",
                 "xcrowd=0.8",
                 null,
@@ -1669,7 +1669,7 @@ public class Plot2Example {
             new Plot2Example( "layer-xyerrors", c, PlotTask.PLANE,
                               new String[] {
                 "*in=" + TName.LRS,
-                "*xs=sequence(512)", "*ys=RX1", null,
+                "*ys=RX1", null,
                 "*shading=aux", "*aux=epoch", null,
                 "layer_l=lines", "opaque_l=1", null,
                 "*layer_xy=xyerrors", "*opaque_xy=3.3",

@@ -20,10 +20,10 @@ public abstract class FloatingArrayCoord extends SingleCoord {
      * enough to spot this and optimise storage accordingly. */
 
     /** Coordinate representing a vector of X values. */
-    public static final FloatingArrayCoord X = createArrayCoord( "X" );
+    public static final FloatingArrayCoord X = createXYArrayCoord( false );
 
     /** Coordinate representing a vector of Y values. */
-    public static final FloatingArrayCoord Y = createArrayCoord( "Y" );
+    public static final FloatingArrayCoord Y = createXYArrayCoord( true );
 
     /**
      * Constructor.
@@ -379,20 +379,36 @@ public abstract class FloatingArrayCoord extends SingleCoord {
     }
 
     /**
-     * Creates a coordinate representing a vector of values along one axis.
+     * Creates a coordinate representing a vector of values along the
+     * X or Y axis.
      *
-     * @param   axId  axis identifier
+     * <p>These are not marked mandatory because some plotters that deal
+     * with X/Y array data can cope when one (but not both) are missing
+     * by assuming an index array along the missing axis, so for instance
+     * an N-element spectrum in the Y array coordinate can be plotted
+     * against an assumed X array with values 0,1,2,..N, which is
+     * often convenients.  So mark the coordinates optional, and
+     * ensure that the plotters using them can cope with missing values
+     * one way or another.
+     *
+     * @param   isY  false for X, true for Y
      * @return  array coord
      */
-    private static FloatingArrayCoord createArrayCoord( String axId ) {
+    private static FloatingArrayCoord createXYArrayCoord( boolean isY ) {
+        String axId = isY ? "Y" : "X";
         String axid = axId.toLowerCase();
+        String otherAxId = isY ? "X" : "Y";
         InputMeta meta = new InputMeta( axid + "s", axId + " Values" );
         meta.setShortDescription( axId + " coords array" );
         meta.setValueUsage( "array" );
         meta.setXmlDescription( new String[] {
             "<p>Array giving the " + axId + " coordinate array for each line.",
+            "In most cases, if a blank value is supplied but",
+            otherAxId + " values are present then a suitable linear sequence,",
+            "of the same length as the " + otherAxId + " array, is assumed.",
             "</p>",
         } );
-        return FloatingArrayCoord.createCoord( meta, true );
+        boolean isRequired = false;
+        return FloatingArrayCoord.createCoord( meta, isRequired );
     }
 }

@@ -13850,6 +13850,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         with arbitrary wavelength coordinates.</li>
     <li>Minor taplint updates to latest EPN-TAP draft;
         now matches PR-EPN-TAP-20220420.</li>
+    <li>X/Y array-valued plot layer types
+        <ref id="layer-lines">lines</ref>,
+        <ref id="layer-marks">marks</ref>,
+        <ref id="layer-yerrors">yerrors</ref>,
+        <ref id="layer-xyerrors">xyerrors</ref>,
+        <ref id="layer-statline">statline</ref> and
+        <ref id="layer-statmark">statmark</ref>
+        will now accept a missing <code>xs</code> or <code>ys</code>
+        array coordinate, and assume a suitable linear sequence.</li>
     </ul>
     </p></dd>
 
