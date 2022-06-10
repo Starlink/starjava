@@ -32,6 +32,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
@@ -251,7 +252,7 @@ public class CoordPanel {
         for ( int ic = 0; ic < coords_.length; ic++ ) {
             List<ColumnDataComboBox> colsels = colSelectors_.get( ic );
             Coord coord = coords_[ ic ];
-            boolean isReq = coord.isRequired();
+            boolean isReq = isRequiredCoord( coord );
             Input[] inputs = coord.getInputs();
             int ni = colsels.size();
             if ( isReq ) {
@@ -471,5 +472,27 @@ public class CoordPanel {
     private static boolean infoMatches( ValueInfo info1, ValueInfo info2 ) {
         return PlotUtil.equals( info1.getName(), info2.getName() )
             && PlotUtil.equals( info1.getUCD(), info2.getUCD() );
+    }
+
+    /**
+     * Indicates whether a coordinate is one that ought to get filled in
+     * if possible.
+     *
+     * @param  coord   candidate coordinate
+     * @return  true if we should try hard to get a value
+     */
+    private static boolean isRequiredCoord( Coord coord ) {
+
+        /* This is hacky.  The isRequired() method defines the basic behaviour,
+         * but the FloatingArrayCoord X and Y coordinates are a special case;
+         * at least one or other should be filled in, but neither is actually
+         * mandatory.  Moreover, the behaviour here is necessary at present
+         * to ensure that autopopulation works as desired (pulling out array
+         * values from table parameters) for the fairly common case of
+         * spectra with fluxes in a column but fixed wavelength arrays;
+         * see XYArrayCoordPanel. */
+        return coord.isRequired()
+            || coord.equals( FloatingArrayCoord.X )
+            || coord.equals( FloatingArrayCoord.Y );
     }
 }
