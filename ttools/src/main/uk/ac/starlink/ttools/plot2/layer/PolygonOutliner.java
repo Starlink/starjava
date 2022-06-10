@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Area;
 import uk.ac.starlink.ttools.plot2.data.AreaCoord;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
@@ -176,7 +177,7 @@ public class PolygonOutliner extends PixOutliner {
     }
 
     public ShapePainter create2DPainter( final Surface surf,
-                                         final DataGeom geom,
+                                         final DataGeom geom, DataSpec dataSpec,
                                          Map<AuxScale,Span> auxSpans,
                                          final PaperType2D paperType ) {
         final VertexReader vertReader = vrfact_.createVertexReader( geom );
@@ -361,6 +362,7 @@ public class PolygonOutliner extends PixOutliner {
     }
 
     public ShapePainter create3DPainter( final CubeSurface surf, DataGeom geom,
+                                         DataSpec dataSpec,
                                          Map<AuxScale,Span> auxSpans,
                                          final PaperType3D paperType ) {
         final VertexReader vertReader = vrfact_.createVertexReader( geom );

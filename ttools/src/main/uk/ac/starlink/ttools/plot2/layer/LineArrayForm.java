@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
@@ -162,6 +163,7 @@ public class LineArrayForm implements ShapeForm {
 
         public ShapePainter create2DPainter( final Surface surface,
                                              final DataGeom geom,
+                                             DataSpec dataSpec,
                                              Map<AuxScale,Span> auxSpans,
                                              final PaperType2D paperType ) {
             final Rectangle bounds = surface.getPlotBounds();
@@ -241,6 +243,7 @@ public class LineArrayForm implements ShapeForm {
          * @throws  UnsupportedOperationException
          */
         public ShapePainter create3DPainter( CubeSurface surf, DataGeom geom,
+                                             DataSpec dataSpec,
                                              Map<AuxScale,Span> auxSpans,
                                              PaperType3D paperType ) {
             throw new UnsupportedOperationException( "no 3D" );

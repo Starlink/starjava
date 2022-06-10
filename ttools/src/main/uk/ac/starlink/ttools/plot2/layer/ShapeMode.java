@@ -1610,7 +1610,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 int icw = dataSpec.isCoordBlank( icWeight_ ) ? -1 : icWeight_;
                 WeightCollector collector =
                     new WeightCollector( surface, icw, wstamper_.combiner_,
-                                         outliner_, geom, auxSpans );
+                                         outliner_, geom, dataSpec, auxSpans );
                 WeightPaper wpaper =
                     dataStore.getTupleRunner()
                    .collectPool( collector,
@@ -1901,6 +1901,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             private final Combiner combiner_;
             private final Outliner outliner_;
             private final DataGeom geom_;
+            private final DataSpec dataSpec_;
             private final Map<AuxScale,Span> auxSpans_;
 
             /**
@@ -1911,16 +1912,18 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param  combiner   combination mode
              * @param  outliner   outliner
              * @param  geom    data geom
+             * @param  dataSpec  data specification
              * @param  auxSpans   aux data range map
              */
             WeightCollector( Surface surface, int icWeight, Combiner combiner,
                              Outliner outliner, DataGeom geom,
-                             Map<AuxScale,Span> auxSpans ) {
+                             DataSpec dataSpec, Map<AuxScale,Span> auxSpans ) {
                 surface_ = surface;
                 icWeight_ = icWeight;
                 combiner_ = combiner;
                 outliner_ = outliner;
                 geom_ = geom;
+                dataSpec_ = dataSpec;
                 auxSpans_ = auxSpans;
             }
 
@@ -1933,9 +1936,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 ShapePainter painter =
                       surface_ instanceof CubeSurface
                     ? outliner_.create3DPainter( (CubeSurface) surface_, geom_,
-                                                 auxSpans_, ptype )
+                                                 dataSpec_, auxSpans_, ptype )
                     : outliner_.create2DPainter( surface_, geom_,
-                                                 auxSpans_, ptype );
+                                                 dataSpec_, auxSpans_, ptype );
                 if ( icWeight_ >= 0 ) {
                     while ( tseq.next() ) {
                         double w =
@@ -2166,12 +2169,13 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          */
         public ShapePainter createPainter() {
             if ( paperType_ instanceof PaperType2D ) {
-                return outliner_.create2DPainter( surface_, geom_, auxSpans_,
+                return outliner_.create2DPainter( surface_, geom_, dataSpec_,
+                                                  auxSpans_,
                                                   (PaperType2D) paperType_ );
             }
             else if ( paperType_ instanceof PaperType3D ) {
                 return outliner_.create3DPainter( (CubeSurface) surface_,
-                                                  geom_, auxSpans_,
+                                                  geom_, dataSpec_, auxSpans_,
                                                   (PaperType3D) paperType_ );
             }
             else {

@@ -58,11 +58,13 @@ public interface Outliner {
      *
      * @param   surface   plot surface
      * @param   geom   coordinate geometry
+     * @param   dataSpec  data specification
      * @param   auxSpans  map of scale information required for plot
      * @param   paperType  2-d paper type
      * @return  new 2-d painter
      */
     ShapePainter create2DPainter( Surface surface, DataGeom geom,
+                                  DataSpec dataSpec,
                                   Map<AuxScale,Span> auxSpans,
                                   PaperType2D paperType );
 
@@ -71,11 +73,13 @@ public interface Outliner {
      *
      * @param   surface   3-d plot surface
      * @param   geom   coordinate geometry
+     * @param   dataSpec  data specification
      * @param   auxSpans  map of scale information required for plot
      * @param   paperType  3-d paper type
      * @return  new 3-d painter
      */
     ShapePainter create3DPainter( CubeSurface surface, DataGeom geom,
+                                  DataSpec dataSpec,
                                   Map<AuxScale,Span> auxSpans,
                                   PaperType3D paperType );
 

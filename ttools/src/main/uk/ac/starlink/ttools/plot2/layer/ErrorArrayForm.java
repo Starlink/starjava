@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.MultiPointConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
@@ -362,6 +363,7 @@ public class ErrorArrayForm implements ShapeForm {
 
         public ShapePainter create2DPainter( final Surface surface,
                                              final DataGeom geom,
+                                             DataSpec dataSpec,
                                              Map<AuxScale,Span> auxSpans,
                                              final PaperType2D paperType ) {
 
@@ -414,6 +416,7 @@ public class ErrorArrayForm implements ShapeForm {
          * @throws  UnsupportedOperationException
          */
         public ShapePainter create3DPainter( CubeSurface surface, DataGeom geom,
+                                             DataSpec dataSpec,
                                              Map<AuxScale,Span> auxSpans,
                                              PaperType3D paperType ) {
             throw new UnsupportedOperationException( "No 3D" );

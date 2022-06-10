@@ -43,7 +43,7 @@ public abstract class PixOutliner implements Outliner {
          * glyphs and turns them into a bit map, and plot the glyphs on it. */
         BinPaper paper =
             dataStore.getTupleRunner()
-           .collectPool( new BinCollector( surface, geom, auxRanges ),
+           .collectPool( new BinCollector( surface, geom, dataSpec, auxRanges ),
                          () -> dataStore.getTupleSequence( dataSpec ) );
 
         /* Extract the result as a bin plan. */
@@ -67,6 +67,7 @@ public abstract class PixOutliner implements Outliner {
 
         private final Surface surface_;
         private final DataGeom geom_;
+        private final DataSpec dataSpec_;
         private final Map<AuxScale,Span> auxRanges_;
 
         /**
@@ -74,12 +75,14 @@ public abstract class PixOutliner implements Outliner {
          *
          * @param  surface  plot surface
          * @param  geom   data geom
+         * @param  dataSpec  data specification
          * @param  auxRanges   range bounds
          */
-        BinCollector( Surface surface, DataGeom geom,
+        BinCollector( Surface surface, DataGeom geom, DataSpec dataSpec,
                       Map<AuxScale,Span> auxRanges ) {
             surface_ = surface;
             geom_ = geom;
+            dataSpec_ = dataSpec;
             auxRanges_ = auxRanges;
         }
 
@@ -91,9 +94,10 @@ public abstract class PixOutliner implements Outliner {
             GlyphPaper.GlyphPaperType ptype = paper.getPaperType();
             ShapePainter painter =
                   surface_ instanceof CubeSurface
-                ? create3DPainter( (CubeSurface) surface_, geom_, auxRanges_,
-                                   ptype )
-                : create2DPainter( surface_, geom_, auxRanges_, ptype );
+                ? create3DPainter( (CubeSurface) surface_, geom_, dataSpec_,
+                                   auxRanges_, ptype )
+                : create2DPainter( surface_, geom_, dataSpec_,
+                                   auxRanges_, ptype );
             while ( tseq.next() ) {
                 painter.paintPoint( tseq, null, paper );
             }
