@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -13,6 +14,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
@@ -67,6 +69,8 @@ public class ArrayShapePlotter extends ShapePlotter {
                                   ShapeStyle style ) {
         final PlotLayer baseLayer =
             super.createLayer( pointDataGeom, dataSpec, style );
+        final Function<Tuple,XYArrayData> xyReader =
+            createXYArrayReader( xsCoord_, ysCoord_, icXs_, icYs_, dataSpec );
         return new WrapperPlotLayer( baseLayer ) {
             @Override
             public void extendCoordinateRanges( Range[] ranges,
@@ -77,7 +81,7 @@ public class ArrayShapePlotter extends ShapePlotter {
                         new RangeCollector<TupleSequence>( 2 ) {
                     public void accumulate( TupleSequence tseq,
                                             Range[] ranges ) {
-                        extendRanges( tseq, ranges[ 0 ], ranges[ 1 ] );
+                        extendRanges( tseq, xyReader, ranges[0], ranges[1] );
                     }
                 };
                 Range[] arrayRanges =
@@ -143,21 +147,63 @@ public class ArrayShapePlotter extends ShapePlotter {
      * represented by array-valued X and Y coordinates in a TupleSequence.
      *
      * @param  tseq   tuple sequence
+     * @param  xyReader  reader for array data
      * @param  xRange   X range to adjust
      * @param  yRange   Y range to adjust
      */
-    private void extendRanges( TupleSequence tseq, Range xRange, Range yRange ){
+    private void extendRanges( TupleSequence tseq,
+                               Function<Tuple,XYArrayData> xyReader,
+                               Range xRange, Range yRange ){
         while ( tseq.next() ) {
-            int np = xsCoord_.getArrayCoordLength( tseq, icXs_ );
-            if ( np > 0 && np == ysCoord_.getArrayCoordLength( tseq, icYs_ ) ) {
-                 double[] xs = xsCoord_.readArrayCoord( tseq, icXs_ );
-                 double[] ys = ysCoord_.readArrayCoord( tseq, icYs_ );
+            XYArrayData xyData = xyReader.apply( tseq );
+            if ( xyData != null ) {
+                int np = xyData.getLength();
                 for ( int ip = 0; ip < np; ip++ ) {
-                    xRange.submit( xs[ ip ] );
-                    yRange.submit( ys[ ip ] );
+                    xRange.submit( xyData.getX( ip ) );
+                    yRange.submit( xyData.getY( ip ) );
                 }
             }
         }
+    }
+
+   /**
+     * Returns a reader for matched X/Y array data for use with array plotters.
+     * If null is returned from this function, no plotting should be done.
+     *
+     * @param  xsCoord  coordinate for X array
+     * @param  ysCoord  coordinate for Y array
+     * @param  icXs   X array coordinate index in group
+     * @param  icYs   Y array coordinate index in group
+     * @param  dataSpec  data specification
+     * @return  thread-safe function to map tuples to XYArrayData;
+     *          the function returns null for tuples
+     *          that should not be plotted/accumulated
+     */
+    public static Function<Tuple,XYArrayData>
+            createXYArrayReader( FloatingArrayCoord xsCoord,
+                                 FloatingArrayCoord ysCoord,
+                                 int icXs, int icYs, DataSpec dataSpec ) {
+        return tuple -> {
+            int np = xsCoord.getArrayCoordLength( tuple, icXs );
+            if ( np > 0 && np == ysCoord.getArrayCoordLength( tuple, icYs ) ) {
+                double[] xs = xsCoord.readArrayCoord( tuple, icXs );
+                double[] ys = ysCoord.readArrayCoord( tuple, icYs );
+                return new XYArrayData() {
+                    public int getLength() {
+                        return np;
+                    }
+                    public double getX( int i ) {
+                        return xs[ i ];
+                    }
+                    public double getY( int i ) {
+                        return ys[ i ];
+                    }
+                };
+            }
+            else {
+                return null;
+            }
+        };
     }
 
     /**
