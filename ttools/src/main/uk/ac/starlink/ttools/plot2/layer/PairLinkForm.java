@@ -185,6 +185,10 @@ public class PairLinkForm implements ShapeForm {
             return new HashMap<AuxScale,AuxReader>();
         }
 
+        public boolean canPaint( DataSpec dataSpec ) {
+            return true;
+        }
+
         public ShapePainter create2DPainter( final Surface surface,
                                              final DataGeom geom,
                                              DataSpec dataSpec,

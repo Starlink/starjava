@@ -176,6 +176,10 @@ public class PolygonOutliner extends PixOutliner {
         return new HashMap<AuxScale,AuxReader>();
     }
 
+    public boolean canPaint( DataSpec dataSpec ) {
+        return true;
+    }
+
     public ShapePainter create2DPainter( final Surface surf,
                                          final DataGeom geom, DataSpec dataSpec,
                                          Map<AuxScale,Span> auxSpans,

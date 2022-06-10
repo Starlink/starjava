@@ -355,6 +355,10 @@ public abstract class MarkForm implements ShapeForm {
             return icon_;
         }
 
+        public boolean canPaint( DataSpec dataSpec ) {
+            return true;
+        }
+
         public Map<AuxScale,AuxReader> getAuxRangers( DataGeom geom ) {
             return new HashMap<AuxScale,AuxReader>();
         }

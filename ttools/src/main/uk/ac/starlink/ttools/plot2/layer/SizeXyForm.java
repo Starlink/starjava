@@ -290,6 +290,10 @@ public class SizeXyForm implements ShapeForm {
             return map;
         }
 
+        public boolean canPaint( DataSpec dataSpec ) {
+            return true;
+        }
+
         public ShapePainter create2DPainter( final Surface surface,
                                              final DataGeom geom,
                                              DataSpec dataSpec,

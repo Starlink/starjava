@@ -54,7 +54,21 @@ public interface Outliner {
     Map<AuxScale,AuxReader> getAuxRangers( DataGeom geom );
 
     /**
+     * Indicates whether this outliner is willing to provide painters
+     * for a given DataSpec.
+     * The return value may be unconditionally true, but this method
+     * provides a hook for outliners to reject plotting based only
+     * on characteristics of the DataSpec.
+     *
+     * @param  dataSpec  data specification for plot
+     * @return   true if dataSpec can be used to obtain a non-null painter
+     */
+    boolean canPaint( DataSpec dataSpec );
+
+    /**
      * Creates a ShapePainter object for plotting onto 2-dimensional surfaces.
+     * This method should only be called if {@link #canPaint}
+     * returns true for the supplied DataSpec.
      *
      * @param   surface   plot surface
      * @param   geom   coordinate geometry
@@ -70,6 +84,8 @@ public interface Outliner {
 
     /**
      * Creates a ShapePainter object for plotting onto 3-dimensional surfaces.
+     * This method should only be called if {@link #canPaint}
+     * returns true for the supplied DataSpec.
      *
      * @param   surface   3-d plot surface
      * @param   geom   coordinate geometry

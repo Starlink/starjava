@@ -172,6 +172,10 @@ public class MarkArrayForm implements ShapeForm {
             return new HashMap<AuxScale,AuxReader>();
         }
 
+        public boolean canPaint( DataSpec dataSpec ) {
+            return createXYArrayReader( dataSpec ) != null;
+        }
+
         public ShapePainter create2DPainter( final Surface surface,
                                              final DataGeom geom,
                                              DataSpec dataSpec,
