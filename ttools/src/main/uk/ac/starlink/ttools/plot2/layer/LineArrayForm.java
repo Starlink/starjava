@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.AuxReader;
@@ -105,6 +106,22 @@ public class LineArrayForm implements ShapeForm {
         return new LineArrayOutliner( stroke, antialias );
     }
 
+   /**
+     * Returns a reader for matched X/Y array data for use with array plotters.
+     * If null is returned from this function, no plotting should be done.
+     *
+     * @param  dataSpec  data specification
+     * @return  thread-safe function to map tuples to XYArrayData;
+     *          the function returns null for tuples
+     *          that should not be plotted/accumulated
+     */
+    private Function<Tuple,XYArrayData> 
+            createXYArrayReader( DataSpec dataSpec ) {
+        return ArrayShapePlotter 
+              .createXYArrayReader( xsCoord_, ysCoord_, icXs_, icYs_,
+                                    dataSpec );
+    }
+
     /**
      * Returns the sole instance of this singleton class.
      *
@@ -170,13 +187,14 @@ public class LineArrayForm implements ShapeForm {
             final boolean isBitmap = paperType.isBitmap();
             final double[] dpos = new double[ 2 ];
             final Point2D.Double gpos = new Point2D.Double();
+            final Function<Tuple,XYArrayData> xyReader =
+                createXYArrayReader( dataSpec );
             return new ShapePainter() {
                 public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
-                    double[] xs = xsCoord_.readArrayCoord( tuple, icXs_ );
-                    double[] ys = ysCoord_.readArrayCoord( tuple, icYs_ );
-                    int np = xs == null ? 0 : xs.length;
-                    if ( np > 0 && ys != null && ys.length == np ) {
+                    XYArrayData xyData = xyReader.apply( tuple );
+                    if ( xyData != null ) {
+                        int np = xyData.getLength();
                         double[] gxs = new double[ np ];
                         double[] gys = new double[ np ];
                         int gxlo = bounds.x + bounds.width;
@@ -185,8 +203,8 @@ public class LineArrayForm implements ShapeForm {
                         int gyhi = bounds.y;
                         int jp = 0;
                         for ( int ip = 0; ip < np; ip++ ) {
-                            dpos[ 0 ] = xs[ ip ];
-                            dpos[ 1 ] = ys[ ip ];
+                            dpos[ 0 ] = xyData.getX( ip );
+                            dpos[ 1 ] = xyData.getY( ip );
                             if ( surface.dataToGraphics( dpos, false, gpos ) &&
                                  PlotUtil.isPointReal( gpos ) ) {
                                 gxs[ jp ] = gpos.x;

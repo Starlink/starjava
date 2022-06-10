@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.ErrorMode;
@@ -153,8 +154,6 @@ public class ErrorArrayForm implements ShapeForm {
      * @param   dpos0   base position in data coordinates
      * @param   gpos0   base position in graphics coordinates
      * @param   ip      index into value arrays giving point/error coordinates
-     * @param   xs      X coordinate array
-     * @param   ys      Y coordinate array
      * @param   xsPos   positive direction X error bar extent array, or null
      * @param   ysPos   positive direction Y error bar extent array
      * @param   xsNeg   negative direction X error bar extent array, or null
@@ -163,7 +162,7 @@ public class ErrorArrayForm implements ShapeForm {
      */
     private Glyph createErrorGlyph( Surface surface, MultiPointScribe scribe,
                                     double[] dpos0, Point2D.Double gpos0,
-                                    int ip, double[] xs, double[] ys,
+                                    int ip, 
                                     double[] xsPos, double[] ysPos,
                                     double[] xsNeg, double[] ysNeg ) {
 
@@ -280,6 +279,22 @@ public class ErrorArrayForm implements ShapeForm {
         return pErr > 0 || mErr > 0 ? new double[] { pErr, mErr } : null;
     }
 
+   /**
+     * Returns a reader for matched X/Y array data for use with array plotters.
+     * If null is returned from this function, no plotting should be done.
+     *
+     * @param  dataSpec  data specification
+     * @return  thread-safe function to map tuples to XYArrayData;
+     *          the function returns null for tuples
+     *          that should not be plotted/accumulated
+     */
+    private Function<Tuple,XYArrayData>
+            createXYArrayReader( DataSpec dataSpec ) {
+        return ArrayShapePlotter
+              .createXYArrayReader( xsCoord_, ysCoord_, icXs_, icYs_,
+                                    dataSpec );
+    }
+
     /**
      * Returns a Coord specifier representing error extents.
      * Negative values may be missing, in which case they take their
@@ -366,9 +381,11 @@ public class ErrorArrayForm implements ShapeForm {
                                              DataSpec dataSpec,
                                              Map<AuxScale,Span> auxSpans,
                                              final PaperType2D paperType ) {
+            final Function<Tuple,XYArrayData> xyReader =
+                createXYArrayReader( dataSpec );
 
             /* There are possibilities to improve efficiency here,
-             * by setting up a calcultion object to re-use workspace
+             * by setting up a calculation object to re-use workspace
              * instead of allocating new workspace for every row or
              * every point. */
             return new ShapePainter() {
@@ -376,34 +393,37 @@ public class ErrorArrayForm implements ShapeForm {
                 final Point2D.Double gpos0 = new Point2D.Double();
                 public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
-                    double[] xs = xsCoord_.readArrayCoord( tuple, icXs_ );
-                    double[] ys = ysCoord_.readArrayCoord( tuple, icYs_ );
-                    double[] xsPos = hasX_
-                                   ? xsPosCoord_.readArrayCoord( tuple, icPxs_ )
-                                   : null;
-                    double[] ysPos = ysPosCoord_.readArrayCoord( tuple, icPys_);
-                    double[] xsNeg = hasX_
-                                   ? xsNegCoord_.readArrayCoord( tuple, icNxs_ )
-                                   : null;
-                    double[] ysNeg = ysNegCoord_.readArrayCoord( tuple, icNys_);
-                    int np = xs == null ? 0 : xs.length;
-                    if ( np > 0 && ys != null && ys.length == np &&
-                         ( ( xsPos != null && xsPos.length == np ) ||
-                           ( ysPos != null && ysPos.length == np ) ) ) {
-                        for ( int ip = 0; ip < np; ip++ ) {
-                            dpos0[ 0 ] = xs[ ip ];
-                            dpos0[ 1 ] = ys[ ip ];
-                            if ( surface
-                                .dataToGraphics( dpos0, true, gpos0 ) ) {
-                                Glyph glyph =
-                                    createErrorGlyph( surface, scribe_,
-                                                      dpos0, gpos0, ip, xs, ys,
-                                                      xsPos, ysPos,
-                                                      xsNeg, ysNeg );
-                                if ( glyph != null ) {
-                                    paperType.placeGlyph( paper,
-                                                          gpos0.x, gpos0.y,
-                                                          glyph, color );
+                    XYArrayData xyData = xyReader.apply( tuple );
+                    if ( xyData != null ) {
+                        int np = xyData.getLength();
+                        double[] xsPos =
+                            hasX_ ? xsPosCoord_.readArrayCoord( tuple, icPxs_ )
+                                  : null;
+                        double[] ysPos =
+                            ysPosCoord_.readArrayCoord( tuple, icPys_);
+                        double[] xsNeg =
+                            hasX_ ? xsNegCoord_.readArrayCoord( tuple, icNxs_ )
+                                  : null;
+                        double[] ysNeg =
+                            ysNegCoord_.readArrayCoord( tuple, icNys_);
+                        if ( ( ( xsPos != null && xsPos.length == np ) ||
+                               ( ysPos != null && ysPos.length == np ) ) ) {
+                            for ( int ip = 0; ip < np; ip++ ) {
+                                dpos0[ 0 ] = xyData.getX( ip );
+                                dpos0[ 1 ] = xyData.getY( ip );
+                                if ( surface
+                                    .dataToGraphics( dpos0, true, gpos0 ) ) {
+                                    Glyph glyph =
+                                        createErrorGlyph( surface, scribe_,
+                                                          dpos0, gpos0,
+                                                          ip,
+                                                          xsPos, ysPos,
+                                                          xsNeg, ysNeg );
+                                    if ( glyph != null ) {
+                                        paperType.placeGlyph( paper,
+                                                              gpos0.x, gpos0.y,
+                                                              glyph, color );
+                                    }
                                 }
                             }
                         }

@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.AuxReader;
@@ -110,6 +111,22 @@ public class MarkArrayForm implements ShapeForm {
         return new MarksOutliner( shape, size );
     }
 
+   /**
+     * Returns a reader for matched X/Y array data for use with array plotters.
+     * If null is returned from this function, no plotting should be done.
+     *
+     * @param  dataSpec  data specification
+     * @return  thread-safe function to map tuples to XYArrayData;
+     *          the function returns null for tuples
+     *          that should not be plotted/accumulated
+     */
+    private Function<Tuple,XYArrayData> 
+            createXYArrayReader( DataSpec dataSpec ) {
+        return ArrayShapePlotter 
+              .createXYArrayReader( xsCoord_, ysCoord_, icXs_, icYs_,
+                                    dataSpec );
+    }
+
     /**
      * Returns the sole instance of this singleton class.
      *
@@ -160,17 +177,18 @@ public class MarkArrayForm implements ShapeForm {
                                              DataSpec dataSpec,
                                              Map<AuxScale,Span> auxSpans,
                                              final PaperType2D paperType ) {
+            final Function<Tuple,XYArrayData> xyReader =
+                createXYArrayReader( dataSpec );
             return new ShapePainter() {
                 final double[] dpos = new double[ 2 ];
                 final Point2D.Double gpos = new Point2D.Double();
                 public void paintPoint( Tuple tuple, Color color, Paper paper ){
-                    double[] xs = xsCoord_.readArrayCoord( tuple, icXs_ );
-                    double[] ys = ysCoord_.readArrayCoord( tuple, icYs_ );
-                    if ( xs != null && ys != null && xs.length == ys.length ) {
-                        int np = xs.length;
+                    XYArrayData xyData = xyReader.apply( tuple );
+                    if ( xyData != null ) {
+                        int np = xyData.getLength();
                         for ( int ip = 0; ip < np; ip++ ) {
-                            dpos[ 0 ] = xs[ ip ];
-                            dpos[ 1 ] = ys[ ip ];
+                            dpos[ 0 ] = xyData.getX( ip );
+                            dpos[ 1 ] = xyData.getY( ip );
                             if ( surface.dataToGraphics( dpos, true, gpos ) ) {
                                 paperType.placeGlyph( paper, gpos.x, gpos.y,
                                                       glyph_, color );
