@@ -30860,6 +30860,10 @@ introduced since the last version:
     <li>Provide <code>value*</code> functions for
         <ref id="jelCols">column references</ref>
         to strangely-named columns.</li>
+    <li>Adjust datalink table row-matching heuristics
+        to work with less constrained datalink metadata;
+        this provides smoother operation for
+        (e.g.) Gaia DR3 datalink activation actions.</li>
     </ul>
     </p></dd>
 

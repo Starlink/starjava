@@ -22,6 +22,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.table.gui.TableRowHeader;
+import uk.ac.starlink.util.IntList;
 import uk.ac.starlink.vo.datalink.LinkColMap;
 import uk.ac.starlink.vo.datalink.LinksDoc;
 
@@ -256,6 +257,10 @@ public class DatalinkPanel extends JPanel {
      * to find a row that looks like the last selected row, which may have
      * been in a different table.
      *
+     * <p>Since DataLink currently defines no obvious way to identify
+     * "corresponding" rows in different DataLink tables, the implementation
+     * of this method is necessarily ad hoc and hacky.
+     *
      * @return   suitable row selection index, or -1 if none suggests itself
      */
     private int recoverSelectedRow() {
@@ -266,7 +271,18 @@ public class DatalinkPanel extends JPanel {
             assert false;
             return -1;
         }
+        if ( nrow == 0 ) {
+            return -1;
+        }
+        if ( nrow == 1 ) {
+            return 0;
+        }
+
+        /* Generate an ad-hoc similarity score for the rows in the current
+         * table in relation to the most recently selected row. */
         int[] scores = new int[ nrow ];
+        LinkColMap.ColDef<String> descripCol = LinkColMap.COL_DESCRIPTION;
+        assert CHAR_COLS.contains( descripCol );
         int nc = CHAR_COLS.size();
         for ( int irow = 0; irow < nrow; irow++ ) {
             Object[] row;
@@ -276,26 +292,54 @@ public class DatalinkPanel extends JPanel {
             catch ( IOException e ) {
                 return -1;
             }
-            int score = 0;
+
+            /* Record identity of suitable columns. */
+            int flagScore = 0;
             for ( int ic = 0; ic < nc; ic++ ) {
                 LinkColMap.ColDef<String> col = CHAR_COLS.get( ic );
                 String oldValue = selectionMap_.get( col );
                 if ( oldValue != null &&
                      oldValue.equals( colMap.getValue( col, row ) ) ) {
-                    score = score | ( 1 << ( nc - 1 - ic ) );
+                    flagScore = flagScore | ( 1 << ( nc - 1 - ic ) );
                 }
-                scores[ irow ] = score;
             }
+
+            /* As a tie-breaker use the length of common prefix of the
+             * description entry.  This is not too unreasonable, but was
+             * introduced because it works with Gaia DR3 DataLink tables. */
+            int descripScore =
+                getCommonPrefixLength( selectionMap_.get( descripCol ),
+                                       colMap.getValue( descripCol, row ) );
+            scores[ irow ] = flagScore << 8
+                           | ( (0xff) & descripScore );
         }
+
+        /* Identify the highest scoring row(s). */
         int hiScore = 0;
         int iHi = -1;
+        IntList bests = new IntList();
         for ( int i = 0; i < nrow; i++ ) {
-            if ( scores[ i ] > hiScore ) {
-                hiScore = scores[ i ];
-                iHi = i;
+            int score = scores[ i ];
+            if ( score > hiScore ) {
+                hiScore = score;
+                bests = new IntList();
+            }
+            if ( score == hiScore ) {
+                bests.add( i );
             }
         }
-        return iHi;
+
+        /* Return the best one where possible. */
+        int nBest = bests.size();
+        if ( nBest == 0 ) {
+            return -1;
+        }
+        else if ( nBest == 1 ) {
+            return bests.get( 0 );
+        }
+        else {
+            return bests.get( 0 );
+        }
     }
 
     /**
@@ -310,9 +354,31 @@ public class DatalinkPanel extends JPanel {
         List<LinkColMap.ColDef<String>> list =
             new ArrayList<LinkColMap.ColDef<String>>();
         list.add( LinkColMap.COL_SEMANTICS );
-        list.add( LinkColMap.COL_DESCRIPTION );
         list.add( LinkColMap.COL_CONTENTTYPE );
         list.add( LinkColMap.COL_SERVICEDEF );
+        list.add( LinkColMap.COL_DESCRIPTION );
         return list;
-    };
+    }
+
+    /**
+     * Returns the length of string that two strings have in common at
+     * their starts, giving a crude measure of similarity.
+     * For two completely different strings this will be zero,
+     * for two identical strings it will be their (common) length.
+     *
+     * @param   s1  first string
+     * @return  s2  second string
+     * @return  common prefix character count
+     */
+    private static int getCommonPrefixLength( String s1, String s2 ) {
+        int leng = s1 == null || s2 == null
+                 ? 0
+                 : Math.min( s1.length(), s2.length() );
+        for ( int ic = 0; ic < leng; ic++ ) {
+            if ( s1.charAt( ic ) != s2.charAt( ic ) ) {
+                return ic;
+            }
+        }
+        return leng;
+    }
 }
