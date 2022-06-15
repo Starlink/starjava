@@ -4277,6 +4277,25 @@ You can do this in several ways:
     the requested Utype, the column value will be used.
     </p></dd>
 
+<dt>Using value*() functions</dt>
+<dd><p>You can use the special functions
+    <code>valueDouble</code>, <code>valueInt</code>, <code>valueLong</code>,
+    <code>valueString</code> and <code>valueObject</code>
+    to obtain the typed value of a column with a given name.
+    The argument of the function is a string giving the exact
+    (case-sensitive) column name, for instance
+    <code>valueDouble("b_E(BP-RP)")</code>
+    will yield the value of the column named "<code>b_E(BP-RP)</code>"
+    as a double-precision floating point value.
+    These functions are <em>not</em> the generally recommended way
+    to get column values,
+    since they are slower and provide less type-checking than
+    the other options listed above,
+    and can occasionally lead to some other esoteric problems.
+    However, if you need to refer by name to strangely-named columns
+    they are sometimes a convenient option.
+    </p></dd>
+
 <dt>With the Object$ prefix</dt>
 <dd><p>If a column is referenced with the prefix "<code>Object$</code>"
     before its identifier
@@ -13881,6 +13900,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Provide <code>value*</code> functions for
+        <ref id="jel-colref">column references</ref>
+        to strangely-named columns.</li>
     </ul>
     </p></dd>
 

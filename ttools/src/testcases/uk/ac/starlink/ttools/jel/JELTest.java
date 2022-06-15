@@ -224,6 +224,59 @@ public class JELTest extends TableTestCase {
                     .evaluate_boolean( null ) );
     }
 
+    public void testValueFunctions() throws Throwable {
+        StarTable t1 = new QuickTable( 3, new ColumnData[] {
+            col( "Source", new long[] { 4656637047367315584L,
+                                        6098162212326263680L,
+                                        2367940784546457472L, } ),
+            col( "Target", new String[] { "g0435359-671024",
+                                          "g1431504-470630",
+                                          null } ),
+            col( "[Fe/H]", new float[] { -0.8388f, 4.541f, Float.NaN, } ),
+            col( "b_[Fe/H]", new float[] { -0.8694f, -0.4985f, Float.NaN, } ),
+            col( "B_[Fe/H]", new float[] { -0.8061f, -0.4131f, Float.NaN, } ),
+        } );
+        assertEquals( "g1431504-470630",
+                      evaluate( t1, "valueString(\"Target\")", 1 ) );
+        assertEquals( "g1431504-470630",
+                      evaluate( t1, "valueObject(\"Target\")", 1 ) );
+        assertTrue( Tables
+                   .isBlank( evaluate( t1, "valueDouble(\"Target\")", 1 ) ) );
+        assertNull( evaluate( t1, "valueInt(\"Target\")", 1 ) );
+        assertNull( evaluate( t1, "valueLong(\"Target\")", 1 ) );
+
+        assertNull( evaluate( t1, "valueString(\"target\")", 1 ) );
+        assertNull( evaluate( t1, "valueObject(\"target\")", 1 ) );
+        assertNull( evaluate( t1, "valueInt(\"target\")", 1 ) );
+        assertNull( evaluate( t1, "valueLong(\"target\")", 1 ) );
+        assertTrue( Tables
+                   .isBlank( evaluate( t1, "valueDouble(\"target\")", 1 ) ) );
+
+        assertEquals( Float.valueOf( -0.8388f ),
+                      evaluate( t1, "(float)valueDouble(\"[Fe/H]\")", 0 ) );
+        assertEquals( Integer.valueOf( 4 ),
+                      evaluate( t1, "valueInt(\"[Fe/H]\")", 1 ) );
+        assertEquals( Long.valueOf( 4 ),
+                      evaluate( t1, "valueLong(\"[Fe/H]\")", 1 ) );
+        assertNull( evaluate( t1, "valueInt(\"[Fe/H]\")", 2 ) );
+        assertNull( evaluate( t1, "valueLong(\"[Fe/H]\")", 2 ) );
+        assertTrue( Tables
+                   .isBlank( evaluate( t1, "valueDouble(\"[Fe/H]\")", 2 ) ) );
+
+        assertEquals( Float.valueOf( -0.8694f ),
+                      evaluate( t1, "(float)valueDouble(\"b_[Fe/H]\")", 0 ) );
+        assertEquals( Float.valueOf( -0.8061f ),
+                      evaluate( t1, "(float)valueDouble(\"B_[Fe/H]\")", 0 ) );
+    }
+
+    private Object evaluate( StarTable table, String expr, long irow )
+            throws Throwable {
+        RandomJELRowReader rdr = RandomJELRowReader.createAccessReader( table );
+        Library lib = JELUtils.getLibrary( rdr );
+        CompiledExpression compex = JELUtils.compile( lib, table, expr );
+        return rdr.evaluateAtRow( compex, irow );
+    }
+
     public static class FuncLib {
         public static int triplePrim( int a ) {
             return 3 * a;

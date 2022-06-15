@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.jel;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -57,6 +59,21 @@ import uk.ac.starlink.table.Tables;
  *     within this reader.  The quality of the random numbers may not
  *     be particularly good.
  *
+ * <dt>"value*()" functions:
+ * <dd>The methods {@link #valueDouble valueDouble},
+ *     {@link #valueInt valueInt}, {@link #valueLong valueLong},
+ *     {@link #valueString valueString} and {@link #valueObject valueObject}
+ *     are provided.
+ *     Each takes as an argument an exact column name, and provides the
+ *     typed value of the column at the current row.
+ *     These methods are <em>not</em> the generally recommended way to
+ *     access column values; they are slower and less tidy than simply
+ *     using column names or $IDs in expressions, and do not admit of
+ *     static analysis, so their use can <em>not</em> be reflected in
+ *     the results of {@link #getTranslatedColumns getTranslatedColumns}.
+ *     However, it does allow access by column name to columns with names
+ *     that are not legal java identifiers.
+ *
  * </dl>
  *
  * @author   Mark Taylor
@@ -65,6 +82,7 @@ import uk.ac.starlink.table.Tables;
 public abstract class StarTableJELRowReader extends JELRowReader {
 
     private final StarTable table_;
+    private Map<String,ColMeta> colMetaMap_;
     private static final AtomicInteger seeder_ = new AtomicInteger();
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.jel" );
@@ -148,6 +166,116 @@ public abstract class StarTableJELRowReader extends JELRowReader {
             }
         }
         return false;
+    }
+
+    /**
+     * Returns the value of a named column in this reader's table
+     * at the current row as a double.
+     * This is not generally the recommended way to access column values,
+     * but it will work for column names without any syntactical restrictions.
+     *
+     * @param  colName  column name, matched exactly
+     * @return   value of named column as a double,
+     *           or NaN on failure (no such column or value not numeric)
+     */
+    public double valueDouble( String colName ) {
+        ColMeta colMeta = getColMetaByExactName( colName );
+        if ( colMeta != null && colMeta.isNumber_ ) {
+            Object value = getCellValue( colMeta.icol_ );
+            if ( value instanceof Number ) {
+                return ((Number) value).doubleValue();
+            }
+        }
+        return Double.NaN;
+    }
+
+    /**
+     * Returns the value of a named column in this reader's table
+     * at the current row as an int.
+     * This is not generally the recommended way to access column values,
+     * but it will work for column names without any syntactical restrictions.
+     *
+     * @param  colName  column name, matched exactly
+     * @return   value of column as an int;
+     *           foundNull is called on failure
+     *           (no such column or value not numeric or not finite)
+     */
+    public int valueInt( String colName ) { 
+        ColMeta colMeta = getColMetaByExactName( colName );
+        if ( colMeta != null && colMeta.isNumber_ ) {
+            Object value = getCellValue( colMeta.icol_ );
+            if ( value instanceof Number ) {
+                Number num = (Number) value;
+                if ( Double.isFinite( num.doubleValue() ) ) {
+                    return num.intValue();
+                }
+            }
+        }
+        foundNull();
+        return 0;
+    }
+
+    /**
+     * Returns the value of a named column in this reader's table
+     * at the current row as a long int.
+     * This is not generally the recommended way to access column values,
+     * but it will work for column names without any syntactical restrictions.
+     *
+     * @param  colName  column name, matched exactly
+     * @return   value of column as a long;
+     *           foundNull is called on failure
+     *           (no such column or value not numeric or not finite)
+     */
+    public long valueLong( String colName ) {
+        ColMeta colMeta = getColMetaByExactName( colName );
+        if ( colMeta != null && colMeta.isNumber_ ) {
+            Object value = getCellValue( colMeta.icol_ );
+            if ( value instanceof Number ) {
+                Number num = (Number) value;
+                if ( Double.isFinite( num.doubleValue() ) ) {
+                    return num.longValue();
+                }
+            }
+        }
+        foundNull();
+        return 0L;
+    }
+
+    /**
+     * Returns the value of a named column in this reader's table
+     * at the current row as a String.
+     * This is not generally the recommended way to access column values,
+     * but it will work for column names without any syntactical restrictions.
+     *
+     * @param  colName  column name, matched exactly
+     * @return   value of column as a String, or null if no such column
+     */
+    public String valueString( String colName ) {
+        ColMeta colMeta = getColMetaByExactName( colName );
+        if ( colMeta != null ) {
+            Object value = getCellValue( colMeta.icol_ );
+            if ( value != null ) {
+                return value.toString();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the value of a named column in this reader's table
+     * at the current row as an Object;
+     * This is not generally the recommended way to access column values,
+     * but it will work for column names without any syntactical restrictions.
+     *
+     * @param  colName  column name, matched exactly
+     * @return   value of column as an Object, or null if no such column
+     */
+    public Object valueObject( String colName ) {
+        ColMeta colMeta = getColMetaByExactName( colName );
+        if ( colMeta != null ) {
+            return getCellValue( colMeta.icol_ );
+        }
+        return null;
     }
 
     protected boolean isBlank( int icol ) {
@@ -442,6 +570,35 @@ public abstract class StarTableJELRowReader extends JELRowReader {
     }
 
     /**
+     * Returns a ColMeta object corresponding to the supplied column name.
+     * There are no lexical restrictions on the form of the name,
+     * and matching is exact.
+     *
+     * @param  name  column name
+     * @return  metadata for column,
+     *          or null if no column with the given name exists
+     */
+    private ColMeta getColMetaByExactName( String name ) {
+
+        /* Construct the required map lazily, since for most instances
+         * of this class it will never be used.
+         * This code is effectively thread-safe; the worst that can happen
+         * is that N identical instances will be constructed concurrently
+         * and N-1 will be discarded. */
+        if ( colMetaMap_ == null ) {
+            Map<String,ColMeta> map = new HashMap<>();
+            int ncol = table_.getColumnCount();
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                ColumnInfo info = table_.getColumnInfo( icol );
+                map.put( info.getName(),
+                         new ColMeta( icol, info.getContentClass() ) );
+            }
+            colMetaMap_ = map;
+        }
+        return colMetaMap_.get( name );
+    }
+
+    /**
      * Takes a (non-prefixed) UCD specification and returns a Pattern
      * actual UCDs should match if they represent the same thing.
      * Punctuation is mapped to underscores, and the pattern is
@@ -473,5 +630,26 @@ public abstract class StarTableJELRowReader extends JELRowReader {
     public static Pattern getUtypeRegex( String utype ) {
         String regex = utype.replaceAll( "_", "\\\\W" );
         return Pattern.compile( regex, Pattern.CASE_INSENSITIVE );
+    }
+
+    /**
+     * Aggregates a column index and class information for a table column.
+     */
+    private static class ColMeta {
+        final int icol_;
+        final boolean isNumber_;
+        final boolean isString_;
+
+        /**
+         * Constructor.
+         *
+         * @param   icol   column index in table
+         * @param   clazz  content class of column
+         */
+        ColMeta( int icol, Class<?> clazz ) {
+            icol_ = icol;
+            isNumber_ = Number.class.isAssignableFrom( clazz );
+            isString_ = String.class.equals( clazz );
+        }
     }
 }
