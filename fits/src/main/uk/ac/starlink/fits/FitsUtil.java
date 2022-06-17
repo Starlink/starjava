@@ -77,6 +77,17 @@ public class FitsUtil {
     }
 
     /**
+     * Indicates whether a given character is a legal FITS header character
+     * (0x20..0x7e inclusive).
+     *
+     * @param  ch  character to check
+     * @return   true iff ch is legal for inclusion in a FITS header
+     */
+    public static boolean isFitsCharacter( int ch ) {
+        return ch >= 0x20 && ch <= 0x7e;
+    }
+
+    /**
      * Reads a FITS header from an input stream.
      * The stream is read until the end of the last header block.
      *

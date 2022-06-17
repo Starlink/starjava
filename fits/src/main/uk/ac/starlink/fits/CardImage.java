@@ -86,7 +86,7 @@ public class CardImage {
      * @param  ch  character to check
      */
     private static void checkFitsCharacter( int ch ) {
-        if ( ch < 32 || ch > 126 ) {
+        if ( ! FitsUtil.isFitsCharacter( ch ) ) {
             throw new IllegalArgumentException( "Bad character: 0x"
                                               + Integer.toHexString( ch ) );
         }
