@@ -135,22 +135,7 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
         boolean stream = getStreamParameter().booleanValue( env );
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
         try {
-            if ( loc.equals( "-" ) ) {
-                InputStream in =
-                    new BufferedInputStream( DataSource
-                                            .getInputStream( loc,
-                                                             allowSystem_ ) );
-                return getStreamedTable( tfact, in, fmt, null );
-            }
-            else if ( stream ) {
-                return getStreamedTable( tfact,
-                                         DataSource
-                                        .makeDataSource( loc, allowSystem_ ),
-                                         fmt );
-            }
-            else {
-                return tfact.makeStarTable( loc, fmt );
-            }
+            return makeTable( loc, fmt, stream, tfact );
         }
         catch ( EOFException e ) {
             throw new ExecutionException( "Premature end of file", e );
@@ -161,6 +146,35 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
                 msg = e.toString();
             }
             throw new ExecutionException( msg, e );
+        }
+    }
+
+    /**
+     * Reads a table given fixed values for the various parameters.
+     *
+     * @param  loc  table location
+     * @param  fmt  input format string
+     * @param  stream  true for streamed input
+     * @param  tfact  table factory
+     * @return   table loaded
+     */
+    public StarTable makeTable( String loc, String fmt, boolean stream,
+                                StarTableFactory tfact )
+            throws IOException, TaskException {
+        if ( loc.equals( "-" ) ) {
+            InputStream in =
+                new BufferedInputStream( DataSource
+                                        .getInputStream( loc, allowSystem_ ) );
+            return getStreamedTable( tfact, in, fmt, null );
+        }
+        else if ( stream ) {
+            return getStreamedTable( tfact,
+                                     DataSource
+                                    .makeDataSource( loc, allowSystem_ ),
+                                     fmt );
+        }
+        else {
+            return tfact.makeStarTable( loc, fmt );
         }
     }
 
