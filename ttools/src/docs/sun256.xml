@@ -76,6 +76,7 @@
   <!ENTITY out-votable SYSTEM 'out-votable.xml'>
 
   <!-- Summary paragraphs containing usage for each commmand. -->
+  <!ENTITY arrayjoin-summary SYSTEM 'arrayjoin-summary.xml'>
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY cdsskymatch-summary SYSTEM 'cdsskymatch-summary.xml'>
   <!ENTITY cone-summary SYSTEM 'cone-summary.xml'>
@@ -262,6 +263,7 @@ same ground as the STIL and TOPCAT user documents
     <ref id="tcatn"><code>tcatn</code></ref>,
     <ref id="tloop"><code>tloop</code></ref>,
     <ref id="tjoin"><code>tjoin</code></ref>,
+    <ref id="arrayjoin"><code>arrayjoin</code></ref>,
     <ref id="tgridmap"><code>tgridmap</code></ref>, and
     <ref id="tcube"><code>tcube</code></ref>
     (see <ref id="pipes" plaintextref="yes"/>).
@@ -536,6 +538,7 @@ command with the <code>-debug</code> flag specified.
 name of one of the tasks listed in <ref id="cmdUsage"/> - currently 
 the available tasks are:
 <ul>
+<li><code>arrayjoin</code></li>
 <li><code>calc</code></li>
 <li><code>cdsskymatch</code></li>
 <li><code>cone</code></li>
@@ -5430,6 +5433,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="tjoin" plaintextref="yes"><code>tjoin</code></ref>:
         &tjoin-purpose;
         </li>
+    <li><ref id="arrayjoin" plaintextref="yes"><code>arrayjoin</code></ref>:
+        &arrayjoin-purpose;
+        </li>
     <li><ref id="tgridmap" plaintextref="yes"><code>tgridmap</code></ref>:
         &tgridmap-purpose;
         </li>
@@ -5610,6 +5616,129 @@ Detailed descriptions and examples for each command can be found in
 commands in the package.  For each one a description of its purpose,
 a list of its command-line arguments, and some examples are given.
 </p>
+
+<subsect id="arrayjoin" tocleaf="yes">
+<subhead><title><code>arrayjoin</code>: &arrayjoin-purpose;</title></subhead>
+
+<p><code>arrayjoin</code> takes an input table and for each row
+adds the contents of a separate "array" table.
+The columns added are the columns from the array table,
+and the value of each cell is the value of the whole column from
+the array table represented as an array.
+The assumption is that all the array tables have the same form
+(the same columns, though not necessarily the same row counts).
+</p>
+
+<p>This can be useful for constructing a single table
+with array-valued columns containing data that is made
+available in multiple external files, for instance
+via the DataLink protocol;
+this is illustrated in the Examples subsection below.
+Note however that this command does not understand DataLink directly,
+and cannot itself determine the location of the external array tables;
+an expression giving their per-row location (filname or URL)
+must be supplied.
+</p>
+
+&arrayjoin-summary;
+
+<subsubsect id="arrayjoin-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>arrayjoin</code>:
+<dl>
+
+<dt><verbatim>
+stilts arrayjoin in=dr3-sources.vot
+                 atable='"https://gea.esac.esa.int/data-server/data?RETRIEVAL_TYPE=XP_SAMPLED&amp;RELEASE=Gaia+DR3&amp;ID="+source_id'
+                 icmd=progress
+                 out=sources-with-xp.fits
+</verbatim></dt>
+<dd><p>This command uses the Gaia DR3 DataLink service
+    to attach sampled XP spectrum data to an input table containing
+    other information about Gaia DR3 sources.
+    </p>
+    <p>The input file <code>dr3-sources.vot</code> must contain the column
+    <code>source_id</code> giving the Gaia DR3 source ID
+    corresponding to that row.
+    The <code>atable</code> expression is a URL built using that
+    <code>source_id</code> column and a base URL that can be obtained
+    by examining the DR3 catalogue
+    <webref url='https://www.cosmos.esa.int/web/gaia-users/archive/datalink-products#datalink_serialisation'
+            >documentation</webref>,
+    or by examining the DataLink service descriptor returned from a
+    source catalogue query.
+    </p>
+    <p>The output file <code>sources-with-xp.fits</code>
+    is a FITS table with the same content as the input
+    but with three added array-valued columns,
+    <code>wavelength</code>, <code>flux</code> and <code>flux_error</code>
+    as supplied by tables downloaded from the URL in the <code>atable</code>
+    parameter.
+    For each row of the output table, the lengths of those three arrays
+    will be the same, namely the row count of the table that supplied them.
+    These matched arrays can be manipulated within STILTS,
+    for instance using the
+    <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> functions
+    or to produce plots using the
+    <ref id="layer-lines">lines</ref> or
+    <ref id="layer-arrayquantile">arrayquantile</ref> plot layer types.
+    </p>
+    <p>The <code>icmd=progress</code> filter is a useful convenience to see
+    how the command is progressing,
+    since the operation requires multiple downloads and so may be
+    time-consuming.
+    </p>
+    </dd>
+
+<dt><verbatim>
+stilts arrayjoin in=dl_dr3.fits
+                 icmd='select has_epoch_photometry'
+                 atable='"https://gea.esac.esa.int/data-server/data?RETRIEVAL_TYPE=EPOCH_PHOTOMETRY&amp;ID=Gaia+DR3+"+source_id' \
+                 afmt=votable \
+                 acmd='select equals(BAND,\"G\")' \
+                 acmd='keepcols "time mag flux"' \
+                 out=with-epoch-photom.fits
+</verbatim></dt>
+<dd><p>Similar to the previous example, but this time acquiring
+    EPOCH_PHOTOMETRY rather than XP_SAMPLED data,
+    and performing some additional
+    processing of the main and array input tables.
+    Only those input rows are used for which the boolean
+    <code>has_epoch_photometry</code> column is True;
+    for the linked array tables the rows are limited to those with
+    the <code>BAND</code> column having the value "<code>G</code>";
+    and only the array columns
+    <code>time</code>, <code>mag</code> and <code>flux</code>
+    are retained for inclusion into the output.
+    </p></dd>
+
+<dt><verbatim>
+stilts arrayjoin in=obscore-lotssdr2.vot
+                 atable='equals(dataproduct_type,"spectrum")?access_url:""'
+                 out=with-spectra.vot
+</verbatim></dt>
+<dd><p>Takes an ivoa.ObsCore-like table and adds array-valued
+       columns giving the content of spectrum files linked from
+       the <code>access_url</code> field.
+       For rows in the input table whose <code>dataproduct_type</code>
+       field does not have the value "spectrum" a blank location
+       is substituted insteead of the access_url.
+       That has the effect of ensuring that no attempt is made
+       to add array values for non-spectrum rows of the input table,
+       while retaining those rows in the output.
+       Note all the access_urls in the selected rows must point to
+       spectrum files of a of a similar form,
+       otherwise the command will fail.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
 
 <subsect id="calc" tocleaf="yes">
 <subhead><title><code>calc</code>: &calc-purpose;</title></subhead>
@@ -13905,6 +14034,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         to strangely-named columns.</li>
     <li>Fix FITS output so it doesn't fail when attempting to write
         metadata with non-ASCII Unicode characters.</li>
+    <li>New command <ref id="arrayjoin"><code>arrayjoin</code></ref>
+        added.</li>
     </ul>
     </p></dd>
 

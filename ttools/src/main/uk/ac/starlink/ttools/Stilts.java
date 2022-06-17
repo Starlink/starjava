@@ -146,6 +146,7 @@ public class Stilts {
         /* Populate main task factory with non-plot tasks. */
         plot2TaskFactory_ = p2fact;
         String taskPkg = "uk.ac.starlink.ttools.task.";
+        taskFactory_.register( "arrayjoin", taskPkg + "ArrayJoin" );
         taskFactory_.register( "calc", taskPkg + "Calc" );
         taskFactory_.register( "cdsskymatch", taskPkg + "CdsUploadSkyMatch" );
         taskFactory_.register( "cone", taskPkg + "TableCone" );
