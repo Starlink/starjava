@@ -30864,6 +30864,8 @@ introduced since the last version:
         to work with less constrained datalink metadata;
         this provides smoother operation for
         (e.g.) Gaia DR3 datalink activation actions.</li>
+    <li>Fix FITS output so it doesn't fail when attempting to write
+        metadata with non-ASCII Unicode characters.</li>
     </ul>
     </p></dd>
 

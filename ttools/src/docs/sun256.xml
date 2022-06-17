@@ -13903,6 +13903,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Provide <code>value*</code> functions for
         <ref id="jel-colref">column references</ref>
         to strangely-named columns.</li>
+    <li>Fix FITS output so it doesn't fail when attempting to write
+        metadata with non-ASCII Unicode characters.</li>
     </ul>
     </p></dd>
 
