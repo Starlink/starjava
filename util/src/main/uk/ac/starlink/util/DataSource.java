@@ -798,11 +798,13 @@ public abstract class DataSource {
      *          specification; otherwise null
      */
     private static String getShellCommandLine( String location ) {
-        if ( location.charAt( 0 ) == '<' ) {
-            return location.substring( 1 );
-        }
-        if ( location.charAt( location.length() - 1 ) == '|' ) {
-            return location.substring( 0, location.length() - 1 );
+        if ( location != null && location.length() > 0 ) {
+            if ( location.charAt( 0 ) == '<' ) {
+                return location.substring( 1 );
+            }
+            if ( location.charAt( location.length() - 1 ) == '|' ) {
+                return location.substring( 0, location.length() - 1 );
+            }
         }
         return null;
     }
