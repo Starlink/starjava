@@ -1,16 +1,30 @@
 package uk.ac.starlink.topcat.activate;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Window;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import javax.swing.Box;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.topcat.ColumnDataComboBox;
+import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.DatalinkPanel;
+import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.LinkRowPanel;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
+import uk.ac.starlink.util.CgiQuery;
 import uk.ac.starlink.vo.datalink.LinksDoc;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
@@ -28,7 +42,7 @@ public class ViewDatalinkActivationType implements ActivationType {
     }
 
     public String getDescription() {
-        return "View the data in a file or URL column as a DataLink table";
+        return "View a referenced DataLink table";
     }
 
     public ActivatorConfigurator createConfigurator( TopcatModelInfo tinfo ) {
@@ -102,6 +116,68 @@ public class ViewDatalinkActivationType implements ActivationType {
         return autoInvoke
              ? linkPanel.invokeRow()
              : Outcome.success( "Loaded " + nrow + " rows (" + loc + ")" );
+    }
+
+    /**
+     * Constructs a DataLink URL given a base URL and an ID value.
+     *
+     * @param  baseUrl  base URL
+     * @param  id   datalink ID value
+     * @return  full URL as string
+     */
+    private static String getDatalinkUrl( String baseUrl, String id ) {
+        return new CgiQuery( baseUrl )
+              .addArgument( "ID", id )
+              .toString(); 
+    }
+
+    /**
+     * Configures a supplied ComboBox by attempting to select a default
+     * value that matches a given target UCD, if any are available.
+     * Some variations on the target UCD are tried out to get the best fit.
+     *
+     * @param  selector  combo box
+     * @param  targetUcdBasic   basic UCD required
+     */
+    private static void selectColumnByUcd( ColumnDataComboBox selector,
+                                           String targetUcdBasic ) {
+        targetUcdBasic = targetUcdBasic.toLowerCase();
+        String targetUcdMain = targetUcdBasic + ";meta.main";
+        ColumnData cdataMain = null;
+        ColumnData cdataBasic = null;
+        ColumnData cdataAny = null;
+        int n = selector.getItemCount();
+        for ( int i = 0; i < n; i++ ) {
+            ColumnData cdata = selector.getItemAt( i );
+            String ucd = cdata != null
+                       ? cdata.getColumnInfo().getUCD()
+                       : null;
+            ucd = ucd == null ? null : ucd.toLowerCase();
+            if ( ucd != null ) {
+                if ( cdataMain == null && ucd.equals( targetUcdMain ) ) {
+                    cdataMain = cdata;
+                }
+                else if ( cdataBasic == null && ucd.equals( targetUcdBasic ) ) {
+                    cdataBasic = cdata;
+                }
+                else if ( cdataAny == null && ucd.startsWith( targetUcdBasic )){
+                    cdataAny = cdata;
+                }
+            }
+        }
+        ColumnData cdataUse = null;
+        if ( cdataUse == null ) {
+            cdataUse = cdataMain;
+        }
+        if ( cdataUse == null ) {
+            cdataUse = cdataBasic;
+        }
+        if ( cdataUse == null ) {
+            cdataUse = cdataAny;
+        }
+        if ( cdataUse != null ) {
+            selector.setSelectedItem( cdataUse );
+        }
     }
 
     /**
@@ -182,6 +258,152 @@ public class ViewDatalinkActivationType implements ActivationType {
 
         public void setState( ConfigState state ) {
             setUrlState( state );
+        }
+    }
+
+    /**
+     * Configurator implementation in which the user supplies a base URL
+     * and a column/expression giving DataLink ID, in accordance with
+     * the DataLink standard.
+     */
+    private static class IdDatalinkConfigurator
+            extends AbstractActivatorConfigurator {
+
+        private final DatalinkInvoker invoker_;
+        private final JTextField baseField_;
+        private final ColumnDataComboBox idSelector_;
+
+        private static final String BASEURL_KEY = "baseurl";
+        private static final String DLID_KEY = "dlid";
+
+        /**
+         * Constructor.
+         *
+         * @param  tinfo  topcat model information
+         * @param  invoker  consumes datalink URLs
+         */
+        IdDatalinkConfigurator( TopcatModelInfo tinfo,
+                                DatalinkInvoker invoker ) {
+            super( new JPanel( new BorderLayout() ) );
+            invoker_ = invoker;
+            JComponent queryPanel = Box.createVerticalBox();
+            getPanel().add( queryPanel, BorderLayout.NORTH );
+            baseField_ = new JTextField() {
+                @Override
+                public Dimension getMaximumSize() {
+                    return new Dimension( super.getMaximumSize().width,
+                                          super.getPreferredSize().height );
+                }
+            };
+            baseField_.getCaret().addChangeListener( getActionForwarder() );
+            ColumnDataComboBoxModel idModel =
+                new ColumnDataComboBoxModel( tinfo.getTopcatModel(),
+                                             Object.class, true );
+            idSelector_ = new ColumnDataComboBox();
+            idSelector_.setModel( idModel );
+            selectColumnByUcd( idSelector_, "meta.id" );
+            idSelector_.addActionListener( getActionForwarder() );
+            queryPanel.add( new LineBox( "Links Endpoint", baseField_ ) );
+            queryPanel.add( Box.createVerticalStrut( 5 ) );
+            queryPanel.add( new LineBox( "Datalink ID", idSelector_ ) );
+        }
+
+        public Safety getSafety() {
+            return Safety.SAFE;
+        }
+
+        public String getConfigMessage() {
+            if ( getBaseUrl() == null ) {
+                return "No Base URL";
+            }
+            else if ( getIdColumnData() == null ) {
+                return "No Datalink ID value";
+            }
+            else {
+                return null;
+            }
+        }
+
+        public Activator getActivator() {
+            String baseUrl = getBaseUrl();
+            ColumnData idData = getIdColumnData();
+            if ( baseUrl != null && idData != null ) {
+                return new Activator() {
+                    public boolean invokeOnEdt() {
+                        return false;
+                    }
+                    public Outcome activateRow( long lrow,
+                                                ActivationMeta meta ) {
+                        Object value;
+                        try {
+                            value = idData.readValue( lrow );
+                        }
+                        catch ( IOException e ) {
+                            return Outcome.failure( e );
+                        }
+                        String subloc = value != null ? value.toString().trim()
+                                                      : null;
+                        if ( subloc != null && subloc.length() > 0 ) {
+                            String dlurl = getDatalinkUrl( baseUrl, subloc );
+                            Outcome outcome = invoker_.invokeLocation( dlurl );
+                            return UrlColumnConfigurator
+                                  .decorateOutcomeWithUrl( outcome, dlurl );
+                        }
+                        else {
+                            return Outcome.failure( "No Datalink ID" );
+                        }
+                    }
+                };
+            }
+            else {
+                return null;
+            }
+        }
+
+        public ConfigState getState() {
+            ConfigState state = new ConfigState();
+            state.saveText( BASEURL_KEY, baseField_ );
+            state.saveSelection( DLID_KEY, idSelector_ );
+            return state;
+        }
+
+        public void setState( ConfigState state ) {
+            state.restoreText( BASEURL_KEY, baseField_ );
+            state.restoreSelection( DLID_KEY, idSelector_ );
+        }
+
+        /**
+         * Returns the base URL currently entered in this configurator.
+         *
+         * @return   string syntactically capable of being a URL, or null
+         */
+        private String getBaseUrl() {
+            String btxt = baseField_.getText();
+            if ( btxt == null || btxt.trim().length() == 0 ) {
+                return null;
+            }
+            else {
+                try {
+                    new URL( btxt );
+                    return btxt;
+                }
+                catch ( MalformedURLException e ) {
+                    return null;
+                }
+            }
+        }
+
+        /**
+         * Returns the ColumnData representing datalink ID currently
+         * entered in this configurator.
+         *
+         * @return  ID column data, or null
+         */
+        private ColumnData getIdColumnData() {
+            Object idObj = idSelector_.getSelectedItem();
+            return idObj instanceof ColumnData
+                 ? (ColumnData) idObj
+                 : null;
         }
     }
 }
