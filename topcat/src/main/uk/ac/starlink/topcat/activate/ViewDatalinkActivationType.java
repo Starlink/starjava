@@ -47,7 +47,20 @@ public class ViewDatalinkActivationType implements ActivationType {
 
     public ActivatorConfigurator createConfigurator( TopcatModelInfo tinfo ) {
         DatalinkInvoker invoker = new DatalinkInvoker( tinfo );
-        return new UrlDatalinkConfigurator( tinfo, invoker );
+        return new ChoiceConfigurator( new ActivatorConfigurator[] {
+            new UrlDatalinkConfigurator( tinfo, invoker ) {
+                @Override
+                public String toString() {
+                    return "Datalink Table URL";
+                }
+            },
+            new IdDatalinkConfigurator( tinfo, invoker ) {
+                @Override
+                public String toString() {
+                    return "Links Service";
+                }
+            },
+        } );
     }
 
     public Suitability getSuitability( TopcatModelInfo tinfo ) {
@@ -234,6 +247,9 @@ public class ViewDatalinkActivationType implements ActivationType {
             super( tinfo, "Datalink",
                    new ColFlag[] { ColFlag.DATALINK, ColFlag.URL, } );
             invoker_ = invoker;
+            setLocationLabel( "Links Table Location" );
+            setLocationTooltip( "Column or expression giving "
+                              + "URL/filename location of DataLink table" );
         }
 
         protected Activator createActivator( ColumnData cdata ) {
@@ -285,9 +301,10 @@ public class ViewDatalinkActivationType implements ActivationType {
         IdDatalinkConfigurator( TopcatModelInfo tinfo,
                                 DatalinkInvoker invoker ) {
             super( new JPanel( new BorderLayout() ) );
+            final JComponent panel = getPanel();
             invoker_ = invoker;
             JComponent queryPanel = Box.createVerticalBox();
-            getPanel().add( queryPanel, BorderLayout.NORTH );
+            panel.add( queryPanel, BorderLayout.NORTH );
             baseField_ = new JTextField() {
                 @Override
                 public Dimension getMaximumSize() {
@@ -303,9 +320,24 @@ public class ViewDatalinkActivationType implements ActivationType {
             idSelector_.setModel( idModel );
             selectColumnByUcd( idSelector_, "meta.id" );
             idSelector_.addActionListener( getActionForwarder() );
-            queryPanel.add( new LineBox( "Links Endpoint", baseField_ ) );
+            final LineBox baseBox = new LineBox( "Links Endpoint", baseField_ );
+            final LineBox idBox = new LineBox( "Datalink ID", idSelector_ );
+            baseBox.getLabel()
+                   .setToolTipText( "Base URL for DataLink table, "
+                                  + "corresponding to {links} endpoint "
+                                  + "in DataLink standard" );
+            idBox.getLabel()
+                 .setToolTipText( "Column/expression giving dataset identifier,"
+                                + " corresponding to ID parameter "
+                                + "in DataLink standard" );
+            queryPanel.add( baseBox );
             queryPanel.add( Box.createVerticalStrut( 5 ) );
-            queryPanel.add( new LineBox( "Datalink ID", idSelector_ ) );
+            queryPanel.add( idBox );
+            panel.addPropertyChangeListener( "enabled", evt -> {
+                boolean isEnabled = panel.isEnabled();
+                baseBox.setEnabled( isEnabled );
+                idBox.setEnabled( isEnabled );
+            } );
         }
 
         public Safety getSafety() {

@@ -67,6 +67,11 @@ public abstract class UrlColumnConfigurator
         colLine.add( colSelector_ );
         queryPanel_.add( colLine );
         queryPanel_.add( Box.createVerticalStrut( 5 ) );
+        panel.addPropertyChangeListener( "enabled", evt -> {
+            boolean isEnabled = panel.isEnabled();
+            colLabel_.setEnabled( isEnabled );
+            colSelector_.setEnabled( isEnabled );
+        } );
     }
 
     /**
@@ -240,6 +245,15 @@ public abstract class UrlColumnConfigurator
      */
     public void setLocationLabel( String label ) {
         colLabel_.setText( label + ": " );
+    }
+
+    /**
+     * Sets the tooltip text for the Location field.
+     *
+     * @param  tooltip  tooltip text
+     */
+    public void setLocationTooltip( String tooltip ) {
+        colLabel_.setToolTipText( tooltip );
     }
 
     /**

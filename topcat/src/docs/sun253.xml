@@ -23628,17 +23628,17 @@ Refer to the documentation of that window for more details.
 </figure>
 
 <p>The <label>View Datalink Table</label> action is for tables
-with a column containing URLs that point to files in the 
+whose rows that can reference files in the
 <em>{links}-response</em> table format defined
 by the <webref url="&URL.DATALINK;">DataLink standard</webref>.
 Activating a row with this action defined will retrieve the
-DataLink file from the given URL and display it in a new popup window.
+DataLink file from the location indicated and display it in a new popup window.
 The display is the same as that of the
 <ref plaintextref="yes" id="DatalinkWindow">DataLink Window</ref>;
 see the documentation of that window for details.
 There are a couple of differences however:
 <ul>
-<li>In this case, the DataLink table has not been loaded into TOPCAT
+<li>In this case, the DataLink table is not loaded into TOPCAT
     as a new table.</li>
 <li>There is an extra checkbox, <label>Auto-Invoke</label>, next to
     the <label>Invoke</label> button.
@@ -23656,14 +23656,49 @@ There are a couple of differences however:
 </ul>
 </p>
 
-<p>Configuration:
+<p>There are two alternative ways to configure this action;
+you can either specify the <label>Datalink Table URL</label> or the
+<label>Links Service</label> parameters.
+Select the radio button for one or the other and fill in the
+details as appropriate.
 <dl>
-<dt>Datalink Location</dt>
-<dd><p>Gives the URL or filename of the DataLink table for each row.
-    This is normally one of the table columns and can be selectd from
-    the drop-down list, but alternatively the
-    <ref id="jel">expression language</ref> may be used
-    to assemble a location string from other columns.
+<dt>Datalink Table URL:</dt>
+<dd><p>This option is suitable if you have the complete URL
+    of a DataLink table supplied by one of the columns in the activated table.
+    <dl>
+    <dt>Links Table Location</dt>
+    <dd><p>Gives the URL or filename of the DataLink table for each row.
+        This is normally one of the table columns and can be selected from
+        the drop-down list, but alternatively the
+        <ref id="jel">expression language</ref> may be used
+        to assemble a location string from other columns.
+        </p></dd>
+    </dl>
+    </p></dd>
+<dt>Links Service:</dt>
+<dd><p>This option is suitable if you know where to find a
+    DataLink "{links}" service, as defined by the DataLink standard,
+    and have suitable ID values supplied in the activated table.
+    <dl>
+    <dt>Links Endpoint</dt>
+    <dd><p>The "{links} endpoint" as defined by e.g. Section 2 of the
+        DataLink 1.0 standard.  This is a base URL for the service,
+        and is entered as a fixed string without quotes.
+        </p></dd>
+    <dt>Datalink ID</dt>
+    <dd><p>The (textual or numeric) value for each activated row
+        of the <label>ID</label> parameter to the DataLink service defined by
+        the above endpoint.
+        This identifies the item whose links are to be retrieved,
+        and is normally one of the table columns that can be selected from
+        the drop-down list; alternatively the
+        <ref id="jel">expression language</ref> may be used
+        to assemble an ID value from other columns.
+        TOPCAT will try to choose a default value for this field
+        based on table metadata
+        (it looks for columns with UCD "<code>meta.id</code>" or variants).
+        </p></dd>
+    </dl>
     </p></dd>
 </dl>
 </p>
@@ -30866,6 +30901,11 @@ introduced since the last version:
         (e.g.) Gaia DR3 datalink activation actions.</li>
     <li>Fix FITS output so it doesn't fail when attempting to write
         metadata with non-ASCII Unicode characters.</li>
+    <li>The <ref id="ViewDatalinkActivationType"
+                 >View Datalink Table</ref> activation type
+        now provides an alternative option for giving Datalink
+        table location; you can supply <em>either</em> the full URL
+        <em>or</em> the {links} endpoint and an ID value.</li>
     </ul>
     </p></dd>
 
