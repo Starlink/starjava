@@ -32,7 +32,8 @@ public class ViewDatalinkActivationType implements ActivationType {
     }
 
     public ActivatorConfigurator createConfigurator( TopcatModelInfo tinfo ) {
-        return new DatalinkConfigurator( tinfo );
+        DatalinkInvoker invoker = new DatalinkInvoker( tinfo );
+        return new UrlDatalinkConfigurator( tinfo, invoker );
     }
 
     public Suitability getSuitability( TopcatModelInfo tinfo ) {
@@ -104,9 +105,10 @@ public class ViewDatalinkActivationType implements ActivationType {
     }
 
     /**
-     * Configurator implementation for Datalink.
+     * Consumes Datalink URLs to present the referenced DataLink tables
+     * in a GUI.
      */
-    public static class DatalinkConfigurator extends UrlColumnConfigurator {
+    private static class DatalinkInvoker {
 
         private final DatalinkPanel dlPanel_;
         private final JFrame window_;
@@ -114,11 +116,9 @@ public class ViewDatalinkActivationType implements ActivationType {
         /**
          * Constructor.
          *
-         * @param  tinfo  topcat model information
+         * @param  tinfo   topcat model information
          */
-        DatalinkConfigurator( TopcatModelInfo tinfo ) {
-            super( tinfo, "Datalink",
-                   new ColFlag[] { ColFlag.DATALINK, ColFlag.URL, } );
+        DatalinkInvoker( TopcatModelInfo tinfo ) { 
             dlPanel_ = new DatalinkPanel( true, true );
             String title = "TOPCAT(" + tinfo.getTopcatModel().getID() + "): "
                          + "Activation - View Datalink Table";
@@ -127,10 +127,43 @@ public class ViewDatalinkActivationType implements ActivationType {
             window_.pack();
         }
 
+        /**
+         * Loads the file/URL at a given location into this invoker's GUI.
+         *
+         * @param  loc  location of Datalink {links}-response file
+         * @return  outcome
+         */
+        public Outcome invokeLocation( String loc ) {
+            return ViewDatalinkActivationType
+                  .invokeLocation( loc, dlPanel_, window_ );
+        }
+    }
+
+    /**
+     * Configurator implementation in which the user supplies the full URL
+     * for a Datalink table.
+     */
+    private static class UrlDatalinkConfigurator extends UrlColumnConfigurator {
+
+        private final DatalinkInvoker invoker_;
+
+        /**
+         * Constructor.
+         *
+         * @param  tinfo  topcat model information
+         * @param  invoker  consumes datalink URLs
+         */
+        UrlDatalinkConfigurator( TopcatModelInfo tinfo,
+                                 DatalinkInvoker invoker ) {
+            super( tinfo, "Datalink",
+                   new ColFlag[] { ColFlag.DATALINK, ColFlag.URL, } );
+            invoker_ = invoker;
+        }
+
         protected Activator createActivator( ColumnData cdata ) {
             return new LocationColumnActivator( cdata, false ) {
                 protected Outcome activateLocation( String loc, long lrow ) {
-                    return invokeLocation( loc, dlPanel_, window_ );
+                    return invoker_.invokeLocation( loc );
                 }
             };
         }
