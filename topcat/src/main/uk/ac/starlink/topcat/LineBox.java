@@ -16,6 +16,9 @@ import javax.swing.JPanel;
  */
 public class LineBox extends JPanel {
 
+    private final JLabel jlabel_;
+    private final JComponent comp_;
+
     /**
      * Constructs a box with a label, body component,
      * and optional small vertical gap below it.
@@ -25,9 +28,11 @@ public class LineBox extends JPanel {
      * @param  postGap  true for trailing vertical pad
      */
     public LineBox( String label, JComponent comp, boolean postGap ) {
+        comp_ = comp;
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
-        if ( label != null ) {
-            add( new JLabel( label + ": " ) );
+        jlabel_ = label == null ? null : new JLabel( label + ": " );
+        if ( jlabel_ != null ) {
+            add( jlabel_ );
         }
         if ( comp != null ) {
             add( comp );
@@ -55,5 +60,34 @@ public class LineBox extends JPanel {
      */
     public LineBox( JComponent comp ) {
         this( null, comp );
+    }
+
+    /**
+     * Returns the JLabel component of this line box.
+     *
+     * @return  label component, may be null
+     */
+    public JLabel getLabel() {
+        return jlabel_;
+    }
+
+    /**
+     * Returns the labelled component part of this line box.
+     *
+     * @return  component presented at construction time, may be null
+     */
+    public JComponent getComponent() {
+        return comp_;
+    }
+
+    @Override
+    public void setEnabled( boolean isEnabled ) {
+        super.setEnabled( isEnabled );
+        if ( comp_ != null ) {
+            comp_.setEnabled( isEnabled );
+        }
+        if ( jlabel_ != null ) {
+            jlabel_.setEnabled( isEnabled );
+        }
     }
 }
