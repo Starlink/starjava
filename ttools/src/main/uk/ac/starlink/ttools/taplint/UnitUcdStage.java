@@ -8,12 +8,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import uk.ac.starlink.ttools.votlint.UcdStatus;
-import uk.ac.starlink.ttools.votlint.UnitStatus;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapService;
+import uk.ac.starlink.vo.UcdStatus;
+import uk.ac.starlink.vo.UnitStatus;
 
 /**
  * Validation stage for checking column metadata elements from

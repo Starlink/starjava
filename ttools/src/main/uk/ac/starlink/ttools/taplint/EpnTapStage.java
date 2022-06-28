@@ -20,13 +20,13 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.func.Times;
-import uk.ac.starlink.ttools.votlint.UcdStatus;
 import uk.ac.starlink.ttools.votlint.VocabChecker;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapService;
+import uk.ac.starlink.vo.UcdStatus;
 import uk.ac.starlink.vo.VocabTerm;
 
 /**

@@ -5,8 +5,8 @@
 
 package uk.ac.starlink.ttools.func;
 
-import uk.ac.starlink.ttools.votlint.UcdStatus;
-import uk.ac.starlink.ttools.votlint.UnitStatus;
+import uk.ac.starlink.vo.UcdStatus;
+import uk.ac.starlink.vo.UnitStatus;
 
 /**
  * Virtual Observatory-specific functions.

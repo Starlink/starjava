@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.votlint;
+package uk.ac.starlink.vo;
 
 import junit.framework.TestCase;
 
@@ -80,5 +80,4 @@ public class CodeTest extends TestCase {
         assertEquals( UnitStatus.Code.DEPRECATED,
                       UnitStatus.getStatus( "Angstrom" ).getCode() );
     }
-
 }

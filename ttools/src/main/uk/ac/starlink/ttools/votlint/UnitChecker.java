@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.votlint;
 
+import uk.ac.starlink.vo.UnitStatus;
+
 /**
  * Attribute checker that checks unit strings against the VOUnits standard.
  *

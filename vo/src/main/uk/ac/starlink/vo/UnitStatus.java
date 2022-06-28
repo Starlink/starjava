@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.votlint;
+package uk.ac.starlink.vo;
 
 import java.util.ArrayList;
 import java.util.Collections;

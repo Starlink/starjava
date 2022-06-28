@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.votlint;
 
+import uk.ac.starlink.vo.UcdStatus;
+
 /**
  * Attribute checker for checking UCD syntax.
  *

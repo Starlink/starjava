@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.votlint;
+package uk.ac.starlink.vo;
 
 import ari.ucidy.UCD;
 import ari.ucidy.UCDParser;
