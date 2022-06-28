@@ -286,10 +286,9 @@ public abstract class Decoders {
         Reporter tsReporter = reporter.createReporter( "time_scale" );
         String timeScale = new JsonTool( tsReporter )
                           .asString( jobj.opt( "time_scale" ), true );
-        if ( timeScale != null &&
-             ! TimeCoords.TIME_SCALES.contains( timeScale ) ) {
-            tsReporter.report( "disallowed value \"" + timeScale + "\""
-                             + " (not in " + TimeCoords.TIME_SCALES + ")" );
+        if ( timeScale != null ) {
+             TfcatUtil.checkOption( tsReporter, timeScale,
+                                    TimeCoords.TIME_SCALES );
         }
         return new TimeCoords() {
             public String getId() {
@@ -322,12 +321,22 @@ public abstract class Decoders {
         String unit = new JsonTool( reporter.createReporter( "unit" ) )
                      .asString( jobj.opt( "unit" ), true );
         reporter.checkUnit( unit );
+        Reporter scaleReporter = reporter.createReporter( "scale" );
+        String scale = new JsonTool( scaleReporter )
+                      .asString( jobj.opt( "scale" ), false );
+        if ( scale != null ) {
+            TfcatUtil.checkOption( scaleReporter, scale,
+                                   SpectralCoords.SCALE_VALUES );
+        }
         return new SpectralCoords() {
             public String getName() {
                 return name;
             }
             public String getUnit() {
                 return unit;
+            }
+            public String getScale() {
+                return scale;
             }
         };
     };
@@ -358,10 +367,8 @@ public abstract class Decoders {
         Reporter typeReporter = reporter.createReporter( "type" );
         String crsType = new JsonTool( typeReporter )
                         .asString( jobj.opt( "type" ), true );
-        if ( crsType != null &&
-             ! Crs.CRS_TYPES.contains( crsType ) ) {
-            typeReporter.report( "disallowed value \"" + crsType + "\""
-                               + " (not in " + Crs.CRS_TYPES + ")" );
+        if ( crsType != null ) {
+            TfcatUtil.checkOption( typeReporter, crsType, Crs.CRS_TYPES );
         }
         Reporter propsReporter = reporter.createReporter( "properties" );
         JSONObject crsProps = new JsonTool( propsReporter )

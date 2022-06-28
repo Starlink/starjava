@@ -4,6 +4,7 @@ import ari.ucidy.UCD;
 import ari.ucidy.UCDParser;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -173,6 +174,22 @@ public class TfcatUtil {
                     return;
                 }
             }
+        }
+    }
+
+    /**
+     * Checks whether a given token is in a supplied list of valid options.
+     * No special handling is performed for null values.
+     *
+     * @param   reporter  destination for reports if token is not valid
+     * @param   token   token to test
+     * @param   options  valid token values
+     */
+    public static void checkOption( Reporter reporter, String token,
+                                    Collection<String> options ) {
+        if ( ! options.contains( token ) ) {
+            reporter.report( "Disallowed value \"" + token + "\""
+                           + " (not in " + options + ")" );
         }
     }
 
