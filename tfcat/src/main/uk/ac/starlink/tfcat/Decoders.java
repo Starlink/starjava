@@ -265,14 +265,12 @@ public abstract class Decoders {
     /** Decoder for a TimeCoords object. */
     public static final Decoder<TimeCoords> TIME_COORDS =
             ( reporter, json ) -> {
-        JSONObject jobj = new JsonTool( reporter ).asJSONObject( json );
-        if ( jobj == null ) {
+        if ( json == null ) {
             return null;
         }
-        String id = new JsonTool( reporter.createReporter( "id" ) )
-                   .asString( jobj.opt( "id" ), false );
+        JSONObject jobj = new JsonTool( reporter ).asJSONObject( json );
         String name = new JsonTool( reporter.createReporter( "name" ) )
-                     .asString( jobj.opt( "name" ), true );
+                     .asString( jobj.opt( "name" ), false );
         String unit = new JsonTool( reporter.createReporter( "unit" ) )
                      .asString( jobj.opt( "unit" ), true );
         reporter.checkUnit( unit );
@@ -291,9 +289,6 @@ public abstract class Decoders {
                                     TimeCoords.TIME_SCALES );
         }
         return new TimeCoords() {
-            public String getId() {
-                return id;
-            }
             public String getName() {
                 return name;
             }
@@ -347,24 +342,8 @@ public abstract class Decoders {
         };
     };
 
-    /** Decoder for a RefPosition object. */
-    public static final Decoder<RefPosition> REF_POSITION =
-            ( reporter, json ) -> {
-        JSONObject jobj = new JsonTool( reporter ).asJSONObject( json );
-        if ( jobj == null ) {
-            return null;
-        }
-        String id = new JsonTool( reporter.createReporter( "id" ) )
-                   .asString( jobj.opt( "id" ), true );
-        return new RefPosition() {
-            public String getId() {
-                return id;
-            }
-        };
-    };
-
     /** Decoder for a CRS object. */
-    public static final Decoder<Crs> CRS =
+    public static final Decoder<LocalCrs> CRS =
             ( reporter, json ) -> {
         JSONObject jobj = new JsonTool( reporter ).asJSONObject( json );
         if ( jobj == null ) {
@@ -373,35 +352,70 @@ public abstract class Decoders {
         Reporter typeReporter = reporter.createReporter( "type" );
         String crsType = new JsonTool( typeReporter )
                         .asString( jobj.opt( "type" ), true );
-        if ( crsType != null ) {
-            TfcatUtil.checkOption( typeReporter, crsType, Crs.CRS_TYPES );
+        if ( crsType == null ) {
+            return null;
+        }
+        if ( ! "local".equals( crsType ) ) {
+            typeReporter.report( "Unsupported CRS type \"" + crsType + "\"" );
+            return null;
         }
         Reporter propsReporter = reporter.createReporter( "properties" );
         JSONObject crsProps = new JsonTool( propsReporter )
                              .asJSONObject( jobj.opt( "properties" ) );
+        if ( crsProps == null ) {
+            return null;
+        }
+
+        final String timeCoordsId =
+            new JsonTool( propsReporter.createReporter( "time_coords_id" ) )
+           .asString( crsProps.opt( "time_coords_id" ), false );
+        Object timeCoordsObj = crsProps.opt( "time_coords" );
+        TimeCoords timeCoordsDef =
+            TIME_COORDS.decode( propsReporter.createReporter( "time_coords" ),
+                                crsProps.opt( "time_coords" ) );
         final TimeCoords timeCoords;
-        final SpectralCoords spectralCoords;
-        final RefPosition refPosition;
-        if ( crsProps != null ) {
-            timeCoords =
-                TIME_COORDS
-               .decode( propsReporter.createReporter( "time_coords" ),
-                        crsProps.opt( "time_coords" ) );
-            spectralCoords =
-                SPECTRAL_COORDS
-               .decode( propsReporter.createReporter( "spectral_coords" ),
-                        crsProps.opt( "spectral_coords" ) );
-            refPosition =
-                REF_POSITION
-               .decode( propsReporter.createReporter( "ref_position" ),
-                        crsProps.opt( "ref_position" ) );
+        if ( timeCoordsDef != null ) {
+            timeCoords = timeCoordsDef;
+            if ( timeCoordsId != null ) {
+                propsReporter.report( "time_coords_id unused"
+                                    + " since time_coords supplied" );
+            }
+        }
+        else if ( timeCoordsId != null ) {
+            TfcatUtil.checkOption( reporter.createReporter( "time_coords_id" ),
+                                   timeCoordsId,
+                                   TimeCoords.PREDEF_MAP.keySet() );
+            timeCoords = TimeCoords.PREDEF_MAP.get( timeCoordsId );
         }
         else {
+            propsReporter.report( "Neither time_coords nor time_coords_id"
+                                + " supplied" );
             timeCoords = null;
-            spectralCoords = null;
-            refPosition = null;
         }
-        return new Crs( crsType, timeCoords, spectralCoords, refPosition );
+
+        final SpectralCoords spectralCoords =
+            SPECTRAL_COORDS
+           .decode( propsReporter.createReporter( "spectral_coords" ),
+                    crsProps.opt( "spectral_coords" ) );
+
+        final String refPositionId =
+            new JsonTool( propsReporter.createReporter( "ref_position_id" ) )
+           .asString( crsProps.opt( "ref_position_id" ), true );
+
+        return new LocalCrs() {
+            public String getTimeCoordsId() {
+                return timeCoordsId;
+            }
+            public TimeCoords getTimeCoords() {
+                return timeCoords;
+            }
+            public SpectralCoords getSpectralCoords() {
+                return spectralCoords;
+            }
+            public String getRefPositionId() {
+                return refPositionId;
+            }
+        };
     };
 
     /** Decoder for a Feature object. */
@@ -499,8 +513,8 @@ public abstract class Decoders {
                       ? null
                       : Decoders.BBOX
                        .decode( reporter.createReporter( "bbox" ), bboxJson );
-            Crs crs = CRS.decode( reporter.createReporter( "crs" ),
-                                  jobj.opt( "crs" ) );
+            LocalCrs crs = CRS.decode( reporter.createReporter( "crs" ),
+                                       jobj.opt( "crs" ) );
             return new FeatureCollection( jobj, bbox, crs, fieldMap, features );
         }
         else {

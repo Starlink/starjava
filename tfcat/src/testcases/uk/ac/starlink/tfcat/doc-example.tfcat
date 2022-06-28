@@ -38,23 +38,14 @@
       }
     },
     "crs": {
-        "type": "Time-Frequency",
+        "type": "local",
         "properties": {
-            "name": "Time-Spectrogram",
-            "time_coords": {
-                "name": "Timestamp",
-                "id": "unix",
-                "unit": "s",
-                "time_origin": "1970-01-01T00:00:00.000Z",
-                "time_scale": "UTC"
-            },
+            "time_coords_id": "unix",
             "spectral_coords": {
                 "type": "frequency",
-                "unit": "Hz"
+                "unit": "kHz"
             },
-            "ref_position":{
-              "id": "Cassini"
-            }
+            "ref_position_id": "cassini-orbiter"
         }
     }
 }

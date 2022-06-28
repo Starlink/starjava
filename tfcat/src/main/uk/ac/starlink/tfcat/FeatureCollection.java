@@ -11,7 +11,7 @@ import org.json.JSONObject;
  */
 public class FeatureCollection extends TfcatObject {
 
-    private final Crs crs_;
+    private final LocalCrs crs_;
     private final Feature[] features_;
     private final Map<String,Field> fieldMap_;
 
@@ -26,7 +26,7 @@ public class FeatureCollection extends TfcatObject {
      * @param   features   features in this collection;
      *                     may be empty but not null
      */
-    public FeatureCollection( JSONObject json, Bbox bbox, Crs crs,
+    public FeatureCollection( JSONObject json, Bbox bbox, LocalCrs crs,
                               Map<String,Field> fieldMap, Feature[] features ) {
         super( json, "FeatureCollection", bbox );
         crs_ = crs;
@@ -39,7 +39,7 @@ public class FeatureCollection extends TfcatObject {
      *
      * @return  CRS, may be null
      */
-    public Crs getCrs() {
+    public LocalCrs getCrs() {
         return crs_;
     }
 
