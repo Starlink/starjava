@@ -316,11 +316,17 @@ public abstract class Decoders {
         if ( jobj == null ) {
             return null;
         }
-        String name = new JsonTool( reporter.createReporter( "name" ) )
-                     .asString( jobj.opt( "name" ), true );
-        String unit = new JsonTool( reporter.createReporter( "unit" ) )
+        Reporter typeReporter = reporter.createReporter( "type" );
+        String type = new JsonTool( typeReporter )
+                     .asString( jobj.opt( "type" ), true );
+        if ( type != null ) {
+            TfcatUtil.checkOption( typeReporter, type,
+                                   SpectralCoords.TYPE_VALUES );
+        }
+        Reporter unitReporter = reporter.createReporter( "unit" );
+        String unit = new JsonTool( unitReporter )
                      .asString( jobj.opt( "unit" ), true );
-        reporter.checkUnit( unit );
+        unitReporter.checkUnit( unit );
         Reporter scaleReporter = reporter.createReporter( "scale" );
         String scale = new JsonTool( scaleReporter )
                       .asString( jobj.opt( "scale" ), false );
@@ -329,8 +335,8 @@ public abstract class Decoders {
                                    SpectralCoords.SCALE_VALUES );
         }
         return new SpectralCoords() {
-            public String getName() {
-                return name;
+            public String getType() {
+                return type;
             }
             public String getUnit() {
                 return unit;

@@ -12,16 +12,24 @@ import java.util.Collections;
  */
 public interface SpectralCoords {
 
+    /** Permitted values for SpectralCoords type attribute. */
+    public static final Collection<String> TYPE_VALUES =
+            Collections.unmodifiableList( Arrays.asList(
+        "frequency", "wavelength", "energy", "wavenumber"
+    ) );
+
     /** Permitted values for SpectralCoords scale attribute. */
     public static final Collection<String> SCALE_VALUES =
         Collections.unmodifiableList( Arrays.asList( "linear", "log" ) );
 
     /**
-     * Returns the spectral coordinate system name.
+     * Returns the spectral coordinate system type.
+     * This should be one of the members of {@link #TYPE_VALUES},
+     * currently "frequency", "wavelength", "energy" or "wavenumber".
      *
-     * @return  system name
+     * @return  system type
      */
-    public String getName();
+    public String getType();
 
     /**
      * Returns the unit string for this coordinate system.

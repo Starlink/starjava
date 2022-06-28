@@ -49,7 +49,7 @@
                 "time_scale": "UTC"
             },
             "spectral_coords": {
-                "name": "Frequency",
+                "type": "frequency",
                 "unit": "Hz"
             },
             "ref_position":{
