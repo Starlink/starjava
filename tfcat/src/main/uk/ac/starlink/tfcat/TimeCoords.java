@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -31,7 +32,7 @@ public abstract class TimeCoords {
                             "(?::([0-9]{2})" +
                                "(?::([0-9]{2}(?:\\.[0-9]*)?))?" +
                             ")?" +
-                         "Z?)?" );
+                         ")?" );
 
     /** Predefined TimeCoords instance for Unix timestamp. */
     public static final TimeCoords UNIX;
@@ -55,18 +56,20 @@ public abstract class TimeCoords {
     public static final Map<String,TimeCoords> PREDEF_MAP =
             Collections.unmodifiableMap( Arrays.asList( new TimeCoords[] {
         UNIX = createTimeCoords( "unix", "Unix Timestamp",
-                                 "1970-01-01T00:00:00.000Z", "s", "UTC" ),
+                                 "1970-01-01T00:00:00", "s", "UTC" ),
         JD = createTimeCoords( "jd", "Julian Day",
-                               "-4712-01-01T12:00:00.000Z", "d", "UTC" ),
+                               "-4712-01-01T12:00:00", "d", "UTC" ),
         MJD = createTimeCoords( "mjd", "Modified Julian Day",
-                                "1858-11-17T00:00:00.000Z", "d", "UTC" ),
+                                "1858-11-17T00:00:00", "d", "UTC" ),
         MJD_NASA = createTimeCoords( "mjd_nasa", "NASA Modified Julian Day",
-                                     "1968-05-24T00:00:00.000Z", "d", "UTC" ),
+                                     "1968-05-24T00:00:00", "d", "UTC" ),
         MJD_CNES = createTimeCoords( "mjd_cnes", "CNES Modified Julian Day",
-                                     "1950-01-01T00:00:00.000Z", "d", "UTC" ),
+                                     "1950-01-01T00:00:00", "d", "UTC" ),
         CDF_TT2000 = createTimeCoords( "cdf_tt2000", "CDF Epoch TT2000",
-                                       "2000-01-01T00:00:00.000Z", "ns", "TT" ),
-    } ).stream().collect( Collectors.toMap( TimeCoords::toString, t -> t ) ) );
+                                       "2000-01-01T00:00:00", "ns", "TT" ),
+    } ).stream().collect( Collectors.toMap( TimeCoords::toString, t -> t,
+                                            ( t1, t2 ) -> t1,
+                                            LinkedHashMap::new ) ) );
 
     /**
      * Returns this system's name.
