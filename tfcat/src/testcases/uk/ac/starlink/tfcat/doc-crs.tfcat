@@ -1,0 +1,21 @@
+{
+    "type": "FeatureCollection",
+    "features": [],
+    "fields": {},
+    "crs": {
+        "type": "local",
+        "properties": {
+            "time_coords": {
+                "name": "Timestamp (Unix Time)",
+                "unit": "s",
+                "time_origin": "1970-01-01T00:00:00.000Z",
+                "time_scale": "UTC"
+            },
+            "spectral_coords": {
+                "type": "frequency",
+                "unit": "MHz"
+            },
+            "ref_position_id": "GEOCENTER"
+        }
+    }
+}
