@@ -209,9 +209,6 @@ public abstract class Decoders {
         return fieldList.toArray( new Field[ 0 ] );
     };
 
-    private static final Map<String,ShapeType<?>> shapeTypes_ =
-        createShapeTypes();
-
     /** Decoder for a Geometry object. */
     public static final Decoder<Geometry<?>> GEOMETRY =
             ( reporter, json ) -> {
@@ -230,36 +227,43 @@ public abstract class Decoders {
         if ( type == null ) {
             return null;
         }
-        else if ( type.equals( "GeometryCollection" ) ) {
-            Reporter geomReporter = reporter.createReporter( "geometries" );
-            JSONArray jarray = new JsonTool( geomReporter )
-                              .asJSONArray( jobj.opt( "geometries" ) );
-            if ( jarray == null ) {
-                return null;
-            }
-            else {
-                List<Geometry<?>> geomList = new ArrayList<>();
-                for ( int ig = 0; ig < jarray.length(); ig++ ) {
-                    Geometry<?> geom =
-                        GEOMETRY.decode( geomReporter.createReporter( ig ),
-                                         jarray.get( ig ) );
-                    geomList.add( geom );
-                }
-                Geometry<?>[] geoms = geomList.toArray( new Geometry<?>[ 0 ] );
-                return new Geometry.GeometryCollection( jobj, bbox, geoms );
-            }
-        }
-        ShapeType<?> shapeType = shapeTypes_.get( type );
+        Map<String,ShapeType<?>> shapeTypes = getShapeTypes();
+        TfcatUtil.checkOption( reporter.createReporter( "type" ), type,
+                               shapeTypes.keySet() );
+        ShapeType<?> shapeType = shapeTypes.get( type );
         if ( shapeType == null ) {
-            reporter.report( "Unknown geometry type \"" + type + "\"" );
             return null;
         }
         else {
             jtool.requireAbsent( jobj, "geometry" );   // RFC7946 sec 7.1
             jtool.requireAbsent( jobj, "properties" );
             jtool.requireAbsent( jobj, "features" );
-            return shapeType.createGeometry( reporter, jobj, bbox );
+            return shapeType.createGeometry( reporter.createReporter( type ),
+                                             jobj, bbox );
         }
+    };
+
+    /** Decoder for a GeometryCollection. */
+    public static final Decoder<Geometry<?>[]> GEOMETRIES =
+            ( reporter, json ) -> {
+        List<Geometry<?>> geomList = new ArrayList<>();
+        JSONObject jobj = new JsonTool( reporter ).asJSONObject( json );
+        if ( jobj != null ) {
+            Reporter geomsReporter = reporter.createReporter( "geometries" );
+            JSONArray jarray = new JsonTool( geomsReporter )
+                              .asJSONArray( jobj.opt( "geometries" ) );
+            if ( jarray != null ) {
+                for ( int ig = 0; ig < jarray.length(); ig++ ) { 
+                    Geometry<?> geom =
+                        GEOMETRY.decode( geomsReporter.createReporter( ig ),
+                                         jarray.get( ig ) );
+                    if ( geom != null ) {
+                        geomList.add( geom );
+                    }
+                }
+            }
+        }
+        return geomList.toArray( new Geometry<?>[ 0 ] );
     };
 
     /** Decoder for a TimeCoords object. */
@@ -524,9 +528,11 @@ public abstract class Decoders {
         }
     };
 
+    private static final Map<String,ShapeType<?>> shapeTypes_ =
+        createShapeTypes();
+
     private static final Map<String,Decoder<? extends TfcatObject>>
-                         tfcatDecoders_ =
-        createTfcatDecoders();
+                         tfcatDecoders_ = createTfcatDecoders();
 
     /** Decoder for a TFCat object. */
     public static final Decoder<TfcatObject> TFCAT =
@@ -536,20 +542,17 @@ public abstract class Decoders {
         if ( jobj == null ) {
             return null;
         }
-        String type = new JsonTool( reporter.createReporter( "type" ) )
+        Reporter typeReporter = reporter.createReporter( "type" );
+        String type = new JsonTool( typeReporter )
                      .asString( jobj.opt( "type" ), true );
         if ( type == null ) {
             return null;
         }
+        TfcatUtil.checkOption( typeReporter, type, tfcatDecoders_.keySet() );
         Decoder<? extends TfcatObject> decoder = tfcatDecoders_.get( type );
-        if ( decoder == null ) {
-            reporter.createReporter( "type" )
-                    .report( "unknown TFCat/GeoJSON type \"" + type + "\"" );
-            return null;
-        }
-        else {
-            return decoder.decode( reporter, jobj );
-        }
+        return decoder == null
+             ? null
+             : decoder.decode( reporter.createReporter( type ), jobj );
     };
 
     /**
@@ -609,6 +612,10 @@ public abstract class Decoders {
         map.put( "MultiPolygon",
                  new ShapeType<LinearRing[][]>( POLYGONS,
                                                 Geometry.MultiPolygon::new ) );
+        map.put( "GeometryCollection",
+                 new ShapeType<Geometry<?>[]>( GEOMETRIES,
+                                               Geometry
+                                              .GeometryCollection::new ));
         return map;
     }
 
@@ -660,6 +667,18 @@ public abstract class Decoders {
     }
 
     /**
+     * Returns the mapping of geometry type values to ShapeTypes.
+     * <p>Even though shapeTypes_ is static final, it has to be referenced
+     * via a static method rather than directly in some cases
+     * because of ordering constraints during static initialization.
+     *
+     * @return  shape type map
+     */
+    private static Map<String,ShapeType<?>> getShapeTypes() {
+        return shapeTypes_;
+    }
+
+    /**
      * Functional interface to construct a typed geometry.
      */
     @FunctionalInterface
@@ -706,14 +725,23 @@ public abstract class Decoders {
          */
         Geometry<S> createGeometry( Reporter reporter, JSONObject json,
                                     Bbox bbox ) {
-            Object coords = json.opt( "coordinates" );
-            if ( coords == null ) {
-                reporter.report( "no coordinates" );
-                return null;
+            final Object content;
+            final Reporter contentReporter;
+
+            // GeometryCollection is a special case, see RFC7946 sec 3.1.
+            if ( shapeDecoder_ == GEOMETRIES ) {
+                content = json;
+                contentReporter = reporter;
             }
-            S shape = shapeDecoder_
-                     .decode( reporter.createReporter( "coordinates" ),
-                              coords );
+            else {
+                content = json.opt( "coordinates" );
+                if ( content == null ) {
+                    reporter.report( "no coordinates" );
+                    return null;
+                }
+                contentReporter = reporter.createReporter( "coordinates" );
+            }
+            S shape = shapeDecoder_.decode( contentReporter, content );
             return shape == null
                  ? null
                  : geomConstructor_.toGeom( json, bbox, shape );
