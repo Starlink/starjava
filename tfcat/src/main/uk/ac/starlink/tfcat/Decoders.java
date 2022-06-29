@@ -33,6 +33,18 @@ public abstract class Decoders {
     private Decoders() {
     }
 
+    /**
+     * If set true, the "properties" member is permitted on FeatureCollection
+     * and Geometry objects, in contravention of Section 7.1 of
+     * the GeoJSON spec RFC7946.
+     * Currently, the TFCat does allow properties here, so this value
+     * is set true.
+     *
+     * @see <a href="https://gitlab.obspm.fr/maser/catalogues/catalogue-format/-/issues/3"
+     *         >TFCat spec issue #3</a>
+     */
+    public static final boolean ALLOW_FCG_PROPERTIES = true;
+
     /** Decoder for Position object. */
     public static final Decoder<Position> POSITION =
             ( reporter, json ) -> {
@@ -236,7 +248,9 @@ public abstract class Decoders {
         }
         else {
             jtool.requireAbsent( jobj, "geometry" );   // RFC7946 sec 7.1
-            jtool.requireAbsent( jobj, "properties" );
+            if ( ! ALLOW_FCG_PROPERTIES ) {
+                jtool.requireAbsent( jobj, "properties" );
+            }
             jtool.requireAbsent( jobj, "features" );
             return shapeType.createGeometry( reporter.createReporter( type ),
                                              jobj, bbox );
@@ -479,7 +493,9 @@ public abstract class Decoders {
         }
         else if ( type.equals( "FeatureCollection" ) ) {
             jtool.requireAbsent( jobj, "geometry" );   // RFC7946 sec 7.1
-            jtool.requireAbsent( jobj, "properties" );
+            if ( ! ALLOW_FCG_PROPERTIES ) {
+                jtool.requireAbsent( jobj, "properties" );
+            }
             Field[] fields = FIELDS.decode( reporter.createReporter( "fields" ),
                                             jobj.opt( "fields" ) );
             Map<String,Field> fieldMap = new HashMap<>();
