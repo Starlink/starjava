@@ -47,7 +47,7 @@ public abstract class Decoders {
 
     /** Decoder for Position object. */
     public static final Decoder<Position> POSITION =
-            ( reporter, json ) -> {
+            ( reporter, json, parent ) -> {
         double[] pair = new JsonTool( reporter ).asNumericArray( json, 2 );
         return pair == null ? null : new Position( pair[ 0 ], pair[ 1 ] );
     };
@@ -58,8 +58,8 @@ public abstract class Decoders {
 
     /** Decoder for array of Position objects representing TFCat LineString. */
     public static final Decoder<Position[]> LINE_STRING =
-            ( reporter, json ) -> {
-        Position[] positions = POSITIONS.decode( reporter, json );
+            ( reporter, json, parent ) -> {
+        Position[] positions = POSITIONS.decode( reporter, json, null );
         if ( positions == null ) {
             return null;
         }
@@ -81,8 +81,8 @@ public abstract class Decoders {
 
     /** Decoder for a LinearRing. */
     public static final Decoder<LinearRing> LINEAR_RING =
-            ( reporter, json ) -> {
-        Position[] allPositions = POSITIONS.decode( reporter, json );
+            ( reporter, json, parent ) -> {
+        Position[] allPositions = POSITIONS.decode( reporter, json, null );
         if ( allPositions == null ) {
             return null;
         }
@@ -113,8 +113,8 @@ public abstract class Decoders {
 
     /** Decoder for array of LinearRings representing a TFCat Polygon. */
     public static final Decoder<LinearRing[]> POLYGON =
-            ( reporter, json ) -> {
-        LinearRing[] rings = LINEAR_RINGS.decode( reporter, json );
+            ( reporter, json, parent ) -> {
+        LinearRing[] rings = LINEAR_RINGS.decode( reporter, json, null );
         if ( rings != null && rings.length > 0 ) {
             if ( rings[ 0 ].isClockwise() ) {
                 reporter.report( "first (exterior) linear ring"
@@ -136,7 +136,7 @@ public abstract class Decoders {
 
     /** Decoder for a Bbox object. */
     public static final Decoder<Bbox> BBOX =
-            ( reporter, json ) -> {
+            ( reporter, json, parent ) -> {
         double[] bounds = new JsonTool( reporter ).asNumericArray( json, 4 );
         if ( bounds == null ) {
             return null;
@@ -155,7 +155,7 @@ public abstract class Decoders {
 
     /** Decoder for a DataType object. */
     public static final Decoder<Datatype<?>> DATATYPE =
-            ( reporter, json ) -> {
+            ( reporter, json, parent ) -> {
         String txt = new JsonTool( reporter ).asString( json, false );
         if ( txt == null ) {
             reporter.report( "no declared datatype, treat as string" );
@@ -174,7 +174,7 @@ public abstract class Decoders {
 
     /** Decoder for an array of Field objects. */
     public static final Decoder<Field[]> FIELDS =
-            ( reporter, json ) -> {
+            ( reporter, json, parent ) -> {
         List<Field> fieldList = new ArrayList<>();
         JSONObject jobj = new JsonTool( reporter ).asJSONObject( json );
         if ( jobj != null ) {
@@ -197,7 +197,7 @@ public abstract class Decoders {
                     Datatype<?> datatype =
                         DATATYPE.decode( fieldReporter
                                         .createReporter( "datatype" ),
-                                         fieldObj.opt( "datatype" ) );
+                                         fieldObj.opt( "datatype" ), null );
                     fieldList.add( new Field() {
                         public String getName() {
                             return key;
@@ -223,7 +223,7 @@ public abstract class Decoders {
 
     /** Decoder for a Geometry object. */
     public static final Decoder<Geometry<?>> GEOMETRY =
-            ( reporter, json ) -> {
+            ( reporter, json, parent ) -> {
         JsonTool jtool = new JsonTool( reporter );
         JSONObject jobj = jtool.asJSONObject( json );
         if ( jobj == null ) {
@@ -235,12 +235,12 @@ public abstract class Decoders {
         Crs crs = crsJson == null
                 ? null
                 : Decoders.CRS
-                 .decode( reporter.createReporter( "crs" ), crsJson );
+                 .decode( reporter.createReporter( "crs" ), crsJson, null );
         Object bboxJson = jobj.opt( "bbox" );
         Bbox bbox = bboxJson == null
                   ? null
                   : Decoders.BBOX
-                   .decode( reporter.createReporter( "bbox" ), bboxJson );
+                   .decode( reporter.createReporter( "bbox" ), bboxJson, null );
         if ( type == null ) {
             return null;
         }
@@ -257,14 +257,19 @@ public abstract class Decoders {
                 jtool.requireAbsent( jobj, "properties" );
             }
             jtool.requireAbsent( jobj, "features" );
-            return shapeType.createGeometry( reporter.createReporter( type ),
-                                             jobj, crs, bbox );
+            Geometry<?> geom =
+                shapeType.createGeometry( reporter.createReporter( type ),
+                                          jobj, crs, bbox );
+            if ( geom != null ) {
+                geom.setParent( parent );
+            }
+            return geom;
         }
     };
 
     /** Decoder for a GeometryCollection. */
     public static final Decoder<Geometry<?>[]> GEOMETRIES =
-            ( reporter, json ) -> {
+            ( reporter, json, parent ) -> {
         List<Geometry<?>> geomList = new ArrayList<>();
         JSONObject jobj = new JsonTool( reporter ).asJSONObject( json );
         if ( jobj != null ) {
@@ -275,7 +280,7 @@ public abstract class Decoders {
                 for ( int ig = 0; ig < jarray.length(); ig++ ) { 
                     Geometry<?> geom =
                         GEOMETRY.decode( geomsReporter.createReporter( ig ),
-                                         jarray.get( ig ) );
+                                         jarray.get( ig ), parent );
                     if ( geom != null ) {
                         geomList.add( geom );
                     }
@@ -287,7 +292,7 @@ public abstract class Decoders {
 
     /** Decoder for a TimeCoords object. */
     public static final Decoder<TimeCoords> TIME_COORDS =
-            ( reporter, json ) -> {
+            ( reporter, json, parent ) -> {
         if ( json == null ) {
             return null;
         }
@@ -329,7 +334,7 @@ public abstract class Decoders {
 
     /** Decoder for a SpectralCoords object. */
     public static final Decoder<SpectralCoords> SPECTRAL_COORDS =
-            ( reporter, json ) -> {
+            ( reporter, json, parent ) -> {
         JSONObject jobj = new JsonTool( reporter ).asJSONObject( json );
         if ( jobj == null ) {
             return null;
@@ -366,7 +371,7 @@ public abstract class Decoders {
     };
 
     /** Decoder for a CRS object. */
-    public static final Decoder<Crs> CRS = ( reporter, json ) -> {
+    public static final Decoder<Crs> CRS = ( reporter, json, parent ) -> {
         JSONObject jobj = new JsonTool( reporter ).asJSONObject( json );
         if ( jobj == null ) {
             return null;
@@ -398,7 +403,7 @@ public abstract class Decoders {
         Object timeCoordsObj = crsProps.opt( "time_coords" );
         TimeCoords timeCoordsDef =
             TIME_COORDS.decode( propsReporter.createReporter( "time_coords" ),
-                                crsProps.opt( "time_coords" ) );
+                                crsProps.opt( "time_coords" ), null );
         final TimeCoords timeCoords;
         if ( timeCoordsDef != null ) {
             timeCoords = timeCoordsDef;
@@ -422,7 +427,7 @@ public abstract class Decoders {
         final SpectralCoords spectralCoords =
             SPECTRAL_COORDS
            .decode( propsReporter.createReporter( "spectral_coords" ),
-                    crsProps.opt( "spectral_coords" ) );
+                    crsProps.opt( "spectral_coords" ), null );
 
         final String refPositionId =
             new JsonTool( propsReporter.createReporter( "ref_position_id" ) )
@@ -449,7 +454,7 @@ public abstract class Decoders {
 
     /** Decoder for a Feature object. */
     public static final Decoder<Feature> FEATURE =
-            ( reporter, json ) -> {
+            ( reporter, json, parent ) -> {
         JsonTool jtool = new JsonTool( reporter );
         JSONObject jobj = jtool.asJSONObject( json );
         if ( jobj == null ) {
@@ -463,7 +468,7 @@ public abstract class Decoders {
         else if ( type.equals( "Feature" ) ) {
             Geometry<?> geometry =
                 GEOMETRY.decode( reporter.createReporter( "geometry" ),
-                                 jobj.opt( "geometry" ) );
+                                 jobj.opt( "geometry" ), null );
             if ( geometry == null ) {
                 return null;
             }
@@ -471,12 +476,12 @@ public abstract class Decoders {
             Crs crs = crsJson == null
                     ? null
                     : Decoders.CRS
-                     .decode( reporter.createReporter( "crs" ), crsJson );
+                     .decode( reporter.createReporter( "crs" ), crsJson, null );
             Object bboxJson = jobj.opt( "bbox" );
             Bbox bbox = bboxJson == null
                   ? null
                   : Decoders.BBOX
-                   .decode( reporter.createReporter( "bbox" ), bboxJson );
+                   .decode( reporter.createReporter( "bbox" ), bboxJson, null );
             String id = new JsonTool( reporter.createReporter( "id" ) )
                        .asStringOrNumber( jobj.opt( "id" ), true );
             Object propsJson = jobj.opt( "properties" );
@@ -486,7 +491,11 @@ public abstract class Decoders {
                 : new JsonTool( reporter.createReporter( "properties" ) )
                  .asJSONObject( propsJson );
             jtool.requireAbsent( jobj, "features" );   // RFC7946 sec 7.1
-            return new Feature( jobj, crs, bbox, geometry, id, properties );
+            Feature feat =
+                new Feature( jobj, crs, bbox, geometry, id, properties );
+            feat.setParent( parent );
+            assert feat.getGeometry().getParent() == feat;
+            return feat;
         }
         else {
             reporter.report( "type is \"" + type + "\" not \"Feature\"" );
@@ -496,7 +505,7 @@ public abstract class Decoders {
 
     /** Decoder for a FeatureCollection object. */
     public static final Decoder<FeatureCollection> FEATURE_COLLECTION =
-            ( reporter, json ) -> {
+            ( reporter, json, parent ) -> {
         JsonTool jtool = new JsonTool( reporter );
         JSONObject jobj = jtool.asJSONObject( json );
         if ( jobj == null ) {
@@ -513,7 +522,7 @@ public abstract class Decoders {
                 jtool.requireAbsent( jobj, "properties" );
             }
             Field[] fields = FIELDS.decode( reporter.createReporter( "fields" ),
-                                            jobj.opt( "fields" ) );
+                                            jobj.opt( "fields" ), null );
             Map<String,Field> fieldMap = new HashMap<>();
             for ( Field field : fields ) {
                 fieldMap.put( field.getName(), field );
@@ -521,7 +530,7 @@ public abstract class Decoders {
             Reporter featsReporter = reporter.createReporter( "features" );
             Feature[] features =
                 createArrayDecoder( FEATURE, Feature.class )
-               .decode( featsReporter, jobj.opt( "features" ) );
+               .decode( featsReporter, jobj.opt( "features" ), null );
             if ( features == null ) {
                 return null;
             }
@@ -548,10 +557,17 @@ public abstract class Decoders {
             Bbox bbox = bboxJson == null
                       ? null
                       : Decoders.BBOX
-                       .decode( reporter.createReporter( "bbox" ), bboxJson );
+                       .decode( reporter.createReporter( "bbox" ), bboxJson,
+                                null );
             Crs crs = CRS.decode( reporter.createReporter( "crs" ),
-                                  jobj.opt( "crs" ) );
-            return new FeatureCollection( jobj, crs, bbox, fieldMap, features );
+                                  jobj.opt( "crs" ), null );
+            FeatureCollection fc =
+                new FeatureCollection( jobj, crs, bbox, fieldMap, features );
+            fc.setParent( parent );
+            for ( Feature f : fc.getFeatures() ) {
+                assert f.getParent() == fc;
+            }
+            return fc;
         }
         else {
             reporter.report( "type is \"" + type
@@ -568,7 +584,7 @@ public abstract class Decoders {
 
     /** Decoder for a TFCat object. */
     public static final Decoder<TfcatObject> TFCAT =
-            ( reporter, json ) -> {
+            ( reporter, json, parent ) -> {
         JsonTool jtool = new JsonTool( reporter );
         JSONObject jobj = jtool.asJSONObject( json );
         if ( jobj == null ) {
@@ -584,7 +600,7 @@ public abstract class Decoders {
         Decoder<? extends TfcatObject> decoder = tfcatDecoders_.get( type );
         return decoder == null
              ? null
-             : decoder.decode( reporter.createReporter( type ), jobj );
+             : decoder.decode( reporter.createReporter( type ), jobj, parent );
     };
 
     /**
@@ -678,7 +694,7 @@ public abstract class Decoders {
     private static <T> Decoder<T[]>
             createArrayDecoder( Decoder<T> scalarDecoder,
                                 Class<T> scalarClazz ) {
-        return ( reporter, json ) -> {
+        return ( reporter, json, parent ) -> {
             JSONArray jarray = new JsonTool( reporter ).asJSONArray( json );
             if ( jarray == null ) {
                 return null;
@@ -688,7 +704,7 @@ public abstract class Decoders {
             T[] array = (T[]) Array.newInstance( scalarClazz, n );
             for ( int i = 0; i < n; i++ ) {
                 T item = scalarDecoder.decode( reporter.createReporter( i ),
-                                               jarray.get( i ) );
+                                               jarray.get( i ), parent );
                 if ( item == null ) {
                     return null;
                 }
@@ -775,7 +791,7 @@ public abstract class Decoders {
                 }
                 contentReporter = reporter.createReporter( "coordinates" );
             }
-            S shape = shapeDecoder_.decode( contentReporter, content );
+            S shape = shapeDecoder_.decode( contentReporter, content, null );
             return shape == null
                  ? null
                  : geomConstructor_.toGeom( json, crs, bbox, shape );

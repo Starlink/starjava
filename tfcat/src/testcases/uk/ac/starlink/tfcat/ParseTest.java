@@ -49,7 +49,7 @@ public class ParseTest extends TestCase {
         BasicReporter reporter = createReporter();
         try ( InputStream in = resource.openStream() ) {
             JSONObject json = new JSONObject( new JSONTokener( in ) );
-            return Decoders.TFCAT.decode( reporter, json );
+            return Decoders.TFCAT.decode( reporter, json, null );
         }
     }
 
@@ -59,7 +59,7 @@ public class ParseTest extends TestCase {
         BasicReporter reporter = createReporter();
         try ( InputStream in = resource.openStream() ) {
             JSONObject json = new JSONObject( new JSONTokener( in ) );
-            TfcatObject tfcat = Decoders.TFCAT.decode( reporter, json );
+            TfcatObject tfcat = Decoders.TFCAT.decode( reporter, json, null );
             tfcat.purgeJson();
             TfcatUtil.checkBoundingBoxes( reporter, tfcat );
         }

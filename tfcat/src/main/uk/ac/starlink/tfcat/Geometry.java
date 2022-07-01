@@ -105,6 +105,9 @@ public abstract class Geometry<S> extends TfcatObject {
         GeometryCollection( JSONObject json, Crs crs, Bbox bbox,
                             Geometry<?>[] geoms ) {
             super( json, "GeometryCollection", crs, bbox, geoms );
+            for ( Geometry<?> g : geoms ) {
+                g.setParent( this );
+            }
         }
     }
 }

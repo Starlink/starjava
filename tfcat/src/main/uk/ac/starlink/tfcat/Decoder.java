@@ -17,7 +17,8 @@ public interface Decoder<T> {
      *
      * @param   reporter  destination for error messages
      * @param   json   input JSON object
+     * @param   parent  parent object, may be null
      * @return   decoded object, or null
      */
-    T decode( Reporter reporter, Object json );
+    T decode( Reporter reporter, Object json, TfcatObject parent );
 }

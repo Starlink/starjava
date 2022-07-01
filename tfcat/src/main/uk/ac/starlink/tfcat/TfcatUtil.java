@@ -64,7 +64,7 @@ public class TfcatUtil {
             reporter.report( "Bad JSON: " + e.getMessage() );
             return null;
         }
-        TfcatObject tfcat = Decoders.TFCAT.decode( reporter, json );
+        TfcatObject tfcat = Decoders.TFCAT.decode( reporter, json, null );
         if ( tfcat != null && reporter != DummyReporter.INSTANCE ) {
             checkBoundingBoxes( reporter, tfcat );
         }

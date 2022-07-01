@@ -27,6 +27,9 @@ public class Feature extends TfcatObject {
     public Feature( JSONObject json, Crs crs, Bbox bbox, Geometry<?> geometry,
                     String id, JSONObject properties ) {
         super( json, "Feature", crs, bbox );
+        if ( geometry != null ) {
+            geometry.setParent( this );
+        }
         geometry_ = geometry;
         id_ = id;
         properties_ = properties;

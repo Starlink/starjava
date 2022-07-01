@@ -13,6 +13,7 @@ import org.json.JSONObject;
 public abstract class TfcatObject {
 
     private JSONObject json_;
+    private TfcatObject parent_;
     private final String type_;
     private final Crs crs_;
     private final Bbox bbox_;
@@ -42,6 +43,17 @@ public abstract class TfcatObject {
      */
     public JSONObject getJson() {
         return json_;
+    }
+
+    /**
+     * Returns the parent of this TfcatObject.
+     * For the top-level object in a Tfcat text, this should be null,
+     * otherwise it should under normal circumstances be non-null.
+     *
+     * @return   parent object, or null
+     */
+    public TfcatObject getParent() {
+        return parent_;
     }
 
     /**
@@ -81,5 +93,15 @@ public abstract class TfcatObject {
      */
     public void purgeJson() {
         json_ = null;
+    }
+
+    /**
+     * Sets the parent for this object.  Should usually be done during
+     * parsing.
+     *
+     * @param  parent  parent object to assign
+     */
+    void setParent( TfcatObject parent ) {
+        parent_ = parent;
     }
 }

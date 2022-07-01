@@ -28,6 +28,9 @@ public class FeatureCollection extends TfcatObject {
     public FeatureCollection( JSONObject json, Crs crs, Bbox bbox,
                               Map<String,Field> fieldMap, Feature[] features ) {
         super( json, "FeatureCollection", crs, bbox );
+        for ( Feature f : features ) {
+            f.setParent( this );
+        }
         features_ = features;
         fieldMap_ = fieldMap;
     }

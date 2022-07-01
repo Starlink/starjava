@@ -52,7 +52,8 @@ public class Validate {
                                    TfcatUtil.getUnitChecker() );
             try {
                 JSONObject json = new JSONObject( new JSONTokener( in ) );
-                TfcatObject tfcat = Decoders.TFCAT.decode( reporter, json );
+                TfcatObject tfcat =
+                    Decoders.TFCAT.decode( reporter, json, null );
                 if ( tfcat != null ) {
                     tfcat.purgeJson();
                     TfcatUtil.checkBoundingBoxes( reporter, tfcat );
