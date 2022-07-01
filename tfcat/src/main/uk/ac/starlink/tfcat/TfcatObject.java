@@ -14,6 +14,7 @@ public abstract class TfcatObject {
 
     private JSONObject json_;
     private final String type_;
+    private final Crs crs_;
     private final Bbox bbox_;
 
     /**
@@ -21,11 +22,14 @@ public abstract class TfcatObject {
      *
      * @param   json  JSON object on which this is based
      * @param   type  value of type member, defining the TFCat type
+     * @param   crs   coordinate reference system defined by crs member,
+     *                may be null
      * @param   bbox  bounding box defined by bbox member, may be null
      */
-    protected TfcatObject( JSONObject json, String type, Bbox bbox ) {
+    protected TfcatObject( JSONObject json, String type, Crs crs, Bbox bbox ) {
         json_ = json;
         type_ = type;
+        crs_ = crs;
         bbox_ = bbox;
     }
 
@@ -47,6 +51,18 @@ public abstract class TfcatObject {
      */
     public String getType() {
         return type_;
+    }
+
+    /**
+     * Returns this object's coordinate reference system, if any.
+     * Note this returns an object based on the crs member of this JSON object;
+     * if that is null, ancestor objects should be consulted to find the
+     * coordinate reference frame that applies to this TfcatObject.
+     *
+     * @return  crs defined within this object, may be null
+     */
+    public Crs getCrs() {
+        return crs_;
     }
 
     /**

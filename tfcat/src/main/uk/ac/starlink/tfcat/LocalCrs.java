@@ -6,7 +6,7 @@ package uk.ac.starlink.tfcat;
  * @author   Mark Taylor
  * @since    28 Jun 2022
  */
-public interface LocalCrs {
+public interface LocalCrs extends Crs {
 
     /**
      * Returns the standard time coordinate system identifier for this CRS.

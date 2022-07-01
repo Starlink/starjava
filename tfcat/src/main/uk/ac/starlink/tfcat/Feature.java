@@ -18,14 +18,15 @@ public class Feature extends TfcatObject {
      * Constructor.
      *
      * @param  json  JSON object with "type":"Feature" on which this is based
+     * @param  crs   coordinate reference system, may be null
      * @param  bbox  bounding box, may be null
      * @param  geometry  geometry content, may be null
      * @param  id    identifier string, may be null
      * @param  properties   properties object, may be null
      */
-    public Feature( JSONObject json, Bbox bbox, Geometry<?> geometry,
+    public Feature( JSONObject json, Crs crs, Bbox bbox, Geometry<?> geometry,
                     String id, JSONObject properties ) {
-        super( json, "Feature", bbox );
+        super( json, "Feature", crs, bbox );
         geometry_ = geometry;
         id_ = id;
         properties_ = properties;

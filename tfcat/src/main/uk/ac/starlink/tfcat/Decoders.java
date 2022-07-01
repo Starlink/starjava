@@ -231,6 +231,11 @@ public abstract class Decoders {
         }
         String type = new JsonTool( reporter.createReporter( "type" ) )
                      .asString( jobj.opt( "type" ), true );
+        Object crsJson = jobj.opt( "crs" );
+        Crs crs = crsJson == null
+                ? null
+                : Decoders.CRS
+                 .decode( reporter.createReporter( "crs" ), crsJson );
         Object bboxJson = jobj.opt( "bbox" );
         Bbox bbox = bboxJson == null
                   ? null
@@ -253,7 +258,7 @@ public abstract class Decoders {
             }
             jtool.requireAbsent( jobj, "features" );
             return shapeType.createGeometry( reporter.createReporter( type ),
-                                             jobj, bbox );
+                                             jobj, crs, bbox );
         }
     };
 
@@ -361,8 +366,7 @@ public abstract class Decoders {
     };
 
     /** Decoder for a CRS object. */
-    public static final Decoder<LocalCrs> CRS =
-            ( reporter, json ) -> {
+    public static final Decoder<Crs> CRS = ( reporter, json ) -> {
         JSONObject jobj = new JsonTool( reporter ).asJSONObject( json );
         if ( jobj == null ) {
             return null;
@@ -375,7 +379,11 @@ public abstract class Decoders {
         }
         if ( ! "local".equals( crsType ) ) {
             typeReporter.report( "Unsupported CRS type \"" + crsType + "\"" );
-            return null;
+            return new Crs() {
+                public String getCrsType() {
+                    return crsType;
+                }
+            };
         }
         Reporter propsReporter = reporter.createReporter( "properties" );
         JSONObject crsProps = new JsonTool( propsReporter )
@@ -421,6 +429,9 @@ public abstract class Decoders {
            .asString( crsProps.opt( "ref_position_id" ), true );
 
         return new LocalCrs() {
+            public String getCrsType() {
+                return "local";
+            }
             public String getTimeCoordsId() {
                 return timeCoordsId;
             }
@@ -456,6 +467,11 @@ public abstract class Decoders {
             if ( geometry == null ) {
                 return null;
             }
+            Object crsJson = jobj.opt( "crs" );
+            Crs crs = crsJson == null
+                    ? null
+                    : Decoders.CRS
+                     .decode( reporter.createReporter( "crs" ), crsJson );
             Object bboxJson = jobj.opt( "bbox" );
             Bbox bbox = bboxJson == null
                   ? null
@@ -470,7 +486,7 @@ public abstract class Decoders {
                 : new JsonTool( reporter.createReporter( "properties" ) )
                  .asJSONObject( propsJson );
             jtool.requireAbsent( jobj, "features" );   // RFC7946 sec 7.1
-            return new Feature( jobj, bbox, geometry, id, properties );
+            return new Feature( jobj, crs, bbox, geometry, id, properties );
         }
         else {
             reporter.report( "type is \"" + type + "\" not \"Feature\"" );
@@ -533,9 +549,9 @@ public abstract class Decoders {
                       ? null
                       : Decoders.BBOX
                        .decode( reporter.createReporter( "bbox" ), bboxJson );
-            LocalCrs crs = CRS.decode( reporter.createReporter( "crs" ),
-                                       jobj.opt( "crs" ) );
-            return new FeatureCollection( jobj, bbox, crs, fieldMap, features );
+            Crs crs = CRS.decode( reporter.createReporter( "crs" ),
+                                  jobj.opt( "crs" ) );
+            return new FeatureCollection( jobj, crs, bbox, fieldMap, features );
         }
         else {
             reporter.report( "type is \"" + type
@@ -704,11 +720,12 @@ public abstract class Decoders {
          * Returns a geometry.
          *
          * @param  json  JSON object on which the geometry is based
+         * @param  crs   coordinate reference system, or null
          * @param  bbox  bounding box, or null
          * @param  shape   geometric content
          * @return  new typed geometry
          */
-        Geometry<S> toGeom( JSONObject json, Bbox bbox, S shape );
+        Geometry<S> toGeom( JSONObject json, Crs crs, Bbox bbox, S shape );
     }
 
     /**
@@ -736,11 +753,12 @@ public abstract class Decoders {
          *
          * @param  reporter  destination for validity messages
          * @param  json    JSON object containing coordinates member
+         * @param  crs     coordinate reference system, or null
          * @param  bbox    bounding box, or null
          * @return   geometry, or null if it can't be constructed
          */
         Geometry<S> createGeometry( Reporter reporter, JSONObject json,
-                                    Bbox bbox ) {
+                                    Crs crs, Bbox bbox ) {
             final Object content;
             final Reporter contentReporter;
 
@@ -760,7 +778,7 @@ public abstract class Decoders {
             S shape = shapeDecoder_.decode( contentReporter, content );
             return shape == null
                  ? null
-                 : geomConstructor_.toGeom( json, bbox, shape );
+                 : geomConstructor_.toGeom( json, crs, bbox, shape );
         }
     }
 }

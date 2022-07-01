@@ -11,7 +11,6 @@ import org.json.JSONObject;
  */
 public class FeatureCollection extends TfcatObject {
 
-    private final LocalCrs crs_;
     private final Feature[] features_;
     private final Map<String,Field> fieldMap_;
 
@@ -19,28 +18,18 @@ public class FeatureCollection extends TfcatObject {
      * Constructor.
      *
      * @param   json  JSON object on which this is based
-     * @param   bbox  bounding box defined by bbox member, may be null
      * @param   crs   coordinate reference system, may be null
+     * @param   bbox  bounding box defined by bbox member, may be null
      * @param   fieldMap  map of fields associated with this collection;
      *                    may be empty but not null
      * @param   features   features in this collection;
      *                     may be empty but not null
      */
-    public FeatureCollection( JSONObject json, Bbox bbox, LocalCrs crs,
+    public FeatureCollection( JSONObject json, Crs crs, Bbox bbox,
                               Map<String,Field> fieldMap, Feature[] features ) {
-        super( json, "FeatureCollection", bbox );
-        crs_ = crs;
+        super( json, "FeatureCollection", crs, bbox );
         features_ = features;
         fieldMap_ = fieldMap;
-    }
-
-    /**
-     * Returns the coordinate reference system associated with this collection.
-     *
-     * @return  CRS, may be null
-     */
-    public LocalCrs getCrs() {
-        return crs_;
     }
 
     /**

@@ -3,6 +3,7 @@ package uk.ac.starlink.tfcat;
 import java.io.InputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import junit.framework.TestCase;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,11 +12,18 @@ import org.json.JSONTokener;
 public class ParseTest extends TestCase {
 
     public void testExampleReports() throws Exception {
-        assertEquals( 0, getReports( "example1.tfcat" ).length );
-        assertEquals( 1, getReports( "jupiter-obs.tfcat" ).length );
-        assertEquals( 0, getReports( "doc-example.tfcat" ).length );
-        assertEquals( 0, getReports( "doc-crs.tfcat" ).length );
-        assertEquals( 0, getReports( "doc-geometries.tfcat" ).length );
+        assertReportCount( 0, "example1.tfcat" );
+        assertReportCount( 0, "doc-example.tfcat" );
+        assertReportCount( 0, "doc-crs.tfcat" );
+        assertReportCount( 0, "doc-geometries.tfcat" );
+        assertReportCount( 2, "jupiter-obs.tfcat" );
+    }
+
+    private void assertReportCount( int nReport, String fname )
+            throws IOException {
+        String[] reports = getReports( fname );
+        int nr = reports.length;
+        assertEquals( fname + ": " + Arrays.toString( reports ), nReport, nr );
     }
 
     public void testExampleParse() throws Exception {
