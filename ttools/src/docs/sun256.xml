@@ -14036,6 +14036,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         metadata with non-ASCII Unicode characters.</li>
     <li>New command <ref id="arrayjoin"><code>arrayjoin</code></ref>
         added.</li>
+    <li>Minor <ref id="taplint"><code>taplint</code></ref> EPN stage
+        update corresponding to latest EPN-TAP draft.</li>
     </ul>
     </p></dd>
 

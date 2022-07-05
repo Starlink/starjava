@@ -804,7 +804,7 @@ public class EpnTapStage implements Stage {
             textCol( "bib_reference", "meta.bib" ),
             textCol( "internal_reference", "meta.id.cross" ),
             textCol( "external_link", "meta.ref.url" ),
-            new SingleCol( "shape", Type.TEXT_MOC, null,
+            new SingleCol( "coverage", Type.TEXT_MOC, null,
                            "pos.outline;obs.field" ),
             textCol( "spatial_coordinate_description",
                      "meta.code.class;pos.frame" ),
@@ -856,7 +856,7 @@ public class EpnTapStage implements Stage {
                           FixedCode.W_PNTS, FixedCode.W_VCPD );
 
         // Currently not tested but could be: compliant MOC strings in
-        // shape column.
+        // coverage column.
          
         return colMap.values().toArray( new EpnCol[ 0 ] );
     }
