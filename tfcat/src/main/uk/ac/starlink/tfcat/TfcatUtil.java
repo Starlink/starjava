@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONException;
@@ -67,6 +68,7 @@ public class TfcatUtil {
         TfcatObject tfcat = Decoders.TFCAT.decode( reporter, json, null );
         if ( tfcat != null && reporter != DummyReporter.INSTANCE ) {
             checkBoundingBoxes( reporter, tfcat );
+            checkCrs( reporter, tfcat );
         }
         return tfcat;
     }
@@ -178,6 +180,78 @@ public class TfcatUtil {
     }
 
     /**
+     * Returns a CRS object applying to the given TFCat object.
+     * This may exist on the object itself or on one of its ancestors.
+     * The return value may be null, but probably ought not to be for a
+     * legal TFCat object.
+     *
+     * @param tfcat  target object
+     * @return  CRS object, may be null
+     */
+    public static Crs getCrsInScope( TfcatObject tfcat ) {
+        return getMemberInScope( tfcat, TfcatObject::getCrs );
+    }
+
+    /**
+     * Returns a Bounding Box objecct applying to the given TFCat object.
+     * This may exist on the object itself or on one of its ancestors.
+     *
+     * @param tfcat  target object
+     * @return  Bbox object, may be null
+     */
+    public static Bbox getBboxInScope( TfcatObject tfcat ) {
+        return getMemberInScope( tfcat, TfcatObject::getBbox );
+    }
+
+    /**
+     * Returns an attribute that may exist on a TFCat object or one of
+     * its ancestors.  The first non-null value working backwards is returned.
+     *
+     * @param tfcat  target object
+     * @param get   acquires typed result from a TFCat object
+     * @return  typed result, may be null if null for all self-or-ancestors
+     */
+    private static <T> T getMemberInScope( TfcatObject tfcat,
+                                           Function<TfcatObject,T> get ) {
+        T member0 = get.apply( tfcat );
+        if ( member0 != null ) {
+            return member0;
+        }
+        TfcatObject parent = tfcat.getParent();
+        return parent == null ? null : getMemberInScope( parent, get );
+    }
+
+    /**
+     * Ensure that CRS objects are in place for the tree rooted at the
+     * given TFCat Object.
+     * Usually that will mean that the given object has a CRS object of its
+     * own, but as long as all of its Geometry descendants have CRS objects
+     * in scope, it's OK.
+     * If CRS objects are missing, a message is written to the reporter.
+     *
+     * @param  reporter   message destination
+     * @param  tfcat     object to check
+     */
+    public static void checkCrs( Reporter reporter, TfcatObject tfcat ) {
+
+        /* Usually, the CRS will be defined in the top-level object.
+         * If that's the case, then all descendants will have an ancestor
+         * CRS, so everything is in order. */
+        if ( getCrsInScope( tfcat ) != null ) {
+            return;
+        }
+
+        /* Other arrangements are possible.  Test every Geometry to see
+         * whether it has an ancestor CRS.  There may be more efficient
+         * ways of doing this, but it's not likely to be a hugely expensive
+         * or very common operation. */
+        if ( ! allGeometriesHaveCrs( tfcat ) ) {
+            reporter.report( "No top-level CRS, and "
+                           + "at least one Geometry lacks CRS" );
+        }
+    }
+
+    /**
      * Checks whether a given token is in a supplied list of valid options.
      * No special handling is performed for null values.
      *
@@ -243,7 +317,7 @@ public class TfcatUtil {
      *
      * @return  new unit checker
      */
-    public static WordChecker createUnitChecker() {
+    private static WordChecker createUnitChecker() {
         try {
             UnitParser.class.toString();
         }
@@ -305,6 +379,27 @@ public class TfcatUtil {
         else {
             assert false;
             return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Tests whether all the TFCat objects with the given root that are
+     * of type Geometry (and not GeometryCollection) have a CRS object
+     * in scope.
+     */
+    private static boolean allGeometriesHaveCrs( TfcatObject tfcat ) {
+        if ( tfcat instanceof Geometry &&
+             ! ( tfcat instanceof Geometry.GeometryCollection ) &&
+             getCrsInScope( tfcat ) == null ) {
+            return false;
+        }
+        else {
+            for ( TfcatObject subObj : getChildren( tfcat ) ) {
+                if ( ! allGeometriesHaveCrs( subObj ) ) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 

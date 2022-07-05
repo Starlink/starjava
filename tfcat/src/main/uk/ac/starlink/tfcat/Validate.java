@@ -57,6 +57,7 @@ public class Validate {
                 if ( tfcat != null ) {
                     tfcat.purgeJson();
                     TfcatUtil.checkBoundingBoxes( reporter, tfcat );
+                    TfcatUtil.checkCrs( reporter, tfcat );
                 }
                 else {
                     reporter.report( "No TFCat object found at top level" );

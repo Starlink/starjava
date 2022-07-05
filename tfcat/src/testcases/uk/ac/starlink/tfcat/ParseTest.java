@@ -12,7 +12,7 @@ import org.json.JSONTokener;
 public class ParseTest extends TestCase {
 
     public void testExampleReports() throws Exception {
-        assertReportCount( 0, "example1.tfcat" );
+        assertReportCount( 1, "example1.tfcat" );
         assertReportCount( 0, "doc-example.tfcat" );
         assertReportCount( 0, "doc-crs.tfcat" );
         assertReportCount( 0, "doc-geometries.tfcat" );
@@ -62,6 +62,7 @@ public class ParseTest extends TestCase {
             TfcatObject tfcat = Decoders.TFCAT.decode( reporter, json, null );
             tfcat.purgeJson();
             TfcatUtil.checkBoundingBoxes( reporter, tfcat );
+            TfcatUtil.checkCrs( reporter, tfcat );
         }
         return reporter.getMessages().toArray( new String[ 0 ] );
     }

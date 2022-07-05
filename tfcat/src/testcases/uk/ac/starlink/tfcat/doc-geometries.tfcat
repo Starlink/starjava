@@ -1,5 +1,16 @@
 {
   "type": "GeometryCollection",
+  "crs": {
+      "type": "local",
+      "properties": {
+          "ref_position_id": "GEOCENTER",
+          "time_coords_id": "unix",
+          "spectral_coords": {
+              "type": "frequency",
+              "unit": "kHz"
+          }
+      }
+  },
   "geometries": [
      {
          "type": "Point",
