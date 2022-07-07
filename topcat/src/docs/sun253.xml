@@ -30908,6 +30908,11 @@ introduced since the last version:
         <em>or</em> the {links} endpoint and an ID value.</li>
     <li>Tweaks to default plot setup to avoid using identifiers
         as coordinates in some cases.</li>
+    <li>Modify functions <code>add</code>, <code>subtract</code>,
+        <code>multiply</code>, <code>divide</code> in class
+        <ref id="Arrays">Arrays</ref>;
+        these now all take either two array arguments or an array
+        and a scalar in either order.</li>
     </ul>
     </p></dd>
 

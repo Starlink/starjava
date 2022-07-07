@@ -14038,6 +14038,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         added.</li>
     <li>Minor <ref id="taplint"><code>taplint</code></ref> EPN stage
         update corresponding to latest EPN-TAP draft.</li>
+    <li>Modify functions <code>add</code>, <code>subtract</code>,
+        <code>multiply</code>, <code>divide</code> in class
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>;
+        these now all take either two array arguments or an array
+        and a scalar in either order.</li>
     </ul>
     </p></dd>
 

@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.IntToDoubleFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.Tables;
@@ -83,6 +85,11 @@ public class Arrays {
     /** Array index variable name in arrayFunc expressions. */
     @HideDoc
     public static final String ARRAY_INDEX_VARNAME = "i";
+
+    private static final DoubleBinaryOperator ADD = (a, b) -> a + b;
+    private static final DoubleBinaryOperator SUBTRACT = (a, b) -> a - b;
+    private static final DoubleBinaryOperator MULTIPLY = (a, b) -> a * b;
+    private static final DoubleBinaryOperator DIVIDE = (a, b) -> a / b;
 
     private static final ThreadLocal<ArrayFuncMap> afuncsThreadLocal_ =
         ThreadLocal.withInitial( ArrayFuncMap::new );
@@ -359,183 +366,97 @@ public class Arrays {
     }
 
     /**
-     * Returns the result of adding two numeric arrays element by element.
-     * Both arrays must be numeric, and the arrays must have the same length.
-     * If either of those conditions is not true, <code>null</code> is returned.
-     * The types of the arrays do not need to be the same,
-     * so for example it is permitted to add an integer array
-     * to a floating point array.
+     * Returns the element-by-element result of adding
+     * either two numeric arrays of the same length,
+     * or an array and a scalar considered as if an array of the right length.
+     *
+     * <p>If the arguments are not as expected
+     * (e.g. arrays of different lengths, both scalars, not numeric)
+     * then null is returned.
      *
      * @example  <code>add(array(1,2,3), array(0.1,0.2,0.3))
      *                 = [1.1, 2.2, 3.3]</code>
-     *
-     * @param   array1  first array of numeric values
-     * @param   array2  second array of numeric values
-     * @return    element-by-element sum of
-     *            <code>array1</code> and <code>array2</code>,
-     *            the same length as the input arrays
-     */
-    public static double[] add( Object array1, Object array2 ) {
-        int n = getNumericArrayLength( array1 );
-        if ( n >= 0 && getNumericArrayLength( array2 ) == n ) {
-            double[] out = new double[ n ];
-            for ( int i = 0; i < n; i++ ) {
-                out[ i ] = Array.getDouble( array1, i )
-                         + Array.getDouble( array2, i );
-            }
-            return out;
-        }
-        else {
-            return null;
-        }
-    }
-
-    /**
-     * Returns the result of adding a constant value to every element of
-     * a numeric array.
-     * If the supplied <code>array</code> argument is not a numeric array,
-     * <code>null</code> is returned.
-     *
      * @example  <code>add(array(1,2,3), 10) = [11,12,13]</code>
      *
-     * @param  array   array input
-     * @param  constant   value to add to each array element
-     * @return   array output,
-     *           the same length as the <code>array</code> parameter
+     * @param   arrayOrScalar1  first numeric array/scalar
+     * @param   arrayOrScalar2  second numeric array/scalar
+     * @return    element-by-element result of
+     *            <code>arrayOrScalar1 + arrayOrScalar2</code>,
+     *            the same length as the input array(s)
      */
-    public static double[] add( Object array, double constant ) {
-        int n = getNumericArrayLength( array );
-        if ( n >= 0 ) {
-            double[] out = new double[ n ];
-            for ( int i = 0; i < n; i++ ) {
-                out[ i ] = Array.getDouble( array, i ) + constant;
-            }
-            return out;
-        }
-        else {
-            return null;
-        }
+    public static double[] add( Object arrayOrScalar1, Object arrayOrScalar2 ) {
+        return arrayOp( arrayOrScalar1, arrayOrScalar2, ADD );
     }
 
     /**
-     * Returns the result of subtracting one numeric array from the other
-     * element by element.
-     * Both arrays must be numeric, and the arrays must have the same length.
-     * If either of those conditions is not true, <code>null</code> is returned.
-     * The types of the arrays do not need to be the same,
-     * so for example it is permitted to subtract an integer array
-     * from a floating point array.
+     * Returns the element-by-element result of subtracting
+     * either two numeric arrays of the same length,
+     * or an array and a scalar considered as if an array of the right length.
+     *
+     * <p>If the arguments are not as expected
+     * (e.g. arrays of different lengths, both scalars, not numeric)
+     * then null is returned.
      *
      * @example  <code>subtract(array(1,2,3), array(0.1,0.2,0.3))
      *                 = [0.9, 1.8, 2.7]</code>
+     * @example  <code>subtract(array(1,2,3), 1.0)
+     *                 = [0, 1, 2]</code>
      *
-     * @param   array1  first array of numeric values
-     * @param   array2  second array of numeric values
-     * @return    element-by-element difference of
-     *            <code>array1</code> and <code>array2</code>,
-     *            the same length as the input arrays
+     * @param   arrayOrScalar1  first numeric array/scalar
+     * @param   arrayOrScalar2  second numeric array/scalar
+     * @return    element-by-element result of
+     *            <code>arrayOrScalar1 - arrayOrScalar2</code>,
+     *            the same length as the input array(s)
      */
-    public static double[] subtract( Object array1, Object array2 ) {
-        int n = getNumericArrayLength( array1 );
-        if ( n >= 0 && getNumericArrayLength( array2 ) == n ) {
-            double[] out = new double[ n ];
-            for ( int i = 0; i < n; i++ ) {
-                out[ i ] = Array.getDouble( array1, i )
-                         - Array.getDouble( array2, i );
-            }
-            return out;
-        }
-        else {
-            return null;
-        }
+    public static double[] subtract( Object arrayOrScalar1,
+                                     Object arrayOrScalar2 ) {
+        return arrayOp( arrayOrScalar1, arrayOrScalar2, SUBTRACT );
     }
 
     /**
-     * Returns the result of multiplying two numeric arrays element by element.
-     * Both arrays must be numeric, and the arrays must have the same length.
-     * If either of those conditions is not true, <code>null</code> is returned.
-     * The types of the arrays do not need to be the same,
-     * so for example it is permitted to multiply an integer array
-     * by a floating point array.
+     * Returns the element-by-element result of multiplying
+     * either two numeric arrays of the same length,
+     * or an array and a scalar considered as if an array of the right length.
+     *
+     * <p>If the arguments are not as expected
+     * (e.g. arrays of different lengths, both scalars, not numeric)
+     * then null is returned.
      *
      * @example  <code>multiply(array(1,2,3), array(2,4,6)) = [2, 8, 18]</code>
+     * @example  <code>multiply(2, array(1,2,3)) = [2, 4, 6]</code>
      *
-     * @param   array1  first array of numeric values
-     * @param   array2  second array of numeric values
-     * @return    element-by-element product of
-     *            <code>array1</code> and <code>array2</code>,
-     *            the same length as the input arrays
+     * @param   arrayOrScalar1  first numeric array/scalar
+     * @param   arrayOrScalar2  second numeric array/scalar
+     * @return    element-by-element result of
+     *            <code>arrayOrScalar1 * arrayOrScalar2</code>,
+     *            the same length as the input array(s)
      */
-    public static double[] multiply( Object array1, Object array2 ) {
-        int n = getNumericArrayLength( array1 );
-        if ( n >= 0 && getNumericArrayLength( array2 ) == n ) {
-            double[] out = new double[ n ];
-            for ( int i = 0; i < n; i++ ) {
-                out[ i ] = Array.getDouble( array1, i )
-                         * Array.getDouble( array2, i );
-            }
-            return out;
-        }
-        else {
-            return null;
-        }
+    public static double[] multiply( Object arrayOrScalar1,
+                                     Object arrayOrScalar2 ) {
+        return arrayOp( arrayOrScalar1, arrayOrScalar2, MULTIPLY );
     }
 
     /**
-     * Returns the result of multiplying every element of a numeric array
-     * by a constant value.
-     * If the supplied <code>array</code> argument is not a numeric array,
-     * <code>null</code> is returned.
+     * Returns the element-by-element result of dividing
+     * either two numeric arrays of the same length,
+     * or an array and a scalar considered as if an array of the right length.
      *
-     * @example  <code>multiply(array(1,2,3), 2) = [2, 4, 6]</code>
-     *
-     * @param  array   array input
-     * @param  constant   value by which to multiply each array element
-     * @return   array output,
-     *           the same length as the <code>array</code> parameter
-     */
-    public static double[] multiply( Object array, double constant ) {
-        int n = getNumericArrayLength( array );
-        if ( n >= 0 ) {
-            double[] out = new double[ n ];
-            for ( int i = 0; i < n; i++ ) {
-                out[ i ] = Array.getDouble( array, i ) * constant;
-            }
-            return out;
-        }
-        else {
-            return null;
-        }
-    }
-
-    /**
-     * Returns the result of dividing two numeric arrays element by element.
-     * Both arrays must be numeric, and the arrays must have the same length.
-     * If either of those conditions is not true, <code>null</code> is returned.
-     * The types of the arrays do not need to be the same,
-     * so for example it is permitted to divide an integer array
-     * by a floating point array.
+     * <p>If the arguments are not as expected
+     * (e.g. arrays of different lengths, both scalars, not numeric)
+     * then null is returned.
      *
      * @example  <code>divide(array(0,9,4), array(1,3,8)) = [0, 3, 0.5]</code>
+     * @example  <code>divide(array(50,60,70), 10) = [5, 6, 7]</code>
      *
-     * @param   array1  array of numerator values (numeric)
-     * @param   array2  array of denominator values (numeric)
-     * @return    element-by-element result of <code>array1[i]/array2[i]</code>
-     *            the same length as the input arrays
+     * @param   arrayOrScalar1  first numeric array/scalar
+     * @param   arrayOrScalar2  second numeric array/scalar
+     * @return    element-by-element result of
+     *            <code>arrayOrScalar1 / arrayOrScalar2</code>,
+     *            the same length as the input array(s)
      */
-    public static double[] divide( Object array1, Object array2 ) {
-        int n = getNumericArrayLength( array1 );
-        if ( n >= 0 && getNumericArrayLength( array2 ) == n ) {
-            double[] out = new double[ n ];
-            for ( int i = 0; i < n; i++ ) {
-                out[ i ] = Array.getDouble( array1, i )
-                         / Array.getDouble( array2, i );
-            }
-            return out;
-        }
-        else {
-            return null;
-        }
+    public static double[] divide( Object arrayOrScalar1,
+                                   Object arrayOrScalar2 ) {
+        return arrayOp( arrayOrScalar1, arrayOrScalar2, DIVIDE );
     }
 
     /**
@@ -1316,6 +1237,129 @@ public class Arrays {
     private static int effectiveIndex( int index, int leng ) {
         return index >= 0 ? Math.min( leng, index )
                           : Math.max( 0, leng + index );
+    }
+
+    /**
+     * Performs an operation on two input numeric arrays returning one
+     * numeric array of the same length.
+     * One or other, but not both, of the input array values may in fact
+     * be a scalar which is treated as an array of the appropriate length.
+     *
+     * @param  aos1  first array or scalar
+     * @param  aos2  second array or scalar
+     * @param  operator   element-wise operation
+     * @return  array result of applying operator to each pair of elements,
+     *          or null if input operands are not suitable
+     */
+    private static double[] arrayOp( Object aos1, Object aos2,
+                                     DoubleBinaryOperator operator ) {
+        ElementHandler eh1 = createElementHandler( aos1 );
+        if ( eh1 == null ) {
+            return null;
+        }
+        ElementHandler eh2 = createElementHandler( aos2 );
+        if ( eh2 == null ) {
+            return null;
+        }
+        int leng1 = eh1.length_;
+        int leng2 = eh2.length_;
+        final int leng;
+        if ( leng1 == leng2 ) {
+            leng = leng1;
+        }
+        else if ( leng1 < 0 ) {
+            leng = leng2;
+        }
+        else if ( leng2 < 0 ) {
+            leng = leng1;
+        }
+        else {
+            leng = -1;
+        }
+        if ( leng >= 0 ) {
+            double[] result = new double[ leng ];
+            for ( int i = 0; i < leng; i++ ) {
+                result[ i ] = operator.applyAsDouble( eh1.getElement( i ),
+                                                      eh2.getElement( i ) );
+            }
+            return result;
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Constructs an ElementHandler from an argument that may be either
+     * a numeric (wrapper) scalar or a numeric (primitive) array.
+     * In case of a scalar, the length is reported as -1.
+     *
+     * @param  aos  array or scalar
+     * @return   element handler, or null if input is not suitable
+     */
+    private static ElementHandler createElementHandler( Object aos ) {
+        if ( aos instanceof Number ) {
+            final double scalar = ((Number) aos).doubleValue();
+            return new ElementHandler( i -> scalar, -1 );
+        }
+        else if ( aos instanceof double[] ) {
+            final double[] array = (double[]) aos;
+            return new ElementHandler( i -> array[ i ], array.length );
+        }
+        else if ( aos instanceof float[] ) {
+            final float[] array = (float[]) aos;
+            return new ElementHandler( i -> array[ i ], array.length );
+        }
+        else if ( aos instanceof int[] ) {
+            final int[] array = (int[]) aos;
+            return new ElementHandler( i -> array[ i ], array.length );
+        }
+        else if ( aos instanceof short[] ) {
+            final short[] array = (short[]) aos;
+            return new ElementHandler( i -> array[ i ], array.length );
+        }
+        else if ( aos instanceof long[] ) {
+            final long[] array = (long[]) aos;
+            return new ElementHandler( i -> array[ i ], array.length );
+        }
+        else if ( aos instanceof byte[] ) {
+            final byte[] array = (byte[]) aos;
+            return new ElementHandler( i -> array[ i ], array.length );
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Provides indexed double values.
+     * This serves as a generalised representation of a double array.
+     */
+    private static class ElementHandler {
+        final int length_;
+        final IntToDoubleFunction accessor_;
+
+        /**
+         * Constructs an ElementHandler with a given finite length.
+         *
+         * @param  accessor  provides value access
+         * @param  length  number of elements available;
+         *                 if negative any input index is acceptable
+         */
+        ElementHandler( IntToDoubleFunction accessor, int length ) {
+            accessor_ = accessor;
+            length_ = length;
+        }
+
+        /**
+         * Returns the value at a given index.
+         *
+         * @param  i  index
+         * @return   value at index
+         */
+        double getElement( int i ) {
+            return accessor_.applyAsDouble( i );
+        }
     }
 
     /**

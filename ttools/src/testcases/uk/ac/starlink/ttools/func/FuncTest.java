@@ -220,12 +220,19 @@ public class FuncTest extends TestCase {
         assertArrayEquals( new double[] { 3, 4, Double.NaN },
                            Arrays.add( new float[] { 1f, 2f, Float.NaN, },
                                        2 ) );
+        assertArrayEquals( new double[] { 3, 4, Double.NaN },
+                           Arrays.add( 2,
+                                       new float[] { 1f, 2f, Float.NaN, } ) );
         assertNull( Arrays.add( "no array", new int[] { 1, 3 } ) );
         assertNull( Arrays.add( new int[] { 1, 3 }, "no array" ) );
+        assertNull( Arrays.add( new double[ 10 ], new double[ 11 ] ) );
 
         assertArrayEquals( new double[] { 1.0, 1.75, 2.5 },
                            Arrays.subtract( new int[] { 1, 2, 3 },
                                             new float[] { 0, 0.25f, 0.5f } ) );
+        assertArrayEquals( new double[] { 7, 6, 5 },
+                           Arrays.subtract( new float[] { 10, 9, 8 },
+                                            (short) 3 ) );
 
         assertArrayEquals( new double[] { 0.5, 3.0, Double.NaN },
                            Arrays.multiply( new int[] { 1, 2, 3, },
@@ -234,6 +241,9 @@ public class FuncTest extends TestCase {
         assertArrayEquals( new double[] { 2, 4, Double.NaN },
                            Arrays.multiply( new float[] { 1f, 2f, Float.NaN, },
                                             2 ) );
+        assertArrayEquals( new double[] { 2, 4, Double.NaN },
+                           Arrays.multiply( 2,
+                                            new float[] { 1f, 2f, Float.NaN} ));
         assertNull( Arrays.multiply( "no array", new int[] { 1, 3 } ) );
         assertNull( Arrays.multiply( new int[] { 1, 3 }, "no array" ) );
 
@@ -243,6 +253,8 @@ public class FuncTest extends TestCase {
                                       3, 4 ) );
         assertArrayEquals( new double[] { 1, 0.5, 4 },
                            Arrays.reciprocal( new float[] { 1, 2, 0.25f, } ) );
+        assertArrayEquals( new double[] { 1, 0.5, 4 },
+                           Arrays.divide( 1, new float[] { 1, 2, 0.25f, } ) );
         assertArrayEquals( new double[] { 0, 3, 0.5 },
                            Arrays.divide( new short[] { 0, 9, 4 },
                                           new double[] { 1, 3, 8 } ) );
