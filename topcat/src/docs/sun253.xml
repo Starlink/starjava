@@ -30906,6 +30906,8 @@ introduced since the last version:
         now provides an alternative option for giving Datalink
         table location; you can supply <em>either</em> the full URL
         <em>or</em> the {links} endpoint and an ID value.</li>
+    <li>Tweaks to default plot setup to avoid using identifiers
+        as coordinates in some cases.</li>
     </ul>
     </p></dd>
 

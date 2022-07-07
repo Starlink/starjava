@@ -319,12 +319,13 @@ public class CoordPanel {
      * smarter is possible.
      */
     public void autoPopulate() {
-        int is = 1;
+        int is = -1;
         for ( int ic = 0; ic < coords_.length; ic++ ) {
             if ( coords_[ ic ].isRequired() ) {
                 for ( JComboBox<ColumnData> cs : colSelectors_.get( ic ) ) {
+                    is = getNextSuitableSelectorIndex( cs, is + 1 );
                     if ( is < cs.getItemCount() ) {
-                        cs.setSelectedIndex( is++ );
+                        cs.setSelectedIndex( is );
                     }
                 }
             }
@@ -494,5 +495,41 @@ public class CoordPanel {
         return coord.isRequired()
             || coord.equals( FloatingArrayCoord.X )
             || coord.equals( FloatingArrayCoord.Y );
+    }
+
+    /**
+     * Returns the index of an entry in a column selector suitable for
+     * use as an example plotting coordinate.
+     *
+     * @param  selector   selector containing options
+     * @param  is   first possible value for output
+     * @return   index &gt;=is of a suitable entry in selector,
+     *           or a value &gt;=the number of entries in selector
+     */
+    private static int
+            getNextSuitableSelectorIndex( JComboBox<ColumnData> selector,
+                                          int is ) {
+
+        /* This is hacky.  Basically it picks the next non-null entry
+         * (if the entry is in the selector it must be at least of the right
+         * type) but with the adjustment that entries with a UCD like "meta.id"
+         * are avoided.  The point is that in practice a source_id or
+         * similar is often present in the first column, but it's rarely
+         * a sensible quantity to plot.  This fiddling therefore often
+         * results in giving you a useful rather than silly default plot
+         * when a plot window is opened. */
+        while ( is < selector.getItemCount() ) {
+            ColumnData cdata = selector.getItemAt( is );
+            ColumnInfo info = cdata == null ? null : cdata.getColumnInfo();
+            String ucd = info == null ? null : info.getUCD();
+            boolean avoid =
+                   info == null
+                || ( ucd != null && ucd.toLowerCase().startsWith( "meta.id" ) );
+            if ( ! avoid ) {
+                return is;
+            }
+            is++;
+        }
+        return is;
     }
 }
