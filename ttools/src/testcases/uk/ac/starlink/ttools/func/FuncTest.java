@@ -247,6 +247,11 @@ public class FuncTest extends TestCase {
         assertNull( Arrays.multiply( "no array", new int[] { 1, 3 } ) );
         assertNull( Arrays.multiply( new int[] { 1, 3 }, "no array" ) );
 
+        assertEquals( 26, Arrays.dotProduct( new double[] { 3, 4, 5 },
+                                             new short[] { 1, 2, 3 } ) );
+        assertTrue( Double.isNaN( Arrays.dotProduct( new float[ 2 ],
+                                                     new float[ 3 ] ) ) );
+
         assertArrayEquals( new double[] { 3, 4, 3 },
                            Arrays
                           .condition( new boolean[] { true, false, true },

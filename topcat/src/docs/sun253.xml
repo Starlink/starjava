@@ -30913,6 +30913,8 @@ introduced since the last version:
         <ref id="Arrays">Arrays</ref>;
         these now all take either two array arguments or an array
         and a scalar in either order.</li>
+    <li>New function <code>dotProduct</code> in class
+        <ref id="Arrays">Arrays</ref>.</li>
     </ul>
     </p></dd>
 

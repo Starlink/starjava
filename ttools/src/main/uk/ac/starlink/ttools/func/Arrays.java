@@ -366,6 +366,33 @@ public class Arrays {
     }
 
     /**
+     * Returns the dot (scalar) product of two numeric arrays.
+     * If either argument is not an array, or if the arrays are not of
+     * the same length, a blank value is returned.
+     *
+     * @example   <code>dotProduct(array(3,4,5), array(1,2,3)) = 26</code>
+     *
+     * @param  array1  first array
+     * @param  array2  second array
+     * @return  sum of element-wise products of input arrays
+     */
+    public static double dotProduct( Object array1, Object array2 ) {
+        int n1 = getNumericArrayLength( array1 );
+        int n2 = getNumericArrayLength( array2 );
+        if ( n1 >= 0 && n1 == n2 ) {
+            double d = 0;
+            for ( int i = 0; i < n1; i++ ) {
+                d += Array.getDouble( array1, i )
+                   * Array.getDouble( array2, i );
+            }
+            return d;
+        }
+        else {
+            return Double.NaN;
+        }
+    }
+
+    /**
      * Returns the element-by-element result of adding
      * either two numeric arrays of the same length,
      * or an array and a scalar considered as if an array of the right length.

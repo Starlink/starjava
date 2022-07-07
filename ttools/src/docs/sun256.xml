@@ -14043,6 +14043,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>;
         these now all take either two array arguments or an array
         and a scalar in either order.</li>
+    <li>New function <code>dotProduct</code> in class
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
     </ul>
     </p></dd>
 
