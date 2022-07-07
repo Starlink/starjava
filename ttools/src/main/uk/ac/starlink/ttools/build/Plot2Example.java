@@ -1655,7 +1655,7 @@ public class Plot2Example {
 
                 "*in=" + TName.LRS, null,
                 "*shading=aux", "*aux=epoch", null,
-                "*xs=arrayFunc(\"2.998e8/x\",param$Frequency)",
+                "*xs=divide(2.998e8,param$Frequency)",
                 "*ys=multiply(add(RX1,RX2),0.5)", null,
                 "layer_l=lines", "thick_l=2", null,
                 "*layer_e=yerrors",
