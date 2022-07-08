@@ -14037,7 +14037,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New command <ref id="arrayjoin"><code>arrayjoin</code></ref>
         added.</li>
     <li>Minor <ref id="taplint"><code>taplint</code></ref> EPN stage
-        update corresponding to latest EPN-TAP draft.</li>
+        update; now corresponds to PR-EPNTAP-20220705.</li>
     <li>Modify functions <code>add</code>, <code>subtract</code>,
         <code>multiply</code>, <code>divide</code> in class
         <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>;
