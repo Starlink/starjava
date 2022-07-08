@@ -489,7 +489,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>10 June 2022</docdate>
+<docdate>8 July 2022</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -30889,33 +30889,43 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.8-6 (8 July 2022)</dt>
 <dd><p>
-    <ul>
-    <li>Provide <code>value*</code> functions for
-        <ref id="jelCols">column references</ref>
-        to strangely-named columns.</li>
-    <li>Adjust datalink table row-matching heuristics
-        to work with less constrained datalink metadata;
-        this provides smoother operation for
-        (e.g.) Gaia DR3 datalink activation actions.</li>
-    <li>Fix FITS output so it doesn't fail when attempting to write
-        metadata with non-ASCII Unicode characters.</li>
-    <li>The <ref id="ViewDatalinkActivationType"
-                 >View Datalink Table</ref> activation type
-        now provides an alternative option for giving Datalink
-        table location; you can supply <em>either</em> the full URL
-        <em>or</em> the {links} endpoint and an ID value.</li>
-    <li>Tweaks to default plot setup to avoid using identifiers
-        as coordinates in some cases.</li>
-    <li>Modify functions <code>add</code>, <code>subtract</code>,
-        <code>multiply</code>, <code>divide</code> in class
-        <ref id="Arrays">Arrays</ref>;
-        these now all take either two array arguments or an array
-        and a scalar in either order.</li>
-    <li>New function <code>dotProduct</code> in class
-        <ref id="Arrays">Arrays</ref>.</li>
-    </ul>
+    <dl>
+    <dt>Enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>The <ref id="ViewDatalinkActivationType"
+                     >View Datalink Table</ref> activation type
+            now provides an alternative option for giving Datalink
+            table location; you can supply <em>either</em> the full URL
+            <em>or</em> the {links} endpoint and an ID value.</li>
+        <li>Adjust datalink table row-matching heuristics
+            to work with less constrained datalink metadata;
+            this provides smoother operation for
+            (e.g.) Gaia DR3 datalink activation actions.</li>
+        <li>Modify functions <code>add</code>, <code>subtract</code>,
+            <code>multiply</code>, <code>divide</code> in class
+            <ref id="Arrays">Arrays</ref>;
+            these now all take either two array arguments or an array
+            and a scalar in either order.</li>
+        <li>New function <code>dotProduct</code> in class
+            <ref id="Arrays">Arrays</ref>.</li>
+        <li>Provide <code>value*</code> functions for
+            <ref id="jelCols">column references</ref>
+            to strangely-named columns.</li>
+        <li>Tweaks to default plot setup to avoid using identifiers
+            as coordinates in some cases.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfix</dt>
+    <dd><p>
+        <ul>
+        <li>Fix FITS output so it doesn't fail when attempting to write
+            metadata with non-ASCII Unicode characters.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

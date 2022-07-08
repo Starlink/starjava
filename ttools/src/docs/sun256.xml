@@ -177,7 +177,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>10 June 2022</docdate>
+<docdate>8 July 2022</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -14026,26 +14026,36 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 3.4-6 (8 July 2022)</dt>
 <dd><p>
-    <ul>
-    <li>Provide <code>value*</code> functions for
-        <ref id="jel-colref">column references</ref>
-        to strangely-named columns.</li>
-    <li>Fix FITS output so it doesn't fail when attempting to write
-        metadata with non-ASCII Unicode characters.</li>
-    <li>New command <ref id="arrayjoin"><code>arrayjoin</code></ref>
-        added.</li>
-    <li>Minor <ref id="taplint"><code>taplint</code></ref> EPN stage
-        update; now corresponds to PR-EPNTAP-20220705.</li>
-    <li>Modify functions <code>add</code>, <code>subtract</code>,
-        <code>multiply</code>, <code>divide</code> in class
-        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>;
-        these now all take either two array arguments or an array
-        and a scalar in either order.</li>
-    <li>New function <code>dotProduct</code> in class
-        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
-    </ul>
+    <dl>
+    <dt>Enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>New command <ref id="arrayjoin"><code>arrayjoin</code></ref>
+            added.</li>
+        <li>Modify functions <code>add</code>, <code>subtract</code>,
+            <code>multiply</code>, <code>divide</code> in class
+            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>;
+            these now all take either two array arguments or an array
+            and a scalar in either order.</li>
+        <li>New function <code>dotProduct</code> in class
+            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+        <li>Provide <code>value*</code> functions for
+            <ref id="jel-colref">column references</ref>
+            to strangely-named columns.</li>
+        <li>Minor <ref id="taplint"><code>taplint</code></ref> EPN stage
+            update; now corresponds to PR-EPNTAP-20220705.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug Fix</dt>
+    <dd><p>
+        <ul>
+        <li>Fix FITS output so it doesn't fail when attempting to write
+            metadata with non-ASCII Unicode characters.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
