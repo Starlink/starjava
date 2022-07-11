@@ -397,7 +397,7 @@ public class PlaneSurfaceFactory
             SubrangeConfigKey
            .createAxisSubMeta( axname.toLowerCase(),
                                ConfigMeta.capitalise( axname ) );
-        return new SubrangeConfigKey( meta );
+        return new SubrangeConfigKey( meta, new Subrange(), -0.1, 1.1 );
     }
 
     /**

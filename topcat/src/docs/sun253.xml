@@ -30931,6 +30931,7 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Extend ranges a bit beyond (0-1) for axis range sliders.</li>
     </ul>
     </p></dd>
 

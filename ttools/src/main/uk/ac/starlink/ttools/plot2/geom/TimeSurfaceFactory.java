@@ -69,7 +69,8 @@ public class TimeSurfaceFactory
     /** Config key for time axis subrange. */
     public static final ConfigKey<Subrange> TSUBRANGE_KEY =
         new SubrangeConfigKey( SubrangeConfigKey
-                              .createAxisSubMeta( "t", "Time" ) );
+                              .createAxisSubMeta( "t", "Time" ),
+                               new Subrange(), -0.1, 1.1 );
 
     /** Config key for Y axis lower bound, before subranging. */
     public static final ConfigKey<Double> YMIN_KEY =
