@@ -115,6 +115,12 @@ public class RangeSliderUtil {
      */
     public static void setSliderRange( JSlider slider, int ilo, int ihi ) {
         BoundedRangeModel model = slider.getModel();
+
+        /* Careful when setting these, they "correct" each other,
+         * which can lead to surprising results.
+         * Set the extent to zero first, which means the setValue won't
+         * do anything surprising, then set the extent as desired. */
+        model.setExtent( 0 );
         model.setValue( ilo );
         model.setExtent( ihi - ilo );
     }
