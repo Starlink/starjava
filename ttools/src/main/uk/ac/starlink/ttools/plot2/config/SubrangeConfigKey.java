@@ -2,12 +2,19 @@ package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.util.Hashtable;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -115,6 +122,7 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
         private final double rmin_;
         private final double rmax_;
         private final JSlider slider_;
+        private final JButton resetButton_;
         private static final int MIN = 0;
         private static final int MAX = 10000;
 
@@ -127,18 +135,42 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
             rmax_ = rmax;
             slider_ = RangeSliderUtil.createRangeSlider( MIN, MAX );
             slider_.addChangeListener( getChangeForwarder() );
+            boolean showLabels = false;
             if ( ! ( rmin == 0 && rmax == 1 ) ) {
-                Hashtable<Integer,JComponent> labels =
-                    new Hashtable<Integer,JComponent>();
-                labels.put( unscale( 0.0 ), new JLabel( "0" ) );
-                labels.put( unscale( 1.0 ), new JLabel( "1" ) );
-                slider_.setLabelTable( labels );
-                slider_.setPaintLabels( true );
+                if ( showLabels ) {
+                    Hashtable<Integer,JComponent> labels = new Hashtable<>();
+                    labels.put( unscale( 0.0 ), new JLabel( "0" ) );
+                    labels.put( unscale( 1.0 ), new JLabel( "1" ) );
+                    slider_.setLabelTable( labels );
+                    slider_.setPaintLabels( true );
+                }
+                Action resetAct = new AbstractAction( null, ResourceIcon.ZERO) {
+                    public void actionPerformed( ActionEvent evt ) {
+                        setSpecifiedValue( new Subrange() );
+                    }
+                };
+                resetButton_ = new JButton( resetAct );
+                resetButton_.setMargin( new Insets( 0, 0, 0, 0 ) );
+            }
+            else {
+                resetButton_ = null;
             }
         }
 
         protected JComponent createComponent() {
-            return slider_;
+            JComponent line = Box.createHorizontalBox();
+            line.add( slider_ );
+            if ( resetButton_ != null ) {
+                line.add( resetButton_ );
+            }
+            line.addPropertyChangeListener( "enabled", evt -> {
+                boolean isEnabled = line.isEnabled();
+                slider_.setEnabled( isEnabled );
+                if ( resetButton_ != null ) {
+                    resetButton_.setEnabled( isEnabled );
+                }
+            } );
+            return line;
         }
 
         public Subrange getSpecifiedValue() {
