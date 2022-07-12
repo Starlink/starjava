@@ -14061,6 +14061,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix PDS4 reader to accept columns of type
+        <code>ASCII_Numeric_Base16</code>
+        without the read operation failing.</li>
     </ul>
     </p></dd>
 

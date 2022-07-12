@@ -30932,6 +30932,9 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Extend ranges a bit beyond (0-1) for axis range sliders.</li>
+    <li>Fix PDS4 reader to accept columns of type
+        <code>ASCII_Numeric_Base16</code>
+        without the read operation failing.</li>
     </ul>
     </p></dd>
 
