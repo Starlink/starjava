@@ -79,7 +79,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="Table"/>
   <property name="name" value="table"/>
-  <property name="version" value="4.1-2"/>
+  <property name="version" value="4.1-2+"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.table"/>
