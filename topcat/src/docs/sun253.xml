@@ -30923,6 +30923,9 @@ introduced since the last version:
         which have long been somewhat broken, now work properly.</li>
     <li>Remove annoying lines from plot window before
         plot is displayed.</li>
+    <li>Semi-standard <code>nrows</code> column from
+        <code>tap_schema.tables</code> table is now recorded and
+        displayed as TAP table row count if present.</li>
     </ul>
     </p></dd>
 

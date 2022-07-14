@@ -511,6 +511,7 @@ public class TapSchemaInterrogator {
             cDescription = "description",
             cUtype = "utype",
         };
+        final String cNrows = "nrows";
 
         /* TAP 1.1 defines "table_index" as an optional display ordering
          * column, so maybe should use that.  But I'm inclined to stick
@@ -529,6 +530,10 @@ public class TapSchemaInterrogator {
                 tmeta.description_ = colset.getCellString( cDescription, row );
                 tmeta.utype_ = colset.getCellString( cUtype, row );
                 tmeta.extras_ = colset.getExtras( row );
+                Object nrows = tmeta.extras_.remove( cNrows );
+                if ( nrows instanceof String || nrows instanceof Number ) {
+                    tmeta.nrows_ = nrows.toString();
+                }
                 for ( Iterator<String> it = tmeta.extras_.keySet().iterator();
                       it.hasNext(); ) {
                     if ( cTableIndex.equalsIgnoreCase( it.next() ) ) {
