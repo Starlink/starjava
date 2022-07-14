@@ -110,6 +110,8 @@ public class CoverageTest extends TestCase {
         ErrorSkyMatchEngine errEngine =
             new ErrorSkyMatchEngine( new CdsHealpixSkyPixellator(),
                                      Math.toRadians( 0.1 ) );
+        MatchEngine combEngine =
+            new CombinedMatchEngine( new MatchEngine[] { fixEngine } );
 
         // A HEALPix level 6 pixel is about 1 degree.
         for ( double rdeg = 1./3600.; rdeg < 10; rdeg *= 2 ) {
@@ -122,6 +124,13 @@ public class CoverageTest extends TestCase {
                 return cov;
             };
             exerciseSkyCoverage( fixFunc, r, rnd );
+
+            Function<double[],Coverage> combFunc = radec -> {
+                Coverage cov = combEngine.createCoverageFactory().get();
+                cov.extend( boxXy( radec[ 0 ], radec[ 1 ] ) );
+                return cov;
+            };
+            exerciseSkyCoverage( combFunc, r, rnd );
 
             errEngine.setScale( r );
             for ( double vf = 0.25; vf < 4.001; vf *= 2 ) {
