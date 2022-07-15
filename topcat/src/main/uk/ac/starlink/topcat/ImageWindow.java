@@ -52,6 +52,7 @@ public class ImageWindow extends AuxWindow {
      */
     public ImageWindow( Component parent ) {
         super( "Image Viewer", parent );
+        setAutoRequestFocus( false );
         JComponent main = getMainArea();
         main.setLayout( new BorderLayout() );
         main.setBackground( Color.WHITE );
