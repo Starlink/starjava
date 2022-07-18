@@ -17,7 +17,7 @@ import uk.ac.starlink.vo.UnitStatus;
  * corresponding to
  * <a href="https://www.ivoa.net/documents/UCD1+/20210616/">UCD1+ 1.4</a>,
  * and the VOUnit parsing functions are based on Norman Gray's library
- * <a href="http://www.astro.gla.ac.uk/users/norman/ivoa/unity/">Unity</a>
+ * <a href="https://purl.org/nxg/dist/unity">Unity</a>
  * corresponding to
  * <a href="https://www.ivoa.net/documents/VOUnits/20140523/">VOUnits 1.0</a>.
  *
