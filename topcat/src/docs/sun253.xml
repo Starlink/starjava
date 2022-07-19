@@ -14143,8 +14143,6 @@ Note you can move both sliders at once by grabbing a position between the two.
 </p>
 
 <p>The <label>Clear</label> button resets all the fields.
-The <label>Submit</label> button updates the plot with the current values
-in this tab, as does making any changes to it.
 </p>
 
 <figure>
@@ -14439,7 +14437,7 @@ It has the following option:
 <p>The <label>FOV</label> (Field Of View) tab allows you to
 enter a sky position or object name and a radius and positions
 the view at that region.
-Filling in the fields and hitting <label>Submit</label>
+Filling in the position and radius fields and hitting return
 will reposition the sky view, but not vice versa;
 normal pan/zoom operations will not affect the content of this panel.
 <dl>
@@ -14771,8 +14769,6 @@ Note you can move both sliders at once by grabbing a position between the two.
 </p>
 
 <p>The <label>Clear</label> button resets all the fields.
-The <label>Submit</label> button updates the plot with the current values
-in this tab, as does making any changes to it.
 </p>
 
 <figure>
@@ -14784,22 +14780,12 @@ in this tab, as does making any changes to it.
 the data is viewed in the plot window, though it does not control
 the content of the cube.
 <dl>
-<dt>Rotation about Z axis</dt>
-<dd><p>Explicitly sets the rotation angle about the Z axis,
-    regardless of its current value, which may have been set by
-    mouse actions.
-    </p></dd>
-<dt>Rotation from vertical</dt>
-<dd><p>Explicitly sets the rotation angle from vertical,
-    regardless of its current value, which may have been set by
-    mouse actions.
-    </p></dd>
 <dt>Zoom factor</dt>
 <dd><p>Sets the magnification of the cube wireframe itself, without
     affecting the data volume it contains.  This cannot be done with
     the mouse.
     </p></dd>
-<dt>X/Y/Z offset of centre</dt>
+<dt>X/Y offset of centre</dt>
 <dd><p>Controls where on the screen the cube wireframe is centred.
     This cannot be done with the mouse.
     </p></dd>
@@ -15065,8 +15051,6 @@ The fields are:
 </p>
 
 <p>The <label>Clear</label> button resets all the fields.
-The <label>Submit</label> button updates the plot with the current values
-in this tab, as does making any changes to it.
 </p>
 
 <figure>
@@ -15078,16 +15062,6 @@ in this tab, as does making any changes to it.
 the data is viewed in the plot window, though it does not control
 the content of the cube.
 <dl>
-<dt>Rotation about Z axis</dt>
-<dd><p>Explicitly sets the rotation angle about the Z axis,
-    regardless of its current value, which may have been set by
-    mouse actions.
-    </p></dd>
-<dt>Rotation from vertical</dt>
-<dd><p>Explicitly sets the rotation angle from vertical,
-    regardless of its current value, which may have been set by
-    mouse actions.
-    </p></dd>
 <dt>Zoom factor</dt>
 <dd><p>Sets the magnification of the cube wireframe itself, without
     affecting the data volume it contains.  This cannot be done with
@@ -15473,8 +15447,6 @@ For the time axis, the range may be entered as an ISO-8601 date/time value.
 </p>
 
 <p>The <label>Clear</label> button resets all the fields.
-The <label>Submit</label> button updates the plot with the current values
-in this tab, as does making any changes to it.
 </p>
 
 <figure>
@@ -30941,6 +30913,14 @@ introduced since the last version:
     <li>Prevent image display window from grabbing focus during e.g.
         <ref id="ViewHips2fitsActivationType">Display HiPS Cutout</ref>
         activation.</li>
+    <li>Improve behaviour of some Axis Control tabs;
+        in particular
+        the <label>Range</label> and <label>View</label> tabs of the
+        <ref id="CubeAxisControl">Cube</ref> and
+        <ref id="SphereAxisControl">Sphere</ref> plot windows,
+        and the <label>FOV</label> tab of the
+        <ref id="SkyAxisControl">Sky</ref> plot window,
+        which have long been somewhat broken, now work properly.</li>
     </ul>
     </p></dd>
 
