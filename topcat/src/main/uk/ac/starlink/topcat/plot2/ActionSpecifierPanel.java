@@ -25,7 +25,6 @@ public class ActionSpecifierPanel extends SpecifierPanel<ConfigMap> {
 
     private final Specifier<ConfigMap> baseSpecifier_;
     private final Action clearAction_;
-    private final Action submitAction_;
 
     /**
      * Constructor.
@@ -35,7 +34,6 @@ public class ActionSpecifierPanel extends SpecifierPanel<ConfigMap> {
     public ActionSpecifierPanel( Specifier<ConfigMap> baseSpecifier ) {
         super( true );
         baseSpecifier_ = baseSpecifier;
-        final ActionListener forwarder = getActionForwarder();
 
         /* Action to clear the map to default values. */
         final ConfigMap clearMap = new ConfigMap();
@@ -48,34 +46,14 @@ public class ActionSpecifierPanel extends SpecifierPanel<ConfigMap> {
                 baseSpecifier_.setSpecifiedValue( clearMap );
             }
         };
-
-        /* Action to configure the plot with the currently filled in values. */
-        submitAction_ = new BasicAction( "Submit", null,
-                                         "Use the values in this panel "
-                                       + "to configure the plot" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                doSubmit( evt );
-                forwarder.actionPerformed( evt );
-            }
-        };
-        baseSpecifier_.addActionListener( submitAction_ );
-    }
-
-    /**
-     * Invoked when the submit action is performed.
-     * Default implementation does nothing, but subclasses may override it.
-     *
-     * @param  evt  submission event
-     */
-    protected void doSubmit( ActionEvent evt ) {
+        baseSpecifier_.addActionListener( getActionForwarder() );
     }
 
     public JComponent createComponent() {
         JComponent buttLine = Box.createHorizontalBox();
         buttLine.add( Box.createHorizontalGlue() );
         buttLine.add( new JButton( clearAction_ ) );
-        buttLine.add( Box.createHorizontalStrut( 10 ) );
-        buttLine.add( new JButton( submitAction_ ) );
+        buttLine.add( Box.createHorizontalGlue() );
         JComponent panel = Box.createVerticalBox();
         panel.add( baseSpecifier_.getComponent() );
         panel.add( Box.createVerticalStrut( 10 ) );

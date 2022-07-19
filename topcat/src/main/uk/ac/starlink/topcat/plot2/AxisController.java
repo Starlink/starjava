@@ -239,11 +239,8 @@ public abstract class AxisController<P,A> implements Configger {
     protected void addAspectConfigTab( String label,
                                        Specifier<ConfigMap> aspectSpecifier ) {
         ActionSpecifierPanel aspectPanel =
-                new ActionSpecifierPanel( aspectSpecifier ) {
-            protected void doSubmit( ActionEvent evt ) {
-                setAspect( null );
-            }
-        };
+                new ActionSpecifierPanel( aspectSpecifier );
+        aspectPanel.addActionListener( evt -> setAspect( null ) );
         aspectPanels_.add( aspectPanel );
         mainControl_.addSpecifierTab( label, aspectPanel );
     }
