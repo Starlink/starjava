@@ -1775,6 +1775,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         Map<LayerId,ReportMap> reportsMap = new HashMap<LayerId,ReportMap>();
         int nz = plotPanel_.getZoneCount();
         for ( int iz = 0; iz < nz; iz++ ) {
+            Surface surface = plotPanel_.getSurface( iz );
             PlotLayer[] layers = plotPanel_.getPlotLayers( iz );
             ReportMap[] reports = plotPanel_.getReports( iz );
             Map<LayerId,ReportMap> rmap = new HashMap<LayerId,ReportMap>();
@@ -1797,7 +1798,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     }
                 }
             }
-            getAxisController( iz ).submitReports( rmap );
+            AxisController<P,A> axisController = getAxisController( iz );
+            axisController.setLatestSurface( surface );
+            axisController.submitReports( rmap );
             reportsMap.putAll( rmap );
         }
         for ( LayerControl control : stackModel_.getLayerControls( false ) ) {

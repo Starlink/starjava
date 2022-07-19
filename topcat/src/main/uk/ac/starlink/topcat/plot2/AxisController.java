@@ -20,6 +20,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -317,6 +318,22 @@ public abstract class AxisController<P,A> implements Configger {
      *                   by the most recent plot
      */
     public void submitReports( Map<LayerId,ReportMap> reports ) {
+    }
+
+    /**
+     * Accepts information about the latest plotting surface to be plotted
+     * by the panel associated with this controller.
+     * This method is intended for passing information back to this controller,
+     * which does not otherwise have access to the asynchronously constructed
+     * Surface object it has configured,
+     * it is not an instruction to adjust the current state.
+     *
+     * <p>The default implementation does nothing, but subclasses may
+     * override it to acquire information about plot state.
+     *
+     * @param  surface  latest plotting surface.
+     */
+    public void setLatestSurface( Surface surface ) {
     }
 
     /**
