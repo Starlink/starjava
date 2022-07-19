@@ -36,6 +36,7 @@ public class SkyPositionEntry extends JPanel {
     private final ValueFieldPanel qPanel_;
     private final List<DoubleValueField> fieldList_;
     private final JComponent[] enablables_;
+    private final List<ActionListener> actListeners_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -51,6 +52,7 @@ public class SkyPositionEntry extends JPanel {
         super( new BorderLayout() );
         Box box = Box.createVerticalBox();
         add( box, BorderLayout.CENTER );
+        actListeners_ = new ArrayList<ActionListener>();
         List<JComponent> enList = new ArrayList<JComponent>();
 
         /* Add name resolution field. */
@@ -157,6 +159,7 @@ public class SkyPositionEntry extends JPanel {
         for ( DoubleValueField field : fieldList_ ) {
             field.getEntryField().addActionListener( listener );
         }
+        actListeners_.add( listener );
     }
 
     /**
@@ -168,6 +171,7 @@ public class SkyPositionEntry extends JPanel {
         for ( DoubleValueField field : fieldList_ ) {
             field.getEntryField().removeActionListener( listener );
         }
+        actListeners_.remove( listener );
     }
 
     /**
@@ -200,6 +204,10 @@ public class SkyPositionEntry extends JPanel {
     private void setResolvedObject( ResolverInfo info ) {
         setDegrees( raField_, info.getRaDegrees() );
         setDegrees( decField_, info.getDecDegrees() );
+        ActionEvent evt = new ActionEvent( this, 1, "Resolved" );
+        for ( ActionListener l : actListeners_ ) {
+            l.actionPerformed( evt );
+        }
     }
 
     /**
