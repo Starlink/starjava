@@ -4,12 +4,14 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.geom.CubeAspect;
+import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurfaceFactory;
 
 /**
@@ -26,7 +28,7 @@ public class CubeAxisController
        extends CartesianAxisController<CubeSurfaceFactory.Profile,CubeAspect> {
 
     private final boolean isIso_;
-    private CubeAspect oldAspect_;
+    private CubeSurface oldSurface_;
 
     /**
      * Constructor.
@@ -80,25 +82,11 @@ public class CubeAxisController
                         CubeSurfaceFactory.ZSUBRANGE_KEY,
                     };
         final ConfigKey<?>[] viewKeys = new ConfigKey<?>[] {
-            CubeSurfaceFactory.PHI_KEY,
-            CubeSurfaceFactory.THETA_KEY,
-            CubeSurfaceFactory.PSI_KEY,
             CubeSurfaceFactory.ZOOM_KEY,
             CubeSurfaceFactory.XOFF_KEY,
             CubeSurfaceFactory.YOFF_KEY,
         };
         ConfigSpecifier rangeSpecifier = new ConfigSpecifier( rangeKeys ) {
-            @Override
-            public ConfigMap getSpecifiedValue() {
-                ConfigMap c = super.getSpecifiedValue();
-                CubeAspect asp = oldAspect_;
-                if ( asp != null ) {
-                    c.put( CubeSurfaceFactory.ZOOM_KEY, asp.getZoom() );
-                    c.put( CubeSurfaceFactory.XOFF_KEY, asp.getOffsetX() );
-                    c.put( CubeSurfaceFactory.YOFF_KEY, asp.getOffsetY() );
-                }
-                return c;
-            }
             @Override
             protected void checkConfig( ConfigMap config )
                     throws ConfigException {
@@ -116,26 +104,20 @@ public class CubeAxisController
             }
         };
         addAspectConfigTab( "Range", rangeSpecifier );
-        ConfigSpecifier viewSpecifier = new ConfigSpecifier( viewKeys );
-        ActionSpecifierPanel viewPanel =
-                new ActionSpecifierPanel( viewSpecifier ) {
-            protected void doSubmit( ActionEvent evt ) {
-                if ( oldAspect_ != null ) {
-                    ConfigMap config = super.getSpecifiedValue();
-                    double[][] limits = oldAspect_.getLimits();
-                    double[] rot = CubeSurfaceFactory.getRotation( config );
-                    double zoom = config.get( CubeSurfaceFactory.ZOOM_KEY );
-                    double xoff = config.get( CubeSurfaceFactory.XOFF_KEY );
-                    double yoff = config.get( CubeSurfaceFactory.YOFF_KEY );
-                    CubeAspect aspect =
-                        new CubeAspect( limits[ 0 ], limits[ 1 ], limits[ 2 ],
-                                        rot, zoom, xoff, yoff );
-                    setAspect( aspect );
+        ConfigSpecifier viewSpecifier = new ConfigSpecifier( viewKeys ) {
+            @Override
+            public ConfigMap getSpecifiedValue() {
+                ConfigMap config = new ConfigMap();
+                CubeSurface surf = oldSurface_;
+                if ( surf != null ) {
+                    config.putAll( surfFact.getAspectConfig( surf ) );
+                    config.keySet().removeAll( Arrays.asList( rangeKeys ) );
                 }
+                config.putAll( super.getSpecifiedValue() );
+                return config;
             }
         };
-        viewPanel.addActionListener( getActionForwarder() );
-        mainControl.addControlTab( "View", viewPanel.getComponent(), true );
+        addAspectConfigTab( "View", viewSpecifier );
 
         /* Grid config tab. */
         List<ConfigKey<?>> gridKeyList = new ArrayList<ConfigKey<?>>();
@@ -170,13 +152,11 @@ public class CubeAxisController
     }
 
     @Override
-    public void setAspect( CubeAspect aspect ) {
-
-        /* Save last aspect for later use. */
-        if ( aspect != null ) {
-            oldAspect_ = aspect;
-        }
-        super.setAspect( aspect );
+    public void setLatestSurface( Surface surface ) {
+        super.setLatestSurface( surface );
+        oldSurface_ = surface instanceof CubeSurface
+                    ? (CubeSurface) surface
+                    : null;
     }
 
     @Override
