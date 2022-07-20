@@ -703,13 +703,13 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             Icon plotIcon = zone.plotIcon_;
             if ( plotIcon != null ) {
                 plotIcon.paintIcon( this, g, insets.left, insets.top );
-            }
-            Rectangle zoneExtBounds = zone.placer_.getBounds();
-            if ( extBox == null ) {
-                extBox = new Rectangle( zoneExtBounds );
-            }
-            else {
-                extBox.add( zoneExtBounds );
+                Rectangle zoneExtBounds = zone.placer_.getBounds();
+                if ( extBox == null ) {
+                    extBox = new Rectangle( zoneExtBounds );
+                }
+                else {
+                    extBox.add( zoneExtBounds );
+                }
             }
         }
 

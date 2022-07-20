@@ -30921,6 +30921,8 @@ introduced since the last version:
         and the <label>FOV</label> tab of the
         <ref id="SkyAxisControl">Sky</ref> plot window,
         which have long been somewhat broken, now work properly.</li>
+    <li>Remove annoying lines from plot window before
+        plot is displayed.</li>
     </ul>
     </p></dd>
 
