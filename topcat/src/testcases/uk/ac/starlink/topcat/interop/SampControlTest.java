@@ -29,7 +29,7 @@ public class SampControlTest extends TestCase {
         Logger.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
         ControlWindow cwin;
         try {
-            cwin = ControlWindow.getInstance();
+            cwin = ControlWindow.getInstance( false );
         }
         catch ( HeadlessException e ) {
             cwin = null;

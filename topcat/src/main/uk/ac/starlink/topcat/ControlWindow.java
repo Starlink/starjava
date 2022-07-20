@@ -738,21 +738,35 @@ public class ControlWindow extends AuxWindow
         setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
         addWindowListener( windowWatcher_ );
 
-        /* Display the window. */
+        /* Prepare to display the window. */
         updateInfo();
         updateControls();
-        pack();
-        setVisible( true );
     }
 
     /**
-     * Returns the sole instance of this window.
+     * Returns the sole instance of this window, made visible on initialisation.
      * 
      * @return  instance of control window
      */
     public static ControlWindow getInstance() {
+        return getInstance( true );
+    }
+
+    /**
+     * Returns the sole instance of this window, optionally made visible
+     * on initialisation.
+     *
+     * @param  initialiseVisible  if this call results in lazy creation of
+     *                            a window instance, set it visible
+     * @return  instance of control window
+     */
+    public static ControlWindow getInstance( boolean initialiseVisible ) {
         if ( instance_ == null ) {
             instance_ = new ControlWindow();
+            if ( initialiseVisible ) {
+                instance_.pack();
+                instance_.setVisible( true );
+            }
         }
         return instance_;
     }
