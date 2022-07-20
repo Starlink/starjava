@@ -61,6 +61,7 @@ public class MarkerTest extends TestCase {
     public void testMarkers() throws InterruptedException {
         try {
             JFrame toplev = new JFrame();
+            toplev.setAutoRequestFocus( false );
             Container panel = toplev.getContentPane();
             panel.setLayout( new FlowLayout() );
             panel.add( new MarkSamples( false ) );

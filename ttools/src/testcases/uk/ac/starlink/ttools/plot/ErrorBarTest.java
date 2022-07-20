@@ -21,6 +21,7 @@ public class ErrorBarTest extends TestCase {
     public void test2dBars() throws InterruptedException {
         try {
             JFrame toplev = new JFrame();
+            toplev.setAutoRequestFocus( false );
             Container p = toplev.getContentPane();
             p.setLayout( new BoxLayout( p, BoxLayout.Y_AXIS ) );
             p.add( new ErrorBarSamples( new int[] { -5, 5, 0, 0, },
