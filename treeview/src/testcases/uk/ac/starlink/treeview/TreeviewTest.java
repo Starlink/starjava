@@ -135,18 +135,6 @@ public class TreeviewTest extends TestCase {
         return (String[]) lines.toArray( new String[ 0 ] );
     }
 
-    public void testGUIMode() throws InterruptedException {
-        if ( args != null ) {
-            return;
-        }
-        if ( isHeadless() ) {
-            System.out.println( "Headless environment - no GUI test" );
-            return;
-        }
-        Driver.main( new String[] { "-demo" } );
-        Thread.currentThread().sleep( 1000 );
-    }
-
     public void testWithArgs() throws IOException {
         if ( args != null ) {
             Driver.main( args );
