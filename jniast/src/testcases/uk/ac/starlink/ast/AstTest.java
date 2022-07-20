@@ -813,6 +813,7 @@ public class AstTest extends TestCase {
 
         double[] basebox = new double[] { 0, 0, 50000, 50000 };
         JFrame toplev = new JFrame();
+        toplev.setAutoRequestFocus( false );
 
         TestPlotHolder pan = new TestPlotHolder();
         pan.setPreferredSize( new Dimension( 400, 400 ) );
@@ -935,7 +936,7 @@ public class AstTest extends TestCase {
         toplev.setVisible( true );
 
         try {
-            Thread.currentThread().sleep( 10000 );
+            Thread.currentThread().sleep( 1000 );
         }
         catch ( InterruptedException e ) {
             // no action
