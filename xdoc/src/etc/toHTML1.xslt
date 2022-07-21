@@ -88,6 +88,7 @@
   </xsl:template>
 
   <xsl:template match="p|px">
+    <xsl:apply-templates mode="label-id" select="@id"/>
     <p><xsl:apply-templates/></p>
   </xsl:template>
 
@@ -95,7 +96,14 @@
     <xsl:apply-templates/>
   </xsl:template>
 
-  <xsl:template match="ul|ol|li|dl|dd|blockquote|code|em|strong|sub|sup">
+  <xsl:template match="li">
+    <xsl:apply-templates mode="label-id" select="@id"/>
+    <xsl:copy>
+      <xsl:apply-templates/>
+    </xsl:copy>
+  </xsl:template>
+
+  <xsl:template match="ul|ol|dl|dd|blockquote|code|em|strong|sub|sup">
     <xsl:copy>
       <xsl:apply-templates/>
     </xsl:copy>
@@ -123,6 +131,7 @@
 
   <xsl:template match="figure">
     <div align="center">
+      <xsl:apply-templates mode="label-id" select="@id"/>
       <xsl:call-template name="outImg">
         <xsl:with-param name="src" select="figureimage/@src"/>
         <xsl:with-param name="alt" select="caption/px[position()=1]"/>
@@ -149,6 +158,7 @@
   <xsl:template match="imports"/>
 
   <xsl:template match="dt">
+    <xsl:apply-templates mode="label-id" select="@id"/>
     <xsl:copy>
       <strong>
         <xsl:apply-templates/>
@@ -157,10 +167,22 @@
   </xsl:template>
 
   <xsl:template match="ref">
+    <xsl:param name="refNode" select="id(@id)"/>
+    <xsl:param name="sectNode"
+               select="($refNode/ancestor-or-self::sect
+                       |$refNode/ancestor-or-self::subsect
+                       |$refNode/ancestor-or-self::subsubsect
+                       |$refNode/ancestor-or-self::subsubsubsect
+                       |$refNode/ancestor-or-self::subsubsubsubsect
+                       |$refNode/ancestor-or-self::subsubsubsubsubsect
+                       |$refNode/ancestor-or-self::docbody
+                       |$refNode/ancestor-or-self::docinfo
+                       |$refNode/ancestor-or-self::abstract
+                       |$refNode/ancestor-or-self::sun)[last()]"/>
     <xsl:element name="a">
       <xsl:attribute name="href">
         <xsl:call-template name="getRef">
-          <xsl:with-param name="node" select="id(@id)"/>
+          <xsl:with-param name="node" select="$refNode"/>
         </xsl:call-template>
       </xsl:attribute>
       <xsl:choose>
@@ -168,9 +190,9 @@
           <xsl:apply-templates/>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:apply-templates mode="sectype" select="id(@id)"/>
+          <xsl:apply-templates mode="sectype" select="$sectNode"/>
           <xsl:text> </xsl:text>
-          <xsl:apply-templates mode="ref" select="id(@id)"/>
+          <xsl:apply-templates mode="ref" select="$sectNode"/>
         </xsl:otherwise>
       </xsl:choose>
     </xsl:element>
@@ -383,6 +405,13 @@
         <xsl:apply-templates/>
       </xsl:element>
     </h5>
+  </xsl:template>
+
+
+  <!-- non-section IDs -->
+
+  <xsl:template mode="label-id" match="@id">
+    <a name="{.}"/>
   </xsl:template>
 
 

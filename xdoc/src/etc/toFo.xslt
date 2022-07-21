@@ -725,9 +725,21 @@
   </xsl:template>
 
   <xsl:template name="secRefText">
-    <xsl:apply-templates mode="sectype" select="id(@id)"/>
+    <xsl:param name="refNode" select="id(@id)"/>
+    <xsl:param name="sectNode"
+               select="($refNode/ancestor-or-self::sect
+                       |$refNode/ancestor-or-self::subsect
+                       |$refNode/ancestor-or-self::subsubsect
+                       |$refNode/ancestor-or-self::subsubsubsect
+                       |$refNode/ancestor-or-self::subsubsubsubsect
+                       |$refNode/ancestor-or-self::subsubsubsubsubsect
+                       |$refNode/ancestor-or-self::docbody
+                       |$refNode/ancestor-or-self::docinfo
+                       |$refNode/ancestor-or-self::abstract
+                       |$refNode/ancestor-or-self::sun)[last()]"/>
+    <xsl:apply-templates mode="sectype" select="$sectNode"/>
     <xsl:text> </xsl:text>
-    <xsl:apply-templates mode="ref" select="id(@id)"/>
+    <xsl:apply-templates mode="ref" select="$sectNode"/>
   </xsl:template>
 
   <xsl:template name="webRefNote">

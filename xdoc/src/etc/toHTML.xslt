@@ -83,9 +83,37 @@
 
   <xsl:template name="getRef">
     <xsl:param name="node" select="."/>
-    <xsl:call-template name="getFile">
-      <xsl:with-param name="node" select="$node"/>
-    </xsl:call-template>
+    <xsl:param name="sect"
+               select="($node/ancestor-or-self::sect
+                       |$node/ancestor-or-self::subsect
+                       |$node/ancestor-or-self::subsubsect
+                       |$node/ancestor-or-self::subsubsubsect
+                       |$node/ancestor-or-self::subsubsubsubsect
+                       |$node/ancestor-or-self::subsubsubsubsubsect
+                       |$node/ancestor-or-self::docbody
+                       |$node/ancestor-or-self::docinfo
+                       |$node/ancestor-or-self::abstract
+                       |$node/ancestor-or-self::sun)[last()]"/>
+    <xsl:param name="sectId">
+      <xsl:call-template name="getId">
+        <xsl:with-param name="node" select="$sect"/>
+      </xsl:call-template>
+    </xsl:param>
+    <xsl:param name="nodeId">
+      <xsl:call-template name="getId">
+        <xsl:with-param name="node" select="$node"/>
+      </xsl:call-template>
+    </xsl:param>
+    <xsl:param name="file">
+      <xsl:call-template name="getFile">
+        <xsl:with-param name="node" select="$sect"/>
+      </xsl:call-template>
+    </xsl:param>
+    <xsl:value-of select="$file"/>
+    <xsl:if test="$sectId != $nodeId">
+      <xsl:text>#</xsl:text>
+      <xsl:value-of select="$nodeId"/>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template name="getFile">

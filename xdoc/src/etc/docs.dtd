@@ -66,6 +66,10 @@
   <!ELEMENT history ( version* )>
   <!ELEMENT version ( px+ )>
 
+  <!ATTLIST p id ID #IMPLIED>
+  <!ATTLIST dt id ID #IMPLIED>
+  <!ATTLIST li id ID #IMPLIED>
+
   <!ELEMENT blockcode ( #PCDATA | imports | hidden )*>
   <!ATTLIST blockcode group NMTOKEN #IMPLIED>
 
@@ -86,6 +90,7 @@
    !   one is required for our purposes.  So use img instead.
    !-->
   <!ELEMENT figure ( caption?, figureimage )>
+  <!ATTLIST figure id ID #IMPLIED>
   <!ELEMENT caption ( px+ )>
   <!ELEMENT figureimage EMPTY>
   <!ATTLIST figureimage src CDATA #REQUIRED>
