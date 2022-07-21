@@ -40,6 +40,7 @@ import uk.ac.starlink.datanode.factory.DataNodeFactory;
 import uk.ac.starlink.hds.NDFNdxHandler;
 import uk.ac.starlink.oldfits.FitsNdxHandler;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.URLUtils;
 
 public class Driver {
@@ -63,7 +64,7 @@ public class Driver {
         guessProperties();
 
         /* Set logging level to warning. */
-        Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
 
         /* Get the name we are running under. */
         String cmdName = 

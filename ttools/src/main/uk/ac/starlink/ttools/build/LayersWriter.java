@@ -7,13 +7,13 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.plot2.task.LayerType;
 import uk.ac.starlink.ttools.plot2.task.LayerTypeParameter;
 import uk.ac.starlink.ttools.plot2.task.TypedPlot2Task;
 import uk.ac.starlink.util.LoadException;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.ObjectFactory;
 
 /**
@@ -68,8 +68,8 @@ public class LayersWriter {
      * Without args: writes descriptions for all to current directory.
      */
     public static void main( String[] args ) throws LoadException, IOException {
-        Logger.getLogger( "uk.ac.starlink.ttools.plot2" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.plot2" )
+                .setLevel( Level.WARNING );
         ObjectFactory<Task> taskFact = Stilts.getTaskFactory();
         if ( args.length == 0 ) {
             File dir = new File( "." );

@@ -13,6 +13,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.util.LogUtils;
 
 /**
  * Provides some utility functions used by classes which invoke tasks.
@@ -31,7 +32,7 @@ public class InvokeUtils {
     public static void configureLogging( int verbosity, boolean debug ) {
 
         /* Try to acquire the root logger. */
-        Logger rootLogger = Logger.getLogger( "" );
+        Logger rootLogger = LogUtils.getLogger( "" );
 
         /* Work out the logging level to which the requested verbosity
          * corresponds. */
@@ -54,8 +55,8 @@ public class InvokeUtils {
         rootLogger.setLevel( verbLevel );
 
         /* Filter out an annoying message that Axis issues. */
-        Logger.getLogger( "org.apache.axis.utils.JavaUtils" )
-              .setLevel( Level.SEVERE );
+        LogUtils.getLogger( "org.apache.axis.utils.JavaUtils" )
+                .setLevel( Level.SEVERE );
     }
 
     /**

@@ -40,6 +40,7 @@ import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.PropertyAuthenticator;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
@@ -209,8 +210,8 @@ public class Driver {
         /* Fine tune the logging - we don't need HDS or AST here, so 
          * stop them complaining when they can't be loaded. */
         try {
-            Logger.getLogger( "uk.ac.starlink.hds" ).setLevel( Level.OFF );
-            Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
+            LogUtils.getLogger( "uk.ac.starlink.hds" ).setLevel( Level.OFF );
+            LogUtils.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
         }
         catch ( SecurityException e ) {
             // If running in a sandbox, this may be blocked - never mind.
@@ -251,8 +252,7 @@ public class Driver {
             }
             else if ( arg.equals( "-version" ) ) {
                 it.remove();
-                Logger.getLogger( "uk.ac.starlink.topcat" )
-                      .setLevel( Level.WARNING );
+                logger.setLevel( Level.WARNING );
                 String[] about = TopcatUtils.getAbout();
                 System.out.println();
                 for ( int i = 0; i < about.length; i++ ) {
@@ -349,7 +349,7 @@ public class Driver {
 
         /* Configure logging. */
         InvokeUtils.configureLogging( verbosity, debug );
-        Logger rootLogger = Logger.getLogger( "" );
+        Logger rootLogger = LogUtils.getLogger( "" );
         rootLogger.setLevel( Level.CONFIG );
         rootLogger.addHandler( LogHandler.getInstance() );
 

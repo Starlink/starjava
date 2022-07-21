@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.LogUtils;
 
 /**
  * Class containing <tt>main</tt> method for copying tables.
@@ -136,7 +136,7 @@ public class TableCopy {
 
         /* Adjust logging level if necessary. */
         if ( verbose ) {
-            Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.INFO );
+            LogUtils.getLogger( "uk.ac.starlink" ).setLevel( Level.INFO );
         }
 
         /* Check we have input and output table locations. */

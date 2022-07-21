@@ -9,12 +9,12 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.task.LineInvoker;
 import uk.ac.starlink.util.LoadException;
+import uk.ac.starlink.util.LogUtils;
 
 /**
  * Write usage paragraphs specific to the STILTS tasks.
@@ -235,7 +235,7 @@ public class UsageWriter {
      * surrounding XML boilerplate.
      */
     public static void main( String[] args ) throws IOException, LoadException {
-        Logger.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
         if ( args.length == 0 ) {
             String[] taskNames = Stilts.getTaskFactory().getNickNames();
             File dir = new File( "." );

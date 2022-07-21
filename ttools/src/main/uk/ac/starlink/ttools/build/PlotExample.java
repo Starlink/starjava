@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.LineWord;
 import uk.ac.starlink.task.Task;
@@ -19,6 +18,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.task.LineTableEnvironment;
 import uk.ac.starlink.util.LoadException;
+import uk.ac.starlink.util.LogUtils;
 
 /**
  * Programmatically generates example text and images for STILTS plotting tasks.
@@ -414,9 +414,9 @@ public class PlotExample {
      * Writes example files ready for incorporation into documentation.
      */
     public static void main( String[] args ) throws Exception {
-        Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.ttools.plot" )
-              .setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.plot" )
+                .setLevel( Level.SEVERE );
         String[] plot2dFiles =
             writeExamples( "plot2d", createPlot2dExamples() );
         String[] plot3dFiles =

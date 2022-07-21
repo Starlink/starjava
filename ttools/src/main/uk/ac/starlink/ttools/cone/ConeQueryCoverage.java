@@ -5,7 +5,9 @@ import cds.moc.HealpixImpl;
 import cds.moc.HealpixMoc;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.util.logging.Level;
 import uk.ac.starlink.ttools.mode.MocMode;
+import uk.ac.starlink.util.LogUtils;
 
 /**
  * Coverage implementation giving the area defined by a sequence of
@@ -116,8 +118,7 @@ public class ConeQueryCoverage extends MocCoverage {
     }
 
     public static void main( String[] args ) throws IOException {
-        java.util.logging.Logger.getLogger( "uk.ac.starlink" )
-            .setLevel( java.util.logging.Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
         double resDeg = 1.0;
         String tname = args[ 0 ];
         String raExpr = args[ 1 ];
