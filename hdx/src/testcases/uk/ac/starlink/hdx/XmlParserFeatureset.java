@@ -56,16 +56,16 @@ class XmlParserFeatureset {
                 Class xvClass = Class.forName("org.apache.xalan.Version");
                 Object xv = xvClass.newInstance();
                 java.lang.reflect.Method majorM
-                        = xvClass.getMethod("getMajorVersionNum", null);
+                        = xvClass.getMethod("getMajorVersionNum", new Class[0]);
                 java.lang.reflect.Method releaseM
-                        = xvClass.getMethod("getReleaseVersionNum", null);
-                Integer majorV = (Integer)majorM.invoke(xv, null);
-                Integer releaseV = (Integer)releaseM.invoke(xv, null);
+                        = xvClass.getMethod("getReleaseVersionNum", new Class[0]);
+                Integer majorV = (Integer)majorM.invoke(xv, new Object[0]);
+                Integer releaseV = (Integer)releaseM.invoke(xv, new Object[0]);
                 if (majorV.intValue() <= 2
                     && releaseV.intValue() < 5) {
                     java.lang.reflect.Method getVersionM
-                            = xvClass.getMethod("getVersion", null);
-                    String versionS = (String)getVersionM.invoke(xv, null);
+                            = xvClass.getMethod("getVersion", new Class[0]);
+                    String versionS = (String)getVersionM.invoke(xv, new Object[0]);
             
                     System.err.println("XmlParserFeatureset: "
                                        + "Xalan version is " + versionS
