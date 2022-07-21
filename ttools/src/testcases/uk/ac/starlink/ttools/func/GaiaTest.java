@@ -6,7 +6,6 @@ import gaia.cu9.tools.parallax.util.CdfIntegration;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
 import uk.ac.starlink.dpac.math.Edsd;
 import uk.ac.starlink.table.RowSequence;
@@ -18,6 +17,7 @@ import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.ttools.task.TablePipe;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.URLDataSource;
 
 public class GaiaTest extends TestCase {
@@ -75,7 +75,9 @@ public class GaiaTest extends TestCase {
     private StarTable table_;
 
     public GaiaTest() throws IOException {
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.plot2" )
+                .setLevel( Level.WARNING );
         URL turl = GaiaTest.class.getResource( tname );
         table_ = new StarTableFactory()
                 .makeStarTable( new URLDataSource( turl ) );

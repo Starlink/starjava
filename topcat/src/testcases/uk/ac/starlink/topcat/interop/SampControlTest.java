@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
@@ -18,15 +17,16 @@ import uk.ac.starlink.vo.TapTableLoadDialog;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.LoadWindow;
 import uk.ac.starlink.topcat.join.DalMultiWindow;
+import uk.ac.starlink.util.LogUtils;
 
 public class SampControlTest extends TestCase {
 
     private final ControlWindow controlWindow_;
 
     public SampControlTest() {
-        Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.topcat" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.topcat" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
         ControlWindow cwin;
         try {
             cwin = ControlWindow.getInstance( false );

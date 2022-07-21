@@ -12,10 +12,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import junit.framework.TestCase;
+import uk.ac.starlink.util.LogUtils;
 import uk.me.nxg.unity.Syntax;
 import uk.me.nxg.unity.UnitExpr;
 import uk.me.nxg.unity.UnitParser;
@@ -29,7 +29,7 @@ public class DmTest extends TestCase {
     private static final UCDSyntax UCD_Q = UCDSyntax.BOTH;
 
     public DmTest() {
-        Logger.getLogger( "ari.ucidy" ).setLevel( Level.OFF );
+        LogUtils.getLogger( "ari.ucidy" ).setLevel( Level.OFF );
     }
 
     public void testObsTap() throws UnitParserException {

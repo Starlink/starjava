@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.fits.AbstractFitsTableWriter;
 import uk.ac.starlink.fits.FitsHeader;
 import uk.ac.starlink.fits.FitsTableWriter;
@@ -26,6 +25,7 @@ import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.ttools.convert.SkyUnits;
 import uk.ac.starlink.ttools.filter.ArgException;
 import uk.ac.starlink.ttools.filter.AssertException;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.votable.FitsPlusTableWriter;
 
 public class TablePipeTest extends TableTestCase {
@@ -42,14 +42,14 @@ public class TablePipeTest extends TableTestCase {
             col( "d", new String[] { "Mark", "Beauchamp", "Taylor", null, } ),
         } );
 
-        Logger.getLogger( "uk.ac.starlink.ttools.filter" )
-              .setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.table.storage" )
-              .setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.fits" )
-              .setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.util" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.filter" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table.storage" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.util" )
+                .setLevel( Level.WARNING );
     }
 
     private StarTable apply( String cmd ) throws Exception {

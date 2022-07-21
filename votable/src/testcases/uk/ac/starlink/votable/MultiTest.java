@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.ArrayColumn;
@@ -18,12 +17,13 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ByteArrayDataSource;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class MultiTest extends TestCase {
 
     public MultiTest() {
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void testRW() throws IOException {

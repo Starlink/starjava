@@ -3,12 +3,12 @@ package uk.ac.starlink.ttools.task;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.QuickTable;
 import uk.ac.starlink.ttools.TableTestCase;
+import uk.ac.starlink.util.LogUtils;
 
 public class TableCatTest extends TableTestCase {
 
@@ -24,9 +24,10 @@ public class TableCatTest extends TableTestCase {
 
     public TableCatTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.table.storage" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.votable" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table.storage" )
+                .setLevel( Level.WARNING );
     }
 
     public void test2() throws Exception {

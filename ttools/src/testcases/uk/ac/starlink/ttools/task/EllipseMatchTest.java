@@ -6,7 +6,8 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import uk.ac.starlink.pal.AngleDR;
+import uk.ac.starlink.pal.Pal;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RandomStarTable;
 import uk.ac.starlink.table.RowSequence;
@@ -14,8 +15,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
-import uk.ac.starlink.pal.AngleDR;
-import uk.ac.starlink.pal.Pal;
+import uk.ac.starlink.util.LogUtils;
 
 public class EllipseMatchTest extends TableTestCase {
 
@@ -25,8 +25,8 @@ public class EllipseMatchTest extends TableTestCase {
     private Random random_ = new Random( 230327L );
 
     public EllipseMatchTest() {
-        Logger.getLogger( "uk.ac.starlink.ttools.join" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.join" )
+                .setLevel( Level.WARNING );
     }
 
     public void testRotation() {

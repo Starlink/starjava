@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.bristol.star.cdf.EpochFormatter;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -17,14 +16,15 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
 
 public class CdfTest extends TestCase {
 
     static {
-        Logger.getLogger( CdfStarTable.class.getName() )
-              .setLevel( Level.SEVERE );
+        LogUtils.getLogger( CdfStarTable.class.getName() )
+                .setLevel( Level.SEVERE );
     }
 
     public void testExample2() throws IOException {

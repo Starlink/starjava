@@ -5,7 +5,6 @@ import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import gnu.jel.CompilationException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ConstantColumn;
@@ -16,12 +15,13 @@ import uk.ac.starlink.table.formats.CsvStarTable;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.QuickTable;
 import uk.ac.starlink.util.ByteArrayDataSource;
+import uk.ac.starlink.util.LogUtils;
 
 public class JELTest extends TableTestCase {
 
     public JELTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     public void testJELTable() throws Exception {

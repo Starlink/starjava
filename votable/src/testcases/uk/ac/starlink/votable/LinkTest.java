@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.net.URL;
 import junit.framework.TestCase;
 import org.w3c.dom.NodeList;
@@ -15,12 +14,13 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.LogUtils;
 
 public class LinkTest extends TestCase {
 
     public LinkTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     public void testLink() throws Exception {

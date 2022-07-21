@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
@@ -17,6 +16,7 @@ import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.ttools.task.TapQuerier;
 import uk.ac.starlink.util.IntList;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.votable.VOTableWriter;
 
 public class SkyTest extends TableTestCase {
@@ -25,7 +25,7 @@ public class SkyTest extends TableTestCase {
     final URL polyLoc_ = getClass().getResource( "polygons.vot" );
 
     public SkyTest() {
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     public void testMid() {

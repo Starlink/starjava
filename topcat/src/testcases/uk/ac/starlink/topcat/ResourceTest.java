@@ -2,16 +2,16 @@ package uk.ac.starlink.topcat;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.logging.Logger;
 import java.util.logging.Level;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.LogUtils;
 
 public class ResourceTest extends TestCase {
 
     static {
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     public ResourceTest( String name ) {

@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
@@ -18,6 +17,7 @@ import uk.ac.starlink.ttools.QuickTable;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.ttools.func.CoordsRadians;
+import uk.ac.starlink.util.LogUtils;
 
 public class SkyMatchTest extends TableTestCase {
 
@@ -26,9 +26,12 @@ public class SkyMatchTest extends TableTestCase {
     private final StarTable t2;
     private static final double ARCSEC_PER_DEGREE = 60 * 60;
     private static int NROW = 1000;
-    private static final Logger logger = Logger.getLogger( "uk.ac.starlink" );
     static {
-        logger.setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.util" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.join" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.task" )
+                .setLevel( Level.WARNING );
     }
 
     public SkyMatchTest( String name ) {

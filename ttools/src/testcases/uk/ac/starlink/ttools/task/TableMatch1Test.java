@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -12,6 +11,7 @@ import uk.ac.starlink.table.join.HtmSkyPixellator;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.func.CoordsRadians;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.VOTableBuilder;
 
@@ -26,10 +26,10 @@ public class TableMatch1Test extends TableTestCase {
                  new URLDataSource( getClass()
                                    .getResource( "../messier.xml" ) ),
                  true, StoragePolicy.PREFER_MEMORY );
-        Logger.getLogger( "uk.ac.starlink.ttools" )
-              .setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.table.storage" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table.storage" )
+                .setLevel( Level.WARNING );
     }
 
     public void testMessier1Degree() throws Exception {

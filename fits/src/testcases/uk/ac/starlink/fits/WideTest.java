@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnStarTable;
@@ -18,14 +17,13 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.LogUtils;
 
 public class WideTest extends TestCase {
 
     public WideTest() {
-        Logger.getLogger( "uk.ac.starlink.fits" )
-              .setLevel( Level.SEVERE );
-        Logger.getLogger( "uk.ac.starlink.table" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     // AlphaWideFits is a historical relic - this test could be removed

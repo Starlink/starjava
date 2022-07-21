@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
 import uk.ac.starlink.fits.ColFitsTableBuilder;
 import uk.ac.starlink.fits.ColFitsTableWriter;
@@ -21,6 +20,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.votable.FitsPlusTableBuilder;
 import uk.ac.starlink.votable.FitsPlusTableWriter;
 
@@ -38,7 +38,7 @@ public class FitsPlusTest extends TestCase {
 
     public FitsPlusTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void setUp() {

@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.cone;
 
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.ColumnInfo;
@@ -9,14 +8,15 @@ import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.vo.SiaFormatOption;
 import uk.ac.starlink.vo.SiaVersion;
 
 public class SearcherTest extends TestCase {
 
     public void setUp() {
-        Logger.getLogger( "uk.ac.starlink.ttools.cone" )
-              .setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.cone" )
+                .setLevel( Level.SEVERE );
     }
 
     public void testSsaGuess() {

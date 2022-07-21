@@ -2,14 +2,14 @@ package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.Color;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
+import uk.ac.starlink.util.LogUtils;
 
 public class ColorTest extends TestCase {
 
     public ColorTest() {
-        Logger.getLogger( "uk.ac.starlink.ttools.plot2" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.plot2" )
+                .setLevel( Level.WARNING );
     }
 
     public void testConfigKey() throws ConfigException {

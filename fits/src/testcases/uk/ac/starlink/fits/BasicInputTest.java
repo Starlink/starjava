@@ -14,9 +14,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.util.DataBufferedInputStream;
 import uk.ac.starlink.util.DataBufferedOutputStream;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class BasicInputTest extends TestCase {
@@ -26,7 +26,7 @@ public class BasicInputTest extends TestCase {
     private final int arrsiz = 7;
 
     public BasicInputTest() {
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void testInput() throws IOException {

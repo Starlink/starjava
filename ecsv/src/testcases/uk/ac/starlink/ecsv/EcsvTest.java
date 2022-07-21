@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
@@ -18,6 +17,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.TestTableScheme;
 import uk.ac.starlink.util.ByteArrayDataSource;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
 
@@ -26,7 +26,7 @@ public class EcsvTest extends TestCase {
     private static final StoragePolicy STORAGE = StoragePolicy.PREFER_MEMORY;
 
     public EcsvTest() {
-        Logger.getLogger( "uk.ac.starlink.ecsv" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.ecsv" ).setLevel( Level.SEVERE );
     }
 
     public void testData2() throws IOException {

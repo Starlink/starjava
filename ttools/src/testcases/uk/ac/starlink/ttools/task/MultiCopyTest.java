@@ -3,7 +3,6 @@ package uk.ac.starlink.ttools.task;
 import java.io.File;
 import java.net.URL;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -11,6 +10,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.VOTableBuilder;
 
@@ -20,7 +20,8 @@ public class MultiCopyTest extends TableTestCase {
 
     public MultiCopyTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void testMulti() throws Exception {

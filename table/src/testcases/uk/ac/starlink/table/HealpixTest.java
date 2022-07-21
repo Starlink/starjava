@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
 import uk.ac.starlink.fits.ColFitsTableBuilder;
 import uk.ac.starlink.fits.ColFitsTableWriter;
@@ -16,6 +15,7 @@ import uk.ac.starlink.table.formats.CsvTableBuilder;
 import uk.ac.starlink.table.formats.CsvTableWriter;
 import uk.ac.starlink.util.ByteArrayDataSource;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.votable.FitsPlusTableBuilder;
 import uk.ac.starlink.votable.FitsPlusTableWriter;
 import uk.ac.starlink.votable.VOTableBuilder;
@@ -24,7 +24,7 @@ import uk.ac.starlink.votable.VOTableWriter;
 public class HealpixTest extends TestCase {
 
     public HealpixTest() {
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void testIO() throws IOException {

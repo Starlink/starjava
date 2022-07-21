@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
@@ -19,6 +18,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.URLDataSource;
 
 public class DistanceTest extends TestCase {
@@ -29,7 +29,7 @@ public class DistanceTest extends TestCase {
     private final StarTable cepTable_;
 
     public DistanceTest() throws IOException {
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
         DataSource datsrc =
             new URLDataSource( getClass().getResource( CEPTABLE_NAME ) );
         cepTable_ = new StarTableFactory().makeStarTable( datsrc );

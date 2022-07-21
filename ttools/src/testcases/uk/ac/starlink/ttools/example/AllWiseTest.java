@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.example;
 
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.net.URL;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.ColumnInfo;
@@ -10,13 +9,14 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.URLDataSource;
 
 public class AllWiseTest extends TestCase {
 
     public void testRead() throws IOException {
-        Logger.getLogger( "uk.ac.starlink.table.examples" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table.examples" )
+                .setLevel( Level.WARNING );
         URL url = AllWiseTest.class
                  .getResource( "wise-allwise-cat-part01.tail10.gz" );
         DataSource datsrc = new URLDataSource( url );

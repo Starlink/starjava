@@ -6,7 +6,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
@@ -17,8 +16,9 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ByteArrayDataSource;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.URLDataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
+import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.datalink.ServiceDescriptor;
 import uk.ac.starlink.votable.datalink.ServiceParam;
 
@@ -29,7 +29,7 @@ public class ServiceDescriptorTest extends TestCase {
     public ServiceDescriptorTest() {
         tfact_ = new StarTableFactory();
         tfact_.setStoragePolicy( StoragePolicy.PREFER_MEMORY );
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void testTable() throws IOException, SAXException {

@@ -2,11 +2,11 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
+import uk.ac.starlink.util.LogUtils;
 
 /**
  * This class provides a regression test for ellipse matching.
@@ -63,12 +63,12 @@ public class EllipseRegressionTest extends TableTestCase {
     private final StarTable tngc_;
 
     public EllipseRegressionTest() throws IOException {
-        Logger.getLogger( "uk.ac.starlink.ttools.join" )
-              .setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.table.storage" )
-              .setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.fits" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.join" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table.storage" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" )
+                .setLevel( Level.WARNING );
         tngc_ =
             Tables.randomTable( new StarTableFactory( true )
                                .makeStarTable( EllipseRegressionTest.class

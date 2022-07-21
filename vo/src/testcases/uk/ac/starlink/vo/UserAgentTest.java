@@ -1,13 +1,13 @@
 package uk.ac.starlink.vo;
 
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class UserAgentTest extends TestCase {
 
     public UserAgentTest() {
-        Logger.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
     }
 
     public static void testTokens() {

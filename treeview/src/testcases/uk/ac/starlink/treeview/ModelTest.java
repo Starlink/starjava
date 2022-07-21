@@ -3,7 +3,6 @@ package uk.ac.starlink.treeview;
 import java.awt.HeadlessException;
 import java.io.File;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
@@ -12,12 +11,14 @@ import uk.ac.starlink.datanode.nodes.DataNode;
 import uk.ac.starlink.datanode.nodes.NoSuchDataException;
 import uk.ac.starlink.datanode.tree.DataNodeJTree;
 import uk.ac.starlink.datanode.tree.DataNodeTreeModel;
+import uk.ac.starlink.util.LogUtils;
 
 public class ModelTest extends TestCase {
 
     static {
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.parquet" ).setLevel( Level.WARNING);
     }
 
     public void setUp() {

@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.task;
 
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -9,6 +8,7 @@ import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.QuickTable;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.join.MatchEngineParameter;
+import uk.ac.starlink.util.LogUtils;
 
 public class TableMatch2Test extends TableTestCase {
 
@@ -29,10 +29,10 @@ public class TableMatch2Test extends TableTestCase {
             col( "Bmag", new double[] { 10.1, 12.3, 14.6, 19.0 } ),
         } );
 
-        Logger.getLogger( "uk.ac.starlink.ttools.task" )
-              .setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.ttools.join" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.task" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.join" )
+                .setLevel( Level.WARNING );
     }
 
     public void testCols() throws Exception {

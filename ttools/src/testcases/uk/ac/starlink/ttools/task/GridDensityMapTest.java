@@ -2,16 +2,16 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.LogUtils;
 
 public class GridDensityMapTest extends TestCase {
 
     public GridDensityMapTest() {
-        Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
     }
 
     // There are a lot of options for bin sizing etc.

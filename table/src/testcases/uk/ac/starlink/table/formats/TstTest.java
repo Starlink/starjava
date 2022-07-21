@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.formats;
 
 import java.io.ByteArrayOutputStream;
+import java.util.logging.Level;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -9,6 +10,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
 
@@ -18,6 +20,8 @@ public class TstTest extends TestCase {
         new DefaultValueInfo( "dummy", String.class, "Testing only" );
     public TstTest( String name ) {
         super( name );
+        LogUtils.getLogger( "uk.ac.starlink.table.storage" )
+                .setLevel( Level.WARNING );
     }
 
     public void testSimple() throws Exception {

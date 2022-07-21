@@ -9,7 +9,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import junit.framework.TestCase;
@@ -27,6 +26,7 @@ import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.URLDataSource;
 
@@ -42,8 +42,8 @@ public class CoosysTest extends TestCase {
         storage_ = StoragePolicy.PREFER_MEMORY;
         tfact_ = new StarTableFactory();
         tfact_.setStoragePolicy( storage_ );
-        Logger.getLogger( "uk.ac.starlink" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void testRewrite()

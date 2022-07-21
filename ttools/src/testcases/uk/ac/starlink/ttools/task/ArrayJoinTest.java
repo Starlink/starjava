@@ -2,18 +2,15 @@ package uk.ac.starlink.ttools.task;
 
 import java.lang.reflect.Array;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
+import uk.ac.starlink.util.LogUtils;
 
 public class ArrayJoinTest extends TableTestCase {
 
-    private final Logger logger_;
-
     public ArrayJoinTest() {
-        logger_ = Logger.getLogger( "uk.ac.starlink" );
-        logger_.setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
     }
 
     public void testArrayJoin() throws Exception {

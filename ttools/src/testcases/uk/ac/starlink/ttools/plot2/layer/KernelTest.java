@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.util.Random;
+import java.util.logging.Level;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
@@ -11,6 +13,11 @@ import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 public class KernelTest extends TestCase {
 
     private Random rand_ = new Random( 235089454L );
+
+    public KernelTest() {
+        LogUtils.getLogger( "uk.ac.starlink.ttools.plot2" )
+                .setLevel( Level.WARNING );
+    }
 
     public void testKernels() {
         for ( Kernel1dShape kshape :

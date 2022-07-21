@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.task;
 
 import java.util.Arrays;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -19,14 +18,16 @@ import uk.ac.starlink.ttools.func.Tilings;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.ttools.plot2.layer.SolidAngleUnit;
 import uk.ac.starlink.ttools.task.MapEnvironment;
+import uk.ac.starlink.util.LogUtils;
 
 public class SkyDensityMapTest extends TestCase {
 
     private final String dummyUcd_;
 
     public SkyDensityMapTest() {
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.util" ).setLevel( Level.WARNING );
         dummyUcd_ = "pos.not-a-ucd";
     }
 

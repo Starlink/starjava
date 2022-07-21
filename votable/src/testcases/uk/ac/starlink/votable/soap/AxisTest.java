@@ -3,13 +3,13 @@ package uk.ac.starlink.votable.soap;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.rpc.ParameterMode;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.apache.axis.encoding.XMLType;
 import uk.ac.starlink.soap.AppHttpSOAPServer;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.votable.AutoStarTable;
 import uk.ac.starlink.votable.TableTestCase;
 
@@ -19,10 +19,10 @@ public class AxisTest extends TableTestCase {
 
     public AxisTest( String name ) {
         super( name );
-        Logger.getLogger( "org.mortbay" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.soap" ).setLevel( Level.WARNING );
-        Logger.getLogger( "org.apache.axis" ).setLevel( Level.SEVERE );
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "org.mortbay" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.soap" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "org.apache.axis" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     public void testAxis() throws Exception {

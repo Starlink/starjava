@@ -5,15 +5,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.topcat.TopcatJELUtils;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class FuncTest extends TestCase {
 
     static {
-        Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.SEVERE );
-        Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.util" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.SEVERE );
     }
 
     public FuncTest( String name ) {

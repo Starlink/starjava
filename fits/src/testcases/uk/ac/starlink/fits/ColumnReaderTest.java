@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -26,6 +25,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.formats.TextTableWriter;
 import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
 
@@ -38,7 +38,7 @@ public class ColumnReaderTest extends TestCase {
 
     public ColumnReaderTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     /**

@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -18,6 +17,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableElement;
@@ -38,9 +38,9 @@ public class VotCopyTest extends TableTestCase {
 
     public VotCopyTest( String name ) throws Exception {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.ttools.copy" )
-              .setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.copy" )
+                .setLevel( Level.SEVERE );
         multiDOM_ = checkAndRemoveData( new VOElementFactory()
                                        .makeVOElement( multiLoc_ ),
                                         "TABLEDATA" );

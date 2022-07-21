@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.AssertionFailedError;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -56,6 +55,7 @@ import uk.ac.starlink.table.gui.TableSaveChooser;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IntList;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.DataFormat;
@@ -96,12 +96,12 @@ public class FormatsTest extends TableCase {
         SIZE_INFO.setUnitString( "Area of Wales" );
         NAMES_INFO.setUnitString( FUNNY_UNITS );
 
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.SEVERE );
-        Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.feather" ).setLevel( Level.SEVERE );
-        Logger.getLogger( "uk.ac.starlink.ecsv" ).setLevel( Level.SEVERE );
-        Logger.getLogger( "uk.ac.starlink.parquet" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING);
+        LogUtils.getLogger( "uk.ac.starlink.feather" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.ecsv" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.parquet" ).setLevel( Level.WARNING);
     }
 
     private StarTable table;

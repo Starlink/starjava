@@ -5,7 +5,6 @@ import java.lang.reflect.Array;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.net.URL;
 import javax.xml.transform.dom.DOMSource;
 import org.xml.sax.SAXException;
@@ -15,14 +14,15 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class VOTableTest extends TestCase {
 
     public VOTableTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.table.storage" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table.storage" )
+                .setLevel( Level.WARNING );
     }
 
     public void testTable() throws SAXException, IOException {

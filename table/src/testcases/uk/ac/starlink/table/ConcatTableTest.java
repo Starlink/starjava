@@ -3,13 +3,13 @@ package uk.ac.starlink.table;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import uk.ac.starlink.util.LogUtils;
 
 public class ConcatTableTest extends TableCase {
 
     public ConcatTableTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.SEVERE );
     }
 
     public void testDiverse() throws IOException {

@@ -7,8 +7,8 @@ import java.lang.reflect.Modifier;
 import java.util.Locale;
 import java.util.Random;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class FuncTest extends TestCase {
@@ -17,8 +17,8 @@ public class FuncTest extends TestCase {
     private static final Random RANDOM = new Random( 1234567L );
 
     static {
-        Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.SEVERE );
-        Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.plot2" )
+                .setLevel( Level.WARNING );
     }
 
     public FuncTest( String name ) {

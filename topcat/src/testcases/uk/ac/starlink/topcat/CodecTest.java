@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -24,6 +23,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.ByteArrayDataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.votable.VOTableBuilder;
 import uk.ac.starlink.votable.VOTableWriter;
@@ -36,9 +36,9 @@ public class CodecTest extends TableCase {
     private final TableBuilder tReader_;
 
     public CodecTest() {
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
-        Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.topcat" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.topcat" ).setLevel( Level.WARNING );
         controlWindow_ = null;
         tWriter_ = new VOTableWriter();
         tReader_ = new VOTableBuilder();

@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.cone;
 
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.RowSequence;
@@ -14,6 +13,7 @@ import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.votable.VOTableBuilder;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
 
@@ -23,9 +23,9 @@ public class MultiConeFrameworkTest extends TableTestCase {
 
     public MultiConeFrameworkTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.ttools.cone" )
-              .setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.cone" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     public void testLinear() throws Exception {

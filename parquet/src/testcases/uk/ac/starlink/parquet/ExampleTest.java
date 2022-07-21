@@ -3,7 +3,6 @@ package uk.ac.starlink.parquet;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetFileReader;
@@ -15,13 +14,14 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IOSupplier;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLUtils;
 
 public class ExampleTest extends TestCase {
 
     static {
-        Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
         ParquetUtil.silenceLog4j();
     }
  

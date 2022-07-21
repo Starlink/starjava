@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
@@ -20,13 +19,14 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class TableWriterTest extends TestCase {
 
     public TableWriterTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.SEVERE );
     }
 
     public void testTableWriter() throws Exception {

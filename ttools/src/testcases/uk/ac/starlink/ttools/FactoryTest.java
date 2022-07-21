@@ -1,21 +1,20 @@
 package uk.ac.starlink.ttools;
 
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.filter.BasicFilter;
 import uk.ac.starlink.ttools.filter.ProcessingFilter;
 import uk.ac.starlink.ttools.filter.StepFactory;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.ObjectFactory;
 
 public class FactoryTest extends TestCase {
 
     public FactoryTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.ttools" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
     }
 
     public void testFilterFactory() throws Exception {

@@ -1,6 +1,7 @@
 package uk.ac.starlink.pds4;
 
 import java.io.IOException;
+import java.util.logging.Level;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -9,10 +10,16 @@ import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
 
 public class Pds4StarTableTest extends TestCase {
+
+    public Pds4StarTableTest() {
+        LogUtils.getLogger( "uk.ac.starlink.table.storage" )
+                .setLevel( Level.WARNING );
+    }
 
     public void testBinary() throws IOException {
         StarTable table =

@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.RowListStarTable;
@@ -16,6 +15,7 @@ import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.ttools.task.MultiCone;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.vo.ResolverInfo;
 import uk.ac.starlink.votable.VOTableBuilder;
@@ -34,13 +34,13 @@ public class MultiConeTest extends TableTestCase {
 
     public MultiConeTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.SEVERE );
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.ttools.cone" )
-              .setLevel( Level.SEVERE );
-        Logger.getLogger( "uk.ac.starlink.ttools.task" )
-              .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.cone" )
+                .setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.task" )
+                .setLevel( Level.WARNING );
     }
 
     public void testCone1() throws Exception {

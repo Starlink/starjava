@@ -1,10 +1,17 @@
 package uk.ac.starlink.ttools.plot2;
 
+import java.util.logging.Level;
 import junit.framework.TestCase;
+import uk.ac.starlink.util.LogUtils;
 
 public class ScalingTest extends TestCase {
 
     private final double err = 1e-8;
+
+    public ScalingTest() {
+        LogUtils.getLogger( "uk.ac.starlink.ttools.plot2" )
+                .setLevel( Level.WARNING );
+    }
 
     public void testAsinh() {
         double delta = 0.125;

@@ -2,15 +2,15 @@ package uk.ac.starlink.vo;
 
 import java.util.Iterator;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
+import uk.ac.starlink.util.LogUtils;
 
 public class RegistryNetTest extends TestCase {
 
     public RegistryNetTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
-        Logger.getLogger( "org.apache.axis.utils" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "org.apache.axis.utils" ).setLevel( Level.SEVERE );
     }
 
     public void testContents() throws Exception {

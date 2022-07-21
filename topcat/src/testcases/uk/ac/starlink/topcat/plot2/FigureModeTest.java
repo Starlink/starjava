@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.lang.reflect.Method;
+import java.util.logging.Level;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -18,8 +19,14 @@ import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.plot2.Tick;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
+import uk.ac.starlink.util.LogUtils;
 
 public class FigureModeTest extends TestCase {
+
+    public FigureModeTest() {
+        LogUtils.getLogger( "uk.ac.starlink.ttools.plot2" )
+                .setLevel( Level.WARNING );
+    }
 
     public void testModes() throws Throwable {
 

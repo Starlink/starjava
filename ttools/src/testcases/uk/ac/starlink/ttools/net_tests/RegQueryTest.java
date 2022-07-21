@@ -1,20 +1,21 @@
 package uk.ac.starlink.ttools.net_tests;
 
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.ttools.task.RegQuery;
+import uk.ac.starlink.util.LogUtils;
 
 public class RegQueryTest extends TableTestCase {
 
     public RegQueryTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.registry" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.registry" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
     }
 
     public void testData() throws Exception {

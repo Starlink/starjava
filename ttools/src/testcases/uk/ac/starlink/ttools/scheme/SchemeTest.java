@@ -2,18 +2,18 @@ package uk.ac.starlink.ttools.scheme;
 
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.filter.ArgException;
+import uk.ac.starlink.util.LogUtils;
 
 public class SchemeTest extends TestCase {
 
     public SchemeTest() {
-        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void testScheme() throws IOException {

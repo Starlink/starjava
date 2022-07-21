@@ -5,18 +5,18 @@ import gnu.jel.CompilationException;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class JELTest extends TestCase {
 
     static {
-        Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
-        Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.OFF );
+        LogUtils.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
+        LogUtils.getLogger( "uk.ac.starlink.util" ).setLevel( Level.OFF );
     }
 
     public JELTest( String name ) {

@@ -3,13 +3,13 @@ package uk.ac.starlink.ttools.task;
 import java.io.IOException;
 import java.util.Random;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableTestCase;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.votable.VOTableWriter;
 
 public class TableMatchNTest extends TableTestCase {
@@ -18,7 +18,7 @@ public class TableMatchNTest extends TableTestCase {
 
     public TableMatchNTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
     }
 
     public void testGroupMatchN() throws IOException, TaskException {

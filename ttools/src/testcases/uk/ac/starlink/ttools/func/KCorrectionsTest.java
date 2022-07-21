@@ -2,19 +2,19 @@ package uk.ac.starlink.ttools.func;
 
 import java.net.URL;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.formats.AsciiTableBuilder;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class KCorrectionsTest extends TestCase {
 
     public KCorrectionsTest() {
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     public void testCalculations() throws Exception {

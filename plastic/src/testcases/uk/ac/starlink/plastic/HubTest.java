@@ -7,11 +7,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import junit.framework.TestCase;
 import org.votech.plastic.PlasticHubListener;
+import uk.ac.starlink.util.LogUtils;
 
 public class HubTest extends TestCase {
 
@@ -21,7 +21,8 @@ public class HubTest extends TestCase {
                   PlasticHubListener.PLASTIC_CONFIG_FILENAME );
 
     static {
-        Logger.getLogger( "uk.ac.starlink.plastic" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.plastic" )
+                .setLevel( Level.WARNING );
     }
 
     public HubTest( String name ) {
