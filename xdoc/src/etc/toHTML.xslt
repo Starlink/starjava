@@ -65,7 +65,7 @@
           <xsl:if test="name(.)='abstract'">
             <h2>Abstract</h2> 
           </xsl:if>
-          <xsl:apply-templates select="subhead|p|px|figure"/>
+          <xsl:apply-templates select="subhead|p|px|figure|subdiv"/>
           <xsl:if test="sect|subsect|subsubsect|subsubsubsect|subsubsubsubsect|subsubsubsubsubsect">
             <ul>
               <xsl:apply-templates mode="toc" 

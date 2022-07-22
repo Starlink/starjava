@@ -92,6 +92,19 @@
     <p><xsl:apply-templates/></p>
   </xsl:template>
 
+  <xsl:template match="subdiv">
+    <xsl:apply-templates mode="label-id" select="@id"/>
+    <div class="subdiv">
+      <xsl:apply-templates/>
+    </div>
+  </xsl:template>
+
+  <xsl:template match="subdiv/subhead/title">
+    <div class="subdiv-title">
+      <xsl:apply-templates/>
+    </div>
+  </xsl:template>
+
   <xsl:template match="dd/p[position()=1]">
     <xsl:apply-templates/>
   </xsl:template>

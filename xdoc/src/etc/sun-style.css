@@ -1,1 +1,15 @@
-p > code, dd > code, body > code, li > code, pre {color: #663300;}
+p > code, div[class="subdiv"] > code, dd > code, body > code, li > code, pre {
+  color: #663300;
+}
+.subdiv {
+  border: 1px solid gray;
+  border-radius: 4px;
+  padding: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.subdiv-title {
+  text-align: left;
+  font-weight: bold;
+  text-decoration: underline;
+}

@@ -163,6 +163,18 @@
     </fo:block>
   </xsl:template>
 
+  <xsl:template match="subdiv">
+    <fo:block xsl:use-attribute-sets="subdiv">
+      <xsl:apply-templates/>
+    </fo:block>
+  </xsl:template>
+
+  <xsl:template match="subdiv/subhead/title">
+    <fo:block xsl:use-attribute-sets="subdiv-title">
+      <xsl:apply-templates/>
+    </fo:block>
+  </xsl:template>
+
   <xsl:template match="ul|ol">
     <fo:list-block provisional-distance-between-starts="2em"
                    provisional-label-separation="1em"
@@ -859,6 +871,12 @@
     <xsl:attribute name="color">black</xsl:attribute>
     <xsl:attribute name="keep-with-next">always</xsl:attribute>
   </xsl:attribute-set>
+  <xsl:attribute-set name="subdiv-title">
+    <xsl:attribute name="font-weight">bold</xsl:attribute>
+    <xsl:attribute name="text-align">left</xsl:attribute>
+    <xsl:attribute name="text-decoration">underline</xsl:attribute>
+    <xsl:attribute name="keep-with-next">always</xsl:attribute>
+  </xsl:attribute-set>
 
   <xsl:attribute-set name="toc-sect">
     <xsl:attribute name="font-weight">800</xsl:attribute>
@@ -886,12 +904,20 @@
   </xsl:attribute-set>
 
   <!-- Block level Attributes -->
-  <!-- p-->
+  <!-- p -->
   <xsl:attribute-set name="p">
     <xsl:attribute name="text-align">justify</xsl:attribute>
     <xsl:attribute name="text-indent">0em</xsl:attribute>
     <xsl:attribute name="space-before">0.5em</xsl:attribute>
     <xsl:attribute name="space-after">0.5em</xsl:attribute>
+  </xsl:attribute-set>
+
+  <!-- subdiv -->
+  <xsl:attribute-set name="subdiv">
+    <xsl:attribute name="border-style">solid</xsl:attribute>
+    <xsl:attribute name="border-color">gray</xsl:attribute>
+    <xsl:attribute name="border">1pt</xsl:attribute>
+    <xsl:attribute name="padding">5pt</xsl:attribute>
   </xsl:attribute-set>
 
   <!-- verbatim -->

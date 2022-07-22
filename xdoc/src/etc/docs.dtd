@@ -114,27 +114,30 @@
                     docset CDATA #IMPLIED
                     codetext CDATA #IMPLIED>
 
-  <!ELEMENT sect ( subhead?, ( p | figure | subsect )* )>
+  <!ELEMENT sect ( subhead?, ( p | figure | subdiv | subsect )* )>
   <!ATTLIST sect id ID #IMPLIED
                  %sectatts;>
 
-  <!ELEMENT subsect ( subhead?, ( p | figure | subsubsect )* )>
+  <!ELEMENT subsect ( subhead?, ( p | figure | subdiv | subsubsect )* )>
   <!ATTLIST subsect id ID #IMPLIED
                     %sectatts;>
 
-  <!ELEMENT subsubsect ( subhead?, ( p | figure | subsubsubsect )* )>
+  <!ELEMENT subsubsect ( subhead?, ( p | figure | subdiv | subsubsubsect )* )>
   <!ATTLIST subsubsect id ID #IMPLIED
                        %sectatts;>
 
-  <!ELEMENT subsubsubsect ( subhead?, ( p | figure | subsubsubsubsect )* )>
+  <!ELEMENT subsubsubsect ( subhead?, ( p | figure | subdiv | subsubsubsubsect )* )>
   <!ATTLIST subsubsubsect id ID #IMPLIED
                           %sectatts;>
 
-  <!ELEMENT subsubsubsubsect ( subhead?, ( p | figure | subsubsubsubsubsect )*)>
+  <!ELEMENT subsubsubsubsect ( subhead?, ( p | figure | subdiv | subsubsubsubsubsect )*)>
   <!ATTLIST subsubsubsubsect id ID #IMPLIED
                              %sectatts;>
 
-  <!ELEMENT subsubsubsubsubsect ( subhead?, ( p | figure )* )>
+  <!ELEMENT subsubsubsubsubsect ( subhead?, ( p | figure | subdiv )* )>
   <!ATTLIST subsubsubsubsubsect id ID #IMPLIED
                                 %sectatts;>
+
+  <!ELEMENT subdiv ( subhead?, ( p | figure )* )>
+  <!ATTLIST subdiv id ID #IMPLIED>
 
