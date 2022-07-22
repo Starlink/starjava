@@ -8,7 +8,9 @@ import com.sun.javadoc.SeeTag;
 import com.sun.javadoc.Type;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Doclet which documents public static members of classes in XML
@@ -29,6 +31,8 @@ public class FullXmlDoclet extends XmlDoclet {
     private boolean headOnly_;
     private boolean discardOutput_;
     private boolean skipMembers_;
+    private String clazzId_;
+    private Set<String> memberIds_;
 
     /**
      * Begin processing document.
@@ -58,6 +62,7 @@ public class FullXmlDoclet extends XmlDoclet {
      */
     protected FullXmlDoclet( RootDoc root ) throws IOException {
         super( root );
+        memberIds_ = new HashSet<String>();
         String[][] options = root.options();
         for ( String[] opts : options ) {
             String opt = opts[ 0 ];
@@ -106,10 +111,12 @@ public class FullXmlDoclet extends XmlDoclet {
     @Override
     protected void startClass( ClassDoc clazz ) throws IOException {
         discardOutput_ = !useClass( clazz );
+        clazzId_ = getXmlId( clazz );
+        memberIds_.clear();
         if ( headOnly_ ) {
             out( "<dt>" 
                + "<ref id='"
-               + getXmlId( clazz )
+               + clazzId_
                + "'>"
                + clazz.name()
                + "</ref>"
@@ -117,7 +124,7 @@ public class FullXmlDoclet extends XmlDoclet {
             out( "<dd>" );
         }
         else {
-            out( "<subsubsect id='" + getXmlId( clazz ) + "'>" );
+            out( "<subsubsect id='" + clazzId_ + "'>" );
             out( "<subhead><title>" + clazz.name() + "</title></subhead>" );
         }
         String comment = clazz.commentText();
@@ -133,6 +140,8 @@ public class FullXmlDoclet extends XmlDoclet {
 
     @Override
     protected void endClass() throws IOException {
+        clazzId_ = null;
+        memberIds_.clear();
         out( "</dl></p>" );
         if ( skipMembers_ ) {
             discardOutput_ = false;
@@ -150,7 +159,23 @@ public class FullXmlDoclet extends XmlDoclet {
     @Override
     protected void startMember( MemberDoc mem, String memType, String memName )
             throws IOException {
-        out( "<dt><code>" + memName + "</code></dt>" );
+        StringBuffer sbuf = new StringBuffer( "<dt" );
+
+        /* Write an ID attribute identifying this member, but do it on a
+         * best-efforts basis.  These must be unique (or invalidate the XML)
+         * so if the ID value has already been used, just don't bother. */
+        String memberId = memName.replaceFirst( "[^a-zA-Z_].*", "" );
+        if ( memberIds_.add( memberId ) ) {
+            sbuf.append( " id='" )
+                .append( clazzId_ )
+                .append( "-" )
+                .append( memberId )
+                .append( "'" );
+        }
+        sbuf.append( "><code>" )
+            .append( memName )
+            .append( "</code></dt>" );
+        out( sbuf.toString() );
         out( "<dd>" );
     }
 
