@@ -1276,7 +1276,7 @@ public class JyStilts {
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "<dl>" );
         for ( int i = 0; i < params.length; i++ ) {
-            sbuf.append( UsageWriter.xmlItem( params[ i ], true ) );
+            sbuf.append( UsageWriter.xmlItem( params[ i ], null, true ) );
         }
         sbuf.append( "</dl>" );
         lineList.addAll( Arrays.asList( formatXml( sbuf.toString() ) ) );

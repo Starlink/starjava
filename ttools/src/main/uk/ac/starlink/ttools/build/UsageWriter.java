@@ -67,7 +67,7 @@ public class UsageWriter {
             outln( "<dl>" );
             Arrays.sort( params, Parameter.BY_NAME );
             for ( int i = 0; i < params.length; i++ ) {
-                outln( xmlItem( params[ i ], false ) );
+                outln( xmlItem( params[ i ], taskName_, false ) );
             }
             outln( "</dl>" );
             outln( "</p>" );
@@ -82,21 +82,36 @@ public class UsageWriter {
     /**
      * Returns a list item (dt/dd pair) for a parameter giving its usage
      * and description.
+     *
+     * <p>If a non-null <code>baseId</code> is supplied, the output
+     * <code>dt</code> element is written with an id attribute of the form
+     * <code>baseId-paramName</code>.
      * 
      * @param  param  parameter
+     * @param  baseId  prefix to parameter name for use in generating
+     *                 id attribute, or null for no id
      * @param  isBasic  if true, avoid adding XML constructs which won't be
      *                  evident (and may cause parsing trouble)
      *                  in plain text output
      * @return   XML snippet for <code>param</code>
      */
-    public static String xmlItem( Parameter<?> param, boolean isBasic ) {
+    public static String xmlItem( Parameter<?> param, String baseId,
+                                  boolean isBasic ) {
         String descrip = param.getDescription();
         if ( descrip == null ) {
             throw new NullPointerException( "No description for parameter "
                                           + param );
         }
-        return new StringBuffer()
-            .append( "<dt>" )
+        StringBuffer sbuf = new StringBuffer()
+            .append( "<dt" );
+        if ( baseId != null ) {
+            sbuf.append( " id='" )
+                .append( baseId )
+                .append( "-" )
+                .append( param.getName() )
+                .append( "'" );
+        }
+        sbuf.append( ">" )
             .append( "<code>" )
             .append( getUsageXml( param ) )
             .append( "</code>" )
@@ -109,8 +124,8 @@ public class UsageWriter {
             .append( "<dd>" )
             .append( descrip )
             .append( getDefaultXml( param ) )
-            .append( "</dd>" )
-            .toString();
+            .append( "</dd>" );
+        return sbuf.toString();
     }
 
     /**

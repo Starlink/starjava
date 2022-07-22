@@ -68,8 +68,9 @@ public class ShapeModeDoc {
         StringBuffer sbuf = new StringBuffer();
 
         /* Start section. */
-        sbuf.append( "<subsubsect id='shading-" )
-            .append( mname )
+        String modeId = "shading-" + mname;
+        sbuf.append( "<subsubsect id='" )
+            .append( modeId )
             .append( "'>\n" )
             .append( "<subhead><title><code>" )
             .append( mname )
@@ -124,7 +125,7 @@ public class ShapeModeDoc {
             sbuf.append( "<dl>\n" );
             Arrays.sort( params, Parameter.BY_NAME );
             for ( Parameter<?> param : params ) {
-                sbuf.append( UsageWriter.xmlItem( param, basicXml_ ) );
+                sbuf.append( UsageWriter.xmlItem( param, modeId, basicXml_ ) );
             }
             sbuf.append( "</dl>\n" );
             sbuf.append( "</p>\n" );

@@ -52,7 +52,7 @@ public class MiscDoc {
             AbstractPlot2Task
            .createDomainMapperParameter( timeInput, timeSuffix );
         writeData( "ttypeN-param.xml",
-                   UsageWriter.xmlItem( ttypeParam, false ) );
+                   UsageWriter.xmlItem( ttypeParam, null, false ) );
         writeData( "plotserv-syntax.xml",
                    PlotServlet.getXmlSyntaxDocumentation() );
     }

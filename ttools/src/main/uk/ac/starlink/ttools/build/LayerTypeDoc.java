@@ -74,6 +74,7 @@ public class LayerTypeDoc {
 
         /* Get basic layer type information. */
         String lname = layerType.getName().toLowerCase();
+        String layerId = "layer-" + lname;
         int npos = layerType.getPositionCount();
         Coord[] extraCoords = layerType.getExtraCoords();
         ConfigKey<?>[] styleKeys = layerType.getStyleKeys();
@@ -87,8 +88,8 @@ public class LayerTypeDoc {
 
         /* Start output. */
         StringBuffer sbuf = new StringBuffer()
-            .append( "<subsubsect id='layer-" )
-            .append( lname )
+            .append( "<subsubsect id='" )
+            .append( layerId )
             .append( "'>\n" )
             .append( "<subhead><title><code>" )
             .append( lname )
@@ -282,7 +283,7 @@ public class LayerTypeDoc {
         if ( paramList.size() > 0 ) {
             sbuf.append( "<p><dl>\n" );
             for ( Parameter<?> param : paramList ) {
-                sbuf.append( UsageWriter.xmlItem( param, basicXml_ ) )
+                sbuf.append( UsageWriter.xmlItem( param, layerId, basicXml_ ) )
                     .append( "\n" );
             }
             sbuf.append( "</dl></p>\n" );

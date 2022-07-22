@@ -32,8 +32,9 @@ public class ModeDoc {
         OutputModeParameter omodeParam = new OutputModeParameter( "omode" );
         for ( int i = 0; i < mnames.length; i++ ) {
             String name = mnames[ i ];
+            String modeId = "mode-" + name;
             ProcessingMode mode = modeFact.createObject( name );
-            out_.println( "<subsubsect id=\"mode-" + name + "\">" );
+            out_.println( "<subsubsect id=\"" + modeId + "\">" );
             out_.println( "<subhead><title><code>" + name 
                         + "</code></title></subhead>" );
             out_.print( "<p>" );
@@ -56,7 +57,8 @@ public class ModeDoc {
                 out_.println( "<p>Additional parameters for this output mode "
                             + "are:<dl>" );
                 for ( int j = 0; j < params.length; j++ ) {
-                    out_.println( UsageWriter.xmlItem( params[ j ], false ) );
+                    out_.println( UsageWriter
+                                 .xmlItem( params[ j ], modeId, false ) );
                 }
                 out_.println( "</dl></p>" );
             }
