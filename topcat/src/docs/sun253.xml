@@ -25710,11 +25710,11 @@ eds. P Shopbell et al., ASP Conf. Ser. 347, p. 29 (2005)
 <p>Releases to date have been as follows:
 <dl>
 
-<dt>Version 0.3b (4 June 2003)</dt>
+<dt id="v0.3b">Version 0.3b (4 June 2003)</dt>
 <dd><p>First public release
 </p></dd>
 
-<dt>Version 0.4b (8 July 2003)</dt>
+<dt id="v0.4b">Version 0.4b (8 July 2003)</dt>
 <dd><p>
 <ul>
 <li>Row subset count column in subsets window.</li>
@@ -25733,7 +25733,7 @@ eds. P Shopbell et al., ASP Conf. Ser. 347, p. 29 (2005)
 </ul>
 </p></dd>
 
-<dt>Version 0.4-1b (10 July 2003)</dt>
+<dt id="v0.4-1b">Version 0.4-1b (10 July 2003)</dt>
 <dd><p>
 <ul>
 <li>Fixed a VOTable output bug (not escaping XML special characters).</li>
@@ -25742,7 +25742,7 @@ eds. P Shopbell et al., ASP Conf. Ser. 347, p. 29 (2005)
 </ul>
 </p></dd>
 
-<dt>Version 0.5b (20 October 2003)</dt>
+<dt id="v0.5b">Version 0.5b (20 October 2003)</dt>
 <dd><p>
 <ul>
 <li>Can now read plain text format tables.</li>
@@ -25762,7 +25762,7 @@ eds. P Shopbell et al., ASP Conf. Ser. 347, p. 29 (2005)
 </ul>
 </p></dd>
 
-<dt>Version 0.5-1 (18 November 2003)</dt>
+<dt id="v0.5-1">Version 0.5-1 (18 November 2003)</dt>
 <dd><p>
 <ul>
 <li>Rewrite of FITS binary table access for big efficiency improvements.</li>
@@ -25771,7 +25771,7 @@ eds. P Shopbell et al., ASP Conf. Ser. 347, p. 29 (2005)
 </ul>
 </p></dd>
 
-<dt>Version 1.1-0 (21 April 2004)</dt>
+<dt id="v1.1-0">Version 1.1-0 (21 April 2004)</dt>
 <dd><p>
 <ul>
 <li>User interface redesigned - now based around Control Window 
@@ -25799,14 +25799,14 @@ eds. P Shopbell et al., ASP Conf. Ser. 347, p. 29 (2005)
 </ul>
 </p></dd>
 
-<dt>Version 1.1-3 (5 May 2004)</dt>
+<dt id="v1.1-3">Version 1.1-3 (5 May 2004)</dt>
 <dd><p>
 <ul>
 <li>Functions provided for radians&lt;-&gt;sexagesimal conversion</li>
 </ul>
 </p></dd>
 
-<dt>Version 1.3 (20 October 2004)</dt>
+<dt id="v1.3">Version 1.3 (20 October 2004)</dt>
 <dd><p>This version has introduced many improvements in scalability,
 efficiency and functionality.  TOPCAT is now quite happy with tables
 of a million rows or more (and hundreds of columns) even on systems 
@@ -25943,7 +25943,7 @@ introduced since the last version:
 </ul>
 </p></dd>
 
-<dt>Version 1.3-1 (10 November 2004)</dt>
+<dt id="v1.3-1">Version 1.3-1 (10 November 2004)</dt>
 <dd><p>Minor changes:
 <ul>
 <li>2MASS cutout servers now available from Activation Window</li>
@@ -25951,14 +25951,14 @@ introduced since the last version:
 </ul>
 </p></dd>
 
-<dt>Version 1.3-2 (6 Dec 2004)</dt>
+<dt id="v1.3-2">Version 1.3-2 (6 Dec 2004)</dt>
 <dd><p>Bug fix:
 <ul>
 <li>Error in parsing empty VOTable TD elements fixed.</li>
 </ul>
 </p></dd>
 
-<dt>Version 1.4 (4 Feb 2005)</dt>
+<dt id="v1.4">Version 1.4 (4 Feb 2005)</dt>
 <dd><p><dl>
 
     <dt>Load Dialogues</dt>
@@ -26025,14 +26025,14 @@ introduced since the last version:
 
     </dl></p></dd>
 
-<dt>Version 1.4-1 (8 February 2005)</dt>
+<dt id="v1.4-1">Version 1.4-1 (8 February 2005)</dt>
 <dd><p>
     <ul>
     <li>Added Search Column item to Data Window column popup menu</li>
     </ul>
     </p></dd>
 
-<dt>Version 1.5 (17 March 2005)</dt>
+<dt id="v1.5">Version 1.5 (17 March 2005)</dt>
 <dd>
 <p><dl>
   <dt>File Access</dt>
@@ -26070,7 +26070,7 @@ introduced since the last version:
 </dl></p>
 </dd>
 
-<dt>Version 1.6 (30 June 2005)</dt>
+<dt id="v1.6">Version 1.6 (30 June 2005)</dt>
 <dd><p><dl>
 
   <dt>Activation Actions</dt>
@@ -26148,7 +26148,7 @@ introduced since the last version:
 
 </dl></p></dd>
 
-<dt>Version 1.6-1 (7 July 2005)</dt>
+<dt id="v1.6-1">Version 1.6-1 (7 July 2005)</dt>
 <dd><p>Bugfixes:
 <ul>
 <li>Work around AstroGrid/Sun bug which prevented loading short VOTables 
@@ -26158,7 +26158,7 @@ introduced since the last version:
 </ul>
 </p></dd>
 
-<dt>Version 1.7 (30 September 2005)</dt>
+<dt id="v1.7">Version 1.7 (30 September 2005)</dt>
 <dd><p><dl>
 
   <dt>Crossmatching</dt>
@@ -26233,14 +26233,14 @@ introduced since the last version:
 
 </dl></p></dd>
 
-<dt>Version 1.7-1 (4 October 2005)</dt>
+<dt id="v1.7-1">Version 1.7-1 (4 October 2005)</dt>
 <dd><p>Bugfixes:
 <ul>
 <li>Fixed broken MySpace access on MS Windows.</li>
 </ul>
 </p></dd>
 
-<dt>Version 1.8 (13 October 2005)</dt>
+<dt id="v1.8">Version 1.8 (13 October 2005)</dt>
 <dd><p>
 <ul>
 <li>Added <label>Sky Coordinates Window</label>; it's now easy to 
@@ -26253,7 +26253,7 @@ introduced since the last version:
 </ul>
 </p></dd>
 
-<dt>Version 2.0 (3 February 2006)</dt>
+<dt id="v2.0">Version 2.0 (3 February 2006)</dt>
 <dd><p>A major upgrade of TOPCAT's visualisation capabilities has taken
     place in this release.  There are considerable improvements in 
     functionality, flexibility and efficiency over previous versions:
@@ -26386,7 +26386,7 @@ introduced since the last version:
     </ul>
 </p></dd>
 
-<dt>Version 2.1 (7 April 2006)</dt>
+<dt id="v2.1">Version 2.1 (7 April 2006)</dt>
 <dd><p>A number of graphical and other improvements have been made
     at this release.
     <dl>
@@ -26485,7 +26485,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 2.1-1 (13 April 2006)</dt>
+<dt id="v2.1-1">Version 2.1-1 (13 April 2006)</dt>
 <dd><p>
     <dl>
     <dt>Sphere Zoom</dt>
@@ -26530,7 +26530,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 2.1-2 (21 April 2006)</dt>
+<dt id="v2.1-2">Version 2.1-2 (21 April 2006)</dt>
 <dd><p>This is mainly a bug fix release.
     <ul>
     <li>Added explode columns option to Data Window popup menu.</li>
@@ -26548,7 +26548,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 2.1-3 (11 May 2006)</dt>
+<dt id="v2.1-3">Version 2.1-3 (11 May 2006)</dt>
 <dd><p>Bug fixes and some minor enhancements.
     <ul>
     <li>Implements send and receive of PLASTIC 
@@ -26566,7 +26566,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 2.2 (7 July 2006)</dt>
+<dt id="v2.2">Version 2.2 (7 July 2006)</dt>
 <dd><p>
     <dl>
 
@@ -26600,7 +26600,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 2.2-1 (3 August 2006)</dt>
+<dt id="v2.2-1">Version 2.2-1 (3 August 2006)</dt>
 <dd><p>
     <ul>
     <li>Added new coordinate system ICRS for sky coordinate conversions.</li>
@@ -26617,7 +26617,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 2.3 (5 October 2006)</dt>
+<dt id="v2.3">Version 2.3 (5 October 2006)</dt>
 <dd><p>
     Various modifications and improvements:
     <ul>
@@ -26665,7 +26665,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 2.3-1 (Starlink Hokulei release)</dt>
+<dt id="v2.3-1">Version 2.3-1 (Starlink Hokulei release)</dt>
 <dd><p>
     <ul>
     <li>Output to MySpace can now be streamed, if running under J2SE1.5 or
@@ -26697,7 +26697,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 3.0 (5 July 2007)</dt>
+<dt id="v3.0">Version 3.0 (5 July 2007)</dt>
 <dd><p>This release includes major visualisation improvements and some changes
     to the plotting user interface:
     <dl>
@@ -26817,7 +26817,7 @@ introduced since the last version:
 
     </p></dd>
 
-<dt>Version 3.0-1 (Starlink Puana release)</dt>
+<dt id="v3.0-1">Version 3.0-1 (Starlink Puana release)</dt>
 <dd><p>
     <ul>
     <li>Added error bars capped by arrows.</li>
@@ -26826,7 +26826,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 3.1 (29 August 2007)</dt>
+<dt id="v3.1">Version 3.1 (29 August 2007)</dt>
 <dd><p>
     <ul>
     <li>You can now annotate plotted points using 
@@ -26844,7 +26844,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 3.2 (28 January 2008)</dt>
+<dt id="v3.2">Version 3.2 (28 January 2008)</dt>
 <dd><p>
     <dl>
     <dt>Functionality enhancements</dt>
@@ -26903,7 +26903,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 3.3 (19 August 2008)</dt>
+<dt id="v3.3">Version 3.3 (19 August 2008)</dt>
 <dd><p>
     <dl>
     <dt>Functionality enhancements:</dt>
@@ -26964,7 +26964,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 3.4 (23 December 2008)</dt>
+<dt id="v3.4">Version 3.4 (23 December 2008)</dt>
 <dd><p>
     <dl>
     <dt>SAMP</dt>
@@ -27031,7 +27031,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 3.4-1 (27 March 2009)</dt>
+<dt id="v3.4-1">Version 3.4-1 (27 March 2009)</dt>
 <dd><p>
     <ul>
     <li>Note Sybase ASE works (documentation edit only)</li>
@@ -27082,7 +27082,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 3.4-2 (17 July 2009)</dt>
+<dt id="v3.4-2">Version 3.4-2 (17 July 2009)</dt>
 <dd><p>
     <ul>
     <li>Plot windows now allow a plot title to be set from the
@@ -27111,7 +27111,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 3.4-3 (31 July 2009)</dt>
+<dt id="v3.4-3">Version 3.4-3 (31 July 2009)</dt>
 <dd><p>
     <ul>
     <li>Fixed two bugs related to drag and drop: intermittent failure of drop
@@ -27119,7 +27119,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 3.5 (6 November 2009)</dt>
+<dt id="v3.5">Version 3.5 (6 November 2009)</dt>
 <dd><p>There are several improvements in this version, many of them to do
     with improved functionality and usability for loading or acquiring 
     data both from local files and from various Virtual Observatory services.
@@ -27331,7 +27331,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 3.5-1 (21 December 2009)</dt>
+<dt id="v3.5-1">Version 3.5-1 (21 December 2009)</dt>
 <dd><p>This version has one significant new feature:
     <ul>
     <li>Plot windows can now export to PDF as well as other formats.</li>
@@ -27363,7 +27363,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 3.5-2 (24 March 2010)</dt>
+<dt id="v3.5-2">Version 3.5-2 (24 March 2010)</dt>
 <dd><p>
     <ul>
     <li>Add <ref id="MemoryMonitor">memory monitor</ref> 
@@ -27428,7 +27428,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 3.6 (6 August 2010)</dt>
+<dt id="v3.6">Version 3.6 (6 August 2010)</dt>
 <dd><p>This version contains some new features and usability enhancements,
     and a number of bugfixes.
     <dl>
@@ -27555,7 +27555,7 @@ introduced since the last version:
     not the case.
     </p></dd>
 
-<dt>Version 3.7 (23 December 2010)</dt>
+<dt id="v3.7">Version 3.7 (23 December 2010)</dt>
 <dd><p>This version contains some significant enhancements and a number
     of minor improvements and bugfixes.
     <dl>
@@ -27665,7 +27665,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 3.8 (9 May 2011)</dt>
+<dt id="v3.8">Version 3.8 (9 May 2011)</dt>
 <dd><p>
     <dl>
     <dt>TAP</dt>
@@ -27734,7 +27734,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 3.9 (27 October 2011)</dt>
+<dt id="v3.9">Version 3.9 (27 October 2011)</dt>
 <dd><p>
     <dl>
     <dt>Crossmatching:</dt>
@@ -27877,7 +27877,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.0b (28 March 2013)</dt>
+<dt id="v4.0b">Version 4.0b (28 March 2013)</dt>
 <dd><p>TOPCAT version 4 includes a complete rewrite of the plotting
     (see below for details).
     The new plotting functionality is however experimental
@@ -28098,7 +28098,7 @@ introduced since the last version:
     </p>
     </dd>
 
-<dt>Version 4.0-1 (1 July 2013)</dt>
+<dt id="v4.0-1">Version 4.0-1 (1 July 2013)</dt>
 <dd><p>
     <dl>
     <dt>New Functionality</dt>
@@ -28176,7 +28176,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.1 (7 March 2014)</dt>
+<dt id="v4.1">Version 4.1 (7 March 2014)</dt>
 <dd><p>In this version, the new plotting windows appear for the first
     time in the main Control Window toolbar, and are no longer considered
     experimental.  There have been many changes to their user interface
@@ -28340,7 +28340,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.2 (4 July 2014)</dt>
+<dt id="v4.2">Version 4.2 (4 July 2014)</dt>
 <dd><p>
     <dl>
     <dt>Significant new functionality and changes:</dt>
@@ -28421,7 +28421,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.2-1 (13 November 2014)</dt>
+<dt id="v4.2-1">Version 4.2-1 (13 November 2014)</dt>
 <dd><p>
     <dl>
     <dt>New functionality:</dt>
@@ -28471,7 +28471,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.2-2 (6 February 2015)</dt>
+<dt id="v4.2-2">Version 4.2-2 (6 February 2015)</dt>
 <dd><p>
     <dl>
     <dt>Plotting enhancements:</dt>
@@ -28598,7 +28598,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.2-3 (14 April 2015)</dt>
+<dt id="v4.2-3">Version 4.2-3 (14 April 2015)</dt>
 <dd><p>
     <dl>
     <dt>Histogram enhancements:</dt>
@@ -28673,7 +28673,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.3 (17 August 2015)</dt>
+<dt id="v4.3">Version 4.3 (17 August 2015)</dt>
 <dd><p>
     <dl>
     <dt>TAP client enhancements:</dt>
@@ -28852,7 +28852,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.3-1 (22 October 2015)</dt>
+<dt id="v4.3-1">Version 4.3-1 (22 October 2015)</dt>
 <dd><p>
     <dl>
     <dt>New features:</dt>
@@ -28892,7 +28892,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.3-2 (27 October 2015)</dt>
+<dt id="v4.3-2">Version 4.3-2 (27 October 2015)</dt>
 <dd><p>
     <dl>
     <dt>Crossmatching bug fix</dt>
@@ -29001,7 +29001,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.3-3 (10 June 2016)</dt>
+<dt id="v4.3-3">Version 4.3-3 (10 June 2016)</dt>
 <dd><p>
     <dl>
     <dt>Expression Language</dt>
@@ -29130,7 +29130,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.3-4 (13 September 2016)</dt>
+<dt id="v4.3-4">Version 4.3-4 (13 September 2016)</dt>
 <dd><p>
     <dl>
     <dt>Visualisation and HEALPix</dt>
@@ -29218,7 +29218,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.3-5 (23 September 2016)</dt>
+<dt id="v4.3-5">Version 4.3-5 (23 September 2016)</dt>
 <dd><p>
     <ul>
     <li>Add <label>Lock Aux Range</label> action to plot window toolbars
@@ -29240,7 +29240,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 4.4 (8 March 2017)</dt>
+<dt id="v4.4">Version 4.4 (8 March 2017)</dt>
 <dd><p>
     <dl>
     <dt>Visualisation improvements</dt>
@@ -29345,7 +29345,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.5 (29 September 2017)</dt>
+<dt id="v4.5">Version 4.5 (29 September 2017)</dt>
 <dd><p>
     <dl>
     <dt>New functionality</dt>
@@ -29490,7 +29490,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.5-1 (7 November 2017)</dt>
+<dt id="v4.5-1">Version 4.5-1 (7 November 2017)</dt>
 <dd><p>
     This is mainly a bugfix release,
     because of the issue with metadata bloat listed below.
@@ -29538,7 +29538,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.6 (24 April 2018)</dt>
+<dt id="v4.6">Version 4.6 (24 April 2018)</dt>
 <dd><p>
     <dl>
     <dt>Activation and DataLink</dt>
@@ -29703,7 +29703,7 @@ introduced since the last version:
     </p>
     </dd>
 
-<dt>Version 4.6-1 (18 May 2018)</dt>
+<dt id="v4.6-1">Version 4.6-1 (18 May 2018)</dt>
 <dd><p>
     <dl>
     <dt>Activation Action improvements</dt>
@@ -29788,7 +29788,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.6-2 (2 November 2018)</dt>
+<dt id="v4.6-2">Version 4.6-2 (2 November 2018)</dt>
 <dd><p>
     <dl>
     <dt>Plotting:</dt>
@@ -29970,7 +29970,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.6-3 (9 May 2019)</dt>
+<dt id="v4.6-3">Version 4.6-3 (9 May 2019)</dt>
 <dd><p>
     <dl>
     <dt>Plotting enhancements</dt>
@@ -30207,7 +30207,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.7 (18 November 2019)</dt>
+<dt id="v4.7">Version 4.7 (18 November 2019)</dt>
 <dd><p>
     <dl>
     <dt>Runtime environment: Java 8</dt>
@@ -30365,7 +30365,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.7-1 (5 June 2020)</dt>
+<dt id="v4.7-1">Version 4.7-1 (5 June 2020)</dt>
 <dd><p>
     <dl>
     <dt>File Formats:</dt>
@@ -30529,7 +30529,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.7-2 (24 August 2020)</dt>
+<dt id="v4.7-2">Version 4.7-2 (24 August 2020)</dt>
 <dd><p>
     <dl>
     <dt>New Functionality:</dt>
@@ -30583,7 +30583,7 @@ introduced since the last version:
 
     </p></dd>
 
-<dt>Version 4.7-3 (23 October 2020)</dt>
+<dt id="v4.7-3">Version 4.7-3 (23 October 2020)</dt>
 <dd><p>
     <dl>
     <dt>Packaging</dt>
@@ -30620,7 +30620,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.8 (11 January 2021)</dt>
+<dt id="v4.8">Version 4.8 (11 January 2021)</dt>
 <dd><p>In this version, the table handling library STIL has
     been upgraded to v4.0, which enables some enhancements
     including multithreading and new I/O handler features.
@@ -30713,7 +30713,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.8-1 (10 June 2021)</dt>
+<dt id="v4.8-1">Version 4.8-1 (10 June 2021)</dt>
 <dd><p>
     <dl>
     <dt>File formats:</dt>
@@ -30847,7 +30847,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.8-2 (15 October 2021)</dt>
+<dt id="v4.8-2">Version 4.8-2 (15 October 2021)</dt>
 <dd><p>
     <dl>
     <dt>New functionality:</dt>
@@ -30947,7 +30947,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.8-3 (31 January 2022)</dt>
+<dt id="v4.8-3">Version 4.8-3 (31 January 2022)</dt>
 <dd><p>
     <dl>
     <dt>New functionality:</dt>
@@ -31036,7 +31036,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.8-4 (6 April 2022)</dt>
+<dt id="v4.8-4">Version 4.8-4 (6 April 2022)</dt>
 <dd><p>
     <dl>
     <dt>Performance</dt>
@@ -31108,7 +31108,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.8-5 (10 June 2022)</dt>
+<dt id="v4.8-5">Version 4.8-5 (10 June 2022)</dt>
 <dd><p>
     <dl>
     <dt>New Functionality</dt>
@@ -31153,7 +31153,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Version 4.8-6 (8 July 2022)</dt>
+<dt id="v4.8-6">Version 4.8-6 (8 July 2022)</dt>
 <dd><p>
     <dl>
     <dt>Enhancements</dt>
