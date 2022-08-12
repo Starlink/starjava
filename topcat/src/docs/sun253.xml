@@ -8001,6 +8001,9 @@ controls the graphical area on which the plot graphic is drawn.
 It contains two tabs, <label>Size</label> and <label>Title</label>.
 </p>
 
+<subdiv>
+<subhead><title>Size Tab</title></subhead>
+
 <figure>
 <caption><px>Frame control Size tab</px></caption>
 <figureimage src="&FIG.size_tab;"/>
@@ -8025,6 +8028,11 @@ of the generated images if you want to export a series of
 similar plots.
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Title Tab</title></subhead>
+
 <figure>
 <caption><px>Frame control Title tab</px></caption>
 <figureimage src="&FIG.title_tab;"/>
@@ -8036,6 +8044,8 @@ and if the <label>Title Visible</label> checkbox is checked,
 then the given text will appear at the top of the plot.
 </p>
 
+</subdiv>
+
 </subsubsubsect>
 
 <subsubsubsect id="LegendControl">
@@ -8046,8 +8056,11 @@ is always visible in the plot Control Panel.
 It allows you to configure whether and how the plot legend appears.
 </p>
 
-<p>This control has two tabs.
+<p>This control has two tabs, <label>Style</label> and <label>Location</label>.
 </p>
+
+<subdiv>
+<subhead><title>Style Tab</title></subhead>
 
 <figure>
 <caption><px>Legend control Style tab</px></caption>
@@ -8076,6 +8089,11 @@ panel, and has the folowing options:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Location Tab</title></subhead>
+
 <figure>
 <caption><px>Legend control Location tab</px></caption>
 <figureimage src="&FIG.LegendControl_position;"/>
@@ -8088,6 +8106,8 @@ If Internal is chosen, then a control is activated showing a small box
 inside a large box.  Drag the small box around with the mouse to
 change the position of the legend inside the plot bounds.
 </p>
+
+</subdiv>
 
 <p>Note the font used in the legend is currently controlled by the font from
 the <label>Axes</label> selector.
@@ -8309,6 +8329,9 @@ To export this into a graphic file, simply add or modify the
 <code>out</code> parameter (e.g. <code>out=tc-plot.pdf</code>).
 </p>
 
+<subdiv>
+<subhead><title>Formatting Tab</title></subhead>
+
 <figure>
 <caption><px>STILTS control Formatting tab</px></caption>
 <figureimage src="&FIG.StiltsControl_formatting;"/>
@@ -8437,6 +8460,8 @@ but it may be useful for instance to change line ending characters.
 </dl>
 </p>
 
+</subdiv>
+
 </subsubsubsect>
 
 <subsubsubsect id="ShaderControl">
@@ -8469,8 +8494,13 @@ but use their own colour map, and don't display the colour ramp.
 will not appear in the stack.
 </p>
 
-<p>When present, this control has three following tabs.
+<p>When present, this control has three tabs,
+<label>Map</label>, <label>Ramp</label> and <label>Range</label>,
+described below.
 </p>
+
+<subdiv>
+<subhead><title>Map Tab</title></subhead>
 
 <figure>
 <caption><px>Aux axis control Map tab</px></caption>
@@ -8554,6 +8584,11 @@ It has the following options:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Ramp Tab</title></subhead>
+
 <figure>
 <caption><px>Aux axis control Ramp tab</px></caption>
 <figureimage src="&FIG.ShaderControl_ramp;"/>
@@ -8585,6 +8620,11 @@ It has the following options:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Range Tab</title></subhead>
+
 <figure>
 <caption><px>Aux axis control Range tab</px></caption>
 <figureimage src="&FIG.ShaderControl_range;"/>
@@ -8605,6 +8645,8 @@ it is dynamically updated for the current view of the plot.
 This checkbox is a duplicate of the &IMG.AUX_LOCK; toggle button on the plot
 window toolbar described in <ref id="StackPlotWindow"/>.
 </p>
+
+</subdiv>
 
 <p>Note the font used for labelling the aux axis is currently controlled by 
 the font from the <label>Axes</label> selector.
@@ -8667,6 +8709,9 @@ the <label>Position</label> and <label>Form</label> tabs
 are described in more detail below.
 </p>
 
+<subdiv>
+<subhead><title>Position Tab</title></subhead>
+
 <figure>
 <caption><px>Position tab of Position layer control,
              for Plane plot</px></caption>
@@ -8697,6 +8742,11 @@ it does not for instance swap the log flags for the axes,
 so the result may not be exactly the same as reflecting the plot
 about the X=Y line.
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Form Tab</title></subhead>
 
 <figure>
 <caption><px>Form tab of Position layer control</px></caption>
@@ -8750,6 +8800,8 @@ forms have all the panels.
 </dl>
 </p>
 
+</subdiv>
+
 </subsubsubsect>
 
 <subsubsubsect id="GangLayerControl_pair">
@@ -8786,6 +8838,9 @@ the <label>Position</label> and <label>Form</label> tabs
 are described in more detail below.
 </p>
 
+<subdiv>
+<subhead><title>Position Tab</title></subhead>
+
 <figure>
 <caption><px>Position tab of Pair Position layer control,
              for Sky plot</px></caption>
@@ -8807,6 +8862,11 @@ fields for the first and second longitude/latitude pairs,
 while a Plane plot has
 <label>X1</label>, <label>Y1</label>, <label>X2</label> and <label>Y2</label>.
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Form Tab</title></subhead>
 
 <figure>
 <caption><px>Form tab of Pair Position layer control</px></caption>
@@ -8844,6 +8904,8 @@ but the detail panels are divided into these parts:
 </dl>
 </p>
 
+</subdiv>
+
 </subsubsubsect>
 
 <subsubsubsect id="GangLayerControl_quad">
@@ -8877,6 +8939,9 @@ the <label>Position</label> and <label>Form</label> tabs
 are described in more detail below.
 </p>
 
+<subdiv>
+<subhead><title>Position Tab</title></subhead>
+
 <figure>
 <caption><px>Position tab of Quad Position layer control,
              for Plane plot</px></caption>
@@ -8902,6 +8967,11 @@ for the 3-dimensional Cartesian triples.
 in sky plots, positions will be filled in automatically.
 You can of course change these default selections.
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Form Tab</title></subhead>
 
 <figure>
 <caption><px>Form tab of Quad Position layer control</px></caption>
@@ -8940,6 +9010,8 @@ but the detail panels are divided into these parts:
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
 
 <p>If you want to draw triangles instead of quadrilaterals,
 you can just supply the same coordinates for two of the positions.
@@ -8989,6 +9061,9 @@ or by executing a suitable (GROUP BY healpix_index) database query.
 <p>This control has two tabs, <label>Data</label> and <label>Style</label>.
 </p>
 
+<subdiv>
+<subhead><title>Data Tab</title></subhead>
+
 <figure>
 <caption><px>Healpix control Data tab</px></caption>
 <figureimage src="&FIG.HealpixLayerControl_data;"/>
@@ -9037,6 +9112,11 @@ containing the healpix tile data.  It has the following fields:
 <p>To control the colour map used to colour the sky tiles,
 use the <ref id="ShaderControl">Aux</ref> &IMG.COLORS; fixed control.
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Style Tab</title></subhead>
 
 <figure>
 <caption><px>Healpix control Style tab</px></caption>
@@ -9120,6 +9200,8 @@ of the plot's appearance.  It has the following fields:
 </dl>
 </p>
 
+</subdiv>
+
 </subsubsubsect>
 
 <subsubsubsect id="HistogramLayerControl">
@@ -9161,6 +9243,9 @@ the <label>Position</label> and <label>Form</label> tabs
 are described in more detail below.
 </p>
 
+<subdiv>
+<subhead><title>Position Tab</title></subhead>
+
 <figure>
 <caption><px>Position tab of Histogram layer control</px></caption>
 <figureimage src="&FIG.HistogramLayerControl_position;"/>
@@ -9176,6 +9261,11 @@ are counted; each table row contributes a height value of the
 weighting coordinate to the bin into which its X coordinate falls.
 If Weight is not filled in, a value of 1 is assumed.
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Form Tab</title></subhead>
 
 <figure>
 <caption><px>Form tab of Histogram layer control</px></caption>
@@ -9213,6 +9303,8 @@ to a histogram.
 configuration specific to the selected form
 as described in <ref id="tableDataControl"/>.
 </p>
+
+</subdiv>
 
 <p>Histograms have some additional configuration items,
 as described in the
@@ -9274,6 +9366,9 @@ These issues may be addressed in future releases.
 the <label>Position</label> and <label>Form</label> tabs
 are described in more detail below.
 </p>
+
+<subdiv>
+<subhead><title>Position Tab</title></subhead>
 
 <figure>
 <caption><px>Position tab of Area layer control, for Sky Plot</px></caption>
@@ -9342,6 +9437,11 @@ the guess accordingly; if you don't want it to do that, use the
 <label>Lock</label> (&IMG.LOCK;) button to stop it happening.
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Form Tab</title></subhead>
+
 <figure>
 <caption><px>Form tab of Area layer control</px></caption>
 <figureimage src="&FIG.GangLayerControl_area_form;"/>
@@ -9386,6 +9486,8 @@ divided into two parts:
 </dl>
 </p>
 
+</subdiv>
+
 </subsubsubsect>
 
 <subsubsubsect id="SpectrogramLayerControl">
@@ -9416,6 +9518,9 @@ or the corresponding item in the <label>Layers</label> menu.
 described below.
 The <label>Zone</label> tab is described in <ref id="plotZones"/>.
 </p>
+
+<subdiv>
+<subhead><title>Data Tab</title></subhead>
 
 <figure>
 <caption><px>Spectrogram control Data tab</px></caption>
@@ -9453,6 +9558,8 @@ It has the following fields:
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
 
 <p>To control the colour map used to represent the spectral values,
 use the <ref id="ShaderControl">Aux</ref> &IMG.COLORS; fixed control.
@@ -9497,6 +9604,9 @@ the <label>Position</label> and <label>Form</label> tabs
 are described in more detail below.
 </p>
 
+<subdiv>
+<subhead><title>Position Tab</title></subhead>
+
 <figure>
 <caption><px>Position tab of XYArray layer control</px></caption>
 <figureimage src="&FIG.GangLayerControl_xyarray_position;"/>
@@ -9526,6 +9636,11 @@ these can be referred to using the syntax "<code>param$&lt;name&gt;</code>",
 as explained in <ref id="jelParams"/>.
 It helps if columns are declared with fixed array sizes, where applicable.
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Form Tab</title></subhead>
 
 <figure>
 <caption><px>Form tab of XYArray layer control</px></caption>
@@ -9577,6 +9692,8 @@ but the detail panels are divided into these parts:
 </dl>
 </p>
 
+</subdiv>
+
 </subsubsubsect>
 
 
@@ -9605,6 +9722,9 @@ or the corresponding item in the <label>Layers</label> menu.
 <label>Function</label>, <label>Style</label> and <label>Label</label>,
 described below.
 </p>
+
+<subdiv>
+<subhead><title>Function Tab</title></subhead>
 
 <figure>
 <caption><px>Function control Function tab</px></caption>
@@ -9635,6 +9755,11 @@ and has the following fields:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Style Tab</title></subhead>
+
 <figure>
 <caption><px>Function control Style tab</px></caption>
 <figureimage src="&FIG.FunctionLayerControl_style;"/>
@@ -9661,6 +9786,11 @@ Options are:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Label Tab</title></subhead>
+
 <figure>
 <caption><px>Function control Label tab</px></caption>
 <figureimage src="&FIG.FunctionLayerControl_label;"/>
@@ -9684,6 +9814,8 @@ that appears in the legend.  Options are:
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
 
 </subsubsubsect>
 
@@ -13756,8 +13888,12 @@ in the <ref id="PlanePlotWindow">Plane</ref> window
 <p>There are three tabs:
 <label>Histogram</label>,
 <label>KDE</label> and
-<label>General</label>.
+<label>General</label>,
+described below.
 </p>
+
+<subdiv>
+<subhead><title>Histogram Tab</title></subhead>
 
 <figure>
 <caption><px>Histogram tab of histogram window Bins fixed control</px></caption>
@@ -13796,6 +13932,11 @@ and has the following controls:
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>KDE Tab</title></subhead>
 
 <figure>
 <caption><px>KDE tab of histogram window Bins fixed control</px></caption>
@@ -13855,6 +13996,11 @@ and has the following controls:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>General Tab</title></subhead>
+
 <figure>
 <caption><px>General tab of histogram window Bins fixed control</px></caption>
 <figureimage src="&FIG.BinsControl_general;"/>
@@ -13895,6 +14041,8 @@ and has the following controls:
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
 
 </subsubsubsect>
 
@@ -14062,6 +14210,9 @@ tab of the <ref id="PlaneAxisControl">Axes control</ref>.
 plane plot window has the following tabs:
 </p>
 
+<subdiv>
+<subhead><title>Coords Tab</title></subhead>
+
 <figure>
 <caption><px>Coords tab of plane Axes control</px></caption>
 <figureimage src="&FIG.PlaneAxisControl_coords;"/>
@@ -14086,6 +14237,11 @@ It has the following options:
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Navigation Tab</title></subhead>
 
 <figure>
 <caption><px>Navigation tab of plane Axes control</px></caption>
@@ -14121,6 +14277,11 @@ It has the following options:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Range Tab</title></subhead>
+
 <figure>
 <caption><px>Range tab of plane Axes control</px></caption>
 <figureimage src="&FIG.PlaneAxisControl_range;"/>
@@ -14144,6 +14305,11 @@ Note you can move both sliders at once by grabbing a position between the two.
 
 <p>The <label>Clear</label> button resets all the fields.
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Grid Tab</title></subhead>
 
 <figure>
 <caption><px>Grid tab of plane Axes control</px></caption>
@@ -14173,6 +14339,11 @@ It has the following options:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Labels Tab</title></subhead>
+
 <figure>
 <caption><px>Labels tab of plane Axes control</px></caption>
 <figureimage src="&FIG.PlaneAxisControl_labels;"/>
@@ -14184,6 +14355,11 @@ from one of the data coordinates being plotted on that axis.
 To override those with your own axis labels, unset Auto and type
 text in to the <label>Label</label> fields.
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Font Tab</title></subhead>
 
 <figure>
 <caption><px>Font tab</px></caption>
@@ -14214,6 +14390,8 @@ It also affects some other things like the legend.
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
 
 </subsubsubsect>
 
@@ -14364,6 +14542,9 @@ tab of the <ref id="SkyAxisControl">Axes control</ref>.
 sky plot window has the following tabs:
 </p>
 
+<subdiv>
+<subhead><title>Projection Tab</title></subhead>
+
 <figure>
 <caption><px>Projection tab of the sky Axes control</px></caption>
 <figureimage src="&FIG.SkyAxisControl_projection;"/>
@@ -14412,6 +14593,11 @@ coordinates are projected onto the screen.
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Navigation Tab</title></subhead>
+
 <figure>
 <caption><px>Navigation tab of sky Axes control</px></caption>
 <figureimage src="&FIG.SkyAxisControl_navigation;"/>
@@ -14428,6 +14614,11 @@ It has the following option:
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Field of View Tab</title></subhead>
 
 <figure>
 <caption><px>Field Of View tab of the sky Axes control</px></caption>
@@ -14460,6 +14651,11 @@ normal pan/zoom operations will not affect the content of this panel.
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Grid Tab</title></subhead>
 
 <figure>
 <caption><px>Grid tab of the sky Axes control</px></caption>
@@ -14508,6 +14704,11 @@ appear.
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Font Tab</title></subhead>
+
 <figure>
 <caption><px>Font tab</px></caption>
 <figureimage src="&FIG.font_tab;"/>
@@ -14537,6 +14738,8 @@ It also affects some other things like the legend.
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
 
 </subsubsubsect>
 
@@ -14701,6 +14904,9 @@ tab of the <ref id="CubeAxisControl">Axes control</ref>.
 cube plot window has the following tabs:
 </p>
 
+<subdiv>
+<subhead><title>Coords Tab</title></subhead>
+
 <figure>
 <caption><px>Coords tab of the cube Axes control</px></caption>
 <figureimage src="&FIG.CubeAxisControl_coords;"/>
@@ -14719,6 +14925,11 @@ It has the following options:
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Navigation Tab</title></subhead>
 
 <figure>
 <caption><px>Navigation tab of the cube Axes control</px></caption>
@@ -14747,6 +14958,11 @@ It has the following options:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Range Tab</title></subhead>
+
 <figure>
 <caption><px>Range tab of the cube Axes control</px></caption>
 <figureimage src="&FIG.CubeAxisControl_range;"/>
@@ -14771,6 +14987,11 @@ Note you can move both sliders at once by grabbing a position between the two.
 <p>The <label>Clear</label> button resets all the fields.
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>View Tab</title></subhead>
+
 <figure>
 <caption><px>View tab of the cube Axes control</px></caption>
 <figureimage src="&FIG.CubeAxisControl_view;"/>
@@ -14791,6 +15012,10 @@ the content of the cube.
     </p></dd>
 </dl>
 </p>
+</subdiv>
+
+<subdiv>
+<subhead><title>Grid Tab</title></subhead>
 
 <figure>
 <caption><px>Grid tab of the cube Axes control</px></caption>
@@ -14817,6 +15042,11 @@ cube wire frame enclosing the data volume.
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Labels Tab</title></subhead>
+
 <figure>
 <caption><px>Labels tab of the cube Axes control</px></caption>
 <figureimage src="&FIG.CubeAxisControl_labels;"/>
@@ -14828,6 +15058,11 @@ from one of the data coordinates being plotted on that axis.
 To override those with your own axis labels, unset Auto and type
 text in to the <label>Label</label> fields.
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Font Tab</title></subhead>
 
 <figure>
 <caption><px>Font tab</px></caption>
@@ -14858,6 +15093,8 @@ It also affects some other things like the legend.
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
 
 </subsubsubsect>
 
@@ -15010,8 +15247,11 @@ tab of the <ref id="SphereAxisControl">Axes control</ref>.
 sphere plot window has the following tabs:
 </p>
 
+<subdiv>
+<subhead><title>Navigation Tab</title></subhead>
+
 <figure>
-<caption><px></px></caption>
+<caption><px>Navigation tab of the sphere Axes control</px></caption>
 <figureimage src="&FIG.SphereAxisControl_navigation;"/>
 </figure>
 
@@ -15026,6 +15266,11 @@ It has the following option:
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Range Tab</title></subhead>
 
 <figure>
 <caption><px>Range tab of the sphere Axes control</px></caption>
@@ -15053,6 +15298,11 @@ The fields are:
 <p>The <label>Clear</label> button resets all the fields.
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>View Tab</title></subhead>
+
 <figure>
 <caption><px>View tab of the sphere Axes control</px></caption>
 <figureimage src="&FIG.SphereAxisControl_view;"/>
@@ -15073,6 +15323,11 @@ the content of the cube.
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Grid Tab</title></subhead>
 
 <figure>
 <caption><px>Grid tab of the sphere Axes control</px></caption>
@@ -15099,6 +15354,11 @@ cube wire frame enclosing the data volume.
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Font Tab</title></subhead>
 
 <figure>
 <caption><px>Font tab</px></caption>
@@ -15129,6 +15389,8 @@ It also affects some other things like the legend.
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
 
 </subsubsubsect>
 
@@ -15380,6 +15642,9 @@ and the axes are configured individually for each zone.
 time plot window has the following tabs:
 </p>
 
+<subdiv>
+<subhead><title>Coords Tab</title></subhead>
+
 <figure>
 <caption><px>Coords tab of time Axes control</px></caption>
 <figureimage src="&FIG.TimeAxisControl_coords;"/>
@@ -15399,6 +15664,11 @@ It has the following options:
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Navigation Tab</title></subhead>
 
 <figure>
 <caption><px>Navigation tab of time Axes control</px></caption>
@@ -15424,6 +15694,11 @@ It has the following options:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Range Tab</title></subhead>
+
 <figure>
 <caption><px>Range tab of time Axes control</px></caption>
 <figureimage src="&FIG.TimeAxisControl_range;"/>
@@ -15448,6 +15723,11 @@ For the time axis, the range may be entered as an ISO-8601 date/time value.
 
 <p>The <label>Clear</label> button resets all the fields.
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Grid Tab</title></subhead>
 
 <figure>
 <caption><px>Grid tab of time Axes control</px></caption>
@@ -15480,6 +15760,11 @@ It has the following options:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv>
+<subhead><title>Labels Tab</title></subhead>
+
 <figure>
 <caption><px>Labels tab of time Axes control</px></caption>
 <figureimage src="&FIG.TimeAxisControl_labels;"/>
@@ -15492,6 +15777,11 @@ from one of the data coordinates being plotted on that axis.
 To override that with your own axis label, unset Auto and type
 text in to the <label>Y Label</label> field.
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Font Tab</title></subhead>
 
 <figure>
 <caption><px>Font tab</px></caption>
@@ -15522,6 +15812,8 @@ It also affects some other things like the legend.
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
 
 </subsubsubsect>
 
@@ -30926,6 +31218,7 @@ introduced since the last version:
     <li>Semi-standard <code>nrows</code> column from
         <code>tap_schema.tables</code> table is now recorded and
         displayed as TAP table row count if present.</li>
+    <li>Improve formatting of some sections of this document.</li>
     </ul>
     </p></dd>
 
