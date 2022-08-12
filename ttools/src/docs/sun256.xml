@@ -10178,11 +10178,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <p>Releases to date have been as follows:
 <dl>
 
-<dt>Version 0.1b (29 April 2005)</dt>
+<dt id="v0.1b">Version 0.1b (29 April 2005)</dt>
 <dd><p>First public release
     </p></dd>
 
-<dt>Version 0.2b (30 June 2005)</dt>
+<dt id="v0.2b">Version 0.2b (30 June 2005)</dt>
 <dd><p>
   <ul>
   <li>Added Times func class for MJD-ISO8601 time conversions.</li>
@@ -10190,7 +10190,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
   </ul>
 </p></dd>
 
-<dt>Version 1.0b (30 September 2005)</dt>
+<dt id="v1.0b">Version 1.0b (30 September 2005)</dt>
 <dd><p>This is the first non-experimental release of STILTS, and 
     it incorporates major changes and backward incompatibilities 
     since version 0.2b.
@@ -10276,10 +10276,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl></p>
 </dd>
 
-<dt>Version 1.0-1b (7 October 2005)</dt>
+<dt id="v1.0-1b">Version 1.0-1b (7 October 2005)</dt>
 <dd><p>Fixed jar file manifest bug which prevented working on Java 1.5</p></dd>
 
-<dt>Version 1.1 (10 May 2006)</dt>
+<dt id="v1.1">Version 1.1 (10 May 2006)</dt>
 <dd><p>A number of new features and capabilities have been introduced:
     <dl>
     <dt><code>tcube</code> Command</dt>
@@ -10383,7 +10383,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 
 </p></dd>
 
-<dt>Version 1.2 (7 July 2006)</dt>
+<dt id="v1.2">Version 1.2 (7 July 2006)</dt>
 <dd><p>
     <dl>
     <dt>Column-oriented Storage</dt>
@@ -10416,7 +10416,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
 </p></dd>
 
-<dt>Version 1.2-1 (3 August 2006)</dt>
+<dt id="v1.2-1">Version 1.2-1 (3 August 2006)</dt>
 <dd><p>
     <ul>
     <li>Tab-Separated Table (TST) format now supported for reading and 
@@ -10429,7 +10429,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 1.3 (5 October 2006)</dt>
+<dt id="v1.3">Version 1.3 (5 October 2006)</dt>
 <dd><p>
     <dl>
 
@@ -10522,7 +10522,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
 </p></dd>
 
-<dt>Version 1.3-1 (Starlink Hokulei release)</dt>
+<dt id="v1.3-1">Version 1.3-1 (Starlink Hokulei release)</dt>
 <dd><p>
     <ul>
     <li>New command <ref id="tjoin"><code>tjoin</code></ref> introduced.</li>
@@ -10558,7 +10558,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 1.3-2 (6 July 2007)</dt>
+<dt id="v1.3-2">Version 1.3-2 (6 July 2007)</dt>
 <dd><p>
     <ul>
     <li>Added optional <code>table</code> parameter to 
@@ -10589,7 +10589,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 1.3-3 (4 Sep 2007)</dt>
+<dt id="v1.3-3">Version 1.3-3 (4 Sep 2007)</dt>
 <dd><p>
     <ul>
     <li>Experimental, and currently undocumented, <code>sqlcone</code> 
@@ -10603,14 +10603,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 1.3-4 (10 Sep 2007)</dt>
+<dt id="v1.3-4">Version 1.3-4 (10 Sep 2007)</dt>
 <dd><p>
     <ul>
     <li>Fixed VotCopy bug.</li>
     </ul>
     </p></dd>
 
-<dt>Version 1.3-5 (30 Oct 2007)</dt>
+<dt id="v1.3-5">Version 1.3-5 (30 Oct 2007)</dt>
 <dd><p>
     <ul>
     <li>Added <code>-stdout</code> and <code>-stderr</code> flags to
@@ -10622,7 +10622,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 1.4 (6 December 2007)</dt>
+<dt id="v1.4">Version 1.4 (6 December 2007)</dt>
 <dd><p>
     <dl>
     <dt>Table joins</dt>
@@ -10697,7 +10697,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 1.4-1 (28 January 2008)</dt>
+<dt id="v1.4-1">Version 1.4-1 (28 January 2008)</dt>
 <dd><p>
     <dl>
     <dt>New RDBMS-related features</dt>
@@ -10758,7 +10758,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 1.4-2 (26 March 2008)</dt>
+<dt id="v1.4-2">Version 1.4-2 (26 March 2008)</dt>
 <dd><p>
     <dl>
     <dt>Minor enhancements:</dt>
@@ -10789,7 +10789,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 2.0b (23 October 2008)</dt>
+<dt id="v2.0b">Version 2.0b (23 October 2008)</dt>
 <dd><p>This version contains two new major items, plotting and server mode.
     Both work, but are missing desirable features and have not had extensive
     testing in the field, so should be considered experimental at this stage.
@@ -10845,7 +10845,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 2.0-1 (23 December 2008)</dt>
+<dt id="v2.0-1">Version 2.0-1 (23 December 2008)</dt>
 <dd><p>
     <ul>
     <li>Can reference columns/parameters by Utype by using 
@@ -10862,7 +10862,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 2.0-2 (9 January 2009)</dt>
+<dt id="v2.0-2">Version 2.0-2 (9 January 2009)</dt>
 <dd><p>
     <ul>
     <li>Added new <ref id="mode-samp">samp</ref> output mode which passes
@@ -10874,7 +10874,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 2.0-3 (27 March 2009)</dt>
+<dt id="v2.0-3">Version 2.0-3 (27 March 2009)</dt>
 <dd><p>
     <ul>
     <li>Fits BINTABLE TZERO/TSCAL value reading improvements:
@@ -10907,7 +10907,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 2.0-4 (17 July 2009)</dt>
+<dt id="v2.0-4">Version 2.0-4 (17 July 2009)</dt>
 <dd><p>
     <ul>
     <li>Work around J2SE mark/reset bug when loading table direct from URL.</li>
@@ -10922,7 +10922,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 2.0-5 (2 Oct 2009)</dt>
+<dt id="v2.0-5">Version 2.0-5 (2 Oct 2009)</dt>
 <dd><p>
     <ul>
     <li>VOTable 1.2 supported.</li>
@@ -10954,7 +10954,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 2.1 (6 November 2009)</dt>
+<dt id="v2.1">Version 2.1 (6 November 2009)</dt>
 <dd><p>
     <ul>
     <li><code>coneskymatch</code> can now match using SIA and SSA
@@ -10974,7 +10974,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     you might want to wait for a later release when the API has settled down.
     </p></dd>
 
-<dt>Version 2.1-1 (21 December 2009)</dt>
+<dt id="v2.1-1">Version 2.1-1 (21 December 2009)</dt>
 <dd><p>
     <ul>
     <li>Plotting commands can now output to PDF as well as existing graphics
@@ -10988,7 +10988,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 2.1-2 (24 March 2010)</dt>
+<dt id="v2.1-2">Version 2.1-2 (24 March 2010)</dt>
 <dd><p>
     <ul>
     <li><ref id="jystilts">JyStilts</ref> introduced.
@@ -11069,7 +11069,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </p>
     </dd>
 
-<dt>Version 2.2 (6 August 2010)</dt>
+<dt id="v2.2">Version 2.2 (6 August 2010)</dt>
 <dd><p>New capabilities for multi-table I/O have been introduced:
     <ul>
     <li>New multi-table output tasks
@@ -11122,7 +11122,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     not the case.
     </p></dd>
 
-<dt>Version 2.2-1 (23 December 2010)</dt>
+<dt id="v2.2-1">Version 2.2-1 (23 December 2010)</dt>
 <dd><p>
     <ul>
     <li>Storage management improvements; removed restriction on large
@@ -11144,7 +11144,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 2.3 (9 May 2011)</dt>
+<dt id="v2.3">Version 2.3 (9 May 2011)</dt>
 <dd><p>
     <dl>
     <dt>TAP</dt>
@@ -11194,7 +11194,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 2.3-1 (30 June 2011)</dt>
+<dt id="v2.3-1">Version 2.3-1 (30 June 2011)</dt>
 <dd><p>
     <ul>
     <li>Added new command <code>taplint</code>.
@@ -11218,7 +11218,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 2.4 (27 October 2011)</dt>
+<dt id="v2.4">Version 2.4 (27 October 2011)</dt>
 <dd><p>
     <dl>
     <dt>Crossmatching:</dt>
@@ -11312,7 +11312,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 2.5 (28 March 2013)</dt>
+<dt id="v2.5">Version 2.5 (28 March 2013)</dt>
 <dd><p>
     <dl>
     <dt>New coverage-related functionality:</dt>
@@ -11456,7 +11456,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 2.5-1 (1 July 2013)</dt>
+<dt id="v2.5-1">Version 2.5-1 (1 July 2013)</dt>
 <dd><p>
     <dl>
     <dt>New functionality</dt>
@@ -11506,7 +11506,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 2.5-2 (7 March 2014)</dt>
+<dt id="v2.5-2">Version 2.5-2 (7 March 2014)</dt>
 <dd><p>
     <ul>
     <li>Add some more colour maps.</li>
@@ -11532,7 +11532,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 2.5-3 (4 July 2014)</dt>
+<dt id="v2.5-3">Version 2.5-3 (4 July 2014)</dt>
 <dd><p>
     <dl>
     <dt>New and improved functionality:</dt>
@@ -11589,7 +11589,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.0 (3 October 2014)</dt>
+<dt id="v3.0">Version 3.0 (3 October 2014)</dt>
 <dd><p>
     <dl>
     <dt>New plotting commands:</dt>
@@ -11645,7 +11645,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.0-1 (13 November 2014)</dt>
+<dt id="v3.0-1">Version 3.0-1 (13 November 2014)</dt>
 <dd><p>
     <dl>
     <dt>New functionality:</dt>
@@ -11700,7 +11700,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.0-2 (6 February 2015)</dt>
+<dt id="v3.0-2">Version 3.0-2 (6 February 2015)</dt>
 <dd><p>
     <dl>
     <dt>Plotting enhancements:</dt>
@@ -11806,7 +11806,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.0-3 (14 April 2015)</dt>
+<dt id="v3.0-3">Version 3.0-3 (14 April 2015)</dt>
 <dd><p>
     <ul>
     <li>New System Command option for
@@ -11855,7 +11855,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 3.0-4 (17 August 2015)</dt>
+<dt id="v3.0-4">Version 3.0-4 (17 August 2015)</dt>
 <dd><p>
     <dl>
     <dt>Bugfixes (some significant):</dt>
@@ -11955,7 +11955,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.0-5 (22 October 2015)</dt>
+<dt id="v3.0-5">Version 3.0-5 (22 October 2015)</dt>
 <dd><p>
     <ul>
     <li>Fix error reporting bug when a non-VOTable response is received
@@ -11976,7 +11976,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 3.0-6 (27 November 2015)</dt>
+<dt id="v3.0-6">Version 3.0-6 (27 November 2015)</dt>
 <dd><p>
     <dl>
     <dt>Crossmatching bug fix</dt>
@@ -12076,7 +12076,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.0-7 (10 June 2016)</dt>
+<dt id="v3.0-7">Version 3.0-7 (10 June 2016)</dt>
 <dd><p>
     <dl>
     <dt>Expression Language</dt>
@@ -12227,7 +12227,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.0-8 (13 September 2016)</dt>
+<dt id="v3.0-8">Version 3.0-8 (13 September 2016)</dt>
 <dd><p>
     <ul>
     <li>New task <ref id="tskymap">tskymap</ref> lets you generate all-sky
@@ -12276,7 +12276,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 3.0-9 (23 September 2016)</dt>
+<dt id="v3.0-9">Version 3.0-9 (23 September 2016)</dt>
 <dd><p>
     <ul>
     <li>Fix aux ranging bug in some plot types
@@ -12291,7 +12291,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Version 3.1 (8 March 2017)</dt>
+<dt id="v3.1">Version 3.1 (8 March 2017)</dt>
 <dd><p>
     <dl>
     <dt>Plotting improvements</dt>
@@ -12400,7 +12400,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.1-1 (29 September 2017)</dt>
+<dt id="v3.1-1">Version 3.1-1 (29 September 2017)</dt>
 <dd><p>
     <dl>
     <dt>New functionality</dt>
@@ -12533,7 +12533,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.1-2 (7 November 2017)</dt>
+<dt id="v3.1-2">Version 3.1-2 (7 November 2017)</dt>
 <dd><p>
     <dl>
     <dt>New expression language functions</dt>
@@ -12585,7 +12585,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.1-3 (24 April 2018)</dt>
+<dt id="v3.1-3">Version 3.1-3 (24 April 2018)</dt>
 <dd><p>
     <dl>
     <dt>New Functionality</dt>
@@ -12720,7 +12720,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </p>
     </dd>
 
-<dt>Version 3.1-4 (18 May 2018)</dt>
+<dt id="v3.1-4">Version 3.1-4 (18 May 2018)</dt>
 <dd><p>Bugfixes and minor enhancements:
     <ul>
     <li>Add new option <code>delete=now</code> to
@@ -12740,7 +12740,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </p>
     </dd>
 
-<dt>Version 3.1-5 (2 November 2018)</dt>
+<dt id="v3.1-5">Version 3.1-5 (2 November 2018)</dt>
 <dd><p>
     <dl>
     <dt>Plotting:</dt>
@@ -12881,7 +12881,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </p>
     </dd>
 
-<dt>Version 3.1-6 (9 May 2019)</dt>
+<dt id="v3.1-6">Version 3.1-6 (9 May 2019)</dt>
 <dd><p>
     <dl>
     <dt>Plotting enhancements</dt>
@@ -13054,7 +13054,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </p>
     </dd>
 
-<dt>Version 3.2 (18 November 2019)</dt>
+<dt id="v3.2">Version 3.2 (18 November 2019)</dt>
 <dd><p>
     <dl>
     <dt>Runtime environment: Java 8</dt>
@@ -13173,7 +13173,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.2-1 (5 June 2020)</dt>
+<dt id="v3.2-1">Version 3.2-1 (5 June 2020)</dt>
 <dd><p>
     <dl>
     <dt>File Formats:</dt>
@@ -13319,7 +13319,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.2-2 (24 August 2020)</dt>
+<dt id="v3.2-2">Version 3.2-2 (24 August 2020)</dt>
 <dd><p>
     <dl>
     <dt>New Functionality:</dt>
@@ -13354,7 +13354,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.3 (23 October 2020)</dt>
+<dt id="v3.3">Version 3.3 (23 October 2020)</dt>
 <dd><p>
     <dl>
     <dt>Plot server</dt>
@@ -13377,7 +13377,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.4 (11 January 2021)</dt>
+<dt id="v3.4">Version 3.4 (11 January 2021)</dt>
 <dd><p>In this version, the table handling library STIL has
     been upgraded to v4.0, which enables some enhancements
     including multithreading and new I/O handler features.
@@ -13487,7 +13487,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.4-1 (10 June 2021)</dt>
+<dt id="v3.4-1">Version 3.4-1 (10 June 2021)</dt>
 <dd><p>
     <dl>
     <dt>File formats:</dt>
@@ -13653,7 +13653,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.4-2 (15 October 2021)</dt>
+<dt id="v3.4-2">Version 3.4-2 (15 October 2021)</dt>
 <dd><p>
     <dl>
     <dt>Taplint and Votlint changes:</dt>
@@ -13799,7 +13799,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.4-3 (31 January 2022)</dt>
+<dt id="v3.4-3">Version 3.4-3 (31 January 2022)</dt>
 <dd><p>
     <dl>
     <dt>New functionality:</dt>
@@ -13891,7 +13891,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.4-4 (6 April 2022)</dt>
+<dt id="v3.4-4">Version 3.4-4 (6 April 2022)</dt>
 <dd><p>
     <dl>
     <dt>Performance</dt>
@@ -13961,7 +13961,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.4-5 (10 June 2022)</dt>
+<dt id="v3.4-5">Version 3.4-5 (10 June 2022)</dt>
 <dd><p>
     <dl>
     <dt>New Functionality</dt>
@@ -14026,7 +14026,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Version 3.4-6 (8 July 2022)</dt>
+<dt id="v3.4-6">Version 3.4-6 (8 July 2022)</dt>
 <dd><p>
     <dl>
     <dt>Enhancements</dt>
