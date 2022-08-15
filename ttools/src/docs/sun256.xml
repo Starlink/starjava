@@ -12809,7 +12809,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             Also does more complete deletion of submitted jobs.</li>
         <li><code>taplint</code> schema validation now takes account of
             <webref
-               url="http://wiki.ivoa.net/twiki/bin/view/IVOA/VOTable-1_3-Err-2"
+               url="https://wiki.ivoa.net/twiki/bin/view/IVOA/VOTable-1_3-Err-2"
                     >VOTable 1.3 Erratum #2</webref> -
             <code>FIELD/@precision</code> attribute values
             "<code>F0</code>"/"<code>E0</code>" are now permitted.</li>

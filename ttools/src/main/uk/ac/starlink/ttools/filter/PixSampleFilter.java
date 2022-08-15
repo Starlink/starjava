@@ -72,8 +72,7 @@ public class PixSampleFilter extends BasicFilter {
             "<webref url='https://lambda.gsfc.nasa.gov/' "
                   + "plaintextref='yes'>LAMBDA</webref> archive;",
             "see for instance the page on",
-            "<webref url='https://lambda.gsfc.nasa.gov/product/"
-                       + "foreground/f_products.cfm'>"
+            "<webref url='https://lambda.gsfc.nasa.gov/product/foreground/'>"
                        + "foreground products</webref>",
             "(including dust emission, reddening etc)",
             "or",
