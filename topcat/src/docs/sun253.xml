@@ -31219,6 +31219,8 @@ introduced since the last version:
         <code>tap_schema.tables</code> table is now recorded and
         displayed as TAP table row count if present.</li>
     <li>Improve formatting of some sections of this document.</li>
+    <li>When a new column is added, the Column and Table window displays
+        are now scrolled to ensure that the new entry is visible.</li>
     </ul>
     </p></dd>
 

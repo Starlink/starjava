@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.Container;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -26,6 +28,8 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnInfo;
@@ -354,6 +358,25 @@ public class TopcatUtils {
         Clipboard primary = toolkit.getSystemSelection();
         if ( primary != null ) {
             primary.setContents( selection, selection );
+        }
+    }
+
+    /**
+     * Scrolls a JTable as necessary to ensure that a given row index
+     * is scrolled to the visible part of the viewport.
+     *
+     * @param  jtab  JTable
+     * @param  irow   table index that must be visible
+     * @see  javax.swing.JList#ensureIndexIsVisible(int)
+     */
+    public static void ensureRowIndexIsVisible( JTable jtab, int irow ) {
+        Container tParent = jtab.getParent();
+        if ( tParent instanceof JViewport ) {
+            Rectangle vRect = ((JViewport) tParent).getViewRect();
+            Rectangle cRect = jtab.getCellRect( irow, 0, true );
+            Rectangle targetRect =
+                new Rectangle( vRect.x, cRect.y, vRect.width, cRect.height );
+            jtab.scrollRectToVisible( targetRect );
         }
     }
 

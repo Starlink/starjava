@@ -488,6 +488,23 @@ public class ColumnInfoWindow extends AuxWindow {
         columnModel.addColumnModelListener( new TableColumnModelAdapter() {
             public void columnAdded( TableColumnModelEvent evt ) {
                 changed();
+
+                /* If a column is added to the model, scroll the table so
+                 * that it's visible and message the TopcatModel so that the
+                 * table view is scrolled sideways to make it visible there.
+                 * We schedule this for later execution as a hack;
+                 * if the user requests adding a column at some position
+                 * other than the end, it gets added then immediately moved.
+                 * Doing it like this allows the final resting place of the
+                 * column rather than its initial one to be made visible. */
+                TableColumn tc = columnModel.getColumn( evt.getToIndex() );
+                SwingUtilities.invokeLater( () -> {
+                    int ir = getRowIndexFromColumn( tc );
+                    if ( ir >= 0 ) {
+                        TopcatUtils.ensureRowIndexIsVisible( jtab, ir );
+                        tcModel.fireModelChanged( TopcatEvent.COLUMN, tc );
+                    }
+                } );
             }
             public void columnMoved( TableColumnModelEvent evt ) {
                 changed();
@@ -702,6 +719,22 @@ public class ColumnInfoWindow extends AuxWindow {
             }
             return -1;
         }
+    }
+
+    /**
+     * Returns the row index in the sorted table model at which a given
+     * TableColumn is found.
+     *
+     * @param   tc  table column
+     * @return  index of JTable row, or -1 if not found
+     */
+    private int getRowIndexFromColumn( TableColumn tc ) {
+        for ( int ir = 1; ir < jtab.getRowCount(); ir++ ) {
+            if ( getColumnFromRow( toUnsortedIndex( ir ) ) == tc ) {
+                return ir;
+            }
+        }
+        return -1;
     }
 
     /**
