@@ -133,7 +133,7 @@ public class CdfTableBuilder extends DocumentedTableBuilder {
     public String getXmlDescription() {
         return String.join( "\n",
             "<p>NASA's Common Data Format, described at",
-            DocumentedIOHandler.toLink( "http://cdf.gsfc.nasa.gov/" ) + ",",
+            DocumentedIOHandler.toLink( "https://cdf.gsfc.nasa.gov/" ) + ",",
             "is a binary format for storing self-described data.",
             "It is typically used to store tabular data for subject areas",
             "like space and solar physics.",

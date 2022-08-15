@@ -22,7 +22,7 @@ import uk.ac.starlink.util.LongList;
  * Interrogates a HEALPix all-sky map to sample pixel data.
  * The map is supplied in the form of a table (one row per pixel,
  * using HEALPix pixel indices), as used for instance by
- * <a href="http://lambda.gsfc.nasa.gov/">LAMBDA</a>.
+ * <a href="https://lambda.gsfc.nasa.gov/">LAMBDA</a>.
  *
  * @author   Mark Taylor
  * @since    5 Dec 2011

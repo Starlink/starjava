@@ -20,7 +20,7 @@ import edu.jhu.htm.core.HTMfunc;
  * @author   Mark Taylor
  * @since    6 Dec 2007
  * @see      <a href="http://www.skyserver.org/htm/">HTM web site</a>
- * @see      <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
+ * @see      <a href="https://healpix.jpl.nasa.gov/">HEALPix web site</a>
  */
 public class Tilings {
 
@@ -60,7 +60,7 @@ public class Tilings {
      * @param   lon    longitude in degrees
      * @param   lat    latitude in degrees
      * @return  pixel index
-     * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
+     * @see     <a href="https://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static long healpixNestIndex( int k, double lon, double lat ) {
         return Healpix.getNestedFast( k )
@@ -75,7 +75,7 @@ public class Tilings {
      * @param   lon    longitude in degrees
      * @param   lat    latitude in degrees
      * @return  pixel index
-     * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
+     * @see     <a href="https://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static long healpixRingIndex( int k, double lon, double lat ) {
         return healpixNestToRing( k, healpixNestIndex( k, lon, lat ) );
@@ -94,7 +94,7 @@ public class Tilings {
      * @param   k      HEALPix order (0..29)
      * @param   index  healpix index
      * @return  longitude in degrees
-     * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
+     * @see     <a href="https://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static double healpixNestLon( int k, long index ) {
         return Math.toDegrees( Healpix.getNestedFast( k )
@@ -114,7 +114,7 @@ public class Tilings {
      * @param   k      HEALPix order (0..29)
      * @param   index  healpix index
      * @return  latitude in degrees
-     * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
+     * @see     <a href="https://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static double healpixNestLat( int k, long index ) {
         return Math.toDegrees( Healpix.getNestedFast( k )
@@ -134,7 +134,7 @@ public class Tilings {
      * @param   k      HEALPix order (0..29)
      * @param   index  healpix index
      * @return  longitude in degrees
-     * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
+     * @see     <a href="https://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static double healpixRingLon( int k, long index ) {
         return healpixNestLon( k, healpixRingToNest( k, index ) );
@@ -153,7 +153,7 @@ public class Tilings {
      * @param   k      HEALPix order (0..29)
      * @param   index  healpix index
      * @return  latitude in degrees
-     * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
+     * @see     <a href="https://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static double healpixRingLat( int k, long index ) {
         return healpixNestLat( k, healpixRingToNest( k, index ) );
@@ -172,7 +172,7 @@ public class Tilings {
      * @param   k      HEALPix order (0..29)
      * @param  nestIndex   pixel index in NEST scheme
      * @return  pixel index in RING scheme
-     * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
+     * @see     <a href="https://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static long healpixNestToRing( int k, long nestIndex ) {
         return Healpix.getNested( k ).toRing( nestIndex );
@@ -191,7 +191,7 @@ public class Tilings {
      * @param   k      HEALPix order (0..29)
      * @param  ringIndex   pixel index in RING scheme
      * @return  pixel index in NEST scheme
-     * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
+     * @see     <a href="https://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static long healpixRingToNest( int k, long ringIndex ) {
         return Healpix.getNested( k ).toNested( ringIndex );
@@ -205,7 +205,7 @@ public class Tilings {
      *
      * @param   pixelsize   pixel size in degrees
      * @return  HEALPix order <code>k</code>
-     * @see     <a href="http://healpix.jpl.nasa.gov/">HEALPix web site</a>
+     * @see     <a href="https://healpix.jpl.nasa.gov/">HEALPix web site</a>
      */
     public static int healpixK( double pixelsize ) {
         return Math.max( 0,

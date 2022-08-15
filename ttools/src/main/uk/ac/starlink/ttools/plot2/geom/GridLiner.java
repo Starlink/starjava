@@ -31,8 +31,8 @@ class GridLine {
   *
   * @author   Tom McGlynn (NASA GSFC)
   * @author   Mark Taylor
-  * @see      <a href="http://skyview.gsfc.nasa.gov/"
-  *                   >http://skyview.gsfc.nasa.gov/</a>
+  * @see      <a href="https://skyview.gsfc.nasa.gov/"
+  *                   >https://skyview.gsfc.nasa.gov/</a>
   */
 public class GridLiner  {
     

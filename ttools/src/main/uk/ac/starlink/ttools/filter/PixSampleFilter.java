@@ -69,15 +69,15 @@ public class PixSampleFilter extends BasicFilter {
             "corresponding to each of these pixel columns.",
             "This type of data is available in FITS tables for a number of",
             "all-sky data sets, particularly from the",
-            "<webref url='http://lambda.gsfc.nasa.gov/' "
+            "<webref url='https://lambda.gsfc.nasa.gov/' "
                   + "plaintextref='yes'>LAMBDA</webref> archive;",
             "see for instance the page on",
-            "<webref url='http://lambda.gsfc.nasa.gov/product/"
+            "<webref url='https://lambda.gsfc.nasa.gov/product/"
                        + "foreground/f_products.cfm'>"
                        + "foreground products</webref>",
             "(including dust emission, reddening etc)",
             "or",
-            "<webref url='http://lambda.gsfc.nasa.gov/product/"
+            "<webref url='https://lambda.gsfc.nasa.gov/product/"
                       + "map/dr4/ilc_map_get.cfm'>WMAP 7 year data</webref>.",
             "If the filename given does not appear to point to a file",
             "of the appropriate format, an error will result.",

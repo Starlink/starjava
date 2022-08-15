@@ -11411,7 +11411,7 @@ You can optionally use a weighting for the data values to accumulate
 within each HEALPix tile,
 and you can configure how the weighted values are combined to
 generate the eventual pixel values (and hence colours).
-<webref url="http://healpix.jpl.nasa.gov/">HEALPix</webref>
+<webref url="https://healpix.jpl.nasa.gov/">HEALPix</webref>
 is a tiling scheme for the sky which uses square-ish pixels
 of equal area to cover the celestial sphere.
 </p>
@@ -25533,7 +25533,7 @@ functionality:
 <li><webref url="https://github.com/cds-astro/cds-healpix-java"
             >cds-healpix-java</webref>
     (F-X Pineau, CDS) for HEALPix manipulation</li>
-<li><webref url="http://skyview.gsfc.nasa.gov/jar/jar.html"
+<li><webref url="https://skyview.gsfc.nasa.gov/jar/jar.html"
             >Skyview in a Jar</webref> (NASA) for sky axis drawing</li>
 <li><webref url="http://forge.scilab.org/index.php/p/jlatexmath/"
             >JLaTeXMath</webref> (Scilab) for LaTeX typesetting in plots</li>
@@ -28105,7 +28105,7 @@ introduced since the last version:
     <dd><p>
         <ul>
         <li>Add read-only support for
-            <webref url="http://cdf.gsfc.nasa.gov/">CDF</webref>
+            <webref url="https://cdf.gsfc.nasa.gov/">CDF</webref>
             (NASA Common Data Format) files.
             Currently, no attempt is made to present time-like values in a
             human-friendly way, but this may improve in a future release.

@@ -6497,7 +6497,7 @@ Other options (e.g. max/min) could easily be added.
 data in general, it is used for storing a number of important all-sky
 data sets such as the WMAP results and Schlegel dust maps.
 The NASA 
-<webref url="http://lambda.gsfc.nasa.gov/" plaintextref="yes">LAMBDA</webref>
+<webref url="https://lambda.gsfc.nasa.gov/" plaintextref="yes">LAMBDA</webref>
 (Legacy Archive for Microwave Background Data Analysis)
 archive has a number of maps in a suitable format,
 including foreground data like predicted reddening as well as CMB maps.
@@ -6534,7 +6534,7 @@ stilts pixsample in=szdata.fits pixdata=wmap_ilc_7yr_v4.fits
     <p>
     The pixdata file used here can be found (at time of writing) at
     <webref
-    url='http://lambda.gsfc.nasa.gov/data/map/dr4/dfp/ilc/wmap_ilc_7yr_v4.fits'
+    url='https://lambda.gsfc.nasa.gov/data/map/dr4/dfp/ilc/wmap_ilc_7yr_v4.fits'
     /> (24 Mbyte).
     </p></dd>
 
@@ -6554,7 +6554,7 @@ stilts pixsample in=messier.xml pixdata=lambda_sfd_ebv.fits
     <p>
     The pixdata file used here can be found (at time of writing) at
     <webref
-      url='http://lambda.gsfc.nasa.gov/data/foregrounds/SFD/lambda_sfd_ebv.fits'
+     url='https://lambda.gsfc.nasa.gov/data/foregrounds/SFD/lambda_sfd_ebv.fits'
     /> (25 Mbyte).
     </p></dd>
 
@@ -10137,7 +10137,7 @@ functionality:
     (CDS) for Multi-Order Coverage map manipulation</li>
 <li><webref url="http://cdsportal.u-strasbg.fr/adqltuto/">ADQL</webref>
     (CDS) for ADQL parsing in TAP query preparation</li>
-<li><webref url="http://skyview.gsfc.nasa.gov/jar/jar.html"
+<li><webref url="https://skyview.gsfc.nasa.gov/jar/jar.html"
             >Skyview in a Jar</webref> (NASA) for sky axis drawing</li>
 <li><webref url="http://forge.scilab.org/index.php/p/jlatexmath/"
             >JLaTeXMath</webref> (Scilab) for LaTeX typesetting in plots</li>
@@ -11459,7 +11459,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <dd><p>
         <ul>
         <li>Add read-only support for
-            <webref url="http://cdf.gsfc.nasa.gov/">CDF</webref>
+            <webref url="https://cdf.gsfc.nasa.gov/">CDF</webref>
             (NASA Common Data Format) files.</li>
         <li>Add Median Absolute Deviation calculation
             (<code>MedAbsDev</code> and <code>ScMedAbsDev</code>)

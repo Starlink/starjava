@@ -23,8 +23,8 @@ import skyview.geometry.Transformer;
  *
  *  @author   Tom McGlynn
  *  @author   Mark Taylor
- *  @see      <a href="http://skyview.gsfc.nasa.gov/"
- *                    >http://skyview.gsfc.nasa.gov/</a>
+ *  @see      <a href="https://skyview.gsfc.nasa.gov/"
+ *                    >https://skyview.gsfc.nasa.gov/</a>
  */
 public final class Sin2 extends Projecter {
     

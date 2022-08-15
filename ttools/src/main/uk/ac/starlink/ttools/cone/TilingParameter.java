@@ -53,7 +53,7 @@ public class TilingParameter extends Parameter<SkyTiling> {
             "<p>At level K, there are 12*4^K HEALPix pixels,",
             "or 8*4^K HTM pixels on the sky.",
             "More information about these tiling schemes can be found at",
-            "the <webref url='http://healpix.jpl.nasa.gov/'>HEALPix</webref>",
+            "the <webref url='https://healpix.jpl.nasa.gov/'>HEALPix</webref>",
             "and <webref url='http://www.skyserver.org/htm/'>HTM</webref>",
             "web sites.",
             "</p>",
