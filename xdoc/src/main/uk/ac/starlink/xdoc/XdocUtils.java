@@ -122,7 +122,8 @@ public class XdocUtils {
                                   icon.getIconHeight() );
         }
         catch ( IOException e ) {
-            logger_.warning( "Can't establish dimensions for \"" + fname + '"');
+            logger_.warning( "Can't establish dimensions for \"" + fname + "\""
+                           + " (" + e + ")" );
             return new Dimension( -1, -1 );
         }
     }

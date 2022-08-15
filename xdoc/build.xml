@@ -987,7 +987,6 @@
           depends="build"
           if="junit.present">
 
-<!--
     <mkdir dir="${build.tests}"/>
 
     <javac srcdir="${tests.dir}"
@@ -999,7 +998,6 @@
       <classpath refid="tests-classpath"/>
 
     </javac>
--->
 
   </target>
 
@@ -1015,8 +1013,6 @@
   <target name="run-tests"
           depends="compile-tests"
           if="junit.present">
-<!--
-
     <junit printsummary="${junit.summary}" haltonfailure="yes"
            filtertrace="${junit.filtertrace}"
            fork="${junit.fork}">
@@ -1035,13 +1031,11 @@
 
       <batchtest>
         <fileset dir="${tests.dir}">
-          <include name="**/JUnit*"/>
+          <include name="**/*Test*"/>
         </fileset>
       </batchtest>
 
     </junit>
--->
-
   </target>
 
   <target name="run-single-test"
