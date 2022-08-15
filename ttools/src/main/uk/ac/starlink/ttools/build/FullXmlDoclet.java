@@ -19,8 +19,8 @@ import java.util.Set;
  * <p>Optional doclet flags beyond the standard ones are:
  * <dl>
  * <dt>-headonly</dt>
- * <dd>Write only the class headers, not information about the methods
- *     themselves.
+ * <dd>Write only the first sentence of the class headers,
+ *     and not information about the methods.
  * </dl>
  *
  * @author   Mark Taylor (Starlink)
@@ -127,7 +127,8 @@ public class FullXmlDoclet extends XmlDoclet {
             out( "<subsubsect id='" + clazzId_ + "'>" );
             out( "<subhead><title>" + clazz.name() + "</title></subhead>" );
         }
-        String comment = clazz.commentText();
+        String comment = headOnly_ ? firstSentence( clazz )
+                                   : clazz.commentText();
         if ( comment != null ) {
             out( doctorText( comment ) );
         }

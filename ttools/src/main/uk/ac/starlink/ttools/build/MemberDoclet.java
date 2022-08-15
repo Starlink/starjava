@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import com.sun.javadoc.AnnotationDesc;
 import com.sun.javadoc.ClassDoc;
+import com.sun.javadoc.Doc;
 import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.LanguageVersion;
 import com.sun.javadoc.MemberDoc;
@@ -428,6 +429,23 @@ public abstract class MemberDoclet {
         StringBuffer sbuf = new StringBuffer();
         for ( int i = 0; i < params.length; i++ ) {
             sbuf.append( "<p>" + params[ i ] + "</p>\n" );
+        }
+        return sbuf.toString();
+    }
+
+    /**
+     * Returns the first sentence of documentation for a Doc element
+     * as plain text.  Tags are ignored.
+     *
+     * @param  doc  documented item
+     * @return  first sentence of text
+     */
+    public static String firstSentence( Doc doc ) {
+        StringBuffer sbuf = new StringBuffer();
+        for ( Tag tag : doc.firstSentenceTags() ) {
+            if ( "Text".equals( tag.kind() ) ) {
+                sbuf.append( tag.text() );
+            }
         }
         return sbuf.toString();
     }
