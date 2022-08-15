@@ -2,9 +2,9 @@
 <xsl:stylesheet version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:java="http://xml.apache.org/xalan/java"
-                xmlns:ImageIcon="xalan://javax.swing.ImageIcon"
                 xmlns:File="xalan://java.io.File"
-                exclude-result-prefixes="java ImageIcon File">
+                xmlns:XdocUtils="xalan://uk.ac.starlink.xdoc.XdocUtils"
+                exclude-result-prefixes="java File XdocUtils">
 
   <xsl:param name="JAVADOCS"
              select="'http://andromeda.star.bris.ac.uk/starjavadocs/'"/>
@@ -792,12 +792,13 @@
       <xsl:attribute name="align">
         <xsl:text>middle</xsl:text>
       </xsl:attribute>
-      <xsl:if test="function-available('ImageIcon:getIconWidth')">
-        <xsl:variable name="srcFile" select="File:new($BASEDIR,$src)"/>
+      <xsl:if test="function-available('XdocUtils:getImageSize')">
+        <xsl:variable name="srcFile"
+                      select="File:new(string($BASEDIR),string($src))"/>
         <xsl:variable name="srcLoc" select="string(java:toString($srcFile))"/>
-        <xsl:variable name="icon" select="ImageIcon:new($srcLoc)"/>
-        <xsl:variable name="width" select="java:getIconWidth($icon)"/>
-        <xsl:variable name="height" select="java:getIconHeight($icon)"/>
+        <xsl:variable name="iconDim" select="XdocUtils:getImageSize($srcLoc)"/>
+        <xsl:variable name="width" select="java:getWidth($iconDim)"/>
+        <xsl:variable name="height" select="java:getHeight($iconDim)"/>
         <xsl:if test="$width&gt;=0">
           <xsl:attribute name="width">
             <xsl:value-of select="$width"/>

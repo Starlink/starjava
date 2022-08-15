@@ -43,8 +43,9 @@
                 xmlns:java="http://xml.apache.org/xalan/java"
                 xmlns:Date="xalan://java.util.Date"
                 xmlns:DateFormat="xalan://java.text.DateFormat"
+                xmlns:File="xalan://java.io.File"
                 xmlns:XdocUtils="xalan://uk.ac.starlink.xdoc.XdocUtils"
-                exclude-result-prefixes="java Date DateFormat XdocUtils"
+                exclude-result-prefixes="java Date DateFormat File XdocUtils"
                 >
 
   <xsl:param name="BASEDIR" select="'.'"/>
@@ -69,7 +70,9 @@
       <xsl:apply-templates select="@*"/>
       <xsl:if test="function-available('XdocUtils:getImageSize')">
         <xsl:variable name="src" select="string(./@src)"/>
-        <xsl:variable name="iconDim" select="XdocUtils:getImageSize($src)"/>
+        <xsl:variable name="srcFile" select="File:new(string($BASEDIR),$src)"/>
+        <xsl:variable name="srcLoc" select="string(java:toString($srcFile))"/>
+        <xsl:variable name="iconDim" select="XdocUtils:getImageSize($srcLoc)"/>
         <xsl:variable name="width" select="java:getWidth($iconDim)"/>
         <xsl:variable name="height" select="java:getHeight($iconDim)"/>
         <xsl:if test="$width&gt;=0">
