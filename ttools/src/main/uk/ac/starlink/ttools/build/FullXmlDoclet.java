@@ -80,7 +80,7 @@ public class FullXmlDoclet extends XmlDoclet {
      * @return   XML ID string
      */
     protected String getXmlId( ClassDoc clazz ) {
-        return clazz.qualifiedName();
+        return clazz.name();
     }
 
     /**

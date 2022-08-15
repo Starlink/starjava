@@ -2624,8 +2624,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             .append( "as described in <ref id='jel'/>.\n" );
         if ( isArray ) {
             dbuf.append( "Some of the functions in the " )
-                .append( "<ref id='uk.ac.starlink.ttools.func.Arrays'>" )
-                .append( "Arrays</ref> class\n" )
+                .append( "<ref id='Arrays'>Arrays</ref> class\n" )
                 .append( "may be useful here.\n" );
         }
         dbuf.append( "</p>\n" );

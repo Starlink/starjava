@@ -74,11 +74,6 @@ public class TopcatXmlDoclet extends FullXmlDoclet {
     }
 
     @Override
-    protected String getXmlId( ClassDoc clazz ) {
-        return clazz.name();
-    }
-
-    @Override
     protected boolean useClass( ClassDoc clazz ) {
         if ( classes_ == null ) {
             return true;

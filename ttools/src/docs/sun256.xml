@@ -4396,7 +4396,7 @@ for each row:
     <strong>NOTE:</strong> this token is deprecated since it can behave
     unpredictably (the same cell does not always yield the same result).
     Use instead the <code>random()</code> function in class
-    <ref id="uk.ac.starlink.ttools.func.Maths" plaintextref="yes">Maths</ref>.
+    <ref id="Maths" plaintextref="yes">Maths</ref>.
     </p></dd>
 </dl>
 </p>
@@ -4555,7 +4555,7 @@ The common ones are:
   <dt><code>(double)</code> (numeric -> 8-byte floating point)</dt>
   </dl>
   Note you may find the 
-  <ref id="uk.ac.starlink.ttools.func.Maths" plaintextref="yes">Maths</ref> 
+  <ref id="Maths" plaintextref="yes">Maths</ref> 
   conversion functions more convenient for numeric conversions than these.
 </p></dd>
 
@@ -5679,7 +5679,7 @@ stilts arrayjoin in=dr3-sources.vot
     will be the same, namely the row count of the table that supplied them.
     These matched arrays can be manipulated within STILTS,
     for instance using the
-    <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> functions
+    <ref id="Arrays">Arrays</ref> functions
     or to produce plots using the
     <ref id="layer-lines">lines</ref> or
     <ref id="layer-arrayquantile">arrayquantile</ref> plot layer types.
@@ -6417,7 +6417,7 @@ Other output formats may be introduced in the future.
 </p>
 
 <p>See also the
-<ref id="uk.ac.starlink.ttools.func.Coverage">Coverage</ref> class
+<ref id="Coverage">Coverage</ref> class
 for MOC-related functions.
 </p>
 
@@ -9250,8 +9250,8 @@ stilts tpipe in=survey.fits
     An alternative function, <code>skyDistanceRadians</code> which works
     in radians, is also available.
     These functions and constants used here are described in detail in
-    <ref id="uk.ac.starlink.ttools.func.CoordsDegrees"/> and
-    <ref id="uk.ac.starlink.ttools.func.CoordsRadians"/>.
+    <ref id="CoordsDegrees"/> and
+    <ref id="CoordsRadians"/>.
     </p></dd>
 
 <dt><verbatim><![CDATA[
@@ -10466,10 +10466,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ul>
         <li>Time conversion functions between MJD and Decimal Year have
             been added
-            (<ref id="uk.ac.starlink.ttools.func.Times"/>).</li>
+            (<ref id="Times"/>).</li>
         <li><code>toHex</code> and <code>fromHex</code> numeric conversion
             functions have been added
-            (<ref id="uk.ac.starlink.ttools.func.Conversions"/>).</li>
+            (<ref id="Conversions"/>).</li>
         </ul>
         </p></dd>
 
@@ -10542,15 +10542,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fixed problem which could mis-report VOTable out of memory errors
         as Broken Pipe.</li>
     <li>Added Vega&lt;-&gt;AB magnitude conversion constants to 
-        <ref id="uk.ac.starlink.ttools.func.Fluxes">Fluxes</ref> functions.</li>
+        <ref id="Fluxes">Fluxes</ref> functions.</li>
     <li>Added <code>duptag</code> parameters to <ref id="tmatch2">tmatch2</ref>
         task for customised renaming of columns with duplicated names.</li>
     <li>Added hyperbolic trig functions to
-        <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref> class
+        <ref id="Maths">Maths</ref> class
         (<code>sinh</code>, <code>cosh</code>, <code>tanh</code>
         and inverses).</li>
     <li>Added cosmology distance calculations in class
-        <ref id="uk.ac.starlink.ttools.func.Distances">Distances</ref>.</li>
+        <ref id="Distances">Distances</ref>.</li>
     <li>Added <ref id="funcs"><code>funcs</code></ref> task, a browser for
         expression language function documentation.</li>
     <li>Added <code>-checkversion</code> to list of <code>stilts</code>
@@ -10580,10 +10580,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Improve error reporting in the presence of a deficient JVM
         (such as GNU <code>gcj</code>).</li>
     <li>Add locale-specific <code>formatDecimalLocal</code> functions in 
-        class <ref id="uk.ac.starlink.ttools.func.Formats">Formats</ref>.</li>
+        class <ref id="Formats">Formats</ref>.</li>
     <li>Add <code>fluxToLuminosity</code> and <code>luminosityToFlux</code>
         functions in class 
-        <ref id="uk.ac.starlink.ttools.func.Fluxes">Fluxes</ref>.</li>
+        <ref id="Fluxes">Fluxes</ref>.</li>
     <li>Fix bug which was causing NullPointerExceptions 
         in the <code>transpose</code> filter.</li>
     </ul>
@@ -10821,7 +10821,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             for HEALPix-based sky crossmatching 
             (thanks to Nikolay Kouropatkine at Fermilab for a new version of 
             the PixTools library).</li>
-        <li>New class <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> 
+        <li>New class <ref id="Arrays">Arrays</ref> 
             added to algebraic functions.</li>
         <li>New Appendix <ref id="classified" plaintextref="yes"
                               >Commands by Category</ref>
@@ -10829,7 +10829,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             </li>
         <li>Add <code>minReal</code> and <code>maxReal</code> functions 
             (max/min ignoring blank values) in class
-            <ref id="uk.ac.starlink.ttools.func.Arithmetic">Arithmetic</ref>.
+            <ref id="Arithmetic">Arithmetic</ref>.
             </li>
         <li>Sexagesimal field identification for ASCII input files 
             is less stringent
@@ -11028,7 +11028,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New flag <code>-memgui</code> to monitor memory usage during runs.</li>
     <li>Add new filter <ref id="rowrange"><code>rowrange</code></ref>.</li>
     <li>Add new functions to 
-        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>:
+        <ref id="Arrays">Arrays</ref>:
         <code>array</code> functions for constructing arrays,
         and new aggregating functions <code>median</code> and
         <code>quantile</code>.</li>
@@ -11164,7 +11164,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             command.</li>
         <li>Added <code>count</code>, <code>variance</code> and
             <code>stdev</code> functions to 
-            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+            <ref id="Arrays">Arrays</ref>.</li>
         <li>Upgrade to JSAMP v1.2.</li>
         <li>Improve text rendering in <code>funcs</code> window display.</li>
         <li>Attempt case-sensitive matching before case-insensitive for
@@ -11257,24 +11257,20 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>Algebraic functions involving angles are now mostly available
             using degrees as well as radians.
             The <code>Coords</code> class has been replaced by
-            <ref id="uk.ac.starlink.ttools.func.CoordsDegrees"
-                                         ><code>CoordsDegrees</code></ref> and
-            <ref id="uk.ac.starlink.ttools.func.CoordsRadians"
-                                         ><code>CoordsRadians</code></ref>
+            <ref id="CoordsDegrees"><code>CoordsDegrees</code></ref> and
+            <ref id="CoordsRadians"><code>CoordsRadians</code></ref>
             classes providing sky coordinate functions,
             and a new class
-            <ref id="uk.ac.starlink.ttools.func.TrigDegrees"
-                                         ><code>TrigDegrees</code></ref>
+            <ref id="TrigDegrees"><code>TrigDegrees</code></ref>
             provides normal degree-based trigonometric functions
             alongside the radian-based versions in
-            <ref id="uk.ac.starlink.ttools.func.Maths"
-                                         ><code>Maths</code></ref>.
+            <ref id="Maths"><code>Maths</code></ref>.
             Some of the old function names have changed to make clear that they
             use radians and not degrees.
             This change should be much more convenient in most cases;
             sorry it's taken so long to get round to.</li>
         <li>Add new <code>join</code> function is added to the
-            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> class
+            <ref id="Arrays">Arrays</ref> class
             to combine all the elements of an array into a string.</li>
         </ul>
         </p></dd>
@@ -11332,7 +11328,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             cone searches that are outside the coverage region of the
             catalogue in question.</li>
         <li>Add new class 
-            <ref id="uk.ac.starlink.ttools.func.Coverage">Coverage</ref>
+            <ref id="Coverage">Coverage</ref>
             to the expression language containing MOC-related functions
             (currently, just <code>inMoc</code>).</li>
         </ul>
@@ -11342,7 +11338,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ul>
         <li>Add IPAC table output format.</li>
         <li>Add new class
-            <ref id="uk.ac.starlink.ttools.func.KCorrections">KCorrections</ref>
+            <ref id="KCorrections">KCorrections</ref>
             to the expression language,
             containing a method for calculating K-corrections
             following the method of Chilingarian and Zolotukhin.</li>
@@ -11655,7 +11651,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>Add new task
             <ref id="tapskymatch"><code>tapskymatch</code></ref>.</li>
         <li>Functions in class
-            <ref id="uk.ac.starlink.ttools.func.Coverage">Coverage</ref>
+            <ref id="Coverage">Coverage</ref>
             adjusted:
             new function <code>nearMoc</code>, and MOC can be identified by
             VizieR table IDs as well as by filename/URL.</li>
@@ -11921,7 +11917,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <dd><p>
         <ul>
         <li>Added some functions to the
-            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> class
+            <ref id="Arrays">Arrays</ref> class
             that return array-valued results from array-valued parameters:
             <code>add</code>, <code>subtract</code>,
             <code>multiply</code>, <code>divide</code>,
@@ -12059,7 +12055,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             in particular look for VOTable <code>xtype</code> of JD or MJD,
             and <code>units</code> of year.</li>
         <li>Add some functions to the
-            <ref id="uk.ac.starlink.ttools.func.Tilings">Tilings</ref> class
+            <ref id="Tilings">Tilings</ref> class
             to do with solid angles
             (<code>healpixSqdeg</code>,
              <code>healpixSteradians</code>,
@@ -12087,15 +12083,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ul>
         <li>New functions that support any number of arguments are provided:
             <code>array</code>, <code>intArray</code>, <code>stringArray</code>
-            in class <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>;
+            in class <ref id="Arrays">Arrays</ref>;
             <code>concat</code>, <code>join</code>
-            in class <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>;
+            in class <ref id="Strings">Strings</ref>;
             and
             <code>sum</code>, <code>mean</code>, <code>variance</code>,
             <code>stdev</code>, <code>min</code>, <code>max</code>,
             <code>median</code>, <code>countTrue</code>
             in new class
-            <ref id="uk.ac.starlink.ttools.func.Lists">Lists</ref>.</li>
+            <ref id="Lists">Lists</ref>.</li>
         <li>Some old lists of similarly-named functions with fixed numbers
             of arguments have been replaced by single functions that
             take an arbitrary number of arguments
@@ -12182,7 +12178,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>Improve sky plot border painting.</li>
         <li>Clean up noisy Cubehelix colour map.</li>
         <li>New function <code>countTrue</code> in class
-            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+            <ref id="Arrays">Arrays</ref>.</li>
         <li>New stage <code>EXA</code> for <ref id="taplint">taplint</ref>
             checks TAP <code>/examples</code> endpoint.
             Note the details of the examples format are still under discussion,
@@ -12236,7 +12232,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         can plot all-sky maps from HEALPix map tables
         (e.g. as generated by <code>tskymap</code>).</li>
     <li>Add some HEALPix-related functions to the 
-        <ref id="uk.ac.starlink.ttools.func.Tilings">Tilings</ref> class:
+        <ref id="Tilings">Tilings</ref> class:
         conversions from pixel index to sky position and
         conversions between ring and nested schemes.</li>
     <li>Subrange-typed plot command parameters like
@@ -12363,7 +12359,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             format (see <code>format</code> parameter).</li>
         <li>Update <code>taplint</code> OBS stage for
             PR-ObsCore-v1.1-20160923.</li>
-        <li>The <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref> function
+        <li>The <ref id="Maths">Maths</ref> function
             <code>hypot</code> now takes an arbitrary number of arguments
             (instead of exactly two).</li>
         <li>Add <code>blockmaxrec</code> parameter to
@@ -12419,10 +12415,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             a list of named colours,
             e.g. "<code>HotPink-yellow-SkyBlue</code>".</li>
         <li>New position angle calculation functions
-            <ref id="uk.ac.starlink.ttools.func.CoordsDegrees"
+            <ref id="CoordsDegrees"
                  ><code>posAngRadians</code></ref>
             and
-            <ref id="uk.ac.starlink.ttools.func.CoordsRadians"
+            <ref id="CoordsRadians"
                  ><code>posAngDegrees</code></ref>
             added to expression language.</li>
         </ul>
@@ -12505,7 +12501,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             (https://github.com/kuropat/eag-HEALPix,
              <code>447a7be073876dba32</code>).
             This fixes a bug in
-            <ref id="uk.ac.starlink.ttools.func.Tilings"
+            <ref id="Tilings"
                  ><code>healpixRingIndex</code></ref> that could give
             the wrong value for small values of longitude near zero
             in the equatorial region.
@@ -12540,24 +12536,20 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <dd><p>
         <ul>
         <li>New functions
-            <ref id="uk.ac.starlink.ttools.func.Strings"
+            <ref id="Strings"
                  ><code>desigTo*</code></ref>
             for extracting positions from IAU-style object designations
             (like <code>2MASS J04355524+1630331</code>) - use with care.</li>
         <li>New functions
-            <ref id="uk.ac.starlink.ttools.func.CoordsDegrees"
-                 ><code>polarDistanceDegrees</code></ref> and
-            <ref id="uk.ac.starlink.ttools.func.CoordsRadians"
-                 ><code>polarDistanceRadians</code></ref>;
+            <ref id="CoordsDegrees"><code>polarDistanceDegrees</code></ref> and
+            <ref id="CoordsRadians"><code>polarDistanceRadians</code></ref>;
             these calculate the distance in 3d space between two
             positions specified in spherical polar coordinates.</li>
         <li>New functions
-            <ref id="uk.ac.starlink.ttools.func.Arithmetic"
-                 ><code>phase</code></ref>
+            <ref id="Arithmetic"><code>phase</code></ref>
             to help with phase folding given a known period.
             A new modulus function
-            <ref id="uk.ac.starlink.ttools.func.Arithmetic"
-                 ><code>mod</code></ref>,
+            <ref id="Arithmetic"><code>mod</code></ref>,
             whose output is always positive
             (unlike the <code>%</code> operator) is also added.</li>
         </ul>
@@ -12593,8 +12585,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ul>
         <li>New DataLink validator task
             <ref id="datalinklint"><code>datalinklint</code></ref>.</li>
-        <li>Add class <ref id="uk.ac.starlink.ttools.func.Gaia">Gaia</ref>
-            to the expression language.
+        <li>Add class <ref id="Gaia">Gaia</ref> to the expression language.
             This contains functions for estimating distances from parallaxes
             and propagating astrometric parameters and errors to
             different epochs.  The functions are not specific
@@ -12603,9 +12594,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             with the Gaia DR2 source catalogue.</li>
         <li>New array manipulation functions
             <code>slice</code> and <code>pick</code> added to class
-            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+            <ref id="Arrays">Arrays</ref>.</li>
         <li>New utility function <code>square</code> added to class
-            <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref>.</li>
+            <ref id="Maths">Maths</ref>.</li>
         <li>The <ref id="addcol"><code>addcol</code></ref>
             and <ref id="colmeta"><code>colmeta</code></ref> filters
             now accept <code>-shape</code> and <code>-elsize</code> flags
@@ -12784,14 +12775,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <dd><p>
         <ul>
         <li>New functions in class
-            <ref id="uk.ac.starlink.ttools.func.Gaia">Gaia</ref>:
+            <ref id="Gaia">Gaia</ref>:
             <code>polarXYZ</code>, <code>astromXYZ</code>,
             <code>astromUVW</code>,
             <code>icrsToGal</code>, <code>galToIcrs</code>,
             <code>icrsToEcl</code>, <code>eclToIcrs</code>.
             These can calculate Cartesian position and velocity components
             from (e.g. Gaia) astrometric parameters.</li>
-        <li>New <ref id="uk.ac.starlink.ttools.func.Shapes">Shapes</ref>
+        <li>New <ref id="Shapes">Shapes</ref>
             class added for working with polygons in the X,Y plane;
             has functions
             <code>isInside</code> and <code>polyLine</code>.</li>
@@ -12802,9 +12793,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             undocumented and named "<code>RANDOM</code>".</li>
         <li>New functions <code>urlEncode</code> and <code>urlDecode</code>
             added to class
-            <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>.</li>
+            <ref id="Strings">Strings</ref>.</li>
         <li>New convenience function <code>exp10</code> in class
-            <ref id="uk.ac.starlink.ttools.func.Maths">Maths</ref>.</li>
+            <ref id="Maths">Maths</ref>.</li>
         </ul>
         </p></dd>
     <dt>Validators:</dt>
@@ -13003,11 +12994,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <dd><p>
         <ul>
         <li>New functions <code>indexOf</code> in class
-            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>
+            <ref id="Arrays">Arrays</ref>
             to find position of a given value in an array.</li>
         <li>New functions <code>parseDoubles</code> and <code>parseInts</code>
             in class
-            <ref id="uk.ac.starlink.ttools.func.Conversions">Conversions</ref>
+            <ref id="Conversions">Conversions</ref>
             for extracting array values from strings (experimental).</li>
         <li>Fix expression compilation so that
             <code>$ID</code> column references
@@ -13082,7 +13073,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             by using the <ref id="sysProperties">system property</ref>
             <code>java.util.concurrent.ForkJoinPool.common.parallelism</code>.)
             </li>
-        <li>New class <ref id="uk.ac.starlink.ttools.func.URLs">URLs</ref>
+        <li>New class <ref id="URLs">URLs</ref>
             contains expression language utility functions
             for constructing certain service URLs:
             <code>hips2fitsUrl</code>, <code>bibcodeUrl</code>,
@@ -13091,12 +13082,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             Existing functions <code>urlEncode</code> and
             <code>urlDecode</code> have been moved to <code>URLs</code>
             from class
-            <ref id="uk.ac.starlink.ttools.func.Strings">Strings</ref>.</li>
+            <ref id="Strings">Strings</ref>.</li>
         <li>New functions
             <code>parseBigInteger</code> and <code>parseBigDecimal</code>
             in class
-            <ref id="uk.ac.starlink.ttools.func.Conversions"
-                 >Conversions</ref>.</li>
+            <ref id="Conversions">Conversions</ref>.</li>
         <li>Add new parameter <code>usepos</code> to
             <ref id="layer-polygon"><code>polygon</code></ref> plot layer,
             to toggle inclusion of reference position
@@ -13284,9 +13274,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             <ref id="coneskymatch"><code>coneskymatch</code></ref> commands
             (new option <code>servicetype=sia2</code>).</li>
         <li>Add new conversion functions <code>*ToUnixSec</code> to
-            <ref id="uk.ac.starlink.ttools.func.Times">Times</ref> class.</li>
+            <ref id="Times">Times</ref> class.</li>
         <li>Add new functions <code>midLon</code> and <code>midLat</code>
-            to <ref id="uk.ac.starlink.ttools.func.Sky">Sky</ref> class.</li>
+            to <ref id="Sky">Sky</ref> class.</li>
         <li>Slightly improve sampling accuracy of
             <ref id="pixsample"><code>pixsample</code></ref> output.</li>
         </ul>
@@ -13525,8 +13515,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             <ref id="layer-yerrors">yerrors</ref> and
             <ref id="layer-xyerrors">xyerrors</ref>.</li>
         <li>Add new functions to class
-            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>
-            for working with array values:
+            <ref id="Arrays">Arrays</ref> for working with array values:
             <code>arrayFunc</code>, <code>intArrayFunc</code>,
             <code>sequence</code>, <code>constant</code>.</li>
         <li>Add new table scheme <ref id="scheme-test">test</ref>.</li>
@@ -13740,7 +13729,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             <ref id="layer-xyzerror"><code>xyzerror</code></ref>,
             <ref id="layer-yerror"><code>yerror</code></ref>.</li>
             <li>New functions in class 
-                <ref id="uk.ac.starlink.ttools.func.VO">VO</ref>
+                <ref id="VO">VO</ref>
                 to check syntax of UCD and VOUnit strings.</li>
         <li>New <code>areatype</code> value <code>UNIQ</code> for plotting
             single HEALPix tiles e.g. from MOC files in
@@ -13749,7 +13738,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             table output mode.</li>
         <li>Add Julian Day manipulation functions <code>jdToMjd</code>
             and <code>mjdToJd</code> to class
-            <ref id="uk.ac.starlink.ttools.func.Times">Times</ref>.</li>
+            <ref id="Times">Times</ref>.</li>
         </ul>
         </p></dd>
     <dt>Minor enhancements and behaviour changes:</dt>
@@ -13763,11 +13752,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             the shape-filling algorithm has been improved, and it's no
             longer necessary to choose between speed and accuracy.</li>
         <li>Replace the <code>julianToUnixSec</code> function in class
-            <ref id="uk.ac.starlink.ttools.func.Times">Times</ref>,
-            which didn't do what it said it did,
+            <ref id="Times">Times</ref>, which didn't do what it said it did,
             with <code>jdToUnixSec</code>.</li>
         <li>The <code>mjdToIso</code> and <code>mjdToDate</code> functions
-            in class <ref id="uk.ac.starlink.ttools.func.Times">Times</ref>
+            in class <ref id="Times">Times</ref>
             now prepend the string
             "<code>(BCE)</code>" to dates before the Common Era.</li>
         <li>Guess meaning for some non-standard COORDSYS values in
@@ -13819,7 +13807,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             and <ref id="layer-statmark">statmark</ref>, to plot
             quantities like the mean of array-valued input columns.</li>
         <li>New class
-            <ref id="uk.ac.starlink.ttools.func.Randoms">Randoms</ref>
+            <ref id="Randoms">Randoms</ref>
             contains pseudo-random number generation functions.
             Special token <code>$random</code> is now deprecated.</li>
         <li>New quantities
@@ -13922,7 +13910,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ul>
         <li>New command <ref id="xsdvalidate"><code>xsdvalidate</code></ref>
             added for validating against XML schemas.</li>
-        <li>New class <ref id="uk.ac.starlink.ttools.func.Bits">Bits</ref>
+        <li>New class <ref id="Bits">Bits</ref>
             with bit manipulation functions
             <code>bitCount</code>, <code>hasBit</code>,
             <code>toBinary</code>, <code>fromBinary</code>.</li>
@@ -14036,11 +14024,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             added.</li>
         <li>Modify functions <code>add</code>, <code>subtract</code>,
             <code>multiply</code>, <code>divide</code> in class
-            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>;
+            <ref id="Arrays">Arrays</ref>;
             these now all take either two array arguments or an array
             and a scalar in either order.</li>
         <li>New function <code>dotProduct</code> in class
-            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+            <ref id="Arrays">Arrays</ref>.</li>
         <li>Provide <code>value*</code> functions for
             <ref id="jel-colref">column references</ref>
             to strangely-named columns.</li>
