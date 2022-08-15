@@ -3,6 +3,8 @@ package uk.ac.starlink.ttools;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import org.xml.sax.InputSource;
@@ -37,12 +39,16 @@ public class DocTest extends TestCase {
         assertTrue( docFile.isFile() );
         assertTrue( context.isDirectory() );
         boolean attemptExt = Boolean.getBoolean( "tests.withnet" );
+        Map<String,String> xsltParams = new HashMap<>();
+        xsltParams.put( "BASEDIR", context.toString() );
         LinkChecker checker =
             new LinkChecker( context.toURI().toURL(), attemptExt );
         checker.checkLinks( new StreamSource( docXslt1 ),
-                            new StreamSource( docFile ) );
+                            new StreamSource( docFile ),
+                            xsltParams );
         checker.checkLinks( new StreamSource( docXslt ),
-                            new StreamSource( docFile ) );
+                            new StreamSource( docFile ),
+                            xsltParams );
         assertTrue( checker.getLocalFailures() == 0 );
     }
 }
