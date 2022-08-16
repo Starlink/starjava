@@ -31221,6 +31221,8 @@ introduced since the last version:
     <li>Improve formatting of some sections of this document.</li>
     <li>When a new column is added, the Column and Table window displays
         are now scrolled to ensure that the new entry is visible.</li>
+    <li>When a new Row Subset is added, the Subset window display
+        is scrolled to ensure that the new subset is visible.</li>
     </ul>
     </p></dd>
 

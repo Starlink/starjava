@@ -598,6 +598,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     }
     public void intervalAdded( ListDataEvent evt ) {
         subsetsTableModel.fireTableDataChanged();
+        int irow = evt.getIndex0();
+        if ( irow >= 0 && irow == evt.getIndex1() ) {
+            TopcatUtils.ensureRowIndexIsVisible( jtab, irow );
+        }
     }
     public void intervalRemoved( ListDataEvent evt ) {
         subsetsTableModel.fireTableDataChanged();
