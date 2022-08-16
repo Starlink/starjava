@@ -497,12 +497,17 @@ public class TablePipeTest extends TableTestCase {
 
     public void testFixNames() throws Exception {
         assertSameData( inTable_, apply( "fixcolnames" ) );
-        StarTable t1 = apply( "addcol 'a b c' 99" );
+        StarTable t1 = apply( "addcol 'a b c' 99;"
+                            + "addcol XX 20;"
+                            + "addcol xx 21" );
         t1.setParameter( new DescribedValue(
                              new DefaultValueInfo( "d e f", Integer.class ),
                              new Integer( 2112 ) ) );
         StarTable t2 = process( t1, "fixcolnames" );
-        assertEquals( "a_b_c", getColNames( t2 )[ inTable_.getColumnCount() ] );
+        int ncol0 = inTable_.getColumnCount();
+        assertEquals( "a_b_c", getColNames( t2 )[ ncol0 ] );
+        assertEquals( "XX", getColNames( t2 )[ ncol0 + 1 ] );
+        assertEquals( "xx_1", getColNames( t2 )[ ncol0 + 2 ] );
         assertEquals( new Integer( 2112 ),
                       t2.getParameterByName( "d_e_f" ).getValue() );
     }

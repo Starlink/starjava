@@ -14057,6 +14057,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         based on sky region.</li>
     <li>Fix relevant filters to issue a WARNING if new column names
         clash with existing ones.</li>
+    <li>Filter <ref id="fixcolnames"><code>fixcolnames</code></ref>
+        now deduplicates column names
+        as well as fixing up their syntax.</li>
     </ul>
     </p></dd>
 

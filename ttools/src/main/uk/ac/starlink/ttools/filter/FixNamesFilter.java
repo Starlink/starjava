@@ -1,8 +1,11 @@
 package uk.ac.starlink.ttools.filter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ColumnInfo;
@@ -17,6 +20,9 @@ import uk.ac.starlink.table.WrapperStarTable;
  * @since    18 Dec 2009
  */
 public class FixNamesFilter extends BasicFilter implements ProcessingStep {
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.filter" );
 
     /**
      * Constructor.
@@ -33,6 +39,15 @@ public class FixNamesFilter extends BasicFilter implements ProcessingStep {
             "non-alphanumeric characters with underscores.",
             "This is a convenience which lets you use column names in",
             "algebraic expressions and other STILTS syntax.",
+            "</p>",
+            "<p>Additionally, column names are adjusted if necessary to ensure",
+            "that they are all unique when compared case-insensitively.",
+            "If the names are all unique to start with",
+            "then no changes are made,",
+            "but if for instance two columns exist with names",
+            "<code>gMag</code> and <code>GMag</code>,",
+            "one of them will be altered",
+            "(for instance to <code>GMag_1</code>).",
             "</p>",
         };
     }
@@ -68,6 +83,31 @@ public class FixNamesFilter extends BasicFilter implements ProcessingStep {
     }
 
     /**
+     * Returns a name based on the supplied one, but which is guaranteed
+     * different (case-insensitively) from all the names in a supplied set.
+     * If the supplied name is already distinct from the members of the set,
+     * it will be returned unchanged.
+     *
+     * @param  name  base name
+     * @param  lcNames   set of lower-case values from which the output
+     *                   must differ case-insensitively; not to be modified
+     * @return  distinct string based on name
+     */
+    public String uniqueName( String name, Set<String> lcNames ) {
+        if ( ! lcNames.contains( name.toLowerCase() ) ) {
+            return name;
+        }
+        for ( int i = 1; i > 0; i++ ) {
+            String name1 = name + "_" + i;
+            if ( ! lcNames.contains( name1.toLowerCase() ) ) {
+                return name1;
+            }
+        }
+        assert false;
+        return "???";
+    }
+
+    /**
      * StarTable implementation which rewrites column and parameter names
      * as necessary.
      */
@@ -87,11 +127,27 @@ public class FixNamesFilter extends BasicFilter implements ProcessingStep {
             /* Doctor column names. */
             int ncol = base.getColumnCount();
             colInfos_ = new ColumnInfo[ ncol ];
+            Set<String> lcNames = new HashSet<>();
             for ( int icol = 0; icol < ncol; icol++ ) {
                 ColumnInfo info = new ColumnInfo( base.getColumnInfo( icol ) );
-                info.setName( fixName( info.getName() ) );
+                String name = info.getName();
+                String fixName = uniqueName( fixName( name ), lcNames );
+                if ( ! fixName.equals( name ) ) {
+                    info.setName( fixName );
+                    String msg = new StringBuffer()
+                       .append( "Rename column #" )
+                       .append( icol + 1 )
+                       .append( " " )
+                       .append( name )
+                       .append( " -> " )
+                       .append( fixName )
+                       .toString();
+                    logger_.info( msg );
+                }
+                lcNames.add( fixName.toLowerCase() );
                 colInfos_[ icol ] = info;
             }
+            assert lcNames.size() == ncol;
 
             /* Doctor parameter names. */
             paramList_ = new ArrayList<DescribedValue>();
