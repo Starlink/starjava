@@ -197,7 +197,11 @@ public class AddSkyCoordsFilter extends BasicFilter {
                         return outVals;
                     }
                 };
-                return new AddColumnsTable( base, outCoordsSup );
+                StarTable out = new AddColumnsTable( base, outCoordsSup );
+                int ncol = out.getColumnCount();
+                AddColumnFilter.checkDuplicatedName( out, ncol - 2 );
+                AddColumnFilter.checkDuplicatedName( out, ncol - 1 );
+                return out;
             }
         };
     }

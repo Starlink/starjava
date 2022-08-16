@@ -206,12 +206,17 @@ public class ColumnMetadataFilter extends BasicFilter {
                 }
                 colInfos[ icol ] = info;
             }
-
-            return new WrapperStarTable( base ) {
+            StarTable out = new WrapperStarTable( base ) {
                 public ColumnInfo getColumnInfo( int icol ) {
                     return colInfos[ icol ];
                 }
             };
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                if ( colFlags[ icol ] ) {
+                    AddColumnFilter.checkDuplicatedName( out, icol );
+                }
+            }
+            return out;
         }
     }
 }

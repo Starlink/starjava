@@ -43,7 +43,7 @@ public class TablePipeTest extends TableTestCase {
         } );
 
         LogUtils.getLogger( "uk.ac.starlink.ttools.filter" )
-                .setLevel( Level.WARNING );
+                .setLevel( Level.SEVERE );
         LogUtils.getLogger( "uk.ac.starlink.table.storage" )
                 .setLevel( Level.WARNING );
         LogUtils.getLogger( "uk.ac.starlink.fits" )

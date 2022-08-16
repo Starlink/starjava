@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
@@ -14,6 +15,9 @@ import uk.ac.starlink.ttools.jel.ColumnIdentifier;
  * @since    3 Mar 2005
  */
 public class AddColumnFilter extends BasicFilter {
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.filter" );
 
     public AddColumnFilter() {
         super( "addcol", 
@@ -162,6 +166,41 @@ public class AddColumnFilter extends BasicFilter {
         }
     }
 
+    /**
+     * Checks that a given column in a table does not have the same name
+     * as any of the other columns in the table.
+     * If it does (even case-insensitively), a warning is written
+     * through the logging system.
+     *
+     * @param  table  table to check
+     * @param  icol0  column index to check
+     */
+    public static void checkDuplicatedName( StarTable table, int icol0 ) {
+        int ncol = table.getColumnCount();
+        String name0 = table.getColumnInfo( icol0 ).getName();
+        if ( name0 != null ) {
+            for ( int ic = 0; ic < ncol; ic++ ) {
+                String name = table.getColumnInfo( ic ).getName();
+                if ( ic != icol0 && name0.equalsIgnoreCase( name ) ) {
+                    boolean isExact = name0.equals( name );
+                    String msg = new StringBuffer()
+                       .append( "Column #" )
+                       .append( icol0 + 1 )
+                       .append( " " )
+                       .append( name0 )
+                       .append( " has same name " )
+                       .append( isExact ? "" : "(modulo case) " )
+                       .append( "as existing column #" )
+                       .append( ic + 1 )
+                       .append( " " )
+                       .append( name )
+                       .toString();
+                    logger_.warning( msg );
+                }
+            }
+        }
+    }
+
     private static class AddColumnStep implements ProcessingStep {
 
         final String expr_;
@@ -190,7 +229,9 @@ public class AddColumnFilter extends BasicFilter {
             }
             ColumnSupplement jelSup =
                 new JELColumnSupplement( base, expr_, cinfo_ );
-            return new AddColumnsTable( base, jelSup, ipos );
+            StarTable out = new AddColumnsTable( base, jelSup, ipos );
+            checkDuplicatedName( out, ipos );
+            return out;
         }
     }
 }

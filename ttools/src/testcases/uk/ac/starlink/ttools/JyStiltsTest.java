@@ -3,9 +3,11 @@ package uk.ac.starlink.ttools;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.logging.Level;
 import junit.framework.TestCase;
 import org.python.util.PythonInterpreter;
 import org.python.core.PySystemState;
+import uk.ac.starlink.util.LogUtils;
 
 /**
  * Testcase which runs python scripts to test JyStilts functionality.
@@ -17,6 +19,8 @@ public class JyStiltsTest extends TestCase {
     private final File testDir_;
 
     public JyStiltsTest() {
+        LogUtils.getLogger( "uk.ac.starlink.ttools.filter" )
+                .setLevel( Level.SEVERE );
         PySystemState.initialize();
         File basedir = new File( System.getProperty( "basedir", "." ) );
         testDir_ = new File( basedir, "src/testcases/uk/ac/starlink/ttools" );

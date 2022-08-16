@@ -158,11 +158,14 @@ public class CollapseColsFilter extends BasicFilter {
                     colMap[ jc++ ] = icol0 + ic;
                 }
             }
+            int icArray = jc;
             colMap[ jc++ ] = nc0;
             for ( int ic = icol0 + ncol_; ic < nc0; ic++ ) {
                 colMap[ jc++ ] = ic;
             }
-            return new ColumnPermutedStarTable( extTable, colMap );
+            StarTable out = new ColumnPermutedStarTable( extTable, colMap );
+            AddColumnFilter.checkDuplicatedName( out, icArray );
+            return out;
         }
     }
 

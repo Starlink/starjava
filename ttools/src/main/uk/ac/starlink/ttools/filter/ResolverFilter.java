@@ -98,7 +98,11 @@ public class ResolverFilter extends BasicFilter {
                                                 raName0, decName0,
                                                 Tables.getColumnInfos( base ),
                                                 100000 );
-                    return new AddColumnsTable( base, outCoordsSup );
+                    StarTable out = new AddColumnsTable( base, outCoordsSup );
+                    int ncol = out.getColumnCount();
+                    AddColumnFilter.checkDuplicatedName( out, ncol - 2 );
+                    AddColumnFilter.checkDuplicatedName( out, ncol - 1 );
+                    return out;
                 }
             };
         }

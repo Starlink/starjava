@@ -14055,6 +14055,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Crossmatching efficiency improvements:
         sky matching does better pre-selection of potential matches
         based on sky region.</li>
+    <li>Fix relevant filters to issue a WARNING if new column names
+        clash with existing ones.</li>
     </ul>
     </p></dd>
 

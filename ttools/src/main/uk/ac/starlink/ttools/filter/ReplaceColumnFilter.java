@@ -158,7 +158,8 @@ public class ReplaceColumnFilter extends BasicFilter {
                 ColumnPermutedStarTable
                .deleteColumns( addTable, new int[] { icol + 1 } );
 
-            /* Return the result. */
+            /* Check and return the result. */
+            AddColumnFilter.checkDuplicatedName( removed, icol );
             return removed;
         }
     }
