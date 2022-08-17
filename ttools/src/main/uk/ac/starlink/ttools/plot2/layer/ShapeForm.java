@@ -28,11 +28,11 @@ public interface ShapeForm extends ModePlotter.Form {
     String getFormDescription();
 
     /**
-     * Returns the number of data positions per tuple used by this form.
+     * Returns the number of basic data positions per tuple used by this form.
      *
-     * @return   number of sets of positional coordinates
+     * @return   number of basic sets of positional coordinates
      */
-    int getPositionCount();
+    int getBasicPositionCount();
 
     /**
      * Returns data coordinates additional to the basic position which

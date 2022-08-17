@@ -56,7 +56,7 @@ public class SizeXyForm implements ShapeForm {
     private SizeXyForm() {
     }
 
-    public int getPositionCount() {
+    public int getBasicPositionCount() {
         return 1;
     }
 

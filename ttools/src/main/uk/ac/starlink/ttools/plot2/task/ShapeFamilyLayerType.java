@@ -93,7 +93,7 @@ public class ShapeFamilyLayerType implements LayerType {
 
     public int getPositionCount() {
         return plotters_.size() > 0
-             ? plotters_.get( 0 ).getCoordGroup().getPositionCount()
+             ? plotters_.get( 0 ).getCoordGroup().getBasicPositionCount()
              : 0;
     }
 

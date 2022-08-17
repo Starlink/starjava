@@ -132,7 +132,7 @@ public class SubCloud {
             DataGeom geom = layer.getDataGeom();
             DataSpec spec = layer.getDataSpec();
             CoordGroup cgrp = layer.getPlotter().getCoordGroup();
-            int npos = cgrp.getPositionCount();
+            int npos = cgrp.getBasicPositionCount();
             Coord[] extraCoords = cgrp.getExtraCoords();
             if ( geom != null && spec != null ) {
 
@@ -188,7 +188,7 @@ public class SubCloud {
             if ( dataGeom != null && dataSpec != null ) {
                 CoordGroup cgrp = layer.getPlotter().getCoordGroup();
                 if ( cgrp.isSinglePartialPosition() ) {
-                    assert cgrp.getPositionCount() == 0;
+                    assert cgrp.getBasicPositionCount() == 0;
                     subClouds.add( new SubCloud( dataGeom, dataSpec, 0 ) );
                 }
             }

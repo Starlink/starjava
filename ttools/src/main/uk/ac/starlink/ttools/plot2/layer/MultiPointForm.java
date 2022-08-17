@@ -109,7 +109,7 @@ public abstract class MultiPointForm implements ShapeForm {
      */
     protected abstract boolean isAutoscale( ConfigMap config );
 
-    public int getPositionCount() {
+    public int getBasicPositionCount() {
         return 1;
     }
 

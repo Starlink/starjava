@@ -45,7 +45,7 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle>
     public ShapePlotter( String name, ShapeForm form, ShapeMode mode ) {
         this( name, form, mode,
               CoordGroup
-             .createCoordGroup( form.getPositionCount(),
+             .createCoordGroup( form.getBasicPositionCount(),
                                 PlotUtil
                                .arrayConcat( form.getExtraCoords(),
                                              mode.getExtraCoords() ) ) );
@@ -122,7 +122,7 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle>
      */
     public int getModeCoordsIndex( DataGeom geom ) {
         return ( geom == null ? 0 : geom.getPosCoords().length )
-               * form_.getPositionCount()
+               * form_.getBasicPositionCount()
                + form_.getExtraCoords().length;
     }
 

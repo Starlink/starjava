@@ -119,8 +119,8 @@ public interface Plotter<S extends Style> {
      * <p>The <code>pointDataGeom</code>
      * parameter is only used if
      * <code>getCoordGroup()</code>.
-     * {@link uk.ac.starlink.ttools.plot2.data.CoordGroup#getPositionCount
-     *                                                    getPositionCount}
+     * {@link uk.ac.starlink.ttools.plot2.data.CoordGroup#getBasicPositionCount
+     *                                                    getBasicPositionCount}
      * returns a non-zero value,
      * otherwise the plot does not have point positions.
      *

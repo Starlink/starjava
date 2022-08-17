@@ -65,7 +65,7 @@ public class PairLinkForm implements ShapeForm {
         } );
     }
 
-    public int getPositionCount() {
+    public int getBasicPositionCount() {
         return 2;
     }
 

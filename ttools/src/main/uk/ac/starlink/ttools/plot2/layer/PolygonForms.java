@@ -269,7 +269,7 @@ public class PolygonForms {
             } );
         }
 
-        public int getPositionCount() {
+        public int getBasicPositionCount() {
             return np_;
         }
 
@@ -342,7 +342,7 @@ public class PolygonForms {
             } );
         }
 
-        public int getPositionCount() {
+        public int getBasicPositionCount() {
             return 1;
         }
 

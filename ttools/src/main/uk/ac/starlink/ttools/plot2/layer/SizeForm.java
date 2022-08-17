@@ -66,7 +66,7 @@ public class SizeForm implements ShapeForm {
     private SizeForm() {
     }
 
-    public int getPositionCount() {
+    public int getBasicPositionCount() {
         return 1;
     }
 

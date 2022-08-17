@@ -123,7 +123,7 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
         } );
     }
 
-    public int getPositionCount() {
+    public int getBasicPositionCount() {
         return 0;
     }
 

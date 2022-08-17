@@ -73,7 +73,7 @@ public abstract class MarkForm implements ShapeForm {
         icon_ = icon;
     }
 
-    public int getPositionCount() {
+    public int getBasicPositionCount() {
         return npos_;
     }
 

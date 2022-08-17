@@ -1441,7 +1441,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             String suffix = entry.getKey();
             Plotter<?> plotter = entry.getValue();
             CoordGroup cgrp = plotter.getCoordGroup();
-            DataGeom geom = cgrp.getPositionCount() > 0 ||
+            DataGeom geom = cgrp.getBasicPositionCount() > 0 ||
                             ( cgrp.getExtraCoords().length > 0 &&
                               cgrp.getExtraCoords()[ 0 ] instanceof AreaCoord )
                           ? context.getGeom( env, suffix )
@@ -1643,7 +1643,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         DataSpec dataSpec = layer.getDataSpec();
         DataGeom geom = layer.getDataGeom();
         CoordGroup cgrp = layer.getPlotter().getCoordGroup();
-        int npos = cgrp.getPositionCount();
+        int npos = cgrp.getBasicPositionCount();
         List<SubCloud> cloudList = new ArrayList<SubCloud>( npos );
         for ( int ipos = 0; ipos < npos; ipos++ ) {
             int iposCoord = cgrp.getPosCoordIndex( ipos, geom );
@@ -1861,7 +1861,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Get basic and additional coordinate specifications. */
         CoordGroup cgrp = plotter.getCoordGroup();
         DataSpec dataSpec =
-            createDataSpec( env, suffix, geom, cgrp.getPositionCount(),
+            createDataSpec( env, suffix, geom, cgrp.getBasicPositionCount(),
                             cgrp.getExtraCoords() );
 
         /* Prepare a config map with entries for all the config keys

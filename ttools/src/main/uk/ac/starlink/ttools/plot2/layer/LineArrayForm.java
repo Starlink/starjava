@@ -62,7 +62,7 @@ public class LineArrayForm implements ShapeForm {
         icYs_ = 1;
     }
 
-    public int getPositionCount() {
+    public int getBasicPositionCount() {
         return 0;
     }
 

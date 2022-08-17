@@ -289,7 +289,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
         /* Work out the data values required to plot the layer. */
         CoordGroup cgrp = plotter.getCoordGroup();
         List<Coord> coordList = new ArrayList<Coord>();
-        for ( int ipos = 0; ipos < cgrp.getPositionCount(); ipos++ ) {
+        for ( int ipos = 0; ipos < cgrp.getBasicPositionCount(); ipos++ ) {
             coordList.addAll( Arrays.asList( geom.getPosCoords() ) );
         }
         coordList.addAll( Arrays.asList( cgrp.getExtraCoords() ) );

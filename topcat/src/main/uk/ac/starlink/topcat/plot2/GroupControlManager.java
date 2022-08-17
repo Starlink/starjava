@@ -543,7 +543,7 @@ public class GroupControlManager<P,A> implements ControlManager {
          */
         public static CoordsType getInstance( Plotter<?> plotter ) {
             CoordGroup cgrp = plotter.getCoordGroup();
-            int npos = cgrp.getPositionCount();
+            int npos = cgrp.getBasicPositionCount();
             Coord[] extraCoords = cgrp.getExtraCoords();
 
             /* Treat HealpixPlotter as a special case since although it has

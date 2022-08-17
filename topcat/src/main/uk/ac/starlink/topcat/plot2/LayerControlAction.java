@@ -168,7 +168,7 @@ public abstract class LayerControlAction extends BasicAction {
                 }
             };
         }
-        else if ( cgrp.getPositionCount() == 0 &&
+        else if ( cgrp.getBasicPositionCount() == 0 &&
                   cgrp.getExtraCoords().length == 0 ) {
             return new LayerControlAction( plotter, stack ) {
                 public LayerControl createLayerControl() {
@@ -183,7 +183,7 @@ public abstract class LayerControlAction extends BasicAction {
         /* Not great - no options for miscellaneous plotters with both
          * positional and non-positional coordinates.  Could be done if
          * necessary. */
-        else if ( cgrp.getPositionCount() == 0 ) {
+        else if ( cgrp.getBasicPositionCount() == 0 ) {
             return new LayerControlAction( plotter, stack ) {
                 public LayerControl createLayerControl() {
                     PositionCoordPanel coordPanel =

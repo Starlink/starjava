@@ -51,7 +51,7 @@ public class SimpleLayerType implements LayerType {
     }
 
     public int getPositionCount() {
-        return plotter_.getCoordGroup().getPositionCount();
+        return plotter_.getCoordGroup().getBasicPositionCount();
     }
 
     public Coord[] getExtraCoords() {

@@ -99,7 +99,7 @@ public class ErrorArrayForm implements ShapeForm {
         thickKey_ = MultiPointForm.createThicknessKey( shapeKey_ );
     }
 
-    public int getPositionCount() {
+    public int getBasicPositionCount() {
         return 0;
     }
 
