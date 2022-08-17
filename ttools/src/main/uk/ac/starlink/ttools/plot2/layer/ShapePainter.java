@@ -12,6 +12,7 @@ import uk.ac.starlink.ttools.plot2.paper.Paper;
  * @author   Mark Taylor
  * @since    6 Nov 2015
  */
+@FunctionalInterface
 public interface ShapePainter {
 
     /**
