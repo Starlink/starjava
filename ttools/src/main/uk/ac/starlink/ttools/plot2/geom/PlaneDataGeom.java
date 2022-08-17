@@ -42,10 +42,6 @@ public abstract class PlaneDataGeom implements DataGeom {
         return 2;
     }
 
-    public boolean hasPosition() {
-        return true;
-    }
-
     public String getVariantName() {
         return "Cartesian";
     }

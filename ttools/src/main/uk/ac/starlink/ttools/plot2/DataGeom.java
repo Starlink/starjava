@@ -30,20 +30,6 @@ public interface DataGeom {
     Coord[] getPosCoords();
 
     /**
-     * Indicates whether the values read by the <code>readDataPos</code>
-     * method correspond to a point position in the data space.
-     * If true, a successful read will result in a position array
-     * with a definite value for each coordinate.  If false, some of
-     * the coordinates may be NaN.  A false return value would be
-     * appropriate for instance if each tuple row for the plot layer
-     * represented by this geom corresponds to a line rather than a
-     * point in the data space.
-     *
-     * @return   true iff this geom represents point positions
-     */
-    boolean hasPosition();
-
-    /**
      * Determines the positional coordinates in data space for a supplied tuple.
      *
      * <p>A parameter supplies the index of the field in the tuple

@@ -55,13 +55,6 @@ public class SliceDataGeom implements DataGeom {
         return dataDimCount_;
     }
 
-    /**
-     * Returns false.
-     */
-    public boolean hasPosition() {
-        return false;
-    }
-
     public String getVariantName() {
         return variantName_;
     }

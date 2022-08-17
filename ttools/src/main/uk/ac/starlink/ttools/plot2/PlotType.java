@@ -19,8 +19,6 @@ public interface PlotType<P,A> {
     /**
      * Returns a list of one or more geometry variants which describe
      * how user-supplied point coordinates map to the data space.
-     * The geoms returned from this method will return true from their
-     * {@link DataGeom#hasPosition} method.
      * If multiple values are returned, the first one may be used as some kind
      * of default.
      *

@@ -131,9 +131,7 @@ public interface Plotter<S extends Style> {
      * <p>Creating a layer should be cheap; layers may be created and not used.
      *
      * @param   pointDataGeom  indicates base position coordinates and their
-     *                    mapping to points in the data space;
-     *                    if non-null, the data geom's
-     *                    {@link DataGeom#hasPosition} method will return true 
+     *                    mapping to points in the data space
      * @param   dataSpec  specifies the data required for the plot
      * @param   style   data style as obtained from <code>createStyle</code>
      * @return   new plot layer, or null if no drawing will take place
