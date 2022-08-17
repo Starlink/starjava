@@ -117,11 +117,11 @@ public interface Plotter<S extends Style> {
      * defined by this plotter's CoordGroup.
      *
      * <p>The <code>pointDataGeom</code>
-     * parameter is only used if
-     * <code>getCoordGroup()</code>.
-     * {@link uk.ac.starlink.ttools.plot2.data.CoordGroup#getBasicPositionCount
-     *                                                    getBasicPositionCount}
-     * returns a non-zero value,
+     * parameter is only used if the 
+     * {@link uk.ac.starlink.ttools.plot2.data.CoordGroup#getBasicPositionCount}
+     * or
+     * {@link uk.ac.starlink.ttools.plot2.data.CoordGroup#getExtraPositionCount}
+     * method from this plotter's CoordGroup return a non-zero value,
      * otherwise the plot does not have point positions.
      *
      * <p>It is legal to supply null for any of the parameters;
