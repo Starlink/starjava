@@ -97,6 +97,10 @@ public abstract class MarkForm implements ShapeForm {
         return new Coord[ 0 ];
     }
 
+    public int getExtraPositionCount() {
+        return 0;
+    }
+
     public DataGeom adjustGeom( DataGeom geom ) {
         return geom;
     }

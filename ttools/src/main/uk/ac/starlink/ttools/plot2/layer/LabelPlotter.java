@@ -520,7 +520,7 @@ public abstract class LabelPlotter extends AbstractPlotter<LabelStyle> {
         extraCoords.add( LABEL_COORD );
         CoordGroup cgrp =
             CoordGroup
-           .createCoordGroup( 0, extraCoords.toArray( new Coord[ 0 ] ) );
+           .createCoordGroup( 0, extraCoords.toArray( new Coord[ 0 ] ), 1 );
         return new LabelPlotter( cgrp, true ) {
             protected DataGeom adjustGeom( DataGeom geom ) {
                 @SuppressWarnings("unchecked")

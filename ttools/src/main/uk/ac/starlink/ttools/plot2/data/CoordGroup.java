@@ -49,14 +49,25 @@ public abstract class CoordGroup {
 
     /*
      * Returns any coordinates used by this plotter additional to the
-     * positional ones.  In fact there is nothing to stop you using
-     * positional coordinates here,
-     * but they will not be treated in the generic way accorded to
-     * those accounted for by {@link #getPositionCount}.
+     * basic positional ones.
      *
-     * @return  non-positional coordinates
+     * @return  coordinates other than basic positional ones
      */
     public abstract Coord[] getExtraCoords();
+
+    /**
+     * Returns a count of the extra coordinates that can
+     * be considered to represent data positions.
+     * These can be turned into positions by the DataGeom presented at
+     * layer creation time, but they are not suitable for representation
+     * by standard positional coordinates.
+     *
+     * <p>These positional coordinates are assumed to come at the
+     * start of the list of extra coordinates.
+     *
+     * @return  number of sets of positional coordinates in the extras
+     */
+    public abstract int getExtraPositionCount();
 
     /**
      * Returns the starting coordinate index in a DataSpec at which
@@ -109,19 +120,32 @@ public abstract class CoordGroup {
      * @return  new coord group
      */
     public static CoordGroup createSinglePositionCoordGroup() {
-        return new BasicCoordGroup( 1, new Coord[ 0 ] );
+        return new BasicCoordGroup( 1, new Coord[ 0 ], 0 );
     }
 
     /**
      * Returns a coord group which contains zero or more basic positions and
-     * zero or more additional ("extra") coordinates.
+     * zero or more additional non-positional ("extra") coordinates.
      *
      * @param  nBasicPos  number of basic positional coordinates
      * @param  extras  non-positional coordinates
      * @return  new coord group
      */
     public static CoordGroup createCoordGroup( int nBasicPos, Coord[] extras ) {
-        return new BasicCoordGroup( nBasicPos, extras );
+        return new BasicCoordGroup( nBasicPos, extras, 0 );
+    }
+
+    /**
+     * Returns a coord group with zero or more basic positions and
+     * zero or more extra coordinates, some of which may be positional.
+     *
+     * @param  nBasicPos  number of basic positional coordinates
+     * @param  extras   additional coordinates
+     * @param  nExtraPos  number of extra coordinates which are positional
+     */
+    public static CoordGroup createCoordGroup( int nBasicPos, Coord[] extras,
+                                               int nExtraPos ) {
+        return new BasicCoordGroup( nBasicPos, extras, nExtraPos );
     }
 
     /**
@@ -145,7 +169,7 @@ public abstract class CoordGroup {
      * @return  new coord group
      */
     public static CoordGroup createEmptyCoordGroup() {
-        return new BasicCoordGroup( 0, new Coord[ 0 ] );
+        return new BasicCoordGroup( 0, new Coord[ 0 ], 0 );
     }
 
     /**
@@ -165,22 +189,28 @@ public abstract class CoordGroup {
     private static class BasicCoordGroup extends CoordGroup {
         final int nBasicPos_;
         final Coord[] extraCoords_;
+        final int nExtraPos_;
 
         /**
          * Constructor.
          *
          * @param  nBasicPos  number of basic data positions
          * @param  extraCoords  non-positional coordinates
+         * @param  nExtraPos  number of extra coords that are positional
          */
-        BasicCoordGroup( int nBasicPos, Coord[] extraCoords ) {
+        BasicCoordGroup( int nBasicPos, Coord[] extraCoords, int nExtraPos ) {
             nBasicPos_ = nBasicPos;
             extraCoords_ = extraCoords;
+            nExtraPos_ = nExtraPos;
         }
         public int getBasicPositionCount() {
             return nBasicPos_;
         }
         public Coord[] getExtraCoords() {
             return extraCoords_;
+        }
+        public int getExtraPositionCount() {
+            return nExtraPos_;
         }
         public int getPosCoordIndex( int ipos, DataGeom geom ) {
             return getPosCoordCount( geom ) * ipos;
@@ -189,8 +219,9 @@ public abstract class CoordGroup {
             return getPosCoordCount( geom ) * nBasicPos_ + iExtra;
         }
         public int[] getRangeCoordIndices( DataGeom geom ) {
-            int[] ixs = new int[ getPosCoordCount( geom ) * nBasicPos_ ];
-            for ( int i = 0; i < ixs.length; i++ ) {
+            int nRange = getPosCoordCount( geom ) * nBasicPos_ + nExtraPos_;
+            int[] ixs = new int[ nRange ];
+            for ( int i = 0; i < nRange; i++ ) {
                 ixs[ i ] = i;
             }
             return ixs;
@@ -231,6 +262,9 @@ public abstract class CoordGroup {
         }
         public Coord[] getExtraCoords() {
             return coords_;
+        }
+        public int getExtraPositionCount() {
+            return 0;
         }
         public int getPosCoordIndex( int ipos, DataGeom geom ) {
             return -1;

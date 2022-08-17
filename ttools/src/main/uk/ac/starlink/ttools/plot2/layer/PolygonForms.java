@@ -277,6 +277,10 @@ public class PolygonForms {
             return new Coord[ 0 ];
         }
 
+        public int getExtraPositionCount() {
+            return 0;
+        }
+
         public DataGeom adjustGeom( DataGeom geom ) {
             return geom;
         }
@@ -348,6 +352,10 @@ public class PolygonForms {
 
         public Coord[] getExtraCoords() {
             return new Coord[] { ARRAY_COORD, };
+        }
+
+        public int getExtraPositionCount() {
+            return 0;
         }
 
         public DataGeom adjustGeom( DataGeom geom ) {

@@ -43,6 +43,14 @@ public interface ShapeForm extends ModePlotter.Form {
     Coord[] getExtraCoords();
 
     /**
+     * Returns the number of extra coordinates that can be interpreted as
+     * positions.
+     *
+     * @return  number of positional extra coordinates
+     */
+    int getExtraPositionCount();
+
+    /**
      * Returns style configuration keys specific to this form.
      * These keys will be used in the config map supplied to
      * {@link #createOutliner}.

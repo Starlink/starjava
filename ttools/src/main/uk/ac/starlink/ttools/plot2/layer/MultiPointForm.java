@@ -129,6 +129,10 @@ public abstract class MultiPointForm implements ShapeForm {
         return extraCoordSet_.getCoords();
     }
 
+    public int getExtraPositionCount() {
+        return 0;
+    }
+
     public DataGeom adjustGeom( DataGeom geom ) {
         return geom;
     }

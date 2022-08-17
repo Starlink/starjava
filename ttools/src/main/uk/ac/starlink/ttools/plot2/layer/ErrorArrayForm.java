@@ -129,6 +129,10 @@ public class ErrorArrayForm implements ShapeForm {
         return extraCoords_.clone();
     }
 
+    public int getExtraPositionCount() {
+        return 0;
+    }
+
     public DataGeom adjustGeom( DataGeom geom ) {
         return geom;
     }

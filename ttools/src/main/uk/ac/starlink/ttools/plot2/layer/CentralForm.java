@@ -82,6 +82,10 @@ public class CentralForm<DG extends DataGeom> implements ShapeForm {
         return PlotUtil.arrayConcat( new Coord[] { areaCoord_ }, otherCoords_ );
     }
 
+    public int getExtraPositionCount() {
+        return 1;
+    }
+
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
             StyleKeys.MARKER_SHAPE,

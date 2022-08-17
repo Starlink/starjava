@@ -48,7 +48,8 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle>
              .createCoordGroup( form.getBasicPositionCount(),
                                 PlotUtil
                                .arrayConcat( form.getExtraCoords(),
-                                             mode.getExtraCoords() ) ) );
+                                             mode.getExtraCoords() ),
+                                form.getExtraPositionCount() ) );
     }
 
     /**
