@@ -149,6 +149,23 @@ public abstract class CoordGroup {
     }
 
     /**
+     * Returns a coord group with no basic positional coordinates.
+     *
+     * @param  coords  all coordinates
+     * @param  nExtraPos  number of the extra coordinates which can be
+     *                    considered to represent data positions
+     * @param  rangeCoordFlags  array of flags corresponding to the
+     *         <code>coords</code> array, true for any coord whose change
+     *         should cause a re-range
+     */
+    public static CoordGroup
+            createNoBasicCoordGroup( Coord[] coords, int nExtraPos,
+                                     boolean[] rangeCoordFlags ) {
+        return new ExtraPosCoordGroup( coords, nExtraPos, rangeCoordFlags,
+                                       false );
+    }
+
+    /**
      * Returns a coord group which contains a single partial position.
      *
      * @param   coords   all coordinates, starting with those constituting
@@ -160,7 +177,7 @@ public abstract class CoordGroup {
      */
     public static CoordGroup createPartialCoordGroup(
                                  Coord[] coords, boolean[] rangeCoordFlags ) {
-        return new PartialPosCoordGroup( coords, rangeCoordFlags );
+        return new ExtraPosCoordGroup( coords, 0, rangeCoordFlags, true );
     }
 
     /**
@@ -234,21 +251,26 @@ public abstract class CoordGroup {
     /**
      * CoordGroup implementation representing a single partial position.
      */
-    private static class PartialPosCoordGroup extends CoordGroup {
+    private static class ExtraPosCoordGroup extends CoordGroup {
         final Coord[] coords_;
+        final int nExtraPos_;
         final int[] rangeCoordIndices_;
+        final boolean isPartial_;
 
         /**
          * Constructor.
          *
-         * @param   coords   all coordinates, starting with those constituting
-         *                   the partial position
+         * @param   coords   all coordinates
+         * @param   nExtraPos  number of coordinates considered positional
          * @param  rangeCoordFlags  array of flags corresponding to the
          *         <code>coords</code> array, true for any coord whose change
          *         should cause a re-range
+         * @param  isPartial  indicates whether positions are partial
          */
-        PartialPosCoordGroup( Coord[] coords, boolean[] rangeCoordFlags ) {
+        ExtraPosCoordGroup( Coord[] coords, int nExtraPos,
+                            boolean[] rangeCoordFlags, boolean isPartial ) {
             coords_ = coords;
+            nExtraPos_ = nExtraPos;
             IntList ilist = new IntList();
             for ( int i = 0; i < coords.length; i++ ) {
                 if ( rangeCoordFlags[ i ] ) {
@@ -256,6 +278,7 @@ public abstract class CoordGroup {
                 }
             }
             rangeCoordIndices_ = ilist.toIntArray();
+            isPartial_ = isPartial;
         }
         public int getBasicPositionCount() {
             return 0;
@@ -264,7 +287,7 @@ public abstract class CoordGroup {
             return coords_;
         }
         public int getExtraPositionCount() {
-            return 0;
+            return nExtraPos_;
         }
         public int getPosCoordIndex( int ipos, DataGeom geom ) {
             return -1;
@@ -276,7 +299,7 @@ public abstract class CoordGroup {
             return rangeCoordIndices_;
         }
         public boolean isSinglePartialPosition() {
-            return true;
+            return isPartial_;
         }
     }
 }

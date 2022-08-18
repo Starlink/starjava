@@ -88,7 +88,7 @@ public abstract class CombineArrayPlotter
     protected CombineArrayPlotter( String name, Icon icon ) {
         super( name, icon,
                CoordGroup
-              .createPartialCoordGroup( new Coord[] { XS_COORD, YS_COORD },
+              .createNoBasicCoordGroup( new Coord[] { XS_COORD, YS_COORD }, 0,
                                         new boolean[] { true, true } ),
                true );
     }

@@ -272,6 +272,8 @@ public class ArrayShapePlotter extends ShapePlotter {
         boolean[] rangeCoordFlags = new boolean[ coords.length ];
         rangeCoordFlags[ 0 ] = true;
         rangeCoordFlags[ 1 ] = true;
-        return CoordGroup.createPartialCoordGroup( coords, rangeCoordFlags );
+        return CoordGroup
+              .createNoBasicCoordGroup( coords, form.getExtraPositionCount(),
+                                        rangeCoordFlags );
     }
 }
