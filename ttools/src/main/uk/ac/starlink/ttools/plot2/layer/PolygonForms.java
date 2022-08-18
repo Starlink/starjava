@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 
@@ -281,7 +282,8 @@ public class PolygonForms {
             return 0;
         }
 
-        public DataGeom adjustGeom( DataGeom geom ) {
+        public DataGeom adjustGeom( DataGeom geom, DataSpec dataSpec,
+                                    ShapeStyle style ) {
             return geom;
         }
 
@@ -358,7 +360,8 @@ public class PolygonForms {
             return 0;
         }
 
-        public DataGeom adjustGeom( DataGeom geom ) {
+        public DataGeom adjustGeom( DataGeom geom, DataSpec dataSpec,
+                                    ShapeStyle style ) {
             return geom;
         }
 

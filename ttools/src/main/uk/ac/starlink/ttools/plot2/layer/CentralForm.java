@@ -9,6 +9,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.AreaCoord;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SphereDataGeom;
@@ -93,7 +94,8 @@ public class CentralForm<DG extends DataGeom> implements ShapeForm {
         };
     }
 
-    public DataGeom adjustGeom( DataGeom geom ) {
+    public DataGeom adjustGeom( DataGeom geom, DataSpec dataSpec,
+                                ShapeStyle style ) {
         @SuppressWarnings("unchecked")
         DG tgeom = (DG) geom;
         return areaCoord_.getAreaDataGeom( tgeom );

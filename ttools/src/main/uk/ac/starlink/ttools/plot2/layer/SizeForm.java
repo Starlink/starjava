@@ -123,7 +123,8 @@ public class SizeForm implements ShapeForm {
         return 0;
     }
 
-    public DataGeom adjustGeom( DataGeom geom ) {
+    public DataGeom adjustGeom( DataGeom geom, DataSpec dataSpec,
+                                ShapeStyle style ) {
         return geom;
     }
 

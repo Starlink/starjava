@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.AreaCoord;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.SkyCoord;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
@@ -175,7 +176,8 @@ public abstract class AreaForm<DG extends DataGeom> implements ShapeForm {
         return areaCoord_;
     }
 
-    public DataGeom adjustGeom( DataGeom geom ) {
+    public DataGeom adjustGeom( DataGeom geom, DataSpec dataSpec,
+                                ShapeStyle style ) {
         @SuppressWarnings("unchecked")
         DG tgeom = (DG) geom;
         return areaCoord_.getAreaDataGeom( tgeom );
