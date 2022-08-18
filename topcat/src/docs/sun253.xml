@@ -231,6 +231,7 @@
   <!ENTITY FIG.form_poly4 '&figs;form_poly4.png'>
   <!ENTITY FIG.form_area '&figs;form_area.png'>
   <!ENTITY FIG.form_lines '&figs;form_lines.png'>
+  <!ENTITY FIG.form_handles '&figs;form_handles.png'>
   <!ENTITY FIG.form_yerrors '&figs;form_yerrors.png'>
   <!ENTITY FIG.form_xyerrors '&figs;form_xyerrors.png'>
   <!ENTITY FIG.form_statline '&figs;form_statline.png'>
@@ -348,6 +349,7 @@
   <!ENTITY FIG.plot2-layer-arealabel '&figs;plot2-layer-arealabel.png'>
   <!ENTITY FIG.plot2-layer-lines '&figs;plot2-layer-lines.png'>
   <!ENTITY FIG.plot2-layer-marks '&figs;plot2-layer-marks.png'>
+  <!ENTITY FIG.plot2-layer-handles '&figs;plot2-layer-handles.png'>
   <!ENTITY FIG.plot2-layer-yerrors '&figs;plot2-layer-yerrors.png'>
   <!ENTITY FIG.plot2-layer-xyerrors '&figs;plot2-layer-xyerrors.png'>
   <!ENTITY FIG.plot2-layer-statline '&figs;plot2-layer-statline.png'>
@@ -454,6 +456,8 @@
                          <ref id="form-polygon">Polygon</ref>'>
   <!ENTITY FORM.lines '&IMG.PLOT_LINE; <ref id="form-lines">Lines</ref>'>
   <!ENTITY FORM.marks '&IMG.FORM_MARK; <ref id="form-marks">Marks</ref>'>
+  <!ENTITY FORM.handles '&IMG.FORM_HANDLES;
+                        <ref id="form-handles">Handles</ref>'>
   <!ENTITY FORM.yerrors '&IMG.FORM_ERROR1;
                          <ref id="form-yerrors">YErrors</ref>'>
   <!ENTITY FORM.xyerrors '&IMG.FORM_ERROR;
@@ -9597,6 +9601,19 @@ or the corresponding item in the <label>Layers</label> menu.
 <figureimage src="&FIG.GangLayerControl_xyarray;"/>
 </figure>
 
+<p>Note that unlike for instance plots of simple X,Y positions,
+there is no position associated with each plotted row
+(X/Y array pair, or wiggly line).
+That means that by default, you can't click on a plotted line to
+<ref id="activation">activate</ref> it,
+or see it highlighted when you activate the corresponding row by
+clicking on it in the <ref id="TableViewerWindow">Data Window</ref>.
+If you want to do that, add a <ref id="form-handles">Handles</ref> form,
+which plots a "handle" marker at a reference position near each line.
+This then serves as the effective position on the plot for each row
+for the purposes of activation, highlighting, graphical subset definition, etc.
+</p>
+
 <p>This control is a Table Data control as described in
 <ref id="tableDataControl"/>.
 That section explains the <label>Subsets</label> tab;
@@ -9662,6 +9679,12 @@ are currently
     draws a line between the X,Y positions</li>
 <li>&IMG.FORM_MARK; <ref id="form-marks">Marks</ref>:
     draws a marker for each X,Y position</li>
+<li>&IMG.FORM_HANDLES; <ref id="form-handles">Handles</ref>:
+    draws a single marker to represent the whole array of X,Y pairs;
+    this isn't much good for showing the shape of the line,
+    but it provides a reference point at a definite position,
+    which can for instance be highlighted or clicked on for
+    <ref id="activation">activation actions</ref></li>
 <li>&IMG.FORM_ERROR1; <ref id="form-yerrors">YErrors</ref>:
     draws a vertical error bar at each X,Y position</li>
 <li>&IMG.FORM_ERROR; <ref id="form-xyerrors">XYErrors</ref>:
@@ -12857,6 +12880,79 @@ for each table row.
     </p></dd>
 <dt>Size</dt>
 <dd><p>Marker size in pixels.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-handles">
+<subhead><title>Handles Form</title></subhead>
+
+<p>The <label>Handles</label> form (&IMG.FORM_HANDLES;),
+available from the
+<ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>,
+draws a single pointer (a "handle") somewhere near each group of points
+defined by pair of X/Y array coordinates.
+This doesn't do much to show the shape of the line formed by the
+array values, but it does provide a reference point for each line.
+This can be used by the parts of TOPCAT that associated a fixed
+position with each table row, in particular:
+<ul>
+<li>you can click on the handle to <ref id="activation">activate</ref> the row
+    it relates to, for instance to highlight the table row in the
+    <ref id="TableViewerWindow">Data Window</ref></li>
+<li>if the row is activated by some other action,
+    its handle will be highlighted with the activation cursor</li>
+<li>you can <ref id="plot2-subsets">define subsets graphically</ref>
+    using the reference positions defined by the handles</li>
+</ul>
+Since array coordinates don't normally have a single per-row position,
+adding a Handles layer like this is the only way to perform those
+position-related activities with the plots from the
+<ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>.
+</p>
+
+<figure>
+<caption><px>Example Handles plot</px></caption>
+<figureimage src="&FIG.plot2-layer-handles;"/>
+</figure>
+
+<figure>
+<caption><px>Handles form configuration panel</px></caption>
+<figureimage src="&FIG.form_handles;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Placement</dt>
+<dd><p>Specifies where to draw the handle marker in relation to the
+    X/Y array values.
+    The options are:
+    <ul>
+    <li><code>mid</code>: middle point in arrays</li>
+    <li><code>first</code>: first point in arrays</li>
+    <li><code>last</code>: final point in arrays</li>
+    <li><code>ymax</code>:
+        (X,Y) position at which the maximum Y value is located</li>
+    <li><code>ymin</code>:
+        (X,Y) position at which the minimum Y value is located</li>
+    <li><code>xmax</code>:
+        (X,Y) position at which the maximum X value is located</li>
+    <li><code>xmin</code>:
+        (X,Y) position at which the minimum X value is located</li>
+    <li><code>xymean</code>:
+        center of gravity of all the (X,Y) points</li>
+    </ul>
+    </p></dd>
+<dt>Size</dt>
+<dd><p>Marker size in pixels.
+    </p></dd>
+<dt>Shape</dt>
+<dd><p>Marker shape from a list of options.
     </p></dd>
 </dl>
 </p>
@@ -31223,6 +31319,10 @@ introduced since the last version:
         are now scrolled to ensure that the new entry is visible.</li>
     <li>When a new Row Subset is added, the Subset window display
         is scrolled to ensure that the new subset is visible.</li>
+    <li>Add new plot form <ref id="form-handles">Handles</ref>
+        to mark reference positions for X/Y array data,
+        thus allowing activation etc with
+        <ref id="GangLayerControl_xyarray">XYArray</ref> plots.</li>
     </ul>
     </p></dd>
 

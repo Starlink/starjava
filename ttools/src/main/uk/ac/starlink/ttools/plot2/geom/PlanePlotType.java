@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.GridPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.KnnKernelDensityPlotter;
+import uk.ac.starlink.ttools.plot2.layer.HandleArrayForm;
 import uk.ac.starlink.ttools.plot2.layer.LineArrayForm;
 import uk.ac.starlink.ttools.plot2.layer.LineCombineArrayPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
@@ -148,6 +149,7 @@ public class PlanePlotType
         ShapeForm[] arrayForms = new ShapeForm[] {
             LineArrayForm.getInstance(),
             MarkArrayForm.getInstance(),
+            HandleArrayForm.getInstance(),
             ErrorArrayForm.Y,
             ErrorArrayForm.XY,
         };

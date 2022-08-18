@@ -1650,6 +1650,14 @@ public class Plot2Example {
                 null,
                 "legseq=-q3,-m,-q1", "legpos=0.98,0.93",
             } ),
+            new Plot2Example( "layer-handles", c, PlotTask.PLANE,
+                              new String[] {
+                "*in=" + TName.LRS, "*ys=add(RX1,20*$index)", null,
+                "shading=aux", "auxmap=sron", "aux=$index", null,
+                "icmd='head 8'", "auxvisible=false", "legend=false", null,
+                "layer0=lines", "opaque0=2", null,
+                "*layer1=handles", "*placement1=last",
+            } ),
             new Plot2Example( "layer-yerrors", c, PlotTask.PLANE,
                               new String[] {
 

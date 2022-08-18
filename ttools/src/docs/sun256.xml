@@ -14060,6 +14060,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Filter <ref id="fixcolnames"><code>fixcolnames</code></ref>
         now deduplicates column names
         as well as fixing up their syntax.</li>
+    <li>Add new plot layer type
+        <ref id="layer-handles"><code>handles</code></ref>
+        to mark a reference position for X/Y array data.</li>
     </ul>
     </p></dd>
 
