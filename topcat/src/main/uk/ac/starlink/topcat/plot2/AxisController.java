@@ -456,7 +456,7 @@ public abstract class AxisController<P,A> implements Configger {
      */
     @Equality
     private static class DataId {
-        private final DataGeom geom_;
+        private final String geomVariant_;
         private final StarTable srcTable_;
         private final Object[] coordIds_; 
         private final Object styleKey_;
@@ -471,9 +471,14 @@ public abstract class AxisController<P,A> implements Configger {
          */
         DataId( DataGeom geom, DataSpec dataSpec, CoordGroup cgrp,
                 Object styleKey ) {
-            geom_ = geom;
             srcTable_ = dataSpec.getSourceTable();
             styleKey_ = styleKey;
+
+            /* Use the variant name of the DataGeom rather than the DataGeom's
+             * identity itself.  This is a bit of a hack, but it means that
+             * DataGeoms having the same name can be used to indicate they
+             * are similar enough to each other not to trigger a re-range. */
+            geomVariant_ = geom == null ? null : geom.getVariantName();
 
             /* A CoordinateGroup explicitly labels those coordinates that
              * are relevant for ranging.  Use these. */ 
@@ -486,7 +491,7 @@ public abstract class AxisController<P,A> implements Configger {
         @Override
         public int hashCode() {
             int code = 33771;
-            code = 23 * code + PlotUtil.hashCode( geom_ );
+            code = 23 * code + PlotUtil.hashCode( geomVariant_ );
             code = 23 * code + srcTable_.hashCode();
             code = 23 * code + Arrays.hashCode( coordIds_ );
             code = 23 * code + PlotUtil.hashCode( styleKey_ );
@@ -496,7 +501,7 @@ public abstract class AxisController<P,A> implements Configger {
         public boolean equals( Object o ) {
             if ( o instanceof DataId ) {
                 DataId other = (DataId) o;
-                return PlotUtil.equals( this.geom_, other.geom_ )
+                return PlotUtil.equals( this.geomVariant_, other.geomVariant_ )
                     && this.srcTable_.equals( other.srcTable_ )
                     && Arrays.equals( this.coordIds_, other.coordIds_ )
                     && PlotUtil.equals( this.styleKey_, other.styleKey_ );
