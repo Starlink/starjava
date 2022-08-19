@@ -14,18 +14,11 @@ public abstract class XYArrayPlacement {
 
     private final String name_;
     private final String description_;
+    private final boolean usesFraction_;
 
-    /** Uses first X,Y position in arrays. */
-    public static final XYArrayPlacement FIRST =
-        createFractionPlacement( "First", "first point in arrays", 0.0 );
-
-    /** Uses middle X,Y position in arrays. */
-    public static final XYArrayPlacement MID = 
-        createFractionPlacement( "Mid", "middle point in arrays", 0.5 );
-
-    /** Uses final X,Y position in arrays. */
-    public static final XYArrayPlacement LAST =
-        createFractionPlacement( "Last", "final point in arrays", 1.0 );
+    /** Uses X,Y position at indicated fraction through arrays. */
+    public static final XYArrayPlacement INDEX =
+        createIndexFractionPlacement( "Index" );
 
     /** Uses the position with the maximal X value. */
     public static final XYArrayPlacement XMAX =
@@ -47,15 +40,23 @@ public abstract class XYArrayPlacement {
     public static final XYArrayPlacement XYMEAN =
         createMeanPlacement( "XYMean" );
 
+    /** Name of config option to specify fraction value. */
+    static final String FRACTION_NAME = "fraction";
+
     /**
      * Constructor.
      *
      * @param   name   short name for presentation to users
      * @param   description  XML-friendly description of behaviour
+     * @param   usesFraction  true iff this placement pays any attention
+     *                        to the value of the fraction parameter
      */
-    protected XYArrayPlacement( String name, String description ) {
+    protected XYArrayPlacement( String name, String description,
+                                boolean usesFraction ) {
         name_ = name;
-        description_ = description;
+        String ignoreTxt = " (<code>" + FRACTION_NAME + "</code> is ignored)";
+        description_ = description + ( usesFraction ? "" : ignoreTxt );
+        usesFraction_ = usesFraction;
     }
 
     /**
@@ -77,15 +78,29 @@ public abstract class XYArrayPlacement {
     }
 
     /**
+     * Indicates whether this placement pays attention to the value of
+     * the fraction parameter.
+     *
+     * @return   true if fraction may influence placement,
+     *           false if it definitely doesn't
+     */
+    public boolean usesFraction() {
+        return usesFraction_;
+    }
+
+    /**
      * Attempts to determine the reference position of an XYArrayData object.
      * On success, the position in data coordinates is written into the
      * supplied 2-element array.
      *
      * @param  xyData  XY data, not null
+     * @param  fraction   numeric value in the range 0..1;
+     *                    may or may not be used
      * @param  dpos  2-element array for X, Y output on success
      * @return  true for success
      */
-    public abstract boolean readPosition( XYArrayData xyData, double[] dpos );
+    public abstract boolean readPosition( XYArrayData xyData, double fraction,
+                                          double[] dpos );
 
     @Override
     public String toString() {
@@ -97,14 +112,40 @@ public abstract class XYArrayPlacement {
      * of the way through the arrays.
      *
      * @param  name  name
-     * @param  descrip  description
-     * @param  fraction  fractional value in range 0..1
+     * @return  new placement policy
      */
-    @Equality
-    public static XYArrayPlacement
-            createFractionPlacement( String name, String descrip,
-                                     final double fraction ) {
-        return new FractionPlacement( name, descrip, fraction );
+    private static XYArrayPlacement createIndexFractionPlacement( String name ){
+        String descrip = new StringBuffer()
+           .append( "(X,Y) point at a certain fraction of the way " )
+           .append( "through the arrays, as given by the " )
+           .append( "<code>" + FRACTION_NAME + "</code> value; " )
+           .append( "<code>" + FRACTION_NAME + "=0.0</code> " )
+           .append( "is the first element, " )
+           .append( "<code>" + FRACTION_NAME + "=1.0</code> " )
+           .append( "is the last." )
+           .toString();
+        return new XYArrayPlacement( name, descrip, true ) {
+            public boolean readPosition( XYArrayData xyData, double fraction,
+                                         double[] dpos ) {
+                int leng = xyData.getLength();
+                if ( leng > 0 && fraction >= 0 && fraction <= 1 ) {
+                    int index = (int) Math.round( fraction * ( leng - 1 ) );
+                    double x = xyData.getX( index );
+                    double y = xyData.getY( index );
+                    if ( ! Double.isNaN( x ) && ! Double.isNaN( y ) ) {
+                        dpos[ 0 ] = x;
+                        dpos[ 1 ] = y;
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                else {
+                    return false;
+                }
+            }
+        };
     }
 
     /**
@@ -125,8 +166,9 @@ public abstract class XYArrayPlacement {
             .append( isY ? "Y " : "X " )
             .append( "value is located" )
             .toString();
-        return new XYArrayPlacement( name, descrip ) {
-            public boolean readPosition( XYArrayData xyData, double[] dpos ) {
+        return new XYArrayPlacement( name, descrip, false ) {
+            public boolean readPosition( XYArrayData xyData, double fraction,
+                                         double[] dpos ) {
                 int n = xyData.getLength();
                 double pos0 = Double.NaN;
                 double pos1 = isMax ? Double.NEGATIVE_INFINITY
@@ -160,8 +202,9 @@ public abstract class XYArrayPlacement {
      */
     private static XYArrayPlacement createMeanPlacement( String name ) {
         String descrip = "center of gravity of all the (X,Y) points";
-        return new XYArrayPlacement( name, descrip ) {
-            public boolean readPosition( XYArrayData xyData, double[] dpos ) {
+        return new XYArrayPlacement( name, descrip, false ) {
+            public boolean readPosition( XYArrayData xyData, double fraction,
+                                         double[] dpos ) {
                 int n = xyData.getLength();
                 int s0 = 0;
                 double sx = 0;
@@ -186,62 +229,5 @@ public abstract class XYArrayPlacement {
                 }
             }
         };
-    }
-
-    /**
-     * Placement implementation that uses an X,Y value at a given fraction
-     * of the way through the arrays.
-     */
-    private static class FractionPlacement extends XYArrayPlacement {
-
-        private final double fraction_;
-
-        /**
-         * Constructor.
-         *
-         * @param  name  name
-         * @param  descrip  description
-         * @param  fraction  fractional value in range 0..1
-         */
-        FractionPlacement( String name, String descrip, double fraction ) {
-            super( name, descrip );
-            fraction_ = fraction;
-        }
-
-        public boolean readPosition( XYArrayData xyData, double[] dpos ) {
-            int leng = xyData.getLength();
-            if ( leng > 0 ) {
-                int index = (int) Math.round( fraction_ * ( leng - 1 ) );
-                double x = xyData.getX( index );
-                double y = xyData.getY( index );
-                if ( ! Double.isNaN( x ) && ! Double.isNaN( y ) ) {
-                    dpos[ 0 ] = x;
-                    dpos[ 1 ] = y;
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-            else {
-                return false;
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            return Float.floatToIntBits( (float) fraction_ );
-        }
-
-        @Override
-        public boolean equals( Object o ) {
-            if ( o instanceof FractionPlacement ) {
-                FractionPlacement other = (FractionPlacement) o;
-                return this.fraction_ == other.fraction_;
-            }
-            else {
-                return false;
-            }
-        }
     }
 }

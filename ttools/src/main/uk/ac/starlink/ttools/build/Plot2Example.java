@@ -1656,7 +1656,7 @@ public class Plot2Example {
                 "shading=aux", "auxmap=sron", "aux=$index", null,
                 "icmd='head 8'", "auxvisible=false", "legend=false", null,
                 "layer0=lines", "opaque0=2", null,
-                "*layer1=handles", "*placement1=last",
+                "*layer1=handles", "*placement1=index", "*fraction1=0.85",
             } ),
             new Plot2Example( "layer-yerrors", c, PlotTask.PLANE,
                               new String[] {

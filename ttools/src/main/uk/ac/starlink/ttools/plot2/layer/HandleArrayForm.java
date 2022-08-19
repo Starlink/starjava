@@ -11,12 +11,18 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.Glyph;
+import uk.ac.starlink.ttools.plot2.ReportKey;
+import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
+import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -46,11 +52,19 @@ public class HandleArrayForm implements ShapeForm {
     public static final ConfigKey<XYArrayPlacement> PLACEMENT_KEY =
          createPlacementKey();
 
+    /** Config key for placement fractional position. */
+    public static final ConfigKey<Double> FRACTION_KEY =
+         createFractionKey();
+
     /** Config key for handle shape. */
     public static final ConfigKey<MarkerShape> SHAPE_KEY = createShapeKey();
 
     /** Config key for handle size. */
     public static final ConfigKey<Integer> SIZE_KEY = createSizeKey();
+
+    private static final ReportKey<XYArrayPlacement> REPKEY_PLACEMENT =
+        ReportKey.createObjectKey( new ReportMeta( "placement", "Placement" ),
+                                   XYArrayPlacement.class, false );
 
     private static final HandleArrayForm instance_ = new HandleArrayForm();
 
@@ -109,16 +123,19 @@ public class HandleArrayForm implements ShapeForm {
          * correspond to definite positions in data space.
          * Exactly how those positions are defined given the array values
          * is determined by the configurable XYArrayPlacement object. */
-        XYArrayPlacement placement =
-            ((HandleOutliner) style.getOutliner()).placement_;
+        HandleOutliner outliner = (HandleOutliner) style.getOutliner();
+        XYArrayPlacement placement = outliner.placement_;
+        double fraction = outliner.fraction_;
         Function<Tuple,XYArrayData> xyReader = createXYArrayReader( dataSpec );
-        return xyReader == null ? geom
-                                : new XYArrayDataGeom( placement, xyReader );
+        return xyReader == null
+             ? geom
+             : new XYArrayDataGeom( placement, fraction, xyReader );
     }
 
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
             PLACEMENT_KEY,
+            FRACTION_KEY,
             SIZE_KEY,
             SHAPE_KEY,
         };
@@ -126,9 +143,10 @@ public class HandleArrayForm implements ShapeForm {
 
     public Outliner createOutliner( ConfigMap config ) {
         XYArrayPlacement placement = config.get( PLACEMENT_KEY );
+        double fraction = config.get( FRACTION_KEY );
         int size = config.get( SIZE_KEY );
         MarkerShape shape = config.get( SHAPE_KEY );
-        return new HandleOutliner( placement, shape, size );
+        return new HandleOutliner( placement, fraction, shape, size );
     }
 
    /**
@@ -178,9 +196,7 @@ public class HandleArrayForm implements ShapeForm {
          * which is where the relevant operations are going to get invoked,
          * to be a slow operation. */
         XYArrayPlacement[] options = new XYArrayPlacement[] {
-            XYArrayPlacement.MID,
-            XYArrayPlacement.FIRST,
-            XYArrayPlacement.LAST,
+            XYArrayPlacement.INDEX,
             XYArrayPlacement.YMAX,
             XYArrayPlacement.YMIN,
             XYArrayPlacement.XMAX,
@@ -237,11 +253,58 @@ public class HandleArrayForm implements ShapeForm {
     }
 
     /**
+     * Returns a config key for configuring placement fraction.
+     *
+     * @return  new config key
+     */
+    private static ConfigKey<Double> createFractionKey() {
+        String fractionName = XYArrayPlacement.FRACTION_NAME;
+        String placementName = PLACEMENT_KEY.getMeta().getShortName();
+        String indexPlacement = XYArrayPlacement.INDEX.getName().toLowerCase();
+        ConfigMeta meta = new ConfigMeta( fractionName, "Fraction" );
+        meta.setStringUsage( "<0..1>" );
+        meta.setShortDescription( "Fractional position (0..1) for use with "
+                                + placementName + "=" + indexPlacement );
+        meta.setXmlDescription( new String[] {
+            "<p>Provides a numeric value in the range 0..1",
+            "that may influence where the handle is placed.",
+            "Currently, this is only relevant for",
+            "<code>" + placementName + "=" + indexPlacement + "</code>,",
+            "where it indicates how far through the array",
+            "the reference (X,Y) position should be taken",
+            "(0.0 means the first element, 1.0 means the last).",
+            "For other values of",
+            "<code>" + placementName + "</code>",
+            "it is ignored.",
+            "</p>",
+        } );
+        double lo = 0.0;
+        double hi = 1.0;
+        double dflt = 0.5;
+        boolean isLog = false;
+        return new DoubleConfigKey( meta, dflt ) {
+            public Specifier<Double> createSpecifier() {
+                return new SliderSpecifier( lo, hi, isLog, dflt ) {
+                    @Override
+                    public void submitReport( ReportMap reportMap ) {
+                        XYArrayPlacement placement =
+                            reportMap.get( REPKEY_PLACEMENT );
+                        boolean isEnabled = placement != null
+                                         && placement.usesFraction();
+                        getSlider().setEnabled( isEnabled );
+                    }
+                };
+            }
+        };
+    }
+
+    /**
      * Outliner implementation for use with this form.
      */
     private class HandleOutliner extends PixOutliner {
 
         private final XYArrayPlacement placement_;
+        private final double fraction_;
         private final MarkerStyle markerStyle_;
         private final Glyph glyph_;
         private final Icon icon_;
@@ -251,12 +314,14 @@ public class HandleArrayForm implements ShapeForm {
          *
          * @param  placement  defines how to map X/Y array values to a
          *                    definite position in data coordinates
+         * @param  fraction  numeric placement parameter
          * @param  shape  marker shape
          * @param  size   marker size in pixels
          */
-        HandleOutliner( XYArrayPlacement placement, MarkerShape shape,
-                        int size ) {
+        HandleOutliner( XYArrayPlacement placement, double fraction,
+                        MarkerShape shape, int size ) {
             placement_ = placement;
+            fraction_ = fraction;
             markerStyle_ = MarkForm.createMarkStyle( shape, size );
             glyph_ = MarkForm.createMarkGlyph( shape, size, true );
             icon_ = MarkForm.createLegendIcon( shape, size );
@@ -301,9 +366,22 @@ public class HandleArrayForm implements ShapeForm {
         }
 
         @Override
+        public ReportMap getReport( Object binPlan ) {
+            ReportMap map = super.getReport( binPlan );
+            if ( map == null ) {
+                map = new ReportMap();
+            }
+            map.put( REPKEY_PLACEMENT, placement_ );
+            return map;
+        }
+
+        @Override
         public int hashCode() {
             int code = 766025;
             code = 23 * code + placement_.hashCode();
+            if ( placement_.usesFraction() ) {
+                code = 23 * code + Double.hashCode( fraction_ );
+            }
             code = 23 * code + markerStyle_.hashCode();
             return code;
         }
@@ -313,6 +391,8 @@ public class HandleArrayForm implements ShapeForm {
             if ( o instanceof HandleOutliner ) {
                 HandleOutliner other = (HandleOutliner) o;
                 return this.placement_.equals( other.placement_ )
+                    && ( ! placement_.usesFraction() ||
+                         this.fraction_ == other.fraction_ )
                     && this.markerStyle_.equals( other.markerStyle_ );
              
             }
@@ -331,6 +411,7 @@ public class HandleArrayForm implements ShapeForm {
     private class XYArrayDataGeom implements DataGeom {
 
         private final XYArrayPlacement placement_;
+        private final double fraction_;
         private final Function<Tuple,XYArrayData> xyReader_;
 
         /**
@@ -338,11 +419,13 @@ public class HandleArrayForm implements ShapeForm {
          *
          * @param  placement  defines how to map X/Y array values to a
          *                    definite position in data coordinates
+         * @param  fraction   value in the range 0..1 that may affect placement
          * @param  xyReader  defines how to map tuples to X/Y array values
          */
-        XYArrayDataGeom( XYArrayPlacement placement,
+        XYArrayDataGeom( XYArrayPlacement placement, double fraction,
                          Function<Tuple,XYArrayData> xyReader ) {
             placement_ = placement;
+            fraction_ = fraction;
             xyReader_ = xyReader;
         }
 
@@ -355,24 +438,38 @@ public class HandleArrayForm implements ShapeForm {
         }
 
         public String getVariantName() {
-            return "Arrays" + placement_;
+
+            /* This has the same value regardless of fraction and placement.
+             * The result of this method is currently used by somewhat
+             * hacky code elsewhere to determine whether DataGeoms
+             * differ sufficiently to warrant a forced range recalculation.
+             * For different instances of this class, it doesn't. */
+            return "XYArrayPlacement";
         }
 
         public boolean readDataPos( Tuple tuple, int icol, double[] dpos ) {
             XYArrayData xyData = xyReader_.apply( tuple );
-            return xyData != null && placement_.readPosition( xyData, dpos );
+            return xyData != null
+                && placement_.readPosition( xyData, fraction_, dpos );
         }
 
         @Override
         public int hashCode() {
-            return placement_.hashCode();
+            int code = 4623423;
+            code = 23 * code + placement_.hashCode();
+            if ( placement_.usesFraction() ) {
+                code = 23 * code + Double.hashCode( fraction_ );
+            }
+            return code;
         }
 
         @Override
         public boolean equals( Object o ) {
             if ( o instanceof XYArrayDataGeom ) {
                 XYArrayDataGeom other = (XYArrayDataGeom) o;
-                return this.placement_.equals( other.placement_ );
+                return this.placement_.equals( other.placement_ )
+                    && ( ! placement_.usesFraction() ||
+                         this.fraction_ == other.fraction_ );
             }
             else {
                 return false;

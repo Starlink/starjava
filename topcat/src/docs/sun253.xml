@@ -12933,20 +12933,35 @@ position-related activities with the plots from the
     X/Y array values.
     The options are:
     <ul>
-    <li><code>mid</code>: middle point in arrays</li>
-    <li><code>first</code>: first point in arrays</li>
-    <li><code>last</code>: final point in arrays</li>
+    <li><code>index</code>:
+        (X,Y) position at a certain fraction of the way through the arrays,
+        as given by the <label>Fraction</label> value;
+        Fraction=0.0 is the first element, Fraction=1.0 is the last</li>
     <li><code>ymax</code>:
-        (X,Y) position at which the maximum Y value is located</li>
+        (X,Y) position at which the maximum Y value is located
+        (<label>Fraction</label> is ignored)</li>
     <li><code>ymin</code>:
-        (X,Y) position at which the minimum Y value is located</li>
+        (X,Y) position at which the minimum Y value is located
+        (<label>Fraction</label> is ignored)</li>
     <li><code>xmax</code>:
-        (X,Y) position at which the maximum X value is located</li>
+        (X,Y) position at which the maximum X value is located
+        (<label>Fraction</label> is ignored)</li>
     <li><code>xmin</code>:
-        (X,Y) position at which the minimum X value is located</li>
+        (X,Y) position at which the minimum X value is located
+        (<label>Fraction</label> is ignored)</li>
     <li><code>xymean</code>:
-        center of gravity of all the (X,Y) points</li>
+        center of gravity of all the (X,Y) points
+        (<label>Fraction</label> is ignored)</li>
     </ul>
+    </p></dd>
+<dt>Fraction</dt>
+<dd><p>Provides a numeric value in the range 0..1 that may influence
+    where the handle is placed. Currently, this is only relevant for
+    a <label>Placement</label> value of <label>index</label>,
+    where it indicates how far through the array the reference (X,Y)
+    position should be taken
+    (0.0 means the first element, 1.0 means the last).
+    For other values of placement it is ignored.
     </p></dd>
 <dt>Size</dt>
 <dd><p>Marker size in pixels.
