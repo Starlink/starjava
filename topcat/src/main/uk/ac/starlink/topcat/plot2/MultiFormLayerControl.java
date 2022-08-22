@@ -31,6 +31,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.layer.HandleArrayForm;
 import uk.ac.starlink.ttools.plot2.layer.ModePlotter;
 
 /**
@@ -204,8 +205,24 @@ public class MultiFormLayerControl extends FormLayerControl {
             }
         }
 
-        /* Special case hacks for additional default forms. */
+        /* Special case hacks for additional default forms.
+         * Currently there's only one, an inactive HandleForm in the case of
+         * the XYArray control.  If more special casing is required in future,
+         * think about generalising this. */
         List<Action> extraDfltActs = new ArrayList<>();
+        for ( ModePlotter.Form form : modePlotterMap_.keySet() ) {
+            if ( form instanceof HandleArrayForm ) {
+                List<ModePlotter<?>> modePlotters = modePlotterMap_.get( form );
+                extraDfltActs.add( new ModeFormAction( modePlotters, form ) {
+                    @Override
+                    public void actionPerformed( ActionEvent evt ) {
+                        Control control = createControl();
+                        formStack_.addControl( control );
+                        formStack_.setChecked( control, false );
+                    }
+                } );
+            }
+        }
 
         /* Prepare plotters added to control by default. */
         dfltFormActs_ = new ArrayList<>();

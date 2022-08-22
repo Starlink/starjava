@@ -9586,14 +9586,15 @@ Each row of the table therefore corresponds to a full spectrum,
 timeseries, or other array of coordinate pairs.
 </p>
 
-<p>Use the <label>Layers</label> menu item or corresponding toolbar button to
-add an instance to the control stack.
-This control is only available for the
-<ref id="PlanePlotWindow">Plane</ref> plot.
-you can add one of these controls to the stack by using the
+<p>You can add one of these controls to the Plane plot stack by using the
 <label>Add XYArray Control</label> (&IMG.ADD_PLOT_XYARRAY;) button
 in the control panel toolbar,
 or the corresponding item in the <label>Layers</label> menu.
+You may need to deactivate the default
+Position Layer Control stack entry (&IMG.PLOT_DATA;) as well
+to avoid confusion and make sure the ranging works correctly.
+This control is only available for the
+<ref id="PlanePlotWindow">Plane</ref> plot.
 </p>
 
 <figure>
@@ -9602,16 +9603,23 @@ or the corresponding item in the <label>Layers</label> menu.
 </figure>
 
 <p>Note that unlike for instance plots of simple X,Y positions,
-there is no position associated with each plotted row
+there is no obvious single position associated with each plotted row
 (X/Y array pair, or wiggly line).
 That means that by default, you can't click on a plotted line to
 <ref id="activation">activate</ref> it,
 or see it highlighted when you activate the corresponding row by
 clicking on it in the <ref id="TableViewerWindow">Data Window</ref>.
-If you want to do that, add a <ref id="form-handles">Handles</ref> form,
-which plots a "handle" marker at a reference position near each line.
-This then serves as the effective position on the plot for each row
+To do that, you can use the
+<ref id="form-handles">Handles</ref> Form (&IMG.FORM_HANDLES;),
+which plots a "handle" marker at some configurable
+reference position near each line.
+That then serves as the effective position on the plot for each row
 for the purposes of activation, highlighting, graphical subset definition, etc.
+For convenience, a disabled Handles entry is added by default to the
+stack in the <label>Forms</label> tab,
+so you can enable it just by clicking on its checkbox.
+The handle positions and appearance can be adjusted using
+the configuration panel.
 </p>
 
 <p>This control is a Table Data control as described in
@@ -9680,11 +9688,8 @@ are currently
 <li>&IMG.FORM_MARK; <ref id="form-marks">Marks</ref>:
     draws a marker for each X,Y position</li>
 <li>&IMG.FORM_HANDLES; <ref id="form-handles">Handles</ref>:
-    draws a single marker to represent the whole array of X,Y pairs;
-    this isn't much good for showing the shape of the line,
-    but it provides a reference point at a definite position,
-    which can for instance be highlighted or clicked on for
-    <ref id="activation">activation actions</ref></li>
+    draws a single marker at a reference position for
+    the whole array of X,Y pairs</li>
 <li>&IMG.FORM_ERROR1; <ref id="form-yerrors">YErrors</ref>:
     draws a vertical error bar at each X,Y position</li>
 <li>&IMG.FORM_ERROR; <ref id="form-xyerrors">XYErrors</ref>:
@@ -9699,8 +9704,8 @@ are currently
     draws quantile ranges for samples from the input array values</li>
 </ul>
 You can have zero or more of each form and configure them separately.
-The detail panel for these forms is dependent on the form itself
-and are described in more detail in <ref id="ShapeForm"/>,
+The detail panel for these forms are dependent on the form itself
+and is described in more detail in <ref id="ShapeForm"/>,
 but the detail panels are divided into these parts:
 <dl>
 <dt>Shading</dt>
@@ -12911,6 +12916,9 @@ Since array coordinates don't normally have a single per-row position,
 adding a Handles layer like this is the only way to perform those
 position-related activities with the plots from the
 <ref id="GangLayerControl_xyarray">XYArray Layer Control</ref>.
+Because of its general usefulness, a deactivated Handles control
+is added automatically to the layer control, so you just need
+to click the checkbox to display handles in this way.
 </p>
 
 <figure>
@@ -14215,6 +14223,7 @@ see the <label>Coords</label> tab of the
     <ul>
     <li>&FORM.lines;</li>
     <li>&FORM.marks;</li>
+    <li>&FORM.handles;</li>
     <li>&FORM.yerrors;</li>
     <li>&FORM.xyerrors;</li>
     <li>&FORM.statline;</li>
