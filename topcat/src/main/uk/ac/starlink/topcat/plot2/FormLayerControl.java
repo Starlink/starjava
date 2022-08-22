@@ -433,7 +433,7 @@ public abstract class FormLayerControl
         /* Message the position selection panel and form controls so they
          * can update their lists of selectable columns etc. */
         posCoordPanel_.setTable( tcModel_, autoPopulate_ );
-        FormControl[] fcs = getActiveFormControls();
+        FormControl[] fcs = getFormControls();
         for ( int ifc = 0; ifc < fcs.length; ifc++ ) {
             fcs[ ifc ].setTable( tcModel_, subsetManager_, subStack_ );
         }
