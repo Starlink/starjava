@@ -48,7 +48,7 @@ public class MultiFormLayerControl extends FormLayerControl {
     private final ControlStackModel formStackModel_;
     private final List<Plotter<?>> singlePlotterList_;
     private final Map<ModePlotter.Form,List<ModePlotter<?>>> modePlotterMap_;
-    private final Action dfltFormAct_;
+    private final List<Action> dfltFormActs_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot2" );
@@ -184,26 +184,33 @@ public class MultiFormLayerControl extends FormLayerControl {
         }
 
         /* Set up an action for each form-family of plotters, and each
-         * standalone plotter. */
-        List<Action> modeFormActList = new ArrayList<>();
-        for ( ModePlotter.Form form : modePlotterMap_.keySet() ) {
-            ModePlotter<?>[] modePlotters =
-                modePlotterMap_.get( form ).toArray( new ModePlotter<?>[ 0 ] );
-            modeFormActList.add( new ModeFormAction( modePlotters, form ) );
-        }
-        List<Action> singleFormActList = new ArrayList<>();
-        for ( Plotter<?> plotter : singlePlotterList_ ) {
-            singleFormActList.add( new SingleFormAction( plotter ) );
-        }
+         * standalone plotter, and record the first available one
+         * to use as the default layer. */
+        Action act0 = null;
         List<Action> formActionList = new ArrayList<>();
-        formActionList.addAll( modeFormActList );
-        formActionList.addAll( singleFormActList );
+        for ( ModePlotter.Form form : modePlotterMap_.keySet() ) {
+            List<ModePlotter<?>> modePlotters = modePlotterMap_.get( form );
+            ModeFormAction act = new ModeFormAction( modePlotters, form );
+            formActionList.add( act );
+            if ( act0 == null ) {
+                act0 = act;
+            } 
+        }
+        for ( Plotter<?> plotter : singlePlotterList_ ) {
+            SingleFormAction act = new SingleFormAction( plotter );
+            formActionList.add( act );
+            if ( act0 == null ) {
+                act0 = act;
+            }
+        }
 
-        /* Somewhat hacky way to fix the default action as the first
-         * plotter in the supplied list. */
-        dfltFormAct_ = plotters[ 0 ] instanceof ModePlotter
-                     ? modeFormActList.get( 0 )
-                     : singleFormActList.get( 0 );
+        /* Special case hacks for additional default forms. */
+        List<Action> extraDfltActs = new ArrayList<>();
+
+        /* Prepare plotters added to control by default. */
+        dfltFormActs_ = new ArrayList<>();
+        dfltFormActs_.addAll( extraDfltActs );
+        dfltFormActs_.add( act0 );
 
         /* Populate a menu with these actions. */
         final JPopupMenu formMenu = new JPopupMenu( "Forms" );
@@ -245,10 +252,13 @@ public class MultiFormLayerControl extends FormLayerControl {
     }
 
     /**
-     * Adds a layer that will give some default plot or other.
+     * Adds one or more layers that will give some default plot or other.
      */
-    public void addDefaultLayer() {
-        dfltFormAct_.actionPerformed( null );
+    public void addDefaultLayers() {
+        ActionEvent evt = new ActionEvent( this, 1, "Init" );
+        for ( Action act : dfltFormActs_ ) {
+            act.actionPerformed( evt );
+        }
         setHintVisible( true );
     }
 
@@ -405,17 +415,26 @@ public class MultiFormLayerControl extends FormLayerControl {
          *                    but different modes
          * @param  form   common form
          */
-        public ModeFormAction( ModePlotter<?>[] plotters,
+        public ModeFormAction( List<ModePlotter<?>> plotters,
                                ModePlotter.Form form ) {
             super( "Add " + form.getFormName(),
                    ResourceIcon.toAddIcon( form.getFormIcon() ) );
             putValue( SHORT_DESCRIPTION,
                       "Add a new " + form.getFormName() + " plot layer" );
-            plotters_ = plotters;
+            plotters_ = plotters.toArray( new ModePlotter<?>[ 0 ] );
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            formStack_.addControl( createModeFormControl( plotters_ ) );
+            formStack_.addControl( createControl() );
+        }
+
+        /**
+         * Returns the control associated with this action.
+         *
+         * @return  control
+         */
+        Control createControl() {
+            return createModeFormControl( plotters_ );
         }
     }
 }

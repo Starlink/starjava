@@ -381,7 +381,7 @@ public class GroupControlManager<P,A> implements ControlManager {
                                           .toArray( new Plotter<?>[ 0 ] ),
                                            zoneConfigger );
             if ( autoPlot ) {
-                control.addDefaultLayer();
+                control.addDefaultLayers();
             }
             return control;
         }
