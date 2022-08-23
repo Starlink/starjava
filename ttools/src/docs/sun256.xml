@@ -14033,7 +14033,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             <ref id="jel-colref">column references</ref>
             to strangely-named columns.</li>
         <li>Minor <ref id="taplint"><code>taplint</code></ref> EPN stage
-            update; now corresponds to PR-EPNTAP-20220705.</li>
+            update; now corresponds to REC-EPNTAP-2.0.</li>
         </ul>
         </p></dd>
     <dt>Bug Fix</dt>
