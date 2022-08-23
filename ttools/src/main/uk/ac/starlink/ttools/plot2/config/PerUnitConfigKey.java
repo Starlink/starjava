@@ -36,7 +36,6 @@ public class PerUnitConfigKey<U extends Unit> extends OptionConfigKey<U> {
     public PerUnitConfigKey( ConfigMeta meta, Class<U> clazz, U[] options,
                              U dflt ) {
         super( meta, clazz, options, dflt, false );
-        ReportMeta rmeta = new ReportMeta( "ctype", "Combiner Type" );
         ctypeRepkey_ =
             ReportKey
            .createObjectKey( new ReportMeta( "ctype", "Combiner Type" ),
