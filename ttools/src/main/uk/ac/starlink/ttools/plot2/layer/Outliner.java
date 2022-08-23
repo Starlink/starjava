@@ -7,6 +7,7 @@ import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Equality;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -142,4 +143,13 @@ public interface Outliner {
      * @return   number of data positions in plan
      */
     long getPointCount( Object binPlan );
+
+    /**
+     * Obtains information associated with the plot.
+     *
+     * @param  binPlan  bin plan returned from <code>calculateBinPlan</code>
+     * @return  report map, or null for no reports
+     * @see   uk.ac.starlink.ttools.plot2.Drawing#getReport
+     */
+    ReportMap getReport( Object binPlan );
 }

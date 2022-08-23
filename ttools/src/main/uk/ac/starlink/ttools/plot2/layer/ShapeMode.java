@@ -455,6 +455,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                          .paintData( tuplePainter, paper,
                                      drawSpec_.dataSpec_, dataStore );
             }
+
+            @Override
+            public ReportMap getReport( Object plan ) {
+                return drawSpec_.outliner_.getReport( plan );
+            }
         }
 
         /**
@@ -541,7 +546,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             }
 
             public ReportMap getReport( Object plan ) {
-                return null;
+                return drawSpec_.outliner_.getReport( plan );
             }
         }
     }
@@ -848,7 +853,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             }
 
             public ReportMap getReport( Object plan ) {
-                return null;
+                return drawSpec_.outliner_.getReport( plan );
             }
 
             /**
@@ -1693,7 +1698,16 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 }
 
                 public ReportMap getReport( Object plan ) {
-                    return getPixelReport( surface_ );
+                    ReportMap map = new ReportMap();
+                    ReportMap pixelReport = getPixelReport( surface_ );
+                    if ( pixelReport != null ) {
+                        map.putAll( pixelReport );
+                    }
+                    ReportMap outlineReport = outliner_.getReport( plan );
+                    if ( outlineReport != null ) {
+                        map.putAll( outlineReport );
+                    }
+                    return map;
                 }
 
                 /**
@@ -2222,6 +2236,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     dataStore.getTupleRunner()
                    .paintData( tuplePainter, paper, dataSpec_, dataStore );
                 }
+                @Override
+                public ReportMap getReport( Object plan ) {
+                    return outliner_.getReport( plan );
+                }
             };
         }
     }
@@ -2321,7 +2339,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         }
 
         public ReportMap getReport( Object plan ) {
-            return null;
+            return drawSpec_.outliner_.getReport( plan );
         }
     }
 }

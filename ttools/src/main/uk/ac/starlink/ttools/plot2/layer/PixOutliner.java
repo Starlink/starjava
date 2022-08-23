@@ -6,6 +6,7 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -57,6 +58,10 @@ public abstract class PixOutliner implements Outliner {
 
     public long getPointCount( Object binPlan ) {
         return ((PixBinPlan) binPlan).pointCount_;
+    }
+
+    public ReportMap getReport( Object binPlan ) {
+        return null;
     }
 
     /**

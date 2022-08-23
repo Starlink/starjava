@@ -17,6 +17,7 @@ import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -387,6 +388,10 @@ public abstract class MarkForm implements ShapeForm {
 
         public long getPointCount( Object plan ) {
             return ((BinPlan) plan).getBinner().getTotal();
+        }
+
+        public ReportMap getReport( Object plan ) {
+            return null;
         }
 
         /**
