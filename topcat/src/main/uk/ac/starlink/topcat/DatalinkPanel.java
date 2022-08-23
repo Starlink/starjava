@@ -41,10 +41,10 @@ public class DatalinkPanel extends JPanel {
     private final TableRowHeader rowHeader_;
     private final LinkRowPanel linkPanel_;
     private LinksDoc linksDoc_;
-    private Map<LinkColMap.ColDef<String>,String> selectionMap_;
+    private Map<LinkColMap.ColDef<?>,Object> selectionMap_;
     private String[] colnames_;
 
-    private static final List<LinkColMap.ColDef<String>> CHAR_COLS =
+    private static final List<LinkColMap.ColDef<?>> CHAR_COLS =
         createCharCols();
 
     /**
@@ -76,7 +76,7 @@ public class DatalinkPanel extends JPanel {
         jtable_ = new StarJTable( false );
         jtable_.setColumnSelectionAllowed( false );
         jtable_.setRowSelectionAllowed( true );
-        selectionMap_ = new HashMap<LinkColMap.ColDef<String>,String>();
+        selectionMap_ = new HashMap<LinkColMap.ColDef<?>,Object>();
         final ListSelectionModel rowSelModel = jtable_.getSelectionModel();
         rowSelModel.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         rowSelModel.addListSelectionListener( new ListSelectionListener() {
@@ -246,8 +246,8 @@ public class DatalinkPanel extends JPanel {
          * table is later replaced. */
         if ( row != null ) {
             LinkColMap colMap = linksDoc_.getColumnMap();
-            selectionMap_ = new HashMap<LinkColMap.ColDef<String>,String>();
-            for ( LinkColMap.ColDef<String> col : CHAR_COLS ) {
+            selectionMap_ = new HashMap<LinkColMap.ColDef<?>,Object>();
+            for ( LinkColMap.ColDef<?> col : CHAR_COLS ) {
                 selectionMap_.put( col, colMap.getValue( col, row ) );
             }
         }
@@ -297,8 +297,8 @@ public class DatalinkPanel extends JPanel {
             /* Record identity of suitable columns. */
             int flagScore = 0;
             for ( int ic = 0; ic < nc; ic++ ) {
-                LinkColMap.ColDef<String> col = CHAR_COLS.get( ic );
-                String oldValue = selectionMap_.get( col );
+                LinkColMap.ColDef<?> col = CHAR_COLS.get( ic );
+                Object oldValue = selectionMap_.get( col );
                 if ( oldValue != null &&
                      oldValue.equals( colMap.getValue( col, row ) ) ) {
                     flagScore = flagScore | ( 1 << ( nc - 1 - ic ) );
@@ -309,7 +309,7 @@ public class DatalinkPanel extends JPanel {
              * description entry.  This is not too unreasonable, but was
              * introduced because it works with Gaia DR3 DataLink tables. */
             int descripScore =
-                getCommonPrefixLength( selectionMap_.get( descripCol ),
+                getCommonPrefixLength( (String) selectionMap_.get( descripCol ),
                                        colMap.getValue( descripCol, row ) );
             scores[ irow ] = flagScore << 8
                            | ( (0xff) & descripScore );
@@ -351,9 +351,9 @@ public class DatalinkPanel extends JPanel {
      *
      * @return  char col list
      */
-    private static List<LinkColMap.ColDef<String>> createCharCols() {
-        List<LinkColMap.ColDef<String>> list =
-            new ArrayList<LinkColMap.ColDef<String>>();
+    private static List<LinkColMap.ColDef<?>> createCharCols() {
+        List<LinkColMap.ColDef<?>> list = new ArrayList<>();
+        list.add( LinkColMap.COL_LOCALSEMANTICS );
         list.add( LinkColMap.COL_SEMANTICS );
         list.add( LinkColMap.COL_CONTENTTYPE );
         list.add( LinkColMap.COL_SERVICEDEF );
