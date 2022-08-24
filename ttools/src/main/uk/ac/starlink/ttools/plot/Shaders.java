@@ -238,6 +238,54 @@ public class Shaders {
     /** Painbow shader scraped from https://xkcd.com/2537/.  Thanks Randall. */
     public static final Shader LUT_PAINBOW;
 
+    /* CMasher maps from https://github.com/1313e/CMasher/,
+     * see https://doi.org/10.21105/joss.02004. */
+
+    /** Guppy diverging shader from CMasher. */
+    public static final Shader LUT_GUPPY;
+
+    /** Iceburn diverging shader from CMasher. */
+    public static final Shader LUT_ICEBURN;
+
+    /** Redshift diverging shader from CMasher. */
+    public static final Shader LUT_REDSHIFT;
+
+    /** Pride diverging shader from CMasher. */
+    public static final Shader LUT_PRIDE;
+
+    /** Infinity cyclic shader from CMasher. */
+    public static final Shader LUT_INFINITY;
+
+    /** Cosmic sequential shader from CMasher. */
+    public static final Shader LUT_COSMIC;
+
+    /** Ember sequential shader from CMasher. */
+    public static final Shader LUT_EMBER;
+
+    /** Gothic sequential shader from CMasher. */
+    public static final Shader LUT_GOTHIC;
+
+    /** Rainforest sequential shader from CMasher. */
+    public static final Shader LUT_RAINFOREST;
+
+    /** Voltage sequential shader from CMasher. */
+    public static final Shader LUT_VOLTAGE;
+
+    /** Bubblegum sequential shader from CMasher. */
+    public static final Shader LUT_BUBBLEGUM;
+
+    /** Gem sequential shader from CMasher. */
+    public static final Shader LUT_GEM;
+
+    /** Chroma sequential shader from CMasher. */
+    public static final Shader LUT_CHROMA;
+
+    /** Neon sequential shader from CMasher. */
+    public static final Shader LUT_NEON;
+
+    /** Tropical sequential shader from CMasher. */
+    public static final Shader LUT_TROPICAL;
+
     /** Selection of lookup table-based shaders. */
     public final static Shader[] LUT_SHADERS = new Shader[] {
         LUT_AIPS0 = new ResourceLutShader( "AIPS0", "aips0.lut" ),
@@ -276,6 +324,21 @@ public class Shaders {
         LUT_CIVIDIS = new ResourceLutShader( "Cividis", "cividis.lut" ),
         LUT_HOTCOLD = new ResourceLutShader( "HotCold", "hotcold.lut" ),
         LUT_PAINBOW = new ResourceLutShader( "Painbow", "painbow.lut" ),
+        LUT_COSMIC = new ResourceLutShader( "Cosmic", "cosmic.lut" ),
+        LUT_EMBER = new ResourceLutShader( "Ember", "ember.lut" ),
+        LUT_GOTHIC = new ResourceLutShader( "Gothic", "gothic.lut" ),
+        LUT_RAINFOREST = new ResourceLutShader( "Rainforest", "rainforest.lut"),
+        LUT_VOLTAGE = new ResourceLutShader( "Voltage", "voltage.lut" ),
+        LUT_BUBBLEGUM = new ResourceLutShader( "Bubblegum", "bubblegum.lut" ),
+        LUT_GEM = new ResourceLutShader( "Gem", "gem.lut" ),
+        LUT_CHROMA = new ResourceLutShader( "Chroma", "chroma.lut" ),
+        LUT_NEON = new ResourceLutShader( "Neon", "neon.lut" ),
+        LUT_TROPICAL = new ResourceLutShader( "Tropical", "tropical.lut" ),
+        LUT_GUPPY = new ResourceLutShader( "Guppy", "guppy.lut" ),
+        LUT_ICEBURN = new ResourceLutShader( "Iceburn", "iceburn.lut" ),
+        LUT_REDSHIFT = new ResourceLutShader( "Redshift", "redshift.lut" ),
+        LUT_PRIDE = new ResourceLutShader( "Pride", "pride.lut" ),
+        LUT_INFINITY = new ResourceLutShader( "Infinity", "infinity.lut" ),
     };
 
     /* ColorBrewer.

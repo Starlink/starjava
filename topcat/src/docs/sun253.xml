@@ -25713,10 +25713,11 @@ various places, including SkyCat/GAIA,
 MatPlotLib 1.5,
 Gnuplot, Daniel Michalik,
 <webref url="https://personal.sron.nl/~pault/">Paul Tol</webref>,
+<webref url="https://github.com/1313e/CMasher">CMasher</webref>,
 <webref url="http://colorbrewer2.org/">Color Brewer</webref>,
 <webref url="http://hclwizard.org/">HCL Wizard</webref>,
 <webref url="https://www.mrao.cam.ac.uk/~dag/CUBEHELIX/">Dave Green</webref>,
-and probably some others I forgot.
+and maybe some others I forgot.
 </p>
 
 <p>Some icons were created by or adapted from
@@ -31347,6 +31348,12 @@ introduced since the last version:
         to mark reference positions for X/Y array data,
         thus allowing activation etc with
         <ref id="GangLayerControl_xyarray">XYArray</ref> plots.</li>
+    <li>Add some new colour maps from
+        <webref url="https://github.com/1313e/CMasher">CMasher</webref>:
+        Cosmic, Ember, Gothic, Rainforest, Voltage,
+        Bubblegum, Gem, Chroma, Neon, Tropical (sequential);
+        Guppy, Iceburn, Redshift, Pride (diverging);
+        Infinity (cyclic).</li>
     </ul>
     </p></dd>
 

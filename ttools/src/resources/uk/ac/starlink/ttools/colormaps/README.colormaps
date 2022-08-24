@@ -2,11 +2,18 @@ These *.lut colour map files are 3*N arrays of floats, representing
 r1, g1, b1, r2, g2, b2, ....  They represent colour maps for a 
 univariate scale.
 
-Some of the values are taken from SkyCat/GAIA.
+Some of the maps are taken from SkyCat/GAIA.
 They were derived from the *.lasc files in directory 
 applications/gaia/skycat/rtd/rtdimg/colormaps/ from the starlink source tree.
 
-Conversion was done using the following filter program:
+Some of the maps are taken from the CMasher project at release 1.6.
+They were derived from the cm_*.txt files at
+https://raw.githubusercontent.com/1313e/CMasher/v1.6.0/cmasher/colormaps/
+and are available under the BSD 3-clause licence
+(https://github.com/1313e/CMasher/master/LICENSE).
+
+The SkyCat/GAIA and CMasher conversions were done using the
+following filter program with or without minor variations:
 
 import java.io.BufferedReader;
 import java.io.BufferedOutputStream;
@@ -54,3 +61,5 @@ Hotcold is from Daniel Michalik, Lund.
 
 Cividis originates from DOI:10.1371/journal.pone.0199239, downloaded from
 https://github.com/pnnl/cmaputil/blob/master/colormaps/cividis.txt
+
+Painbow is from https://xkcd.com/2537/.

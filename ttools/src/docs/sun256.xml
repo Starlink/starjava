@@ -14063,6 +14063,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add new plot layer type
         <ref id="layer-handles"><code>handles</code></ref>
         to mark a reference position for X/Y array data.</li>
+    <li>Add some new colour maps from 
+        <webref url="https://github.com/1313e/CMasher">CMasher</webref>:
+        <code>cosmic</code>, <code>ember</code>, <code>gothic</code>,
+        <code>rainforest</code>, <code>voltage</code>,
+        <code>bubblegum</code>, <code>gem</code>, <code>chroma</code>,
+        <code>neon</code>, <code>tropical</code> (sequential);
+        <code>guppy</code>, <code>iceburn</code>,
+        <code>redshift</code>, <code>pride</code> (diverging);
+        <code>infinity</code> (cyclic).</li>
     </ul>
     </p></dd>
 
