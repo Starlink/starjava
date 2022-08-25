@@ -57,7 +57,7 @@ public class GuiDataStore implements DataStore {
     public GuiDataStore( DataStore base, BoundedRangeModel progModel,
                          long tupleCount ) {
         base_ = base;
-        progresser_ = progModel != null && tupleCount >= 0
+        progresser_ = progModel != null && tupleCount > 0
                     ? new Progresser( progModel, tupleCount )
                     : null;
     }
