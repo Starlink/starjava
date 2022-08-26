@@ -622,6 +622,22 @@ public class TopcatUtils {
     }
 
     /**
+     * Returns a string unique to an object's identity.
+     * This is modelled on the value that Object.toString() usually returns,
+     * though not guaranteed to be the same.
+     *
+     * @param   obj  object
+     * @return  unique string for object
+     */
+    public static String identityString( Object obj ) {
+        return new StringBuffer()
+              .append( obj.getClass().getName() )
+              .append( '@' )
+              .append( Integer.toHexString( System.identityHashCode( obj ) ) )
+              .toString();
+    }
+
+    /**
      * Formats a long value for presentation as text.
      * This typically puts separators between groups of three numbers for
      * improved visibility.  TOPCAT policy is usually to do this only for
