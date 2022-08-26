@@ -32,7 +32,8 @@ public class TopcatEvent {
 
     /**
      * Code indicating that a row has been highlighted.
-     * The datum is a <code>Long</code> giving the highlighted row.
+     * The datum is a <code>Long</code> giving the highlighted row,
+     * or null if activation status is being cleared.
      */
     public static final int ROW = 7;
 

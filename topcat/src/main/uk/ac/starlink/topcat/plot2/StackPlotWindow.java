@@ -528,8 +528,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         TopcatListener tcListener = new TopcatListener() {
             public void modelChanged( TopcatEvent evt ) {
                 if ( evt.getCode() == TopcatEvent.ROW ) {
-                    highlightRow( evt.getModel(),
-                                  ((Long) evt.getDatum()).longValue() );
+                    Object datum = evt.getDatum();
+                    long lrow = datum instanceof Long
+                              ? ((Long) datum).longValue()
+                              : -1;
+                    highlightRow( evt.getModel(), lrow );
                 }
             }
         };
@@ -1210,6 +1213,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     /**
      * Iterates over the points in a given cloud to find out whether any
      * are near to a given screen position.
+     * The returned map contains an entry for every TopcatModel represented
+     * in the supplied pointCloud; map values are the row index where
+     * one is indicated, or null if nothing was near the supplied point.
      *
      * @param  surface  plot surface
      * @param  pointCloud   point cloud
@@ -1229,6 +1235,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         TableCloud[] tclouds = pointCloud.getTableClouds();
         Map<TopcatModel,Double> closeMap = new HashMap<TopcatModel,Double>();
         Map<TopcatModel,Long> indexMap = new HashMap<TopcatModel,Long>();
+        for ( TableCloud tcloud : tclouds ) {
+            indexMap.put( tcloud.getTopcatModel(), null );
+        }
 
         /* Iterate over each sub point cloud distinct positions. */
         for ( int ic = 0; ic < tclouds.length; ic++ ) {
@@ -1276,21 +1285,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * This will in turn cause the plot panel to visually identify
          * these points (perhaps amongst other "activation" actions
          * unrelated to this plot). */
-        int nHigh = 0;
         for ( Map.Entry<TopcatModel,Long> entry : indexMap.entrySet() ) {
             TopcatModel tcModel = entry.getKey();
-            long irow = entry.getValue().longValue();
-            assert tcModel != null;
-            if ( tcModel != null ) {
-                tcModel.highlightRow( irow );
-                nHigh++;
-            }
-        }
-
-        /* If no points were identified, clear the highlight list
-         * for this plot. */
-        if ( nHigh == 0 ) {
-            plotPanel_.setHighlights( new HashMap<SubCloud,double[]>() );
+            Long iRow = entry.getValue();
+            long irow = iRow == null ? -1 : iRow.longValue();
+            tcModel.highlightRow( irow );
         }
     }
 
@@ -1299,20 +1298,22 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * This method is called as a consequence of the TopcatEvent.ROW event.
      *
      * @param   tcModel   topcat model
-     * @param   irow   row index
+     * @param   irow   row index, or -1 to clear
      */
     private void highlightRow( TopcatModel tcModel, long irow ) {
-        Map<SubCloud,double[]> highMap = new LinkedHashMap<SubCloud,double[]>();
-        DataStore dataStore = plotPanel_.getDataStore();
-        int nz = plotPanel_.getZoneCount();
-        for ( int iz = 0; iz < nz; iz++ ) {
-            for ( SubCloud subCloud :
-                  SubCloud.createSubClouds( plotPanel_.getPlotLayers( iz ),
-                                            true ) ) {
-                if ( getTopcatModel( subCloud.getDataSpec() ) == tcModel ) {
-                    double[] dpos = getDataPos( subCloud, irow, dataStore );
-                    if ( dpos != null ) {
-                        highMap.put( subCloud, dpos );
+        Map<SubCloud,double[]> highMap = new LinkedHashMap<>();
+        if ( irow >= 0 ) {
+            DataStore dataStore = plotPanel_.getDataStore();
+            int nz = plotPanel_.getZoneCount();
+            for ( int iz = 0; iz < nz; iz++ ) {
+                for ( SubCloud subCloud :
+                      SubCloud.createSubClouds( plotPanel_.getPlotLayers( iz ),
+                                                true ) ) {
+                    if ( getTopcatModel( subCloud.getDataSpec() ) == tcModel ) {
+                        double[] dpos = getDataPos( subCloud, irow, dataStore );
+                        if ( dpos != null ) {
+                            highMap.put( subCloud, dpos );
+                        }
                     }
                 }
             }

@@ -523,17 +523,21 @@ public class TopcatModel {
      * Performs actions required to highlight a row,
      * optionally including notifying external applications via SAMP/PLASTIC.
      *
-     * @param  lrow  index of the row to activate
+     * @param  lrow  index of the row to activate, or -1 to clear activation
      * @param  sendOut  if true, will notify external applications via
      *         SAMP/PLASTIC when this model is so configured;
      *         if false, no such external notifications will be sent
      */
     public void highlightRow( long lrow, boolean sendOut ) {
         if ( lrow != lastHighlight_ ) {
-            fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
-            ActivationMeta meta = sendOut ? ActivationMeta.NORMAL
-                                          : ActivationMeta.INHIBIT_SEND;
-            getActivationWindow().activateRow( lrow, meta );
+            lastHighlight_ = lrow;
+            fireModelChanged( TopcatEvent.ROW,
+                              lrow >= 0 ? Long.valueOf( lrow ) : null );
+            if ( lrow >= 0 ) {
+                ActivationMeta meta = sendOut ? ActivationMeta.NORMAL
+                                              : ActivationMeta.INHIBIT_SEND;
+                getActivationWindow().activateRow( lrow, meta );
+            }
         }
     }
 

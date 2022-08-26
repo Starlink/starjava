@@ -407,7 +407,7 @@ public class TableViewerWindow extends AuxWindow {
      * indicated.
      * 
      * @param  lrow  index in the data model (not the view model) of the
-     *               row to be highlighted
+     *               row to be highlighted, or -1 to clear selection
      */
     private void highlightRow( long lrow ) {
         
@@ -423,7 +423,7 @@ public class TableViewerWindow extends AuxWindow {
         rowSelectionModel_.clearSelection();
      
         /* Check if the view currently on display contains the requested row. */
-        if ( viewModel_.getSubset().isIncluded( lrow ) ) {
+        if ( lrow >= 0 && viewModel_.getSubset().isIncluded( lrow ) ) {
         
             /* Get the view row corresponding to the requested table row. */
             int viewRow = viewModel_.getViewRow( lrow );
@@ -621,12 +621,8 @@ public class TableViewerWindow extends AuxWindow {
         int code = evt.getCode();
         if ( code == TopcatEvent.ROW ) {
             Object datum = evt.getDatum();
-            if ( datum instanceof Long ) {
-                highlightRow( ((Long) datum).longValue() );
-            }
-            else {
-                assert false;
-            }
+            long lrow = datum instanceof Long ? ((Long) datum).longValue() : -1;
+            highlightRow( lrow );
         }
         else if ( code == TopcatEvent.COLUMN ) {
             Object datum = evt.getDatum();
