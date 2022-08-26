@@ -90,9 +90,9 @@ public class CodecTest extends TableCase {
         assertEquals( ( nrow + 1 ) / 4, countSubset( quarterSet, nrow ) );
         assertEquals( ( nrow + 1 ) * 3 / 4, countSubset( notQuarterSet, nrow ));
 
-        RowSubset removed1 = (RowSubset) tcModel.getSubsets().remove( 3 );
+        RowSubset removed1 = (RowSubset) tcModel.getSubsets().remove( 4 );
         assertEquals( notTenSet, removed1 );
-        RowSubset removed2 = (RowSubset) tcModel.getSubsets().remove( 3 );
+        RowSubset removed2 = (RowSubset) tcModel.getSubsets().remove( 4 );
         assertEquals( quarterSet, removed2 );
         tcModel.applySubset( tenSet );
         tcModel.sortBy( new SortOrder( tcModel.getColumnModel()
@@ -113,6 +113,7 @@ public class CodecTest extends TableCase {
         colModel.removeColumn( colModel.getColumn( 0 ) );
         colModel.removeColumn( colModel
                               .getColumn( colModel .getColumnCount() - 1 ) );
+        tcModel.getActivatedSubset().setRowIndex( 5 );
         TopcatModel tcModel1 = roundTrip( codec, tcModel );
         assertEqualTopcatModels( tcModel, tcModel1 );
     }

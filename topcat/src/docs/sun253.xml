@@ -894,6 +894,19 @@ various <ref id="plot2">plotting</ref>
 (and <ref id="GraphicsWindow">old-style plotting</ref>) windows.
 </p>
 
+<p>Tables always have two special subsets:
+<ul>
+<li><label>All</label>:
+    contains all the rows in the table
+    </li>
+<li><label>Activated</label>:
+    contains a single row if one has been <ref id="activation">activated</ref>,
+    e.g. by clicking on a table row or plotted point representing it
+    </li>
+</ul>
+Other subsets can be defined by user actions as described below.
+</p>
+
 <subsubsect id="subsetDef">
 <subhead><title>Defining Subsets</title></subhead>
 
@@ -3005,13 +3018,15 @@ or on a row in the
 Data Window
 (or in a few other circumstances - see below)
 the corresponding table row will be <em>activated</em>.
-When a row is activated, three things happen:
+When a row is activated, four things happen:
 <ol>
 <li>If that row is represented by a point in any open 2- or 3-dimensional
     scatter plot windows, a visible cursor marker will be drawn
     centred on that point.</li>
 <li>If the Data Window is visible, the table will be scrolled to show the
     row and it will be highlighted</li>
+<li>The contents of the <label>Activated</label> Row Subset will be updated
+    to include (only) that row</li>
 <li>If an <em>activation action</em> has been defined, it will be invoked</li>
 </ol>
 The first two of these mean that you can easily see which point in a
@@ -3019,9 +3034,13 @@ plot corresponds to which row in the table and vice versa - just click
 on one and the other will be highlighted.
 You can also click on a point in one plot and easily see the corresponding
 point in any other plots of the same data.
+If you want to make the activation more visible in a plot,
+you can make sure the Activated entry is checked in the
+layer control <ref id="tableDataControl_subsets">Subsets tab</ref>,
+and configure it in some distinctive way.
 </p>
 
-<p>The third one is much more flexible.
+<p>The fourth item is much more flexible.
 By using the <ref id="ActivationWindow">Activation Window</ref>,
 you can set up one or several configurable events to take
 place on row activation.
@@ -6236,6 +6255,13 @@ button when the chosen table is selected in the
 <ref id="ControlWindow">Control Window</ref>'s Table List.
 </p>
 
+<p>Two special subsets are always present:
+<label>All</label> includes the whole table, and
+<label>Activated</label> contains a single row if one has been
+<ref id="activation">activated</ref> by clicking on a row or point
+that corresponds to it.
+</p>
+
 <p>The subsets are displayed in a <ref id="JTable">JTable</ref>
 widget with a row for each subset.
 You can interact with this JTable in the usual ways,
@@ -7428,8 +7454,9 @@ are specified in the other tabs (usually <label>Form</label>).
 </figure>
 
 <p>The <label>Subsets</label> tab lists the defined Row Subsets for
-the table you have selected in the <label>Position</label> tab.
-The subset <label>All</label> is always present;
+the table you have selected in the <label>Position</label> tab
+(see the <ref id="SubsetWindow">Subsets window</ref>).
+The subsets <label>All</label> and <label>Activated</label> are always present;
 others may or may not be depending on whether any have been defined.
 Note that actions you take in the plot (for instance selecting
 a new subset <ref id="plotSubsets">by region</ref>)
@@ -31431,6 +31458,9 @@ introduced since the last version:
         new one, and it keeps its position in the displayed stack.</li>
     <li>Add new section listing <ref id="Shaders">Colour Maps</ref>
         to this document.</li>
+    <li>Add new <label>Activated</label> Row Subset to each table;
+        this can be used to highlight plotted rows on
+        <ref id="activation">activation</ref>.</li>
     </ul>
     </p></dd>
 

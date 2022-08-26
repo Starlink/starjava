@@ -75,6 +75,7 @@ public class TopcatModel {
     private final ColumnList columnList_;
     private final OptionsListModel<RowSubset> subsets_;
     private final Map<RowSubset,Long> subsetCounts_;
+    private final SingleRowSubset activatedSubset_;
     private final ComboBoxModel<SortOrder> sortSelectionModel_;
     private final ComboBoxModel<RowSubset> subsetSelectionModel_;
     private final SortSenseModel sortSenseModel_;
@@ -182,16 +183,20 @@ public class TopcatModel {
         sortSenseModel_ = new SortSenseModel();
 
         /* Initialise subsets list. */
+        activatedSubset_ = new SingleRowSubset( "Activated" );
         subsets_ = new OptionsListModel<RowSubset>();
         subsets_.add( RowSubset.ALL );
+        subsets_.add( activatedSubset_ );
 
         /* Set up the current subset selector. */
         subsetSelectionModel_ = new SubsetSelectionModel();
 
         /* Initialise count of subsets. */
         subsetCounts_ = new HashMap<RowSubset,Long>();
-        subsetCounts_.put( RowSubset.NONE, new Long( 0 ) );
-        subsetCounts_.put( RowSubset.ALL, new Long( startab.getRowCount() ) );
+        subsetCounts_.put( RowSubset.NONE, Long.valueOf( 0 ) );
+        subsetCounts_.put( RowSubset.ALL,
+                           Long.valueOf( startab.getRowCount() ) );
+        subsetCounts_.put( activatedSubset_, Long.valueOf( 0 ) );
 
         /* Set up a map to contain column selector models. */
         columnSelectorMap_ = new HashMap<ValueInfo,ColumnSelectorModel>();
@@ -451,6 +456,15 @@ public class TopcatModel {
     }
 
     /**
+     * Returns a subset representing the currently activated row.
+     *
+     * @return  subset
+     */
+    public SingleRowSubset getActivatedSubset() {
+        return activatedSubset_;
+    }
+
+    /**
      * Returns the window that manages this model's activation actions.
      *
      * @return  activation window, created lazily
@@ -531,6 +545,8 @@ public class TopcatModel {
     public void highlightRow( long lrow, boolean sendOut ) {
         if ( lrow != lastHighlight_ ) {
             lastHighlight_ = lrow;
+            activatedSubset_.setRowIndex( lrow );
+            updateSubsetCount( activatedSubset_, lrow >= 0 ? 1 : 0 );
             fireModelChanged( TopcatEvent.ROW,
                               lrow >= 0 ? Long.valueOf( lrow ) : null );
             if ( lrow >= 0 ) {
@@ -752,9 +768,12 @@ public class TopcatModel {
     public JComboBox<String> createNewSubsetNameSelector() {
 
         /* Get a selector containing the names of all existing subsets,
-         * and doctor its model so that it excludes RowSubset.ALL. */
+         * and doctor its model so that it excludes the special subsets
+         * All and Activated. */
         final ComboBoxModel<RowSubset> rsetModel = subsets_.makeComboBoxModel();
-        final int nskip = rsetModel.getElementAt( 0 ) == RowSubset.ALL ? 1 : 0;
+        final int nskip = 2;
+        assert rsetModel.getElementAt( 0 ) == RowSubset.ALL;
+        assert rsetModel.getElementAt( 1 ) == activatedSubset_;
         ComboBoxModel<String> nameModel = new ComboBoxModel<String>() {
             private Object selected;
             public int getSize() {
@@ -823,6 +842,7 @@ public class TopcatModel {
         for ( int is = 0; is < nset && ! done; is++ ) {
             RowSubset rs = subsets_.get( is );
             if ( rset != RowSubset.ALL &&
+                 rset != activatedSubset_ &&
                  rset.getName().equalsIgnoreCase( rs.getName() ) ) {
                 rset.setKey( rs.getKey() );
                 subsets_.set( is, rset );

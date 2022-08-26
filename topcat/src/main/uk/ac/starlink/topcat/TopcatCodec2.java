@@ -84,6 +84,8 @@ public class TopcatCodec2 implements TopcatCodec {
     private static final DataColSpec DATA_COLSPEC = new DataColSpec();
 
     private static final AllSetSpec ALL_SETSPEC = new AllSetSpec();
+    private static final ActivatedSetSpec ACTIVATED_SETSPEC =
+        new ActivatedSetSpec();
     private static final DeletedSetSpec DEL_SETSPEC = new DeletedSetSpec();
     private static final ExprSetSpec EXPR_SETSPEC = new ExprSetSpec();
     private static final InverseSetSpec INV_SETSPEC = new InverseSetSpec();
@@ -182,6 +184,10 @@ public class TopcatCodec2 implements TopcatCodec {
             if ( rset == RowSubset.ALL ) {
                 hadAll = true;
                 sspec = ALL_SETSPEC.createStringSpec();
+            }
+            else if ( rset == tcModel.getActivatedSubset() ) {
+                long lrow = tcModel.getActivatedSubset().getRowIndex();
+                sspec = ACTIVATED_SETSPEC.createStringSpec( lrow );
             }
             else if ( rset instanceof DeletedSubset ) {
                 sspec = DEL_SETSPEC.createStringSpec();
@@ -431,6 +437,13 @@ public class TopcatCodec2 implements TopcatCodec {
             if ( ALL_SETSPEC.isSpec( rsetSpec ) ) {
                 rset = RowSubset.ALL;
             }
+            else if ( ACTIVATED_SETSPEC.isSpec( rsetSpec ) ) {
+                rset = tcModel.getActivatedSubset();
+                long lrow = ACTIVATED_SETSPEC.getRowIndex( rsetSpec );
+                if ( lrow >= 0 ) {
+                    tcModel.getActivatedSubset().setRowIndex( lrow );
+                }
+            }
             else if ( DEL_SETSPEC.isSpec( rsetSpec ) ) {
                 rset = new DeletedSubset();
 
@@ -520,10 +533,10 @@ public class TopcatCodec2 implements TopcatCodec {
                            ? jndexCurrentSubset.intValue()
                            : -1;
 
-        /* Add row subsets to the TopcatModel, except for ALL, which is
-         * added as part of TopcatModel construction. */
+        /* Add row subsets to the TopcatModel, except for those which are
+         * added as part of TopcatModel construction (ALL, Activated). */
         for ( RowSubset rset : rsets ) {
-            if ( rset != RowSubset.ALL ) {
+            if ( ! tcModel.getSubsets().contains( rset ) ) {
                 tcModel.addSubset( rset );
             }
         }
@@ -1154,6 +1167,50 @@ public class TopcatCodec2 implements TopcatCodec {
          */
         public String createStringSpec() {
             return prefix_;
+        }
+    }
+
+    /**
+     * Specifier for the special Activated subset, as created automatically
+     * by a TopcatModel and returned by TopcatModel.getActivatedSubset.
+     */
+    private static class ActivatedSetSpec extends Spec {
+
+        /**
+         * Constructor.
+         */
+        ActivatedSetSpec() {
+            super( "activated:" );
+        }
+
+        /**
+         * Returns the unparameterised specifier string.
+         *
+         * @return  prefix
+         */
+        public String createStringSpec( long lrow ) {
+            return prefix_ + ( lrow >= 0 ? Long.toString( lrow ) : "" );
+        }
+
+        /**
+         * Retrieves the row index from an activation-type string specifier.
+         *
+         * @param  txt  activation subset specifier string
+         * @return  activatd row index, or -1 if not defined
+         */
+        public long getRowIndex( String txt ) {
+            String suffix = getSuffix( txt );
+            if ( txt != null && txt.trim().length() > 0 ) {
+                try {
+                    return Long.parseLong( suffix );
+                }
+                catch ( NumberFormatException e ) {
+                    return -1;
+                }
+            }
+            else {
+                return -1;
+            }
         }
     }
 
