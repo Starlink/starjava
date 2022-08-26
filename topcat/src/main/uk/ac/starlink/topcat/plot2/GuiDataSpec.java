@@ -27,6 +27,7 @@ public class GuiDataSpec extends AbstractDataSpec {
     private final TopcatModel tcModel_;
     private final RowSubset subset_;
     private final GuiCoordContent[] contents_;
+    private final String maskId_;
 
     /**
      * Constructor.
@@ -40,6 +41,7 @@ public class GuiDataSpec extends AbstractDataSpec {
         tcModel_ = tcModel;
         subset_ = subset;
         contents_ = contents;
+        maskId_ = subset.getMaskId();
     }
 
     public StarTable getSourceTable() {
@@ -72,11 +74,7 @@ public class GuiDataSpec extends AbstractDataSpec {
     }
 
     public String getMaskId() {
-        return new StringBuffer()
-            .append( subset_.getClass().getName() )
-            .append( '@' )
-            .append( Integer.toHexString( System.identityHashCode( subset_ ) ) )
-            .toString();
+        return maskId_;
     }
 
     public ValueInfo[] getUserCoordInfos( int ic ) {

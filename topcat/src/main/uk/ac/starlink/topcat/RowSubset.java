@@ -90,6 +90,33 @@ public abstract class RowSubset {
     public abstract boolean isIncluded( long lrow );
 
     /**
+     * Returns the mask identifier by which the content of this subset
+     * is recognised.
+     *
+     * <p>In particular this value is used as a
+     * {@link uk.ac.starlink.ttools.plot2.data.DataSpec#getMaskId maskId} by the
+     * {@link uk.ac.starlink.topcat.plot2.GuiDataSpec GuiDataSpec} class,
+     * which means that changing it will generally signal to the plotting
+     * system that the content of this subset has changed, and thus provoke
+     * a replot of layers dependent on it.
+     *
+     * <p>The default implementation returns a value determined
+     * by the identity of this RowSubset object
+     * ({@link TopcatUtils#identityString}),
+     * but this method may be overridden by subclasses that wish to
+     * signal their changes, and in particular provoke replots,
+     * according to state.
+     * Implementations are not however obliged to make this value
+     * reflect their internal state, especially if it would be
+     * expensive to do so.  Implementations should be fast.
+     *
+     * @return  mask content identifier
+     */
+    public String getMaskId() {
+        return TopcatUtils.identityString( this );
+    }
+
+    /**
      * Returns this subset's name.
      */
     public String toString() {
