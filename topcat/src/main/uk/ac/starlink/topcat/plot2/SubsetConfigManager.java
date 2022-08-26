@@ -28,7 +28,7 @@ public class SubsetConfigManager {
     private final ConfigKey<?>[] nextKeys_;
     private final ConfigKey<?>[] otherKeys_;
     private final ConfigKey<?>[] allKeys_;
-    private final Map<RowSubset,SubsetConfigger> configgers_;
+    private final Map<RowSubset.Key,SubsetConfigger> configgers_;
     private final ActionForwarder forwarder_;
 
     /**
@@ -46,7 +46,7 @@ public class SubsetConfigManager {
         nextKeys_ = nextSupplier_.getKeys();
         otherKeys_ = otherKeys;
         allKeys_ = PlotUtil.arrayConcat( nextKeys_, otherKeys_ );
-        configgers_ = new HashMap<RowSubset,SubsetConfigger>();
+        configgers_ = new HashMap<RowSubset.Key,SubsetConfigger>();
         forwarder_ = new ActionForwarder();
     }
 
@@ -67,7 +67,7 @@ public class SubsetConfigManager {
      * @return   true iff getConfigger would do actual work
      */
     public boolean hasConfigger( RowSubset subset ) {
-        return configgers_.containsKey( subset );
+        return configgers_.containsKey( subset.getKey() );
     }
 
     /**
@@ -99,12 +99,13 @@ public class SubsetConfigManager {
      * @return  configger
      */
     private SubsetConfigger getSubsetConfigger( RowSubset subset ) {
-        if ( ! configgers_.containsKey( subset ) ) {
+        RowSubset.Key key = subset.getKey();
+        if ( ! configgers_.containsKey( key ) ) {
             SubsetConfigger configger = new SubsetConfigger();
             configger.specifier_.addActionListener( forwarder_ );
-            configgers_.put( subset, configger );
+            configgers_.put( key, configger );
         }
-        return configgers_.get( subset );
+        return configgers_.get( key );
     }
 
     /**

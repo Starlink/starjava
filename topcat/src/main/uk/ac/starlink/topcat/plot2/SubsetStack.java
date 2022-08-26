@@ -10,8 +10,11 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.swing.AbstractListModel;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -287,29 +290,48 @@ public class SubsetStack {
          */
         private void updateFromModel() {
 
-            /* Ensure that the identity of the selected entry, if any,
-             * is preserved. */
-            RowSubset sel = subList_ == null ? null
-                                             : subList_.getSelectedValue();
-            List<RowSubset> entries1 = getEntries( baseModel_ );
-            boolean reselect = sel != null
-                            && entries_.contains( sel )
-                            && ! entries1.contains( sel );
-            if ( reselect ) {
-                subList_.clearSelection();
+            /* Record the identity of the currently selected entry, if any. */
+            RowSubset sel0 = subList_ == null ? null
+                                              : subList_.getSelectedValue();
+
+            /* Get the states of the old and new lists in a suitable form. */
+            List<RowSubset.Key> keys0 =
+                entries_.stream()
+               .map( RowSubset::getKey )
+               .collect( Collectors.toList() );
+            Map<RowSubset.Key,RowSubset> map1 = new LinkedHashMap<>();
+            for ( RowSubset rset : getEntries( baseModel_ ) ) {
+                map1.put( rset.getKey(), rset );
             }
 
-            /* Update content from base model while retaining any ordering
-             * from the state of this model. */
-            List<RowSubset> extras1 = new ArrayList<RowSubset>( entries1 );
-            extras1.removeAll( entries_ );
-            entries_.retainAll( entries1 );
-            entries_.addAll( extras1 );
+            /* Repopulate the list containing, in their original order,
+             * those items from the old list that are also contained
+             * in the new list. */
+            entries_.clear();
+            for ( RowSubset.Key key : keys0 ) {
+                RowSubset rset1 = map1.remove( key );
+                if ( rset1 != null ) {
+                    entries_.add( rset1 );
+                }
+            }
+
+            /* Then add at the end any items from the new list that we
+             * haven't already added. */
+            entries_.addAll( map1.values() );
             assert entries_.size() == baseModel_.getSize();
 
             /* Reinstate selection. */
-            if ( reselect && entries_.size() > 0 ) {
-                subList_.setSelectedValue( entries_.get( 0 ), false );
+            if ( sel0 != null ) {
+                RowSubset selected =
+                    entries_
+                   .stream()
+                   .filter( rset -> rset.getKey().equals( sel0.getKey() ) )
+                   .findAny()
+                   .orElse( entries_.size() > 0 ? entries_.get( 0 ) : null );
+                subList_.clearSelection();
+                if ( selected != null ) {
+                    subList_.setSelectedValue( selected, false );
+                }
             }
 
             /* Notify listeners to this list of a change. */
@@ -324,7 +346,7 @@ public class SubsetStack {
      */
     private class SubsetList extends CheckBoxList<RowSubset> {
 
-        private Set<RowSubset> checked_;
+        private Set<RowSubset.Key> checked_;
         private PermutedListModel permModel_;
 
         /**
@@ -335,7 +357,7 @@ public class SubsetStack {
         public SubsetList( PermutedListModel permModel ) {
             super( permModel, true, new JLabel() );
             permModel_ = permModel;
-            checked_ = new HashSet<RowSubset>();
+            checked_ = new HashSet<RowSubset.Key>();
             permModel_.addListDataListener( new ListDataListener() {
                 public void contentsChanged( ListDataEvent evt ) {
                     updateCheckedEntries();
@@ -355,9 +377,11 @@ public class SubsetStack {
          * @return  list of checked entries
          */
         public RowSubset[] getCheckedEntries() {
-            List<RowSubset> entries = getEntries( permModel_ );
-            entries.retainAll( checked_ );
-            return entries.toArray( new RowSubset[ 0 ] );
+            return permModel_.entries_
+                  .stream()
+                  .filter( rset -> checked_.contains( rset.getKey() ) )
+                  .collect( Collectors.toList() )
+                  .toArray( new RowSubset[ 0 ] );
         }
 
         /**
@@ -366,10 +390,15 @@ public class SubsetStack {
          * @param  checked1  list of entries to be checked
          */
         public void setCheckedEntries( RowSubset[] checked1 ) {
-            List<RowSubset> check1List =
-                new ArrayList<RowSubset>( Arrays.asList( checked1 ) );
-            check1List.retainAll( getEntries( permModel_ ) );
-            checked_.addAll( check1List );
+            Set<RowSubset.Key> gotKeys =
+                permModel_.entries_.stream()
+                          .map( RowSubset::getKey )
+                          .collect( Collectors.toSet() );
+            checked_.clear();
+            checked_.addAll( Arrays.stream( checked1 )
+                            .map( RowSubset::getKey )
+                            .filter( key -> gotKeys.contains( key ) )
+                            .collect( Collectors.toList() ) );
             fireActionEvent();
             repaint();
         }
@@ -381,7 +410,9 @@ public class SubsetStack {
         public void setCheckedAll( boolean isChecked ) {
             checked_.clear();
             if ( isChecked ) {
-                checked_.addAll( getEntries( permModel_ ) );
+                checked_.addAll( permModel_.entries_.stream()
+                                .map( RowSubset::getKey )
+                                .collect( Collectors.toList() ) );
             }
             fireActionEvent();
             repaint();
@@ -400,14 +431,16 @@ public class SubsetStack {
              * subset exists and has its entries initialised.
              * The getConfiggerComponent method does some lazy
              * initialization. */
-            List<RowSubset> entries = getEntries( permModel_ );
+            List<RowSubset> entries = permModel_.entries_;
             for ( RowSubset rset : entries ) {
                 subManager_.getConfiggerComponent( rset );
             }
 
             /* Throw out any selected entries which are no longer in the
              * base model, and repaint if any are actually discarded. */
-            if ( checked_.retainAll( entries ) ) { 
+            if ( checked_.retainAll( entries.stream()
+                                    .map( RowSubset::getKey )
+                                    .collect( Collectors.toSet() ) ) ) { 
                 revalidate();
                 repaint();
                 fireActionEvent();
@@ -426,12 +459,13 @@ public class SubsetStack {
 
         @Override
         public void setChecked( RowSubset rset, boolean isCheck ) {
-            if ( isCheck ^ checked_.contains( rset ) ) {
+            RowSubset.Key key = rset.getKey();
+            if ( isCheck ^ checked_.contains( key ) ) {
                 if ( isCheck ) {
-                    checked_.add( rset );
+                    checked_.add( key );
                 }
                 else {
-                    checked_.remove( rset );
+                    checked_.remove( key );
                 }
                 repaint();
                 fireActionEvent();
@@ -440,7 +474,7 @@ public class SubsetStack {
 
         @Override
         public boolean isChecked( RowSubset rset ) {
-            return checked_.contains( rset );
+            return checked_.contains( rset.getKey() );
         }
 
         @Override

@@ -8,6 +8,7 @@ package uk.ac.starlink.topcat;
 public abstract class RowSubset {
 
     private String name_;
+    private Key key_;
 
     /**
      * A subset containing all rows (<tt>isIncluded</tt> always true).
@@ -34,6 +35,7 @@ public abstract class RowSubset {
      */
     public RowSubset( String name ) {
         name_ = name;
+        key_ = new Key( TopcatUtils.identityString( this ) );
     }
 
     /**
@@ -55,6 +57,31 @@ public abstract class RowSubset {
     }
 
     /**
+     * Returns the key identifying this subset.
+     * This value is intended for use by the GUI; only one subset in use
+     * may have the same key at any one time, but if a subset goes out of use,
+     * its key may be passed on to a different one that is intended as
+     * a replacement that should inherit configuration set up for the
+     * original owner.
+     *
+     * @return   identifer
+     */
+    public Key getKey() {
+        return key_;
+    }
+
+    /**
+     * Sets the key identifying this subset.
+     * A key no longer in use may be passed on to a new subset intended
+     * as its replacement.
+     *
+     * @param  key  new key
+     */
+    public void setKey( Key key ) {
+        key_ = key;
+    }
+
+    /**
      * Indicates whether a given row is in the subset or not.
      *
      * @param  lrow  the index of the row in question
@@ -67,5 +94,32 @@ public abstract class RowSubset {
      */
     public String toString() {
         return getName();
+    }
+
+    /**
+     * Class used as subset identifier.
+     */
+    public static class Key {
+
+        private final String key_;
+
+        /**
+         * Constructor.
+         *
+         * @param  key  key text
+         */
+        private Key( String key ) {
+            key_ = key;
+        }
+
+        @Override
+        public int hashCode() {
+            return key_.hashCode();
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            return o instanceof Key && ((Key) o).key_.equals( this.key_ );
+        }
     }
 }

@@ -31358,6 +31358,10 @@ introduced since the last version:
         is defined.</li>
     <li>Fix VOTable reader so BINARY/2 VOTables with no columns
         don't read forever.</li>
+    <li>Improve Row Subset redefinition behaviour for plotting:
+        when a subset name is re-used, any plot configuration
+        (colours etc) set up for the old subset is retained for the
+        new one, and it keeps its position in the displayed stack.</li>
     </ul>
     </p></dd>
 

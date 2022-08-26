@@ -803,6 +803,7 @@ public class TopcatModel {
             RowSubset rs = subsets_.get( is );
             if ( rset != RowSubset.ALL &&
                  rset.getName().equalsIgnoreCase( rs.getName() ) ) {
+                rset.setKey( rs.getKey() );
                 subsets_.set( is, rset );
                 recompileSubsets();
                 done = true;
