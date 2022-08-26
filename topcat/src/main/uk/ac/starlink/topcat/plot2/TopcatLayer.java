@@ -15,6 +15,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.BooleanColumnRowSubset;
 import uk.ac.starlink.topcat.InverseRowSubset;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.SingleRowSubset;
 import uk.ac.starlink.topcat.SyntheticRowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -161,7 +162,7 @@ public class TopcatLayer {
         else if ( rset.equals( RowSubset.NONE ) ) {
             return new CredibleString( "false", Credibility.YES );
         }
-        if ( rset instanceof SyntheticRowSubset ) {
+        else if ( rset instanceof SyntheticRowSubset ) {
             return new CredibleString( ((SyntheticRowSubset) rset)
                                        .getExpression(), Credibility.MAYBE );
         }
@@ -170,6 +171,11 @@ public class TopcatLayer {
             String expr = cset.getTable()
                          .getColumnInfo( cset.getColumnIndex() ).getName();
             return new CredibleString( expr, Credibility.YES );
+        }
+        else if ( rset instanceof SingleRowSubset ) {
+            SingleRowSubset sset = (SingleRowSubset) rset;
+            return new CredibleString( "$0==" + sset.getRowIndex(),
+                                       Credibility.YES );
         }
         else if ( rset instanceof InverseRowSubset ) {
             CredibleString invResult =
