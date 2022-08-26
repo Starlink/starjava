@@ -843,6 +843,20 @@ public class TopcatModel {
     }
 
     /**
+     * Stores the known row count value for a given subset.
+     *
+     * @param  rset  subset
+     * @param  nrow  row count known for the subset
+     */
+    public void updateSubsetCount( RowSubset rset, long nrow ) {
+        subsetCounts_.put( rset, nrow >= 0 ? Long.valueOf( nrow ) : null );
+        int irset = subsets_.indexOf( rset );
+        if ( irset >= 0 ) {
+            subsets_.fireContentsChanged( irset, irset );
+        }
+    }
+
+    /**
      * Adds a new table parameter to the table.
      *
      * @param   param new parameter to add to the table
@@ -1263,11 +1277,7 @@ public class TopcatModel {
 
             /* As a side-effect we have calculated the number of rows in 
              * the subset, so update the count model. */
-            subsetCounts_.put( rset, new Long( viewModel_.getRowCount() ) );
-            int irset = subsets_.indexOf( rset );
-            if ( irset >= 0 ) {
-                subsets_.fireContentsChanged( irset, irset );
-            }
+            updateSubsetCount( rset, viewModel_.getRowCount() );
 
             /* Store the selected value. */
             lastSubset_ = rset;
