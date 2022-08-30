@@ -14072,6 +14072,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>guppy</code>, <code>iceburn</code>,
         <code>redshift</code>, <code>pride</code> (diverging);
         <code>infinity</code> (cyclic).</li>
+    <li>Fix VOTable reader and <code>votlint</code> so that
+        BINARY/2 VOTables with no columns don't read forever.</li>
     </ul>
     </p></dd>
 

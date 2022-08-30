@@ -35,6 +35,13 @@ public class BinaryHandler extends StreamingHandler {
         }
         VotLintContext context = getContext();
 
+        /* In case of zero columns return without action, otherwise we
+         * will keep reading zero bytes per row until the stream is
+         * exhausted (never). */
+        if ( ncol == 0 ) {
+            return;
+        }
+
         /* Determine how many bytes at the start of each row are used to
          * flag null values. */
         int nflag = isBinary2_ ? ( ncol + 7 ) / 8 : 0;

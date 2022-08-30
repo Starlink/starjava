@@ -48,33 +48,48 @@ class BinaryRowSequence implements RowSequence {
             in = Base64.getMimeDecoder().wrap( in );
         }
         dataIn_ = new DataBufferedInputStream( in );
-        rowReader_ = isBinary2
-            ? new RowReader() {
-                  final boolean[] nullFlags = new boolean[ ncol_ ];
-                  public void readRow( Object[] row ) throws IOException {
-                      FlagIO.readFlags( dataIn_, nullFlags );
-                      for ( int icol = 0; icol < ncol_; icol++ ) {
-                          Decoder decoder = decoders[ icol ];
-                          final Object cell;
-                          if ( nullFlags[ icol ] ) {
-                              decoder.skipStream( dataIn_ );
-                              cell = null;
-                          }
-                          else {
-                              cell = decoder.decodeStream( dataIn_ );
-                          }
-                          row[ icol ] = cell;
-                      }
-                  }
-              }
-            : new RowReader() {
-                  public void readRow( Object[] row ) throws IOException {
-                      for ( int icol = 0; icol < ncol_; icol++ ) {
-                          row[ icol ] = decoders[ icol ]
-                                       .decodeStream( dataIn_ );
-                      }
-                  }
-              };
+
+        /* Treat the zero-column case specially, otherwise we can end up
+         * reading zero bytes per row until the stream is exhausted (never). */
+        if ( ncol_ == 0 ) {
+            rowReader_ = new RowReader() {
+                public void readRow( Object[] row ) throws IOException {
+                    throw new EOFException( "No columns" );
+                }
+            };
+        }
+
+        /* Otherwise return a format-specific reader. */
+        else if ( isBinary2 ) {
+            rowReader_ = new RowReader() {
+                final boolean[] nullFlags = new boolean[ ncol_ ];
+                public void readRow( Object[] row ) throws IOException {
+                    FlagIO.readFlags( dataIn_, nullFlags );
+                    for ( int icol = 0; icol < ncol_; icol++ ) {
+                        Decoder decoder = decoders[ icol ];
+                        final Object cell;
+                        if ( nullFlags[ icol ] ) {
+                            decoder.skipStream( dataIn_ );
+                            cell = null;
+                        }
+                        else {
+                            cell = decoder.decodeStream( dataIn_ );
+                        }
+                        row[ icol ] = cell;
+                    }
+                }
+            };
+        }
+        else {
+            rowReader_ = new RowReader() {
+                public void readRow( Object[] row ) throws IOException {
+                    for ( int icol = 0; icol < ncol_; icol++ ) {
+                        row[ icol ] = decoders[ icol ]
+                                     .decodeStream( dataIn_ );
+                    }
+                }
+            };
+        }
     }
 
     public boolean next() throws IOException {
