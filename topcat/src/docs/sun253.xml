@@ -31354,6 +31354,8 @@ introduced since the last version:
         Bubblegum, Gem, Chroma, Neon, Tropical (sequential);
         Guppy, Iceburn, Redshift, Pride (diverging);
         Infinity (cyclic).</li>
+    <li>Blob drawing doesn't disappear until after new subset
+        is defined.</li>
     </ul>
     </p></dd>
 

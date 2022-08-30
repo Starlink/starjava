@@ -1572,21 +1572,19 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                  final Runnable completionCallback ) {
         plotPanel_.submitPlotAnnotator( new Runnable() {
             public void run() {
-                try {
-                    final Map<TopcatModel,BitSet> maskMap = getMaskMap();
-                    if ( maskMap != null ) {
-                        SwingUtilities.invokeLater( new Runnable() {
-                            public void run() {
-                                applyMasks( maskMap );
-                            }
-                        } );
+                final Map<TopcatModel,BitSet> maskMap = getMaskMap();
+                SwingUtilities.invokeLater( () -> {
+                    try {
+                        if ( maskMap != null ) {
+                            applyMasks( maskMap );
+                        }
                     }
-                }
-                finally {
-                    if ( completionCallback != null ) {
-                        SwingUtilities.invokeLater( completionCallback );
+                    finally {
+                        if ( completionCallback != null ) {
+                            completionCallback.run();
+                        }
                     }
-                }
+                } );
             }
             @Slow
             private Map<TopcatModel,BitSet> getMaskMap() {
