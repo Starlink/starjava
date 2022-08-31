@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.plot2.config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot.Shader;
@@ -28,6 +28,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
  */
 public class RampKeySet implements KeySet<RampKeySet.Ramp> {
 
+    private final ClippedShader[] shaders_;
     private final ConfigKey<Shader> shaderKey_;
     private final ConfigKey<Subrange> shadeclipKey_;
     private final ConfigKey<Boolean> flipKey_;
@@ -48,7 +49,8 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
      */
     public RampKeySet( String axname, String axName, ClippedShader[] shaders,
                        Scaling dfltScaling, boolean hasDataclip ) {
-        clipMap_ = new HashMap<Shader,Subrange>();
+        shaders_ = shaders;
+        clipMap_ = new LinkedHashMap<Shader,Subrange>();
         List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
 
         List<Shader> shaderList = new ArrayList<Shader>();
@@ -234,6 +236,15 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         Scaling scaling = config.get( scalingKey_ );
         Subrange dataclip = config.get( dataclipKey_ );
         return createRamp( shader, scaling, dataclip );
+    }
+
+    /**
+     * Returns an orderedlist of the shaders provided by this set.
+     *
+     * @return  shaders
+     */
+    public ClippedShader[] getShaders() {
+        return shaders_;
     }
 
     /**
