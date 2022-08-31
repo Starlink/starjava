@@ -114,10 +114,10 @@ public class IconUtils {
     /**
      * Returns an image got by drawing an Icon.
      *
-     * @param  icon
+     * @param  icon   icon
      * @return  image
      */
-    private static BufferedImage createImage( Icon icon ) {
+    public static BufferedImage createImage( Icon icon ) {
         int w = icon.getIconWidth();
         int h = icon.getIconHeight();
 
