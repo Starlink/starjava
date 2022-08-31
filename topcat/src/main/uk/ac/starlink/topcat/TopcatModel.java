@@ -405,6 +405,23 @@ public class TopcatModel {
     }
 
     /**
+     * Returns the subset in this model's subset list identified by key.
+     *
+     * @param  key  subset identifier
+     * @return  subset with given key, or null
+     */
+    public RowSubset getSubsetByKey( RowSubset.Key key ) {
+        if ( key != null ) {
+            for ( RowSubset subset : subsets_ ) {
+                if ( key.equals( subset.getKey() ) ) {
+                    return subset;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns the most recently selected sort order.
      * This is the one which defines the apparent table.
      *

@@ -219,7 +219,7 @@ public abstract class FormControl implements Control {
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                   RowSubset subset ) {
         if ( stylePanel_ != null ) {
-            ConfigMap config = stylePanel_.getConfig( subset );
+            ConfigMap config = stylePanel_.getConfig( subset.getKey() );
             config.putAll( getExtraConfig() );
             return getStyler()
                   .createLayer( getPlotter(), geom, dataSpec, config );

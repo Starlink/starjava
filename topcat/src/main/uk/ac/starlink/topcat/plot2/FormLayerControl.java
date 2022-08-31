@@ -217,7 +217,8 @@ public abstract class FormLayerControl
                         ConfigMap config = new ConfigMap();
                         config.putAll( coordConfig );
                         config.putAll( fc.getExtraConfig() );
-                        config.putAll( fc.getStylePanel().getConfig( subset ) );
+                        config.putAll( fc.getStylePanel()
+                                         .getConfig( subset.getKey() ) );
                         TopcatLayer layer =
                             new TopcatLayer( plotLayer, config, leglabel,
                                              tcModel_, contents, subset );
@@ -260,7 +261,8 @@ public abstract class FormLayerControl
         if ( rset == null ) {
             return null;
         }
-        ConfigMap config = subsetManager_.getConfigger( rset ).getConfig();
+        ConfigMap config =
+            subsetManager_.getConfigger( rset.getKey() ).getConfig();
         boolean show = config.get( StyleKeys.SHOW_LABEL );
         if ( show ) {
             String label = config.get( StyleKeys.LABEL );
@@ -495,15 +497,17 @@ public abstract class FormLayerControl
              * entries for subsets in the new table with similar names. */
             Map<String,Configger> subconMap = new HashMap<String,Configger>();
             for ( RowSubset rset : oldSubsets ) {
-                if ( subsetManager_.hasConfigger( rset ) ) {
+                RowSubset.Key rsKey = rset.getKey();
+                if ( subsetManager_.hasConfigger( rsKey ) ) {
                     subconMap.put( rset.getName(),
-                                   subsetManager_.getConfigger( rset ) );
+                                   subsetManager_.getConfigger( rsKey ) );
                 }
             }
             for ( RowSubset rset : tcModel_.getSubsets() ) {
                 Configger configger = subconMap.get( rset.getName() );
                 if ( configger != null ) {
-                    subsetManager_.setConfig( rset, configger.getConfig() );
+                    subsetManager_.setConfig( rset.getKey(),
+                                              configger.getConfig() );
                 }
             }
 

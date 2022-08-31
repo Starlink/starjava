@@ -93,7 +93,7 @@ public class SubsetStack {
                 RowSubset rset = subList_.getSelectedValue();
                 if ( rset != null ) {
                     configHolder.add( subManager_
-                                     .getConfiggerComponent( rset ) );
+                                     .getConfiggerComponent( rset.getKey() ) );
                 }
                 panel_.revalidate();
                 panel_.repaint();
@@ -433,7 +433,7 @@ public class SubsetStack {
              * initialization. */
             List<RowSubset> entries = permModel_.entries_;
             for ( RowSubset rset : entries ) {
-                subManager_.getConfiggerComponent( rset );
+                subManager_.getConfiggerComponent( rset.getKey() );
             }
 
             /* Throw out any selected entries which are no longer in the

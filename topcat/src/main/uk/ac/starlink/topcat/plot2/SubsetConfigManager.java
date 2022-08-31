@@ -63,59 +63,58 @@ public class SubsetConfigManager {
      * If not, then calling {@link #getConfigger getConfigger} would
      * construct and initialise such an object.
      * 
-     * @param  subset  row subset
+     * @param  rsKey  row subset identifier
      * @return   true iff getConfigger would do actual work
      */
-    public boolean hasConfigger( RowSubset subset ) {
-        return configgers_.containsKey( subset.getKey() );
+    public boolean hasConfigger( RowSubset.Key rsKey ) {
+        return configgers_.containsKey( rsKey );
     }
 
     /**
      * Lazily constructs and returns a SubsetConfigger for a given subset.
      *
-     * @param   subset   subset for which the configger is required
+     * @param   rsKey  identifier of subset for which the configger is required
      * @return  configger
      */
-    public Configger getConfigger( RowSubset subset ) {
-        return getSubsetConfigger( subset );
+    public Configger getConfigger( RowSubset.Key rsKey ) {
+        return getSubsetConfigger( rsKey );
     }
 
     /**
      * Adjusts the configuration for a given row subset managed by this object.
      *
-     * @param  subset  subset whose configuration characteristcics
-     *                 are to be changed
+     * @param  rsKey  identifier of subset whose configuration characteristcics
+     *                are to be changed
      * @param  config  configuration options to be set; any irrelevant
      *                 entries are ignored
      */
-    public void setConfig( RowSubset subset, ConfigMap config ) {
-        getSubsetConfigger( subset ).setConfig( config );
+    public void setConfig( RowSubset.Key rsKey, ConfigMap config ) {
+        getSubsetConfigger( rsKey ).setConfig( config );
     }
 
     /**
      * Lazily constructs and returns a SubsetConfigger for a given subset.
      *
-     * @param   subset   subset for which the configger is required
+     * @param   rsKey  identifier of subset for which the configger is required
      * @return  configger
      */
-    private SubsetConfigger getSubsetConfigger( RowSubset subset ) {
-        RowSubset.Key key = subset.getKey();
-        if ( ! configgers_.containsKey( key ) ) {
+    private SubsetConfigger getSubsetConfigger( RowSubset.Key rsKey ) {
+        if ( ! configgers_.containsKey( rsKey ) ) {
             SubsetConfigger configger = new SubsetConfigger();
             configger.specifier_.addActionListener( forwarder_ );
-            configgers_.put( key, configger );
+            configgers_.put( rsKey, configger );
         }
-        return configgers_.get( key );
+        return configgers_.get( rsKey );
     }
 
     /**
      * Returns the GUI configuration component for a given row subset.
      *
-     * @param  subset  row subset
+     * @param  rsKey  row subset identifier
      * @return  configuration component
      */
-    public JComponent getConfiggerComponent( RowSubset subset ) {
-        return getSubsetConfigger( subset ).getComponent();
+    public JComponent getConfiggerComponent( RowSubset.Key rsKey ) {
+        return getSubsetConfigger( rsKey ).getComponent();
     }
 
     /**

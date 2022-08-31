@@ -62,7 +62,7 @@ public class FormStylePanel extends JPanel {
     private final SpecialDefault<?>[] specialDflts_;
     private final OptionalConfigSpecifier globalSpecifier_;
     private final ActionForwarder forwarder_;
-    private final Map<RowSubset,ConfigMap> subsetConfigs_;
+    private final Map<RowSubset.Key,ConfigMap> subsetConfigs_;
     private final JLabel iconLabel_;
     private final JComponent subsetSpecifierHolder_;
     private final JComboBox<RowSubset> subsetSelector_;
@@ -129,12 +129,12 @@ public class FormStylePanel extends JPanel {
                 new Plus1ListModel<RowSubset>( tcModel.getSubsets(), null ) );
         subsetSelector_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                RowSubset subset = getSelectedSubset();
-                if ( subset != null ) {
-                    restoreConfig( subset );
+                RowSubset.Key rsKey = getSelectedSubsetKey();
+                if ( rsKey != null ) {
+                    restoreConfig( rsKey );
                 }
                 updateLegendIcon();
-                setSubsetSpecifierActive( subset != null );
+                setSubsetSpecifierActive( rsKey != null );
             }
         } );
 
@@ -143,15 +143,15 @@ public class FormStylePanel extends JPanel {
         subsetSpecifier_ = new ConfigSpecifier( keys );
         subsetSpecifier_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                RowSubset subset = getSelectedSubset();
-                if ( subset != null ) {
-                    saveConfig( subset );
+                RowSubset.Key rsKey = getSelectedSubsetKey();
+                if ( rsKey != null ) {
+                    saveConfig( rsKey );
                 }
                 updateLegendIcon();
                 forwarder_.actionPerformed( evt );
             }
         } );
-        subsetConfigs_ = new HashMap<RowSubset,ConfigMap>();
+        subsetConfigs_ = new HashMap<RowSubset.Key,ConfigMap>();
         subsetSelector_.setSelectedItem( null );
 
         /* Apply table-sensitive default values. */
@@ -205,12 +205,12 @@ public class FormStylePanel extends JPanel {
      * Returns the configuration for one of this panel's row subsets.
      * This is a combination of global and per-subset selected items.
      *
-     * @param   subset  row subset
+     * @param   rsKey  row subset identifier
      * @return   style configuration
      */
-    public ConfigMap getConfig( RowSubset subset ) {
-        ConfigMap config = getDefaultSubsetConfig( subset );
-        ConfigMap subMap = subsetConfigs_.get( subset );
+    public ConfigMap getConfig( RowSubset.Key rsKey ) {
+        ConfigMap config = getDefaultSubsetConfig( rsKey );
+        ConfigMap subMap = subsetConfigs_.get( rsKey );
         if ( subMap != null ) {
             config.putAll( subMap );
         }
@@ -243,14 +243,17 @@ public class FormStylePanel extends JPanel {
          * within a given table.  Copy subset configurations if they
          * match by subset name. */
         Map<String,ConfigMap> rsNameConfigs = new HashMap<String,ConfigMap>();
-        for ( RowSubset rset : template.subsetConfigs_.keySet() ) {
-            rsNameConfigs.put( rset.getName(),
-                               template.subsetConfigs_.get( rset ) );
+        for ( RowSubset.Key rsKey : template.subsetConfigs_.keySet() ) {
+            RowSubset rset = template.tcModel_.getSubsetByKey( rsKey );
+            if ( rset != null ) {
+                rsNameConfigs.put( rset.getName(),
+                                   template.subsetConfigs_.get( rsKey ) );
+            }
         }
         for ( RowSubset rset : tcModel_.getSubsets() ) {
             ConfigMap config = rsNameConfigs.get( rset.getName() );
             if ( config != null ) {
-                subsetConfigs_.put( rset, config );
+                subsetConfigs_.put( rset.getKey(), config );
             }
         }
 
@@ -298,10 +301,10 @@ public class FormStylePanel extends JPanel {
      * Stores the current state of the per-subset specifier component
      * as the value for a given subset.
      *
-     * @param  subset  row subset
+     * @param  rsKey  row subset identifier
      */
-    private void saveConfig( RowSubset subset ) {
-        subsetConfigs_.put( subset, subsetSpecifier_.getSpecifiedValue() );
+    private void saveConfig( RowSubset.Key rsKey ) {
+        subsetConfigs_.put( rsKey, subsetSpecifier_.getSpecifiedValue() );
     }
 
     /**
@@ -309,34 +312,33 @@ public class FormStylePanel extends JPanel {
      * stored for a given subset.  A default configuration is created lazily
      * if no value has previously been stored for the subset.
      *
-     * @param  row subset
+     * @param  rsKey  row subset identifier
      */
-    private void restoreConfig( RowSubset subset ) {
+    private void restoreConfig( RowSubset.Key rsKey ) {
 
         /* Lazily create an entry if no config has explicitly been saved
          * for subset. */
-        if ( ! subsetConfigs_.containsKey( subset ) ) {
-            ConfigMap config = getDefaultSubsetConfig( subset );
+        if ( ! subsetConfigs_.containsKey( rsKey ) ) {
+            ConfigMap config = getDefaultSubsetConfig( rsKey );
             config.keySet().retainAll( Arrays.asList( subsetSpecifier_
                                                      .getConfigKeys() ) );
-            subsetConfigs_.put( subset, config );
+            subsetConfigs_.put( rsKey, config );
         }
 
         /* Retrieve config value for subset and restore the GUI from it. */
-        ConfigMap config = subsetConfigs_.get( subset );
-        subsetSpecifier_.setSpecifiedValue( subsetConfigs_.get( subset ) );
+        subsetSpecifier_.setSpecifiedValue( subsetConfigs_.get( rsKey ) );
     }
 
     /**
      * Returns the default config values for a given subset.
      * This is not affected by user actions in this component.
      *
-     * @param  subset  row subset
+     * @param  rsKey  row subset identifier
      * @return   default config
      */
-    private ConfigMap getDefaultSubsetConfig( RowSubset subset ) {
+    private ConfigMap getDefaultSubsetConfig( RowSubset.Key rsKey ) {
         ConfigMap config = plotConfigger_.getConfig();
-        config.putAll( subManager_.getConfigger( subset ).getConfig() );
+        config.putAll( subManager_.getConfigger( rsKey ).getConfig() );
         config.putAll( globalSpecifier_.getSpecifiedValue() );
         return config;
     }
@@ -364,6 +366,17 @@ public class FormStylePanel extends JPanel {
      */
     private RowSubset getSelectedSubset() {
         return subsetSelector_.getItemAt( subsetSelector_.getSelectedIndex() );
+    }
+
+    /**
+     * Returns the identifier for the subset selected for subset-specific
+     * configuration, or null if none is selected.
+     *
+     * @return  selected subset key, may be null
+     */
+    private RowSubset.Key getSelectedSubsetKey() {
+        RowSubset rset = getSelectedSubset();
+        return rset == null ? null : rset.getKey();
     }
 
     /**
@@ -511,10 +524,10 @@ public class FormStylePanel extends JPanel {
             if ( ! changeSet.isEmpty() ) {
                 ConfigMap changeMap = new ConfigMap( config );
                 changeMap.keySet().retainAll( changeSet );
-                for ( RowSubset rset : subsetConfigs_.keySet() ) {
-                    ConfigMap savedConfig = subsetConfigs_.get( rset );
+                for ( RowSubset.Key rsKey : subsetConfigs_.keySet() ) {
+                    ConfigMap savedConfig = subsetConfigs_.get( rsKey );
                     savedConfig.putAll( changeMap );
-                    if ( rset == subsetSelector_.getSelectedItem() ) {
+                    if ( rsKey.equals( getSelectedSubsetKey() ) ) {
                         subsetSpecifier_.setSpecifiedValue( savedConfig );
                     }
                 }
@@ -532,7 +545,7 @@ public class FormStylePanel extends JPanel {
      */
     private class SubChangeListener implements ActionListener {
         private final SubsetConfigManager subManager_;
-        private Map<RowSubset,ConfigMap> lastConfigs_;
+        private Map<RowSubset.Key,ConfigMap> lastConfigs_;
 
         /**
          * Constructor.
@@ -541,23 +554,23 @@ public class FormStylePanel extends JPanel {
          */
         SubChangeListener( SubsetConfigManager subManager ) {
             subManager_ = subManager;
-            lastConfigs_ = new HashMap<RowSubset,ConfigMap>();
+            lastConfigs_ = new HashMap<RowSubset.Key,ConfigMap>();
         }
 
         public void actionPerformed( ActionEvent evt ) {
             boolean changed = false;
 
             /* Iterate over known subsets. */
-            for ( RowSubset rset : subsetConfigs_.keySet() ) {
+            for ( RowSubset.Key rsKey : subsetConfigs_.keySet() ) {
 
                 /* Work out what config items have changed for the current
                  * row subset since last time. */
-                ConfigMap lastConfig = lastConfigs_.get( rset );
+                ConfigMap lastConfig = lastConfigs_.get( rsKey );
                 if ( lastConfig == null ) {
                     lastConfig = new ConfigMap();
                 }
                 ConfigMap config =
-                    subManager_.getConfigger( rset ).getConfig();
+                    subManager_.getConfigger( rsKey ).getConfig();
                 Set<ConfigKey<?>> changeSet = new HashSet<ConfigKey<?>>();
                 for ( ConfigKey<?> key : config.keySet() ) {
                     if ( ! PlotUtil.equals( config.get( key ),
@@ -565,16 +578,16 @@ public class FormStylePanel extends JPanel {
                         changeSet.add( key );
                     }
                 }
-                lastConfigs_.put( rset, config );
+                lastConfigs_.put( rsKey, config );
 
                 /* Where applicable write those changes into the stored
                  * per-subset records. */
                 if ( ! changeSet.isEmpty() ) {
                     ConfigMap changeMap = new ConfigMap( config );
                     changeMap.keySet().retainAll( changeSet );
-                    ConfigMap savedConfig = subsetConfigs_.get( rset );
+                    ConfigMap savedConfig = subsetConfigs_.get( rsKey );
                     savedConfig.putAll( changeMap );
-                    if ( rset == subsetSelector_.getSelectedItem() ) {
+                    if ( rsKey.equals( getSelectedSubsetKey() ) ) {
                         subsetSpecifier_.setSpecifiedValue( savedConfig );
                     }
                 }

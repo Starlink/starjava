@@ -278,6 +278,7 @@ public class GroupControlManager<P,A> implements ControlManager {
          * multiple subsets, but the logic is tricky, so this is not
          * currently supported by addLayer. */
         RowSubset rset = lcmd.getRowSubset();
+        RowSubset.Key rsKey = rset.getKey();
         SubsetStack subStack = control.getSubsetStack();
         if ( ! Arrays.equals( subStack.getSelectedSubsets(),
                               new RowSubset[] { rset } ) ) {
@@ -288,8 +289,8 @@ public class GroupControlManager<P,A> implements ControlManager {
          * with config options (probably colour) currently in force for
          * the new layer's subset. */
         SubsetConfigManager subManager = control.getSubsetManager();
-        if ( subManager.hasConfigger( rset ) ) {
-            ConfigMap ctrlConfig = subManager.getConfigger( rset ).getConfig();
+        if ( subManager.hasConfigger( rsKey ) ) {
+            ConfigMap ctrlConfig = subManager.getConfigger( rsKey ).getConfig();
             ConfigMap cmdConfig = lcmd.getConfig();
             for ( ConfigKey<?> key : cmdConfig.keySet() ) {
                 if ( ctrlConfig.keySet().contains( key ) &&
@@ -349,7 +350,7 @@ public class GroupControlManager<P,A> implements ControlManager {
 
         /* Set up per-subset configuration. */
         control.getSubsetManager()
-               .setConfig( lcmd.getRowSubset(), lcmd.getConfig() );
+               .setConfig( lcmd.getRowSubset().getKey(), lcmd.getConfig() );
 
         /* Return. */
         return control;
