@@ -24,6 +24,10 @@
  !      javadoc-sources  -> make source files for release API documention
  !      test             -> runs JUnit test cases
  !
+ !   Targets specific to TTOOLS:
+ !      build-standalone -> builds stilts.jar
+ !      docs-pdf         -> builds sun256.pdf
+ !
  !   Authors:
  !      Peter W. Draper (17-SEP-2002)
  !
@@ -1148,7 +1152,7 @@
    !   Creates additional documentation from XML sources
    !   =================================================
    !
-   !   The XML user document is downconverted to PDF and single- 
+   !   The XML user document is downconverted to single- 
    !   and multiple-file HTML versions in the docs directory.
    !-->
   <target name="docs"
@@ -1360,6 +1364,26 @@
       <arg value="${build.docs}/${user.doc}.xml"/>
       <arg value="${build.docs}/${user.doc}"/>
     </java>
+  </target>
+
+  <!--
+   !   =================================================
+   !   Create user document in PDF form from XML sources
+   !   =================================================
+   !
+   !   The XML document is downconverted to PDF via xsl-fo using Fop.
+   !
+   !   This process is, for reasons I haven't tried very hard to
+   !   understand, somewhat slow and also problematic
+   !   in that it fails in headless mode when trying to render SVGs.
+   !   Given that, and the fact that the PDF user document is rather
+   !   a special-interest item, this target is no longer invoked as
+   !   part of the normal install target.  If the PDF user document
+   !   is required, this target must be invoked explicitly.
+   !-->
+  <target name="docs-pdf"
+          depends="docs"
+          description="-> creates the user documentation in PDF form">
 
     <!-- Transform the user document XML to a PDF document via XSL-FO. -->
     <xslt in="${build.docs}/${user.doc}.xml"
@@ -1373,11 +1397,9 @@
     <java classname="org.apache.fop.apps.Fop"
           failonerror="yes"
           fork="yes">
-      <sysproperty key="java.awt.headless" value="true"/>
       <classpath>
         <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
       </classpath>
-      <sysproperty key="java.awt.headless" value="true"/>
       <!-- This classpath tweaking may be required if PNGs are present
        !   and an old version of FOP is in use - see discussion in
        !   topcat/build.xml. -->
