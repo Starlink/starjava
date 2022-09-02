@@ -7401,6 +7401,9 @@ row subsets are plotted and how they are displayed,
 and a description of how they are arranged follows below.
 </p>
 
+<subdiv>
+<subhead><title>Position Tab</title></subhead>
+
 <figure>
 <caption><px>Position tab of a table data layer control</px></caption>
 <figureimage src="&FIG.GangLayerControl_position;"/>
@@ -7413,6 +7416,11 @@ represented, including in some cases
 more coordinate values (e.g. for error bar sizes etc),
 are specified in the other tabs (usually <label>Form</label>).
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Subsets Tab</title></subhead>
 
 <figure>
 <caption><px>Subsets tab of a table data layer control</px></caption>
@@ -7451,6 +7459,11 @@ The little <label>Show</label>/<label>Hide All</label>
 can be used as a convenience to make all the subsets visible or invisible
 at once (which might be useful if you have lots of subsets).
 </p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Form Tab</title></subhead>
 
 <figure>
 <caption><px>Form tab of a table data layer control</px></caption>
@@ -7497,6 +7510,8 @@ generally contain two sub-panels for defining the style details,
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
 
 </subsubsubsect>
 
