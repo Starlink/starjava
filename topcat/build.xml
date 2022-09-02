@@ -1385,7 +1385,7 @@
    !
    !   This process is, for reasons I haven't tried very hard to
    |   understand, rather slow (~3 minutes) and also problematic
-   !   in that it can fail due to a Xerces bug in (Sun's) J2SE1.5.
+   !   in that it fails in headless mode when trying to render SVGs.
    !   Given that, and the fact that the PDF user document is rather
    !   a special-interest item, this target is no longer invoked as
    !   part of the normal install target.  If the PDF user document
@@ -1558,6 +1558,30 @@
           classpathref="classpath">
       <sysproperty key="java.awt.headless" value="true"/>
       <arg value="-files"/>
+    </java>
+    <java classname="uk.ac.starlink.ttools.build.ShaderLegend"
+          output="${build.docs}/figures/colormaps-abs.svg"
+          failonerror="yes"
+          fork="yes"
+          dir="${build.docs}"
+          logerror="yes"
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-ncol"/>
+      <arg value="3"/>
+      <arg value="-abs"/>
+    </java>
+    <java classname="uk.ac.starlink.ttools.build.ShaderLegend"
+          output="${build.docs}/figures/colormaps-noabs.svg"
+          failonerror="yes"
+          fork="yes"
+          dir="${build.docs}"
+          logerror="yes"
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-ncol"/>
+      <arg value="3"/>
+      <arg value="-noabs"/>
     </java>
 
   </target>

@@ -362,6 +362,8 @@
   <!ENTITY FIG.plot2-shading-translucent '&figs;plot2-shading-translucent.png'>
   <!ENTITY FIG.plot2-shading-aux '&figs;plot2-shading-aux.png'>
   <!ENTITY FIG.plot2-shading-weighted '&figs;plot2-shading-weighted.png'>
+  <!ENTITY FIG.colormaps-abs '&figs;colormaps-abs.svg'>
+  <!ENTITY FIG.colormaps-noabs '&figs;colormaps-noabs.svg'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/VOTable/">
@@ -4074,7 +4076,7 @@ The following ones have special significance within TOPCAT:
     implementation may be given instead to use a custom implementation.
     </p></dd>
 
-<dt><code>lut.files</code></dt>
+<dt id="lut.files"><code>lut.files</code></dt>
 <dd><p>Can be set to a (colon-separated on *nix, semicolon-separated on Windows)
     list of files giving custom lookup tables for auxiliary axis and
     density map colour maps.  Each file should be a text file containing
@@ -8516,6 +8518,7 @@ It has the following options:
 <dl>
 <dt>Aux Shader</dt>
 <dd><p>Select the colour map from a list of options.
+    The available colour maps are listed in <ref id="Shaders"/>.
     </p></dd>
 <dt>Shader Clip</dt>
 <dd><p>Select a sub-range of the full colour map above.
@@ -12258,6 +12261,7 @@ you to use it.
     while absolute maps (the rest) ignore the basic dataset colour altogether.
     For a single-dataset plot, the absolute maps are best, but for
     multiple subsets it may be less confusing to use a relative one.
+    Colour maps are listed in <ref id="Shaders"/>.
     </p></dd>
 <dt>Shader Clip</dt>
 <dd><p>Select a sub-range of the full colour map above.
@@ -13625,6 +13629,7 @@ user-configurable options.  The options are:
     while absolute maps (the rest) ignore the basic dataset colour altogether.
     For a single-dataset plot, the absolute maps are best, but for
     multiple subsets it may be less confusing to use a relative one.
+    Colour maps are listed in <ref id="Shaders"/>.
     </p></dd>
 <dt>Shader Clip</dt>
 <dd><p>Select a sub-range of the full colour map above.
@@ -13841,6 +13846,61 @@ In the case of PostScript, this completely obscures any previous layers.
 </p>
 
 </subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="Shaders">
+<subhead><title>Colour Maps</title></subhead>
+
+<p>A number of colour maps are available, and used for instance
+with the <ref id="ShaderControl">Aux Axis Control</ref>
+and <ref id="mode-density">Density Shading Mode</ref>.
+Not all colour maps are suitable/available in all contexts,
+and in some cases the maps are by default clipped at one end to avoid
+for instance white-on-white plotting,
+but the lists below give an overview of which named colourmaps can be used.
+</p>
+
+<p>The <em>absolute</em> colour maps are listed below:
+these do not depend on the underlying colour of the plotted symbols,
+so are suitable when only one dataset is being plotted.
+</p>
+
+<figure>
+<caption><px>Absolute colour maps</px></caption>
+<figureimage src="&FIG.colormaps-abs;"/>
+</figure>
+
+<p>The <em>non-absolute</em> colour maps are listed below:
+these modify an underlying colour, so are suitable for applying
+to several different datasets with different underlying colours.
+The representation here shows how they affect several different colours;
+for each row of pixels the unmodified (value=0) colour is at the left of
+the image and the most modified (value=1) is at the right.
+</p>
+
+<figure>
+<caption><px>Non-absolute colour maps</px></caption>
+<figureimage src="&FIG.colormaps-noabs;"/>
+</figure>
+
+<p>These colour maps have been derived from several sources, including
+SkyCat/GAIA,
+MatPlotLib 1.5,
+Gnuplot, Daniel Michalik,
+<webref url="https://personal.sron.nl/~pault/">Paul Tol</webref>,
+<webref url="https://github.com/1313e/CMasher">CMasher</webref>,
+<webref url="http://colorbrewer2.org/">Color Brewer</webref>,
+<webref url="http://hclwizard.org/">HCL Wizard</webref>,
+<webref url="https://www.mrao.cam.ac.uk/~dag/CUBEHELIX/">Dave Green</webref>,
+<webref url="https://xkcd.com/2537/">xkcd</webref>,
+and maybe some others I forgot.
+</p>
+
+<p>It is also possible to set up custom colour maps by using the
+<ref id="lut.files"><code>lut.files</code></ref>
+System Property. 
+</p>
 
 </subsubsect>
 
@@ -25708,16 +25768,8 @@ functionality:
 <p>The TOPCAT logo in use since version 4 was kindly drawn by Phil Hall.
 </p>
 
-<p>Colour maps available for the plotting have been taken from
-various places, including SkyCat/GAIA,
-MatPlotLib 1.5,
-Gnuplot, Daniel Michalik,
-<webref url="https://personal.sron.nl/~pault/">Paul Tol</webref>,
-<webref url="https://github.com/1313e/CMasher">CMasher</webref>,
-<webref url="http://colorbrewer2.org/">Color Brewer</webref>,
-<webref url="http://hclwizard.org/">HCL Wizard</webref>,
-<webref url="https://www.mrao.cam.ac.uk/~dag/CUBEHELIX/">Dave Green</webref>,
-and maybe some others I forgot.
+<p>The sources for colour maps used in plotting are
+listed in <ref id="Shaders"/>.
 </p>
 
 <p>Some icons were created by or adapted from
@@ -31362,6 +31414,8 @@ introduced since the last version:
         when a subset name is re-used, any plot configuration
         (colours etc) set up for the old subset is retained for the
         new one, and it keeps its position in the displayed stack.</li>
+    <li>Add new section listing <ref id="Shaders">Colour Maps</ref>
+        to this document.</li>
     </ul>
     </p></dd>
 
