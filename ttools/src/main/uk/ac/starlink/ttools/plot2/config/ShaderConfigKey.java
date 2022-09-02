@@ -78,7 +78,8 @@ public class ShaderConfigKey extends ChoiceConfigKey<Shader> {
      */
     public ShaderConfigKey appendShaderDescription() {
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append( "<p>A mixed bag of colour ramps are available:\n" );
+        sbuf.append( "<p>A mixed bag of colour ramps are available\n" )
+            .append( "as listed in <ref id='Shaders'/>:\n" );
         int ns = shaders_.length;
         for ( int is = 0; is < ns; is++ ) {
             sbuf.append( "<code>" )

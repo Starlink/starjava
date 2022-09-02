@@ -160,6 +160,10 @@
   <!ENTITY figs './'>
   <!ENTITY % plot2-defs SYSTEM 'plot2-figdefs.xml'>
   %plot2-defs;
+
+  <!-- Colour map figures. -->
+  <!ENTITY FIG.colormaps-abs 'colormaps-abs.svg'>
+  <!ENTITY FIG.colormaps-noabs 'colormaps-noabs.svg'>
 ]>
 
 <sun>
@@ -3943,6 +3947,60 @@ specific to STILTS graphical output as discussed below.
     </p></dd>
 
 </dl>
+</p>
+
+</subsect>
+
+<subsect id="Shaders">
+<subhead><title>Colour Maps</title></subhead>
+
+<p>A number of colour maps are available, and used for instance
+with the <ref id="ShapeMode">shading modes</ref>
+<ref id="shading-density"><code>density</code></ref>,
+<ref id="shading-aux"><code>aux</code></ref> and
+<ref id="shading-weighted"><code>weighted</code></ref>.
+Not all colour maps are suitable/available in all contexts,
+and in some cases the maps are by default clipped at one end to avoid
+for instance white-on-white plotting,
+but the lists below give an overview of which named colourmaps can be used.
+Note that custom colourmaps can also be used by supplying a specification
+like "<code>red-yellow-blue</code>".
+</p>
+
+<p>The <em>absolute</em> colour maps are listed below:
+these do not depend on the underlying colour of the plotted symbols,
+so are suitable when only one dataset is being plotted.
+</p>
+
+<figure>
+<caption><px>Absolute colour maps</px></caption>
+<figureimage src="&FIG.colormaps-abs;"/>
+</figure>
+
+<p>The <em>non-absolute</em> colour maps are listed below:
+these modify an underlying colour, so are suitable for applying
+to several different datasets with different underlying colours.
+The representation here shows how they affect several different colours; 
+for each row of pixels the unmodified (value=0) colour is at the left of
+the image and the most modified (value=1) is at the right.
+</p>
+
+<figure>
+<caption><px>Non-absolute colour maps</px></caption>
+<figureimage src="&FIG.colormaps-noabs;"/>
+</figure>
+
+<p>These colour maps have been derived from several sources, including
+SkyCat/GAIA,
+MatPlotLib 1.5,
+Gnuplot, Daniel Michalik,
+<webref url="https://personal.sron.nl/~pault/">Paul Tol</webref>,
+<webref url="https://github.com/1313e/CMasher">CMasher</webref>,
+<webref url="http://colorbrewer2.org/">Color Brewer</webref>,
+<webref url="http://hclwizard.org/">HCL Wizard</webref>,
+<webref url="https://www.mrao.cam.ac.uk/~dag/CUBEHELIX/">Dave Green</webref>,
+<webref url="https://xkcd.com/2537/">xkcd</webref>,
+and maybe some others I forgot.
 </p>
 
 </subsect>
@@ -14074,6 +14132,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>infinity</code> (cyclic).</li>
     <li>Fix VOTable reader and <code>votlint</code> so that
         BINARY/2 VOTables with no columns don't read forever.</li>
+    <li>Add new section listing <ref id="Shaders">Colour Maps</ref>
+        to this document.</li>
     </ul>
     </p></dd>
 

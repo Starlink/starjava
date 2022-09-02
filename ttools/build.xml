@@ -1311,6 +1311,30 @@
       <sysproperty key="java.awt.headless" value="true"/>
       <arg value="-files"/>
     </java>
+    <java classname="uk.ac.starlink.ttools.build.ShaderLegend"
+          output="${build.docs}/${user.doc}/colormaps-abs.svg"
+          failonerror="yes"
+          fork="yes"
+          dir="${build.docs}"
+          logerror="yes"
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-ncol"/>
+      <arg value="3"/>
+      <arg value="-abs"/>
+    </java>
+    <java classname="uk.ac.starlink.ttools.build.ShaderLegend"
+          output="${build.docs}/${user.doc}/colormaps-noabs.svg"
+          failonerror="yes"
+          fork="yes"
+          dir="${build.docs}"
+          logerror="yes"
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-ncol"/>
+      <arg value="3"/>
+      <arg value="-noabs"/>
+    </java>
 
     <!-- Write XML files containing MatchEngine usage information
      !   for inclusion in the user document. -->
