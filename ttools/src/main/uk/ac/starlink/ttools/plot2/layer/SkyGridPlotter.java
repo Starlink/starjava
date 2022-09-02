@@ -315,7 +315,7 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
         @Override
         public int hashCode() {
             int code = 23225289;
-            code = 23 * code + rotation_.hashCode();
+            code = 23 * code + PlotUtil.hashCode( rotation_ );
             code = 23 * code + color_.hashCode();
             code = 23 * code + labeller_.hashCode();
             code = 23 * code + captioner_.hashCode();
@@ -330,7 +330,7 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
         public boolean equals( Object o ) {
             if ( o instanceof GridStyle ) {
                 GridStyle other = (GridStyle) o;
-                return this.rotation_.equals( other.rotation_ )
+                return PlotUtil.equals( this.rotation_, other.rotation_ )
                     && this.color_.equals( other.color_ )
                     && this.labeller_.equals( other.labeller_ )
                     && this.captioner_.equals( other.captioner_ )
