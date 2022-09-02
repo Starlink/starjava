@@ -1587,9 +1587,9 @@ public class Plot2Example {
             new Plot2Example( "layer-skygrid", c, PlotTask.SKY,
                               new String[] {
                 "xpix=500", "ypix=250", "projection=aitoff", null,
-                "*viewsys=ecliptic", null,
-                "*layer1=skygrid", "*gridsys1=galactic",
-                "*gridcolor1=HotPink", "*labelpos1=none",
+                "*viewsys=equatorial", "labelpos=none", "*sex=false", null,
+                "*layer1=skygrid", "*gridsys1=ecliptic",
+                "*gridcolor1=HotPink", "*labelpos1=internal",
             } ),
             new Plot2Example( "layer-spheregrid", c, PlotTask.SPHERE,
                               new String[] {

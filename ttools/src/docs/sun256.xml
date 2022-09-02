@@ -14134,6 +14134,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         BINARY/2 VOTables with no columns don't read forever.</li>
     <li>Add new section listing <ref id="Shaders">Colour Maps</ref>
         to this document.</li>
+    <li>Fix bug in <ref id="layer-skygrid">skygrid</ref> layer that
+        failed to inherit configuration items from base grid.</li>
     </ul>
     </p></dd>
 

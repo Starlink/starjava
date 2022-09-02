@@ -1444,7 +1444,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 cgrp.getBasicPositionCount() + cgrp.getExtraPositionCount() > 0
                     ? context.getGeom( env, suffix )
                     : null;
-            PlotLayer layer = createPlotLayer( env, suffix, plotter, geom );
+            PlotLayer layer =
+                createPlotLayer( env, suffix, plotter, context, geom );
             layerMap.put( suffix, layer );
         }
         return layerMap;
@@ -1851,12 +1852,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param   env  execution environment containing parameter assignments
      * @param   suffix  parameter suffix for this layer
      * @param   plotter  plotter object for this layer
+     * @param   context  plot context
      * @param   geom   data position geometry
      * @return  plot layer
      */
     private <S extends Style>
             PlotLayer createPlotLayer( Environment env, String suffix,
-                                       Plotter<S> plotter, DataGeom geom )
+                                       Plotter<S> plotter,
+                                       PlotContext<?,?> context, DataGeom geom )
             throws TaskException {
 
         /* Get basic and additional coordinate specifications. */
@@ -1866,14 +1869,21 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                             cgrp.getExtraCoords() );
 
         /* Prepare a config map with entries for all the config keys
-         * required by the plotter.  All the config keys reported
+         * that may be required by the plotter.  All the config keys reported
          * by the plotter are included.  We also add keys for the
-         * aux axis, if used, since these are global (per zone not per layer).
-         * This is a bit questionable, the plotter is using unreported
-         * config options, but if it didn't, it would report per-layer
-         * aux axis options (colour maps etc) which the plot surface
-         * decorations can't reflect (there's only one aux colour ramp
-         * displayed).  Maybe look at this again one day. */
+         * profile, captioner and aux axis, if used, since these are
+         * global (per plot or per zone not per layer).
+         * In the case of aux at least this is a bit questionable,
+         * since the plotter is using unreported config options,
+         * but if it didn't, it would report per-layer aux axis options
+         * (colour maps etc) which the plot surface decorations can't reflect
+         * (there's only one aux colour ramp displayed). */
+        ConfigMap profileConfig =
+            createBasicConfigMap( env,
+                                  context.getPlotType().getSurfaceFactory()
+                                         .getProfileKeys() );
+        ConfigMap captionConfig =
+            createBasicConfigMap( env, StyleKeys.CAPTIONER.getKeys() );
         ConfigMap layerConfig =
             createLayerSuffixedConfigMap( env, plotter.getStyleKeys(), suffix );
         ConfigMap auxConfig =
@@ -1881,6 +1891,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                          getZoneSuffix( env, suffix ) );
         ConfigMap otherConfig = createCustomConfigMap( env );
         ConfigMap config = new ConfigMap();
+        config.putAll( profileConfig );
+        config.putAll( captionConfig );
         config.putAll( auxConfig );
         config.putAll( layerConfig );
         config.putAll( otherConfig );
