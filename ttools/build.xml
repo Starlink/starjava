@@ -25,6 +25,7 @@
  !      test             -> runs JUnit test cases
  !
  !   Targets specific to TTOOLS:
+ !      plot2-examples   -> writes example plot images
  !      build-standalone -> builds stilts.jar
  !      docs-pdf         -> builds sun256.pdf
  !
@@ -1455,7 +1456,12 @@
    !   (b) they require large binary data input files that ought not to be
    !   checked into the source archive.  But this target should be executed
    !   by hand from time to time (including before a release) when
-   !   plotting code might have changed.
+   !   plotting code might have changed.  The example plots should be
+   !   pixel-to-pixel equal unless some plotting behaviour has changed,
+   !   i.e. running this target should not generated modified output,
+   !   so any discrepancies between old and new graphic output revealed
+   !   by this target should be understood before committing modified
+   !   versions.
    !-->
   <target name="plot2-examples"
           description="-> generate example graphics for plot2 commands"
