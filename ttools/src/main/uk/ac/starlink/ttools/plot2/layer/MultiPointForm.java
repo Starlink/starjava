@@ -479,10 +479,16 @@ public abstract class MultiPointForm implements ShapeForm {
             /* Otherwise, pick a scale so that the largest sized shape
              * painted will be a few tens of pixels long. */
             Span sizeSpan = auxSpans.get( new SizeScale( this ) );
-            double[] bounds = sizeSpan.getFiniteBounds( false );
-            double gmax = Math.max( -bounds[ 0 ], +bounds[ 1 ] );
-            assert gmax >= 0;
-            return gmax == 0 ? 1 : 32 / gmax;
+            if ( sizeSpan != null ) {
+                double[] bounds = sizeSpan.getFiniteBounds( false );
+                double gmax = Math.max( -bounds[ 0 ], +bounds[ 1 ] );
+                assert gmax >= 0;
+                return gmax == 0 ? 1 : 32 / gmax;
+            }
+            else {
+                assert false;
+                return 1;
+            }
         }
 
         /**
