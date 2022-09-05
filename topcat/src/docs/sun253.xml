@@ -7419,7 +7419,7 @@ are specified in the other tabs (usually <label>Form</label>).
 
 </subdiv>
 
-<subdiv>
+<subdiv id="tableDataControl_subsets">
 <subhead><title>Subsets Tab</title></subhead>
 
 <figure>
@@ -7462,7 +7462,7 @@ at once (which might be useful if you have lots of subsets).
 
 </subdiv>
 
-<subdiv>
+<subdiv id="tableDataControl_form">
 <subhead><title>Form Tab</title></subhead>
 
 <figure>
@@ -8817,7 +8817,7 @@ forms have all the panels.
     </p></dd>
 <dt>Global/Subset Styles</dt>
 <dd><p>Controls the style details for the chosen form;
-    see <ref id="tableDataControl"/>.
+    see <ref id="tableDataControl_form"/>.
     </p></dd>
 </dl>
 </p>
@@ -8921,7 +8921,7 @@ but the detail panels are divided into these parts:
     </p></dd>
 <dt>Global/Subset Styles</dt>
 <dd><p>Controls the style details for the chosen form;
-    see <ref id="tableDataControl"/>.
+    see <ref id="tableDataControl_form"/>.
     </p></dd>
 </dl>
 </p>
@@ -9028,7 +9028,7 @@ but the detail panels are divided into these parts:
     </p></dd>
 <dt>Global/Subset Styles</dt>
 <dd><p>Controls the style details for the chosen form;
-    see <ref id="tableDataControl"/>.
+    see <ref id="tableDataControl_form"/>.
     </p></dd>
 </dl>
 </p>
@@ -9323,7 +9323,7 @@ to a histogram.
 <p>The <label>Global Style</label> and
 <label>Subset Style</label> sub-panels control shared and per-subset
 configuration specific to the selected form
-as described in <ref id="tableDataControl"/>.
+as described in <ref id="tableDataControl_form"/>.
 </p>
 
 </subdiv>
@@ -9503,7 +9503,7 @@ divided into two parts:
     </p></dd>
 <dt>Global/Subset Styles</dt>
 <dd><p>Controls the style details for the chosen form;
-    see <ref id="tableDataControl"/>.
+    see <ref id="tableDataControl_form"/>.
     </p></dd>
 </dl>
 </p>
@@ -9733,7 +9733,7 @@ but the detail panels are divided into these parts:
     </p></dd>
 <dt>Global/Subset Styles</dt>
 <dd><p>Controls the style details for the chosen form;
-    see <ref id="tableDataControl"/>.
+    see <ref id="tableDataControl_form"/>.
     </p></dd>
 </dl>
 </p>
