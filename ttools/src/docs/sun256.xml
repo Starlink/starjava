@@ -14136,6 +14136,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         to this document.</li>
     <li>Fix bug in <ref id="layer-skygrid">skygrid</ref> layer that
         failed to inherit configuration items from base grid.</li>
+    <li>New function <code>sequence(n,start,step)</code> in
+        class <ref id="Arrays-sequence">Arrays</ref>.</li>
     </ul>
     </p></dd>
 

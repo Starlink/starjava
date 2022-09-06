@@ -31461,6 +31461,8 @@ introduced since the last version:
     <li>Add new <label>Activated</label> Row Subset to each table;
         this can be used to highlight plotted rows on
         <ref id="activation">activation</ref>.</li>
+    <li>New function <code>sequence(n,start,step)</code> in
+        class <ref id="Arrays-sequence">Arrays</ref>.</li>
     </ul>
     </p></dd>
 

@@ -1202,6 +1202,27 @@ public class Arrays {
     }
 
     /**
+     * Returns a double array of a given length with values starting
+     * at a given value and increasing with a given increment.
+     *
+     * @example  <code>sequence(4, 100, 0.1) =
+     *                 (100.0, 100.1, 100.2, 100.3)</code>
+     *
+     * @param  n  length of array
+     * @param  start   value of first element
+     * @param  step    increment to apply to each element
+     * @return  <code>n</code>-element array,
+     *          (start, start+step, start+2*step, ... start+(n-1)*step)
+     */
+    public static double[] sequence( int n, double start, double step ) {
+        double[] seq = new double[ n ];
+        for ( int i = 0; i < n; i++ ) {
+            seq[ i ] = start + i * step;
+        }
+        return seq;
+    }
+
+    /**
      * Returns a floating point numeric array built from the given arguments.
      *
      * @param   values   one or more array elements
