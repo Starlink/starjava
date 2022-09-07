@@ -24541,8 +24541,9 @@ about how the match will operate:
         are not included.
         </p></dd>
     <dt>All</dt>
-    <dd><p>Load a new table with one row for each remote row that matches
-        a local row.  The match is symmetric between local and remote tables.
+    <dd><p>Load a new table with one row for each match between a
+        local row and a remote row.
+        The match is symmetric between local and remote tables.
         </p></dd>
     <dt>Each</dt>
     <dd><p>Load a new table with the same number of rows as the local table,
