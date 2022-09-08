@@ -16,7 +16,7 @@ public class ParseTest extends TestCase {
         assertReportCount( 0, "doc-example.tfcat" );
         assertReportCount( 0, "doc-crs.tfcat" );
         assertReportCount( 0, "doc-geometries.tfcat" );
-        assertReportCount( 2, "jupiter-obs.tfcat" );
+        assertReportCount( 1, "jupiter-obs.tfcat" );
     }
 
     private void assertReportCount( int nReport, String fname )
