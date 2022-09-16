@@ -163,6 +163,8 @@ public class MatchStarTables {
 
         /* Populate the index maps from the RowLink list. */
         int iLink = 0;
+        Map<Integer,Integer> idMap = new HashMap<>();
+        int[] iGrp = new int[ 1 ];
         for ( RowLink link : rowLinks ) {
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
@@ -187,11 +189,27 @@ public class MatchStarTables {
             if ( grpMap != null ) {
                 LinkGroup grp = grpMap.get( link );
                 if ( grp != null ) {
-                    grpIds[ iLink ] = grp.getID();
+
+                    /* The integer group IDs we already have could be used
+                     * as is, but we perform a one-to-one mapping of them to
+                     * new values 1, 2, 3... in the order they are encountered,
+                     * for two reasons.  First, it provides deterministic
+                     * assignment of group IDs even if the earlier processing
+                     * has assigned them in an unpredictable order
+                     * (for instance as the result of multi-threading)
+                     * with benefits for regression testing etc, and
+                     * second this yields more human-friendly groupID values.
+                     * We keep track of the mapping using an oldId->newId map,
+                     * adding a new entry every time we see a new group ID. */
+                    int id =
+                        idMap
+                       .computeIfAbsent( Integer.valueOf( grp.getID() ),
+                                         i -> Integer.valueOf( ++iGrp[ 0 ] ) )
+                       .intValue();
+                    grpIds[ iLink ] = id;
                     grpSizes[ iLink ] = grp.getSize();
                 }
             }
-
             iLink++;
         }
         assert iLink == nRow;
@@ -545,10 +563,6 @@ public class MatchStarTables {
              }
         }
 
-        /* Arrange to renumber the tokens so that we can use smaller 
-         * (more human-friendly) LinkGroup IDs to deal with. */
-        int[] idMap = getSortedGroupIds( refMap.values() );
-
         /* Now replace every Token in the map with a LinkGroup that contains
          * the same information.  LinkGroups can be smaller and simpler,
          * since they are immutable. */
@@ -565,7 +579,7 @@ public class MatchStarTables {
 
             /* If we've constructed an equivalent LinkGroup object before,
              * use that. */ 
-            int id = Arrays.binarySearch( idMap, token.getGroupId() ) + 1;
+            int id = token.getGroupId();
             Integer groupKey = new Integer( id );
             if ( ! knownGroups.containsKey( groupKey ) ) { 
                 knownGroups.put( groupKey, new LinkGroup( id, grpSize ) );
@@ -628,29 +642,6 @@ public class MatchStarTables {
                 }
             };
         }
-    }
-
-    /**
-     * Returns a sorted array of the distinct group ID values in a 
-     * collection of Tokens.
-     *
-     * @param   tokens  collection of tokens
-     * @return  sorted array of unique group ID values which were represented
-     *          in <code>tokens</code>
-     */
-    private static int[] getSortedGroupIds( Collection<Token> tokens ) {
-        Set<Integer> idSet = new HashSet<Integer>();
-        for ( Token token : tokens ) {
-            idSet.add( new Integer( token.getGroupId() ) );
-        }
-        int[] ids = new int[ idSet.size() ];
-        int index = 0;
-        for ( Integer id : idSet ) {
-            ids[ index++ ] = id.intValue();
-        }
-        assert index == idSet.size();
-        Arrays.sort( ids );
-        return ids;
     }
 
     /**
