@@ -86,20 +86,61 @@ public abstract class RowLink implements Comparable<RowLink> {
      * first, etc.
      */
     public int compareTo( RowLink other ) {
-        int nTable = 
-            Math.max( other.getRef( other.size() - 1 ).getTableIndex() + 1,
-                      this.getRef( this.size() - 1 ).getTableIndex() + 1 );
-        long[] thisRowIndices = getRowIndices( this, nTable );
-        long[] otherRowIndices = getRowIndices( other, nTable );
-        for ( int i = 0; i < nTable; i++ ) {
-            if ( thisRowIndices[ i ] < otherRowIndices[ i ] ) {
-                return -1;
+
+        /* Find out if the RowRefs in for comparison both come from the
+         * same set of tables.  In this common case, we can use a
+         * much faster algorithm. */
+        final boolean hasMatchingTables;
+        int nref = size();
+        if ( other.size() == nref ) {
+            boolean matching = true;
+            for ( int i = 0; i < nref; i++ ) {
+                matching = matching
+                        && ( this.getRef( i ).getTableIndex() ==
+                             other.getRef( i ).getTableIndex() );
             }
-            else if ( thisRowIndices[ i ] > otherRowIndices[ i ] ) {
-                return +1;
-            }
+            hasMatchingTables = matching;
         }
-        return Integer.compare( this.hashCode(), other.hashCode() );
+        else {
+            hasMatchingTables = false;
+        }
+
+        /* If all the tables in the RowRefs match, just compare the
+         * row indices for each pair of refs in turn. */
+        if ( hasMatchingTables ) {
+            for ( int i = 0; i < nref; i++ ) {
+                long ir0 = this.getRef( i ).getRowIndex();
+                long ir1 = other.getRef( i ).getRowIndex();
+                if ( ir0 < ir1 ) {
+                    return -1;
+                }
+                else if ( ir0 > ir1 ) {
+                    return +1;
+                }
+            }
+            return Integer.compare( this.hashCode(), other.hashCode() );
+        }
+
+        /* Otherwise we have a more complicated job to do.
+         * Prepare a pair of arrays of row indices where the tables match
+         * for corresponding elements and compare those pairs in turn.
+         * This involves array allocation so it's quite a bit slower. */
+        else {
+            int nTable = 
+                Math.max( other.getRef( other.size() - 1 ).getTableIndex() + 1,
+                          this.getRef( this.size() - 1 ).getTableIndex() + 1 );
+            long[] thisRowIndices = getRowIndices( this, nTable );
+            long[] otherRowIndices = getRowIndices( other, nTable );
+            for ( int i = 0; i < nTable; i++ ) {
+                if ( thisRowIndices[ i ] < otherRowIndices[ i ] ) {
+                    return -1;
+                }
+                else if ( thisRowIndices[ i ] > otherRowIndices[ i ] ) {
+                    return +1;
+                }
+            }
+            return Integer.compare( this.hashCode(), other.hashCode() );
+        }
     }
 
     @Override
@@ -134,6 +175,22 @@ public abstract class RowLink implements Comparable<RowLink> {
                 return new RowLink2( ref1, ref2 );
             default:
                 return new RowLinkN( refs );
+        }
+    }
+
+    private static boolean hasMatchingTables( RowLink link1, RowLink link2 ) {
+        int n = link1.size();
+        if ( link2.size() == n ) {
+            for ( int i = 0; i < n; i++ ) {
+                if ( link1.getRef( i ).getTableIndex() !=
+                     link2.getRef( i ).getTableIndex() ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            return false;
         }
     }
 

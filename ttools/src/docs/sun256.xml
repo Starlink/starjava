@@ -14112,7 +14112,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         without the read operation failing.</li>
     <li>Crossmatching efficiency improvements:
         sky matching does better pre-selection of potential matches
-        based on sky region.</li>
+        based on sky region,
+        post-processing row sorting accelerated.</li>
     <li>Fix relevant filters to issue a WARNING if new column names
         clash with existing ones.</li>
     <li>Filter <ref id="fixcolnames"><code>fixcolnames</code></ref>

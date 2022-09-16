@@ -31425,7 +31425,8 @@ introduced since the last version:
         without the read operation failing.</li>
     <li>Crossmatching efficiency improvements:
         sky matching does better pre-selection of potential matches
-        based on sky region.</li>
+        based on sky region,
+        post-processing row sorting accelerated.</li>
     <li>Prevent image display window from grabbing focus during e.g.
         <ref id="ViewHips2fitsActivationType">Display HiPS Cutout</ref>
         activation.</li>
