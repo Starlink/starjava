@@ -17,8 +17,10 @@ public class ProgressRowSequence extends WrapperRowSequence {
 
     private final double nrow_;
     private final ProgressIndicator indicator_;
+    private final int blockSize_;
     private boolean closed;
     private long lrow_;
+    private int iprog_;
 
     /**
      * Constructs a new ProgressRowSequence.
@@ -32,6 +34,7 @@ public class ProgressRowSequence extends WrapperRowSequence {
         super( table.getRowSequence() );
         nrow_ = table.getRowCount();
         indicator_ = indicator;
+        blockSize_ = 10_000;
         indicator_.startStage( stage );
     }
 
@@ -39,17 +42,28 @@ public class ProgressRowSequence extends WrapperRowSequence {
      * Invokes {@link #next} and also updates the progress indicator.
      */
     public boolean nextProgress() throws IOException, InterruptedException {
-        double level = nrow_ > 0 ? lrow_ / nrow_
-                                 : 0.0;
-        boolean result = next();
-        indicator_.setLevel( level );
-        return result;
+        if ( next() ) {
+            if ( ++iprog_ >= blockSize_ ) {
+                iprog_ = 0;
+                if ( nrow_ > 0 ) {
+                    indicator_.setLevel( lrow_ / nrow_ );
+                }
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     public boolean next() throws IOException {
-        boolean result = super.next();
-        lrow_++;
-        return result;
+        if ( super.next() ) {
+            lrow_++;
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
@@ -58,6 +72,14 @@ public class ProgressRowSequence extends WrapperRowSequence {
      */
     public void close() throws IOException {
         if ( ! closed ) {
+            if ( nrow_ > 0 ) {
+                try {
+                    indicator_.setLevel( lrow_ / nrow_ );
+                }
+                catch ( InterruptedException e ) {
+                    // never mind
+                }
+            }
             indicator_.endStage();
             closed = true;
         }
