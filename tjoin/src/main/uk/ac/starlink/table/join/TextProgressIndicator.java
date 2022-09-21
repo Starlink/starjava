@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.join;
 
 import java.io.PrintStream;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * ProgressIndicator which logs progress to an output stream.
@@ -13,7 +14,7 @@ public class TextProgressIndicator implements ProgressIndicator {
     private final PrintStream out_;
     private final Profiler profiler_;
     private final int fullWidth_;
-    private int dotCount_;
+    private final AtomicInteger dotCount_;
     private int blankWidth_;
     private long lastUsedMem_;
 
@@ -28,12 +29,13 @@ public class TextProgressIndicator implements ProgressIndicator {
         out_ = out;
         profiler_ = profile ? new Profiler() : null;
         fullWidth_ = 78;
+        dotCount_ = new AtomicInteger();
     }
 
     public void startStage( String stage ) {
         out_.print( stage );
         blankWidth_ = fullWidth_ - stage.length();
-        dotCount_ = 0;
+        dotCount_.set( 0 );
         if ( profiler_ != null ) {
             profiler_.reset();
         }
@@ -41,10 +43,10 @@ public class TextProgressIndicator implements ProgressIndicator {
 
     public void setLevel( double level ) {
         level = Math.max( Math.min( level, 1.0 ), 0.0 );
-        int moreDots = (int) ( level * blankWidth_ ) - dotCount_;
-        for ( int i = 0; i < moreDots; i++ ) {
+        int newDots = (int) Math.round( level * blankWidth_ );
+        int oldDots = dotCount_.getAndSet( newDots );
+        for ( int i = oldDots; i < newDots; i++ ) {
             out_.print( "." );
-            dotCount_++;
         }
     }
 

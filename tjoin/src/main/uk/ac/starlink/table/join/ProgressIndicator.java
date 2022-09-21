@@ -4,13 +4,9 @@ package uk.ac.starlink.table.join;
  * Callback interface for indicating how an algorithm is progressing.
  * An instance can be passed to a time-consuming routine which will
  * make periodic calls on it as the work progresses.
- * <p>
- * A user of an instance of this interface can be expected to call 
- * all the methods it defines from the same thread, i.e. implementations
- * do not need to be thread-safe.  
- * <strong>However</strong> no requirements should be placed on what
- * thread this is; in particular it must be OK to call it from 
- * threads other than the AWT event dispatch thread.
+ *
+ * <p>Implementations must be thread-safe; calls to {@link #setLevel}
+ * may come from multiple different threads.
  *
  * @author   Mark Taylor (Starlink)
  * @since    24 Mar 2004
@@ -30,8 +26,8 @@ public interface ProgressIndicator {
      * proportion complete.  Calls to this method must take place 
      * between paired calls to {@link #startStage} and {@link #endStage},
      * preferably with non-decreasing values of <tt>level</tt>.
-     * <p>
-     * The method may throw an InterruptedException as a message to the
+     *
+     * <p>The method may throw an InterruptedException as a message to the
      * caller that the work should be interrupted.  A caller which 
      * receives such an exception should stop using resources and tidy
      * up as soon as is convenient.
