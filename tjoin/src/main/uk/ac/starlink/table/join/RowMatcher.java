@@ -445,10 +445,10 @@ public class RowMatcher {
     private LinkSet findPairs( LinkSet possibleLinks )
             throws IOException, InterruptedException {
         LinkSet pairs = createLinkSet();
-        double nLink = (double) possibleLinks.size();
-        int iLink = 0;
-        indicator_.startStage( "Locating pairs" );
         MatchKit matchKit = engine_.createMatchKitFactory().get();
+        ProgressTracker tracker =
+            new ProgressTracker( indicator_, possibleLinks.size(),
+                                 "Locating pairs" );
         for ( Iterator<RowLink> it = possibleLinks.iterator(); it.hasNext(); ) {
 
             /* Obtain the link and remove it from the input set for 
@@ -487,9 +487,9 @@ public class RowMatcher {
                     }
                 }
             }
-            indicator_.setLevel( ++iLink / nLink );
+            tracker.nextProgress();
         }
-        indicator_.endStage();
+        tracker.close();
         return pairs;
     }
 
@@ -621,9 +621,9 @@ public class RowMatcher {
         LinkSet replacements = createLinkSet();
 
         /* Go through every link in the set. */
-        indicator_.startStage( "Eliminating internal links" );
-        double nLink = (double) links.size();
-        int iLink = 0;
+        ProgressTracker tracker =
+            new ProgressTracker( indicator_, links.size(),
+                                 "Eliminating internal links" );
         int nReplace = 0;
         int nRemove = 0;
         for ( Iterator<RowLink> it = links.iterator(); it.hasNext(); ) {
@@ -669,9 +669,9 @@ public class RowMatcher {
                     }
                 }
             }
-            indicator_.setLevel( ++iLink / nLink );
+            tracker.nextProgress();
         }
-        indicator_.endStage();
+        tracker.close();
         if ( nReplace > 0 ) {
             indicator_.logMessage( "Internal links replaced: " + nReplace );
         }
@@ -813,10 +813,10 @@ public class RowMatcher {
         /* Set up a link set which will be populated with every pair involving
          * the reference table and another table. */
         LinkSet pairs = createLinkSet();
-        double nLink = (double) possibleLinks.size();
-        int iLink = 0;
-        indicator_.startStage( "Locating pair matches between " + index0
-                             + " and other tables");
+        ProgressTracker tracker =
+            new ProgressTracker( indicator_, possibleLinks.size(),
+                                 "Locating pair matches between " + index0 +
+                                 " and other tables");
         MatchKit matchKit = engine_.createMatchKitFactory().get();
         for ( Iterator<RowLink> it = possibleLinks.iterator(); it.hasNext(); ) {
 
@@ -876,9 +876,9 @@ public class RowMatcher {
                     }
                 }
             }
-            indicator_.setLevel( ++iLink / nLink );
+            tracker.nextProgress();
         }
-        indicator_.endStage();
+        tracker.close();
 
         /* Store all the pairs in a map keyed by row reference of the reference
          * table. */
@@ -1000,9 +1000,9 @@ public class RowMatcher {
 
         /* Iterate over each entry in the input set, selectively copying
          * to the output set as we go. */
-        double nPair = inPairs.size();
-        int iPair = 0;
-        indicator_.startStage( "Eliminating multiple row references" );
+        ProgressTracker tracker =
+            new ProgressTracker( indicator_, inPairs.size(), 
+                                 "Eliminating multiple row references" );
         for ( Iterator<RowLink> it = inPairs.iterator(); it.hasNext(); ) {
             RowLink2 pair = (RowLink2) it.next();
             double score = pair.getScore();
@@ -1024,9 +1024,9 @@ public class RowMatcher {
             }
 
             /* Report on progress. */
-            indicator_.setLevel( ++iPair / nPair );
+            tracker.nextProgress();
         }
-        indicator_.endStage();
+        tracker.close();
         return outPairs;
     }
 
@@ -1062,18 +1062,18 @@ public class RowMatcher {
          * links to a list of all the links it appears in. */
         ObjectBinner<RowRef,RowLink> refBinner =
             Binners.createModifiableObjectBinner();
-        indicator_.startStage( "Mapping rows to links" );
-        double nlink1 = links.size();
-        int ilink1 = 0;
+        ProgressTracker mapTracker =
+            new ProgressTracker( indicator_, links.size(),
+                                 "Mapping rows to links" );
         for ( RowLink link : links ) {
-            indicator_.setLevel( ++ilink1 / nlink1 );
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
                 RowRef ref = link.getRef( i );
                 refBinner.addItem( ref, link );
             }
+            mapTracker.nextProgress();
         }
-        indicator_.endStage();
+        mapTracker.close();
 
         /* Prepare a new set to contain the agglomerated links.
          * We will populate this with disjoint links at the same time
@@ -1085,11 +1085,10 @@ public class RowMatcher {
         /* Check for any isolated links, that is ones none of whose members
          * appear in any other links.  These can be handled more efficiently
          * than ones with more complicated relationships. */
-        indicator_.startStage( "Identifying isolated links" );
-        double nlink2 = links.size();
-        int ilink2 = 0;
+        ProgressTracker isoTracker =
+            new ProgressTracker( indicator_, links.size(),
+                                 "Identifying isolated links" );
         for ( RowLink link : links ) {
-            indicator_.setLevel( ++ilink2 / nlink2 );
             int nref = link.size();
             boolean isolated = true;
             for ( int i = 0; isolated && i < nref; i++ ) {
@@ -1109,8 +1108,9 @@ public class RowMatcher {
                     refBinner.remove( ref );
                 }
             }
+            isoTracker.nextProgress();
         }
-        indicator_.endStage();
+        isoTracker.close();
 
         /* Take a key from the map we have just constructed, and walk its
          * links recursively to see which nodes we can reach from it.
@@ -1299,9 +1299,9 @@ public class RowMatcher {
         indicator_.logMessage( nrow + " row refs in " + nbin + " bins" );
         indicator_.logMessage( "(average bin occupancy " +
                               ( (float) nrow / (float) nbin ) + ")" );
-        indicator_.startStage( "Consolidating potential match groups" );
-        double nl = (double) nbin;
-        long il = 0;
+        ProgressTracker tracker =
+            new ProgressTracker( indicator_, nbin,
+                                 "Consolidating potential match groups" );
         for ( Iterator<?> it = binner.getKeyIterator(); it.hasNext(); ) {
             Object key = it.next();
             List<RowRef> refList = binner.getList( key );
@@ -1316,10 +1316,10 @@ public class RowMatcher {
             /* Remove the entry from the map as we're going along,
              * to save on memory. */
             it.remove();
-            indicator_.setLevel( ++il / nl );
+            tracker.nextProgress();
         }
         assert binner.getBinCount() == 0;
-        indicator_.endStage();
+        tracker.close();
     }
 
     /**
@@ -1339,9 +1339,9 @@ public class RowMatcher {
                                       int itable )
             throws InterruptedException {
         long nbin = binner.getBinCount();
-        indicator_.startStage( "Consolidating potential match groups" );
-        double nl = (double) nbin;
-        long il = 0;
+        ProgressTracker tracker =
+            new ProgressTracker( indicator_, nbin,
+                                 "Consolidating potential match groups" );
         for ( Iterator<?> it = binner.getKeyIterator(); it.hasNext(); ) {
             Object key = it.next();
             long[] irs = binner.getLongs( key );
@@ -1362,10 +1362,10 @@ public class RowMatcher {
                 linkSet.addLink( link );
             }
             it.remove();
-            indicator_.setLevel( ++il / nl );
+            tracker.nextProgress();
         }
         assert binner.getBinCount() == 0;
-        indicator_.endStage();
+        tracker.close();
     }
 
     /**
