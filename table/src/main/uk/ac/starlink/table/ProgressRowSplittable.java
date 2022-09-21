@@ -42,7 +42,7 @@ public class ProgressRowSplittable implements RowSplittable {
     private ProgressRowSplittable( RowSplittable base, Tracker tracker ) {
         base_ = base;
         tracker_ = tracker;
-        trackBlock_ = 1000;
+        trackBlock_ = 10_000;
         tracker_.addWorker( this );
     }
 
@@ -98,7 +98,7 @@ public class ProgressRowSplittable implements RowSplittable {
      * for reasons of efficiency.
      */
     private void trackNext() throws IOException {
-        if ( ++itrack_ > trackBlock_ ) {
+        if ( ++itrack_ >= trackBlock_ ) {
             tracker_.addCount( itrack_ );
             itrack_ = 0;
             if ( Thread.interrupted() ) {
