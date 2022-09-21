@@ -6,6 +6,7 @@ import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.TextProgressIndicator;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 
 /**
@@ -16,9 +17,16 @@ import uk.ac.starlink.task.TaskException;
  */
 public class ProgressIndicatorParameter extends ChoiceParameter<String> {
 
-    private static final String NONE = "none";
-    private static final String LOG = "log";
-    private static final String PROFILE = "profile";
+    private static final String NONE;
+    private static final String LOG;
+    private static final String TIME;
+    private static final String PROFILE;
+    private static final String[] OPTIONS = {
+        NONE = "none",
+        LOG = "log",
+        TIME = "time",
+        PROFILE = "profile",
+    };
 
     /**
      * Constructor.
@@ -26,7 +34,7 @@ public class ProgressIndicatorParameter extends ChoiceParameter<String> {
      * @param   name  parameter name
      */
     public ProgressIndicatorParameter( String name ) {
-        super( name, new String[] { NONE, LOG, PROFILE, } );
+        super( name, OPTIONS );
         setPrompt( "How to report progress to screen" );
         setStringDefault( LOG );
         setDescription( new String[] {
@@ -43,6 +51,10 @@ public class ProgressIndicatorParameter extends ChoiceParameter<String> {
                  "</li>",
             "<li><code>" + LOG + "</code>:",
                  "progress information is shown",
+                 "</li>",
+            "<li><code>" + TIME + "</code>:",
+                 "progress information and some time profiling",
+                 "information is shown",
                  "</li>",
             "<li><code>" + PROFILE + "</code>:",
                  "progress information and limited time/memory profiling",
@@ -83,12 +95,26 @@ public class ProgressIndicatorParameter extends ChoiceParameter<String> {
         PrintStream strm = env.getErrorStream();
         if ( strm != null ) {
             if ( LOG.equals( sval ) ) {
-                return new TextProgressIndicator( strm, false );
+                return TextProgressIndicator
+                      .createInstance( strm, false, false );
+            }
+            else if ( TIME.equals( sval ) ) {
+                return TextProgressIndicator
+                      .createInstance( strm, true, false );
             }
             else if ( PROFILE.equals( sval ) ) {
-                return new TextProgressIndicator( strm, true );
+                return TextProgressIndicator
+                      .createInstance( strm, true, true );
+            }
+            else if ( NONE.equals( sval ) ) {
+                return new NullProgressIndicator();
+            }
+            else {
+                throw new ParameterValueException( this, "Bad value " + sval );
             }
         }
-        return new NullProgressIndicator();
+        else {
+            return new NullProgressIndicator();
+        }
     }
 }

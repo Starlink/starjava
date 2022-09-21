@@ -137,9 +137,10 @@ public class SkyMatch2Mapper implements TableMapper {
         JoinFixAction fixact2 =
             JoinFixAction.makeRenameDuplicatesAction( "_2", false, true );
         PrintStream err = env.getErrorStream();
-        ProgressIndicator progger = err == null
-                                  ? new NullProgressIndicator()
-                                  : new TextProgressIndicator( err, false );
+        ProgressIndicator progger =
+              err == null
+            ? new NullProgressIndicator()
+            : TextProgressIndicator.createInstance( err, false, false );
         RowRunner runner = runnerParam_.objectValue( env );
         return new SkyMatch2Mapping( matcher, ra1, dec1, ra2, dec2, join,
                                      pairMode, fixact1, fixact2, progger,

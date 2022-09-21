@@ -9,16 +9,32 @@ package uk.ac.starlink.table.join;
 class Profiler {
 
     private final Runtime runtime_;
+    private final boolean isTime_;
+    private final boolean isMem_;
     private long resetUsed_;
     private long resetTime_;
     private long gcTime_;
 
     /**
-     * Constructor.
+     * Constructs a profiler with default configuration.
      * Does not perform a reset.
      */
     public Profiler() {
+        this( true, true );
+    }
+
+    /**
+     * Constructs a profiler with explicit configuration.
+     * Does not perform a reset.
+     *
+     * @param  isTime  true to report timings
+     * @param  isMem   true to report memory usage - this calls System.gc
+     *                 so may slow things down
+     */
+    public Profiler( boolean isTime, boolean isMem ) {
         runtime_ = Runtime.getRuntime();
+        isTime_ = isTime;
+        isMem_ = isMem;
     }
 
     /**
@@ -28,7 +44,9 @@ class Profiler {
     public void reset() {
         gcTime_ = 0;
         resetTime_ = System.currentTimeMillis();
-        resetUsed_ = getCurrentUsedMemory();
+        if ( isMem_ ) {
+            resetUsed_ = getCurrentUsedMemory();
+        }
     }
 
     /**
@@ -38,23 +56,43 @@ class Profiler {
      * @return  resource usage report
      */
     public String report() {
-        long usedMem = getCurrentUsedMemory();
-        long remainingMem = runtime_.maxMemory() - usedMem;
-        long elapsedTime = System.currentTimeMillis() - resetTime_;
-        return new StringBuffer()
-              .append( "Mem: " )
-              .append( formatMemory( resetUsed_ ) )
-              .append( " -> " )
-              .append( formatMemory( usedMem ) )
-              .append( "; Time: " )
-              .append( formatTime( elapsedTime ) )
-              .append( " (" )
-              .append( "gc " )
-              .append( formatTime( gcTime_ ) )
-              .append( ", remaining " )
-              .append( formatMemory( remainingMem ) )
-              .append( ")" )
-              .toString();
+        StringBuffer sbuf = new StringBuffer();
+        final long usedMem;
+        final long remainingMem;
+        if ( isMem_ ) {
+            usedMem = getCurrentUsedMemory();
+            remainingMem = runtime_.maxMemory() - usedMem;
+        }
+        else {
+            usedMem = 0;
+            remainingMem = 0;
+        }
+        long elapsedTime = isTime_ ? System.currentTimeMillis() - resetTime_
+                                   : 0;
+        if ( isTime_ ) {
+            if ( sbuf.length() > 0 ) {
+                sbuf.append( "; " );
+            }
+            sbuf.append( "Time: " )
+                .append( formatTime( elapsedTime ) );
+            if ( isMem_ ) {
+                sbuf.append( " (gc: " )
+                    .append( formatTime( gcTime_ ) )
+                    .append( ")" );
+            }
+        }
+        if ( isMem_ ) {
+            if ( sbuf.length() > 0 ) {
+                sbuf.append( "; " );
+            }
+            sbuf.append( "Mem: " )
+                .append( formatMemory( resetUsed_ ) )
+                .append( " -> " )
+                .append( formatMemory( usedMem ) )
+                .append( ", remaining " )
+                .append( formatMemory( remainingMem ) );
+        }
+        return sbuf.toString();
     }
 
     /**

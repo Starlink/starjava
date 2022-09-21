@@ -22,12 +22,11 @@ public class TextProgressIndicator implements ProgressIndicator {
      * Constructs a new indicator which will output to a given stream.
      *
      * @param  out  output stream
-     * @param  profile  true iff profiling reports are to be made along with
-     *         the normal progress log
+     * @param  profiler  produces profiling output, or null
      */
-    public TextProgressIndicator( PrintStream out, boolean profile ) {
+    TextProgressIndicator( PrintStream out, Profiler profiler ) {
         out_ = out;
-        profiler_ = profile ? new Profiler() : null;
+        profiler_ = profiler;
         fullWidth_ = 78;
         dotCount_ = new AtomicInteger();
     }
@@ -53,11 +52,28 @@ public class TextProgressIndicator implements ProgressIndicator {
     public void endStage() {
         out_.println();
         if ( profiler_ != null ) {
-            logMessage( profiler_.report() );
+            out_.println( profiler_.report() );
         }
     }
 
     public void logMessage( String msg ) {
         out_.println( msg );
+    }
+
+    /**
+     * Creates a TextProgressIndicator.
+     *
+     * @param  out  output stream
+     * @param  hasTime  true to write time profile messages
+     * @param  hasMem   true to write memory profile messages;
+     *                  note this calls System.gc() so may slow things down
+     * @return  indicator instance
+     */
+    public static TextProgressIndicator createInstance( PrintStream out,
+                                                        boolean hasTime,
+                                                        boolean hasMem ) {
+        Profiler profiler = hasTime || hasMem ? new Profiler( hasTime, hasMem )
+                                              : null;
+        return new TextProgressIndicator( out, profiler );
     }
 }

@@ -14157,6 +14157,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         while option <code>parallel</code>, the new default,
         is now limited to a fixed number of processors
         (currently 6).</li>
+    <li>Add new option "<code>time</code>" to the
+        <ref id="tmatch2-progress"><code>progress</code></ref> parameter
+        of matching commands like <code>tmatch2</code>.</li>
     </ul>
     </p></dd>
 
