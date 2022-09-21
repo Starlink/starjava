@@ -9,12 +9,13 @@ import java.io.PrintStream;
  * @since    24 Mar 2004
  */
 public class TextProgressIndicator implements ProgressIndicator {
-    int dotCount;
-    final int fullWidth = 78;
-    int blankWidth;
-    PrintStream out = System.out;
-    final Profiler profiler;
-    long lastUsedMem;
+
+    private final PrintStream out_;
+    private final Profiler profiler_;
+    private final int fullWidth_;
+    private int dotCount_;
+    private int blankWidth_;
+    private long lastUsedMem_;
 
     /**
      * Constructs a new indicator which will output to a given stream.
@@ -24,37 +25,37 @@ public class TextProgressIndicator implements ProgressIndicator {
      *         the normal progress log
      */
     public TextProgressIndicator( PrintStream out, boolean profile ) {
-        this.out = out;
-        this.profiler = profile ? new Profiler() : null;
+        out_ = out;
+        profiler_ = profile ? new Profiler() : null;
+        fullWidth_ = 78;
     }
 
     public void startStage( String stage ) {
-        out.print( stage );
-        blankWidth = fullWidth - stage.length();
-        dotCount = 0;
-        if ( profiler != null ) {
-            profiler.reset();
+        out_.print( stage );
+        blankWidth_ = fullWidth_ - stage.length();
+        dotCount_ = 0;
+        if ( profiler_ != null ) {
+            profiler_.reset();
         }
     }
 
     public void setLevel( double level ) {
-        assert level >= 0 && level <= 1;
         level = Math.max( Math.min( level, 1.0 ), 0.0 );
-        int moreDots = (int) ( level * blankWidth ) - dotCount;
+        int moreDots = (int) ( level * blankWidth_ ) - dotCount_;
         for ( int i = 0; i < moreDots; i++ ) {
-            out.print( "." );
-            dotCount++;
+            out_.print( "." );
+            dotCount_++;
         }
     }
 
     public void endStage() {
-        out.println();
-        if ( profiler != null ) {
-            logMessage( profiler.report() );
+        out_.println();
+        if ( profiler_ != null ) {
+            logMessage( profiler_.report() );
         }
     }
 
     public void logMessage( String msg ) {
-        out.println( msg );
+        out_.println( msg );
     }
 }
