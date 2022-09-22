@@ -915,15 +915,16 @@ public class RowMatcher {
         for ( Iterator<RowRef> it = pairBinner.getKeyIterator();
               it.hasNext(); ) {
             RowRef ref0 = it.next();
-            ScoredRef[] sref1s =
-                pairBinner.getList( ref0 ).toArray( new ScoredRef[ 0 ] );
-            int nref1 = sref1s.length;
+            List<ScoredRef> sref1s = pairBinner.getList( ref0 );
+            int nref1 = sref1s.size();
             if ( nref1 > 0 ) {
                 RowRef[] ref1s = new RowRef[ nref1 ];
                 double[] scores = new double[ nref1 ];
-                for ( int ir1 = 0; ir1 < nref1; ir1++ ) {
-                    ref1s[ ir1 ] = sref1s[ ir1 ].ref_;
-                    scores[ ir1 ] = sref1s[ ir1 ].score_;
+                int ir1 = 0;
+                for ( ScoredRef sref1 : sref1s ) {
+                    ref1s[ ir1 ] = sref1.ref_;
+                    scores[ ir1 ] = sref1.score_;
+                    ir1++;
                 }
                 multiLinks.addLink( new PairsRowLink( ref0, ref1s, scores,
                                                       bestOnly ) );
@@ -1122,10 +1123,11 @@ public class RowMatcher {
          * Repeat until there are no nodes left in the input map. */
         double nRefs = refBinner.getBinCount();
         indicator_.startStage( "Walking links" );
+        Set<RowRef> refSet = new HashSet<RowRef>();
         while ( refBinner.getBinCount() > 0 ) {
             indicator_.setLevel( 1.0 - ( refBinner.getBinCount() / nRefs ) );
             RowRef ref1 = refBinner.getKeyIterator().next();
-            Set<RowRef> refSet = new HashSet<RowRef>();
+            refSet.clear();
             walkLinks( ref1, refBinner, refSet );
             RowLink link = RowLink.createLink( refSet );
             assert ! agglomeratedLinks.containsLink( link );
