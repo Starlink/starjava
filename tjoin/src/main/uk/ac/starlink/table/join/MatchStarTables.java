@@ -21,14 +21,22 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowPermutedStarTable;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.SplitProcessor;
 
 /**
- * Provides factory methods for producing tables which represent the
+ * Provides methods for producing tables which represent the
  * result of row matching.
+ *
+ * <p>This class originally contained only static methods.
+ * Currently some methods are static and some are instance methods;
+ * those which use a {@link ProgressIndicator} or
+ * {@link uk.ac.starlink.util.SplitProcessor} are instance methods
+ * which use the values set up at construction time.
  *
  * <p>The methods in this class operate on
  * <code>Collection&lt;RowLink&gt;</code>s
@@ -40,6 +48,13 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor (Starlink)
  */
 public class MatchStarTables {
+
+    private final ProgressIndicator indicator_;
+    private final CollectionRunner<RowLink> linkRunner_;
+
+    private static final CollectionRunner<RowLink> SEQ_RUNNER =
+        new CollectionRunner<RowLink>( SplitProcessor
+                                      .createSequentialProcessor() );
 
     /**
      * Defines the characteristics of a table column which represents the
@@ -59,6 +74,35 @@ public class MatchStarTables {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.join" );
+
+    /**
+     * Constructs a MatchStarTables with default characteristics.
+     */
+    public MatchStarTables() {
+        this( (ProgressIndicator) null, (SplitProcessor) null );
+    }
+
+    /**
+     * Constructs a MatchStarTables with configuration.
+     *
+     * <p>The splitProcessor argument allows to configure how potentially
+     * parallel processing is done.
+     *
+     * @param  indicator  progress indicator, or null for no logging
+     * @param  splitProcessor  parallel processing implementation,
+     *                         or null for default behaviour
+     */
+    public MatchStarTables( ProgressIndicator indicator,
+                            SplitProcessor<?> splitProcessor ) {
+        if ( indicator == null ) {
+            indicator = new NullProgressIndicator();
+        }
+        if ( splitProcessor == null ) {
+            splitProcessor = RowRunner.DEFAULT.getSplitProcessor();
+        }
+        indicator_ = indicator;
+        linkRunner_ = new CollectionRunner<RowLink>( splitProcessor );
+    }
 
     /**
      * Constructs a table made out of a set of constituent tables
@@ -99,11 +143,11 @@ public class MatchStarTables {
      * @param   matchScoreInfo  may supply information about the meaning
      *          of the link scores
      */
-    public static StarTable makeJoinTable( StarTable[] tables,
-                                           Collection<RowLink> rowLinks,
-                                           boolean addGroups,
-                                           JoinFixAction[] fixActs,
-                                           ValueInfo matchScoreInfo ) {
+    public StarTable makeJoinTable( StarTable[] tables,
+                                    Collection<RowLink> rowLinks,
+                                    boolean addGroups, JoinFixAction[] fixActs,
+                                    ValueInfo matchScoreInfo )
+            throws InterruptedException {
 
         /* Set up index map arrays for each of the constituent tables. */
         int nTable = tables.length;
@@ -527,8 +571,8 @@ public class MatchStarTables {
      * @return  RowLink -&gt; LinkGroup mapping describing connected groups
      *          in <code>links</code> 
      */
-    public static Map<RowLink,LinkGroup>
-            findGroups( Collection<RowLink> links ) {
+    public Map<RowLink,LinkGroup> findGroups( Collection<RowLink> links )
+            throws InterruptedException {
  
         /* Populate a map from RowRefs to Tokens for every RowRef in
          * the input link set.  Each token is joined to any other tokens
@@ -642,6 +686,21 @@ public class MatchStarTables {
                 }
             };
         }
+    }
+
+    /**
+     * Creates a MatchStarTables instance based on given optional
+     * progress indicator and row runner.
+     *
+     * @param  indicator  progress indicator, or null for no logging
+     * @param  rowRunner  parallel processing implementation,
+     *                    or null for default behaviour
+     */
+    public static MatchStarTables createInstance( ProgressIndicator indicator,
+                                                  RowRunner rowRunner ) {
+        SplitProcessor<?> splitProcessor =
+            rowRunner == null ? null : rowRunner.getSplitProcessor();
+        return new MatchStarTables( indicator, splitProcessor );
     }
 
     /**

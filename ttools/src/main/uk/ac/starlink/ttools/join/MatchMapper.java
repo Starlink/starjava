@@ -187,8 +187,8 @@ public class MatchMapper implements TableMapper {
         private final MatchEngine matchEngine_;
         private final String[][] exprTuples_;
         private final JoinFixAction[] fixActs_;
-        private final ProgressIndicator progger_;
-        private final RowRunner runner_;
+        final RowRunner runner_;
+        final ProgressIndicator progger_;
 
         /**
          * Constructor.
@@ -215,6 +215,23 @@ public class MatchMapper implements TableMapper {
 
         public StarTable mapTables( InputTableSpec[] inSpecs )
                 throws IOException, TaskException {
+            try {
+                return attemptMapTables( inSpecs );
+            }
+            catch ( InterruptedException e ) {
+                throw new ExecutionException( e.getMessage(), e );
+            }
+        }
+
+       /**
+        * Does the work for the mapTables method, but may throw an
+        * InterruptedException if the operations were forcibly terminated.
+        *
+        * @param  inSpecs  input table specifications
+        * @return  joined table
+        */
+        private StarTable attemptMapTables( InputTableSpec[] inSpecs )
+                throws IOException, TaskException, InterruptedException {
 
             /* Get the input tables and check for errors. */
             StarTable[] inTables = new StarTable[ nin_ ];
@@ -240,13 +257,7 @@ public class MatchMapper implements TableMapper {
             RowMatcher matcher =
                 RowMatcher.createMatcher( matchEngine_, subTables, runner_ );
             matcher.setIndicator( progger_ );
-            LinkSet matches;
-            try { 
-                matches = findMatches( matcher );
-            }
-            catch ( InterruptedException e ) {
-                throw new ExecutionException( e.getMessage(), e );
-            }
+            LinkSet matches = findMatches( matcher );
 
             /* Create a new table based on the matched rows. */
             Collection<RowLink> orderedMatches =
@@ -276,7 +287,7 @@ public class MatchMapper implements TableMapper {
                 createJoinTable( StarTable[] inTables,
                                  Collection<RowLink> matches,
                                  JoinFixAction[] fixActs )
-                throws IOException;
+                throws IOException, InterruptedException;
       
 
         /**
@@ -339,8 +350,9 @@ public class MatchMapper implements TableMapper {
 
         protected StarTable createJoinTable( StarTable[] inTables,
                                              Collection<RowLink> matches,
-                                             JoinFixAction[] fixActs ) {
-            return MatchStarTables
+                                             JoinFixAction[] fixActs )
+                throws InterruptedException {
+            return MatchStarTables.createInstance( progger_, runner_ )
                   .makeJoinTable( inTables, matches, false, fixActs, null );
         }
     }
@@ -379,8 +391,9 @@ public class MatchMapper implements TableMapper {
 
         protected StarTable createJoinTable( StarTable[] inTables,
                                              Collection<RowLink> matches,
-                                             JoinFixAction[] fixActs ) {
-            return MatchStarTables
+                                             JoinFixAction[] fixActs )
+                throws InterruptedException {
+            return MatchStarTables.createInstance( progger_, runner_ )
                   .makeJoinTable( inTables, matches, false, fixActs, null );
         }
     }

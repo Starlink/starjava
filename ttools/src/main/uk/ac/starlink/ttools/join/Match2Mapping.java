@@ -80,6 +80,23 @@ public class Match2Mapping implements TableMapping {
 
     public StarTable mapTables( InputTableSpec[] inSpecs )
             throws IOException, TaskException {
+        try {
+            return attemptMapTables( inSpecs );
+        }
+        catch ( InterruptedException e ) {
+            throw new ExecutionException( e.getMessage(), e );  
+        }
+    }
+
+    /**
+     * Does the work for the mapTables method, but may throw an
+     * InterruptedException if the operations were forcibly terminated.
+     *
+     * @param  inSpecs  input table specifications
+     * @return  joined table
+     */
+    private StarTable attemptMapTables( InputTableSpec[] inSpecs )
+            throws IOException, TaskException, InterruptedException {
         StarTable inTable1 = inSpecs[ 0 ].getWrappedTable();
         StarTable inTable2 = inSpecs[ 1 ].getWrappedTable();
 
@@ -103,13 +120,7 @@ public class Match2Mapping implements TableMapping {
            .createMatcher( matchEngine_,
                            new StarTable[] { subTable1, subTable2 }, runner_ );
         matcher.setIndicator( progger_ );
-        LinkSet matches;
-        try {
-            matches = matcher.findPairMatches( pairMode_ );
-        }
-        catch ( InterruptedException e ) {
-            throw new ExecutionException( e.getMessage(), e );  
-        }
+        LinkSet matches = matcher.findPairMatches( pairMode_ );
         boolean addGroups = pairMode_.mayProduceGroups();
 
         /* Process the row link lists according to the chosen join type.
@@ -131,7 +142,7 @@ public class Match2Mapping implements TableMapping {
 
         /* Create a new table from the result and return. */
         Collection<RowLink> links = MatchStarTables.orderLinks( matches );
-        return MatchStarTables
+        return MatchStarTables.createInstance( progger_, runner_ )
               .makeJoinTable( tables, links, addGroups, fixacts_, scoreInfo_ );
     }
 

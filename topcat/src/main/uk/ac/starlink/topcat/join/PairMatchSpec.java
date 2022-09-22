@@ -130,8 +130,9 @@ public class PairMatchSpec extends MatchSpec {
         PairMode pairMode = pairModeSelector_.getMode();
 
         /* Find the matching row pairs. */
+        RowRunner runner = runnerFact_.get();
         RowMatcher matcher =
-            RowMatcher.createMatcher( engine_, tables, runnerFact_.get() );
+            RowMatcher.createMatcher( engine_, tables, runner );
         matcher.setIndicator( indicator );
         LinkSet pairs = matcher.findPairMatches( pairMode );
         pairCount_ = pairs.size();
@@ -155,7 +156,7 @@ public class PairMatchSpec extends MatchSpec {
             }
         }
         Collection<RowLink> orderedLinks = MatchStarTables.orderLinks( links );
-        result_ = MatchStarTables
+        result_ = MatchStarTables.createInstance( indicator, runner )
                  .makeJoinTable( useBases, orderedLinks, addGroups,
                                  fixActs_, scoreInfo );
         addMatchMetadata( result_, engine_, pairMode, joinType_, tcModels );

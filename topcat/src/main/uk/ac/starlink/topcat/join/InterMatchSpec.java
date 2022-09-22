@@ -127,15 +127,15 @@ public class InterMatchSpec extends MatchSpec {
 
         /* Do the matching. */
         MultiJoinType[] joinTypes = getJoinTypes();
-        RowMatcher matcher =
-            RowMatcher.createMatcher( engine, tables, runnerFact.get() );
+        RowRunner runner = runnerFact.get();
+        RowMatcher matcher = RowMatcher.createMatcher( engine, tables, runner );
         matcher.setIndicator( indicator );
         LinkSet matches = matcher.findGroupMatches( joinTypes );
         int nrow = matches.size();
 
         /* Create a new table based on the matched lines we have identified. */
         Collection<RowLink> links = MatchStarTables.orderLinks( matches );
-        result = MatchStarTables
+        result = MatchStarTables.createInstance( indicator, runner )
                 .makeJoinTable( bases, links, false,
                                 getDefaultFixActions( nTable ), null );
         addMatchMetadata( result, getDescription(), engine, tables );
