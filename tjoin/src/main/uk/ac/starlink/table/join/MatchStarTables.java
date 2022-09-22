@@ -209,6 +209,9 @@ public class MatchStarTables {
         int iLink = 0;
         Map<Integer,Integer> idMap = new HashMap<>();
         int[] iGrp = new int[ 1 ];
+        ProgressTracker imTracker =
+            new ProgressTracker( indicator_, rowLinks.size(),
+                                 "Populate index maps" );
         for ( RowLink link : rowLinks ) {
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
@@ -255,7 +258,9 @@ public class MatchStarTables {
                 }
             }
             iLink++;
+            imTracker.nextProgress();
         }
+        imTracker.close();
         assert iLink == nRow;
 
         /* Construct a new table with reordered rows for each of the 
@@ -579,6 +584,9 @@ public class MatchStarTables {
          * in which its RowRef participates. */
         Map<RowRef,Token> refMap = new HashMap<RowRef,Token>();
         int iLink = 0;
+        ProgressTracker refTracker =
+            new ProgressTracker( indicator_, links.size(),
+                                 "Identify shared refs" );
         for ( RowLink link : links ) {
             iLink++;
             Token linkToken = new Token( iLink );
@@ -597,7 +605,9 @@ public class MatchStarTables {
                     refMap.put( ref, linkToken );
                 }
             }
+            refTracker.nextProgress();
         }
+        refTracker.close();
 
         /* Remove any entries for groups which only contain a single link. */
         for ( Iterator<Token> it = refMap.values().iterator(); it.hasNext(); ) {
@@ -638,6 +648,9 @@ public class MatchStarTables {
 
         /* Prepare a RowLink to LinkGroup mapping which can be the result. */
         Map<RowLink,LinkGroup> result = new HashMap<RowLink,LinkGroup>();
+        ProgressTracker grpTracker =
+            new ProgressTracker( indicator_, links.size(),
+                                 "Map links to groups" );
         for ( RowLink link : links ) {
 
             /* See if one of the link's RowRefs has an entry in the refMap.
@@ -654,7 +667,9 @@ public class MatchStarTables {
             for ( int i = 0; i < link.size(); i++ ) {
                 assert group == refMapGrp.get( link.getRef( i ) );
             }
+            grpTracker.nextProgress();
         }
+        grpTracker.close();
         return result;
     }
 
