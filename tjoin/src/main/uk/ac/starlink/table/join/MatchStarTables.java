@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.AbstractStarTable;
@@ -581,33 +582,15 @@ public class MatchStarTables {
  
         /* Populate a map from RowRefs to Tokens for every RowRef in
          * the input link set.  Each token is joined to any other tokens
-         * in which its RowRef participates. */
-        Map<RowRef,Token> refMap = new HashMap<RowRef,Token>();
-        int iLink = 0;
-        ProgressTracker refTracker =
-            new ProgressTracker( indicator_, links.size(),
-                                 "Identify shared refs" );
-        for ( RowLink link : links ) {
-            iLink++;
-            Token linkToken = new Token( iLink );
-            for ( int i = 0; i < link.size(); i++ ) {
-                RowRef ref = link.getRef( i );
-
-                /* If we've already seen this ref, inform it about this
-                 * link by joining its token with the one for this link. */
-                if ( refMap.containsKey( ref ) ) {
-                    Token refToken = refMap.get( ref );
-                    refToken.join( linkToken );
-                }
-
-                /* Otherwise, enter a new token into the map for it. */
-                else {
-                    refMap.put( ref, linkToken );
-                }
-            }
-            refTracker.nextProgress();
-        }
-        refTracker.close();
+         * in which its RowRef participates.
+         * This is ready for parallelisation, but that seems to slow things
+         * down in at least some cases, so keep it single-threaded for now. */
+        boolean idrefParallel = false;
+        indicator_.startStage( "Identify shared refs" );
+        Map<RowRef,Token> refMap =
+            ( idrefParallel ? linkRunner_ : SEQ_RUNNER )
+           .collect( new RefTokenCollector(), links, indicator_ );
+        indicator_.endStage();
 
         /* Remove any entries for groups which only contain a single link. */
         for ( Iterator<Token> it = refMap.values().iterator(); it.hasNext(); ) {
@@ -647,29 +630,12 @@ public class MatchStarTables {
         knownGroups = null;
 
         /* Prepare a RowLink to LinkGroup mapping which can be the result. */
-        Map<RowLink,LinkGroup> result = new HashMap<RowLink,LinkGroup>();
-        ProgressTracker grpTracker =
-            new ProgressTracker( indicator_, links.size(),
-                                 "Map links to groups" );
-        for ( RowLink link : links ) {
-
-            /* See if one of the link's RowRefs has an entry in the refMap.
-             * If so, it points to a LinkGroup object that the link
-             * participates in, so store it in the map. */
-            RowRef ref0 = link.getRef( 0 );
-            LinkGroup group = refMapGrp.get( ref0 );
-            if ( group != null ) {
-                result.put( link, group );
-            }
-
-            /* Sanity check: all the refs of any link must point to the
-             * same LinkGroup object. */
-            for ( int i = 0; i < link.size(); i++ ) {
-                assert group == refMapGrp.get( link.getRef( i ) );
-            }
-            grpTracker.nextProgress();
-        }
-        grpTracker.close();
+        boolean grpParallel = true;
+        indicator_.startStage( "Map links to groups" );
+        Map<RowLink,LinkGroup> result =
+            ( grpParallel ? linkRunner_ : SEQ_RUNNER )
+           .collect( new GroupCollector( refMapGrp ), links, indicator_ );
+        indicator_.endStage();
         return result;
     }
 
@@ -872,6 +838,128 @@ public class MatchStarTables {
          */
         public Iterator<Token> iterator() {
             return set_.iterator();
+        }
+    }
+
+    /**
+     * Collector that turns a stream of RowLinks into a RowRef-Token map,
+     * which indicates for each RowRef which RowLinks it participates in.
+     */
+    private static class RefTokenCollector
+            implements CollectionRunner
+                      .ElementCollector<RowLink,Map<RowRef,Token>> {
+        private final AtomicInteger tCounter_;
+        RefTokenCollector() {
+            tCounter_ = new AtomicInteger();
+        }
+        public Map<RowRef,Token> createAccumulator() {
+            return new HashMap<RowRef,Token>();
+        }
+        public Map<RowRef,Token> combine( Map<RowRef,Token> map1,
+                                          Map<RowRef,Token> map2 ) {
+            boolean big1 = map1.size() >= map2.size();
+            Map<RowRef,Token> mapA = big1 ? map1 : map2;
+            Map<RowRef,Token> mapB = big1 ? map2 : map1;
+            for ( Map.Entry<RowRef,Token> entryB : mapB.entrySet() ) {
+                RowRef ref = entryB.getKey();
+                Token tokenB = entryB.getValue();
+                addToken( mapA, ref, tokenB );
+            }
+            return mapA;
+        }
+        public void accumulate( RowLink link, Map<RowRef,Token> refMap ) {
+            Token linkToken = new Token( tCounter_.getAndIncrement() );
+            int nr = link.size();
+            for ( int i = 0; i < nr; i++ ) {
+                addToken( refMap, link.getRef( i ), linkToken );
+            }
+        }
+
+        /**
+         * Ensures that the map entry for a given RowRef includes
+         * association with a given Token.
+         *
+         * @param  refMap  map
+         * @param  ref     row ref
+         * @param  linkToken  token that must appear in map entry for ref
+         */
+        private void addToken( Map<RowRef,Token> refMap, RowRef ref,
+                               Token linkToken ) {
+
+            /* If we've already seen this ref, inform it about this
+             * link by joining its token with the one for this link. */
+            if ( refMap.containsKey( ref ) ) {
+                refMap.get( ref ).join( linkToken );
+            }
+
+            /* Otherwise, enter a new token into the map for it. */
+            else {
+                refMap.put( ref, linkToken );
+            }
+        }
+    }
+
+    /**
+     * Collector that associates RowLinks with LinkGroups.
+     */
+    private static class GroupCollector
+            implements CollectionRunner
+                      .ElementCollector<RowLink,Map<RowLink,LinkGroup>> {
+        final Map<RowRef,LinkGroup> refMapGrp_;
+
+        /**
+         * Constructor.
+         *
+         * @param  refMapGrp  map indicating which link group each row ref
+         *                    participates in
+         */
+        GroupCollector( Map<RowRef,LinkGroup> refMapGrp ) {
+            refMapGrp_ = refMapGrp;
+        }
+        public Map<RowLink,LinkGroup> createAccumulator() {
+            return new HashMap<RowLink,LinkGroup>();
+        }
+        public Map<RowLink,LinkGroup> combine( Map<RowLink,LinkGroup> map1,
+                                               Map<RowLink,LinkGroup> map2 ) {
+            if ( map1.size() > map2.size() ) {
+                map1.putAll( map2 );
+                return map1;
+            }
+            else {
+                map2.putAll( map1 );
+                return map2;
+            }
+        }
+        public void accumulate( RowLink link, Map<RowLink,LinkGroup> result ) {
+
+            /* See if one of the link's RowRefs has an entry in the refMap.
+             * If so, it points to a LinkGroup object that the link
+             * participates in, so store it in the map. */
+            RowRef ref0 = link.getRef( 0 );
+            LinkGroup group = refMapGrp_.get( ref0 );
+            if ( group != null ) {
+                result.put( link, group );
+            }
+
+            /* Sanity check: all the refs of any link must point to the
+             * same LinkGroup object. */
+            assert refsInGroup( link, group );
+        }
+
+        /**
+         * Tests whether all the refs in a link point to a given LinkGroup.
+         *
+         * @param  link  link
+         * @param  group  group
+         * @return true iff all refs in link point to the same group
+         */
+        private boolean refsInGroup( RowLink link, LinkGroup group ) {
+            for ( int i = 0; i < link.size(); i++ ) {
+                if ( group != refMapGrp_.get( link.getRef( i ) ) ) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
