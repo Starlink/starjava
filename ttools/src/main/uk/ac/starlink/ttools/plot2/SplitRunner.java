@@ -147,7 +147,7 @@ public abstract class SplitRunner<S extends Splittable<S>> {
         /* Use the common ForkJoinPool.  The parallelism for this
          * may be set using the system property
          * java.util.concurrent.ForkJoinPool.common.parallelism. */
-        ForkJoinPool fjPool = ForkJoinPool.commonPool();
+        Supplier<ForkJoinPool> fjPoolSupplier = () -> ForkJoinPool.commonPool();
 
         /* The range suggested in the ForkJoinTask javadocs is 1e2-1e4,
          * so this is conservative; but for plots with fewer than 1e5
@@ -164,7 +164,7 @@ public abstract class SplitRunner<S extends Splittable<S>> {
 
         /* Return default policy. */
         SplitPolicy policy =
-            new SplitPolicy( fjPool, minTaskSize, maxTasksPerCore );
+            new SplitPolicy( fjPoolSupplier, minTaskSize, maxTasksPerCore );
         logger_.info( "Default concurrency: " + policy );
         return policy;
     }

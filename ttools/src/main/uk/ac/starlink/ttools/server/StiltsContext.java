@@ -206,9 +206,9 @@ public class StiltsContext {
                 return null;
             }
             else {
-                ForkJoinPool fjPool = new ForkJoinPool( ncore );
                 SplitPolicy policy =
-                    new SplitPolicy( new ForkJoinPool( ncore ), -1, (short)-1 );
+                    new SplitPolicy( () -> new ForkJoinPool( ncore ),
+                                     -1, (short) -1 );
                 return new TupleRunner( SplitRunner
                                        .createStandardRunner( policy ) );
             }

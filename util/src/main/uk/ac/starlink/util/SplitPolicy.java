@@ -1,6 +1,7 @@
 package uk.ac.starlink.util;
 
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Supplier;
 
 /**
  * Defines the details of a concurrency policy as used by SplitProcessor.
@@ -10,9 +11,10 @@ import java.util.concurrent.ForkJoinPool;
  */
 public class SplitPolicy {
 
-    private final ForkJoinPool fjPool_;
+    private final Supplier<ForkJoinPool> fjPoolSupplier_;
     private final int minTaskSize_;
     private final short maxTasksPerCore_;
+    private ForkJoinPool fjPool_;
 
     /**
      * Default value for minimum subtask size.
@@ -44,8 +46,10 @@ public class SplitPolicy {
     /**
      * Constructs a policy with supplied configuration options.
      *
-     * @param  fjPool  fork/join pool for execution,
-     *               or null to use the common pol
+     * @param  fjPoolSupplier  supplier for fork/join pool for execution,
+     *                         or null to use the common pool;
+     *                         if non-null this supplier will be used
+     *                         a maximum of once for lazy acquisition
      * @param  minTaskSize  smallest acceptable size of sub-task
      *                      to split tasks into, or non-positive value
      *                      for default ({@link #DFLT_MIN_TASK_SIZE})
@@ -55,9 +59,11 @@ public class SplitPolicy {
      *                          or negative value for default limit
      *                          ({@link #DFLT_MAX_TASKS_PER_CORE})
      */
-    public SplitPolicy( ForkJoinPool fjPool, int minTaskSize,
+    public SplitPolicy( Supplier<ForkJoinPool> fjPoolSupplier, int minTaskSize,
                         short maxTasksPerCore ) {
-        fjPool_ = fjPool == null ? ForkJoinPool.commonPool() : fjPool;
+        fjPoolSupplier_ = fjPoolSupplier == null
+                        ? () -> ForkJoinPool.commonPool()
+                        : fjPoolSupplier;
         minTaskSize_ = minTaskSize > 0 ? minTaskSize
                                        : DFLT_MIN_TASK_SIZE;
         maxTasksPerCore_ = maxTasksPerCore >= 0 ? maxTasksPerCore
@@ -69,7 +75,10 @@ public class SplitPolicy {
      *
      * @return  forkjoinpool
      */
-    public ForkJoinPool getForkJoinPool() {
+    public synchronized ForkJoinPool getForkJoinPool() {
+        if ( fjPool_ == null ) {
+            fjPool_ = fjPoolSupplier_.get();
+        }
         return fjPool_;
     }
 
@@ -110,7 +119,7 @@ public class SplitPolicy {
         return new StringBuffer()
               .append( "SplitPolicy(" )
               .append( "parallelism=" )
-              .append( fjPool_.getParallelism() )
+              .append( getForkJoinPool().getParallelism() )
               .append( ", " )
               .append( "minTaskSize=" )
               .append( getMinTaskSize() )
