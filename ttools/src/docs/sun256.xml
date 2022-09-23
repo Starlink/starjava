@@ -14147,6 +14147,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>areatype</code> parameter
         in <ref id="layer-area">area</ref>-like plots,
         giving partial support for TFCat shape descriptions.</li>
+    <li>The usage of the
+        <ref id="tmatch2-runner"><code>runner</code></ref> parameter
+        for matching commands like <code>tmatch2</code>
+        has changed slightly:
+        options <code>parallel&lt;n&gt;</code> and
+        <code>parallel-all</code> are added,
+        while option <code>parallel</code>
+        is now limited to a fixed number of processors
+        (currently 6).</li>
     </ul>
     </p></dd>
 

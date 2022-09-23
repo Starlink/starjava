@@ -50,6 +50,7 @@ import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.func.CoordsRadians;
+import uk.ac.starlink.ttools.join.MatchRunnerParameter;
 
 /**
  * Window for selecting the characteristics of and invoking a match 
@@ -235,7 +236,9 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      */
     private MatchSpec makeMatchSpec( MatchEngine engine ) {
         Supplier<RowRunner> runnerFact =
-            () -> parallelModel.isSelected() ? RowRunner.DEFAULT : null;
+            () -> parallelModel.isSelected()
+                ? MatchRunnerParameter.PARALLEL_RUNNER
+                : RowRunner.SEQUENTIAL;
         switch( nTable ) {
             case 1:
                 return new IntraMatchSpec( engine, runnerFact );
