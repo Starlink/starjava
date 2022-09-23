@@ -63,6 +63,8 @@ public class EllipseRegressionTest extends TableTestCase {
     private final StarTable tngc_;
 
     public EllipseRegressionTest() throws IOException {
+        LogUtils.getLogger( "uk.ac.starlink.util" )
+                .setLevel( Level.WARNING );
         LogUtils.getLogger( "uk.ac.starlink.ttools.join" )
                 .setLevel( Level.WARNING );
         LogUtils.getLogger( "uk.ac.starlink.table.storage" )

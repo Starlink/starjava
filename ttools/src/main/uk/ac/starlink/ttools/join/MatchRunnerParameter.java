@@ -52,7 +52,7 @@ public class MatchRunnerParameter extends ChoiceParameter<RowRunner> {
         addOption( RowRunner.SEQUENTIAL, SEQUENTIAL );
         addOption( null, CLASSIC );
         addOption( RowRunner.PARTEST, PARTEST );
-        setStringDefault( CLASSIC );
+        setStringDefault( PARALLEL );
         setPrompt( "Threading implementation" );
         setUsage( String.join( "|",
             PARALLEL,
@@ -96,10 +96,11 @@ public class MatchRunnerParameter extends ChoiceParameter<RowRunner> {
             "The <code>" + PARALLEL + "*</code> options",
             "should normally run faster than",
             "<code>" + SEQUENTIAL + "</code> or <code>" + CLASSIC + "</code>",
+            "(which are provided mainly for testing purposes),",
             "at least for large matches",
             "and where multiple processing cores are available.",
             "</p>",
-            "<p>The value \"<code>" + PARALLEL + "</code>\"",
+            "<p>The default value \"<code>" + PARALLEL + "</code>\"",
             "is currently limited to a parallelism of " +
             DFLT_PARALLELISM_LIMIT,
             "since larger values yield diminishing returns given that",

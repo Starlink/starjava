@@ -29,6 +29,8 @@ public class TableMatch2Test extends TableTestCase {
             col( "Bmag", new double[] { 10.1, 12.3, 14.6, 19.0 } ),
         } );
 
+        LogUtils.getLogger( "uk.ac.starlink.util" )
+                .setLevel( Level.WARNING );
         LogUtils.getLogger( "uk.ac.starlink.ttools.task" )
                 .setLevel( Level.WARNING );
         LogUtils.getLogger( "uk.ac.starlink.ttools.join" )

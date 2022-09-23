@@ -27,6 +27,8 @@ public class EllipseMatchTest extends TableTestCase {
     public EllipseMatchTest() {
         LogUtils.getLogger( "uk.ac.starlink.ttools.join" )
                 .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.util" )
+                .setLevel( Level.WARNING );
     }
 
     public void testRotation() {

@@ -128,7 +128,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             new ToggleButtonModel( "Parallel execution", ResourceIcon.PARALLEL,
                                    "Set to run match using multithreaded "
                                  + "execution" );
-        parallelModel.setSelected( false );
+        parallelModel.setSelected( true );
 
         /* Set up an action to perform profiling during match. */
         profileModel =

@@ -20208,7 +20208,10 @@ in the match windows:
 <dt>&IMG.PARALLEL; Parallel Execution</dt>
 <dd><p>Runs the match in multi-threaded mode if the tables are large
     and if multiple processors are available.
-    This should make matches run faster but have no effect on the result.
+    By default this is set; unsetting it should have no effect on the
+    result apart from (usually) slowing the matching down.
+    A limit (currently 6) on the parallelism of the matching is imposed
+    since adding more processors tends to lead to diminishing returns.
     </p></dd>
 </dl>
 </p>
@@ -31480,6 +31483,10 @@ introduced since the last version:
     <li>Provide new option TFCAT for Area type in
         <ref id="GangLayerControl_area_position">Area Layer Control</ref>,
         giving partial support for TFCat shape descriptions.</li>
+    <li>Matching is now done in parallel by default;
+        sequential execution can be selected using the
+        Parallel Execution <ref id="matchTuning">Tuning</ref> control
+        if preferred.</li>
     </ul>
     </p></dd>
 

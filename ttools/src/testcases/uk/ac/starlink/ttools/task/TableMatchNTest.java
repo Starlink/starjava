@@ -18,6 +18,7 @@ public class TableMatchNTest extends TableTestCase {
 
     public TableMatchNTest( String name ) {
         super( name );
+        LogUtils.getLogger( "uk.ac.starlink.util" ).setLevel( Level.WARNING );
         LogUtils.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
     }
 

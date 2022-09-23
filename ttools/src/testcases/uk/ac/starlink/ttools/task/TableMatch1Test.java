@@ -26,6 +26,8 @@ public class TableMatch1Test extends TableTestCase {
                  new URLDataSource( getClass()
                                    .getResource( "../messier.xml" ) ),
                  true, StoragePolicy.PREFER_MEMORY );
+        LogUtils.getLogger( "uk.ac.starlink.util" )
+                .setLevel( Level.WARNING );
         LogUtils.getLogger( "uk.ac.starlink.ttools" )
                 .setLevel( Level.WARNING );
         LogUtils.getLogger( "uk.ac.starlink.table.storage" )
