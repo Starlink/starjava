@@ -62,6 +62,68 @@ public class RowRunnerParameter extends ChoiceParameter<RowRunner> {
     }
 
     /**
+     * Creates a runner parameter suitable for use when scanning large tables.
+     *
+     * @param  name  parameter name
+     * @return   new parameter
+     */
+    public static RowRunnerParameter createScanRunnerParameter( String name ) {
+        RowRunnerParameter param = new RowRunnerParameter( name ); 
+        param.setNullPermitted( false );
+        param.addOption( RowRunner.SEQUENTIAL, SEQUENTIAL );
+        param.addOption( RowRunner.DEFAULT, PARALLEL );
+        param.addOption( RowRunner.PARTEST, PARTEST );
+        param.setStringDefault( PARALLEL );
+        param.setPrompt( "Threading implementation" );
+        param.setUsage( String.join( "|",
+            SEQUENTIAL, PARALLEL, PARALLEL + "<n>", PARTEST
+        ) );
+        param.setDescription( new String[] {
+            "<p>Selects the threading implementation,",
+            "i.e. to what extent processing is done in parallel.",
+            "The options are currently:",
+            "<ul>",
+            "<li><code>" + SEQUENTIAL + "</code>:",
+                "runs using only a single thread",
+                "</li>",
+            "<li><code>" + PARALLEL + "</code>:",
+                "runs using multiple threads for large tables,",
+                "with parallelism given by the number of available processors",
+                "</li>",
+            "<li><code>" + PARALLEL + "&lt;n&gt;</code>:",
+                "runs using multiple threads for large tables,",
+                "with parallelism given by the supplied value",
+                "<code>&lt;n&gt;</code>",
+                "</li>",
+            "<li><code>" + PARTEST + "</code>:",
+                "runs using multiple threads even when tables are small",
+                "(only intended for testing purposes)",
+                "</li>",
+            "</ul>",
+            "</p>",
+            "<p>Using parallel processing can speed up execution considerably;",
+            "however, depending on the I/O operations required,",
+            "it can also slow it down by disrupting patterns of disk access.",
+            "If the content of a file is on a solid state disk,",
+            "or is already in cache for instance because a similar command",
+            "has been run recently,",
+            "then <code>parallel</code> will probably be faster.",
+            "However, if the data is being read directly from a spinning disk,",
+            "for instance because the file is too large to fit in RAM, then",
+            "<code>" + SEQUENTIAL + "</code> or",
+            "<code>" + PARALLEL + "&lt;n&gt;</code> with a small",
+            "<code>&lt;n&gt;</code> may be faster.",
+            "</p>",
+            "<p>The value of this parameter should make only very tiny",
+            "differences to the output table.",
+            "If you notice significant discrepancies",
+            "<strong>please report them</strong>.",
+            "</p>",
+        } );
+        return param;
+    }
+
+    /**
      * Creates a runner parameter suitable for use with crossmatching tasks.
      * The parameter value may be null, which corresponds to legacy
      * (non-threaded) operation.

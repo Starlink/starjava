@@ -61,6 +61,7 @@ public class SkyDensityMap extends SingleMapperTask {
     private final ChoiceParameter<Combiner> combinerParam_;
     private final ChoiceParameter<SolidAngleUnit> unitParam_;
     private final BooleanParameter completeParam_;
+    private final RowRunnerParameter runnerParam_;
 
     /**
      * Constructor.
@@ -199,6 +200,8 @@ public class SkyDensityMap extends SingleMapperTask {
             CombinedColumn
            .createCombinedColumnsParameter( quantName, combinerParam_ );
 
+        runnerParam_ = RowRunnerParameter.createScanRunnerParameter( "runner" );
+
         getParameterList().addAll( Arrays.asList( new Parameter<?>[] {
             lonParam_,
             latParam_,
@@ -208,6 +211,7 @@ public class SkyDensityMap extends SingleMapperTask {
             combinerParam_,
             unitParam_,
             completeParam_,
+            runnerParam_,
         } ) );
     }
 
@@ -222,6 +226,7 @@ public class SkyDensityMap extends SingleMapperTask {
         boolean complete = completeParam_.booleanValue( env );
         List<AggregateQuantity> aqList = new ArrayList<AggregateQuantity>();
         boolean hasCount = countParam_.booleanValue( env );
+        RowRunner runner = runnerParam_.objectValue( env );
         final int countIndex;
         if ( hasCount ) {
             countIndex = aqList.size();
@@ -267,7 +272,7 @@ public class SkyDensityMap extends SingleMapperTask {
         }
         final SingleTableMapping mapping =
             new SkyMapMapping( lonString, latString, tiling, complete, aqs,
-                               unit, countIndex );
+                               unit, countIndex, runner );
         final DescribedValue[] params;
         if ( tiling instanceof HealpixTiling ) {
             HealpixTiling hpx = (HealpixTiling) tiling;
@@ -300,6 +305,7 @@ public class SkyDensityMap extends SingleMapperTask {
         private final AggregateQuantity[] aqs_;
         private final SolidAngleUnit unit_;
         private final int countIndex_;
+        private final RowRunner runner_;
 
         /**
          * Constructor.
@@ -314,10 +320,11 @@ public class SkyDensityMap extends SingleMapperTask {
          * @param  countIndex  index of the <code>aqs</code> element that
          *                     just counts input table rows,
          *                     or -1 if none of the aqs does that
+         * @param  runner   parallelism control
          */
         SkyMapMapping( String lonStr, String latStr, SkyTiling tiling,
                        boolean complete, AggregateQuantity[] aqs,
-                       SolidAngleUnit unit, int countIndex ) {
+                       SolidAngleUnit unit, int countIndex, RowRunner runner ) {
             lonStr_ = lonStr;
             latStr_ = latStr;
             tiling_ = tiling;
@@ -325,6 +332,7 @@ public class SkyDensityMap extends SingleMapperTask {
             aqs_ = aqs;
             unit_ = unit;
             countIndex_ = countIndex;
+            runner_ = runner;
         }
 
         public StarTable map( StarTable inTable )
@@ -374,8 +382,7 @@ public class SkyDensityMap extends SingleMapperTask {
             BinDataCollector collector =
                 new BinDataCollector( inTable, tiling_, aqs_,
                                       lonCompiler, latCompiler, qCompilers );
-            RowRunner rowRunner = RowRunner.DEFAULT;
-            BinData binData = rowRunner.collect( collector, inTable );
+            BinData binData = runner_.collect( collector, inTable );
 
             /* Turn the result into a table. */
             long npix = tiling_.getPixelCount();

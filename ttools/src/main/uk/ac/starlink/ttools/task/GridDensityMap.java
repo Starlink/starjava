@@ -57,6 +57,7 @@ public class GridDensityMap extends SingleMapperTask {
     private final StringMultiParameter quantsParam_;
     private final ChoiceParameter<Combiner> combinerParam_;
     private final BooleanParameter sparseParam_;
+    private final RowRunnerParameter runnerParam_;
 
     /**
      * Constructor.
@@ -220,6 +221,8 @@ public class GridDensityMap extends SingleMapperTask {
             "</p>",
         "" ) );
 
+        runnerParam_ = RowRunnerParameter.createScanRunnerParameter( "runner" );
+
         getParameterList().addAll( Arrays.asList( new Parameter<?>[] {
             coordsParam_,
             logsParam_,
@@ -229,6 +232,7 @@ public class GridDensityMap extends SingleMapperTask {
             quantsParam_,
             combinerParam_,
             sparseParam_,
+            runnerParam_,
         } ) );
     }
 
@@ -322,12 +326,13 @@ public class GridDensityMap extends SingleMapperTask {
         }
 
         /* Put it together to form a TableProducer. */
+        RowRunner runner = runnerParam_.objectValue( env );
         boolean isSparse = sparseParam_.booleanValue( env );
         final SingleTableMapping mapping =
             new GridMapMapping( coordExprs, isLogs, loBounds, hiBounds,
                                 nbins, binsizes,
                                 qcList.toArray( new CombinedColumn[ 0 ] ),
-                                isSparse );
+                                isSparse, runner );
         final TableProducer inProd = createInputProducer( env );
         return new TableProducer() {
             public StarTable getTable() throws IOException, TaskException {
@@ -370,11 +375,12 @@ public class GridDensityMap extends SingleMapperTask {
          * @param  qCols   array of column specifications for quantities to
          *                 be accumulated
          * @param  isSparse   true for sparse table output, false for dense
+         * @param  rowRunner  control for parallel execution
          */
         GridMapMapping( String[] coordExprs, boolean[] isLogs,
                         double[] loBounds, double[] hiBounds, int[] nbins,
                         double[] binSizes, CombinedColumn[] qcols,
-                        boolean isSparse ) {
+                        boolean isSparse, RowRunner rowRunner ) {
             coordExprs_ = coordExprs;
             isLogs_ = isLogs;
             loBounds_ = loBounds;
@@ -383,7 +389,7 @@ public class GridDensityMap extends SingleMapperTask {
             binSizes_ = binSizes;
             qcols_ = qcols;
             isSparse_ = isSparse;
-            rowRunner_ = RowRunner.DEFAULT;
+            rowRunner_ = rowRunner;
             ndim_ = coordExprs.length;
             nq_ = qcols.length;
         }
