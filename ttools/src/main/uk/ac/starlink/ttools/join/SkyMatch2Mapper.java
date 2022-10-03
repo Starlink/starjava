@@ -18,6 +18,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.func.CoordsRadians;
+import uk.ac.starlink.ttools.task.RowRunnerParameter;
 import uk.ac.starlink.ttools.task.SkyCoordParameter;
 import uk.ac.starlink.ttools.task.TableMapper;
 import uk.ac.starlink.ttools.task.TableMapping;
@@ -91,7 +92,7 @@ public class SkyMatch2Mapper implements TableMapper {
 
         joinParam_ = new JoinTypeParameter( "join" );
         modeParam_ = new FindModeParameter( "find" );
-        runnerParam_ = new MatchRunnerParameter( "runner" );
+        runnerParam_ = RowRunnerParameter.createMatchRunnerParameter( "runner");
     }
 
     public Parameter<?>[] getParameters() {

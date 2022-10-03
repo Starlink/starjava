@@ -1,7 +1,8 @@
-package uk.ac.starlink.ttools.join;
+package uk.ac.starlink.ttools.task;
 
 import java.util.concurrent.ForkJoinPool;
 import uk.ac.starlink.table.RowRunner;
+import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ParameterValueException;
@@ -10,16 +11,16 @@ import uk.ac.starlink.util.SplitPolicy;
 import uk.ac.starlink.util.SplitProcessor;
 
 /**
- * Parameter for acquiring a RowRunner for use in crossmatching.
- * The documentation, though not the functionality, is specific to
- * the crossmatching case.
- * The returned value may be <code>null</code>,
- * which corresponds to legacy (non-threaded) operation.
+ * Parameter for acquiring a RowRunner.
+ *
+ * <p>The details of documentation differ according to what the runner is
+ * to be used for, so factory methods are provided instead of a public
+ * constructor.
  *
  * @author   Mark Taylor
- * @since    31 Aug 2021
+ * @since    3 Oct 2022
  */
-public class MatchRunnerParameter extends ChoiceParameter<RowRunner> {
+public class RowRunnerParameter extends ChoiceParameter<RowRunner> {
 
     private static final String CLASSIC = "classic";
     private static final String SEQUENTIAL = "sequential";
@@ -27,34 +28,60 @@ public class MatchRunnerParameter extends ChoiceParameter<RowRunner> {
     private static final String PARALLEL_ALL = "parallel-all";
     private static final String PARTEST = "partest";
 
-    /** Maximum value for default parallelism. */
-    public static final int DFLT_PARALLELISM_LIMIT = 6;
-
-    /** Actual value for default parallelism (also limited by machine). */
-    public static final int DFLT_PARALLELISM =
-        Math.min( DFLT_PARALLELISM_LIMIT,
-                  Runtime.getRuntime().availableProcessors() );
-
-    /** Default parallel value (parallel with default parallelism). */
-    public static final RowRunner PARALLEL_RUNNER =
-        createParallelMatchRunner( DFLT_PARALLELISM );
+    /** Default runner instance for cross-matching purposes. */
+    public static final RowRunner DFLT_MATCH_RUNNER =
+        createParallelRowRunner( RowMatcher.DFLT_PARALLELISM );
 
     /**
      * Constructor.
      *
      * @param  name  parameter name
      */
-    public MatchRunnerParameter( String name ) {
+    private RowRunnerParameter( String name ) {
         super( name, RowRunner.class );
-        setNullPermitted( true );
-        addOption( PARALLEL_RUNNER, PARALLEL );
-        addOption( RowRunner.DEFAULT, PARALLEL_ALL );
-        addOption( RowRunner.SEQUENTIAL, SEQUENTIAL );
-        addOption( null, CLASSIC );
-        addOption( RowRunner.PARTEST, PARTEST );
-        setStringDefault( PARALLEL );
-        setPrompt( "Threading implementation" );
-        setUsage( String.join( "|",
+    }
+
+    @Override
+    public RowRunner stringToObject( Environment env, String sval )
+            throws TaskException {
+        if ( sval.matches( PARALLEL + "[0-9]+" ) ) {
+            String nTxt = sval.substring( PARALLEL.length() );
+            int nThread;
+            try {
+                nThread = Integer.parseInt( nTxt );
+            }
+            catch ( NumberFormatException e ) {
+                String msg = "Bad thread count specifier \"" + nTxt + "\"";
+                throw new ParameterValueException( this, msg );
+            }
+            return createParallelRowRunner( nThread );
+        }
+        else {
+            return super.stringToObject( env, sval );
+        }
+    }
+
+    /**
+     * Creates a runner parameter suitable for use with crossmatching tasks.
+     * The parameter value may be null, which corresponds to legacy
+     * (non-threaded) operation.
+     *
+     * @param  name  parameter name
+     * @return   new parameter
+     */
+    public static RowRunnerParameter createMatchRunnerParameter( String name ) {
+        final int dfltParallelismLimit = RowMatcher.DFLT_PARALLELISM_LIMIT;
+        final RowRunner dfltParallelRunner = DFLT_MATCH_RUNNER;
+        RowRunnerParameter param = new RowRunnerParameter( name );
+        param.setNullPermitted( true );
+        param.addOption( dfltParallelRunner, PARALLEL );
+        param.addOption( RowRunner.DEFAULT, PARALLEL_ALL );
+        param.addOption( RowRunner.SEQUENTIAL, SEQUENTIAL );
+        param.addOption( null, CLASSIC );
+        param.addOption( RowRunner.PARTEST, PARTEST );
+        param.setStringDefault( PARALLEL );
+        param.setPrompt( "Threading implementation" );
+        param.setUsage( String.join( "|",
             PARALLEL,
             PARALLEL + "<n>",
             PARALLEL_ALL,
@@ -62,14 +89,14 @@ public class MatchRunnerParameter extends ChoiceParameter<RowRunner> {
             CLASSIC,
             PARTEST
         ) );
-        setDescription( new String[] {
+        param.setDescription( new String[] {
             "<p>Selects the threading implementation.",
             "The options are currently:",
             "<ul>",
             "<li><code>" + PARALLEL + "</code>:",
                 "uses multithreaded implementation for large tables,",
                 "with default parallelism,",
-                "which is the smaller of " + DFLT_PARALLELISM_LIMIT,
+                "which is the smaller of " + dfltParallelismLimit,
                 "and the number of available processors",
                 "</li>",
             "<li><code>" + PARALLEL + "&lt;n&gt;</code>:",
@@ -101,8 +128,7 @@ public class MatchRunnerParameter extends ChoiceParameter<RowRunner> {
             "and where multiple processing cores are available.",
             "</p>",
             "<p>The default value \"<code>" + PARALLEL + "</code>\"",
-            "is currently limited to a parallelism of " +
-            DFLT_PARALLELISM_LIMIT,
+            "is currently limited to a parallelism of " + dfltParallelismLimit,
             "since larger values yield diminishing returns given that",
             "some parts of the matching algorithms run sequentially",
             "(Amdahl's Law), and using too many threads",
@@ -119,26 +145,7 @@ public class MatchRunnerParameter extends ChoiceParameter<RowRunner> {
             "<strong>please report them</strong>.",
             "</p>",
         } );
-    }
-
-    @Override
-    public RowRunner stringToObject( Environment env, String sval )
-            throws TaskException {
-        if ( sval.matches( PARALLEL + "[0-9]+" ) ) {
-            String nTxt = sval.substring( PARALLEL.length() );
-            int nThread;
-            try {
-                nThread = Integer.parseInt( nTxt );
-            }
-            catch ( NumberFormatException e ) {
-                String msg = "Bad thread count specifier \"" + nTxt + "\"";
-                throw new ParameterValueException( this, msg );
-            }
-            return createParallelMatchRunner( nThread );
-        }
-        else {
-            return super.stringToObject( env, sval );
-        }
+        return param;
     }
 
     /**
@@ -148,7 +155,7 @@ public class MatchRunnerParameter extends ChoiceParameter<RowRunner> {
      * @param   nThread  parallelism
      * @return   new runner
      */
-    private static RowRunner createParallelMatchRunner( int nThread ) {
+    private static RowRunner createParallelRowRunner( int nThread ) {
         SplitPolicy policy =
             new SplitPolicy( () -> new ForkJoinPool( nThread ),
                              SplitPolicy.DFLT_MIN_TASK_SIZE,

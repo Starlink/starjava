@@ -17,6 +17,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.task.InputTableSpec;
 import uk.ac.starlink.ttools.task.JoinFixActionParameter;
+import uk.ac.starlink.ttools.task.RowRunnerParameter;
 import uk.ac.starlink.ttools.task.TableMapper;
 import uk.ac.starlink.ttools.task.TableMapping;
 import uk.ac.starlink.ttools.task.WordsParameter;
@@ -49,7 +50,7 @@ public class Match2Mapper implements TableMapper {
         joinParam_ = new JoinTypeParameter( "join" );
         modeParam_ = new FindModeParameter( "find" );
         progressParam_ = new ProgressIndicatorParameter( "progress" );
-        runnerParam_ = new MatchRunnerParameter( "runner" );
+        runnerParam_ = RowRunnerParameter.createMatchRunnerParameter( "runner");
     }
 
     public Parameter<?>[] getParameters() {

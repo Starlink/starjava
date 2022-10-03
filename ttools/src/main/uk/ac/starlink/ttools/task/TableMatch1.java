@@ -16,7 +16,6 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.join.Match1Mapping;
 import uk.ac.starlink.ttools.join.Match1TypeParameter;
 import uk.ac.starlink.ttools.join.MatchEngineParameter;
-import uk.ac.starlink.ttools.join.MatchRunnerParameter;
 import uk.ac.starlink.ttools.join.ProgressIndicatorParameter;
 
 /**
@@ -55,7 +54,7 @@ public class TableMatch1 extends SingleMapperTask {
         progressParam_ = new ProgressIndicatorParameter( "progress" );
         paramList.add( progressParam_ );
 
-        runnerParam_ = new MatchRunnerParameter( "runner" );
+        runnerParam_ = RowRunnerParameter.createMatchRunnerParameter( "runner");
         paramList.add( runnerParam_ );
 
         getParameterList().addAll( 0, paramList );

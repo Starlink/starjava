@@ -54,6 +54,24 @@ public class RowMatcher {
     private long startTime_;
 
     /**
+     * Maximum suggested value for parallelism.
+     * This value is limited mainly because not all the steps of matching
+     * have been (can be?) parallelised, and so in accordance with Amdahl's Law
+     * there are diminishing returns as the number of processors increases.
+     * Some steps in fact slow down as more threads are added,
+     * because of additional data structure combination work required.
+     * The current value of {@value #DFLT_PARALLELISM_LIMIT} is somewhat,
+     * though not completely, arbitrary, having been set following some
+     * experimentation.
+     */
+    public static final int DFLT_PARALLELISM_LIMIT = 6;
+
+    /** Actual value for default parallelism (also limited by machine). */
+    public static final int DFLT_PARALLELISM =
+        Math.min( DFLT_PARALLELISM_LIMIT,
+                  Runtime.getRuntime().availableProcessors() );
+
+    /**
      * Constructs a new matcher with match characteristics defined by
      * a given matching engine.
      *
@@ -62,8 +80,8 @@ public class RowMatcher {
      * @param  computer   implementation for computationally intensive
      *                    operations
      */
-    public RowMatcher( MatchEngine engine, StarTable[] tables,
-                       MatchComputer computer ) {
+    private RowMatcher( MatchEngine engine, StarTable[] tables,
+                        MatchComputer computer ) {
         engine_ = engine;
         tables_ = tables;
         computer_ = computer;
