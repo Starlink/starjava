@@ -181,7 +181,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>8 July 2022</docdate>
+<docdate>5 October 2022</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -14104,69 +14104,90 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v3.4-7">Version 3.4-7 (5 October 2022)</dt>
 <dd><p>
-    <ul>
-    <li>Fix PDS4 reader to accept columns of type
-        <code>ASCII_Numeric_Base16</code>
-        without the read operation failing.</li>
-    <li>Crossmatching efficiency improvements:
-        sky matching does better pre-selection of potential matches
-        based on sky region,
-        post-processing row sorting etc accelerated.</li>
-    <li>Fix relevant filters to issue a WARNING if new column names
-        clash with existing ones.</li>
-    <li>Filter <ref id="fixcolnames"><code>fixcolnames</code></ref>
-        now deduplicates column names
-        as well as fixing up their syntax.</li>
-    <li>Add new plot layer type
-        <ref id="layer-handles"><code>handles</code></ref>
-        to mark a reference position for X/Y array data.</li>
-    <li>Add some new colour maps from 
-        <webref url="https://github.com/1313e/CMasher">CMasher</webref>:
-        <code>cosmic</code>, <code>ember</code>, <code>gothic</code>,
-        <code>rainforest</code>, <code>voltage</code>,
-        <code>bubblegum</code>, <code>gem</code>, <code>chroma</code>,
-        <code>neon</code>, <code>tropical</code> (sequential);
-        <code>guppy</code>, <code>iceburn</code>,
-        <code>redshift</code>, <code>pride</code> (diverging);
-        <code>infinity</code> (cyclic).</li>
-    <li>Fix VOTable reader and <code>votlint</code> so that
-        BINARY/2 VOTables with no columns don't read forever.</li>
-    <li>Add new section listing <ref id="Shaders">Colour Maps</ref>
-        to this document.</li>
-    <li>Fix bug in <ref id="layer-skygrid">skygrid</ref> layer that
-        failed to inherit configuration items from base grid.</li>
-    <li>New function <code>sequence(n,start,step)</code> in
-        class <ref id="Arrays-sequence">Arrays</ref>.</li>
-    <li>New functions <code>tfcatStatus</code> and
-        <code>tfcatMessage</code> in class
-        <ref id="VO-tfcatStatus">VO</ref> for validating instances of
-        the Time-Frequency Radio Catalogue format.</li>
-    <li>Provide new option <code>TFCAT</code> option for
-        <code>areatype</code> parameter
-        in <ref id="layer-area">area</ref>-like plots,
-        giving partial support for TFCat shape descriptions.</li>
-    <li>By default, matching commands like <code>tmatch2</code>
-        now run in parallel.
-        The usage of the
-        <ref id="tmatch2-runner"><code>runner</code></ref> parameter
-        has also changed slightly:
-        options <code>parallel&lt;n&gt;</code> and
-        <code>parallel-all</code> are added,
-        while option <code>parallel</code>, the new default,
-        is now limited to a fixed number of processors
-        (currently 6).</li>
-    <li>Add new option "<code>time</code>" to the
-        <ref id="tmatch2-progress"><code>progress</code></ref> parameter
-        of matching commands like <code>tmatch2</code>.</li>
-    <li>Add new parameter <code>runner</code> to
-        <ref id="tskymap-runner">tskymap</ref> and
-        <ref id="tgridmap-runner">tgridmap</ref>;
-        this allows to control parallel execution,
-        since sequential may be faster than the parallel default option
-        for large files on spinning disks.</li>
-    </ul>
+    <dl>
+    <dt>Performance:</dt>
+    <dd><p>
+        <ul>
+        <li>Crossmatching performance improvements:
+            sky matching does better pre-selection of potential matches
+            based on sky region,
+            post-processing row sorting etc accelerated,
+            various other steps parallelised.
+            Large matches might typically be about twice as fast
+            as before.</li>
+        <li>By default, matching commands like
+            <ref id="tmatch2"><code>tmatch2</code></ref>
+            now run in parallel.</li>
+        <li>The usage of the
+            <ref id="tmatch2-runner"><code>runner</code></ref> parameter,
+            used to control parallel execution of matching commands like
+            <code>tmatch2</code>, has changed slightly:
+            options <code>parallel&lt;n&gt;</code> and
+            <code>parallel-all</code> are added,
+            while option <code>parallel</code>, the new default,
+            is now limited to a fixed number of processors
+            (currently 6).</li>
+        <li>Add new parameter
+            <ref id="tskymap-runner"><code>runner</code></ref> to
+            <ref id="tskymap">tskymap</ref> and
+            <ref id="tgridmap">tgridmap</ref>;
+            this allows to control parallel execution,
+            since sequential may be faster than the default parallel option
+            for large files on spinning disks.</li>
+        <li>Add new option "<code>time</code>" to the
+            <ref id="tmatch2-progress"><code>progress</code></ref> parameter
+            of matching commands like <code>tmatch2</code>.</li>
+        </ul>
+        </p></dd>
+    <dt>New functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>Add new plot layer type
+            <ref id="layer-handles"><code>handles</code></ref>
+            to mark a reference position for X/Y array data.</li>
+        <li>New function <code>sequence(n,start,step)</code> in
+            class <ref id="Arrays-sequence">Arrays</ref>.</li>
+        <li>New functions <code>tfcatStatus</code> and
+            <code>tfcatMessage</code> in class
+            <ref id="VO-tfcatStatus">VO</ref> for validating instances of
+            the Time-Frequency Radio Catalogue format.</li>
+        <li>Provide new option <code>TFCAT</code> for
+            <code>areatype</code> parameter
+            in <ref id="layer-area">area</ref>-like plots,
+            giving partial support for TFCat shape descriptions.</li>
+        <li>Filter <ref id="fixcolnames"><code>fixcolnames</code></ref>
+            now deduplicates column names
+            as well as fixing up their syntax.</li>
+        <li>Fix relevant filters to issue a WARNING if new column names
+            clash with existing ones.</li>
+        <li>Add new section listing <ref id="Shaders">Colour Maps</ref>
+            to this document.</li>
+        <li>Add some new colour maps from 
+            <webref url="https://github.com/1313e/CMasher">CMasher</webref>:
+            <code>cosmic</code>, <code>ember</code>, <code>gothic</code>,
+            <code>rainforest</code>, <code>voltage</code>,
+            <code>bubblegum</code>, <code>gem</code>, <code>chroma</code>,
+            <code>neon</code>, <code>tropical</code> (sequential);
+            <code>guppy</code>, <code>iceburn</code>,
+            <code>redshift</code>, <code>pride</code> (diverging);
+            <code>infinity</code> (cyclic).</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes and workarounds:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix VOTable reader and <code>votlint</code> so that
+            BINARY/2 VOTables with no columns don't read forever.</li>
+        <li>Fix PDS4 reader to accept columns of type
+            <code>ASCII_Numeric_Base16</code>
+            without the read operation failing.</li>
+        <li>Fix bug in <ref id="layer-skygrid">skygrid</ref> layer that
+            failed to inherit configuration items from base grid.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

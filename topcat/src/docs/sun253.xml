@@ -495,7 +495,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>8 July 2022</docdate>
+<docdate>5 October 2022</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -3025,8 +3025,9 @@ When a row is activated, four things happen:
     centred on that point.</li>
 <li>If the Data Window is visible, the table will be scrolled to show the
     row and it will be highlighted</li>
-<li>The contents of the <label>Activated</label> Row Subset will be updated
-    to include (only) that row</li>
+<li>The contents of the
+    <label>Activated</label> <ref id="subsets">Row Subset</ref>
+    will be updated to include (only) that row</li>
 <li>If an <em>activation action</em> has been defined, it will be invoked</li>
 </ol>
 The first two of these mean that you can easily see which point in a
@@ -14509,7 +14510,7 @@ It has the following options:
 
 </subdiv>
 
-<subdiv>
+<subdiv id="PlaneAxisControl_range">
 <subhead><title>Range Tab</title></subhead>
 
 <figure>
@@ -30447,7 +30448,7 @@ introduced since the last version:
         <code>java.lang.UnsupportedClassVersionError</code>
         then you need to upgrade.
         </p></dd>
-    <dt>New or enhanced funcationality:</dt>
+    <dt>New or enhanced functionality:</dt>
     <dd><p>
         <ul>
         <li>Most of the plotting, though not the intial data preparation,
@@ -31419,75 +31420,104 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.8-7">Version 4.8-7 (5 October 2022)</dt>
 <dd><p>
-    <ul>
-    <li>Extend ranges a bit beyond (0-1) for axis range sliders.</li>
-    <li>Fix PDS4 reader to accept columns of type
-        <code>ASCII_Numeric_Base16</code>
-        without the read operation failing.</li>
-    <li>Crossmatching efficiency improvements:
-        sky matching does better pre-selection of potential matches
-        based on sky region,
-        post-processing row sorting etc accelerated.</li>
-    <li>Prevent image display window from grabbing focus during e.g.
-        <ref id="ViewHips2fitsActivationType">Display HiPS Cutout</ref>
-        activation.</li>
-    <li>Improve behaviour of some Axis Control tabs;
-        in particular
-        the <label>Range</label> and <label>View</label> tabs of the
-        <ref id="CubeAxisControl">Cube</ref> and
-        <ref id="SphereAxisControl">Sphere</ref> plot windows,
-        and the <label>FOV</label> tab of the
-        <ref id="SkyAxisControl">Sky</ref> plot window,
-        which have long been somewhat broken, now work properly.</li>
-    <li>Remove annoying lines from plot window before
-        plot is displayed.</li>
-    <li>Semi-standard <code>nrows</code> column from
-        <code>tap_schema.tables</code> table is now recorded and
-        displayed as TAP table row count if present.</li>
-    <li>Improve formatting of some sections of this document.</li>
-    <li>When a new column is added, the Column and Table window displays
-        are now scrolled to ensure that the new entry is visible.</li>
-    <li>When a new Row Subset is added, the Subset window display
-        is scrolled to ensure that the new subset is visible.</li>
-    <li>Add new plot form <ref id="form-handles">Handles</ref>
-        to mark reference positions for X/Y array data,
-        thus allowing activation etc with
-        <ref id="GangLayerControl_xyarray">XYArray</ref> plots.</li>
-    <li>Add some new colour maps from
-        <webref url="https://github.com/1313e/CMasher">CMasher</webref>:
-        Cosmic, Ember, Gothic, Rainforest, Voltage,
-        Bubblegum, Gem, Chroma, Neon, Tropical (sequential);
-        Guppy, Iceburn, Redshift, Pride (diverging);
-        Infinity (cyclic).</li>
-    <li>Blob drawing doesn't disappear until after new subset
-        is defined.</li>
-    <li>Fix VOTable reader so BINARY/2 VOTables with no columns
-        don't read forever.</li>
-    <li>Improve Row Subset redefinition behaviour for plotting:
-        when a subset name is re-used, any plot configuration
-        (colours etc) set up for the old subset is retained for the
-        new one, and it keeps its position in the displayed stack.</li>
-    <li>Add new section listing <ref id="Shaders">Colour Maps</ref>
-        to this document.</li>
-    <li>Add new <label>Activated</label> Row Subset to each table;
-        this can be used to highlight plotted rows on
-        <ref id="activation">activation</ref>.</li>
-    <li>New function <code>sequence(n,start,step)</code> in
-        class <ref id="Arrays-sequence">Arrays</ref>.</li>
-    <li>New functions <code>tfcatStatus</code> and
-        <code>tfcatMessage</code> in class
-        <ref id="VO-tfcatStatus">VO</ref> for validating instances of
-        the Time-Frequency Radio Catalogue format.</li>
-    <li>Provide new option TFCAT for Area type in
-        <ref id="GangLayerControl_area_position">Area Layer Control</ref>,
-        giving partial support for TFCat shape descriptions.</li>
-    <li>Matching is now done in parallel by default;
-        sequential execution can be selected using the
-        Parallel Execution <ref id="matchTuning">Tuning</ref> control
-        if preferred.</li>
-    </ul>
+    <dl>
+    <dt>New functionality</dt>
+    <dd><p>
+        <ul>
+        <li>Add new <label>Activated</label>
+            <ref id="subsets">Row Subset</ref> to each table;
+            this can be used to highlight plotted rows on
+            <ref id="activation">activation</ref>.</li>
+        <li>Add new plot form <ref id="form-handles">Handles</ref>
+            to mark reference positions for X/Y array data,
+            thus allowing activation and graphical selection with
+            <ref id="GangLayerControl_xyarray">XYArray</ref> plots.</li>
+        <li>New function <code>sequence(n,start,step)</code> in
+            class <ref id="Arrays-sequence">Arrays</ref>.</li>
+        <li>New functions <code>tfcatStatus</code> and
+            <code>tfcatMessage</code> in class
+            <ref id="VO-tfcatStatus">VO</ref> for validating instances of
+            the Time-Frequency Radio Catalogue format.</li>
+        <li>Provide new option TFCAT for Area type in
+            <ref id="GangLayerControl_area_position">Area Layer Control</ref>,
+            giving partial support for TFCat shape descriptions.</li>
+        <li>Semi-standard <code>nrows</code> column from
+            <code>tap_schema.tables</code> table is now recorded and
+            displayed as TAP table row count if present.</li>
+        </ul>
+        </p></dd>
+    <dt>Performance:</dt>
+    <dd><p>
+        <ul>
+        <li><ref id="match-windows">Crossmatching</ref>
+            performance improvements:
+            sky matching does better pre-selection of potential matches
+            based on sky region,
+            post-processing row sorting etc accelerated,
+            various other steps parallelised.
+            Large matches might typically be about twice as fast
+            as before.</li>
+        <li>Matching is now done in parallel by default;
+            sequential execution can be selected using the
+            Parallel Execution <ref id="matchTuning">Tuning</ref> control
+            if preferred.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor changes and usability improvements:</dt>
+    <dd><p>
+        <ul>
+        <li>Improve Row Subset redefinition behaviour for plotting:
+            when a subset name is re-used, any plot configuration
+            (colours etc) set up for the old subset is retained for the
+            new one, and it keeps its position in the displayed stack.</li>
+        <li>Improve formatting of some sections of this document.</li>
+        <li>Extend ranges a bit beyond (0-1) for
+            <ref id="PlaneAxisControl_range">axis range sliders</ref>.</li>
+        <li>Prevent image display window from grabbing focus during e.g.
+            <ref id="ViewHips2fitsActivationType">Display HiPS Cutout</ref>
+            activation.</li>
+        <li>When a new column is added, the
+            <ref id="ColumnInfoWindow">Column</ref> and
+            <ref id="TableViewerWindow">Table</ref> viewer window displays
+            are now scrolled to ensure that the new entry is visible.</li>
+        <li>When a new Row Subset is added, the
+            <ref id="SubsetWindow">Subset</ref> window display
+            is scrolled to ensure that the new subset is visible.</li>
+        <li><ref id="BlobPanel2">Blob drawing</ref> doesn't disappear
+            until after new subset is defined.</li>
+        <li>Add new section listing <ref id="Shaders">Colour Maps</ref>
+            to this document.</li>
+        <li>Add some new colour maps from
+            <webref url="https://github.com/1313e/CMasher">CMasher</webref>:
+            Cosmic, Ember, Gothic, Rainforest, Voltage,
+            Bubblegum, Gem, Chroma, Neon, Tropical (sequential);
+            Guppy, Iceburn, Redshift, Pride (diverging);
+            Infinity (cyclic).</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes and workarounds:</dt>
+    <dd><p>
+        <ul>
+        <li>Improve behaviour of some Axis Control tabs;
+            in particular
+            the <label>Range</label> and <label>View</label> tabs of the
+            <ref id="CubeAxisControl">Cube</ref> and
+            <ref id="SphereAxisControl">Sphere</ref> plot windows,
+            and the <label>FOV</label> tab of the
+            <ref id="SkyAxisControl">Sky</ref> plot window,
+            which have long been somewhat broken, now work properly.</li>
+        <li>Prevent annoying lines appearing in plot window before
+            plot is displayed.</li>
+        <li>Fix VOTable reader so BINARY/2 VOTables with no columns
+            don't read forever.</li>
+        <li>Fix PDS4 reader to accept columns of type
+            <code>ASCII_Numeric_Base16</code>
+            without the read operation failing.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
