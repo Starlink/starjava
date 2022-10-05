@@ -1412,7 +1412,6 @@
       <classpath>
         <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
       </classpath>
-      <sysproperty key="java.awt.headless" value="true"/>
 
       <!-- This is fiddly.
        !   The version of FOP we're using here (0.20, very old) doesn't
