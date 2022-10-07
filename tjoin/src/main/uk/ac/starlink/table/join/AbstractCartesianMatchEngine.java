@@ -246,8 +246,8 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         private final int ndim_;
         private final double[] scales_;
         private final double[] rBinSizes_;
-        private final int[] llo_;
-        private final int[] lhi_;
+        private final long[] llo_;
+        private final long[] lhi_;
 
         private static final Object[] NO_BINS = new Object[ 0 ];
 
@@ -263,8 +263,8 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
             ndim_ = ndim;
             scales_ = scales;
             rBinSizes_ = rBinSizes;
-            llo_ = new int[ ndim ];
-            lhi_ = new int[ ndim ];
+            llo_ = new long[ ndim ];
+            lhi_ = new long[ ndim ];
         }
 
         /**
@@ -347,14 +347,16 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
                     double r = useScale ? scales_[ id ] : radius;
                     llo_[ id ] = getLabelComponent( id, c0 - r );
                     lhi_[ id ] = getLabelComponent( id, c0 + r );
-                    ncell *= lhi_[ id ] - llo_[ id ] + 1;
+                    long extent = lhi_[ id ] - llo_[ id ] + 1;
+                    assert (int) extent == extent;
+                    ncell *= (int) extent;
                 }
             }
 
             /* Iterate over the cube of cells in ndim dimensions to construct
              * a list of all the cells inside it. */
             Cell[] cells = new Cell[ ncell ];
-            int[] label = llo_.clone();
+            long[] label = llo_.clone();
             for ( int ic = 0; ic < ncell; ic++ ) {
                 cells[ ic ] = new Cell( label.clone() );
                 for ( int jd = 0; jd < ndim_; jd++ ) {
@@ -385,8 +387,8 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
          * @param   coord  position in space in dimension <code>idim</code>
          * @return   index of cell coordinate in dimension <code>idim</code>
          */     
-        private int getLabelComponent( int idim, double coord ) { 
-            return (int) Math.floor( coord * rBinSizes_[ idim ] ); 
+        private long getLabelComponent( int idim, double coord ) { 
+            return (long) Math.floor( coord * rBinSizes_[ idim ] ); 
         }
     }
 

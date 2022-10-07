@@ -14193,6 +14193,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix Cartesian matcher overflow issue;
+        for very large ratio between coordinate extent and match radius
+        this could cause pathologically slow, though not incorrect,
+        crossmatching.</li>
     </ul>
     </p></dd>
 
