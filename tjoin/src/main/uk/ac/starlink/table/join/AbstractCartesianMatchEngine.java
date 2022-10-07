@@ -246,6 +246,8 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         private final int ndim_;
         private final double[] scales_;
         private final double[] rBinSizes_;
+        private final int[] llo_;
+        private final int[] lhi_;
 
         private static final Object[] NO_BINS = new Object[ 0 ];
 
@@ -261,6 +263,8 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
             ndim_ = ndim;
             scales_ = scales;
             rBinSizes_ = rBinSizes;
+            llo_ = new int[ ndim ];
+            lhi_ = new int[ ndim ];
         }
 
         /**
@@ -331,9 +335,8 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
 
             /* Work out the range of cell label coordinates in each dimension
              * corresponding to a cube extending + and -err away from the
-             * submitted position. */
-            int[] llo = new int[ ndim_ ];     // lowest coord label index
-            int[] lhi = new int[ ndim_ ];     // highest coord label index
+             * submitted position. llo_ and lhi_ are workspace arrays
+             * holding lowest and highest coord label indices. */
             int ncell = 1;                    // total number of cells in cube
             for ( int id = 0; id < ndim_; id++ ) {
                 double c0 = coords[ id ];
@@ -342,30 +345,30 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
                 }
                 else {
                     double r = useScale ? scales_[ id ] : radius;
-                    llo[ id ] = getLabelComponent( id, c0 - r );
-                    lhi[ id ] = getLabelComponent( id, c0 + r );
-                    ncell *= lhi[ id ] - llo[ id ] + 1;
+                    llo_[ id ] = getLabelComponent( id, c0 - r );
+                    lhi_[ id ] = getLabelComponent( id, c0 + r );
+                    ncell *= lhi_[ id ] - llo_[ id ] + 1;
                 }
             }
 
             /* Iterate over the cube of cells in ndim dimensions to construct
              * a list of all the cells inside it. */
             Cell[] cells = new Cell[ ncell ];
-            int[] label = llo.clone();
+            int[] label = llo_.clone();
             for ( int ic = 0; ic < ncell; ic++ ) {
                 cells[ ic ] = new Cell( label.clone() );
                 for ( int jd = 0; jd < ndim_; jd++ ) {
-                    if ( ++label[ jd ] <= lhi[ jd ] ) {
+                    if ( ++label[ jd ] <= lhi_[ jd ] ) {
                         break;
                     }
                     else {
-                        label[ jd ] = llo[ jd ];
+                        label[ jd ] = llo_[ jd ];
                     }
                 }
             }
 
             /* Sanity check. */
-            assert Arrays.equals( label, llo );
+            assert Arrays.equals( label, llo_ );
             assert new HashSet<Cell>( Arrays.asList( cells ) ).size()
                    == cells.length;
     
