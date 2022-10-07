@@ -238,6 +238,41 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     }
 
     /**
+     * Returns a labeller for a given input array length.
+     *
+     * @param   ndim   length of arrays that will be fed to the labeller
+     * @return   labeller
+     */
+    private static Labeller createLabeller( int ndim ) {
+
+        /* For common cases (ndim 1 or 2), provide an implementation
+         * with as small a memory footprint as possible.
+         * But for n>2, which is not very common,
+         * provide a generic fallback. */
+        switch ( ndim ) {
+            case 1:
+                return array -> {
+                    long val = array[ 0 ];
+                    int ival = (int) val;
+                    return ival == val ? Integer.valueOf( ival )
+                                       : Long.valueOf( val );
+                };
+            case 2:
+                return array -> {
+                    long x = array[ 0 ];
+                    long y = array[ 1 ];
+                    int ix = (int) x;
+                    int iy = (int) y;
+                    return ix == x && iy == y
+                         ? new Long( ( x << 32 ) | ( y & 0xffffffffL ) )
+                         : new Cell( array.clone() );
+                };
+            default:
+                return array -> new Cell( array.clone() );
+        }
+    }
+
+    /**
      * Utility class providing functions required when manipulating
      * Cartesian grid bins.
      */
@@ -246,6 +281,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         private final int ndim_;
         private final double[] scales_;
         private final double[] rBinSizes_;
+        private final Labeller labeller_;
         private final long[] llo_;
         private final long[] lhi_;
 
@@ -263,6 +299,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
             ndim_ = ndim;
             scales_ = scales;
             rBinSizes_ = rBinSizes;
+            labeller_ = createLabeller( ndim );
             llo_ = new long[ ndim ];
             lhi_ = new long[ ndim ];
         }
@@ -355,23 +392,23 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
 
             /* Iterate over the cube of cells in ndim dimensions to construct
              * a list of all the cells inside it. */
-            Cell[] cells = new Cell[ ncell ];
-            long[] label = llo_.clone();
+            Object[] cells = new Object[ ncell ];
+            long[] indices = llo_.clone();
             for ( int ic = 0; ic < ncell; ic++ ) {
-                cells[ ic ] = new Cell( label.clone() );
+                cells[ ic ] = labeller_.createLabel( indices );
                 for ( int jd = 0; jd < ndim_; jd++ ) {
-                    if ( ++label[ jd ] <= lhi_[ jd ] ) {
+                    if ( ++indices[ jd ] <= lhi_[ jd ] ) {
                         break;
                     }
                     else {
-                        label[ jd ] = llo_[ jd ];
+                        indices[ jd ] = llo_[ jd ];
                     }
                 }
             }
 
             /* Sanity check. */
-            assert Arrays.equals( label, llo_ );
-            assert new HashSet<Cell>( Arrays.asList( cells ) ).size()
+            assert Arrays.equals( indices, llo_ );
+            assert new HashSet<Object>( Arrays.asList( cells ) ).size()
                    == cells.length;
     
             /* Return the list of cells. */
@@ -420,5 +457,33 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         public void setValue( Object value ) {
             setIsotropicScale( ((Number) value).doubleValue() );
         }
+    }
+
+    /**
+     * Maps an array of indices to a corresponding object suitable
+     * as a map key.
+     */
+    @FunctionalInterface
+    private interface Labeller {
+
+        /**
+         * Maps a fixed-length array of longs to an object suitable for
+         * use as a map key.
+         * The return value must implement the
+         * {@link java.lang.Object#equals} and
+         * {@link java.lang.Object#hashCode}
+         * methods such that results for equivalent input arrays are equal,
+         * and as far as possible results for different input arrays are
+         * not equal.
+         *
+         * <p>The output value must represent the value of the input array
+         * at the time of the call, and must not be affected by any subsequent
+         * changes to the content of the input <code>array</code> object.
+         *
+         * @param   array   array giving input values
+         * @return   object representing array, without reference to the
+         *           input array object itself
+         */
+        Object createLabel( long[] array );
     }
 }
