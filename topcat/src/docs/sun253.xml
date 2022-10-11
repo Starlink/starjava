@@ -31527,6 +31527,9 @@ introduced since the last version:
         for very large ratio between coordinate extent and match radius
         this could cause pathologically slow, though not incorrect,
         crossmatching.</li>
+    <li>Adjust colour ramp (aux axis) painting to avoid faint white
+        stripes seen when vector graphics (e.g. PDF) output 
+        was rendered in some external viewers.</li>
     </ul>
     </p></dd>
 

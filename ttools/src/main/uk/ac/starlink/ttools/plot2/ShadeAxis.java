@@ -228,10 +228,26 @@ public class ShadeAxis {
             /* Then shade each row of pixels in turn along the shading
              * direction of the axis. */
             for ( int iy = 0; iy < box_.height; iy++ ) {
-                int gy = box_.y + iy;
-                int hy = box_.y + ( box_.height - iy );
+
+                /* The ramp is notionally a vertical stack of coloured
+                 * rectangles each one pixel high.  Drawing the rectangles
+                 * like that works fine for bitmapped output formats.
+                 * However, in some cases it can result in tiny (sub-pixel)
+                 * just-visible gaps between rectangles in certain rendering
+                 * contexts (e.g. at time of writing PDF output when
+                 * rendered by Atril but not by Okular).  This is presumably
+                 * down to rounding errors somewhere or other.
+                 * So, except for the top line where it would overflow the box,
+                 * draw the rectangles two pixels high rather than one,
+                 * so that if any gap is left it's just the next-door colour
+                 * that shows through rather than the white background.
+                 * Apart from any such sub-pixel gap, the additional pixel
+                 * of height is then overplotted by the next rectangle. */
+                int lineHeight = iy < box_.height - 1 ? 2 : 1;
+                int hy = box_.y + ( box_.height - iy ) - ( lineHeight - 1 );
 
                 /* Work out the fractional value to pass to the shader. */
+                int gy = box_.y + iy;
                 double dval = axis_.graphicsToData( gy + 0.5 );
                 float frac = (float) scaler_.scaleValue( dval );
 
@@ -242,7 +258,7 @@ public class ShadeAxis {
                     shader_.adjustRgba( rgba, frac );
                     g.setColor( new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ],
                                            rgba[ 3 ] ) );
-                    g.fillRect( box_.x, hy, nx, 1 );
+                    g.fillRect( box_.x, hy, nx, lineHeight );
                 }
                 else {
                     for ( int ix = 0; ix < nx; ix++ ) {
@@ -250,7 +266,7 @@ public class ShadeAxis {
                         shader_.adjustRgba( rgba, frac );
                         g.setColor( new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ],
                                                rgba[ 3 ] ) );
-                        g.fillRect( box_.x + ix, hy, 1, 1 );
+                        g.fillRect( box_.x + ix, hy, 1, lineHeight );
                     }
                 }
             }
