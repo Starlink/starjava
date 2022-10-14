@@ -133,13 +133,25 @@ public class SinProjection extends SkyviewProjection {
                 return getDefaultAspect( reflect );
             }
 
-            /* Otherwise get the central position from the range data
-             * and rotate so it's at the centre of the projection plane. */
+            /* Otherwise get the central position from the range data. */
             else {
                 double[] crot = getRangeRotation( vxyzRanges, reflect );
+
+                /* If there's no data, just use a default. */
                 if ( crot == null ) {
                     return getDefaultAspect( reflect );
                 }
+
+                /* If the data represents a single position, don't try to
+                 * zoom in around it, since the zoom would be arbitrary;
+                 * but rotate the view so it's at the center of the
+                 * projection plane. */
+                else if ( isSinglePoint( vxyzRanges ) ) {
+                    return new SkyAspect( crot, 1.0, 0, 0 );
+                }
+
+                /* If we have a finite-sized range, rotate the view and
+                 * zoom in far enough to accommodate it all. */
                 else {
 
                     /* Get an estimate of the extreme values of the
@@ -302,6 +314,25 @@ public class SinProjection extends SkyviewProjection {
         else {
             return null;
         }
+    }
+
+    /**
+     * Determines whether an array of ranges represents a single
+     * dimensionless point, that is whether all the ranges have
+     * an extent of zero.
+     *
+     * @param  ranges  array of ranges
+     * @return  true iff all ranges represent a definite interval
+     *               of zero extent
+     */
+    private static boolean isSinglePoint( Range[] ranges ) {
+        for ( Range range : ranges ) {
+            double[] bounds = range.getBounds();
+            if ( bounds[ 0 ] != bounds[ 1 ] ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static double[] getRotation( double[] rv0, Point2D.Double pos1,

@@ -31530,6 +31530,10 @@ introduced since the last version:
     <li>Adjust colour ramp (aux axis) painting to avoid faint white
         stripes seen when vector graphics (e.g. PDF) output 
         was rendered in some external viewers.</li>
+    <li>If only one single point is visible in a Sky Plot using
+        the (default) sin projection,
+        the default view is now zoomed out to the whole sky
+        rather than zoomed in to a few milliarcsec.</li>
     </ul>
     </p></dd>
 

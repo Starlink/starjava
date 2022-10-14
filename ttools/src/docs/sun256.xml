@@ -14200,6 +14200,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Adjust colour ramp (aux axis) painting to avoid faint white
         stripes seen when vector graphics (e.g. PDF) output
         was rendered in some external viewers.</li>
+    <li>If only one single point is plotted on the (default)
+        sin projection in <code>plot2sky</code> without explicit
+        <code>clon</code>/<code>clat</code>/<code>radius</code>
+        specification, the default view is now zoomed out to the
+        whole sky rather than zoomed in to a few milliarcsec.</li>
     </ul>
     </p></dd>
 
