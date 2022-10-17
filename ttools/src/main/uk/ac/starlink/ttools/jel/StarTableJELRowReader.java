@@ -340,12 +340,15 @@ public abstract class StarTableJELRowReader extends JELRowReader {
     }
 
     /**
-     * Understands table parameters identified case-insensitively
-     * by name (using the {@link #PARAM_PREFIX} prefix) or
-     * by UCD (using the {@link #UCD_PREFIX} prefix) or
-     * by Utype (using the {@link #UTYPE_PREFIX} prefix).
+     * Returns a table parameter that can be identified by the given
+     * designation.  This will typically have a prefix such as
+     * {@value #PARAM_PREFIX}, {@value #UCD_PREFIX} etc.
+     * Called during expression evaluation, may be overridden.
+     *
+     * @param  name   designation in JEL expression
+     * @return  fixed value for <code>name</code>, or null
      */
-    protected Constant<?> getConstantByName( String name ) {
+    public DescribedValue getDescribedValueByName( String name ) {
         List<DescribedValue> paramList = table_.getParameters();
 
         /* Try it as a UCD specification. */
@@ -355,7 +358,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
             for ( DescribedValue dval : paramList ) {
                 String ucd = dval.getInfo().getUCD();
                 if ( ucd != null && ucdRegex.matcher( ucd ).matches() ) {
-                    return createDescribedValueConstant( dval );
+                    return dval;
                 }
             }
             return null;
@@ -368,7 +371,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
             for ( DescribedValue dval : paramList ) {
                 String utype = dval.getInfo().getUtype();
                 if ( utype != null && utypeRegex.matcher( utype ).matches() ) {
-                    return createDescribedValueConstant( dval );
+                    return dval;
                 }
             }
             return null;
@@ -380,15 +383,31 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         if ( pname != null ) {
             for ( DescribedValue dval : paramList ) {
                 if ( pname.equals( dval.getInfo().getName() ) ) {
-                    return createDescribedValueConstant( dval );
+                    return dval;
                 }
             }
             for ( DescribedValue dval : paramList ) {
                 if ( pname.equalsIgnoreCase( dval.getInfo().getName() ) ) {
-                    return createDescribedValueConstant( dval );
+                    return dval;
                 }
             }
             return null;
+        }
+        return null;
+    }
+
+    /**
+     * Understands table parameters identified case-insensitively
+     * by name (using the {@link #PARAM_PREFIX} prefix) or
+     * by UCD (using the {@link #UCD_PREFIX} prefix) or
+     * by Utype (using the {@link #UTYPE_PREFIX} prefix).
+     */
+    protected Constant<?> getConstantByName( String name ) {
+
+        /* Try a table parameter. */
+        DescribedValue dval = getDescribedValueByName( name );
+        if ( dval != null ) {
+            return createDescribedValueConstant( dval );
         }
 
         /* Try special values for row and column count. */
