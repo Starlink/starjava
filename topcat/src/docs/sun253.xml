@@ -31534,6 +31534,8 @@ introduced since the last version:
         the (default) sin projection,
         the default view is now zoomed out to the whole sky
         rather than zoomed in to a few milliarcsec.</li>
+    <li>Table parameters, as well as columns, named in
+        column selectors now include their units metadata.</li>
     </ul>
     </p></dd>
 

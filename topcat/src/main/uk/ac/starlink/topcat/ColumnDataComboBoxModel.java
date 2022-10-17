@@ -190,8 +190,18 @@ public class ColumnDataComboBoxModel
 
         /* Otherwise, try to interpret the string as a JEL expression. */
         ColumnData cdata = new SyntheticColumnData( tcModel_, txt );
-        Class<?> clazz = cdata.getColumnInfo().getContentClass();
-        if ( filter_.acceptColumn( cdata.getColumnInfo() ) ) {
+        ColumnInfo colInfo = cdata.getColumnInfo();
+        if ( filter_.acceptColumn( colInfo ) ) {
+            DescribedValue dval =
+                TopcatJELRowReader.createDummyReader( tcModel_ )
+                                  .getDescribedValueByName( txt );
+            if ( dval != null ) {
+                ValueInfo constInfo = dval.getInfo();
+                colInfo.setUnitString( constInfo.getUnitString() );
+                colInfo.setUCD( constInfo.getUCD() );
+                colInfo.setUtype( constInfo.getUtype() );
+                colInfo.setXtype( constInfo.getXtype() );
+            }
             return cdata;
         }
         else {
