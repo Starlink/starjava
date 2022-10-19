@@ -40,10 +40,10 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.fits" );
 
     private final FitsTableSerializerConfig config_;
-    private StarTable table;
-    private ColumnWriter[] colWriters;
-    private ColumnInfo[] colInfos;
-    private long rowCount;
+    private StarTable table_;
+    private ColumnWriter[] colWriters_;
+    private ColumnInfo[] colInfos_;
+    private long rowCount_;
 
     /**
      * Package-private constructor intended for use by subclasses.
@@ -90,10 +90,10 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      *                       for instance if it has too many columns
      */
     final void init( StarTable table ) throws IOException {
-        if ( this.table != null ) {
+        if ( table_ != null ) {
             throw new IllegalStateException( "Table already initialised" );
         }
-        this.table = table;
+        table_ = table;
 
         /* Get table dimensions (though we may need to calculate the row
          * count directly later. */
@@ -101,7 +101,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         long nrow = table.getRowCount();
 
         /* Store column infos. */
-        colInfos = Tables.getColumnInfos( table );
+        colInfos_ = Tables.getColumnInfos( table );
 
         /* Work out column shapes, and check if any are unknown (variable
          * last dimension). */
@@ -119,7 +119,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         Arrays.fill( useCols, true );
         boolean[] hasNulls = new boolean[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
-            ColumnInfo colinfo = colInfos[ icol ];
+            ColumnInfo colinfo = colInfos_[ icol ];
             Class<?> clazz = colinfo.getContentClass();
             if ( clazz.isArray() ) {
                 shapes[ icol ] = colinfo.getShape().clone();
@@ -281,7 +281,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
 
         /* Store the row count, which we must have got by now. */
         assert nrow >= 0;
-        rowCount = nrow;
+        rowCount_ = nrow;
 
         /* We now have all the information we need about the table.
          * Construct and store a custom writer for each column which 
@@ -289,12 +289,12 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
          * write values to the stream.  For columns which can't be 
          * written in FITS format store a null in the writers array
          * and log a message. */
-        colWriters = new ColumnWriter[ ncol ];
+        colWriters_ = new ColumnWriter[ ncol ];
         int rbytes = 0;
         int nUseCol = 0;
         for ( int icol = 0; icol < ncol; icol++ ) {
             if ( useCols[ icol ] ) {
-                ColumnInfo cinfo = colInfos[ icol ];
+                ColumnInfo cinfo = colInfos_[ icol ];
                 ColumnWriter writer =
                     createColumnWriter( cinfo, shapes[ icol ],
                                         varShapes[ icol ], maxChars[ icol ],
@@ -309,7 +309,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 else {
                     nUseCol++;
                 }
-                colWriters[ icol ] = writer;
+                colWriters_[ icol ] = writer;
             }
         }
 
@@ -325,7 +325,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      * @return  column writer array
      */
     ColumnWriter[] getColumnWriters() {
-        return colWriters;
+        return colWriters_;
     }
 
     public CardImage[] getHeader() {
@@ -334,10 +334,10 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         int rowLength = 0;
         int extLength = 0;
         int nUseCol = 0;
-        int ncol = table.getColumnCount();
+        int ncol = table_.getColumnCount();
         WideFits wide = config_.getWide();
         for ( int icol = 0; icol < ncol; icol++ ) {
-            ColumnWriter writer = colWriters[ icol ];
+            ColumnWriter writer = colWriters_[ icol ];
             if ( writer != null ) {
                 nUseCol++;
                 int leng = writer.getLength();
@@ -368,7 +368,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             cfact.createIntegerCard( "NAXIS", 2, "2-dimensional table" ),
             cfact.createIntegerCard( "NAXIS1", rowLength,
                                      "width of table in bytes" ),
-            cfact.createIntegerCard( "NAXIS2", rowCount,
+            cfact.createIntegerCard( "NAXIS2", rowCount_,
                                      "number of rows in table" ),
             cfact.createIntegerCard( "PCOUNT", 0, "size of special data area" ),
             cfact.createIntegerCard( "GCOUNT", 1, "one data group" ),
@@ -376,7 +376,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         } ) );
 
         /* Add EXTNAME record containing table name. */
-        String tname = table.getName();
+        String tname = table_.getName();
         if ( tname != null && tname.trim().length() > 0 ) {
             cards.add( cfact
                       .createStringCard( "EXTNAME", tname, "table name" ) );
@@ -391,7 +391,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         /* If the table is explicitly annotated as a HEALPix map,
          * add HEALPix-specific headers according to the HEALPix-FITS
          * convention. */
-        List<DescribedValue> tparams = table.getParameters();
+        List<DescribedValue> tparams = table_.getParameters();
         if ( HealpixTableInfo.isHealpix( tparams ) ) {
             HealpixTableInfo hpxInfo = HealpixTableInfo.fromParams( tparams );
             CardImage[] hpxCards = null;
@@ -412,7 +412,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         /* Add HDU metadata describing columns. */
         int jcol = 0;
         for ( int icol = 0; icol < ncol; icol++ ) {
-            ColumnWriter colwriter = colWriters[ icol ];
+            ColumnWriter colwriter = colWriters_[ icol ];
             if ( colwriter != null ) {
                 jcol++;
                 if ( hasExtCol && jcol == nStdCol ) {
@@ -424,7 +424,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                     ? wide.createExtendedHeader( nStdCol, jcol )
                     : BintableColumnHeader.createStandardHeader( jcol );
                 cards.addAll( Arrays.asList( getHeaders( colhead,
-                                                         colInfos[ icol ],
+                                                         colInfos_[ icol ],
                                                          colwriter, jcol ) ) );
             }
         }
@@ -544,9 +544,9 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
 
         /* Work out the length of each row in bytes. */
         int rowBytes = 0;
-        int ncol = table.getColumnCount();
+        int ncol = table_.getColumnCount();
         for ( int icol = 0; icol < ncol; icol++ ) {
-            ColumnWriter writer = colWriters[ icol ];
+            ColumnWriter writer = colWriters_[ icol ];
             if ( writer != null ) {
                 rowBytes += writer.getLength();
             }
@@ -555,12 +555,12 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         /* Write the data cells, delegating the item in each column to
          * the writer that knows how to handle it. */
         long nWritten = 0L;
-        RowSequence rseq = table.getRowSequence();
+        RowSequence rseq = table_.getRowSequence();
         try {
             while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 for ( int icol = 0; icol < ncol; icol++ ) {
-                    ColumnWriter writer = colWriters[ icol ];
+                    ColumnWriter writer = colWriters_[ icol ];
                     if ( writer != null ) {
                         writer.writeValue( strm, row[ icol ] );
                     }
@@ -575,36 +575,36 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
     }
 
     public char getFormatChar( int icol ) {
-        if ( colWriters[ icol ] == null ) {
+        if ( colWriters_[ icol ] == null ) {
             return (char) 0;
         }
         else {
-            return colWriters[ icol ].getFormatChar();
+            return colWriters_[ icol ].getFormatChar();
         }
     }
 
     public int[] getDimensions( int icol ) {
-        if ( colWriters[ icol ] == null ) {
+        if ( colWriters_[ icol ] == null ) {
             return null;
         }
         else {
-            int[] dims = colWriters[ icol ].getDims();
+            int[] dims = colWriters_[ icol ].getDims();
             return dims == null ? new int[ 0 ] : dims;
         }
     }
 
     public String getBadValue( int icol ) {
-        if ( colWriters[ icol ] == null ) {
+        if ( colWriters_[ icol ] == null ) {
             return null;
         }
         else {
-            Number badnum = colWriters[ icol ].getBadNumber();
+            Number badnum = colWriters_[ icol ].getBadNumber();
             return badnum == null ? null : badnum.toString();
         }
     }
 
     public long getRowCount() {
-        return rowCount;
+        return rowCount_;
     }
 
     /**
@@ -782,7 +782,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         if ( ipixColName == null ) {
             isExplicit = false;
         }
-        else if ( ipixColName.equals( table.getColumnInfo( 0 ).getName() ) ) {
+        else if ( ipixColName.equals( table_.getColumnInfo( 0 ).getName() ) ) {
             isExplicit = true;
         }
         else {
@@ -793,7 +793,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
 
         /* Check we have or can guess the HEALPix level (hence NSIDE),
          * and that the table row count is not inconsistent with it. */
-        long nrow = rowCount;
+        long nrow = rowCount_;
         assert nrow >= 0;
         if ( level < 0 && ! isExplicit ) {
             int clevel = Long.numberOfTrailingZeros( nrow / 12 ) / 2;
