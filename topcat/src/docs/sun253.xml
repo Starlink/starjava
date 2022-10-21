@@ -31536,6 +31536,14 @@ introduced since the last version:
         rather than zoomed in to a few milliarcsec.</li>
     <li>Table parameters, as well as columns, named in
         column selectors now include their units metadata.</li>
+    <li>Fix Basic image viewer in
+             <ref id="ViewImageActivationType"
+                  >Display Image</ref>/<ref
+                  id="RegionViewImageActivationType"
+                  >Display Image Region</ref>
+        activation types to display (uncompressed) FITS images,
+        by re-including nom.tam.fits library in standalone jar files;
+        this was a regression bug, broken since v4.8-4.</li>
     </ul>
     </p></dd>
 
