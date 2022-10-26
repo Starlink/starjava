@@ -147,17 +147,19 @@ abstract class Encoder {
             if ( URL.class.equals( linkInfo.getContentClass() ) ) {
                 String linkName = linkInfo.getName();
                 URL linkUrl = dval.getTypedValue( URL.class );
-                if ( linkName != null && linkUrl != null ) {
+                if ( linkUrl != null ) {
                     if ( linksBuf.length() > 0 ) {
                         linksBuf.append( '\n' );
                     }
-                    linksBuf.append( "<LINK" )
-                            .append( VOSerializer
-                                    .formatAttribute( "title", linkName ) )
-                            .append( VOSerializer
+                    linksBuf.append( "<LINK" );
+                    if ( linkName != null ) {
+                        linksBuf.append( VOSerializer
+                                .formatAttribute( "title", linkName ) );
+                    }
+                    linksBuf.append( VOSerializer
                                     .formatAttribute( "href", 
-                                                      linkUrl.toString() ) )
-                            .append( "/>" );
+                                                      linkUrl.toString() ) );
+                    linksBuf.append( "/>" );
                 }
             }
         }
