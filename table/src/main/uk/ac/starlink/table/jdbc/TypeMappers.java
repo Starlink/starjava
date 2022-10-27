@@ -180,7 +180,8 @@ public class TypeMappers {
      * Partial ValueHandler implementation which forces an input type
      * to a given output type.
      */
-    private static abstract class ForcedValueHandler implements ValueHandler {
+    private static abstract class ForcedValueHandler<T>
+            implements ValueHandler {
         private final ColumnInfo colInfo_;
 
         /**
@@ -192,7 +193,7 @@ public class TypeMappers {
          *                       values) will be members of
          */
         ForcedValueHandler( ResultSetMetaData meta, int jcol1,
-                            Class<?> forcedClass ) throws SQLException {
+                            Class<T> forcedClass ) throws SQLException {
             String name = meta.getColumnName( jcol1 );
             colInfo_ = new ColumnInfo( name );
             if ( meta.isNullable( jcol1 ) == ResultSetMetaData.columnNoNulls ) {
@@ -221,12 +222,14 @@ public class TypeMappers {
         public ColumnInfo getColumnInfo() {
             return colInfo_;
         }
+
+        public abstract T getValue( Object baseValue );
     }
 
     /**
      * ValueHandler implementation which converts JDBC values to Strings.
      */
-    private static class StringValueHandler extends ForcedValueHandler {
+    private static class StringValueHandler extends ForcedValueHandler<String> {
 
         /**
          * Constructor.
@@ -239,7 +242,7 @@ public class TypeMappers {
             super( meta, jcol1, String.class );
         }
 
-        public Object getValue( Object baseValue ) {
+        public String getValue( Object baseValue ) {
             return baseValue == null ? null
                                      : baseValue.toString();
         }
@@ -250,7 +253,7 @@ public class TypeMappers {
      * and turns them into strings with a configurable date/time separator.
      */
     private static class DoctoredTimestampValueHandler
-            extends ForcedValueHandler {
+            extends ForcedValueHandler<String> {
 
         private final char separator_;
 
@@ -270,7 +273,7 @@ public class TypeMappers {
             separator_ = dateTimeSeparator;
         }
 
-        public Object getValue( Object baseValue ) {
+        public String getValue( Object baseValue ) {
             if ( baseValue == null ) {
                 return null;
             }
@@ -365,8 +368,8 @@ public class TypeMappers {
                             + meta.getColumnName( jcol1 ) + " to Long" );
                 final BigInteger minLong = BigInteger.valueOf( Long.MIN_VALUE );
                 final BigInteger maxLong = BigInteger.valueOf( Long.MAX_VALUE );
-                return new ForcedValueHandler( meta, jcol1, Long.class ) {
-                    public Object getValue( Object baseValue ) {
+                return new ForcedValueHandler<Long>( meta, jcol1, Long.class ) {
+                    public Long getValue( Object baseValue ) {
                         if ( baseValue instanceof BigInteger ) {
                             BigInteger biv = (BigInteger) baseValue;
                             if ( biv.compareTo( minLong ) >= 0 &&
@@ -388,8 +391,9 @@ public class TypeMappers {
             else if ( BigDecimal.class.isAssignableFrom( clazz ) ) {
                 logger_.info( "JDBC table handler casting BigDecimal column "
                             + meta.getColumnName( jcol1 ) + " to Double" );
-                return new ForcedValueHandler( meta, jcol1, Double.class ) {
-                    public Object getValue( Object baseValue ) {
+                return new ForcedValueHandler<Double>( meta, jcol1,
+                                                       Double.class ) {
+                    public Double getValue( Object baseValue ) {
                         return baseValue instanceof Number
                              ? new Double( ((Number) baseValue).doubleValue() )
                              : null;
@@ -403,7 +407,7 @@ public class TypeMappers {
                 logger_.info( "JDBC table handler casting char[] column "
                             + meta.getColumnName( jcol1 ) + " to String" );
                 return new StringValueHandler( meta, jcol1 ) {
-                    public Object getValue( Object baseValue ) {
+                    public String getValue( Object baseValue ) {
                         return baseValue instanceof char[]
                              ? new String( (char[]) baseValue )
                              : null;
