@@ -25868,6 +25868,7 @@ Some of the notable contributers are these:
 <li>Phil Hall (Son of Ken)</li>
 <li>Haggis Harris (Bath)</li>
 <li>Evanthia Hatziminaoglou (ESO)</li>
+<li>Greg Hennessy (USNO)</li>
 <li>Avon Huxor (Bristol/ARI)</li>
 <li>Jonathan Irwin (Cambridge)</li>
 <li>Tim Jenness (JACH)</li>
@@ -31544,6 +31545,11 @@ introduced since the last version:
         activation types to display (uncompressed) FITS images,
         by re-including nom.tam.fits library in standalone jar files;
         this was a regression bug, broken since v4.8-4.</li>
+    <li>The <ref id="scheme-jdbc">JDBC input scheme</ref>
+        should now read columns that are array-valued in the
+        database as array values that can be used in TOPCAT;
+        previously they were read as opaque <code>Array</code>
+        objects.</li>
     </ul>
     </p></dd>
 

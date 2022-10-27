@@ -14205,6 +14205,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>clon</code>/<code>clat</code>/<code>radius</code>
         specification, the default view is now zoomed out to the
         whole sky rather than zoomed in to a few milliarcsec.</li>
+    <li>The <ref id="scheme-jdbc">JDBC input scheme</ref>
+        should now read columns that are array-valued in the
+        database as array values that can be used in STILTS;
+        previously they were read as opaque <code>Array</code>
+        objects.</li>
     </ul>
     </p></dd>
 

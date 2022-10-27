@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.jdbc;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.ResultSetMetaData;
@@ -7,6 +8,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -112,6 +114,99 @@ public class TypeMappers {
              ? new StringValueHandler( meta, jcol1 )
              : new DoctoredTimestampValueHandler( meta, jcol1,
                                                   dateTimeSeparator );
+    }
+
+    /**
+     * Constructs a new ValueHandler which converts JDBC Array values
+     * to java array objects of a specific type.
+     * This is suitable when {@link ResultSetMetaData#getColumnClassName}
+     * returns "<code>java.sql.Array</code>".
+     *
+     * <p>The required output class <code>arrayClazz</code>
+     * must be specified explicitly.
+     * If this class not a good match for the payload of the
+     * {@link java.sql.Array} values, value conversion won't work very well.
+     * The method {@link #getArrayClass getArrayClass} can be used to
+     * guess a good value for this parameter.
+     *
+     * @param   meta   JDBC metadata object
+     * @param   jcol1  JDBC column index (first column is 1)
+     * @param   arrayClazz  required output type
+     */
+    public static <T> ValueHandler
+            createArrayValueHandler( ResultSetMetaData meta, int jcol1,
+                                     Class<T> arrayClazz )
+            throws SQLException {
+        return new ArrayValueHandler<T>( meta, jcol1, arrayClazz );
+    }
+
+    /**
+     * Tries to guess a suitable output value type for an array-valued
+     * column in a ResultSet.
+     * The returned type will be STIL-friendly, that is a String[]
+     * or primitive type array.
+     * If the type is not recognised, null is returned.
+     *
+     * @param   meta   JDBC metadata object
+     * @param   jcol1  JDBC column index (first column is 1)
+     * @return   best-efforts guess at output array type, or null
+     */
+    public static Class<?> getArrayClass( ResultSetMetaData meta, int jcol1 ) {
+        String tName;
+        try {
+            tName = meta.getColumnTypeName( jcol1 );
+        }
+        catch ( SQLException e ) {
+            return null;
+        }
+        if ( tName == null || tName.trim().length() == 0 ) {
+            return null;
+        }
+        String tname = tName.replaceFirst( "\\(.*", "" ).trim().toLowerCase();
+
+        /* Best-efforts categorisation following consultation of
+         * O'Reilly "SQL in a Nutshell" (2004) chapter 2,
+         * section "SQL 2003 and Vendor-Specific Datatypes",
+         * which claims to cover DB2, MySQL, Oracle, PostgreSQL,
+         * SQL Server and SQL2003.  At time of writing the only testing
+         * against actual JDBC drivers has been a little bit for PostgreSQL.
+         * Feel free to tweak according to better advice or
+         * real-world experience. */
+        if ( tname.indexOf( "float4" ) >= 0 ||
+             tname.startsWith( "binary_float" ) ) {
+            return float[].class;
+        }
+        else if ( tname.indexOf( "float8" ) >= 0 ||
+                  tname.indexOf( "double" ) >= 0 ||
+                  tname.indexOf( "real" ) >= 0 ||
+                  tname.indexOf( "float" ) >= 0 ) {
+            return double[].class;
+        }
+        else if ( tname.equals( "int8" ) ||
+                  tname.equals( "long" ) ||
+                  tname.startsWith( "bigint" ) ) {
+            return long[].class;
+        }
+        else if ( tname.equals( "int2" ) ||
+                  tname.equals( "smallint" ) ||
+                  tname.equals( "tinyint" ) ) {
+            return short[].class;
+        }
+        else if ( tname.equals( "int4" ) ||
+                  tname.equals( "int" ) ||
+                  tname.equals( "integer" ) ) {
+            return int[].class;
+        }
+        else if ( tname.startsWith( "bool" ) ) {
+            return boolean[].class;
+        }
+        else if ( tname.startsWith( "char" ) ||
+                  tname.startsWith( "varchar" ) ) {
+            return String[].class;
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -245,6 +340,90 @@ public class TypeMappers {
         public String getValue( Object baseValue ) {
             return baseValue == null ? null
                                      : baseValue.toString();
+        }
+    }
+
+    /**
+     * ValueHandler implementation which converts java.sql.Array values
+     * to java array objects.
+     */
+    private static class ArrayValueHandler<T> extends ForcedValueHandler<T> {
+
+        private final Class<T> arrayClazz_;
+        private final Class<?> elClazz_;
+        private boolean hasComplained_;
+
+        /**
+         * Constructor.
+         *
+         * @param   meta   JDBC metadata object
+         * @param   jcol1  JDBC column index (first column is 1)
+         * @param   arrayClazz  output column content class,
+         *                      which must be a Java array class
+         */
+        ArrayValueHandler( ResultSetMetaData meta, int jcol1,
+                           Class<T> arrayClazz )
+                throws SQLException {
+            super( meta, jcol1, arrayClazz );
+            arrayClazz_ = arrayClazz;
+            elClazz_ = arrayClazz_.getComponentType();
+        }
+
+        public T getValue( Object baseValue ) {
+
+            /* Get the object that should be a java array of some sort
+             * representing the data. */
+            if ( ! ( baseValue instanceof java.sql.Array ) ) {
+                return null;
+            }
+            java.sql.Array jdbcArray = (java.sql.Array) baseValue;
+            Object dataArray;
+            try {
+                dataArray = jdbcArray.getArray();
+            }
+            catch ( SQLException e ) {
+                return null;
+            }
+
+            /* If the array object has the right output type for this handler,
+             * we can return it directly. */
+            if ( arrayClazz_.isInstance( dataArray ) ) {
+                return arrayClazz_.cast( dataArray );
+            }
+
+            /* If it doesn't even look like an array, we have to return null. */
+            if ( dataArray == null ||
+                 dataArray.getClass().getComponentType() == null ) {
+                return null;
+            }
+
+            /* Otherwise, it's an array but the wrong type.
+             * That may be because we guessed the java array type wrong
+             * for this handler, or because the JDBC handler is
+             * using wrapper objects (e.g. Integer[] rather than int[]),
+             * see java.sql.Array#getArray().
+             * In this case create an output array of the right type and
+             * use java.lang.reflect.Array to copy contents from the
+             * supplied array to the output one.  This could fail if we've
+             * done a bad job of guessing what kind of array data we're
+             * going to get. */
+            int leng = Array.getLength( dataArray );
+            T outArray =
+                arrayClazz_.cast( Array.newInstance( elClazz_, leng ) );
+            try {
+                for ( int i = 0; i < leng; i++ ) {
+                    Array.set( outArray, i, Array.get( dataArray, i ) );
+                }
+            }
+            catch ( IllegalArgumentException e ) {
+                if ( ! hasComplained_ ) {
+                    logger_.warning( "Failed array conversion: "
+                                   + dataArray.getClass().getSimpleName()
+                                   + " -> " + arrayClazz_.getSimpleName() );
+                    hasComplained_ = true;
+                }
+            }
+            return outArray;
         }
     }
 
@@ -399,6 +578,25 @@ public class TypeMappers {
                              : null;
                     }
                 };
+            }
+
+            /* Database type is array data. */
+            else if ( clazz.equals( java.sql.Array.class ) ) {
+                Class<?> arrayClazz = getArrayClass( meta, jcol1 );
+                String msg = "Best guess for array column '"
+                           + meta.getColumnName( jcol1 ) + "' type: ";
+                final Level level;
+                if ( arrayClazz == null ) {
+                    arrayClazz = double[].class;
+                    msg += "?? (using " + arrayClazz.getSimpleName() + ")";
+                    level = Level.WARNING;
+                }
+                else {
+                    msg += arrayClazz.getSimpleName();
+                    level = Level.CONFIG;
+                }
+                logger_.log( level, msg );
+                return createArrayValueHandler( meta, jcol1, arrayClazz );
             }
 
             /* Is this a likely type?  Earlier versions of the code 
