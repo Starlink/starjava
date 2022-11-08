@@ -17,6 +17,7 @@ import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.formats.DocumentedTableBuilder;
+import uk.ac.starlink.util.ConfigMethod;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -27,7 +28,7 @@ import uk.ac.starlink.util.DataSource;
  */
 public class GbinTableBuilder extends DocumentedTableBuilder {
 
-    private final GbinTableProfile profile_;
+    private final MutableGbinTableProfile profile_;
 
     /** ValueInfo for GBIN row object classname. */
     public static final ValueInfo CLASSNAME_INFO =
@@ -69,11 +70,13 @@ public class GbinTableBuilder extends DocumentedTableBuilder {
      */
     public GbinTableBuilder( GbinTableProfile profile ) {
         super( new String[] { "gbin" } );
-        profile_ = profile;
+        profile_ = new MutableGbinTableProfile( profile );
     }
 
     /**
      * Returns the object configuring how GBIN files are mapped to tables.
+     * Note this may be a modified version of the object supplied at
+     * construction time.
      *
      * @return  configuration profile
      */
@@ -216,5 +219,123 @@ public class GbinTableBuilder extends DocumentedTableBuilder {
 
     public String getXmlDescription() {
         return readText( "GbinTableBuilder.xml" );
+    }
+
+    /**
+     * Configures value of {@link GbinTableProfile#isReadMeta}.
+     *
+     * @param  isReadMeta  true to read metadata up front
+     */
+    @ConfigMethod(
+        property = "readMeta",
+        doc = "<p>Configures whether the GBIN metadata will be read "
+            + "prior to reading the data. "
+            + "This may slow things down slightly, "
+            + "but means the row count can be determined up front, "
+            + "which may have benefits for downstream processing."
+            + "</p>\n",
+        example = "false"
+    )
+    public void setReadMeta( boolean isReadMeta ) {
+        profile_.isReadMeta_ = isReadMeta;
+    }
+
+    /**
+     * Configures value of {@link GbinTableProfile#isHierarchicalNames}
+     *
+     * @param  isHierarchicalNames  whether to name columns hierarchically
+     */
+    @ConfigMethod(
+        property = "hierarchicalNames",
+        doc = "<p>Configures whether column names in the output table "
+            + "should be forced to reflect the compositional hierarchy "
+            + "of their position in the element objects.\n"
+            + "If set true, columns will have names like "
+            + "\"<code>Astrometry_Alpha</code>\", "
+            + "if false they may just be called \"<code>Alpha</code>\".\n"
+            + "In case of name duplication however, "
+            + "the hierarchical form is always used."
+            + "</p>\n",
+        example = "true"
+    )
+    public void setHierarchicalNames( boolean isHierarchicalNames ) {
+        profile_.isHierarchicalNames_ = isHierarchicalNames;
+    }
+
+    /**
+     * Configures value of {@link GbinTableProfile#isTestMagic}.
+     *
+     * @param  isTestMagic  whether to read magic number from GBIN files
+     */
+    public void setTestMagic( boolean isTestMagic ) {
+        profile_.isTestMagic_ = isTestMagic;
+    }
+
+    /**
+     * Configures value of {@link GbinTableProfile#isSortedMethods}.
+     *
+     * @param  isSortedMethods  whether to sort method names alphabetically
+     */
+    public void isSortedMethods( boolean isSortedMethods ) {
+        profile_.isSortedMethods_ = isSortedMethods;
+    }
+
+    /**
+     * Mutable GbinTableProfile implementation.
+     * It is based on a supplied instance, but at least some of its
+     * behaviour can be customised by modifying its members.
+     */
+    private static class MutableGbinTableProfile implements GbinTableProfile {
+
+        private final GbinTableProfile base_;
+        boolean isReadMeta_;
+        boolean isTestMagic_;
+        boolean isHierarchicalNames_;
+        boolean isSortedMethods_;
+
+        /**
+         * Constructor.
+         *
+         * @param  base  instance on which this object's behaviour is based
+         */
+        public MutableGbinTableProfile( GbinTableProfile base ) {
+            base_ = base;
+            isReadMeta_ = base.isReadMeta();
+            isTestMagic_ = base.isTestMagic();
+            isHierarchicalNames_ = base.isHierarchicalNames();
+            isSortedMethods_ = base.isSortedMethods();
+        }
+
+        public boolean isReadMeta() {
+            return isReadMeta_;
+        }
+
+        public boolean isTestMagic() {
+            return isTestMagic_;
+        }
+
+        public boolean isHierarchicalNames() {
+            return isHierarchicalNames_;
+        }
+
+        public boolean isSortedMethods() {
+            return isSortedMethods_;
+        }
+
+        public String getNameSeparator() {
+            return base_.getNameSeparator();
+        }
+
+        public String[] getIgnoreMethodNames() {
+            return base_.getIgnoreMethodNames();
+        }
+
+        public String[] getIgnoreMethodDeclaringClasses() {
+            return base_.getIgnoreMethodDeclaringClasses();
+        }
+
+        public Representation<?> createRepresentation( Class<?> clazz ) {
+            return base_.createRepresentation( clazz );
+        }
     }
 }

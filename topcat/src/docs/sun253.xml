@@ -31550,6 +31550,8 @@ introduced since the last version:
         database as array values that can be used in TOPCAT;
         previously they were read as opaque <code>Array</code>
         objects.</li>
+    <li>Add some configuration options to the
+        <ref id="inGbin">GBIN</ref> input handler.</li>
     </ul>
     </p></dd>
 

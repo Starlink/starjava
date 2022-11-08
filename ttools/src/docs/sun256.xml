@@ -14210,6 +14210,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         database as array values that can be used in STILTS;
         previously they were read as opaque <code>Array</code>
         objects.</li>
+    <li>Add some configuration options to the
+        <ref id="inGbin">GBIN</ref> input handler.</li>
     </ul>
     </p></dd>
 
