@@ -184,14 +184,24 @@ public abstract class GbinStarTable extends AbstractStarTable {
                 }
             }
             public Object getCell( int icol ) throws IOException {
-                return itemReaders_[ icol ].readItem( itemMap );
+                if ( started ) {
+                    return itemReaders_[ icol ].readItem( itemMap );
+                }
+                else {
+                    throw new IllegalStateException( "next() not called" );
+                }
             }
             public Object[] getRow() throws IOException {
-                Object[] row = new Object[ ncol_ ];
-                for ( int ic = 0; ic < ncol_; ic++ ) {
-                    row[ ic ] = itemReaders_[ ic ].readItem( itemMap );
+                if ( started ) {
+                    Object[] row = new Object[ ncol_ ];
+                    for ( int ic = 0; ic < ncol_; ic++ ) {
+                        row[ ic ] = itemReaders_[ ic ].readItem( itemMap );
+                    }
+                    return row;
                 }
-                return row;
+                else {
+                    throw new IllegalStateException( "next() not called" );
+                }
             }
             public void close() {
             }

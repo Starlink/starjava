@@ -114,7 +114,9 @@ public class ItemReader {
     public Object readItem( Map<ItemReader,Object> itemMap )
             throws IOException {
         if ( ! itemMap.containsKey( this ) ) {
-            Object parentItem = parentReader_.readItem( itemMap );
+            Object parentItem = parentReader_ == null
+                              ? null
+                              : parentReader_.readItem( itemMap );
             Object item =
                   parentItem == null
                 ? null
