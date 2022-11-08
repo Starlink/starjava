@@ -77,9 +77,21 @@ to be written in the current directory.
 If the upstream issues are fixed, this behaviour may improve.
 </p>
 
-<p>Note that support for GBIN files is somewhat experimental.
+<p><strong>Note:</strong> support for GBIN files is somewhat experimental.
 Please contact the author (who is not a GBIN expert)
 if it doesn't seem to be working properly
 or you think it should do things differently.
+</p>
+
+<p><strong>Note:</strong> there is a known bug in some versions of
+GaiaTools (caused by a bug in its dependency library zStd-jni)
+which in rare cases can fail to read all the rows in a GBIN input file.
+If this bug is encountered by the reader, it will by default
+fail with an error mentioning zStd-jni.
+In this case, the best thing to do is to put a fixed version of zStd-jni
+or GaiaTools on the classpath.
+However, if instead you set the config option <code>readMeta=false</code>
+the read will complete without error, though the missing rows will not
+be recovered.
 </p>
 

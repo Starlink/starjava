@@ -181,7 +181,6 @@ public class GbinTableBuilder extends DocumentedTableBuilder {
 
         /* Construct a table with the metadata we have obtained,
          * and return it. */
-        final long nrow0 = nrow;
         StarTable table = new GbinStarTable( profile_, gobjClazz ) {
             public RowSequence getRowSequence() throws IOException {
                 final InputStream in =
@@ -191,16 +190,48 @@ public class GbinTableBuilder extends DocumentedTableBuilder {
                     throw new IOException( "No objects in GBIN file" );
                 }
                 Object gobj0 = reader.next();
-                return new WrapperRowSequence( createRowSequence( reader,
-                                                                  gobj0 ) ) {
-                    @Override
-                    public void close() throws IOException {
-                        in.close();
-                    }
-                };
+                RowSequence baseSeq = createRowSequence( reader, gobj0 );
+                if ( nrow >= 0 ) {
+                    return new WrapperRowSequence( baseSeq ) {
+                        long irow_;
+                        @Override
+                        public boolean next() throws IOException {
+                            boolean isNext = super.next();
+                            if ( isNext ) {
+                                irow_++;
+                            }
+                            else {
+                                if ( irow_ != nrow ) {
+                                    String msg = new StringBuffer()
+                                       .append( "Too few rows read (" )
+                                       .append( irow_ )
+                                       .append( "<" )
+                                       .append( nrow )
+                                       .append( ") - probable zstd-jni bug" )
+                                       .append( " [could try readMeta=false]" )
+                                       .toString();
+                                    throw new IOException( msg );
+                                }
+                            }
+                            return isNext;
+                        }
+                        @Override
+                        public void close() throws IOException {
+                            in.close();
+                        }
+                    };
+                }
+                else {
+                    return new WrapperRowSequence( baseSeq ) {
+                        @Override
+                        public void close() throws IOException {
+                            in.close();
+                        }
+                    };
+                }
             }
             public long getRowCount() {
-                return nrow0;
+                return nrow;
             }
         };
         for ( DescribedValue param : params ) {
@@ -233,6 +264,12 @@ public class GbinTableBuilder extends DocumentedTableBuilder {
             + "This may slow things down slightly, "
             + "but means the row count can be determined up front, "
             + "which may have benefits for downstream processing."
+            + "</p>\n"
+            + "<p>Setting this false can prevent failing on an error related "
+            + "to a broken version of the zStd-jni library in GaiaTools.\n"
+            + "Note however that in this case the data read, "
+            + "though not reporting an error, "
+            + "will silently be missing some rows from the GBIN file."
             + "</p>\n",
         example = "false"
     )

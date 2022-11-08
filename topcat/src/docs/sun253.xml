@@ -31552,6 +31552,9 @@ introduced since the last version:
         objects.</li>
     <li>Add some configuration options to the
         <ref id="inGbin">GBIN</ref> input handler.</li>
+    <li>Fail with an error rather than silently reading a broken table
+        when encountering GaiaTools/zStd-jni bug during
+        <ref id="inGbin">GBIN</ref> input.</li>
     </ul>
     </p></dd>
 
