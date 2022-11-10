@@ -35,6 +35,7 @@ public abstract class FieldReader<S,A> {
     private final FieldType ftype_;
     private final Class<S> scalarClazz_;
     private final Class<A> arrayClazz_;
+    private static final boolean IS_SAFE = true;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.pds4" );
 
@@ -135,7 +136,10 @@ public abstract class FieldReader<S,A> {
      */
     public static FieldReader<?,?> getInstance( FieldType ftype,
                                                 String[] blankTxts ) {
-        final FieldAdapter adapter = ftype.getAdapter();
+        FieldAdapter adapter0 = ftype.getAdapter();
+        final FieldAdapter adapter = IS_SAFE
+                                   ? new SafeFieldAdapter( adapter0 )
+                                   : adapter0;
         switch ( ftype ) {
             case UTF8_STRING:
             case ASCII_ANYURI:

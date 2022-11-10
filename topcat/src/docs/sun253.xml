@@ -31555,6 +31555,9 @@ introduced since the last version:
     <li>Fail with an error rather than silently reading a broken table
         when encountering GaiaTools/zStd-jni bug during
         <ref id="inGbin">GBIN</ref> input.</li>
+    <li>Empty/invalid fields encountered by the 
+        <ref id="inPds4">PDS4 reader</ref> 
+        no longer cause the table read to fail.</li>
     </ul>
     </p></dd>
 
