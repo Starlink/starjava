@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -280,7 +281,7 @@ public class MetaPanel extends JPanel implements Scrollable {
                     final Thread worker = this;
                     final Icon icon;
                     try {
-                        icon = new ImageIcon( iconUrl );
+                        icon = readLogoIcon( iconUrl );
                     }
                     catch ( Throwable e ) {
                         logger_.log( Level.INFO, "Logo load failed: " + e, e );
@@ -361,5 +362,34 @@ public class MetaPanel extends JPanel implements Scrollable {
             sbuf.append( "<br />\n" );
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Reads an icon from a URL, returning something of a reasonable
+     * size to act as a badge in a panel.
+     *
+     * @param  url  image URL
+     * @return   reasonable sized icon
+     */
+    private Icon readLogoIcon( URL url ) {
+        if ( url == null ) {
+            return null;
+        }
+        ImageIcon icon0 = new ImageIcon( url );
+        int w = icon0.getIconWidth();
+        int h = icon0.getIconHeight();
+        int maxWidth = Math.max( getWidth(), 200 );
+        int maxHeight = 100;
+        if ( w <= maxWidth && h <= maxHeight ) {
+            return icon0;
+        }
+        else {
+            double scale = Math.min( maxWidth * 1.0 / w,
+                                     maxHeight * 1.0 / h );
+            return new ImageIcon( icon0.getImage()
+                                 .getScaledInstance( (int) ( w * scale ),
+                                                     (int) ( h * scale ),
+                                                     Image.SCALE_SMOOTH ) );
+        }
     }
 }

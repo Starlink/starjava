@@ -31558,6 +31558,7 @@ introduced since the last version:
     <li>Empty/invalid fields encountered by the 
         <ref id="inPds4">PDS4 reader</ref> 
         no longer cause the table read to fail.</li>
+    <li>Avoid oversized service icons in TAP window Service tab.</li>
     </ul>
     </p></dd>
 
