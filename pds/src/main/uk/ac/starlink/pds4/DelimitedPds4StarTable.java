@@ -306,8 +306,9 @@ public class DelimitedPds4StarTable extends Pds4StarTable {
         public Object readField( byte[] record, int[] iStarts, int[] iEnds ) {
             int ioff = iStarts[ iField_ ];
             int leng = iEnds[ iField_ ] - ioff;
-            return fieldReader_.readScalar( record, ioff, leng,
-                                            startBit_, endBit_ );
+            return leng > 0 ? fieldReader_.readScalar( record, ioff, leng,
+                                                       startBit_, endBit_ )
+                            : null;
         }
     }
 
@@ -350,15 +351,19 @@ public class DelimitedPds4StarTable extends Pds4StarTable {
 
         public A readField( byte[] record, int[] iStarts, int[] iEnds ) {
             A array = fieldReader_.createArray( nrep_ );
+            boolean hasData = false;
             for ( int i = 0; i < nrep_; i++ ) {
                 int ifield = iField0_ + i * step_;
                 int ioff = iStarts[ ifield ];
                 int leng = iEnds[ ifield ] - ioff;
-                fieldReader_.readElement( record, ioff, leng,
-                                          startBit_, endBit_,
-                                          array, i );
+                if ( leng > 0 ) {
+                    fieldReader_.readElement( record, ioff, leng,
+                                              startBit_, endBit_,
+                                              array, i );
+                    hasData = true;
+                }
             }
-            return array;
+            return hasData ? array : null;
         }
     }
 }
