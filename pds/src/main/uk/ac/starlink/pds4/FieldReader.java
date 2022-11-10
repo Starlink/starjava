@@ -33,7 +33,6 @@ import uk.ac.starlink.util.ShortList;
 public abstract class FieldReader<S,A> {
 
     private final FieldType ftype_;
-    private final FieldAdapter adapter_;
     private final Class<S> scalarClazz_;
     private final Class<A> arrayClazz_;
     private static final Logger logger_ =
@@ -49,7 +48,6 @@ public abstract class FieldReader<S,A> {
     private FieldReader( FieldType ftype,
                          Class<S> scalarClazz, Class<A> arrayClazz ) {
         ftype_ = ftype;
-        adapter_ = ftype.getAdapter();
         scalarClazz_ = scalarClazz;
         arrayClazz_ = arrayClazz;
     }
