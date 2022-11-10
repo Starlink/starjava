@@ -14218,6 +14218,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Empty/invalid fields encountered by the 
         <ref id="inPds4">PDS4 reader</ref> 
         no longer cause the table read to fail.</li>
+    <li>Make FITS and VOTable output handlers robust against
+        input tables that declare incorrect row counts.</li>
     </ul>
     </p></dd>
 

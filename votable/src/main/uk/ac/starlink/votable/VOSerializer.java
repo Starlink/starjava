@@ -23,6 +23,7 @@ import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.fits.StandardFitsTableSerializer;
 import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.CountCheckRowSequence;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
@@ -627,7 +628,7 @@ public abstract class VOSerializer {
         }
 
         /* Write the number of rows if we know it. */
-        long nrow = getTable().getRowCount();
+        long nrow = getRowCount();
         if ( nrow > 0 ) {
             writer.write( formatAttribute( "nrows", Long.toString( nrow ) ) );
         }
@@ -664,6 +665,38 @@ public abstract class VOSerializer {
         writer.write( "</TABLE>" );
         writer.newLine();
         writeServiceDescriptors( writer );
+    }
+
+    /**
+     * Returns the number of rows that this serializer will write, if known.
+     * The default implementation returns <code>getTable().getRowCount()</code>,
+     * but this may be overridden if that value is known to be unreliable.
+     *
+     * @return  number of rows iterated over by getRowSequence,
+     *          or -1 if not known
+     */
+    public long getRowCount() {
+        return getTable().getRowCount();
+    }
+
+    /**
+     * Returns the row sequence that this serializer will write.
+     *
+     * @return  row sequence
+     */
+    public RowSequence getRowSequence() throws IOException {
+
+        /* In most cases this sequence will be exactly the same as that of
+         * the table being written.  However, steps are taken to ensure
+         * that the number of rows actually written is consistent with
+         * the number of rows declared, so that the output is a valid VOTable
+         * even if the underlying table is lying about the number of rows
+         * that it has. */
+        StarTable table = getTable();
+        return CountCheckRowSequence
+              .getSafeRowSequence( table.getRowSequence(),
+                                   table.getColumnCount(),
+                                   getRowCount() );
     }
 
     /**
@@ -1185,7 +1218,7 @@ public abstract class VOSerializer {
             writer.newLine();
             TdTags tdTags = new TdTags( isCompact() );
             int ncol = encoders.length;
-            RowSequence rseq = getTable().getRowSequence();
+            RowSequence rseq = getRowSequence();
             try {
                 while ( rseq.next() ) {
                     writer.write( tdTags.preTr_ );
@@ -1226,7 +1259,7 @@ public abstract class VOSerializer {
             dout.writeBytes( "<TABLEDATA>" );
             dout.write( NL_BYTES );
             int ncol = encoders.length;
-            try ( RowSequence rseq = getTable().getRowSequence() ) {
+            try ( RowSequence rseq = getRowSequence() ) {
                 while ( rseq.next() ) {
                     dout.write( preTr );
                     Object[] rowdata = rseq.getRow();
@@ -1421,7 +1454,7 @@ public abstract class VOSerializer {
         public void streamData( OutputStream out ) throws IOException {
             int ncol = encoders.length;
             DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
-            try ( RowSequence rseq = getTable().getRowSequence() ) {
+            try ( RowSequence rseq = getRowSequence() ) {
                 while ( rseq.next() ) {
                     Object[] row = rseq.getRow();
                     for ( int icol = 0; icol < ncol; icol++ ) {
@@ -1469,7 +1502,7 @@ public abstract class VOSerializer {
 
             /* Read data from table. */
             DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
-            try ( RowSequence rseq = getTable().getRowSequence() ) {
+            try ( RowSequence rseq = getRowSequence() ) {
                 while ( rseq.next() ) {
  
                     /* Prepare and write the null-flag array. */
@@ -1505,6 +1538,18 @@ public abstract class VOSerializer {
                 throws IOException {
             super( table, DataFormat.FITS, version, "FITS" );
             this.fitser = fitser;
+        }
+
+        @Override
+        public long getRowCount() {
+
+            /* This should normally return the same value as the superclass
+             * implementation, getTable().getRowCount(), but in case of
+             * discrepancy because the input table was lying about
+             * its row count, the figure returned by the FITS serializer
+             * is authoritative, since that's how many rows
+             * will actually be written. */
+            return fitser.getRowCount();
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {

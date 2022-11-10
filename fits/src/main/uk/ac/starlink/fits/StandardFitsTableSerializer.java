@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.CountCheckRowSequence;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.table.RowSequence;
@@ -186,6 +187,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 sbuf.append( "(unknown row count) " );
             }
             logger.config( sbuf.toString() );
+            long drow = nrow;
             nrow = 0L;
 
             /* Get the maximum dimensions. */
@@ -236,6 +238,16 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             }
             finally {
                 rseq.close();
+            }
+
+            /* Warn in case of row count mismatch.  In this case, the
+             * rows actually present in the RowSequence will be written.
+             * If this count has not been performed, the discrepancy will
+             * be reported and corrected later. */
+            if ( drow >= 0 && drow != nrow ) {
+                logger.warning( "Row count discrepancy in FITS output: "
+                              + drow + " rows declared, "
+                              + nrow + " rows found/written." );
             }
 
             /* In the case of variable string lengths and no non-null data
@@ -555,7 +567,10 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         /* Write the data cells, delegating the item in each column to
          * the writer that knows how to handle it. */
         long nWritten = 0L;
-        RowSequence rseq = table_.getRowSequence();
+        RowSequence rseq = CountCheckRowSequence
+                          .getSafeRowSequence( table_.getRowSequence(),
+                                               table_.getColumnCount(),
+                                               rowCount_ );
         try {
             while ( rseq.next() ) {
                 Object[] row = rseq.getRow();

@@ -37,6 +37,8 @@ import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.util.ByteArrayDataSource;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.LogUtils;
@@ -51,7 +53,8 @@ public class SerializerTest extends TestCase {
 
     public SerializerTest( String name ) {
         super( name );
-        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.SEVERE );
+        LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.SEVERE );
     }
 
     public void setUp() {
@@ -154,6 +157,66 @@ public class SerializerTest extends TestCase {
               VOTableVersion.getKnownVersions().values() ) {
             exerciseSerializers( version );
         }
+    }
+
+    public void testBadRowCount() throws IOException {
+        long nrow0 = table0.getRowCount();
+        int rdiff = 2;
+        StarTable t1 = new WrapperStarTable( table0 ) {
+            @Override
+            public long getRowCount() {
+                return nrow0 - rdiff;
+            }
+        };
+        StarTable t2 = new WrapperStarTable( table0 ) {
+            @Override
+            public long getRowCount() {
+                return nrow0 + rdiff;
+            }
+        };
+        boolean broken1;
+        try {
+            Tables.checkTable( t1 );
+            broken1 = false;
+        }
+        catch ( AssertionError e ) {
+            broken1 = true;
+        } 
+        assertTrue( broken1 );
+        VOTableBuilder reader = new VOTableBuilder();
+        for ( DataFormat format :
+              new DataFormat[] { DataFormat.TABLEDATA,
+                                 DataFormat.BINARY,
+                                 DataFormat.BINARY2,
+                                 DataFormat.FITS, } ) {
+            VOTableWriter writer = new VOTableWriter( format, true );
+            StarTable t1r = roundTrip( t1, writer, reader );
+            StarTable t2r = roundTrip( t2, writer, reader );
+
+            // Depending on the writer, the declared or the actual number
+            // of rows may get honoured.  But the main thing is that the
+            // output tables are healthy.
+            Tables.checkTable( t1r );
+            Tables.checkTable( t2r );
+        }
+
+        FitsPlusTableWriter fpWriter = new FitsPlusTableWriter();
+        FitsPlusTableBuilder fpReader = new FitsPlusTableBuilder();
+        StarTable fpt1r = roundTrip( t1, fpWriter, fpReader );
+        StarTable fpt2r = roundTrip( t2, fpWriter, fpReader );
+        Tables.checkTable( fpt1r );
+        Tables.checkTable( fpt2r );
+        assertEquals( nrow0, fpt1r.getRowCount() );
+        assertEquals( nrow0, fpt2r.getRowCount() );
+
+        ColFitsPlusTableWriter cfpWriter = new ColFitsPlusTableWriter();
+        ColFitsPlusTableBuilder cfpReader = new ColFitsPlusTableBuilder();
+        StarTable cfpt1r = roundTrip( t1, cfpWriter, cfpReader );
+        StarTable cfpt2r = roundTrip( t2, cfpWriter, cfpReader );
+        Tables.checkTable( cfpt1r );
+        Tables.checkTable( cfpt2r );
+        assertEquals( nrow0, cfpt1r.getRowCount() );
+        assertEquals( nrow0, cfpt2r.getRowCount() );
     }
 
     private void exerciseSerializers( VOTableVersion version )

@@ -31559,6 +31559,8 @@ introduced since the last version:
         <ref id="inPds4">PDS4 reader</ref> 
         no longer cause the table read to fail.</li>
     <li>Avoid oversized service icons in TAP window Service tab.</li>
+    <li>Make FITS and VOTable output handlers robust against
+        input tables that declare incorrect row counts.</li>
     </ul>
     </p></dd>
 
