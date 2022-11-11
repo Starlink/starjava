@@ -455,16 +455,7 @@ public class SkySurfaceFactory
         ConfigMeta meta =
             new ConfigMeta( "labelpos", "Grid Label Positioning" );
         meta.setShortDescription( "Position of sky grid labels" );
-        meta.setXmlDescription( new String[] {
-            "<p>Controls whether and where the numeric annotations",
-            "of the lon/lat axes are displayed.",
-            "The default option <code>" + auto + "</code>",
-            "usually does the sensible thing,",
-            "but other options exist to force labelling internally",
-            "or externally to the plot region,",
-            "or to remove numeric labels altogether.",
-            "</p>",
-        } );
+
         OptionConfigKey<SkyAxisLabeller> key =
                 new OptionConfigKey<SkyAxisLabeller>( meta,
                                                       SkyAxisLabeller.class,
@@ -488,7 +479,26 @@ public class SkySurfaceFactory
             }
         };
         key.setOptionUsage();
-        key.addOptionsXml();
+        meta.setXmlDescription( new String[] {
+            "<p>Controls whether and where the numeric annotations",
+            "of the lon/lat axes are displayed.",
+            "The default option <code>" + auto + "</code>",
+            "usually does the sensible thing,",
+            "but other options exist to force labelling internally",
+            "or externally to the plot region,",
+            "or to remove numeric labels altogether.",
+            "</p>",
+            key.getOptionsXml(),
+            "<p>The",
+            "<code>" + SkyAxisLabellers.EXTSYS.getLabellerName() + "</code>",
+            "and",
+            "<code>" + SkyAxisLabellers.INTSYS.getLabellerName() + "</code>",
+            "options use axis descriptions appropriate to the",
+            "View coordinate system for the current plot;",
+            "these options may not work well for plots which are all-sky",
+            "or show a substantial proportion of the sky.",
+            "</p>",
+        } );
         return key;
     }
 

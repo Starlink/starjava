@@ -99,44 +99,31 @@ public class SkyAxisLabellers {
 
     /** Labeller implementation that draws labels outside the plot bounds. */
     public static final SkyAxisLabeller EXTERNAL =
-            new TickSkyAxisLabeller( "External",
-                                     "Labels are drawn"
-                                   + " outside the plot bounds" ) {
-        protected SkyTick[] calculateTicks( double[][][] lines,
-                                            Caption[] labels,
-                                            Rectangle plotBounds ) {
-            List<SkyTick> tickList = new ArrayList<SkyTick>();
-            int nl = labels.length;
-            for ( int il = 0; il < nl; il++ ) {
-                SkyTick tick = createExternalTick( labels[ il ], lines[ il ],
-                                                   plotBounds );
-                if ( tick != null ) {
-                    tickList.add( tick );
-                }
-            }
-            return tickList.toArray( new SkyTick[ 0 ] );
-        }
-    };
+        createExternalLabeller( "External",
+                                "Labels are drawn outside the plot bounds",
+                                false );
 
     /** Labeller implementation that draws labels inside the plot bounds. */
     public static final SkyAxisLabeller INTERNAL =
-            new TickSkyAxisLabeller( "Internal",
-                                     "Labels are drawn"
-                                   + " inside the plot bounds" ) {
-        protected SkyTick[] calculateTicks( double[][][] lines,
-                                            Caption[] labels,
-                                            Rectangle plotBounds ) {
-            List<SkyTick> tickList = new ArrayList<SkyTick>();
-            int nl = labels.length;
-            for ( int il = 0; il < nl; il++ ) {
-                SkyTick tick = createInternalTick( labels[ il ], lines[ il ] );
-                if ( tick != null ) {
-                    tickList.add( tick );
-                }
-            }
-            return tickList.toArray( new SkyTick[ 0 ] );
-        }
-    };
+        createInternalLabeller( "Internal",
+                                "Labels are drawn inside the plot bounds",
+                                false );
+
+    /** Labeller implementation like EXTERNAL but with sky system labels. */
+    public static final SkyAxisLabeller EXTSYS =
+        createExternalLabeller( "ExternalSys",
+                                "Like <code>" + EXTERNAL.getLabellerName()
+                              + "</code>, but the axes are also labelled "
+                              + "with coordinate system axis names",
+                                true );
+
+    /** Labeller implementation like INTERNAL but with sky system labels. */
+    public static final SkyAxisLabeller INTSYS =
+        createInternalLabeller( "InternalSys",
+                                "Like <code>" + INTERNAL.getLabellerName()
+                              + "</code>, but the axes are also labelled "
+                              + "with coordinate system axis names",
+                                true );
 
     /**
      * Labeller implementation that draws labels outside the plot bounds
@@ -148,7 +135,7 @@ public class SkyAxisLabellers {
                                      "Grid lines are labelled outside the "
                                    + "plot bounds where possible, "
                                    + "but inside if they would otherwise "
-                                   + "be invisible" ) {
+                                   + "be invisible", false ) {
  
         protected SkyTick[] calculateTicks( double[][][] lines,
                                             Caption[] labels,
@@ -178,7 +165,7 @@ public class SkyAxisLabellers {
      */
     public static SkyAxisLabeller[] getKnownLabellers() {
         return new SkyAxisLabeller[] {
-            null, EXTERNAL, INTERNAL, LAME, HYBRID, NONE,
+            null, EXTERNAL, INTERNAL, LAME, HYBRID, NONE, EXTSYS, INTSYS,
         };
     }
 
@@ -193,5 +180,64 @@ public class SkyAxisLabellers {
      */
     public static SkyAxisLabeller getAutoLabeller( boolean skyFillsBounds ) {
         return skyFillsBounds ? EXTERNAL : INTERNAL;
+    }
+
+    /**
+     * Creates a labeller that draws labels outside the plot bounds.
+     *
+     * @param  name  labeller name
+     * @param  description  labeller description
+     * @param  labelSys  true to add lon/lat coordinate label names
+     * @return  new labeller
+     */
+    private static SkyAxisLabeller createExternalLabeller( String name,
+                                                           String description,
+                                                           boolean labelSys ) {
+        return new TickSkyAxisLabeller( name, description, labelSys ) {
+            protected SkyTick[] calculateTicks( double[][][] lines,
+                                                Caption[] labels,
+                                                Rectangle plotBounds ) {
+                List<SkyTick> tickList = new ArrayList<SkyTick>();
+                int nl = labels.length;
+                for ( int il = 0; il < nl; il++ ) {
+                    SkyTick tick =
+                        createExternalTick( labels[ il ], lines[ il ],
+                                            plotBounds );
+                    if ( tick != null ) {
+                        tickList.add( tick );
+                    }
+                }
+                return tickList.toArray( new SkyTick[ 0 ] );
+            }
+        };
+    }
+
+    /**
+     * Creates a labeller that draws labels inside the plot bounds.
+     *
+     * @param  name  labeller name
+     * @param  description  labeller description
+     * @param  labelSys  true to add lon/lat coordinate label names
+     * @return  new labeller
+     */
+    private static SkyAxisLabeller createInternalLabeller( String name,
+                                                           String description,
+                                                           boolean labelSys ) {
+        return new TickSkyAxisLabeller( name, description, labelSys ) {
+            protected SkyTick[] calculateTicks( double[][][] lines,
+                                                Caption[] labels,
+                                                Rectangle plotBounds ) {
+                List<SkyTick> tickList = new ArrayList<SkyTick>();
+                int nl = labels.length;
+                for ( int il = 0; il < nl; il++ ) {
+                    SkyTick tick =
+                        createInternalTick( labels[ il ], lines[ il ] );
+                    if ( tick != null ) {
+                        tickList.add( tick );
+                    }
+                }
+                return tickList.toArray( new SkyTick[ 0 ] );
+            }
+        };
     }
 }

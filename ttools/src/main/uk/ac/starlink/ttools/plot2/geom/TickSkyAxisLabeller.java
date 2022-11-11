@@ -24,6 +24,7 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
 
     private final String name_;
     private final String description_;
+    private final boolean labelSys_;
     public static Anchor X_ANCHOR = Anchor.N;
     public static Anchor Y_ANCHOR = Anchor.E;
 
@@ -32,10 +33,14 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
      *
      * @param  name  labeller name
      * @param  description  labeller description
+     * @param  labelSys  labelSys   determines whether the sky system
+     *                              coordinate names are written on the axes
      */
-    public TickSkyAxisLabeller( String name, String description ) {
+    public TickSkyAxisLabeller( String name, String description,
+                                boolean labelSys ) {
         name_ = name;
         description_ = description;
+        labelSys_ = labelSys;
     }
 
     public String getLabellerName() {
@@ -56,8 +61,8 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
         SkyTick[] ticks = calculateTicks( gridLiner.getLines(), labels,
                                           gridLiner.getBounds() );
         ticks = removeOverlaps( ticks, captioner );
-        return new TickAxisAnnotation( ticks, gridLiner.getBounds(),
-                                       captioner );
+        return new TickAxisAnnotation( ticks, gridLiner.getBounds(), captioner,
+                                       labelSys_ ? skySys : null );
     }
 
     /**
@@ -242,6 +247,17 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
     }
 
     /**
+     * Creates a caption from a text string that may contain spaces.
+     * No attempt is made to handle other potentially problematic characters.
+     *
+     * @param   txt  caption text
+     * @return   caption object
+     */
+    private static Caption textToCaption( String txt ) {
+        return Caption.createCaption( txt, txt.replace( " ", "\\ " ) );
+    }
+
+    /**
      * AxisAnnotation implementation that gets its labels from a supplied
      * list of SkyTick objects.
      */
@@ -250,6 +266,11 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
         private final SkyTick[] ticks_;
         private final Rectangle plotBounds_;
         private final Captioner captioner_;
+        private final SkySys skySys_;
+        private final Caption lonCaption_;
+        private final Caption latCaption_;
+        private final int hLon_;
+        private final int hLat_;
 
         /**
          * Constructor.
@@ -257,15 +278,49 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
          * @param  ticks  tick list
          * @param  plotBounds  plot graphics region
          * @param  captioner  text renderer
+         * @param  skySys  sky system with which to label axes,
+         *                  or null if not labelled
          */
         TickAxisAnnotation( SkyTick[] ticks, Rectangle plotBounds,
-                            Captioner captioner ) {
+                            Captioner captioner, SkySys skySys ) {
             ticks_ = ticks;
             plotBounds_ = plotBounds;
             captioner_ = captioner;
+            skySys_ = skySys;
+            if ( skySys != null ) {
+                lonCaption_ = textToCaption( skySys_.getLongitudeName() );
+                latCaption_ = textToCaption( skySys_.getLatitudeName() );
+                hLon_ = captioner_.getCaptionBounds( lonCaption_ ).height;
+                hLat_ = captioner_.getCaptionBounds( latCaption_ ).height;
+            }
+            else {
+                lonCaption_ = null;
+                latCaption_ = null;
+                hLon_ = 0;
+                hLat_ = 0;
+            }
         }
 
         public Insets getPadding( boolean withScroll ) {
+            Insets padding = getTickPadding( withScroll );
+            if ( skySys_ != null ) {
+                padding.bottom += hLon_ + hLon_ / 2;
+                padding.left += hLat_ + hLat_ / 2;
+            }
+            return padding;
+        }
+
+        /**
+         * Returns the insets around the edge of the plot bounds due only
+         * to the ticks themselves managed by this annotation.
+         * Additional padding may be added outside this.
+         *
+         * @param  withScroll  true if the padding should be large enough to
+         *                     accommodate labelling requirements if the
+         *                     surface is scrolled
+         * @return  padding insets
+         */
+        private Insets getTickPadding( boolean withScroll ) {
             Rectangle bounds = new Rectangle( plotBounds_ );
             for ( int i = 0; i < ticks_.length; i++ ) {
                 SkyTick tick = ticks_[ i ];
@@ -291,6 +346,21 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
                 SkyTick tick = ticks_[ i ];
                 tick.anchor_.drawCaption( tick.label_, tick.px_, tick.py_,
                                           captioner_, g );
+            }
+            if ( skySys_ != null ) {
+                Insets insets = getTickPadding( false );
+                Point pLon =
+                    new Point( plotBounds_.x + plotBounds_.width / 2,
+                               plotBounds_.y + plotBounds_.height
+                             + insets.bottom );
+                Point pLat =
+                    new Point( plotBounds_.x - insets.left - 2 * hLat_,
+                               plotBounds_.y + plotBounds_.height / 2 );
+                Anchor.N.drawCaption( lonCaption_, pLon.x, pLon.y,
+                                      captioner_, g );
+                Anchor.createAngledAnchor( -0.5 * Math.PI, Anchor.N )
+                      .drawCaption( latCaption_, pLat.x, pLat.y,
+                                    captioner_, g );
             }
         }
 

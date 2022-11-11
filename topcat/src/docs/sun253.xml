@@ -14885,7 +14885,7 @@ normal pan/zoom operations will not affect the content of this panel.
 
 </subdiv>
 
-<subdiv>
+<subdiv id="SkyAxisControl_grid">
 <subhead><title>Grid Tab</title></subhead>
 
 <figure>
@@ -14925,8 +14925,9 @@ appear.
 <dd><p>Controls whether and where the numeric annotations of the lon/lat
     axes are put.  The default option <label>Auto</label> usually does
     the sensible thing, but other options exist to force labelling
-    internally or externally to the plot region, or to remove numeric
-    labels altogether.
+    internally or externally to the plot region, to further annotate
+    the axes with <label>View Sky System</label> coordinate names,
+    or to remove numeric labels altogether.
     </p></dd>
 <dt>Antialiasing</dt>
 <dd><p>Controls whether grid lines will be drawn antialiased
@@ -31561,6 +31562,11 @@ introduced since the last version:
     <li>Avoid oversized service icons in TAP window Service tab.</li>
     <li>Make FITS and VOTable output handlers robust against
         input tables that declare incorrect row counts.</li>
+    <li>Add new options <label>ExternalSys</label> and
+        <label>InternalSys</label> to
+        <label>Label Positioning</label> selector of
+        <ref id="SkyAxisControl_grid">Sky Axes Control Grid panel</ref>,
+        to display lon/lat axis names alongside axis values.</li>
     </ul>
     </p></dd>
 

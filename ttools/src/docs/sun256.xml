@@ -14220,6 +14220,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         no longer cause the table read to fail.</li>
     <li>Make FITS and VOTable output handlers robust against
         input tables that declare incorrect row counts.</li>
+    <li>Add new options <code>ExternalSys</code>/<code>InternalSys</code>
+        for <code>plot2sky</code>
+        <ref id="plot2sky-labelpos">labelpos</ref> parameter,
+        to display lon/lat axis names alongside axis values.</li>
     </ul>
     </p></dd>
 
