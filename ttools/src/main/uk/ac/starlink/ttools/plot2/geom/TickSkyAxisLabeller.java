@@ -47,7 +47,8 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
     }
 
     public AxisAnnotation createAxisAnnotation( GridLiner gridLiner,
-                                                Captioner captioner ) {
+                                                Captioner captioner,
+                                                SkySys skySys ) {
         Caption[] labels = Arrays.stream( gridLiner.getLabels() )
                                  .map( SkyAxisLabellers::labelCaption )
                                  .collect( Collectors.toList() )

@@ -37,8 +37,8 @@ public class SkyAxisLabellers {
         );
     }
 
-    /** Labeller implentation that does no drawing. */
-    public static SkyAxisLabeller NONE = new SkyAxisLabeller() {
+    /** Labeller implementation that does no drawing. */
+    public static final SkyAxisLabeller NONE = new SkyAxisLabeller() {
         public String getLabellerName() {
             return "None";
         }
@@ -46,7 +46,8 @@ public class SkyAxisLabellers {
             return "Axes are not labelled";
         }
         public AxisAnnotation createAxisAnnotation( GridLiner gridLiner,
-                                                    Captioner captioner ) {
+                                                    Captioner captioner,
+                                                    SkySys skySys ) {
             return new AxisAnnotation() {
                 public Insets getPadding( boolean withScroll ) {
                     return new Insets( 0, 0, 0, 0 );
@@ -61,7 +62,7 @@ public class SkyAxisLabellers {
      * Basic labeller implementation.  Grid lines are drawn OK,
      * but not much effort is made to position axis labels sensibly.
      */
-    public static SkyAxisLabeller LAME = new SkyAxisLabeller() {
+    public static final SkyAxisLabeller LAME = new SkyAxisLabeller() {
         public String getLabellerName() {
             return "Basic";
         }
@@ -69,7 +70,8 @@ public class SkyAxisLabellers {
             return "Labels are drawn somewhere near the grid line";
         }
         public AxisAnnotation createAxisAnnotation( final GridLiner gridLiner,
-                                                   final Captioner captioner ) {
+                                                    final Captioner captioner,
+                                                    final SkySys skySys ) {
             return new AxisAnnotation() {
                 public Insets getPadding( boolean withScroll ) {
                     return new Insets( 0, 0, 0, 0 );
@@ -96,7 +98,7 @@ public class SkyAxisLabellers {
     };
 
     /** Labeller implementation that draws labels outside the plot bounds. */
-    public static SkyAxisLabeller EXTERNAL =
+    public static final SkyAxisLabeller EXTERNAL =
             new TickSkyAxisLabeller( "External",
                                      "Labels are drawn"
                                    + " outside the plot bounds" ) {
@@ -117,7 +119,7 @@ public class SkyAxisLabellers {
     };
 
     /** Labeller implementation that draws labels inside the plot bounds. */
-    public static SkyAxisLabeller INTERNAL =
+    public static final SkyAxisLabeller INTERNAL =
             new TickSkyAxisLabeller( "Internal",
                                      "Labels are drawn"
                                    + " inside the plot bounds" ) {
@@ -141,14 +143,13 @@ public class SkyAxisLabellers {
      * unless they don't appear, in which case it draws them inside.
      * Doesn't necessarily end up looking as sensible as it sounds.
      */ 
-    public static SkyAxisLabeller HYBRID =
+    public static final SkyAxisLabeller HYBRID =
             new TickSkyAxisLabeller( "Hybrid",
                                      "Grid lines are labelled outside the "
                                    + "plot bounds where possible, "
                                    + "but inside if they would otherwise "
                                    + "be invisible" ) {
  
-
         protected SkyTick[] calculateTicks( double[][][] lines,
                                             Caption[] labels,
                                             Rectangle plotBounds ) {

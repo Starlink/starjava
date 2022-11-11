@@ -196,7 +196,7 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
         Rotation rotation = gridsys == null || viewsys == null
                           ? null
                           : Rotation.createRotation( gridsys, viewsys );
-        return new GridStyle( rotation, color, labeller, captioner,
+        return new GridStyle( rotation, color, labeller, captioner, viewsys,
                               sexagesimal, loncrowd, latcrowd, antialias );
     }
 
@@ -255,8 +255,9 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
             }
             g2.draw( path );
         }
-        style.labeller_.createAxisAnnotation( gl, style.captioner_ )
-                       .drawLabels( g2 );
+        style.labeller_
+             .createAxisAnnotation( gl, style.captioner_, style.viewsys_ )
+             .drawLabels( g2 );
     }
 
     /**
@@ -267,6 +268,7 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
         private final Color color_;
         private final SkyAxisLabeller labeller_;
         private final Captioner captioner_;
+        private final SkySys viewsys_;
         private final boolean sexagesimal_;
         private final double loncrowd_;
         private final double latcrowd_;
@@ -279,6 +281,7 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
          * @param  color     grid line colour
          * @param  labeller  grid line label positioner
          * @param  captioner grid line label captioner
+         * @param  viewsys   view sky system
          * @param  sexagesimal   true for sexagesimal, false for decimal
          * @param  loncrowd     longitude grid line crowding, 1 is normal
          * @param  latcrowd     latitude grid line crowding, 1 is normal
@@ -286,12 +289,14 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
          */
         public GridStyle( Rotation rotation, Color color,
                           SkyAxisLabeller labeller, Captioner captioner,
-                          boolean sexagesimal, double loncrowd, double latcrowd,
+                          SkySys viewsys, boolean sexagesimal,
+                          double loncrowd, double latcrowd,
                           boolean antialias ) {
             rotation_ = rotation;
             color_ = color;
             labeller_ = labeller;
             captioner_ = captioner;
+            viewsys_ = viewsys;
             sexagesimal_ = sexagesimal;
             loncrowd_ = loncrowd;
             latcrowd_ = latcrowd;
@@ -319,6 +324,7 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
             code = 23 * code + color_.hashCode();
             code = 23 * code + labeller_.hashCode();
             code = 23 * code + captioner_.hashCode();
+            code = 23 * code + viewsys_.hashCode();
             code = 23 * code + ( sexagesimal_ ? 11 : 13 );
             code = 23 * code + Float.floatToIntBits( (float) loncrowd_ );
             code = 23 * code + Float.floatToIntBits( (float) latcrowd_ );
@@ -334,6 +340,7 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
                     && this.color_.equals( other.color_ )
                     && this.labeller_.equals( other.labeller_ )
                     && this.captioner_.equals( other.captioner_ )
+                    && this.viewsys_.equals( other.viewsys_ )
                     && this.sexagesimal_ == other.sexagesimal_
                     && this.loncrowd_ == other.loncrowd_
                     && this.latcrowd_ == other.latcrowd_

@@ -170,7 +170,7 @@ public class SkySurface implements Surface {
         GridLiner gl = gridColor_ == null ? null : createGridder();
         return gl == null
              ? new Insets( 0, 0, 0, 0 )
-             : axLabeller_.createAxisAnnotation( gl, captioner_ )
+             : axLabeller_.createAxisAnnotation( gl, captioner_, viewSystem_ )
                           .getPadding( withScroll );
     }
 
@@ -236,7 +236,7 @@ public class SkySurface implements Surface {
         }
         if ( axlabelColor_ != null ) {
             g2.setColor( axlabelColor_ );
-            axLabeller_.createAxisAnnotation( gl, captioner_ )
+            axLabeller_.createAxisAnnotation( gl, captioner_, viewSystem_ )
                        .drawLabels( g2 );
         }
         if ( scalebarColor_ != null ) {

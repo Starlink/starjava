@@ -32,8 +32,10 @@ public interface SkyAxisLabeller {
      *
      * @param  gridLiner  grid lines for a sky plot
      * @param  captioner  text renderer
+     * @param  skySys   sky coordinate system
      * @return  axis annotation
      */
     AxisAnnotation createAxisAnnotation( GridLiner gridLiner,
-                                         Captioner captioner );
+                                         Captioner captioner,
+                                         SkySys skySys );
 }
