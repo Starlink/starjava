@@ -33,8 +33,12 @@ import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.PrimitiveArrayColumn;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.util.ByteArrayDataSource;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.TestCase;
@@ -448,6 +452,18 @@ public class SerializerTest extends TestCase {
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
         }
+    }
+
+    public static StarTable roundTrip( StarTable table,
+                                       StarTableWriter outHandler,
+                                       TableBuilder inHandler )
+            throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        outHandler.writeStarTable( table, out );
+        out.close();
+        DataSource datsrc = new ByteArrayDataSource( "t", out.toByteArray() );
+        return inHandler
+              .makeStarTable( datsrc, false, StoragePolicy.PREFER_MEMORY );
     }
 
     private static class RowStore implements TableSink {

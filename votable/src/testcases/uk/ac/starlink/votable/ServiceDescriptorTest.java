@@ -1,6 +1,5 @@
 package uk.ac.starlink.votable;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -10,15 +9,11 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.util.ByteArrayDataSource;
-import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
-import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.datalink.ServiceDescriptor;
 import uk.ac.starlink.votable.datalink.ServiceParam;
 
@@ -41,13 +36,16 @@ public class ServiceDescriptorTest extends TestCase {
         VOStarTable table = new VOStarTable( tabEl );
         checkServiceDescriptor( table );
 
-        checkServiceDescriptor( roundTrip( table,
+        checkServiceDescriptor( SerializerTest
+                               .roundTrip( table,
                                            new VOTableWriter(),
                                            new VOTableBuilder() ) );
-        checkServiceDescriptor( roundTrip( table,
+        checkServiceDescriptor( SerializerTest
+                               .roundTrip( table,
                                            new FitsPlusTableWriter(),
                                            new FitsPlusTableBuilder() ) );
-        checkServiceDescriptor( roundTrip( table, 
+        checkServiceDescriptor( SerializerTest
+                               .roundTrip( table, 
                                            new ColFitsPlusTableWriter(),
                                            new ColFitsPlusTableBuilder() ) );
 
@@ -113,16 +111,5 @@ public class ServiceDescriptorTest extends TestCase {
         assertEquals( "21.146975243848086 -33.923782327952054 "
                     + "0.2533289119106916",
                       circParam.getMinMax()[ 1 ] );
-    }
-
-    private StarTable roundTrip( StarTable table, StarTableWriter outHandler,
-                                 TableBuilder inHandler )
-            throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        outHandler.writeStarTable( table, out );
-        out.close();
-        DataSource datsrc = new ByteArrayDataSource( "t", out.toByteArray() );
-        return inHandler
-              .makeStarTable( datsrc, false, StoragePolicy.PREFER_MEMORY );
     }
 }
