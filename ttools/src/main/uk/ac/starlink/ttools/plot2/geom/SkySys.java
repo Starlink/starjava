@@ -21,6 +21,8 @@ public class SkySys {
 
     private final String name_;
     private final String description_;
+    private final String lonName_;
+    private final String latName_;
     private final String ucd1pBase_;
     private final String ucd1Base_;
     private final String lonLabel_;
@@ -60,6 +62,7 @@ public class SkySys {
 
         EQUATORIAL =
             new SkySys( "Equatorial", "J2000 equatorial system",
+                        "Right Ascension", "Declination",
                         "eq", "EQ", "ra", "dec",
                         new String[][] { { "ra", "dec" },
                                          { "alpha", "delta" },
@@ -70,6 +73,7 @@ public class SkySys {
 
         GALACTIC =
             new SkySys( "Galactic", "IAU 1958 galactic system",
+                        "Galactic Longitude", "Galactic Latitude",
                         "galactic", "GAL", "lon", "lat",
                         new String[][] { { "gal_lon", "gal_lat" },
                                          { "gal_lon", "gal_lat" },
@@ -79,6 +83,7 @@ public class SkySys {
 
         SUPERGALACTIC =
             new SkySys( "SuperGalactic", "De Vaucouleurs supergalactic system",
+                        "Super-Galactic Longitude", "Super-Galactic Latitude",
                         "supergalactic", "SG", "lon", "lat",
                         new String[ 0 ][],
                         Matrices.mmMult( Matrices.invert( EQ2GAL ),
@@ -87,6 +92,7 @@ public class SkySys {
         ECLIPTIC2000 =
             new SkySys( "Ecliptic",
                         "ecliptic system based on conversion at 2000.0",
+                        "Ecliptic Longitude", "Ecliptic Latitude",
                         "ecliptic2000", "EC", "lon", "lat",
                         new String[ 0 ][],
                         Matrices.invert( Matrices
@@ -101,6 +107,8 @@ public class SkySys {
      *
      * @param  name  system name
      * @param  description  short description
+     * @param  lonName  user-facing name for longitude coordinate
+     * @param  latName  user-facing name for latitude coordinate
      * @param  ucd1pBase  root atom for coordinate UCDs in UCD1+
      * @param  ucd1Base   root atom for coordinate UCDs in UCD1
      * @param  lonLabel  name of longitude coordinate in UCDs
@@ -110,11 +118,14 @@ public class SkySys {
      *                       system to J2000 Equatorial coordinates
      */
     private SkySys( String name, String description,
+                    String lonName, String latName,
                     String ucd1pBase, String ucd1Base,
                     String lonLabel, String latLabel, String[][] namePairs,
                     double[] toEquatorial ) {
         name_ = name;
         description_ = description;
+        lonName_ = lonName;
+        latName_ = latName;
         ucd1pBase_ = ucd1pBase;
         ucd1Base_ = ucd1Base;
         lonLabel_ = lonLabel;
@@ -142,6 +153,24 @@ public class SkySys {
      */
     public String getSysDescription() {
         return description_;
+    }
+
+    /**
+     * Returns the human-readable name for longitude.
+     *
+     * @return  longitude coordinate name
+     */
+    public String getLongitudeName() {
+        return lonName_;
+    }
+
+    /**
+     * Returns the human-readable name for latitude.
+     *
+     * @return  latitude coordinate name
+     */
+    public String getLatitudeName() {
+        return latName_;
     }
 
     /**
