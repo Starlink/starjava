@@ -107,6 +107,7 @@
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
   <!ENTITY tgridmap-summary SYSTEM 'tgridmap-summary.xml'>
+  <!ENTITY tgroup-summary SYSTEM 'tgroup-summary.xml'>
   <!ENTITY tjoin-summary SYSTEM 'tjoin-summary.xml'>
   <!ENTITY tloop-summary SYSTEM 'tloop-summary.xml'>
   <!ENTITY tmatch1-summary SYSTEM 'tmatch1-summary.xml'>
@@ -268,7 +269,8 @@ same ground as the STIL and TOPCAT user documents
     <ref id="tloop"><code>tloop</code></ref>,
     <ref id="tjoin"><code>tjoin</code></ref>,
     <ref id="arrayjoin"><code>arrayjoin</code></ref>,
-    <ref id="tgridmap"><code>tgridmap</code></ref>, and
+    <ref id="tgridmap"><code>tgridmap</code></ref>,
+    <ref id="tgroup"><code>tgroup</code></ref>, and
     <ref id="tcube"><code>tcube</code></ref>
     (see <ref id="pipes" plaintextref="yes"/>).
     </p></dd>
@@ -573,6 +575,7 @@ the available tasks are:
 <li><code>tcopy</code></li>
 <li><code>tcube</code></li>
 <li><code>tgridmap</code></li>
+<li><code>tgroup</code></li>
 <li><code>tjoin</code></li>
 <li><code>tloop</code></li>
 <li><code>tmatch1</code></li>
@@ -2030,6 +2033,7 @@ by parameters with the following names (or similar ones):
            <ref id="tloop"><code>tloop</code></ref>,
            <ref id="tjoin"><code>tjoin</code></ref>,
            <ref id="tgridmap"><code>tgridmap</code></ref>,
+           <ref id="tgroup"><code>tgroup</code></ref>,
            <ref id="tcube"><code>tcube</code></ref>,
            <ref id="tmatch1"><code>tmatch1</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
@@ -5497,6 +5501,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="tgridmap" plaintextref="yes"><code>tgridmap</code></ref>:
         &tgridmap-purpose;
         </li>
+    <li><ref id="tgroup" plaintextref="yes"><code>tgroup</code></ref>:
+        &tgroup-purpose;
+        </li>
     <li><ref id="tcube" plaintextref="yes"><code>tcube</code></ref>:
         &tcube-purpose;
         </li>
@@ -8587,6 +8594,176 @@ stilts tgridmap in=edr3-local.fits
     <code>coords</code> and <code>cols</code> parameters if preferred.
     </p></dd>
 
+</dl>
+</p>
+</subsubsect>
+
+</subsect>
+
+<subsect id="tgroup" tocleaf="yes">
+<subhead><title><code>tgroup</code>: &tgroup-purpose;</title></subhead>
+
+<p><code>tgroup</code> identifies groups of rows in
+a table based on the values in a given column or columns,
+and calculates statistical quantities or otherwise collapses
+down the multiple values from other columns into single values
+representing each group.
+It does the same job as a <code>SELECT ... GROUP BY</code> statement
+with aggregate functions in ADQL/SQL.
+</p>
+
+<p>The <code>keys</code> parameter defines how input rows are grouped,
+and the <code>aggcols</code> parameter defines what quantities to
+aggregate from the rows in each group.
+<code>keys</code> specifies one or more values (column names or expresssions)
+that must be the same for rows grouped together,
+while <code>aggcols</code> specifies zero or more columns to be
+added based on the content of rows in each group.
+The output table therefore contains
+one column for each entry in <code>keys</code>
+and one column for each entry in <code>aggcols</code>,
+and has one row for each group identified.
+</p>
+
+<p>This command can therefore be used to count rows or calculate
+statistical quantities per group.
+A number of statistical aggregation methods are provided such as
+mean, median, minimum, maximum etc.
+For more specialised requirements, for instance quantiles or
+custom statistics, you can also use the <em>array</em>
+aggregators which generate an array containing all of the
+values in the group, and operate on the resulting column using
+one of the functions in the <ref id="Arrays">Arrays</ref> class.
+</p>
+
+<p>By way of comparison, the <code>tgroup</code> invocation:
+<verbatim>
+   stilts tgroup in=t
+                 keys="year detector"
+                 aggcols="0;count;num gmag;min;min_gmag gmag;mean"
+</verbatim>
+corresponds roughly to the ADQL query:
+<verbatim>
+   SELECT COUNT(*) AS num, MIN(gmag) AS min_gmag, MEAN(gmag),
+   FROM t
+   GROUP BY year, detector
+</verbatim>
+</p>
+
+<p>See also the
+<ref id="tgridmap"><code>tgridmap</code></ref> and
+<ref id="tskymap"><code>tskymap</code></ref> commands,
+which provide similar functionality where the grouping is over
+evenly spaced numeric/coordinate values.
+</p>
+
+&tgroup-summary;
+
+<subsubsect id="tgroupExamples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>tgroup</code>:
+<dl>
+
+<dt><verbatim>
+stilts tgroup in=B_sn.vot keys='MType' aggcols='null;count' out=type_counts.csv
+</verbatim></dt>
+<dd><p>This produces an output table with two columns:
+    the first column (defined by the <code>keys</code> parameter)
+    gives all the distinct values of the
+    <code>MType</code> column in the input table,
+    and the second column (defined by the <code>aggcols</code> parameter)
+    gives a count of how many rows in the input table have that MType value.
+    The output is written to a CSV file.
+    </p>
+    <p>Since the <code>count</code> aggregator pays no attention to the
+    values it is counting, the quantity before the semicolon is
+    irrelevant in this case, so for instance "<code>0;count</code>",
+    "<code>100;count</code>" or "<code>MType;count</code>"
+    would work just as well.
+    If the <code>aggcols</code> parameter is omitted altogether,
+    the output table will be the same but without the
+    <code>count</code> column,
+    i.e. it will just list all the distinct values of
+    the <code>MType</code> column.
+    </p></dd>
+
+<dt><verbatim>
+stilts tgroup in=B_sn.vot
+              icmd='colmeta -name Discoverer disc' icmd='select MaxMag&lt;20'
+              keys='Discoverer' aggcols='0;count;SNae'
+              ocmd='sorthead -down 10 SNae'
+</verbatim></dt>
+<dd><p>This does a similar job to the previous example,
+    but with some additional pre- and post-processing,
+    to produce a league table of discoverers of bright supernovae.
+    The <code>icmd</code> parameters define pre-processing filters
+    that rename one column, and select only those rows for which
+    the <code>MaxMag</code> column is below a certain threshold.
+    The <code>keys</code> parameter groups rows by the contents of the
+    <code>Discoverer</code> (n&#xe9;e <code>disc</code>) column,
+    and the <code>aggcols</code> parameter counts how many sources
+    are listed for each discoverer,
+    naming the resulting column "<code>SNae</code>".
+    Finally, the <code>ocmd</code> filter
+    sorts the results by the count column,
+    listing only the top ten to standard output.
+    </p></dd>
+
+<dt><verbatim>
+stilts tgroup in=exomercat.fits
+              keys='discovery_method status'
+              aggcols='null;count mass;mean mass;stdev r;max;max_radius r;ngood;num_radii'
+              ocmd='sort "discovery_method status"'
+</verbatim></dt>
+<dd><p>In this case there are two columns listed in
+    the <code>keys</code> parameter,
+    which means each output row groups all the input rows with the same
+    <code>discovery_method</code> <em>and</em> <code>status</code> values.
+    For each such group several values are calculated and output
+    in separate columns: number of entries, mean mass,
+    standard deviation of mass, maximum radius,
+    and number of entries with a non-blank radius.
+    </p></dd>
+
+<dt><verbatim>
+stilts tgroup in=dr16qso.fits
+              icmd='addcol -units yr year (int)mjdToDecYear(mjd)'
+              keys='year'
+              aggcols='z;ngood;nz'
+              aggcols='z;array;z_values'
+              ocmd='addcol z_q1 quantile(z_values,0.25)'
+              ocmd='addcol z_q2 quantile(z_values,0.50)'
+              ocmd='addcol z_q3 quantile(z_values,0.75)'
+              ocmd='delcols z_values'
+              out=zq-by-year.fits
+</verbatim></dt>
+<dd><p>This groups the rows in an input table by calendar year,
+    and for each year calculates the number of non-blank items,
+    and the quartiles, of the values in the <code>z</code> column.
+    Since no quartile aggregator is provided,
+    aggregation is first done to an array of all the z values per year,
+    and quartiles are calculated using the
+    <ref id="Arrays-quantile">quantile</ref> function, which takes an
+    array value as well as the quantile point required.
+    Before writing the output, the bulky array column is removed.
+    </p>
+    <p>In this example, the <code>aggcols</code> parameter has been
+    given three times for the three aggregated values.
+    This is just another way to specify multiple entries, and it could
+    equally have been written in one go with a space as a delimiter, i.e.
+    "<code>aggcols='z;ngood;nz z;array;z_values'</code>".
+    </p>
+    <p>Note that since the grouped quantity here is numeric and evenly spaced,
+    this job could equally have been done using the
+    <ref id="tgridmap"><code>tgridmap</code></ref> command, like
+    <verbatim>
+    stilts tgridmap in=dr16qso.fits
+                    icmd='addcol -units yr year mjdToDecYear(mjd)'
+                    coords=year binsizes=1
+                    cols='1;count;nz z;Q1;z_q1 z;median;z_q2 z;Q3;z_q3'
+    </verbatim>
+    </p></dd>
 </dl>
 </p>
 </subsubsect>
@@ -14224,6 +14401,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         for <code>plot2sky</code>
         <ref id="plot2sky-labelpos">labelpos</ref> parameter,
         to display lon/lat axis names alongside axis values.</li>
+    <li>New task <ref id="tgroup"><code>tgroup</code></ref>
+        to calculate aggregate functions on groups of rows
+        (like ADQL/SQL <code>GROUP BY</code>).</li>
     </ul>
     </p></dd>
 

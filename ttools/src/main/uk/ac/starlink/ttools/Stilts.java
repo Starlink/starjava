@@ -172,6 +172,7 @@ public class Stilts {
         taskFactory_.register( "tcopy", taskPkg + "TableCopy" );
         taskFactory_.register( "tcube", taskPkg + "TableCube" );
         taskFactory_.register( "tgridmap", taskPkg + "GridDensityMap" );
+        taskFactory_.register( "tgroup", taskPkg + "TableGroup" );
         taskFactory_.register( "tjoin", taskPkg + "TableJoinN" );
         taskFactory_.register( "tloop", taskPkg + "TableLoop" );
         taskFactory_.register( "tmatch1", taskPkg + "TableMatch1" );
