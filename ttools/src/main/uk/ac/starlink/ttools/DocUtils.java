@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.function.Function;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -14,6 +17,7 @@ import javax.xml.transform.stream.StreamSource;
 import uk.ac.starlink.table.Documented;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.filter.BasicFilter;
+import uk.ac.starlink.util.XmlWriter;
 
 /**
  * Utilities used for automatically-generated documentation.
@@ -84,23 +88,74 @@ public class DocUtils {
     }
 
     /**
-     * Returns an string listing the supplied array of metadata objects.
+     * Returns a string listing the supplied array of metadata objects.
      * The returned string should be suitable for inserting into XML text.
      *
      * @param  infos  array of infos
      * @return  string listing <code>infos</code> by name
      */
     public static String listInfos( ValueInfo[] infos ) {
+        return describedList( infos, ValueInfo::getName,
+                              ValueInfo::getDescription, false );
+    }
+
+    /**
+     * Returns a XML string listing an array of objects
+     * with names and descriptions.
+     * The output is a <code>&lt;ul&gt;</code> element.
+     *
+     * <p>This is a convenience wrapper for the overloaded method
+     * that takes a <code>Collection&lt;E&gt;</code>.
+     *
+     * @param   items   objects to list
+     * @param   namer   maps object to object name
+     * @param   describer  maps object to object description
+     * @param   isDescriptionXml  if true, the description text may contain
+     *                            XML formatting, and should be inserted
+     *                            into the output as is;
+     *                            if false, any magic characters will be
+     *                            escaped as required for XML
+     * @return  xml list
+     */
+    public static <E> String describedList( E[] items,
+                                            Function<E,String> namer,
+                                            Function<E,String> describer,
+                                            boolean isDescriptionXml ) {
+        return describedList( Arrays.asList( items ), namer, describer,
+                              isDescriptionXml );
+    }
+
+    /**
+     * Returns a XML string listing an array of objects
+     * with names and descriptions.
+     * The output is a <code>&lt;ul&gt;</code> element.
+     *
+     * @param   items   objects to list
+     * @param   namer   maps object to object name
+     * @param   describer  maps object to object description
+     * @param   isDescriptionXml  if true, the description text may contain
+     *                            XML formatting, and should be inserted
+     *                            into the output as is;
+     *                            if false, any magic characters will be
+     *                            escaped as required for XML
+     * @return  xml list
+     */
+    public static <E> String describedList( Collection<E> items,
+                                            Function<E,String> namer,
+                                            Function<E,String> describer,
+                                            boolean isDescriptionXml ) {
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "<ul>\n" );
-        for ( int i = 0; i < infos.length; i++ ) {
-            sbuf.append( "<li>" )
-                .append( "<code>" )
-                .append( infos[ i ].getName() )
-                .append( "</code>" )
-                .append( ": " )
-                .append( infos[ i ].getDescription() )
-                .append( "</li>" );
+        for ( E item : items ) {
+            String name = namer.apply( item );
+            String descrip = describer.apply( item );
+            sbuf.append( "<li><code>" )
+                .append( name )
+                .append( "</code>: " )
+                .append( isDescriptionXml ? descrip
+                                          : XmlWriter.formatText( descrip ) )
+                .append( "\n</li>" )
+                .append( "\n" );
         }
         sbuf.append( "</ul>\n" );
         return sbuf.toString();
