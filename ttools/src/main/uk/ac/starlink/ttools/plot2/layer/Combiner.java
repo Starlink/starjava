@@ -59,6 +59,9 @@ public abstract class Combiner {
     /** Calculate the sample standard deviation of all submitted values. */
     public static final Combiner SAMPLE_STDEV;
 
+    /** Calculate the population standard deviation of all submitted values. */
+    public static final Combiner POP_STDEV;
+
     /** Calculate the minimum of all submitted values. */
     public static final Combiner MIN;
 
@@ -80,6 +83,7 @@ public abstract class Combiner {
         MIN = new MinCombiner(),
         MAX = new MaxCombiner(),
         SAMPLE_STDEV = new StdevCombiner( true ),
+        POP_STDEV = new StdevCombiner( false ),
         HIT = new HitCombiner(),
     };
 
@@ -508,7 +512,7 @@ public abstract class Combiner {
          *                        true for sample standard deviation
          */
         public StdevCombiner( boolean isSampleStdev ) {
-            super( "stdev",
+            super( isSampleStdev ? "stdev" : "stdev_pop",
                    "the " + ( isSampleStdev ? "sample" : "population" )
                           + " standard deviation of the combined values",
                    Type.INTENSIVE, true );

@@ -50,6 +50,8 @@ public class CombinerTest extends TestCase {
             new CTest( Combiner.MEDIAN, 2.5, new double[] { 1, 2, 3, 4 } ),
             new CTest( Combiner.SAMPLE_STDEV, Math.sqrt( 3.5 ),
                        new double[] { 1, 2, 3, 4, 5, 6 } ),
+            new CTest( Combiner.POP_STDEV, Math.sqrt( 17.5 / 6.0 ),
+                       new double[] { 1, 2, 3, 4, 5, 6 } ),
             new CTest( Combiner.Q1, 1.75, new double[] { 4, 1, 3, 2 } ),
             new CTest( Combiner.Q3, 4.0, new double[] { 5, 4, 1, 3, 2 } ),
         };
