@@ -14402,6 +14402,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="plot2sky-labelpos">labelpos</ref> parameter,
         to display lon/lat axis names alongside axis values.</li>
     <li>New task <ref id="tgroup"><code>tgroup</code></ref>
+        and filter <ref id="group"><code>group</code></ref>
         to calculate aggregate functions on groups of rows
         (like ADQL/SQL <code>GROUP BY</code>).</li>
     </ul>
