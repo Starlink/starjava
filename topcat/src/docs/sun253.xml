@@ -31567,6 +31567,10 @@ introduced since the last version:
         <label>Label Positioning</label> selector of
         <ref id="SkyAxisControl_grid">Sky Axes Control Grid panel</ref>,
         to display lon/lat axis names alongside axis values.</li>
+    <li>Recognise "<code>smoc</code>" as an alternative to
+        "<code>moc</code>" when examining xtype values for
+        <ref id="GangLayerControl_area_position">area format</ref>
+        defaults.</li>
     </ul>
     </p></dd>
 

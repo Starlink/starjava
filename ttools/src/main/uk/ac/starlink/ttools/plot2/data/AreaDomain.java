@@ -122,7 +122,8 @@ public class AreaDomain implements Domain<AreaMapper> {
         String xtype = info.getXtype();
         String ucd = info.getUCD();
         if ( clazz.equals( String.class ) ) {
-            if ( "moc".equalsIgnoreCase( xtype ) ) {
+            if ( "moc".equalsIgnoreCase( xtype ) ||
+                 "smoc".equalsIgnoreCase( xtype ) ) {
                 return ASCIIMOC_MAPPER;
             }
             else if ( "stc-s".equalsIgnoreCase( xtype ) ||
