@@ -35,6 +35,24 @@ public class SkyTest extends TableTestCase {
         assertEquals( 23.75, Sky.midLat( 23.5, 24.0 ) );
     }
 
+    public void testEllipse() {
+
+        /* These ellipse tests are not very rigorous, but I've checked
+         * the function by eye and I think it's OK. */
+        assertTrue( Sky.inSkyEllipse( 20,-30.1, 20,-40,10,5, 0 ) );
+        assertFalse( Sky.inSkyEllipse( 20,-29.9, 20,-40,10,5, 0 ) );
+        assertFalse( Sky.inSkyEllipse( 20,-30.1, 20,-40,10,5, 10 ) );
+        assertTrue( Sky.inSkyEllipse( -179,-44.9, -179,-40,10,5, 90 ) );
+        assertFalse( Sky.inSkyEllipse( -179,-45.1, -179,-40,10,5, 90 ) );
+        assertTrue( Sky.inSkyEllipse( -179,-45.1, -179,-40,10,5, 120 ) );
+
+        /* Check at least that the position angle rotation is going
+         * in the right direction. */
+        assertFalse( Sky.inSkyEllipse( 5,5, 0,10,10,5, 0 ) );
+        assertTrue( Sky.inSkyEllipse( 5,5, 0,10,10,5, -15 ) );
+        assertFalse( Sky.inSkyEllipse( 5,5, 0,10,10,5, +15 ) );
+    }
+
     public void testSingles() {
         assertTrue( Sky.inSkyPolygon(36,4, 40,7, 36,9, 30,8, 29,2, 39,2) );
         assertFalse( Sky.inSkyPolygon(39,50, 40,7, 36,9, 30,8, 29,2, 39,2) );

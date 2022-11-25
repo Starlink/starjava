@@ -31600,6 +31600,8 @@ introduced since the last version:
         the old behaviour.</li>
     <li>New action <label>Collapse Columns to Array</label>
         in the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+    <li>New function
+        <ref id="Sky-inSkyEllipse"><code>inSkyEllipse</code></ref>.</li>
     </ul>
     </p></dd>
 

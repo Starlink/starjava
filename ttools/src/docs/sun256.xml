@@ -14416,6 +14416,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>sampledRows</code> option can be configured so that
         only some rows are sampled, which is more like
         the old behaviour.</li>
+    <li>New function
+        <ref id="Sky-inSkyEllipse"><code>inSkyEllipse</code></ref>.</li>
     </ul>
     </p></dd>
 
