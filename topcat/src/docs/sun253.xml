@@ -6213,6 +6213,22 @@ sideways so that the selected column is visible.
     This will only work for columns that are actually arrays.
     </p></dd>
 
+<dt>&IMG.COLLAPSE; Collapse Columns to Array</dt>
+<dd><p>If multiple (<m>N</m>) numeric columns are selected,
+    clicking this button will prompt for the name of a new column
+    containing <m>N</m>-element array values, collected from all
+    the selected columns.
+    Currently, the output type will always be <code>double[]</code>,
+    and blank values in the input columns will show up as blank
+    array elements (NaNs).
+    Currently, the elements in the output column will appear in the
+    order of the input columns' appearance in the table,
+    regardless of the current ordering of the rows in this window;
+    the new column's Description text lists the input columns in order,
+    if there are not too many.
+    The effect is more or less the opposite of the Explode option above.
+    </p></dd>
+
 <dt>&IMG.UP; Sort Selected Up</dt>
 <dd><p>If a single column is selected then the table's current 
     <ref id="order">Sort Order</ref> will be set to sort ascending on 
@@ -31582,6 +31598,8 @@ introduced since the last version:
         <code>sampledRows</code> option can be configured so that
         only some rows are sampled, which is more like
         the old behaviour.</li>
+    <li>New action <label>Collapse Columns to Array</label>
+        in the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
     </ul>
     </p></dd>
 

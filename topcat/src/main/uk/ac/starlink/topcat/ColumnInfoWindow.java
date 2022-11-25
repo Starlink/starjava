@@ -7,10 +7,12 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListSelectionModel;
@@ -68,6 +70,7 @@ public class ColumnInfoWindow extends AuxWindow {
     private final Action sortupAct;
     private final Action sortdownAct;
     private final Action explodecolAct;
+    private final Action collapsecolsAct;
     private final ColumnInfo indexColumnInfo;
     private final JTable jtab;
     private final MetaColumnTableModel metaTableModel;
@@ -554,6 +557,11 @@ public class ColumnInfoWindow extends AuxWindow {
                                               ResourceIcon.EXPLODE,
                                               "Replace N-element array column "
                                               + "with N scalar columns" );
+        collapsecolsAct = new ColumnInfoAction( "Collapse Columns to Array",
+                                                ResourceIcon.COLLAPSE,
+                                                "Add new array column "
+                                              + "made from selected "
+                                              + "numeric scalar columns" );
         sortupAct = new SortAction( true );
         sortdownAct = new SortAction( false );
         addcolAct.setEnabled( TopcatUtils.canJel() );
@@ -570,6 +578,7 @@ public class ColumnInfoWindow extends AuxWindow {
         colMenu.add( hideallAct );
         colMenu.add( revealallAct );
         colMenu.add( explodecolAct );
+        colMenu.add( collapsecolsAct );
         colMenu.add( sortupAct );
         colMenu.add( sortdownAct );
         getJMenuBar().add( colMenu );
@@ -597,6 +606,7 @@ public class ColumnInfoWindow extends AuxWindow {
         getToolBar().add( hideallAct );
         getToolBar().add( revealallAct );
         getToolBar().add( explodecolAct );
+        getToolBar().add( collapsecolsAct );
         getToolBar().addSeparator();
         getToolBar().add( sortupAct );
         getToolBar().add( sortdownAct );
@@ -746,6 +756,7 @@ public class ColumnInfoWindow extends AuxWindow {
         int nsel = jtab.getSelectedRowCount();
         boolean hasSelection = nsel > 0;
         boolean hasUniqueSelection = nsel == 1;
+        boolean hasMultiSelection = nsel > 1;
         if ( hasUniqueSelection &&
              toUnsortedIndex( jtab.getSelectedRow() ) == 0 ) {
             hasUniqueSelection = false;
@@ -766,6 +777,7 @@ public class ColumnInfoWindow extends AuxWindow {
         hidecolAct.setEnabled( hasSelection );
         revealcolAct.setEnabled( hasSelection );
         explodecolAct.setEnabled( hasArraySelection );
+        collapsecolsAct.setEnabled( hasMultiSelection );
         sortupAct.setEnabled( hasUniqueSelection );
         sortdownAct.setEnabled( hasUniqueSelection );
         replacecolAct.setEnabled( hasUniqueSelection && TopcatUtils.canJel() );
@@ -815,6 +827,97 @@ public class ColumnInfoWindow extends AuxWindow {
                 }
             }
         }
+    }
+
+    /**
+     * Returns a new array column formed from scalar columns
+     * specified by index.
+     * The output column has a dummy name, so should be renamed before use.
+     *
+     * <p>Currently, the output column is of type <code>double[]</code> and
+     * any non-numeric input values, including values from non-numeric columns,
+     * are represented as NaN.
+     * Because of the problems associated with representing null values,
+     * for now no attempt is made to return array values of different types
+     * based on the input columns (for instance an <code>int[]</code> array).
+     *
+     * @param  icols  array of column model indices
+     * @return   array-valued column, or null if something went wrong
+     */
+    private ColumnData createArrayColumn( int[] icols ) {
+
+        /* Check columns are suitable. */
+        final int nc = icols.length;
+        if ( nc == 0 ) {
+            return null;
+        }
+        List<String> colNames = new ArrayList<>();
+        for ( int ic = 0; ic < nc; ic++ ) {
+            ColumnInfo sinfo = dataModel.getColumnInfo( icols[ ic ] );
+            if ( ! Number.class.isAssignableFrom( sinfo.getContentClass() ) ) {
+                String msg = "Column " + sinfo + " is not numeric";
+                JOptionPane.showMessageDialog( ColumnInfoWindow.this, msg,
+                                               "Collapse Error",
+                                               JOptionPane.ERROR_MESSAGE );
+                return null;
+            }
+            colNames.add( sinfo.getName() );
+        }
+
+        /* Check if we have some metadata items that are exactly the same
+         * for all input columns. */
+        ColumnInfo cinfo0 = dataModel.getColumnInfo( icols[ 0 ] );
+        String unit0 = cinfo0.getUnitString();
+        String ucd0 = cinfo0.getUCD();
+        for ( int ic = 1; ic < nc; ic++ ) {
+            ColumnInfo cinfo1 = dataModel.getColumnInfo( icols[ ic ] );
+            String unit1 = cinfo1.getUnitString();
+            String ucd1 = cinfo1.getUCD();
+            if ( unit0 != null && ! unit0.equals( unit1 ) ) {
+                unit0 = null;
+            }
+            if ( ucd0 != null && ! ucd0.equals( ucd1 ) ) {
+                ucd0 = null;
+            }
+        }
+
+        /* Prepare and return array column. */
+        ColumnInfo info = new ColumnInfo( "dummy", double[].class,
+                                          "array of scalar columns" );
+        info.setShape( new int[] { nc } );
+        StringBuffer dbuf = new StringBuffer()
+                           .append( "Array column from input scalars: " );
+        int maxNames = 20;
+        if ( colNames.size() > maxNames ) {
+            dbuf.append( colNames.stream()
+                                 .limit( maxNames / 2 )
+                                 .collect( Collectors.joining( ", " ) ) )
+                .append( ", ... , " )
+                .append( colNames.get( colNames.size() -1 ) );
+        }
+        else {
+            dbuf.append( colNames.stream()
+                                 .collect( Collectors.joining( ", " ) ) );
+        }
+        info.setDescription( dbuf.toString() );
+        if ( unit0 != null ) {
+            info.setUnitString( unit0 );
+        }
+        if ( ucd0 != null ) {
+            info.setUCD( ucd0 );
+        }
+        return new ColumnData( info ) {
+            public double[] readValue( long irow ) throws IOException {
+                double[] value = new double[ nc ];
+                for ( int ic = 0; ic < nc; ic++ ) {
+                    Object scalar = dataModel.getCell( irow, icols[ ic ] );
+                    value[ ic ] = scalar instanceof Number
+                                ? ((Number) scalar).doubleValue()
+                                : Double.NaN;
+                }
+                return value;
+            }
+        };
     }
 
     /**
@@ -1008,6 +1111,33 @@ public class ColumnInfoWindow extends AuxWindow {
                                                yesOpt ) == 0 ) {
                             tcModel.explodeColumn( tcol );
                         }
+                    }
+                }
+            }
+
+            /* New array column from selected scalar columns. */
+            else if ( this == collapsecolsAct ) {
+                int nsel = jtab.getSelectedRowCount();
+                if ( nsel > 1 ) {
+                    int[] isels = jtab.getSelectedRows();
+                    int nscalar = isels.length;
+                    int[] icScalars = new int[ nscalar ];
+                    for ( int is = 0; is < nscalar; is++ ) {
+                        icScalars[ is ] =
+                            getModelIndexFromRow(
+                                toUnsortedIndex( isels[ is ] ) );
+                    }
+                    ColumnData arrayCol = createArrayColumn( icScalars );
+                    if ( arrayCol != null ) {
+                        String msg = "Column name for collapse of " + nscalar
+                                   + " columns";
+                        String cname =
+                            JOptionPane
+                           .showInputDialog( parent, msg,
+                                             "Create Collapsed Column",
+                                             JOptionPane.QUESTION_MESSAGE );
+                        arrayCol.getColumnInfo().setName( cname );
+                        tcModel.appendColumn( arrayCol );
                     }
                 }
             }

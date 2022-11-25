@@ -198,6 +198,7 @@ public class ResourceIcon implements Icon {
         MOVE_DOWN = makeIcon( "Down2.png" ),
         EQUATION = makeIcon( "xeq.png" ),
         EXPLODE = makeIcon( "explode.png" ),
+        COLLAPSE = makeIcon( "collapse.png" ),
         ADDSKY = makeIcon( "addsky1.png" ),
         COLOR_LOG = makeIcon( "logred2.png" ),
         XLOG = makeIcon( "xlog.png" ),
