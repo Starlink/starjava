@@ -8,6 +8,8 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.DoubleFunction;
+import java.util.function.DoubleUnaryOperator;
 import uk.ac.starlink.topcat.TopcatJELUtils;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot.Matrices;
@@ -40,6 +42,15 @@ public abstract class SkyFigureMode implements FigureMode {
         }
     };
 
+    /** SkySurface area within the ellipse defined by 2 or 3 points. */
+    public static final SkyFigureMode ELLIPSE = new SkyFigureMode( "Ellipse" ) {
+        public Figure createFigure( Surface surf, Point[] points ) {
+            return surf instanceof SkySurface
+                 ? createEllipseFigure( (SkySurface) surf, points )
+                 : null;
+        }
+    };
+
     /** SkySurface area within the polygon bounded by (&gt;=3) points. */
     public static final SkyFigureMode POLYGON =
             new SkyFigureMode( "Polygon" ) {
@@ -52,15 +63,17 @@ public abstract class SkyFigureMode implements FigureMode {
 
     /** Available polygon modes for use with sky surfaces. */
     public static final SkyFigureMode[] MODES = {
-        CIRCLE, POLYGON,
+        CIRCLE, ELLIPSE, POLYGON,
     };
 
     private static final String F_INSKYPOLYGON;
+    private static final String F_INSKYELLIPSE;
     private static final String F_SKYDISTANCE;
 
     /** JEL functions used when constructing expressions. */
     static final String[] JEL_FUNCTIONS = new String[] {
         F_INSKYPOLYGON = "inSkyPolygon",
+        F_INSKYELLIPSE = "inSkyEllipse",
         F_SKYDISTANCE = "skyDistance",
     };
 
@@ -108,7 +121,7 @@ public abstract class SkyFigureMode implements FigureMode {
      *
      * @param  surf  plot surface
      * @param  points   graphics points defining circle
-     * @retrun  circle figure, or null
+     * @return  circle figure, or null
      */
     private static Figure createCircleFigure( SkySurface surf,
                                               Point[] points ) {
@@ -120,6 +133,41 @@ public abstract class SkyFigureMode implements FigureMode {
             return circleVertices == null
                  ? null
                  : new CircleFigure( surf, p0, p1, circleVertices );
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a figure defined by the center and one or two radial points
+     * of an ellipse.  The first two and, if applicable, last points are used,
+     * any others are ignored.
+     *
+     * @param  surf  plot surface
+     * @param  points   graphics points defining ellipse
+     * @return  ellipse figure, or null
+     */
+    private static Figure createEllipseFigure( SkySurface surf,
+                                               Point[] points ) {
+        int np = points.length;
+        if ( np >= 2 ) {
+            Point p0 = points[ 0 ];
+            Point pA = points[ 1 ];
+            Point p2 = np > 2 ? points[ np - 1 ] : null;
+            double[] vec0 = surf.graphicsToData( p0 );
+            double[] vecA = surf.graphicsToData( pA );
+            double posAng = vectorPositionAngle( vec0, vecA );
+            double rA = surf.screenDistanceRadians( p0, pA );
+            double perpDist = p2 == null ? Double.NaN
+                                         : perpDistance( surf, p0, pA, p2 );
+            double rB = perpDist > 0 ? perpDist : 0.5 * rA;
+            Point2D[] ellipseVertices =
+                getEllipseVertices( surf, p0, rA, rB, posAng );
+            return ellipseVertices == null
+                 ? null
+                 : new EllipseFigure( surf, p0, rA, rB, posAng,
+                                      ellipseVertices, p2 != null );
         }
         else {
             return null;
@@ -210,6 +258,74 @@ public abstract class SkyFigureMode implements FigureMode {
     }
 
     /**
+     * Returns a set of graphics points that can be used to represent
+     * an ellipse on the sky, given a center, semi-major axis lengths,
+     * and position angle.
+     * If no contiguous figure can be drawn, null is returned.
+     *
+     * @param  surf  sky surface
+     * @param  p0    ellipse center in graphics coordinates
+     * @param  rA    primary semi-major axis length in radians
+     * @param  rB    secondary semi-major axis length in radians
+     * @param  posAng  angle from North to primary semi-major axis
+     *                 in direction of increasing longitude
+     * @return   list of vertices defining a closed figure in graphics
+     *           coordinates, or null if the arguments are not suitable
+     */
+    private static Point2D[] getEllipseVertices( SkySurface surf, Point p0,
+                                                 double rA, double rB,
+                                                 double posAng ) {
+
+        /* Define functions to calculate radius and point on ellipse boundary
+         * for angle parameter. */
+        Projection proj = surf.getProjection();
+        double[] vec0 = surf.graphicsToData( p0 );
+        if ( vec0 == null ) {
+            return null;
+        }
+        DoubleUnaryOperator radiusTheta = theta -> {
+            double cosTheta = Math.cos( theta );
+            double sinTheta = Math.sin( theta );
+            return rA * rB / Math.hypot( rB * cosTheta, rA * sinTheta );
+        };
+        DoubleFunction<Point2D.Double> pointTheta = theta -> {
+            double[] vec1 =
+                distanceBearing( vec0, posAng + theta,
+                                 radiusTheta.applyAsDouble( theta ) );
+            Point2D.Double p1 = new Point2D.Double();
+            return proj.isContinuousLine( vec0, vec1 )
+                && surf.dataToGraphics( vec1, false, p1 ) ? p1 : null;
+        };
+
+        /* Work out how many points will be required along the boundary
+         * to get a fairly smooth ellipse. */
+        Point2D.Double pA = pointTheta.apply( 0. );
+        Point2D.Double pB = pointTheta.apply( 0.5 * Math.PI );
+        if ( pA == null || pB == null ) {
+            return null;
+        }
+        double gr = Math.max( Math.hypot( pA.x - p0.x, pA.y - p0.y ),
+                              Math.hypot( pB.x - p0.x, pB.y - p0.y ) );
+        double dTheta = 6. / gr;
+        double rScale = Math.max( Math.min( rA, rB ), ( rA + rB ) / 16 );
+
+        /* Generate and return the points. */
+        List<Point2D> vertices = new ArrayList<Point2D>();
+        for ( double theta = 0; theta < 2 * Math.PI; ) {
+            Point2D vertex = pointTheta.apply( theta );
+            if ( vertex != null ) {
+                vertices.add( vertex );
+            }
+            else {
+                return null;
+            }
+            double r = radiusTheta.applyAsDouble( theta );
+            theta += dTheta * rScale / r;
+        }
+        return vertices.toArray( new Point2D[ 0 ] );
+    }
+
+    /**
      * Calculates a rotation matrix which will rotate any vector by a
      * given angle around a given axial vector.
      *
@@ -233,6 +349,148 @@ public abstract class SkyFigureMode implements FigureMode {
     }
 
     /**
+     * Calculates the bearing (position angle) of one celestial direction
+     * with respect to another.
+     *
+     * <p>This is routine DPAV from SLALIB.
+     *
+     * @param   vec1  unit vector of starting point
+     * @param   vec2  unit vector of other point
+     * @return   bearing of vec2 from vec1 as an angle in radians
+     *           from North in the direction of positive longitude
+     */
+    private static double vectorPositionAngle( double[] vec1, double[] vec2 ) {
+        double x1 = vec1[ 0 ];
+        double y1 = vec1[ 1 ];
+        double z1 = vec1[ 2 ];
+        double w = Math.sqrt( x1 * x1 + y1 * y1 + z1 * z1 );
+        if ( w != 0 ) {
+            x1 = x1 / w;
+            y1 = y1 / w;
+            z1 = z1 / w;
+        }
+        double x2 = vec2[ 0 ];
+        double y2 = vec2[ 1 ];
+        double z2 = vec2[ 2 ];
+        double sq = y2 * x1 - x2 * y1;
+        double cq = z2 * ( x1 * x1 + y1 * y1 ) - z1 * ( x2 * x1 + y2 * y1 );
+        if ( sq == 0 && cq == 0 ) {
+            cq = 1;
+        }
+        return Math.atan2( sq, cq );
+    }
+
+    /**
+     * Calculates the position vector that results from following a
+     * bearing from a starting position for a given distance.
+     * Input and output positions are unit vectors (direction cosines).
+     *
+     * @param  vec0  starting position unit vector
+     * @param  psi   bearing as angle clockwise from north in radians
+     *               (like position angle)
+     * @param  distRad   distance travelled in radians
+     * @return  ending position unit vector
+     */
+    private static double[] distanceBearing( double[] vec0, double psi,
+                                             double distRad ) {
+
+        /* Convert from input unit vector to lat/long. */
+        double lat0 = 0.5 * Math.PI - Math.acos( vec0[ 2 ] );
+        double lon0 = Math.atan2( vec0[ 1 ], vec0[ 0 ] );
+
+        /* These expressions were copied from
+         * http://www.movable-type.co.uk/scripts/latlong.html.
+         * I thought there should be something in SLALIB that does this,
+         * but I couldn't find it. */
+        double lat1 = Math.asin( Math.sin( lat0 ) * Math.cos( distRad )
+                               + Math.cos( lat0 ) * Math.sin( distRad )
+                                                  * Math.cos( psi ) );
+        double lon1 = lon0
+                    + Math.atan2( Math.sin( psi ) * Math.sin( distRad )
+                                                  * Math.cos( lat0 ),
+                                  Math.cos( distRad ) - Math.sin( lat0 )
+                                                      * Math.sin( lat1 ) );
+
+        /* Convert from output lat/long to unit vector. */
+        double theta1 = 0.5 * Math.PI - lat1;
+        return new double[] {
+            Math.sin( theta1 ) * Math.cos( lon1 ),
+            Math.sin( theta1 ) * Math.sin( lon1 ),
+            Math.cos( theta1 ),
+        };
+    }
+
+    /**
+     * Calculate tangent plane coordinates from unit vectors.
+     * This is DV2TP from SLALIB.
+     *
+     * @param  vec0  unit vector of tangent point
+     * @param  vec1  unit vector of point to be transformed
+     * @return  2-element (xi,eta) tangent point plane coordinates of vec1,
+     *                    in radians, or null if there's a problem
+     */
+    private static double[] dv2tp( double[] vec0, double[] vec1 ) {
+        double r2 = vec0[ 0 ] * vec0[ 0 ] + vec0[ 1 ] * vec0[ 1 ];
+        double r = Math.sqrt( r2 );
+        double w = vec1[ 0 ] * vec0[ 0 ] + vec1[ 1 ] * vec0[ 1 ];
+        double d = w + vec1[ 2 ] * vec0[ 2 ];
+        if ( d < 1e-6 ) {
+            return null;
+        }
+        else {
+            d = d * r;
+            return new double[] {
+                ( vec1[ 1 ] * vec0[ 0 ] - vec1[ 0 ] * vec0[ 1 ] ) / d,
+                ( vec1[ 2 ] * r2 - vec0[ 2 ] * w ) / d,
+            };
+        }
+    }
+
+    /**
+     * Calculates the perpendicular distance from a point p2
+     * to the line between p0 and p1.
+     *
+     * @param  p0  graphics coordinates for one end of line
+     * @param  p1  graphics coordinatse for other end of line
+     * @param  p2  graphics coordinates for point
+     * @return  length in radians of perpendicular dropped from
+     *          sky position at p2 to great circle defined by p1-p0,
+     *          or NaN if it can't be done
+     */
+    private static double perpDistance( SkySurface ssurf, Point p0, Point pA,
+                                        Point p2 ) {
+
+        /* Transform from graphics coordinates to unit vectors. */
+        double[] vec0 = ssurf.graphicsToData( p0 );
+        double[] vecA = ssurf.graphicsToData( pA );
+        double[] vec2 = ssurf.graphicsToData( p2 );
+        if ( vec0 == null || vecA == null || vec2 == null ) {
+            return Double.NaN;
+        }
+
+        /* Project points A and 2 to tangent plane centered on p0. */
+        double[] tpA = dv2tp( vec0, vecA );
+        double[] tp2 = dv2tp( vec0, vec2 );
+        if ( tpA == null || tp2 == null ) {
+            return Double.NaN;
+        }
+
+        /* Determine length of perpendicular on tangent plane
+         * dropped from p2 to 0A. */
+        double v1x = tpA[ 0 ];
+        double v1y = tpA[ 1 ];
+        double r1 = Math.hypot( v1x, v1y );
+        double u1x = v1x / r1;
+        double u1y = v1y / r1;
+        double v2x = tp2[ 0 ];
+        double v2y = tp2[ 1 ];
+        double p12 = u1x * v2x + u1y * v2y;
+        double vpx = v2x - p12 * u1x;
+        double vpy = v2y - p12 * u1y;
+        return Math.hypot( vpx, vpy );
+    }
+
+    /**
      * Utility method to turn an array of points into an Area.
      *
      * @param  vertices  defines polygon in graphics space
@@ -241,7 +499,7 @@ public abstract class SkyFigureMode implements FigureMode {
     private static Area createArea( Point2D[] vertices ) {
         if ( vertices != null ) {
             Polygon poly = new Polygon();
-            for ( Point2D p : vertices ) { 
+            for ( Point2D p : vertices ) {
                 poly.addPoint( (int) p.getX(), (int) p.getY() );
             }
             return new Area( poly );
@@ -263,7 +521,7 @@ public abstract class SkyFigureMode implements FigureMode {
         if ( vertices != null ) {
             for ( int ip = 0; ip < vertices.length; ip++ ) {
                 Point2D p = vertices[ ip ];
-                if ( ip == 0 ) { 
+                if ( ip == 0 ) {
                     path.moveTo( p.getX(), p.getY() );
                 }
                 else {
@@ -441,7 +699,6 @@ public abstract class SkyFigureMode implements FigureMode {
         abstract String createSkyAdql( String lonVar, String latVar,
                                        SkyDataGeom varGeom );
 
-        
         /**
          * Returns a pair of coordinate names suitable for this figure's
          * view coordinate system.
@@ -547,6 +804,122 @@ public abstract class SkyFigureMode implements FigureMode {
                 minPixArea = Math.min( minPixArea,
                                        surf_.pixelAreaSteradians( v ) );
             }
+            double radiusEps = Math.toDegrees( Math.sqrt( minPixArea ) );
+            return PlotUtil.formatNumber( radius, radiusEps );
+        }
+    }
+
+    /**
+     * Figure implementation representing an ellipse on the sky.
+     */
+    private static class EllipseFigure extends SkyFigure {
+        final Point p0_;
+        final double rA_;
+        final double rB_;
+        final double posAng_;
+        final Point2D[] ellipseVertices_;
+        final boolean hasP2_;
+        final Point pA_;
+        final Point pB_;
+        static final double rb0_ = 0.5;
+
+        /**
+         * Constructor.
+         *
+         * @param  surf  sky surface
+         * @param  p0    ellipse center in graphics coordinates
+         * @param  rA    primary semi-major axis length in radians
+         * @param  rB    secondary semi-major axis length in radians
+         * @param  posAng  angle from North to primary semi-major axis
+         *                 in direction of increasing longitude
+         * @param  ellipseVertices  list of vertices in graphics coordinates
+         *                          representing the ellipse
+         * @param  hasP2   whether the point defining the secondary
+         *                 semi-major axis has been explicitly supplied
+         *                 by the user
+         */
+        EllipseFigure( SkySurface surf, Point p0, double rA, double rB,
+                       double posAng, Point2D[] ellipseVertices,
+                       boolean hasP2 ) {
+            super( surf );
+            p0_ = p0;
+            rA_ = rA;
+            rB_ = rB;
+            posAng_ = posAng;
+            ellipseVertices_ = ellipseVertices;
+            hasP2_ = hasP2;
+            double[] vec0 = surf.graphicsToData( p0 );
+            double[] vecA = distanceBearing( vec0, posAng, rA );
+            double[] vecB = distanceBearing( vec0, posAng + 0.5 * Math.PI, rB );
+            Point2D.Double pA = new Point2D.Double();
+            Point2D.Double pB = new Point2D.Double();
+            surf.dataToGraphics( vecA, false, pA );
+            surf.dataToGraphics( vecB, false, pB );
+            pA_ = new Point( (int) Math.round(pA.x), (int) Math.round(pA.y) );
+            pB_ = new Point( (int) Math.round(pB.x), (int) Math.round(pB.y) );
+        }
+
+        public Area getArea() {
+            return createArea( ellipseVertices_ );
+        }
+
+        public void paintPath( Graphics2D g ) {
+            g.draw( createPath( ellipseVertices_, true ) );
+            LabelledLine axisA = surf_.createLine( p0_, pA_ );
+            axisA.drawLine( g );
+            axisA.drawLabel( g, null );
+            LabelledLine axisB = surf_.createLine( p0_, pB_ );
+            axisB.drawLine( g );
+            axisB.drawLabel( g, null );
+        }
+
+        public Point[] getVertices() {
+            return hasP2_ ? new Point[] { p0_, pA_, pB_ }
+                          : new Point[] { p0_, pA_ };
+        }
+
+        public String createSkyExpression( String lonVar, String latVar,
+                                           SkyDataGeom varGeom ) {
+            return new StringBuffer()
+               .append( F_INSKYELLIPSE )
+               .append( "(" )
+               .append( lonVar )
+               .append( ", " )
+               .append( latVar )
+               .append( referencePoints( surf_, new Point[] { p0_ }, varGeom ) )
+               .append( ", " )
+               .append( formatRadius( rA_ ) )
+               .append( ", " )
+               .append( formatRadius( rB_ ) )
+               .append( ", " )
+               .append( (int) Math.toDegrees( posAng_ ) )
+               .append( "." )
+               .append( ")" )
+               .toString();
+        }
+
+        public String createSkyAdql( String lonVar, String latVar,
+                                     SkyDataGeom varGeom ) {
+            // It's not impossible to come up with a closed form ADQL
+            // expression defining this ellipse, but it would be rather
+            // long-winded.
+            return null;
+        }
+
+        /**
+         * Returns a formatted string giving a length value in degrees,
+         * to a sensible precision, for a semi-major radius of this ellipse.
+         *
+         * @param  r  length value in radians
+         * @return   formatted text in degrees
+         */
+        private String formatRadius( double r ) {
+            double minPixArea = 4 * Math.PI;
+            for ( Point2D v : ellipseVertices_ ) {
+                minPixArea = Math.min( minPixArea,
+                                       surf_.pixelAreaSteradians( v ) );
+            }
+            double radius = Math.toDegrees( r );
             double radiusEps = Math.toDegrees( Math.sqrt( minPixArea ) );
             return PlotUtil.formatNumber( radius, radiusEps );
         }

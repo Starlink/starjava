@@ -7787,7 +7787,7 @@ unwieldy than they have to be.</p>
         </li>
     <li><label>Rotated Ellipse</label>:
         Defines an ellipse with arbitrary alignment.
-        the first point selected defines the ellipse center,
+        The first point selected defines the ellipse center,
         the second point is the end of the primary radius,
         and the third point defines the extent of the secondary radius.
         If later points are selected they reset the secondary radius.
@@ -7824,6 +7824,15 @@ unwieldy than they have to be.</p>
         on the sphere (cone), and the next point is on its radius.
         If later points are selected, they reset the radius.
         The expression generated uses the <code>skyDistance</code> function
+        from class <ref id="Sky">Sky</ref>.
+        </li>
+    <li><label>Ellipse</label>:
+        Defines an ellipse with arbitrary alignment.
+        The first point selected defines the ellipse center,
+        the second point is the end of the primary radius,
+        and the third point defines the extent of the secondary radius.
+        If later points are selected they reset the secondary radius.
+        The expression generated uses the <code>inSkyEllipse</code> function
         from class <ref id="Sky">Sky</ref>.
         </li>
     <li><label>Polygon</label>:
@@ -31602,6 +31611,9 @@ introduced since the last version:
         in the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
     <li>New function
         <ref id="Sky-inSkyEllipse"><code>inSkyEllipse</code></ref>.</li>
+    <li>You can now draw <label>Ellipse</label> shapes when using
+        <ref id="FigurePanel">Draw Algebraic Subset</ref>
+        with the Sky Plot.</li>
     </ul>
     </p></dd>
 
