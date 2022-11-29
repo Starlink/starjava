@@ -127,93 +127,13 @@ public class Sky {
         }
 
         /* Otherwise do the full calculation. */
-        return inSkyEllipseExact( D2R * lon0, D2R * lat0,
-                                  D2R * lonCenter, D2R * latCenter,
-                                  D2R * rA, D2R * rB, D2R * posAng );
-    }
-
-    /**
-     * Tests whether a given sky position is inside a given ellipse,
-     * by calculating bearing and distance.  Units are radians.
-     *
-     * @param   lon0   test point longitude in radians
-     * @param   lat0   test point latitude in radians
-     * @param   lonCenter  ellipse center longitude in radians
-     * @param   latCenter  ellipse center latitude in radians
-     * @param   rA   ellipse first principal radius in radians
-     * @param   rB   ellipse second principal radius in radians
-     * @param   posAng  position angle in radians from the North pole
-     *                  to the primary axis of the ellipse in the direction
-     *                  of increasing longitude
-     * @return  true iff test point is inside, or on the border of, the ellipse
-     */
-    private static boolean inSkyEllipseExact( double lon0, double lat0,
-                                              double lonCenter,
-                                              double latCenter,
-                                              double rA, double rB,
-                                              double posAng ) {
-        double theta = CoordsRadians
-                      .posAngRadians( lonCenter, latCenter, lon0, lat0 )
-                     - posAng;
-        double dist = CoordsRadians
-                     .skyDistanceRadians( lonCenter, latCenter, lon0, lat0 );
-        double rEllipse =
-              rA * rB 
-            / Math.hypot( rB * Math.cos( theta ), rA * Math.sin( theta ) );
+        double theta =
+              CoordsDegrees.posAngDegrees( lonCenter, latCenter, lon0, lat0 )
+            - posAng;
+        double cosTheta = Math.cos( D2R * theta );
+        double sinTheta = Math.sin( D2R * theta );
+        double rEllipse = rA * rB / Math.hypot( rB * cosTheta, rA * sinTheta );
         return dist <= rEllipse;
-    }
-
-    /**
-     * Tests whether a given sky position is inside a given ellipse,
-     * by tranforming to the tangent plane.  Units are radians.
-     *
-     * <p>The point is transformed into the tangent plane centered on
-     * the center of the ellipse before the test is done.
-     * That means this should give good answers for small ellipses,
-     * but will suffer increasing innaccuracies for larger ones.
-     * This method is not currently used, since the exact method works better,
-     * but it's available for comparison.
-     *
-     * @param   lon0   test point longitude in radians
-     * @param   lat0   test point latitude in radians
-     * @param   lonCenter  ellipse center longitude in radians
-     * @param   latCenter  ellipse center latitude in radians
-     * @param   rA   ellipse first principal radius in radians
-     * @param   rB   ellipse second principal radius in radians
-     * @param   posAng  position angle in radians from the North pole
-     *                  to the primary axis of the ellipse in the direction
-     *                  of increasing longitude
-     * @return  true iff test point is inside, or on the border of, the ellipse
-     *          (approximation good for small ellipses)
-     */
-    private static boolean inSkyEllipseTangent( double lon0, double lat0,
-                                                double lonCenter,
-                                                double latCenter,
-                                                double rA, double rB,
-                                                double posAng ) {
-
-        /* Project test point onto tangent plane for which the ellipse
-         * center is the tangent point.  If it fails for some reason,
-         * just return false. */
-        double[] pos1 = ds2tp( lon0, lat0, lonCenter, latCenter );
-        if ( pos1 == null ) {
-            return false;
-        }
-        double x1 = pos1[ 0 ];
-        double y1 = pos1[ 1 ];
-
-        /* Rotate the point so that the ellipse principal axes are aligned
-         * with the coordinate axes. */
-        double theta = posAng - 0.5 * Math.PI;
-        double cosTheta = Math.cos( theta );
-        double sinTheta = Math.sin( theta );
-        double x2 = cosTheta * x1 - sinTheta * y1;
-        double y2 = sinTheta * x1 + cosTheta * y1;
-
-        /* Then do a simple ellipse containment test. */
-        double sx = x2 / rA;
-        double sy = y2 / rB;
-        return sx * sx + sy * sy <= 1.0;
     }
 
     /**
@@ -415,38 +335,5 @@ public class Sky {
             cosLat * sinLon,
             sinLat,
         };
-    }
-
-    /**
-     * Spherical to tangent plane projection.
-     * This is function DS2TP from PAL/SLALIB.
-     *
-     * @param  ra   longitude in radians of point to be projected
-     * @param  dec  latitude in radians of point to be projected
-     * @param  raz  longitude in radians of tangent point
-     * @param  decz latitude in radians of tangent point
-     * @return  2-element array giving rectangular (xi,eta) coordinates
-     *          of point in tangent plane in radians,
-     *          or null in case of error
-     */
-    private static double[] ds2tp( double ra, double dec,
-                                   double raz, double decz ) {
-        double sdecz = Math.sin( decz );
-        double sdec = Math.sin( dec );
-        double cdecz = Math.cos( decz );
-        double cdec = Math.cos( dec );
-        double radif = ra - raz;
-        double sradif = Math.sin( radif );
-        double cradif = Math.cos( radif );
-        double denom = sdec * sdecz + cdec * cdecz * cradif;
-        if ( denom > 1.0e-6 ) {
-            double denom1 = 1.0 / denom;
-            double xi = cdec * sradif * denom1;
-            double eta = ( sdec * cdecz - cdec * sdecz * cradif ) * denom1;
-            return new double[] { xi, eta };
-        }
-        else {
-            return null;
-        }
     }
 }
