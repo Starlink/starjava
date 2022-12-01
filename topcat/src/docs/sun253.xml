@@ -31571,6 +31571,11 @@ introduced since the last version:
         "<code>moc</code>" when examining xtype values for
         <ref id="GangLayerControl_area_position">area format</ref>
         defaults.</li>
+    <li>Fix nasty and long-standing bug in text-like output formats
+        (<ref id="outText"><code>text</code></ref>,
+         <ref id="outAscii"><code>ascii</code></ref>,
+         <ref id="outIpac"><code>ipac</code></ref>)
+        that could truncate floating point values.</li>
     </ul>
     </p></dd>
 

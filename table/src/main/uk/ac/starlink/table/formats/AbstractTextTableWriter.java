@@ -377,14 +377,18 @@ public abstract class AbstractTextTableWriter
         return buf;
     }
 
-    private int getMaxDataWidth( Class<?> clazz ) {
+    int getMaxDataWidth( Class<?> clazz ) {
+
+        /* It's not straightforward to find the maximum possible size for
+         * floating point stringifications.  This routine returned incorrect
+         * (too small) * values for 15 years.
+         * The values below, probably 1 larger than actual maxima,
+         * are taken from https://stackoverflow.com/questions/1701055/. */
         if ( clazz == Double.class ) {
-            return Math.max( Double.toString( - Double.MAX_VALUE ).length(),
-                             Double.toString( - Double.MIN_VALUE ).length() );
+            return 24;  // 17 + 3 + 4;
         }
         else if ( clazz == Float.class ) {
-            return Math.max( Float.toString( - Float.MAX_VALUE ).length(),
-                             Float.toString( - Float.MIN_VALUE ).length() );
+            return 16;  // 10 + 2 + 4;
         }
         else if ( clazz == Long.class ) {
             return Math.max( Long.toString( Long.MIN_VALUE ).length(),

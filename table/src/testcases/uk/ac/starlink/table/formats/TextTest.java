@@ -62,6 +62,14 @@ public class TextTest extends TestCase {
         }
     }
 
+    public void testLengths() {
+        AbstractTextTableWriter twriter = new TextTableWriter();
+        assertTrue( Double.toString( -Double.MIN_NORMAL ).length()
+                  <= twriter.getMaxDataWidth( Double.class ) );
+        assertTrue( Float.toString( -Float.MIN_NORMAL ).length()
+                  <= twriter.getMaxDataWidth( Float.class ) );
+    }
+
     private static class TableDataSource extends DataSource {
         final byte[] bbuf;
         TableDataSource() {
