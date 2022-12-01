@@ -2,8 +2,6 @@ package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -43,7 +41,6 @@ public abstract class AbstractTextTableWriter
         setWriteParameters( writeParams );
         setMaxWidth( 160 );
         setMaximumParameterLength( 160 );
-        setSampledRows( 200 );
     }
 
     /**
@@ -61,43 +58,6 @@ public abstract class AbstractTextTableWriter
 
     public void writeStarTable( StarTable startab, OutputStream strm )
             throws IOException {
-        RowSequence rseq = startab.getRowSequence();
-        try {
-            writeStarTable( startab, rseq, strm );
-        }
-        finally {
-            rseq.close();
-        }
-    }
-
-    /**
-     * Writes the table given a row sequence.
-     *
-     * @param   startab  table
-     * @param   rseq     row sequence
-     * @param   strm     output stream
-     */
-    private void writeStarTable( StarTable startab, RowSequence rseq,
-                                 OutputStream strm ) throws IOException {
-
-        /* Fill a buffer with a sample of the rows.  This will be used to
-         * work out field widths, prior to being written out as normal
-         * row data. */
-        List<Object[]> sampleList = new ArrayList<Object[]>();
-        boolean allRowsSampled = false;
-        int maxSamples = getSampledRows();
-        logger_.config( "Reading <=" + maxSamples 
-                      + " rows to guess column widths" );
-        for ( int ir = 0; ir < maxSamples; ir++ ) {
-            if ( ! rseq.next() ) {
-                allRowsSampled = true;
-                break;
-            }
-            sampleList.add( rseq.getRow().clone() );
-        }
-        logger_.config( sampleList.size()
-                      + ( allRowsSampled ? " (all)" : "" )
-                      + " rows read to guess column widths" );
 
         /* Get the column headers and prepare to work out column widths 
          * for formatting. */
@@ -112,14 +72,46 @@ public abstract class AbstractTextTableWriter
                 getMaxDataWidth( cinfos[ i ].getContentClass() );
         }
 
-        /* Go through the sample to determine field widths. */
-        for ( Object[] row : sampleList ) {
-            for ( int i = 0; i < ncol; i++ ) {
-                String formatted = cinfos[ i ]
-                                  .formatValue( row[ i ], maxDataWidths[ i ] );
-                if ( formatted.length() > cwidths[ i ] ) {
-                    cwidths[ i ] = formatted.length();
+        /* Make one pass through (a sample of) the rows
+         * to determine field widths. */
+        int maxSamples = getSampledRows();
+        long irow = 0;
+        logger_.config( "Reading"
+                      + ( maxSamples <= 0 ? " all" :"" )
+                      + " rows to determine formatted column widths" );
+        boolean allRowsSampled;
+        try ( RowSequence rseq = startab.getRowSequence() ) {
+            while ( rseq.next() &&
+                    ( maxSamples <= 0 || irow++ < maxSamples ) ) {
+                Object[] row = rseq.getRow();
+                for ( int ic = 0; ic < ncol; ic++ ) {
+                    String formatted =
+                        cinfos[ ic ]
+                       .formatValue( row[ ic ], maxDataWidths[ ic ] );
+                    if ( formatted.length() > cwidths[ ic ] ) {
+                        cwidths[ ic ] = formatted.length();
+                    }
                 }
+            }
+            allRowsSampled = ! rseq.next();
+        }
+
+        /* Report on data sampling. */
+        if ( maxSamples > 0 ) {
+            if ( allRowsSampled ) {
+                logger_.config( "All rows sampled to determine column widths" );
+            }
+            else {
+                StringBuffer sbuf = new StringBuffer()
+                    .append( "Subset of rows (" )
+                    .append( irow );
+                long nt = startab.getRowCount();
+                if ( nt >= 0 ) {
+                    sbuf.append( "/" )
+                        .append( nt );
+                }
+                sbuf.append( ") sampled to determine column widths" );
+                logger_.info( sbuf.toString() );
             }
         }
 
@@ -160,30 +152,17 @@ public abstract class AbstractTextTableWriter
         /* Print headings. */
         printColumnHeads( strm, cwidths, cinfos );
 
-        /* Print sample rows. */
-        String[] data = new String[ ncol ];
-        for ( Object[] row : sampleList ) {
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                data[ icol ] = formatValue( row[ icol ], cinfos[ icol ],
-                                            cwidths[ icol ] );
+        /* Print rows. */
+        try ( RowSequence rseq = startab.getRowSequence() ) {
+            while ( rseq.next() ) {
+                Object[] row = rseq.getRow();
+                String[] frow = new String[ ncol ];
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    frow[ icol ] = formatValue( row[ icol ], cinfos[ icol ],
+                                                cwidths[ icol ] );
+                }
+                printLine( strm, cwidths, frow );
             }
-            printLine( strm, cwidths, data );
-        }
-
-        /* Print remaining rows. */
-        if ( ! allRowsSampled ) {
-            logger_.config( "Streaming remaining data rows" );
-        }
-        else {
-            assert ! rseq.next();
-        }
-        while ( rseq.next() ) {
-            Object[] row = rseq.getRow();
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                data[ icol ] = formatValue( row[ icol ], cinfos[ icol ],
-                                            cwidths[ icol ] );
-            }
-            printLine( strm, cwidths, data );
         }
 
         /* Finish off. */
@@ -284,6 +263,20 @@ public abstract class AbstractTextTableWriter
      *
      * @param  sampledRows   number of rows to be sampled
      */
+    @ConfigMethod(
+        property = "sampledRows",
+        doc = "<p>The number of rows examined on a first pass "
+            + "of the table to determine the width of each column. "
+            + "Only a representative number of rows needs to be examined, "
+            + "but if a formatted cell value after this limit "
+            + "is wider than the cells up to it, then such later wide cells "
+            + "may get truncated. "
+            + "If the value is &lt;=0, all rows are examined "
+            + "in the first pass; "
+            + "this is the default, but it can be configured to some "
+            + "other value if that takes too long."
+            + "</p>"
+    )
     public void setSampledRows( int sampledRows ) {
         sampledRows_ = sampledRows;
     }

@@ -14405,11 +14405,17 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         and filter <ref id="group"><code>group</code></ref>
         to calculate aggregate functions on groups of rows
         (like ADQL/SQL <code>GROUP BY</code>).</li>
-    <li>Fix nasty and long-standing bug in text-like output formats
+    <li>Modify column width determination in text-like output formats
         (<ref id="outText"><code>text</code></ref>,
          <ref id="outAscii"><code>ascii</code></ref>,
          <ref id="outIpac"><code>ipac</code></ref>)
-        that could truncate floating point values.</li>
+        to avoid occasional unwanted truncation of formatted values.
+        Tables are now read in two passes, the first to establish
+        column widths and the second to write the data.
+        By default all rows are sampled, but the
+        <code>sampledRows</code> option can be configured so that
+        only some rows are sampled, which is more like
+        the old behaviour.</li>
     </ul>
     </p></dd>
 

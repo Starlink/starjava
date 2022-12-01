@@ -31571,11 +31571,17 @@ introduced since the last version:
         "<code>moc</code>" when examining xtype values for
         <ref id="GangLayerControl_area_position">area format</ref>
         defaults.</li>
-    <li>Fix nasty and long-standing bug in text-like output formats
+    <li>Modify column width determination in text-like output formats
         (<ref id="outText"><code>text</code></ref>,
          <ref id="outAscii"><code>ascii</code></ref>,
          <ref id="outIpac"><code>ipac</code></ref>)
-        that could truncate floating point values.</li>
+        to avoid occasional unwanted truncation of formatted values.
+        Tables are now read in two passes, the first to establish
+        column widths and the second to write the data.
+        By default all rows are sampled, but the
+        <code>sampledRows</code> option can be configured so that
+        only some rows are sampled, which is more like
+        the old behaviour.</li>
     </ul>
     </p></dd>
 
