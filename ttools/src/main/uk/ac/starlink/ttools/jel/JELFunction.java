@@ -5,6 +5,7 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
+import java.util.function.DoubleUnaryOperator;
 import uk.ac.starlink.ttools.jel.JELUtils;
 
 /**
@@ -19,7 +20,7 @@ import uk.ac.starlink.ttools.jel.JELUtils;
  * @author    Mark Taylor
  * @since     14 Jun 2012
  */
-public class JELFunction {
+public class JELFunction implements DoubleUnaryOperator {
 
     private final String xvarname_;
     private final String fexpr_;
@@ -63,6 +64,13 @@ public class JELFunction {
         catch ( Throwable e ) {
             return Double.NaN;
         }
+    }
+
+    /**
+     * Does exactly the same as {@link #evaluate}.
+     */
+    public double applyAsDouble( double x ) {
+        return evaluate( x );
     }
 
     /**

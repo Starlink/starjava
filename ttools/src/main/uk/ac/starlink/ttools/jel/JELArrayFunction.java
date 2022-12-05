@@ -6,6 +6,7 @@ import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.lang.reflect.Array;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 
 /**
@@ -17,7 +18,7 @@ import java.util.function.IntFunction;
  * @author   Mark Taylor
  * @since    23 Mar 2021
  */
-public class JELArrayFunction<I,O> {
+public class JELArrayFunction<I,O> implements Function<I,O> {
 
     private final String ivarName_;
     private final String xvarName_;
@@ -147,6 +148,13 @@ public class JELArrayFunction<I,O> {
             }
         }
         return outArray;
+    }
+
+    /**
+     * Does exactly the same as {@link #evaluate}.
+     */
+    public O apply( I inArray ) {
+        return evaluate( inArray );
     }
 
     /**
