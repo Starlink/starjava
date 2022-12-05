@@ -35,6 +35,17 @@ public abstract class Orientation {
         }
     };
 
+    /** Orientation suitable for labelling top-edge X axis. */
+    public static final Orientation ANTI_X = new Orientation() {
+        public AffineTransform captionTransform( Rectangle bounds, int pad ) {
+            return AffineTransform
+                  .getTranslateInstance( -bounds.width / 2, -pad );
+        }
+        public boolean isDown() {
+            return false;
+        }
+    };
+
     /** Orientation suitable for labelling right-hand Y axis. */
     public static final Orientation ANTI_Y = new Orientation() {
         public AffineTransform captionTransform( Rectangle bounds, int pad ) {
