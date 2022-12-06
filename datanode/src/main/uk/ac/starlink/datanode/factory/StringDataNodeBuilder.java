@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import uk.ac.starlink.datanode.nodes.DataNode;
-import uk.ac.starlink.datanode.nodes.FtpDirectoryDataNode;
 import uk.ac.starlink.datanode.nodes.JDBCDataNode;
 import uk.ac.starlink.datanode.nodes.NoSuchDataException;
 import uk.ac.starlink.util.DataSource;
@@ -55,16 +54,6 @@ public class StringDataNodeBuilder extends DataNodeBuilder {
             }
             catch ( NoSuchDataException e ) {
                 // oh well.
-            }
-        }
-
-        /* If it looks like an FTP URL, pass it to the FTP handler. */
-        if ( string.startsWith( "ftp://" ) ) {
-            try {
-                return new FtpDirectoryDataNode( string );
-            }
-            catch ( NoSuchDataException e ) {
-                // oh well
             }
         }
 

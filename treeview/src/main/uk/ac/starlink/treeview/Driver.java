@@ -19,7 +19,6 @@ import uk.ac.starlink.datanode.nodes.DataNode;
 import uk.ac.starlink.datanode.nodes.DefaultDataNode;
 import uk.ac.starlink.datanode.nodes.FileDataNode;
 import uk.ac.starlink.datanode.nodes.FITSDataNode;
-import uk.ac.starlink.datanode.nodes.FtpDirectoryDataNode;
 import uk.ac.starlink.datanode.nodes.HDSDataNode;
 import uk.ac.starlink.datanode.nodes.HDXDataNode;
 import uk.ac.starlink.datanode.nodes.JDBCDataNode;
@@ -106,7 +105,6 @@ public class Driver {
         nodeTypeFlags.put( "-ndx", NdxDataNode.class );
         nodeTypeFlags.put( "-vot", VOTableDataNode.class );
         nodeTypeFlags.put( "-nda", NDArrayDataNode.class );
-        nodeTypeFlags.put( "-ftp", FtpDirectoryDataNode.class );
 
         /* Construct the usage message. */
         String usageMsg = 

@@ -23,8 +23,6 @@ import uk.ac.starlink.datanode.nodes.ErrorDataNode;
 import uk.ac.starlink.datanode.nodes.FITSFileDataNode;
 import uk.ac.starlink.datanode.nodes.FITSStreamDataNode;
 import uk.ac.starlink.datanode.nodes.FileDataNode;
-import uk.ac.starlink.datanode.nodes.FtpDirectoryDataNode;
-import uk.ac.starlink.datanode.nodes.FtpLocation;
 import uk.ac.starlink.datanode.nodes.HDSDataNode;
 import uk.ac.starlink.datanode.nodes.HDXDataNode;
 import uk.ac.starlink.datanode.nodes.HistoryDataNode;
@@ -475,24 +473,6 @@ public class DataNodeFactory {
             }
         }
 
-        /* If it's a file by FTP we can get its parent. */
-        if ( parentObj == null && node.getParentObject() == null 
-             && obj instanceof DataSource ) {
-            URL url = ((DataSource) obj).getURL();
-            if ( url != null ) {
-                String loc = url.toExternalForm();
-                if ( loc.startsWith( "ftp://" ) ) {
-                    String dir = loc.substring( 0, loc.lastIndexOf( '/' ) );
-                    try {
-                        parentObj = new FtpLocation( dir );
-                    }
-                    catch ( NoSuchDataException e ) {
-                        // never mind
-                    }
-                }
-            }
-        }
-           
         /* Get a suitable label from a source name if we have one.  The format
          * of a DataSource name is not defined, but it may be some sort of
          * path - try to pick the last element of it. */
@@ -685,7 +665,6 @@ public class DataNodeFactory {
                 XMLDataNode.class.getName(),
                 VOTableTableDataNode.class.getName(),
                 VOComponentDataNode.class.getName(),
-                FtpDirectoryDataNode.class.getName(),
                 CompressedDataNode.class.getName(),
                 FileDataNode.class.getName(),
                 BranchDataNode.class.getName(),
