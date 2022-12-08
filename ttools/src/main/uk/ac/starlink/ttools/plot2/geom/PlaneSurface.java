@@ -3,7 +3,6 @@ package uk.ac.starlink.ttools.plot2.geom;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
@@ -16,6 +15,7 @@ import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
 import uk.ac.starlink.ttools.plot2.Ticker;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -109,8 +109,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
         return new Rectangle( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
     }
 
-    public Insets getPlotInsets( boolean withScroll ) {
-        return createAxisAnnotation().getPadding( withScroll );
+    public Surround getSurround( boolean withScroll ) {
+        return createAxisAnnotation().getSurround( withScroll );
     }
 
     /**

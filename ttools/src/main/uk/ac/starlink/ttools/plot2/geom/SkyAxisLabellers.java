@@ -2,12 +2,12 @@ package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Insets;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.Surround;
 
 /**
  * Implementation class containing SkyAxisLabeller implementations.
@@ -49,8 +49,8 @@ public class SkyAxisLabellers {
                                                     Captioner captioner,
                                                     SkySys skySys ) {
             return new AxisAnnotation() {
-                public Insets getPadding( boolean withScroll ) {
-                    return new Insets( 0, 0, 0, 0 );
+                public Surround getSurround( boolean withScroll ) {
+                    return new Surround();
                 }
                 public void drawLabels( Graphics g ) {
                 }
@@ -73,8 +73,8 @@ public class SkyAxisLabellers {
                                                     final Captioner captioner,
                                                     final SkySys skySys ) {
             return new AxisAnnotation() {
-                public Insets getPadding( boolean withScroll ) {
-                    return new Insets( 0, 0, 0, 0 );
+                public Surround getSurround( boolean withScroll ) {
+                    return new Surround();
                 }
                 public void drawLabels( Graphics g ) {
                     Graphics2D g2 = (Graphics2D) g;

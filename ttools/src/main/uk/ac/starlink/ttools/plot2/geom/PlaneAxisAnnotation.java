@@ -2,15 +2,17 @@ package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.NullCaptioner;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
 
 /**
@@ -99,105 +101,92 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         g2.setTransform( trans0 );
     }
 
-    public Insets getPadding( boolean withScroll ) {
+    public Surround getSurround( boolean withScroll ) {
         Rectangle bounds =
             new Rectangle( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
+        Surround surround = new Surround();
+        Captioner xCaptioner = xAnnotate_ ? captioner_ : NullCaptioner.INSTANCE;
+        Captioner yCaptioner = yAnnotate_ ? captioner_ : NullCaptioner.INSTANCE;
 
-        /* Get the bounds of the plot region. */
-        Rectangle labelRect = new Rectangle( bounds );
-
-        /* Extend this by the the rectangles bounding the annotations
-         * on the X and Y axes. */
+        /* Extend the surround rectangles by the rectangles bounding
+         * the annotations on the X and Y axes.
+         * I feel there may be a more straightforward way to do this than
+         * the following, since we are effectively rotating the graphics
+         * space twice, but this does do the right thing, so leave it be. */
         Rectangle xrect =
-            xaxis_.getLabelBounds( xticks_, xlabel_,
-                                   xAnnotate_ ? captioner_
-                                              : NullCaptioner.INSTANCE,
-                                   X_ORIENT, false );
-        labelRect.add( axisTransform( xoff_, yoff_, false )
-                      .createTransformedShape( xrect )
-                      .getBounds() );
+            getLabelBounds( xaxis_, xticks_, xlabel_, xCaptioner,
+                            X_ORIENT, false, withScroll );
+        Rectangle bottomRect = axisTransform( xoff_, yoff_, false )
+                              .createTransformedShape( xrect )
+                              .getBounds();
+        int bottomExtent = bottomRect.y + bottomRect.height - gyhi_;
+        int bottomUnder = Math.max( 0, gxlo_ - bottomRect.x );
+        int bottomOver = Math.max( 0, bottomRect.x + bottomRect.width - gxhi_ );
+        surround.bottom =
+            new Surround.Block( bottomExtent, bottomUnder, bottomOver );
         Rectangle yrect =
-            yaxis_.getLabelBounds( yticks_, ylabel_,
-                                   yAnnotate_ ? captioner_
-                                              : NullCaptioner.INSTANCE,
-                                   Y_ORIENT, INVERT_Y );
-        labelRect.add( axisTransform( xoff_, yoff_, true )
-                      .createTransformedShape( yrect )
-                      .getBounds() );
+            getLabelBounds( yaxis_, yticks_, ylabel_, yCaptioner,
+                            Y_ORIENT, INVERT_Y, withScroll );
+        Rectangle leftRect = axisTransform( xoff_, yoff_, true )
+                            .createTransformedShape( yrect )
+                            .getBounds();
+        int leftExtent = gxlo_ - leftRect.x;
+        int leftUnder = Math.max( 0, gylo_ - leftRect.y );
+        int leftOver = Math.max( 0, leftRect.y + leftRect.height - gyhi_ );
+        surround.left =
+            new Surround.Block( leftExtent, leftUnder, leftOver );
+        return surround;
+    }
 
-        /* Work out what that means in terms of insets. */
-        int top = bounds.y - labelRect.y;
-        int left = bounds.x - labelRect.x;
-        int bottom = labelRect.y + labelRect.height - bounds.y - bounds.height;
-        int right = labelRect.x + labelRect.width - bounds.x - bounds.width;
-        Insets insets = new Insets( top, left, bottom, right );
+    /**
+     * Returns the rectangle required to accommodate the ticks and text
+     * decorating an axis.
+     *
+     * @param  axis  axis
+     * @param  ticks  tickmark array
+     * @param  label  axis label text, may be null
+     * @param  captioner  text positioning object
+     * @param  orient  axis orientation code
+     * @param  invert  whether to reverse sense of axis
+     * @param   withScroll  true to reserve space for nicer scrolling
+     * @return   bounding box for all annotations
+     */
+    private static Rectangle getLabelBounds( Axis axis, Tick[] ticks,
+                                             String label, Captioner captioner,
+                                             Orientation orient, boolean invert,
+                                             boolean withScroll ) {
+        final Tick[] ticks1;
 
-        /* If scrolling is required, extend the insets by the maximum
-         * amount that displaced axis labels might require. */
+        /* If withScroll is set, add fake tickmarks containing all of the
+         * tickmark text at both the lower and upper extents of the axes.
+         * Then scrolling the axes so that tickmarks with these labels
+         * are nearer the end of the axis won't increase the amount of
+         * space required. */
         if ( withScroll ) {
-            Insets scrollInsets = getScrollTickPadding();
-            insets.top = Math.max( insets.top, scrollInsets.top );
-            insets.left = Math.max( insets.left, scrollInsets.left );
-            insets.bottom = Math.max( insets.bottom, scrollInsets.bottom );
-            insets.right = Math.max( insets.right, scrollInsets.right );
-        }
-        return insets;
-    }
 
-    /**
-     * Returns padding insets for tick mark text
-     * if scrolling adjustments are required.
-     *
-     * @return  insets
-     */
-    private Insets getScrollTickPadding() {
-        Rectangle tickPad = new Rectangle( 0, 0, 0, 0 );
-
-        /* Get bounding boxes for largest ticks on each axis. */
-        if ( xAnnotate_ ) {
-            tickPad.add( getMaxTickSizeBounds( xticks_, false ) );
-        }
-        if ( yAnnotate_ ) {
-            tickPad.add( getMaxTickSizeBounds( yticks_, true ) );
-        }
-
-        /* Extend the insets enough to accommodate the largest tick
-         * positioned at the extreme ends of each axis. */
-        int left = -tickPad.x;
-        int right = tickPad.width + tickPad.x;
-        int top = -tickPad.y;
-        int bottom = tickPad.height + tickPad.y;
-
-        /* Return the resulting box. */
-        return new Insets( top, left, bottom, right );
-    }
-
-    /**
-     * Returns a rectangle large enougn to bound the text associated
-     * with any one of a supplied list of ticks on an axis.
-     * The returned rectangle is in unrotated graphics coordinates,
-     * so that -Y is up, not (necessarily) perpendicular to the axis.
-     *
-     * @param  ticks  ticks to assess bounds of
-     * @param  isY  true for Y axis, false for X axis
-     * @param  largest necessary bounding box for one tick
-     */
-    private Rectangle getMaxTickSizeBounds( Tick[] ticks, boolean isY ) {
-        Orientation orient = isY ? Y_ORIENT : X_ORIENT;
-        AffineTransform axisTrans = axisTransform( 0, 0, isY );
-        int cpad = captioner_.getPad();
-        Rectangle bounds = new Rectangle( 0, 0, 0, 0 );
-        for ( int it = 0; it < ticks.length; it++ ) {
-            Tick tick = ticks[ it ];
-            Caption label = tick.getLabel();
-            if ( label != null ) {
-                Rectangle b0 = captioner_.getCaptionBounds( label );
-                AffineTransform trans = new AffineTransform( axisTrans );
-                trans.concatenate( orient.captionTransform( b0, cpad ) );
-                bounds.add( trans.createTransformedShape( b0 ).getBounds() );
+            /* Work out the data space positions of both ends of the axis.
+             * The +/-0.5 is required in practice to avoid numerical
+             * instability (int conversion boundaries) when this data
+             * space position gets converted back to graphics coordinates. */
+            int[] glims = axis.getGraphicsLimits();
+            double d1 = axis.graphicsToData( glims[ 0 ] - 0.5 );
+            double d2 = axis.graphicsToData( glims[ 1 ] + 0.5 );
+            List<Tick> tickList = new ArrayList<>( 3 * ticks.length );
+            for ( Tick tick : ticks ) {
+                Caption caption = tick.getLabel();
+                tickList.add( tick );
+                tickList.add( new Tick( d1, caption ) );
+                tickList.add( new Tick( d2, caption ) );
             }
+            ticks1 = tickList.toArray( new Tick[ 0 ] );
         }
-        return bounds;
+        else {
+            ticks1 = ticks;
+        }
+
+        /* Get the axis itself to determine the required space given the
+         * ticks we are supplying. */
+        return axis.getLabelBounds( ticks1, label, captioner, orient, invert );
     }
 
     /**
@@ -209,7 +198,7 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
      * @param   isY  true for Y axis, false for X axis
      * @return   transform that transforms starting coords to axis coords
      */
-    private AffineTransform axisTransform( int x0, int y0, boolean isY ) {
+    private static AffineTransform axisTransform( int x0, int y0, boolean isY ){
         AffineTransform trans = new AffineTransform();
         trans.translate( x0, y0 );
         if ( isY ) {

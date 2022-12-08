@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import uk.ac.starlink.ttools.plot2.Anchor;
 import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.Surround;
 
 /**
  * Partial SkyAxisLabeller implementation that labels axes with positioned
@@ -301,26 +302,28 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
             }
         }
 
-        public Insets getPadding( boolean withScroll ) {
-            Insets padding = getTickPadding( withScroll );
+        public Surround getSurround( boolean withScroll ) {
+            Surround surround = getTickSurround( withScroll );
             if ( skySys_ != null ) {
-                padding.bottom += hLon_ + hLon_ / 2;
-                padding.left += hLat_ + hLat_ / 2;
+                int lonExtra = hLon_ + hLon_ / 2;
+                surround.bottom.extent += lonExtra;
+                int latExtra = hLat_ + hLat_ / 2;
+                surround.left.extent += latExtra;
             }
-            return padding;
+            return surround;
         }
 
         /**
-         * Returns the insets around the edge of the plot bounds due only
-         * to the ticks themselves managed by this annotation.
+         * Returns the required space around the edge of the plot bounds
+         * due only to the ticks themselves managed by this annotation.
          * Additional padding may be added outside this.
          *
          * @param  withScroll  true if the padding should be large enough to
          *                     accommodate labelling requirements if the
          *                     surface is scrolled
-         * @return  padding insets
+         * @return  surround space
          */
-        private Insets getTickPadding( boolean withScroll ) {
+        private Surround getTickSurround( boolean withScroll ) {
             Rectangle bounds = new Rectangle( plotBounds_ );
             for ( int i = 0; i < ticks_.length; i++ ) {
                 SkyTick tick = ticks_[ i ];
@@ -338,7 +341,7 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
             int right = bounds.x + bounds.width
                       - plotBounds_.x - plotBounds_.width;
             assert top >= 0 && left >= 0 && bottom >= 0 && right >= 0;
-            return new Insets( top, left, bottom, right );
+            return Surround.fromInsets( new Insets( top, left, bottom, right ));
         }
 
         public void drawLabels( Graphics g ) {
@@ -348,7 +351,7 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
                                           captioner_, g );
             }
             if ( skySys_ != null ) {
-                Insets insets = getTickPadding( false );
+                Insets insets = getTickSurround( false ).toInsets();
                 Point pLon =
                     new Point( plotBounds_.x + plotBounds_.width / 2,
                                plotBounds_.y + plotBounds_.height
@@ -380,7 +383,7 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
          *
          * @param  bounds  bounding rectangle, altered in place
          * @param  tick  tick mark whose bounds are added to <code>bounds</code>
-         * @param   Surface#getPlotInsets
+         * @param   Surface#getSurround
          */
         private void extendScrollBounds( Rectangle bounds, SkyTick tick ) {
             Rectangle box = plotBounds_;

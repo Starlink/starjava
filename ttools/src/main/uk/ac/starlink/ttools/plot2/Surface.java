@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.plot2;
 
 import java.awt.Graphics;
-import java.awt.Insets;
 import java.awt.Rectangle;
 import java.util.function.Supplier;
 import java.awt.geom.Point2D;
@@ -27,13 +26,13 @@ public interface Surface {
     Rectangle getPlotBounds();
 
     /**
-     * Returns the insets that this surface would like to reserve outside
+     * Returns the surround that this surface would like to reserve outside
      * the plot bounds.
      * This is space outside the rectangle returned by {@link #getPlotBounds}
      * to be used for axis labels etc.
      *
      * <p>If the <code>withScroll</code> parameter is set, then an attempt
-     * will be made to return insets that will not alter if the current
+     * will be made to return a surround that will not alter if the current
      * plot is scrolled around a moderate amount.
      * For a one-time plot that's not important, but for an interactive
      * plot it prevents the actual plot position jumping around to
@@ -45,9 +44,9 @@ public interface Surface {
      * apply additional padding on top of this for cosmetic reasons.
      *
      * @param   withScroll  true to reserve space for nicer scrolling
-     * @return   plot data area insets
+     * @return   plot data area surround
      */
-    Insets getPlotInsets( boolean withScroll );
+    Surround getSurround( boolean withScroll );
 
     /**
      * Paints the plot surface background.

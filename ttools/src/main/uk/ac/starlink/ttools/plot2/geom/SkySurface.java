@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -33,6 +32,7 @@ import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.LabelledLine;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.Surround;
 
 /**
  * Surface implementation for plotting on the celestial sphere.
@@ -166,12 +166,12 @@ public class SkySurface implements Surface {
         return new Rectangle( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
     }
 
-    public Insets getPlotInsets( boolean withScroll ) {
+    public Surround getSurround( boolean withScroll ) {
         GridLiner gl = gridColor_ == null ? null : createGridder();
         return gl == null
-             ? new Insets( 0, 0, 0, 0 )
+             ? new Surround()
              : axLabeller_.createAxisAnnotation( gl, captioner_, viewSystem_ )
-                          .getPadding( withScroll );
+                          .getSurround( withScroll );
     }
 
     public void paintBackground( Graphics g ) {

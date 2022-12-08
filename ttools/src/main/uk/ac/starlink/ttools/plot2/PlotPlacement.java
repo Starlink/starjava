@@ -209,40 +209,35 @@ public class PlotPlacement {
                                  A aspect, boolean withScroll, Icon legend,
                                  float[] legPos, String title,
                                  ShadeAxis shadeAxis, int pad ) {
-
-        /* This implementation currently places the legend in the top
-         * right corner of the plot surface's requested insets,
-         * which assumes that this requested inset space is not used.
-         * That's true for existing surface implementations (that space
-         * is just padding to make room for overflowing X axis labels)
-         * but might not be for future implementations (e.g. right-hand
-         * axis labels).  Adjust the implementation if that happens. */
         boolean hasExtLegend = legend != null && legPos == null;
 
-        /* Calculate insets required for decorations that
+        /* Calculate surrounding space required for decorations that
          * do not depend (much) on the size of the plot bounds. */
-        Insets decInsets = new Insets( 0, 0, 0, 0 );
+        Surround decSurround = new Surround();
         if ( hasExtLegend ) {
-            decInsets.right =
-                Math.max( decInsets.right,
+            decSurround.right.extent =
+                Math.max( decSurround.right.extent,
                           legend.getIconWidth() + EXTERNAL_LEGEND_GAP );
-            decInsets.right = Math.min( decInsets.right,
-                                        extBounds.width / 2 );
+            decSurround.right.extent =
+                Math.min( decSurround.right.extent,
+                          extBounds.width / 2 );
         }
         if ( shadeAxis != null ) {
             Rectangle rampBox =
                 new Rectangle( 0, 0, shadeAxis.getRampWidth(),
                                extBounds.height );
-            decInsets.right =
-                Math.max( decInsets.right,
+            decSurround.right.extent =
+                Math.max( decSurround.right.extent,
                           rampBox.width
-                          + shadeAxis.getRampInsets( rampBox ).right
-                          + EXTERNAL_LEGEND_GAP );
+                        + shadeAxis.getRampInsets( rampBox ).right
+                        + EXTERNAL_LEGEND_GAP );
             int yShadePad = shadeAxis.getEndPadding();
             if ( ! hasExtLegend ) {
-                decInsets.top = Math.max( decInsets.top, yShadePad );
+                decSurround.right.under =
+                    Math.max( decSurround.right.under, yShadePad );
             }
-            decInsets.bottom = Math.max( decInsets.bottom, yShadePad );
+            decSurround.right.over =
+                Math.max( decSurround.right.under, yShadePad );
         }
         if ( title != null ) {
 
@@ -252,10 +247,10 @@ public class PlotPlacement {
                 surfFact.createSurface( extBounds, profile, aspect )
                         .getCaptioner();
             Caption caption = Caption.createCaption( title );
-            decInsets.top =
-                Math.max( decInsets.top,
-                          captioner.getCaptionBounds( caption ).height
-                          + captioner.getPad() );
+            int titleHeight = captioner.getCaptionBounds( caption ).height
+                            + captioner.getPad();
+            decSurround.top.extent =
+                Math.max( decSurround.top.extent, titleHeight );
         }
 
         /* Insets for padding outside space that is actually painted on
@@ -275,11 +270,7 @@ public class PlotPlacement {
          * become stable.  So do it a few times and return the insets
          * representing the biggest required space.  This still isn't
          * bulletproof, but there's a pretty good chance it will give
-         * enough space for the labels.
-
-        /* The initial guess is the insets required for size-independent
-         * decorations. */
-        Insets insets = (Insets) decInsets.clone();
+         * enough space for the labels. */
 
         /* Assign the number of required iterations.
          * If scrolling is being accounted for, it's likely
@@ -292,31 +283,29 @@ public class PlotPlacement {
          * image for output (not interactive) so the extra time it takes
          * (shouldn't be very expensive in any case) is not so much of
          * an issue. */
-        int nit = withScroll ? 1 : 4;
+        int nit = withScroll ? 2 : 5;
 
         /* Iterate. */
+        Surround axisSurround = new Surround();
+        Insets plotInsets = null;
         for ( int i = 0; i < nit; i++ ) {
-            Rectangle plotBounds =
-                PlotUtil
-               .subtractInsets( PlotUtil.subtractInsets( extBounds, insets ),
-                                padInsets );
+            plotInsets = decSurround.add( axisSurround ).toInsets();
+            Rectangle plotBounds = extBounds;
+            plotBounds = PlotUtil.subtractInsets( plotBounds, padInsets );
+            plotBounds = PlotUtil.subtractInsets( plotBounds, plotInsets );
             plotBounds.width = Math.max( plotBounds.width, MIN_DIM );
             plotBounds.height = Math.max( plotBounds.height, MIN_DIM );
             Surface surf =
                 surfFact.createSurface( plotBounds, profile, aspect );
-            Insets axisInsets = surf.getPlotInsets( withScroll );
-            insets.top = Math.max( insets.top, axisInsets.top );
-            insets.left = Math.max( insets.left, axisInsets.left );
-            insets.bottom = Math.max( insets.bottom, axisInsets.bottom );
-            insets.right = Math.max( insets.right, axisInsets.right );
+            axisSurround = axisSurround.union( surf.getSurround( withScroll ) );
         }
+        assert plotInsets != null;
 
         /* Add fixed padding and return. */
-        insets.top += padInsets.top;
-        insets.left += padInsets.left;
-        insets.bottom += padInsets.bottom;
-        insets.right += padInsets.right;
-        return insets;
+        return new Insets( plotInsets.top + padInsets.top,
+                           plotInsets.left + padInsets.left,
+                           plotInsets.bottom + padInsets.bottom,
+                           plotInsets.right + padInsets.right );
     }
 
     /**
@@ -369,7 +358,7 @@ public class PlotPlacement {
      *
      * @param  surf  plot surface
      * @param   legend   legend icon if required, or null
-     * @param   legPos  legend position if intenal legend is required;
+     * @param   legPos  legend position if internal legend is required;
      *                  2-element (x,y) array, each element in range 0-1
      * @param   title   title text, or null
      * @param   shadeAxis  shader axis if required, or null
@@ -381,19 +370,21 @@ public class PlotPlacement {
                                                       String title,
                                                       ShadeAxis shadeAxis ) {
         Rectangle dataBounds = surf.getPlotBounds();
-        Insets insets = surf.getPlotInsets( false );
+        Surround surround = surf.getSurround( false );
         List<Decoration> decList = new ArrayList<Decoration>();
         int gxlo = dataBounds.x;
         int gylo = dataBounds.y;
         int gxhi = dataBounds.x + dataBounds.width;
         int gyhi = dataBounds.y + dataBounds.height;
+        int xRightExtra = gxhi + surround.right.extent + EXTERNAL_LEGEND_GAP;
+        int yTopExtra = gylo - surround.top.extent;
         
         /* Work out legend position. */
         if ( legend != null ) {
             final int lx;
             final int ly;
             if ( legPos == null ) {
-                lx = gxhi + EXTERNAL_LEGEND_GAP;
+                lx = xRightExtra;
                 ly = gylo;
             }
             else {
@@ -410,7 +401,7 @@ public class PlotPlacement {
 
         /* Work out shader axis position. */
         if ( shadeAxis != null ) {
-            int sx = gxhi + EXTERNAL_LEGEND_GAP;
+            int sx = xRightExtra;
             boolean hasExtLegend = legend != null && legPos == null;
             int sy = gylo;
             if ( hasExtLegend ) {
@@ -431,8 +422,8 @@ public class PlotPlacement {
             int px = dataBounds.x
                    + dataBounds.width / 2
                    - titleIcon.getIconWidth() / 2;
-            int py = dataBounds.y - titleIcon.getIconHeight()
-                                  - captioner.getPad();
+            int py = yTopExtra - titleIcon.getIconHeight()
+                               - captioner.getPad();
             decList.add( new Decoration( titleIcon, px, py ) );
         }
 

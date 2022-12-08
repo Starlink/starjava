@@ -1,7 +1,7 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Graphics;
-import java.awt.Insets;
+import uk.ac.starlink.ttools.plot2.Surround;
 
 /**
  * Defines text labelling to decorate a plot.
@@ -12,15 +12,15 @@ import java.awt.Insets;
 public interface AxisAnnotation {
 
     /**
-     * Returns the padding insets around the edge of a plot bounds rectangle
+     * Returns the padding space around the edge of a plot bounds rectangle
      * required to accommodate the labels painted by this object.
      *
      * @param  withScroll  true if the padding should be large enough to
      *                     accommodate labelling requirements if the
      *                     surface is scrolled
-     * @return  padding insets
+     * @return  padding surround
      */
-    Insets getPadding( boolean withScroll );
+    Surround getSurround( boolean withScroll );
 
     /**
      * Paints the annotations.

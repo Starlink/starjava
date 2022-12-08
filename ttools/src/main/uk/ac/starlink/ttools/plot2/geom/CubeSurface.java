@@ -4,7 +4,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -24,6 +23,7 @@ import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.util.SplitCollector;
@@ -146,8 +146,8 @@ public class CubeSurface implements Surface {
         return new Rectangle( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
     }
 
-    public Insets getPlotInsets( boolean withScroll ) {
-        return new Insets( 0, 0, 0, 0 );
+    public Surround getSurround( boolean withScroll ) {
+        return new Surround();
     }
 
     public Captioner getCaptioner() {
