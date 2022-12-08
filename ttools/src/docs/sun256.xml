@@ -14435,6 +14435,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Improve <ref id="inEcsv">ECSV reader</ref> performance,
         especially for Gaia DR3 bulk download files
         (which use semi-standard "<code>null</code>" token).</li>
+    <li>Secondary X and Y axes can now be plotted in
+        <ref id="plot2plane"><code>plot2plane</code></ref>;
+        see new parameters
+        <ref id="plot2plane-x2func"><code>x2func</code>,
+                                    <code>y2func</code>,
+                                    <code>x2label</code>,
+                                    <code>y2label</code></ref>,
+        and <ref id="layer-arrayquantile">example plot</ref>.</li>
     </ul>
     </p></dd>
 

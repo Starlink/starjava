@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import gnu.jel.CompilationException;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleUnaryOperator;
+import uk.ac.starlink.ttools.jel.JELFunction;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.Captioner;
@@ -25,8 +27,11 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
+import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.config.SubrangeConfigKey;
+import uk.ac.starlink.ttools.plot2.config.TextFieldSpecifier;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 
 /**
@@ -85,6 +90,22 @@ public class PlaneSurfaceFactory
     /** Config key for Y axis text label.*/
     public static final ConfigKey<String> YLABEL_KEY =
         StyleKeys.createAxisLabelKey( "Y" );
+
+    /** Config key for secondary X axis function. */
+    public static final ConfigKey<JELFunction> X2FUNC_KEY =
+        createSecondaryAxisFunctionKey( "X" );
+
+    /** Config key for secondary Y axis function. */
+    public static final ConfigKey<JELFunction> Y2FUNC_KEY =
+        createSecondaryAxisFunctionKey( "Y" );
+
+    /** Config key for secondary X axis text label. */
+    public static final ConfigKey<String> X2LABEL_KEY =
+        createSecondaryAxisLabelKey( "X" );
+
+    /** Config key for secondary Y axis text label. */
+    public static final ConfigKey<String> Y2LABEL_KEY =
+        createSecondaryAxisLabelKey( "Y" );
 
     /** Config key for axis aspect ratio fix. */
     public static final ConfigKey<Double> XYFACTOR_KEY =
@@ -152,6 +173,119 @@ public class PlaneSurfaceFactory
     public static final ConfigKey<Boolean> YANCHOR_KEY =
         createAxisAnchorKey( "Y", false );
 
+    /**
+     * Creates a config key for a secondary axis function.
+     *
+     * @param   primaryAxisName   name of primary axis, for instance "X"
+     * @return  new config key
+     */
+    public static ConfigKey<JELFunction>
+            createSecondaryAxisFunctionKey( String primaryAxisName ) {
+        String axname = primaryAxisName.toLowerCase();
+        final String varName = axname;
+        final String secondaryEdge;
+        if ( "X".equals( primaryAxisName ) ) {
+            secondaryEdge = "top";
+        }
+        else if ( "Y".equals( primaryAxisName ) ) {
+            secondaryEdge = "right";
+        }
+        else {
+            secondaryEdge = null;
+        }
+        ConfigMeta meta =
+            new ConfigMeta( axname + "2func",
+                            "Secondary " + primaryAxisName + " Axis"
+                          + " f(" + axname + ")" );
+        meta.setStringUsage( "<function-of-" + axname + ">" );
+        meta.setShortDescription( "Function of " + axname
+                                + " mapping primary to secondary axis" );
+        meta.setXmlDescription( new String[] {
+            "<p>Defines a secondary " + primaryAxisName + " axis",
+            "in terms of the primary one.",
+            "If a secondary axis is defined in this way,",
+            "then the axis opposite the primary one",
+            ( secondaryEdge == null ? ""
+                                    : "(i.e. on the " + secondaryEdge
+                                                      + " side of the plot)" ),
+            "will be annotated with the appropriate tickmarks.",
+            "</p>",
+            "<p>The value of this parameter is an",
+            "<ref id='jel'>algebraic expression</ref> in terms of the variable",
+            "<code>" + varName + "</code> giving the value",
+            "on the secondary " + primaryAxisName + " axis",
+            "corresponding to a given value",
+            "on the primary " + primaryAxisName + " axis.",
+            "</p>",
+            "<p>For instance, if the primary " + primaryAxisName + " axis",
+            "represents flux in Jansky,",
+            "then supplying the expression",
+            "\"<code>2.5*(23-log10(" + varName + "))-48.6</code>\"",
+            "(or \"<code>janskyToAb(" + varName + ")</code>\")",
+            "would annotate the secondary " + primaryAxisName + " axis",
+            "as AB magnitudes.",
+            "</p>",
+            "<p>The function supplied should be monotonic",
+            "and reasonably well-behaved,",
+            "otherwise the secondary axis annotation may not work well.",
+            "The application will attempt to make a sensible decision",
+            "about whether to use linear or logarithmic tick marks.",
+            "</p>",
+        } );
+        return new ConfigKey<JELFunction>( meta, JELFunction.class, null ) {
+            public JELFunction stringToValue( String fexpr )
+                    throws ConfigException {
+                if ( fexpr == null || fexpr.trim().length() == 0 ) {
+                    return null;
+                }
+                try {
+                    return new JELFunction( varName, fexpr );
+                }
+                catch ( CompilationException e ) {
+                    throw new ConfigException( this,
+                                               "Expression \"" + fexpr + "\""
+                                             + " not a function of " + varName
+                                             + ": " + e.getMessage(), e );
+                }
+            }
+            public String valueToString( JELFunction func ) {
+                return func == null ? null : func.getExpression();
+            }
+            public Specifier<JELFunction> createSpecifier() {
+                return new TextFieldSpecifier<JELFunction>( this, null );
+            }
+        };
+    }
+
+    /**
+     * Returns a labelling config key for a secondary axis.
+     *
+     * @param  primaryAxisName  name of primary axis to which the
+     *                          secondary axis relates
+     * @return  new key
+     */
+    public static ConfigKey<String>
+            createSecondaryAxisLabelKey( String primaryAxisName ) {
+        String axName = primaryAxisName;
+        ConfigMeta meta =
+            new ConfigMeta( primaryAxisName.substring( 0, 1 ).toLowerCase()
+                          + "2label",
+                            "Secondary " + primaryAxisName + " Axis Label" );
+        meta.setStringUsage( "<text>" );
+        meta.setShortDescription( "Label for secondary " + primaryAxisName
+                                + " axis" );
+        meta.setXmlDescription( new String[] {
+            "<p>Provides a string that will label the secondary",
+            primaryAxisName,
+            "axis.",
+            "This appears on the opposite side of the plot to the",
+            primaryAxisName,
+            "axis itself.",
+            "</p>",
+        } );
+        return new StringConfigKey( meta, null );
+    }
+
     private final PlotMetric plotMetric_;
 
     /**
@@ -192,6 +326,10 @@ public class PlaneSurfaceFactory
             YFLIP_KEY,
             XLABEL_KEY,
             YLABEL_KEY,
+            X2FUNC_KEY,
+            Y2FUNC_KEY,
+            X2LABEL_KEY,
+            Y2LABEL_KEY,
             XYFACTOR_KEY,
             GRID_KEY,
             XCROWD_KEY,
@@ -211,10 +349,10 @@ public class PlaneSurfaceFactory
         boolean yflip = config.get( YFLIP_KEY );
         String xlabel = config.get( XLABEL_KEY );
         String ylabel = config.get( YLABEL_KEY );
-        DoubleUnaryOperator x2func = null;
-        DoubleUnaryOperator y2func = null;
-        String x2label = null;
-        String y2label = null;
+        DoubleUnaryOperator x2func = config.get( X2FUNC_KEY );
+        DoubleUnaryOperator y2func = config.get( Y2FUNC_KEY );
+        String x2label = config.get( X2LABEL_KEY );
+        String y2label = config.get( Y2LABEL_KEY );
         double xyfactor = config.get( XYFACTOR_KEY );
         boolean grid = config.get( GRID_KEY );
         double xcrowd = config.get( XCROWD_KEY );
