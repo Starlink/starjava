@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.example;
 
 import java.awt.Color;
 import java.io.IOException;
+import java.util.function.DoubleUnaryOperator;
 import javax.swing.Icon;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.plot.BarStyle;
@@ -102,6 +103,10 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         boolean yflip = false;
         String xlabel = "X axis";
         String ylabel = "Y axis";
+        DoubleUnaryOperator x2func = null;
+        DoubleUnaryOperator y2func = null;
+        String x2label = null;
+        String y2label = null;
         Captioner captioner = new BasicCaptioner();
         double xyfactor = Double.NaN;
         boolean grid = false;
@@ -112,7 +117,8 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         Color axlabelColor = Color.BLACK;
         PlaneSurfaceFactory.Profile profile =
             new PlaneSurfaceFactory.Profile( xlog, ylog, xflip, yflip,
-                                             xlabel, ylabel, captioner,
+                                             xlabel, ylabel, x2func, y2func,
+                                             x2label, y2label, captioner,
                                              xyfactor, grid, xcrowd, ycrowd,
                                              minor, gridColor, axlabelColor );
 

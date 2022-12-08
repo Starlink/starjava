@@ -33,15 +33,23 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
     private final Tick[] yticks_;
     private final String xlabel_;
     private final String ylabel_;
+    private final Tick[] x2ticks_;
+    private final Tick[] y2ticks_;
+    private final String x2label_;
+    private final String y2label_;
     private final Captioner captioner_;
     private final boolean xAnnotate_;
     private final boolean yAnnotate_;
     private final int xoff_;
     private final int yoff_;
+    private final int x2off_;
+    private final int y2off_;
 
     public static final boolean INVERT_Y = true;
     public static final Orientation X_ORIENT = Orientation.X;
     public static final Orientation Y_ORIENT = Orientation.Y;
+    public static final Orientation X2_ORIENT = Orientation.ANTI_X;
+    public static final Orientation Y2_ORIENT = Orientation.ANTI_Y;
 
     /**
      * Constructor.
@@ -56,6 +64,10 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
      * @param  yticks  array of ticks along the Y axis
      * @param  xlabel  text label on X axis
      * @param  ylabel  text label on Y axis
+     * @param  x2ticks  array of ticks along secondary X axis, may be null
+     * @param  y2ticks  array of ticks along secondary Y axis, may be null
+     * @param  x2label  text label on secondary X axis
+     * @param  y2label  text label on secondary Y axis
      * @param  captioner   text renderer for axis labels etc
      * @param  xAnnotate   true iff annotations are required on X axis
      * @param  yAnnotate   true iff annotations are required on Y axis
@@ -64,6 +76,8 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
                                 Axis xaxis, Axis yaxis,
                                 Tick[] xticks, Tick[] yticks,
                                 String xlabel, String ylabel,
+                                Tick[] x2ticks, Tick[] y2ticks,
+                                String x2label, String y2label,
                                 Captioner captioner,
                                 boolean xAnnotate, boolean yAnnotate ) {
         gxlo_ = gxlo;
@@ -76,28 +90,48 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         yticks_ = yticks; 
         xlabel_ = xlabel;
         ylabel_ = ylabel;
+        x2ticks_ = x2ticks == null ? new Tick[ 0 ] : x2ticks;
+        y2ticks_ = y2ticks == null ? new Tick[ 0 ] : y2ticks;
+        x2label_ = x2label;
+        y2label_ = y2label;
         captioner_ = captioner;
         xAnnotate_ = xAnnotate;
         yAnnotate_ = yAnnotate;
         xoff_ = gxlo;
         yoff_ = gyhi;
+        x2off_ = gxhi;
+        y2off_ = gylo;
     }
 
     public void drawLabels( Graphics g ) {
         Graphics2D g2 = (Graphics2D) g;
+        Captioner xCaptioner = xAnnotate_ ? captioner_ : NullCaptioner.INSTANCE;
+        Captioner yCaptioner = yAnnotate_ ? captioner_ : NullCaptioner.INSTANCE;
         AffineTransform trans0 = g2.getTransform();
         AffineTransform transX = new AffineTransform( trans0 );
         transX.concatenate( axisTransform( xoff_, yoff_, false ) );
         AffineTransform transY = new AffineTransform( trans0 );
         transY.concatenate( axisTransform( xoff_, yoff_, true ) );
         g2.setTransform( transX );
-        xaxis_.drawLabels( xticks_, xlabel_,
-                           xAnnotate_ ? captioner_ : NullCaptioner.INSTANCE,
+        xaxis_.drawLabels( xticks_, xlabel_, xCaptioner,
                            X_ORIENT, false, g2 );
         g2.setTransform( transY );
-        yaxis_.drawLabels( yticks_, ylabel_,
-                           yAnnotate_ ? captioner_ : NullCaptioner.INSTANCE,
+        yaxis_.drawLabels( yticks_, ylabel_, yCaptioner,
                            Y_ORIENT, INVERT_Y, g2 );
+        if ( x2ticks_.length > 0 || x2label_ != null ) {
+            AffineTransform transX2 = new AffineTransform( trans0 );
+            transX2.concatenate( axisTransform( xoff_, y2off_, false ) );
+            g2.setTransform( transX2 );
+            xaxis_.drawLabels( x2ticks_, x2label_, xCaptioner,
+                               X2_ORIENT, false, g2 );
+        }
+        if ( y2ticks_.length > 0 || y2label_ != null ) {
+            AffineTransform transY2 = new AffineTransform( trans0 );
+            transY2.concatenate( axisTransform( x2off_, yoff_, true ) );
+            g2.setTransform( transY2 );
+            yaxis_.drawLabels( y2ticks_, y2label_, yCaptioner,
+                               Y2_ORIENT, INVERT_Y, g2 );
+        }
         g2.setTransform( trans0 );
     }
 
@@ -135,6 +169,32 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         int leftOver = Math.max( 0, leftRect.y + leftRect.height - gyhi_ );
         surround.left =
             new Surround.Block( leftExtent, leftUnder, leftOver );
+        if ( x2ticks_.length > 0 || x2label_ != null ) {
+            Rectangle x2rect =
+                getLabelBounds( xaxis_, x2ticks_, x2label_, xCaptioner,
+                                X2_ORIENT, false, withScroll );
+            Rectangle topRect = axisTransform( xoff_, y2off_, false )
+                               .createTransformedShape( x2rect )
+                               .getBounds();
+            int topExtent = gylo_ - topRect.y;
+            int topUnder = Math.max( 0, gxlo_ - topRect.x );
+            int topOver = Math.max( 0, topRect.x + topRect.width - gxhi_ );
+            surround.top =
+                new Surround.Block( topExtent, topUnder, topOver );
+        }
+        if ( y2ticks_.length > 0 || y2label_ != null ) {
+            Rectangle y2rect =
+                getLabelBounds( yaxis_, y2ticks_, y2label_, yCaptioner,
+                                Y2_ORIENT, INVERT_Y, withScroll );
+            Rectangle rightRect = axisTransform( x2off_, yoff_, true )
+                                 .createTransformedShape( y2rect )
+                                 .getBounds();
+            int rightExtent = rightRect.x + rightRect.width - gxhi_;
+            int rightUnder = Math.max( 0, gylo_ - rightRect.y );
+            int rightOver = Math.max( 0, rightRect.y + rightRect.height -gyhi_);
+            surround.right =
+                new Surround.Block( rightExtent, rightUnder, rightOver );
+        }
         return surround;
     }
 

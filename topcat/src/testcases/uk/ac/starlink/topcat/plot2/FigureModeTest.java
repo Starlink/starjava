@@ -45,6 +45,7 @@ public class FigureModeTest extends TestCase {
                                   0.1, 10000, 0.2, 20,   // data coords
                                   xlog, ylog, xflip, yflip,
                                   new Tick[ 0 ], new Tick[ 0 ], "X", "Y",
+                                  new Tick[ 0 ], new Tick[ 0 ], null, null,
                                   null, Color.GRAY, Color.BLACK );
             checkPlaneMode( PlaneFigureMode.POLYGON,
                             PlaneFigureMode.OUTSIDE_POLYGON,

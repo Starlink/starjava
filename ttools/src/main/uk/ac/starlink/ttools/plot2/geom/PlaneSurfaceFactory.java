@@ -6,6 +6,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.DoubleUnaryOperator;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.Captioner;
@@ -176,7 +177,8 @@ public class PlaneSurfaceFactory
         return PlaneSurface
               .createSurface( plotBounds, aspect,
                               p.xlog_, p.ylog_, p.xflip_, p.yflip_,
-                              p.xlabel_, p.ylabel_, p.captioner_,
+                              p.xlabel_, p.ylabel_, p.x2func_, p.y2func_,
+                              p.x2label_, p.y2label_, p.captioner_,
                               p.xyfactor_, p.grid_, p.xcrowd_, p.ycrowd_,
                               p.minor_, p.gridcolor_, p.axlabelcolor_ );
     }
@@ -209,6 +211,10 @@ public class PlaneSurfaceFactory
         boolean yflip = config.get( YFLIP_KEY );
         String xlabel = config.get( XLABEL_KEY );
         String ylabel = config.get( YLABEL_KEY );
+        DoubleUnaryOperator x2func = null;
+        DoubleUnaryOperator y2func = null;
+        String x2label = null;
+        String y2label = null;
         double xyfactor = config.get( XYFACTOR_KEY );
         boolean grid = config.get( GRID_KEY );
         double xcrowd = config.get( XCROWD_KEY );
@@ -218,6 +224,7 @@ public class PlaneSurfaceFactory
         Color axlabelcolor = config.get( StyleKeys.AXLABEL_COLOR );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         return new Profile( xlog, ylog, xflip, yflip, xlabel, ylabel,
+                            x2func, y2func, x2label, y2label,
                             captioner, xyfactor, grid, xcrowd, ycrowd, minor,
                             gridcolor, axlabelcolor );
     }
@@ -592,6 +599,10 @@ public class PlaneSurfaceFactory
         private final boolean yflip_;
         private final String xlabel_;
         private final String ylabel_;
+        private final DoubleUnaryOperator x2func_;
+        private final DoubleUnaryOperator y2func_;
+        private final String x2label_;
+        private final String y2label_;
         private final Captioner captioner_;
         private final double xyfactor_;
         private final boolean grid_;
@@ -610,6 +621,12 @@ public class PlaneSurfaceFactory
          * @param  yflip  whether to invert direction of Y axis
          * @param  xlabel  text for labelling X axis
          * @param  ylabel  text for labelling Y axis
+         * @param  x2func  function mapping primary to secondary X data coords,
+         *                 or null for no secondary X axis
+         * @param  y2func  function mapping primary to secondary Y data coords,
+         *                 or null for no secondary Y axis
+         * @param  x2label  text for labelling secondary X axis
+         * @param  y2label  text for labelling secondary Y axis
          * @param  captioner  text renderer for axis labels etc
          * @param  xyfactor   ratio (X axis unit length)/(Y axis unit length),
          *                    or NaN to use whatever bounds shape and
@@ -625,8 +642,10 @@ public class PlaneSurfaceFactory
          */
         public Profile( boolean xlog, boolean ylog,
                         boolean xflip, boolean yflip,
-                        String xlabel, String ylabel, Captioner captioner,
-                        double xyfactor, boolean grid,
+                        String xlabel, String ylabel,
+                        DoubleUnaryOperator x2func, DoubleUnaryOperator y2func,
+                        String x2label, String y2label,
+                        Captioner captioner, double xyfactor, boolean grid,
                         double xcrowd, double ycrowd, boolean minor,
                         Color gridcolor, Color axlabelcolor ) {
             xlog_ = xlog;
@@ -635,6 +654,10 @@ public class PlaneSurfaceFactory
             yflip_ = yflip;
             xlabel_ = xlabel;
             ylabel_ = ylabel;
+            x2func_ = x2func;
+            y2func_ = y2func;
+            x2label_ = x2label;
+            y2label_ = y2label;
             captioner_ = captioner;
             xyfactor_ = xyfactor;
             grid_ = grid;

@@ -322,10 +322,15 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @return   axis annotation
      */
     private AxisAnnotation createAxisAnnotation() {
+        Tick[] t2ticks = null;
+        Tick[] y2ticks = null;
+        String t2label = null;
+        String y2label = null;
         return new PlaneAxisAnnotation( gxlo_, gxhi_, gylo_, gyhi_,
-                                        tAxis_, yAxis_, tticks_, yticks_,
-                                        tlabel_, ylabel_, captioner_,
-                                        tannotate_, true );
+                                        tAxis_, yAxis_,
+                                        tticks_, yticks_, tlabel_, ylabel_,
+                                        t2ticks, y2ticks, t2label, y2label,
+                                        captioner_, tannotate_, true );
     }
 
     @Override

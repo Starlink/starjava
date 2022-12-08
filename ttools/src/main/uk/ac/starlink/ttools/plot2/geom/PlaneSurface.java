@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.Arrays;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.Supplier;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot2.Axis;
@@ -28,6 +29,10 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
  */
 public class PlaneSurface implements Surface, PlanarSurface {
 
+    private final int gxlo_;
+    private final int gxhi_;
+    private final int gylo_;
+    private final int gyhi_;
     private final double dxlo_;
     private final double dxhi_;
     private final double dylo_;
@@ -36,14 +41,14 @@ public class PlaneSurface implements Surface, PlanarSurface {
     private final boolean ylog_;
     private final boolean xflip_;
     private final boolean yflip_;
-    private final int gxlo_;
-    private final int gxhi_;
-    private final int gylo_;
-    private final int gyhi_;
     private final Tick[] xticks_;
     private final Tick[] yticks_;
     private final String xlabel_;
     private final String ylabel_;
+    private final Tick[] x2ticks_;
+    private final Tick[] y2ticks_;
+    private final String x2label_;
+    private final String y2label_;
     private final Captioner captioner_;
     private final Color gridcolor_;
     private final Color axlabelcolor_;
@@ -69,6 +74,10 @@ public class PlaneSurface implements Surface, PlanarSurface {
      * @param  yticks  array of tickmark objects for Y axis
      * @param  xlabel  text for labelling X axis
      * @param  ylabel  text for labelling Y axis
+     * @param  x2ticks  array of tickmark objects for secondary X axis
+     * @param  y2ticks  array of tickmark objects for secondary Y axis
+     * @param  x2label  text for labelling secondary X axis
+     * @param  y2label  text for labelling secondary Y axis
      * @param  captioner  text renderer for axis labels etc, or null if absent
      * @param  gridcolor  colour of grid lines, or null if not plotted
      * @param  axlabelcolor  colour of axis labels
@@ -78,7 +87,10 @@ public class PlaneSurface implements Surface, PlanarSurface {
                          boolean xlog, boolean ylog,
                          boolean xflip, boolean yflip,
                          Tick[] xticks, Tick[] yticks,
-                         String xlabel, String ylabel, Captioner captioner,
+                         String xlabel, String ylabel,
+                         Tick[] x2ticks, Tick[] y2ticks,
+                         String x2label, String y2label,
+                         Captioner captioner,
                          Color gridcolor, Color axlabelcolor ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
@@ -96,6 +108,10 @@ public class PlaneSurface implements Surface, PlanarSurface {
         yticks_ = yticks;
         xlabel_ = xlabel;
         ylabel_ = ylabel;
+        x2ticks_ = x2ticks;
+        y2ticks_ = y2ticks;
+        x2label_ = x2label;
+        y2label_ = y2label;
         captioner_ = captioner;
         gridcolor_ = gridcolor;
         axlabelcolor_ = axlabelcolor;
@@ -169,15 +185,13 @@ public class PlaneSurface implements Surface, PlanarSurface {
         g.fillRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
         if ( gridcolor_ != null ) {
             g.setColor( gridcolor_ );
-            for ( int it = 0; it < xticks_.length; it++ ) {
-                Tick tick = xticks_[ it ];
+            for ( Tick tick : xticks_ ) {
                 if ( tick.getLabel() != null ) {
                     int gx = (int) xAxis_.dataToGraphics( tick.getValue() );
                     g.drawLine( gx, gylo_, gx, gyhi_ );
                 }
             }
-            for ( int it = 0; it < yticks_.length; it++ ) {
-                Tick tick = yticks_[ it ];
+            for ( Tick tick : yticks_ ) {
                 if ( tick.getLabel() != null ) {
                     int gy = (int) yAxis_.dataToGraphics( tick.getValue() );
                     g.drawLine( gxlo_, gy, gxhi_, gy );
@@ -320,31 +334,36 @@ public class PlaneSurface implements Surface, PlanarSurface {
      */
     private AxisAnnotation createAxisAnnotation() {
         return new PlaneAxisAnnotation( gxlo_, gxhi_, gylo_, gyhi_,
-                                        xAxis_, yAxis_, xticks_, yticks_,
-                                        xlabel_, ylabel_, captioner_,
-                                        true, true );
+                                        xAxis_, yAxis_,
+                                        xticks_, yticks_, xlabel_, ylabel_,
+                                        x2ticks_, y2ticks_, x2label_, y2label_,
+                                        captioner_, true, true );
     }
 
     @Override
     public boolean equals( Object o ) {
         if ( o instanceof PlaneSurface ) {
             PlaneSurface other = (PlaneSurface) o;
-            return this.xlog_ == other.xlog_
-                && this.ylog_ == other.ylog_
-                && this.xflip_ == other.xflip_
-                && this.yflip_ == other.yflip_
+            return this.gxlo_ == other.gxlo_
+                && this.gxhi_ == other.gxhi_
+                && this.gylo_ == other.gylo_
+                && this.gyhi_ == other.gyhi_
                 && this.dxlo_ == other.dxlo_
                 && this.dxhi_ == other.dxhi_
                 && this.dylo_ == other.dylo_
                 && this.dyhi_ == other.dyhi_
-                && this.gxlo_ == other.gxlo_
-                && this.gxhi_ == other.gxhi_
-                && this.gylo_ == other.gylo_
-                && this.gyhi_ == other.gyhi_
+                && this.xlog_ == other.xlog_
+                && this.ylog_ == other.ylog_
+                && this.xflip_ == other.xflip_
+                && this.yflip_ == other.yflip_
                 && Arrays.equals( this.xticks_, other.xticks_ )
                 && Arrays.equals( this.yticks_, other.yticks_ )
                 && PlotUtil.equals( this.xlabel_, other.xlabel_ )
                 && PlotUtil.equals( this.ylabel_, other.ylabel_ )
+                && Arrays.equals( this.x2ticks_, other.x2ticks_ )
+                && Arrays.equals( this.y2ticks_, other.y2ticks_ )
+                && PlotUtil.equals( this.x2label_, other.x2label_ )
+                && PlotUtil.equals( this.y2label_, other.y2label_ )
                 && this.captioner_.equals( other.captioner_ )
                 && PlotUtil.equals( this.gridcolor_, other.gridcolor_ )
                 && PlotUtil.equals( this.axlabelcolor_, other.axlabelcolor_ );
@@ -357,22 +376,26 @@ public class PlaneSurface implements Surface, PlanarSurface {
     @Override
     public int hashCode() {
         int code = 23023;
-        code = 23 * code + ( xlog_  ? 1 : 0 )
-                         + ( ylog_  ? 2 : 0 )
-                         + ( xflip_ ? 4 : 0 )
-                         + ( yflip_ ? 8 : 0 );
-        code = 23 * code + Float.floatToIntBits( (float) dxlo_ );
-        code = 23 * code + Float.floatToIntBits( (float) dxhi_ );
-        code = 23 * code + Float.floatToIntBits( (float) dylo_ );
-        code = 23 * code + Float.floatToIntBits( (float) dyhi_ );
         code = 23 * code + gxlo_;
         code = 23 * code + gxhi_;
         code = 23 * code + gylo_;
         code = 23 * code + gyhi_;
+        code = 23 * code + Float.floatToIntBits( (float) dxlo_ );
+        code = 23 * code + Float.floatToIntBits( (float) dxhi_ );
+        code = 23 * code + Float.floatToIntBits( (float) dylo_ );
+        code = 23 * code + Float.floatToIntBits( (float) dyhi_ );
+        code = 23 * code + ( xlog_  ? 1 : 0 )
+                         + ( ylog_  ? 2 : 0 )
+                         + ( xflip_ ? 4 : 0 )
+                         + ( yflip_ ? 8 : 0 );
         code = 23 * code + Arrays.hashCode( xticks_ );
         code = 23 * code + Arrays.hashCode( yticks_ );
         code = 23 * code + PlotUtil.hashCode( xlabel_ );
         code = 23 * code + PlotUtil.hashCode( ylabel_ );
+        code = 23 * code + Arrays.hashCode( x2ticks_ );
+        code = 23 * code + Arrays.hashCode( y2ticks_ );
+        code = 23 * code + PlotUtil.hashCode( x2label_ );
+        code = 23 * code + PlotUtil.hashCode( y2label_ );
         code = 23 * code + captioner_.hashCode();
         code = 23 * code + PlotUtil.hashCode( gridcolor_ );
         code = 23 * code + PlotUtil.hashCode( axlabelcolor_ );
@@ -392,6 +415,12 @@ public class PlaneSurface implements Surface, PlanarSurface {
      * @param  yflip  whether to invert direction of Y axis
      * @param  xlabel  text for labelling X axis
      * @param  ylabel  text for labelling Y axis
+     * @param  x2func  function mapping primary to secondary X axis data coord,
+     *                 null for no secondary X axis
+     * @param  y2func  function mapping primary to secondary Y axis data coord,
+     *                 null for no secondary Y axis
+     * @param  x2label  secondary X axis label
+     * @param  y2label  secondary Y axis label
      * @param  captioner  text renderer for axis labels etc
      * @param  xyfactor   ratio (X axis unit length)/(Y axis unit length),
      *                    or NaN to use whatever bounds shape and
@@ -411,6 +440,9 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                               boolean xlog, boolean ylog,
                                               boolean xflip, boolean yflip,
                                               String xlabel, String ylabel,
+                                              DoubleUnaryOperator x2func,
+                                              DoubleUnaryOperator y2func,
+                                              String x2label, String y2label,
                                               Captioner captioner,
                                               double xyfactor, boolean grid,
                                               double xcrowd, double ycrowd,
@@ -477,10 +509,26 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                        PlaneAxisAnnotation.Y_ORIENT,
                                        plotBounds.height, 1 );
         }
+        Axis xAxis = Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
+        Axis yAxis = Axis.createAxis( gylo, gyhi, dylo, dyhi, ylog,
+                                      yflip ^ PlaneAxisAnnotation.INVERT_Y );
+        Tick[] x2ticks = x2func == null
+                       ? null
+                       : SlaveTicker.createTicker( xAxis, x2func )
+                                    .getTicks( dxlo, dxhi, minor, captioner,
+                                               PlaneAxisAnnotation.X2_ORIENT,
+                                               plotBounds.width, xcrowd );
+        Tick[] y2ticks = y2func == null
+                       ? null
+                       : SlaveTicker.createTicker( yAxis, y2func )
+                                    .getTicks( dylo, dyhi, minor, captioner,
+                                               PlaneAxisAnnotation.Y2_ORIENT,
+                                               plotBounds.height, ycrowd );
         return new PlaneSurface( gxlo, gxhi, gylo, gyhi, dxlo, dxhi, dylo, dyhi,
-                                 xlog, ylog, xflip, yflip, xticks, yticks,
-                                 xlabel, ylabel, captioner, gridcolor,
-                                 axlabelcolor );
+                                 xlog, ylog, xflip, yflip,
+                                 xticks, yticks, xlabel, ylabel,
+                                 x2ticks, y2ticks, x2label, y2label,
+                                 captioner, gridcolor, axlabelcolor );
     }
 
     /**
