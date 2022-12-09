@@ -75,7 +75,9 @@ public class Setting {
      * @return  true iff this setting's value and default are equivalent
      */
     public boolean isDefaultValue() {
-        return PlotUtil.equals( strValue_, strDflt_ );
+        return ( strValue_ == null || strValue_.trim().length() == 0 )
+             ? ( strDflt_ == null || strDflt_.trim().length() == 0 )
+             : strValue_.equals( strDflt_ );
     }
 
     /**
