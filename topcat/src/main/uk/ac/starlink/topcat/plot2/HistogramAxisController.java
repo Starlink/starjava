@@ -105,6 +105,15 @@ public class HistogramAxisController
         ySpecifier.setAuto( false );
         ySpecifier.setSpecifiedValue( null );
 
+        /* Secondary axes tab. */
+        mainControl.addSpecifierTab( "Secondary",
+                                     new ConfigSpecifier( new ConfigKey<?>[] {
+            PlaneSurfaceFactory.X2FUNC_KEY,
+            PlaneSurfaceFactory.X2LABEL_KEY,
+            PlaneSurfaceFactory.Y2FUNC_KEY,
+            PlaneSurfaceFactory.Y2LABEL_KEY,
+        } ) );
+
         /* Font tab. */
         mainControl.addSpecifierTab( "Font",
                                      new ConfigSpecifier( StyleKeys.CAPTIONER

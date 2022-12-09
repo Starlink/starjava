@@ -247,10 +247,12 @@
   <!ENTITY FIG.BinsControl_general '&figs;BinsControl_general.png'>
   <!ENTITY FIG.PlaneAxisControl_coords '&figs;PlaneAxisControl_coords.png'>
   <!ENTITY FIG.PlaneAxisControl_navigation
-               '&figs;PlaneAxisControl_navigation.png'>
+           '&figs;PlaneAxisControl_navigation.png'>
   <!ENTITY FIG.PlaneAxisControl_range '&figs;PlaneAxisControl_range.png'>
   <!ENTITY FIG.PlaneAxisControl_grid '&figs;PlaneAxisControl_grid.png'>
   <!ENTITY FIG.PlaneAxisControl_labels '&figs;PlaneAxisControl_labels.png'>
+  <!ENTITY FIG.PlaneAxisControl_secondary
+           '&figs;PlaneAxisControl_secondary.png'>
   <!ENTITY FIG.SkyAxisControl_projection '&figs;SkyAxisControl_projection.png'>
   <!ENTITY FIG.SkyAxisControl_navigation '&figs;SkyAxisControl_navigation.png'>
   <!ENTITY FIG.SkyAxisControl_fov '&figs;SkyAxisControl_fov.png'>
@@ -14610,6 +14612,43 @@ If the <label>Auto</label> checkbox is set, the text will be taken
 from one of the data coordinates being plotted on that axis.
 To override those with your own axis labels, unset Auto and type
 text in to the <label>Label</label> fields.
+</p>
+
+</subdiv>
+
+<subdiv id="PlaneAxisControl_secondary">
+<subhead><title>Secondary Axes Tab</title></subhead>
+
+<figure>
+<caption><px>Secondary tab of plane Axes control</px></caption>
+<figureimage src="&FIG.PlaneAxisControl_secondary;"/>
+</figure>
+
+<p>The <label>Secondary</label> tab controls optional secondary
+X and Y axes at the top and right edges of the plot,
+to go with the standard (primary) X and Y axes at the bottom and left edges,
+so you can annotate a plot for instance with
+both magnitudes and fluxes, or both frequency and wavelength.
+<dl>
+<dt>Secondary X/Y Axis f(x/y)</dt>
+<dd><p>Defines the secondary axis in relation to the primary one by means of
+    a supplied function that maps primary to secondary axis values,
+    written using TOPCAT's <ref id="jel">expression language</ref>.
+    For the Secondary X axis this is given as
+    a function of the dummy variable <label>x</label>,
+    and for the Secondary Y axis as
+    a function of the dummy variable <label>y</label>.
+    The function supplied should be monotonic and reasonably well-behaved,
+    otherwise the secondary axis annotation may not work well.
+    TOPCAT will attempt to make a sensible decision about whether to
+    use linear or logarithmic tick marks.
+    </p></dd>
+<dt>Secondary X/Y Axis Label</dt>
+<dd><p>Provides a textual annotation near the secondary axis.
+    This can be supplied whether or not the axis mapping functions
+    are actually present.
+    </p></dd>
+</dl>
 </p>
 
 </subdiv>
@@ -31630,6 +31669,11 @@ introduced since the last version:
     <li>Improve <ref id="inEcsv">ECSV reader</ref> performance,
         especially for Gaia DR3 bulk download files
         (which use semi-standard "<code>null</code>" token).</li>
+    <li>Secondary X and Y axes can now be drawn in the Plane
+        and Histogram Plots;
+        see Plane Axes control
+        <ref id="PlaneAxisControl_secondary">Secondary tab</ref> and
+        <ref id="form-arrayquantile">example plot</ref>.</li>
     </ul>
     </p></dd>
 
