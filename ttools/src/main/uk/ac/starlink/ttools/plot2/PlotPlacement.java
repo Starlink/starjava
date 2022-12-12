@@ -357,7 +357,10 @@ public class PlotPlacement {
                                      title, shadeAxis, PAD );
             insets = padding.overrideInsets( dataInsets );
         }
-        return PlotUtil.subtractInsets( extBounds, insets );
+        Rectangle plotBounds = PlotUtil.subtractInsets( extBounds, insets );
+        plotBounds.width = Math.max( plotBounds.width, MIN_DIM );
+        plotBounds.height = Math.max( plotBounds.height, MIN_DIM );
+        return plotBounds;
     }
 
     /**
