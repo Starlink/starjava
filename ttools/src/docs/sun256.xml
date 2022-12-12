@@ -14418,6 +14418,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         the old behaviour.</li>
     <li>New function
         <ref id="Sky-inSkyEllipse"><code>inSkyEllipse</code></ref>.</li>
+    <li>Avoid some plot failures by limiting external legend width to
+        half plot width.</li>
     </ul>
     </p></dd>
 

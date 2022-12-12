@@ -31614,6 +31614,8 @@ introduced since the last version:
     <li>You can now draw <label>Ellipse</label> shapes when using
         <ref id="FigurePanel">Draw Algebraic Subset</ref>
         with the Sky Plot.</li>
+    <li>Avoid some plot failures by limiting external legend width to
+        half plot width.</li>
     </ul>
     </p></dd>
 

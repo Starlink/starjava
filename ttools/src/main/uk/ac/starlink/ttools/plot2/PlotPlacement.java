@@ -226,6 +226,8 @@ public class PlotPlacement {
             decInsets.right =
                 Math.max( decInsets.right,
                           legend.getIconWidth() + EXTERNAL_LEGEND_GAP );
+            decInsets.right = Math.min( decInsets.right,
+                                        extBounds.width / 2 );
         }
         if ( shadeAxis != null ) {
             Rectangle rampBox =
