@@ -113,6 +113,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         double xcrowd = 1;
         double ycrowd = 1;
         boolean minor = true;
+        boolean shadow = true;
         Color gridColor = Color.BLACK;
         Color axlabelColor = Color.BLACK;
         PlaneSurfaceFactory.Profile profile =
@@ -120,7 +121,8 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
                                              xlabel, ylabel, x2func, y2func,
                                              x2label, y2label, captioner,
                                              xyfactor, grid, xcrowd, ycrowd,
-                                             minor, gridColor, axlabelColor );
+                                             minor, shadow,
+                                             gridColor, axlabelColor );
 
         /* Set up a plot Aspect.  This is the initial data range,
          * and is subject to change by user navigation. */

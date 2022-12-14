@@ -314,7 +314,8 @@ public class PlaneSurfaceFactory
                               p.xlabel_, p.ylabel_, p.x2func_, p.y2func_,
                               p.x2label_, p.y2label_, p.captioner_,
                               p.xyfactor_, p.grid_, p.xcrowd_, p.ycrowd_,
-                              p.minor_, p.gridcolor_, p.axlabelcolor_ );
+                              p.minor_, p.shadow_,
+                              p.gridcolor_, p.axlabelcolor_ );
     }
 
     public ConfigKey<?>[] getProfileKeys() {
@@ -335,6 +336,7 @@ public class PlaneSurfaceFactory
             XCROWD_KEY,
             YCROWD_KEY,
             StyleKeys.MINOR_TICKS,
+            StyleKeys.SHADOW_TICKS,
             StyleKeys.GRID_COLOR,
             StyleKeys.AXLABEL_COLOR,
         } ) );
@@ -358,13 +360,14 @@ public class PlaneSurfaceFactory
         double xcrowd = config.get( XCROWD_KEY );
         double ycrowd = config.get( YCROWD_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
+        boolean shadow = config.get( StyleKeys.SHADOW_TICKS );
         Color gridcolor = config.get( StyleKeys.GRID_COLOR );
         Color axlabelcolor = config.get( StyleKeys.AXLABEL_COLOR );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         return new Profile( xlog, ylog, xflip, yflip, xlabel, ylabel,
                             x2func, y2func, x2label, y2label,
-                            captioner, xyfactor, grid, xcrowd, ycrowd, minor,
-                            gridcolor, axlabelcolor );
+                            captioner, xyfactor, grid, xcrowd, ycrowd,
+                            minor, shadow, gridcolor, axlabelcolor );
     }
 
     public ConfigKey<?>[] getAspectKeys() {
@@ -747,6 +750,7 @@ public class PlaneSurfaceFactory
         private final double xcrowd_;
         private final double ycrowd_;
         private final boolean minor_;
+        private final boolean shadow_;
         private final Color gridcolor_;
         private final Color axlabelcolor_;
 
@@ -775,6 +779,8 @@ public class PlaneSurfaceFactory
          * @param  ycrowd  crowding factor for tick marks on Y axis;
          *                 1 is normal
          * @param  minor   whether to paint minor tick marks on axes
+         * @param  shadow  whether to paint shadow ticks on opposite axes
+         *                 if no secondary axis
          * @param  gridcolor  colour of grid lines, if plotted
          * @param  axlabelcolor  colour of axis labels
          */
@@ -784,7 +790,8 @@ public class PlaneSurfaceFactory
                         DoubleUnaryOperator x2func, DoubleUnaryOperator y2func,
                         String x2label, String y2label,
                         Captioner captioner, double xyfactor, boolean grid,
-                        double xcrowd, double ycrowd, boolean minor,
+                        double xcrowd, double ycrowd,
+                        boolean minor, boolean shadow,
                         Color gridcolor, Color axlabelcolor ) {
             xlog_ = xlog;
             ylog_ = ylog;
@@ -802,6 +809,7 @@ public class PlaneSurfaceFactory
             xcrowd_ = xcrowd;
             ycrowd_ = ycrowd;
             minor_ = minor;
+            shadow_ = shadow;
             gridcolor_ = gridcolor;
             axlabelcolor_ = axlabelcolor;
         }

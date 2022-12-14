@@ -66,6 +66,7 @@ public class PlaneAxisController
             StyleKeys.GRID_COLOR,
             StyleKeys.AXLABEL_COLOR,
             StyleKeys.MINOR_TICKS,
+            StyleKeys.SHADOW_TICKS,
             PlaneSurfaceFactory.XCROWD_KEY,
             PlaneSurfaceFactory.YCROWD_KEY,
         } ) );

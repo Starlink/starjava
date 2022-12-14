@@ -431,6 +431,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
      * @param  ycrowd  crowding factor for tick marks on Y axis;
      *                 1 is normal
      * @param  minor   whether to paint minor tick marks on axes
+     * @param  shadow  whether to paint shadow ticks on opposite axes
+     *                 if no secondary axis
      * @param  gridcolor  colour of grid lines, if plotted
      * @param  axlabelcolor  colour of axis labels
      * @return  new plot surface
@@ -446,30 +448,27 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                               Captioner captioner,
                                               double xyfactor, boolean grid,
                                               double xcrowd, double ycrowd,
-                                              boolean minor, Color gridcolor,
+                                              boolean minor, boolean shadow,
+                                              Color gridcolor,
                                               Color axlabelcolor ) {
         int gxlo = plotBounds.x;
         int gxhi = plotBounds.x + plotBounds.width;
         int gylo = plotBounds.y;
         int gyhi = plotBounds.y + plotBounds.height;
+        gridcolor = grid ? gridcolor : null;
         double dxlo = aspect.getXMin();
         double dxhi = aspect.getXMax();
         double dylo = aspect.getYMin();
         double dyhi = aspect.getYMax();
         Ticker xTicker = xlog ? BasicTicker.LOG : BasicTicker.LINEAR;
         Ticker yTicker = ylog ? BasicTicker.LOG : BasicTicker.LINEAR;
-        Tick[] xticks = xTicker.getTicks( dxlo, dxhi, minor, captioner,
-                                          PlaneAxisAnnotation.X_ORIENT,
-                                          plotBounds.width, xcrowd );
-        Tick[] yticks = yTicker.getTicks( dylo, dyhi, minor, captioner,
-                                          PlaneAxisAnnotation.Y_ORIENT,
-                                          plotBounds.height, ycrowd );
-        gridcolor = grid ? gridcolor : null;
 
         /* Fixed ratio of X/Y data scales.  Interpret this by ensuring that
          * all of both requested data ranges is included, and one of them is
          * extended if necessary to accommodate the extra graphics space.
          * Only makes sense if both linear or both log. */
+        final Tick[] xticks;
+        final Tick[] yticks;
         if ( xyfactor > 0 && xlog == ylog ) {
             boolean log = xlog;
             double gx = gxhi - gxlo;
@@ -509,17 +508,27 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                        PlaneAxisAnnotation.Y_ORIENT,
                                        plotBounds.height, 1 );
         }
+
+        /* Otherwise generate standard axis ticks. */
+        else {
+            xticks = xTicker.getTicks( dxlo, dxhi, minor, captioner,
+                                       PlaneAxisAnnotation.X_ORIENT,
+                                       plotBounds.width, xcrowd );
+            yticks = yTicker.getTicks( dylo, dyhi, minor, captioner,
+                                       PlaneAxisAnnotation.Y_ORIENT,
+                                       plotBounds.height, ycrowd );
+        }
         Axis xAxis = Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
         Axis yAxis = Axis.createAxis( gylo, gyhi, dylo, dyhi, ylog,
                                       yflip ^ PlaneAxisAnnotation.INVERT_Y );
         Tick[] x2ticks = x2func == null
-                       ? null
+                       ? ( shadow ? PlotUtil.getShadowTicks( xticks ) : null )
                        : SlaveTicker.createTicker( xAxis, x2func )
                                     .getTicks( dxlo, dxhi, minor, captioner,
                                                PlaneAxisAnnotation.X2_ORIENT,
                                                plotBounds.width, xcrowd );
         Tick[] y2ticks = y2func == null
-                       ? null
+                       ? ( shadow ? PlotUtil.getShadowTicks( yticks ) : null )
                        : SlaveTicker.createTicker( yAxis, y2func )
                                     .getTicks( dylo, dyhi, minor, captioner,
                                                PlaneAxisAnnotation.Y2_ORIENT,

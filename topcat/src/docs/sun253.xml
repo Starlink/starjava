@@ -14567,7 +14567,7 @@ Note you can move both sliders at once by grabbing a position between the two.
 
 </subdiv>
 
-<subdiv>
+<subdiv id="PlaneAxisControl_grid">
 <subhead><title>Grid Tab</title></subhead>
 
 <figure>
@@ -14591,6 +14591,13 @@ It has the following options:
 <dt>Minor Ticks</dt>
 <dd><p>If set, minor (unlabelled) tick marks will be drawn between the
     major (labelled) ones.
+    </p></dd>
+<dt>Shadow Ticks</dt>
+<dd><p>If set and no secondary axis is in use, then tick marks without
+    numeric labels are painted along the axis opposite to the primary axis,
+    so that tick marks are visible along all edges not just the ones
+    with numeric labels.
+    If a secondary axis is in use, this setting is ignored.
     </p></dd>
 <dt>X/Y Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are draw on each axis.
@@ -16050,6 +16057,13 @@ It has the following options:
 <dt>Minor Ticks</dt>
 <dd><p>If set, minor (unlabelled) tick marks will be drawn between the
     major (labelled) ones.
+    </p></dd>
+<dt>Shadow Ticks</dt>
+<dd><p>If set and no secondary axis is in use, then tick marks without
+    numeric labels are painted along the axis opposite to the primary axis,
+    so that tick marks are visible along all edges not just the ones
+    with numeric labels.
+    If a secondary axis is in use, this setting is ignored.
     </p></dd>
 <dt>Time/Y Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are drawn on each axis.
@@ -31740,6 +31754,12 @@ introduced since the last version:
     <li>Secondary T and Y axes can now be drawn in the Time Plot:
         see Time Axes control
         <ref id="TimeAxisControl_secondary">Secondary tab</ref>.</li>
+    <li>Matching ticks can now be plotted on all four sides of
+        Plane, Histogram and Time plots, rather than just on primary
+        (bottom/left) axes.
+        This can be configured with the new <label>Shadow Ticks</label>
+        option in the Axes Control
+        <ref id="PlaneAxisControl_grid">Grid tab</ref>.</li>
     </ul>
     </p></dd>
 

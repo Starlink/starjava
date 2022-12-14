@@ -170,7 +170,8 @@ public class TimeSurfaceFactory
                               p.ylog_, p.yflip_, p.tlabel_, p.ylabel_,
                               p.t2func_, p.y2func_, p.t2label_, p.y2label_,
                               p.captioner_, p.grid_, p.tformat_,
-                              p.tcrowd_, p.ycrowd_, p.minor_, p.tannotate_ );
+                              p.tcrowd_, p.ycrowd_, p.minor_, p.shadow_,
+                              p.tannotate_ );
     }
 
     public ConfigKey<?>[] getProfileKeys() {
@@ -189,6 +190,7 @@ public class TimeSurfaceFactory
             YCROWD_KEY,
             TFORMAT_KEY,
             StyleKeys.MINOR_TICKS,
+            StyleKeys.SHADOW_TICKS,
         } ) );
         list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
         return list.toArray( new ConfigKey<?>[ 0 ] );
@@ -208,10 +210,11 @@ public class TimeSurfaceFactory
         double ycrowd = config.get( YCROWD_KEY );
         TimeFormat tformat = config.get( TFORMAT_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
+        boolean shadow = config.get( StyleKeys.SHADOW_TICKS );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         return new Profile( ylog, yflip, tlabel, ylabel,
-                            t2func, y2func, t2label, y2label, captioner,
-                            grid, tcrowd, ycrowd, tformat, minor, true );
+                            t2func, y2func, t2label, y2label, captioner, grid,
+                            tcrowd, ycrowd, tformat, minor, shadow, true );
     }
 
     public ConfigKey<?>[] getAspectKeys() {
@@ -521,6 +524,7 @@ public class TimeSurfaceFactory
         private final double ycrowd_;
         private final TimeFormat tformat_;
         private final boolean minor_;
+        private final boolean shadow_;
         private final boolean tannotate_;
 
         /**
@@ -545,6 +549,8 @@ public class TimeSurfaceFactory
          *                 1 is normal
          * @param  tformat time labelling format
          * @param  minor   whether to draw minor ticks
+         * @param  shadow  whether to paint shadow ticks on opposite axes
+         *                 if no secondary axis
          * @param  tannotate  whether to annotate time axis
          */
         public Profile( boolean ylog, boolean yflip,
@@ -552,7 +558,8 @@ public class TimeSurfaceFactory
                         DoubleUnaryOperator t2func, DoubleUnaryOperator y2func,
                         String t2label, String y2label, Captioner captioner,
                         boolean grid, double tcrowd, double ycrowd,
-                        TimeFormat tformat, boolean minor, boolean tannotate ) {
+                        TimeFormat tformat, boolean minor, boolean shadow,
+                        boolean tannotate ) {
             ylog_ = ylog;
             yflip_ = yflip;
             tlabel_ = tlabel;
@@ -567,6 +574,7 @@ public class TimeSurfaceFactory
             ycrowd_ = ycrowd;
             tformat_ = tformat;
             minor_ = minor;
+            shadow_ = shadow;
             tannotate_ = tannotate;
         }
 
@@ -590,7 +598,7 @@ public class TimeSurfaceFactory
             return new Profile( ylog_, yflip_, tlabel_, ylabel_,
                                 t2func_, y2func_, t2label_, y2label_,
                                 captioner_, grid_, tcrowd_, ycrowd_, tformat_,
-                                minor_, tannotate );
+                                minor_, shadow_, tannotate );
         }
     }
 }

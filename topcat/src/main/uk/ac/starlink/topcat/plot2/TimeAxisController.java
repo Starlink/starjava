@@ -60,6 +60,7 @@ public class TimeAxisController
             TimeSurfaceFactory.TFORMAT_KEY,
             TimeSurfaceFactory.GRID_KEY,
             StyleKeys.MINOR_TICKS,
+            StyleKeys.SHADOW_TICKS,
             TimeSurfaceFactory.TCROWD_KEY,
             TimeSurfaceFactory.YCROWD_KEY,
         } ) );

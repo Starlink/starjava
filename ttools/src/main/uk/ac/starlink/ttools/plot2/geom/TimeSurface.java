@@ -446,6 +446,8 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @param  ycrowd   crowding factor for tick marks on Y axis;
      *                  1 is normal
      * @param  minor   whether to paint minor tick marks on axes
+     * @param  shadow  whether to paint shadow ticks on opposite axes
+     *                 if no secondary axis
      * @param  tannotate  whether to annotate time axis
      * @return  new plot surface
      */
@@ -459,7 +461,7 @@ public class TimeSurface implements Surface, PlanarSurface {
                                              Captioner captioner, boolean grid,
                                              TimeFormat tformat,
                                              double tcrowd, double ycrowd,
-                                             boolean minor,
+                                             boolean minor, boolean shadow,
                                              boolean tannotate ) {
         int gxlo = plotBounds.x;
         int gxhi = plotBounds.x + plotBounds.width;
@@ -481,13 +483,13 @@ public class TimeSurface implements Surface, PlanarSurface {
         Axis yAxis = Axis.createAxis( gylo, gyhi, dylo, dyhi, ylog,
                                       yflip ^ PlaneAxisAnnotation.INVERT_Y );
         Tick[] t2ticks = t2func == null
-                       ? null
+                       ? ( shadow ? PlotUtil.getShadowTicks( tticks ) : null )
                        : new SlaveTicker( tAxis, t2func, BasicTicker.LINEAR )
                         .getTicks( aspect.getTMin(), aspect.getTMax(), minor,
                                    captioner, PlaneAxisAnnotation.X2_ORIENT,
                                    plotBounds.width, tcrowd );
         Tick[] y2ticks = y2func == null
-                       ? null
+                       ? ( shadow ? PlotUtil.getShadowTicks( yticks ) : null )
                        : SlaveTicker.createTicker( yAxis, y2func )
                                     .getTicks( dylo, dyhi, minor, captioner,
                                                PlaneAxisAnnotation.Y2_ORIENT,

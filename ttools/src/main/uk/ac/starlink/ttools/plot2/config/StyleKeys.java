@@ -567,7 +567,7 @@ public class StyleKeys {
             } )
         , true );
 
-    /** Config key for minor tick drawing key. */
+    /** Config key for minor tick drawing. */
     public static final ConfigKey<Boolean> MINOR_TICKS =
         new BooleanConfigKey(
             new ConfigMeta( "minor", "Minor Ticks" )
@@ -579,6 +579,22 @@ public class StyleKeys {
                 "</p>",
             } )
         , true );
+
+    /** Config key for shadow tick drawing. */
+    public static final ConfigKey<Boolean> SHADOW_TICKS =
+        new BooleanConfigKey(
+            new ConfigMeta( "shadow", "Shadow Ticks" )
+           .setShortDescription( "Display shadow tick marks?" )
+           .setXmlDescription( new String[] {
+                "<p>If true and no secondary axis is in use,",
+                "then tick marks without numeric labels are painted",
+                "along the axis opposite to the primary axis,",
+                "so that tick marks are visible along all edges",
+                "not just the ones with numeric labels.",
+                "If a secondary axis is in use, this setting is ignored.",
+                "</p>",
+            } )
+        , false );
 
     /** Config key for zoom factor. */
     public static final ConfigKey<Double> ZOOM_FACTOR =
