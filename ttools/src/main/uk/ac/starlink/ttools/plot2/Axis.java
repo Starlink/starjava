@@ -173,19 +173,21 @@ public abstract class Axis {
         for ( int it = 0; it < ticks.length; it++ ) {
             Tick tick = ticks[ it ];
             Caption label = tick.getLabel();
+            boolean hasText =
+                label != null && label.toText().trim().length() > 0;
             int gx = (int) dataToGraphics( tick.getValue() );
             double tx = invert ? ghi_ - gx : gx - glo_;
             AffineTransform tTrans =
                 AffineTransform.getTranslateInstance( tx, 0 );
-            Rectangle cbounds = label == null
-                              ? null
-                              : captioner.getCaptionBounds( label );
-            AffineTransform oTrans =
-                label == null ? null
-                              : orient.captionTransform( cbounds, cpad );
+            Rectangle cbounds = hasText
+                              ? captioner.getCaptionBounds( label )
+                              : null;
+            AffineTransform oTrans = hasText
+                                   ? orient.captionTransform( cbounds, cpad )
+                                   : null;
 
             /* Update bounding box for tick labels. */
-            if ( label != null ) {
+            if ( hasText ) {
                 Rectangle box = combineTrans( tTrans, oTrans )
                                .createTransformedShape( cbounds ).getBounds();
                 tickBounds.add( box );
@@ -196,8 +198,11 @@ public abstract class Axis {
                 g2.setTransform( combineTrans( trans0, tTrans ) );
                 if ( label != null ) {
                     g2.drawLine( 0, -tickUnit, 0, tickUnit );
-                    g2.setTransform( combineTrans( trans0, tTrans, oTrans ) );
-                    captioner.drawCaption( label, g2 );
+                    if ( hasText ) {
+                        g2.setTransform( combineTrans( trans0, tTrans,
+                                                       oTrans ) );
+                        captioner.drawCaption( label, g2 );
+                    }
                 }
                 else {
                     g2.drawLine( 0, 0, 0, tickUnit );
