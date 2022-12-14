@@ -1220,6 +1220,30 @@ public class PlotUtil {
     }
 
     /**
+     * Returns an array of tickmarks that resembles the supplied ones,
+     * but with no labels.  Major tickmarks are preserved though.
+     *
+     * @param  ticks  input tick array
+     * @return  tick array without labels
+     */
+    public static Tick[] getShadowTicks( Tick[] ticks ) {
+        int ntick = ticks.length;
+        Tick[] ticks2 = new Tick[ ntick ];
+
+        /* Ticks with non-null strings, even empty ones,
+         * are considered major. */
+        for ( int itick = 0; itick < ntick; itick++ ) {
+            Tick tick1 = ticks[ itick ];
+            Caption label1 = tick1.getLabel();
+            double value1 = tick1.getValue();
+            Caption label2 = label1 == null ? null
+                                            : Caption.createCaption( "" );
+            ticks2[ itick ] = new Tick( value1, label2 );
+        }
+        return ticks2;
+    }
+
+    /**
      * Accumulator class for use with ClosestCollector.
      * Aggregates the index of the current best row with its distance
      * from the target position.
