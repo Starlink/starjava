@@ -14420,6 +14420,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="Sky-inSkyEllipse"><code>inSkyEllipse</code></ref>.</li>
     <li>Avoid some plot failures related to oversized legends and
         undersized plot windows.</li>
+    <li>Fix occasional NullPointerException in taplint EPN stage.</li>
     </ul>
     </p></dd>
 

@@ -563,9 +563,10 @@ public class EpnTapStage implements Stage {
                            .append( cname )
                            .append( " in table " )
                            .append( tname_ )
-                           .append( " has unit \"" )
-                           .append( gotUnit )
-                           .append( "\"; for spatial_frame_type \"" )
+                           .append( gotUnit == null
+                                        ? " has no unit"
+                                        : " has unit \"" + gotUnit + "\"" )
+                           .append( "; for spatial_frame_type \"" )
                            .append( ftype.toString().toLowerCase() )
                            .append( "\" recommended unit is \"" )
                            .append( stdUnit )
@@ -580,15 +581,17 @@ public class EpnTapStage implements Stage {
                                                    : toMinUcd( u ) )
                                   .map( String::toLowerCase )
                                   .collect( Collectors.toList() );
-                        if ( ! mmStdUcds.contains( gotUcd.toLowerCase() ) ) {
+                        if ( gotUcd == null ||
+                             ! mmStdUcds.contains( gotUcd.toLowerCase() ) ) {
                             StringBuffer mbuf = new StringBuffer()
                                .append( "Coordinate UCD mismatch: " )
                                .append( cname )
                                .append( " in table " )
                                .append( tname_ )
-                               .append( " has UCD \"" )
-                               .append( gotUcd )
-                               .append( "\"; for spatial_frame_type \"" )
+                               .append( gotUcd == null
+                                            ? " has no UCD"
+                                            : " has UCD \"" + gotUcd + "\"" )
+                               .append( "; for spatial_frame_type \"" )
                                .append( ftype.toString().toLowerCase() )
                                .append( "\" recommended UCD" );
                             if ( mmStdUcds.size() == 1 ) {
