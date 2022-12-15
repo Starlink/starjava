@@ -1457,9 +1457,10 @@ public class Plot2Example {
                               new String[] {
                 "*layer1=spectrogram", "*in1=" + TName.LRS,
                 "*t1=epoch", "*spectrum1=RX2", null,
+                "*t2func=mjd", "*t2label=MJD", null,
                 "auxfunc=linear", "auxmap=plasma", "auxclip=0,1", null,
-                "xpix=600", "ypix=300", null,
-                "tmin=2007-11-01T00", "tmax=2007-11-01T12", "ymax=500",
+                "xpix=600", "ypix=320", null,
+                "tmin=2007-11-01T00", "tmax=2007-11-01T12", "ymax=480",
             } ),
             new Plot2Example( "layer-yerror", c, PlotTask.TIME, new String[] {
                 "*in=" + TName.ACE, "*t=epoch", "*y=Bmag", null,

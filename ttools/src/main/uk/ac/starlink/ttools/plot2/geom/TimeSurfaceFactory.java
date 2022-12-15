@@ -1,11 +1,14 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import gnu.jel.CompilationException;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleUnaryOperator;
+import java.util.stream.Collectors;
+import uk.ac.starlink.ttools.jel.JELFunction;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.Captioner;
@@ -18,13 +21,16 @@ import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.config.SubrangeConfigKey;
+import uk.ac.starlink.ttools.plot2.config.TextFieldSpecifier;
 import uk.ac.starlink.ttools.plot2.config.TimeConfigKey;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 
@@ -110,6 +116,22 @@ public class TimeSurfaceFactory
     public static final ConfigKey<String> YLABEL_KEY =
         PlaneSurfaceFactory.YLABEL_KEY;
 
+    /** Config key for secondary time axis function. */
+    public static final ConfigKey<TimeJELFunction> T2FUNC_KEY =
+        createSecondaryTimeAxisFunctionKey();
+
+    /** Config key for secondary Y axis function. */
+    public static final ConfigKey<JELFunction> Y2FUNC_KEY =
+        PlaneSurfaceFactory.createSecondaryAxisFunctionKey( "Y" );
+
+    /** Config key for secondary time axis text label. */
+    public static final ConfigKey<String> T2LABEL_KEY =
+        PlaneSurfaceFactory.createSecondaryAxisLabelKey( "T" );
+
+    /** Config key for secondary Y axis text label. */
+    public static final ConfigKey<String> Y2LABEL_KEY =
+        PlaneSurfaceFactory.createSecondaryAxisLabelKey( "Y" );
+
     /** Config key to determine if grid lines are drawn. */
     public static final ConfigKey<Boolean> GRID_KEY =
         new BooleanConfigKey(
@@ -158,6 +180,10 @@ public class TimeSurfaceFactory
             YFLIP_KEY,
             TLABEL_KEY,
             YLABEL_KEY,
+            T2FUNC_KEY,
+            Y2FUNC_KEY,
+            T2LABEL_KEY,
+            Y2LABEL_KEY,
             GRID_KEY,
             TCROWD_KEY,
             YCROWD_KEY,
@@ -173,10 +199,10 @@ public class TimeSurfaceFactory
         boolean yflip = config.get( YFLIP_KEY );
         String tlabel = config.get( TLABEL_KEY );
         String ylabel = config.get( YLABEL_KEY );
-        DoubleUnaryOperator t2func = null;
-        DoubleUnaryOperator y2func = null;
-        String t2label = null;
-        String y2label = null;
+        DoubleUnaryOperator t2func = config.get( T2FUNC_KEY );
+        DoubleUnaryOperator y2func = config.get( Y2FUNC_KEY );
+        String t2label = config.get( T2LABEL_KEY );
+        String y2label = config.get( Y2LABEL_KEY );
         boolean grid = config.get( GRID_KEY );
         double tcrowd = config.get( TCROWD_KEY );
         double ycrowd = config.get( YCROWD_KEY );
@@ -336,6 +362,94 @@ public class TimeSurfaceFactory
         key.setOptionUsage();
         key.addOptionsXml();
         return key;
+    }
+
+    /**
+     * Returns a config key for defining the secondary time axis.
+     *
+     * @return  new config key
+     */
+    private static ConfigKey<TimeJELFunction>
+            createSecondaryTimeAxisFunctionKey() {
+        final TimeJELFunction.TimeQuantity[] tqs =
+            TimeJELFunction.getTimeQuantities();
+        ConfigMeta meta =
+            new ConfigMeta( "t2func", "Secondary Time Axis Value" );
+        meta.setStringUsage( "<time-expr>" );
+        meta.setShortDescription( "Function of time value from primary axis" );
+        meta.setXmlDescription( new String[] {
+            "<p>Defines a secondary time axis in terms of the primary one.",
+            "If a secondary axis is defined in this way,",
+            "then the axis opposite the primary one,",
+            "i.e. the one on the top edge of the plot,",
+            "will be annotated with the appropriate tickmarks.",
+            "</p>",
+            "<p>The value of this parameter is an",
+            "<ref id='jel'>algebraic expression</ref>",
+            "giving the numeric value to be displayed on the secondary axis",
+            "corresponding to a given time value on the primary axis.",
+            "The expression may be given in terms of one of the following",
+            "variables:",
+            "<ul>",
+            Arrays.stream( tqs )
+                  .map( tq -> "<li><code>" + tq.getName() + "</code>: " +
+                              tq.getDescription() + "</li>\n" )
+                  .collect( Collectors.joining() ),
+            "</ul>",
+            "</p>",
+            "<p>In most cases, the value of this parameter will simply be",
+            "one of those variable names, for instance,",
+            "\"<code>mjd</code>\" to annotate the secondary axis",
+            "in Modified Julian Date.",
+            "However you can apply operations to these values in the usual way",
+            "if required, for instance to provide a differently offset",
+            "date scale.",
+            "</p>",
+            "<p>The function supplied should be monotonic",
+            "and reasonably well-behaved,",
+            "otherwise the secondary axis annotation may not work well.",
+            "Tick marks will always be applied on a linear scale.",
+            "Currently there is no way to annotate the secondary axis",
+            "with ISO-8601 dates or other non-numeric labels.",
+            "</p>",
+        } );
+        return new ConfigKey<TimeJELFunction>( meta, TimeJELFunction.class,
+                                               null ) {
+            public TimeJELFunction stringToValue( String fexpr )
+                    throws ConfigException {
+                if ( fexpr == null || fexpr.trim().length() == 0 ) {
+                    return null;
+                }
+                try {
+                    return new TimeJELFunction( fexpr );
+                }
+                catch ( CompilationException e ) {
+                    StringBuffer sbuf =new StringBuffer()
+                        .append( "Expresssion \"" )
+                        .append( fexpr )
+                        .append( "\" is not a function of " );
+                    int nq = tqs.length;
+                    for ( int iq = 0; iq < nq; iq++ ) {
+                        sbuf.append( tqs[ iq ].getName() );
+                        if ( iq < nq - 1 ) {
+                            sbuf.append( ", " );
+                        }
+                        if ( iq == nq - 2 ) {
+                            sbuf.append( "or " );
+                        }
+                    }
+                    sbuf.append( ": " )
+                        .append( e.getMessage() );
+                    throw new ConfigException( this, sbuf.toString() );
+                }
+            }
+            public String valueToString( TimeJELFunction func ) {
+                return func == null ? null : func.getExpression();
+            }
+            public Specifier<TimeJELFunction> createSpecifier() {
+                return new TextFieldSpecifier<TimeJELFunction>( this, null );
+            }
+        };
     }
 
     /**

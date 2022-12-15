@@ -14443,6 +14443,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
                                     <code>x2label</code>,
                                     <code>y2label</code></ref>,
         and <ref id="layer-arrayquantile">example plot</ref>.</li>
+    <li>Secondary T and Y axes can now be plotted in
+        <ref id="plot2time"><code>plot2time</code></ref>;
+        see new parameters
+        <ref id="plot2time-t2func"><code>t2func</code>,
+                                   <code>y2func</code>,
+                                   <code>t2label</code>,
+                                   <code>y2label</code></ref>,
+        and <ref id="layer-spectrogram">example plot</ref>.</li>
     </ul>
     </p></dd>
 
