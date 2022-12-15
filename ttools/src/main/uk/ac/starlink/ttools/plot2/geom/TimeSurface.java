@@ -8,6 +8,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
 import java.util.Arrays;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.Supplier;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.BasicTicker;
@@ -41,6 +42,10 @@ public class TimeSurface implements Surface, PlanarSurface {
     private final Tick[] yticks_;
     private final String tlabel_;
     private final String ylabel_;
+    private final Tick[] t2ticks_;
+    private final Tick[] y2ticks_;
+    private final String t2label_;
+    private final String y2label_;
     private final Captioner captioner_;
     private final boolean grid_;
     private final TimeFormat tformat_;
@@ -67,6 +72,10 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @param  yticks  array of tickmark objects for Y axis
      * @param  tlabel  text for labelling time axis
      * @param  ylabel  text for labelling Y axis
+     * @param  t2ticks  array of tickmark objects for secondary time axis
+     * @param  y2ticks  array of tickmark objects for secondary Y axis
+     * @param  t2label  text for labelling secondary time axis
+     * @param  y2label  text for labelling secondary Y axis
      * @param  captioner  text renderer for axis labels etc
      * @param  grid   whether to draw grid lines
      * @param  tformat  time labelling format
@@ -77,6 +86,8 @@ public class TimeSurface implements Surface, PlanarSurface {
                         boolean ylog, boolean yflip,
                         Tick[] tticks, Tick[] yticks,
                         String tlabel, String ylabel,
+                        Tick[] t2ticks, Tick[] y2ticks,
+                        String t2label, String y2label,
                         Captioner captioner, boolean grid,
                         TimeFormat tformat, boolean tannotate ) {
         gxlo_ = gxlo;
@@ -93,6 +104,10 @@ public class TimeSurface implements Surface, PlanarSurface {
         yticks_ = yticks;
         tlabel_ = tlabel;
         ylabel_ = ylabel;
+        t2ticks_ = t2ticks;
+        y2ticks_ = y2ticks;
+        t2label_ = t2label;
+        y2label_ = y2label;
         captioner_ = captioner;
         grid_ = grid;
         tformat_ = tformat;
@@ -164,15 +179,13 @@ public class TimeSurface implements Surface, PlanarSurface {
         g.fillRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
         if ( grid_ ) {
             g.setColor( Color.LIGHT_GRAY );
-            for ( int it = 0; it < tticks_.length; it++ ) {
-                Tick tick = tticks_[ it ];
+            for ( Tick tick : tticks_ ) {
                 if ( tick.getLabel() != null ) {
                     int gx = (int) tAxis_.dataToGraphics( tick.getValue() );
                     g.drawLine( gx, gylo_, gx, gyhi_ );
                 }
             }
-            for ( int it = 0; it < yticks_.length; it++ ) {
-                Tick tick = yticks_[ it ];
+            for ( Tick tick : yticks_ ) {
                 if ( tick.getLabel() != null ) {
                     int gy = (int) yAxis_.dataToGraphics( tick.getValue() );
                     g.drawLine( gxlo_, gy, gxhi_, gy );
@@ -322,14 +335,10 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @return   axis annotation
      */
     private AxisAnnotation createAxisAnnotation() {
-        Tick[] t2ticks = null;
-        Tick[] y2ticks = null;
-        String t2label = null;
-        String y2label = null;
         return new PlaneAxisAnnotation( gxlo_, gxhi_, gylo_, gyhi_,
                                         tAxis_, yAxis_,
                                         tticks_, yticks_, tlabel_, ylabel_,
-                                        t2ticks, y2ticks, t2label, y2label,
+                                        t2ticks_, y2ticks_, t2label_, y2label_,
                                         captioner_, tannotate_, true );
     }
 
@@ -350,6 +359,10 @@ public class TimeSurface implements Surface, PlanarSurface {
         code = 23 * code + Arrays.hashCode( yticks_ );
         code = 23 * code + PlotUtil.hashCode( tlabel_ );
         code = 23 * code + PlotUtil.hashCode( ylabel_ );
+        code = 23 * code + Arrays.hashCode( t2ticks_ );
+        code = 23 * code + Arrays.hashCode( y2ticks_ );
+        code = 23 * code + PlotUtil.hashCode( t2label_ );
+        code = 23 * code + PlotUtil.hashCode( y2label_ );
         code = 23 * code + captioner_.hashCode();
         code = 23 * code + ( grid_ ? 11 : 13 );
         code = 23 * code + tformat_.hashCode();
@@ -375,6 +388,10 @@ public class TimeSurface implements Surface, PlanarSurface {
                 && Arrays.equals( this.yticks_, other.yticks_ )
                 && PlotUtil.equals( this.tlabel_, this.tlabel_ )
                 && PlotUtil.equals( this.ylabel_, other.ylabel_ )
+                && Arrays.equals( this.t2ticks_, other.t2ticks_ )
+                && Arrays.equals( this.y2ticks_, other.y2ticks_ )
+                && PlotUtil.equals( this.t2label_, other.t2label_ )
+                && PlotUtil.equals( this.y2label_, other.y2label_ )
                 && this.captioner_.equals( other.captioner_ )
                 && this.grid_ == other.grid_
                 && this.tformat_.equals( other.tformat_ )
@@ -415,6 +432,12 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @param  yflip  whether to invert direction of Y axis
      * @param  tlabel  text for labelling time axis
      * @param  ylabel  text for labelling Y axis
+     * @param  t2func  function mapping unix seconds to secondary time axis
+     *                 data coord, null for no secondary time axis
+     * @param  y2func  function mapping primary to secondary Y axis data coord,
+     *                 null for no secondary Y axis
+     * @param  t2label  secondary time axis label
+     * @param  y2label  secondary Y axis label
      * @param  captioner  text renderer for axis labels etc
      * @param  grid   whether to draw grid lines
      * @param  tformat  time labelling format
@@ -430,6 +453,9 @@ public class TimeSurface implements Surface, PlanarSurface {
                                              TimeAspect aspect,
                                              boolean ylog, boolean yflip,
                                              String tlabel, String ylabel,
+                                             DoubleUnaryOperator t2func,
+                                             DoubleUnaryOperator y2func,
+                                             String t2label, String y2label,
                                              Captioner captioner, boolean grid,
                                              TimeFormat tformat,
                                              double tcrowd, double ycrowd,
@@ -451,8 +477,24 @@ public class TimeSurface implements Surface, PlanarSurface {
                        .getTicks( dylo, dyhi, minor, captioner,
                                   PlaneAxisAnnotation.Y_ORIENT,
                                   plotBounds.height, ycrowd );
+        Axis tAxis = Axis.createAxis( gxlo, gxhi, dtlo, dthi, false, false );
+        Axis yAxis = Axis.createAxis( gylo, gyhi, dylo, dyhi, ylog,
+                                      yflip ^ PlaneAxisAnnotation.INVERT_Y );
+        Tick[] t2ticks = t2func == null
+                       ? null
+                       : new SlaveTicker( tAxis, t2func, BasicTicker.LINEAR )
+                        .getTicks( aspect.getTMin(), aspect.getTMax(), minor,
+                                   captioner, PlaneAxisAnnotation.X2_ORIENT,
+                                   plotBounds.width, tcrowd );
+        Tick[] y2ticks = y2func == null
+                       ? null
+                       : SlaveTicker.createTicker( yAxis, y2func )
+                                    .getTicks( dylo, dyhi, minor, captioner,
+                                               PlaneAxisAnnotation.Y2_ORIENT,
+                                               plotBounds.height, ycrowd );
         return new TimeSurface( gxlo, gxhi, gylo, gyhi, dtlo, dthi, dylo, dyhi,
                                 ylog, yflip, tticks, yticks, tlabel, ylabel,
+                                t2ticks, y2ticks, t2label, y2label,
                                 captioner, grid, tformat, tannotate );
     }
 }

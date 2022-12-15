@@ -5,6 +5,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.DoubleUnaryOperator;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.Captioner;
@@ -145,6 +146,7 @@ public class TimeSurfaceFactory
         return TimeSurface
               .createSurface( plotBounds, aspect,
                               p.ylog_, p.yflip_, p.tlabel_, p.ylabel_,
+                              p.t2func_, p.y2func_, p.t2label_, p.y2label_,
                               p.captioner_, p.grid_, p.tformat_,
                               p.tcrowd_, p.ycrowd_, p.minor_, p.tannotate_ );
     }
@@ -171,13 +173,18 @@ public class TimeSurfaceFactory
         boolean yflip = config.get( YFLIP_KEY );
         String tlabel = config.get( TLABEL_KEY );
         String ylabel = config.get( YLABEL_KEY );
+        DoubleUnaryOperator t2func = null;
+        DoubleUnaryOperator y2func = null;
+        String t2label = null;
+        String y2label = null;
         boolean grid = config.get( GRID_KEY );
         double tcrowd = config.get( TCROWD_KEY );
         double ycrowd = config.get( YCROWD_KEY );
         TimeFormat tformat = config.get( TFORMAT_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
-        return new Profile( ylog, yflip, tlabel, ylabel, captioner,
+        return new Profile( ylog, yflip, tlabel, ylabel,
+                            t2func, y2func, t2label, y2label, captioner,
                             grid, tcrowd, ycrowd, tformat, minor, true );
     }
 
@@ -390,6 +397,10 @@ public class TimeSurfaceFactory
         private final boolean yflip_;
         private final String tlabel_;
         private final String ylabel_;
+        private final DoubleUnaryOperator t2func_;
+        private final DoubleUnaryOperator y2func_;
+        private final String t2label_;
+        private final String y2label_;
         private final Captioner captioner_;
         private final boolean grid_;
         private final double tcrowd_;
@@ -405,6 +416,13 @@ public class TimeSurfaceFactory
          * @param  yflip  whether to invert direction of Y axis
          * @param  tlabel text for labelling time axis
          * @param  ylabel  text for labelling Y axis
+         * @param  t2func  function mapping unix time values to
+         *                 secondary time data coords,
+         *                 or null for no secondary time axis
+         * @param  y2func  function mapping primary to secondary Y data coords,
+         *                 or null for no secondary Y axis
+         * @param  t2label  text for labelling secondary time axis
+         * @param  y2label  text for labelling secondary Y axis
          * @param  captioner  text renderer for axis labels etc
          * @param  grid   whether to draw grid lines
          * @param  tcrowd  crowding factor for tick marks on time axis;
@@ -416,13 +434,19 @@ public class TimeSurfaceFactory
          * @param  tannotate  whether to annotate time axis
          */
         public Profile( boolean ylog, boolean yflip,
-                        String tlabel, String ylabel, Captioner captioner,
+                        String tlabel, String ylabel,
+                        DoubleUnaryOperator t2func, DoubleUnaryOperator y2func,
+                        String t2label, String y2label, Captioner captioner,
                         boolean grid, double tcrowd, double ycrowd,
                         TimeFormat tformat, boolean minor, boolean tannotate ) {
             ylog_ = ylog;
             yflip_ = yflip;
             tlabel_ = tlabel;
             ylabel_ = ylabel;
+            t2func_ = t2func;
+            y2func_ = y2func;
+            t2label_ = t2label;
+            y2label_ = y2label;
             captioner_ = captioner;
             grid_ = grid;
             tcrowd_ = tcrowd;
@@ -449,9 +473,10 @@ public class TimeSurfaceFactory
          * @param   tannotate  whether to annotate time axis
          */
         public Profile fixTimeAnnotation( boolean tannotate ) {
-            return new Profile( ylog_, yflip_, tlabel_, ylabel_, captioner_,
-                                grid_, tcrowd_, ycrowd_, tformat_, minor_,
-                                tannotate );
+            return new Profile( ylog_, yflip_, tlabel_, ylabel_,
+                                t2func_, y2func_, t2label_, y2label_,
+                                captioner_, grid_, tcrowd_, ycrowd_, tformat_,
+                                minor_, tannotate );
         }
     }
 }
