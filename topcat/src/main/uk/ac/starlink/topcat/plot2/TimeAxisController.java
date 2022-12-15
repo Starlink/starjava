@@ -67,6 +67,15 @@ public class TimeAxisController
         /* Labels tab. */
         addLabelsTab();
 
+        /* Secondary axes tab. */
+        mainControl.addSpecifierTab( "Secondary",
+                                     new ConfigSpecifier( new ConfigKey<?>[] {
+            TimeSurfaceFactory.T2FUNC_KEY,
+            TimeSurfaceFactory.T2LABEL_KEY,
+            TimeSurfaceFactory.Y2FUNC_KEY,
+            TimeSurfaceFactory.Y2LABEL_KEY,
+        } ) );
+
         /* Font tab. */
         mainControl.addSpecifierTab( "Font",
                                      new ConfigSpecifier( StyleKeys.CAPTIONER

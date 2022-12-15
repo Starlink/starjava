@@ -126,7 +126,7 @@ public class TimeSurfaceFactory
 
     /** Config key for secondary time axis text label. */
     public static final ConfigKey<String> T2LABEL_KEY =
-        PlaneSurfaceFactory.createSecondaryAxisLabelKey( "T" );
+        PlaneSurfaceFactory.createSecondaryAxisLabelKey( "Time" );
 
     /** Config key for secondary Y axis text label. */
     public static final ConfigKey<String> Y2LABEL_KEY =

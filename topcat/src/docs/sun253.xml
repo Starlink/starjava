@@ -275,6 +275,7 @@
   <!ENTITY FIG.TimeAxisControl_range '&figs;TimeAxisControl_range.png'>
   <!ENTITY FIG.TimeAxisControl_grid '&figs;TimeAxisControl_grid.png'>
   <!ENTITY FIG.TimeAxisControl_labels '&figs;TimeAxisControl_labels.png'>
+  <!ENTITY FIG.TimeAxisControl_secondary '&figs;TimeAxisControl_secondary.png'>
   <!ENTITY FIG.HistogramPlotWindow '&figs;HistogramPlotWindow.png'>
   <!ENTITY FIG.PlanePlotWindow '&figs;PlanePlotWindow.png'>
   <!ENTITY FIG.SkyPlotWindow '&figs;SkyPlotWindow.png'>
@@ -16076,6 +16077,68 @@ text in to the <label>Y Label</label> field.
 
 </subdiv>
 
+<subdiv id="TimeAxisControl_secondary">
+<subhead><title>Secondary Axes Tab</title></subhead>
+
+<figure>
+<caption><px>Secondary tab of time Axes control</px></caption>
+<figureimage src="&FIG.TimeAxisControl_secondary;"/>
+</figure>
+
+<p>The <label>Secondary</label> tab controls optional secondary
+Time and Y axes at the top and right edges of the plot,
+to go with the standard (primary) Time and Y axes at the bottom and left edges,
+so for instance you can annotate the vertical dimension
+with both magnitudes and flux,
+or the horizontal dimension with both decimal year and MJD.
+<dl>
+<dt>Secondary Time Axis Value</dt>
+<dd><p>Defines the secondary axis in relation to the time value displayed
+    on the primary one.
+    The value you enter is an <ref id="jel">algebraic expression</ref>
+    using one of the following variables:
+    <ul>
+    <li><code>mjd</code>: Modified Julian Date</li>
+    <li><code>jd</code>: Julian Day</li>
+    <li><code>decYear</code>: decimal year CE</li>
+    <li><code>unixSec</code>: seconds since 1970-01-01T00:00:00</li>
+    </ul>
+    In most cases, you will just use one of these strings, e.g.
+    "mjd" to label using MJD, but you can apply operations to these values
+    in the usual way if required, for instance to provide a differently offset
+    date scale.
+    The function supplied should be monotonic and reasonably well-behaved,
+    otherwise the secondary axis annotation may not work well. Tick marks
+    will always be applied on a linear scale. Currently there is no way to
+    annotate the secondary axis with ISO-8601 dates or other non-numeric
+    labels.
+    </p></dd>
+<dt>Secondary Time Axis Label</dt>
+<dd><p>Provides a textual annotation near the secondary Time axis
+    (at the top).
+    This can be supplied whether or not the Time axis mapping function
+    is actually present.
+    </p></dd>
+<dt>Secondary Y Axis f(y)</dt>
+<dd><p>Defines the secondary Y axis in relation to the primary one
+    by means of a supplied function of the variable <label>y</label>
+    that maps primary to secondary axis values,
+    written using TOPCAT's <ref id="jel">expression language</ref>.
+    The function supplied should be monotonic and reasonably well-behaved,
+    otherwise the secondary axis annotation may not work well.
+    TOPCAT will attempt to make a sensible decision about whether to
+    use linear or logarithmic tick marks.
+    </p></dd>
+<dt>Secondary Y Axis Label</dt>
+<dd><p>Provides a textual annotation near the secondary Y axis (on the right).
+    This can be supplied whether or not the Y axis mapping function
+    is actually present.
+    </p></dd>
+</dl>
+</p>
+
+</subdiv>
+
 <subdiv>
 <subhead><title>Font Tab</title></subhead>
 
@@ -31674,6 +31737,9 @@ introduced since the last version:
         see Plane Axes control
         <ref id="PlaneAxisControl_secondary">Secondary tab</ref> and
         <ref id="form-arrayquantile">example plot</ref>.</li>
+    <li>Secondary T and Y axes can now be drawn in the Time Plot:
+        see Time Axes control
+        <ref id="TimeAxisControl_secondary">Secondary tab</ref>.</li>
     </ul>
     </p></dd>
 
