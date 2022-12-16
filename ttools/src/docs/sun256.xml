@@ -14451,8 +14451,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
                                    <code>t2label</code>,
                                    <code>y2label</code></ref>,
         and <ref id="layer-spectrogram">example plot</ref>.</li>
-    <li>Matching ticks can now be plotted on all four sides of plots
-        drawn by <code>plot2plane</code> and <code>plot2time</code>,
+    <li>Matching Ticks are now plotted by default on all four sides of
+        plots drawn
+        by <code>plot2plane</code> and <code>plot2time</code>,
         rather than just on primary (left/bottom) axes.
         This can be configured with the new
         <ref id="plot2plane-shadow"><code>shadow</code></ref>

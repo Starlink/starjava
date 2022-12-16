@@ -594,7 +594,7 @@ public class StyleKeys {
                 "If a secondary axis is in use, this setting is ignored.",
                 "</p>",
             } )
-        , false );
+        , true );
 
     /** Config key for zoom factor. */
     public static final ConfigKey<Double> ZOOM_FACTOR =

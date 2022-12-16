@@ -1405,7 +1405,7 @@ public class Plot2Example {
                 "*in=" + TName.MGC, "*x=mgc_dc_sb", null,
                 "layer1=histogram", "color1=green", null,
                 "*layer2=gaussian", "*color2=grey", "*thick2=3", null,
-                "ymax=1200",
+                "ymax=1200", "shadow=false",
             } ),
             new Plot2Example( "layer-skydensity", c, PlotTask.SKY,
                               new String[] { 

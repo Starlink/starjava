@@ -31754,7 +31754,7 @@ introduced since the last version:
     <li>Secondary T and Y axes can now be drawn in the Time Plot:
         see Time Axes control
         <ref id="TimeAxisControl_secondary">Secondary tab</ref>.</li>
-    <li>Matching ticks can now be plotted on all four sides of
+    <li>Matching ticks are now plotted by default on all four sides of
         Plane, Histogram and Time plots, rather than just on primary
         (bottom/left) axes.
         This can be configured with the new <label>Shadow Ticks</label>
