@@ -14458,6 +14458,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         This can be configured with the new
         <ref id="plot2plane-shadow"><code>shadow</code></ref>
         parameter.</li>
+    <li>Major tick marks on axes now extend only inside the plot bounds
+        not outside.</li>
     </ul>
     </p></dd>
 

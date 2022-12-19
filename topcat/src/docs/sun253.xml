@@ -31760,6 +31760,8 @@ introduced since the last version:
         This can be configured with the new <label>Shadow Ticks</label>
         option in the Axes Control
         <ref id="PlaneAxisControl_grid">Grid tab</ref>.</li>
+    <li>Major tick marks on axes now extend only inside the plot bounds
+        not outside.</li>
     </ul>
     </p></dd>
 

@@ -171,7 +171,7 @@ public abstract class Axis {
         /* Place ticks. */
         AffineTransform upTrans =
             AffineTransform.getScaleInstance( 1, orient.isDown() ? -1 : +1 );
-        TickLook tickLook = TickLook.CLASSIC;
+        TickLook tickLook = TickLook.STANDARD;
         for ( int it = 0; it < ticks.length; it++ ) {
             Tick tick = ticks[ it ];
             Caption label = tick.getLabel();
