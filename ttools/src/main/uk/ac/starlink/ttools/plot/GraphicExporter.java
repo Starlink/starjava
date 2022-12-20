@@ -339,8 +339,6 @@ public abstract class GraphicExporter {
             Graphics2D g2 = image.createGraphics();
             g2.setRenderingHint( RenderingHints.KEY_RENDERING,
                                  RenderingHints.VALUE_RENDER_QUALITY );
-            g2.setRenderingHint( RenderingHints.KEY_STROKE_CONTROL,
-                                 RenderingHints.VALUE_STROKE_PURE );
 
             /* Clear the background.  Failing to do this can leave junk. */
             Color color = g2.getColor();
