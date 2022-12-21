@@ -29,6 +29,8 @@ public class ShadeAxis {
     private final int rampWidth_;
     private static final Orientation ORIENTATION = Orientation.ANTI_Y;
     private static final Caption PAD_CAPTION = Caption.createCaption( "0" );
+    private static final TickLook TICKLOOK =
+        TickLook.createStandardLook( "outside", -1 );
 
     /**
      * Constructor.
@@ -297,7 +299,7 @@ public class ShadeAxis {
             AffineTransform trans0 = g2.getTransform();
             g2.translate( box_.x + box_.width, box_.y + box_.height );
             g2.rotate( - Math.PI / 2 );
-            axis_.drawLabels( ticks_, label_, captioner_, TickLook.STANDARD,
+            axis_.drawLabels( ticks_, label_, captioner_, TICKLOOK,
                               ORIENTATION, false, g2 );
 
             /* Reset graphics context. */
