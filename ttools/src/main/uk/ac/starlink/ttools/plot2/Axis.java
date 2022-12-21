@@ -169,7 +169,9 @@ public abstract class Axis {
         Rectangle tickBounds = new Rectangle();
 
         /* Place ticks. */
-        int tickUnit = orient.isDown() ? -2 : +2;
+        AffineTransform upTrans =
+            AffineTransform.getScaleInstance( 1, orient.isDown() ? -1 : +1 );
+        TickLook tickLook = TickLook.CLASSIC;
         for ( int it = 0; it < ticks.length; it++ ) {
             Tick tick = ticks[ it ];
             Caption label = tick.getLabel();
@@ -195,9 +197,9 @@ public abstract class Axis {
 
             /* If we are drawing, draw now. */
             if ( hasGraphics ) {
-                g2.setTransform( combineTrans( trans0, tTrans ) );
+                g2.setTransform( combineTrans( trans0, tTrans, upTrans ) );
                 if ( label != null ) {
-                    g2.drawLine( 0, -tickUnit, 0, tickUnit );
+                    tickLook.drawMajor( g2 );
                     if ( hasText ) {
                         g2.setTransform( combineTrans( trans0, tTrans,
                                                        oTrans ) );
@@ -205,7 +207,7 @@ public abstract class Axis {
                     }
                 }
                 else {
-                    g2.drawLine( 0, 0, 0, tickUnit );
+                    tickLook.drawMinor( g2 );
                 }
                 g2.setTransform( trans0 );
             }
