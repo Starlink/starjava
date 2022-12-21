@@ -31762,6 +31762,7 @@ introduced since the last version:
         <ref id="PlaneAxisControl_grid">Grid tab</ref>.</li>
     <li>Major tick marks on axes now extend only inside the plot bounds
         not outside.</li>
+    <li>Reduce frequency of minor ticks.</li>
     </ul>
     </p></dd>
 

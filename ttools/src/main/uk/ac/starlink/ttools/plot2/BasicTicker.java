@@ -547,8 +547,8 @@ public abstract class BasicTicker implements Ticker {
 
         /** Known instances, in order. */
         public static final LinearSpacer[] SPACERS = new LinearSpacer[] {
-            new LinearSpacer( 2.5, 1, 0.1 ),
-            new LinearSpacer( 4.5, 2, 0.25 ),
+            new LinearSpacer( 2.5, 1, 0.2 ),
+            new LinearSpacer( 4.5, 2, 0.5 ),
             new LinearSpacer( 7.5, 5, 1 ),
         };
 
@@ -589,7 +589,7 @@ public abstract class BasicTicker implements Ticker {
 
     /**
      * Defines how to split up an interval of approximately a factor of 10
-     * into major an minor divisions of approximately equal logarithmic size.
+     * into major and minor divisions of approximately equal logarithmic size.
      */
     private static class LogSpacer {
         private final int[] majors_;
@@ -598,14 +598,14 @@ public abstract class BasicTicker implements Ticker {
         /** Known instances, in order. */
         public static final LogSpacer[] SPACERS = new LogSpacer[] {
             new LogSpacer( new int[] { 1, 2, 5, },
-                           new double[][] { { 1.1, 1.2, 1.3, 1.4, 1.5, },
-                                            { 2.5, 3.0, 3.5, 4.0, 4.5, },
+                           new double[][] { { 1.5, },
+                                            { 3.0, 4.0, },
                                             { 6.0, 7.0, 8.0, 9.0, }, } ),
             new LogSpacer( new int[] { 1, 2, 3, 4, 5 },
-                           new double[][] { { 1.2, 1.4, 1.6, 1.8, },
-                                            { 2.2, 2.4, 2.6, 2.8, },
-                                            { 3.2, 3.4, 3.6, 3.8, },
-                                            { 4.2, 4.4, 4.6, 4.8, },
+                           new double[][] { { 1.5, },
+                                            { 2.5, },
+                                            { 3.5, },
+                                            { 4.5, },
                                             { 6.0, 7.0, 8.0, 9.0, }, } ),
         };
 

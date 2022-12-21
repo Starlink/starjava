@@ -14460,6 +14460,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         parameter.</li>
     <li>Major tick marks on axes now extend only inside the plot bounds
         not outside.</li>
+    <li>Reduce frequency of minor ticks.</li>
     </ul>
     </p></dd>
 
