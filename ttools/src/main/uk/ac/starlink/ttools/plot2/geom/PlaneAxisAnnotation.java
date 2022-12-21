@@ -14,6 +14,7 @@ import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
+import uk.ac.starlink.ttools.plot2.TickLook;
 
 /**
  * AxisAnnotation implementation for 2D surfaces.
@@ -107,29 +108,30 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         Graphics2D g2 = (Graphics2D) g;
         Captioner xCaptioner = xAnnotate_ ? captioner_ : NullCaptioner.INSTANCE;
         Captioner yCaptioner = yAnnotate_ ? captioner_ : NullCaptioner.INSTANCE;
+        TickLook tickLook = TickLook.STANDARD;
         AffineTransform trans0 = g2.getTransform();
         AffineTransform transX = new AffineTransform( trans0 );
         transX.concatenate( axisTransform( xoff_, yoff_, false ) );
         AffineTransform transY = new AffineTransform( trans0 );
         transY.concatenate( axisTransform( xoff_, yoff_, true ) );
         g2.setTransform( transX );
-        xaxis_.drawLabels( xticks_, xlabel_, xCaptioner,
+        xaxis_.drawLabels( xticks_, xlabel_, xCaptioner, tickLook,
                            X_ORIENT, false, g2 );
         g2.setTransform( transY );
-        yaxis_.drawLabels( yticks_, ylabel_, yCaptioner,
+        yaxis_.drawLabels( yticks_, ylabel_, yCaptioner, tickLook,
                            Y_ORIENT, INVERT_Y, g2 );
         if ( x2ticks_.length > 0 || x2label_ != null ) {
             AffineTransform transX2 = new AffineTransform( trans0 );
             transX2.concatenate( axisTransform( xoff_, y2off_, false ) );
             g2.setTransform( transX2 );
-            xaxis_.drawLabels( x2ticks_, x2label_, xCaptioner,
+            xaxis_.drawLabels( x2ticks_, x2label_, xCaptioner, tickLook,
                                X2_ORIENT, false, g2 );
         }
         if ( y2ticks_.length > 0 || y2label_ != null ) {
             AffineTransform transY2 = new AffineTransform( trans0 );
             transY2.concatenate( axisTransform( x2off_, yoff_, true ) );
             g2.setTransform( transY2 );
-            yaxis_.drawLabels( y2ticks_, y2label_, yCaptioner,
+            yaxis_.drawLabels( y2ticks_, y2label_, yCaptioner, tickLook,
                                Y2_ORIENT, INVERT_Y, g2 );
         }
         g2.setTransform( trans0 );

@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
+import uk.ac.starlink.ttools.plot2.TickLook;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.util.SplitCollector;
 
@@ -69,6 +70,7 @@ public class CubeSurface implements Surface {
     private final double[] dOffs_;
 
     private static final Orientation ORIENTATION = Orientation.X;
+    private static final TickLook TICKLOOK = TickLook.STANDARD;
 
     /**
      * Constructor.
@@ -1079,7 +1081,7 @@ public class CubeSurface implements Surface {
                                    logFlags_[ iaxis ],
                                    ( ! forward ) ^ flipFlags_[ iaxis ] );
         ax.drawLabels( ticks_[ iaxis ], labels_[ iaxis ],
-                       captioner_, ORIENTATION, false, g2 );
+                       captioner_, TICKLOOK, ORIENTATION, false, g2 );
         g2.setTransform( atf0 );
     }
 

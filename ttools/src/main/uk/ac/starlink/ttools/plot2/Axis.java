@@ -113,13 +113,15 @@ public abstract class Axis {
      * @param  ticks  tickmark array
      * @param  title  axis label text, may be null
      * @param  captioner  text positioning object
+     * @param  tickLook  tick drawing style
      * @param  orient  axis orientation code
      * @param  invert  whether to reverse sense of axis 
      * @param  g   graphics context
      */
-    public void drawLabels( Tick[] ticks, String title, Captioner captioner,
+    public void drawLabels( Tick[] ticks, String title,
+                            Captioner captioner, TickLook tickLook,
                             Orientation orient, boolean invert, Graphics g ) {
-        calculateLabels( ticks, title, captioner, orient, invert, g );
+        calculateLabels( ticks, title, captioner, tickLook, orient, invert, g );
     }
 
     /**
@@ -137,7 +139,8 @@ public abstract class Axis {
     public Rectangle getLabelBounds( Tick[] ticks, String title,
                                      Captioner captioner, Orientation orient,
                                      boolean invert ) {
-        return calculateLabels( ticks, title, captioner, orient, invert, null );
+        return calculateLabels( ticks, title, captioner, TickLook.NONE,
+                                orient, invert, null );
     }
 
     /**
@@ -146,14 +149,16 @@ public abstract class Axis {
      * @param  ticks  tickmark array
      * @param  title  axis label text, may be null
      * @param  captioner  text positioning object
+     * @param  tickLook  tick drawing style
      * @param  orient  axis orientation code
      * @param  invert  whether to reverse sense of axis 
      * @param  graphics context, or null if no painting is required
      * @return   bounding box for all annotations
      */
     private Rectangle calculateLabels( Tick[] ticks, String title,
-                                       Captioner captioner, Orientation orient,
-                                       boolean invert, Graphics g ) {
+                                       Captioner captioner, TickLook tickLook,
+                                       Orientation orient, boolean invert,
+                                       Graphics g ) {
         boolean hasGraphics = g != null;
         Graphics2D g2 = hasGraphics ? (Graphics2D) g : null;
         AffineTransform trans0 = hasGraphics ? g2.getTransform() : null;
@@ -171,7 +176,6 @@ public abstract class Axis {
         /* Place ticks. */
         AffineTransform upTrans =
             AffineTransform.getScaleInstance( 1, orient.isDown() ? -1 : +1 );
-        TickLook tickLook = TickLook.STANDARD;
         for ( int it = 0; it < ticks.length; it++ ) {
             Tick tick = ticks[ it ];
             Caption label = tick.getLabel();

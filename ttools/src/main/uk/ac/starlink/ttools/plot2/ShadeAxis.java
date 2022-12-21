@@ -297,8 +297,8 @@ public class ShadeAxis {
             AffineTransform trans0 = g2.getTransform();
             g2.translate( box_.x + box_.width, box_.y + box_.height );
             g2.rotate( - Math.PI / 2 );
-            axis_.drawLabels( ticks_, label_, captioner_, ORIENTATION,
-                              false, g2 );
+            axis_.drawLabels( ticks_, label_, captioner_, TickLook.STANDARD,
+                              ORIENTATION, false, g2 );
 
             /* Reset graphics context. */
             g2.setColor( color0 );
