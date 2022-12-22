@@ -60,16 +60,19 @@ public class PlaneAxisController
         } );
 
         /* Grid tab. */
-        mainControl.addSpecifierTab( "Grid",
-                                     new ConfigSpecifier( new ConfigKey<?>[] {
-            PlaneSurfaceFactory.GRID_KEY,
-            StyleKeys.GRID_COLOR,
+        List<ConfigKey<?>> gridKeyList = new ArrayList<>();
+        gridKeyList.add( PlaneSurfaceFactory.GRID_KEY );
+        gridKeyList.addAll( Arrays
+                           .asList( StyleKeys.GRIDCOLOR_KEYSET.getKeys() ) );
+        gridKeyList.addAll( Arrays.asList( new ConfigKey<?>[] {
             StyleKeys.AXLABEL_COLOR,
             StyleKeys.MINOR_TICKS,
             StyleKeys.SHADOW_TICKS,
             PlaneSurfaceFactory.XCROWD_KEY,
             PlaneSurfaceFactory.YCROWD_KEY,
         } ) );
+        ConfigKey<?>[] gridKeys = gridKeyList.toArray( new ConfigKey<?>[ 0 ] );
+        mainControl.addSpecifierTab( "Grid", new ConfigSpecifier( gridKeys ) );
 
         /* Labels tab. */
         addLabelsTab();

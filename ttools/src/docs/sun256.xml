@@ -14461,6 +14461,17 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Major tick marks on axes now extend only inside the plot bounds
         not outside.</li>
     <li>Reduce frequency of minor ticks.</li>
+    <li>Grid lines plotted by
+        <code>plot2plane</code>, <code>plot2time</code> and
+        <code>plot2sky</code>
+        are now all partially transparent and plotted over
+        the plot content
+        (previously they were opaque and the sky grid was drawn over,
+        while the plane and time lines were drawn under,
+        the plot content).
+        Grid line transparency is controlled by the new
+        <ref id="plot2plane-gridtrans"><code>gridtrans</code></ref>
+        parameter.</li>
     </ul>
     </p></dd>
 

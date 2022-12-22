@@ -183,6 +183,13 @@ public class PlaneSurface implements Surface, PlanarSurface {
         Color color0 = g.getColor();
         g.setColor( Color.WHITE );
         g.fillRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
+        g.setColor( color0 );
+    }
+
+    public void paintForeground( Graphics g ) {
+        Color color0 = g.getColor();
+
+        /* Grid lines. */
         if ( gridcolor_ != null ) {
             g.setColor( gridcolor_ );
             for ( Tick tick : xticks_ ) {
@@ -198,22 +205,18 @@ public class PlaneSurface implements Surface, PlanarSurface {
                 }
             }
         }
-        g.setColor( color0 );
-    }
 
-    public void paintForeground( Graphics g ) {
+        /* Axis labels. */
         if ( axlabelcolor_ != null ) {
-            Graphics2D g2 = (Graphics2D) g;
-            Color color0 = g2.getColor();
-            g2.setColor( axlabelcolor_ );
+            g.setColor( axlabelcolor_ );
             createAxisAnnotation().drawLabels( g );
 
             /* Boundary. */
-            g2.drawRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
-
-            /* Restore. */
-            g2.setColor( color0 );
+            g.drawRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
         }
+
+        /* Restore. */
+        g.setColor( color0 );
     }
 
     /**

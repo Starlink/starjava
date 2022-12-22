@@ -193,6 +193,7 @@ public class TimeSurfaceFactory
             StyleKeys.MINOR_TICKS,
             StyleKeys.SHADOW_TICKS,
         } ) );
+        list.addAll( Arrays.asList( StyleKeys.GRIDCOLOR_KEYSET.getKeys() ) );
         list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
         return list.toArray( new ConfigKey<?>[ 0 ] );
     }
@@ -206,7 +207,9 @@ public class TimeSurfaceFactory
         DoubleUnaryOperator y2func = config.get( Y2FUNC_KEY );
         String t2label = config.get( T2LABEL_KEY );
         String y2label = config.get( Y2LABEL_KEY );
-        Color gridcolor = config.get( GRID_KEY ) ? Color.LIGHT_GRAY : null;
+        Color gridcolor = config.get( GRID_KEY )
+                        ? StyleKeys.GRIDCOLOR_KEYSET.createValue( config )
+                        : null;
         double tcrowd = config.get( TCROWD_KEY );
         double ycrowd = config.get( YCROWD_KEY );
         TimeFormat tformat = config.get( TFORMAT_KEY );

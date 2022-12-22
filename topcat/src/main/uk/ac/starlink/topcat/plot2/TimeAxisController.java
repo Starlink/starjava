@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -55,15 +56,18 @@ public class TimeAxisController
         } );
 
         /* Grid tab. */
-        mainControl.addSpecifierTab( "Grid",
-                                     new ConfigSpecifier( new ConfigKey<?>[] {
-            TimeSurfaceFactory.TFORMAT_KEY,
-            TimeSurfaceFactory.GRID_KEY,
-            StyleKeys.MINOR_TICKS,
-            StyleKeys.SHADOW_TICKS,
-            TimeSurfaceFactory.TCROWD_KEY,
-            TimeSurfaceFactory.YCROWD_KEY,
-        } ) );
+        List<ConfigKey<?>> gridKeyList = new ArrayList<>();
+        Collections.addAll( gridKeyList,
+                            TimeSurfaceFactory.TFORMAT_KEY,
+                            TimeSurfaceFactory.GRID_KEY,
+                            StyleKeys.MINOR_TICKS,
+                            StyleKeys.SHADOW_TICKS,
+                            TimeSurfaceFactory.TCROWD_KEY,
+                            TimeSurfaceFactory.YCROWD_KEY );
+        Collections.addAll( gridKeyList,
+                            StyleKeys.GRIDCOLOR_KEYSET.getKeys() );
+        ConfigKey<?>[] gridKeys = gridKeyList.toArray( new ConfigKey<?>[ 0 ] );
+        mainControl.addSpecifierTab( "Grid", new ConfigSpecifier( gridKeys ) );
 
         /* Labels tab. */
         addLabelsTab();

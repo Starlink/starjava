@@ -337,9 +337,9 @@ public class PlaneSurfaceFactory
             YCROWD_KEY,
             StyleKeys.MINOR_TICKS,
             StyleKeys.SHADOW_TICKS,
-            StyleKeys.GRID_COLOR,
-            StyleKeys.AXLABEL_COLOR,
         } ) );
+        list.addAll( Arrays.asList( StyleKeys.GRIDCOLOR_KEYSET.getKeys() ) );
+        list.add( StyleKeys.AXLABEL_COLOR );
         list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
         return list.toArray( new ConfigKey<?>[ 0 ] );
     }
@@ -361,7 +361,7 @@ public class PlaneSurfaceFactory
         double ycrowd = config.get( YCROWD_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         boolean shadow = config.get( StyleKeys.SHADOW_TICKS );
-        Color gridcolor = config.get( StyleKeys.GRID_COLOR );
+        Color gridcolor = StyleKeys.GRIDCOLOR_KEYSET.createValue( config );
         if ( ! grid ) {
             gridcolor = null;
         }

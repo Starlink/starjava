@@ -2,8 +2,11 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -71,17 +74,21 @@ public class SkyAxisController
         } );
 
         /* Grid appearance specifier. */
+        List<ConfigKey<?>> gridKeyList = new ArrayList<>();
+        Collections.addAll( gridKeyList,
+                            SkySurfaceFactory.GRID_KEY,
+                            SkySurfaceFactory.SCALEBAR_KEY,
+                            SkySurfaceFactory.SEX_KEY );
+        Collections.addAll( gridKeyList,
+                            StyleKeys.GRIDCOLOR_KEYSET.getKeys() );
+        Collections.addAll( gridKeyList,
+                            StyleKeys.AXLABEL_COLOR,
+                            SkySurfaceFactory.CROWD_KEY,
+                            SkySurfaceFactory.AXISLABELLER_KEY,
+                            StyleKeys.GRID_ANTIALIAS );
+        ConfigKey<?>[] gridKeys = gridKeyList.toArray( new ConfigKey<?>[ 0 ] );
         mainControl.addSpecifierTab( "Grid",
-                                     new ConfigSpecifier( new ConfigKey<?>[] {
-            SkySurfaceFactory.GRID_KEY,
-            SkySurfaceFactory.SCALEBAR_KEY,
-            SkySurfaceFactory.SEX_KEY,
-            StyleKeys.GRID_COLOR,
-            StyleKeys.AXLABEL_COLOR,
-            SkySurfaceFactory.CROWD_KEY,
-            SkySurfaceFactory.AXISLABELLER_KEY,
-            StyleKeys.GRID_ANTIALIAS,
-        } ) );
+                                     new ConfigSpecifier( gridKeys ) );
 
         /* Font specifier. */
         mainControl.addSpecifierTab( "Font",

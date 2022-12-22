@@ -14585,6 +14585,10 @@ It has the following options:
 <dt>Grid Colour</dt>
 <dd><p>Selects the colour with which grid lines will be drawn.
     </p></dd>
+<dt>Grid Transparency</dt>
+<dd><p>Controls the transparency of the grid lines,
+    which are drawn over the plot content.
+    </p></dd>
 <dt>Label Colour</dt>
 <dd><p>Selects the colour in which axis label text will be written.
     </p></dd>
@@ -14982,6 +14986,10 @@ appear.
     </p></dd>
 <dt>Grid Colour</dt>
 <dd><p>Selects the colour with which grid lines will be drawn.
+    </p></dd>
+<dt>Grid Transparency</dt>
+<dd><p>Controls the transparency of the grid lines,
+    which are drawn over the plot content.
     </p></dd>
 <dt>Label Colour</dt>
 <dd><p>Selects the colour in which axis label text will be written.
@@ -16067,6 +16075,13 @@ It has the following options:
     </p></dd>
 <dt>Time/Y Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are drawn on each axis.
+    </p></dd>
+<dt>Grid Colour</dt>
+<dd><p>Selects the colour with which grid lines will be drawn.
+    </p></dd>
+<dt>Grid Transparency</dt>
+<dd><p>Controls the transparency of the grid lines,
+    which are drawn over the plot content.
     </p></dd>
 </dl>
 </p>
@@ -31763,6 +31778,17 @@ introduced since the last version:
     <li>Major tick marks on axes now extend only inside the plot bounds
         not outside.</li>
     <li>Reduce frequency of minor ticks.</li>
+    <li>Grid lines plotted in the Plane, Time and Sky plots
+        are now all partially transparent and plotted over
+        the plot content
+        (previously they were opaque and the Sky grid was drawn over,
+        while the Plane and Time lines were drawn under,
+        the plot content).
+        Grid line transparency is controlled by the new
+        Grid Transparency slider in the Axes Control
+        <ref id="PlaneAxisControl_grid">Grid tab</ref>.
+        Grid line colour can now be controlled in Time plots
+        as for Plane and Sky.</li>
     </ul>
     </p></dd>
 

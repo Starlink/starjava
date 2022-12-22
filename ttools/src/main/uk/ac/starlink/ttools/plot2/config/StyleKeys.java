@@ -164,7 +164,35 @@ public class StyleKeys {
         new ColorConfigKey( ColorConfigKey
                            .createColorMeta( "gridcolor", "Grid Color",
                                              "the plot grid" ),
-                            ColorConfigKey.COLORNAME_LIGHTGREY, false );
+                            ColorConfigKey.COLORNAME_GREY, false );
+
+    /** Config keyset for axis grid colour, including transparency. */
+    public static final KeySet<Color> GRIDCOLOR_KEYSET = new KeySet<Color>() {
+        public ConfigKey<?>[] getKeys() {
+            return new ConfigKey<?>[] { GRID_COLOR, GRID_TRANSPARENCY };
+        }
+        public Color createValue( ConfigMap config ) {
+            float[] rgb = config.get( GRID_COLOR ).getRGBComponents( null );
+            float alpha = (float) ( 1.0 - config.get( GRID_TRANSPARENCY ) );
+            return alpha > 0 ? new Color( rgb[ 0 ], rgb[ 1 ], rgb[ 2 ], alpha )
+                             : null;
+        }
+    };
+
+    /** Config key for axis grid transparency. */
+    public static final ConfigKey<Double> GRID_TRANSPARENCY =
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "gridtrans", "Grid Transparency" )
+           .setShortDescription( "Fractional transparency of grid lines" )
+           .setXmlDescription( new String[] {
+                "<p>Transparency of grid lines that may be drawn over",
+                "the plot.",
+                "The range is 0 (opaque) to 1 (invisible).",
+                "This value is 1-alpha.",
+                "</p>",
+            } )
+           .setStringUsage( "0..1" )
+        , 0.5, 0, 1, false );
 
     /** Config key for axis label colour. */
     public static final ConfigKey<Color> AXLABEL_COLOR =

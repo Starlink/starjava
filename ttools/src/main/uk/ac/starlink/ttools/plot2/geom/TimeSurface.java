@@ -177,6 +177,13 @@ public class TimeSurface implements Surface, PlanarSurface {
         Color color0 = g.getColor();
         g.setColor( Color.WHITE );
         g.fillRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
+        g.setColor( color0 );
+    }
+
+    public void paintForeground( Graphics g ) {
+        Color color0 = g.getColor();
+
+        /* Grid lines. */
         if ( gridcolor_ != null ) {
             g.setColor( gridcolor_ );
             for ( Tick tick : tticks_ ) {
@@ -192,11 +199,8 @@ public class TimeSurface implements Surface, PlanarSurface {
                 }
             }
         }
-        g.setColor( color0 );
-    }
 
-    public void paintForeground( Graphics g ) {
-        Color color0 = g.getColor();
+        /* Axis labels. */
         g.setColor( Color.BLACK );
         createAxisAnnotation().drawLabels( g );
 

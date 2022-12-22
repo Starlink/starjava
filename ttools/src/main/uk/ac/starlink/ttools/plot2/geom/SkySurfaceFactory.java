@@ -249,10 +249,10 @@ public class SkySurfaceFactory
             AXISLABELLER_KEY,
             SEX_KEY,
             CROWD_KEY,
-            StyleKeys.GRID_COLOR,
-            StyleKeys.AXLABEL_COLOR,
-            StyleKeys.GRID_ANTIALIAS,
         } ) );
+        list.addAll( Arrays.asList( StyleKeys.GRIDCOLOR_KEYSET.getKeys() ) );
+        list.add( StyleKeys.AXLABEL_COLOR );
+        list.add( StyleKeys.GRID_ANTIALIAS );
         list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
         return list.toArray( new ConfigKey<?>[ 0 ] );
     }
@@ -265,7 +265,7 @@ public class SkySurfaceFactory
         SkyAxisLabeller axLabeller = config.get( AXISLABELLER_KEY );
         boolean sex = config.get( SEX_KEY );
         double crowd = config.get( CROWD_KEY );
-        Color gridColor = config.get( StyleKeys.GRID_COLOR );
+        Color gridColor = StyleKeys.GRIDCOLOR_KEYSET.createValue( config );
         Color axlabelColor = config.get( StyleKeys.AXLABEL_COLOR );
         Color scalebarColor = config.get( SCALEBAR_KEY ) ? axlabelColor : null;
         boolean antialias = config.get( StyleKeys.GRID_ANTIALIAS );
