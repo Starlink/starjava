@@ -14421,6 +14421,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Avoid some plot failures related to oversized legends and
         undersized plot windows.</li>
     <li>Fix occasional NullPointerException in taplint EPN stage.</li>
+    <li>Improve transparency rendering in
+        <ref id="layer-skygrid"><code>skygrid</code></ref> layer.</li>
     </ul>
     </p></dd>
 

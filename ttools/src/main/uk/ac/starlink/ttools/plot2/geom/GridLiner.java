@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import java.util.Arrays;
 import skyview.data.AngScale;
 import skyview.data.CoordinateFormatter;
 import skyview.geometry.Util;
@@ -634,6 +635,20 @@ public class GridLiner  {
         gl.line  = seg;
         
         gl.label = this.label;
+
+        // The calling code has a habit of adding nearly identical copies
+        // of some lines, to work round some numerical instabilities.
+        // If the line we have just calculated is so similar to one of
+        // the existing ones as to be indistinguishable when plotted,
+        // do nothing; otherwise, add it to the list.
+        // Eliminating such effective duplicates not only improves efficiency,
+        // it also avoids making some grid lines come out too opaque if
+        // they are being painted with alpha less than unity.
+        for (GridLine gl1 : lines) {
+            if (isEqualLines(gl, gl1)) {
+                return;
+            }
+        }
         lines.add(gl);
     }
     
@@ -924,8 +939,34 @@ public class GridLiner  {
         this.latLimits = lat;
         this.lonLimits = lon;
     }
-    
-    
+
+    /** Indicates whether two GridLine instances are approximately the same.
+     *  Will return true if both supplied lines will look nearly identical
+     *  when plotted.
+     */
+    private static boolean isEqualLines(GridLine gl1, GridLine gl2) {
+        if (!gl1.label.equals(gl2.label)) {
+            return false;
+        }
+        double[][] line1 = gl1.line;
+        double[][] line2 = gl2.line;
+        if (line1.length != line2.length) {
+            return false;
+        }
+        int ns = line1.length;
+        for ( int is = 0; is < ns; is++ ) {
+            double[] seg1 = line1[ is ];
+            double[] seg2 = line2[ is ];
+            assert seg1.length == 2 && seg2.length == 2;
+            double dx = seg2[ 0 ] - seg1[ 0 ];
+            double dy = seg2[ 1 ] - seg1[ 1 ];
+            if ( dx * dx + dy * dy > 1.0 ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** Set whether you want sexagesimal labels */
     public void setSexigesimal(boolean flag) {
         this.sexagesimal = flag;

@@ -31616,6 +31616,8 @@ introduced since the last version:
         with the Sky Plot.</li>
     <li>Avoid some plot failures related to oversized legends and
         undersized plot windows.</li>
+    <li>Improve transparency rendering in
+        <ref id="LayerControl_skygrid">SkyGrid</ref> plot.</li>
     </ul>
     </p></dd>
 
