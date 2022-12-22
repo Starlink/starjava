@@ -1589,7 +1589,8 @@ public class Plot2Example {
                 "xpix=500", "ypix=250", "projection=aitoff", null,
                 "*viewsys=equatorial", "labelpos=none", "*sex=false", null,
                 "*layer1=skygrid", "*gridsys1=ecliptic",
-                "*gridcolor1=HotPink", "*labelpos1=internal",
+                "*gridcolor1=HotPink", "*transparency1=0.7",
+                "*labelpos1=internal",
             } ),
             new Plot2Example( "layer-spheregrid", c, PlotTask.SPHERE,
                               new String[] {
