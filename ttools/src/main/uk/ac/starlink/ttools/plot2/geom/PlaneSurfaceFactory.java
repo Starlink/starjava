@@ -313,7 +313,7 @@ public class PlaneSurfaceFactory
                               p.xlog_, p.ylog_, p.xflip_, p.yflip_,
                               p.xlabel_, p.ylabel_, p.x2func_, p.y2func_,
                               p.x2label_, p.y2label_, p.captioner_,
-                              p.xyfactor_, p.grid_, p.xcrowd_, p.ycrowd_,
+                              p.xyfactor_, p.xcrowd_, p.ycrowd_,
                               p.minor_, p.shadow_,
                               p.gridcolor_, p.axlabelcolor_ );
     }
@@ -362,11 +362,14 @@ public class PlaneSurfaceFactory
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         boolean shadow = config.get( StyleKeys.SHADOW_TICKS );
         Color gridcolor = config.get( StyleKeys.GRID_COLOR );
+        if ( ! grid ) {
+            gridcolor = null;
+        }
         Color axlabelcolor = config.get( StyleKeys.AXLABEL_COLOR );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         return new Profile( xlog, ylog, xflip, yflip, xlabel, ylabel,
                             x2func, y2func, x2label, y2label,
-                            captioner, xyfactor, grid, xcrowd, ycrowd,
+                            captioner, xyfactor, xcrowd, ycrowd,
                             minor, shadow, gridcolor, axlabelcolor );
     }
 
@@ -746,7 +749,6 @@ public class PlaneSurfaceFactory
         private final String y2label_;
         private final Captioner captioner_;
         private final double xyfactor_;
-        private final boolean grid_;
         private final double xcrowd_;
         private final double ycrowd_;
         private final boolean minor_;
@@ -773,7 +775,6 @@ public class PlaneSurfaceFactory
          * @param  xyfactor   ratio (X axis unit length)/(Y axis unit length),
          *                    or NaN to use whatever bounds shape and
          *                    axis limits give you
-         * @param  grid   whether to draw grid lines
          * @param  xcrowd  crowding factor for tick marks on X axis;
          *                 1 is normal
          * @param  ycrowd  crowding factor for tick marks on Y axis;
@@ -781,7 +782,7 @@ public class PlaneSurfaceFactory
          * @param  minor   whether to paint minor tick marks on axes
          * @param  shadow  whether to paint shadow ticks on opposite axes
          *                 if no secondary axis
-         * @param  gridcolor  colour of grid lines, if plotted
+         * @param  gridcolor  colour of grid lines, or null for none
          * @param  axlabelcolor  colour of axis labels
          */
         public Profile( boolean xlog, boolean ylog,
@@ -789,7 +790,7 @@ public class PlaneSurfaceFactory
                         String xlabel, String ylabel,
                         DoubleUnaryOperator x2func, DoubleUnaryOperator y2func,
                         String x2label, String y2label,
-                        Captioner captioner, double xyfactor, boolean grid,
+                        Captioner captioner, double xyfactor,
                         double xcrowd, double ycrowd,
                         boolean minor, boolean shadow,
                         Color gridcolor, Color axlabelcolor ) {
@@ -805,7 +806,6 @@ public class PlaneSurfaceFactory
             y2label_ = y2label;
             captioner_ = captioner;
             xyfactor_ = xyfactor;
-            grid_ = grid;
             xcrowd_ = xcrowd;
             ycrowd_ = ycrowd;
             minor_ = minor;

@@ -47,7 +47,7 @@ public class TimeSurface implements Surface, PlanarSurface {
     private final String t2label_;
     private final String y2label_;
     private final Captioner captioner_;
-    private final boolean grid_;
+    private final Color gridcolor_;
     private final TimeFormat tformat_;
     private final boolean tannotate_;
     private final Axis tAxis_;
@@ -77,7 +77,7 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @param  t2label  text for labelling secondary time axis
      * @param  y2label  text for labelling secondary Y axis
      * @param  captioner  text renderer for axis labels etc
-     * @param  grid   whether to draw grid lines
+     * @param  gridcolor   grid line colour, or null for none
      * @param  tformat  time labelling format
      * @param  tannotate  whether to annotate time axis
      */
@@ -88,7 +88,7 @@ public class TimeSurface implements Surface, PlanarSurface {
                         String tlabel, String ylabel,
                         Tick[] t2ticks, Tick[] y2ticks,
                         String t2label, String y2label,
-                        Captioner captioner, boolean grid,
+                        Captioner captioner, Color gridcolor,
                         TimeFormat tformat, boolean tannotate ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
@@ -109,7 +109,7 @@ public class TimeSurface implements Surface, PlanarSurface {
         t2label_ = t2label;
         y2label_ = y2label;
         captioner_ = captioner;
-        grid_ = grid;
+        gridcolor_ = gridcolor;
         tformat_ = tformat;
         tannotate_ = tannotate;
         tAxis_ = Axis.createAxis( gxlo_, gxhi_, dtlo_, dthi_, false, false );
@@ -177,8 +177,8 @@ public class TimeSurface implements Surface, PlanarSurface {
         Color color0 = g.getColor();
         g.setColor( Color.WHITE );
         g.fillRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
-        if ( grid_ ) {
-            g.setColor( Color.LIGHT_GRAY );
+        if ( gridcolor_ != null ) {
+            g.setColor( gridcolor_ );
             for ( Tick tick : tticks_ ) {
                 if ( tick.getLabel() != null ) {
                     int gx = (int) tAxis_.dataToGraphics( tick.getValue() );
@@ -364,7 +364,7 @@ public class TimeSurface implements Surface, PlanarSurface {
         code = 23 * code + PlotUtil.hashCode( t2label_ );
         code = 23 * code + PlotUtil.hashCode( y2label_ );
         code = 23 * code + captioner_.hashCode();
-        code = 23 * code + ( grid_ ? 11 : 13 );
+        code = 23 * code + PlotUtil.hashCode( gridcolor_ );
         code = 23 * code + tformat_.hashCode();
         code = 23 * code + ( tannotate_ ? 17 : 23 );
         return code;
@@ -393,7 +393,7 @@ public class TimeSurface implements Surface, PlanarSurface {
                 && PlotUtil.equals( this.t2label_, other.t2label_ )
                 && PlotUtil.equals( this.y2label_, other.y2label_ )
                 && this.captioner_.equals( other.captioner_ )
-                && this.grid_ == other.grid_
+                && PlotUtil.equals( this.gridcolor_, other.gridcolor_ )
                 && this.tformat_.equals( other.tformat_ )
                 && this.tannotate_ == other.tannotate_;
         }
@@ -439,7 +439,7 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @param  t2label  secondary time axis label
      * @param  y2label  secondary Y axis label
      * @param  captioner  text renderer for axis labels etc
-     * @param  grid   whether to draw grid lines
+     * @param  gridcolor   colour of grid lines, or null for none
      * @param  tformat  time labelling format
      * @param  tcrowd   crowding factor for tick marks on time axis;
      *                  1 is normal
@@ -458,7 +458,8 @@ public class TimeSurface implements Surface, PlanarSurface {
                                              DoubleUnaryOperator t2func,
                                              DoubleUnaryOperator y2func,
                                              String t2label, String y2label,
-                                             Captioner captioner, boolean grid,
+                                             Captioner captioner,
+                                             Color gridcolor,
                                              TimeFormat tformat,
                                              double tcrowd, double ycrowd,
                                              boolean minor, boolean shadow,
@@ -497,6 +498,6 @@ public class TimeSurface implements Surface, PlanarSurface {
         return new TimeSurface( gxlo, gxhi, gylo, gyhi, dtlo, dthi, dylo, dyhi,
                                 ylog, yflip, tticks, yticks, tlabel, ylabel,
                                 t2ticks, y2ticks, t2label, y2label,
-                                captioner, grid, tformat, tannotate );
+                                captioner, gridcolor, tformat, tannotate );
     }
 }

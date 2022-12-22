@@ -109,18 +109,17 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         String y2label = null;
         Captioner captioner = new BasicCaptioner();
         double xyfactor = Double.NaN;
-        boolean grid = false;
         double xcrowd = 1;
         double ycrowd = 1;
         boolean minor = true;
         boolean shadow = true;
-        Color gridColor = Color.BLACK;
+        Color gridColor = null;
         Color axlabelColor = Color.BLACK;
         PlaneSurfaceFactory.Profile profile =
             new PlaneSurfaceFactory.Profile( xlog, ylog, xflip, yflip,
                                              xlabel, ylabel, x2func, y2func,
                                              x2label, y2label, captioner,
-                                             xyfactor, grid, xcrowd, ycrowd,
+                                             xyfactor, xcrowd, ycrowd,
                                              minor, shadow,
                                              gridColor, axlabelColor );
 

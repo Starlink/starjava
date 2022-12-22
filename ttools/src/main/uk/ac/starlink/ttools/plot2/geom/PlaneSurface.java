@@ -425,7 +425,6 @@ public class PlaneSurface implements Surface, PlanarSurface {
      * @param  xyfactor   ratio (X axis unit length)/(Y axis unit length),
      *                    or NaN to use whatever bounds shape and
      *                    axis limits give you
-     * @param  grid   whether to draw grid lines
      * @param  xcrowd  crowding factor for tick marks on X axis;
      *                 1 is normal
      * @param  ycrowd  crowding factor for tick marks on Y axis;
@@ -433,7 +432,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
      * @param  minor   whether to paint minor tick marks on axes
      * @param  shadow  whether to paint shadow ticks on opposite axes
      *                 if no secondary axis
-     * @param  gridcolor  colour of grid lines, if plotted
+     * @param  gridcolor  colour of grid lines, or null for none
      * @param  axlabelcolor  colour of axis labels
      * @return  new plot surface
      */
@@ -446,7 +445,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                               DoubleUnaryOperator y2func,
                                               String x2label, String y2label,
                                               Captioner captioner,
-                                              double xyfactor, boolean grid,
+                                              double xyfactor,
                                               double xcrowd, double ycrowd,
                                               boolean minor, boolean shadow,
                                               Color gridcolor,
@@ -455,7 +454,6 @@ public class PlaneSurface implements Surface, PlanarSurface {
         int gxhi = plotBounds.x + plotBounds.width;
         int gylo = plotBounds.y;
         int gyhi = plotBounds.y + plotBounds.height;
-        gridcolor = grid ? gridcolor : null;
         double dxlo = aspect.getXMin();
         double dxhi = aspect.getXMax();
         double dylo = aspect.getYMin();

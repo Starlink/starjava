@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
 import gnu.jel.CompilationException;
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -169,7 +170,7 @@ public class TimeSurfaceFactory
               .createSurface( plotBounds, aspect,
                               p.ylog_, p.yflip_, p.tlabel_, p.ylabel_,
                               p.t2func_, p.y2func_, p.t2label_, p.y2label_,
-                              p.captioner_, p.grid_, p.tformat_,
+                              p.captioner_, p.gridcolor_, p.tformat_,
                               p.tcrowd_, p.ycrowd_, p.minor_, p.shadow_,
                               p.tannotate_ );
     }
@@ -205,16 +206,18 @@ public class TimeSurfaceFactory
         DoubleUnaryOperator y2func = config.get( Y2FUNC_KEY );
         String t2label = config.get( T2LABEL_KEY );
         String y2label = config.get( Y2LABEL_KEY );
-        boolean grid = config.get( GRID_KEY );
+        Color gridcolor = config.get( GRID_KEY ) ? Color.LIGHT_GRAY : null;
         double tcrowd = config.get( TCROWD_KEY );
         double ycrowd = config.get( YCROWD_KEY );
         TimeFormat tformat = config.get( TFORMAT_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         boolean shadow = config.get( StyleKeys.SHADOW_TICKS );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
+        boolean tannotate = true;
         return new Profile( ylog, yflip, tlabel, ylabel,
-                            t2func, y2func, t2label, y2label, captioner, grid,
-                            tcrowd, ycrowd, tformat, minor, shadow, true );
+                            t2func, y2func, t2label, y2label, captioner,
+                            gridcolor, tcrowd, ycrowd, tformat, minor, shadow,
+                            tannotate );
     }
 
     public ConfigKey<?>[] getAspectKeys() {
@@ -519,7 +522,7 @@ public class TimeSurfaceFactory
         private final String t2label_;
         private final String y2label_;
         private final Captioner captioner_;
-        private final boolean grid_;
+        private final Color gridcolor_;
         private final double tcrowd_;
         private final double ycrowd_;
         private final TimeFormat tformat_;
@@ -542,7 +545,7 @@ public class TimeSurfaceFactory
          * @param  t2label  text for labelling secondary time axis
          * @param  y2label  text for labelling secondary Y axis
          * @param  captioner  text renderer for axis labels etc
-         * @param  grid   whether to draw grid lines
+         * @param  gridcolor   colour of grid lines, or null for none
          * @param  tcrowd  crowding factor for tick marks on time axis;
          *                 1 is normal
          * @param  ycrowd  crowding factor for tick marks on Y axis;
@@ -557,7 +560,7 @@ public class TimeSurfaceFactory
                         String tlabel, String ylabel,
                         DoubleUnaryOperator t2func, DoubleUnaryOperator y2func,
                         String t2label, String y2label, Captioner captioner,
-                        boolean grid, double tcrowd, double ycrowd,
+                        Color gridcolor, double tcrowd, double ycrowd,
                         TimeFormat tformat, boolean minor, boolean shadow,
                         boolean tannotate ) {
             ylog_ = ylog;
@@ -569,7 +572,7 @@ public class TimeSurfaceFactory
             t2label_ = t2label;
             y2label_ = y2label;
             captioner_ = captioner;
-            grid_ = grid;
+            gridcolor_ = gridcolor;
             tcrowd_ = tcrowd;
             ycrowd_ = ycrowd;
             tformat_ = tformat;
@@ -597,8 +600,8 @@ public class TimeSurfaceFactory
         public Profile fixTimeAnnotation( boolean tannotate ) {
             return new Profile( ylog_, yflip_, tlabel_, ylabel_,
                                 t2func_, y2func_, t2label_, y2label_,
-                                captioner_, grid_, tcrowd_, ycrowd_, tformat_,
-                                minor_, shadow_, tannotate );
+                                captioner_, gridcolor_, tcrowd_, ycrowd_,
+                                tformat_, minor_, shadow_, tannotate );
         }
     }
 }
