@@ -1421,7 +1421,7 @@ public class Plot2Example {
                 "*datalevel1=8", "*degrade1=2",
                 "*combine=sum-per-unit", "*perunit=arcmin2", null,
                 "projection=aitoff", "*datasys1=equatorial", "viewsys=galactic",
-                "labelpos=none",
+                "labelpos=none", "gridcolor=beige",
                 null,
                 "auxfunc=log", "auxmap=cold", "auxflip=true",
                 "auxclip=0,1", null,
