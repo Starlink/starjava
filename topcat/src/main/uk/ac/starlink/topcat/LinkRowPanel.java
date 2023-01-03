@@ -401,8 +401,20 @@ public class LinkRowPanel extends JPanel {
             else {
                 url = null;
             }
-            String ctype = colMap.getContentType( row );
-            urlPanel_.configure( url, ctype, null );
+            final URL url0 = url;
+            final String ctype = colMap.getContentType( row );
+            ResourceInfo resInfo = new ResourceInfo() {
+                public URL getUrl() {
+                    return url0;
+                }
+                public String getContentType() {
+                    return ctype;
+                }
+                public String getStandardId() {
+                    return null;
+                }
+            };
+            urlPanel_.configureResource( resInfo );
         }
         public boolean isAutoInvoke() {
             return urlPanel_.isAutoInvoke();
@@ -496,7 +508,7 @@ public class LinkRowPanel extends JPanel {
             }
             else {
                 uiPanel = createExcusePanel( excuseMsg );
-                urlPanel_.configure( null, null, null );
+                urlPanel_.configureResource( null );
             }
             uiPanel_ = uiPanel;
         }
@@ -584,7 +596,18 @@ public class LinkRowPanel extends JPanel {
         private void configureUrl() {
             Map<ServiceParam,String> valueMap = paramPanel_.getValueMap();
             URL url = invoker_.completeUrl( valueMap );
-            urlPanel_.configure( url, contentType_, standardId_ );
+            ResourceInfo resInfo = new ResourceInfo() {
+                public URL getUrl() {
+                    return url;
+                }
+                public String getContentType() {
+                    return contentType_;
+                }
+                public String getStandardId() {
+                    return standardId_;
+                }
+            };
+            urlPanel_.configureResource( resInfo );
         }
     }
 

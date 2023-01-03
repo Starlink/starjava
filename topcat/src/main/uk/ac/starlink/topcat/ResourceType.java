@@ -39,17 +39,17 @@ public enum ResourceType {
      * Attempts to determine the type of resource characterised by
      * available information.  Works on a best-efforts basis.
      *
-     * @param  url   resource URL
-     * @param  contentType   known or inferred Content-Type string (RFC 2045),
-     *                       or null if not known
-     * @param  standardId   known or inferred IVOA standard ID,
-     *                      or null if not known
+     * @param  resInfo  resource information
      * @return  best guess at the type of resource corresponding to the
      *          given information
      */
-    public static ResourceType guessResourceType( URL url,
-                                                  String contentType,
-                                                  String standardId ) {
+    public static ResourceType guessResourceType( ResourceInfo resInfo ) {
+        if ( resInfo == null ) {
+            return UNKNOWN;
+        }
+        String standardId = resInfo.getStandardId();
+        String contentType = resInfo.getContentType();
+        URL url = resInfo.getUrl();
         ContentType ctype = ContentType.parseContentType( contentType );
         if ( standardId != null ) {
             String standardid = standardId.toLowerCase();

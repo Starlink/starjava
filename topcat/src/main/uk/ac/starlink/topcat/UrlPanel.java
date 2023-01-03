@@ -164,21 +164,17 @@ public class UrlPanel extends JPanel {
     }
 
     /**
-     * Configures this panel for use with a given URL.
+     * Configures this panel for use with a given resource.
      *
-     * @param  url   resource URL
-     * @param  contentType   known or inferred Content-Type string (RFC 2045),
-     *                       or null if not known
-     * @param  standardId   known or inferred IVOA standard ID,
-     *                      or null if not known
+     * @param  resourceInfo  resource info, may be null
      */
-    public void configure( URL url, String contentType, String standardId ) {
+    public void configureResource( ResourceInfo resourceInfo ) {
+        URL url = resourceInfo == null ? null : resourceInfo.getUrl();
         urlField_.setText( url == null ? null : url.toString() );
         urlField_.setCaretPosition( 0 );
         setStatus( null );
         url_ = url;
-        guessType_ = ResourceType
-                    .guessResourceType( url, contentType, standardId );
+        guessType_ = ResourceType.guessResourceType( resourceInfo );
         if ( guessTypeModel_.isSelected() ) {
             typeSelector_.setSelectedItem( guessType_ );
         }

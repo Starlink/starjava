@@ -19,6 +19,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.Outcome;
+import uk.ac.starlink.topcat.ResourceInfo;
 import uk.ac.starlink.topcat.ResourceType;
 import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.ServiceParamPanel;
@@ -373,7 +374,17 @@ public class ServiceActivationType implements ActivationType {
             String ctype = null;
             ServiceDescriptor sd = getServiceDescriptor();
             String standardId = sd == null ? null : sd.getStandardId();
-            return ResourceType.guessResourceType( url, ctype, standardId );
+            return ResourceType.guessResourceType( new ResourceInfo() {
+                public URL getUrl() {
+                    return url;
+                }
+                public String getContentType() {
+                    return ctype;
+                }
+                public String getStandardId() {
+                    return standardId;
+                }
+            } );
         }
 
         /**
