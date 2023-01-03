@@ -1,9 +1,13 @@
 package uk.ac.starlink.ttools.plot2;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -23,6 +27,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
+import org.jibble.epsgraphics.EpsGraphics2D;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
@@ -1241,6 +1246,60 @@ public class PlotUtil {
             ticks2[ itick ] = new Tick( value1, label2 );
         }
         return ticks2;
+    }
+
+    /**
+     * Provides a graphics context based on an existing one that is suitable
+     * for drawing lines that may have a sub-unity alpha component.
+     *
+     * <p>For most purposes, this can be assumed to do the same as:
+     * <pre>
+     *   Graphics g2 = g.create();
+     *   g2.setColor(color);
+     *   return g2;
+     * </pre>
+     * However, it contains an additional hack that should improve output
+     * to graphics contexts that do not support transparency, such as to
+     * PostScript.
+     *
+     * <p>Briefly, for partially transparent colours in a PostScript context,
+     * the stroke width is multiplied by the supplied colour's alpha value,
+     * so that although the lines are still opaque, they are at least thin
+     * enough to look about right.  It's better than nothing.
+     *
+     * @param   g  input graphics context, unchanged on exit
+     * @param   color  colour with which lines are to be drawn;
+     *                 may have a non-unity alpha component
+     * @return   graphics context to use for drawing lines
+     */
+    public static Graphics createLineGraphics( Graphics g, Color color ) {
+        Graphics g2 = g.create();
+        g2.setColor( color );
+        if ( g2 instanceof EpsGraphics2D && color.getAlpha() < 255 ) {
+            float[] rgba = color.getRGBComponents( null );
+            float alpha = rgba[ 3 ];
+            if ( alpha < 1f ) {
+                Stroke stroke0 = ((Graphics2D) g2).getStroke();
+                final Stroke stroke1;
+                if ( stroke0 instanceof BasicStroke ) {
+                    BasicStroke bstroke0 = (BasicStroke) stroke0;
+                    float width0 = bstroke0.getLineWidth();
+                    int cap0 = bstroke0.getEndCap();
+                    int join0 = bstroke0.getLineJoin();
+                    float miter0 = bstroke0.getMiterLimit();
+                    float[] dashArray0 = bstroke0.getDashArray();
+                    float dashPhase0 = bstroke0.getDashPhase();
+                    stroke1 = new BasicStroke( alpha * width0, cap0, join0,
+                                               miter0, dashArray0, dashPhase0 );
+                }
+                else {
+                    stroke1 = new BasicStroke( alpha );
+                }
+                ((Graphics2D) g2).setStroke( stroke1 );
+                g2.setColor( new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ] ) );
+            }
+        }
+        return g2;
     }
 
     /**

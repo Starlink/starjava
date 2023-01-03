@@ -191,17 +191,17 @@ public class PlaneSurface implements Surface, PlanarSurface {
 
         /* Grid lines. */
         if ( gridcolor_ != null ) {
-            g.setColor( gridcolor_ );
+            Graphics gGrid = PlotUtil.createLineGraphics( g, gridcolor_ );
             for ( Tick tick : xticks_ ) {
                 if ( tick.getLabel() != null ) {
                     int gx = (int) xAxis_.dataToGraphics( tick.getValue() );
-                    g.drawLine( gx, gylo_, gx, gyhi_ );
+                    gGrid.drawLine( gx, gylo_, gx, gyhi_ );
                 }
             }
             for ( Tick tick : yticks_ ) {
                 if ( tick.getLabel() != null ) {
                     int gy = (int) yAxis_.dataToGraphics( tick.getValue() );
-                    g.drawLine( gxlo_, gy, gxhi_, gy );
+                    gGrid.drawLine( gxlo_, gy, gxhi_, gy );
                 }
             }
         }

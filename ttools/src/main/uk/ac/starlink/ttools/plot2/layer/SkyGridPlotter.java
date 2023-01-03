@@ -238,8 +238,8 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
         if ( gl == null ) {
             return;
         }
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setColor( style.color_ );
+        Graphics2D g2 =
+            (Graphics2D) PlotUtil.createLineGraphics( g, style.color_ );
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                              style.antialias_
                                    ? RenderingHints.VALUE_ANTIALIAS_ON

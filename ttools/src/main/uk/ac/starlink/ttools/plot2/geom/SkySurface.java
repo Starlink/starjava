@@ -204,7 +204,8 @@ public class SkySurface implements Surface {
                              antialias_ ? RenderingHints.VALUE_ANTIALIAS_ON
                                         : RenderingHints.VALUE_ANTIALIAS_OFF );
         if ( gridColor_ != null ) {
-            g2.setColor( gridColor_ );
+            Graphics2D gGrid =
+                (Graphics2D) PlotUtil.createLineGraphics( g2, gridColor_ );
             double[][][] lines = gl.getLines();
             String[] labels = gl.getLabels();
             int nl = labels.length;
@@ -219,8 +220,9 @@ public class SkySurface implements Surface {
                     double[] seg = line[ is ];
                     path.lineTo( (float) seg[ 0 ], (float) seg[ 1 ] );
                 }
-                g2.draw( path );
+                gGrid.draw( path );
             }
+            g2.setColor( gridColor_ );
         }
         if ( skyFillsBounds_ ) {
             g2.draw( getPlotBounds() );
