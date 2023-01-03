@@ -27,6 +27,17 @@ public interface ResourceInfo {
     String getContentType();
 
     /**
+     * Returns the content qualifier for the resource, or null if not known.
+     * This is typically a term (prefixed with "<code>#</code>") from the
+     * <a href="https://www.ivoa.net/rdf/product-type/">Data Product Type</a>
+     * vocabulary, as provided for instance by the
+     * <code>content_qualifier</code> entry in a DataLink 1.1 Links table.
+     *
+     * @return   content qualifier, or null
+     */
+    String getContentQualifier();
+
+    /**
      * Returns the known or inferred IVOA Standard ID for the resource,
      * or null if not known.
      *

@@ -381,6 +381,9 @@ public class ServiceActivationType implements ActivationType {
                 public String getContentType() {
                     return ctype;
                 }
+                public String getContentQualifier() {
+                    return null;
+                }
                 public String getStandardId() {
                     return standardId;
                 }

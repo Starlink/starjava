@@ -403,12 +403,16 @@ public class LinkRowPanel extends JPanel {
             }
             final URL url0 = url;
             final String ctype = colMap.getContentType( row );
+            final String cqual = colMap.getContentQualifier( row );
             ResourceInfo resInfo = new ResourceInfo() {
                 public URL getUrl() {
                     return url0;
                 }
                 public String getContentType() {
                     return ctype;
+                }
+                public String getContentQualifier() {
+                    return cqual;
                 }
                 public String getStandardId() {
                     return null;
@@ -606,6 +610,9 @@ public class LinkRowPanel extends JPanel {
                 }
                 public String getContentType() {
                     return contentType_;
+                }
+                public String getContentQualifier() {
+                    return null;
                 }
                 public String getStandardId() {
                     return standardId_;
