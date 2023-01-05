@@ -70,6 +70,7 @@ public class UrlOptions {
         UrlInvoker browser = createBrowserInvoker();
         UrlInvoker download = createDownloadInvoker( dlPanel );
         UrlInvoker viewDatalink = createDatalinkInvoker( dlPanel, contextTitle);
+        UrlInvoker viewFitsImage = createViewFitsImageInvoker();
         UrlInvoker sendFitsImage =
             createSampInvoker( "FITS Image", "image.load.fits", Safety.SAFE );
         UrlInvoker sendTable =
@@ -84,6 +85,7 @@ public class UrlOptions {
             loadTable,
             plotTable,
             viewDatalink,
+            viewFitsImage,
             sendFitsImage,
             sendSpectrum,
             sendTable,
@@ -94,7 +96,7 @@ public class UrlOptions {
             new LinkedHashMap<ResourceType,UrlInvoker>();
         map.put( ResourceType.TABLE, loadTable );
         map.put( ResourceType.DATALINK, viewDatalink );
-        map.put( ResourceType.FITS_IMAGE, viewImage );
+        map.put( ResourceType.FITS_IMAGE, viewFitsImage );
         map.put( ResourceType.SPECTRUM, sendSpectrum );
         map.put( ResourceType.IMAGE, viewImage );
         map.put( ResourceType.WEB, browser );
@@ -241,7 +243,7 @@ public class UrlOptions {
     }
 
     /**
-     * Returns an invoker for viewing an image in a suitable viewer.
+     * Returns an invoker for viewing a generic image in a suitable viewer.
      *
      * @return   new invoker
      */
@@ -251,6 +253,23 @@ public class UrlOptions {
             public Outcome invokeUrl( URL url ) {
                 String loc = url.toString();
                 String label = "Image";
+                String msg = BasicImageDisplay.displayBasicImage( label, loc );
+                return Outcome.success( msg );
+            }
+        };
+    }
+
+    /**
+     * Returns an invoker for viewing a FITS image in a suitable viewer.
+     *
+     * @return   new invoker
+     */
+    private static UrlInvoker createViewFitsImageInvoker() {
+        return new AbstractUrlInvoker( "View FITS image internally",
+                                       Safety.SAFE ) {
+            public Outcome invokeUrl( URL url ) {
+                String loc = url.toString();
+                String label = "FITS Image";
                 String msg = TopcatUtils.canSog()
                            ? Sog.sog( label, loc )
                            : BasicImageDisplay.displayBasicImage( label, loc );

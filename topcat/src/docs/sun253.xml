@@ -6828,6 +6828,11 @@ listed resource.  The parts of this panel are:
         in an internal image viewer
         (like the <ref id="ViewImageActivationType">Display Image</ref> action)
         </li>
+    <li><strong>View FITS image internally:</strong>
+        displays the linked resource, a FITS image,
+        in an internal image viewer
+        (like the <ref id="ViewImageActivationType">Display Image</ref> action)
+        </li>
     <li><strong>Load Table:</strong>
         loads the table from the linked resource (a FITS or VOTable table)
         into this TOPCAT application
