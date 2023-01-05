@@ -93,16 +93,16 @@ public class UrlPanel extends JPanel {
         urlField_ = new JTextField();
         urlField_.setEditable( false );
         typeSelector_ = new NonShrinkingComboBox<>( ResourceType.values() );
-        typeSelector_.addItemListener( new ItemListener() {
+        ItemListener typeItemListener = new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 ResourceType rtype = getResourceType();
                 if ( rtype != null ) {
                     UrlInvoker invoker = urlopts_.getDefaultsMap().get( rtype );
                     invokeSelector_.setSelectedItem( invoker );
                 }
-                updateState();
             }
-        } );
+        };
+        typeSelector_.addItemListener( typeItemListener );
         invokeSelector_ = new NonShrinkingComboBox<>( urlopts_.getInvokers() );
         invokeSelector_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
@@ -159,6 +159,7 @@ public class UrlPanel extends JPanel {
         rline.add( msgField_ );
         vbox.add( Box.createVerticalStrut( 2 ) );
         vbox.add( rline );
+        typeItemListener.itemStateChanged( null );
         updateState();
     }
 

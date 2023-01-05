@@ -31899,7 +31899,8 @@ introduced since the last version:
         algebraic expression in the metadata JTables,
         rather than just wiping out your new expression and
         reverting to the previous one.</li>
-    <li>Improve reporting of activation action URL invocation.</li>
+    <li>Improve reporting and defaulting
+        of activation action URL invocation.</li>
     </ul>
     </p></dd>
 
