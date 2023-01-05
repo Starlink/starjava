@@ -123,20 +123,8 @@ public class UrlPanel extends JPanel {
                         if ( isSingleInvocationThread_ && lastJob_ != null ) {
                             lastJob_.cancel( true );
                         }
-                        lastJob_ = getQueue().submit( new Runnable() {
-                            public void run() {
-                                logger_.info( "Invoke by request: " + url );
-                                scheduleSetStatus( null );
-                                scheduleSetStatus( invoker.invokeUrl( url ) );
-                            }
-                            void scheduleSetStatus( final Outcome outcome ) {
-                                SwingUtilities.invokeLater( new Runnable() {
-                                    public void run() {
-                                        setStatus( outcome );
-                                    }
-                                } );
-                            }
-                        } );
+                        lastJob_ = getQueue()
+                                  .submit( () -> invokeUrl( invoker, url ) );
                     }
                 }
             }
@@ -186,6 +174,7 @@ public class UrlPanel extends JPanel {
     public void configure( URL url, String contentType, String standardId ) {
         urlField_.setText( url == null ? null : url.toString() );
         urlField_.setCaretPosition( 0 );
+        setStatus( null );
         url_ = url;
         guessType_ = ResourceType
                     .guessResourceType( url, contentType, standardId );
@@ -230,15 +219,7 @@ public class UrlPanel extends JPanel {
      * @return outcome
      */
     public Outcome invokeUrl() {
-        UrlInvoker invoker = getUrlInvoker();
-        if ( invoker == null ) {
-            return Outcome.failure( "No invocation method selected" );
-        }
-        URL url = getUrl();
-        if ( url == null ) {
-            return Outcome.failure( "No URL" );
-        }
-        return invoker.invokeUrl( url );
+        return invokeUrl( getUrlInvoker(), getUrl() );
     }
 
     /**
@@ -290,6 +271,28 @@ public class UrlPanel extends JPanel {
      */
     private boolean canInvoke() {
         return getUrlInvoker() != null && getUrl() != null;
+    }
+
+    /**
+     * Attempts to invoke a given URL with a given invoker.
+     * The UI is updated accordingly.
+     *
+     * @param  invoker  invoker, may be null
+     * @param  url   invocation target, may be null
+     * @return  outcome of invocation attempt
+     */
+    private Outcome invokeUrl( UrlInvoker invoker, URL url ) {
+        SwingUtilities.invokeLater( () -> setStatus( null ) );
+        if ( invoker == null ) {
+            return Outcome.failure( "No invocation method selected" );
+        }
+        else if ( url == null ) {
+            return Outcome.failure( "No URL" );
+        }
+        logger_.info( "Invoke: " + url );
+        Outcome outcome = invoker.invokeUrl( url );
+        SwingUtilities.invokeLater( () -> setStatus( outcome ) );
+        return outcome;
     }
 
     /**
