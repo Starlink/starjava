@@ -86,7 +86,10 @@ public class ServiceActivationType implements ActivationType {
         ServiceConfigurator( TopcatModel tcModel ) {
             super( new JPanel( new BorderLayout() ) );
             tcModel_ = tcModel;
-            invokePanel_ = new InvokePanel( UrlOptions.createOptions( null ) );
+            String ctxtTitle =
+                "TOPCAT(" + tcModel.getID() + "): Invoke Service";
+            invokePanel_ =
+                new InvokePanel( UrlOptions.createOptions( null, ctxtTitle ) );
             ServiceDescriptor[] sds =
                 LinksDoc.getServiceDescriptors( tcModel.getDataModel() );
             servicePanel_ = new ServicePanel( sds );

@@ -95,7 +95,8 @@ public class DatalinkPanel extends JPanel {
         tablePanel.setBorder( AuxWindow.makeTitledBorder( "DataLink Table" ) );
 
         UrlOptions urlopts =
-            UrlOptions.createOptions( canReplaceContents ? this : null );
+            UrlOptions.createOptions( canReplaceContents ? this : null,
+                                      "Datalink" );
         linkPanel_ = new LinkRowPanel( urlopts, hasAutoInvoke );
         int width = hasAutoInvoke ? 750 : 650;
 

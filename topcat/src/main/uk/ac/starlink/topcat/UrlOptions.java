@@ -51,7 +51,17 @@ public class UrlOptions {
         return dfltMap_;
     }
 
-    public static UrlOptions createOptions( DatalinkPanel dlPanel ) {
+    /**
+     * Returns a UrlOptions instance.
+     *
+     * @param  dlPanel   existing datalink panel to use if one is required;
+     *                   may be null
+     * @param  contextTitle   string to use as base title for new windows etc;
+     *                        may be null
+     * @return  new instance
+     */
+    public static UrlOptions createOptions( DatalinkPanel dlPanel,
+                                            String contextTitle ) {
         ControlWindow controlWin = ControlWindow.getInstance();
         UrlInvoker reportUrl = createReportInvoker();
         UrlInvoker viewImage = createViewImageInvoker();
@@ -59,7 +69,7 @@ public class UrlOptions {
         UrlInvoker plotTable = createPlotTableInvoker( controlWin );
         UrlInvoker browser = createBrowserInvoker();
         UrlInvoker download = createDownloadInvoker( dlPanel );
-        UrlInvoker viewDatalink = createDatalinkInvoker( dlPanel );
+        UrlInvoker viewDatalink = createDatalinkInvoker( dlPanel, contextTitle);
         UrlInvoker sendFitsImage =
             createSampInvoker( "FITS Image", "image.load.fits", Safety.SAFE );
         UrlInvoker sendTable =
@@ -193,10 +203,12 @@ public class UrlOptions {
      *
      * @param   dlPanel  pre-existing datalink table display panel,
      *                   or null to create one on demand
+     * @param  contextTitle  context for titling window
      * @return  new invoker
      */
     private static UrlInvoker
-            createDatalinkInvoker( final DatalinkPanel dlPanel ) {
+            createDatalinkInvoker( final DatalinkPanel dlPanel,
+                                   final String contextTitle ) {
         return new AbstractUrlInvoker( "View DataLink Table", Safety.SAFE ) {
             private DatalinkPanel dlPanel_ = dlPanel;
             public Outcome invokeUrl( URL url ) {
@@ -208,9 +220,11 @@ public class UrlOptions {
                     }
                 }
                 if ( isNewPanel ) {
+                    String title =
+                        createTitle( contextTitle, "View Datalink Table" );
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
-                            JFrame frm = new JFrame();
+                            JFrame frm = new JFrame( title );
                             frm.getContentPane().add( dlPanel_ );
                             frm.pack();
                             frm.setVisible( true );
@@ -299,6 +313,29 @@ public class UrlOptions {
                 return sender.activateMessage( message );
             }
         };
+    }
+
+    /**
+     * Returns a title for use for instance in titling a window
+     * based on optional context and optional sub parts.
+     *
+     * @param  contextTitle   higher-level title text, may be null
+     * @param  subTitle   lower-level title text, may be null
+     * @return  title string, may be null
+     */
+    private static String createTitle( String contextTitle, String subTitle ) {
+        StringBuffer sbuf = new StringBuffer();
+        if ( contextTitle != null && contextTitle.trim().length() > 0 ) {
+            sbuf.append( contextTitle );
+        }
+        if ( sbuf.length() > 0 &&
+             subTitle != null && subTitle.trim().length() > 0 ) {
+            sbuf.append( " - " );
+        }
+        if ( subTitle != null && subTitle.trim().length() > 0 ) {
+            sbuf.append( subTitle );
+        }
+        return sbuf.length() > 0 ? sbuf.toString() : null;
     }
 
     /**
