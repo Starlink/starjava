@@ -31618,6 +31618,9 @@ introduced since the last version:
         undersized plot windows.</li>
     <li>Improve transparency rendering in
         <ref id="LayerControl_skygrid">SkyGrid</ref> plot.</li>
+    <li>PDS4 reader now reads <code>Ascii_Numeric_Base16/8/2</code>
+        fields as numeric not string 
+        (updated pds4-jparser library code).</li>
     </ul>
     </p></dd>
 

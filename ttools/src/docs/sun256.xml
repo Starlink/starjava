@@ -14423,6 +14423,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix occasional NullPointerException in taplint EPN stage.</li>
     <li>Improve transparency rendering in
         <ref id="layer-skygrid"><code>skygrid</code></ref> layer.</li>
+    <li>PDS4 reader now reads <code>Ascii_Numeric_Base16/8/2</code>
+        fields as numeric not string
+        (updated pds4-jparser library code).</li>
     </ul>
     </p></dd>
 

@@ -161,9 +161,6 @@ public abstract class FieldReader<S,A> {
             case ASCII_LIDVID:
             case ASCII_LIDVID_LID:
             case ASCII_MD5_CHECKSUM:
-            case ASCII_NUMERIC_BASE16:
-            case ASCII_NUMERIC_BASE2:
-            case ASCII_NUMERIC_BASE8:
             case ASCII_STRING:
             case ASCII_TIME:
             case ASCII_VID:
@@ -358,7 +355,10 @@ public abstract class FieldReader<S,A> {
             case UNSIGNEDLSB4:
             case UNSIGNEDMSB4:
             case ASCII_INTEGER:
-            case ASCII_NONNEGATIVE_INTEGER: {
+            case ASCII_NONNEGATIVE_INTEGER:
+            case ASCII_NUMERIC_BASE16:
+            case ASCII_NUMERIC_BASE2:
+            case ASCII_NUMERIC_BASE8: {
                 LongList blankList = new LongList();
                 for ( String txt : blankTxts ) {
                     try {
