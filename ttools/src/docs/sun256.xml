@@ -14426,6 +14426,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>PDS4 reader now reads <code>Ascii_Numeric_Base16/8/2</code>
         fields as numeric not string
         (updated pds4-jparser library code).</li>
+    <li>Slight change to RESOURCE structure of Primary HDU metadata 
+        in multi-table FITS-plus output.
+        This fixes a problem in which saved Service Descriptors
+        could end up associated with the wrong tables.</li>
     </ul>
     </p></dd>
 

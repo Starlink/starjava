@@ -181,6 +181,9 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
         /* Output table elements containing the metadata with the help of
          * the VOTable serializer. */
         for ( int i = 0; i < ntable; i++ ) {
+            if ( i > 0 ) {
+                votWriter.writeBetweenTableXML( writer );
+            }
             StarTable table = tables[ i ];
             FitsTableSerializer fitser = fitsers[ i ];
             VOSerializer voser =
