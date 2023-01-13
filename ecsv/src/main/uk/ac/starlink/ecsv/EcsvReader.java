@@ -29,6 +29,7 @@ public class EcsvReader implements Closeable {
     private final StringBuilder wbuf_;
     private List<String> cellWords_;
     private long irow_;
+    private long nError_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ecsv" );
 
@@ -135,6 +136,9 @@ public class EcsvReader implements Closeable {
             }
         }
         else {
+            if ( nError_ > 0 ) {
+                logger_.warning( "Cell parse errors: " + nError_ );
+            }
             return false;
         }
     }
@@ -157,6 +161,7 @@ public class EcsvReader implements Closeable {
                 return decoders_[ icol ].decode( word );
             }
             catch ( NumberFormatException e ) {
+                nError_++;
                 return null;
             }
         }
