@@ -2,6 +2,7 @@ package uk.ac.starlink.ecsv;
 
 import java.lang.reflect.Array;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,8 +21,6 @@ public abstract class EcsvDecoder<T> {
     private final Class<T> clazz_;
     private final int[] stilShape_;
     private final String msg_;
-    private static final Float FNAN = Float.valueOf( Float.NaN );
-    private static final Double DNAN = Double.valueOf( Double.NaN );
     private static final int[] SCALAR_SHAPE = null;
 
     /**
@@ -98,30 +97,34 @@ public abstract class EcsvDecoder<T> {
                        + subtype + "\" - treating as " + datatype;
         if ( "int8".equals( datatype ) ) {
             return createDecoder( Byte.class, SCALAR_SHAPE, igMsg,
-                                  Byte::parseByte );
+                                  Byte::valueOf,
+                                  EcsvDecoder::resemblesInt );
         }
         else if ( "int16".equals( datatype ) ||
                   "uint8".equals( datatype ) ) {
             return createDecoder( Short.class, SCALAR_SHAPE, igMsg,
-                                  Short::parseShort );
+                                  Short::valueOf,
+                                  EcsvDecoder::resemblesInt );
         }
         else if ( "int32".equals( datatype ) ||
                   "uint16".equals( datatype ) ) {
             return createDecoder( Integer.class, SCALAR_SHAPE, igMsg,
-                                  Integer::parseInt );
+                                  Integer::valueOf,
+                                  EcsvDecoder::resemblesInt );
         }
         else if ( "int64".equals( datatype ) ||
                   "uint32".equals( datatype ) ) {
             return createDecoder( Long.class, SCALAR_SHAPE, igMsg,
-                                  Long::parseLong );
+                                  Long::valueOf,
+                                  EcsvDecoder::resemblesInt );
         }
         else if ( "float32".equals( datatype ) ) {
             return createDecoder( Float.class, SCALAR_SHAPE, igMsg,
-                txt -> "nan".equals( txt ) ? FNAN : Float.parseFloat( txt ) );
+                                  EcsvDecoder::parseFloat );
         }
         else if ( "float64".equals( datatype ) ) {
             return createDecoder( Double.class, SCALAR_SHAPE, igMsg,
-                txt -> "nan".equals( txt ) ? DNAN : Double.parseDouble( txt ) );
+                                  EcsvDecoder::parseDouble );
         }
         else if ( "bool".equals( datatype ) ) {
             return createDecoder( Boolean.class, SCALAR_SHAPE, igMsg, txt -> {
@@ -329,6 +332,121 @@ public abstract class EcsvDecoder<T> {
                 return decode.apply( txt );
             }
         };
+    }
+
+    /**
+     * Creates an EcsvDecoder instance given a string-&gt;type mapping function
+     * and a filter predicate to test if values look OK first.
+     *
+     * <p>The purpose of the <code>isPlausible</code> argument is to perform
+     * a fast test of the string to see if looks like it's probably OK.
+     * If it's clearly not suitable for parsing, the decoder will return
+     * null rather than attempting the parse and throwing a
+     * NumberFormatException, which is relatively expensive.
+     *
+     * @param  clazz  output class
+     * @param  stilShape   array shape specification in STIL format
+     * @param   msg   warning or diagnostic message concerning decoding,
+     *                or null if everything is normal
+     * @param  decode   function that decodes strings to typed values
+     * @param  isPlausible  fast test which returns false if argument
+     *                      should definitely be interpreted as null
+     * @return   decoder
+     */
+    private static <T> EcsvDecoder<T>
+            createDecoder( Class<T> clazz, int[] stilShape, String msg,
+                           Function<String,T> decode,
+                           Predicate<String> isPlausible ) {
+        return new EcsvDecoder<T>( clazz, stilShape, msg ) {
+            public T decode( String txt ) {
+                return isPlausible.test( txt )
+                     ? decode.apply( txt )
+                     : null;
+            }
+        };
+    }
+
+    /**
+     * Fast check whether a string looks like it could be a representation of
+     * an integer-like number.  Not bulletproof.
+     *
+     * @param  txt  string to test
+     * @return  false if it's definitely not an integer
+     */
+    private static boolean resemblesInt( String txt ) {
+        int len = txt.length();
+        if ( len == 0 ) {
+            return false;
+        }
+        for ( int i = 0; i < len; i++ ) {
+            switch ( txt.charAt( i ) ) {
+                case '0': case '1': case '2': case '3': case '4':
+                case '5': case '6': case '7': case '8': case '9':
+                case '+': case '-':
+                    break;
+                default:
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Fast check whether a string looks like it could be a representation of
+     * a floating-point number.  Not bulletproof.
+     *
+     * @param  txt  string to text
+     * @return  false if it's definitely not a normal floating point number
+     */
+    private static boolean resemblesFloat( String txt ) {
+        int len = txt.length();
+        if ( len == 0 ) {
+            return false;
+        }
+        for ( int i = 0; i < len; i++ ) {
+            switch ( txt.charAt( i ) ) {
+                case '0': case '1': case '2': case '3': case '4':
+                case '5': case '6': case '7': case '8': case '9':
+                case '+': case '-':
+                case '.': case 'e': case 'E':
+                    break;
+                default:
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Parses text to a Float value.
+     *
+     * @param  txt  input text
+     * @return   float value, or null
+     */
+    private static Float parseFloat( String txt ) {
+        if ( "inf".equals( txt ) ) {
+            return Float.POSITIVE_INFINITY;
+        }
+        if ( "-inf".equals( txt ) ) {
+            return Float.NEGATIVE_INFINITY;
+        }
+        return resemblesFloat( txt ) ? Float.valueOf( txt ) : null;
+    }
+
+    /**
+     * Parses text to a Double value.
+     *
+     * @param  txt  input text
+     * @return   double value, or null
+     */
+    private static Double parseDouble( String txt ) {
+        if ( "inf".equals( txt ) ) {
+            return Double.POSITIVE_INFINITY;
+        }
+        if ( "-inf".equals( txt ) ) {
+            return Double.NEGATIVE_INFINITY;
+        }
+        return resemblesFloat( txt ) ? Double.valueOf( txt ) : null;
     }
 
     /**

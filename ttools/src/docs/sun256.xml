@@ -14432,6 +14432,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         could end up associated with the wrong tables.</li>
     <li>Write empty string not semi-standard "<code>nan</code>"
         token for NaN in <ref id="outEcsv">ECSV writer</ref>.</li>
+    <li>Improve <ref id="inEcsv">ECSV reader</ref> performance,
+        especially for Gaia DR3 bulk download files
+        (which use semi-standard "<code>null</code>" token).</li>
     </ul>
     </p></dd>
 
