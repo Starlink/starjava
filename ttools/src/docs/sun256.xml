@@ -14430,6 +14430,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in multi-table FITS-plus output.
         This fixes a problem in which saved Service Descriptors
         could end up associated with the wrong tables.</li>
+    <li>Write empty string not semi-standard "<code>nan</code>"
+        token for NaN in <ref id="outEcsv">ECSV writer</ref>.</li>
     </ul>
     </p></dd>
 

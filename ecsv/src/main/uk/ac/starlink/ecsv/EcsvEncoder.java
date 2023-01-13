@@ -151,7 +151,7 @@ public abstract class EcsvEncoder {
                             return fval.toString();
                         }
                         else if ( Float.isNaN( f ) ) {
-                            return "nan";
+                            return null;
                         }
                         else if ( Float.isInfinite( f ) ) {
                             return f > 0 ? "inf" : "-inf";
@@ -162,7 +162,7 @@ public abstract class EcsvEncoder {
                         }
                     }
                     else if ( value == null ) {
-                        return "nan";
+                        return null;
                     }
                     else {
                         return null;
@@ -180,7 +180,7 @@ public abstract class EcsvEncoder {
                             return dval.toString();
                         }
                         else if ( Double.isNaN( d ) ) {
-                            return "nan";
+                            return null;
                         }
                         else if ( Double.isInfinite( d ) ) {
                             return d > 0 ? "inf" : "-inf";
@@ -191,7 +191,7 @@ public abstract class EcsvEncoder {
                         }
                     }
                     else if ( value == null ) {
-                        return "nan";
+                        return null;
                     }
                     else {
                         return null;
