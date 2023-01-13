@@ -79,7 +79,7 @@ public abstract class LineReader implements Closeable {
 
         private final InputStream in_;
         private final byte[] bbuf_;
-        private final StringBuffer sbuf_;
+        private final StringBuilder sbuf_;
         private int nb_ = 0;
         private int ipos_ = 0;
 
@@ -92,7 +92,7 @@ public abstract class LineReader implements Closeable {
             super( in );
             in_ = in;
             bbuf_ = new byte[ BUFSIZ ];
-            sbuf_ = new StringBuffer();
+            sbuf_ = new StringBuilder();
         }
 
         public String readLine() throws IOException {
