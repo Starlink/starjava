@@ -362,12 +362,19 @@ public class LinkRowPanel extends JPanel {
          * Constructor.
          */
         public AccessUrlLinkDisplay() {
-            infoStack_ = new InfoStack( new LinkColMap.ColDef<?>[] {
-                LinkColMap.COL_ACCESSURL,
-                LinkColMap.COL_CONTENTTYPE,
-                LinkColMap.COL_CONTENTLENGTH,
-                LinkColMap.COL_DESCRIPTION,
-                LinkColMap.COL_SEMANTICS,
+            infoStack_ = new InfoStack( new InfoStack.Item[] {
+                new InfoStack.Item( "Access URL",
+                                    LinkColMap.COL_ACCESSURL ),
+                new InfoStack.Item( "Content Type",
+                                    LinkColMap.COL_CONTENTTYPE,
+                                    LinkColMap.COL_CONTENTQUALIFIER ),
+                new InfoStack.Item( "Content Length",
+                                    LinkColMap.COL_CONTENTLENGTH ),
+                new InfoStack.Item( "Description",
+                                    LinkColMap.COL_DESCRIPTION ),
+                new InfoStack.Item( "Semantics",
+                                    LinkColMap.COL_SEMANTICS,
+                                    LinkColMap.COL_LOCALSEMANTICS ),
             } );
             JComponent box = Box.createVerticalBox();
             box.add( infoStack_ );
@@ -447,10 +454,15 @@ public class LinkRowPanel extends JPanel {
          * Constructor.
          */
         ServiceLinkDisplay() {
-            infoStack_ = new InfoStack( new LinkColMap.ColDef<?>[] {
-                LinkColMap.COL_CONTENTTYPE,
-                LinkColMap.COL_DESCRIPTION,
-                LinkColMap.COL_SEMANTICS,
+            infoStack_ = new InfoStack( new InfoStack.Item[] {
+                new InfoStack.Item( "Content Type",
+                                    LinkColMap.COL_CONTENTTYPE,
+                                    LinkColMap.COL_CONTENTQUALIFIER ),
+                new InfoStack.Item( "Description",
+                                    LinkColMap.COL_DESCRIPTION ),
+                new InfoStack.Item( "Semantics",
+                                    LinkColMap.COL_SEMANTICS,
+                                    LinkColMap.COL_LOCALSEMANTICS ),
             } );
             standardIdField_ = infoStack_.addField( "Standard ID" );
             resourceIdField_ = infoStack_.addField( "Resource ID" );
@@ -626,19 +638,18 @@ public class LinkRowPanel extends JPanel {
      * LabelledComponentStack subclass that displays LinkColMap items.
      */
     private static class InfoStack extends LabelledComponentStack {
-        final Map<LinkColMap.ColDef<?>,JTextField> fieldMap_;
+        private final Map<Item,JTextField> itemMap_;
 
         /**
          * Constructor.
          *
-         * @param  cols  items to display
+         * @param  items  items to display
          */
-        public InfoStack( LinkColMap.ColDef<?>[] cols ) {
+        public InfoStack( Item[] items ) {
             super();
-            fieldMap_ = new LinkedHashMap<LinkColMap.ColDef<?>,JTextField>();
-            for ( LinkColMap.ColDef<?> col : cols ) {
-                JTextField field = addField( col.getName() );
-                fieldMap_.put( col, field );
+            itemMap_ = new HashMap<Item,JTextField>();
+            for ( Item item : items ) {
+                itemMap_.put( item, addField( item.name_ ) );
             }
         }
 
@@ -663,13 +674,41 @@ public class LinkRowPanel extends JPanel {
          * @param  row    row vector from links document
          */
         public void configureForRow( LinkColMap colMap, Object[] row ) {
-            for ( Map.Entry<LinkColMap.ColDef<?>,JTextField> entry :
-                  fieldMap_.entrySet() ) {
-                LinkColMap.ColDef<?> col = entry.getKey();
+            for ( Map.Entry<Item,JTextField> entry : itemMap_.entrySet() ) {
+                LinkColMap.ColDef<?>[] cols = entry.getKey().cols_;
                 JTextField field = entry.getValue();
-                Object value = colMap.getValue( col, row );
-                field.setText( value == null ? null : value.toString() );
+                StringBuffer sbuf = new StringBuffer();
+                for ( LinkColMap.ColDef<?> col : cols ) {
+                    Object value = colMap.getValue( col, row );
+                    String sval = value == null ? null : value.toString();
+                    if ( sval != null && sval.trim().length() > 0 ) {
+                        if ( sbuf.length() > 0 ) {
+                            sbuf.append( "; " );
+                        }
+                        sbuf.append( sval );
+                    }
+                }
+                field.setText( sbuf.toString() );
                 field.setCaretPosition( 0 );
+            }
+        }
+
+        /**
+         * Defines the content of a row in this stack.
+         */
+        private static class Item {
+            final String name_;
+            final LinkColMap.ColDef<?>[] cols_;
+
+            /**
+             * Constructor.
+             *
+             * @param  name  text label for information.
+             * @param  cols  array of datalink columns to use for content
+             */
+            Item( String name, LinkColMap.ColDef<?> ... cols ) {
+                name_ = name;
+                cols_ = cols;
             }
         }
     }

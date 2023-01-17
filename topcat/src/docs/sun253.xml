@@ -31905,6 +31905,12 @@ introduced since the last version:
     <li>VOTable service descriptor I/O now preserves
         <code>contentType</code> and <code>exampleURL</code> PARAMs,
         introduced in DataLink 1.1</li>
+    <li>Make use of DataLink metadata introduced at DataLink 1.1.
+        Values <code>content_qualifier</code> and
+        <code>local_semantics</code> are now displayed in the
+        <ref id="DatalinkWindow">DataLink Window</ref> and
+        if present these and the Service Descriptor ContentType are
+        used to make better decisions abut manipulating links.</li>
     </ul>
     </p></dd>
 
