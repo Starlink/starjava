@@ -306,6 +306,8 @@ public final class JavaEnvUtils {
         jrePackages = new Vector();
         switch(javaVersionNumber) {
             case 16:
+                jrePackages.addElement("jdk");
+                //fall through.
             case 15:
                 //In Java1.5, the apache stuff moved.
                 jrePackages.addElement("com.sun.org.apache");
