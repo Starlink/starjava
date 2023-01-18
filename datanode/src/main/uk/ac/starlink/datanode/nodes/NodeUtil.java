@@ -94,10 +94,10 @@ public class NodeUtil {
             try {
                 /* Use this class because it's lightweight and won't cause a
                  * whole cascade of other classes to be loaded. */
-                new javax.media.jai.util.CaselessStringKey( "dummy" );
+                Class.forName( "javax.media.jai.util.CaselessStringKey" );
                 hasJAI_ = Boolean.TRUE;
             }
-            catch ( NoClassDefFoundError e ) {
+            catch ( ClassNotFoundException e ) {
                 hasJAI_ = Boolean.FALSE;
                 logger.warning(
                     "JAI extension not present - no image display" );
