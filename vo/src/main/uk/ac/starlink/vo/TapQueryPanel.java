@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -601,7 +602,7 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
-     * Creates a new menu for display of ADQL example queries.
+     * Creates a new menu for display of an array of ADQL example queries.
      * Menu items not only install their own ADQL in the text panel,
      * they also configure the Previous/Next actions to invoke the
      * adjacent items in the menu.
@@ -612,30 +613,56 @@ public class TapQueryPanel extends JPanel {
      */
     private JMenu createExampleMenu( final String name,
                                      final AdqlExample[] examples ) {
-        final int nex = examples.length;
+        return createExampleMenu( name,
+                                  Arrays.stream( examples )
+                                 .map( ex -> new Tree.Leaf<AdqlExample>( ex ) )
+                                 .collect( Collectors.toList() ) );
+    }
+
+    /**
+     * Creates a new menu for display of a possibly hierarchical tree
+     * of ADQL example queries.
+     * Menu items not only install their own ADQL in the text panel,
+     * they also configure the Previous/Next actions to invoke the
+     * adjacent items in the menu.
+     *
+     * @param  name  menu name
+     * @param  examples  list of examples
+     * @return   new menu
+     */
+    private JMenu createExampleMenu( final String name,
+                                     final List<Tree<AdqlExample>> examples ) {
+        int nex = (int) examples.stream().filter( Tree::isLeaf ).count();
         final AdqlExampleAction[] exActs = new AdqlExampleAction[ nex ];
-        for ( int i = 0; i < nex; i++ ) {
-            final int iex = i;
-            final AdqlExample ex = examples[ iex ];
-            final String label = name + " " + ( iex + 1 ) + "/" + nex;
-            exActs[ iex ] = new AdqlExampleAction( ex ) {
-                @Override
-                public void actionPerformed( ActionEvent evt ) {
-                    super.actionPerformed( evt );
-                    exampleLine_.setExample( ex, label );
-                    if ( iex > 0 ) {
-                        prevExampleAct_.setDelegate( exActs[ iex - 1 ] );
-                    }
-                    if ( iex < nex - 1 ) {
-                        nextExampleAct_.setDelegate( exActs[ iex + 1 ] );
-                    }
-                }
-            };
-        }
         JMenu menu = new JMenu( name );
-        for ( AdqlExampleAction act : exActs ) {
-            menu.add( act );
+        int ileaf = 0;
+        for ( Tree<AdqlExample> tree : examples ) {
+            if ( tree.isLeaf() ) {
+                final int iex = ileaf++;
+                AdqlExample ex = tree.asLeaf().getItem();
+                String label = name + " " + ( iex + 1 ) + "/" + nex;
+                exActs[ iex ] = new AdqlExampleAction( ex ) {
+                    @Override
+                    public void actionPerformed( ActionEvent evt ) {
+                        super.actionPerformed( evt );
+                        exampleLine_.setExample( ex, label );
+                        if ( iex > 0 ) {
+                            prevExampleAct_.setDelegate( exActs[ iex - 1 ] );
+                        }
+                        if ( iex < nex - 1 ) {
+                            nextExampleAct_.setDelegate( exActs[ iex + 1 ] );
+                        }
+                    }
+                };
+                menu.add( exActs[ iex ] );
+            }
+            else {
+                Tree.Branch<AdqlExample> branch = tree.asBranch();
+                menu.add( createExampleMenu( branch.getLabel(),
+                                             branch.getChildren() ) );
+            }
         }
+        assert ileaf == nex;
         return menu;
     }
 
@@ -721,36 +748,18 @@ public class TapQueryPanel extends JPanel {
         menu.setEnabled( hasExamples );
         if ( hasExamples ) {
 
-            /* Prepare an array of AdqlExample instances based on the
-             * DaliExamples. */
-            List<AdqlExample> adqlExampleList = new ArrayList<>();
-            for ( Tree<DaliExample> tree : daliExamples ) {
-                if ( tree.isLeaf() ) {
-                    final DaliExample daliEx = tree.asLeaf().getItem();
-                    String name = daliEx.getName();
-                    final String adql = getExampleQueryText( daliEx );
-                    adqlExampleList.add( new AbstractAdqlExample( name, null ) {
-                        public String getText( boolean lineBreaks, String lang,
-                                               TapCapability tcap,
-                                               TableMeta[] tables,
-                                               TableMeta table,
-                                               double[] skypos ) {
-                            return adql;
-                        }
-                        public URL getInfoUrl() {
-                            return daliEx.getUrl();
-                        }
-                    } );
-                }
-            }
-            AdqlExample[] adqlExamples =
-                adqlExampleList.toArray( new AdqlExample[ 0 ] );
+            /* Turn the hierarchical structure of DaliExamples into a
+             * corresponding structure of AdqlExamples. */
+            List<Tree<AdqlExample>> adqlExamples =
+                daliExamples
+               .stream()
+               .map( t -> t.map( this::daliToAdqlExample ) )
+               .collect( Collectors.toList() );
 
             /* Create a menu from these; this call does more than simply
              * wrap the actions into a menu, so use this call and then
              * pull the menu items out into a different menu later. */
-            JMenu dummyMenu =
-                createExampleMenu( menu.getText(), adqlExamples );
+            JMenu dummyMenu = createExampleMenu( menu.getText(), adqlExamples );
             while ( dummyMenu.getItemCount() > 0 ) {
                 JMenuItem item = dummyMenu.getItem( 0 );
                 dummyMenu.remove( 0 );
@@ -758,6 +767,27 @@ public class TapQueryPanel extends JPanel {
             }
         }
         tmetaPanel_.setHasExamples( hasExamples );
+    }
+
+    /**
+     * Adapts a DaliExample to an AdqlExample.
+     *
+     * @param  daliEx  DALI example
+     * @return  ADQL example
+     */
+    private AdqlExample daliToAdqlExample( DaliExample daliEx ) {
+        final String name = daliEx.getName();
+        final String adql = getExampleQueryText( daliEx );
+        return new AbstractAdqlExample( name, null ) {
+            public String getText( boolean lineBreaks, String lang,
+                                   TapCapability tcap, TableMeta[] tables,
+                                   TableMeta table, double[] skypos ) {
+                return adql;
+            }
+            public URL getInfoUrl() {
+                return daliEx.getUrl();
+            }
+        };
     }
 
     /**

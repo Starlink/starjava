@@ -31789,6 +31789,12 @@ introduced since the last version:
         <ref id="PlaneAxisControl_grid">Grid tab</ref>.
         Grid line colour can now be controlled in Time plots
         as for Plane and Sky.</li>
+    <li>The <label>Examples</label> menu in the TAP
+        <ref id="TapTableLoadDialog_query">Use Service</ref> tab now
+        presents Service-Provided examples in a hierarchical menu if
+        the service <code>/examples</code> endpoint uses DALI-examples
+        <webref url="https://www.ivoa.net/documents/DALI/20170517/REC-DALI-1.1.html#tth_sEc2.3.4"
+                >continuation documents</webref>.</li>
     </ul>
     </p></dd>
 
