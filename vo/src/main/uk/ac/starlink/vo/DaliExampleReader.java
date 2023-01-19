@@ -59,7 +59,7 @@ public class DaliExampleReader {
      * @param  url  location of examples document
      * @return   list of examples
      */
-    public DaliExample[] readExamples( URL url ) throws IOException {
+    public List<Tree<DaliExample>> readExamples( URL url ) throws IOException {
         InputStream in = url.openStream();
         Document doc;
         try {
@@ -104,12 +104,11 @@ public class DaliExampleReader {
          * @typeof='example' attribute.  This is very likely to do the
          * right thing. */
         String exPath = "//*[@typeof='example']";
-        List<DaliExample> list = new ArrayList<DaliExample>();
-        for ( Element exampleEl :
-              findElements( doc.getDocumentElement(), exPath ) ) {
-            list.add( createExample( exampleEl, url ) );
+        List<Tree<DaliExample>> list = new ArrayList<>();
+        for ( Element el : findElements( doc.getDocumentElement(), exPath ) ) {
+            list.add( new Tree.Leaf<DaliExample>( createExample( el, url ) ) );
         }
-        return list.toArray( new DaliExample[ 0 ] );
+        return list;
     }
 
     /**
@@ -276,22 +275,25 @@ public class DaliExampleReader {
      * URL supplied on the command line.
      */
     public static void main( String[] args ) throws IOException {
-        for ( DaliExample ex :
+        for ( Tree<DaliExample> tree :
               new DaliExampleReader().readExamples( new URL( args[ 0 ] ) ) ) {
-            System.out.println( ex.getId() + ": " + ex.getName() );
-            System.out.println( "\tgeneric-parameters:" );
-            for ( Map.Entry<String,String> entry :
-                  ex.getGenericParameters().entrySet() ) {
-                System.out.println( "\t\t" + entry.getKey()
-                                  + "\t\t" + entry.getValue() );
+            if ( tree.isLeaf() ) {
+                DaliExample ex = tree.asLeaf().getItem();
+                System.out.println( ex.getId() + ": " + ex.getName() );
+                System.out.println( "\tgeneric-parameters:" );
+                for ( Map.Entry<String,String> entry :
+                      ex.getGenericParameters().entrySet() ) {
+                    System.out.println( "\t\t" + entry.getKey()
+                                      + "\t\t" + entry.getValue() );
+                }
+                System.out.println( "\tproperties:" );
+                for ( Map.Entry<String,String> entry :
+                      ex.getProperties().entrySet() ) {
+                    System.out.println( "\t\t" + entry.getKey()
+                                      + "\t\t" + entry.getValue() );
+                }
+                System.out.println();
             }
-            System.out.println( "\tproperties:" );
-            for ( Map.Entry<String,String> entry :
-                  ex.getProperties().entrySet() ) {
-                System.out.println( "\t\t" + entry.getKey()
-                                  + "\t\t" + entry.getValue() );
-            }
-            System.out.println();
         }
     }
 }

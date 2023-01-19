@@ -495,19 +495,20 @@ public class TapQueryPanel extends JPanel {
                                + "information: " + error, error );
                 }
             } );
-            serviceKit.acquireExamples( new ResultHandler<DaliExample[]>() {
+            serviceKit.acquireExamples(
+                    new ResultHandler<List<Tree<DaliExample>>>() {
                 public boolean isActive() {
                     return serviceKit_ == serviceKit;
                 }
                 public void showWaiting() {
                     setDaliExamples( null );
                 }
-                public void showResult( DaliExample[] daliExamples ) {
+                public void showResult( List<Tree<DaliExample>> daliExamples ) {
                     setDaliExamples( daliExamples );
                 }
                 public void showError( IOException error ) {
                     logger_.info( "No TAP examples: " + error );
-                    setDaliExamples( new DaliExample[ 0 ] );
+                    setDaliExamples( null );
                 }
             } );
         }
@@ -713,32 +714,37 @@ public class TapQueryPanel extends JPanel {
      *
      * @param  examples  example list, may be null
      */
-    private void setDaliExamples( DaliExample[] daliExamples ) {
+    private void setDaliExamples( List<Tree<DaliExample>> daliExamples ) {
+        boolean hasExamples = daliExamples != null && daliExamples.size() > 0;
         JMenu menu = daliExampleMenu_;
         menu.removeAll();
-        menu.setEnabled( daliExamples != null && daliExamples.length > 0 );
-        if ( daliExamples != null ) {
+        menu.setEnabled( hasExamples );
+        if ( hasExamples ) {
 
             /* Prepare an array of AdqlExample instances based on the
              * DaliExamples. */
-            int nex = daliExamples.length;
-            AdqlExample[] adqlExamples = new AdqlExample[ nex ];
-            for ( int iex = 0; iex < nex; iex++ ) {
-                final DaliExample daliEx = daliExamples[ iex ];
-                String name = daliEx.getName();
-                final String adql = getExampleQueryText( daliEx );
-                adqlExamples[ iex ] = new AbstractAdqlExample( name, null ) {
-                    public String getText( boolean lineBreaks, String lang,
-                                           TapCapability tcap,
-                                           TableMeta[] tables, TableMeta table,
-                                           double[] skypos ) {
-                        return adql;
-                    }
-                    public URL getInfoUrl() {
-                        return daliEx.getUrl();
-                    }
-                };
+            List<AdqlExample> adqlExampleList = new ArrayList<>();
+            for ( Tree<DaliExample> tree : daliExamples ) {
+                if ( tree.isLeaf() ) {
+                    final DaliExample daliEx = tree.asLeaf().getItem();
+                    String name = daliEx.getName();
+                    final String adql = getExampleQueryText( daliEx );
+                    adqlExampleList.add( new AbstractAdqlExample( name, null ) {
+                        public String getText( boolean lineBreaks, String lang,
+                                               TapCapability tcap,
+                                               TableMeta[] tables,
+                                               TableMeta table,
+                                               double[] skypos ) {
+                            return adql;
+                        }
+                        public URL getInfoUrl() {
+                            return daliEx.getUrl();
+                        }
+                    } );
+                }
             }
+            AdqlExample[] adqlExamples =
+                adqlExampleList.toArray( new AdqlExample[ 0 ] );
 
             /* Create a menu from these; this call does more than simply
              * wrap the actions into a menu, so use this call and then
@@ -751,8 +757,7 @@ public class TapQueryPanel extends JPanel {
                 menu.add( item );
             }
         }
-        tmetaPanel_.setHasExamples( daliExamples != null &&
-                                    daliExamples.length > 0 );
+        tmetaPanel_.setHasExamples( hasExamples );
     }
 
     /**

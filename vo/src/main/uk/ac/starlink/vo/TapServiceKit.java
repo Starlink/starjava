@@ -261,11 +261,12 @@ public class TapServiceKit {
      *
      * @param  handler  receiver for example list
      */
-    public void acquireExamples( final ResultHandler<DaliExample[]> handler ) {
+    public void acquireExamples( ResultHandler<List<Tree<DaliExample>>>
+                                 handler ) {
         final URL examplesUrl = service_.getExamplesEndpoint();
         if ( examplesUrl != null ) {
-            acquireData( handler, new DataCallable<DaliExample[]>() {
-                public DaliExample[] call() throws IOException {
+            acquireData( handler, new DataCallable<List<Tree<DaliExample>>>() {
+                public List<Tree<DaliExample>> call() throws IOException {
                     return new DaliExampleReader().readExamples( examplesUrl );
                 }
             } );
