@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -54,7 +56,10 @@ public class DaliExampleReader {
 
     /**
      * Reads a list of examples from a document at a given URL.
-     * Any fragment identifier on the URL is ignored.
+     * The result may be a hierarchical tree if continuation nodes
+     * are present in the document.
+     *
+     * <p>Any fragment identifier on the URL is ignored.
      *
      * @param  url  location of examples document
      * @return   list of examples
@@ -93,7 +98,8 @@ public class DaliExampleReader {
                  .initCause( e );
         }
 
-        /* Earlier versions of this class required that the @typeof='example'
+        /* Pick up example and continuation nodes.
+         * Earlier versions of this class required that the @typeof='example'
          * element occurred in the scope of an element with a suitable
          * @vocab attribute.  But the requirement on the content of that
          * vocab is really a mess: the TAP Implementation Note,
@@ -103,10 +109,58 @@ public class DaliExampleReader {
          * the RDFa vocab altogether, and pick up anything marked with a
          * @typeof='example' attribute.  This is very likely to do the
          * right thing. */
-        String exPath = "//*[@typeof='example']";
+        String exPath = "//*[@typeof='example']|//*[@property='continuation']";
         List<Tree<DaliExample>> list = new ArrayList<>();
         for ( Element el : findElements( doc.getDocumentElement(), exPath ) ) {
-            list.add( new Tree.Leaf<DaliExample>( createExample( el, url ) ) );
+
+            /* Example element turns into a leaf node. */
+            if ( "example".equals( el.getAttribute( "typeof" ) ) ) {
+                DaliExample daliEx = createExample( el, url );
+                list.add( new Tree.Leaf<DaliExample>( daliEx ) );
+            }
+
+            /* Continuation element turns into a branch node. */
+            else if ( "continuation".equals( el.getAttribute( "property" ) ) ) {
+
+                /* Read sub-list of examples from continuation document. */
+                List<Tree<DaliExample>> contList;
+                String href = el.getAttribute( "href" );
+                if ( href == null || href.trim().length() == 0 ) {
+                    contList = null;
+                    logger_.warning( "No href attribute for examples "
+                                   + "continuation in " + url );
+                }
+                else {
+                    try {
+                        contList = readExamples( new URL( url, href ) );
+                    }
+                    catch ( IOException e ) {
+                        contList = null;
+                        logger_.log( Level.WARNING,
+                                     "Failed to read examples continuation at "
+                                   + href, e );
+                    }
+                }
+
+                /* Add a branch node containing the continuation examples
+                 * to the current list of nodes. */
+                if ( contList != null && contList.size() > 0 ) {
+
+                    /* Try to come up with a suitable label.
+                     * This is not very strongly constrained by the standard,
+                     * but the example in DALI 1.1 sec 2.3.4 has
+                     * suitable label text as the content of the
+                     * property="continuation"-bearing element. */
+                    String label = getElementText( el );
+                    if ( label == null || label.trim().length() == 0 ) {
+                        label = "Continuation";
+                    }
+                    if ( label != null && label.length() > 50 ) {
+                        label = label.substring( 0, 40 ) + "...";
+                    }
+                    list.add( new Tree.Branch<DaliExample>( contList, label ) );
+                }
+            }
         }
         return list;
     }
@@ -277,23 +331,56 @@ public class DaliExampleReader {
     public static void main( String[] args ) throws IOException {
         for ( Tree<DaliExample> tree :
               new DaliExampleReader().readExamples( new URL( args[ 0 ] ) ) ) {
-            if ( tree.isLeaf() ) {
-                DaliExample ex = tree.asLeaf().getItem();
-                System.out.println( ex.getId() + ": " + ex.getName() );
-                System.out.println( "\tgeneric-parameters:" );
-                for ( Map.Entry<String,String> entry :
-                      ex.getGenericParameters().entrySet() ) {
-                    System.out.println( "\t\t" + entry.getKey()
-                                      + "\t\t" + entry.getValue() );
-                }
-                System.out.println( "\tproperties:" );
-                for ( Map.Entry<String,String> entry :
-                      ex.getProperties().entrySet() ) {
-                    System.out.println( "\t\t" + entry.getKey()
-                                      + "\t\t" + entry.getValue() );
-                }
-                System.out.println();
+            writeTree( 0, tree );
+        }
+    }
+
+    /**
+     * Recursively writes a representation of a tree node to standard output.
+     *
+     * @param  level  indentation level for output
+     * @param  tree  node to write
+     */
+    private static void writeTree( int level, Tree<DaliExample> tree ) {
+        if ( tree.isLeaf() ) {
+            DaliExample ex = tree.asLeaf().getItem();
+            output( level, ex.getId() + ": " + ex.getName() );
+            output( level + 1, "generic-parameters:" );
+            for ( Map.Entry<String,String> entry :
+                  ex.getGenericParameters().entrySet() ) {
+                output( level + 2, entry.getKey() + " -> " + entry.getValue() );
+            }
+            output( level + 1, "properties:" );
+            for ( Map.Entry<String,String> entry :
+                  ex.getProperties().entrySet() ) {
+                output( level + 2, entry.getKey() + " -> " + entry.getValue() );
+            }
+            output( 0, "" );
+        }
+        else {
+            Tree.Branch<DaliExample> branch = tree.asBranch();
+            String label = branch.getLabel();
+            if ( label != null && label.trim().length() > 0 ) {
+                output( level + 1, label + ":" );
+                output( level + 1, Stream.generate( () -> "-" )
+                                         .limit( label.length() + 1 )
+                                         .collect( Collectors.joining() ) );
+            }
+            for ( Tree<DaliExample> child : branch.getChildren() ) {
+                writeTree( level + 1, child );
             }
         }
+    }
+
+    /**
+     * Writes text with a given indentation level to standard output.
+     *
+     */
+    private static void output( int level, String txt ) {
+        String prefix = Stream.generate( () -> "  " )
+                       .limit( level )
+                       .collect( Collectors.joining() );
+        System.out.println( prefix +
+                            txt.replaceAll( "\n", "\n" + prefix + "  " ) );
     }
 }
