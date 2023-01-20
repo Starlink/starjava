@@ -111,12 +111,15 @@ public class DaliExampleReader {
          * right thing. */
         String exPath = "//*[@typeof='example']|//*[@property='continuation']";
         List<Tree<DaliExample>> list = new ArrayList<>();
+        int nLeaf = 0;
+        int nBranch = 0;
         for ( Element el : findElements( doc.getDocumentElement(), exPath ) ) {
 
             /* Example element turns into a leaf node. */
             if ( "example".equals( el.getAttribute( "typeof" ) ) ) {
                 DaliExample daliEx = createExample( el, url );
                 list.add( new Tree.Leaf<DaliExample>( daliEx ) );
+                nLeaf++;
             }
 
             /* Continuation element turns into a branch node. */
@@ -159,9 +162,22 @@ public class DaliExampleReader {
                         label = label.substring( 0, 40 ) + "...";
                     }
                     list.add( new Tree.Branch<DaliExample>( contList, label ) );
+                    nBranch++;
                 }
             }
         }
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "Read examples document from " )
+            .append( url )
+            .append( ": " )
+            .append( nLeaf )
+            .append( " examples" );
+        if ( nBranch > 0 ) {
+            sbuf.append( ", " )
+                .append( nBranch )
+                .append( " continuations" );
+        }
+        logger_.info( sbuf.toString() );
         return list;
     }
 
