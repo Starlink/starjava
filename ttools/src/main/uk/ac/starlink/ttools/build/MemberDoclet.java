@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Pattern;
 import com.sun.javadoc.AnnotationDesc;
 import com.sun.javadoc.ClassDoc;
@@ -174,19 +172,9 @@ public abstract class MemberDoclet {
             ClassDoc clazz = classes[ i ];
             if ( clazz.isPublic() ) {
                 processClass( clazz );
-                processPackage( clazz.containingPackage() );
             }
         }
         return true;
-    }
-
-    /**
-     * Generates documentation for a given package.
-     *
-     * @param  pack  package 
-     */
-    protected void processPackage( PackageDoc pack ) throws IOException {
-        // no action
     }
 
     /**

@@ -6,7 +6,11 @@ import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
 import com.sun.javadoc.SeeTag;
 import com.sun.javadoc.Type;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,13 +30,14 @@ import java.util.Set;
  * @author   Mark Taylor (Starlink)
  * @since    22 Apr 2005
  */
-public class FullXmlDoclet extends XmlDoclet {
+public class FullXmlDoclet extends MemberDoclet {
 
+    private final BufferedWriter out_;
     private boolean headOnly_;
     private boolean discardOutput_;
     private boolean skipMembers_;
     private String clazzId_;
-    private Set<String> memberIds_;
+    private MemberIdSet memberIdSet_;
 
     /**
      * Begin processing document.
@@ -47,11 +52,14 @@ public class FullXmlDoclet extends XmlDoclet {
      * This method is part of the Doclet public interface.
      */
     public static int optionLength( String option ) {
-        if ( option.equals( "-headonly" ) ) {
+        if ( option.equals( "-o" ) ) {
+            return 2;
+        }
+        else if ( option.equals( "-headonly" ) ) {
             return 1;
         }
         else {
-            return XmlDoclet.optionLength( option );
+            return 0;
         }
     }
 
@@ -60,16 +68,23 @@ public class FullXmlDoclet extends XmlDoclet {
      *
      * @param  root  root document
      */
-    protected FullXmlDoclet( RootDoc root ) throws IOException {
+    public FullXmlDoclet( RootDoc root ) throws IOException {
         super( root );
-        memberIds_ = new HashSet<String>();
         String[][] options = root.options();
+        String outloc = null;
         for ( String[] opts : options ) {
             String opt = opts[ 0 ];
+            if ( opt.equals( "-o" ) ) {
+                outloc = opts[ 1 ];
+            }
             if ( opt.equals( "-headonly" ) ) {
                 headOnly_ = true;
             }
         }
+        OutputStream outStream = ( outloc == null || "-".equals( outloc ) )
+                               ? System.out
+                               : new FileOutputStream( outloc );
+        out_ = new BufferedWriter( new OutputStreamWriter( outStream ) );
     }
 
     /**
@@ -108,11 +123,10 @@ public class FullXmlDoclet extends XmlDoclet {
         return ret;
     }
 
-    @Override
     protected void startClass( ClassDoc clazz ) throws IOException {
         discardOutput_ = !useClass( clazz );
         clazzId_ = getXmlId( clazz );
-        memberIds_.clear();
+        memberIdSet_ = new MemberIdSet();
         if ( headOnly_ ) {
             out( "<dt>" 
                + "<ref id='"
@@ -139,10 +153,9 @@ public class FullXmlDoclet extends XmlDoclet {
         out( "<p><dl>" );
     }
 
-    @Override
     protected void endClass() throws IOException {
         clazzId_ = null;
-        memberIds_.clear();
+        memberIdSet_ = null;
         out( "</dl></p>" );
         if ( skipMembers_ ) {
             discardOutput_ = false;
@@ -157,7 +170,6 @@ public class FullXmlDoclet extends XmlDoclet {
         discardOutput_ = false;
     }
 
-    @Override
     protected void startMember( MemberDoc mem, String memType, String memName )
             throws IOException {
         StringBuffer sbuf = new StringBuffer( "<dt" );
@@ -165,8 +177,8 @@ public class FullXmlDoclet extends XmlDoclet {
         /* Write an ID attribute identifying this member, but do it on a
          * best-efforts basis.  These must be unique (or invalidate the XML)
          * so if the ID value has already been used, just don't bother. */
-        String memberId = memName.replaceFirst( "[^a-zA-Z_].*", "" );
-        if ( memberIds_.add( memberId ) ) {
+        String memberId = memberIdSet_.getUniqueId( memName );
+        if ( memberId != null ) {
             sbuf.append( " id='" )
                 .append( clazzId_ )
                 .append( "-" )
@@ -180,19 +192,19 @@ public class FullXmlDoclet extends XmlDoclet {
         out( "<dd>" );
     }
 
-    @Override
     protected void endMember() throws IOException {
         out( "</ul></p>" );
         out( "</dd>" );
     }
 
-    @Override
+    protected void outItem( String name, String val ) {
+    }
+
     protected void outDescription( String desc ) throws IOException {
         out( doctorText( desc ) );
         out( "<p><ul>" );
     }
 
-    @Override
     protected void outParameters( Parameter[] params, String[] comments,
                                   boolean isVararg )
             throws IOException {
@@ -221,7 +233,6 @@ public class FullXmlDoclet extends XmlDoclet {
         }
     }
 
-    @Override
     protected void outReturn( Type rtype, String rdesc ) throws IOException {
         StringBuffer buf = new StringBuffer();
         buf.append( "<li>Return value" )
@@ -237,7 +248,6 @@ public class FullXmlDoclet extends XmlDoclet {
         out( buf.toString() );
     }
 
-    @Override
     protected void outExamples( String[] examples ) throws IOException {
         if ( examples.length > 0 ) {
             out( "<li>" + ( examples.length > 1 ? "Examples:" : "Example:" ) );
@@ -250,7 +260,6 @@ public class FullXmlDoclet extends XmlDoclet {
         }
     }
 
-    @Override
     protected void outSees( SeeTag[] seeTags ) throws IOException {
         List<String> fsees = new ArrayList<String>();
         for ( SeeTag tag : seeTags ) {
@@ -269,6 +278,34 @@ public class FullXmlDoclet extends XmlDoclet {
             out( "</ul>" );
             out( "</li>" );
         }
+    }
+
+    /**
+     * Outputs some lines of text to the current output stream.
+     * Implemented in terms of {@link #out(java.lang.String)}.
+     *
+     * @param  lines text for output
+     */
+    public void out( String[] lines ) throws IOException {
+        for ( String line : lines ) {
+            out( line );
+        }
+    }
+
+    /**
+     * Outputs a single line of output to the current output stream.
+     *
+     * @param   line  text for output
+     */
+    public void out( String line ) throws IOException {
+        if ( ! discardOutput_ ) {
+            out_.write( line );
+            out_.write( '\n' );
+        }
+    }
+
+    public void flush() throws IOException {
+        out_.flush();
     }
 
     /**
@@ -305,14 +342,18 @@ public class FullXmlDoclet extends XmlDoclet {
     }
 
     /**
-     * Outputs a single line of output to the current output stream.
+     * Attempts to turn HTML text into XML.  It's pretty ad-hoc, and many
+     * things can go wrong with it - using this relies on the various
+     * document tests picking up anything that goes wrong.
      *
-     * @param   line  text for output
+     * @param  text  HTML-type text
+     * @return  XML-type text
      */
-    @Override
-    public void out( String line ) throws IOException {
-        if ( ! discardOutput_ ) {
-            super.out( line );
-        }
+    public static String doctorText( String text ) {
+        text = text.replaceAll( "<a href=", "<webref plaintextref='yes' url=" )
+                   .replaceAll( "</a>", "</webref>" )
+                   .replaceAll( "<pre>", "<verbatim>" )
+                   .replaceAll( "</pre>", "</verbatim>" );
+        return pWrap( text );
     }
 }
