@@ -497,7 +497,7 @@
     <!-- Construct HTML documentation for the JEL-accessible classes.
      !   This is built using Javadoc, and is available from the MethodWindow
      !   method browser. -->
-    <javadoc doclet="uk.ac.starlink.ttools.build.HtmlDoclet"
+    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Html"
              docletpathref="classpath"
              failonerror="true"
              public="true"
@@ -1484,7 +1484,7 @@
 
     <!-- Construct XML documentation for the JEL-accessible classes.
      !   This is built using Javadoc, and forms part of the user document. -->
-    <javadoc doclet="uk.ac.starlink.ttools.build.FullXmlDoclet"
+    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Xml"
              docletpathref="classpath"
              failonerror="true"
              public="true"
@@ -1493,7 +1493,7 @@
              packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
              source="${source.version}"/>
-    <javadoc doclet="uk.ac.starlink.ttools.build.FullXmlDoclet"
+    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Xml"
              docletpathref="docs-classpath"
              failonerror="true"
              public="true"
@@ -1502,7 +1502,7 @@
              packagenames="uk.ac.starlink.topcat.func"
              classpathref="classpath"
              source="${source.version}"/>
-    <javadoc doclet="uk.ac.starlink.ttools.build.FullXmlDoclet"
+    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Xml"
              docletpathref="docs-classpath"
              failonerror="true"
              public="true"
@@ -1511,7 +1511,7 @@
              packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
              source="${source.version}"/>
-    <javadoc doclet="uk.ac.starlink.ttools.build.FullXmlDoclet"
+    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Xml"
              docletpathref="docs-classpath"
              failonerror="true"
              public="true"
