@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a method or field is to be excluded from the
+ * Indicates that a class, method or field is to be excluded from the
  * auto-documentation made available to application users.
  *
  * <p>This may be used, for instance, for methods that should be available
@@ -16,6 +16,6 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD,ElementType.FIELD})
+@Target({ElementType.TYPE,ElementType.METHOD,ElementType.FIELD})
 public @interface HideDoc {
 }
