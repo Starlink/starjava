@@ -1,15 +1,12 @@
-// The doc comments in this class are processed to produce user-visible
-// documentation as part of the package build process.  For this reason
-// care should be taken to make the doc comment style comprehensible,
-// consistent, concise, and not over-technical.
-
-package uk.ac.starlink.topcat.func;
+package uk.ac.starlink.topcat.activate;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.fits.FitsUtil;
+import uk.ac.starlink.topcat.TopcatCgiQuery;
+import uk.ac.starlink.topcat.func.Image;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;

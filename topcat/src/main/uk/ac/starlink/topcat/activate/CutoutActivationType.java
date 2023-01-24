@@ -15,7 +15,6 @@ import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.func.Sdss;
 import uk.ac.starlink.topcat.func.SuperCosmos;
-import uk.ac.starlink.topcat.func.TwoMass;
 
 /**
  * Activation type for showing an image from one of a fixed list

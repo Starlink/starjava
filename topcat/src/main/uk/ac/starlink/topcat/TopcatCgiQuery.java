@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.func;
+package uk.ac.starlink.topcat;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

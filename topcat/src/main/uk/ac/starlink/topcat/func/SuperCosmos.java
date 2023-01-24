@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.fits.FitsUtil;
+import uk.ac.starlink.topcat.TopcatCgiQuery;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
