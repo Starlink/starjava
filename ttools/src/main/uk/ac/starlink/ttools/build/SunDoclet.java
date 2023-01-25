@@ -33,8 +33,12 @@ import uk.ac.starlink.ttools.gui.DocNames;
  * <code>jdk.javadoc.doclet</code> API, and at Java 17 it is withdrawn
  * altogether.
  *
+ * <p>If the target build platform is ever moved to Java 9 or later,
+ * this class should be retired in favour of {@link JdkDoclet}.
+ *
  * @author   Mark Taylor
  * @since    26 Jan 2023
+ * @see   {@link JdkDoclet}
  */
 public class SunDoclet {
 

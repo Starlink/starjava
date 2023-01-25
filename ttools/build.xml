@@ -442,6 +442,7 @@
       <!-- Exclude any files in the source tree that should not be
        !   compiled -->
       <include name="**/*.java"/>
+      <exclude name="uk/ac/starlink/ttools/build/JdkDoclet.java"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
