@@ -42,7 +42,7 @@ public abstract class Rounder {
     /**
      * Returns the next round number smaller than the given value.
      *
-     * @return  value  input value
+     * @param  value  input value
      * @return   round number a bit smaller than the given value
      */
     public abstract double nextDown( double value );

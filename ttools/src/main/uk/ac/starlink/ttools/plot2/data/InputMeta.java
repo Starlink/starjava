@@ -134,7 +134,7 @@ public class InputMeta {
      * <p>Permissible elements include p, ul, li, dl, dt, dd, em, code, strong.
      * Lists go inside paragraphs.
      *
-     * @return  documentation string
+     * @param  xmlDescription  documentation string
      * @return  this object, as a convenience
      */
     public InputMeta setXmlDescription( String xmlDescription ) {
