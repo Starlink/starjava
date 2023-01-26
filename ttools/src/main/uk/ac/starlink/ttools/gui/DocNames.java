@@ -18,6 +18,18 @@ import uk.ac.starlink.ttools.build.Heading;
 public class DocNames {
 
     /**
+     * Character used in resource names to indicate an array dimension.
+     * Appended after the type name.
+     */
+    public static final char ARRAY_SUFFIX = ',';
+
+    /**
+     * Character used in resource names to separate tokens giving
+     * classnames and array types.
+     */
+    public static final char TOKEN_SEPARATOR = '-';
+
+    /**
      * Returns the URL which points to the documentation object for a 
      * given object, or null if none can be found.  Currently,
      * Classes, Fields, Methods and Headings are known about.
@@ -43,6 +55,19 @@ public class DocNames {
         }
     }
 
+    /**
+     * Maps a type name to a word that will be used as a token in
+     * a document resource name.
+     *
+     * @param  typeName  type name, for instance class name or primitive name
+     * @return   word for use in resource name
+     */
+    public static String typeNameToWord( String typeName ) {
+        return typeName == null
+             ? null
+             : typeName.replaceFirst( ".*[.$]", "" );
+    }
+
     private static URL docURL( Class<?> clazz, String suffix ) {
         String fqname = clazz.getName();
         String rpath = "/" + fqname.replaceAll( "\\.", "/" ) + suffix;
@@ -55,28 +80,28 @@ public class DocNames {
 
     private static URL fieldDocURL( Field field ) {
         return docURL( field.getDeclaringClass(),
-                       "-" + field.getName() + ".html" );
+                       TOKEN_SEPARATOR + field.getName() + ".html" );
     }
 
     private static URL methodDocURL( Method method ) {
         StringBuffer mangle = new StringBuffer();
         Class<?>[] types = method.getParameterTypes();
         for ( int i = 0; i < types.length; i++ ) {
-            mangle.append( "-" );
+            mangle.append( TOKEN_SEPARATOR );
             int narray = 0;
             Class<?> clazz = types[ i ];
             while ( clazz.isArray() ) {
                 narray++;
                 clazz = clazz.getComponentType();
             }
-            mangle.append( clazz.getName().replaceFirst( "^.*\\.", "" )
-                                          .replaceAll( "\\$", "." ) );
+            mangle.append( typeNameToWord( clazz.getName() ) );
             for ( int j = 0; j < narray; j++ ) {
-                mangle.append( ',' );
+                mangle.append( ARRAY_SUFFIX );
             }
         }
         return docURL( method.getDeclaringClass(),
-                       "-" + method.getName() + mangle.toString() + ".html" );
+                       TOKEN_SEPARATOR + method.getName()
+                                       + mangle.toString() + ".html" );
     }
 
     private static URL headingDocURL( Heading heading ) {

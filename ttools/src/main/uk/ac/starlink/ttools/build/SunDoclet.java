@@ -21,6 +21,7 @@ import com.sun.javadoc.RootDoc;
 import com.sun.javadoc.SeeTag;
 import com.sun.javadoc.Tag;
 import com.sun.javadoc.Type;
+import uk.ac.starlink.ttools.gui.DocNames;
 
 /**
  * Doclet for documenting user-visible JEL classes,
@@ -185,12 +186,13 @@ public class SunDoclet {
         /* Create unique identifier. */
         StringBuffer idBuf = new StringBuffer( method.name() );
         for ( Parameter param : params ) {
-            idBuf.append( "-" );
+            idBuf.append( DocNames.TOKEN_SEPARATOR );
             Type type = param.type();
-            idBuf.append( type.typeName() );
+            idBuf.append( DocNames.typeNameToWord( type.qualifiedTypeName() ) );
             String dim = type.dimension();
             if ( dim != null ) {
-                idBuf.append( dim.replaceAll( "\\[\\]", "," ) );
+                idBuf.append( dim.replaceAll( "\\[\\]",
+                                              "" + DocNames.ARRAY_SUFFIX ) );
             }
         }
         String methodId = idBuf.toString();
@@ -338,7 +340,7 @@ public class SunDoclet {
         String typetxt =
             DocletUtil.getScalarTypeName( type.qualifiedTypeName() );
         if ( typetxt == null ) {
-            typetxt = type.typeName();
+            typetxt = type.qualifiedTypeName().replaceFirst( ".*[.$]", "" );
         }
         return pre + typetxt + post;
     }
