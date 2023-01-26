@@ -93,7 +93,7 @@ public class MultiConfigger {
      * Convenience method to return a dynamic configger whose configuration
      * returns depend on the state at getConfig-time of a given zone selector.
      *
-     * @return  zsel   zone specifier
+     * @param  zsel   zone specifier
      * @return   configger
      */
     public Configger layerConfigger( final Specifier<ZoneId> zsel ) {
