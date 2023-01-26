@@ -119,34 +119,36 @@ public class HtmlDoclet extends MemberDoclet {
     protected void outParameters( Parameter[] params, String[] comments,
                                   boolean isVararg )
             throws IOException {
-        out( new String[] { 
-                 "<dl>",
-                 "<dt><strong>Parameters:</strong></dt>",
-                 "<dd>",
-                 "<dl>",
-        } );
-        for ( int i = 0; i < params.length; i++ ) {
-            Parameter param = params[ i ];
-            out( new String[] {
-                new StringBuffer()
-                   .append( "<dt><strong><font color='blue'><tt>" )
-                   .append( param.name() )
-                   .append( "</tt></font></strong> " )
-                   .append( "<em>(" )
-                   .append( varargTypeString( param.type(),
-                                              isVararg
-                                              && i == params.length - 1 ) )
-                   .append( ")</em>" )
-                   .append( "</dt>" )
-                   .toString(),
+        if ( params.length > 0 ) {
+            out( new String[] { 
+                     "<dl>",
+                     "<dt><strong>Parameters:</strong></dt>",
+                     "<dd>",
+                     "<dl>",
             } );
-            if ( comments[ i ] != null ) {
+            for ( int i = 0; i < params.length; i++ ) {
+                Parameter param = params[ i ];
                 out( new String[] {
-                    "<dd>" + comments[ i ] + "</dd>",
+                    new StringBuffer()
+                       .append( "<dt><strong><font color='blue'><tt>" )
+                       .append( param.name() )
+                       .append( "</tt></font></strong> " )
+                       .append( "<em>(" )
+                       .append( varargTypeString( param.type(),
+                                                  isVararg
+                                                  && i == params.length - 1 ) )
+                       .append( ")</em>" )
+                       .append( "</dt>" )
+                       .toString(),
                 } );
+                if ( comments[ i ] != null ) {
+                    out( new String[] {
+                        "<dd>" + comments[ i ] + "</dd>",
+                    } );
+                }
             }
+            out( "</dl></dd></dl>" );
         }
-        out( "</dl></dd></dl>" );
     }
 
     protected void outReturn( Type rtype, String rdesc ) throws IOException {
@@ -207,19 +209,17 @@ public class HtmlDoclet extends MemberDoclet {
             out( new String[] {
                 "<dl>",
                 "<dt><strong>See Also:</strong></dt>",
-                "<dd>",
             } );
             if ( ns == 1 ) {
-                out( fsees.get( 0 ) );
+                out( "<dd>" + fsees.get( 0 ) + "</dd>" );
             }
             else {
-                out( "<ul>" );
+                out( "<dd><ul>" );
                 for ( String fsee : fsees ) {
                     out( "<li>" + fsee + "</li>" );
                 }
-                out( "</ul>" );
+                out( "</ul></dd>" );
             }
-            out( "</dd>" );
             out( "</dl>" );
         }
     }
