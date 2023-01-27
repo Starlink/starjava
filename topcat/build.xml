@@ -195,6 +195,15 @@
   <property name="plot2.figdir"
             value="${star.build.dir}/ttools/src/docs/examp"/>
 
+  <!-- Doclet base class used for generating XML and HTML user-facing docs
+   !   from classes in uk.ac.starlink.ttools.func and
+   !   uk.ac.starlink.topcat.func.
+   !   At Java 8, SunDoclet, based on com.sun.doclet API is required.
+   !   The com.sun.doclet API is deprecated at Java 9 and withdrawn at Java 17;
+   !   from Java 9, JdkDoclet, based on jdk.doclet.javadoc API can be used
+   !   instead. -->
+  <property name="jel.doclet" value="uk.ac.starlink.ttools.build.SunDoclet"/>
+
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
 
@@ -497,7 +506,7 @@
     <!-- Construct HTML documentation for the JEL-accessible classes.
      !   This is built using Javadoc, and is available from the MethodWindow
      !   method browser. -->
-    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Html"
+    <javadoc doclet="${jel.doclet}$Html"
              docletpathref="classpath"
              failonerror="true"
              public="true"
@@ -1484,7 +1493,7 @@
 
     <!-- Construct XML documentation for the JEL-accessible classes.
      !   This is built using Javadoc, and forms part of the user document. -->
-    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Xml"
+    <javadoc doclet="${jel.doclet}$Xml"
              docletpathref="classpath"
              failonerror="true"
              public="true"
@@ -1493,7 +1502,7 @@
              packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
              source="${source.version}"/>
-    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Xml"
+    <javadoc doclet="${jel.doclet}$Xml"
              docletpathref="docs-classpath"
              failonerror="true"
              public="true"
@@ -1502,7 +1511,7 @@
              packagenames="uk.ac.starlink.topcat.func"
              classpathref="classpath"
              source="${source.version}"/>
-    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Xml"
+    <javadoc doclet="${jel.doclet}$Xml"
              docletpathref="docs-classpath"
              failonerror="true"
              public="true"
@@ -1511,7 +1520,7 @@
              packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
              source="${source.version}"/>
-    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Xml"
+    <javadoc doclet="${jel.doclet}$Xml"
              docletpathref="docs-classpath"
              failonerror="true"
              public="true"

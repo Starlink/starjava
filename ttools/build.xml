@@ -196,6 +196,14 @@
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
   <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
 
+  <!-- Doclet base class used for generating XML and HTML user-facing docs
+   !   from classes in uk.ac.starlink.ttools.func.
+   !   At Java 8, SunDoclet, based on com.sun.doclet API is required.
+   !   The com.sun.doclet API is deprecated at Java 9 and withdrawn at Java 17; 
+   !   from Java 9, JdkDoclet, based on jdk.doclet.javadoc API can be used
+   !   instead. -->
+  <property name="jel.doclet" value="uk.ac.starlink.ttools.build.SunDoclet"/>
+
   <!--
    !   =========
    !   CLASSPATH
@@ -428,6 +436,13 @@
           unless="runonly.install"
           description="-> compiles the source code">
 
+    <!-- Do not try to compile classes that require Java 9 in a
+     !   pre-Java9 environment. -->
+    <condition property="src.excludes"
+               value="uk/ac/starlink/ttools/build/JdkDoclet.java">
+      <contains string="${java.specification.version}" substring="1."/>
+    </condition>
+
     <mkdir dir="${build.classes}"/>
     <javac srcdir="${java.dir}"
            destdir="${build.classes}"
@@ -442,7 +457,7 @@
       <!-- Exclude any files in the source tree that should not be
        !   compiled -->
       <include name="**/*.java"/>
-      <exclude name="uk/ac/starlink/ttools/build/JdkDoclet.java"/>
+      <exclude name="${src.excludes}"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
@@ -522,7 +537,7 @@
 
     <!-- Construct HTML documentation for JEL-accessible classes. -->
     <mkdir dir="${build.javadocs}"/>
-    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Html"
+    <javadoc doclet="${jel.doclet}$Html"
              docletpathref="classpath"
              failonerror="true"
              public="true"
@@ -1181,7 +1196,7 @@
 
     <!-- Construct XML documentation for the JEL-accessible classes.
      !   This is built using Javadoc, and forms part of the user document. -->
-    <javadoc doclet="uk.ac.starlink.ttools.build.SunDoclet$Xml"
+    <javadoc doclet="${jel.doclet}$Xml"
              docletpathref="classpath"
              failonerror="true"
              public="true"
