@@ -691,7 +691,7 @@ public class SkySurface implements Surface {
      * in steradians.
      * It tries to return a representative value for the visible area.
      *
-     * @return   approximate linear size of a screen pixel in radians
+     * @return   approximate area of a screen pixel in steradians
      */
     public double pixelAreaSteradians() {
         Point2D screenCenter = new Point2D.Double( ( gxlo_ + gxhi_ ) * 0.5,
@@ -706,7 +706,7 @@ public class SkySurface implements Surface {
      * in steradians.
      *
      * @param   gpos  position of graphics pixel center
-     * @return  approximate linear size of pixel in radians,
+     * @return  approximate area of pixel in steradians,
      *          or NaN if pixel is not (all) on the sky
      */
     public double pixelAreaSteradians( Point2D gpos ) {
