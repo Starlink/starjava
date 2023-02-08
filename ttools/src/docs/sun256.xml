@@ -14472,6 +14472,16 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Grid line transparency is controlled by the new
         <ref id="plot2plane-gridtrans"><code>gridtrans</code></ref>
         parameter.</li>
+    <li>Fix a nasty bug that could plot
+        <ref id="layer-skyvector"><code>skyvector</code></ref>,
+        <ref id="layer-skyellipse"><code>skyellipse</code></ref> and
+        <ref id="layer-skycorr"><code>skycorr</code></ref>
+        shapes incorrectly.
+        The numeric value of the shape size coordinates
+        (ellipse radii, vector extents) was interpreted in degrees
+        before being rescaled as appropriate, so that values of
+        a few tens or larger resulted in signficant distortions.
+        Now fixed.</li>
     </ul>
     </p></dd>
 

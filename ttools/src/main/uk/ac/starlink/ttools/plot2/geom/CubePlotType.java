@@ -11,12 +11,12 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
+import uk.ac.starlink.ttools.plot2.layer.CartesianMultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.CartesianVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.Line3dPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
-import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
 import uk.ac.starlink.ttools.plot2.layer.PolygonForms;
 import uk.ac.starlink.ttools.plot2.layer.SizeForm;
@@ -71,11 +71,11 @@ public class CubePlotType
             MarkForm.SINGLE,
             SizeForm.getInstance(),
             SizeXyForm.getInstance(),
-            MultiPointForm
+            CartesianMultiPointForm
            .createVectorForm( "XYZVector",
                               new CartesianVectorCoordSet( axisNames_ ),
                               true ),
-            MultiPointForm
+            CartesianMultiPointForm
            .createErrorForm( "XYZError",
                              CartesianErrorCoordSet
                             .createAllAxesErrorCoordSet( axisNames_ ),

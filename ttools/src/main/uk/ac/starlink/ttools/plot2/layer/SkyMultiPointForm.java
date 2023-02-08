@@ -1,10 +1,18 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.Icon;
+import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.plot2.AuxReader;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Ranger;
+import uk.ac.starlink.ttools.plot2.Scaling;
+import uk.ac.starlink.ttools.plot2.Span;
+import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -14,18 +22,24 @@ import uk.ac.starlink.ttools.plot2.config.MultiPointConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
+import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.Tuple;
+import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
+import uk.ac.starlink.ttools.plot2.geom.SkySurface;
+import uk.ac.starlink.util.SplitCollector;
 
 /**
- * MultiPointForm with scaling options that make sense for plotting
- * markers on the sky with potentially absolute angular extents.
+ * MultiPointForm for use with sky coordinates.
  *
  * @author   Mark Taylor
  * @since    2 Aug 2017
  */
 public class SkyMultiPointForm extends MultiPointForm {
 
-    private static final String UNIT_SHORTNAME = "unit";
+    private SkyMultiPointCoordSet extraCoordSet_;
 
     /** Config key for angular extent scaling. */
     public static final ConfigKey<Double> SCALE_KEY = createScaleKey();
@@ -33,6 +47,9 @@ public class SkyMultiPointForm extends MultiPointForm {
     /** Config key for selecting angular extent units. */
     public static final ConfigKey<AngleUnit> UNIT_KEY =
         createUnitKey( "marker" );
+
+    private static final String UNIT_SHORTNAME = "unit";
+    private static final double AUTO_SCALE_DEGREES = 0.1;
 
     /**
      * Constructor.
@@ -49,22 +66,16 @@ public class SkyMultiPointForm extends MultiPointForm {
      *                       to the extraCoordSet parameter
      */
     public SkyMultiPointForm( String name, Icon icon, String description,
-                              MultiPointCoordSet extraCoordSet,
+                              SkyMultiPointCoordSet extraCoordSet,
                               MultiPointConfigKey rendererKey ) {
         super( name, icon, description, extraCoordSet, rendererKey,
-               new ConfigKey<?>[] { UNIT_KEY, SCALE_KEY } );
+               SCALE_KEY, new ConfigKey<?>[] { UNIT_KEY } );
+        extraCoordSet_ = extraCoordSet;
     }
 
-    protected double getScaleFactor( ConfigMap config ) {
-        AngleUnit angleUnit = config.get( UNIT_KEY );
-        double unit = angleUnit == null ? Double.NaN
-                                        : angleUnit.getValueInDegrees();
-        double factor = config.get( SCALE_KEY ).doubleValue();
-        return factor * ( Double.isNaN( unit ) ? 1.0 : unit );
-    }
-
-    protected boolean isAutoscale( ConfigMap config ) {
-        return config.get( UNIT_KEY ) == null;
+    protected MultiPointReader createReader( ConfigMap config ) {
+        return new SkyMultiPointReader( extraCoordSet_,
+                                        config.get( UNIT_KEY ) );
     }
 
     /**
@@ -210,7 +221,7 @@ public class SkyMultiPointForm extends MultiPointForm {
 
     /**
      * Constructs the config key used for unconditional scaling
-     * of angualar extents.
+     * of angular extents.
      *
      * @return   new key
      */
@@ -227,7 +238,7 @@ public class SkyMultiPointForm extends MultiPointForm {
             "<p>The main purpose of this option is to tweak",
             "the visible sizes of the plotted markers for better visibility.",
             "The <code>" + UNIT_SHORTNAME + "</code> option",
-            "is more convenient to account for the units in which the",
+            "should be used to account for the units in which the",
             "angular extent coordinates are supplied.",
             "If the markers are supposed to be plotted with their",
             "absolute angular extents visible, this option should be set",
@@ -241,5 +252,170 @@ public class SkyMultiPointForm extends MultiPointForm {
                                                            .ENTER_ECHO );
             }
         };
+    }
+
+    /**
+     * MultiPointReader implementation for use with SkyMultiPointForm.
+     */
+    private static class SkyMultiPointReader implements MultiPointReader {
+
+        private final SkyMultiPointCoordSet extraCoordSet_;
+        private final AngleUnit unit_;
+
+        /**
+         * Constructor.
+         *
+         * @param  extraCoordSet  coord set describing shape
+         * @param  unit   unit in which extents are supplied from coordinates,
+         *                or null for autoscaling
+         */
+        SkyMultiPointReader( SkyMultiPointCoordSet extraCoordSet,
+                             AngleUnit unit ) {
+            extraCoordSet_ = extraCoordSet;
+            unit_ = unit;
+        }
+
+        public SkyMultiPointCoordSet getExtraCoordSet() {
+            return extraCoordSet_;
+        }
+
+        public boolean isAutoscale() {
+            return unit_ == null;
+        }
+
+        public double getBaseScale( Surface surface, Span sizeSpan ) {
+            if ( sizeSpan == null ) {
+                return 1;
+            }
+            else {
+                double pixelSizeRadian =
+                    Math.sqrt( ((SkySurface) surface).pixelAreaSteradians() );
+                return pixelSizeRadian
+                     * AUTOSCALE_PIXELS / Math.toRadians( AUTO_SCALE_DEGREES );
+            }
+        }
+
+        public ExtrasReader createExtrasReader( DataGeom geom, Span sizeSpan ) {
+            final double unitInDegrees;
+            if ( unit_ == null ) {
+                double maxSize = sizeSpan == null ? 0 : sizeSpan.getHigh();
+                unitInDegrees = maxSize > 0 ? AUTO_SCALE_DEGREES / maxSize
+                                            : 1e-6;
+            }
+            else {
+                unitInDegrees = unit_.getValueInDegrees();
+            }
+            final int icExtra = getExtrasCoordIndex( geom );
+            return new ExtrasReader() {
+                public boolean readPoints( Tuple tuple, double[] dpos0,
+                                           double[][] dposExtras ) {
+                    return extraCoordSet_
+                          .readPoints( tuple, icExtra, dpos0, unitInDegrees,
+                                       (SkyDataGeom) geom, dposExtras );
+                }
+            };
+        }
+
+        public AuxReader createSizeReader( DataGeom geom ) {
+            final int icExtra = getExtrasCoordIndex( geom );
+            return new AuxReader() {
+                public int getCoordIndex() {
+                    return -1;
+                }
+                public ValueInfo getAxisInfo( DataSpec dataSpec ) {
+                    return null;
+                }
+                public Scaling getScaling() {
+                    return null;
+                }
+                public void adjustAuxRange( final Surface surface,
+                                            DataSpec dataSpec,
+                                            DataStore dataStore, Object[] plans,
+                                            Ranger ranger ) {
+                    final int ndim = geom.getDataDimCount();
+                    MaxSizeCollector maxCollector =
+                        new MaxSizeCollector( extraCoordSet_, surface, geom );
+                    double maxSize =
+                        PlotUtil.tupleCollect( maxCollector, dataSpec,
+                                               dataStore )[ 0 ];
+                    ranger.submitDatum( maxSize );
+                }
+            };
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 6629511;
+            code = 23 * code + extraCoordSet_.hashCode();
+            code = 23 * PlotUtil.hashCode( unit_ );
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof SkyMultiPointReader ) {
+                SkyMultiPointReader other = (SkyMultiPointReader) o;
+                return this.extraCoordSet_.equals( other.extraCoordSet_ )
+                    && PlotUtil.equals( this.unit_, other.unit_ );
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Collector for accumulating the largest value from the
+     * SkyMultiPointCoordSet.readSize method.
+     *
+     * <p>The accumulator is a one-element double array holding the
+     * maximum value.
+     */
+    private static class MaxSizeCollector
+            implements SplitCollector<TupleSequence,double[]> {
+
+        private final SkyMultiPointCoordSet extraCoordSet_;
+        private final Surface surface_;
+        private final DataGeom geom_;
+
+        /**
+         * Constructor.
+         *
+         * @param  extraCoordSet  coord set
+         * @param  surface  plotting surface
+         * @param  geom   data geom
+         */
+        MaxSizeCollector( SkyMultiPointCoordSet extraCoordSet, Surface surface,
+                          DataGeom geom ) {
+            extraCoordSet_ = extraCoordSet;
+            geom_ = geom;
+            surface_ = surface;
+        }
+
+        public double[] createAccumulator() {
+            return new double[ 1 ];
+        }
+
+        public double[] combine( double[] d1, double[] d2 ) {
+            return new double[] { d1[ 0 ] + d2[ 0 ] };
+        }
+
+        public void accumulate( TupleSequence tseq, double[] dval ) {
+            double max = 0;
+            int icExtra = getExtrasCoordIndex( geom_ );
+            double[] dpos0 = new double[ geom_.getDataDimCount() ];
+            Point2D.Double gpos0 = new Point2D.Double();
+            while ( tseq.next() ) {
+                if ( geom_.readDataPos( tseq, 0, dpos0 ) &&
+                     surface_.dataToGraphics( dpos0, true, gpos0 ) ) {
+                    double tsize =
+                        extraCoordSet_.readSize( tseq, icExtra, dpos0 );
+                    if ( tsize > max ) {
+                        max = tsize;
+                    }
+                }
+            }
+            dval[ 0 ] = Math.max( dval[ 0 ], max );
+        }
     }
 }

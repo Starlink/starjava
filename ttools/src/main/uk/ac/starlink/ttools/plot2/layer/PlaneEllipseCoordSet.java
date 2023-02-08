@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
@@ -15,7 +14,7 @@ import uk.ac.starlink.ttools.plot2.data.Tuple;
  * @author   Mark Taylor
  * @since    18 Feb 2013
  */
-public class PlaneEllipseCoordSet implements MultiPointCoordSet {
+public class PlaneEllipseCoordSet implements CartesianMultiPointCoordSet {
 
     private static final int NP = 4;
     private static final FloatingCoord AR_COORD =
@@ -67,8 +66,8 @@ public class PlaneEllipseCoordSet implements MultiPointCoordSet {
         return NP;
     }
 
-    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
-                               double[] xy0, double[][] xyExtras ) {
+    public boolean readPoints( Tuple tuple, int icol, double[] xy0,
+                               double[][] xyExtras ) {
         double ar = AR_COORD.readDoubleCoord( tuple, icol );
         double br = BR_COORD.readDoubleCoord( tuple, icol + 1 );
         double posang = POSANG_COORD.readDoubleCoord( tuple, icol + 2 );
@@ -151,9 +150,9 @@ public class PlaneEllipseCoordSet implements MultiPointCoordSet {
         if ( canScale ) {
             descrip += MultiPointForm.getDefaultScalingDescription( "ellipse" );
         }
-        return MultiPointForm
-              .createDefaultForm( "XYEllipse", ResourceIcon.FORM_XYELLIPSE,
-                                  descrip, new PlaneEllipseCoordSet(),
-                                  StyleKeys.ELLIPSE_SHAPE, canScale );
+        return new CartesianMultiPointForm( "XYEllipse",
+                                            ResourceIcon.FORM_XYELLIPSE,
+                                            descrip, new PlaneEllipseCoordSet(),
+                                            StyleKeys.ELLIPSE_SHAPE, canScale );
     }
 }

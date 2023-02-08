@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
  * @author   Mark Taylor
  * @since    18 Feb 2013
  */
-public class SkyEllipseCoordSet implements MultiPointCoordSet {
+public class SkyEllipseCoordSet implements SkyMultiPointCoordSet {
 
     private static final int NP = 4;
     private static final FloatingCoord AR_COORD =
@@ -70,12 +70,21 @@ public class SkyEllipseCoordSet implements MultiPointCoordSet {
         return NP;
     }
 
-    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
-                               double[] xyz0, double[][] xyzExtras ) {
+    public double readSize( Tuple tuple, int icol, double[] xyz0 ) {
+        double ar = AR_COORD.readDoubleCoord( tuple, icol + 0 );
+        double br = BR_COORD.readDoubleCoord( tuple, icol + 1 );
+        return Math.hypot( ar, br ) * 2;
+    }
+
+    public boolean readPoints( Tuple tuple, int icol, double[] xyz0,
+                               double unitInDegrees, SkyDataGeom geom,
+                               double[][] xyzExtras ) {
         double ar =
-            Math.toRadians( AR_COORD.readDoubleCoord( tuple, icol ) );
+            Math.toRadians( AR_COORD.readDoubleCoord( tuple, icol + 0 )
+                          * unitInDegrees );
         double br =
-            Math.toRadians( BR_COORD.readDoubleCoord( tuple, icol + 1 ) );
+            Math.toRadians( BR_COORD.readDoubleCoord( tuple, icol + 1 )
+                          * unitInDegrees );
         double posang =
             Math.toRadians( POSANG_COORD.readDoubleCoord( tuple, icol + 2 ) );
         boolean aNan = Double.isNaN( ar );
@@ -117,7 +126,7 @@ public class SkyEllipseCoordSet implements MultiPointCoordSet {
         }
         else {
             TangentPlaneTransformer trans =
-                new TangentPlaneTransformer( xyz0, (SkyDataGeom) geom );
+                new TangentPlaneTransformer( xyz0, geom );
             trans.displace( -ax, -ay, xyzExtras[ 0 ] );
             trans.displace( +ax, +ay, xyzExtras[ 1 ] );
             trans.displace( -bx, -by, xyzExtras[ 2 ] );

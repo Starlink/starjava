@@ -18,7 +18,7 @@ import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
  * @author   Mark Taylor
  * @since    5 Apr 2017
  */
-public class SkyCorrelationCoordSet implements MultiPointCoordSet {
+public class SkyCorrelationCoordSet implements SkyMultiPointCoordSet {
 
     private final boolean preMultCosLat_;
     private final FloatingCoord aerrCoord_;
@@ -81,14 +81,24 @@ public class SkyCorrelationCoordSet implements MultiPointCoordSet {
         return NP;
     }
 
-    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
-                               double[] xyz0, double[][] xyzExtras ) {
+    public double readSize( Tuple tuple, int icol, double[] xyz0 ) {
+        double aerr = aerrCoord_.readDoubleCoord( tuple, icol + 0 )
+                    * lonMultiplier( xyz0 );
+        double derr = derrCoord_.readDoubleCoord( tuple, icol + 1 );
+        return Math.hypot( aerr, derr ) * 2;
+    }
+
+    public boolean readPoints( Tuple tuple, int icol, double[] xyz0,
+                               double unitInDegrees, SkyDataGeom geom,
+                               double[][] xyzExtras ) {
 
         /* Read error and correlation values from data. */
         double aerrRaw =
-            Math.toRadians( aerrCoord_.readDoubleCoord( tuple, icol + 0 ) );
+            Math.toRadians( aerrCoord_.readDoubleCoord( tuple, icol + 0 )
+                          * unitInDegrees );
         double derr =
-            Math.toRadians( derrCoord_.readDoubleCoord( tuple, icol + 1 ) );
+            Math.toRadians( derrCoord_.readDoubleCoord( tuple, icol + 1 )
+                          * unitInDegrees );
         if ( Double.isNaN( aerrRaw ) || Double.isNaN( derr ) ||
              ( aerrRaw == 0 && derr == 0 ) ) {
             return false;
@@ -97,15 +107,7 @@ public class SkyCorrelationCoordSet implements MultiPointCoordSet {
         if ( Double.isNaN( corr ) ) {
             return false;
         }
-        final double aerrPre;
-        if ( preMultCosLat_ ) {
-            aerrPre = aerrRaw;
-        }
-        else {
-            double z = xyz0[ 2 ];
-            double cosDelta = Math.sqrt( 1 - z * z );
-            aerrPre = cosDelta * aerrRaw;
-        }
+        double aerrPre = aerrRaw * lonMultiplier( xyz0 );
 
         /* Calculate error vectors. */
         double[] ra = new double[ 2 ];
@@ -119,7 +121,7 @@ public class SkyCorrelationCoordSet implements MultiPointCoordSet {
       
         /* Turn the error ellipse axes into four plotted points. */
         TangentPlaneTransformer trans =
-            new TangentPlaneTransformer( xyz0, (SkyDataGeom) geom );
+            new TangentPlaneTransformer( xyz0, geom );
         trans.displace( -rax, -ray, xyzExtras[ 0 ] );
         trans.displace( +rax, +ray, xyzExtras[ 1 ] );
         trans.displace( -rbx, -rby, xyzExtras[ 2 ] );
@@ -183,5 +185,23 @@ public class SkyCorrelationCoordSet implements MultiPointCoordSet {
         return new SkyMultiPointForm( "SkyCorr", ResourceIcon.FORM_ELLIPSE_CORR,
                                       descrip, coordSet,
                                       StyleKeys.ELLIPSE_SHAPE );
+    }
+
+    /**
+     * Returns the multiplier to apply to input longitude coordinate values.
+     * This takes account of cos(lat) premultiplication as appropriate.
+     *
+     * @param  central position in data coordinates
+     * @return   multiplier to apply to longitude coordinates
+     */
+    private double lonMultiplier( double[] xyz0 ) {
+        if ( preMultCosLat_ ) {
+            return 1;
+        }
+        else {
+            double z = xyz0[ 2 ];
+            double cosLat = Math.sqrt( 1 - z * z );
+            return cosLat;
+        }
     }
 }

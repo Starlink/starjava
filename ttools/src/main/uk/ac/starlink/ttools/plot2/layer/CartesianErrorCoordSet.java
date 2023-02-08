@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
-import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
@@ -12,7 +11,7 @@ import uk.ac.starlink.ttools.plot2.data.Tuple;
  * @author   Mark Taylor
  * @since    19 Mar 2013
  */
-public class CartesianErrorCoordSet implements MultiPointCoordSet {
+public class CartesianErrorCoordSet implements CartesianMultiPointCoordSet {
 
     private final int nSpaceDim_;
     private final int nErrDim_;
@@ -89,7 +88,7 @@ public class CartesianErrorCoordSet implements MultiPointCoordSet {
         return nErrDim_ * 2;
     }
 
-    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
+    public boolean readPoints( Tuple tuple, int icol,
                                double[] dpos0, double[][] dposExtras ) {
         boolean hasErrors = false;
         for ( int jdim = 0; jdim < nErrDim_; jdim++ ) {

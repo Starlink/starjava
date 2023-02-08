@@ -1377,7 +1377,7 @@ public class Plot2Example {
                 "*in=" + TName.TGAS, "*lon=ra", "*lat=dec", null,
                 "layer1=mark", null,
                 "*layer2=skyvector", null,
-                "*dlon2=pmra", "*dlat2=pmdec", "*unit2=scaled",
+                "*dlon2=pmra", "*dlat2=pmdec", "*unit2=scaled", "*scale2=6",
                 "*arrow2=medium_arrow", null,
                 "clon=56.75", "clat=24.10", "radius=1.5",
             } ),

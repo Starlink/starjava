@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
  * @author   Mark Taylor
  * @since    18 Feb 2013
  */
-public class SkyVectorCoordSet implements MultiPointCoordSet {
+public class SkyVectorCoordSet implements SkyMultiPointCoordSet {
 
     private final FloatingCoord dlonCoord_;
     private final FloatingCoord dlatCoord_;
@@ -68,12 +68,22 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
         return 1;
     }
 
-    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
-                               double[] xyz0, double[][] xyzExtras ) {
+    public double readSize( Tuple tuple, int icol, double[] xyz0 ) {
+        double dLon = dlonCoord_.readDoubleCoord( tuple, icol + 0 )
+                    * lonMultiplier( xyz0 );
+        double dLat = dlatCoord_.readDoubleCoord( tuple, icol + 1 );
+        return Math.hypot( dLon, dLat );
+    }
+
+    public boolean readPoints( Tuple tuple, int icol, double[] xyz0,
+                               double unitInDegrees, SkyDataGeom geom,
+                               double[][] xyzExtras ) {
         double dLon =
-            Math.toRadians( dlonCoord_.readDoubleCoord( tuple, icol ) );
+            Math.toRadians( dlonCoord_.readDoubleCoord( tuple, icol + 0 )
+                          * unitInDegrees );
         double dLat =
-            Math.toRadians( dlatCoord_.readDoubleCoord( tuple, icol + 1 ) );
+            Math.toRadians( dlatCoord_.readDoubleCoord( tuple, icol + 1 )
+                          * unitInDegrees );
         if ( Double.isNaN( dLon ) || Double.isNaN( dLat ) ) {
             return false;
         }
@@ -81,18 +91,10 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
             return false;
         }
         else {
-            final double xi;
-            if ( preMultCosLat_ ) {
-                xi = dLon;
-            }
-            else {
-                double z = xyz0[ 2 ];
-                double cosTheta = Math.sqrt( 1 - z * z );
-                xi = dLon * cosTheta;
-            }
+            double xi = dLon * lonMultiplier( xyz0 );
             double eta = dLat;
             double[] xyz1 = xyzExtras[ 0 ];
-            new TangentPlaneTransformer( xyz0, (SkyDataGeom) geom )
+            new TangentPlaneTransformer( xyz0, geom )
                .displace( xi, eta, xyz1 );
             return true;
         }
@@ -120,5 +122,23 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
         return new SkyMultiPointForm( "SkyVector", ResourceIcon.FORM_VECTOR,
                                       descrip, coordSet,
                                       StyleKeys.VECTOR_SHAPE );
+    }
+
+    /**
+     * Returns the multiplier to apply to input longitude coordinate values.
+     * This takes account of cos(lat) premultiplication as appropriate.
+     *
+     * @param  central position in data coordinates
+     * @return   multiplier to apply to longitude coordinates
+     */
+    private double lonMultiplier( double[] xyz0 ) {
+        if ( preMultCosLat_ ) {
+            return 1;
+        }
+        else {
+            double z = xyz0[ 2 ];
+            double cosLat = Math.sqrt( 1 - z * z );
+            return cosLat;
+        }
     }
 }

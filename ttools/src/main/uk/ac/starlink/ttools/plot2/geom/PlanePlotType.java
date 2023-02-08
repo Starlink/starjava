@@ -14,6 +14,7 @@ import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.layer.AreaForm;
 import uk.ac.starlink.ttools.plot2.layer.ArrayShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
+import uk.ac.starlink.ttools.plot2.layer.CartesianMultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.CartesianVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.CentralForm;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
@@ -34,7 +35,6 @@ import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkArrayForm;
 import uk.ac.starlink.ttools.plot2.layer.MarkCombineArrayPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
-import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
 import uk.ac.starlink.ttools.plot2.layer.PlaneCorrelationCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.PlaneEllipseCoordSet;
@@ -125,10 +125,10 @@ public class PlanePlotType
             MarkForm.SINGLE,
             SizeForm.getInstance(),
             SizeXyForm.getInstance(),
-            MultiPointForm
+            CartesianMultiPointForm
            .createVectorForm( "XYVector",
                               new CartesianVectorCoordSet( axisNames ), true ),
-            MultiPointForm
+            CartesianMultiPointForm
            .createErrorForm( "XYError",
                              CartesianErrorCoordSet
                             .createAllAxesErrorCoordSet( axisNames ),

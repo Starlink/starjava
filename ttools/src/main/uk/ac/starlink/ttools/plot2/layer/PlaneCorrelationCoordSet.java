@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
@@ -17,7 +16,7 @@ import uk.ac.starlink.ttools.plot2.data.Tuple;
  * @author   Mark Taylor
  * @since    5 Apr 2017
  */
-public class PlaneCorrelationCoordSet implements MultiPointCoordSet {
+public class PlaneCorrelationCoordSet implements CartesianMultiPointCoordSet {
 
     private static final int NP = 4;
     private static final FloatingCoord XERR_COORD =
@@ -67,8 +66,8 @@ public class PlaneCorrelationCoordSet implements MultiPointCoordSet {
         return NP;
     }
 
-    public boolean readPoints( Tuple tuple, int icol, DataGeom geom,
-                               double[] xy0, double[][] xyExtras ) {
+    public boolean readPoints( Tuple tuple, int icol, double[] xy0,
+                               double[][] xyExtras ) {
 
         /* Read error and correlation values from data. */
         double xerr = XERR_COORD.readDoubleCoord( tuple, icol + 0 );
@@ -219,9 +218,10 @@ public class PlaneCorrelationCoordSet implements MultiPointCoordSet {
             "in the <em>Gaia</em> source catalogue.",
             "</p>",
         } );
-        return MultiPointForm
-              .createDefaultForm( "XYCorr", ResourceIcon.FORM_ELLIPSE_CORR,
-                                  descrip, new PlaneCorrelationCoordSet(),
-                                  StyleKeys.ELLIPSE_SHAPE, canScale );
+        return new CartesianMultiPointForm( "XYCorr",
+                                            ResourceIcon.FORM_ELLIPSE_CORR,
+                                            descrip,
+                                            new PlaneCorrelationCoordSet(),
+                                            StyleKeys.ELLIPSE_SHAPE, canScale );
     }
 }

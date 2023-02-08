@@ -31795,6 +31795,15 @@ introduced since the last version:
         the service <code>/examples</code> endpoint uses DALI-examples
         <webref url="https://www.ivoa.net/documents/DALI/20170517/REC-DALI-1.1.html#tth_sEc2.3.4"
                 >continuation documents</webref>.</li>
+    <li>Fix a nasty bug that could plot
+        <ref id="form-skyvector">SkyVector</ref>,
+        <ref id="form-skyellipse">SkyEllipse</ref> and
+        <ref id="form-skycorr">SkyCorr</ref> forms incorrectly.
+        The numeric value of the shape size coordinates
+        (ellipse radii, vector extents) was interpreted in degrees
+        before being rescaled as appropriate, so that values of
+        a few tens or larger resulted in signficant distortions.
+        Now fixed.</li>
     </ul>
     </p></dd>
 

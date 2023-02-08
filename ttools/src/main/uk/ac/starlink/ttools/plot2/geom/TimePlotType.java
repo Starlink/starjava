@@ -13,6 +13,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
+import uk.ac.starlink.ttools.plot2.layer.CartesianMultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FillPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FixedKernelDensityPlotter;
@@ -24,7 +25,6 @@ import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinearFitPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
-import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
@@ -64,12 +64,13 @@ public class TimePlotType
             "<p>Plots symmetric or asymmetric error bars in the Y direction.",
             "</p>",
         } );
-        MultiPointForm errorForm =
-            MultiPointForm
-           .createDefaultForm( "YError", ResourceIcon.FORM_ERROR1, descrip,
-                               CartesianErrorCoordSet
-                              .createSingleAxisErrorCoordSet( 2, 1, "Y" ),
-                               StyleKeys.ERROR_SHAPE_1D, false );
+        CartesianMultiPointForm errorForm =
+            new CartesianMultiPointForm( "YError", ResourceIcon.FORM_ERROR1,
+                                         descrip,
+                                         CartesianErrorCoordSet
+                                        .createSingleAxisErrorCoordSet( 2, 1,
+                                                                        "Y" ),
+                                         StyleKeys.ERROR_SHAPE_1D, false );
         ShapeForm[] modeForms = new ShapeForm[] { MarkForm.SINGLE };
         List<Plotter<?>> plotters = new ArrayList<Plotter<?>>();
         PerUnitConfigKey<Unit> unitKey = TimeUnit.createHistogramConfigKey();
