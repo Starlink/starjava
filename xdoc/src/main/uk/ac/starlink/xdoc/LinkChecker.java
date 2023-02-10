@@ -445,7 +445,8 @@ public class LinkChecker {
         return code == 301
             || code == 302
             || code == 303
-            || code == 307;
+            || code == 307
+            || code == 308;
     }
 
     /**

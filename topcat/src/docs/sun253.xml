@@ -31804,6 +31804,8 @@ introduced since the last version:
         before being rescaled as appropriate, so that values of
         a few tens or larger resulted in signficant distortions.
         Now fixed.</li>
+    <li>HTTP redirects with response code 308 (Permanent Redirect) are
+        now handled in the same way as 307 (Temporary Redirect).</li>
     </ul>
     </p></dd>
 

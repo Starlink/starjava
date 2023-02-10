@@ -406,9 +406,11 @@ public class URLUtils {
      * @param  conn   initial URL connection
      * @param  redirCodes  list of HTTP codes for which redirects should
      *                     be followed; if null all suitable 3xx redirections
-     *                     will be followed (301, 302, 303, 307)
+     *                     will be followed (301, 302, 303, 307, 308)
      * @return   target URL connection
      *           (if no redirects, the same as <code>hconn</code>)
+     * @see  <a href="https://www.rfc-editor.org/rfc/rfc9110.html#name-redirection-3xx"
+     *          >RFC 9110 Sec 15.4</a>
      */
     public static URLConnection followRedirects( URLConnection conn,
                                                  int[] redirCodes )
@@ -453,17 +455,34 @@ public class URLUtils {
             if ( ! ( conn1 instanceof HttpURLConnection ) ) {
                 return conn1;
             }
+            HttpURLConnection hconn1 = (HttpURLConnection) conn1;
 
             /* Propagate any Accept-Encoding header, which may have been
              * added by hand to the initial connection, to the redirect
              * target, otherwise it will get lost. */
             String acceptEncoding =
                 hconn.getRequestProperty( ContentCoding.ACCEPT_ENCODING );
-            hconn = (HttpURLConnection) conn1;
             if ( acceptEncoding != null ) {
-                hconn.setRequestProperty( ContentCoding.ACCEPT_ENCODING,
+                hconn1.setRequestProperty( ContentCoding.ACCEPT_ENCODING,
                                           acceptEncoding );
             }
+
+            /* Codes 307 and 308 do not permit changing the request method
+             * from POST to GET.  Since we're not transferring everything
+             * else over this might not work properly, so this method might
+             * need more work if POST-bearing 307/308 codes are actually
+             * encountered, but at least this ensures that we don't change
+             * methods in a way that is specifically prohibited.
+             * See RFC7538, RFC9110. */
+            if ( hcode0 == 307 || hcode0 == 308 ) {
+                String method0 = hconn.getRequestMethod();
+                if ( "POST".equals( method0 ) ) {
+                    hconn1.setRequestMethod( method0 );
+                }
+            }
+
+            /* Prepare to iterate. */
+            hconn = hconn1;
         }
         return hconn;
     }
@@ -475,12 +494,13 @@ public class URLUtils {
      * @param  hcode  code to test
      * @param  redirCodes  list of HTTP codes for which redirects should
      *                     be followed; if null all suitable 3xx redirections
-     *                     will be followed (301, 302, 303, 307)
+     *                     will be followed (301, 302, 303, 307, 308)
      * @return  true iff hcode represents a redirect
      */
     private static boolean isRedirect( int hcode, int[] redirCodes ) {
-        int[] rcodes = redirCodes == null ? new int[] { 301, 302, 303, 307 }
-                                          : redirCodes;
+        int[] rcodes = redirCodes == null
+                     ? new int[] { 301, 302, 303, 307, 308 }
+                     : redirCodes;
         for ( int i = 0; i < rcodes.length; i++ ) {
             if ( hcode == rcodes[ i ] ) {
                 return true;

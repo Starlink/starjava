@@ -77,11 +77,18 @@ public class URLDataSource extends DataSource {
         //  insecure), if a HTTP 30x redirect is returned, as Java doesn't do
         //  this by default.
         //  See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4620571.
+        //
+        //  This code is should really use URLUtils.followRedirects for
+        //  consistency, and because it only handles one round of redirection;
+        //  however that method currently does not handle authentication
+        //  or content coding.  That code will be reworked when the
+        //  long-delayed authentication update is merged, so for now
+        //  leave this in place; I don't think it is used in most cases anyway
+        //  (DataSource static methods are used instead).
         if ( connection instanceof HttpURLConnection ) {
             int code = ((HttpURLConnection)connection).getResponseCode();
-            if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
-                 code == HttpURLConnection.HTTP_SEE_OTHER ||
-                 code == HttpURLConnection.HTTP_MOVED_TEMP ) {
+            if ( code == 301 || code == 303 || code == 302 ||
+                 code == 307 || code == 308 ) {
                 String newloc = connection.getHeaderField( "Location" );
                 URL newurl = new URL( newloc );
                 connection = newurl.openConnection();
