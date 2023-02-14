@@ -90,7 +90,7 @@ public class DataPosSequence implements CoordSequence {
             int mid = ( ic_ + icHi_ ) / 2;
             ic_ = mid;
             return new DataPosSequence( ndim_, clouds_, dataStore_,
-                                        mid, icHi_, null );
+                                        lo, mid, null );
         }
         else if ( ncloud == 1 ) {
             TupleSequence tseq1 = tseq_.split();

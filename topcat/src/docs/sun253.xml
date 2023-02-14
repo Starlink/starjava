@@ -31806,6 +31806,11 @@ introduced since the last version:
         Now fixed.</li>
     <li>HTTP redirects with response code 308 (Permanent Redirect) are
         now handled in the same way as 307 (Temporary Redirect).</li>
+    <li>Fixed bug which failed to plot some markers of multi-marker
+        shapes like <ref id="form-mark2">Mark2</ref> when
+        multithreaded (i.e. for large tables).
+        Regression bug since introduction of multithreaded plotting
+        in TOPCAT v4.7.</li>
     </ul>
     </p></dd>
 

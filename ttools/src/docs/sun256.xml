@@ -14484,6 +14484,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Now fixed.</li>
     <li>HTTP redirects with response code 308 (Permanent Redirect) are
         now handled in the same way as 307 (Temporary Redirect).</li>
+    <li>Fixed bug which failed to plot some markers of multi-marker
+        shapes like <ref id="layer-mark2">mark2</ref> when
+        multithreaded (i.e. for large tables).
+        Regression bug since introduction of multithreaded plotting
+        in STILTS v3.2.</li>
     </ul>
     </p></dd>
 
