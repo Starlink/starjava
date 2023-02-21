@@ -5,11 +5,14 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
@@ -43,8 +46,7 @@ public class AuthManager {
 
     private volatile UserInterface ui_;
     private final List<AuthScheme> schemes_;
-    private final List<AuthContext> contexts_;
-    private final List<AuthContext> reserveContexts_;
+    private final ContextList contexts_;
     private final Redirector dfltRedirector_;
 
     /** Authentication schemes used by default, in order of preference. */
@@ -77,14 +79,8 @@ public class AuthManager {
             new CopyOnWriteArrayList<AuthScheme>( Arrays.asList( schemes ) );
         dfltRedirector_ = dfltRedirector;
 
-        /* Set up a list to contain AuthContexts that are known to be valid,
-         * or at least to have been valid once. */
+        /* Set up a list to contain AuthContexts that we know about. */
         contexts_ = new ContextList();
-
-        /* Set up another list to contain AuthContexts that have been
-         * acquired from the user and may be worth trying, but which
-         * have not been tested. */
-        reserveContexts_ = new ContextList();
     }
 
     /**
@@ -132,8 +128,9 @@ public class AuthManager {
      * new credential acquisition.
      */
     public void clear() {
-        contexts_.clear();
-        reserveContexts_.clear();
+        synchronized ( contexts_ ) {
+            contexts_.clear();
+        }
     }
 
     /**
@@ -226,10 +223,15 @@ public class AuthManager {
 
         /* Try to connect with an authentication context cached from
          * earlier behaviour that is manifestly applicable to this URL,
-         * if there is one. */
+         * if there is one.  In general this should be reused rather than
+         * asking the user for a new one, but that's not always the case
+         * since it may have expired. */
+        TestedContext tcontext0 = getUrlContext( url );
         AuthConnection aconn =
-            connectWithContext( url, connector, getUrlContext( url ),
-                                redirector );
+            connectWithContext( url, connector, tcontext0, redirector );
+        if ( tcontext0 != null ) {
+            assessAuthAttempt( tcontext0, aconn );
+        }
         URLConnection conn = aconn.getConnection();
         if ( ui_ != null && conn instanceof HttpURLConnection ) {
             HttpURLConnection hconn = (HttpURLConnection) conn;
@@ -251,7 +253,7 @@ public class AuthManager {
                      * one of these challenges.  If so, use the cached
                      * user response (which may or may not lead to
                      * successful authentication). */
-                    AuthContext chContext =
+                    TestedContext chContext =
                         getChallengeContext( challenges, url );
                     if ( chContext != null ) {
                         AuthConnection aconn2 =
@@ -423,12 +425,12 @@ public class AuthManager {
 
             /* If forcing login, discard any previously acquired credentials. */
             if ( isForceLogin ) {
-                for ( Challenge ch : challenges ) {
-                    for ( List<AuthContext> clist :
-                          Arrays.asList( contexts_, reserveContexts_ ) ) {
-                        clist.removeIf( ctxt ->
-                            ctxt.isChallengeDomain( ch, authcheckUrl )
-                        );
+                synchronized ( contexts_ ) {
+                    for ( Challenge ch : challenges ) {
+                        contexts_
+                       .removeIf( item -> item.context_
+                                         .isChallengeDomain( ch,
+                                                             authcheckUrl ) );
                     }
                 }
             }
@@ -436,7 +438,7 @@ public class AuthManager {
             /* If the user has already supplied a response to this challenge,
              * and we haven't just discarded it, try using that. */
             AuthConnection aconn = null;
-            AuthContext chContext =
+            TestedContext chContext =
                 getChallengeContext( challenges, authcheckUrl );
             if ( chContext != null ) {
                 assert ! isForceLogin;
@@ -486,16 +488,16 @@ public class AuthManager {
     /**
      * Determine whether a connection acquired from a given context is
      * suitable for use.  This method has side-effects, it may update the
-     * list of contexts available for future use.
+     * suppplied context to note success or failure.
      *
-     * @param  context  context used to acquire connection
+     * @param  tcontext  context used to acquire connection, may be updated
      * @param  aconn     connection
      * @return  true if the connection is suitable for use,
      *          false if further attempts should be made;
      *          note a true result does not necessarily mean that the
      *          connection was successfully established
      */
-    private boolean assessAuthAttempt( AuthContext context,
+    private boolean assessAuthAttempt( TestedContext tcontext,
                                        AuthConnection aconn ) {
         URLConnection conn = aconn.getConnection();
         int code;
@@ -510,25 +512,27 @@ public class AuthManager {
         else {
             code = -1;
         }
-        boolean isAnonymous = ! context.hasCredentials();
+        boolean isAnonymous = ! tcontext.context_.hasCredentials();
         boolean isAuthFailure = code == 401 || code == 403;
+        boolean isSuccess = code >= 200 && code < 400;
 
-        /* If this was a serious (non-anonymous) authentication attempt,
-         * and it failed for reasons related to authentication, assume the
-         * context is no good.  Maybe it was once and its validity has expired.
-         * Remove it from the list of stored contexts, and return false.
-         * Note this assumes that once a context has caused an authentication
-         * failure, it's never going to succeed in the future.
-         * If that turned out to be a bad assumption, this behaviour would
-         * need to change. */
-        if ( isAuthFailure && ! isAnonymous ) {
-            contexts_.remove( context );
-            reserveContexts_.remove( context );
-            return false;
+        /* If it was successful, record that and return true. */
+        if ( isSuccess ) {
+            tcontext.hasSucceeded_ = true;
+            return true;
         }
 
-        /* Otherwise, return true.  Note this doesn't guarantee that the
-         * connection is successful. */
+        /* If authentication failed, record that.
+         * If it was an anonymous attempt return true, since the user has
+         * declined to authenticate, but if it had credentials return
+         * false to indicate that other contexts may be attempted. */
+        else if ( isAuthFailure ) {
+            tcontext.hasFailed_ = true;
+            return isAnonymous;
+        }
+
+        /* Failure for some other reason; return true, since other
+         * authentication attempts probably will not help. */
         else {
             return true;
         }
@@ -541,18 +545,13 @@ public class AuthManager {
      * @param  url  target URL
      * @return  appropriate authentication context, or null
      */
-    private AuthContext getUrlContext( URL url ) {
-        for ( AuthContext context : contexts_ ) {
-            if ( context.isUrlDomain( url ) ) {
-                return context;
-            }
+    private TestedContext getUrlContext( URL url ) {
+        synchronized ( contexts_ ) {
+            return contexts_.stream()
+                            .filter( tc -> tc.context_.isUrlDomain( url ) )
+                            .findFirst()
+                            .orElse( null );
         }
-        for ( AuthContext context : reserveContexts_ ) {
-            if ( context.isUrlDomain( url ) ) {
-                return context;
-            }
-        }
-        return null;
     }
 
     /**
@@ -564,18 +563,18 @@ public class AuthManager {
      * @param  url   the URL being accessed
      * @return   appropriate authentication context, or null
      */
-    private AuthContext getChallengeContext( Challenge[] challenges, URL url ) {
-        for ( List<AuthContext> clist :
-              Arrays.asList( contexts_, reserveContexts_ ) ) {
-            for ( AuthContext context : clist ) {
-                for ( Challenge ch : challenges ) {
-                    if ( context.isChallengeDomain( ch, url ) ) {
-                        return context;
-                    }
-                }
-            }
+    private TestedContext getChallengeContext( Challenge[] challenges,
+                                               URL url ) {
+        synchronized ( contexts_ ) {
+            return contexts_
+                  .stream()
+                  .filter( tcontext ->
+                       Arrays.stream( challenges )
+                      .anyMatch( ch -> tcontext.context_
+                                               .isChallengeDomain( ch, url ) ) )
+                  .findFirst()
+                  .orElse( null );
         }
-        return null;
     }
 
     /**
@@ -644,27 +643,38 @@ public class AuthManager {
              * context; that prevents us asking the same question again
              * later. */
             if ( context == null ) {
-                AuthContext anonContext = cfact.createUnauthContext();
-                assert ! anonContext.hasCredentials();
+                TestedContext anonContext =
+                    new TestedContext( cfact.createUnauthContext() );
+                assert ! anonContext.context_.hasCredentials();
                 logger_.info( "Configuring anonymous context for " + url );
-                contexts_.add( anonContext );
+                synchronized ( contexts_ ) {
+                    contexts_.add( anonContext );
+                }
                 return connectWithContext( url, connector, anonContext,
                                            redirector );
             }
             assert context.hasCredentials();
+            TestedContext tcontext = new TestedContext( context );
 
             /* Otherwise, open the connection using the supplied credentials. */
             AuthConnection aconn =
-                connectWithContext( url, connector, context, redirector );
+                connectWithContext( url, connector, tcontext, redirector );
             URLConnection conn = aconn.getConnection();
             if ( conn instanceof HttpURLConnection ) {
                 HttpURLConnection hconn = (HttpURLConnection) conn;
                 int code = hconn.getResponseCode();
 
+                /* No guarantee that auth succeeded, but we have gathered
+                 * credentials from the user, so provisionally save them
+                 * for subsequent use in the same authentication context. */
+                synchronized ( contexts_ ) {
+                    contexts_.add( tcontext );
+                }
+
                 /* If auth failed, message the user and prepare to ask
                  * again for credentials, if possible. */
                 if ( code == 401 || code == 403 ) {
-                    reserveContexts_.remove( context );
+                    tcontext.hasFailed_ = true;
                     if ( ui_.canRetry() ) {
                         ui_.message( new String[] {
                             "Authentication failed",
@@ -682,6 +692,7 @@ public class AuthManager {
                     /* If auth succeeded, remember the validated context
                      * for future use. */
                     if ( code >= 200 && code < 300 ) {
+                        tcontext.hasSucceeded_ = true;
                         AuthScheme scheme = context.getScheme();
                         StringBuffer sbuf = new StringBuffer()
                            .append( "Configuring authenticated context " );
@@ -695,14 +706,6 @@ public class AuthManager {
                             .append( code )
                             .append( ")" );
                         logger_.info( sbuf.toString() );
-                        contexts_.add( context );
-                    }
-
-                    /* No guarantee that auth succeeded, but we have gathered
-                     * credentials from the user, so provisionally save them
-                     * for subsequent use in the same authentication context. */
-                    else {
-                        reserveContexts_.add( context );
                     }
 
                     /* In any case we don't have an auth failure,
@@ -732,9 +735,10 @@ public class AuthManager {
      */
     private static AuthConnection connectWithContext( URL url,
                                                       UrlConnector connector,
-                                                      AuthContext context,
+                                                      TestedContext tcontext,
                                                       Redirector redirector )
             throws IOException {
+        AuthContext context = tcontext == null ? null : tcontext.context_;
         Set<String> urlSet = new HashSet<String>();
         urlSet.add( url.toString() );
         URL url0 = url;
@@ -745,7 +749,7 @@ public class AuthManager {
                       + " connection to " + url );
         while ( true ) {
             AuthConnection aconn0 =
-                connectWithContext( url0, connector, context );
+                connectWithContext( url0, connector, tcontext );
             URL url1 = redirector.getRedirectUrl( aconn0.getConnection() );
             if ( url1 == null ) {
                 return aconn0;
@@ -770,8 +774,9 @@ public class AuthManager {
      */
     private static AuthConnection connectWithContext( URL url,
                                                       UrlConnector connector,
-                                                      AuthContext context )
+                                                      TestedContext tcontext )
             throws IOException {
+        AuthContext context = tcontext == null ? null : tcontext.context_;
         Set<String> urlSet = new HashSet<String>();
         urlSet.add( url.toString() );
         URLConnection conn = url.openConnection();
@@ -816,36 +821,75 @@ public class AuthManager {
     }
 
     /**
-     * Mutable, threadsafe list implementation used to contain
-     * AuthContexts known to the AuthManager.
-     * This is a fairly normal thread-safe List, except that the
-     * iterator purges any contexts that it notices have expired.
-     * Users of the list can in this way pretty much forget about expiry,
-     * as long as it is accessed using the <code>Iterable</code> interface
-     * (at least some of the time).
+     * Utility class that records alongside an AuthContext a note of
+     * whether it has ever succeeded and/or failed to authenticate.
      */
-    private static class ContextList extends CopyOnWriteArrayList<AuthContext> {
+    private static class TestedContext {
+
+        final AuthContext context_;
+        boolean hasSucceeded_;
+        boolean hasFailed_;
 
         /**
-         * Remove from this list any entries which are known to have expired.
+         * Constructor.
+         *
+         * @param  context  context
          */
-        public void purge() {
-            List<AuthContext> removes = new ArrayList<AuthContext>();
-            for ( Iterator<AuthContext> it = super.iterator(); it.hasNext(); ) {
-                AuthContext context = it.next();
-                if ( context.isExpired() ) {
-                    removes.add( context );
+        TestedContext( AuthContext context ) {
+            context_ = context;
+        }
+    }
+
+    /**
+     * Mutable list implementation used to contain
+     * AuthContexts known to the AuthManager.
+     * This is a fairly normal list, except that using an iterator sorts
+     * the elements so that the items come out in a preferred-first sequence
+     * (contexts which have succeeded before ones which have failed).
+     * It also purges any expired elements.
+     * Since it extends AbstractSequentialList, everything is based on
+     * iteration.
+     *
+     * <p>The implementation is not thread-safe, so uses should be synchronized.
+     */
+    private static class ContextList
+            extends AbstractSequentialList<TestedContext> {
+
+        private final List<TestedContext> list_;
+
+        /** Comparator sorts succeeding contexts first, failing ones last. */
+        private static final Comparator<TestedContext> CONTEXT_COMPARATOR =
+            ( c1, c2 ) -> {
+                if ( c1.hasFailed_ != c2.hasFailed_ ) {
+                    return c1.hasFailed_ ? +1 : -1;
                 }
-            }
-            if ( removes.size() > 0 ) {
-                removeAll( removes );
-            }
+                else if ( c1.hasSucceeded_ != c2.hasSucceeded_ ) {
+                    return c1.hasSucceeded_ ? -1 : +1;
+                }
+                else {
+                    return Integer
+                          .compare( System.identityHashCode( c1.context_ ),
+                                    System.identityHashCode( c2.context_ ) );
+                }
+            };
+
+        ContextList() {
+            list_ = new ArrayList<>();
+        }
+
+        public int size() {
+            return list_.size();
+        }
+
+        public ListIterator<TestedContext> listIterator( int index ) {
+            list_.removeIf( item -> item.context_.isExpired() );
+            list_.sort( CONTEXT_COMPARATOR );
+            return list_.listIterator( index );
         }
 
         @Override
-        public Iterator<AuthContext> iterator() {
-            purge();
-            return super.iterator();
+        public void clear() {
+            list_.clear();
         }
     }
 }
