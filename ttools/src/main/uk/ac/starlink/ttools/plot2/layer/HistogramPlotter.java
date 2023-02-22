@@ -374,7 +374,7 @@ public class HistogramPlotter
                                 report.put( BINTABLE_KEY,
                                             new BinBagTable( hplan, style,
                                                              hasWeight,
-                                                             xlog ) );
+                                                             xlog, xlo, xhi ) );
                                 if ( ctypeRepkey_ != null ) {
                                     report.put( ctypeRepkey_,
                                                 bbag.getCombiner().getType() );
@@ -420,7 +420,7 @@ public class HistogramPlotter
                      * X range in turn means that the Y ranging may no longer
                      * be exactly right, but it won't be far off. */
                     for ( Iterator<BinBag.Bin> it =
-                              binBag.binIterator( cumul, norm, unit );
+                              binBag.binIterator( cumul, norm, unit, xlimits );
                           it.hasNext(); ) {
                         BinBag.Bin bin = it.next();
                         double y = bin.getY();
@@ -724,6 +724,8 @@ public class HistogramPlotter
         private final BinBag binBag_;
         private final HistoStyle hstyle_;
         private final boolean xlog_;
+        private final double xlo_;
+        private final double xhi_;
         private final ColumnInfo xmidInfo_;
         private final ColumnInfo xminInfo_;
         private final ColumnInfo xmaxInfo_;
@@ -738,12 +740,16 @@ public class HistogramPlotter
          * @param  hasWeight  true if the weight coordinate may be non-blank
          * @param  xlog   true for horizontal coordinate is logarithmic,
          *                false for linear
+         * @param  xlo    lower bound on X axis
+         * @param  xhi    upper bound on X axis
          */
         BinBagTable( HistoPlan hplan, HistoStyle hstyle, boolean hasWeight,
-                     boolean xlog ) {
+                     boolean xlog, double xlo, double xhi ) {
             binBag_ = hplan.binBag_;
             hstyle_ = hstyle;
             xlog_ = xlog;
+            xlo_ = xlo;
+            xhi_ = xhi;
             Combiner combiner = hstyle.getCombiner();
             String yName = "Y_" + ( hasWeight ? combiner.getName() : "COUNT" );
             xmidInfo_ = new ColumnInfo( "XMID", Double.class, "Bin midpoint" );
@@ -772,7 +778,8 @@ public class HistogramPlotter
             final Iterator<BinBag.Bin> binIt =
                 binBag_.binIterator( hstyle_.getCumulative(),
                                      hstyle_.getNormalisation(),
-                                     hstyle_.getUnit() );
+                                     hstyle_.getUnit(),
+                                     new double[] { xlo_, xhi_ } );
             final Iterator<Object[]> rowIt = new Iterator<Object[]>() {
                 public boolean hasNext() {
                     return binIt.hasNext();

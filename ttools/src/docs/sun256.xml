@@ -14489,6 +14489,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         multithreaded (i.e. for large tables).
         Regression bug since introduction of multithreaded plotting
         in STILTS v3.2.</li>
+    <li>Fix auto-range and export bugs that ignored final bar for
+        forward cumulative histograms.</li>
     </ul>
     </p></dd>
 
