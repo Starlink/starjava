@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.ttools.convert.SkyUnits;
 import uk.ac.starlink.ttools.filter.ArgException;
 import uk.ac.starlink.ttools.filter.AssertException;
+import uk.ac.starlink.ttools.scheme.SkySimScheme;
 import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.votable.FitsPlusTableWriter;
 
@@ -321,6 +322,36 @@ public class TablePipeTest extends TableTestCase {
         catch ( TaskException e ) {
             assert e.getCause() instanceof ArgException;
         }
+    }
+
+    public void testConstcol() throws Exception {
+        int nr = 10_000;
+        StarTable t1 =
+            process( new LoopTableScheme().createTable( Integer.toString( nr )),
+                     String.join( ";",
+                         "addcol flag $0%100==99",
+                         "addcol c1 23.0",
+                         "addcol c2 NaN",
+                         "addcol ai1 intArray(1,2,3,4)",
+                         "addcol ai2 intArray(0,(int)$0,0)",
+                         "addcol ad1 array(0,1,PI,E,NaN)",
+                         "addcol ad3 flag?ad1:array(NaN,NaN,NaN,NaN,NaN)",
+                         "addcol c3 flag?(int)99:NULL"
+                     ) );
+        StarTable t2 = process( t1, "constcol -parallel -noacceptnull" );
+        assertArrayEquals( new String[] { "i", "flag",  "ai2", "ad3", "c3" },
+                           getColNames( t2 ) );
+        assertArrayEquals( new int[] { 1, 2, 3, 4, },
+                           t2.getParameterByName( "ai1" ).getValue() );
+        StarTable t3 = process( t1, "constcol -parallel -acceptnull 'a* c3'" );
+        assertArrayEquals( new String[] { "i", "flag",
+                                          "c1", "c2", "ai2", "ad3", },
+                           getColNames( t3 ) );
+        assertEquals( 99, ((Integer) t3.getParameterByName( "c3" ).getValue())
+                         .intValue() );
+        StarTable t4 = new SkySimScheme().createTable( "10000" );
+        assertSameData( t4, process( t4, "constcol -parallel" ) );
+        assertSameData( t4, process( t4, "constcol -noparallel" ) );
     }
 
     public void testMeta() throws Exception {

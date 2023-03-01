@@ -5757,6 +5757,35 @@ stilts arrayjoin in=dr3-sources.vot
     </dd>
 
 <dt><verbatim>
+stilts arrayjoin in=dr3-sources.vot
+                 atable='"https://gea.esac.esa.int/data-server/data?RETRIEVAL_TYPE=XP_SAMPLED&amp;RELEASE=Gaia+DR3&amp;ID="+source_id'
+                 icmd=progress
+                 keepall=false
+                 ocmd='constcol -acceptnull'
+                 out=sources-with-xp.fits
+</verbatim></dt>
+<dd><p>Similar to the previous example, but with a couple of variations.
+    </p>
+    <p>The <code>keepall=false</code> parameter means that only those
+    rows for which array data exists will be retained in the output table,
+    rather than including blank entries in the array columns in cases
+    for which the remote table couldn't be loaded.
+    </p>
+    <p>The <code>ocmd='constcol -acceptnull'</code> filter looks for
+    columns in the output that have the same value (or null) in every row.
+    Since Gaia DR3 sampled spectra are all sampled onto the same grid,
+    in this case the <code>wavelength</code> column will have the same
+    array value for every row, which is harmless but makes the output table
+    larger than required.
+    The <ref id="constcol"><code>constcol</code></ref> filter
+    spots this and removes the <code>wavelength</code> column,
+    replacing it with a parameter having the same name,
+    which can therefore be referred to using the
+    <ref id="jel-paramref">expression language</ref>
+    as <code>&param.prefix;wavelength</code>.
+    </p></dd>
+
+<dt><verbatim>
 stilts arrayjoin in=dl_dr3.fits
                  icmd='select has_epoch_photometry'
                  atable='"https://gea.esac.esa.int/data-server/data?RETRIEVAL_TYPE=EPOCH_PHOTOMETRY&amp;ID="+urlEncode(designation)'
@@ -5765,7 +5794,7 @@ stilts arrayjoin in=dl_dr3.fits
                  acmd='keepcols "time mag flux"'
                  out=with-epoch-photom.fits
 </verbatim></dt>
-<dd><p>Similar to the previous example, but this time acquiring
+<dd><p>Similar to the first example, but this time acquiring
     EPOCH_PHOTOMETRY rather than XP_SAMPLED data,
     and performing some additional
     processing of the main and array input tables.
@@ -14500,6 +14529,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="arrayjoin"><code>arrayjoin</code></ref> command,
         to configure whether rows with no arrays appear
         in the output.</li>
+    <li>Add new filter <ref id="constcol"><code>constcol</code></ref>
+        for identifying and removing constant-valued table columns.</li>
     </ul>
     </p></dd>
 
