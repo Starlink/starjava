@@ -14496,6 +14496,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in STILTS v3.2.</li>
     <li>Fix auto-range and export bugs that ignored final bar for
         forward cumulative histograms.</li>
+    <li>Add <code>keepall</code> parameter to the
+        <ref id="arrayjoin"><code>arrayjoin</code></ref> command,
+        to configure whether rows with no arrays appear
+        in the output.</li>
     </ul>
     </p></dd>
 

@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
@@ -18,6 +20,7 @@ import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.RowStore;
+import uk.ac.starlink.table.RowSubsetStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
@@ -47,6 +50,7 @@ import uk.ac.starlink.util.IOFunction;
 public class ArrayJoin extends SingleMapperTask {
 
     private final ExpressionInputTableParameter atableParam_;
+    private final BooleanParameter keepallParam_;
     private final InputFormatParameter afmtParam_;
     private final FilterParameter acmdParam_;
     private final BooleanParameter astreamParam_;
@@ -95,6 +99,23 @@ public class ArrayJoin extends SingleMapperTask {
         astreamParam_ = atableParam_.getStreamParameter();
         acmdParam_.setTableDescription( "array tables", atableParam_, true );
 
+        keepallParam_ = new BooleanParameter( "keepall" );
+        keepallParam_.setPrompt( "Retain rows without array table?" );
+        keepallParam_.setBooleanDefault( true );
+        keepallParam_.setDescription( new String[] {
+            "<p>This parameter determines what happens when the",
+            "<code>" + atableParam_.getName() + "</code> parameter",
+            "does not name a table that can be loaded.",
+            "If this parameter is false,",
+            "the input table row is output with blank values in the columns",
+            "supplied by the array tables,",
+            "so that the output table has the same number of rows as the",
+            "input table.",
+            "If it is true, only rows with successfully loaded tables",
+            "are included in the output.",
+            "</p>",
+        } );
+
         cacheParam_ = new BooleanParameter( "cache" );
         cacheParam_.setPrompt( "Cache array values?" );
         cacheParam_.setBooleanDefault( true );
@@ -129,6 +150,7 @@ public class ArrayJoin extends SingleMapperTask {
             afmtParam_,
             astreamParam_,
             acmdParam_,
+            keepallParam_,
             cacheParam_,
             fixcolsParam_,
             asuffixParam_,
@@ -143,7 +165,8 @@ public class ArrayJoin extends SingleMapperTask {
         String fmt = afmtParam_.stringValue( env );
         boolean stream = astreamParam_.booleanValue( env );
         final ProcessingStep[] asteps = acmdParam_.stepsValue( env );
-        StarTableFactory tfact = LineTableEnvironment.getTableFactory( env);
+        final boolean keepAll = keepallParam_.booleanValue( env );
+        StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
         boolean allowMissing = true;
         boolean isCached = cacheParam_.booleanValue( env );
         final IOFunction<String,StarTable> atableReader = loc -> {
@@ -154,6 +177,8 @@ public class ArrayJoin extends SingleMapperTask {
             }
             catch ( IOException e ) {
                 if ( allowMissing ) {
+                    logger_.log( Level.INFO,
+                                 "Table load failed for " + loc, e );
                     return null;
                 }
                 else {
@@ -179,6 +204,9 @@ public class ArrayJoin extends SingleMapperTask {
         return new TableProducer() {
             public StarTable getTable() throws IOException, TaskException {
                 final StarTable inTable = inProd.getTable();
+
+                /* Prepare the table which will supply just the
+                 * array columns. */
                 final Function<Library,CompiledExpression> alocCompiler;
                 try {
                     alocCompiler =
@@ -191,11 +219,52 @@ public class ArrayJoin extends SingleMapperTask {
                 }
                 ArrayDataTable seqArrayTable =
                     createSequentialArrayTable( inTable, alocCompiler,
-                                                atableReader );
+                                                atableReader, keepAll );
+
+                /* Cache just those columns if requested. */
                 StarTable arrayTable = isCached
                                      ? cacheArrayTable( seqArrayTable )
                                      : seqArrayTable;
-                StarTable[] tables = { inTable, arrayTable };
+
+                /* Now prepare the input table for joining to the arrays table.
+                 * If all rows of the input table will be output,
+                 * that's just the input table itself. */
+                final StarTable inTable1;
+                if ( keepAll ) {
+                    inTable1 = inTable;
+                }
+
+                /* If we want only to output those rows with non-blank
+                 * array columns, we need a bit mask to indicate which
+                 * rows they are, obtained from the arrays table.
+                 * There are ways to do this by streaming rather than
+                 * preparing a bit mask up front, but they are all a pain,
+                 * especially to get them working with both caching modes. */
+                else {
+
+                    /* If we have cached the arrays, which is the usual case,
+                     * this information is already stored.
+                     * If not we have to calculate it here; iterating over
+                     * the rows will force this.  That does look inefficient,
+                     * but it's only going to happen in the non-cached case,
+                     * for which performance warnings are already posted. */
+                    if ( seqArrayTable.rowMask_ == null ) {
+                        assert ! isCached;
+                        try ( RowSequence rseq =
+                                  seqArrayTable.getRowSequence() ) {
+                            while ( rseq.next() ) {
+                                rseq.getRow();
+                            }
+                        }
+                    }
+                    BitSet rowMask = seqArrayTable.rowMask_;
+                    assert rowMask != null;
+                    inTable1 = new RowSubsetStarTable( inTable, rowMask );
+                }
+
+                /* Join and return the (possibly filtered) input table
+                 * and the arrays table. */
+                StarTable[] tables = { inTable1, arrayTable };
                 JoinFixAction[] fixacts = { inFixact, aFixact };
                 return new JoinStarTable( tables, fixacts );
             }
@@ -209,24 +278,28 @@ public class ArrayJoin extends SingleMapperTask {
      * @param  alocCompiler  produces location of array table
      *                       for input table row
      * @param  atableLoader  loads an array table given a location
+     * @param  keepAll  true to retain all input rows,
+     *                  false to retain only ones with array tables
      * @return   non-random table joining input and arrays
      */
     private static ArrayDataTable
             createSequentialArrayTable(
                     StarTable inTable,
                     Function<Library,CompiledExpression> alocCompiler,
-                    IOFunction<String,StarTable> atableLoader )
+                    IOFunction<String,StarTable> atableLoader,
+                    boolean keepAll )
             throws IOException, TaskException {
-
-        /* Read through the input table to find the first array table.
-         * We will use this as a template supplying the array column
-         * metadata. */
         SequentialJELRowReader inRdr0 = new SequentialJELRowReader( inTable );
         Library lib = JELUtils.getLibrary( inRdr0 );
         CompiledExpression alocCompex = alocCompiler.apply( lib );
+
+        /* Read through the input table to find the first array table.
+         * We will use this as a template supplying the array column metadata.
+         * It would be possible to do the whole thing in one pass rather than
+         * one-and-a-bit for the case keepAll=false, but it's fiddly. */
         int[] rowIndex = new int[] { -1 };
         StarTable atable0 = readFirstArrayTable( inTable, alocCompiler,
-                                                 atableLoader, rowIndex);
+                                                 atableLoader, rowIndex );
         if ( atable0 == null ) {
             throw new TaskException( "No array tables" ); 
         }
@@ -255,7 +328,7 @@ public class ArrayJoin extends SingleMapperTask {
 
         /* Create and return a table ready to read the data. */
         return new ArrayDataTable( inTable, acols, alocCompiler, atableLoader,
-                                   irow0 );
+                                   keepAll, irow0 );
     }
 
     /**
@@ -362,7 +435,8 @@ public class ArrayJoin extends SingleMapperTask {
      *
      * @param   acols  defines the columns to be read
      * @param   atable  array table to read
-     * @param   irow   index of input table for this array table
+     * @param   irow   index of input table for this array table,
+     *                 used for user messages only
      * @return   array of typed arrays, one for each element of acols
      */
     private static Object[] readArrayData( ArrayColumn<?>[] acols,
@@ -391,9 +465,9 @@ public class ArrayJoin extends SingleMapperTask {
             if ( ! gotInfo.getContentClass()
                           .equals( templateInfo.getContentClass() ) ||
                  ! gotInfo.getName().equals( templateInfo.getName() ) ) {
-                throw new IOException( "Table data mismatch at row " + irow
-                                     + "; " + gotInfo + " does not match "
-                                     + templateInfo );
+                throw new IOException( "Table data mismatch at input row "
+                                     + irow + "; " + gotInfo
+                                     + " does not match " + templateInfo );
             }
             adata[ ia ] = acol.createArray( nrow );
         }
@@ -591,11 +665,14 @@ public class ArrayJoin extends SingleMapperTask {
         final ArrayColumn<?>[] arrayCols_;
         final Function<Library,CompiledExpression> alocCompiler_;
         final IOFunction<String,StarTable> atableLoader_;
+        final boolean keepAll_;
         final int irow0_;
         final int ncol_;
+        final Object[] emptyRow_;
         final static int UNKNOWN_DIM = -1;
         final static int VARIABLE_DIM = -2;
         int[] arrayDims_;
+        BitSet rowMask_;
 
         /**
          * Constructor.
@@ -606,6 +683,8 @@ public class ArrayJoin extends SingleMapperTask {
          * @param  alocCompiler  produces location of array table
          *                       for input table row
          * @param  atableLoader  loads an array table given a location
+         * @param  keepAll  true to retain all input rows,
+         *                  false to retain only ones with array tables
          * @param  irow0  index of the first row known to contain a
          *                usable array table; array values can be
          *                assumed missing for any earlier rows
@@ -613,13 +692,26 @@ public class ArrayJoin extends SingleMapperTask {
         ArrayDataTable( StarTable base, ArrayColumn<?>[] arrayCols,
                         Function<Library,CompiledExpression> alocCompiler,
                         IOFunction<String,StarTable> atableLoader,
-                        int irow0 ) {
+                        boolean keepAll, int irow0 ) {
             base_ = base;
             arrayCols_ = arrayCols;
             alocCompiler_ = alocCompiler;
             atableLoader_ = atableLoader;
+            keepAll_ = keepAll;
             irow0_ = irow0;
             ncol_ = arrayCols.length;
+            emptyRow_ = new Object[ ncol_ ];
+        }
+
+        /**
+         * Indicates whether a row produced by this table corresponds to
+         * a case where no external table was loaded.
+         *
+         * @param  row  candidate row object
+         * @return   true iff <code>row</code> is an intentionally empty row
+         */
+        public boolean isEmptyRow( Object[] row ) {
+            return row == emptyRow_;
         }
 
         public boolean isRandom() {
@@ -635,7 +727,7 @@ public class ArrayJoin extends SingleMapperTask {
         }
 
         public long getRowCount() {
-            return base_.getRowCount();
+            return keepAll_ ? base_.getRowCount() : -1;
         }
 
         public RowSequence getRowSequence() throws IOException {
@@ -643,18 +735,37 @@ public class ArrayJoin extends SingleMapperTask {
             Library lib = JELUtils.getLibrary( inRdr );
             final CompiledExpression alocCompex = alocCompiler_.apply( lib );
             final int[] adims = new int[ ncol_ ];
-            final Object[] emptyRow = new Object[ ncol_ ];
             Arrays.fill( adims, UNKNOWN_DIM );
+            BitSet rowMask = new BitSet();
             return new RowSequence() {
                 Object[] adata_;
                 int irow_ = -1;
+                boolean finished_;
+                boolean tryAll_ = true;
                 public boolean next() throws IOException {
+                    if ( irow_ >= 0 ) {
+                        tryAll_ = tryAll_ && adata_ != null;
+                    }
                     adata_ = null;
-                    if ( inRdr.next() ) {
-                        irow_++;
-                        return true;
+                    if ( keepAll_ ) {
+                        if ( inRdr.next() ) {
+                            irow_++;
+                            return true;
+                        }
+                        else {
+                            finished_ = true;
+                            return false;
+                        }
                     }
                     else {
+                        while ( inRdr.next() ) {
+                            irow_++;
+                            adata_ = null;
+                            if ( ! isEmptyRow( getArrayData() ) ) {
+                                return true;
+                            }
+                        }
+                        finished_ = true;
                         return false;
                     }
                 }
@@ -667,7 +778,10 @@ public class ArrayJoin extends SingleMapperTask {
                 public void close() throws IOException {
                     adata_ = null;
                     inRdr.close();
-                    arrayDims_ = adims.clone();
+                    if ( finished_ && tryAll_ ) {
+                        arrayDims_ = adims.clone();
+                        rowMask_ = rowMask;
+                    }
                 }
 
                 /**
@@ -677,7 +791,7 @@ public class ArrayJoin extends SingleMapperTask {
                  * The data is acquired lazily.
                  *
                  * @return  ncol-element array of arrays,
-                 *          or null if no array data this row
+                 *          or <code>emptyRow_</code> if no array data this row
                  */
                 Object[] getArrayData() throws IOException {
                     if ( adata_ == null ) {
@@ -687,11 +801,11 @@ public class ArrayJoin extends SingleMapperTask {
                             try ( StarTable aTable =
                                       atableLoader_.apply( aloc ) ) {
                                 adata = aTable == null
-                                      ? emptyRow
+                                      ? emptyRow_
                                       : readArrayData( arrayCols_, aTable,
                                                        irow_ );
                             }
-                            if ( adata != emptyRow ) {
+                            if ( adata != emptyRow_ ) {
                                 for ( int ic = 0; ic < ncol_; ic++ ) {
                                     Object array = adata[ ic ];
                                     if ( array != null ) {
@@ -712,9 +826,10 @@ public class ArrayJoin extends SingleMapperTask {
                             }
                         }
                         else {
-                            adata = null;
+                            adata = emptyRow_;
                         }
                         adata_ = adata;
+                        rowMask.set( irow_, adata_ != emptyRow_ );
                     }
                     return adata_;
                 }
