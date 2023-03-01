@@ -5701,7 +5701,7 @@ via the DataLink protocol;
 this is illustrated in the Examples subsection below.
 Note however that this command does not understand DataLink directly,
 and cannot itself determine the location of the external array tables;
-an expression giving their per-row location (filname or URL)
+an expression giving their per-row location (filename or URL)
 must be supplied.
 </p>
 
@@ -5759,16 +5759,21 @@ stilts arrayjoin in=dr3-sources.vot
 <dt><verbatim>
 stilts arrayjoin in=dl_dr3.fits
                  icmd='select has_epoch_photometry'
-                 atable='"https://gea.esac.esa.int/data-server/data?RETRIEVAL_TYPE=EPOCH_PHOTOMETRY&amp;ID=Gaia+DR3+"+source_id' \
-                 afmt=votable \
-                 acmd='select equals(BAND,\"G\")' \
-                 acmd='keepcols "time mag flux"' \
+                 atable='"https://gea.esac.esa.int/data-server/data?RETRIEVAL_TYPE=EPOCH_PHOTOMETRY&amp;ID="+urlEncode(designation)'
+                 afmt=votable
+                 acmd='select equals(BAND,\"G\")'
+                 acmd='keepcols "time mag flux"'
                  out=with-epoch-photom.fits
 </verbatim></dt>
 <dd><p>Similar to the previous example, but this time acquiring
     EPOCH_PHOTOMETRY rather than XP_SAMPLED data,
     and performing some additional
     processing of the main and array input tables.
+    The value of the <code>designation</code> field is wrapped in the
+    <ref id="URLs-urlEncode"><code>urlEncode()</code></ref>
+    function when preparing the URL;
+    this is necessary since that field may contain spaces which
+    are not legal URL characters.
     Only those input rows are used for which the boolean
     <code>has_epoch_photometry</code> column is True;
     for the linked array tables the rows are limited to those with
