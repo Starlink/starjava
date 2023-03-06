@@ -100,15 +100,13 @@ public class LineArrayForm implements ShapeForm {
     public ConfigKey<?>[] getConfigKeys() {
         List<ConfigKey<?>> list = new ArrayList<>();
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
-        list.add( StyleKeys.ANTIALIAS );
         return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public Outliner createOutliner( ConfigMap config ) {
         Stroke stroke = StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
                                                 BasicStroke.JOIN_ROUND );
-        boolean antialias = config.get( StyleKeys.ANTIALIAS );
-        return new LineArrayOutliner( stroke, antialias );
+        return new LineArrayOutliner( stroke );
     }
 
    /**
@@ -142,19 +140,15 @@ public class LineArrayForm implements ShapeForm {
     private class LineArrayOutliner extends PixOutliner {
 
         private final Stroke stroke_;
-        private final boolean antialias_;
         private final Icon legendIcon_;
 
         /**
          * Constructor.
          *
          * @param  stroke  line stroke
-         * @param  antialias  antialiasing flag; note this may be ignored
-         *                    depending on the ShapeMode with which it is used
          */
-        public LineArrayOutliner( Stroke stroke, boolean antialias ) {
+        public LineArrayOutliner( Stroke stroke ) {
             stroke_ = stroke;
-            antialias_ = antialias;
             legendIcon_ = new Icon() {
                 final int width = MarkerStyle.LEGEND_ICON_WIDTH;
                 final int height = MarkerStyle.LEGEND_ICON_HEIGHT;
@@ -198,6 +192,7 @@ public class LineArrayForm implements ShapeForm {
             final Point2D.Double gpos = new Point2D.Double();
             final Function<Tuple,XYArrayData> xyReader =
                 createXYArrayReader( dataSpec );
+            final boolean antialias = false;
             return new ShapePainter() {
                 public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
@@ -232,8 +227,9 @@ public class LineArrayForm implements ShapeForm {
                         /* The current implementation constructs a glyph
                          * by drawing onto a bitmap, which could be the
                          * size of the whole plot surface.  This is quite
-                         * inefficient, but I don't currently have a better
-                         * way to paint thick multilines with correct joins 
+                         * inefficient and means antialiasing won't work,
+                         * but I don't currently have a better way
+                         * to paint thick multilines with correct joins 
                          * onto a bitmap, which is required in order to allow
                          * ShapeMode-type shading options.
                          * For this plot form, there probably will not be
@@ -249,7 +245,7 @@ public class LineArrayForm implements ShapeForm {
                                 public void paintGlyph( Graphics g ) {
                                     LineTracer tracer =
                                         new LineTracer( g, bounds, stroke_,
-                                                        antialias_, ng,
+                                                        antialias, ng,
                                                         isBitmap );
                                     Color gColor = g.getColor();
                                     for ( int ip = 0; ip < ng; ip++ ) {
@@ -280,7 +276,6 @@ public class LineArrayForm implements ShapeForm {
         public int hashCode() {
             int code = 886301;
             code = 23 * code + stroke_.hashCode();
-            code = 23 * code + ( antialias_ ? 7 : 11 );
             return code;
         }
 
@@ -288,8 +283,7 @@ public class LineArrayForm implements ShapeForm {
         public boolean equals( Object o ) {
             if ( o instanceof LineArrayOutliner ) {
                 LineArrayOutliner other = (LineArrayOutliner) o;
-                return this.stroke_.equals( other.stroke_ )
-                    && this.antialias_ == other.antialias_;
+                return this.stroke_.equals( other.stroke_ );
             }
             else {
                 return false;

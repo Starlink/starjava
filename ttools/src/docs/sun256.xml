@@ -14531,6 +14531,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in the output.</li>
     <li>Add new filter <ref id="constcol"><code>constcol</code></ref>
         for identifying and removing constant-valued table columns.</li>
+    <li>Withdraw <code>antialias</code> parameter from
+        <ref id="layer-lines"><code>lines</code></ref> layer,
+        since it didn't really work.</li>
     </ul>
     </p></dd>
 

@@ -12929,9 +12929,6 @@ It is typically used to plot a number of spectra or time series.
 <dt>Dash</dt>
 <dd><p>Dash pattern.  The line is solid by default.
     </p></dd>
-<dt>Antialiasing</dt>
-<dd><p>If true, pixels are blurred to give the line a smoother appearance.
-    </p></dd>
 </dl>
 </p>
 
@@ -31813,6 +31810,9 @@ introduced since the last version:
         in TOPCAT v4.7.</li>
     <li>Fix auto-range and export bugs that ignored final bar for
         forward cumulative histograms.</li>
+    <li>Withdraw <label>Antialias</label> config option from
+        <ref id="form-lines">Lines</ref> form,
+        since it didn't really work.</li>
     </ul>
     </p></dd>
 
