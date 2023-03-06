@@ -5799,7 +5799,7 @@ stilts arrayjoin in=dl_dr3.fits
     and performing some additional
     processing of the main and array input tables.
     The value of the <code>designation</code> field is wrapped in the
-    <ref id="URLs-urlEncode"><code>urlEncode()</code></ref>
+    <ref id="URLs-urlEncode"><code>urlEncode</code></ref>
     function when preparing the URL;
     this is necessary since that field may contain spaces which
     are not legal URL characters.
@@ -5812,22 +5812,44 @@ stilts arrayjoin in=dl_dr3.fits
     are retained for inclusion into the output.
     </p></dd>
 
+<!--
+ ! stilts tapquery sync=true
+ !        tapurl=https://gaia.ari.uni-heidelberg.de/tap adql="select top 10 source_id, designation, ra, dec, pf, pf_error from gaiadr3.gaia_source join gaiadr3.vari_rrlyrae using (source_id) where has_epoch_photometry='true'"
+ !        out=rrlyrae.vot
+ !-->
+<dt><verbatim>
+stilts arrayjoin in=rrlyrae.vot
+                 atable='"https://gaia.ari.uni-heidelberg.de/timeseries/gaiadr3?sourceid="+source_id'
+                 acmd='keepcols "time mag flux flux_error"'
+                 aparams='p1 pf'
+                 icmd=progress
+                 out=rrlyrae-timeseries.vot
+</verbatim></dt>
+<dd><p>Acquires Gaia DR3 epoch photometry from a different service, ARI-Gaia.
+    In this case the epoch photometry tables have parameters
+    characterising the variability;
+    the <code>aparams='p1 pf'</code> parameter takes two of these and
+    adds them as scalar-valued columns in the output table.
+    Since the <code>pf</code> parameter gives the variability period,
+    a period-folded variability graph can then be plotted using
+    an X coordinate like <code>arrayFunc("x%1",divide(time,pf))</code>.
+    </p></dd>
+
 <dt><verbatim>
 stilts arrayjoin in=obscore-lotssdr2.vot
-                 atable='equals(dataproduct_type,"spectrum")?access_url:""'
+                 atable=access_url
+                 icmd=progress
+                 icmd='select equals(dataproduct_type,\"spectrum\")'
                  out=with-spectra.vot
 </verbatim></dt>
-<dd><p>Takes an ivoa.ObsCore-like table and adds array-valued
-       columns giving the content of spectrum files linked from
-       the <code>access_url</code> field.
-       For rows in the input table whose <code>dataproduct_type</code>
-       field does not have the value "spectrum" a blank location
-       is substituted insteead of the access_url.
-       That has the effect of ensuring that no attempt is made
-       to add array values for non-spectrum rows of the input table,
-       while retaining those rows in the output.
+<dd><p>Takes an <webref url="https://www.ivoa.net/documents/ObsCore/"
+                        >ivoa.ObsCore</webref>-like table
+       and adds array-valued columns giving the content of spectrum files
+       linked from the <code>access_url</code> field.
+       Only those rows with a <code>dataproduct_type</code>
+       of "<code>spectrum</code>" are included.
        Note all the access_urls in the selected rows must point to
-       spectrum files of a of a similar form,
+       spectrum files of a similar form (i.e. having the same columns),
        otherwise the command will fail.
     </p></dd>
 
@@ -14536,6 +14558,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         since it didn't really work.</li>
     <li>Add <code>sortaxis</code> parameter to
         <ref id="layer-lines"><code>lines</code></ref> layer.</li>
+    <li>Add <code>aparams</code> parameter to
+        <ref id="arrayjoin"><code>arrayjoin</code></ref>
+        that can turn table parameters of loaded tables into
+        scalar-valued columns.</li>
     </ul>
     </p></dd>
 

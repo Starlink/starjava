@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -35,6 +36,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.filter.ProcessingStep;
+import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
@@ -54,6 +56,7 @@ public class ArrayJoin extends SingleMapperTask {
     private final InputFormatParameter afmtParam_;
     private final FilterParameter acmdParam_;
     private final BooleanParameter astreamParam_;
+    private final StringParameter aparamsParam_;
     private final BooleanParameter cacheParam_;
     private final JoinFixActionParameter fixcolsParam_;
     private final StringParameter asuffixParam_;
@@ -98,6 +101,29 @@ public class ArrayJoin extends SingleMapperTask {
         afmtParam_ = atableParam_.getFormatParameter();
         astreamParam_ = atableParam_.getStreamParameter();
         acmdParam_.setTableDescription( "array tables", atableParam_, true );
+
+        aparamsParam_ = new StringParameter( "aparams" );
+        aparamsParam_.setPrompt( "Parameters from external tables to include" );
+        aparamsParam_.setUsage( "<name-list>" );
+        aparamsParam_.setNullPermitted( true );
+        aparamsParam_.setDescription( new String[] {
+            "<p>Lists the table parameters (per-table metadata)",
+            "that will be read from loaded tables",
+            "and turned into scalar-valued columns in the output.",
+            "By default parameters are discarded,",
+            "but you can include them in the output by naming them",
+            "using this parameter.",
+            "</p>",
+            "<p>Parameters are supplied as a space- or comma-separated list.",
+            "Matching against table names is case-insensitive,",
+            "and the asterisk character \"<code>*</code>\" may be used",
+            "as a wildcard to match any sequence of characters.",
+            "The list is interpreted relative to the first external table",
+            "which is loaded.",
+            "Supplying the value \"<code>*</code>\" therefore will include",
+            "a column for each parameter in the first loaded table.",
+            "</p>",
+        } );
 
         keepallParam_ = new BooleanParameter( "keepall" );
         keepallParam_.setPrompt( "Retain rows without array table?" );
@@ -151,6 +177,7 @@ public class ArrayJoin extends SingleMapperTask {
             astreamParam_,
             acmdParam_,
             keepallParam_,
+            aparamsParam_,
             cacheParam_,
             fixcolsParam_,
             asuffixParam_,
@@ -166,6 +193,7 @@ public class ArrayJoin extends SingleMapperTask {
         boolean stream = astreamParam_.booleanValue( env );
         final ProcessingStep[] asteps = acmdParam_.stepsValue( env );
         final boolean keepAll = keepallParam_.booleanValue( env );
+        final String aparamsTxt = aparamsParam_.stringValue( env );
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
         boolean allowMissing = true;
         boolean isCached = cacheParam_.booleanValue( env );
@@ -219,7 +247,8 @@ public class ArrayJoin extends SingleMapperTask {
                 }
                 ArrayDataTable seqArrayTable =
                     createSequentialArrayTable( inTable, alocCompiler,
-                                                atableReader, keepAll );
+                                                atableReader, keepAll,
+                                                aparamsTxt );
 
                 /* Cache just those columns if requested. */
                 StarTable arrayTable = isCached
@@ -272,6 +301,38 @@ public class ArrayJoin extends SingleMapperTask {
     }
 
     /**
+     * Tests whether a token matches a pattern.
+     * The pattern is supplied as a sequence of zero or more
+     * space- or comma-separated items,
+     * each of which can contain an asterisk to denote simple wildcarding.
+     * Currently not case sensitive.  Empty tokens and patterns do not match.
+     *
+     * @param   pattern   pattern
+     * @param   token  token to find
+     * @return  true iff token is described by pattern
+     */
+    private static boolean isNameMatch( String pattern, String token ) {
+        boolean isCaseSensitive = false;
+        if ( token != null && token.trim().length() > 0 ) {
+            for ( String patItem : pattern.split( "[\\s,]+", 0 ) ) {
+                if ( isCaseSensitive ? token.equals( patItem )
+                                     : token.equalsIgnoreCase( patItem ) ) {
+                    return true;
+                }
+                else {
+                    Pattern regex =
+                        ColumnIdentifier.globToRegex( patItem,
+                                                      isCaseSensitive );
+                    if ( regex != null && regex.matcher( token ).matches() ) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Generates the joined table given required information.
      *
      * @param  inTable  input table
@@ -280,6 +341,8 @@ public class ArrayJoin extends SingleMapperTask {
      * @param  atableLoader  loads an array table given a location
      * @param  keepAll  true to retain all input rows,
      *                  false to retain only ones with array tables
+     * @param  paramsTxt   pattern for matching table parameters to
+     *                     include as scalar-valued columns
      * @return   non-random table joining input and arrays
      */
     private static ArrayDataTable
@@ -287,7 +350,7 @@ public class ArrayJoin extends SingleMapperTask {
                     StarTable inTable,
                     Function<Library,CompiledExpression> alocCompiler,
                     IOFunction<String,StarTable> atableLoader,
-                    boolean keepAll )
+                    boolean keepAll, String paramsTxt )
             throws IOException, TaskException {
         SequentialJELRowReader inRdr0 = new SequentialJELRowReader( inTable );
         Library lib = JELUtils.getLibrary( inRdr0 );
@@ -321,14 +384,28 @@ public class ArrayJoin extends SingleMapperTask {
             }
         }
         ArrayColumn<?>[] acols = acolList.toArray( new ArrayColumn<?>[ 0 ] );
-        if ( acols.length == 0 ) {
-            throw new ExecutionException( "No suitable columns "
+
+        /* Prepare typed parameter handlers if required. */
+        List<ValueInfo> pinfoList = new ArrayList<>();
+        if ( paramsTxt != null && paramsTxt.trim().length() > 0 ) {
+            for ( DescribedValue dval : atable0.getParameters() ) {
+                ValueInfo pinfo = dval.getInfo();
+                if ( isNameMatch( paramsTxt, pinfo.getName() ) ) {
+                    pinfoList.add( pinfo );
+                }
+            }
+        }
+        ValueInfo[] pinfos = pinfoList.toArray( new ValueInfo[ 0 ] );
+
+        /* Check there is some work to do. */
+        if ( acols.length == 0 && pinfos.length == 0 ) {
+            throw new ExecutionException( "No suitable columns/parameters "
                                         + "in template array table" );
         }
 
         /* Create and return a table ready to read the data. */
-        return new ArrayDataTable( inTable, acols, alocCompiler, atableLoader,
-                                   keepAll, irow0 );
+        return new ArrayDataTable( inTable, acols, pinfos,
+                                   alocCompiler, atableLoader, keepAll, irow0 );
     }
 
     /**
@@ -434,15 +511,18 @@ public class ArrayJoin extends SingleMapperTask {
      * all the data from a table column.
      *
      * @param   acols  defines the columns to be read
+     * @param   pinfos  table parameters to read
      * @param   atable  array table to read
      * @param   irow   index of input table for this array table,
      *                 used for user messages only
      * @return   array of typed arrays, one for each element of acols
      */
     private static Object[] readArrayData( ArrayColumn<?>[] acols,
+                                           ValueInfo[] pinfos,
                                            StarTable atable, long irow )
             throws IOException {
         int na = acols.length;
+        int np = pinfos.length;
 
         /* It makes life much easier if we know the number of rows.
          * Since these tables are not expected to be all that large,
@@ -454,6 +534,17 @@ public class ArrayJoin extends SingleMapperTask {
             nrow = Tables.checkedLongToInt( atable.getRowCount() );
         }
         assert nrow >= 0;
+
+        /* Read the parameters if required. */
+        Object[] pdata = new Object[ np ];
+        for ( int ip = 0; ip < np; ip++ ) {
+            ValueInfo pinfo = pinfos[ ip ];
+            DescribedValue dval = atable.getParameterByName( pinfo.getName() );
+            Object value = dval == null ? null : dval.getValue();
+            if ( pinfo.getContentClass().isInstance( value ) ) {
+                pdata[ ip ] = value;
+            }
+        }
 
         /* Check the columns look like we are expecting and
          * prepare array storage. */
@@ -485,8 +576,16 @@ public class ArrayJoin extends SingleMapperTask {
             }
         }
 
-        /* Return populated arrays. */
-        return adata;
+        /* Return populated array. */
+        if ( np > 0 ) {
+            Object[] data = new Object[ na + np ];
+            System.arraycopy( adata, 0, data, 0, na );
+            System.arraycopy( pdata, 0, data, na, np );
+            return data;
+        }
+        else {
+            return adata;
+        }
     }
 
     /**
@@ -632,7 +731,7 @@ public class ArrayJoin extends SingleMapperTask {
         abstract A createArray( int n );
 
         /**
-         * Stores a single element in an storage array.
+         * Stores a single element in a storage array.
          *
          * @param  value  value to store, expected of suitable type
          * @param  ix     element index
@@ -663,12 +762,16 @@ public class ArrayJoin extends SingleMapperTask {
 
         final StarTable base_;
         final ArrayColumn<?>[] arrayCols_;
+        final ValueInfo[] paramInfos_;
         final Function<Library,CompiledExpression> alocCompiler_;
         final IOFunction<String,StarTable> atableLoader_;
         final boolean keepAll_;
         final int irow0_;
+        final int nacol_;
+        final int npcol_;
         final int ncol_;
         final Object[] emptyRow_;
+        final ColumnInfo[] colInfos_;
         final static int UNKNOWN_DIM = -1;
         final static int VARIABLE_DIM = -2;
         int[] arrayDims_;
@@ -679,7 +782,11 @@ public class ArrayJoin extends SingleMapperTask {
          *
          * @param  base  input table
          * @param  arrayCols   array of objects describing the
-         *                     columns coming from external array tables
+         *                     array-valued columns coming from
+         *                     external array tables
+         * @param  paramInfos   definitions of table parameters describing
+         *                      the scalar-valued columns coming from
+         *                      external array tables
          * @param  alocCompiler  produces location of array table
          *                       for input table row
          * @param  atableLoader  loads an array table given a location
@@ -690,16 +797,27 @@ public class ArrayJoin extends SingleMapperTask {
          *                assumed missing for any earlier rows
          */
         ArrayDataTable( StarTable base, ArrayColumn<?>[] arrayCols,
+                        ValueInfo[] paramInfos,
                         Function<Library,CompiledExpression> alocCompiler,
                         IOFunction<String,StarTable> atableLoader,
                         boolean keepAll, int irow0 ) {
             base_ = base;
             arrayCols_ = arrayCols;
+            paramInfos_ = paramInfos;
             alocCompiler_ = alocCompiler;
             atableLoader_ = atableLoader;
             keepAll_ = keepAll;
             irow0_ = irow0;
-            ncol_ = arrayCols.length;
+            nacol_ = arrayCols.length;
+            npcol_ = paramInfos.length;
+            ncol_ = nacol_ + npcol_;
+            colInfos_ = new ColumnInfo[ ncol_ ];
+            for ( int ia = 0; ia < nacol_; ia++ ) {
+                colInfos_[ ia ] = arrayCols_[ ia ].arrayInfo_;
+            }
+            for ( int ip = 0; ip < npcol_; ip++ ) {
+                colInfos_[ nacol_ + ip ] = new ColumnInfo( paramInfos[ ip ] );
+            }
             emptyRow_ = new Object[ ncol_ ];
         }
 
@@ -723,7 +841,7 @@ public class ArrayJoin extends SingleMapperTask {
         }
 
         public ColumnInfo getColumnInfo( int icol ) {
-            return arrayCols_[ icol ].arrayInfo_;
+            return colInfos_[ icol ];
         }
 
         public long getRowCount() {
@@ -734,7 +852,7 @@ public class ArrayJoin extends SingleMapperTask {
             SequentialJELRowReader inRdr = new SequentialJELRowReader( base_ );
             Library lib = JELUtils.getLibrary( inRdr );
             final CompiledExpression alocCompex = alocCompiler_.apply( lib );
-            final int[] adims = new int[ ncol_ ];
+            final int[] adims = new int[ nacol_ ];
             Arrays.fill( adims, UNKNOWN_DIM );
             BitSet rowMask = new BitSet();
             return new RowSequence() {
@@ -785,13 +903,11 @@ public class ArrayJoin extends SingleMapperTask {
                 }
 
                 /**
-                 * Returns an array of arrays giving the array-valued cells
-                 * at the current row for each of the array columns
-                 * managed by this sequence.
+                 * Returns the contents of the current row.
                  * The data is acquired lazily.
                  *
-                 * @return  ncol-element array of arrays,
-                 *          or <code>emptyRow_</code> if no array data this row
+                 * @return  ncol-element array of values,
+                 *          or <code>emptyRow_</code> if no data in this row
                  */
                 Object[] getArrayData() throws IOException {
                     if ( adata_ == null ) {
@@ -802,24 +918,24 @@ public class ArrayJoin extends SingleMapperTask {
                                       atableLoader_.apply( aloc ) ) {
                                 adata = aTable == null
                                       ? emptyRow_
-                                      : readArrayData( arrayCols_, aTable,
-                                                       irow_ );
+                                      : readArrayData( arrayCols_, paramInfos_,
+                                                       aTable, irow_ );
                             }
                             if ( adata != emptyRow_ ) {
-                                for ( int ic = 0; ic < ncol_; ic++ ) {
-                                    Object array = adata[ ic ];
+                                for ( int ia = 0; ia < nacol_; ia++ ) {
+                                    Object array = adata[ ia ];
                                     if ( array != null ) {
                                         int n = Array.getLength( array );
                                         if ( n > 0 ) {
-                                            if ( adims[ ic ] == UNKNOWN_DIM ) {
-                                                adims[ ic ] = n;
+                                            if ( adims[ ia ] == UNKNOWN_DIM ) {
+                                                adims[ ia ] = n;
                                             }
-                                            else if ( adims[ ic ] > 0 &&
-                                                      n != adims[ ic ] ) {
-                                                adims[ ic ] = VARIABLE_DIM;
+                                            else if ( adims[ ia ] > 0 &&
+                                                      n != adims[ ia ] ) {
+                                                adims[ ia ] = VARIABLE_DIM;
                                             }
-                                            assert adims[ ic ] == VARIABLE_DIM
-                                                || adims[ ic ] == n;
+                                            assert adims[ ia ] == VARIABLE_DIM
+                                                || adims[ ia ] == n;
                                         }
                                     }
                                 }
@@ -849,14 +965,21 @@ public class ArrayJoin extends SingleMapperTask {
          * @return   best available metadata for column
          */
         ColumnInfo getEnhancedColumnInfo( int icol ) {
-            ColumnInfo info = new ColumnInfo( arrayCols_[ icol ].arrayInfo_ );
-            int adim = arrayDims_ == null
-                     ? UNKNOWN_DIM
-                     : arrayDims_[ icol ];
-            if ( adim > 0 ) {
-                info.setShape( new int[] { adim } );
+            int iacol = icol;
+            if ( iacol < nacol_ ) { 
+                ColumnInfo info =
+                    new ColumnInfo( arrayCols_[ iacol ].arrayInfo_ );
+                int adim = arrayDims_ == null
+                         ? UNKNOWN_DIM
+                         : arrayDims_[ iacol ];
+                if ( adim > 0 ) {
+                    info.setShape( new int[] { adim } );
+                }
+                return info;
             }
-            return info;
+            else {
+                return colInfos_[ icol ];
+            }
         }
 
         // boilerplate 
