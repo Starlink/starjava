@@ -10,6 +10,7 @@ import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,8 @@ import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -49,6 +52,9 @@ public class LineArrayForm implements ShapeForm {
     private final FloatingArrayCoord ysCoord_;
     private final int icXs_;
     private final int icYs_;
+
+    /** Config key for point sequence pre-sorting. */
+    public static final ConfigKey<AxisOpt> SORTAXIS_KEY = createSortAxisKey();
 
     private static final LineArrayForm instance_ = new LineArrayForm();
 
@@ -100,16 +106,18 @@ public class LineArrayForm implements ShapeForm {
     public ConfigKey<?>[] getConfigKeys() {
         List<ConfigKey<?>> list = new ArrayList<>();
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
+        list.add( SORTAXIS_KEY );
         return list.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     public Outliner createOutliner( ConfigMap config ) {
         Stroke stroke = StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
                                                 BasicStroke.JOIN_ROUND );
-        return new LineArrayOutliner( stroke );
+        AxisOpt sortaxis = config.get( SORTAXIS_KEY );
+        return new LineArrayOutliner( stroke, sortaxis );
     }
 
-   /**
+    /**
      * Returns a reader for matched X/Y array data for use with array plotters.
      * If null is returned from this function, no plotting should be done.
      *
@@ -135,20 +143,103 @@ public class LineArrayForm implements ShapeForm {
     }
 
     /**
+     * Sorts an XYArrayData according to the value of a supplied option.
+     *
+     * @param  xyData  input array data
+     * @param  sortaxis   determines whether and how sorting is done
+     * @return  output array data
+     */
+    private static XYArrayData sortXY( XYArrayData xyData, AxisOpt sortaxis ) {
+        if ( sortaxis == null || xyData == null ) {
+            return xyData;
+        }
+        int n = xyData.getLength();
+        Integer[] indices = new Integer[ n ];
+        for ( int i = 0; i < n; i++ ) {
+            indices[ i ] = Integer.valueOf( i );
+        }
+        Comparator<Integer> comparator =
+            Comparator.comparingDouble( index ->
+                           sortaxis.getAxisValue( xyData, index.intValue() ) );
+        Arrays.sort( indices, comparator );
+        return new XYArrayData() {
+            public int getLength() {
+                return n;
+            }
+            public double getX( int i ) {
+                return xyData.getX( indices[ i ].intValue() );
+            }
+            public double getY( int i ) {
+                return xyData.getY( indices[ i ].intValue() );
+            }
+        };
+    }
+
+    /**
+     * Returns a config key for choosing a sort axis.
+     *
+     * @return  sort axis key for use with this class
+     */
+    private static ConfigKey<AxisOpt> createSortAxisKey() {
+        ConfigMeta meta = new ConfigMeta( "sortaxis", "Sort Axis" );
+        meta.setShortDescription( "Sort order for plotted points" );
+        meta.setStringUsage( "[" + AxisOpt.X.toString()
+                           + "|" + AxisOpt.Y.toString() + "]" );
+        meta.setXmlDescription( new String[] {
+            "<p>May be set to",
+            "\"<code>" + AxisOpt.X.toString() + "</code>\" or",
+            "\"<code>" + AxisOpt.Y.toString() + "</code>\"",
+            "to ensure that the points for each line",
+            "are plotted in ascending order",
+            "of the corresponding coordinate.",
+            "This will ensure that the plotted line resembles a",
+            "function of the corresponding coordinate rather than",
+            "a scribble.",
+            "The default (null) value causes the points for each line",
+            "to be joined",
+            "in the sequence in which they appear in the arrays.",
+            "If the points already appear in the arrays sorted",
+            "according to the corresponding coordinate,",
+            "this option has no visible effect,",
+            "though it may slow things down.",
+            "</p>",
+        } );
+        AxisOpt[] opts = new AxisOpt[] { null, AxisOpt.X, AxisOpt.Y };
+        return new OptionConfigKey<AxisOpt>( meta, AxisOpt.class, opts,
+                                             (AxisOpt) null, true ) {
+            public String valueToString( AxisOpt axis ) {
+                return axis == null ? LinePlotter.NOSORT_TXT : axis.toString();
+            }
+            public String getXmlDescription( AxisOpt axis ) {
+                if ( axis == null ) {
+                    return "No pre-sorting is performed";
+                }
+                else {
+                    return "Sorting is performed on the "
+                         + axis.toString() + " axis";
+                }
+            }
+        };
+    }
+
+    /**
      * Outliner implementation for LineArrayForm.
      */
     private class LineArrayOutliner extends PixOutliner {
 
         private final Stroke stroke_;
+        private final AxisOpt sortaxis_;
         private final Icon legendIcon_;
 
         /**
          * Constructor.
          *
          * @param  stroke  line stroke
+         * @param  sortaxis   axis along which to sort data points, or null
          */
-        public LineArrayOutliner( Stroke stroke ) {
+        public LineArrayOutliner( Stroke stroke, AxisOpt sortaxis ) {
             stroke_ = stroke;
+            sortaxis_ = sortaxis;
             legendIcon_ = new Icon() {
                 final int width = MarkerStyle.LEGEND_ICON_WIDTH;
                 final int height = MarkerStyle.LEGEND_ICON_HEIGHT;
@@ -196,7 +287,8 @@ public class LineArrayForm implements ShapeForm {
             return new ShapePainter() {
                 public void paintPoint( Tuple tuple, Color color,
                                         Paper paper ) {
-                    XYArrayData xyData = xyReader.apply( tuple );
+                    XYArrayData xyData =
+                        sortXY( xyReader.apply( tuple ), sortaxis_ );
                     if ( xyData != null ) {
                         int np = xyData.getLength();
                         double[] gxs = new double[ np ];
@@ -276,6 +368,7 @@ public class LineArrayForm implements ShapeForm {
         public int hashCode() {
             int code = 886301;
             code = 23 * code + stroke_.hashCode();
+            code = 23 * code + PlotUtil.hashCode( sortaxis_ );
             return code;
         }
 
@@ -283,7 +376,8 @@ public class LineArrayForm implements ShapeForm {
         public boolean equals( Object o ) {
             if ( o instanceof LineArrayOutliner ) {
                 LineArrayOutliner other = (LineArrayOutliner) o;
-                return this.stroke_.equals( other.stroke_ );
+                return this.stroke_.equals( other.stroke_ )
+                    && PlotUtil.equals( this.sortaxis_, other.sortaxis_ );
             }
             else {
                 return false;

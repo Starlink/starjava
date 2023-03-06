@@ -10918,8 +10918,8 @@ and to vary the colour of the line along its length
     the points in the sequence in which they appear in the table.
     But if you set it to <label>X</label> or <label>Y</label>
     the points will be pre-ordered along the given axis,
-    so the lines will come out looking like a function of the X or Y
-    coordinate rather than a scribble.
+    so that lines for unordered rows will come out looking like
+    a function of the X or Y coordinate rather than a scribble.
     </p></dd>
 <dt>Antialiasing</dt>
 <dd><p>If true, pixels are blurred to give the line a smoother appearance.
@@ -12928,6 +12928,15 @@ It is typically used to plot a number of spectra or time series.
     </p></dd>
 <dt>Dash</dt>
 <dd><p>Dash pattern.  The line is solid by default.
+    </p></dd>
+<dt>Sort Axis</dt>
+<dd><p>May be used to sort the points before the lines are drawn.
+    By default (option <label>None</label>) the lines are drawn between
+    the points in the sequence in which they appear in each array.
+    But if you set it to <label>X</label> or <label>Y</label>
+    the points will be pre-ordered along the given axis,
+    so that lines for unordered arrays will come out looking like
+    a function of the X or Y coordinate rather than a scribble.
     </p></dd>
 </dl>
 </p>
@@ -31813,6 +31822,8 @@ introduced since the last version:
     <li>Withdraw <label>Antialias</label> config option from
         <ref id="form-lines">Lines</ref> form,
         since it didn't really work.</li>
+    <li>Add <label>Sort Axis</label> config option to
+        <ref id="form-lines">Lines</ref> form.</li>
     </ul>
     </p></dd>
 

@@ -56,7 +56,8 @@ import uk.ac.starlink.util.SplitCollector;
  */
 public class LinePlotter extends AbstractPlotter<LinePlotter.LinesStyle> {
 
-    private static final String NOSORT_TXT = "None";
+    /** String used to indicate no axis sorting. */
+    public static final String NOSORT_TXT = "None";
 
     /** Coordinate for aux value. */
     private static final FloatingCoord AUX_COORD =

@@ -15,19 +15,31 @@ public enum AxisOpt {
         public int compare( Point2D p1, Point2D p2 ) {
             return (int) Math.signum( p1.getX() - p2.getX() );
         }
-    } ),
+    } ) {
+        double getAxisValue( XYArrayData xyData, int index ) {
+            return xyData.getX( index );
+        }
+    },
 
     Y( new Comparator<Point2D>() {
         public int compare( Point2D p1, Point2D p2 ) {
             return (int) Math.signum( p1.getY() - p2.getY() );
         }
-    } ),
+    } ) {
+        double getAxisValue( XYArrayData xyData, int index ) {
+            return xyData.getY( index );
+        }
+    },
 
     TIME( new Comparator<Point2D>() {
         public int compare( Point2D p1, Point2D p2 ) {
             return (int) Math.signum( p1.getX() - p2.getX() );
         }
-    } );
+    } ) {
+        double getAxisValue( XYArrayData xyData, int index ) {
+            return xyData.getX( index );
+        }
+    };
 
     private final Comparator<Point2D> pointComparator_;
 
@@ -50,4 +62,14 @@ public enum AxisOpt {
     Comparator<Point2D> pointComparator() {
         return pointComparator_;
     }
+
+    /**
+     * Returns the value of the axis represented by this option at
+     * a given index on a given XYArrayData object.
+     *
+     * @param  xyData  array data
+     * @param  index   index
+     * @return  value of this axis at index
+     */
+    abstract double getAxisValue( XYArrayData xyData, int index );
 }

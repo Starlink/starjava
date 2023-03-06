@@ -14534,6 +14534,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Withdraw <code>antialias</code> parameter from
         <ref id="layer-lines"><code>lines</code></ref> layer,
         since it didn't really work.</li>
+    <li>Add <code>sortaxis</code> parameter to
+        <ref id="layer-lines"><code>lines</code></ref> layer.</li>
     </ul>
     </p></dd>
 
