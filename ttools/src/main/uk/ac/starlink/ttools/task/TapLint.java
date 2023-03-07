@@ -129,6 +129,7 @@ public class TapLint implements Task {
 
         tablesParam_ = new StringParameter( "tables" );
         tablesParam_.setPrompt( "Selected table names" );
+        tablesParam_.setUsage( "<name-list>" );
         tablesParam_.setDescription( new String[] {
             "<p>If supplied, this specifies a list of tables to test.",
             "It may be set to a space- or comma-separated list",
