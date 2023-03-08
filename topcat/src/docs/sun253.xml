@@ -31824,6 +31824,9 @@ introduced since the last version:
         since it didn't really work.</li>
     <li>Add <label>Sort Axis</label> config option to
         <ref id="form-lines">Lines</ref> form.</li>
+    <li>Fix line drawing bug that meant dotted and dashed lines
+        were often not displayed correctly.
+        This was a regression bug introduced in TOPCAT 4.6-3.</li>
     </ul>
     </p></dd>
 

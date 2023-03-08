@@ -11,7 +11,6 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Line2D;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
-
 /**
  * Draws lines composed of a sequence of points, submitted one at a time.
  * To use it make multiple calls of {@link #addVertex addVertex},
@@ -123,7 +122,11 @@ public class LineTracer {
             flushPoly();
             iLine_ = 0;
         }
-        else {
+
+        /* Only proceed if the current point is not right on top of
+         * the previous one, since in that case the line would be
+         * zero length and hence invisible. */
+        else if ( ! lastVertex_.equalsVertex( dx, dy ) ) {
             int regionX = getRegion( dx, xlo_, xhi_ );
             int regionY = getRegion( dy, ylo_, yhi_ );
 
@@ -145,8 +148,7 @@ public class LineTracer {
              * point is right on top of the previous one; if so, the
              * line would be zero length and hence invisible. */
             else if ( regionX * lastRegionX_ != 1 &&
-                      regionY * lastRegionY_ != 1 &&
-                      ! lastVertex_.equalsVertex( dx, dy ) ) {
+                      regionY * lastRegionY_ != 1 ) {
 
                 /* If the colours assigned to the two points are the same,
                  * just add the point to the list that will be drawn as
