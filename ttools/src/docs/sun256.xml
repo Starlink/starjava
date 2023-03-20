@@ -14565,6 +14565,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix line drawing bug that meant dotted and dashed lines
         were often not displayed correctly.
         This was a regression bug introduced in STILTS 3.1-6.</li>
+    <li>Update Ucidy library to v1.3, corresponding to
+        UCDList 1.5 EN.</li>
     </ul>
     </p></dd>
 

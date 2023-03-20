@@ -980,6 +980,9 @@ public class FuncTest extends TestCase {
         assertTrue( VO.vounitMessage( "degree" ).indexOf( "\"deg\"" ) >= 0 );
         assertNull( VO.vounitMessage( "kg/m**2" ) );
         assertTrue( VO.vounitMessage( "kg/m^2" ).trim().length() > 0 );
+
+        // UCDList 1.5
+        assertEquals( "OK", VO.ucdStatus( "stat.kurtosis" ) );
     }
 
     private void checkHealpix( int ik, long ipix ) {
