@@ -233,7 +233,7 @@ public class TapMapper implements TableMapper {
         final TapService tapService = tapserviceParams_.getTapService( env );
         final String adql = adqlParam_.stringValue( env );
         if ( parseParam_.booleanValue( env ) ) {
-            AdqlValidator validator = new AdqlValidator( null, null, null );
+            AdqlValidator validator = AdqlValidator.createValidator();
             try {
                 validator.validate( adql );
             }

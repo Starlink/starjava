@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.taplint;
 
-import adql.db.FunctionDef;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -74,8 +73,7 @@ abstract class AdqlValidatorKit {
      * @return  vanilla syntax-only ADQL validator
      */
     public AdqlValidator getSyntaxValidator() {
-        return new AdqlValidator( (AdqlValidator.ValidatorTable[]) null,
-                                  (FunctionDef[]) null, (String[]) null );
+        return AdqlValidator.createValidator();
     }
 
     /**
@@ -153,8 +151,7 @@ abstract class AdqlValidatorKit {
         if ( langs == null || langs.length == 0 ) {
             return new AdqlValidatorKit( vtables ) {
                 public AdqlValidator getValidator( String langId ) {
-                    return new AdqlValidator( vtables, new FunctionDef[ 0 ],
-                                              null );
+                    return AdqlValidator.createValidator( vtables );
                 }
             };
         }

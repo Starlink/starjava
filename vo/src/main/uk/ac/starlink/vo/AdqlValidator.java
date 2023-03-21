@@ -51,8 +51,8 @@ public class AdqlValidator {
      *                   or null to permit all those defined by ADQL (sec 2.4)
      *                   (but ignored if vtables is null)
      */
-    public AdqlValidator( ValidatorTable[] vtables, FunctionDef[] udfs,
-                          String[] geoFuncs ) {
+    private AdqlValidator( ValidatorTable[] vtables, FunctionDef[] udfs,
+                           String[] geoFuncs ) {
         parser_ = new ADQLParser();
         Collection<DBTable> tableList = vtables == null
                                       ? null
@@ -140,6 +140,27 @@ public class AdqlValidator {
         else {
             return null;
         }
+    }
+
+    /**
+     * Returns a basic validator instance.
+     *
+     * @return  new vanilla validator
+     */
+    public static AdqlValidator createValidator() {
+        return new AdqlValidator( (ValidatorTable[]) null,
+                                  (FunctionDef[]) null, (String[]) null );
+    }
+
+    /**
+     * Returns a validator instance that knows about available tables.
+     *
+     * @param  vtables  table metadata for database to be checked against
+     * @return  vanilla validator
+     */
+    public static AdqlValidator createValidator( ValidatorTable[] vtables ) {
+        return new AdqlValidator( vtables,
+                                  (FunctionDef[]) null, (String[]) null );
     }
 
     /**
