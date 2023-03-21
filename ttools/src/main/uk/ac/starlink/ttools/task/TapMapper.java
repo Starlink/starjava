@@ -1,6 +1,6 @@
 package uk.ac.starlink.ttools.task;
 
-import adql.parser.ParseException;
+import adql.parser.grammar.ParseException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;

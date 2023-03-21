@@ -1,9 +1,9 @@
 package uk.ac.starlink.vo;
 
 import adql.db.exception.UnresolvedIdentifiersException;
-import adql.parser.ParseException;
-import adql.parser.Token;
-import adql.parser.TokenMgrError;
+import adql.parser.grammar.ParseException;
+import adql.parser.grammar.Token;
+import adql.parser.grammar.TokenMgrError;
 import adql.query.TextPosition;
 import java.awt.BorderLayout;
 import java.awt.Color;

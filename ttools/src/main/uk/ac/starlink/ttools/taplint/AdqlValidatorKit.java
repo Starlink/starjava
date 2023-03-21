@@ -43,6 +43,15 @@ abstract class AdqlValidatorKit {
     public abstract AdqlValidator getValidator( String langId );
 
     /**
+     * Returns a validator that just validates standard ADQL syntax
+     * according to the basic syntax of the available language version(s).
+     * No feature-specific or (meta)data-specific validation is performed.
+     *
+     * @return  syntax-only ADQL validator
+     */
+    public abstract AdqlValidator getSyntaxValidator();
+
+    /**
      * Indicates whether a named table is allowed by this validator.
      * If the validator has a null list of tables, true is always returned.
      *
@@ -64,16 +73,6 @@ abstract class AdqlValidatorKit {
             }
             return false;
         }
-    }
-
-    /**
-     * Returns a validator that just validates standard ADQL syntax.
-     * No language-specific or (meta)data-specific validation is performed.
-     *
-     * @return  vanilla syntax-only ADQL validator
-     */
-    public AdqlValidator getSyntaxValidator() {
-        return AdqlValidator.createValidator();
     }
 
     /**
@@ -153,6 +152,11 @@ abstract class AdqlValidatorKit {
                 public AdqlValidator getValidator( String langId ) {
                     return AdqlValidator.createValidator( vtables );
                 }
+                public AdqlValidator getSyntaxValidator() {
+                    AdqlValidator validator = AdqlValidator.createValidator();
+                    validator.setAllowAnyUdf( true );
+                    return validator;
+                }
             };
         }
         else if ( langs.length == 1 ) {
@@ -160,6 +164,14 @@ abstract class AdqlValidatorKit {
             return new AdqlValidatorKit( vtables ) {
                 public AdqlValidator getValidator( String langId ) {
                     return AdqlValidator.createValidator( vtables, lang0 );
+                }
+                public AdqlValidator getSyntaxValidator() {
+                    AdqlValidator validator =
+                        AdqlValidator
+                       .createValidator( (AdqlValidator.ValidatorTable[]) null,
+                                         lang0 );
+                    validator.setAllowAnyUdf( true );
+                    return validator;
                 }
             };
         }
@@ -188,6 +200,14 @@ abstract class AdqlValidatorKit {
                         }
                     }
                     return AdqlValidator.createValidator( vtables, lang );
+                }
+                public AdqlValidator getSyntaxValidator() {
+                    AdqlValidator validator =
+                        AdqlValidator
+                       .createValidator( (AdqlValidator.ValidatorTable[]) null,
+                                         lang0 );
+                    validator.setAllowAnyUdf( true );
+                    return validator;
                 }
             };
         }
