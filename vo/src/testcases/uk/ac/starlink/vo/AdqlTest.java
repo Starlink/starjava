@@ -13,4 +13,8 @@ public class AdqlTest extends TestCase {
         assertFalse( AdqlValidator.ADQLGEO_FEATURE_TYPE_VOLLT
                     .equals( AdqlValidator.ADQLGEO_FEATURE_TYPE_VARIANT ) );
     }
+
+    public void testDefaultAdqls() {
+        assertTrue( TapCapabilityPanel.testAdqls() );
+    }
 }

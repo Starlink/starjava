@@ -22263,10 +22263,17 @@ be loaded from the server and may not appear immediately.
 It contains the following information:
 <dl>
 <dt>Query Language</dt>
-<dd><p>Shows what query languages, and what versions, are available.
-    If there is more than one listed, you can choose which language
+<dd><p>Shows what query languages, and what versions, are supported
+    by the service; the default selection is the most recent version
+    of ADQL on offer.
+    If there is more than one option listed, you can choose which language
     you want to submit your query in, but if you choose something
     which is not a variant of ADQL it may not work.
+    The ADQL version selected here will affect the syntax
+    highlighting in the ADQL Text panel below.
+    It's usually best to stick with the default language selection,
+    but experimenting with earlier ADQL versions if available
+    can help to understand differences between the ADQL versions.
     </p></dd>
 <dt>Max Rows</dt>
 <dd><p>Selector which shows the maximum number of output rows 
@@ -22405,7 +22412,7 @@ It has the following parts:
     The <label>Edit</label> actions described above, along with
     Undo/Redo actions from the keyboard, can also help.
     You can have multiple queries on the go at once in different tabs;
-    add/remove/retitle tabs with the toolbar actions, and move between
+    add/copy/remove/retitle tabs with the toolbar actions, and move between
     them by clicking on the tab headers at the top.
     The tab you can see is the one that will be executed if you hit
     the <label>Run Query</label> button.
@@ -22419,7 +22426,8 @@ It has the following parts:
     In some cases, the parser can guess how to fix such errors;
     if the <label>Fix Errors (&IMG.ADQL_FIXUP;)</label> button is enabled,
     you can try clicking that.
-    The checking itself is reasonably reliable, but the position of the
+    </p>
+    <p>The checking itself is reasonably reliable, but the position of the
     highlighted error, and the text of the error message, can sometimes
     be a bit misleading, so don't take the details too seriously.
     The error highlighting is just used as a warning, you are not prevented
@@ -22430,6 +22438,13 @@ It has the following parts:
     accept all queries that count as syntactically valid ADQL,
     so even if TOPCAT doesn't report any errors, the service may still
     respond with an error message.
+    </p>
+    <p>The details of the syntax checking depend on the
+    table metadata, ADQL version and optional language features
+    declared by the service.
+    If multiple ADQL versions are available in the Query Language selector,
+    it is also be possible to change the language version checked
+    by making a different selection.
     </p></dd>
 <dt>Examples line</dt>
 <dd><p>Clicking on the <label>Examples</label> button
@@ -26045,7 +26060,7 @@ Some of the notable contributers are these:
 <li>Mark Mahabir (Leicester)</li>
 <li>Brian Major (CADC)</li>
 <li>Bob Mann (Royal Observatory Edinburgh)</li>
-<li>Gr&#x00e9;gory Mantelet (ARI)</li>
+<li>Gr&#x00e9;gory Mantelet (CDS)</li>
 <li>Jean-Baptiste Marquette (Bordeaux)</li>
 <li>Ben Maughan (Bristol)</li>
 <li>Richard McMahon (IoA)</li>
@@ -31836,6 +31851,13 @@ introduced since the last version:
         Results may be different in crowded regions, and may also
         have differed between v4.8-6 and v4.8-7,
         but are not obviously more or less correct.</li>
+    <li>Upgrade ADQL support in the
+        <ref id="TapTableLoadDialog_query">TAP window</ref>
+        to accommodate ADQL 2.1, thanks to new version of
+        Gr&#x00e9;gory Mantelet's VOLLT ADQL library.
+        Syntax highlighting and validation
+        is now done according to the ADQL version
+        (2.0 or 2.1) shown in the Service Capabilities panel.</li>
     </ul>
     </p></dd>
 

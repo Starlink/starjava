@@ -1,5 +1,7 @@
 package uk.ac.starlink.vo;
 
+import adql.parser.ADQLParser;
+
 /**
  * Version of the ADQL language.
  *
@@ -10,6 +12,7 @@ public enum AdqlVersion {
 
     /** ADQL version 2.0. */
     V20( "2.0", "2.0", "ivo://ivoa.net/std/ADQL#v2.0",
+         ADQLParser.ADQLVersion.V2_0,
          new String[] {
              "features-udf",
              "features-adqlgeo",
@@ -24,6 +27,7 @@ public enum AdqlVersion {
      * that applies to ADQL 2.0.
      */
     V21( "2.1-PR", "2.1", "ivo://ivoa.net/std/ADQL#v2.1",
+         ADQLParser.ADQLVersion.V2_1,
          new String[] {
              "features-udf",
              "features-adqlgeo",
@@ -39,6 +43,7 @@ public enum AdqlVersion {
     private final String name_;
     private final String number_;
     private final String ivoid_;
+    private final ADQLParser.ADQLVersion volltVersion_;
     private final String[] featureUris_;
 
     /**
@@ -47,14 +52,17 @@ public enum AdqlVersion {
      * @param  name   version name
      * @param  number  X.Y format version number
      * @param  ivoid   IVO identifier
+     * @param  volltVersion  corresponding version object from VOLLT library
      * @param  tapregextFeatureFragments  list of ADQL language features
      *                                    for this version
      */
     AdqlVersion( String name, String number, String ivoid,
+                 ADQLParser.ADQLVersion volltVersion,
                  String[] tapregextFeatureFragments ) {
         name_ = name;
         number_ = number;
         ivoid_ = ivoid;
+        volltVersion_ = volltVersion;
         int nfeat = tapregextFeatureFragments.length;
         featureUris_ = new String[ nfeat ];
         for ( int ifeat = 0; ifeat < nfeat; ifeat++ ) {
@@ -102,6 +110,16 @@ public enum AdqlVersion {
         return featureUris_.clone();
     }
 
+    /**
+     * Returns the corresponding version identifier from the VOLLT
+     * ADQL parser library.
+     *
+     * @return  version identifier, not null
+     */
+    ADQLParser.ADQLVersion getVolltVersion() {
+        return volltVersion_;
+    }
+
     @Override
     public String toString() {
         return "V" + name_;
@@ -129,7 +147,7 @@ public enum AdqlVersion {
      */
     public static AdqlVersion byIvoid( String ivoid ) {
         for ( AdqlVersion v : values() ) {
-            if ( v.ivoid_.equals( ivoid ) ) {
+            if ( v.ivoid_.equalsIgnoreCase( ivoid ) ) {
                 return v;
             }
         }

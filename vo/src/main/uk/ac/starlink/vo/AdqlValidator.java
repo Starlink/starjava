@@ -37,12 +37,17 @@ import uk.ac.starlink.util.ContentCoding;
  */
 public class AdqlValidator {
 
-    private final ADQLParser parser_;
+    private final QueryChecker checker_;
+    private final ADQLQueryFactory qfact_;
+    private final FeatureSet featureSet_;
     private AdqlVersion version_;
     private boolean isAllowAnyUdf_;
+    private ADQLParser parser_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
+
+    private static final AdqlVersion DFLT_VERSION = AdqlVersion.V21;
 
     static final String ADQLGEO_FEATURE_TYPE_VOLLT =
         // Correct, but only in later ADQL 2.1 versions
@@ -62,21 +67,27 @@ public class AdqlValidator {
      * @param  vtables  table metadata for database to be checked against,
      *                  or null for no checking
      */
-    private AdqlValidator( ADQLParser.ADQLVersion version,
+    private AdqlValidator( AdqlVersion version,
                            FeatureSet featureSet, ValidatorTable[] vtables ) {
-        if ( version == null ) {
-            version = ADQLParser.ADQLVersion.V2_0;
-        }
-        if ( featureSet == null ) {
-            featureSet = new FeatureSet( true );
-        }
-        QueryChecker checker = vtables == null
-                             ? null
-                             : new DBChecker( Arrays.stream( vtables )
-                                             .map( ValidatorDBTable::new )
-                                             .collect( Collectors.toList() ) );
-        ADQLQueryFactory qfact = new ADQLQueryFactory();
-        parser_ = new ADQLParser( version, checker, qfact, featureSet );
+        featureSet_ = featureSet == null ? new FeatureSet( true ) : featureSet;
+        checker_ = vtables == null
+                 ? null
+                 : new DBChecker( Arrays.stream( vtables )
+                                        .map( ValidatorDBTable::new )
+                                        .collect( Collectors.toList() ) );
+        qfact_ = new ADQLQueryFactory();
+        setAdqlVersion( version );
+        assert parser_ != null;
+    }
+
+    /**
+     * Sets the version of ADQL against which this validator will check.
+     *
+     * @param  version  ADQL version to use, or null for default
+     */
+    public void setAdqlVersion( AdqlVersion version ) {
+        version_ = version == null ? DFLT_VERSION : version;
+        updateParser();
     }
 
     /**
@@ -85,7 +96,8 @@ public class AdqlValidator {
      * @param  isAllowed  true to allow undeclared functions, false to reject
      */
     public void setAllowAnyUdf( boolean isAllowed ) {
-        parser_.allowAnyUdf( isAllowed );
+        isAllowAnyUdf_ = isAllowed;
+        updateParser();
     }
 
     /**
@@ -129,13 +141,23 @@ public class AdqlValidator {
     }
 
     /**
+     * Updates the parser instance to match the configuration of this object.
+     * Should be called whenever configuration is changed.
+     */
+    private void updateParser() {
+        parser_ = new ADQLParser( version_.getVolltVersion(),
+                                  checker_, qfact_, featureSet_ );
+        parser_.allowAnyUdf( isAllowAnyUdf_ );
+    }
+
+    /**
      * Returns a basic validator instance.
      *
      * @return  new vanilla validator
      */
     public static AdqlValidator createValidator() {
-        return new AdqlValidator( (ADQLParser.ADQLVersion) null,
-                                  (FeatureSet) null, (ValidatorTable[]) null );
+        return new AdqlValidator( (AdqlVersion) null, (FeatureSet) null,
+                                  (ValidatorTable[]) null );
     }
 
     /**
@@ -145,8 +167,8 @@ public class AdqlValidator {
      * @return  vanilla validator
      */
     public static AdqlValidator createValidator( ValidatorTable[] vtables ) {
-        return new AdqlValidator( (ADQLParser.ADQLVersion) null,
-                                  (FeatureSet) null, vtables );
+        return new AdqlValidator( (AdqlVersion) null, (FeatureSet) null,
+                                  vtables );
     }
 
     /**
@@ -161,6 +183,9 @@ public class AdqlValidator {
      */
     public static AdqlValidator createValidator( ValidatorTable[] vtables,
                                                  TapLanguage lang ) {
+
+        /* Establish ADQL version. */
+        AdqlVersion version = getLatestAdqlVersion( lang );
 
         /* Prepare to extract from the TapLanguage object a list of
          * LanguageFeatures that can be passed to the parser. */
@@ -231,7 +256,6 @@ public class AdqlValidator {
         }
 
         /* Construct a suitable validator object. */
-        ADQLParser.ADQLVersion version = null;
         return new AdqlValidator( version, featureSet, vtables );
     }
 
@@ -306,6 +330,36 @@ public class AdqlValidator {
             vtables = null;
         }
         createValidator( vtables ).validate( query );
+    }
+
+    /**
+     * Returns the most recent supported version of the ADQL language
+     * declared by the TapLanguage object.  If none are declared,
+     * null is returned.
+     *
+     * @param  lang  language variant declaration
+     * @return  VOLLT ADQL language version specifier, or null
+     */
+    private static AdqlVersion getLatestAdqlVersion( TapLanguage lang ) {
+        if ( lang != null ) {
+            boolean isAdql = "ADQL".equalsIgnoreCase( lang.getName() );
+            for ( AdqlVersion version :
+                  new AdqlVersion[] { AdqlVersion.V21, AdqlVersion.V20 } ) {
+                for ( String vid : lang.getVersionIds() ) {
+                    if ( version.getIvoid().equalsIgnoreCase( vid ) ) {
+                        return version;
+                    }
+                }
+                if ( isAdql ) {
+                    for ( String vnum : lang.getVersions() ) {
+                        if ( version.getNumber().equals( vnum ) ) {
+                            return version;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**

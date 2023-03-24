@@ -3,9 +3,11 @@ package uk.ac.starlink.vo;
 import java.awt.BorderLayout;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -27,7 +29,15 @@ public class TapCapabilityPanel extends JPanel {
     private final JComboBox<VersionedLanguage> langSelector_;
     private final JTextField uploadField_;
     private final JComboBox<Object> maxrecSelector_;
-    private static final VersionedLanguage ADQL = createDefaultAdqlLanguage();
+    private VersionedLanguage lastLang_;
+
+    /** Name of property associated with currently selected language. */
+    public static final String LANGUAGE_PROPERTY = "language";
+
+    private static final VersionedLanguage[] ADQLS =
+        createDefaultVersionedLanguages();
+    private static final VersionedLanguage ADQL =
+        getDefaultLanguage( ADQLS );
 
     /**
      * Constructor.
@@ -37,6 +47,13 @@ public class TapCapabilityPanel extends JPanel {
         langSelector_ = new JComboBox<>();
         langSelector_.setToolTipText( "Selects which supported query "
                                     + "language/version to use" );
+        langSelector_.addActionListener( evt -> {
+            int ix = langSelector_.getSelectedIndex();
+            VersionedLanguage lang = ix > 0 ? langSelector_.getItemAt( ix )
+                                            : null;
+            firePropertyChange( LANGUAGE_PROPERTY, lastLang_, lang );
+            lastLang_ = lang;
+        } );
         uploadField_ = new JTextField();
         uploadField_.setEditable( false );
         uploadField_.setToolTipText( "Indicates whether the service supports "
@@ -82,12 +99,12 @@ public class TapCapabilityPanel extends JPanel {
         /* Capability object exists, but looks like it is very sparsely
          * populated (missing mandatory elements). */
         else if ( capability.getLanguages().length == 0 ) {
-            VersionedLanguage[] vlangs = new VersionedLanguage[] { ADQL };
+            VersionedLanguage[] vlangs = ADQLS.clone();
             langSelector_.setModel( new DefaultComboBoxModel<VersionedLanguage>
                                                             ( vlangs ) );
-            langSelector_.setSelectedIndex( 0 );
+            langSelector_.setSelectedItem( getDefaultLanguage( vlangs ) );
             uploadField_.setText( null );
-            langSelector_.setEnabled( false );
+            langSelector_.setEnabled( true );
             maxrecModel = new DefaultComboBoxModel<>( new String[ 1 ] );
         }
 
@@ -235,6 +252,44 @@ public class TapCapabilityPanel extends JPanel {
     }
 
     /**
+     * Returns the ADQL version associated with the currently selected
+     * query language, or null if it's not obvious which.
+     *
+     * @return  adql version, or null
+     */
+    public AdqlVersion getSelectedAdqlVersion() {
+        VersionedLanguage vlang = getSelectedLanguage();
+        if ( vlang == null ) {
+            return null;
+        }
+        TapLanguage tlang = vlang.lang_;
+        String vname = vlang.version_;
+        if ( tlang == null || vname == null ) {
+            return null;
+        }
+        String[] vids = tlang.getVersionIds();
+        String[] vnames = tlang.getVersions();
+        if ( vids == null || vnames == null || vids.length != vnames.length ) {
+            return null;
+        }
+        int iv = Arrays.asList( vnames ).indexOf( vname );
+        if ( iv < 0 ) {
+            return null;
+        }
+        AdqlVersion idVersion = AdqlVersion.byIvoid( vids[ iv ] );
+        if ( idVersion != null ) {
+            return idVersion;
+        }
+        if ( "ADQL".equalsIgnoreCase( tlang.getName() ) ) {
+            AdqlVersion numVersion = AdqlVersion.byNumber( vnames[ iv ] );
+            if ( numVersion != null ) {
+                return numVersion;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns a reasonably compact string indicating an upload limit for
      * the currently displayed capability; some indication of the unit
      * is included in the result.
@@ -320,10 +375,12 @@ public class TapCapabilityPanel extends JPanel {
      */
     private static VersionedLanguage
             getDefaultLanguage( VersionedLanguage[] vlangs ) {
-        for ( VersionedLanguage vlang : vlangs ) {
-            if ( "adql".equalsIgnoreCase( vlang.lang_.getName() ) &&
-                 "2.0".equals( vlang.version_ ) ) {
-                return vlang;
+        for ( String adqlVers : new String[] { "2.1", "2.0" } ) {
+            for ( VersionedLanguage vlang : vlangs ) {
+                if ( "adql".equalsIgnoreCase( vlang.lang_.getName() ) &&
+                     adqlVers.equals( vlang.version_ ) ) {
+                    return vlang;
+                }
             }
         }
         for ( VersionedLanguage vlang : vlangs ) {
@@ -353,13 +410,14 @@ public class TapCapabilityPanel extends JPanel {
     }
 
     /**
-     * Returns a default VersionedLanguage instance.
-     * This currently corresponds to ADQL 2.0, which is mandatory for TAP v1.0.
+     * Returns an array of standard VersionedLanguage instances.
+     * This currently corresponds to the supported versions of ADQL,
+     * which is mandatory for TAP.
      *
-     * @return  default language instance
+     * @return  default language instance array
      */
-    private static VersionedLanguage createDefaultAdqlLanguage() {
-        String version = null;
+    private static VersionedLanguage[] createDefaultVersionedLanguages() {
+        AdqlVersion[] versions = { AdqlVersion.V20, AdqlVersion.V21 };
         TapLanguage lang = new TapLanguage() {
             public String getName() {
                 return "ADQL";
@@ -368,16 +426,40 @@ public class TapCapabilityPanel extends JPanel {
                 return "Astronomical Data Query Language";
             }
             public String[] getVersionIds() {
-                return new String[] { "ivo://ivoa.net/std/ADQL#v2.0" };
+                return Arrays.stream( versions )
+                             .map( AdqlVersion::getIvoid )
+                             .collect( Collectors.toList() )
+                             .toArray( new String[ 0 ] );
             }
             public String[] getVersions() {
-                return new String[] { "2.0" };
+                return Arrays.stream( versions )
+                             .map( AdqlVersion::getNumber )
+                             .collect( Collectors.toList() )
+                             .toArray( new String[ 0 ] );
             }
             public Map<String,TapLanguageFeature[]> getFeaturesMap() {
                 return new HashMap<String,TapLanguageFeature[]>();
             }
         };
-        return new VersionedLanguage( lang, version );
+        return Arrays.stream( versions )
+                     .map( v -> new VersionedLanguage( lang, v.getNumber() ) )
+                     .collect( Collectors.toList() )
+                     .toArray( new VersionedLanguage[ 0 ] );
+    }
+
+    /**
+     * Used by unit testing.
+     * Do it like this to avoid exposing internals of this class.
+     *
+     * @return   true if OK, false in case of assertion failure
+     */
+    static boolean testAdqls() {
+        return ADQLS.length == 2
+            && "2.0".equals( ADQLS[ 0 ].version_ )
+            && "2.1".equals( ADQLS[ 1 ].version_ )
+            && "2.1".equals( ADQL.version_ )
+            && "ivo://ivoa.net/std/ADQL#v2.1"
+              .equals( ADQL.lang_.getVersionIds()[ 1 ] );
     }
 
     /**
