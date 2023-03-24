@@ -373,18 +373,18 @@ public abstract class DataModelAdqlExample implements AdqlExample {
             },
 
             new ObsTapExample( "By Spatial, Spectral, Exposure",
-                               "Find observatrinos with constraints on"
+                               "Find observations with constraints on"
                                + " position, band and exposure time" ) {
                 protected String[] getTextLines( double[] skypos ) {
                     return new String[] {
                         "SELECT * FROM ivoa.Obscore",
                         "WHERE em_min < 2.48E-10 AND em_max > 2.48E-10",
-                        " AND CONTAINS(POINT('ICRS', "
+                        "  AND CONTAINS(POINT('ICRS', "
                          + AbstractAdqlExample.formatCoord( skypos, false, 16. )
                          + ", "
                          + AbstractAdqlExample.formatCoord( skypos, true, 10. )
                          + "), s_region) = 1",
-                        " AND t_exptime > 10000",
+                        "  AND t_exptime > 10000",
                     };
                 }
             },

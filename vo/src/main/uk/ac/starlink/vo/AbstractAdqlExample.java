@@ -78,18 +78,18 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     public static Breaker createBreaker( boolean lineBreaks ) {
         return lineBreaks
              ? new Breaker() {
-                   public String level( int ilev ) {
-                       StringBuffer sbuf = new StringBuffer();
+                   public String space( int n ) {
+                       StringBuffer sbuf = new StringBuffer( 1 + n );
                        sbuf.append( '\n' );
-                       for ( int i = 0; i < ilev; i++ ) {
-                           sbuf.append( "   " );
+                       for ( int i = 0; i < n; i++ ) {
+                           sbuf.append( ' ' );
                        }
                        return sbuf.toString();
                    }
                }
              : new Breaker() {
-                   public String level( int ilev ) {
-                       return "";
+                   public String space( int n ) {
+                       return " ";
                    }
                };
     }
@@ -170,10 +170,10 @@ public abstract class AbstractAdqlExample implements AdqlExample {
          * Returns a string which can be used to separate parts of an output
          * example string.
          *
-         * @param   ilev  notional indentation level
-         * @return   whitespace string
+         * @param   indent  notional number of spaces at start of line
+         * @return   string containing at least one whitespace character
          */
-        public abstract String level( int ilev );
+        public abstract String space( int indent );
     }
 
     /**
@@ -431,13 +431,12 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         colSelection = "*";
                     }
                     return new StringBuffer()
-                        .append( "SELECT" )
-                        .append( breaker.level( 1 ) )
+                        .append( "SELECT " )
                         .append( "TOP " )
                         .append( ROW_COUNT )
-                        .append( breaker.level( 1 ) )
+                        .append( breaker.space( 7 ) )
                         .append( colSelection )
-                        .append( breaker.level( 1 ) )
+                        .append( breaker.space( 0 ) )
                         .append( "FROM" )
                         .append( ' ' )
                         .append( tref.getIntroName() )
@@ -526,26 +525,23 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         };
                     }
                     return new StringBuffer()
-                        .append( "SELECT" )
-                        .append( breaker.level( 1 ) )
+                        .append( "SELECT " )
                         .append( "TOP " )
                         .append( ROW_COUNT )
-                        .append( breaker.level( 1 ) )
+                        .append( breaker.space( 7 ) )
                         .append( "*" )
-                        .append( breaker.level( 1 ) )
+                        .append( breaker.space( 0 ) )
                         .append( "FROM " )
                         .append( tref.getIntroName() )
-                        .append( breaker.level( 1 ) )
-                        .append( "WHERE" )
-                        .append( breaker.level( 2 ) )
+                        .append( breaker.space( 0 ) )
+                        .append( "WHERE " )
                         .append( tref.getColumnName( raCol ) )
                         .append( " BETWEEN " )
                         .append( ras[ 0 ] )
                         .append( " AND " )
                         .append( ras[ 1 ] )
-                        .append( breaker.level( 2 ) )
-                        .append( "AND" )
-                        .append( breaker.level( 2 ) )
+                        .append( breaker.space( 2 ) )
+                        .append( "AND " )
                         .append( tref.getColumnName( decCol ) )
                         .append( " BETWEEN " )
                         .append( decs[ 0 ] )
@@ -574,25 +570,22 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     Breaker breaker = createBreaker( lineBreaks );
                     TableRef tref = createTableRef( rdTab, lang );
                     return new StringBuffer()
-                        .append( "SELECT" )
-                        .append( breaker.level( 1 ) )
+                        .append( "SELECT " )
                         .append( "TOP " )
                         .append( ROW_COUNT )
-                        .append( breaker.level( 1 ) )
+                        .append( breaker.space( 7 ) )
                         .append( "*" )
-                        .append( breaker.level( 1 ) )
+                        .append( breaker.space( 0 ) )
                         .append( "FROM " )
                         .append( tref.getIntroName() )
-                        .append( breaker.level( 1 ) )
+                        .append( breaker.space( 0 ) )
                         .append( "WHERE " )
-                        .append( breaker.level( 2 ) )
                         .append( "1=CONTAINS(POINT('ICRS', " )
                         .append( tref.getColumnName( radec[ 0 ] ) )
                         .append( ", " )
                         .append( tref.getColumnName( radec[ 1 ] ) )
                         .append( ")," )
-                        .append( breaker.level( 2 ) )
-                        .append( "           " )
+                        .append( breaker.space( 17 ) )
                         .append( "CIRCLE('ICRS', " )
                         .append( formatCoord( skypos, false, 189.2 ) )
                         .append( ", " )
@@ -626,19 +619,18 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     String[] radec2 = rdTabs[ 1 ].getColumns();
                     Breaker breaker = createBreaker( lineBreaks );
                     return new StringBuffer()
-                        .append( "SELECT" )
-                        .append( breaker.level( 1 ) )
+                        .append( "SELECT " )
                         .append( "TOP " )
                         .append( ROW_COUNT )
-                        .append( breaker.level( 1 ) )
+                        .append( breaker.space( 7 ) )
                         .append( "*" )
-                        .append( breaker.level( 1 ) )
+                        .append( breaker.space( 0 ) )
                         .append( "FROM " )
                         .append( tref1.getIntroName() )
-                        .append( breaker.level( 1 ) )
+                        .append( breaker.space( 0 ) )
                         .append( "JOIN " )
                         .append( tref2.getIntroName() )
-                        .append( breaker.level( 1 ) )
+                        .append( breaker.space( 2 ) )
                         // CONTAINS is not mandatory, though INTERSECTS is.
                         // However, Markus has problems with INTERSECTS and
                         // POINTs, so avoid it here.
@@ -647,8 +639,8 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( ", " )
                         .append( tref1.getColumnName( radec1[ 1 ] ) )
                         .append( ")," )
-                        .append( breaker.level( 1 ) )
-                        .append( "              CIRCLE('ICRS', " )
+                        .append( breaker.space( 17 ) )
+                        .append( "CIRCLE('ICRS', " )
                         .append( tref2.getColumnName( radec2[ 0 ] ) )
                         .append( ", " )
                         .append( tref2.getColumnName( radec2[ 1 ] ) )
