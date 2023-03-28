@@ -61,7 +61,8 @@ a {
 </head>
 <body>
 
-<h1>Very basic ADQL cheat sheet</h1>
+<h1>Very basic ADQL <span class="adql2.0">2.0</span>
+                    <span class="adql2.1">2.1</span> cheat sheet</h1>
 
 <h2>Examples</h2>
 
@@ -84,8 +85,9 @@ relate to the current TAP service.
 
 <div id="indent">
 <pre>
-SELECT [TOP n] &lt;select-list&gt;
-    FROM &lt;table-and-join-expression&gt;
+<span class="adql2.1">[WITH &lt;name&gt; AS (SELECT ...)]
+</span>SELECT [TOP n] &lt;select-list&gt;
+   FROM &lt;table-and-join-expression&gt;
    [WHERE &lt;conditions&gt;]
    [GROUP BY &lt;column-list&gt;]
    [HAVING &lt;conditions&gt;]
@@ -128,6 +130,7 @@ SELECT ... FROM &lt;table1&gt; JOIN &lt;table2&gt; ON &lt;expression&gt;
 <pre>
 SELECT ... FROM &lt;table1&gt; JOIN &lt;table2&gt; USING (&lt;common-column-list&gt;)
 </pre>
+<span class="adql2.0">
 <pre style="margin-bottom: 0pt;">
 SELECT ...
    FROM &lt;table1&gt; AS a
@@ -138,6 +141,15 @@ SELECT ...
 <p id="indent">
 (Note: the 'ICRS' argument usually doesn't do anything, but you need it anyway)
 </p>
+</span>
+<span class="adql2.1">
+<pre>
+SELECT ...
+   FROM &lt;table1&gt; AS a
+   JOIN &lt;table2&gt; AS b
+   ON DISTANCE(a.ra, a.dec, b.ra, b.dec) &lt;= &lt;radius-in-degrees&gt;
+</pre>
+</span>
 </div>
 
 <h2>Upload joins</h2>
@@ -157,31 +169,45 @@ table 3 in Control Window list is <code>TAP_UPLOAD.t3</code>.
 
 <p>
 <a href="http://docs.g-vo.org/adqlref/adqlref.pdf"
-   >GAVO ADQL Cheat Sheet (PDF)</a>
+   >GAVO ADQL Cheat Sheet
+    (PDF<span class="adql2.1">, ADQL 2.0</span>)</a>
 <span id="linkurl">
 (http://docs.g-vo.org/adqlref/)
 </span>
 </p>
 
 <p>
-<a href="http://docs.g-vo.org/adql/">GAVO ADQL Introduction</a>
+<a href="http://docs.g-vo.org/adql/"
+   >GAVO ADQL Introduction<span class="adql2.0"> (ADQL 2.1)</span></a>
 <span id="linkurl">
 (http://docs.g-vo.org/adql/)
 </span>
 </p>
 
 <p>
-<a href="http://www.ivoa.net/documents/latest/ADQL.html">ADQL Standard</a>
-<span id="linkurl">
-(http://www.ivoa.net/documents/latest/ADQL.html)
+<span class="adql2.0">
+  <a href="https://www.ivoa.net/documents/cover/ADQL-20081030.html"
+     >ADQL 2.0 Standard</a>
+  <span id="linkurl">
+  (https://www.ivoa.net/documents/cover/ADQL-20081030.html)
+  </span>
+</span>
+<span class="adql2.1">
+  <a href="https://www.ivoa.net/documents/ADQL/20210528/"
+     >ADQL 2.1 Draft Standard</a>
+  <span id="linkurl">
+  (https://www.ivoa.net/documents/ADQL/20210528/
+  </span>
 </span>
 </p>
 
 <p>
+<span class="adql2.0">
 <a href="http://wiki.ivoa.net/internal/IVOA/IvoaVOQL/adql-bnf-v2.0.html"
-   >ADQL BNF</a>
+   >ADQL 2.0 BNF</a>
 <span id="linkurl">
 (http://wiki.ivoa.net/internal/IVOA/IvoaVOQL/adql-bnf-v2.0.html)
+</span>
 </span>
 </p>
 

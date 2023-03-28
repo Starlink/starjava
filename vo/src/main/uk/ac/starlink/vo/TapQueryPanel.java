@@ -139,9 +139,13 @@ public class TapQueryPanel extends JPanel {
 
         /* Prepare a panel to contain service capability information. */
         tcapPanel_ = new TapCapabilityPanel();
-        tcapPanel_.addPropertyChangeListener( TapCapabilityPanel
-                                             .LANGUAGE_PROPERTY,
-                                              evt -> validateAdql() );
+        tcapPanel_.addPropertyChangeListener(
+                TapCapabilityPanel.LANGUAGE_PROPERTY,
+                evt -> {
+                    validateAdql();
+                    tmetaPanel_.setAdqlVersion( tcapPanel_
+                                               .getSelectedAdqlVersion() );
+                } );
 
         /* Prepare a component to contain user-entered ADQL text. */
         textTabber_ = new JTabbedPane();

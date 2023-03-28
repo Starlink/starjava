@@ -22253,6 +22253,9 @@ The tabs are as follows:
     you is to use the <label>Examples</label> menu,
     and the service-provided examples (from the Examples menu or
     via a link) if available.
+    The content of this panel is somewhat sensitive to the
+    capabilities of the service, for instance the ADQL version selected
+    and the availability of service-provided examples.
     </p></dd>
 </dl>
 </p>
@@ -22270,7 +22273,9 @@ It contains the following information:
     you want to submit your query in, but if you choose something
     which is not a variant of ADQL it may not work.
     The ADQL version selected here will affect the syntax
-    highlighting in the ADQL Text panel below.
+    highlighting in the ADQL Text panel below,
+    as well as the exact form of the example queries in
+    the Hints tab. 
     It's usually best to stick with the default language selection,
     but experimenting with earlier ADQL versions if available
     can help to understand differences between the ADQL versions.
@@ -31855,8 +31860,9 @@ introduced since the last version:
         <ref id="TapTableLoadDialog_query">TAP window</ref>
         to accommodate ADQL 2.1, thanks to new version of
         Gr&#x00e9;gory Mantelet's VOLLT ADQL library.
-        Syntax highlighting and validation
-        is now done according to the ADQL version
+        Syntax highlighting and validation,
+        and help from the Hints tab,
+        are now done according to the ADQL version
         (2.0 or 2.1) shown in the Service Capabilities panel.</li>
     </ul>
     </p></dd>

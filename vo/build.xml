@@ -442,6 +442,18 @@
        <fileset dir="${src.jars.dir}"/>
     </copy>
 
+    <!-- Build some documents that will be rendered in the application. -->
+    <xslt in="${src.dir}/etc/adql_hints.xhtml"
+          out="${build.classes}/uk/ac/starlink/vo/adql_hints_v2.0.html"
+          style="${src.dir}/etc/trans_adql.xslt">
+      <param name="ADQL_VERSION" expression="2.0"/>
+    </xslt>
+    <xslt in="${src.dir}/etc/adql_hints.xhtml"
+          out="${build.classes}/uk/ac/starlink/vo/adql_hints_v2.1.html"
+          style="${src.dir}/etc/trans_adql.xslt">
+      <param name="ADQL_VERSION" expression="2.1"/>
+    </xslt>
+
   </target>
 
   <!--

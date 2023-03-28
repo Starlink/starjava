@@ -443,6 +443,17 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
+     * Sets the version of the ADQL language for which this panel
+     * is showing metadata.
+     *
+     * @param  version  ADQL version
+     */
+    public void setAdqlVersion( AdqlVersion version ) {
+        hintPanel_.setAdqlVersion( version == null ? AdqlVersion.V20
+                                                   : version );
+    }
+
+    /**
      * Displays information about the registry resource corresponding to
      * the TAP service represented by this panel.
      * The argument is a map of standard RegTAP resource column names
