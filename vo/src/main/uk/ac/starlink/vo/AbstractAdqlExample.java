@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Represents a type of example ADQL query.
@@ -67,6 +68,44 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      */
     private static boolean isAdql1( String lang ) {
         return lang != null && lang.toUpperCase().startsWith( "ADQL-1." );
+    }
+
+    /**
+     * Indicates if a language string represents ADQL 2.1 or later.
+     *
+     * @param  tcap  table capabilities
+     * @param  lang  language name
+     * @return   true if lang looks like ADQL at least version 2.1
+     */
+    public static boolean isAdql21( TapCapability tcap, String lang ) {
+
+        /* This ought to give the right answer. */
+        for ( TapLanguage tlang : tcap.getLanguages() ) {
+            String[] vnums = tlang.getVersions();
+            String[] vids = tlang.getVersionIds();
+            if ( vnums != null && vids != null ) {
+                int iv = Arrays.stream( vnums )
+                               .map( vnum -> tlang.getName() + "-" + vnum )
+                               .collect( Collectors.toList() )
+                               .indexOf( lang );
+                if ( iv >= 0 && iv < vids.length ) {
+                    if ( AdqlVersion.V21.getIvoid()
+                                        .equalsIgnoreCase( vids[ iv ] ) ) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        /* But fall back to doing it the dumb way if it doesn't. */
+        if ( lang != null &&
+             lang.toUpperCase().startsWith( "ADQL-2." ) &&
+             ! lang.toUpperCase().startsWith( "ADQL-2.0" ) ) {
+            return true;
+        }
+
+        /* Nope. */
+        return false;
     }
 
     /**
@@ -569,8 +608,8 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     String[] radec = rdTabs[ 0 ].getColumns();
                     Breaker breaker = createBreaker( lineBreaks );
                     TableRef tref = createTableRef( rdTab, lang );
-                    return new StringBuffer()
-                        .append( "SELECT " )
+                    StringBuffer sbuf = new StringBuffer();
+                    sbuf.append( "SELECT " )
                         .append( "TOP " )
                         .append( ROW_COUNT )
                         .append( breaker.space( 7 ) )
@@ -579,20 +618,38 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( "FROM " )
                         .append( tref.getIntroName() )
                         .append( breaker.space( 0 ) )
-                        .append( "WHERE " )
-                        .append( "1=CONTAINS(POINT('ICRS', " )
-                        .append( tref.getColumnName( radec[ 0 ] ) )
-                        .append( ", " )
-                        .append( tref.getColumnName( radec[ 1 ] ) )
-                        .append( ")," )
-                        .append( breaker.space( 17 ) )
-                        .append( "CIRCLE('ICRS', " )
-                        .append( formatCoord( skypos, false, 189.2 ) )
-                        .append( ", " )
-                        .append( formatCoord( skypos, true, 62.21 ) )
-                        .append( ", 0.05 )" )
-                        .append( ")" )
-                        .toString();
+                        .append( "WHERE " );
+                    String raTxt = formatCoord( skypos, false, 189.2 );
+                    String decTxt = formatCoord( skypos, true, 62.21 );
+                    String radiusTxt = "0.05";
+                    if ( isAdql21( tcap, lang ) ) {
+                        sbuf.append( "DISTANCE(" )
+                            .append( tref.getColumnName( radec[ 0 ] ) )
+                            .append( ", " )
+                            .append( tref.getColumnName( radec[ 1 ] ) )
+                            .append( ", " )
+                            .append( raTxt )
+                            .append( ", " ) 
+                            .append( decTxt )
+                            .append( ") < " )
+                            .append( radiusTxt );
+                    }
+                    else {
+                        sbuf.append( "1=CONTAINS(POINT('ICRS', " )
+                            .append( tref.getColumnName( radec[ 0 ] ) )
+                            .append( ", " )
+                            .append( tref.getColumnName( radec[ 1 ] ) )
+                            .append( ")," )
+                            .append( breaker.space( 17 ) )
+                            .append( "CIRCLE('ICRS', " )
+                            .append( raTxt )
+                            .append( ", " )
+                            .append( decTxt )
+                            .append( ", " )
+                            .append( radiusTxt )
+                            .append( "))" );
+                    }
+                    return sbuf.toString();
                 }
             },
 
@@ -618,8 +675,8 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     String[] radec1 = rdTabs[ 0 ].getColumns();
                     String[] radec2 = rdTabs[ 1 ].getColumns();
                     Breaker breaker = createBreaker( lineBreaks );
-                    return new StringBuffer()
-                        .append( "SELECT " )
+                    StringBuffer sbuf = new StringBuffer();
+                    sbuf.append( "SELECT " )
                         .append( "TOP " )
                         .append( ROW_COUNT )
                         .append( breaker.space( 7 ) )
@@ -630,23 +687,39 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( breaker.space( 0 ) )
                         .append( "JOIN " )
                         .append( tref2.getIntroName() )
-                        .append( breaker.space( 2 ) )
+                        .append( breaker.space( 2 ) );
+                    String radiusTxt = "5./3600.";
+                    if ( isAdql21( tcap, lang ) ) {
+                        sbuf.append( "ON DISTANCE(" )
+                            .append( tref1.getColumnName( radec1[ 0 ] ) )
+                            .append( ", " )
+                            .append( tref1.getColumnName( radec1[ 1 ] ) )
+                            .append( ", " )
+                            .append( tref2.getColumnName( radec2[ 0 ] ) )
+                            .append( ", " )
+                            .append( tref2.getColumnName( radec2[ 1 ] ) )
+                            .append( ") < " )
+                            .append( radiusTxt );
+                    }
+                    else {
                         // CONTAINS is not mandatory, though INTERSECTS is.
                         // However, Markus has problems with INTERSECTS and
                         // POINTs, so avoid it here.
-                        .append( "ON 1=CONTAINS(POINT('ICRS', " )
-                        .append( tref1.getColumnName( radec1[ 0 ] ) )
-                        .append( ", " )
-                        .append( tref1.getColumnName( radec1[ 1 ] ) )
-                        .append( ")," )
-                        .append( breaker.space( 17 ) )
-                        .append( "CIRCLE('ICRS', " )
-                        .append( tref2.getColumnName( radec2[ 0 ] ) )
-                        .append( ", " )
-                        .append( tref2.getColumnName( radec2[ 1 ] ) )
-                        .append( ", 5./3600." )
-                        .append( "))" )
-                        .toString();
+                        sbuf.append( "ON 1=CONTAINS(POINT('ICRS', " )
+                            .append( tref1.getColumnName( radec1[ 0 ] ) )
+                            .append( ", " )
+                            .append( tref1.getColumnName( radec1[ 1 ] ) )
+                            .append( ")," )
+                            .append( breaker.space( 17 ) )
+                            .append( "CIRCLE('ICRS', " )
+                            .append( tref2.getColumnName( radec2[ 0 ] ) )
+                            .append( ", " )
+                            .append( tref2.getColumnName( radec2[ 1 ] ) )
+                            .append( ", " )
+                            .append( radiusTxt )
+                            .append( "))" );
+                    }
+                    return sbuf.toString();
                 }
             },
         };

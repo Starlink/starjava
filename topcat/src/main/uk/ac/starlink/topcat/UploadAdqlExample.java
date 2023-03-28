@@ -83,7 +83,7 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
                     if ( ! TapCapabilityPanel.canUpload( tcap ) ) {
                         return null;
                     } 
-                    return getJoinText( lineBreaks, lang, tables, table,
+                    return getJoinText( lineBreaks, tcap, lang, tables, table,
                                         tcList );
                 }
             },
@@ -126,13 +126,15 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
      *
      * @param  lineBreaks  whether output ADQL should include multiline
      *                     formatting
+     * @param  tcap  table capabilities for service
      * @param  lang  ADQL language variant (e.g. "ADQL-2.0")
      * @param  tables  table metadata set
      * @param  table  currently selected table
      * @param  tcList  JList of known TopcatModels
      */
-    private static String getJoinText( boolean lineBreaks, String lang,
-                                       TableMeta[] tables, TableMeta table,
+    private static String getJoinText( boolean lineBreaks, TapCapability tcap,
+                                       String lang, TableMeta[] tables,
+                                       TableMeta table,
                                        JList<TopcatModel> tcJlist ) {
         AdqlSyntax syntax = AdqlSyntax.getInstance();
         TableWithCols[] rdRemotes =
@@ -170,8 +172,9 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
         Breaker breaker = createBreaker( lineBreaks );
         String localAlias = "tc";
         String remoteAlias = "db";
-        return new StringBuffer()
-            .append( "SELECT " )
+        String radiusTxt = "5./3600.";
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "SELECT " )
             .append( "TOP " )
             .append( 1000 )
             .append( breaker.space( 7 ) )
@@ -187,29 +190,39 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
             .append( localRd.getID() )
             .append( " AS " )
             .append( localAlias )
-            .append( breaker.space( 2 ) )
-            .append( "ON 1=CONTAINS(POINT('ICRS', " )
-            .append( remoteAlias )
-            .append( "." )
-            .append( rdRemote.getColumns()[ 0 ] )
-            .append( ", " )
-            .append( remoteAlias )
-            .append( "." )
-            .append( rdRemote.getColumns()[ 1 ] )
-            .append( ")," )
-            .append( breaker.space( 16 ) )
-            .append( "CIRCLE('ICRS', " )
-            .append( localAlias )
-            .append( "." )
-            .append( localCoords[ 0 ] )
-            .append( ", " )
-            .append( localAlias )
-            .append( "." )
-            .append( localCoords[ 1 ] )
-            .append( ", " )
-            .append( "5./3600." )
-            .append( "))" )
-            .toString();
+            .append( breaker.space( 2 ) );
+        String raRemote = remoteAlias + "." + rdRemote.getColumns()[ 0 ];
+        String deRemote = remoteAlias + "." + rdRemote.getColumns()[ 1 ];
+        String raLocal = localAlias + "." + localCoords[ 0 ];
+        String deLocal = localAlias + "." + localCoords[ 1 ];
+        if ( isAdql21( tcap, lang ) ) {
+            sbuf.append( "ON DISTANCE(" )
+                .append( raRemote )
+                .append( ", " )
+                .append( deRemote )
+                .append( ", " )
+                .append( raLocal )
+                .append( ", " )
+                .append( deLocal )
+                .append( ") < " )
+                .append( radiusTxt );
+        }
+        else {
+            sbuf.append( "ON 1=CONTAINS(POINT('ICRS', " )
+                .append( raRemote )
+                .append( ", " )
+                .append( deRemote )
+                .append( ")," )
+                .append( breaker.space( 16 ) )
+                .append( "CIRCLE('ICRS', " )
+                .append( raLocal )
+                .append( ", " )
+                .append( deLocal )
+                .append( ", " )
+                .append( radiusTxt )
+                .append( "))" );
+        }
+        return sbuf.toString();
     }
 
     /**

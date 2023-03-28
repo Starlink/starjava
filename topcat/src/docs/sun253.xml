@@ -22275,7 +22275,7 @@ It contains the following information:
     The ADQL version selected here will affect the syntax
     highlighting in the ADQL Text panel below,
     as well as the exact form of the example queries in
-    the Hints tab. 
+    some of the Examples menu entries and the Hints tab. 
     It's usually best to stick with the default language selection,
     but experimenting with earlier ADQL versions if available
     can help to understand differences between the ADQL versions.
@@ -22459,7 +22459,9 @@ It has the following parts:
     the editing panel; you should be able to hit the <label>Run Query</label>
     button straight away and execute it to get a result.
     In some cases the example text is influenced by the
-    table you're currently looking at in the metadata panel.
+    table you're currently looking at in the Metadata panel,
+    and by the ADQL version of the Query Language currently selected
+    in the Service Capabilities panel.
     Until you are experienced with ADQL,
     starting from one of these examples and editing it to taste
     is often a good way to write a query of your own.
@@ -31861,7 +31863,7 @@ introduced since the last version:
         to accommodate ADQL 2.1, thanks to new version of
         Gr&#x00e9;gory Mantelet's VOLLT ADQL library.
         Syntax highlighting and validation,
-        and help from the Hints tab,
+        and help from the ADQL Examples menu and Hints tab,
         are now done according to the ADQL version
         (2.0 or 2.1) shown in the Service Capabilities panel.</li>
     </ul>
