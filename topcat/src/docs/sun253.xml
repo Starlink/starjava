@@ -31865,7 +31865,11 @@ introduced since the last version:
         Syntax highlighting and validation,
         and help from the ADQL Examples menu and Hints tab,
         are now done according to the ADQL version
-        (2.0 or 2.1) shown in the Service Capabilities panel.</li>
+        (2.0 or 2.1) shown in the Service Capabilities panel.
+        The TAP Service metadata display tab now also has two additional 
+        headings to display service-specific characteristics: 
+        ADQL 2.1 Optional Features and
+        Non-Standard Language Features.</li>
     </ul>
     </p></dd>
 

@@ -19,8 +19,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -1681,6 +1685,7 @@ public class TableSetPanel extends JPanel {
      * MetaPanel subclass for displaying service metadata.
      */
     private static class ResourceMetaPanel extends MetaPanel {
+
         private final JTextComponent ivoidField_;
         private final JTextComponent servurlField_;
         private final JTextComponent nameField_;
@@ -1694,7 +1699,30 @@ public class TableSetPanel extends JPanel {
         private final JTextComponent descripField_;
         private final JTextComponent dmField_;
         private final JTextComponent geoField_;
+        private final JTextComponent adql21Field_;
         private final JTextComponent udfField_;
+        private final JTextComponent nonstdField_;
+
+        private static final String TAPREGEXT = TapCapability.TAPREGEXT_STD_URI;
+        private static final String[] ADQLGEO_FTYPES = new String[] {
+            TAPREGEXT + "#features-adqlgeo",
+            TAPREGEXT + "#features-adql-geo", // error from early ADQL2.1 draft
+        };
+        private static final String[] ADQL21MISC_FTYPES = new String[] {
+            TAPREGEXT + "#features-adql-string",
+            TAPREGEXT + "#features-adql-common-table",
+            TAPREGEXT + "#features-adql-sets",
+            TAPREGEXT + "#features-adql-type",
+            TAPREGEXT + "#features-adql-unit",
+            TAPREGEXT + "#features-adql-offset",
+        };
+        private static final String UDF_FTYPE = TAPREGEXT + "#features-udf";
+        private static final Predicate<String> UDF_FILTER =
+            ftype -> UDF_FTYPE.equalsIgnoreCase( ftype );
+        private static final Predicate<String> NONSTD_FILTER =
+            createExcludeFilter( String::toLowerCase,
+                                 ADQLGEO_FTYPES, ADQL21MISC_FTYPES,
+                                 new String[] { UDF_FTYPE } );
 
         /**
          * Constructor.
@@ -1715,7 +1743,9 @@ public class TableSetPanel extends JPanel {
             descripField_ = addMultiLineField( "Description" );
             dmField_ = addMultiLineField( "Data Models" );
             geoField_ = addMultiLineField( "Geometry Functions" );
+            adql21Field_ = addMultiLineField( "ADQL 2.1 Optional Features" );
             udfField_ = addHtmlField( "User-Defined Functions" );
+            nonstdField_ = addHtmlField( "Non-Standard Language Features" );
         }
 
         /**
@@ -1781,8 +1811,14 @@ public class TableSetPanel extends JPanel {
          */
         public void setCapability( TapCapability tcap ) {
             setFieldText( dmField_, getDataModelText( tcap ) );
-            setFieldText( geoField_, getGeoFuncText( tcap ) );
-            setFieldText( udfField_, getUdfHtml( tcap ) );
+            setFieldText( geoField_,
+                          getFeatureFormsText( tcap, ADQLGEO_FTYPES ) );
+            setFieldText( adql21Field_,
+                          getFeatureFormsText( tcap, ADQL21MISC_FTYPES ) );
+            setFieldText( udfField_,
+                          getFeatureDescriptionsHtml( tcap, UDF_FILTER ) );
+            setFieldText( nonstdField_,
+                          getFeatureDescriptionsHtml( tcap, NONSTD_FILTER ) );
         }
 
         /**
@@ -1813,43 +1849,84 @@ public class TableSetPanel extends JPanel {
         }
 
         /**
-         * Returns a text string displaying ADQL geometry function
-         * information for the given capability.
+         * Returns a comma-separated list giving the form values for
+         * language features in the given capability that fall within
+         * a given list of feature types.
          *
-         * @param   tcap  capability object, may be null
-         * @return   text summarising available geometry functions, or null
+         * @param  tcap   capability object, may be null
+         * @param  featureTypes  feature type identifiers of interest
+         * @return  forms list string or null
          */
-        private static String getGeoFuncText( TapCapability tcap ) {
+        private static String getFeatureFormsText( TapCapability tcap,
+                                                   String[] featureTypes ) {
             if ( tcap == null ) {
                 return null;
             }
-            TapLanguage[] langs = getAdqlLanguages( tcap );
-            if ( langs.length == 0 ) {
-                return null;
-            }
-            else if ( langs.length == 1 ) {
-                return getGeoFuncText( langs[ 0 ] );
-            }
-            else {
-
-                /* There won't usually be multiple ADQL-like languages.
-                 * Cope with the case where there are, but the result
-                 * may be ugly. */
-                StringBuffer sbuf = new StringBuffer();
-                for ( TapLanguage lang : langs ) {
-                    String geoTxt = getGeoFuncText( lang );
-                    if ( geoTxt != null && geoTxt.length() > 0 ) {
-                        if ( sbuf.length() != 0 ) {
-                            sbuf.append( '\n' );
+            Function<String,String> normalise = String::toLowerCase;
+            Collection<String> ftypeSet =
+                Arrays.stream( featureTypes )
+                      .map( normalise )
+                      .collect( Collectors.toCollection( HashSet::new ) );
+            Collection<String> formList = new LinkedHashSet<>();
+            for ( TapLanguage lang : tcap.getLanguages() ) {
+                for ( Map.Entry<String,TapLanguageFeature[]> fentry :
+                      lang.getFeaturesMap().entrySet() ) {
+                    String ftype = normalise.apply( fentry.getKey() );
+                    if ( ftypeSet.contains( ftype ) ) {
+                        for ( TapLanguageFeature feat : fentry.getValue() ) {
+                            String form = feat.getForm();
+                            if ( form != null && form.trim().length() > 0 ) {
+                                formList.add( form.trim() );
+                            }
                         }
-                        sbuf.append( lang.getName() )
-                            .append( '\n' )
-                            .append( "--------\n" )
-                            .append( geoTxt );
                     }
                 }
-                return sbuf.toString();
             }
+            return formList.stream().collect( Collectors.joining( ", " ) );
+        }
+
+        /**
+         * Returns an HTML string containing a description of the language
+         * features in the given capability that match a given feature type
+         * criterion.
+         *
+         * @param  tcap   capability object, may be null
+         * @param  featTypeFilter   predicate indicating which feature type
+         *                          identifier strings should be included
+         * @return  HTML list or null
+         */
+        private static String
+                getFeatureDescriptionsHtml( TapCapability tcap,
+                                            Predicate<String> featTypeFilter ) {
+            if ( tcap == null ) {
+                return null;
+            }
+            StringBuffer sbuf = new StringBuffer();
+            for ( TapLanguage lang : tcap.getLanguages() ) {
+                for ( Map.Entry<String,TapLanguageFeature[]> fentry :
+                      lang.getFeaturesMap().entrySet() ) {
+                    String featType = fentry.getKey();
+                    if ( featType != null && featTypeFilter.test( featType ) ) {
+                        for ( TapLanguageFeature feature : fentry.getValue() ) {
+                            String form = feature.getForm();
+                            String description = feature.getDescription();
+                            sbuf.append( "<dt>" )
+                                .append( "<strong><code>" )
+                                .append( escapeHtml( form == null ? "??"
+                                                                  : form ) )
+                                .append( "</code></strong>" )
+                                .append( "</dt>\n" );
+                            if ( description != null ) {
+                                sbuf.append( "<dd>" )
+                                    .append( escapeHtml( description ) )
+                                    .append( "</dd>\n" );
+                            }
+                        }
+                    }
+                }
+            }
+            return sbuf.length() > 0 ? "<dl>\n" + sbuf + "\n</dl>"
+                                     : null;
         }
 
         /**
@@ -1909,133 +1986,6 @@ public class TableSetPanel extends JPanel {
         }
 
         /**
-         * Returns HTML formatted text displaying information about ADQL UDFs
-         * for the given capability.
-         *
-         * @param   tcap  capability object, may be null
-         * @return   HTML summarising available geometry functions, or null
-         */
-        private static String getUdfHtml( TapCapability tcap ) {
-            if ( tcap == null ) {
-                return null;
-            }
-            TapLanguage[] langs = getAdqlLanguages( tcap );
-            if ( langs.length == 0 ) {
-                return null;
-            }
-            else if ( langs.length == 1 ) {
-                return getUdfHtml( langs[ 0 ] );
-            }
-            else {
-
-                /* There won't usually be multiple ADQL-like languages,
-                 * Cope with the case where there are, but the result
-                 * may be ugly. */
-                StringBuffer sbuf = new StringBuffer();
-                for ( TapLanguage lang : langs ) {
-                    String lname = lang.getName();
-                    String udfHtml = getUdfHtml( lang );
-                    if ( udfHtml != null && udfHtml.length() > 0 ) {
-                        sbuf.append( "<dt>" )
-                            .append( escapeHtml( lname == null ? "??"
-                                                               : lname ) )
-                            .append( "</dt>\n" )
-                            .append( "<dd>" )
-                            .append( udfHtml )
-                            .append( "</dd>\n" );
-                    }
-                }
-                return sbuf.length() > 0
-                     ? "<dl>\n" + sbuf + "</dl>"
-                     : null;
-            }
-        }
-
-        /**
-         * Returns a text string displaying ADQL geometry function
-         * information for the given language.
-         *
-         * @param  lang  TAP language object
-         * @return  text summarising available geometry functions, or null
-         */
-        private static String getGeoFuncText( TapLanguage lang ) {
-            TapLanguageFeature[] geoFeats =
-                lang.getFeaturesMap()
-                    .get( TapCapability.ADQLGEO_FEATURE_TYPE );
-            if ( geoFeats == null || geoFeats.length == 0 ) {
-                return null;
-            }
-            List<String> geoFuncs = new ArrayList<String>();
-            for ( TapLanguageFeature feat : geoFeats ) {
-                geoFuncs.add( feat.getForm() );
-            }
-            Collections.sort( geoFuncs );
-            StringBuffer sbuf = new StringBuffer(); 
-            for ( String func : geoFuncs ) {
-                if ( sbuf.length() != 0 ) {
-                    sbuf.append( ", " );
-                }
-                sbuf.append( func );
-            }
-            return sbuf.toString();
-        }
-
-        /**
-         * Returns HTML formatted text displaying information about ADQL UDFs
-         * for the given language.
-         *
-         * @param  lang  TAP language object
-         * @return   HTML summarising available geometry functions, or null
-         */
-        private static String getUdfHtml( TapLanguage lang ) {
-            TapLanguageFeature[] udfFeats =
-                lang.getFeaturesMap()
-                    .get( TapCapability.UDF_FEATURE_TYPE );
-            if ( udfFeats == null || udfFeats.length == 0 ) {
-                return null;
-            }
-            StringBuffer sbuf = new StringBuffer();
-            for ( TapLanguageFeature feat : udfFeats ) {
-                String form = feat.getForm();
-                String descrip = feat.getDescription();
-                sbuf.append( "<dt>" )
-                    .append( "<strong><code>" )
-                    .append( escapeHtml( form == null ? "??" : form ) )
-                    .append( "</code></strong>" )
-                    .append( "</dt>\n" );
-                if ( descrip != null ) {
-                    sbuf.append( "<dd>" )
-                        .append( escapeHtml( descrip ) )
-                        .append( "</dd>\n" );
-                }
-            }
-            return sbuf.length() > 0 ? "<dl>\n" + sbuf + "</dl>"
-                                     : null;
-        }
-
-        /**
-         * Returns a list of the ADQL-like languages available from a
-         * given TAP Capability object.
-         *
-         * @param  tcap  capability
-         * @return   list of ADQL-like language objects, not null
-         */
-        private static TapLanguage[] getAdqlLanguages( TapCapability tcap ) {
-            List<TapLanguage> adqlList = new ArrayList<TapLanguage>();
-            if ( tcap != null ) {
-                TapLanguage[] langs = tcap.getLanguages();
-                if ( langs != null ) {
-                    for ( TapLanguage lang : langs ) {
-                        if ( "adql".equalsIgnoreCase( lang.getName() ) ) {
-                            adqlList.add( lang );
-                        }
-                    }
-                }
-            }
-            return adqlList.toArray( new TapLanguage[ 0 ] );
-        }
-
-        /**
          * Makes plain text safe for interpolation into HTML source.
          *
          * @param  txt  raw text
@@ -2045,6 +1995,27 @@ public class TableSetPanel extends JPanel {
             return txt.replace( "&", "&amp;" )
                       .replace( "<", "&lt;" )
                       .replace( ">", "&gt;" );
+        }
+
+        /**
+         * Utility method to create a filter that excludes strings in a
+         * number of given lists.
+         *
+         * @param  normalise  string normalisation function to be applied
+         *                    comparison for equality
+         * @param  excludes   one or more arrays of strings none of which
+         *                    a targe string should match to pass the test
+         * @return   predicate indicating non-inclusion in supplied arrays
+         */
+        private static Predicate<String>
+                createExcludeFilter( Function<String,String> normalise,
+                                     String[]... excludes ) {
+            Collection<String> excludeSet = new HashSet<String>();
+            for ( String[] items : excludes ) {
+                excludeSet.addAll( Arrays.stream( items ).map( normalise )
+                                         .collect( Collectors.toList() ) );
+            }
+            return f -> ! excludeSet.contains( normalise.apply( f ) );
         }
     }
 }
