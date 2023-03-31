@@ -16,7 +16,7 @@ public enum PairMode {
     ALL( true, "All matches" ) {
         LinkSet findPairMatches( RowMatcher rowMatcher )
                 throws IOException, InterruptedException {
-            return rowMatcher.findAllPairs( 0, 1, false );
+            return rowMatcher.findAllPairs( 0, 1 );
         }
     },
 
@@ -28,7 +28,7 @@ public enum PairMode {
     BEST( false, "Best match, symmetric" ) {
         LinkSet findPairMatches( RowMatcher rowMatcher )
                 throws IOException, InterruptedException {
-            LinkSet lset = rowMatcher.findAllPairs( 0, 1, true );
+            LinkSet lset = rowMatcher.findAllPairs( 0, 1 );
             return rowMatcher.eliminateMultipleRowEntries( lset );
         }
     },

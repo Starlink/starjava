@@ -31829,6 +31829,13 @@ introduced since the last version:
         This was a regression bug introduced in TOPCAT 4.6-3.</li>
     <li>Update Ucidy library to v1.3, corresponding to
         UCDList 1.5 EN.</li>
+    <li>Fix stability issue when using the
+        <label>Best Match, symmetric</label> selection option
+        (which should be used with caution)
+        in the <ref id="MatchWindow">Pair Match Window</ref>.
+        Results may be different in crowded regions, and may also
+        have differed between v4.8-6 and v4.8-7,
+        but are not obviously more or less correct.</li>
     </ul>
     </p></dd>
 

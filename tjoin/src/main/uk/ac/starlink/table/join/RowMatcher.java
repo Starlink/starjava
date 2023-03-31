@@ -149,12 +149,9 @@ public class RowMatcher {
      *
      * @param  index1  index of first table to match
      * @param  index2  index of second table to match
-     * @param  bestOnly  if false, all matches will be included in the result;
-     *         if true, the best matches will be included and some non-best
-     *         ones may be as well
      * @return  links representing pair matches
      */
-    LinkSet findAllPairs( int index1, int index2, boolean bestOnly )
+    LinkSet findAllPairs( int index1, int index2 )
              throws IOException, InterruptedException {
 
         /* Work out which table will have its rows cached in bins 
@@ -214,7 +211,7 @@ public class RowMatcher {
         /* Perform the actual match given the table ordering and range we
          * have calculated. */
         return scanForPairs( indexR, indexS, coverage.createTestFactory(),
-                             bestOnly );
+                             false );
     }
 
     /**
