@@ -1,5 +1,8 @@
 package uk.ac.starlink.table.join;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.BitSet;
 import uk.ac.starlink.util.IntList;
 
@@ -132,5 +135,24 @@ public class BitsetMask implements HealpixMask {
             }
         }
         return list.toIntArray();
+    }
+
+    /**
+     * Diagnostic method to write this mask's HEALPix pixels into an ECSV file.
+     * Only intended for debugging.
+     *
+     * @param  out  output stream
+     */
+    void writeEcsv( OutputStream out ) throws IOException {
+        PrintStream pout = new PrintStream( out );
+        String colname = "hpx" + order_;
+        pout.println( "# %ECSV 1.0" );
+        pout.println( "# ---" );
+        pout.println( "# datatype: [{name: " + colname + ", datatype: int32}]");
+        pout.println( colname );
+        for ( int i = flags_.nextSetBit( 0 ); i >= 0;
+              i = flags_.nextSetBit( i + 1 ) ) {
+            pout.println( Integer.toString( i ) );
+        }
     }
 }
