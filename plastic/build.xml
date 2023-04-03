@@ -175,7 +175,7 @@
   <property name="webstart.storepass" value="Majikthise"/>
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
   <property name="home.page"
-            value="http://www.star.bristol.ac.uk/~mbt/plastic/"/>
+            value="https://www.star.bristol.ac.uk/mbt/plastic/"/>
 
   <!--
    !   =========

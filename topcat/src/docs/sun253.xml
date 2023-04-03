@@ -374,6 +374,7 @@
   <!ENTITY URL.J2SE_DOCS "https://docs.oracle.com/javase/8/docs/">
   <!ENTITY URL.HEALPIX_FITS
          "https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf">
+  <!ENTITY mbtwww "https://www.star.bristol.ac.uk/mbt/">
 
   <!-- Plot2 control references. -->
   <!ENTITY CONTROL.single
@@ -491,7 +492,7 @@
 <authorlist>
 <author id="mbt" 
         email="m.b.taylor@bristol.ac.uk"
-        webpage="http://www.star.bristol.ac.uk/~mbt/"
+        webpage="&mbtwww;"
         affiliation="University of Bristol"
         >Mark Taylor</author>
 </authorlist>
@@ -778,7 +779,7 @@ flag on startup - see <ref id="jvmMemory"/>.
 and they don't appear to be addressed in the manual, consult the
 <webref url="http://www.starlink.ac.uk/topcat/">TOPCAT web page</webref>,
 use the
-<webref url="http://www.star.bris.ac.uk/~mbt/topcat-lists.html"
+<webref url="&mbtwww;topcat-lists.html"
         >topcat-user</webref> mailing list,
 or contact the author - user feedback is always welcome.
 </p>

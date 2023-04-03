@@ -21,7 +21,8 @@
   <!-- Define javadoc base URLs. -->
   <!ENTITY corejavadocs "http://docs.oracle.com/javase/8/docs/api/">
   <!ENTITY stiljavadocs "http://www.starlink.ac.uk/stil/javadocs/">
-  <!ENTITY stiltsjavadocs "http://andromeda.star.bris.ac.uk/starjavadocs/">
+  <!ENTITY mbtwww "https://www.star.bristol.ac.uk/mbt/">
+  <!ENTITY stiltsjavadocs "&mbtwww;starjavadocs/">
   <!ENTITY starjavasrc "https://github.com/Starlink/starjava/blob/master/">
 
   <!-- Short descriptions for each command. -->
@@ -175,7 +176,7 @@
 <authorlist>
 <author id="mbt"
         email="m.b.taylor@bristol.ac.uk"
-        webpage="http://www.star.bristol.ac.uk/~mbt/"
+        webpage="&mbtwww;"
         affiliation="University of Bristol"
         >Mark Taylor</author>
 </authorlist>
@@ -5338,7 +5339,7 @@ Anybody is welcome to use these classes at their own risk,
 but the code does not form a stable API intended for public use:
 the javadocs are not distributed as part of the package
 (though you may be able to find them
-<webref url="http://andromeda.star.bris.ac.uk/starjavadocs/">here</webref>),
+<webref url="&stiltsjavadocs;">here</webref>),
 tutorial documentation is not provided, and there is no commitment
 to API stability between releases.
 </p>
