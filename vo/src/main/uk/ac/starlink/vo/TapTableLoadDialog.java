@@ -500,7 +500,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         }
         final Map<String,String> extraParams =
             new LinkedHashMap<String,String>();
-        String language = tcapPanel.getQueryLanguageName();
+        String language = tcapPanel.getSelectedLanguage().getVersionedName();
         if ( language != null && language.trim().length() > 0 ) {
             extraParams.put( "LANG", language );
         }

@@ -17,7 +17,7 @@ public interface AdqlExample {
      *
      * @param  lineBreaks  whether output ADQL should include multiline
      *                     formatting
-     * @param  lang  ADQL language variant (e.g. "ADQL-2.0")
+     * @param  lang  ADQL language variant
      * @param  tcap  TAP capability object
      * @param  tables  table metadata set
      * @param  table  currently selected table
@@ -26,8 +26,9 @@ public interface AdqlExample {
      * @return   example text, or null if no example can be constructed
      *           given the input values
      */
-    String getText( boolean lineBreaks, String lang, TapCapability tcap,
-                    TableMeta[] tables, TableMeta table, double[] skypos );
+    String getAdqlText( boolean lineBreaks, VersionedLanguage lang,
+                        TapCapability tcap, TableMeta[] tables,
+                        TableMeta table, double[] skypos );
 
     /**
      * Returns this example's name.

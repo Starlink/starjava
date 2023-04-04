@@ -32,14 +32,18 @@ public class TapTester extends TestCase {
     private void showExamples( AdqlExample[] examples, TableMeta[] tables,
                                TapCapability tcap ) {
         TapLanguage[] langs = tcap.getLanguages();
-        String lang = langs != null && langs.length > 0
-                    ? langs[ 0 ].getName()
-                    : null;
+        TapLanguage tlang = langs != null && langs.length > 0
+                          ? langs[ 0 ]
+                          : null;
+        String[] versions = tlang == null ? null : tlang.getVersions();
+        VersionedLanguage vlang = versions == null || versions.length == 0
+                                ? null
+                                : new VersionedLanguage( tlang, versions[ 0 ] );
         double[] skypos = null;
         for ( int ie = 0; ie < examples.length; ie++ ) {
             AdqlExample example = examples[ ie ];
-            String exTxt = example.getText( true, lang, tcap, tables,
-                                            tables[ 0 ], skypos );
+            String exTxt = example.getAdqlText( true, vlang, tcap, tables,
+                                                tables[ 0 ], skypos );
             if ( exTxt != null ) {
                 System.out.println( example.getName() );
                 System.out.println( exTxt.replaceAll( "(?m)^", "   " ) );

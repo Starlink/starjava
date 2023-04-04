@@ -16,6 +16,7 @@ import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapCapabilityPanel;
+import uk.ac.starlink.vo.VersionedLanguage;
 
 /**
  * Provides some ADQL examples showing how TOPCAT TAP uploads work.
@@ -62,9 +63,11 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
                                    "Upload a table and query all its columns; "
                                  + "not very useful",
                                    tcList ) {
-                public String getText( boolean lineBreaks, String lang,
-                                       TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table, double[] skypos ) {
+                public String getAdqlText( boolean lineBreaks,
+                                           VersionedLanguage lang,
+                                           TapCapability tcap,
+                                           TableMeta[] tables, TableMeta table,
+                                           double[] skypos ) {
                     if ( ! TapCapabilityPanel.canUpload( tcap ) ||
                          tcList.getModel().getSize() < 1 ) {
                         return null;
@@ -77,9 +80,11 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
                                    "Upload a local table and join a remote "
                                  + "table with it",
                                    tcList ) {
-                public String getText( boolean lineBreaks, String lang,
-                                       TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table, double[] skypos ) {
+                public String getAdqlText( boolean lineBreaks,
+                                           VersionedLanguage lang,
+                                           TapCapability tcap,
+                                           TableMeta[] tables, TableMeta table,
+                                           double[] skypos ) {
                     if ( ! TapCapabilityPanel.canUpload( tcap ) ) {
                         return null;
                     } 
@@ -95,12 +100,13 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
      *
      * @param  lineBreaks  whether output ADQL should include multiline
      *                     formatting
-     * @param  lang  ADQL language variant (e.g. "ADQL-2.0")
+     * @param  lang  ADQL language variant
      * @param  tables  table metadata set
      * @param  table  currently selected table
      * @param  tcList  JList of known TopcatModels
      */
-    private static String getTrivialText( boolean lineBreaks, String lang,
+    private static String getTrivialText( boolean lineBreaks,
+                                          VersionedLanguage lang,
                                           TableMeta[] tables, TableMeta table,
                                           JList<TopcatModel> tcList ) {
         TopcatModel tcModel = tcList.getSelectedValue();
@@ -127,14 +133,14 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
      * @param  lineBreaks  whether output ADQL should include multiline
      *                     formatting
      * @param  tcap  table capabilities for service
-     * @param  lang  ADQL language variant (e.g. "ADQL-2.0")
+     * @param  lang  ADQL language variant
      * @param  tables  table metadata set
      * @param  table  currently selected table
      * @param  tcList  JList of known TopcatModels
      */
     private static String getJoinText( boolean lineBreaks, TapCapability tcap,
-                                       String lang, TableMeta[] tables,
-                                       TableMeta table,
+                                       VersionedLanguage lang,
+                                       TableMeta[] tables, TableMeta table,
                                        JList<TopcatModel> tcJlist ) {
         AdqlSyntax syntax = AdqlSyntax.getInstance();
         TableWithCols[] rdRemotes =
@@ -195,7 +201,7 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
         String deRemote = remoteAlias + "." + rdRemote.getColumns()[ 1 ];
         String raLocal = localAlias + "." + localCoords[ 0 ];
         String deLocal = localAlias + "." + localCoords[ 1 ];
-        if ( isAdql21( tcap, lang ) ) {
+        if ( isAdql21( lang ) ) {
             sbuf.append( "ON DISTANCE(" )
                 .append( raRemote )
                 .append( ", " )

@@ -60,52 +60,13 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     }
 
     /**
-     * Indicates if a language string represents ADQL version 1.
-     * If not, at time of writing, it's a fair guess that it's ADQL version 2.
+     * Indicates if a versioned language represents ADQL 2.1 or later.
      *
-     * @param  lang  language string
-     * @return   true if lang looks like ADQL 1
-     */
-    private static boolean isAdql1( String lang ) {
-        return lang != null && lang.toUpperCase().startsWith( "ADQL-1." );
-    }
-
-    /**
-     * Indicates if a language string represents ADQL 2.1 or later.
-     *
-     * @param  tcap  table capabilities
-     * @param  lang  language name
+     * @param  lang  versioned language
      * @return   true if lang looks like ADQL at least version 2.1
      */
-    public static boolean isAdql21( TapCapability tcap, String lang ) {
-
-        /* This ought to give the right answer. */
-        for ( TapLanguage tlang : tcap.getLanguages() ) {
-            String[] vnums = tlang.getVersions();
-            String[] vids = tlang.getVersionIds();
-            if ( vnums != null && vids != null ) {
-                int iv = Arrays.stream( vnums )
-                               .map( vnum -> tlang.getName() + "-" + vnum )
-                               .collect( Collectors.toList() )
-                               .indexOf( lang );
-                if ( iv >= 0 && iv < vids.length ) {
-                    if ( AdqlVersion.V21.getIvoid()
-                                        .equalsIgnoreCase( vids[ iv ] ) ) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        /* But fall back to doing it the dumb way if it doesn't. */
-        if ( lang != null &&
-             lang.toUpperCase().startsWith( "ADQL-2." ) &&
-             ! lang.toUpperCase().startsWith( "ADQL-2.0" ) ) {
-            return true;
-        }
-
-        /* Nope. */
-        return false;
+    public static boolean isAdql21( VersionedLanguage lang ) {
+        return lang != null && AdqlVersion.V21.equals( lang.getAdqlVersion() );
     }
 
     /**
@@ -139,21 +100,15 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      * @param  table  table metadata object
      * @param   lang  language string
      */
-    private static TableRef createTableRef( final TableMeta table,
-                                            String lang ) {
-        if ( ! isAdql1( lang ) ) {
-            return new TableRef() {
-                public String getColumnName( String cname ) {
-                    return cname;
-                }
-                public String getIntroName() {
-                    return table.getName();
-                }
-            };
-        }
-        else {
-            return createAliasedTableRef( table, getAlias( table ) );
-        }
+    private static TableRef createTableRef( final TableMeta table ) {
+        return new TableRef() {
+            public String getColumnName( String cname ) {
+                return cname;
+            }
+            public String getIntroName() {
+                return table.getName();
+            }
+        };
     }
 
     /**
@@ -406,9 +361,10 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      */
     public static AdqlExample createDummyExample() {
         return new AbstractAdqlExample( "Dummy", "Never enabled" ) {
-            public String getText( boolean lineBreaks, String lang,
-                                   TapCapability tcap, TableMeta[] tables,
-                                   TableMeta table, double[] skypos ) {
+            public String getAdqlText( boolean lineBreaks,
+                                       VersionedLanguage lang,
+                                       TapCapability tcap, TableMeta[] tables,
+                                       TableMeta table, double[] skypos ) {
                 return null;
             }
         };
@@ -424,9 +380,11 @@ public abstract class AbstractAdqlExample implements AdqlExample {
 
             new AbstractAdqlExample( "Full table",
                                      "All columns from a single table" ) {
-                public String getText( boolean lineBreaks, String lang,
-                                       TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table, double[] skypos ) {
+                public String getAdqlText( boolean lineBreaks,
+                                           VersionedLanguage lang,
+                                           TapCapability tcap,
+                                           TableMeta[] tables, TableMeta table,
+                                           double[] skypos ) {
                     if ( table == null &&
                          tables != null && tables.length > 0 ) {
                         table = tables[ 0 ];
@@ -446,12 +404,14 @@ public abstract class AbstractAdqlExample implements AdqlExample {
             new AbstractAdqlExample( "Columns from table",
                                      "Selection of columns from "
                                    + "a single table" ) {
-                public String getText( boolean lineBreaks, String lang,
-                                       TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table, double[] skypos ) {
+                public String getAdqlText( boolean lineBreaks,
+                                           VersionedLanguage lang,
+                                           TapCapability tcap,
+                                           TableMeta[] tables, TableMeta table,
+                                           double[] skypos ) {
                     TableMeta ptable = getPopulatedTable( table, tables );
                     Breaker breaker = createBreaker( lineBreaks );
-                    TableRef tref = createTableRef( ptable, lang );
+                    TableRef tref = createTableRef( ptable );
                     ColumnMeta[] cols = ptable.getColumns();
                     final String colSelection;
                     if ( cols != null && cols.length > 0 ) {
@@ -508,9 +468,11 @@ public abstract class AbstractAdqlExample implements AdqlExample {
 
             new AbstractAdqlExample( "Count rows",
                                      "Count the rows in a table" ) {
-                public String getText( boolean lineBreaks, String lang,
-                                       TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table, double[] skypos ) {
+                public String getAdqlText( boolean lineBreaks,
+                                           VersionedLanguage lang,
+                                           TapCapability tcap,
+                                           TableMeta[] tables, TableMeta table,
+                                           double[] skypos ) {
                     if ( table == null &&
                          tables != null && tables.length > 0 ) {
                         table = tables[ 0 ];
@@ -528,9 +490,11 @@ public abstract class AbstractAdqlExample implements AdqlExample {
             new AbstractAdqlExample( "Box selection",
                                      "Select rows based on rectangular "
                                    + "RA/Dec position constraints" ) {
-                public String getText( boolean lineBreaks, String lang,
-                                       TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table, double[] skypos ) {
+                public String getAdqlText( boolean lineBreaks,
+                                           VersionedLanguage lang,
+                                           TapCapability tcap,
+                                           TableMeta[] tables, TableMeta table,
+                                           double[] skypos ) {
                     TableWithCols[] rdTabs =
                         getRaDecTables( toTables( table, tables ), 1 );
                     if ( rdTabs.length == 0 ) {
@@ -541,7 +505,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     String raCol = radec[ 0 ];
                     String decCol = radec[ 1 ];
                     Breaker breaker = createBreaker( lineBreaks );
-                    TableRef tref = createTableRef( rdTab, lang );
+                    TableRef tref = createTableRef( rdTab );
                     final String[] ras;
                     final String[] decs;
                     if ( skypos == null ) {   // HDF
@@ -593,12 +557,11 @@ public abstract class AbstractAdqlExample implements AdqlExample {
             new AbstractAdqlExample( "Cone selection",
                                      "Select rows within a given radius of "
                                    + "a sky position" ) {
-                public String getText( boolean lineBreaks, String lang,
-                                       TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table, double[] skypos ) {
-                    if ( isAdql1( lang ) ) {
-                        return null;
-                    }
+                public String getAdqlText( boolean lineBreaks,
+                                           VersionedLanguage lang,
+                                           TapCapability tcap,
+                                           TableMeta[] tables, TableMeta table,
+                                           double[] skypos ) {
                     TableWithCols[] rdTabs =
                         getRaDecTables( toTables( table, tables ), 1 );
                     if ( rdTabs.length == 0 ) {
@@ -607,7 +570,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     TableMeta rdTab = rdTabs[ 0 ].getTable();
                     String[] radec = rdTabs[ 0 ].getColumns();
                     Breaker breaker = createBreaker( lineBreaks );
-                    TableRef tref = createTableRef( rdTab, lang );
+                    TableRef tref = createTableRef( rdTab );
                     StringBuffer sbuf = new StringBuffer();
                     sbuf.append( "SELECT " )
                         .append( "TOP " )
@@ -622,7 +585,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     String raTxt = formatCoord( skypos, false, 189.2 );
                     String decTxt = formatCoord( skypos, true, 62.21 );
                     String radiusTxt = "0.05";
-                    if ( isAdql21( tcap, lang ) ) {
+                    if ( isAdql21( lang ) ) {
                         sbuf.append( "DISTANCE(" )
                             .append( tref.getColumnName( radec[ 0 ] ) )
                             .append( ", " )
@@ -655,12 +618,11 @@ public abstract class AbstractAdqlExample implements AdqlExample {
 
             new AbstractAdqlExample( "Sky pair match",
                                      "Join two tables on sky position" ) {
-                public String getText( boolean lineBreaks, String lang,
-                                       TapCapability tcap, TableMeta[] tables,
-                                       TableMeta table, double[] skypos ) {
-                    if ( isAdql1( lang ) ) {
-                        return null;
-                    }
+                public String getAdqlText( boolean lineBreaks,
+                                           VersionedLanguage lang,
+                                           TapCapability tcap,
+                                           TableMeta[] tables, TableMeta table,
+                                           double[] skypos ) {
                     TableWithCols[] rdTabs =
                         getRaDecTables( toTables( table, tables ), 2 );
                     if ( rdTabs.length < 2 ) {
@@ -689,7 +651,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( tref2.getIntroName() )
                         .append( breaker.space( 2 ) );
                     String radiusTxt = "5./3600.";
-                    if ( isAdql21( tcap, lang ) ) {
+                    if ( isAdql21( lang ) ) {
                         sbuf.append( "ON DISTANCE(" )
                             .append( tref1.getColumnName( radec1[ 0 ] ) )
                             .append( ", " )
@@ -837,9 +799,11 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                                                    final String description,
                                                    final String[] textLines ) {
         return new AbstractAdqlExample( name, description ) {
-            public String getText( boolean lineBreaks, String lang,
-                                   TapCapability tcap, TableMeta[] tables,
-                                   TableMeta table, double[] skypos ) {
+            public String getAdqlText( boolean lineBreaks,
+                                       VersionedLanguage lang,
+                                       TapCapability tcap,
+                                       TableMeta[] tables, TableMeta table,
+                                       double[] skypos ) {
                 if ( lineBreaks ) {
                     StringBuffer sbuf = new StringBuffer();
                     for ( String line : textLines ) {

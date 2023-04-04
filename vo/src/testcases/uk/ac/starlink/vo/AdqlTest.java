@@ -15,7 +15,14 @@ public class AdqlTest extends TestCase {
     }
 
     public void testDefaultAdqls() {
-        assertTrue( TapCapabilityPanel.testAdqls() );
+        VersionedLanguage[] adqls =
+            TapCapabilityPanel.createDefaultVersionedLanguages();
+        assertEquals( 2, adqls.length );
+        assertEquals( AdqlVersion.V20, adqls[ 0 ].getAdqlVersion() );
+        assertEquals( AdqlVersion.V21, adqls[ 1 ].getAdqlVersion() );
+        assertEquals( AdqlVersion.V21,
+                      TapCapabilityPanel.getDefaultLanguage( adqls )
+                                        .getAdqlVersion() );
     }
 
     public void testVersions() {

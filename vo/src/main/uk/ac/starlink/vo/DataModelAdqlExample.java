@@ -68,9 +68,9 @@ public abstract class DataModelAdqlExample implements AdqlExample {
         return infoUrl_;
     }
 
-    public String getText( boolean lineBreaks, String lang, TapCapability tcap,
-                           TableMeta[] tables, TableMeta table,
-                           double[] skypos ) {
+    public String getAdqlText( boolean lineBreaks, VersionedLanguage lang,
+                               TapCapability tcap, TableMeta[] tables,
+                               TableMeta table, double[] skypos ) {
         if ( hasDataModel( tcap ) ) {
             String[] textLines = getTextLines( skypos );
             if ( lineBreaks ) {

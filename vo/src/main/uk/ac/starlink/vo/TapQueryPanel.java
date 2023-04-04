@@ -143,8 +143,9 @@ public class TapQueryPanel extends JPanel {
                 TapCapabilityPanel.LANGUAGE_PROPERTY,
                 evt -> {
                     validateAdql();
-                    tmetaPanel_.setAdqlVersion( tcapPanel_
-                                               .getSelectedAdqlVersion() );
+                    AdqlVersion adqlVers =
+                        tcapPanel_.getSelectedLanguage().getAdqlVersion();
+                    tmetaPanel_.setAdqlVersion( adqlVers );
                 } );
 
         /* Prepare a component to contain user-entered ADQL text. */
@@ -678,7 +679,7 @@ public class TapQueryPanel extends JPanel {
      * to set up example queries.
      */
     private void configureExamples() {
-        String lang = tcapPanel_.getQueryLanguageName();
+        VersionedLanguage lang = tcapPanel_.getSelectedLanguage();
         TapCapability tcap = tcapPanel_.getCapability();
         SchemaMeta[] schemas = tmetaPanel_.getSchemas();
         double[] skyPos = getSkyPos();
@@ -703,7 +704,7 @@ public class TapQueryPanel extends JPanel {
      * and the enabled status of the menu items is set appropriately.
      *
      * @param   menu  parent of menu items to configure
-     * @param  lang  ADQL language variant (e.g. "ADQL-2.0")
+     * @param  lang  ADQL language variant
      * @param  tcap  TAP capability object
      * @param  tables  table metadata set
      * @param  table  currently selected table
@@ -712,7 +713,8 @@ public class TapQueryPanel extends JPanel {
      * @return   number of descendents of the supplied menu that are
      *           enabled for use
      */
-    private static int configureExamples( MenuElement menu, String lang,
+    private static int configureExamples( MenuElement menu,
+                                          VersionedLanguage lang,
                                           TapCapability tcap,
                                           TableMeta[] tables,
                                           TableMeta table,
@@ -725,7 +727,7 @@ public class TapQueryPanel extends JPanel {
                     AdqlExampleAction exAct = (AdqlExampleAction) act;
                     String adql =
                         exAct.getExample()
-                       .getText( true, lang, tcap, tables, table, skypos );
+                       .getAdqlText( true, lang, tcap, tables, table, skypos );
                     exAct.setAdqlText( adql );
                     if ( exAct.isEnabled() ) {
                         nActive++;
@@ -786,9 +788,10 @@ public class TapQueryPanel extends JPanel {
         final String name = daliEx.getName();
         final String adql = getExampleQueryText( daliEx );
         return new AbstractAdqlExample( name, null ) {
-            public String getText( boolean lineBreaks, String lang,
-                                   TapCapability tcap, TableMeta[] tables,
-                                   TableMeta table, double[] skypos ) {
+            public String getAdqlText( boolean lineBreaks,
+                                       VersionedLanguage lang,
+                                       TapCapability tcap, TableMeta[] tables,
+                                       TableMeta table, double[] skypos ) {
                 return adql;
             }
             public URL getInfoUrl() {
@@ -938,6 +941,8 @@ public class TapQueryPanel extends JPanel {
      * @return  ADQL validator
      */
     private AdqlValidator getValidator() {
+        VersionedLanguage vlang = tcapPanel_.getSelectedLanguage();
+        assert vlang != null;
         if ( validator_ == null ) {
             List<AdqlValidator.ValidatorTable> vtList =
                 new ArrayList<AdqlValidator.ValidatorTable>();
@@ -952,10 +957,10 @@ public class TapQueryPanel extends JPanel {
             }
             AdqlValidator.ValidatorTable[] vtables =
                 vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
-            TapLanguage tapLang = tcapPanel_.getQueryLanguage();
+            TapLanguage tapLang = vlang.getLanguage();
             validator_ = AdqlValidator.createValidator( vtables, tapLang );
         }
-        validator_.setAdqlVersion( tcapPanel_.getSelectedAdqlVersion() );
+        validator_.setAdqlVersion( vlang.getAdqlVersion() );
         return validator_;
     }
 

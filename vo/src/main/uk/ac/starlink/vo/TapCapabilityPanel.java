@@ -165,29 +165,6 @@ public class TapCapabilityPanel extends JPanel {
     }
 
     /**
-     * Returns the query language object currently selected in this panel.
-     * If none has been explicitly selected, one representing ADQL
-     * will be returned.
-     *
-     * @return  selected query language
-     */
-    public TapLanguage getQueryLanguage() {
-        return getSelectedLanguage().lang_;
-    }
-
-    /**
-     * Returns the formatted name of the query language currently selected
-     * in this panel.  This may include version information formatted
-     * as required by the TAP LANG parameter
-     * (for instance "<code>ADQL-2.0</code>").
-     *
-     * @return   formatted language name
-     */
-    public String getQueryLanguageName() {
-        return getSelectedLanguage().toString();
-    }
-
-    /**
      * Returns the maximum record value selected in this panel.
      * If none has been explicitly selected, -1 is returned.
      *
@@ -242,51 +219,15 @@ public class TapCapabilityPanel extends JPanel {
 
     /**
      * Returns the currently selected VersionedLanguage.
+     * If none is selected, one representing a suitable version of ADQL
+     * will be returned.
      *
      * @return  selected language, not null
      */
-    private VersionedLanguage getSelectedLanguage() {
+    public VersionedLanguage getSelectedLanguage() {
         VersionedLanguage selected =
             langSelector_.getItemAt( langSelector_.getSelectedIndex() );
         return selected == null ? ADQL : selected;
-    }
-
-    /**
-     * Returns the ADQL version associated with the currently selected
-     * query language, or null if it's not obvious which.
-     *
-     * @return  adql version, or null
-     */
-    public AdqlVersion getSelectedAdqlVersion() {
-        VersionedLanguage vlang = getSelectedLanguage();
-        if ( vlang == null ) {
-            return null;
-        }
-        TapLanguage tlang = vlang.lang_;
-        String vname = vlang.version_;
-        if ( tlang == null || vname == null ) {
-            return null;
-        }
-        String[] vids = tlang.getVersionIds();
-        String[] vnames = tlang.getVersions();
-        if ( vids == null || vnames == null || vids.length != vnames.length ) {
-            return null;
-        }
-        int iv = Arrays.asList( vnames ).indexOf( vname );
-        if ( iv < 0 ) {
-            return null;
-        }
-        AdqlVersion idVersion = AdqlVersion.byIvoid( vids[ iv ] );
-        if ( idVersion != null ) {
-            return idVersion;
-        }
-        if ( "ADQL".equalsIgnoreCase( tlang.getName() ) ) {
-            AdqlVersion numVersion = AdqlVersion.byNumber( vnames[ iv ] );
-            if ( numVersion != null ) {
-                return numVersion;
-            }
-        }
-        return null;
     }
 
     /**
@@ -373,19 +314,14 @@ public class TapCapabilityPanel extends JPanel {
      * @param  langs  query language options
      * @return   favoured option
      */
-    private static VersionedLanguage
+    static VersionedLanguage
             getDefaultLanguage( VersionedLanguage[] vlangs ) {
-        for ( String adqlVers : new String[] { "2.1", "2.0" } ) {
-            for ( VersionedLanguage vlang : vlangs ) {
-                if ( "adql".equalsIgnoreCase( vlang.lang_.getName() ) &&
-                     adqlVers.equals( vlang.version_ ) ) {
-                    return vlang;
-                }
-            }
-        }
-        for ( VersionedLanguage vlang : vlangs ) {
-            if ( "adql".equalsIgnoreCase( vlang.lang_.getName() ) ) {
-                return vlang;
+        for ( AdqlVersion adqlVers :
+              new AdqlVersion[] { AdqlVersion.V21, AdqlVersion.V20 } ) {
+            for ( VersionedLanguage vlang : vlangs ) { 
+                 if ( adqlVers.equals( vlang.getAdqlVersion() ) ) {
+                     return vlang;
+                 }
             }
         }
         return vlangs.length > 0 ? vlangs[ 0 ] : ADQL;
@@ -416,7 +352,7 @@ public class TapCapabilityPanel extends JPanel {
      *
      * @return  default language instance array
      */
-    private static VersionedLanguage[] createDefaultVersionedLanguages() {
+    static VersionedLanguage[] createDefaultVersionedLanguages() {
         AdqlVersion[] versions = { AdqlVersion.V20, AdqlVersion.V21 };
         TapLanguage lang = new TapLanguage() {
             public String getName() {
@@ -445,48 +381,5 @@ public class TapCapabilityPanel extends JPanel {
                      .map( v -> new VersionedLanguage( lang, v.getNumber() ) )
                      .collect( Collectors.toList() )
                      .toArray( new VersionedLanguage[ 0 ] );
-    }
-
-    /**
-     * Used by unit testing.
-     * Do it like this to avoid exposing internals of this class.
-     *
-     * @return   true if OK, false in case of assertion failure
-     */
-    static boolean testAdqls() {
-        return ADQLS.length == 2
-            && "2.0".equals( ADQLS[ 0 ].version_ )
-            && "2.1".equals( ADQLS[ 1 ].version_ )
-            && "2.1".equals( ADQL.version_ )
-            && "ivo://ivoa.net/std/ADQL#v2.1"
-              .equals( ADQL.lang_.getVersionIds()[ 1 ] );
-    }
-
-    /**
-     * Aggregates a query language and its version number.
-     */
-    private static class VersionedLanguage {
-        final TapLanguage lang_;
-        final String version_;
-
-        /**
-         * Constructor.
-         *
-         * @param  lang  language
-         * @param  version   version number
-         */
-        VersionedLanguage( TapLanguage lang, String version ) {
-            lang_ = lang;
-            version_ = version;
-        }
-        public String toString() {
-            StringBuffer sbuf = new StringBuffer()
-               .append( lang_.getName() );
-            if ( version_ != null ) {
-                sbuf.append( '-' )
-                    .append( version_ );
-            }
-            return sbuf.toString();
-        }
     }
 }
