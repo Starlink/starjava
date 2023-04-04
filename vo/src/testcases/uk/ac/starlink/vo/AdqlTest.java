@@ -17,4 +17,12 @@ public class AdqlTest extends TestCase {
     public void testDefaultAdqls() {
         assertTrue( TapCapabilityPanel.testAdqls() );
     }
+
+    public void testVersions() {
+        assertTrue( AdqlSyntax.INSTANCE20.isReserved( "SELECT" ) );
+        assertTrue( AdqlSyntax.INSTANCE21.isReserved( "SELECT" ) );
+        assertFalse( AdqlSyntax.INSTANCE20.isReserved( "ILIKE" ) );
+        assertTrue( AdqlSyntax.INSTANCE21.isReserved( "ILIKE" ) );
+        assertTrue( AdqlSyntax.getInstance().isReserved( "ILIKE" ) );
+    }
 }

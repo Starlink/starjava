@@ -3,13 +3,20 @@ package uk.ac.starlink.vo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.jdbc.SqlSyntax;
 
 /**
- * SqlSyntax instance for the ADQL 2.0 grammar.
- * This class is a singleton.
+ * SqlSyntax instance for the ADQL 2.* grammar.
+ *
+ * <p>Instances {@link #INSTANCE20} and {@link #INSTANCE21} are currently 
+ * provided for ADQL versions 2.0 and 2.1 respectively.
+ * However the differences between these are very small
+ * (just a few extra reserved words for V2.1) so the method
+ * {@link #getInstance} is usually an appropriate way to obtain an
+ * instance of this class.
  *
  * @author   Mark Taylor
  * @since    22 Jun 2011
@@ -36,18 +43,38 @@ public class AdqlSyntax extends SqlSyntax {
         "COORDSYS", "DISTANCE", "INTERSECTS", "POINT", "POLYGON", "REGION",
     };
 
+    /**
+     * Additional reserved words from ADQL 2.1 section 2.1.4.
+     */
+    public static final String[] ADQL21_RESERVED = new String[] {
+        "BIGINT", "ILIKE", "IN_UNIT",
+    };
+
     private static final Pattern REGULAR_IDENTIFIER_REGEX =
         SQL92_IDENTIFIER_REGEX;
     private static final Pattern DELIMITED_IDENTIFIER_REGEX =
         Pattern.compile( "\"(?:[^\"]|\"\")+\"" );
     private static final Pattern CST_REGEX = createCatalogSchemaTablePattern();
-    private static final AdqlSyntax instance_ = new AdqlSyntax();
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
+
+    /** Instance for V2.0 of the ADQL standard. */
+    public static final AdqlSyntax INSTANCE20 =
+        new AdqlSyntax( AdqlVersion.V20 );
+
+    /** Instance for V2.1 of the ADQL standard. */
+    public static final AdqlSyntax INSTANCE21 =
+        new AdqlSyntax( AdqlVersion.V21 );
 
     /**
-     * Private constructor controls instantiation.
+     * Protected constructor to signal that static instances or
+     * methods should usually be used to obtain an instance.
+     *
+     * @param   adqlVersion  version of the ADQL standard
      */
-    private AdqlSyntax() {
-        super( getAllReservedWords(), REGULAR_IDENTIFIER_REGEX, '"' );
+    protected AdqlSyntax( AdqlVersion adqlVersion ) {
+        super( getAllReservedWords( adqlVersion ),
+               REGULAR_IDENTIFIER_REGEX, '"' );
     }
 
     /**
@@ -152,23 +179,37 @@ public class AdqlSyntax extends SqlSyntax {
     }
 
     /**
-     * Returns the sole instance of this class.
+     * Returns an instance of this class.
+     * This currently returns the instance representing ADQL 2.1.
+     * There is very little difference between this and the ADQL 2.0 instance,
+     * just a few extra reserved words, so it's suitable for general use
+     * in most cases.
      *
      * @return  AdqlSyntax instance
      */
     public static AdqlSyntax getInstance() {
-        return instance_;
+        return INSTANCE21;
     }
 
     /**
      * Returns the full list of reserved words including SQL92 and ADQL.
      *
+     * @param    adqlVersion  version of the ADQL language
      * @return   reserved words array
      */
-    private static String[] getAllReservedWords() {
+    private static String[] getAllReservedWords( AdqlVersion adqlVersion ) {
         List<String> reserved = new ArrayList<String>();
         reserved.addAll( Arrays.asList( SQL92_RESERVED ) );
         reserved.addAll( Arrays.asList( ADQL_RESERVED ) );
+        switch ( adqlVersion ) {
+            case V21:
+                reserved.addAll( Arrays.asList( ADQL21_RESERVED ) );
+                break;
+            case V20:
+                break;
+            default:
+                logger_.warning( "Unknown ADQL version: " + adqlVersion );
+        }
         return reserved.toArray( new String[ 0 ] );
     }
 
