@@ -31870,6 +31870,10 @@ introduced since the last version:
         headings to display service-specific characteristics: 
         ADQL 2.1 Optional Features and
         Non-Standard Language Features.</li>
+    <li>Improve handling of illegal sky coordinates
+        (latitude out of range) in sky matching;
+        in v4.8-7 only, bad positions caused match failure,
+        now they are just ignored.</li>
     </ul>
     </p></dd>
 

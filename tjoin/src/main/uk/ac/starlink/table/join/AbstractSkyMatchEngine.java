@@ -123,6 +123,21 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
     }
 
     /**
+     * Indicates whether a (longitude, latitude) pair can be interpreted
+     * as a legal position on the sky.
+     *
+     * @param  alpha  longitude in radians
+     * @param  delta  latitude in radians
+     * @return  true iff alpha is a finite real number and
+     *               delta is in the range -PI/2&lt;=delta&lt;=PI/2
+     */
+    public static boolean isSkyPosition( double alpha, double delta ) {
+        return Double.isFinite( alpha )
+            && delta >= -0.5 * Math.PI
+            && delta <= +0.5 * Math.PI;
+    }
+
+    /**
      * Returns a ValueInfo like a supplied one but with units of "degrees".
      *
      * @param  info  input metadata

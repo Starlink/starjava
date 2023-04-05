@@ -177,6 +177,8 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
                 lonLatErr[ 0 ] = ellipse.alpha_;
                 lonLatErr[ 1 ] = ellipse.delta_;
                 lonLatErr[ 2 ] = ellipse.getMaxRadius();
+                assert isSkyPosition( lonLatErr[ 0 ], lonLatErr[ 1 ] );
+                assert lonLatErr[ 2 ] >= 0;
                 return true;
             }
             else {
@@ -198,19 +200,28 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
     /**
      * Turns a tuple as accepted by this match engine into a SkyEllipse object
      * as used by the internal calculations.
+     * The reader will only return physical ellipses:
+     * the central position is on the sky, the radii are non-negative reals,
+     * and the position angle is finite.  In other cases it will yield nulls.
      *
      * @param   tuple  alpha, delta, mu, nu, zeta coordinates
+     * @return   ellipse reader, may return nulls
      */
     Function<Object[],SkyEllipse> getEllipseReader() {
         final boolean recogniseCircles = recogniseCircles_;
         return tuple -> {
             double alpha = getNumberValue( tuple[ 0 ] );
             double delta = getNumberValue( tuple[ 1 ] );
-            double mu = getNumberValue( tuple[ 2 ] );
-            double nu = getNumberValue( tuple[ 3 ] );
-            double zeta = getNumberValue( tuple[ 4 ] );
-            return createSkyEllipse( alpha, delta, mu, nu, zeta,
-                                     recogniseCircles );
+            if ( isSkyPosition( alpha, delta ) ) {
+                double mu = getNumberValue( tuple[ 2 ] );
+                double nu = getNumberValue( tuple[ 3 ] );
+                double zeta = getNumberValue( tuple[ 4 ] );
+                if ( mu >= 0 && nu >= 0 && Double.isFinite( zeta ) ) {
+                    return createSkyEllipse( alpha, delta, mu, nu, zeta,
+                                             recogniseCircles );
+                }
+            }
+            return null;
         };
     }
 
@@ -228,6 +239,9 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
      */
     static Match getMatch( SkyEllipse se1, SkyEllipse se2,
                            boolean needPoints ) {
+        if ( se1 == null || se2 == null ) {
+            return null;
+        }
         double alpha1 = se1.alpha_;
         double delta1 = se1.delta_;
         double alpha2 = se2.alpha_;
@@ -431,13 +445,6 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
             }
         }
         else {
-            if ( Double.isNaN( zeta ) ||
-                 Double.isNaN( mu ) ||
-                 Double.isNaN( nu ) ) {
-                mu = 0;
-                nu = 0;
-                zeta = 0;
-            }
             final boolean isPoint = mu == 0 && nu == 0;
             return new EccentricSkyEllipse( alpha, delta, mu, nu, zeta ) {
                 @Override boolean isPoint() {
@@ -468,13 +475,17 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
 
         public Object[] getBins( Object[] tuple ) {
             SkyEllipse ellipse = ellipseReader_.apply( tuple );
-            double alpha = ellipse.alpha_;
-            double delta = ellipse.delta_;
-            double radius = ellipse.getMaxRadius();
-            return ! Double.isNaN( alpha ) && ! Double.isNaN( delta )
-                   && radius >= 0 
-                 ? conePixer_.getPixels( alpha, delta, radius )
-                 : NO_BINS;
+            if ( ellipse != null ) {
+                double alpha = ellipse.alpha_;
+                double delta = ellipse.delta_;
+                double radius = ellipse.getMaxRadius();
+                assert isSkyPosition( alpha, delta );
+                assert radius >= 0;
+                return conePixer_.getPixels( alpha, delta, radius );
+            }
+            else {
+                return NO_BINS;
+            }
         }
 
         public double matchScore( Object[] tuple1, Object[] tuple2 ) {
@@ -530,11 +541,16 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
             return tuple -> {
                 double alpha = getNumberValue( tuple[ 0 ] ) * FROM_DEG;
                 double delta = getNumberValue( tuple[ 1 ] ) * FROM_DEG;
-                double mu = getNumberValue( tuple[ 2 ] ) * FROM_ARCSEC;
-                double nu = getNumberValue( tuple[ 3 ] ) * FROM_ARCSEC;
-                double zeta = getNumberValue( tuple[ 4 ] ) * FROM_DEG;
-                return createSkyEllipse( alpha, delta, mu, nu, zeta,
-                                         recogniseCircles );
+                if ( isSkyPosition( alpha, delta ) ) {
+                    double mu = getNumberValue( tuple[ 2 ] ) * FROM_ARCSEC;
+                    double nu = getNumberValue( tuple[ 3 ] ) * FROM_ARCSEC;
+                    double zeta = getNumberValue( tuple[ 4 ] ) * FROM_DEG;
+                    if ( mu >= 0 && nu >= 0 && Double.isFinite( zeta ) ) {
+                        return createSkyEllipse( alpha, delta, mu, nu, zeta,
+                                                 recogniseCircles );
+                    }
+                }
+                return null;
             };
         }
     }

@@ -109,15 +109,16 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
         final SkyCoverage.TupleDecoder coneDecoder = ( tuple, lonLatErr ) -> {
             double alpha = coordReader.getAlpha( tuple );
             double delta = coordReader.getDelta( tuple );
-            if ( Double.isFinite( alpha ) && Double.isFinite( delta ) ) {
-                lonLatErr[ 0 ] = alpha;
-                lonLatErr[ 1 ] = delta;
-                lonLatErr[ 2 ] = coordReader.getError( tuple );
-                return true;
+            if ( isSkyPosition( alpha, delta ) ) {
+                double err = coordReader.getError( tuple );
+                if ( err >= 0 ) {
+                    lonLatErr[ 0 ] = alpha;
+                    lonLatErr[ 1 ] = delta;
+                    lonLatErr[ 2 ] = err;
+                    return true;
+                }
             }
-            else {
-                return false;
-            }
+            return false;
         };
         return () -> SkyCoverage
                     .createVariableErrorCoverage( scale, coneDecoder );

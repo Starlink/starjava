@@ -14574,6 +14574,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Results may be different in crowded regions, and may also
         have differed between v3.4-6 and v3.4-7,
         but are not obviously more or less correct.</li>
+    <li>Improve handling of illegal sky coordinates
+        (latitude out of range) in sky matching;
+        in v3.4-7 only, bad positions caused match failure,
+        now they are just ignored.</li>
     </ul>
     </p></dd>
 

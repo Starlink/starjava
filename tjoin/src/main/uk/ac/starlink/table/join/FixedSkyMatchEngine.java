@@ -94,16 +94,11 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
         final CoordReader coordReader = getCoordReader();
         final SkyCoverage.TupleDecoder posDecoder = ( tuple, lonlat ) -> {
             double alpha = coordReader.getAlpha( tuple );
-            if ( Double.isFinite( alpha ) ) {
-                double delta = coordReader.getDelta( tuple );
-                if ( Double.isFinite( delta ) ) {
-                    lonlat[ 0 ] = alpha;
-                    lonlat[ 1 ] = delta;
-                    return true;
-                }
-                else {
-                    return false;
-                }
+            double delta = coordReader.getDelta( tuple );
+            if ( isSkyPosition( alpha, delta ) ) {
+                lonlat[ 0 ] = alpha;
+                lonlat[ 1 ] = delta;
+                return true;
             }
             else {
                 return false;
