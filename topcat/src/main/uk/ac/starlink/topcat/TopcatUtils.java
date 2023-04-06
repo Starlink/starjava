@@ -7,9 +7,12 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +45,7 @@ import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.task.InvokeUtils;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 import uk.ac.starlink.util.IOUtils;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Class containing miscellaneous static methods and constants 
@@ -567,9 +571,8 @@ public class TopcatUtils {
     public static void enquireLatestVersion() {
         if ( statusMap_ == null ) {
             try {
-                URL url = new URL( STATUS_URL );
                 Properties versionProps = new Properties();
-                versionProps.load( url.openStream() );
+                versionProps.load( openWellKnownUrlStream( STATUS_URL ) );
                 statusMap_ = new HashMap<Object,Object>( versionProps );
             }
             catch ( Throwable e ) {
@@ -763,5 +766,71 @@ public class TopcatUtils {
             assert false;
             return item.toString();
         }
+    }
+
+    /**
+     * Converts an HTTP URL to an HTTPS one that is the same apart from
+     * the protocol part.
+     *
+     * @param   httpUrl  URL assumed to start "http://"
+     * @return   same as input but starting "https://";
+     */
+    static String toHttpsUrl( String httpUrl ) {
+        return httpUrl.replaceFirst( "^http:", "https:" );
+    }
+
+    /**
+     * Attempts to open a connection to a given URL.
+     * Redirects, including http->https redirects, are followed.
+     * If it fails, an attempt is made using an https version of the same URL.
+     *
+     * @param   url    HTTP-protocol URL to open
+     * @return  input stream containing non-error resource content, not null
+     * @throws  IOException  if it can't be contacted
+     */
+    private static InputStream openWellKnownUrlStream( String url )
+            throws IOException {
+
+        /* First try the normal URL. */
+        IOException e1 = null;
+        try {
+            URLConnection conn =
+                URLUtils.followRedirects( new URL( url ).openConnection(),
+                                          (int[]) null );
+            if ( conn instanceof HttpURLConnection &&
+                 ((HttpURLConnection) conn).getResponseCode() == 200 ) {
+                return conn.getInputStream();
+            }
+        }
+        catch ( IOException e ) {
+            e1 = e;
+        }
+
+        /* If that failed, try an HTTPS version of the same thing. */
+        String url2 = toHttpsUrl( url );
+        if ( ! url.equals( url2 ) ) {
+            try {
+                URLConnection conn2 =
+                    URLUtils
+                   .followRedirects( new URL( url2 ).openConnection(),
+                                     (int[]) null );
+                if ( conn2 instanceof HttpURLConnection &&
+                     ((HttpURLConnection) conn2).getResponseCode() == 200 ) {
+                    return conn2.getInputStream();
+                }
+            }
+            catch ( IOException e2 ) {
+                // nope
+            }
+        }
+
+        /* If no success but the first attempt resulted in an exception,
+         * throw that. */
+        if ( e1 != null ) {
+            throw e1;
+        }
+
+        /* Otherwise, it just wasn't there. */
+        throw new FileNotFoundException( url + ", " + url2 );
     }
 }

@@ -38,4 +38,11 @@ public class ResourceTest extends TestCase {
             Tables.checkTable( dt );
         }
     }
+
+    public void testStatusUrl() {
+        assertTrue( TopcatUtils.STATUS_URL
+                   .startsWith( "http://" ) );
+        assertTrue( TopcatUtils.toHttpsUrl( TopcatUtils.STATUS_URL )
+                   .startsWith( "https://" ) );
+    }
 }
