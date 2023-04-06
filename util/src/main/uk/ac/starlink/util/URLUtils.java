@@ -450,7 +450,7 @@ public class URLUtils {
                                      + " URL to " + proto1
                                      + " (" + url0 + " -> " + url1 + ")" );
             }
-            logger_.info( "HTTP " + hcode0 + " redirect to " + url1 );
+            logger_.config( "HTTP " + hcode0 + " redirect to " + url1 );
             URLConnection conn1 = url1.openConnection();
             if ( ! ( conn1 instanceof HttpURLConnection ) ) {
                 return conn1;
