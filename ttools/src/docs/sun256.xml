@@ -14579,6 +14579,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (latitude out of range) in sky matching;
         in v3.4-7 only, bad positions caused match failure,
         now they are just ignored.</li>
+    <li>Update taplint in accordance with DALI 1.1 Erratum #1;
+        example continuation elements without an empty
+        resource attribute no longer provoke an Error.</li>
     </ul>
     </p></dd>
 

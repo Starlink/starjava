@@ -772,14 +772,15 @@ public class ExampleStage implements Stage {
                                ".//*[@property='continuation']" );
             for ( Element contEl : contEls ) {
                 String resourceAtt = getAttribute( contEl, "resource" );
-                if ( ! "".equals( resourceAtt ) ) {
+                if ( resourceAtt != null ) {
                     String msg = new StringBuffer()
-                       .append( resourceAtt == null 
-                              ? "Missing @resource attribute"
-                              : "Incorrect @resource attribute \""
-                                + resourceAtt + "\"" )
-                       .append( " for property=\"continuation\" element" )
-                       .append( " (should be present but empty)" )
+                       .append( "Attribute resource=\"" )
+                       .append( resourceAtt )
+                       .append( "\" for property=\"continuation\" element" )
+                       .append( " should be absent" )
+                       .append( " (see DALI1.1 Erratum #1," )
+                       .append( " not empty as DALI1.1 sec 2.3.4" )
+                       .append( " original text)" )
                        .toString();
                     reporter_.report( FixedCode.E_EXCR, msg );
                 }
