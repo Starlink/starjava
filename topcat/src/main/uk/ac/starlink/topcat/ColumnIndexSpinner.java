@@ -19,19 +19,23 @@ import javax.swing.table.TableColumnModel;
  */
 public class ColumnIndexSpinner extends JSpinner {
 
-    private TableColumnModel columnModel;
-    private ColumnSpinnerModel spinnerModel;
+    private TableColumnModel columnModel_;
+    private ColumnSpinnerModel spinnerModel_;
 
     /**
      * Constructs a new spinner based on a given model.
+     * Setting <code>add1</code> true makes sense if you're adding a
+     * new column, and false if you're editing an existing one.
      *
      * @param  columnModel  the column model which defines the range of
      *         legal values
+     * @param  add1  if true, the maximum can be one larger than the
+     *               current size of the model
      */
-    public ColumnIndexSpinner( TableColumnModel columnModel ) {
-        super( new ColumnSpinnerModel( columnModel ) );
-        this.columnModel = columnModel;
-        this.spinnerModel = (ColumnSpinnerModel) getModel();
+    public ColumnIndexSpinner( TableColumnModel columnModel, boolean add1 ) {
+        super( new ColumnSpinnerModel( columnModel, add1 ) );
+        columnModel_ = columnModel;
+        spinnerModel_ = (ColumnSpinnerModel) getModel();
         Dimension spinSize = getPreferredSize();
         setPreferredSize( new Dimension( spinSize.width + 32,
                                          spinSize.height ) );
@@ -61,20 +65,35 @@ public class ColumnIndexSpinner extends JSpinner {
     public void setColumnIndex( int index ) {
         int index0;
         if ( index < 0 ) {
-            index0 = ((Number) spinnerModel.getMaximum()).intValue();
+            index0 = ((Number) spinnerModel_.getMaximum()).intValue();
         }
         else {
             index0 = index + 1;
         }
-        setValue( new Integer( index0 ) );
+        setValue( Integer.valueOf( index0 ) );
     }
 
-    private static class ColumnSpinnerModel extends SpinnerNumberModel 
-                                         implements TableColumnModelListener {
-        TableColumnModel columnModel;
-        ColumnSpinnerModel( TableColumnModel columnModel ) {
-            this.columnModel = columnModel;
-            columnModel.addColumnModelListener( this );
+    /**
+     * Model implementation for use with ColumnIndexSpinner.
+     */
+    private static class ColumnSpinnerModel
+            extends SpinnerNumberModel
+            implements TableColumnModelListener {
+        private final TableColumnModel columnModel_;
+        private final boolean add1_;
+
+        /**
+         * Constructor.
+         *
+         * @param  columnModel  the column model which defines the range of
+         *         legal values
+         * @param  add1  if true, the maximum can be one larger than the
+         *               current size of the model
+         */
+        ColumnSpinnerModel( TableColumnModel columnModel, boolean add1 ) {
+            columnModel_ = columnModel;
+            add1_ = add1;
+            columnModel_.addColumnModelListener( this );
             reconfigure();
         }
         public void columnAdded( TableColumnModelEvent evt ) {
@@ -87,8 +106,9 @@ public class ColumnIndexSpinner extends JSpinner {
         public void columnMarginChanged( ChangeEvent evt ) {}
         public void columnSelectionChanged( ListSelectionEvent evt ) {}
         private void reconfigure() {
-            setMinimum( new Integer( 1 ) );
-            setMaximum( new Integer( columnModel.getColumnCount() + 1) );
+            setMinimum( Integer.valueOf( 1 ) );
+            setMaximum( Integer.valueOf( columnModel_.getColumnCount()
+                                         + ( add1_ ? 1 : 0 ) ) );
             Object v = getValue();
             if ( v instanceof Comparable ) {
                 @SuppressWarnings("unchecked")

@@ -277,73 +277,23 @@ public class ColumnInfoWindow extends AuxWindow {
 
         /* Add expression column. */
         metas.add( new ValueInfoMetaColumn( TopcatUtils.EXPR_INFO ) {
-            private SyntheticColumn getSyntheticColumn( int irow ) {
-                ColumnData coldata = 
-                    dataModel.getColumnData( getModelIndexFromRow( irow ) );
-                return coldata instanceof SyntheticColumn 
-                     ? (SyntheticColumn) coldata
-                     : null;
-            }
             public boolean isEditable( int irow ) {
-                return getSyntheticColumn( irow ) != null;
+                return dataModel.getColumnData( getModelIndexFromRow( irow ) )
+                       instanceof SyntheticColumn;
             }
             public void setValue( int irow, Object value ) {
                 int icol = getModelIndexFromRow( irow );
                 String expr = (String) value;
-                if ( TopcatJELUtils
-                    .isColumnReferenced( tcModel, icol, expr ) ) {
-                     String[] msg = new String[] {
-                         "Recursive column expression disallowed:",
-                         "\"" + expr + "\"" +
-                         " directly or indirectly references column " + 
-                         dataModel.getColumnData( icol )
-                                  .getColumnInfo().getName(),
-                     };
-                     JOptionPane.showMessageDialog( ColumnInfoWindow.this, msg,
-                                                    "Expression Error",
-                                                    JOptionPane.ERROR_MESSAGE );
-                     return;
+                SyntheticColumnQueryWindow qwin =
+                    SyntheticColumnQueryWindow
+                   .editColumnDialog( tcModel, icol, ColumnInfoWindow.this,
+                                      exCh -> columnChanged( icol, exCh ) );
+                qwin.setExpression( expr );
+                if ( qwin.perform() ) {
+                    qwin.dispose();
                 }
-                SyntheticColumn col = getSyntheticColumn( irow );
-                if ( col != null ) {
-                    try { 
-                        col.setExpression( expr, null );
-                    }
-                    catch ( CompilationException e ) {
-                        String[] msg = new String[] {
-                            "Syntax error in synthetic column expression \"" + 
-                            value + "\":",
-                            e.getMessage(),
-                        };
-                        JOptionPane
-                       .showMessageDialog( ColumnInfoWindow.this, msg,
-                                           "Expression Syntax Error",
-                                           JOptionPane.ERROR_MESSAGE );
-                        return;
-                    }
-                    super.setValue( irow, expr );
-
-                    /* In most cases, setting the expression to its new
-                     * value is all that's necessary here.
-                     * However, if the new expression has a different data type
-                     * than the old one, two more things are required:
-                     * first, update the displayed expression data type,
-                     * and second, recompile any other expressions that
-                     * may depend on this one, since the way that JEL
-                     * expression evaluation works, the compiled expressions
-                     * won't work any longer if the data type has changed. */
-                    metaTableModel.fireTableCellUpdated( irow,
-                                                         icolColsetClass_ );
-                    recompileDependencies( icol );
-    
-                    /* Message the table that its data may have changed.
-                     * Since every cell in one column is changing, 
-                     * potentially any cell in the table could change, since
-                     * it may be in a synthetic column depending on the
-                     * changed one.  Which is just as well, since no event
-                     * is defined to describe all the data in a single
-                     * column changing. */
-                    viewModel.fireTableDataChanged();
+                else {
+                    qwin.setVisible( true );
                 }
             }
         } );
@@ -781,6 +731,43 @@ public class ColumnInfoWindow extends AuxWindow {
         sortupAct.setEnabled( hasUniqueSelection );
         sortdownAct.setEnabled( hasUniqueSelection );
         replacecolAct.setEnabled( hasUniqueSelection && TopcatUtils.canJel() );
+    }
+
+    /**
+     * Perform required additional updates following possible change of
+     * column metadata.
+     *
+     * @param  icol  model index of column
+     * @param  expressionChanged  true if the column is synthetic and its
+     *                            defining expression may have changed
+     */
+    private void columnChanged( int icol, boolean expressionChanged ) {
+
+        /* Update the metadata that may have changed.
+         * This really only applies to one row, but it's
+         * possible that the row index we have is no longer
+         * correct, so hit it with a sledgehammer and update
+         * all the table cells to be sure. */
+        metaTableModel.fireTableDataChanged();
+
+        /* The other steps are only required if the expression changed. */
+        if ( expressionChanged ) {
+
+            /* Recompile any other expressions that may depend
+             * on this one, since the way that JEL expression
+             * evaluation works, the compiled expressions won't work
+             * any longer if the data type has changed. */
+            recompileDependencies( icol );
+
+            /* Message the data table that its data may have changed.
+             * Since every cell in one column is changing, 
+             * potentially any cell in the table could change, since
+             * it may be in a synthetic column depending on the
+             * changed one.  Which is just as well, since no event
+             * is defined to describe all the data in a single
+             * column changing. */
+            viewModel.fireTableDataChanged();
+        }
     }
 
     /**

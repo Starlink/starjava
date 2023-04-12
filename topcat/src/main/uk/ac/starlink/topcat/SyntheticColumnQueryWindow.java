@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat;
 
 import gnu.jel.CompilationException;
 import java.awt.Component;
+import java.util.function.Consumer;
 import javax.swing.AbstractSpinnerModel;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
@@ -37,11 +38,13 @@ public abstract class SyntheticColumnQueryWindow extends QueryWindow {
      *
      * @param   tcModel      model containing the table data
      * @param   insertIndex  the default position for the new column
+     * @param   isAdd        true for adding a new column,
+     *                       false to edit an existing one
      * @param   parent       the parent window for this dialogue (used for
      *                       window positioning)
      */
-    protected SyntheticColumnQueryWindow( TopcatModel tcModel,
-                                          int insertIndex, Component parent ) {
+    private SyntheticColumnQueryWindow( TopcatModel tcModel, int insertIndex,
+                                        boolean isAdd, Component parent ) {
         super( "Define Synthetic Column", parent );
         tcModel_ = tcModel;
         columnModel_ = tcModel.getColumnModel();
@@ -85,7 +88,7 @@ public abstract class SyntheticColumnQueryWindow extends QueryWindow {
         stack.addLine( "UCD", ucdField_ );
 
         /* Index field. */
-        indexSpinner_ = new ColumnIndexSpinner( columnModel_ );
+        indexSpinner_ = new ColumnIndexSpinner( columnModel_, isAdd );
         indexSpinner_.setColumnIndex( insertIndex );
         stack.addLine( "Index", indexSpinner_ );
 
@@ -266,7 +269,8 @@ public abstract class SyntheticColumnQueryWindow extends QueryWindow {
     public static SyntheticColumnQueryWindow
             newColumnDialog( TopcatModel tcModel, int insertIndex,
                              Component parent ) {
-        return new SyntheticColumnQueryWindow( tcModel, insertIndex, parent ) {
+        return new SyntheticColumnQueryWindow( tcModel, insertIndex, true,
+                                               parent ) {
             public boolean perform() {
                 SyntheticColumn col = makeColumn();
                 if ( col == null ) {
@@ -278,6 +282,93 @@ public abstract class SyntheticColumnQueryWindow extends QueryWindow {
                 }
             }
         };
+    }
+
+    /**
+     * Constructs a query window which will edit an existing column in the
+     * model.
+     *
+     * @param  tcModel  topcat model
+     * @param  icol     model index of column to edit
+     * @param  parent   parent window, used for positioning
+     * @param  onChange   callback to be run on the EDT;
+     *                    the boolean parameter will be true only if the
+     *                    expression defining a (synthetic) column has changed
+     * @return    window ready for user interaction
+     */
+    public static SyntheticColumnQueryWindow
+            editColumnDialog( TopcatModel tcModel, int icol, Component parent,
+                              Consumer<Boolean> onChange ) {
+        PlasticStarTable dataModel = tcModel.getDataModel();
+        TableColumnModel colModel = tcModel.getColumnModel();
+        ColumnData cdata = dataModel.getColumnData( icol );
+        ColumnInfo cinfo = cdata.getColumnInfo();
+        SyntheticColumn synthCol = cdata instanceof SyntheticColumn
+                                 ? (SyntheticColumn) cdata
+                                 : null;
+        int ipos = getPositionIndex( colModel, icol );
+        SyntheticColumnQueryWindow qwin =
+                new SyntheticColumnQueryWindow( tcModel, ipos, false, parent ) {
+            public boolean perform() {
+                String expr = getExpression();
+                final boolean expressionChanged;
+                if ( synthCol == null ||
+                     synthCol.getExpression().equals( expr ) ) {
+                    expressionChanged = false;
+                }
+                else {
+                    if ( TopcatJELUtils
+                        .isColumnReferenced( tcModel, icol, expr ) ) {
+                        String[] msg = new String[] {
+                            "Recursive column expression disallowed:",
+                            "\"" + expr + "\"" +
+                            " directly or indirectly references column " +
+                            cinfo.getName(),
+                        };
+                        JOptionPane
+                       .showMessageDialog( this, msg, "Expression Error",
+                                           JOptionPane.ERROR_MESSAGE );
+                        return false;
+                    }
+                    try {
+                        synthCol.setExpression( expr, (Class<?>) null );
+                    }
+                    catch ( CompilationException e ) {
+                        String[] msg = new String[] {
+                            "Syntax error in synthetic column expression \"" +
+                            expr + "\":",
+                            e.getMessage(),
+                        };
+                        JOptionPane
+                       .showMessageDialog( this, msg,
+                                           "Expression Syntax Error",
+                                           JOptionPane.ERROR_MESSAGE );
+                        return false;
+                    }
+                    expressionChanged = true;
+                }
+                cinfo.setName( getColumnName() );
+                cinfo.setUnitString( getUnit() );
+                cinfo.setDescription( getDescription() );
+                cinfo.setUCD( getUCD() );
+                onChange.accept( Boolean.valueOf( expressionChanged ) );
+                int posIndex0 = getPositionIndex( colModel, icol );
+                int posIndex1 = getIndex();
+                if ( posIndex0 >= 0 && posIndex0 != posIndex1 ) {
+                    colModel.moveColumn( posIndex0, posIndex1 );
+                }
+                return true;
+            }
+        };
+        qwin.setColumnName( cinfo.getName() );
+        qwin.setUnit( cinfo.getUnitString() );
+        qwin.setDescription( cinfo.getDescription() );
+        qwin.setUCD( cinfo.getUCD() );
+        if ( synthCol != null ) {
+            qwin.setExpression( synthCol.getExpression() );
+        }
+        qwin.expressionField_.setEnabled( synthCol != null );
+        return qwin;
     }
 
     /**
@@ -303,7 +394,7 @@ public abstract class SyntheticColumnQueryWindow extends QueryWindow {
             TopcatUtils.getBaseName( baseInfo.getName(), OLD_SUFFIX );
         int pos = columnList.getModelIndex( columnList.indexOf( baseCol ) );
         SyntheticColumnQueryWindow qwin = 
-            new SyntheticColumnQueryWindow( tcModel, pos, parent ) {
+            new SyntheticColumnQueryWindow( tcModel, pos, true, parent ) {
                 protected boolean perform() {
 
                     /* Create a new column based on the current state of this
@@ -352,5 +443,22 @@ public abstract class SyntheticColumnQueryWindow extends QueryWindow {
             qwin.setExpression( colId.getValue().toString() );
         }
         return qwin;
+    }
+
+    /**
+     * Returns the position in a given column model at which a column with
+     * a given model index appears.
+     *
+     * @param  colModel  column model
+     * @param  icol   target model index
+     * @return  index in column model of target column, or -1 if not found
+     */
+    private static int getPositionIndex( TableColumnModel colModel, int icol ) {
+        for ( int ic = 0; ic < colModel.getColumnCount(); ic++ ) {
+            if ( colModel.getColumn( ic ).getModelIndex() == icol ) {
+                return ic;
+            }
+        }
+        return -1;
     }
 }

@@ -31875,6 +31875,11 @@ introduced since the last version:
         (latitude out of range) in sky matching;
         in v4.8-7 only, bad positions caused match failure,
         now they are just ignored.</li>
+    <li>When editing the expression of a synthetic column in the
+        <ref id="ColumnInfoWindow">Columns Window</ref>,
+        if the expression is invalid, a popup window is now opened
+        to let you edit it rather than just reverting to the
+        previous value.</li>
     </ul>
     </p></dd>
 
