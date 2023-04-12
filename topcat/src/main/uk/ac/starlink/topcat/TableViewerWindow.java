@@ -476,7 +476,8 @@ public class TableViewerWindow extends AuxWindow {
                                  " with new synthetic column" ) {
                     public void actionPerformed( ActionEvent evt ) {
                         SyntheticColumnQueryWindow
-                           .replaceColumnDialog( tcModel_, tcol, parent );
+                           .replaceColumnDialog( tcModel_, tcol, parent )
+                           .setVisible( true );
                     }
                 };
             replacecolAct.setEnabled( TopcatUtils.canJel() );
@@ -488,7 +489,8 @@ public class TableViewerWindow extends AuxWindow {
             new BasicAction( "New Synthetic Column", ResourceIcon.ADD,
                              "Add new synthetic column after " + colName ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    new SyntheticColumnQueryWindow( tcModel_, jcol + 1, parent )
+                    SyntheticColumnQueryWindow
+                   .newColumnDialog( tcModel_, jcol + 1, parent )
                    .setVisible( true );
                 }
             };

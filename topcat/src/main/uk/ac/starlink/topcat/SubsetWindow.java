@@ -635,7 +635,8 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
             else if ( this == tocolAct ) {
                 SyntheticColumnQueryWindow colwin =
-                    new SyntheticColumnQueryWindow( tcModel, -1, parent );
+                    SyntheticColumnQueryWindow
+                   .newColumnDialog( tcModel, -1, parent );
                 int irow = toUnsortedIndex( jtab.getSelectedRow() );
                 colwin.setExpression( getSubsetID( irow ) );
                 colwin.setName( getSubsetName( irow ) );

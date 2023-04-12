@@ -308,7 +308,6 @@ public class ColumnInfoWindow extends AuxWindow {
                 if ( col != null ) {
                     try { 
                         col.setExpression( expr, null );
-                        super.setValue( irow, expr );
                     }
                     catch ( CompilationException e ) {
                         String[] msg = new String[] {
@@ -322,6 +321,7 @@ public class ColumnInfoWindow extends AuxWindow {
                                            JOptionPane.ERROR_MESSAGE );
                         return;
                     }
+                    super.setValue( irow, expr );
 
                     /* In most cases, setting the expression to its new
                      * value is all that's necessary here.
@@ -1060,8 +1060,9 @@ public class ColumnInfoWindow extends AuxWindow {
                 else {
                     insertPos = -1;
                 }
-                new SyntheticColumnQueryWindow( tcModel, insertPos, parent )
-               .setVisible( true );
+                SyntheticColumnQueryWindow
+                   .newColumnDialog( tcModel, insertPos, parent )
+                   .setVisible( true );
             }
 
             /* Add new sky columns: pop up a dialogue window which will
@@ -1082,7 +1083,8 @@ public class ColumnInfoWindow extends AuxWindow {
                     StarTableColumn tcol = 
                         (StarTableColumn) getColumnFromRow( selrow );
                     SyntheticColumnQueryWindow
-                        .replaceColumnDialog( tcModel, tcol, parent );
+                        .replaceColumnDialog( tcModel, tcol, parent )
+                        .setVisible( true );
                 }
                 else {
                     logger.warning( "Replace column enabled erroneously" );

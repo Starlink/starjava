@@ -20,76 +20,74 @@ import uk.ac.starlink.table.gui.UCDSelector;
  * A dialogue window which queries the user for the characteristics of a
  * new column and then appends it to the table.
  */
-public class SyntheticColumnQueryWindow extends QueryWindow {
+public abstract class SyntheticColumnQueryWindow extends QueryWindow {
 
-    private final TopcatModel tcModel;
-    private final TableColumnModel columnModel;
-    private JTextField nameField;
-    private JTextField unitField;
-    private JTextField descriptionField;
-    private JTextField expressionField;
-    private JComboBox<Class<?>> typeField;
-    private UCDSelector ucdField;
-    private ColumnIndexSpinner indexSpinner;
+    private final TopcatModel tcModel_;
+    private final TableColumnModel columnModel_;
+    private JTextField nameField_;
+    private JTextField unitField_;
+    private JTextField descriptionField_;
+    private JTextField expressionField_;
+    private JComboBox<Class<?>> typeField_;
+    private UCDSelector ucdField_;
+    private ColumnIndexSpinner indexSpinner_;
 
     /**
-     * Constructs a new query window, which on user completion will 
-     * append a new column to the viewer <tt>tableviewer</tt> at the
-     * column index <tt>insertIndex</tt>.
+     * Constructor.
      *
      * @param   tcModel      model containing the table data
-     * @param   insertIndex  the postion for the new column
+     * @param   insertIndex  the default position for the new column
      * @param   parent       the parent window for this dialogue (used for
      *                       window positioning)
      */
-    public SyntheticColumnQueryWindow( TopcatModel tcModel,
-                                       int insertIndex, Component parent ) {
+    protected SyntheticColumnQueryWindow( TopcatModel tcModel,
+                                          int insertIndex, Component parent ) {
         super( "Define Synthetic Column", parent );
-        this.tcModel = tcModel;
-        this.columnModel = tcModel.getColumnModel();
+        tcModel_ = tcModel;
+        columnModel_ = tcModel.getColumnModel();
         LabelledComponentStack stack = getStack();
 
         /* Name field. */
-        nameField = new JTextField();
-        stack.addLine( "Name", nameField );
+        nameField_ = new JTextField();
+        stack.addLine( "Name", nameField_ );
 
         /* Expression field. */
-        expressionField = new JTextField();
-        stack.addLine( "Expression", expressionField );
+        expressionField_ = new JTextField();
+        stack.addLine( "Expression", expressionField_ );
 
         /* Units field. */
-        unitField = new JTextField();
-        stack.addLine( "Units", unitField );
+        unitField_ = new JTextField();
+        stack.addLine( "Units", unitField_ );
 
         /* Description field. */
-        descriptionField = new JTextField();
-        stack.addLine( "Description", descriptionField );
+        descriptionField_ = new JTextField();
+        stack.addLine( "Description", descriptionField_ );
 
         /* Class selector. */
-        typeField = new JComboBox<Class<?>>();
-        typeField.addItem( null );
-        typeField.addItem( byte.class );
-        typeField.addItem( short.class );
-        typeField.addItem( int.class );
-        typeField.addItem( long.class );
-        typeField.addItem( float.class );
-        typeField.addItem( double.class );
-        typeField.setRenderer( new ClassComboBoxRenderer( "(auto)" ) );
-        typeField.setSelectedIndex( 0 );
+        typeField_ = new JComboBox<Class<?>>();
+        typeField_.addItem( null );
+        typeField_.addItem( byte.class );
+        typeField_.addItem( short.class );
+        typeField_.addItem( int.class );
+        typeField_.addItem( long.class );
+        typeField_.addItem( float.class );
+        typeField_.addItem( double.class );
+        typeField_.setRenderer( new ClassComboBoxRenderer( "(auto)" ) );
+        typeField_.setSelectedIndex( 0 );
 
         // Don't add this option for now - it's not that useful, since
         // narrowing conversions cause an error in any case, which, 
         // while sensible, is not what the user is going to expect.
-        // stack.addLine( "Numeric Type", typeField );
+        // stack.addLine( "Numeric Type", typeField_ );
 
         /* UCD field. */
-        ucdField = new UCDSelector();
-        stack.addLine( "UCD", ucdField );
+        ucdField_ = new UCDSelector();
+        stack.addLine( "UCD", ucdField_ );
 
         /* Index field. */
-        indexSpinner = new ColumnIndexSpinner( columnModel );
-        indexSpinner.setColumnIndex( insertIndex );
-        stack.addLine( "Index", indexSpinner );
+        indexSpinner_ = new ColumnIndexSpinner( columnModel_ );
+        indexSpinner_.setColumnIndex( insertIndex );
+        stack.addLine( "Index", indexSpinner_ );
 
         /* Add tools. */
         getToolBar().add( MethodWindow.getWindowAction( this, false ) );
@@ -105,7 +103,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @return  name
      */
     public String getColumnName() {
-        return nameField.getText();
+        return nameField_.getText();
     }
 
     /**
@@ -114,7 +112,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @param  name new contents of the name field
      */
     public void setColumnName( String name ) {
-        nameField.setText( name );
+        nameField_.setText( name );
     }
 
     /**
@@ -123,7 +121,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @return  units
      */
     public String getUnit() {
-        return unitField.getText();
+        return unitField_.getText();
     }
 
     /**
@@ -132,7 +130,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @param  units  unit string
      */
     public void setUnit( String units ) {
-        unitField.setText( units );
+        unitField_.setText( units );
     }
 
     /**
@@ -141,7 +139,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @return  description
      */
     public String getDescription() {
-        return descriptionField.getText();
+        return descriptionField_.getText();
     }
 
     /**
@@ -150,7 +148,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @param   desc  description string
      */
     public void setDescription( String desc ) {
-        descriptionField.setText( desc );
+        descriptionField_.setText( desc );
     }
 
     /**
@@ -159,7 +157,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @return  expression
      */
     public String getExpression() {
-        return expressionField.getText();
+        return expressionField_.getText();
     }
 
     /**
@@ -168,7 +166,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @param   expr   new contents of the expression field
      */
     public void setExpression( String expr ) {
-        expressionField.setText( expr );
+        expressionField_.setText( expr );
     }
 
     /**
@@ -177,7 +175,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @return  UCD identifier
      */
     public String getUCD() {
-        return ucdField.getID();
+        return ucdField_.getID();
     }
 
     /**
@@ -186,7 +184,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @param  ucd  UCD string
      */
     public void setUCD( String ucd ) {
-        ucdField.setID( ucd );
+        ucdField_.setID( ucd );
     }
 
     /**
@@ -196,7 +194,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @param   clazz  forced expression type, or null
      */
     public void setExpressionType( Class<?> clazz ) {
-        typeField.setSelectedItem( clazz );
+        typeField_.setSelectedItem( clazz );
     }
 
     /**
@@ -206,7 +204,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @return  forced expression type, or null
      */
     public Class<?> getExpressionType() {
-        return (Class<?>) typeField.getSelectedItem();
+        return (Class<?>) typeField_.getSelectedItem();
     }
 
     /**
@@ -215,7 +213,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @return  index
      */
     public int getIndex() {
-        return indexSpinner.getColumnIndex();
+        return indexSpinner_.getColumnIndex();
     }
 
     /**
@@ -243,7 +241,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
             info.setUnitString( unit );
         }
         try {
-            return new SyntheticColumn( tcModel, info, expr, null );
+            return new SyntheticColumn( tcModel_, info, expr, null );
         }
         catch ( CompilationException e ) {
             String[] msg = new String[] {
@@ -257,20 +255,29 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
     }
 
     /**
-     * Invokes {@link #makeColumn} and adds the resulting column to the 
-     * topcatModel.
+     * Constructs a query window which on completion will add a new column.
      *
-     * @return  whether a column was successfully added
+     * @param   tcModel      model containing the table data
+     * @param   insertIndex  the default position for the new column
+     * @param   parent       the parent window for this dialogue (used for
+     *                       window positioning)
+     * @return   a window ready for user interaction 
      */
-    protected boolean perform() {
-        SyntheticColumn col = makeColumn();
-        if ( col == null ) {
-            return false;
-        }
-        else {
-            tcModel.appendColumn( col, getIndex() );
-            return true;
-        }
+    public static SyntheticColumnQueryWindow
+            newColumnDialog( TopcatModel tcModel, int insertIndex,
+                             Component parent ) {
+        return new SyntheticColumnQueryWindow( tcModel, insertIndex, parent ) {
+            public boolean perform() {
+                SyntheticColumn col = makeColumn();
+                if ( col == null ) {
+                    return false;
+                }
+                else {
+                    tcModel.appendColumn( col, getIndex() );
+                    return true;
+                }
+            }
+        };
     }
 
     /**
@@ -285,9 +292,10 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @param  parent   parent window, used for positioning
      * @return   a window ready for user interaction 
      */
-    public static SyntheticColumnQueryWindow replaceColumnDialog(
-            final TopcatModel tcModel, final StarTableColumn baseCol,
-            Component parent ) {
+    public static SyntheticColumnQueryWindow
+            replaceColumnDialog( final TopcatModel tcModel,
+                                 final StarTableColumn baseCol,
+                                 Component parent ) {
         final String OLD_SUFFIX = "_old";
         final ColumnList columnList = tcModel.getColumnList();
         final ColumnInfo baseInfo = baseCol.getColumnInfo();
@@ -343,8 +351,6 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         if ( colId != null ) {
             qwin.setExpression( colId.getValue().toString() );
         }
-        qwin.setVisible( true );
         return qwin;
     }
-
 }
