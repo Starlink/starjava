@@ -1,6 +1,5 @@
 package uk.ac.starlink.topcat;
 
-import gnu.jel.CompilationException;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -398,45 +397,16 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 return getSubset( irow ) instanceof SyntheticRowSubset;
             }
             public void setValue( int irow, Object value ) {
-                String expr = value.toString();
-                SyntheticRowSubset rset =
-                   (SyntheticRowSubset) getSubset( irow );
-                if ( expr != null && expr.equals( rset.getExpression() ) ) {
-                    return;
+                String expr = (String) value;
+                SubsetQueryWindow qwin =
+                    SubsetQueryWindow
+                   .editSubsetDialog( tcModel, SubsetWindow.this, irow );
+                qwin.getExpressionField().setText( expr );
+                if ( qwin.perform() ) {
+                    qwin.dispose();
                 }
-                int rsetId = subsets.indexToId( irow );
-                if ( TopcatJELUtils
-                    .isSubsetReferenced( tcModel, rsetId, expr ) ) {
-                    String[] msg = new String[] {
-                        "Recursive subset expression disallowed:",
-                        "\"" + expr + "\"" +
-                        " directly or indirectly references subset " +
-                        rset.getName(),
-                    };
-                    JOptionPane.showMessageDialog( SubsetWindow.this, msg,
-                                                   "Expression Error",
-                                                   JOptionPane.ERROR_MESSAGE );
-                    return;
-                }
-                try {
-                    rset.setExpression( value.toString() );
-                }
-                catch ( CompilationException e ) {
-                    String[] msg = new String[] {
-                        "Syntax error in algebraic subset expression \""
-                        + value + "\":",
-                        e.getMessage(),
-                    };
-                    JOptionPane.showMessageDialog( SubsetWindow.this, msg,
-                                                   "Expression Syntax Error",
-                                                   JOptionPane.ERROR_MESSAGE );
-                    return;
-                }
-                subsetCounts.remove( rset );
-                subsets.set( irow, rset );
-                if ( tcModel.getSubsetSelectionModel().getSelectedItem()
-                     == rset ) {
-                    tcModel.getViewModel().setSubset( rset );
+                else {
+                    qwin.setVisible( true );
                 }
             }
         };

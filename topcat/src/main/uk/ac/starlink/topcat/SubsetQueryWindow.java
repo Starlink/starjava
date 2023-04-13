@@ -159,4 +159,101 @@ public class SubsetQueryWindow extends QueryWindow {
         stack.addLine( "Expression", qwin.getExpressionField() );
         return qwin;
     }
+
+    /**
+     * Returns a window that allows editing the expression (where applicable)
+     * and name of an existing RowSubset.
+     *
+     * @param  tcModel  topcat model
+     * @param  parent   parent window for positioning
+     * @param  iset    index of subset to edit
+     * @return   window ready for user interaction
+     */
+    public static SubsetQueryWindow
+            editSubsetDialog( TopcatModel tcModel, Component parent,
+                              int iset ) {
+        OptionsListModel<RowSubset> subsets = tcModel.getSubsets();
+        RowSubset rset = subsets.get( iset );
+        int rsetId = subsets.indexToId( iset );
+        SyntheticRowSubset synthSet = rset instanceof SyntheticRowSubset
+                                    ? (SyntheticRowSubset) rset
+                                    : null;
+        JTextField nameField = new JTextField();
+        SubsetQueryWindow qwin =
+                new SubsetQueryWindow( tcModel, parent, "Edit Row Subset" ) {
+            /* Constructor. */ {
+                getStack().addLine( "Subset Name", nameField );
+                getStack().addLine( "Expression", getExpressionField() );
+            }
+            @Override
+            protected boolean perform() {
+                String name = nameField.getText();
+                String expr = getExpressionField().getText();
+                if ( name == null || name.trim().length() == 0 ) {
+                    JOptionPane.showMessageDialog( this, "No name specified",
+                                                   "Subset Name Error",
+                                                   JOptionPane.ERROR_MESSAGE );
+                    return false;
+                }
+                if ( expr == null ) {
+                    JOptionPane.showMessageDialog( this,
+                                                   "No expression specified",
+                                                   "Subset Expression Error",
+                                                   JOptionPane.ERROR_MESSAGE );
+                    return false;
+                }
+                if ( synthSet != null &&
+                     ! expr.equals( synthSet.getExpression() ) ) {
+                    if ( TopcatJELUtils
+                        .isSubsetReferenced( tcModel, rsetId, expr ) ) {
+                        String[] msg = new String[] {
+                            "Recursive subset expression disallowed:",
+                            "\"" + expr + "\"" +
+                            " directly or indirectly references subset " +
+                            rset.getName(),
+                        };
+                        JOptionPane
+                       .showMessageDialog( this, msg, "Expression Error",
+                                           JOptionPane.ERROR_MESSAGE );
+                        return false;
+                    }
+                    try {
+                        synthSet.setExpression( expr );
+                    }
+                    catch ( CompilationException e ) {
+                        String[] msg = new String[] {
+                            "Syntax error in algebraic subset expression \""
+                            + expr + "\":",
+                            e.getMessage(),
+                        };
+                        JOptionPane
+                       .showMessageDialog( this, msg, "Expression Syntax Error",
+                                           JOptionPane.ERROR_MESSAGE );
+                        return false;
+                    }
+                    tcModel.getSubsetCounts().remove( rset );
+                    subsets.set( iset, rset );
+                    if ( tcModel.getSubsetSelectionModel().getSelectedItem()
+                         == rset ) {
+                        tcModel.getViewModel().setSubset( rset );
+                    }
+                }
+                if ( ! rset.getName().equals( name ) ) {
+                    rset.setName( name );
+                    subsets.set( iset, rset );
+                    tcModel.recompileSubsets();
+                }
+                return true;
+            }
+        };
+        nameField.setText( rset.getName() );
+        JTextField exprField = qwin.getExpressionField();
+        if ( synthSet != null ) {
+            exprField.setText( synthSet.getExpression() );
+        }
+        else {
+            exprField.setEnabled( false );
+        }
+        return qwin;
+    }
 }
