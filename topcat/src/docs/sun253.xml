@@ -6378,6 +6378,13 @@ can be edited by double-clicking on them in the normal way.
     consisting of the last <m>N</m> rows of the table.
     </p></dd>
 
+<dt>&IMG.EDIT; Edit Subset</dt>
+<dd><p>Pops up the 
+    <ref id="SyntheticSubsetQueryWindow">Algebraic Subset Window</ref>
+    that lets you edit the subset's Name, and Expression if it has one,
+    in place.
+    </p></dd>
+
 <dt>&IMG.INVERT; Invert Subset</dt>
 <dd><p>Creates a new subset which is the complement of the selected one.
     The new one will include all the rows which are excluded by the
@@ -31885,11 +31892,13 @@ introduced since the last version:
         in v4.8-7 only, bad positions caused match failure,
         now they are just ignored.</li>
     <li>The <ref id="ColumnInfoWindow">Columns Window</ref>
-        has a new <label>Edit Column Definition</label> action
-        that opens a popup window to edit name, expression, etc.
-        This is now activated automatically if you enter an invalid
-        synthetic column expression in the table,
-        rather than just reverting to the previous expression.</li>
+        and <ref id="SubsetWindow">Subsets Window</ref> have new
+        <label>Edit Column/Subset</label> actions respectively,
+        that open a popup window to edit name, expression, etc.
+        These are now activated automatically if you enter an invalid
+        algebraic expression in the metadata JTables,
+        rather than just wiping out your new expression and
+        reverting to the previous one.</li>
     </ul>
     </p></dd>
 

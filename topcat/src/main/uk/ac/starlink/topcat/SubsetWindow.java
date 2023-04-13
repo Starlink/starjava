@@ -52,6 +52,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private final Action tocolAct;
     private final Action highlightAct;
     private final Action countAct;
+    private final Action editAct;
     private final Action invertAct;
     private final Action sampleAct;
     private final Action headAct;
@@ -149,12 +150,18 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                      "(Re)count the number of rows in each " +
                                      "subset" );
 
-        /* Action for highlighting selectd subset. */
+        /* Action for highlighting selected subset. */
         highlightAct = new SubsetAction( "Highlight subset",
                                          ResourceIcon.HIGHLIGHT,
                                          "Highlight the selected subset by "
                                        + "marking its rows in the table window "
                                        + "and ensuring it's visible in plots" );
+
+        /* Action for editing selected subset. */
+        editAct = new SubsetAction( "Edit subset", ResourceIcon.EDIT,
+                                    "Show a window that lets you edit the "
+                                  + "expression and name for "
+                                  + "the selected subset" );
 
         /* Action for producing inverse subset. */
         invertAct = new SubsetAction( "Invert subset", ResourceIcon.INVERT,
@@ -220,6 +227,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 }
                 removeAct.setEnabled( hasSelection && ! isAllSelected );
                 tocolAct.setEnabled( hasUniqueSelection );
+                editAct.setEnabled( hasUniqueSelection );
                 invertAct.setEnabled( hasUniqueSelection );
                 highlightAct.setEnabled( hasUniqueSelection );
                 if ( subsetTransmitter != null ) {
@@ -270,6 +278,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         getToolBar().add( sampleAct );
         getToolBar().add( headAct );
         getToolBar().add( tailAct );
+        getToolBar().add( editAct );
         getToolBar().add( invertAct );
         getToolBar().add( classifyAct );
         getToolBar().add( removeAct );
@@ -289,6 +298,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         subsetsMenu.add( sampleAct );
         subsetsMenu.add( headAct );
         subsetsMenu.add( tailAct );
+        subsetsMenu.add( editAct );
         subsetsMenu.add( invertAct );
         subsetsMenu.add( classifyAct );
         subsetsMenu.add( removeAct );
@@ -625,6 +635,13 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 SubsetCounter sc = new SubsetCounter();
                 activeCounter = sc;
                 sc.start();
+            }
+
+            else if ( this == editAct ) {
+                int irow = toUnsortedIndex( jtab.getSelectedRow() );
+                SubsetQueryWindow
+               .editSubsetDialog( tcModel, SubsetWindow.this, irow )
+               .setVisible( true );
             }
 
             else if ( this == invertAct ) {
