@@ -63,6 +63,7 @@ public class ColumnInfoWindow extends AuxWindow {
     private final Action addcolAct;
     private final Action addskycolAct;
     private final Action replacecolAct;
+    private final Action editcolAct;
     private final Action hidecolAct;
     private final Action revealcolAct;
     private final Action hideallAct;
@@ -491,6 +492,10 @@ public class ColumnInfoWindow extends AuxWindow {
                                               ResourceIcon.MODIFY,
                                               "Replace the selected column " +
                                               "with a new one based on it" );
+        editcolAct = new ColumnInfoAction( "Edit Column Definition",
+                                           ResourceIcon.EDIT,
+                                           "View and edit all metadata " +
+                                           "for the selected column" );
         hidecolAct = new ColumnInfoAction( "Hide Selected Column(s)",
                                            ResourceIcon.HIDE,
                                            "Hide all selected columns" );
@@ -523,6 +528,7 @@ public class ColumnInfoWindow extends AuxWindow {
         colMenu.add( addcolAct );
         colMenu.add( addskycolAct );
         colMenu.add( replacecolAct );
+        colMenu.add( editcolAct );
         colMenu.add( hidecolAct );
         colMenu.add( revealcolAct );
         colMenu.add( hideallAct );
@@ -551,6 +557,7 @@ public class ColumnInfoWindow extends AuxWindow {
         getToolBar().add( addcolAct );
         getToolBar().add( addskycolAct );
         getToolBar().add( replacecolAct );
+        getToolBar().add( editcolAct );
         getToolBar().add( hidecolAct );
         getToolBar().add( revealcolAct );
         getToolBar().add( hideallAct );
@@ -731,6 +738,7 @@ public class ColumnInfoWindow extends AuxWindow {
         sortupAct.setEnabled( hasUniqueSelection );
         sortdownAct.setEnabled( hasUniqueSelection );
         replacecolAct.setEnabled( hasUniqueSelection && TopcatUtils.canJel() );
+        editcolAct.setEnabled( hasUniqueSelection );
     }
 
     /**
@@ -1075,6 +1083,18 @@ public class ColumnInfoWindow extends AuxWindow {
                 }
                 else {
                     logger.warning( "Replace column enabled erroneously" );
+                }
+            }
+
+            /* Edit an existing synthetic or non-synthetic column. */
+            else if ( this == editcolAct ) {
+                if ( jtab.getSelectedRowCount() == 1 ) {
+                    int irow = toUnsortedIndex( jtab.getSelectedRow() );
+                    int icol = getModelIndexFromRow( irow );
+                    SyntheticColumnQueryWindow
+                   .editColumnDialog( tcModel, icol, ColumnInfoWindow.this,
+                                      exCh -> columnChanged( icol, exCh ) )
+                   .setVisible( true );
                 }
             }
 

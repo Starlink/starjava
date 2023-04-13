@@ -6162,7 +6162,7 @@ sideways so that the selected column is visible.
 
 <dt>&IMG.MODIFY; Replace Column With Synthetic</dt>
 <dd><p>If a single column is selected, then clicking this button will
-    pop up a 
+    pop up a
     <ref id="SyntheticColumnQueryWindow" plaintextref="yes"
          >Synthetic Column dialogue</ref>
     to replace the selected column with a new synthetic one.
@@ -6171,6 +6171,15 @@ sideways so that the selected column is visible.
     You can alter any of these, and the new column will replace the
     old one, which will be hidden and renamed by appending a suffix
     like "_old" to its name.
+    </p></dd>
+
+<dt>&IMG.EDIT; Edit Column Definition</dt>
+<dd><p>If a single column is selected, then clicking this button will
+    pop up a
+    <ref id="SyntheticColumnQueryWindow" plaintextref="yes"
+         >Synthetic Column dialogue</ref>
+    that lets you edit its metadata, and Expression if it has one,
+    in place.
     </p></dd>
 
 <dt>&IMG.HIDE; Hide Selected Column(s)</dt>
@@ -31875,11 +31884,12 @@ introduced since the last version:
         (latitude out of range) in sky matching;
         in v4.8-7 only, bad positions caused match failure,
         now they are just ignored.</li>
-    <li>When editing the expression of a synthetic column in the
-        <ref id="ColumnInfoWindow">Columns Window</ref>,
-        if the expression is invalid, a popup window is now opened
-        to let you edit it rather than just reverting to the
-        previous value.</li>
+    <li>The <ref id="ColumnInfoWindow">Columns Window</ref>
+        has a new <label>Edit Column Definition</label> action
+        that opens a popup window to edit name, expression, etc.
+        This is now activated automatically if you enter an invalid
+        synthetic column expression in the table,
+        rather than just reverting to the previous expression.</li>
     </ul>
     </p></dd>
 

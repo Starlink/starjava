@@ -121,6 +121,7 @@ public class ResourceIcon implements Icon {
         SCROLLER = makeIcon( "scroll2.png" ),
         PARALLEL = makeIcon( "parallel1.png" ),
         STILTS = makeIcon( "stilts.png" ),
+        EDIT = makeIcon( "pencil.png" ),
 
         /* Windows. */
         CONTROL = makeIcon( "controlw.png" ),
