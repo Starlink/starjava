@@ -618,7 +618,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         public void actionPerformed( ActionEvent evt ) {
             Component parent = SubsetWindow.this;
             if ( this == addAct ) {
-                new SyntheticSubsetQueryWindow( tcModel, parent )
+                SubsetQueryWindow.newSubsetDialog( tcModel, parent )
                .setVisible( true );
             }
 

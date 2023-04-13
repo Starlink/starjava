@@ -6,6 +6,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import uk.ac.starlink.table.gui.LabelledComponentStack;
 
 /**
  * A dialogue window which obtains information to define a new Row Subset
@@ -14,7 +15,7 @@ import javax.swing.JTextField;
  * @author   Mark Taylor
  * @since    28 Sep 2006
  */
-public abstract class AbstractSubsetQueryWindow extends QueryWindow {
+public class SubsetQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel_;
     private final JComboBox<String> nameSelector_;
@@ -29,8 +30,8 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
      *                       window positioning)
      * @param   title        window title
      */
-    public AbstractSubsetQueryWindow( TopcatModel tcModel, Component parent,
-                                      String title ) {
+    protected SubsetQueryWindow( TopcatModel tcModel, Component parent,
+                                 String title ) {
         super( title, parent );
         tcModel_ = tcModel;
         nameSelector_ = tcModel.createNewSubsetNameSelector();
@@ -74,7 +75,14 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
         return exprField_;
     }
 
-    protected boolean perform() {
+    /**
+     * Attempts to construct a RowSubset based on the state of this window.
+     * If the state does not describe a subset, the user is informed
+     * via a JOptionPane popup and null is returned.
+     *
+     * @return   new subset, or null
+     */
+    protected SyntheticRowSubset createSubset() {
 
         /* Get the name object and the expression, checking that neither is
          * a null value. */
@@ -83,21 +91,19 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
             JOptionPane.showMessageDialog( this, "No subset name entered",
                                            "Missing Name Error",
                                            JOptionPane.ERROR_MESSAGE );
-            return false;
+            return null;
         }
         String expr = getExpressionField().getText();
         if ( expr == null || expr.trim().length() == 0 ) {
             JOptionPane.showMessageDialog( this, "No expression entered",
                                            "Missing Expression Error",
                                            JOptionPane.ERROR_MESSAGE );
-            return false;
+            return null;
         }
         String name = selected.toString();
 
         /* Try to construct a synthetic row subset as requested. */
-        SyntheticRowSubset exprSubset;
         if ( TopcatJELUtils.isSubsetReferenced( tcModel_, name, expr ) ) {
-            exprSubset = null;
             String[] msg = new String[] {
                 "Recursive subset expression disallowed:",
                 "\"" + expr + "\"" +
@@ -105,13 +111,13 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
             };
             JOptionPane.showMessageDialog( this, msg, "Expression Error",
                                            JOptionPane.ERROR_MESSAGE );
+            return null;
         }
         else {
             try {
-                exprSubset = new SyntheticRowSubset( name, tcModel_, expr );
+                return new SyntheticRowSubset( name, tcModel_, expr );
             }
             catch ( CompilationException e ) {
-                exprSubset = null;
                 String[] msg = new String[] {
                     "Syntax error in algebraic subset expression" 
                     + " \"" + expr + "\":",
@@ -120,11 +126,13 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
                 JOptionPane.showMessageDialog( this, msg,
                                                "Expression Syntax Error",
                                                JOptionPane.ERROR_MESSAGE );
+                return null;
             }
         }
+    }
 
-        /* If successful, construct a new RowSubset with the given name
-         * and add it to the model. */
+    protected boolean perform() {
+        SyntheticRowSubset exprSubset = createSubset();
         if ( exprSubset != null ) {
             tcModel_.addSubset( exprSubset );
             return true;
@@ -132,5 +140,23 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
         else {
             return false;
         }
+    }
+
+    /**
+     * Constructs a new query window, which on user completion will
+     * try to construct a new synthetic RowSubset and add it to the list.
+     *
+     * @param   tcModel      model containing the table data
+     * @param   parent       the parent window for this dialogue (used for
+     *                       window positioning)
+     */
+    public static SubsetQueryWindow
+           newSubsetDialog( TopcatModel tcModel, Component parent ) {
+        SubsetQueryWindow qwin =
+            new SubsetQueryWindow( tcModel, parent, "Define Row Subset" );
+        LabelledComponentStack stack = qwin.getStack();
+        stack.addLine( "Subset Name", qwin.getNameField() );
+        stack.addLine( "Expression", qwin.getExpressionField() );
+        return qwin;
     }
 }

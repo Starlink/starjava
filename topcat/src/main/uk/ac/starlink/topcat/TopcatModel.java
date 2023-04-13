@@ -1137,7 +1137,7 @@ public class TopcatModel {
             Component parent = getEventWindow( evt );
             TopcatModel model = TopcatModel.this;
             if ( this == newsubsetAct_ ) {
-                new SyntheticSubsetQueryWindow( model, parent )
+                SubsetQueryWindow.newSubsetDialog( model, parent )
                .setVisible( true );
             }
             else if ( this == unsortAct_ ) {

@@ -14,8 +14,7 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
  * @author   Mark Taylor
  * @since    28 Sep 2006
  */
-public abstract class IntegerSubsetQueryWindow
-        extends AbstractSubsetQueryWindow {
+public abstract class IntegerSubsetQueryWindow extends SubsetQueryWindow {
 
     private final JTextField numField_;
     private String lastNum_;
