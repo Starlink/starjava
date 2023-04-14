@@ -34,6 +34,7 @@ import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.util.BufferedBase64OutputStream;
 import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.IntList;
+import uk.ac.starlink.votable.datalink.ExampleUrl;
 import uk.ac.starlink.votable.datalink.ServiceDescriptor;
 import uk.ac.starlink.votable.datalink.ServiceParam;
 
@@ -483,6 +484,10 @@ public abstract class VOSerializer {
             writer.write( "  </GROUP>" );
             writer.newLine();
         }
+        for ( ExampleUrl exampleUrl : sdesc.getExampleUrls() ) {
+            writeStringParam( writer, "exampleURL", exampleUrl.getUrl(),
+                              exampleUrl.getDescription() );
+        }
         writer.write( "</RESOURCE>" );
         writer.newLine();
     }
@@ -493,10 +498,27 @@ public abstract class VOSerializer {
      *
      * @param  writer  destination stream
      * @param  pname   parameter name
-     * @parma  pvalue  parameter value
+     * @param  pvalue  parameter value
      */
     private void writeStringParam( BufferedWriter writer,
                                    String pname, String pvalue )
+            throws IOException {
+        writeStringParam( writer, pname, pvalue, (String) null );
+    }
+
+    /**
+     * Writes a PARAM element with a given value, if the value is not blank,
+     * and with an optional DESCRIPTION child.
+     * If the value is null or the empty string, no output is written.
+     *
+     * @param  writer  destination stream
+     * @param  pname   parameter name
+     * @param  pvalue  parameter value
+     * @param  description  content of DESCRIPTION child, may be null
+     */
+    private void writeStringParam( BufferedWriter writer,
+                                   String pname, String pvalue,
+                                   String description )
             throws IOException {
         if ( pvalue != null && pvalue.length() > 0 ) {
             StringBuffer sbuf = new StringBuffer()
@@ -504,8 +526,17 @@ public abstract class VOSerializer {
                 .append( formatAttribute( "name", pname ) )
                 .append( formatAttribute( "datatype", "char" ) )
                 .append( formatAttribute( "arraysize", "*" ) )
-                .append( formatAttribute( "value", pvalue ) )
-                .append( "/>" );
+                .append( formatAttribute( "value", pvalue ) );
+            if ( description != null && description.trim().length() > 0 ) {
+                sbuf.append( ">" )
+                    .append( "<DESCRIPTION>" )
+                    .append( formatText( description ) )
+                    .append( "</DESCRIPTION>" )
+                    .append( "</PARAM>" );
+            }
+            else {
+                sbuf.append( "/>" );
+            }
             writer.write( sbuf.toString() );
             writer.newLine();
         }

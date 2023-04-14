@@ -71,6 +71,9 @@ public class ServiceDescriptorInfo extends DefaultValueInfo {
             .append( formatItem( "resourceIdentifier",
                                  sd.getResourceIdentifier() ) )
             .append( formatItem( "contentType", sd.getContentType() ) );
+        for ( ExampleUrl example : sd.getExampleUrls() ) {
+            sbuf.append( formatItem( "exampleURL", example.getUrl() ) );
+        }
         sbuf.append( "Input parameters:" );
         for ( ServiceParam param : sd.getInputParams() ) {
             sbuf.append( "\n" )

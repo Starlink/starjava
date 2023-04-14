@@ -87,4 +87,13 @@ public interface ServiceDescriptor {
      * @return   service input parameter list
      */
     ServiceParam[] getInputParams();
+
+    /**
+     * Returns a list of example invocations associated with this service.
+     * This corresponds to PARAM elements with @name="exampleURL"
+     * (introduced at DataLink 1.1).
+     *
+     * @return  list of example invocations; may be empty but not null
+     */
+    ExampleUrl[] getExampleUrls();
 }

@@ -120,17 +120,38 @@ public class ServiceDescriptorFactory {
                           ? resourceEl.getAttribute( "name" )
                           : null;
         Map<String,String> paramMap = new HashMap<String,String>();
+        List<ExampleUrl> exampleList = new ArrayList<>();
         for ( VOElement pEl : resourceEl.getChildrenByName( "PARAM" ) ) {
             ParamElement paramEl = (ParamElement) pEl;
+            String pname = paramEl.getName();
             Object value = paramEl.getObject();
             if ( value instanceof String ) {
-                paramMap.put( paramEl.getName(), (String) value );
+                String pvalue = (String) value;
+                if ( "exampleURL".equals( pname ) ) {
+                    VOElement descripEl = pEl.getChildByName( "DESCRIPTION" );
+                    String description = descripEl == null
+                                       ? null
+                                       : DOMUtils.getTextContent( descripEl );
+                    exampleList.add( new ExampleUrl() {
+                        public String getUrl() {
+                            return pvalue;
+                        }
+                        public String getDescription() {
+                            return description;
+                        }
+                    } );
+                }
+                else {
+                    paramMap.put( pname, pvalue );
+                }
             }
         }
         final String accessUrl = paramMap.get( "accessURL" );
         final String standardId = paramMap.get( "standardID" );
         final String resourceIdentifier = paramMap.get( "resourceIdentifier" );
         final String contentType = paramMap.get( "contentType" );
+        final ExampleUrl[] exampleUrls =
+            exampleList.toArray( new ExampleUrl[ 0 ] );
         List<ServiceParam> inParamList = new ArrayList<ServiceParam>();
         for ( VOElement groupEl : resourceEl.getChildrenByName( "GROUP" ) ) {
             if ( "inputParams".equals( groupEl.getName() ) ) {
@@ -169,6 +190,9 @@ public class ServiceDescriptorFactory {
             }
             public ServiceParam[] getInputParams() {
                 return inputParams;
+            }
+            public ExampleUrl[] getExampleUrls() {
+                return exampleUrls;
             }
         };
     }
