@@ -34,6 +34,7 @@ public class VocabChecker {
         Logger.getLogger( "uk.ac.starlink.ttools.votlint" );
 
     /** Instance for vocabulary at http://www.ivoa.net/rdf/timescale. */
+    /* Term list is from https://www.ivoa.net/rdf/timescale/2019-03-15/. */
     public static final VocabChecker TIMESCALE =
         new VocabChecker( "http://www.ivoa.net/rdf/timescale",
                           new String[] {
@@ -42,6 +43,7 @@ public class VocabChecker {
                           } );
 
     /** Instance for vocabulary at http://www.ivoa.net/rdf/refposition. */
+    /* Term list is from https://www.ivoa.net/rdf/refposition/2019-03-15/. */
     public static final VocabChecker REFPOSITION =
         new VocabChecker( "http://www.ivoa.net/rdf/refposition",
                           new String[] {
@@ -50,16 +52,16 @@ public class VocabChecker {
                           } );
 
     /** Instance for vocabulary at http://www.ivoa.net/rdf/datalink/core. */
-    /* Term list is from
-     * http://www.ivoa.net/rdf/datalink/core/2014-10-30/. */
+    /* Term list is from https://www.ivoa.net/rdf/datalink/core/2022-01-27/. */
     public static final VocabChecker DATALINK_CORE =
         new VocabChecker( "http://www.ivoa.net/rdf/datalink/core",
                           new String[] {
-                              "this", "progenitor", "derivation", "auxiliary",
-                              "weight", "error", "noise", "calibration",
-                              "bias", "dark", "flat",
-                              "preview", "preview-image", "preview-plot",
-                              "proc", "cutout",
+                              "auxiliary", "bias", "calibration", "coderived",
+                              "counterpart", "cutout", "dark", "derivation",
+                              "detached-header", "documentation", "error",
+                              "flat", "noise", "package", "preview",
+                              "preview-image", "preview-plot", "proc",
+                              "progenitor", "this", "thumbnail", "weight",
                           } );
 
     /** Static instances of this class. */
