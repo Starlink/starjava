@@ -62,6 +62,11 @@ public class VocabChecker {
                               "proc", "cutout",
                           } );
 
+    /** Static instances of this class. */
+    private static final VocabChecker[] INSTANCES = {
+        TIMESCALE, REFPOSITION, DATALINK_CORE,
+    };
+
     /**
      * Constructor.
      *
@@ -219,6 +224,60 @@ public class VocabChecker {
             retrievedTerms_ = Collections.unmodifiableMap( terms );
         }
         return retrievedTerms_;
+    }
+
+    @Override
+    public String toString() {
+        return getVocabularyUri();
+    }
+
+    /**
+     * Run to check hard-coded term lists against online versions.
+     * This can be done periodically, and the hard-coded lists updated
+     * accordingly.
+     */
+    public static void main( String[] args ) throws IOException {
+        for ( VocabChecker checker : INSTANCES ) {
+            System.out.println( checkFixedTerms( checker ) );
+            System.out.println();
+        }
+    }
+
+    /**
+     * Checks the hard-coded terms known for a given checker,
+     * and returns a report summarising the result.
+     *
+     * @param  checker  checker to test
+     * @return   multi-line string reporting status
+     */
+    private static String checkFixedTerms( VocabChecker checker )
+            throws IOException {
+        Set<String> fixed = new TreeSet<String>( checker.getFixedTerms() );
+        Set<String> retrieved =
+            new TreeSet<String>( Vocabulary
+                                .readVocabulary( checker.getVocabularyUrl() )
+                                .getTerms().keySet() );
+        StringBuffer sbuf = new StringBuffer()
+            .append( checker )
+            .append( ":" )
+            .append( "\n            fixed: " )
+            .append( fixed )
+            .append( "\n        retrieved: " )
+            .append( retrieved );
+        if ( retrieved.equals( fixed ) ) {
+            sbuf.append( "\n    Up to date." );
+        }
+        else {
+            Set<String> fixedOnly = new TreeSet<>( fixed );
+            Set<String> retrievedOnly = new TreeSet<>( retrieved );
+            fixedOnly.removeAll( retrieved );
+            retrievedOnly.removeAll( fixed );
+            sbuf.append( "\n       fixed only: " )
+                .append( fixedOnly )
+                .append( "\n   retrieved only: " )
+                .append( retrievedOnly );
+        }
+        return sbuf.toString();
     }
 
     /**
