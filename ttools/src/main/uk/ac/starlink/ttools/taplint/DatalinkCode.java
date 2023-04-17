@@ -23,6 +23,7 @@ public enum DatalinkCode implements ReportCode {
     E_DRS0( "Blank semantics entry", Doc.DATALINK, "3.2.6" ),
     E_DRSI( "Reference nonexistent service def", Doc.DATALINK, "3.2.3" ),
     E_DRUR( "Bad access_url", Doc.DATALINK, "3.2.2" ),
+    E_DSTD( "Missing standardID INFO", Doc.DATALINK11, "3.3.1" ),
     E_ENVO( "Error document not VOTable", Doc.DATALINK, "3.4" ),
     E_ERDC( "Bad VOTable error document" ),
     E_IDSQ( "Non-contiguous IDs", Doc.DATALINK11, "3.2" ),

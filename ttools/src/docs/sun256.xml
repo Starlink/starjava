@@ -6440,6 +6440,7 @@ A non-exhaustive list of the items checked is:
 <li>Values of <code>content_qualifier</code> column values if present</li>
 <li>Syntax of <code>link_auth</code> column values if present</li>
 <li>Results for the same ID are contiguous (DataLink 1.1)</li>
+<li>StandardID INFO is present and correct (Datalink 1.1)</li>
 <li>Reported HTTP content-type, if applicable</li>
 <li>Correct serialization (TABLEDATA) is used</li>
 <li>DALI error-response checking, if applicable</li>

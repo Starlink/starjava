@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
@@ -250,7 +253,7 @@ public class DatalinkValidator {
      * @param  version  datalink version, not null
      */
     public void validateDatalink( VODocument vodoc, DatalinkVersion version ) {
-        LinksDoc linksDoc = createLinksDoc( vodoc );
+        LinksDoc linksDoc = createLinksDoc( vodoc, version );
         if ( linksDoc != null ) {
             validateLinksDoc( linksDoc, version );
         }
@@ -292,9 +295,11 @@ public class DatalinkValidator {
      * validation issues as it does.
      *
      * @param  vodoc   DOM assumed to conform to DataLink rules
+     * @param  version   datalink version
      * @return  parsed represntation of the DataLink document
      */
-    public LinksDoc createLinksDoc( VODocument vodoc ) {
+    public LinksDoc createLinksDoc( VODocument vodoc,
+                                    DatalinkVersion version ) {
 
         /* Extract RESOURCE elements by the value of the @type attribute. */
         Map<String,List<VOElement>> resourceMap = getTypedResources( vodoc );
@@ -315,8 +320,8 @@ public class DatalinkValidator {
             reporter_.report( DatalinkCode.E_URES, msg );
             return null;
         }
-        NodeList tableEls = resultsResources.get( 0 )
-                           .getElementsByVOTagName( "TABLE" );
+        VOElement resultsResource = resultsResources.get( 0 );
+        NodeList tableEls = resultsResource.getElementsByVOTagName( "TABLE" );
         int ntab = tableEls.getLength();
         if ( ntab != 1 ) {
             String msg = new StringBuffer()
@@ -330,6 +335,41 @@ public class DatalinkValidator {
              * but it's hard to make sense of it otherwise. */
             reporter_.report( DatalinkCode.E_UTAB, msg );
             return null;
+        }
+
+        /* Check for standardID INFO if applicable (Datalink 1.1 sec 3.3.1). */
+        if ( version.is11() ) {
+            List<String> stdids = new ArrayList<>();
+            NodeList infos = resultsResource.getElementsByVOTagName( "INFO" );
+            boolean hasDlid = false;
+            for ( int ii = 0; ii < infos.getLength(); ii++ ) {
+                Node info = infos.item( ii );
+                if ( info instanceof Element ) {
+                    Element infoEl = (Element) info;
+                    if ( "standardID".equals( infoEl.getAttribute( "name" ) )) {
+                        String stdId = infoEl.getAttribute( "value" );
+                        if ( "ivo://ivoa.net/std/DataLink#links-1.0"
+                             .equalsIgnoreCase( stdId ) ) {
+                            hasDlid = true;
+                        }
+                        stdids.add( stdId );
+                    }
+                }
+            }
+            if ( ! hasDlid ) {
+                StringBuffer sbuf = new StringBuffer()
+                   .append( "No DataLink standard identifier; " )
+                   .append( "<INFO name=\"standardID\" " )
+                   .append( "value=\"ivo://ivoa.net/std/DataLink#links-1.0\">" )
+                   .append( " should appear in results RESOURCE" );
+                if ( stdids.size() > 0 ) {
+                    sbuf.append( ". These standardIDs do appear: " )
+                        .append( stdids.stream()
+                                       .map( s -> '"' + s + '"' )
+                                       .collect( Collectors.joining( ", " ) ) );
+                }
+                reporter_.report( DatalinkCode.E_DSTD, sbuf.toString() );
+            }
         }
 
         /* Turn it into a StarTable. */
