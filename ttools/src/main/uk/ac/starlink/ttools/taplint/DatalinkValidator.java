@@ -969,6 +969,8 @@ public class DatalinkValidator {
             throws IOException {
         LinkColMap colMap = linksDoc.getColumnMap();
         Map<ServiceParam,String> noParams = new HashMap<ServiceParam,String>();
+        Set<String> idSet = new HashSet<>();
+        String lastId = null;
 
         /* Check requirements for each row. */
         int jrow = 0;
@@ -982,6 +984,20 @@ public class DatalinkValidator {
             if ( id == null ) {
                 reporter_.report( DatalinkCode.E_DRID,
                                   "Missing ID for row " + jrow );
+            }
+            else {
+                if ( version.is11() ) {
+                    if ( ! id.equals( lastId ) && idSet.contains( id ) ) {
+                        String msg = new StringBuffer()
+                           .append( "Non-contiguous results for ID \"" )
+                           .append( id )
+                           .append( "\" in output" )
+                           .toString();
+                        reporter_.report( DatalinkCode.E_IDSQ, msg );
+                    }
+                    idSet.add( id );
+                    lastId = id;
+                }
             }
 
             /* Check there is exactly one of access_url, service_def and

@@ -25,6 +25,7 @@ public enum DatalinkCode implements ReportCode {
     E_DRUR( "Bad access_url", Doc.DATALINK, "3.2.2" ),
     E_ENVO( "Error document not VOTable", Doc.DATALINK, "3.4" ),
     E_ERDC( "Bad VOTable error document" ),
+    E_IDSQ( "Non-contiguous IDs", Doc.DATALINK11, "3.2" ),
     E_LKAZ( "Bad link_auth value", Doc.DATALINK11, "3.2.11" ),
     E_PSNS( "Non-string standard param", Doc.DATALINK, "4.1" ),
     E_RCOL( "Wrong datalink columns" ),
