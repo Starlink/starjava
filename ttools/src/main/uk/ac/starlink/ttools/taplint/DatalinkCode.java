@@ -42,6 +42,7 @@ public enum DatalinkCode implements ReportCode {
     F_UNEX( "Unexpected validation failure" ),
 
     I_DLNR( "DataLink rows checked" ),
+    I_DLVR( "Report DataLink validation version" ),
     I_EXCL( "Extra columns in results table" ),
     I_GEDL( "Retrieving DataLink document" ),
     I_IKAC( "Row access URL" ),

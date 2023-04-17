@@ -25,6 +25,7 @@ import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.vo.DatalinkVersion;
 import uk.ac.starlink.vo.datalink.LinkColMap;
 import uk.ac.starlink.vo.datalink.LinksDoc;
 import uk.ac.starlink.vo.datalink.ServiceInvoker;
@@ -49,11 +50,12 @@ import uk.ac.starlink.votable.datalink.ServiceParam;
  *
  * @author   Mark Taylor
  * @since    23 Nov 2017
- * @see <a href="http://www.ivoa.net/documents/DataLink/">DataLink-1.0</a>
+ * @see <a href="http://www.ivoa.net/documents/DataLink/">DataLink</a>
  */
 public class DatalinkValidator {
 
     private final Reporter reporter_;
+    private final DatalinkVersion version_;
 
     /** DataLink-1.0 sec 3.1. */
     private static final String CANONICAL_DL_CTYPE =
@@ -72,9 +74,12 @@ public class DatalinkValidator {
      * Constructor.
      *
      * @param  reporter  destination for validation methods
+     * @param  version   fixed datalink version to validate against;
+     *                   may be null if not known/specified
      */
-    public DatalinkValidator( Reporter reporter ) {
+    public DatalinkValidator( Reporter reporter, DatalinkVersion version ) {
         reporter_ = reporter;
+        version_ = version;
     }
 
     /**
@@ -237,7 +242,8 @@ public class DatalinkValidator {
     public void validateDatalink( VODocument vodoc ) {
         LinksDoc linksDoc = createLinksDoc( vodoc );
         if ( linksDoc != null ) {
-            validateLinksDoc( linksDoc );
+            DatalinkVersion version = getEffectiveVersion( vodoc );
+            validateLinksDoc( linksDoc, version );
         }
     }
 
@@ -247,8 +253,9 @@ public class DatalinkValidator {
      * already been parsed as a DataLink document.
      *
      * @param  linksDoc  object representing DataLink document
+     * @param  version   datalink specification version, not null
      */
-    public void validateLinksDoc( LinksDoc linksDoc ) {
+    public void validateLinksDoc( LinksDoc linksDoc, DatalinkVersion version ) {
 
         /* Prepare service invokers for the ServiceDescriptors defined
          * by the links doc. */
@@ -419,6 +426,39 @@ public class DatalinkValidator {
          * meaningless. */
         holder.dumpReports( reporter_ );
         return vodoc;
+    }
+
+    /**
+     * Returns the DataLink version against which the given document
+     * should be validated.  The choice is reported.
+     *
+     * @param  vodoc  document to validate
+     * @return   validation version, not null
+     */
+    private DatalinkVersion getEffectiveVersion( VODocument vodoc ) {
+
+        /* In principle the document might report its own version.
+         * At time of writing however (PR-DataLink-1.1-20230413)
+         * it can't actually do that, so ignore the vodoc argument. */
+        final DatalinkVersion version;
+        final String vtype;
+        if ( version_ != null ) {
+            version = version_;
+            vtype = "requested";
+        }
+        else {
+            version = DatalinkVersion.V11;
+            vtype = "assumed";
+        }
+        String msg = new StringBuffer()
+           .append( "Using " )
+           .append( vtype )
+           .append( " DataLink version " )
+           .append( version )
+           .append( " for validation" )
+           .toString();
+        reporter_.report( DatalinkCode.I_DLVR, msg );
+        return version;
     }
 
     /**
