@@ -193,14 +193,17 @@ public class DatalinkValidator {
             return;
         }
 
+        /* See what version we should be validating against. */
+        DatalinkVersion version = getEffectiveVersion( vodoc );
+
         /* If it was a VOTable, check the content-type. */
         if ( hconn != null ) {
             checkVOTableContentType( hconn.getContentType(), url,
-                                     isLinksService );
+                                     isLinksService, version );
         }
 
         /* Perform the DataLink-specific validation on the VOTable DOM. */
-        validateDatalink( vodoc );
+        validateDatalink( vodoc, version );
     }
 
     /**
@@ -235,7 +238,8 @@ public class DatalinkValidator {
             reporter_.report( DatalinkCode.E_VTSX, msg );
             return;
         }
-        validateDatalink( vodoc );
+        DatalinkVersion version = getEffectiveVersion( vodoc );
+        validateDatalink( vodoc, version );
     }
 
     /**
@@ -243,11 +247,11 @@ public class DatalinkValidator {
      *
      * @param  vodoc  DOM assumed to contain a document conforming to
      *                the DataLink standard
+     * @param  version  datalink version, not null
      */
-    public void validateDatalink( VODocument vodoc ) {
+    public void validateDatalink( VODocument vodoc, DatalinkVersion version ) {
         LinksDoc linksDoc = createLinksDoc( vodoc );
         if ( linksDoc != null ) {
-            DatalinkVersion version = getEffectiveVersion( vodoc );
             validateLinksDoc( linksDoc, version );
         }
     }
@@ -1293,7 +1297,7 @@ public class DatalinkValidator {
 
         /* If it was a VOTable, check the content-type and
          * report any validation items. */
-        checkVOTableContentType( contentType, url, false );
+        checkVOTableContentType( contentType, url, false, version_ );
 
         /* Get unique RESOURCE/@type="results" element. */
         Map<String,List<VOElement>> resourceMap = getTypedResources( vodoc );
@@ -1375,15 +1379,18 @@ public class DatalinkValidator {
      * The declaration should report a VOTable document;
      * if the response is asserted to come from a DataLink {links} service,
      * additional constraints are applied to the form of the Content-type.
+     * This is specified by Section 3.3 of DataLink 1.0 and 1.1.
      *
      * @param   ctypeTxt   content-type header value
      * @param   url     URL of input, used for reports
      * @param   isLinksResult  true iff the connection is supposed to be
      *                         the successful result of a
      *                         DataLink {links} service
+     * @param   version   DataLink standard version, or null if not known
      */
     private void checkVOTableContentType( String ctypeTxt, URL url,
-                                          boolean isLinksResult ) {
+                                          boolean isLinksResult,
+                                          DatalinkVersion version ) {
 
         /* Get the content-type header. */
         if ( ctypeTxt == null || ctypeTxt.trim().length() == 0 ) {
@@ -1402,50 +1409,59 @@ public class DatalinkValidator {
         }
         assert ctype != null;
 
-        /* Perform checks on its parsed content. */
-        /* DataLink sec 3.3 puts specific requirements on the form of the
-         * content type. */
+        /* It must in any case identify as a VOTable.
+         * If it doesn't, report that error and bail out. */
+        if ( ! ( ctype.matches( "text", "xml" ) ||
+                 ctype.matches( "application", "x-votable+xml" ) ) ) {
+            String msg = new StringBuilder()
+               .append( "Bad content type " )
+               .append( ctype )
+               .append( " for HTTP response which should contain " )
+               .append( "VOTable result or error document" )
+               .append( " (" )
+               .append( url )
+               .append( ")" )
+               .toString();
+            reporter_.report( DatalinkCode.E_VTCT, msg );
+        }
+
+        /* If it is the output from a DataLink service, DataLink sec 3.3.
+         * makes some more specific requirements/recommendations. */
         if ( isLinksResult ) {
 
+            /* See if all the datalink identification bits are in place. */
             if ( ! ctype.matches( "application", "x-votable+xml" ) ||
                  ! "datalink".equals( ctype.getParameter( "content" ) ) ) {
                 String msg = new StringBuffer()
-                   .append( "Incorrect Content-Type " )
+                   .append( "Content-Type " )
                    .append( ctypeTxt )
+                   .append( "does not match canonical form " )
+                   .append( CANONICAL_DL_CTYPE )
                    .append( " for DataLink service " )
                    .append( url )
-                   .append( "; should be like " )
-                   .append( CANONICAL_DL_CTYPE )
                    .toString();
-                reporter_.report( DatalinkCode.E_DLCT, msg );
+
+                /* In DL 1.0 this is a requirement, in DL 1.1 it's a
+                 * recommendation.  Default to the less restrictive one
+                 * if we don't have a known version. */
+                DatalinkCode code = version == null || version.is11()
+                                  ? DatalinkCode.W_DLCT
+                                  : DatalinkCode.E_DLCT;
+                reporter_.report( code, msg );
             }
+
+            /* If that one passes make a stronger test: does the content type
+             * have the canonical form. */
             else if ( ! CANONICAL_DL_CTYPE.equals( ctypeTxt ) ) {
                 String msg = new StringBuffer()
                    .append( "Content-Type " )
                    .append( ctypeTxt )
-                   .append( " differs from canonical form " )
+                   .append( " does not exactly match canonical form " )
                    .append( CANONICAL_DL_CTYPE )
                    .append( " for DataLink service " )
                    .append( url )
                    .toString();
                 reporter_.report( DatalinkCode.W_DLCT, msg );
-            }
-        }
-
-        /* Otherwise, just check it declares as a VOTable. */
-        else {
-            if ( ! ( ctype.matches( "text", "xml" ) ||
-                     ctype.matches( "application", "x-votable+xml" ) ) ) {
-                String msg = new StringBuilder()
-                   .append( "Bad content type " )
-                   .append( ctype )
-                   .append( " for HTTP response which should contain " )
-                   .append( "VOTable result or error document" )
-                   .append( " (" )
-                   .append( url )
-                   .append( ")" )
-                   .toString();
-                reporter_.report( DatalinkCode.E_VTCT, msg );
             }
         }
     }
