@@ -18,14 +18,7 @@ public enum AdqlVersion {
              "features-adqlgeo",
          } ),
  
-    /**
-     * ADQL version 2.1.
-     * This corresponds to PR-ADQL-2.1-20180112, except that the feature
-     * "<code>ivo://ivoa.net/std/TAPRegExt#features-adql-geo</code>"
-     * defined there is not included; I believe that's a typo for
-     * "<code>ivo://ivoa.net/std/TAPRegExt#features-adqlgeo</code>"
-     * that applies to ADQL 2.0.
-     */
+    /** ADQL version 2.1.  This corresponds to PR-ADQL-2.1-20230418.  */
     V21( "2.1-PR", "2.1", "ivo://ivoa.net/std/ADQL#v2.1",
          ADQLParser.ADQLVersion.V2_1,
          new String[] {

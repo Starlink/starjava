@@ -47,7 +47,7 @@ public class AdqlSyntax extends SqlSyntax {
      * Additional reserved words from ADQL 2.1 section 2.1.4.
      */
     public static final String[] ADQL21_RESERVED = new String[] {
-        "BIGINT", "ILIKE", "IN_UNIT",
+        "COT", "BIGINT", "ILIKE", "IN_UNIT", "OFFSET",
     };
 
     private static final Pattern REGULAR_IDENTIFIER_REGEX =

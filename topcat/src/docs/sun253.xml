@@ -31888,6 +31888,7 @@ introduced since the last version:
         and help from the ADQL Examples menu and Hints tab,
         are now done according to the ADQL version
         (2.0 or 2.1) shown in the Service Capabilities panel.
+        ADQL 2.1 nominally corresponds to version PR-ADQL-2.1-20230418.
         The TAP Service metadata display tab now also has two additional 
         headings to display service-specific characteristics: 
         ADQL 2.1 Optional Features and
