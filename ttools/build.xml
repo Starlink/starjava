@@ -85,7 +85,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TTOOLS"/>
   <property name="name" value="ttools"/>
-  <property name="version" value="3.4-7+"/>
+  <property name="version" value="3.4-8"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ttools"/>

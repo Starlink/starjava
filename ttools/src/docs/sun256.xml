@@ -183,7 +183,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>5 October 2022</docdate>
+<docdate>20 April 2023</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -14429,174 +14429,204 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v3.4-8">Version 3.4-8 (20 April 2023)</dt>
 <dd><p>
-    <ul>
-    <li>Fix Cartesian matcher overflow issue;
-        for very large ratio between coordinate extent and match radius
-        this could cause pathologically slow, though not incorrect,
-        crossmatching.</li>
-    <li>Adjust colour ramp (aux axis) painting to avoid faint white
-        stripes seen when vector graphics (e.g. PDF) output
-        was rendered in some external viewers.</li>
-    <li>If only one single point is plotted on the (default)
-        sin projection in <code>plot2sky</code> without explicit
-        <code>clon</code>/<code>clat</code>/<code>radius</code>
-        specification, the default view is now zoomed out to the
-        whole sky rather than zoomed in to a few milliarcsec.</li>
-    <li>The <ref id="scheme-jdbc">JDBC input scheme</ref>
-        should now read columns that are array-valued in the
-        database as array values that can be used in STILTS;
-        previously they were read as opaque <code>Array</code>
-        objects.</li>
-    <li>Add some configuration options to the
-        <ref id="inGbin">GBIN</ref> input handler.</li>
-    <li>Fail with an error rather than silently reading a broken table
-        when encountering GaiaTools/zStd-jni bug during
-        <ref id="inGbin">GBIN</ref> input.</li>
-    <li>Empty/invalid fields encountered by the 
-        <ref id="inPds4">PDS4 reader</ref> 
-        no longer cause the table read to fail.</li>
-    <li>Make FITS and VOTable output handlers robust against
-        input tables that declare incorrect row counts.</li>
-    <li>Add new options <code>ExternalSys</code>/<code>InternalSys</code>
-        for <code>plot2sky</code>
-        <ref id="plot2sky-labelpos">labelpos</ref> parameter,
-        to display lon/lat axis names alongside axis values.</li>
-    <li>New task <ref id="tgroup"><code>tgroup</code></ref>
-        and filter <ref id="group"><code>group</code></ref>
-        to calculate aggregate functions on groups of rows
-        (like ADQL/SQL <code>GROUP BY</code>).</li>
-    <li>Modify column width determination in text-like output formats
-        (<ref id="outText"><code>text</code></ref>,
-         <ref id="outAscii"><code>ascii</code></ref>,
-         <ref id="outIpac"><code>ipac</code></ref>)
-        to avoid occasional unwanted truncation of formatted values.
-        Tables are now read in two passes, the first to establish
-        column widths and the second to write the data.
-        By default all rows are sampled, but the
-        <code>sampledRows</code> option can be configured so that
-        only some rows are sampled, which is more like
-        the old behaviour.</li>
-    <li>New function
-        <ref id="Sky-inSkyEllipse"><code>inSkyEllipse</code></ref>.</li>
-    <li>Avoid some plot failures related to oversized legends and
-        undersized plot windows.</li>
-    <li>Fix occasional NullPointerException in taplint EPN stage.</li>
-    <li>Improve transparency rendering in
-        <ref id="layer-skygrid"><code>skygrid</code></ref> layer.</li>
-    <li>PDS4 reader now reads <code>Ascii_Numeric_Base16/8/2</code>
-        fields as numeric not string
-        (updated pds4-jparser library code).</li>
-    <li>Slight change to RESOURCE structure of Primary HDU metadata 
-        in multi-table FITS-plus output.
-        This fixes a problem in which saved Service Descriptors
-        could end up associated with the wrong tables.</li>
-    <li>Write empty string not semi-standard "<code>nan</code>"
-        token for NaN in <ref id="outEcsv">ECSV writer</ref>.</li>
-    <li>Improve <ref id="inEcsv">ECSV reader</ref> performance,
-        especially for Gaia DR3 bulk download files
-        (which use semi-standard "<code>null</code>" token).</li>
-    <li>Secondary X and Y axes can now be plotted in
-        <ref id="plot2plane"><code>plot2plane</code></ref>;
-        see new parameters
-        <ref id="plot2plane-x2func"><code>x2func</code>,
-                                    <code>y2func</code>,
-                                    <code>x2label</code>,
-                                    <code>y2label</code></ref>,
-        and <ref id="layer-arrayquantile">example plot</ref>.</li>
-    <li>Secondary T and Y axes can now be plotted in
-        <ref id="plot2time"><code>plot2time</code></ref>;
-        see new parameters
-        <ref id="plot2time-t2func"><code>t2func</code>,
-                                   <code>y2func</code>,
-                                   <code>t2label</code>,
-                                   <code>y2label</code></ref>,
-        and <ref id="layer-spectrogram">example plot</ref>.</li>
-    <li>Matching Ticks are now plotted by default on all four sides of
-        plots drawn
-        by <code>plot2plane</code> and <code>plot2time</code>,
-        rather than just on primary (left/bottom) axes.
-        This can be configured with the new
-        <ref id="plot2plane-shadow"><code>shadow</code></ref>
-        parameter.</li>
-    <li>Major tick marks on axes now extend only inside the plot bounds
-        not outside.</li>
-    <li>Reduce frequency of minor ticks.</li>
-    <li>Grid lines plotted by
-        <code>plot2plane</code>, <code>plot2time</code> and
-        <code>plot2sky</code>
-        are now all partially transparent and plotted over
-        the plot content
-        (previously they were opaque and the sky grid was drawn over,
-        while the plane and time lines were drawn under,
-        the plot content).
-        Grid line transparency is controlled by the new
-        <ref id="plot2plane-gridtrans"><code>gridtrans</code></ref>
-        parameter.</li>
-    <li>Fix a nasty bug that could plot
-        <ref id="layer-skyvector"><code>skyvector</code></ref>,
-        <ref id="layer-skyellipse"><code>skyellipse</code></ref> and
-        <ref id="layer-skycorr"><code>skycorr</code></ref>
-        shapes incorrectly.
-        The numeric value of the shape size coordinates
-        (ellipse radii, vector extents) was interpreted in degrees
-        before being rescaled as appropriate, so that values of
-        a few tens or larger resulted in signficant distortions.
-        Now fixed.</li>
-    <li>HTTP redirects with response code 308 (Permanent Redirect) are
-        now handled in the same way as 307 (Temporary Redirect).</li>
-    <li>Fixed bug which failed to plot some markers of multi-marker
-        shapes like <ref id="layer-mark2">mark2</ref> when
-        multithreaded (i.e. for large tables).
-        Regression bug since introduction of multithreaded plotting
-        in STILTS v3.2.</li>
-    <li>Fix auto-range and export bugs that ignored final bar for
-        forward cumulative histograms.</li>
-    <li>Add <code>keepall</code> parameter to the
-        <ref id="arrayjoin"><code>arrayjoin</code></ref> command,
-        to configure whether rows with no arrays appear
-        in the output.</li>
-    <li>Add new filter <ref id="constcol"><code>constcol</code></ref>
-        for identifying and removing constant-valued table columns.</li>
-    <li>Withdraw <code>antialias</code> parameter from
-        <ref id="layer-lines"><code>lines</code></ref> layer,
-        since it didn't really work.</li>
-    <li>Add <code>sortaxis</code> parameter to
-        <ref id="layer-lines"><code>lines</code></ref> layer.</li>
-    <li>Add <code>aparams</code> parameter to
-        <ref id="arrayjoin"><code>arrayjoin</code></ref>
-        that can turn table parameters of loaded tables into
-        scalar-valued columns.</li>
-    <li>Fix line drawing bug that meant dotted and dashed lines
-        were often not displayed correctly.
-        This was a regression bug introduced in STILTS 3.1-6.</li>
-    <li>Update Ucidy library to v1.3, corresponding to
-        UCDList 1.5 EN.</li>
-    <li>Fix stability issue when using <code>find=best</code>
-        (which should be used with caution) in
-        <ref id="tmatch2"><code>tmatch2</code></ref> and
-        <ref id="tskymatch2"><code>tskymatch2</code></ref>.
-        Results may be different in crowded regions, and may also
-        have differed between v3.4-6 and v3.4-7,
-        but are not obviously more or less correct.</li>
-    <li>Improve handling of illegal sky coordinates
-        (latitude out of range) in sky matching;
-        in v3.4-7 only, bad positions caused match failure,
-        now they are just ignored.</li>
-    <li>Update taplint in accordance with DALI 1.1 Erratum #1;
-        example continuation elements without an empty
-        resource attribute no longer provoke an Error.</li>
-    <li>Improve <ref id="datalinklint"><code>datalinklint</code></ref>
-        validation of semantics terms, now checks online vocabularies
-        not just hard-coded ones.</li>
-    <li>VOTable service descriptor I/O now preserves
-        <code>contentType</code> and <code>exampleURL</code> PARAMs,
-        introduced in DataLink 1.1</li>
-    <li>The <ref id="datalinklint"><code>datalinklint</code></ref>
-        validator is upgraded to PR-DataLink-1.1-20230413.
-        It now has a <code>version</code> parameter.</li>
-    </ul>
+    <dl>
+    <dt>Axis drawing improvements and changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Secondary X and Y axes can now be plotted in
+            <ref id="plot2plane"><code>plot2plane</code></ref>;
+            see new parameters
+            <ref id="plot2plane-x2func"><code>x2func</code>,
+                                        <code>y2func</code>,
+                                        <code>x2label</code>,
+                                        <code>y2label</code></ref>,
+            and <ref id="layer-arrayquantile">example plot</ref>.</li>
+        <li>Secondary T and Y axes can now be plotted in
+            <ref id="plot2time"><code>plot2time</code></ref>;
+            see new parameters
+            <ref id="plot2time-t2func"><code>t2func</code>,
+                                       <code>y2func</code>,
+                                       <code>t2label</code>,
+                                       <code>y2label</code></ref>,
+            and <ref id="layer-spectrogram">example plot</ref>.</li>
+        <li>Matching Ticks are now plotted by default on all four sides of
+            plots drawn
+            by <code>plot2plane</code> and <code>plot2time</code>,
+            rather than just on primary (left/bottom) axes.
+            This can be configured with the new
+            <ref id="plot2plane-shadow"><code>shadow</code></ref>
+            parameter.</li>
+        <li>Reduce frequency of minor ticks.</li>
+        <li>Major tick marks on axes now extend only inside the plot bounds
+            not outside.</li>
+        <li>Grid lines plotted by
+            <code>plot2plane</code>, <code>plot2time</code> and
+            <code>plot2sky</code>
+            are now all partially transparent and plotted over
+            the plot content
+            (previously they were opaque and the sky grid was drawn over,
+            while the plane and time lines were drawn under,
+            the plot content).
+            Grid line transparency is controlled by the new
+            <ref id="plot2plane-gridtrans"><code>gridtrans</code></ref>
+            parameter.</li>
+        <li>Add new options <code>ExternalSys</code>/<code>InternalSys</code>
+            for <code>plot2sky</code>
+            <ref id="plot2sky-labelpos">labelpos</ref> parameter,
+            to display lon/lat axis names alongside axis values.</li>
+        </ul>
+        </p></dd>
+    <dt>Other new functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>New task <ref id="tgroup"><code>tgroup</code></ref>
+            and filter <ref id="group"><code>group</code></ref>
+            to calculate aggregate functions on groups of rows
+            (like ADQL/SQL <code>GROUP BY</code>).</li>
+        <li>New function
+            <ref id="Sky-inSkyEllipse"><code>inSkyEllipse</code></ref>.</li>
+        <li>New filter <ref id="constcol"><code>constcol</code></ref>
+            for identifying and removing constant-valued table columns.</li>
+        <li>Add <ref id="arrayjoin-keepall"><code>keepall</code></ref>
+            parameter to the <code>arrayjoin</code> command,
+            to configure whether rows with no arrays appear
+            in the output.</li>
+        <li>Add <ref id="arrayjoin-aparams"><code>aparams</code></ref>
+            parameter to <code>arrayjoin</code> command,
+            to turn table parameters of loaded tables into
+            scalar-valued columns.</li>
+        <li>Add <ref id="layer-lines-sortaxisN"><code>sortaxis</code></ref>
+            parameter to <code>lines</code> layer,
+            to cope with unsorted array data.</li>
+        <li>Add configuration options <code>readMeta</code> and
+            <code>hierarchicalNames</code> to the
+            <ref id="inGbin">GBIN</ref> input handler.</li>
+        <li>VOTable service descriptor I/O now preserves
+            <code>contentType</code> and <code>exampleURL</code> PARAMs,
+            introduced in DataLink 1.1</li>
+        <li>Improve <ref id="datalinklint"><code>datalinklint</code></ref>
+            validation of semantics terms, now checks online vocabularies
+            not just hard-coded ones.</li>
+        <li>The <code>datalinklint</code> validator is upgraded
+            to PR-DataLink-1.1-20230413.  It now has a
+            <ref id="datalinklint-version"><code>version</code></ref>
+            parameter.</li>
+        <li>Update <code>taplint</code>
+            in accordance with
+            <webref
+            url="https://wiki.ivoa.net/twiki/bin/view/IVOA/DALI-1_1-Erratum-1"
+                >DALI 1.1 Erratum #1</webref>;
+            example continuation elements without an empty
+            resource attribute no longer provoke an Error.</li>
+        </ul>
+        </p></dd>
+    <dt>Workarounds and minor behaviour improvements:</dt>
+    <dd><p>
+        <ul>
+        <li>Modify column width determination in text-like output formats
+            (<ref id="outText"><code>text</code></ref>,
+             <ref id="outAscii"><code>ascii</code></ref>,
+             <ref id="outIpac"><code>ipac</code></ref>)
+            to avoid occasional unwanted truncation of formatted values.
+            Tables are now read in two passes, the first to establish
+            column widths and the second to write the data.
+            By default all rows are sampled, but the
+            <code>sampledRows</code> option can be configured so that
+            only some rows are sampled, which is more like
+            the old behaviour.</li>
+        <li>Update Ucidy library to v1.3;
+            <ref id="VO-ucdStatus">UCD validation</ref> is now done based on
+            <webref url="https://www.ivoa.net/documents/UCD1+/20230125/"
+                    >v1.5 of the UCD1+ list of terms</webref>.</li>
+        <li>If only one single point is plotted on the (default)
+            sin projection in
+            <ref id="plot2sky"><code>plot2sky</code></ref> without explicit
+            <code>clon</code>/<code>clat</code>/<code>radius</code>
+            specification, the default view is now zoomed out to the
+            whole sky rather than zoomed in to a few milliarcsec.</li>
+        <li>Improve <ref id="inEcsv">ECSV reader</ref> performance,
+            especially for Gaia DR3 bulk download files
+            (which use semi-standard "<code>null</code>" token).</li>
+        <li>Write empty string not semi-standard "<code>nan</code>"
+            token for NaN in <ref id="outEcsv">ECSV writer</ref>.</li>
+        <li>The <ref id="scheme-jdbc">JDBC input scheme</ref>
+            should now read columns that are array-valued in the
+            database as array values that can be used in STILTS;
+            previously they were read as opaque <code>Array</code>
+            objects.</li>
+        <li>Make FITS and VOTable output handlers robust against
+            input tables that declare incorrect row counts.</li>
+        <li>The <ref id="inPds4">PDS4 reader</ref> now reads
+            <code>Ascii_Numeric_Base16/8/2</code> fields as numeric not string
+            (updated pds4-jparser library code).</li>
+        <li>Slight change to RESOURCE structure of Primary HDU metadata 
+            in multi-table FITS-plus output.
+            This fixes a problem in which saved Service Descriptors
+            could end up associated with the wrong tables.</li>
+        <li>HTTP redirects with response code 308 (Permanent Redirect) are
+            now handled in the same way as 307 (Temporary Redirect).</li>
+        <li>Withdraw <code>antialias</code> parameter from
+            <ref id="layer-lines"><code>lines</code></ref> layer,
+            since it didn't really work.</li>
+        <li>Improve handling of illegal sky coordinates
+            (latitude out of range) in sky matching;
+            in v3.4-7 only, bad positions caused match failure,
+            now they are just ignored.</li>
+        <li>Improve transparency rendering in
+            <ref id="layer-skygrid"><code>skygrid</code></ref> layer.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix a nasty bug that could plot
+            <ref id="layer-skyvector"><code>skyvector</code></ref>,
+            <ref id="layer-skyellipse"><code>skyellipse</code></ref> and
+            <ref id="layer-skycorr"><code>skycorr</code></ref>
+            shapes incorrectly.
+            The numeric value of the shape size coordinates
+            (ellipse radii, vector extents) was interpreted in degrees
+            before being rescaled as appropriate, so that values of
+            a few tens or larger resulted in signficant distortions.
+            Now fixed.</li>
+        <li>Fix stability issue when using <code>find=best</code>
+            (which should be used with caution) in
+            <ref id="tmatch2"><code>tmatch2</code></ref> and
+            <ref id="tskymatch2"><code>tskymatch2</code></ref>.
+            Results may be different in crowded regions, and may also
+            have differed between v3.4-6 and v3.4-7,
+            but are not obviously more or less correct.</li>
+        <li>Fix Cartesian matcher overflow issue;
+            for very large ratio between coordinate extent and match radius
+            this could cause pathologically slow, though not incorrect,
+            crossmatching.</li>
+        <li>Fixed bug which failed to plot some markers of multi-marker
+            shapes like <ref id="layer-mark2">mark2</ref> when
+            multithreaded (i.e. for large tables).
+            Regression bug since introduction of multithreaded plotting
+            in STILTS v3.2.</li>
+        <li>Fix line drawing bug that meant dotted and dashed lines
+            were often not displayed correctly.
+            This was a regression bug introduced in STILTS 3.1-6.</li>
+        <li>Fix auto-range and export bugs that ignored final bar for
+            forward cumulative <ref id="layer-histogram">histograms</ref>.</li>
+        <li>Fix occasional NullPointerException in taplint EPN stage.</li>
+        <li>Avoid some plot failures related to oversized legends and
+            undersized plot windows.</li>
+        <li>Adjust colour ramp (aux axis) painting to avoid faint white
+            stripes seen when vector graphics (e.g. PDF) output
+            was rendered in some external viewers.</li>
+        <li>Fail with an error rather than silently reading a broken table
+            when encountering GaiaTools/zStd-jni bug during
+            <ref id="inGbin">GBIN</ref> input.</li>
+        <li>Empty/invalid fields encountered by the 
+            <ref id="inPds4">PDS4 reader</ref> 
+            no longer cause the table read to fail.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

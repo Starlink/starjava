@@ -16,7 +16,7 @@ import uk.ac.starlink.vo.UnitStatus;
  * <p>The UCD parsing functions are based on Gr\u00e9gory Mantelet's library
  * <a href="https://github.com/gmantele/ucidy">Ucidy</a>
  * corresponding to
- * <a href="https://www.ivoa.net/documents/UCD1+/20210616/">UCD1+ 1.4</a>,
+ * <a href="https://www.ivoa.net/documents/UCD1+/20210616/">UCD1+ 1.5</a>,
  * and the VOUnit parsing functions are based on Norman Gray's library
  * <a href="https://purl.org/nxg/dist/unity">Unity</a>
  * corresponding to

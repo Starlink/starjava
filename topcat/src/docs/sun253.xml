@@ -499,7 +499,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>5 October 2022</docdate>
+<docdate>20 April 2023</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -22174,6 +22174,9 @@ The panel has three parts:
 <label>ADQL Text</label>.
 </p>
 
+<subdiv id="TapTableLoadDialog_query_metadata">
+<subhead><title>Metadata Panel</title></subhead>
+
 <p>The <label>Metadata</label> panel displays information about
 the tables held by the selected service.
 On the left of the panel is a searchable tree summarising the
@@ -22282,6 +22285,11 @@ The tabs are as follows:
 </dl>
 </p>
 
+</subdiv>
+
+<subdiv id="TapTableLoadDialog_query_capabilities">
+<subhead><title>Service Capabilities Panel</title></subhead>
+
 <p>The <label>Service Capabilities</label> panel shows capability
 metadata that the service provides about itself. This has to
 be loaded from the server and may not appear immediately.
@@ -22322,6 +22330,11 @@ It contains the following information:
     </p></dd>
 </dl>
 </p>
+
+</subdiv>
+
+<subdiv id="TapTableLoadDialog_query_text">
+<subhead><title>ADQL Text Panel</title></subhead>
 
 <p>The <label>ADQL Text</label> panel is where you can enter the actual
 query text for the request.
@@ -22433,7 +22446,7 @@ It has the following parts:
     </dl>
     These actions are also available from the <label>Edit</label> menu.
     </p></dd>
-<dt>Text Entry panel</dt>
+<dt>Text Entry area</dt>
 <dd><p>This panel is where you type ADQL text that forms the query to send
     to the TAP service for execution.
     The <label>Edit</label> actions described above, along with
@@ -22597,6 +22610,8 @@ It's a good idea to ensure that any table you are uploading has
 columns with sensible names, otherwise the service may rename the
 columns or otherwise have trouble handling it.
 </p>
+
+</subdiv>
 
 <p>Having entered suitable query text,
 click the <label>Run Query</label> button at the bottom of the window
@@ -31728,196 +31743,220 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.8-8">Version 4.8-8 (20 April 2023)</dt>
 <dd><p>
-    <ul>
-    <li>Fix Cartesian matcher overflow issue;
-        for very large ratio between coordinate extent and match radius
-        this could cause pathologically slow, though not incorrect,
-        crossmatching.</li>
-    <li>Adjust colour ramp (aux axis) painting to avoid faint white
-        stripes seen when vector graphics (e.g. PDF) output 
-        was rendered in some external viewers.</li>
-    <li>If only one single point is visible in a Sky Plot using
-        the (default) sin projection,
-        the default view is now zoomed out to the whole sky
-        rather than zoomed in to a few milliarcsec.</li>
-    <li>Table parameters, as well as columns, named in
-        column selectors now include their units metadata.</li>
-    <li>Fix Basic image viewer in
-             <ref id="ViewImageActivationType"
-                  >Display Image</ref>/<ref
-                  id="RegionViewImageActivationType"
-                  >Display Image Region</ref>
-        activation types to display (uncompressed) FITS images,
-        by re-including nom.tam.fits library in standalone jar files;
-        this was a regression bug, broken since v4.8-4.</li>
-    <li>The <ref id="scheme-jdbc">JDBC input scheme</ref>
-        should now read columns that are array-valued in the
-        database as array values that can be used in TOPCAT;
-        previously they were read as opaque <code>Array</code>
-        objects.</li>
-    <li>Add some configuration options to the
-        <ref id="inGbin">GBIN</ref> input handler.</li>
-    <li>Fail with an error rather than silently reading a broken table
-        when encountering GaiaTools/zStd-jni bug during
-        <ref id="inGbin">GBIN</ref> input.</li>
-    <li>Empty/invalid fields encountered by the 
-        <ref id="inPds4">PDS4 reader</ref> 
-        no longer cause the table read to fail.</li>
-    <li>Avoid oversized service icons in TAP window Service tab.</li>
-    <li>Make FITS and VOTable output handlers robust against
-        input tables that declare incorrect row counts.</li>
-    <li>Add new options <label>ExternalSys</label> and
-        <label>InternalSys</label> to
-        <label>Label Positioning</label> selector of
-        <ref id="SkyAxisControl_grid">Sky Axes Control Grid panel</ref>,
-        to display lon/lat axis names alongside axis values.</li>
-    <li>Recognise "<code>smoc</code>" as an alternative to
-        "<code>moc</code>" when examining xtype values for
-        <ref id="GangLayerControl_area_position">area format</ref>
-        defaults.</li>
-    <li>Modify column width determination in text-like output formats
-        (<ref id="outText"><code>text</code></ref>,
-         <ref id="outAscii"><code>ascii</code></ref>,
-         <ref id="outIpac"><code>ipac</code></ref>)
-        to avoid occasional unwanted truncation of formatted values.
-        Tables are now read in two passes, the first to establish
-        column widths and the second to write the data.
-        By default all rows are sampled, but the
-        <code>sampledRows</code> option can be configured so that
-        only some rows are sampled, which is more like
-        the old behaviour.</li>
-    <li>New action <label>Collapse Columns to Array</label>
-        in the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
-    <li>New function
-        <ref id="Sky-inSkyEllipse"><code>inSkyEllipse</code></ref>.</li>
-    <li>You can now draw <label>Ellipse</label> shapes when using
-        <ref id="FigurePanel">Draw Algebraic Subset</ref>
-        with the Sky Plot.</li>
-    <li>Avoid some plot failures related to oversized legends and
-        undersized plot windows.</li>
-    <li>Improve transparency rendering in
-        <ref id="LayerControl_skygrid">SkyGrid</ref> plot.</li>
-    <li>PDS4 reader now reads <code>Ascii_Numeric_Base16/8/2</code>
-        fields as numeric not string 
-        (updated pds4-jparser library code).</li>
-    <li>Slight change to RESOURCE structure of Primary HDU metadata
-        in multi-table FITS-plus output.
-        This fixes a problem in which saved Service Descriptors
-        could end up associated with the wrong tables.</li>
-    <li>Write empty string not semi-standard "<code>nan</code>"
-        token for NaN in <ref id="outEcsv">ECSV writer</ref>.</li>
-    <li>Improve <ref id="inEcsv">ECSV reader</ref> performance,
-        especially for Gaia DR3 bulk download files
-        (which use semi-standard "<code>null</code>" token).</li>
-    <li>Secondary X and Y axes can now be drawn in the Plane
-        and Histogram Plots;
-        see Plane Axes control
-        <ref id="PlaneAxisControl_secondary">Secondary tab</ref> and
-        <ref id="form-arrayquantile">example plot</ref>.</li>
-    <li>Secondary T and Y axes can now be drawn in the Time Plot:
-        see Time Axes control
-        <ref id="TimeAxisControl_secondary">Secondary tab</ref>.</li>
-    <li>Matching ticks are now plotted by default on all four sides of
-        Plane, Histogram and Time plots, rather than just on primary
-        (bottom/left) axes.
-        This can be configured with the new <label>Shadow Ticks</label>
-        option in the Axes Control
-        <ref id="PlaneAxisControl_grid">Grid tab</ref>.</li>
-    <li>Major tick marks on axes now extend only inside the plot bounds
-        not outside.</li>
-    <li>Reduce frequency of minor ticks.</li>
-    <li>Grid lines plotted in the Plane, Time and Sky plots
-        are now all partially transparent and plotted over
-        the plot content
-        (previously they were opaque and the Sky grid was drawn over,
-        while the Plane and Time lines were drawn under,
-        the plot content).
-        Grid line transparency is controlled by the new
-        Grid Transparency slider in the Axes Control
-        <ref id="PlaneAxisControl_grid">Grid tab</ref>.
-        Grid line colour can now be controlled in Time plots
-        as for Plane and Sky.</li>
-    <li>The <label>Examples</label> menu in the TAP
-        <ref id="TapTableLoadDialog_query">Use Service</ref> tab now
-        presents Service-Provided examples in a hierarchical menu if
-        the service <code>/examples</code> endpoint uses DALI-examples
-        <webref url="https://www.ivoa.net/documents/DALI/20170517/REC-DALI-1.1.html#tth_sEc2.3.4"
-                >continuation documents</webref>.</li>
-    <li>Fix a nasty bug that could plot
-        <ref id="form-skyvector">SkyVector</ref>,
-        <ref id="form-skyellipse">SkyEllipse</ref> and
-        <ref id="form-skycorr">SkyCorr</ref> forms incorrectly.
-        The numeric value of the shape size coordinates
-        (ellipse radii, vector extents) was interpreted in degrees
-        before being rescaled as appropriate, so that values of
-        a few tens or larger resulted in signficant distortions.
-        Now fixed.</li>
-    <li>HTTP redirects with response code 308 (Permanent Redirect) are
-        now handled in the same way as 307 (Temporary Redirect).</li>
-    <li>Fixed bug which failed to plot some markers of multi-marker
-        shapes like <ref id="form-mark2">Mark2</ref> when
-        multithreaded (i.e. for large tables).
-        Regression bug since introduction of multithreaded plotting
-        in TOPCAT v4.7.</li>
-    <li>Fix auto-range and export bugs that ignored final bar for
-        forward cumulative histograms.</li>
-    <li>Withdraw <label>Antialias</label> config option from
-        <ref id="form-lines">Lines</ref> form,
-        since it didn't really work.</li>
-    <li>Add <label>Sort Axis</label> config option to
-        <ref id="form-lines">Lines</ref> form.</li>
-    <li>Fix line drawing bug that meant dotted and dashed lines
-        were often not displayed correctly.
-        This was a regression bug introduced in TOPCAT 4.6-3.</li>
-    <li>Update Ucidy library to v1.3, corresponding to
-        UCDList 1.5 EN.</li>
-    <li>Fix stability issue when using the
-        <label>Best Match, symmetric</label> selection option
-        (which should be used with caution)
-        in the <ref id="MatchWindow">Pair Match Window</ref>.
-        Results may be different in crowded regions, and may also
-        have differed between v4.8-6 and v4.8-7,
-        but are not obviously more or less correct.</li>
-    <li>Upgrade ADQL support in the
-        <ref id="TapTableLoadDialog_query">TAP window</ref>
-        to accommodate ADQL 2.1, thanks to new version of
-        Gr&#x00e9;gory Mantelet's VOLLT ADQL library.
-        Syntax highlighting and validation,
-        and help from the ADQL Examples menu and Hints tab,
-        are now done according to the ADQL version
-        (2.0 or 2.1) shown in the Service Capabilities panel.
-        ADQL 2.1 nominally corresponds to version PR-ADQL-2.1-20230418.
-        The TAP Service metadata display tab now also has two additional 
-        headings to display service-specific characteristics: 
-        ADQL 2.1 Optional Features and
-        Non-Standard Language Features.</li>
-    <li>Improve handling of illegal sky coordinates
-        (latitude out of range) in sky matching;
-        in v4.8-7 only, bad positions caused match failure,
-        now they are just ignored.</li>
-    <li>The <ref id="ColumnInfoWindow">Columns Window</ref>
-        and <ref id="SubsetWindow">Subsets Window</ref> have new
-        <label>Edit Column/Subset</label> actions respectively,
-        that open a popup window to edit name, expression, etc.
-        These are now activated automatically if you enter an invalid
-        algebraic expression in the metadata JTables,
-        rather than just wiping out your new expression and
-        reverting to the previous one.</li>
-    <li>Improve reporting and defaulting
-        of activation action URL invocation.</li>
-    <li>Better titling of Activation Action windows.</li>
-    <li>VOTable service descriptor I/O now preserves
-        <code>contentType</code> and <code>exampleURL</code> PARAMs,
-        introduced in DataLink 1.1</li>
-    <li>Make use of DataLink metadata introduced at DataLink 1.1.
-        Values <code>content_qualifier</code> and
-        <code>local_semantics</code> are now displayed in the
-        <ref id="DatalinkWindow">DataLink Window</ref> and
-        if present these and the Service Descriptor ContentType are
-        used to make better decisions abut manipulating links.</li>
-    </ul>
+    <dl>
+    <dt>Axis drawing improvements and changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Secondary X and Y axes can now be drawn in the Plane
+            and Histogram Plots;
+            see Plane Axes control
+            <ref id="PlaneAxisControl_secondary">Secondary tab</ref> and
+            <ref id="form-arrayquantile">example plot</ref>.</li>
+        <li>Secondary T and Y axes can now be drawn in the Time Plot:
+            see Time Axes control
+            <ref id="TimeAxisControl_secondary">Secondary tab</ref>.</li>
+        <li>Matching ticks are now plotted by default on all four sides of
+            Plane, Histogram and Time plots, rather than just on primary
+            (bottom/left) axes.
+            This can be configured with the new <label>Shadow Ticks</label>
+            option in the Axes Control
+            <ref id="PlaneAxisControl_grid">Grid tab</ref>.</li>
+        <li>Reduce frequency of minor ticks.</li>
+        <li>Major tick marks on axes now extend only inside the plot bounds
+            not outside.</li>
+        <li>Grid lines plotted in the Plane, Time and Sky plots
+            are now all partially transparent and plotted over
+            the plot content
+            (previously they were opaque and the Sky grid was drawn over,
+            while the Plane and Time lines were drawn under,
+            the plot content).
+            Grid line transparency is controlled by the new
+            <label>Grid Transparency</label> slider in the Axes Control
+            <ref id="PlaneAxisControl_grid">Grid tab</ref>.
+            Grid line colour can now be controlled in Time plots
+            as for Plane and Sky.</li>
+        <li>Add new options <label>ExternalSys</label> and
+            <label>InternalSys</label> to
+            <label>Label Positioning</label> selector of
+            <ref id="SkyAxisControl_grid">Sky Axes Control Grid panel</ref>,
+            to display lon/lat axis names alongside axis values.</li>
+        </ul>
+        </p></dd>
+    <dt>Other new functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>You can now draw <label>Ellipse</label> shapes when using
+            <ref id="FigurePanel">Draw Algebraic Subset</ref>
+            with the Sky Plot.</li>
+        <li>New function
+            <ref id="Sky-inSkyEllipse"><code>inSkyEllipse</code></ref>.</li>
+        <li>Upgrade ADQL support in the
+            <ref id="TapTableLoadDialog_query">TAP window</ref>
+            to accommodate ADQL 2.1, thanks to new version of
+            Gr&#x00e9;gory Mantelet's VOLLT ADQL library.
+            Syntax validation and highlighting,
+            and help from the ADQL Examples menu and Hints tab,
+            are now done according to the ADQL version
+            (2.0 or 2.1) shown in the Service Capabilities panel,
+            and to the declared capabilities.
+            ADQL 2.1 nominally corresponds to version PR-ADQL-2.1-20230418.
+            The TAP Service metadata display tab now also has two additional 
+            headings to display service-specific characteristics: 
+            ADQL 2.1 Optional Features and
+            Non-Standard Language Features.</li>
+        <li>The <ref id="ColumnInfoWindow">Columns Window</ref>
+            and <ref id="SubsetWindow">Subsets Window</ref> have new
+            <label>Edit Column/Subset</label> actions respectively,
+            that open a popup window to edit name, expression, etc.
+            These are now activated automatically if you enter an invalid
+            algebraic expression in the metadata JTables,
+            rather than just wiping out your new expression and
+            reverting to the previous one.</li>
+        <li>New action <label>Collapse Columns to Array</label>
+            in the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+        <li>The <label>Examples</label> menu in the 
+            <ref id="TapTableLoadDialog_query">TAP Window</ref> now
+            presents Service-Provided examples in a hierarchical menu if
+            the service <code>/examples</code> endpoint uses DALI-examples
+            <webref url="https://www.ivoa.net/documents/DALI/20170517/REC-DALI-1.1.html#tth_sEc2.3.4"
+                    >continuation documents</webref>.</li>
+        <li>Make use of DataLink metadata introduced at DataLink 1.1.
+            Values <code>content_qualifier</code> and
+            <code>local_semantics</code> are now displayed in the
+            <ref id="DatalinkWindow">DataLink Window</ref> and
+            if present these and the Service Descriptor ContentType are
+            used to make better decisions abut manipulating links.</li>
+        <li>Add <label>Sort Axis</label> config option to
+            <ref id="form-lines">Lines</ref> plot form.</li>
+        <li>Add configuration options <code>readMeta</code> and
+            <code>hierarchicalNames</code> to the
+            <ref id="inGbin">GBIN</ref> input handler.</li>
+        <li>VOTable service descriptor I/O now preserves
+            <code>contentType</code> and <code>exampleURL</code> PARAMs,
+            introduced in DataLink 1.1</li>
+        </ul>
+        </p></dd>
+    <dt>Workarounds and minor behaviour improvements:</dt>
+    <dd><p>
+        <ul>
+        <li>Modify column width determination in text-like output formats
+            (<ref id="outText"><code>text</code></ref>,
+             <ref id="outAscii"><code>ascii</code></ref>,
+             <ref id="outIpac"><code>ipac</code></ref>)
+            to avoid occasional unwanted truncation of formatted values.
+            Tables are now read in two passes, the first to establish
+            column widths and the second to write the data.
+            By default all rows are sampled, but the
+            <code>sampledRows</code> option can be configured so that
+            only some rows are sampled, which is more like
+            the old behaviour.</li>
+        <li>Update Ucidy library to v1.3, corresponding to
+            <webref url="https://www.ivoa.net/documents/UCD1+/20230125/"
+                    >UCDList 1.5 EN</webref>.</li>
+        <li>If only one single point is visible in a Sky Plot using
+            the (default) sin projection,
+            the default view is now zoomed out to the whole sky
+            rather than zoomed in to a few milliarcsec.</li>
+        <li>Improve <ref id="inEcsv">ECSV reader</ref> performance,
+            especially for Gaia DR3 bulk download files
+            (which use semi-standard "<code>null</code>" token).</li>
+        <li>Write empty string not semi-standard "<code>nan</code>"
+            token for NaN in <ref id="outEcsv">ECSV writer</ref>.</li>
+        <li>Table parameters, as well as columns, named in
+            column selectors now include their units metadata.</li>
+        <li>Avoid oversized service icons in TAP window Service tab.</li>
+        <li>Recognise "<code>smoc</code>" as an alternative to
+            "<code>moc</code>" when examining xtype values for
+            <ref id="GangLayerControl_area_position">area format</ref>
+            defaults.</li>
+        <li>Improve reporting and defaulting
+            of activation action URL invocation.</li>
+        <li>Better titling of Activation Action windows.</li>
+        <li>The <ref id="scheme-jdbc">JDBC input scheme</ref>
+            should now read columns that are array-valued in the
+            database as array values that can be used in TOPCAT;
+            previously they were read as opaque <code>Array</code>
+            objects.</li>
+        <li>Make FITS and VOTable output handlers robust against
+            input tables that declare incorrect row counts.</li>
+        <li>The <ref id="inPds4">PDS4 reader</ref>
+            now reads <code>Ascii_Numeric_Base16/8/2</code>
+            fields as numeric not string 
+            (updated pds4-jparser library code).</li>
+        <li>Slight change to RESOURCE structure of Primary HDU metadata
+            in multi-table FITS-plus output.
+            This fixes a problem in which saved Service Descriptors
+            could end up associated with the wrong tables.</li>
+        <li>HTTP redirects with response code 308 (Permanent Redirect) are
+            now handled in the same way as 307 (Temporary Redirect).</li>
+        <li>Withdraw <label>Antialias</label> config option from
+            <ref id="form-lines">Lines</ref> plot form,
+            since it didn't really work.</li>
+        <li>Improve handling of illegal sky coordinates
+            (latitude out of range) in sky matching;
+            in v4.8-7 only, bad positions caused match failure,
+            now they are just ignored.</li>
+        <li>Improve transparency rendering in
+            <ref id="LayerControl_skygrid">SkyGrid</ref> plot.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix a nasty bug that could plot
+            <ref id="form-skyvector">SkyVector</ref>,
+            <ref id="form-skyellipse">SkyEllipse</ref> and
+            <ref id="form-skycorr">SkyCorr</ref> forms incorrectly.
+            The numeric value of the shape size coordinates
+            (ellipse radii, vector extents) was interpreted in degrees
+            before being rescaled as appropriate, so that values of
+            a few tens or larger resulted in signficant distortions.
+            Now fixed.</li>
+        <li>Fix stability issue when using the
+            <label>Best Match, symmetric</label> selection option
+            (which should be used with caution)
+            in the <ref id="MatchWindow">Pair Match Window</ref>.
+            Results may be different in crowded regions, and may also
+            have differed between v4.8-6 and v4.8-7,
+            but are not obviously more or less correct.</li>
+        <li>Fix Cartesian matcher overflow issue;
+            for very large ratio between coordinate extent and match radius
+            this could cause pathologically slow, though not incorrect,
+            crossmatching.</li>
+        <li>Fixed bug which failed to plot some markers of multi-marker
+            shapes like <ref id="form-mark2">Mark2</ref> when
+            multithreaded (i.e. for large tables).
+            Regression bug since introduction of multithreaded plotting
+            in TOPCAT v4.7.</li>
+        <li>Fix line drawing bug that meant dotted and dashed lines
+            were often not displayed correctly.
+            This was a regression bug introduced in TOPCAT 4.6-3.</li>
+        <li>Fix auto-range and export bugs that ignored final bar for
+            forward cumulative <ref id="form-histogram">histograms</ref>.</li>
+        <li>Fix Basic image viewer in
+                 <ref id="ViewImageActivationType"
+                      >Display Image</ref>/<ref
+                      id="RegionViewImageActivationType"
+                      >Display Image Region</ref>
+            activation types to display (uncompressed) FITS images,
+            by re-including nom.tam.fits library in standalone jar files;
+            this was a regression bug, broken since v4.8-4.</li>
+        <li>Avoid some plot failures related to oversized legends and
+            undersized plot windows.</li>
+        <li>Adjust colour ramp (aux axis) painting to avoid faint white
+            stripes seen when vector graphics (e.g. PDF) output 
+            was rendered in some external viewers.</li>
+        <li>Fail with an error rather than silently reading a broken table
+            when encountering GaiaTools/zStd-jni bug during
+            <ref id="inGbin">GBIN</ref> input.</li>
+        <li>Empty/invalid fields encountered by the 
+            <ref id="inPds4">PDS4 reader</ref> 
+            no longer cause the table read to fail.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
