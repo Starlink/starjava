@@ -13,8 +13,11 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.TableRowHeader;
 import uk.ac.starlink.table.gui.ViewHugeSelectionModel;
@@ -75,6 +78,18 @@ public class SwingMode implements ProcessingMode, TableConsumer {
             final ViewHugeTableModel vhModel =
                 new ViewHugeTableModel( jt.getModel(), vbar );
             jt.setModel( vhModel );
+
+            /* Resetting the JTable's TableModel also resets the contents of
+             * the column model, in particular the cell renderers,
+             * so take care to put them back. */
+            int ncol = table.getColumnCount();
+            TableColumnModel colModel = jt.getColumnModel();
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                ColumnInfo cinfo = table.getColumnInfo( icol );
+                colModel.getColumn( icol )
+                        .setCellRenderer( StarTableColumn
+                                         .createCellRenderer( cinfo ) );
+            }
             ListSelectionModel vsModel =
                 new ViewHugeSelectionModel( rowSelModel, vhModel );
             jt.setSelectionModel( vsModel );
