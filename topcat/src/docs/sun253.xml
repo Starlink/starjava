@@ -31962,6 +31962,8 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Update hard-coded Registry URLs for Euro-VO and STSci to use
+        https not http protocol.</li>
     </ul>
     </p></dd>
 

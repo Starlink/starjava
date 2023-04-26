@@ -62,11 +62,11 @@ public class RegTapRegistryQuery implements RegistryQuery {
 
     /** TAP base URL for Euro-VO registry, currently hosted at ESAC. */
     public static final String EUROVO_REG =
-        "http://registry.euro-vo.org/regtap/tap";
+        "https://registry.euro-vo.org/regtap/tap";
 
     /** TAP base URL for STScI/VAO registry. */
     public static final String STSCI_REG =
-        "http://vao.stsci.edu/RegTAP/TapService.aspx";
+        "https://vao.stsci.edu/RegTAP/TapService.aspx";
 
     /** TAP base URL for INAF registry (not sure if this is permanent). */
     public static final String INAF_REG =

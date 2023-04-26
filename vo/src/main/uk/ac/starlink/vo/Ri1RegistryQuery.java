@@ -74,8 +74,8 @@ public class Ri1RegistryQuery implements RegistryQuery {
 
     /** List of likely registries. */
     public static final String[] REGISTRIES = new String[] {
-        EUROVO_REG = "http://registry.euro-vo.org/services/RegistrySearch",
-        VAO_REG = "http://vao.stsci.edu/directory/ristandardservice.asmx",
+        EUROVO_REG = "https://registry.euro-vo.org/services/RegistrySearch",
+        VAO_REG = "https://vao.stsci.edu/directory/ristandardservice.asmx",
         AG_REG = "http://registry.astrogrid.org/"
                + "astrogrid-registry/services/RegistryQueryv1_0",
         AG_REG2 = "http://alt.registry.astrogrid.org/"
