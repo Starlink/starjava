@@ -134,7 +134,6 @@ import uk.ac.starlink.util.gui.StringPaster;
 import uk.ac.starlink.vo.DalLoader;
 import uk.ac.starlink.vo.DalTableLoadDialog;
 import uk.ac.starlink.vo.SkyDalTableLoadDialog;
-import uk.ac.starlink.vo.SkyPositionEntry;
 
 /**
  * Main window providing user control of the TOPCAT application.

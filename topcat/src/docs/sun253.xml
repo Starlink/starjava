@@ -31964,6 +31964,8 @@ introduced since the last version:
     <ul>
     <li>Update hard-coded Registry URLs for Euro-VO and STSci to use
         https not http protocol.</li>
+    <li>Avoid annoying popup in Cone/SIA/SSA windows when position is
+        resolved before radius is filled in.</li>
     </ul>
     </p></dd>
 

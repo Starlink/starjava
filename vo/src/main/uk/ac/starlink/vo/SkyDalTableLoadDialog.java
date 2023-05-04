@@ -52,7 +52,6 @@ public abstract class SkyDalTableLoadDialog extends DalTableLoadDialog
 
         /* Add a spatial position selector component. */
         skyEntry_ = new SkyPositionEntry( "J2000" );
-        skyEntry_.addActionListener( getSubmitAction() );
         getControlBox().add( skyEntry_ );
         return queryPanel;
     }
