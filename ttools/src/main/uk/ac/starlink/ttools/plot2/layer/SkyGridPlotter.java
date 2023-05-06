@@ -95,13 +95,13 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
            .setXmlDescription( new String[] {
                 "<p>The sky coordinate system used for the additional",
                 "grid axes.",
-                "This is used in conunction with the",
+                "This is used in conjunction with the",
                 "<code>" + VIEWSYS_NAME + "</code> parameter",
                 "defined for the plot as a whole",
-                "to determin what grid lines to plot.",
+                "to determine what grid lines to plot.",
                 "</p>",
             } )
-        , false )
+        , false, true )
        .setOptionUsage()
        .addOptionsXml();
 
@@ -324,7 +324,7 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
             code = 23 * code + color_.hashCode();
             code = 23 * code + labeller_.hashCode();
             code = 23 * code + captioner_.hashCode();
-            code = 23 * code + viewsys_.hashCode();
+            code = 23 * code + PlotUtil.hashCode( viewsys_ );
             code = 23 * code + ( sexagesimal_ ? 11 : 13 );
             code = 23 * code + Float.floatToIntBits( (float) loncrowd_ );
             code = 23 * code + Float.floatToIntBits( (float) latcrowd_ );
@@ -340,7 +340,7 @@ public class SkyGridPlotter extends AbstractPlotter<SkyGridPlotter.GridStyle> {
                     && this.color_.equals( other.color_ )
                     && this.labeller_.equals( other.labeller_ )
                     && this.captioner_.equals( other.captioner_ )
-                    && this.viewsys_.equals( other.viewsys_ )
+                    && PlotUtil.equals( this.viewsys_, other.viewsys_ )
                     && this.sexagesimal_ == other.sexagesimal_
                     && this.loncrowd_ == other.loncrowd_
                     && this.latcrowd_ == other.latcrowd_

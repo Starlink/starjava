@@ -26082,6 +26082,7 @@ Some of the notable contributers are these:
 <li>Pierre Fernique (CDS)</li>
 <li>Shashikiran Ganesh (PRL, India)</li>
 <li>Fedrico Garcia (RUG)</li>
+<li>Robin Geyer (TU-Dresden)</li>
 <li>Vincent G&#x00e9;not (IRAP)</li>
 <li>David Giaretta (Starlink, RAL)</li>
 <li>Bertrand Goldman (MPIA)</li>
@@ -31966,6 +31967,11 @@ introduced since the last version:
         https not http protocol.</li>
     <li>Avoid annoying popup in Cone/SIA/SSA windows when position is
         resolved before radius is filled in.</li>
+    <li>Fix issues to to with sky coordinate system choice
+        that sometimes caused
+        <ref id="LayerControl_skygrid">SkyGrid</ref> and
+        <ref id="HealpixLayerControl">Healpix</ref> layers
+        to generate broken STILTS commands for export.</li>
     </ul>
     </p></dd>
 

@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.geom.CubePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
@@ -298,13 +299,13 @@ public class StiltsPlot {
 
             /* Input data coordinate settings, if any. */
             lsettings.addAll( createCoordSettings( lspec ) );
-            lsettings.addAll( zadjusters[ iz ].getLayerSettings( lspec ) );
             lsettings.add( null );
 
             /* Layer style configuration. */
             lsettings.addAll( modeSettings );
             lsettings.addAll( getConfigSettings( lspec.getConfig(),
                                                  plotter.getStyleKeys() ) );
+            zadjusters[ iz ].adjustLayerSettings( lspec, lsettings );
             lsettings.add( null );
 
             /* Legend label, if any. */
@@ -757,8 +758,8 @@ public class StiltsPlot {
             return new ZoneAdjuster() {
                 public void adjustZoneSettings( List<Setting> zsettings ) {
                 }
-                public List<Setting> getLayerSettings( LayerSpec lspec ) {
-                    return Collections.emptyList();
+                public void adjustLayerSettings( LayerSpec lspec,
+                                                 List<Setting> lsettings ) {
                 }
             };
         }
@@ -837,10 +838,10 @@ public class StiltsPlot {
          *
          * @param  lspec  specification for one of the layers that this
          *                adjuster is configured for
-         * @return   list of zero or more settings to add to the layer
-         *           configuration
+         * @param  lsettings  mutable list of settings objects
+         *                    for the layer to be adjusted
          */
-        List<Setting> getLayerSettings( LayerSpec lspec );
+        void adjustLayerSettings( LayerSpec lspec, List<Setting> lsettings );
     }
 
     /**
@@ -854,28 +855,32 @@ public class StiltsPlot {
 
         private static final ConfigKey<SkySys> VIEWSYS_KEY =
             SkySurfaceFactory.VIEWSYS_KEY;
-        private static final ConfigKey<SkySys> DATASYS_KEY =
-            SkySurfaceFactory.DATASYS_KEY;
         private final SkySys viewsys_;
         private final boolean sysDiffers_;
 
         /**
          * Constructor.
          *
-         * @param  lspec  specification for one of the layers that this
-         *                adjuster is configured for
-         * @return   list of zero or more settings to add to the layer
-         *           configuration
+         * @param  zspec  zone specifier
+         * @param  lspecs  layer specifiers
          */
         SkySysZoneAdjuster( ZoneSpec zspec, List<LayerSpec> lspecs ) {
             ConfigMap zconfig = zspec.getConfig();
             viewsys_ = getExplicitValue( VIEWSYS_KEY, zconfig );
             boolean differs = false;
             for ( LayerSpec lspec : lspecs ) {
-                SkySys datasys =
-                    getExplicitValue( DATASYS_KEY, lspec.getConfig() );
-                if ( datasys != null && ! datasys.equals( viewsys_ ) ) {
-                    differs = true;
+                ConfigMap lconfig = lspec.getConfig();
+                for ( ConfigKey<?> key : lconfig.keySet() ) {
+                    if ( key instanceof SkySysConfigKey ) {
+                        SkySysConfigKey sysKey = (SkySysConfigKey) key;
+                        if ( sysKey.isViewComparison() ) {
+                            SkySys cmpsys = lconfig.get( sysKey );
+                            if ( cmpsys != null &&
+                                 ! cmpsys.equals( viewsys_ ) ) {
+                                differs = true;
+                            }
+                        }
+                    }
                 }
             }
             sysDiffers_ = differs;
@@ -892,16 +897,33 @@ public class StiltsPlot {
             }
         }
 
-        public List<Setting> getLayerSettings( LayerSpec lspec ) {
-            List<Setting> list = new ArrayList<Setting>();
+        public void adjustLayerSettings( LayerSpec lspec,
+                                         List<Setting> lsettings ) {
             ConfigMap lconfig = lspec.getConfig();
-            SkySys datasys = getExplicitValue( DATASYS_KEY, lconfig );
-            if ( datasys != null ) {
-                Setting ls = createConfigSetting( DATASYS_KEY, lconfig );
-                String dflt = sysDiffers_ ? null : ls.getStringValue();
-                list.add( ls.resetDefault( dflt ) );
+            for ( ConfigKey<?> key : lconfig.keySet() ) {
+                if ( key instanceof SkySysConfigKey ) {
+                    SkySysConfigKey sysKey = (SkySysConfigKey) key;
+                    if ( sysKey.isViewComparison() ) {
+                        int isys = -1;
+                        for ( int i = 0; i < lsettings.size(); i++ ) {
+                            Setting ls = lsettings.get( i );
+                            if ( ls != null &&
+                                 ls.getKey().equals( getSettingKey( sysKey ))) {
+                                isys = i;
+                            }
+                        }
+                        if ( isys < 0 ) {
+                            lsettings.add( createConfigSetting( sysKey,
+                                                                lconfig ) );
+                            isys = lsettings.size() - 1;
+                        }
+                        Setting sysSetting = lsettings.get( isys );
+                        String dflt = sysDiffers_ ? null
+                                                  : sysSetting.getStringValue();
+                        lsettings.set( isys, sysSetting.resetDefault( dflt ) );
+                    }
+                }
             }
-            return list;
         }
     }
 }

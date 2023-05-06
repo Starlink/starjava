@@ -108,7 +108,7 @@ public class HealpixPlotter
                 "used by the input pixel file refers.",
                 "</p>",
             } )
-        , false );
+        , false, true );
 
 
     /** Config key for scaling angle unit. */
@@ -124,10 +124,6 @@ public class HealpixPlotter
     /** Config key for transparency. */
     private static final ConfigKey<Double> TRANSPARENCY_KEY =
         StyleKeys.TRANSPARENCY;
-
-    /** Config key for view sky system. */
-    private static final ConfigKey<SkySys> VIEWSYS_KEY =
-        SkySurfaceFactory.VIEWSYS_KEY;
 
     private static final AuxScale SCALE = AuxScale.COLOR;
 
@@ -224,7 +220,6 @@ public class HealpixPlotter
         List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
         keyList.add( DATALEVEL_KEY );
         keyList.add( DATASYS_KEY );
-        keyList.add( VIEWSYS_KEY );
         keyList.add( DEGRADE_KEY );
         keyList.add( COMBINER_KEY );
         keyList.add( ANGLE_KEY );
@@ -238,10 +233,17 @@ public class HealpixPlotter
     }
 
     public HealpixStyle createStyle( ConfigMap config ) {
+
+        /* Acquire config items from global config.
+         * Note that the plotting UI (STILTS or TOPCAT) has to make
+         * special arrangements to ensure that VIEWSYS_KEY is included
+         * in the config map, since it is a global value for the plot,
+         * not specified per layer, and therefore is not declared
+         * as one of this plotter's style keys. */
+        SkySys viewSys = config.get( SkySurfaceFactory.VIEWSYS_KEY );
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         int dataLevel = config.get( DATALEVEL_KEY );
         SkySys dataSys = config.get( DATASYS_KEY );
-        SkySys viewSys = config.get( VIEWSYS_KEY );
         int degrade = config.get( DEGRADE_KEY );
         Combiner combiner = config.get( COMBINER_KEY );
         SolidAngleUnit angle = config.get( ANGLE_KEY );

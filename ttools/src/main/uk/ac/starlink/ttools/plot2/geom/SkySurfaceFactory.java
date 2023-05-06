@@ -85,7 +85,7 @@ public class SkySurfaceFactory
                 "before being plotted.",
                 "</p>",
             } )
-            , false )
+            , false, false )
        .setOptionUsage()
        .addOptionsXml();
 
@@ -115,7 +115,7 @@ public class SkySurfaceFactory
                 "to the same value as the view system.",
                 "</p>",
             } )
-            , false )
+            , false, true )
        .setOptionUsage()
        .addOptionsXml();
 
