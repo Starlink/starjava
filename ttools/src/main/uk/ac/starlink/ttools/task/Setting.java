@@ -173,6 +173,13 @@ public class Setting {
 
     @Override
     public String toString() {
-        return key_ + "=" + strValue_;
+        StringBuffer sbuf = new StringBuffer()
+           .append( key_ )
+           .append( '=' )
+           .append( strValue_ );
+        if ( isDefaultValue() ) {
+            sbuf.append( " (dflt)" );
+        }
+        return sbuf.toString();
     }
 }
