@@ -75,9 +75,21 @@ public class VocabChecker {
                               "visibility",
                           } );
 
+    /** Instance for vocabulary at http://www.ivoa.net/examples. */
+    /* Term list is from https://www.ivoa.net/rdf/examples/2023-01-19/;
+     * at time of writing all terms are marked Preliminary, but are scheduled
+     * to be non-preliminary following TCG endorsement at Bologna interop
+     * 07-05-2023. */
+    public static final VocabChecker EXAMPLES =
+        new VocabChecker( "http://www.ivoa.net/rdf/examples",
+                          new String[] {
+                              "capability", "continuation", "generic-parameter",
+                              "key", "name", "query", "table", "value",
+                          } ); 
+
     /** Static instances of this class. */
     private static final VocabChecker[] INSTANCES = {
-        TIMESCALE, REFPOSITION, DATALINK_CORE, PRODUCT_TYPE,
+        TIMESCALE, REFPOSITION, DATALINK_CORE, PRODUCT_TYPE, EXAMPLES,
     };
 
     /**
