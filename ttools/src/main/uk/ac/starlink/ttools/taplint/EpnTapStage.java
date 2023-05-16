@@ -65,13 +65,7 @@ public class EpnTapStage implements Stage {
     );
 
     // VocabularyChecker for https://www.ivoa.net/rdf/messenger.
-    // Note at time of writing these are all marked Preliminary.
-    private static final VocabChecker MESSENGER_VOCAB =
-        new VocabChecker( "http://www.ivoa.net/rdf/messenger",
-                          new String[] {
-                              "EUV", "Gamma-ray", "Infrared", "Millimeter",
-                              "Neutrino", "Optical", "Photon", "UV", "X-ray",
-                          } );
+    private static final VocabChecker MESSENGER_VOCAB = VocabChecker.MESSENGER;
 
     /**
      * Constructor.

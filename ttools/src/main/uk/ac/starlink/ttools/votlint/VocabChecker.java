@@ -87,9 +87,20 @@ public class VocabChecker {
                               "key", "name", "query", "table", "value",
                           } ); 
 
+    /** Instance for vocabulary at http://www.ivoa.net/rdf/messenger. */
+    /* Term list is from https://www.ivoa.net/rdf/messenger/2020-08-26/. */
+    public static final VocabChecker MESSENGER =
+        new VocabChecker( "http://www.ivoa.net/rdf/messenger",
+                          new String[] {
+                              "EUV", "Gamma-ray", "Infrared", "Millimeter",
+                              "Neutrino", "Optical", "Photon", "Radio",
+                              "UV", "X-ray",
+                          } );
+
     /** Static instances of this class. */
     private static final VocabChecker[] INSTANCES = {
         TIMESCALE, REFPOSITION, DATALINK_CORE, PRODUCT_TYPE, EXAMPLES,
+        MESSENGER,
     };
 
     /**
