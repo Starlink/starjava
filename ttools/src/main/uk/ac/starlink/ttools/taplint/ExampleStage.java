@@ -38,6 +38,7 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.votlint.VocabChecker;
 import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlValidator;
@@ -105,6 +106,9 @@ public class ExampleStage implements Stage {
         PRAGMATIC_VOCAB = "ivo://ivoa.net/std/DALI-examples#",
         DALI11_VOCAB =    "http://www.ivoa.net/rdf/examples#",
     };
+
+    /** Vocabulary checker for RDFa property attribute values. */
+    private static final VocabChecker PROPERTY_CHECKER = VocabChecker.EXAMPLES;
 
     /**
      * Constructor.
@@ -576,6 +580,51 @@ public class ExampleStage implements Stage {
                 return;
             }
             docCount_++;
+
+            /* Check values of property attributes within the example scope,
+             * which according to DALI-examples ought usually to be found in
+             * the http://www.ivoa.net/rdf/examples vocabulary
+             * (DALI 1.1 sec 2.3 mentions this as a future possibility,
+             * but it's likely that DALI 1.2 will make that concrete). */
+            assert DALI11_VOCAB
+                  .equals( PROPERTY_CHECKER.getVocabularyUrl() + "#" );
+            if ( ( PROPERTY_CHECKER.getVocabularyUri() + "#" )
+                .equals( getAttribute( examplesEl, "vocab" ) ) ) {
+                Element[] propEls =
+                    xpathElements( reporter_, examplesEl, "//@property/.." );
+                for ( Element propEl : propEls ) {
+                    assert propEl.hasAttribute( "property" );
+                    if ( propEl.hasAttribute( "property" ) ) {
+                        String prop = propEl.getAttribute( "property" );
+                        PROPERTY_CHECKER
+                       .checkTerm( prop, new VocabChecker.TermReporter() {
+                            public void termFound() {
+                            }
+                            public void termPreliminary( String msg ) {
+                                message( FixedCode.W_EXVP, "Preliminary", msg );
+                            }
+                            public void termDeprecated( String msg ) {
+                                message( FixedCode.W_EXVP, "Deprecated", msg );
+                            }
+                            public void termUnknown( String msg ) {
+                                message( FixedCode.E_EXVP, "Unknown", msg );
+                            }
+                            private void message( FixedCode code, String type,
+                                                  String msg ) {
+                                reporter_.report( code, new StringBuffer()
+                                   .append( type )
+                                   .append( " RDFa property attribute \"" )
+                                   .append( prop )
+                                   .append( "\" in element " )
+                                   .append( propEl.getTagName() )
+                                   .append( ": " )
+                                   .append( msg )
+                                   .toString() );
+                            }
+                        } );
+                    }
+                }
+            }
 
             /* Use available metadata to perform some of the tests. */
             getAdqlValidatorKit();

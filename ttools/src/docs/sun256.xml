@@ -14635,6 +14635,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix rendering bug for
         <ref id="mode-gui"><code>mode=gui</code></ref>
         with huge (&gt;130 million row) tables.</li>
+    <li>Taplint EXA stage now checks RDFa property attributes against
+        <code>http://www.ivoa.net/rdf/examples</code> vocabulary.</li>
     </ul>
     </p></dd>
 
