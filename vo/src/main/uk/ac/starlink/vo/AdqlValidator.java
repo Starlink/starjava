@@ -407,6 +407,7 @@ public class AdqlValidator {
         private String name_;
         private String schemaName_;
         private String catalogName_;
+        private boolean isDelimited_;
         private AdqlSyntax syntax_;
   
         /**
@@ -417,8 +418,9 @@ public class AdqlValidator {
         ValidatorDBTable( ValidatorTable vtable ) {
             vtable_ = vtable;
             syntax_ = AdqlSyntax.getInstance();
-            String[] names =
-                syntax_.getCatalogSchemaTable( vtable.getTableName() );
+            String tname = vtable.getTableName();
+            isDelimited_ = DBIdentifier.isDelimited( tname );
+            String[] names = syntax_.getCatalogSchemaTable( tname );
 
             /* I'm still not certain I'm assigning the schema name here
              * correctly, or exactly what it's used for. */
@@ -428,14 +430,17 @@ public class AdqlValidator {
                 catalogName_ = names[ 0 ];
             }
             else {
-                name_ = vtable.getTableName();
+                name_ = tname;
                 schemaName_ = vtable.getSchemaName();
                 catalogName_ = null;
             }
         }
 
         public boolean isCaseSensitive() {
-            return false;
+
+            // Note: isCaseSensitive is a somewhat misleading name
+            // for this method in the DBTable interface.
+            return isDelimited_;
         }
 
         public String getADQLName() {

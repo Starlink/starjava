@@ -31972,6 +31972,10 @@ introduced since the last version:
         <ref id="LayerControl_skygrid">SkyGrid</ref> and
         <ref id="HealpixLayerControl">Healpix</ref> layers
         to generate broken STILTS commands for export.</li>
+    <li>Fix bug in ADQL syntax highlighting related to delimited
+        identifiers (quoted table names).
+        This bug was only introduced with the VOLLT upgrade
+        in the last release (TOPCAT v4.8-8).</li>
     </ul>
     </p></dd>
 
