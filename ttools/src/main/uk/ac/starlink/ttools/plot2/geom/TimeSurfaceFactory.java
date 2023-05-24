@@ -172,7 +172,7 @@ public class TimeSurfaceFactory
                               p.t2func_, p.y2func_, p.t2label_, p.y2label_,
                               p.captioner_, p.gridcolor_, p.tformat_,
                               p.tcrowd_, p.ycrowd_, p.minor_, p.shadow_,
-                              p.tannotate_ );
+                              p.annotateflags_ );
     }
 
     public ConfigKey<?>[] getProfileKeys() {
@@ -216,11 +216,11 @@ public class TimeSurfaceFactory
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         boolean shadow = config.get( StyleKeys.SHADOW_TICKS );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
-        boolean tannotate = true;
+        SideFlags annotateflags = SideFlags.ALL;
         return new Profile( ylog, yflip, tlabel, ylabel,
                             t2func, y2func, t2label, y2label, captioner,
                             gridcolor, tcrowd, ycrowd, tformat, minor, shadow,
-                            tannotate );
+                            annotateflags );
     }
 
     public ConfigKey<?>[] getAspectKeys() {
@@ -531,7 +531,7 @@ public class TimeSurfaceFactory
         private final TimeFormat tformat_;
         private final boolean minor_;
         private final boolean shadow_;
-        private final boolean tannotate_;
+        private final SideFlags annotateflags_;
 
         /**
          * Constructor.
@@ -557,7 +557,7 @@ public class TimeSurfaceFactory
          * @param  minor   whether to draw minor ticks
          * @param  shadow  whether to paint shadow ticks on opposite axes
          *                 if no secondary axis
-         * @param  tannotate  whether to annotate time axis
+         * @param  annotateflags   which sides to annotate
          */
         public Profile( boolean ylog, boolean yflip,
                         String tlabel, String ylabel,
@@ -565,7 +565,7 @@ public class TimeSurfaceFactory
                         String t2label, String y2label, Captioner captioner,
                         Color gridcolor, double tcrowd, double ycrowd,
                         TimeFormat tformat, boolean minor, boolean shadow,
-                        boolean tannotate ) {
+                        SideFlags annotateflags ) {
             ylog_ = ylog;
             yflip_ = yflip;
             tlabel_ = tlabel;
@@ -581,7 +581,7 @@ public class TimeSurfaceFactory
             tformat_ = tformat;
             minor_ = minor;
             shadow_ = shadow;
-            tannotate_ = tannotate;
+            annotateflags_ = annotateflags;
         }
 
         /**
@@ -595,16 +595,15 @@ public class TimeSurfaceFactory
 
         /**
          * Returns a new profile instance the same as this one,
-         * except that the flag for whether to annotate the time axis
-         * may be set.
+         * except that the flags for which sides to annotate are replaced.
          *
-         * @param   tannotate  whether to annotate time axis
+         * @param   annotateflags  which sides to annotate
          */
-        public Profile fixTimeAnnotation( boolean tannotate ) {
+        public Profile fixAnnotation( SideFlags annotateflags ) {
             return new Profile( ylog_, yflip_, tlabel_, ylabel_,
                                 t2func_, y2func_, t2label_, y2label_,
                                 captioner_, gridcolor_, tcrowd_, ycrowd_,
-                                tformat_, minor_, shadow_, tannotate );
+                                tformat_, minor_, shadow_, annotateflags );
         }
     }
 }

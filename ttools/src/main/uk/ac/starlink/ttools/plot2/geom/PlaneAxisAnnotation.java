@@ -39,8 +39,7 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
     private final String x2label_;
     private final String y2label_;
     private final Captioner captioner_;
-    private final boolean xAnnotate_;
-    private final boolean yAnnotate_;
+    private final SideFlags annotateFlags_;
     private final int xoff_;
     private final int yoff_;
     private final int x2off_;
@@ -70,8 +69,7 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
      * @param  x2label  text label on secondary X axis
      * @param  y2label  text label on secondary Y axis
      * @param  captioner   text renderer for axis labels etc
-     * @param  xAnnotate   true iff annotations are required on X axis
-     * @param  yAnnotate   true iff annotations are required on Y axis
+     * @param  annotateFlags   indicates which sides of the plot are annotated
      */
     public PlaneAxisAnnotation( int gxlo, int gxhi, int gylo, int gyhi,
                                 Axis xaxis, Axis yaxis,
@@ -79,8 +77,7 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
                                 String xlabel, String ylabel,
                                 Tick[] x2ticks, Tick[] y2ticks,
                                 String x2label, String y2label,
-                                Captioner captioner,
-                                boolean xAnnotate, boolean yAnnotate ) {
+                                Captioner captioner, SideFlags annotateFlags ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
         gylo_ = gylo;
@@ -96,8 +93,7 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         x2label_ = x2label;
         y2label_ = y2label;
         captioner_ = captioner;
-        xAnnotate_ = xAnnotate;
-        yAnnotate_ = yAnnotate;
+        annotateFlags_ = annotateFlags;
         xoff_ = gxlo;
         yoff_ = gyhi;
         x2off_ = gxhi;
@@ -106,8 +102,6 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
 
     public void drawLabels( Graphics g ) {
         Graphics2D g2 = (Graphics2D) g;
-        Captioner xCaptioner = xAnnotate_ ? captioner_ : NullCaptioner.INSTANCE;
-        Captioner yCaptioner = yAnnotate_ ? captioner_ : NullCaptioner.INSTANCE;
         TickLook tickLook = TickLook.STANDARD;
         AffineTransform trans0 = g2.getTransform();
         AffineTransform transX = new AffineTransform( trans0 );
@@ -115,24 +109,28 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         AffineTransform transY = new AffineTransform( trans0 );
         transY.concatenate( axisTransform( xoff_, yoff_, true ) );
         g2.setTransform( transX );
-        xaxis_.drawLabels( xticks_, xlabel_, xCaptioner, tickLook,
-                           X_ORIENT, false, g2 );
+        xaxis_.drawLabels( xticks_, xlabel_,
+                           getCaptioner( annotateFlags_.isBottom() ),
+                           tickLook, X_ORIENT, false, g2 );
         g2.setTransform( transY );
-        yaxis_.drawLabels( yticks_, ylabel_, yCaptioner, tickLook,
-                           Y_ORIENT, INVERT_Y, g2 );
+        yaxis_.drawLabels( yticks_, ylabel_,
+                           getCaptioner( annotateFlags_.isLeft() ),
+                           tickLook, Y_ORIENT, INVERT_Y, g2 );
         if ( x2ticks_.length > 0 || x2label_ != null ) {
             AffineTransform transX2 = new AffineTransform( trans0 );
             transX2.concatenate( axisTransform( xoff_, y2off_, false ) );
             g2.setTransform( transX2 );
-            xaxis_.drawLabels( x2ticks_, x2label_, xCaptioner, tickLook,
-                               X2_ORIENT, false, g2 );
+            xaxis_.drawLabels( x2ticks_, x2label_,
+                               getCaptioner( annotateFlags_.isTop() ),
+                               tickLook, X2_ORIENT, false, g2 );
         }
         if ( y2ticks_.length > 0 || y2label_ != null ) {
             AffineTransform transY2 = new AffineTransform( trans0 );
             transY2.concatenate( axisTransform( x2off_, yoff_, true ) );
             g2.setTransform( transY2 );
-            yaxis_.drawLabels( y2ticks_, y2label_, yCaptioner, tickLook,
-                               Y2_ORIENT, INVERT_Y, g2 );
+            yaxis_.drawLabels( y2ticks_, y2label_,
+                               getCaptioner( annotateFlags_.isRight() ),
+                               tickLook, Y2_ORIENT, INVERT_Y, g2 );
         }
         g2.setTransform( trans0 );
     }
@@ -141,8 +139,6 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         Rectangle bounds =
             new Rectangle( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
         Surround surround = new Surround();
-        Captioner xCaptioner = xAnnotate_ ? captioner_ : NullCaptioner.INSTANCE;
-        Captioner yCaptioner = yAnnotate_ ? captioner_ : NullCaptioner.INSTANCE;
 
         /* Extend the surround rectangles by the rectangles bounding
          * the annotations on the X and Y axes.
@@ -150,7 +146,8 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
          * the following, since we are effectively rotating the graphics
          * space twice, but this does do the right thing, so leave it be. */
         Rectangle xrect =
-            getLabelBounds( xaxis_, xticks_, xlabel_, xCaptioner,
+            getLabelBounds( xaxis_, xticks_, xlabel_,
+                            getCaptioner( annotateFlags_.isBottom() ),
                             X_ORIENT, false, withScroll );
         Rectangle bottomRect = axisTransform( xoff_, yoff_, false )
                               .createTransformedShape( xrect )
@@ -161,7 +158,8 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         surround.bottom =
             new Surround.Block( bottomExtent, bottomUnder, bottomOver );
         Rectangle yrect =
-            getLabelBounds( yaxis_, yticks_, ylabel_, yCaptioner,
+            getLabelBounds( yaxis_, yticks_, ylabel_,
+                            getCaptioner( annotateFlags_.isLeft() ),
                             Y_ORIENT, INVERT_Y, withScroll );
         Rectangle leftRect = axisTransform( xoff_, yoff_, true )
                             .createTransformedShape( yrect )
@@ -173,7 +171,8 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
             new Surround.Block( leftExtent, leftUnder, leftOver );
         if ( x2ticks_.length > 0 || x2label_ != null ) {
             Rectangle x2rect =
-                getLabelBounds( xaxis_, x2ticks_, x2label_, xCaptioner,
+                getLabelBounds( xaxis_, x2ticks_, x2label_,
+                                getCaptioner( annotateFlags_.isTop() ),
                                 X2_ORIENT, false, withScroll );
             Rectangle topRect = axisTransform( xoff_, y2off_, false )
                                .createTransformedShape( x2rect )
@@ -186,7 +185,8 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
         }
         if ( y2ticks_.length > 0 || y2label_ != null ) {
             Rectangle y2rect =
-                getLabelBounds( yaxis_, y2ticks_, y2label_, yCaptioner,
+                getLabelBounds( yaxis_, y2ticks_, y2label_,
+                                getCaptioner( annotateFlags_.isRight() ),
                                 Y2_ORIENT, INVERT_Y, withScroll );
             Rectangle rightRect = axisTransform( x2off_, yoff_, true )
                                  .createTransformedShape( y2rect )
@@ -198,6 +198,17 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
                 new Surround.Block( rightExtent, rightUnder, rightOver );
         }
         return surround;
+    }
+
+    /**
+     * Returns the effective captioner to use for annotation.
+     *
+     * @param  isAnnotate  true for annotation, false for no annotation
+     * @return   this object's captioner,
+     *           or a null captioner when isAnnotate is false
+     */
+    private Captioner getCaptioner( boolean isAnnotate ) {
+        return isAnnotate ? captioner_ : NullCaptioner.INSTANCE;
     }
 
     /**

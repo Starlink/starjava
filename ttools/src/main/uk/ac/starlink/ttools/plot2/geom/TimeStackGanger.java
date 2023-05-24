@@ -53,12 +53,18 @@ public class TimeStackGanger
     public TimeSurfaceFactory.Profile[]
             adjustProfiles( TimeSurfaceFactory.Profile[] profiles ) {
 
-        /* Only the bottom plot gets horizontal axis labels. */
+        /* Remove some of the annotations; only the top plot should get
+         * annotation along the top, and only the bottom plot should get
+         * annotation along the bottom. */
         profiles = profiles.clone();
         for ( int i = 0; i < profiles.length; i++ ) { 
-            if ( UP ? i > 0 : i < profiles.length - 1 ) {
-                profiles[ i ] = profiles[ i ].fixTimeAnnotation( false );
-            }
+            boolean left = true;
+            boolean right = true;
+            boolean top = i == ( UP ? profiles.length - 1 : 0 );
+            boolean bottom = i == ( UP ? 0 : profiles.length - 1 );
+            SideFlags annotateFlags =
+                new SideFlags( bottom, left, top, right );
+            profiles[ i ] = profiles[ i ].fixAnnotation( annotateFlags );
         }   
         return profiles;
     }

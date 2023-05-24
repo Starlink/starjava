@@ -49,7 +49,7 @@ public class TimeSurface implements Surface, PlanarSurface {
     private final Captioner captioner_;
     private final Color gridcolor_;
     private final TimeFormat tformat_;
-    private final boolean tannotate_;
+    private final SideFlags annotateflags_;
     private final Axis tAxis_;
     private final Axis yAxis_;
 
@@ -79,7 +79,7 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @param  captioner  text renderer for axis labels etc
      * @param  gridcolor   grid line colour, or null for none
      * @param  tformat  time labelling format
-     * @param  tannotate  whether to annotate time axis
+     * @param  annotateflags  which sides to annotate
      */
     public TimeSurface( int gxlo, int gxhi, int gylo, int gyhi,
                         double dtlo, double dthi, double dylo, double dyhi,
@@ -89,7 +89,7 @@ public class TimeSurface implements Surface, PlanarSurface {
                         Tick[] t2ticks, Tick[] y2ticks,
                         String t2label, String y2label,
                         Captioner captioner, Color gridcolor,
-                        TimeFormat tformat, boolean tannotate ) {
+                        TimeFormat tformat, SideFlags annotateflags ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
         gylo_ = gylo;
@@ -111,7 +111,7 @@ public class TimeSurface implements Surface, PlanarSurface {
         captioner_ = captioner;
         gridcolor_ = gridcolor;
         tformat_ = tformat;
-        tannotate_ = tannotate;
+        annotateflags_ = annotateflags;
         tAxis_ = Axis.createAxis( gxlo_, gxhi_, dtlo_, dthi_, false, false );
         yAxis_ = Axis.createAxis( gylo_, gyhi_, dylo_, dyhi_, ylog_,
                                   yflip_ ^ INVERT_Y );
@@ -343,7 +343,7 @@ public class TimeSurface implements Surface, PlanarSurface {
                                         tAxis_, yAxis_,
                                         tticks_, yticks_, tlabel_, ylabel_,
                                         t2ticks_, y2ticks_, t2label_, y2label_,
-                                        captioner_, tannotate_, true );
+                                        captioner_, annotateflags_ );
     }
 
     @Override
@@ -370,7 +370,7 @@ public class TimeSurface implements Surface, PlanarSurface {
         code = 23 * code + captioner_.hashCode();
         code = 23 * code + PlotUtil.hashCode( gridcolor_ );
         code = 23 * code + tformat_.hashCode();
-        code = 23 * code + ( tannotate_ ? 17 : 23 );
+        code = 23 * code + annotateflags_.hashCode();
         return code;
     }
 
@@ -399,7 +399,7 @@ public class TimeSurface implements Surface, PlanarSurface {
                 && this.captioner_.equals( other.captioner_ )
                 && PlotUtil.equals( this.gridcolor_, other.gridcolor_ )
                 && this.tformat_.equals( other.tformat_ )
-                && this.tannotate_ == other.tannotate_;
+                && this.annotateflags_.equals( other.annotateflags_ );
         }
         else {
             return false;
@@ -452,7 +452,7 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @param  minor   whether to paint minor tick marks on axes
      * @param  shadow  whether to paint shadow ticks on opposite axes
      *                 if no secondary axis
-     * @param  tannotate  whether to annotate time axis
+     * @param  annotateflags  which axes to annotate
      * @return  new plot surface
      */
     public static TimeSurface createSurface( Rectangle plotBounds,
@@ -467,7 +467,7 @@ public class TimeSurface implements Surface, PlanarSurface {
                                              TimeFormat tformat,
                                              double tcrowd, double ycrowd,
                                              boolean minor, boolean shadow,
-                                             boolean tannotate ) {
+                                             SideFlags annotateflags ) {
         int gxlo = plotBounds.x;
         int gxhi = plotBounds.x + plotBounds.width;
         int gylo = plotBounds.y;
@@ -502,6 +502,6 @@ public class TimeSurface implements Surface, PlanarSurface {
         return new TimeSurface( gxlo, gxhi, gylo, gyhi, dtlo, dthi, dylo, dyhi,
                                 ylog, yflip, tticks, yticks, tlabel, ylabel,
                                 t2ticks, y2ticks, t2label, y2label,
-                                captioner, gridcolor, tformat, tannotate );
+                                captioner, gridcolor, tformat, annotateflags );
     }
 }

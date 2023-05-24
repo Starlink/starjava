@@ -340,7 +340,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                         xAxis_, yAxis_,
                                         xticks_, yticks_, xlabel_, ylabel_,
                                         x2ticks_, y2ticks_, x2label_, y2label_,
-                                        captioner_, true, true );
+                                        captioner_, SideFlags.ALL );
     }
 
     @Override
