@@ -72,7 +72,7 @@ public interface Ganger<P,A> {
      * Adjusts plot surface aspects as required to ensure that plot data
      * regions in a ganged set of zones are consistent.
      *
-     * <p>If a zero reference index greater than zero is supplied,
+     * <p>If a reference index greater than or equal to zero is supplied,
      * this denotes the "master" zone, to which the other aspects
      * should be adjusted.
      * Otherwise, the aspects should be adjusted more democratically,

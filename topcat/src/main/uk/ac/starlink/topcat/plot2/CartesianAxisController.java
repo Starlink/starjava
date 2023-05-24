@@ -1,7 +1,5 @@
 package uk.ac.starlink.topcat.plot2;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 

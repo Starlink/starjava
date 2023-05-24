@@ -1445,7 +1445,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
                 /* Ascertain the surface aspect.  If it has been set
                  * explicitly, use that.  The fixAspect can come indirectly
-                 * a previous invocation of this method. */
+                 * from a previous invocation of this method. */
                 final A aspect;
                 final Range[] gRanges;
                 if ( zone.fixAspect_ != null ) {

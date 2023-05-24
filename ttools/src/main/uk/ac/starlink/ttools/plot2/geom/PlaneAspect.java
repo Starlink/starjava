@@ -60,4 +60,17 @@ public class PlaneAspect {
     public double getYMax() {
         return ymax_;
     }
+
+    @Override
+    public String toString() {
+        return new StringBuffer()
+           .append( xmin_ )
+           .append( "..." )
+           .append( xmax_ )
+           .append( "; " )
+           .append( ymin_ )
+           .append( "..." )
+           .append( ymax_ )
+           .toString();
+    }
 }
