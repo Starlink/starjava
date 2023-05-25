@@ -50,6 +50,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
     private final String x2label_;
     private final String y2label_;
     private final Captioner captioner_;
+    private final SideFlags annotateflags_;
     private final Color gridcolor_;
     private final Color axlabelcolor_;
     private final Axis xAxis_;
@@ -79,6 +80,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
      * @param  x2label  text for labelling secondary X axis
      * @param  y2label  text for labelling secondary Y axis
      * @param  captioner  text renderer for axis labels etc, or null if absent
+     * @param  annotateflags  indicates which sides to annotate
      * @param  gridcolor  colour of grid lines, or null if not plotted
      * @param  axlabelcolor  colour of axis labels
      */
@@ -90,7 +92,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
                          String xlabel, String ylabel,
                          Tick[] x2ticks, Tick[] y2ticks,
                          String x2label, String y2label,
-                         Captioner captioner,
+                         Captioner captioner, SideFlags annotateflags,
                          Color gridcolor, Color axlabelcolor ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
@@ -113,6 +115,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
         x2label_ = x2label;
         y2label_ = y2label;
         captioner_ = captioner;
+        annotateflags_ = annotateflags;
         gridcolor_ = gridcolor;
         axlabelcolor_ = axlabelcolor;
         xAxis_ = Axis.createAxis( gxlo_, gxhi_, dxlo_, dxhi_, xlog_, xflip_ );
@@ -340,7 +343,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                         xAxis_, yAxis_,
                                         xticks_, yticks_, xlabel_, ylabel_,
                                         x2ticks_, y2ticks_, x2label_, y2label_,
-                                        captioner_, SideFlags.ALL );
+                                        captioner_, annotateflags_ );
     }
 
     @Override
@@ -368,6 +371,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
                 && PlotUtil.equals( this.x2label_, other.x2label_ )
                 && PlotUtil.equals( this.y2label_, other.y2label_ )
                 && this.captioner_.equals( other.captioner_ )
+                && this.annotateflags_.equals( other.annotateflags_ )
                 && PlotUtil.equals( this.gridcolor_, other.gridcolor_ )
                 && PlotUtil.equals( this.axlabelcolor_, other.axlabelcolor_ );
         }
@@ -400,6 +404,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
         code = 23 * code + PlotUtil.hashCode( x2label_ );
         code = 23 * code + PlotUtil.hashCode( y2label_ );
         code = 23 * code + captioner_.hashCode();
+        code = 23 * code + annotateflags_.hashCode();
         code = 23 * code + PlotUtil.hashCode( gridcolor_ );
         code = 23 * code + PlotUtil.hashCode( axlabelcolor_ );
         return code;
@@ -425,6 +430,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
      * @param  x2label  secondary X axis label
      * @param  y2label  secondary Y axis label
      * @param  captioner  text renderer for axis labels etc
+     * @param  annotateflags  which sides to annotate
      * @param  xyfactor   ratio (X axis unit length)/(Y axis unit length),
      *                    or NaN to use whatever bounds shape and
      *                    axis limits give you
@@ -448,6 +454,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                               DoubleUnaryOperator y2func,
                                               String x2label, String y2label,
                                               Captioner captioner,
+                                              SideFlags annotateflags,
                                               double xyfactor,
                                               double xcrowd, double ycrowd,
                                               boolean minor, boolean shadow,
@@ -538,7 +545,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                  xlog, ylog, xflip, yflip,
                                  xticks, yticks, xlabel, ylabel,
                                  x2ticks, y2ticks, x2label, y2label,
-                                 captioner, gridcolor, axlabelcolor );
+                                 captioner, annotateflags,
+                                 gridcolor, axlabelcolor );
     }
 
     /**

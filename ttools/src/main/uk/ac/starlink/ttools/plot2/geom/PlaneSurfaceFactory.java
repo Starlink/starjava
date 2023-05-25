@@ -313,8 +313,8 @@ public class PlaneSurfaceFactory
                               p.xlog_, p.ylog_, p.xflip_, p.yflip_,
                               p.xlabel_, p.ylabel_, p.x2func_, p.y2func_,
                               p.x2label_, p.y2label_, p.captioner_,
-                              p.xyfactor_, p.xcrowd_, p.ycrowd_,
-                              p.minor_, p.shadow_,
+                              p.annotateflags_, p.xyfactor_,
+                              p.xcrowd_, p.ycrowd_, p.minor_, p.shadow_,
                               p.gridcolor_, p.axlabelcolor_ );
     }
 
@@ -367,9 +367,10 @@ public class PlaneSurfaceFactory
         }
         Color axlabelcolor = config.get( StyleKeys.AXLABEL_COLOR );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
+        SideFlags annotateflags = SideFlags.ALL;
         return new Profile( xlog, ylog, xflip, yflip, xlabel, ylabel,
                             x2func, y2func, x2label, y2label,
-                            captioner, xyfactor, xcrowd, ycrowd,
+                            captioner, annotateflags, xyfactor, xcrowd, ycrowd,
                             minor, shadow, gridcolor, axlabelcolor );
     }
 
@@ -748,6 +749,7 @@ public class PlaneSurfaceFactory
         private final String x2label_;
         private final String y2label_;
         private final Captioner captioner_;
+        private final SideFlags annotateflags_;
         private final double xyfactor_;
         private final double xcrowd_;
         private final double ycrowd_;
@@ -772,6 +774,7 @@ public class PlaneSurfaceFactory
          * @param  x2label  text for labelling secondary X axis
          * @param  y2label  text for labelling secondary Y axis
          * @param  captioner  text renderer for axis labels etc
+         * @param  annotateflags  which sides to annotate
          * @param  xyfactor   ratio (X axis unit length)/(Y axis unit length),
          *                    or NaN to use whatever bounds shape and
          *                    axis limits give you
@@ -790,8 +793,8 @@ public class PlaneSurfaceFactory
                         String xlabel, String ylabel,
                         DoubleUnaryOperator x2func, DoubleUnaryOperator y2func,
                         String x2label, String y2label,
-                        Captioner captioner, double xyfactor,
-                        double xcrowd, double ycrowd,
+                        Captioner captioner, SideFlags annotateflags,
+                        double xyfactor, double xcrowd, double ycrowd,
                         boolean minor, boolean shadow,
                         Color gridcolor, Color axlabelcolor ) {
             xlog_ = xlog;
@@ -805,6 +808,7 @@ public class PlaneSurfaceFactory
             x2label_ = x2label;
             y2label_ = y2label;
             captioner_ = captioner;
+            annotateflags_ = annotateflags;
             xyfactor_ = xyfactor;
             xcrowd_ = xcrowd;
             ycrowd_ = ycrowd;
@@ -821,6 +825,21 @@ public class PlaneSurfaceFactory
          */
         public boolean[] getLogFlags() {
             return new boolean[] { xlog_, ylog_ };
+        }
+
+        /**
+         * Returns a new profile instance the same as this one,
+         * except that the flags for which sides to annotate are replaced.
+         *
+         * @param  annotateFlags  which sides to annotate
+         * @return   adjusted profile
+         */
+        public Profile fixAnnotation( SideFlags annotateFlags ) {
+            return new Profile( xlog_, ylog_, xflip_, yflip_, xlabel_, ylabel_,
+                                x2func_, y2func_, x2label_, y2label_,
+                                captioner_, annotateFlags,
+                                xyfactor_, xcrowd_, ycrowd_, minor_, shadow_,
+                                gridcolor_, axlabelcolor_ );
         }
     }
 }

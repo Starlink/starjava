@@ -27,6 +27,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.geom.SideFlags;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.ttools.plot2.layer.Cumulation;
@@ -108,6 +109,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         String x2label = null;
         String y2label = null;
         Captioner captioner = new BasicCaptioner();
+        SideFlags annotateFlags = SideFlags.ALL;
         double xyfactor = Double.NaN;
         double xcrowd = 1;
         double ycrowd = 1;
@@ -119,8 +121,8 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
             new PlaneSurfaceFactory.Profile( xlog, ylog, xflip, yflip,
                                              xlabel, ylabel, x2func, y2func,
                                              x2label, y2label, captioner,
-                                             xyfactor, xcrowd, ycrowd,
-                                             minor, shadow,
+                                             annotateFlags, xyfactor,
+                                             xcrowd, ycrowd, minor, shadow,
                                              gridColor, axlabelColor );
 
         /* Set up a plot Aspect.  This is the initial data range,

@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.plot2.Tick;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
+import uk.ac.starlink.ttools.plot2.geom.SideFlags;
 import uk.ac.starlink.util.LogUtils;
 
 public class FigureModeTest extends TestCase {
@@ -46,7 +47,7 @@ public class FigureModeTest extends TestCase {
                                   xlog, ylog, xflip, yflip,
                                   new Tick[ 0 ], new Tick[ 0 ], "X", "Y",
                                   new Tick[ 0 ], new Tick[ 0 ], null, null,
-                                  null, Color.GRAY, Color.BLACK );
+                                  null, SideFlags.ALL, Color.GRAY, Color.BLACK);
             checkPlaneMode( PlaneFigureMode.POLYGON,
                             PlaneFigureMode.OUTSIDE_POLYGON,
                             surf,
