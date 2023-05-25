@@ -67,6 +67,18 @@ public class Surround {
     }
 
     /**
+     * Returns an Insets object representing only the space corresponding
+     * to the Extent parts of this Surround.  The over- and under-hang
+     * regions are ignored.
+     *
+     * @return  new Insets
+     */
+    public Insets toExtentInsets() {
+        return new Insets( top.extent, left.extent,
+                           bottom.extent, right.extent );
+    }
+
+    /**
      * Returns an array of four rectangles giving the areas described
      * by this object as applied to a given inner rectangle.
      *
