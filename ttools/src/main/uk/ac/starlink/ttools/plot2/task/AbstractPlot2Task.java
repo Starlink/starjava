@@ -1065,7 +1065,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }
 
         /* Layer positional parameters. */
-        int npos = layer.getPositionCount();
+        int npos = layer.getCoordGroup().getBasicPositionCount();
         DataGeom geom = context.getGeom( env, suffix );
         Coord[] posCoords = geom.getPosCoords();
         for ( int ipos = 0; ipos < npos; ipos++ ) {

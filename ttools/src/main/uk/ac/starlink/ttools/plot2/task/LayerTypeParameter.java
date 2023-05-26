@@ -171,7 +171,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
             sbuf.append( '\n' );
             List<String> usageWords = new ArrayList<String>();
             usageWords.add( getName() + "=" + ltype.getName() );
-            int npos = ltype.getPositionCount();
+            int npos = ltype.getCoordGroup().getBasicPositionCount();
             Coord[] extraCoords = ltype.getExtraCoords();
             boolean hasData = npos > 0 || extraCoords.length > 0;
             ConfigKey<?>[] styleKeys = ltype.getStyleKeys();

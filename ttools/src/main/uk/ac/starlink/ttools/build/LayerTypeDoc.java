@@ -75,7 +75,7 @@ public class LayerTypeDoc {
         /* Get basic layer type information. */
         String lname = layerType.getName().toLowerCase();
         String layerId = "layer-" + lname;
-        int npos = layerType.getPositionCount();
+        int npos = layerType.getCoordGroup().getBasicPositionCount();
         Coord[] extraCoords = layerType.getExtraCoords();
         ConfigKey<?>[] styleKeys = layerType.getStyleKeys();
 

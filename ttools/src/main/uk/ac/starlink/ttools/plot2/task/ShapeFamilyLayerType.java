@@ -11,6 +11,7 @@ import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapeModePlotter;
@@ -91,10 +92,10 @@ public class ShapeFamilyLayerType implements LayerType {
         throw new TaskException( "Unknown mode " + mode );
     }
 
-    public int getPositionCount() {
+    public CoordGroup getCoordGroup() {
         return plotters_.size() > 0
-             ? plotters_.get( 0 ).getCoordGroup().getBasicPositionCount()
-             : 0;
+             ? plotters_.get( 0 ).getCoordGroup()
+             : CoordGroup.createEmptyCoordGroup();
     }
 
     public Coord[] getExtraCoords() {

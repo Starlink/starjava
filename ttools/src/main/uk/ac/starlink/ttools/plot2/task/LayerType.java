@@ -6,6 +6,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 
 /**
  * Represents the type of a plot layer as selected by the user.
@@ -48,11 +49,13 @@ public interface LayerType {
     Parameter<?>[] getAssociatedParameters( String suffix );
 
     /**
-     * Returns the number of coordinate positions associated with this layer.
+     * Returns a CoordGroup characteristic of this layer type.
+     * It is not guaranteed that the returned value will be identical
+     * to the CoordGroup of all the plotters that this type can return.
      *
-     * @return  DataGeom-type positional coordinate multiplicity
+     * @return  best-efforts CoordGroup
      */
-    int getPositionCount();
+    CoordGroup getCoordGroup();
 
     /**
      * Returns a list of any non-positional coordinates associated

@@ -5,6 +5,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 
 /**
  * LayerType representing a single Plotter.
@@ -50,8 +51,8 @@ public class SimpleLayerType implements LayerType {
         return plotter_;
     }
 
-    public int getPositionCount() {
-        return plotter_.getCoordGroup().getBasicPositionCount();
+    public CoordGroup getCoordGroup() {
+        return plotter_.getCoordGroup();
     }
 
     public Coord[] getExtraCoords() {
