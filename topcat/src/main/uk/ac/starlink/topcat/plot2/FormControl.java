@@ -82,11 +82,7 @@ public abstract class FormControl implements Control {
             final JComponent coordPanel = getCoordPanel();
             panel_.add( coordPanel, BorderLayout.NORTH );
             if ( getPlotter().hasReports() ) {
-                reportPanel_ = new ReportPanel( new Factory<Plotter<?>>() {
-                    public Plotter<?> getItem() {
-                        return FormControl.this.getPlotter();
-                    }
-                } ) {
+                reportPanel_ = new ReportPanel( this::getPlotter ) {
                     @Override
                     public Dimension getPreferredSize() {
                         return new Dimension( coordPanel.getPreferredSize()
@@ -156,11 +152,6 @@ public abstract class FormControl implements Control {
 
         /* Add a new style panel if the table is non-null. */
         if ( tcModel != null ) {
-            Factory<Plotter<?>> plotterFact = new Factory<Plotter<?>>() {
-                public Plotter<?> getItem() {
-                    return FormControl.this.getPlotter();
-                }
-            };
 
             /* If any of the config keys are supplied by the base configger,
              * don't acquire them from the layer style panel. */
@@ -169,7 +160,7 @@ public abstract class FormControl implements Control {
             klist.removeAll( baseConfigger_.getConfig().keySet() );
             ConfigKey<?>[] keys = klist.toArray( new ConfigKey<?>[ 0 ] );
             FormStylePanel sp =
-                new FormStylePanel( keys, baseConfigger_, plotterFact,
+                new FormStylePanel( keys, baseConfigger_, this::getPlotter,
                                     subManager, subStack, tcModel );
             if ( stylePanel_ != null ) {
                 sp.configureFrom( stylePanel_ );

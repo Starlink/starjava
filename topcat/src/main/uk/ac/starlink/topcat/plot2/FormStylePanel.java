@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -55,7 +56,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class FormStylePanel extends JPanel {
 
     private final Configger plotConfigger_;
-    private final Factory<Plotter<?>> plotterFact_;
+    private final Supplier<Plotter<?>> plotterSupplier_;
     private final SubsetConfigManager subManager_;
     private final SubsetStack subStack_;
     private final TopcatModel tcModel_;
@@ -73,19 +74,19 @@ public class FormStylePanel extends JPanel {
      *
      * @param  keys  style configuration keys that this panel is to acquire
      * @param  plotConfigger   global config defaults
-     * @param  plotterFact   obtains on demand the plotter for which this
-     *                       panel is acquiring style information
+     * @param  plotterSupplier   obtains on demand the plotter for which this
+     *                           panel is acquiring style information
      * @param  subManager   provides per-subset defaults for some config keys
      * @param  subStack    controls/display per-subset visibility
      * @param  tcModel   topcat model whose subsets are being configured
      */
     public FormStylePanel( ConfigKey<?>[] keys, Configger plotConfigger,
-                           Factory<Plotter<?>> plotterFact,
+                           Supplier<Plotter<?>> plotterSupplier,
                            SubsetConfigManager subManager,
                            SubsetStack subStack, TopcatModel tcModel ) {
         setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
         plotConfigger_ = plotConfigger;
-        plotterFact_ = plotterFact;
+        plotterSupplier_ = plotterSupplier;
         subManager_ = subManager;
         subStack_ = subStack;
         tcModel_ = tcModel;
@@ -390,7 +391,7 @@ public class FormStylePanel extends JPanel {
         if ( getSelectedSubset() != null ) {
             ConfigMap config = subsetSpecifier_.getSpecifiedValue();
             try {
-                style = plotterFact_.getItem().createStyle( config );
+                style = plotterSupplier_.get().createStyle( config );
             }
             catch ( ConfigException e ) {
                 style = null;

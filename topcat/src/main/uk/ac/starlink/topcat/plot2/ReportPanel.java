@@ -7,6 +7,7 @@ import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import javax.swing.Action;
 import javax.swing.AbstractAction; 
 import javax.swing.Box;
@@ -39,7 +40,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  */
 public class ReportPanel extends JPanel {
 
-    private final Factory<Plotter<?>> plotterFact_;
+    private final Supplier<Plotter<?>> plotterSupplier_;
     private final JComboBox<RowSubset> subsetSelector_;
     private final Map<ReportKey<?>,JComponent> boxMap_;
     private final DefaultComboBoxModel<RowSubset> subsetSelModel_;
@@ -49,12 +50,12 @@ public class ReportPanel extends JPanel {
     /**
      * Constructor.
      *
-     * @param  plotterFact   object that can supply the Plotter
-     *                       currently associated with this report panel
+     * @param  plotterSupplier   object that can supply the Plotter
+     *                           currently associated with this report panel
      */
-    public ReportPanel( Factory<Plotter<?>> plotterFact ) {
+    public ReportPanel( Supplier<Plotter<?>> plotterSupplier ) {
         super( new BorderLayout() );
-        plotterFact_ = plotterFact;
+        plotterSupplier_ = plotterSupplier;
         subsetSelModel_ = new DefaultComboBoxModel<RowSubset>();
         subsetSelector_ = new JComboBox<RowSubset>( subsetSelModel_ );
         subsetSelector_.addItemListener( new ItemListener() {
@@ -180,7 +181,7 @@ public class ReportPanel extends JPanel {
             Action saveAct = auxWin.createSaveTableAction( dataType, tsrc );
             importAct.putValue( Action.NAME, "Import" );
             saveAct.putValue( Action.NAME, "Save" );
-            Icon picon = plotterFact_.getItem().getPlotterIcon();
+            Icon picon = plotterSupplier_.get().getPlotterIcon();
             if ( picon != null ) {
                 importAct.putValue( Action.SMALL_ICON,
                                     ResourceIcon.toImportIcon( picon ) );

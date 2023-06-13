@@ -199,8 +199,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Set up various user interface components in the window that can
          * gather all the information required to perform (re-)plots. */
-        Factory<PlotPosition> posFact = new Factory<PlotPosition>() {
-            public PlotPosition getItem() {
+        Supplier<PlotPosition> posSupplier = new Supplier<PlotPosition>() {
+            public PlotPosition get() {
                 return frameControl_.getPlotPosition();
             }
         };
@@ -234,17 +234,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                    "Give visual feedback for plot navigation "
                                  + "gestures" );
         navdecModel.setSelected( true );
-        Factory<Ganger<P,A>> gangerFact = new Factory<Ganger<P,A>>() {
-            public Ganger<P,A> getItem() {
-                return getGanger();
-            }
-        };
-        Factory<List<ZoneDef<P,A>>> zonesFact =
-                new Factory<List<ZoneDef<P,A>>>() {
-            public List<ZoneDef<P,A>> getItem() {
-                return getZoneDefs();
-            }
-        };
+        Supplier<Ganger<P,A>> gangerSupplier = () -> getGanger();
+        Supplier<List<ZoneDef<P,A>>> zonesSupplier = () -> getZoneDefs();
 
         /* Provide an option for preparing the cache in parallel.
          * This is experimental; in particular cancelling it doesn't
@@ -286,7 +277,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
             new PlotPanel<P,A>( plotType_, storeFact, surfFact_,
-                                gangerFact, zonesFact, posFact,
+                                gangerSupplier, zonesSupplier, posSupplier,
                                 plotType.getPaperTypeSelector(),
                                 compositor, sketchModel_,
                                 placeProgressBar().getModel(),
@@ -1164,12 +1155,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param  point  reference graphics position, presumably indicated by user
      */
     private void identifyPoint( final Point point ) {
-        final Factory<Map<TopcatModel,Long>> finder =
+        final Supplier<Map<TopcatModel,Long>> finder =
             createPointFinder( point );
         if ( finder != null ) {
             plotPanel_.submitPlotAnnotator( new Runnable() {
                 public void run() {
-                    final Map<TopcatModel,Long> indexMap = finder.getItem();
+                    final Map<TopcatModel,Long> indexMap = finder.get();
                     if ( indexMap != null ) {
                         SwingUtilities.invokeLater( new Runnable() {
                             public void run() {
@@ -1187,20 +1178,20 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * a given screen position.
      *
      * @param  pos  screen position to query
-     * @return  factory that returns a map of topcat models to row indices
+     * @return  supplier that returns a map of topcat models to row indices
      *          giving rows whose markers are close to the point;
      *          the returned factory may be null if there are known to be none
      */
-    private Factory<Map<TopcatModel,Long>>
+    private Supplier<Map<TopcatModel,Long>>
             createPointFinder( final Point pos ) {
         final int iz = plotPanel_.getZoneIndex( pos );
         if ( iz >= 0 ) {
             final Surface surface = plotPanel_.getSurface( iz );
             final GuiPointCloud pointCloud =
                 plotPanel_.createGuiPointCloud( iz );
-            return new Factory<Map<TopcatModel,Long>>() {
+            return new Supplier<Map<TopcatModel,Long>>() {
                 @Slow
-                public Map<TopcatModel,Long> getItem() {
+                public Map<TopcatModel,Long> get() {
                     return findPoints( surface, pointCloud, pos );
                 }
             };
@@ -1486,7 +1477,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      *
      * <p>The actual count may be slow for large data sets, so although this
      * method may be called on the event dispatch thread, the returned
-     * factory's getItem method should not be.
+     * supplier's get method should not be.
      *
      * <p>The count is implicitly determined while making the plots,
      * since the various layers have to see which points are in bounds
@@ -1497,14 +1488,14 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * because you need to worry about double counting of points that
      * appear in multiple plots.
      *
-     * @return  factory for deferred calculation of formatted point count
+     * @return  supplier for deferred calculation of formatted point count
      */
-    private Factory<String> createCounter() {
+    private Supplier<String> createCounter() {
         final Inclusion[] inclusions = getBoundsInclusions( true );
         final DataStore dataStore = plotPanel_.getDataStore();
-        return new Factory<String>() {
+        return new Supplier<String>() {
             @Slow
-            public String getItem() {
+            public String get() {
                 long count = 0;
                 long total = 0;
                 long start = System.currentTimeMillis();
@@ -1822,10 +1813,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         layerDataSaveMenu_.setEnabled( hasLayerData );
 
         /* Initiate updating point count, which may be slow. */
-        final Factory<String> counter = createCounter();
+        final Supplier<String> counter = createCounter();
         plotPanel_.submitExtraAnnotator( new Runnable() {
             public void run() {
-                final String txt = counter.getItem();
+                final String txt = counter.get();
                 if ( txt != null ) {
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {

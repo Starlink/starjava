@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BoundedRangeModel;
@@ -125,9 +126,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final PlotType<P,A> plotType_;
     private final DataStoreFactory storeFact_;
     private final SurfaceFactory<P,A> surfFact_;
-    private final Factory<Ganger<P,A>> gangerFact_;
-    private final Factory<List<ZoneDef<P,A>>> zonesFact_;
-    private final Factory<PlotPosition> posFact_;
+    private final Supplier<Ganger<P,A>> gangerSupplier_;
+    private final Supplier<List<ZoneDef<P,A>>> zonesSupplier_;
+    private final Supplier<PlotPosition> posSupplier_;
     private final PaperTypeSelector ptSel_;
     private final Compositor compositor_;
     private final ToggleButtonModel sketchModel_;
@@ -178,9 +179,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  plotType   plot type
      * @param  storeFact   data store factory implementation
      * @param  surfFact   surface factory
-     * @param  gangerFact  factory for defining how multi-zone plots are grouped
-     * @param  zonesFact  acquires per-zone information
-     * @param  posFact  supplier of plot position settings
+     * @param  gangerSupplier  supplier for defining how
+     *                         multi-zone plots are grouped
+     * @param  zonesSupplier  acquires per-zone information
+     * @param  posSupplier  supplier of plot position settings
      * @param  ptSel   rendering policy
      * @param  compositor  compositor for composition of transparent pixels
      * @param  sketchModel   model to decide whether intermediate sketch frames
@@ -195,9 +197,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public PlotPanel( PlotType<P,A> plotType, DataStoreFactory storeFact,
                       SurfaceFactory<P,A> surfFact,
-                      Factory<Ganger<P,A>> gangerFact,
-                      Factory<List<ZoneDef<P,A>>> zonesFact,
-                      Factory<PlotPosition> posFact,
+                      Supplier<Ganger<P,A>> gangerSupplier,
+                      Supplier<List<ZoneDef<P,A>>> zonesSupplier,
+                      Supplier<PlotPosition> posSupplier,
                       PaperTypeSelector ptSel, Compositor compositor,
                       ToggleButtonModel sketchModel,
                       BoundedRangeModel progModel,
@@ -209,9 +211,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                    ? storeFact
                    : new ProgressDataStoreFactory( storeFact, progModel );
         surfFact_ = surfFact;
-        gangerFact_ = gangerFact;
-        zonesFact_ = zonesFact;
-        posFact_ = posFact;
+        gangerSupplier_ = gangerSupplier;
+        zonesSupplier_ = zonesSupplier;
+        posSupplier_ = posSupplier;
         ptSel_ = ptSel;
         compositor_ = compositor;
         sketchModel_ = sketchModel;
@@ -574,14 +576,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private PlotJob<P,A> createPlotJob() {
 
         /* Acquire per-panel state. */
-        PlotPosition plotpos = posFact_.getItem();
+        PlotPosition plotpos = posSupplier_.get();
         Rectangle bounds = getOuterBounds( plotpos );
         GraphicsConfiguration graphicsConfig = getGraphicsConfiguration();
         Color bgColor = getBackground();
-        Ganger<P,A> ganger = gangerFact_.getItem();
+        Ganger<P,A> ganger = gangerSupplier_.get();
         boolean axisLock = axisLockModel_.isSelected();
         boolean auxLock = auxLockModel_.isSelected();
-        List<ZoneDef<P,A>> zoneDefs = zonesFact_.getItem();
+        List<ZoneDef<P,A>> zoneDefs = zonesSupplier_.get();
         int nz = zoneDefs.size();
 
         /* Get profiles, made consistent across multi-zone plots. */
