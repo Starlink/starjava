@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot2;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.topcat.TablesListComboBox;
@@ -15,6 +16,14 @@ import uk.ac.starlink.topcat.TablesListComboBox;
  * @since    13 Mar 2013
  */
 public interface LayerControl extends Control {
+
+    /**
+     * Returns a list of the plotters that will be used by this control
+     * to create layers.
+     *
+     * @return   list of active plotters
+     */
+    Plotter<?>[] getPlotters();
 
     /**
      * Returns the layers contributed by this control.

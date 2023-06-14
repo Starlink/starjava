@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -25,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -190,6 +192,12 @@ public abstract class FormLayerControl
      * @return  true iff fc is active (contributing to plot)
      */
     protected abstract boolean isControlActive( FormControl fc );
+
+    public Plotter<?>[] getPlotters() {
+        return Arrays.stream( getActiveFormControls() )
+                     .map( FormControl::getPlotter )
+                     .toArray( n -> new Plotter<?>[ n ] );
+    }
 
     public TopcatLayer[] getLayers() {
         RowSubset[] subsets = subStack_.getSelectedSubsets();

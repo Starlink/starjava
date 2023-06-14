@@ -49,6 +49,10 @@ public class DatalessLayerControl extends ConfigControl
         }
     }
 
+    public Plotter<?>[] getPlotters() {
+        return new Plotter<?>[] { plotter_ };
+    }
+
     public TopcatLayer[] getLayers() {
         DataGeom geom = null;
         DataSpec dataSpec = null;

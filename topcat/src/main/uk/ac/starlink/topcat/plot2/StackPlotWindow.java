@@ -768,9 +768,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         String[] zoneNames = Arrays.stream( multiAxisController_.getZones() )
                                    .map( zoneId -> zoneId.toString() )
                                    .toArray( n -> new String[ n ] );
-        Plotter<?>[] plotters = Arrays.stream( readPlotLayers( true ) )
-                                      .map( PlotLayer::getPlotter )
-                                      .toArray( n -> new Plotter<?>[ n ] );
+        Plotter<?>[] plotters = 
+            Arrays.stream( stackModel_.getLayerControls( true ) )
+                  .flatMap( control -> Arrays.stream( control.getPlotters() ) )
+                  .toArray( n -> new Plotter<?>[ n ] );
         GangContext gangContext = new GangContext() {
             public Plotter<?>[] getPlotters() {
                 return plotters;

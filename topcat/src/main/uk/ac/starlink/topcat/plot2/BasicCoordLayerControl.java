@@ -133,6 +133,10 @@ public class BasicCoordLayerControl extends ConfigControl
         return tcModel_ == null ? "<no table>" : tcModel_.toString();
     }
 
+    public Plotter<?>[] getPlotters() {
+        return new Plotter<?>[] { plotter_ };
+    }
+
     public TopcatLayer[] getLayers() {
         RowSubset subset =
             subsetSelector_.getItemAt( subsetSelector_.getSelectedIndex() );

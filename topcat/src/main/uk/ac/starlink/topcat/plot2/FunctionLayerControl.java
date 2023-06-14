@@ -15,6 +15,7 @@ import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -98,6 +99,10 @@ public class FunctionLayerControl extends ConfigControl
         if ( zsel != null ) {
             addZoneTab( zsel );
         }
+    }
+
+    public Plotter<?>[] getPlotters() {
+        return new Plotter<?>[] { plotter_ };
     }
 
     public TopcatLayer[] getLayers() {
