@@ -50,4 +50,9 @@ public abstract class SingleCoord implements Coord {
     public boolean isRequired() {
         return isRequired_;
     }
+
+    @Override
+    public String toString() {
+        return input_.getMeta().getShortName();
+    }
 }
