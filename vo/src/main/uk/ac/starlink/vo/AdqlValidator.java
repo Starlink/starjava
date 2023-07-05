@@ -236,7 +236,7 @@ public class AdqlValidator {
             assert !TapCapability.UDF_FEATURE_TYPE.equals( type ) &&
                    !ADQLGEO_FEATURE_TYPE_VARIANT.equals( type );
             for ( TapLanguageFeature feat : entry.getValue() ) {
-                features.add( new LanguageFeature( type.toString(),
+                features.add( new LanguageFeature( volltFeatureType( type ),
                                                    feat.getForm(), true,
                                                    feat.getDescription() ) );
             }
@@ -258,6 +258,24 @@ public class AdqlValidator {
 
         /* Construct a suitable validator object. */
         return new AdqlValidator( version, featureSet, vtables );
+    }
+
+    /**
+     * Convert an Ivoid into a string representing the same item
+     * that will be recognised by VOLLT.
+     * At time of writing some care is required because VOLLT requires
+     * a particular capitalisation of the registry part
+     * (which is somewhat contrary to the spirit of VO Identifiers).
+     *
+     * @param  ivoid  ivoid
+     * @return  normalised string version of input ivoid
+     */
+    private static String volltFeatureType( Ivoid ivoid ) {
+        String regPart = ivoid.getRegistryPart();
+        String volltTapRegExt = LanguageFeature.IVOID_TAP_REGEXT;
+        return ( volltTapRegExt.equalsIgnoreCase( regPart ) ? volltTapRegExt
+                                                            : regPart )
+             + ivoid.getLocalPart();
     }
 
     /**

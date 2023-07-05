@@ -31977,6 +31977,8 @@ introduced since the last version:
         This bug was only introduced with the VOLLT upgrade
         in the last release (TOPCAT v4.8-8).</li>
     <li>Fix missing secondary X axis bug in stacked Time plots.</li>
+    <li>Fix TAP capabilities parsing to identify language features
+        with non-standard capitalisations.</li>
     </ul>
     </p></dd>
 
