@@ -15,6 +15,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.Ivoid;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
@@ -41,12 +42,12 @@ public class ObsLocStage implements Stage {
     public static final String OBSPLAN_TNAME = "ivoa.obsplan";
 
     /** Required registration UType for ObsPlan table. */
-    public static final String OBSPLAN_UTYPE =
-        "ivo://ivoa.net/std/obsloctap#table-1.0";
+    public static final Ivoid OBSPLAN_UTYPE =
+        new Ivoid( "ivo://ivoa.net/std/obsloctap#table-1.0" );
 
     /** Feature type for ADQL Geometry functions from TAPRegExt. */
-    public static final String ADQLGEO_TYPE =
-        "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo";
+    public static final Ivoid ADQLGEO_TYPE =
+        new Ivoid( "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo" );
 
     /** Required ADQL Geometry functions (ObsLocTAP sec 3.3). */
     public static final String[] ADQLGEO_FORMS = new String[] {
@@ -174,7 +175,7 @@ public class ObsLocStage implements Stage {
 
             /* Check table utype (ObsLocTAP 1.0 sec 5). */
             String utype = planMeta_.getUtype();
-            if ( ! OBSPLAN_UTYPE.equals( utype ) ) {
+            if ( ! OBSPLAN_UTYPE.equalsIvoid( new Ivoid( utype ) ) ) {
                 String msg = new StringBuffer()
                     .append( "Table " )
                     .append( OBSPLAN_TNAME )

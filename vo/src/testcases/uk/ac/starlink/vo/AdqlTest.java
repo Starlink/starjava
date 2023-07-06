@@ -7,7 +7,7 @@ public class AdqlTest extends TestCase {
 
     public void testAdqlGeoIds() {
         assertEquals( LanguageFeature.TYPE_ADQL_GEO,
-                      AdqlValidator.ADQLGEO_FEATURE_TYPE_VOLLT );
+                      AdqlValidator.ADQLGEO_FEATURE_TYPE_VOLLT.toString() );
         assertEquals( AdqlValidator.ADQLGEO_FEATURE_TYPE_VOLLT,
                       TapCapability.ADQLGEO_FEATURE_TYPE );
         assertFalse( AdqlValidator.ADQLGEO_FEATURE_TYPE_VOLLT

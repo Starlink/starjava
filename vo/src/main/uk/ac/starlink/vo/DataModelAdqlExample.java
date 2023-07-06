@@ -40,13 +40,13 @@ public abstract class DataModelAdqlExample implements AdqlExample {
     /**
      * Indicates whether a given data model string is the one to which
      * this example corresponds.
-     * The supplied string is the ivo-id attribute of the TAPRegExt
+     * The supplied value is the ivo-id attribute of the TAPRegExt
      * <code>dataModel</code> attribute, available from
      * {@link TapCapability#getDataModels}.
      *
      * @param  dm  data model identifier
      */
-    public abstract boolean isDataModel( String dm );
+    public abstract boolean isDataModel( Ivoid dm );
 
     /**
      * Returns the lines of ADQL text for this example.
@@ -106,9 +106,9 @@ public abstract class DataModelAdqlExample implements AdqlExample {
      */
     private boolean hasDataModel( TapCapability tcap ) {
         if ( tcap != null ) {
-            String[] dms = tcap.getDataModels();
+            Ivoid[] dms = tcap.getDataModels();
             if ( dms != null ) {
-                for ( String dm : dms ) {
+                for ( Ivoid dm : dms ) {
                     if ( isDataModel( dm ) ) {
                         return true;
                     }
@@ -423,9 +423,8 @@ public abstract class DataModelAdqlExample implements AdqlExample {
         String url = regtapFrag != null ? ( regtapUrl + "#" + regtapFrag )
                                         : null;
         return new DataModelAdqlExample( name, description, url ) {
-            public boolean isDataModel( String dm ) {
-                return dm.toLowerCase()
-                         .startsWith( "ivo://ivoa.net/std/regtap" );
+            public boolean isDataModel( Ivoid dm ) {
+                return dm.matchesRegistryPart( "ivo://ivoa.net/std/regtap" );
             }
             protected String[] getTextLines( double[] skypos ) {
                 return textLines;
@@ -448,8 +447,8 @@ public abstract class DataModelAdqlExample implements AdqlExample {
             super( name, description,
                    "http://www.ivoa.net/documents/ObsCore/index.html" );
         }
-        public boolean isDataModel( String dm ) {
-            return dm.toLowerCase().startsWith( "ivo://ivoa.net/std/obscore" );
+        public boolean isDataModel( Ivoid dm ) {
+            return dm.matchesRegistryPart( "ivo://ivoa.net/std/obscore" );
         }
     }
 }

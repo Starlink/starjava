@@ -19,23 +19,23 @@ public interface TapCapability {
         "ivo://ivoa.net/std/TAPRegExt";
 
     /**
-     * Feature type key for ADQL(-like) User-Defined Functions. {@value}
+     * Feature type key for ADQL(-like) User-Defined Functions.
      */
-    public static final String UDF_FEATURE_TYPE =
-        TAPREGEXT_STD_URI + "#features-udf";
+    public static final Ivoid UDF_FEATURE_TYPE =
+        createTapRegExtIvoid( "#features-udf" );
 
     /**
-     * Feature type key for ADQL geometrical functions. {@value}
+     * Feature type key for ADQL geometrical functions.
      */
-    public static final String ADQLGEO_FEATURE_TYPE =
-        TAPREGEXT_STD_URI + "#features-adqlgeo";
+    public static final Ivoid ADQLGEO_FEATURE_TYPE =
+        createTapRegExtIvoid( "#features-adqlgeo" );
 
     /**
      * Returns an array of upload methods known by this capability.
      *
      * @return  uploadMethod element ivo-id attribute values
      */
-    String[] getUploadMethods();
+    Ivoid[] getUploadMethods();
 
     /**
      * Returns an array of query language specifiers known by this capability.
@@ -56,7 +56,7 @@ public interface TapCapability {
      *
      * @return   dataModel element ivo-id attribute values
      */
-    String[] getDataModels();
+    Ivoid[] getDataModels();
 
     /**
      * Returns an array of limit values representing the data limits for
@@ -93,4 +93,25 @@ public interface TapCapability {
      * @return   retention time limits
      */
     TapLimit[] getRetentionLimits();
+
+    /**
+     * Returns an Ivoid with the registry part {@value #TAPREGEXT_STD_URI}
+     * and the local part given by a supplied fragment.
+     * A "#" character will be prepended to the fragment value if it is
+     * non-empty and it does not already have one.
+     *
+     * @param  fragment  local part of IVOID with or without initial "#"
+     * @return  TAPRegExt Ivoid
+     */
+    public static Ivoid createTapRegExtIvoid( String fragment ) {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( TAPREGEXT_STD_URI );
+        if ( fragment != null && fragment.trim().length() > 0 ) {
+            if ( ! fragment.startsWith( "#" ) ) {
+                sbuf.append( '#' );
+            }
+            sbuf.append( fragment );
+        }
+        return new Ivoid( sbuf.toString() );
+    }
 }

@@ -17,7 +17,7 @@ import uk.ac.starlink.util.ContentCoding;
 public enum SiaVersion {
 
     /** SIA version 1.0. */
-    V10( "1.0", 1, "ivo://ivoa.net/std/SIA",
+    V10( "1.0", 1, new Ivoid( "ivo://ivoa.net/std/SIA" ),
          "http://www.ivoa.net/Documents/SIA/20091116/", true ) {
         public StarTable executeQuery( String serviceUrl,
                                        double ra, double dec, double size,
@@ -35,7 +35,7 @@ public enum SiaVersion {
     },
 
     /** SIA version 2.0. */
-    V20( "2.0", 2, "ivo://ivoa.net/std/SIA#query-2.0",
+    V20( "2.0", 2, new Ivoid( "ivo://ivoa.net/std/SIA#query-2.0" ),
          "http://www.ivoa.net/Documents/SIA/20151223/", false ) {
         public StarTable executeQuery( String serviceUrl,
                                        double ra, double dec, double size,
@@ -64,7 +64,7 @@ public enum SiaVersion {
 
     private final String number_;
     private final int majorVersion_;
-    private final String standardId_;
+    private final Ivoid standardId_;
     private final String docUrl_;
     private final boolean usesUcd1_;
 
@@ -78,7 +78,7 @@ public enum SiaVersion {
      * @param  usesUcd1  true if query responses use UCD1;
      *                   false for UCD1+
      */
-    SiaVersion( String number, int majorVersion, String standardId,
+    SiaVersion( String number, int majorVersion, Ivoid standardId,
                 String docUrl, boolean usesUcd1 ) {
         number_ = number;
         majorVersion_ = majorVersion;
@@ -111,7 +111,7 @@ public enum SiaVersion {
      *
      * @return  standardId
      */
-    public String getStandardId() {
+    public Ivoid getStandardId() {
         return standardId_;
     }
 
@@ -162,9 +162,9 @@ public enum SiaVersion {
      *           not null, a best guess is used if necessary
      */
     public static SiaVersion forInterface( RegCapabilityInterface intf ) {
-        String stdId = intf.getStandardId();
+        Ivoid stdId = new Ivoid( intf.getStandardId() );
         for ( SiaVersion vers : values() ) {
-            if ( vers.standardId_.equalsIgnoreCase( stdId ) ) {
+            if ( vers.standardId_.equalsIvoid( stdId ) ) {
                 return vers;
             }
         }

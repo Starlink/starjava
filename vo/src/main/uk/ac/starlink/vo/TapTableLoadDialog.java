@@ -803,7 +803,9 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             for ( OutputFormat ofmt : ofmts ) {
                 String[] aliases = ofmt.getAliases();
                 aliases = aliases == null ? new String[ 0 ] : aliases;
-                if ( ofmtName.equalsIgnoreCase( ofmt.getIvoid() ) ||
+                Ivoid ofmtId = ofmt.getIvoid();
+                if ( ( ofmtId != null &&
+                       ofmtId.equalsIvoid( new Ivoid( ofmtName ) ) ) ||
                      ofmtName.equalsIgnoreCase( ofmt.getMime() ) ||
                      Arrays.asList( aliases ).indexOf( ofmtName ) >= 0 ) {
                     return aliases.length > 0 ? aliases[ 0 ] : ofmt.getMime();

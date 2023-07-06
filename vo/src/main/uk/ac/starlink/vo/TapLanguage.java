@@ -31,7 +31,7 @@ public interface TapLanguage {
      * @return   array of IVO-IDs associated with supported versions,
      *           same length as <code>getVersions</code> array
      */
-    String[] getVersionIds();
+    Ivoid[] getVersionIds();
 
     /**
      * Returns a textual description of this language.
@@ -42,10 +42,10 @@ public interface TapLanguage {
 
     /**
      * Returns a map of language features for this language.
-     * Map keys are the language feature "type" strings, and the
+     * Map keys are the language feature "type" IVOIDs, and the
      * values are arrays of features with that type.
      *
      * @return   type-&gt;feature list map
      */
-    Map<String,TapLanguageFeature[]> getFeaturesMap( );
+    Map<Ivoid,TapLanguageFeature[]> getFeaturesMap( );
 }

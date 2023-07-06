@@ -22,6 +22,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.ttools.votlint.VocabChecker;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.Ivoid;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
@@ -46,12 +47,12 @@ public class EpnTapStage implements Stage {
     public static final String EPNCORE_TNAME = "epn_core";
 
     /** Required utype of EPN-TAP tables. */
-    public static final String EPNCORE_UTYPE =
-        "ivo://ivoa.net/std/epntap#table-2.0";
+    public static final Ivoid EPNCORE_UTYPE =
+        new Ivoid( "ivo://ivoa.net/std/epntap#table-2.0" );
 
     /** Transitional utype of EPN-TAP tables. */
-    public static final String EPNCORE_UTYPE2 =
-        "ivo://vopdc.obspm/std/epncore#schema-2.0";
+    public static final Ivoid EPNCORE_UTYPE2 =
+        new Ivoid( "ivo://vopdc.obspm/std/epncore#schema-2.0" );
 
     // Julian Day times that bound believable values.
     // Times.mjdToDecYear(jd-2400000.5).
@@ -89,11 +90,11 @@ public class EpnTapStage implements Stage {
         for ( SchemaMeta smeta : metaHolder_.getTableMetadata() ) {
             for ( TableMeta tmeta : smeta.getTables() ) {
                 String tname = tmeta.getName();
-                String utype = tmeta.getUtype();
+                Ivoid utype = new Ivoid( tmeta.getUtype() );
                 String subname = tname.replaceAll( "^.*[.]", "" );
                 boolean isEpnName = EPNCORE_TNAME.equalsIgnoreCase( subname );
-                boolean isEpnUtype = EPNCORE_UTYPE.equalsIgnoreCase( utype );
-                boolean isEpnUtype2 = EPNCORE_UTYPE2.equalsIgnoreCase( utype );
+                boolean isEpnUtype = EPNCORE_UTYPE.equalsIvoid( utype );
+                boolean isEpnUtype2 = EPNCORE_UTYPE2.equalsIvoid( utype );
                 if ( isEpnName && ! isEpnUtype ) {
                     final String msg;
                     final ReportCode code;

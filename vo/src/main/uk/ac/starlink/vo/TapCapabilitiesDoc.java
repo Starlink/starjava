@@ -188,21 +188,21 @@ public class TapCapabilitiesDoc {
         NodeList upNodeList =
             (NodeList) xpath.evaluate( "uploadMethod/@ivo-id",
                                        capNode, XPathConstants.NODESET );
-        List<String> upList = new ArrayList<String>();
+        List<Ivoid> upList = new ArrayList<>();
         for ( int i = 0; i < upNodeList.getLength(); i++ ) {
-            upList.add( upNodeList.item( i ).getNodeValue() );
+            upList.add( new Ivoid( upNodeList.item( i ).getNodeValue() ) );
         }
-        final String[] uploadMethods = upList.toArray( new String[ 0 ] );
+        final Ivoid[] uploadMethods = upList.toArray( new Ivoid[ 0 ] );
 
         /* Get data models. */
         NodeList dmNodeList =
             (NodeList) xpath.evaluate( "dataModel/@ivo-id",
                                        capNode, XPathConstants.NODESET );
-        List<String> dmList = new ArrayList<String>();
+        List<Ivoid> dmList = new ArrayList<>();
         for ( int i = 0; i < dmNodeList.getLength(); i++ ) {
-            dmList.add( dmNodeList.item( i ).getNodeValue() );
+            dmList.add( new Ivoid( dmNodeList.item( i ).getNodeValue() ) );
         }
-        final String[] dataModels = dmList.toArray( new String[ 0 ] );
+        final Ivoid[] dataModels = dmList.toArray( new Ivoid[ 0 ] );
 
         /* Get languages. */
         NodeList langNodeList =
@@ -253,7 +253,7 @@ public class TapCapabilitiesDoc {
 
         /* Construct and return a new TapCapability. */
         return new TapCapability() {
-            public String[] getUploadMethods() {
+            public Ivoid[] getUploadMethods() {
                 return uploadMethods;
             }
             public TapLanguage[] getLanguages() {
@@ -262,7 +262,7 @@ public class TapCapabilitiesDoc {
             public OutputFormat[] getOutputFormats() {
                 return outputFormats;
             }
-            public String[] getDataModels() {
+            public Ivoid[] getDataModels() {
                 return dataModels;
             }
             public TapLimit[] getOutputLimits() {
@@ -425,10 +425,10 @@ public class TapCapabilitiesDoc {
         /* Acquire relevant attribute and element values from DOM. */
         String langName = null;
         String langDesc = null;
-        List<String> versionList = new ArrayList<String>();
-        List<String> versionIdList = new ArrayList<String>();
-        final Map<String,TapLanguageFeature[]> featureMap =
-            new LinkedHashMap<String,TapLanguageFeature[]>();
+        List<String> versionList = new ArrayList<>();
+        List<Ivoid> versionIdList = new ArrayList<>();
+        final Map<Ivoid,TapLanguageFeature[]> featureMap =
+            new LinkedHashMap<>();
         for ( Node langChild = langEl.getFirstChild(); langChild != null;
               langChild = langChild.getNextSibling() ) {
             if ( langChild instanceof Element ) {
@@ -441,11 +441,14 @@ public class TapCapabilitiesDoc {
                     langDesc = DOMUtils.getTextContent( childEl );
                 }
                 else if ( "version".equals( childName ) ) {
-                    versionIdList.add( childEl.getAttribute( "ivo-id" ) );
+                    String idTxt = childEl.getAttribute( "ivo-id" );
+                    versionIdList.add( idTxt == null ? null
+                                                     : new Ivoid( idTxt ) );
                     versionList.add( DOMUtils.getTextContent( childEl ) );
                 }
                 else if ( "languageFeatures".equals( childName ) ) {
-                    String featType = childEl.getAttribute( "type" );
+                    Ivoid featType =
+                        new Ivoid( childEl.getAttribute( "type" ) );
                     List<TapLanguageFeature> featList =
                         new ArrayList<TapLanguageFeature>();
                     NodeList featNodeList =
@@ -487,7 +490,7 @@ public class TapCapabilitiesDoc {
         final String name = langName;
         final String description = langDesc;
         final String[] versions = versionList.toArray( new String[ 0 ] );
-        final String[] versionIds = versionIdList.toArray( new String[ 0 ] );
+        final Ivoid[] versionIds = versionIdList.toArray( new Ivoid[ 0 ] );
         return new TapLanguage() {
             public String getName() {
                 return name;
@@ -495,13 +498,13 @@ public class TapCapabilitiesDoc {
             public String[] getVersions() {
                 return versions;
             }
-            public String[] getVersionIds() {
+            public Ivoid[] getVersionIds() {
                 return versionIds;
             }
             public String getDescription() {
                 return description;
             }
-            public Map<String,TapLanguageFeature[]> getFeaturesMap() {
+            public Map<Ivoid,TapLanguageFeature[]> getFeaturesMap() {
                 return featureMap;
             }
             public String toString() {
@@ -519,7 +522,8 @@ public class TapCapabilitiesDoc {
     private static OutputFormat getOutputFormat( Element ofmtEl ) {
 
         /* Acquire relevant attribute and element values from DOM. */
-        final String ivoid = ofmtEl.getAttribute( "ivo-id" );
+        String idTxt = ofmtEl.getAttribute( "ivo-id" );
+        final Ivoid ivoid = idTxt == null ? null : new Ivoid( idTxt );
         String ofmtMime = null;
         List<String> aliasList = new ArrayList<String>();
         for ( Node ofmtChild = ofmtEl.getFirstChild(); ofmtChild != null;
@@ -546,7 +550,7 @@ public class TapCapabilitiesDoc {
             public String[] getAliases() {
                 return aliases;
             }
-            public String getIvoid() {
+            public Ivoid getIvoid() {
                 return ivoid;
             }
             public String toString() {
@@ -556,8 +560,11 @@ public class TapCapabilitiesDoc {
                 else if ( mime != null ) {
                     return mime;
                 }
+                else if ( ivoid != null ) {
+                    return ivoid.toString();
+                }
                 else {
-                    return ivoid;
+                    return "?output-format?";
                 }
             }
         };

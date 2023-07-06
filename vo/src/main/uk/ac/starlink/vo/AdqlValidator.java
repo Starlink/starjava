@@ -49,13 +49,13 @@ public class AdqlValidator {
 
     private static final AdqlVersion DFLT_VERSION = AdqlVersion.V21;
 
-    static final String ADQLGEO_FEATURE_TYPE_VOLLT =
-        // Correct, but only in later ADQL 2.1 versions
-        TapCapability.TAPREGEXT_STD_URI + "#features-adqlgeo";
+    static final Ivoid ADQLGEO_FEATURE_TYPE_VOLLT =
+        // Correct, but only in later ADQL 2.1 drafts
+        TapCapability.createTapRegExtIvoid( "#features-adqlgeo" );
 
-    static final String ADQLGEO_FEATURE_TYPE_VARIANT =
+    static final Ivoid ADQLGEO_FEATURE_TYPE_VARIANT =
         // Incorrect, but appeared in earlier ADQL 2.1 draft
-        TapCapability.TAPREGEXT_STD_URI + "#features-adql-geo";
+        TapCapability.createTapRegExtIvoid( "#features-adql-geo" );
 
     /**
      * Constructor.
@@ -189,10 +189,10 @@ public class AdqlValidator {
 
         /* Prepare to extract from the TapLanguage object a list of
          * LanguageFeatures that can be passed to the parser. */
-        Map<String,TapLanguageFeature[]> featMap =
+        Map<Ivoid,TapLanguageFeature[]> featMap =
             lang == null ? null : new LinkedHashMap<>( lang.getFeaturesMap() );
         if ( featMap == null ) {
-            featMap = new HashMap<String,TapLanguageFeature[]>();
+            featMap = new HashMap<Ivoid,TapLanguageFeature[]>();
         }
         List<LanguageFeature> features = new ArrayList<>();
 
@@ -230,13 +230,14 @@ public class AdqlValidator {
         }
 
         /* Now add all the other language features. */
-        for ( Map.Entry<String,TapLanguageFeature[]> entry :
+        for ( Map.Entry<Ivoid,TapLanguageFeature[]> entry :
               featMap.entrySet() ) {
-            String type = entry.getKey();
+            Ivoid type = entry.getKey();
             assert !TapCapability.UDF_FEATURE_TYPE.equals( type ) &&
                    !ADQLGEO_FEATURE_TYPE_VARIANT.equals( type );
             for ( TapLanguageFeature feat : entry.getValue() ) {
-                features.add( new LanguageFeature( type, feat.getForm(), true,
+                features.add( new LanguageFeature( type.toString(),
+                                                   feat.getForm(), true,
                                                    feat.getDescription() ) );
             }
         }
@@ -345,8 +346,8 @@ public class AdqlValidator {
             boolean isAdql = "ADQL".equalsIgnoreCase( lang.getName() );
             for ( AdqlVersion version :
                   new AdqlVersion[] { AdqlVersion.V21, AdqlVersion.V20 } ) {
-                for ( String vid : lang.getVersionIds() ) {
-                    if ( version.getIvoid().equalsIgnoreCase( vid ) ) {
+                for ( Ivoid vid : lang.getVersionIds() ) {
+                    if ( version.getIvoid().equalsIvoid( vid ) ) {
                         return version;
                     }
                 }

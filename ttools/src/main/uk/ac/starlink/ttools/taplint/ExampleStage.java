@@ -42,6 +42,7 @@ import uk.ac.starlink.ttools.votlint.VocabChecker;
 import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlValidator;
+import uk.ac.starlink.vo.Ivoid;
 import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapService;
@@ -63,8 +64,8 @@ public class ExampleStage implements Stage {
     private final CapabilityHolder capHolder_;
     private final MetadataHolder metaHolder_;
 
-    private static final String EXAMPLES_STDID =
-        "ivo://ivoa.net/std/DALI#examples";
+    private static final Ivoid EXAMPLES_STDID =
+        new Ivoid( "ivo://ivoa.net/std/DALI#examples" );
     private static final int QUERY_MAXREC = 10;
     private static final Pattern XMLNAME_REGEX = createXmlNameRegex();
     private static final Set<String> BODY_PLAINTEXT_PROPS = createStringSet(
@@ -96,15 +97,15 @@ public class ExampleStage implements Stage {
     // See dal list thread "DALI examples vocab" starting 19 May 2016,
     // also private thread "examples @vocab" between MBT,
     // Markus Demleitner and Pat Dowler in July 2017.
-    private static final String DALI10_VOCAB;    // DALI 1.0
-    private static final String TAPNOTE_VOCAB;   // TAP Implementation Note
-    private static final String PRAGMATIC_VOCAB; // Common practice mid-2017
-    private static final String DALI11_VOCAB;    // DALI 1.1
-    private static final String[] EXAMPLES_VOCABS = new String[] {
-        DALI10_VOCAB =    "ivo://ivoa.net/std/DALI#examples",
-        TAPNOTE_VOCAB =   "ivo://ivoa.net/std/DALI-examples",
-        PRAGMATIC_VOCAB = "ivo://ivoa.net/std/DALI-examples#",
-        DALI11_VOCAB =    "http://www.ivoa.net/rdf/examples#",
+    private static final Ivoid DALI10_VOCAB;    // DALI 1.0
+    private static final Ivoid TAPNOTE_VOCAB;   // TAP Implementation Note
+    private static final Ivoid PRAGMATIC_VOCAB; // Common practice mid-2017
+    private static final Ivoid DALI11_VOCAB;    // DALI 1.1
+    private static final Ivoid[] EXAMPLES_VOCABS = new Ivoid[] {
+        DALI10_VOCAB =    new Ivoid( "ivo://ivoa.net/std/DALI#examples" ),
+        TAPNOTE_VOCAB =   new Ivoid( "ivo://ivoa.net/std/DALI-examples" ),
+        PRAGMATIC_VOCAB = new Ivoid( "ivo://ivoa.net/std/DALI-examples#" ),
+        DALI11_VOCAB =    new Ivoid( "http://www.ivoa.net/rdf/examples#" ),
     };
 
     /** Vocabulary checker for RDFa property attribute values. */
@@ -149,7 +150,8 @@ public class ExampleStage implements Stage {
         if ( intfs != null ) {
             boolean declaresExamples = false;
             for ( StdCapabilityInterface intf : intfs ) {
-                if ( EXAMPLES_STDID.equals( intf.getStandardId() ) ) {
+                if ( EXAMPLES_STDID
+                    .equalsIvoid( new Ivoid( intf.getStandardId() ) ) ) {
                     declaresExamples = true;
                 }
             }
@@ -586,10 +588,11 @@ public class ExampleStage implements Stage {
              * the http://www.ivoa.net/rdf/examples vocabulary
              * (DALI 1.1 sec 2.3 mentions this as a future possibility,
              * but it's likely that DALI 1.2 will make that concrete). */
-            assert DALI11_VOCAB
+            assert DALI11_VOCAB.toString()
                   .equals( PROPERTY_CHECKER.getVocabularyUrl() + "#" );
-            if ( ( PROPERTY_CHECKER.getVocabularyUri() + "#" )
-                .equals( getAttribute( examplesEl, "vocab" ) ) ) {
+            if ( new Ivoid( PROPERTY_CHECKER.getVocabularyUri() + "#" )
+                .equalsIvoid( new Ivoid( getAttribute( examplesEl,
+                                                       "vocab" ) ) ) ) {
                 Element[] propEls =
                     xpathElements( reporter_, examplesEl, "//@property/.." );
                 for ( Element propEl : propEls ) {
@@ -716,16 +719,16 @@ public class ExampleStage implements Stage {
             /* Look for the one mandated by DALI examples. */
             if ( nvocab == 1 ) {
                 Element examplesEl = vocabEls[ 0 ];
-                String vatt = getAttribute( examplesEl, "vocab" );
+                Ivoid vatt = new Ivoid( getAttribute( examplesEl, "vocab" ) );
                 String msgIntro =
                     "Examples document vocab attribute \"" + vatt + "\"";
                 String workWithTopcat =
                     "work with some TOPCAT versions " +
                     "(v4.3-4.4 require \"" + PRAGMATIC_VOCAB + "\", " +
                     "later versions don't care)";
-                if ( DALI10_VOCAB.equals( vatt ) ||
-                     DALI11_VOCAB.equals( vatt ) ) {
-                    String daliVersion = DALI11_VOCAB.equals( vatt )
+                if ( DALI10_VOCAB.equalsIvoid( vatt ) ||
+                     DALI11_VOCAB.equalsIvoid( vatt ) ) {
+                    String daliVersion = DALI11_VOCAB.equalsIvoid( vatt )
                                        ? "1.1" : "1.0";
                     String msg = new StringBuffer()
                        .append( msgIntro )
@@ -737,8 +740,8 @@ public class ExampleStage implements Stage {
                        .toString();
                     reporter_.report( FixedCode.I_EXVT, msg );
                 }
-                else if ( TAPNOTE_VOCAB.equals( vatt ) ||
-                          PRAGMATIC_VOCAB.equals( vatt ) ) {
+                else if ( TAPNOTE_VOCAB.equalsIvoid( vatt ) ||
+                          PRAGMATIC_VOCAB.equalsIvoid( vatt ) ) {
                     String msg = new StringBuffer()
                        .append( msgIntro )
                        .append( " is contrary to DALI, but is required to " )
@@ -785,7 +788,8 @@ public class ExampleStage implements Stage {
                 int exIx = -1;
                 for ( int iv = 0; iv < vocabEls.length; iv++ ) {
                     if ( Arrays.asList( EXAMPLES_VOCABS )
-                        .contains( getAttribute( vocabEls[ iv ], "vocab" ) ) ) {
+                        .contains( new Ivoid( getAttribute( vocabEls[ iv ],
+                                                            "vocab" ) ) ) ) {
                         exIx = iv;
                     }
                 }

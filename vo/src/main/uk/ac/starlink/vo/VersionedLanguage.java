@@ -58,7 +58,7 @@ public class VersionedLanguage {
         if ( lang_ == null || version_ == null ) {
             return null;
         }
-        String[] vids = lang_.getVersionIds();
+        Ivoid[] vids = lang_.getVersionIds();
         String[] vnames = lang_.getVersions();
         if ( vids == null || vnames == null || vids.length != vnames.length ) {
             return null;

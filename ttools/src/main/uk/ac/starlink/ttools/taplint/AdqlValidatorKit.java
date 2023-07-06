@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import uk.ac.starlink.vo.AdqlValidator;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.Ivoid;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
@@ -260,8 +261,8 @@ abstract class AdqlValidatorKit {
         for ( TapLanguage lang : langs ) {
 
             /* Look for ivo-id exact match. */
-            for ( String vid : lang.getVersionIds() ) {
-                if ( langId.equals( vid ) ) {
+            for ( Ivoid vid : lang.getVersionIds() ) {
+                if ( new Ivoid( langId ).equals( vid ) ) {
                     return lang;
                 }
             }
@@ -327,9 +328,12 @@ abstract class AdqlValidatorKit {
         if ( "ADQL".equalsIgnoreCase( lang.getName() ) ) {
             vstrs.addAll( Arrays.asList( lang.getVersions() ) );
         }
-        for ( String vid : lang.getVersionIds() ) {
-            if ( vid.startsWith( ADQL_ID + "#" ) ) {
-                vstrs.add( vid.substring( ADQL_ID.length() + 1 ) );
+        for ( Ivoid vid : lang.getVersionIds() ) {
+            if ( vid.matchesRegistryPart( ADQL_ID ) ) {
+                String localPart = vid.getLocalPart();
+                if ( localPart != null && localPart.startsWith( "#" ) ) {
+                   vstrs.add( localPart.substring( 1 ) );
+                }
             }
         }
         double maxVers = 0;

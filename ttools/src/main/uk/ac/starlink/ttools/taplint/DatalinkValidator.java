@@ -30,6 +30,7 @@ import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.DatalinkVersion;
+import uk.ac.starlink.vo.Ivoid;
 import uk.ac.starlink.vo.datalink.LinkColMap;
 import uk.ac.starlink.vo.datalink.LinksDoc;
 import uk.ac.starlink.vo.datalink.ServiceInvoker;
@@ -77,6 +78,10 @@ public class DatalinkValidator {
     /** DataLink 1.1 sec 3.2.9. */
     private static final VocabChecker CONTENTQUALIFIER_CHECKER =
         VocabChecker.PRODUCT_TYPE;
+
+    /** DataLink 1.1 sec 2.2. */
+    private static final Ivoid LINKS_ID =
+        new Ivoid( "ivo://ivoa.net/std/DataLink#links-1.0" );
 
     /**
      * Constructor.
@@ -348,8 +353,7 @@ public class DatalinkValidator {
                     Element infoEl = (Element) info;
                     if ( "standardID".equals( infoEl.getAttribute( "name" ) )) {
                         String stdId = infoEl.getAttribute( "value" );
-                        if ( "ivo://ivoa.net/std/DataLink#links-1.0"
-                             .equalsIgnoreCase( stdId ) ) {
+                        if ( LINKS_ID.equalsIvoid( new Ivoid( stdId ) ) ) {
                             hasDlid = true;
                         }
                         stdids.add( stdId );
@@ -360,7 +364,9 @@ public class DatalinkValidator {
                 StringBuffer sbuf = new StringBuffer()
                    .append( "No DataLink standard identifier; " )
                    .append( "<INFO name=\"standardID\" " )
-                   .append( "value=\"ivo://ivoa.net/std/DataLink#links-1.0\">" )
+                   .append( "value=\"" )
+                   .append( LINKS_ID )
+                   .append( "\">" )
                    .append( " should appear in results RESOURCE" );
                 if ( stdids.size() > 0 ) {
                     sbuf.append( ". These standardIDs do appear: " )

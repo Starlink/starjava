@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.taplint;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Set;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.Ivoid;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
@@ -31,10 +33,10 @@ public class ObsTapStage implements Stage {
     private final CapabilityHolder capHolder_;
     private final MetadataHolder metaHolder_;
 
-    private static final String OBSCORE10_ID_WRONG =
-        "ivo://ivoa.net/std/ObsCore-1.0";
-    private static final String OBSCORE11_ID_WRONG =
-        "ivo://ivoa.net/std/ObsCore/v1.1";
+    private static final Ivoid OBSCORE10_ID_WRONG =
+        new Ivoid( "ivo://ivoa.net/std/ObsCore-1.0" );
+    private static final Ivoid OBSCORE11_ID_WRONG =
+        new Ivoid( "ivo://ivoa.net/std/ObsCore/v1.1" );
     private static final String OBSCORE_TNAME = "ivoa.ObsCore";
 
     /**
@@ -140,25 +142,15 @@ public class ObsTapStage implements Stage {
      */
     private ObscoreVersion getObscoreDm( Reporter reporter,
                                          TapCapability tcap ) {
-        String[] dms = tcap.getDataModels();
-        List<String> dmList = new ArrayList<String>();
+        List<Ivoid> dmList = tcap.getDataModels() == null
+                           ? Collections.emptyList()
+                           : Arrays.asList( tcap.getDataModels() );
 
-        /* Match for known data model declarations corresponding to ObsCore.
-         * Matching for IDs is case-insensitive - see document
-         * IVOA Identifiers v1.12, section 2. */
-        if ( dms != null ) {
-            for ( int i = 0; i < dms.length; i++ ) {
-                dmList.add( dms[ i ].toLowerCase() );
-            }
-        }
-        boolean has10 =
-            dmList.contains( ObscoreVersion.V10.ivoid_.toLowerCase() );
-        boolean has11 =
-            dmList.contains( ObscoreVersion.V11.ivoid_.toLowerCase() );
-        boolean has10wrong =
-            dmList.contains( OBSCORE10_ID_WRONG.toLowerCase() );
-        boolean has11wrong =
-            dmList.contains( OBSCORE11_ID_WRONG.toLowerCase() );
+        /* Match for known data model declarations corresponding to ObsCore. */
+        boolean has10 = dmList.contains( ObscoreVersion.V10.ivoid_ );
+        boolean has11 = dmList.contains( ObscoreVersion.V11.ivoid_ );
+        boolean has10wrong = dmList.contains( OBSCORE10_ID_WRONG );
+        boolean has11wrong = dmList.contains( OBSCORE11_ID_WRONG );
 
         /* Check for presence of one of the known ObsCore data models,
          * and return values accordingly. */
@@ -209,21 +201,19 @@ public class ObsTapStage implements Stage {
 
         /* Failing that, if it says ObsCore, that's probably what it means. */
         else {
-            if ( dms != null ) {
-                for ( String dm : dms ) {
-                    if ( dm.toLowerCase().indexOf( "obscore" ) >= 0 ) {
-                        String msg = new StringBuffer()
-                           .append( "Mis-spelt ObsCore identifier? " )
-                           .append( dm )
-                           .append( " reported, should be " )
-                           .append( ObscoreVersion.V10.ivoid_ )
-                           .append( " or " )
-                           .append( ObscoreVersion.V11.ivoid_ )
-                           .append( "; assuming ObsCore 1.0" )
-                           .toString();
-                        reporter.report( FixedCode.W_IODM, msg );
-                        return ObscoreVersion.V10;
-                    }
+            for ( Ivoid dm : dmList ) {
+                if ( dm.toString().toLowerCase().indexOf( "obscore" ) >= 0 ) {
+                    String msg = new StringBuffer()
+                       .append( "Mis-spelt ObsCore identifier? " )
+                       .append( dm )
+                       .append( " reported, should be " )
+                       .append( ObscoreVersion.V10.ivoid_ )
+                       .append( " or " )
+                       .append( ObscoreVersion.V11.ivoid_ )
+                       .append( "; assuming ObsCore 1.0" )
+                       .toString();
+                    reporter.report( FixedCode.W_IODM, msg );
+                    return ObscoreVersion.V10;
                 }
             }
         }
@@ -1014,7 +1004,7 @@ public class ObsTapStage implements Stage {
         /* ObsCore 1.1. */
         V11( "ivo://ivoa.net/std/ObsCore#core-1.1", true );
 
-        final String ivoid_;
+        final Ivoid ivoid_;
         final boolean is11_;
 
         /**
@@ -1024,7 +1014,7 @@ public class ObsTapStage implements Stage {
          * @param   is11   true for ObsCore 1.1, false for ObsCore 1.0
          */
         ObscoreVersion( String ivoid, boolean is11 ) {
-            ivoid_ = ivoid;
+            ivoid_ = new Ivoid( ivoid );
             is11_ = is11;
         }
     }

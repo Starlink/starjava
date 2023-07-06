@@ -240,8 +240,8 @@ public abstract class RegistryProtocol {
                                       RegCapabilityInterface resCap ) {
             String resType = resCap.getXsiType();
             String stdTypeTail = stdCap.getXsiTypeTail();
-            String resId = resCap.getStandardId();
-            String[] stdIds = stdCap.getStandardIds();
+            Ivoid resId = new Ivoid( resCap.getStandardId() );
+            Ivoid[] stdIds = stdCap.getStandardIds();
             return Arrays.asList( stdIds ).contains( resId ) 
                 || ( resType != null && stdTypeTail != null
                                      && resType.endsWith( stdTypeTail ) );
@@ -300,13 +300,8 @@ public abstract class RegistryProtocol {
 
         public boolean hasCapability( Capability stdCap,
                                       RegCapabilityInterface resCap ) {
-            String resId = resCap.getStandardId();
-            for ( String stdId : stdCap.getStandardIds() ) {
-                if ( stdId.equalsIgnoreCase( resId ) ) {
-                    return true;
-                }
-            }
-            return false;
+            return Arrays.asList( stdCap.getStandardIds() )
+                         .contains( new Ivoid( resCap.getStandardId() ) );
         }
 
         public RegistryQuery createKeywordQuery( String[] keywords,

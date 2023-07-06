@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import org.w3c.dom.Element;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlVersion;
+import uk.ac.starlink.vo.Ivoid;
 import uk.ac.starlink.vo.OutputFormat;
 import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TapCapability;
@@ -262,7 +263,7 @@ public class CapabilityStage implements Stage {
                     assert nvers == lang.getVersionIds().length;
                     for ( int iv = 0; iv < nvers; iv++ ) {
                         String vname = lang.getVersions()[ iv ];
-                        String vid = lang.getVersionIds()[ iv ];
+                        Ivoid vid = lang.getVersionIds()[ iv ];
                         if ( vname == null || vname.trim().length() == 0 ) {
                             String msg = new StringBuffer()
                                .append( "Language " )
@@ -279,8 +280,8 @@ public class CapabilityStage implements Stage {
                         if ( idVers != null ) {
                             adqlVersions.add( idVers );
                         }
-                        if ( nameVers != null && 
-                             ( vid == null || vid.trim().length() == 0 ) ) {
+                        if ( nameVers != null &&
+                             ( vid == null || vid.getRegistryPart() == null ) ){
                             String msg = new StringBuffer()
                                .append( "Language " )
                                .append( langName )
@@ -330,7 +331,6 @@ public class CapabilityStage implements Stage {
                     AdqlVersion highestVersion = adqlVersions.last();
                     checkAdqlFeatures( lang, highestVersion );
                 }
-
             }
 
             /* Report on presence of (required) ADQL 2. */
@@ -357,21 +357,21 @@ public class CapabilityStage implements Stage {
             if ( versions.length == 1 ) {
                 langName += "-" + versions[ 0 ];
             }
-            Set<String> versionFeatures =
-                new HashSet<String>( Arrays
-                                    .asList( version.getFeatureUris() ) );
-            Map<String,TapLanguageFeature[]> featuresMap =
+            Set<Ivoid> versionFeatures =
+                new HashSet<>( Arrays.asList( version.getFeatureUris() ) );
+            Map<Ivoid,TapLanguageFeature[]> featuresMap =
                 language.getFeaturesMap();
-            for ( String ftype : featuresMap.keySet() ) {
+            for ( Ivoid ftype : featuresMap.keySet() ) {
                 TapLanguageFeature[] features = featuresMap.get( ftype );
-                if ( TapCapability.UDF_FEATURE_TYPE.equals( ftype ) ) {
+                if ( TapCapability.UDF_FEATURE_TYPE.equalsIvoid( ftype ) ) {
                     checkUdfs( langName, features );
                 }
-                else if ( TapCapability.ADQLGEO_FEATURE_TYPE.equals( ftype ) ) {
+                else if ( TapCapability.ADQLGEO_FEATURE_TYPE
+                                       .equalsIvoid( ftype ) ) {
                     checkAdqlGeoms( langName, features );
                 }
-                else if ( ftype.startsWith( TapCapability
-                                           .TAPREGEXT_STD_URI ) ) {
+                else if ( ftype.matchesRegistryPart( TapCapability
+                                                    .TAPREGEXT_STD_URI ) ) {
                     if ( ! versionFeatures.contains( ftype ) ) {
                         String msg = new StringBuffer()
                            .append( "Unknown standard feature key \"" )
@@ -458,22 +458,31 @@ public class CapabilityStage implements Stage {
          * Checks that upload methods are declared correctly.
          */
         private void checkUploadMethods() {
-            String[] upMethods = tcap_.getUploadMethods();
-            String stdPrefix = TapCapability.TAPREGEXT_STD_URI + "#upload-";
-            Collection<String> mandatorySuffixList = // TAP 2.5.{1,2}
-                Arrays.asList( new String[] { "inline", "http" } );
-            Collection<String> stdSuffixList =
-                Arrays.asList( new String[] { "inline", "http",
-                                              "https", "ftp" } );
+            Ivoid[] upMethods = tcap_.getUploadMethods();
+            String uploadLocalPrefix = "#upload-";
+            // TAP 1.0 sec 2.5.{1,2}
+            List<String> mandatoryUploadList = Arrays.asList(
+                "#upload-inline",
+                "#upload-http"
+            );
+            List<String> stdUploadList = new ArrayList<>( mandatoryUploadList );
+            stdUploadList.addAll( Arrays.asList(
+                "#upload-https",
+                "#upload-ftp"
+            ) );
             for ( int iu = 0; iu < upMethods.length; iu++ ) {
-                String upMethod = upMethods[ iu ];
-                if ( upMethod.startsWith( stdPrefix ) ) {
-                    String frag = upMethod.substring( stdPrefix.length() );
-                    if ( ! stdSuffixList.contains( frag ) ) {
+                Ivoid upMethod = upMethods[ iu ];
+                String localPart = upMethod.getLocalPart();
+                if ( upMethod.matchesRegistryPart( TapCapability
+                                                  .TAPREGEXT_STD_URI ) ) {
+                    if ( ! stdUploadList.contains( localPart ) ) {
                         String msg = new StringBuffer()
-                           .append( "Unknown suffix \"" )
-                           .append( frag )
-                           .append( "\" for upload method" )
+                           .append( "Unknown upload method \"" )
+                           .append( upMethod )
+                           .append( "\" in TAPRegExt namespace" )
+                           .append( " (known values are " )
+                           .append( stdUploadList )
+                           .append( ")" )
                            .toString();
                         reporter_.report( FixedCode.E_UPBD, msg );
                     }
@@ -488,12 +497,12 @@ public class CapabilityStage implements Stage {
                 }
             }
             if ( upMethods.length > 0 ) {
-                for ( String msuff : mandatorySuffixList ) {
-                    String mmeth = stdPrefix + msuff;
-                    if ( ! Arrays.asList( upMethods ).contains( mmeth ) ) {
+                for ( String mpart : mandatoryUploadList ) {
+                    Ivoid mandId = TapCapability.createTapRegExtIvoid( mpart );
+                    if ( ! Arrays.asList( upMethods ).contains( mandId ) ) {
                         String msg = new StringBuilder()
                            .append( "Mandatory upload method " )
-                           .append( mmeth )
+                           .append( mandId )
                            .append( " not declared" )
                            .append( ", though uploads are " )
                            .append( "apparently supported" )
@@ -535,15 +544,18 @@ public class CapabilityStage implements Stage {
                        .toString();
                     reporter_.report( FixedCode.E_BMIM, msg );
                 }
-                String ivoid = of.getIvoid();
-                if ( ivoid != null && ivoid.startsWith( stdPrefix ) &&
-                     ! outKeyList
-                      .contains( ivoid.substring( stdPrefix.length() ) ) ) {
+                Ivoid ivoid = of.getIvoid();
+                if ( ivoid != null && ivoid.matchesRegistryPart( stdPrefix ) &&
+                     ! outKeyList.contains( ivoid.getLocalPart() ) ) {
                     String msg = new StringBuffer()
-                       .append( "Unknown standard output format key \"" )
+                       .append( "Unknown output format key " )
+                       .append( "in standard namespace \"" )
                        .append( ivoid )
-                       .append( " for output format " )
+                       .append( "\" for output format " )
                        .append( ofName )
+                       .append( " (known values are " )
+                       .append( outKeyList )
+                       .append( ")" )
                        .toString();
                     reporter_.report( FixedCode.E_XOFK, msg );
                 }
@@ -559,18 +571,18 @@ public class CapabilityStage implements Stage {
         private final TapService tapService_;
         private final Cap[] caps_;
 
-        private static final String TAPCAP_STDID = "ivo://ivoa.net/std/TAP";
+        private static final Ivoid TAPCAP_STDID =
+            new Ivoid( "ivo://ivoa.net/std/TAP" );
         private static final String VOSI_URI = "ivo://ivoa.net/std/VOSI";
-        private static final String DALI_URI = "ivo://ivoa.net/std/DALI";
-        private static final Collection<String> SSO_SMIDS =
-                new HashSet<String>( Arrays.asList( new String[] {
-            "ivo://ivoa.net/sso#BasicAA",
-            "ivo://ivoa.net/sso#tls-with-password",
-            "ivo://ivoa.net/sso#tls-with-certificate",
-            "ivo://ivoa.net/sso#cookie",
-            "ivo://ivoa.net/sso#OAuth",
-            "ivo://ivoa.net/sso#saml2.0",
-            "ivo://ivoa.net/sso#OpenID",
+        private static final Collection<Ivoid> SSO_SMIDS =
+                new HashSet<>( Arrays.asList( new Ivoid[] {
+            new Ivoid( "ivo://ivoa.net/sso#BasicAA" ),
+            new Ivoid( "ivo://ivoa.net/sso#tls-with-password" ),
+            new Ivoid( "ivo://ivoa.net/sso#tls-with-certificate" ),
+            new Ivoid( "ivo://ivoa.net/sso#cookie" ),
+            new Ivoid( "ivo://ivoa.net/sso#OAuth" ),
+            new Ivoid( "ivo://ivoa.net/sso#saml2.0" ),
+            new Ivoid( "ivo://ivoa.net/sso#OpenID" ),
         } ) );
 
         /**
@@ -597,9 +609,8 @@ public class CapabilityStage implements Stage {
                  * (it's normally accessed via a web page).
                  * Availability is not listed since it can be at
                  * a different URL. */
-                checkAccessUrl( tapCap, VOSI_URI + "#capabilities",
-                                "/capabilities" );
-                checkAccessUrl( tapCap, VOSI_URI + "#tables(-.*)?", "/tables" );
+                checkVosiAccessUrl( tapCap, "#capabilities", "/capabilities" );
+                checkVosiAccessUrl( tapCap, "#tables(-.*)?", "/tables" );
             }
         }
 
@@ -615,7 +626,7 @@ public class CapabilityStage implements Stage {
             /* Assemble all TAP capabilities. */
             List<Cap> tapcaps = new ArrayList<Cap>();
             for ( Cap cap : caps_ ) {
-                if ( TAPCAP_STDID.equals( cap.standardId_ ) ) {
+                if ( TAPCAP_STDID.equalsIvoid( cap.standardId_ ) ) {
                     tapcaps.add( cap );
                 }
             }
@@ -726,7 +737,7 @@ public class CapabilityStage implements Stage {
                     SecMeth[] sms = intf.secMeths_.toArray( new SecMeth[ 0 ] );
                     if ( sms.length == 1 &&
                          ( sms[ 0 ].standardId_ == null ||
-                           sms[ 0 ].standardId_.trim().length() == 0 ) ) {
+                           ! sms[ 0 ].standardId_.isValid() ) ) {
 
                         /* TAP 1.1 section 2.4. */
                         String msg = new StringBuffer()
@@ -736,9 +747,9 @@ public class CapabilityStage implements Stage {
                            .toString();
                         reporter_.report( FixedCode.W_CPAN, msg );
                     }
-                    List<String> idlist = new ArrayList<String>();
+                    List<Ivoid> idlist = new ArrayList<>();
                     for ( SecMeth sm : sms ) {
-                        String stdid = sm.standardId_;
+                        Ivoid stdid = sm.standardId_;
                         idlist.add( stdid );
                         if ( stdid != null && ! SSO_SMIDS.contains( stdid ) ) {
                             String msg = new StringBuffer()
@@ -749,8 +760,7 @@ public class CapabilityStage implements Stage {
                             reporter_.report( FixedCode.W_CPSM, msg );
                         }
                     }
-                    if ( idlist.size() >
-                         new HashSet<String>( idlist ).size() ) {
+                    if ( idlist.size() > new HashSet<Ivoid>( idlist ).size() ) {
                         String msg = new StringBuffer()
                            .append( "Duplicate security methods present " )
                            .append( "in capabilities interface: " )
@@ -763,19 +773,24 @@ public class CapabilityStage implements Stage {
         }
 
         /**
-         * Tests that the accessURL for a TAP-related resource is in
+         * Tests that the accessURL for a VOSI-related resource is in
          * its proper place.
          *
          * @param  tapCap  standard TAP capability
-         * @param  stdIdRegex  pattern for standardID of capability to check
+         * @param  stdLocalRegex  pattern for local part of the standardID
+         *                        of capability to check
          * @param  subpath   subpath relative to TAP accessURL at which
          *                   the given capability is expected
          */
-        private void checkAccessUrl( Cap tapCap, String stdIdRegex,
-                                     String subpath ) {
+        private void checkVosiAccessUrl( Cap tapCap, String stdLocalRegex,
+                                         String subpath ) {
             String tapUrl = getStdAccessUrl( tapCap );
             for ( Cap cap : caps_ ) {
-                if ( cap.standardId_.matches( stdIdRegex ) ) {
+                Ivoid capid = cap.standardId_;
+                if ( capid != null &&
+                     capid.matchesRegistryPart( VOSI_URI ) &&
+                     capid.getLocalPart() != null &&
+                     capid.getLocalPart().matches( stdLocalRegex ) ) {
                     String vosiUrl = getStdAccessUrl( cap );
                     if ( vosiUrl != null &&
                          ! vosiUrl.equals( tapUrl + subpath ) ) {
@@ -822,10 +837,10 @@ public class CapabilityStage implements Stage {
      * Represents a capability element.
      */
     private static class Cap {
-        final String standardId_;
+        final Ivoid standardId_;
         final List<Intf> intfs_;
         Cap( String standardId ) {
-            standardId_ = standardId;
+            standardId_ = standardId == null ? null : new Ivoid( standardId );
             intfs_ = new ArrayList<Intf>();
         }
     }
@@ -851,9 +866,9 @@ public class CapabilityStage implements Stage {
      * Represents the securityMethod element child of an interface.
      */
     private static class SecMeth {
-        final String standardId_;
+        final Ivoid standardId_;
         SecMeth( String standardId ) {
-            standardId_ = standardId;
+            standardId_ = standardId == null ? null : new Ivoid( standardId );
         }
     }
 }

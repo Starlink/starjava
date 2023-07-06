@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -288,10 +287,11 @@ public class TapCapabilityPanel extends JPanel {
      * @return  true iff tcap permits inline uploads
      */
     public static boolean canUpload( TapCapability tcap ) {
-        String[] upMethods = tcap == null ? null : tcap.getUploadMethods();
+        Ivoid[] upMethods = tcap == null ? null : tcap.getUploadMethods();
         return upMethods != null
             && Arrays.asList( upMethods )
-              .contains( TapCapability.TAPREGEXT_STD_URI + "#upload-inline" );
+              .contains( TapCapability
+                        .createTapRegExtIvoid( "#upload-inline" ) );
     }
 
     /**
@@ -361,25 +361,22 @@ public class TapCapabilityPanel extends JPanel {
             public String getDescription() {
                 return "Astronomical Data Query Language";
             }
-            public String[] getVersionIds() {
+            public Ivoid[] getVersionIds() {
                 return Arrays.stream( versions )
                              .map( AdqlVersion::getIvoid )
-                             .collect( Collectors.toList() )
-                             .toArray( new String[ 0 ] );
+                             .toArray( n -> new Ivoid[ n ] );
             }
             public String[] getVersions() {
                 return Arrays.stream( versions )
                              .map( AdqlVersion::getNumber )
-                             .collect( Collectors.toList() )
-                             .toArray( new String[ 0 ] );
+                             .toArray( n -> new String[ n ] );
             }
-            public Map<String,TapLanguageFeature[]> getFeaturesMap() {
-                return new HashMap<String,TapLanguageFeature[]>();
+            public Map<Ivoid,TapLanguageFeature[]> getFeaturesMap() {
+                return Collections.emptyMap();
             }
         };
         return Arrays.stream( versions )
                      .map( v -> new VersionedLanguage( lang, v.getNumber() ) )
-                     .collect( Collectors.toList() )
-                     .toArray( new VersionedLanguage[ 0 ] );
+                     .toArray( n -> new VersionedLanguage[ n ] );
     }
 }

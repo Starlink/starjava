@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.LinkedHashSet;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1703,26 +1702,26 @@ public class TableSetPanel extends JPanel {
         private final JTextComponent udfField_;
         private final JTextComponent nonstdField_;
 
-        private static final String TAPREGEXT = TapCapability.TAPREGEXT_STD_URI;
-        private static final String[] ADQLGEO_FTYPES = new String[] {
-            TAPREGEXT + "#features-adqlgeo",
-            TAPREGEXT + "#features-adql-geo", // error from early ADQL2.1 draft
+        private static final Ivoid[] ADQLGEO_FTYPES = new Ivoid[] {
+            TapCapability.createTapRegExtIvoid( "#features-adqlgeo" ),
+            // error from early ADQL2.1 draft
+            TapCapability.createTapRegExtIvoid( "#features-adql-geo" ),
         };
-        private static final String[] ADQL21MISC_FTYPES = new String[] {
-            TAPREGEXT + "#features-adql-string",
-            TAPREGEXT + "#features-adql-common-table",
-            TAPREGEXT + "#features-adql-sets",
-            TAPREGEXT + "#features-adql-type",
-            TAPREGEXT + "#features-adql-unit",
-            TAPREGEXT + "#features-adql-offset",
+        private static final Ivoid[] ADQL21MISC_FTYPES = new Ivoid[] {
+            TapCapability.createTapRegExtIvoid( "#features-adql-string" ),
+            TapCapability.createTapRegExtIvoid( "#features-adql-common-table" ),
+            TapCapability.createTapRegExtIvoid( "#features-adql-sets" ),
+            TapCapability.createTapRegExtIvoid( "#features-adql-type" ),
+            TapCapability.createTapRegExtIvoid( "#features-adql-unit" ),
+            TapCapability.createTapRegExtIvoid( "#features-adql-offset" ),
         };
-        private static final String UDF_FTYPE = TAPREGEXT + "#features-udf";
-        private static final Predicate<String> UDF_FILTER =
-            ftype -> UDF_FTYPE.equalsIgnoreCase( ftype );
-        private static final Predicate<String> NONSTD_FILTER =
-            createExcludeFilter( String::toLowerCase,
-                                 ADQLGEO_FTYPES, ADQL21MISC_FTYPES,
-                                 new String[] { UDF_FTYPE } );
+        private static final Ivoid UDF_FTYPE =
+            TapCapability.createTapRegExtIvoid( "#features-udf" );
+        private static final Predicate<Ivoid> UDF_FILTER =
+            ftype -> UDF_FTYPE.equals( ftype );
+        private static final Predicate<Ivoid> NONSTD_FILTER =
+            createExcludeFilter( ADQLGEO_FTYPES, ADQL21MISC_FTYPES,
+                                 new Ivoid[] { UDF_FTYPE } );
 
         /**
          * Constructor.
@@ -1832,13 +1831,13 @@ public class TableSetPanel extends JPanel {
             if ( tcap == null ) {
                 return null;
             }
-            String[] dms = tcap.getDataModels();
+            Ivoid[] dms = tcap.getDataModels();
             if ( dms == null || dms.length == 0 ) {
                 return null;
             }
             StringBuffer sbuf = new StringBuffer();
             if ( dms != null ) {
-                for ( String dm : dms ) {
+                for ( Ivoid dm : dms ) {
                     if ( sbuf.length() != 0 ) {
                         sbuf.append( '\n' );
                     }
@@ -1858,20 +1857,17 @@ public class TableSetPanel extends JPanel {
          * @return  forms list string or null
          */
         private static String getFeatureFormsText( TapCapability tcap,
-                                                   String[] featureTypes ) {
+                                                   Ivoid[] featureTypes ) {
             if ( tcap == null ) {
                 return null;
             }
-            Function<String,String> normalise = String::toLowerCase;
-            Collection<String> ftypeSet =
-                Arrays.stream( featureTypes )
-                      .map( normalise )
-                      .collect( Collectors.toCollection( HashSet::new ) );
+            Collection<Ivoid> ftypeSet =
+                new HashSet<Ivoid>( Arrays.asList( featureTypes ) );
             Collection<String> formList = new LinkedHashSet<>();
             for ( TapLanguage lang : tcap.getLanguages() ) {
-                for ( Map.Entry<String,TapLanguageFeature[]> fentry :
+                for ( Map.Entry<Ivoid,TapLanguageFeature[]> fentry :
                       lang.getFeaturesMap().entrySet() ) {
-                    String ftype = normalise.apply( fentry.getKey() );
+                    Ivoid ftype = fentry.getKey();
                     if ( ftypeSet.contains( ftype ) ) {
                         for ( TapLanguageFeature feat : fentry.getValue() ) {
                             String form = feat.getForm();
@@ -1897,15 +1893,15 @@ public class TableSetPanel extends JPanel {
          */
         private static String
                 getFeatureDescriptionsHtml( TapCapability tcap,
-                                            Predicate<String> featTypeFilter ) {
+                                            Predicate<Ivoid> featTypeFilter ) {
             if ( tcap == null ) {
                 return null;
             }
             StringBuffer sbuf = new StringBuffer();
             for ( TapLanguage lang : tcap.getLanguages() ) {
-                for ( Map.Entry<String,TapLanguageFeature[]> fentry :
+                for ( Map.Entry<Ivoid,TapLanguageFeature[]> fentry :
                       lang.getFeaturesMap().entrySet() ) {
-                    String featType = fentry.getKey();
+                    Ivoid featType = fentry.getKey();
                     if ( featType != null && featTypeFilter.test( featType ) ) {
                         for ( TapLanguageFeature feature : fentry.getValue() ) {
                             String form = feature.getForm();
@@ -2001,21 +1997,17 @@ public class TableSetPanel extends JPanel {
          * Utility method to create a filter that excludes strings in a
          * number of given lists.
          *
-         * @param  normalise  string normalisation function to be applied
-         *                    comparison for equality
          * @param  excludes   one or more arrays of strings none of which
-         *                    a targe string should match to pass the test
+         *                    a target ivoid should equal to pass the test
          * @return   predicate indicating non-inclusion in supplied arrays
          */
-        private static Predicate<String>
-                createExcludeFilter( Function<String,String> normalise,
-                                     String[]... excludes ) {
-            Collection<String> excludeSet = new HashSet<String>();
-            for ( String[] items : excludes ) {
-                excludeSet.addAll( Arrays.stream( items ).map( normalise )
-                                         .collect( Collectors.toList() ) );
+        private static Predicate<Ivoid>
+                createExcludeFilter( Ivoid[]... excludes ) {
+            Collection<Ivoid> excludeSet = new HashSet<>();
+            for ( Ivoid[] items : excludes ) {
+                excludeSet.addAll( Arrays.asList( items ) );
             }
-            return f -> ! excludeSet.contains( normalise.apply( f ) );
+            return f -> ! excludeSet.contains( f );
         }
     }
 }

@@ -33,5 +33,5 @@ public interface OutputFormat {
      *
      * @return  ivoi-id, or null
      */
-    String getIvoid();
+    Ivoid getIvoid();
 }

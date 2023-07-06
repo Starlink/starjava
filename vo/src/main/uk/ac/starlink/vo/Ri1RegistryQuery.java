@@ -221,7 +221,7 @@ public class Ri1RegistryQuery implements RegistryQuery {
             abuf.append( " OR " );
         }
         abuf.append( "(" );
-        String[] stdIds = cap.getStandardIds();
+        Ivoid[] stdIds = cap.getStandardIds();
         for ( int is = 0; is < stdIds.length; is++ ) {
             if ( is > 0 ) {
                 abuf.append( " OR " );

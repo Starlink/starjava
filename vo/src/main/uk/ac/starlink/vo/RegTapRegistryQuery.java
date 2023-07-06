@@ -135,7 +135,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
      * @param   adqlWhere  text to be ANDed with existing ADQL WHERE clause,
      *                     or null for no further restriction
      */
-    public RegTapRegistryQuery( TapService tapService, String[] standardIds,
+    public RegTapRegistryQuery( TapService tapService, Ivoid[] standardIds,
                                 String adqlWhere ) {
         tapService_ = tapService;
         coding_ = ContentCoding.GZIP;
@@ -201,7 +201,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
                    abuf.append( ", " );
                }
                abuf.append( "'" )
-                   .append( standardIds[ is ].toLowerCase() )
+                   .append( standardIds[ is ].toRegtapString() )
                    .append( "'" );
            }
            abuf.append( ")" )

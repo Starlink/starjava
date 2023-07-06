@@ -8,16 +8,17 @@ package uk.ac.starlink.vo;
  */
 public class Capability {
 
-    private final String[] standardIds_;
+    private final Ivoid[] standardIds_;
     private final String xsiTypeTail_;
 
     /** Cone search capability. */
     public static final Capability CONE =
-        new Capability( "ivo://ivoa.net/std/ConeSearch", "ConeSearch" );
+        new Capability( new Ivoid( "ivo://ivoa.net/std/ConeSearch" ),
+                        "ConeSearch" );
 
     /** Simple Image Access capability. */
     public static final Capability SIA =
-        new Capability( new String[] {
+        new Capability( new Ivoid[] {
                            SiaVersion.V10.getStandardId(),
                            SiaVersion.V20.getStandardId(),
                         },
@@ -25,11 +26,12 @@ public class Capability {
 
     /** Simple Spectral Access capability. */
     public static final Capability SSA =
-        new Capability( "ivo://ivoa.net/std/SSA", "SimpleSpectralAccess" );
+        new Capability( new Ivoid( "ivo://ivoa.net/std/SSA" ),
+                        "SimpleSpectralAccess" );
 
     /** Table Access Protocol capability. */
     public static final Capability TAP =
-        new Capability( "ivo://ivoa.net/std/TAP", "TableAccess" );
+        new Capability( new Ivoid( "ivo://ivoa.net/std/TAP" ), "TableAccess" );
 
     /**
      * Constructs a capability with a unique standardID.
@@ -39,8 +41,8 @@ public class Capability {
      * @param  xsiTypeTail  trailing part of the capability/@xsi:type for
      *         the capability
      */
-    public Capability( String standardId, String xsiTypeTail ) {
-        this( new String[] { standardId }, xsiTypeTail );
+    public Capability( Ivoid standardId, String xsiTypeTail ) {
+        this( new Ivoid[] { standardId }, xsiTypeTail );
     }
 
     /**
@@ -51,7 +53,7 @@ public class Capability {
      * @param  xsiTypeTail  trailing part of the capability/@xsi:type for
      *         the capability
      */
-    public Capability( String[] standardIds, String xsiTypeTail ) {
+    public Capability( Ivoid[] standardIds, String xsiTypeTail ) {
         standardIds_ = standardIds.clone();
         xsiTypeTail_ = xsiTypeTail;
     }
@@ -61,7 +63,7 @@ public class Capability {
      *
      * @return  ivorn for standard
      */
-    public String[] getStandardIds() {
+    public Ivoid[] getStandardIds() {
         return standardIds_.clone();
     }
 

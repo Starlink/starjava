@@ -49,7 +49,8 @@ public interface RegCapabilityInterface {
 
     /**
      * Returns the standard ID which defines what sort of service this 
-     * capability is offering.  This is a URI.
+     * capability is offering.  This is a URI which may or may not be
+     * an IVO ID.
      *
      * @return capability/@standardID
      */

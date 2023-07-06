@@ -11,7 +11,7 @@ import adql.parser.ADQLParser;
 public enum AdqlVersion {
 
     /** ADQL version 2.0. */
-    V20( "2.0", "2.0", "ivo://ivoa.net/std/ADQL#v2.0",
+    V20( "2.0", "2.0", new Ivoid( "ivo://ivoa.net/std/ADQL#v2.0" ),
          ADQLParser.ADQLVersion.V2_0,
          new String[] {
              "features-udf",
@@ -19,7 +19,7 @@ public enum AdqlVersion {
          } ),
  
     /** ADQL version 2.1.  This corresponds to PR-ADQL-2.1-20230418.  */
-    V21( "2.1-PR", "2.1", "ivo://ivoa.net/std/ADQL#v2.1",
+    V21( "2.1-PR", "2.1", new Ivoid( "ivo://ivoa.net/std/ADQL#v2.1" ),
          ADQLParser.ADQLVersion.V2_1,
          new String[] {
              "features-udf",
@@ -35,9 +35,9 @@ public enum AdqlVersion {
 
     private final String name_;
     private final String number_;
-    private final String ivoid_;
+    private final Ivoid ivoid_;
     private final ADQLParser.ADQLVersion volltVersion_;
-    private final String[] featureUris_;
+    private final Ivoid[] featureUris_;
 
     /**
      * Constructor.
@@ -49,7 +49,7 @@ public enum AdqlVersion {
      * @param  tapregextFeatureFragments  list of ADQL language features
      *                                    for this version
      */
-    AdqlVersion( String name, String number, String ivoid,
+    AdqlVersion( String name, String number, Ivoid ivoid,
                  ADQLParser.ADQLVersion volltVersion,
                  String[] tapregextFeatureFragments ) {
         name_ = name;
@@ -57,10 +57,11 @@ public enum AdqlVersion {
         ivoid_ = ivoid;
         volltVersion_ = volltVersion;
         int nfeat = tapregextFeatureFragments.length;
-        featureUris_ = new String[ nfeat ];
+        featureUris_ = new Ivoid[ nfeat ];
         for ( int ifeat = 0; ifeat < nfeat; ifeat++ ) {
-            featureUris_[ ifeat ] = TapCapability.TAPREGEXT_STD_URI + "#"
-                                  + tapregextFeatureFragments[ ifeat ];
+            featureUris_[ ifeat ] =
+                TapCapability
+               .createTapRegExtIvoid( tapregextFeatureFragments[ ifeat ] );
         }
     }
 
@@ -87,7 +88,7 @@ public enum AdqlVersion {
      *
      * @return  URI, currently of the form ivo://ivoa.net/std/ADQL#vX.Y
      */
-    public String getIvoid() {
+    public Ivoid getIvoid() {
         return ivoid_;
     }
 
@@ -99,7 +100,7 @@ public enum AdqlVersion {
      *
      * @return  language feature URIs
      */
-    public String[] getFeatureUris() {
+    public Ivoid[] getFeatureUris() {
         return featureUris_.clone();
     }
 
@@ -138,9 +139,9 @@ public enum AdqlVersion {
      *
      * @param  ivoid  URI, currently of the form ivo://ivoa.net/std/ADQL#vX.Y
      */
-    public static AdqlVersion byIvoid( String ivoid ) {
+    public static AdqlVersion byIvoid( Ivoid ivoid ) {
         for ( AdqlVersion v : values() ) {
-            if ( v.ivoid_.equalsIgnoreCase( ivoid ) ) {
+            if ( v.ivoid_.equalsIvoid( ivoid ) ) {
                 return v;
             }
         }
