@@ -3240,6 +3240,16 @@ matchers that you want to use, and separate their names with a
 of the combined matcher should then hold the concatenation of the
 <code>values*</code> entries of the constituent matchers, and the
 same for the <code>params</code> parameter.
+Two rows are then considered to match if the the match is successful
+for all of their constituent matchers.
+</p>
+
+<p>A variant form where the names are separated with a
+"<code>*</code>" character instead of "<code>+</code>" may also be used.
+In this case an additional constraint is applied requiring that
+the distance measure (see below) is less than or equal to unity,
+thus requiring the points in the notional scaled parameter coordinate space
+to be within a unit hypersphere rather than a unit hypercube.
 </p>
 
 <p>So for instance the matcher "<code>sky+1d</code>" could be used
@@ -3255,6 +3265,8 @@ their <code>ra</code>, <code>dec</code> positions are within
 <em>and</em>
 their <code>x</code> values differ by no more than <code>error</code>
 (as for <code>matcher=1d</code>).
+Using <code>matcher=sky*1d</code> instead would work the same way
+but restrict the matches a bit further.
 </p>
 
 <p>This example might be used for instance to identify objects from two
@@ -3275,6 +3287,9 @@ radius (or equivalent), so the distance measure looks something like
 <m>d = sqrt([d<sub>A</sub>/max(d<sub>A</sub>)]<sup>2</sup>
           + [d<sub>B</sub>/max(d<sub>B</sub>)]<sup>2</sup>)</m>.
 However the details are a bit dependent on which matchers you are combining.
+If the "<code>*</code>" separator is used instead of "<code>+</code>"
+in the matcher specification as described above,
+this distance will always be &lt;=1 for successful matches.
 </p>
 
 <p><em>Note that in STILTS v3.0-9 and earlier,
@@ -14642,6 +14657,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         spurious taplint error reports.</li>
     <li>Fix aux axis/legend positioning issue in sky plot
         (regression bug introduced at v3.4-8).</li>
+    <li>Introduced alternative syntax ("<code>*</code>" separator)
+        for <ref id="CombinedMatchEngine">matcher combinations</ref>
+        to restrict match separations to the scaled unit sphere.</li>
     </ul>
     </p></dd>
 

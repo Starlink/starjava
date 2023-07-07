@@ -25,10 +25,20 @@ public class CombinedMatchTest extends TestCase {
     }
 
     public void testSkyX() throws Exception {
+        exerciseSkyX( false );
+        exerciseSkyX( true );
+    }
+
+    public void testSkyXY() throws Exception {
+        exerciseSkyXY( false );
+        exerciseSkyXY( true );
+    }
+
+    private void exerciseSkyX( boolean inSphere ) throws Exception {
         double skyErr = 0.4;
         double magErr = 1.3;
         MapEnvironment env = new MapEnvironment();
-        env.setValue( "matcher", "sky+1d" );
+        env.setValue( "matcher", inSphere ? "sky*1d" : "sky+1d" );
         env.setValue( "find", "all" );
         env.setValue( "progress", "none" );
         env.setValue( "in1", tmass_ );
@@ -53,20 +63,24 @@ public class CombinedMatchTest extends TestCase {
             double sep1 = ((Number) rseq.getCell( 0 )).doubleValue();
             double sep2 = ((Number) rseq.getCell( 1 )).doubleValue();
             assertTrue( Math.abs( sep1 - sep2 ) / sep1 < 1e-8 );
+            if ( inSphere ) {
+                assertTrue( sep1 <= 1.0 );
+            }
         }
 
         // This figure is certainly reasonable, but I haven't checked it
         // for sure - so this is a regression test, if it fails you should
-        // investigate the possibility that 23 is not the right answer.
-        assertEquals( 23, result.getRowCount() );
+        // investigate the possibility that 23/21 is not the right answer.
+        assertEquals( inSphere ? 21 : 23, result.getRowCount() );
     }
 
-    public void testSkyXY() throws Exception {
+    public void exerciseSkyXY( boolean inSphere ) throws Exception {
         double skyErr = 0.6;
         double mag1Err = 1.1;
         double mag2Err = 0.9;
         MapEnvironment env = new MapEnvironment();
-        env.setValue( "matcher", "sky+2d_anisotropic" );
+        env.setValue( "matcher", inSphere ? "sky*2d_anisotropic"
+                                          : "sky+2d_anisotropic" );
         env.setValue( "find", "all" );
         env.setValue( "progress", "none" );
         env.setValue( "in1", tmass_ );
@@ -93,11 +107,14 @@ public class CombinedMatchTest extends TestCase {
             double sep1 = ((Number) rseq.getCell( 0 )).doubleValue();
             double sep2 = ((Number) rseq.getCell( 1 )).doubleValue();
             assertEquals( 0.0, Math.abs( sep1 - sep2 ) / sep1, 1e-8 );
+            if ( inSphere ) {
+                assertTrue( sep1 <= 1.0 );
+            }
         }
 
         // This figure is certainly reasonable, but I haven't checked it
         // for sure - so this is a regression test, if it fails you should
-        // investigate the possibility that 19 is not the right answer.
-        assertEquals( 19, result.getRowCount() );
+        // investigate the possibility that 19/18 is not the right answer.
+        assertEquals( inSphere ? 18 : 19, result.getRowCount() );
     }
 }

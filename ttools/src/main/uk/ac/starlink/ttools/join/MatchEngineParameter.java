@@ -436,7 +436,8 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
      * @return  new match engine
      */
     public MatchEngine createEngine( String name ) throws UsageException {
-        String[] names = name.trim().split( "\\+" );
+        NameList nameList = parseNameList( name );
+        String[] names = nameList.names_;
         MatchEngine[] components = new MatchEngine[ names.length ];
         for ( int i = 0; i < names.length; i++ ) {
             MatchEngine component;
@@ -513,7 +514,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
         }
         return components.length == 1
              ? components[ 0 ]
-             : new CombinedMatchEngine( components );
+             : new CombinedMatchEngine( components, nameList.inSphere_ );
     }
 
     /**
@@ -619,5 +620,55 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
             "2d_ellipse",
             "sky+1d",
         };
+    }
+
+    /**
+     * Parses a string giving a sequence of matcher names.
+     * The syntax is "name+name+name" or "name*name*name";
+     * if a "*" separator is used it indicates that an additional "inSphere"
+     * constraint should be applied.
+     *
+     * @param  text  combined matcher textual specification
+     * @return  parsed specification
+     */
+    private static NameList parseNameList( String text ) throws UsageException {
+        boolean hasPlus = text.indexOf( '+' ) >= 0;
+        boolean hasStar = text.indexOf( '*' ) >= 0;
+        final boolean inSphere;
+        final char sep;
+        if ( hasPlus && hasStar ) {
+            throw new UsageException( "Illegal mix of '+' and '*' separators"
+                                    + " in \"" + text + "\"" );
+        }
+        else if ( hasStar ) {
+            sep = '*';
+            inSphere = true;
+        }
+        else {
+            sep = '+';
+            inSphere = false;
+        }
+        final String[] names = text.trim().split( "\\" + sep, -1 );
+        return new NameList( names, inSphere );
+   }
+
+    /**
+     * Encapsulates information about a specified sequence of matchers.
+     */
+    private static class NameList {
+        final String[] names_;
+        final boolean inSphere_;
+
+        /**
+         * Constructor.
+         *
+         * @param  names   list of atomic matcher textual specifications
+         * @param  inSphere  if true, the inSphere constraint should
+         *                   be applied when determining match success
+         */
+        NameList( String[] names, boolean inSphere ) {
+            names_ = names;
+            inSphere_ = inSphere;
+        }
     }
 }
