@@ -12,16 +12,21 @@ import uk.ac.starlink.table.ValueInfo;
 /**
  * A matching engine which provides matching facilities by combining the
  * characteristics of a number of other matching engines.
- * Because of the way it calculates bins (effectively multiplying one
- * bin array by another), it is a good idea for efficiency's sake to
- * keep down the number of bins returned by the {@link MatchKit#getBins}
- * method of the component match engines.
+ *
+ * <p>The tuples accepted by this engine are composed of the tuples
+ * of its constituent engines (as specified by the <code>engines</code>
+ * argument of the constructor) concatenated in sequence.
  *
  * <p>The match score is formed by taking the scaled match scores of the
  * constituent engines and adding them in quadrature
  * (if no scaling is available, unscaled values are used).
  * Versions of this class before 2017 did not do that, it just added
  * unscaled match scores together, which doesn't make much sense.
+ *
+ * <p>Because of the way it calculates bins (taking a Cartesian product
+ * of one bin array by another), it is a good idea for efficiency's sake to
+ * keep down the number of bins returned by the {@link MatchKit#getBins}
+ * method of the constituent match engines.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -40,15 +45,33 @@ public class CombinedMatchEngine implements MatchEngine {
                             + "in combined space" );
 
     /**
-     * Constructs a new MatchEngine based on a sequence of others.
-     * The tuples accepted by this engine are composed of the tuples
-     * of its constituent engines (as specified by <tt>engines</tt>)
-     * concatenated in sequence.
+     * Constructs a CombinedMatchEngine
+     * with default sphere inclusion semantics.
      *
      * @param   engines  match engine sequence to be combined
      */
     public CombinedMatchEngine( MatchEngine[] engines ) {
-        inSphere_ = false;
+        this( engines, false );
+    }
+
+    /**
+     * Constructs a CombinedMatchEngine
+     * with specified sphere inclusion semantics.
+     *
+     * <p>If the <code>inSphere</code> parameter is false,
+     * any pair which is matched by all its constituent matchers
+     * counts as a match.
+     * If it is true, an additional constraint is imposed which is that
+     * the scaled separation (the match score) must be less than or equal
+     * to unity, that is the separation vector must be within the unit
+     * hyper-sphere rather than the unit hyper-cube.
+     *
+     * @param   engines  match engine sequence to be combined
+     * @param   inSphere  whether to restrict matches to those with
+     *                    separation values not exeeding unity
+     */
+    public CombinedMatchEngine( MatchEngine[] engines, boolean inSphere ) {
+        inSphere_ = inSphere;
         engines_ = engines;
         nPart_ = engines.length;
         tupleSizes_ = new int[ nPart_ ];
@@ -93,7 +116,6 @@ public class CombinedMatchEngine implements MatchEngine {
     }
 
     public Supplier<Coverage> createCoverageFactory() {
-        final boolean inSphere = inSphere_;
         final int[] tupleStarts = tupleStarts_.clone();
         final int[] tupleSizes = tupleSizes_.clone();
         final List<Supplier<Coverage>> subFacts = new ArrayList<>( nPart_ );
@@ -182,7 +204,7 @@ public class CombinedMatchEngine implements MatchEngine {
          *
          * @param  subKits  nPart-element array of match kits for
          *                  component MatchEngines
-         * @param  scales  nPart-element arra of score scales
+         * @param  scales  nPart-element array of score scales
          * @param  inSphere   require matches to be within unit sphere
          * @param  tupleStarts  nPart-element array of sub-engine start index
          *                      in combined tuple
