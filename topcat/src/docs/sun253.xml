@@ -20255,8 +20255,8 @@ of a metric on that space to count as a match.
 <dt>Sky + X</dt>
 <dd><p>Comparison of positions on the celestial sphere with an additional
     numeric constraint.
-    This is a combination of the Sky and 
-    1-d Cartesian matches above, so the columns you need
+    This is a combination of the <label>Sky</label> and 
+    <label>1-d Cartesian</label> matches above, so the columns you need
     to supply are RA, Dec and one extra, and the errors are 
     angular separation on the sky and the error in the extra column.
     A match is registered if it matches in both of the constituent tests.
@@ -20273,10 +20273,27 @@ of a metric on that space to count as a match.
     which did not give very meaningful Best match results.</em>
     </p></dd>
 
+<dt>Sky + X with Errors</dt>
+<dd><p>Comparisons of positions on the celestial sphere
+    with an additional numeric constraint
+    that can itself vary per row.
+    This is a combination of the <label>Sky</label> and
+    <label>1-dimensional Cartesian with Errors</label> matches above,
+    so the columns you will need to supply for each table are
+    RA, Dec, X (the additional coordinate), and
+    Error (the error on X).
+    The values in the Match Criteria box are Max Error giving the
+    sky position tolerance and Scale which should be approximately the
+    characteristic size of the X error values.
+    You could use this for instance to match tables by sky position and
+    redshift, where the redshift uncertainty varies per source.
+    </p></dd>
+
 <dt>Sky + XY</dt>
 <dd><p>Comparison of positions on the celestial sphere with two additional
     numeric constraints.
-    This is a combination of the Sky and 2-d Anisotropic Cartesian
+    This is a combination of the <label>Sky</label> and
+    <label>2-d Anisotropic Cartesian</label>
     matches above, so the columns you need to supply are
     RA, Dec and two extra, and the errors are 
     angular separation on the sky and the error radii corresponding to
@@ -26133,7 +26150,7 @@ Some of the notable contributers are these:
 <li>Henrik Rydberg (Gothenburg drinking water laboratory)</li>
 <li>Juan Carlos Segovia (ESAC)</li>
 <li>Petr &#x0160;koda (AIAS, CZ)</li>
-<li>Mattia Vaccari (Western Cape)</li>
+<li>Mattia Vaccari (Cape Town)</li>
 <li>Juande Sandander Vela (IAA-CSIC)</li>
 <li>Benjamin Steltner (MPG)</li>
 <li>Mike Watson (Leicester)</li>
@@ -31981,6 +31998,8 @@ introduced since the last version:
         with non-standard capitalisations.</li>
     <li>Fix aux axis/legend positioning issue in sky plot
         (regression bug introduced at v4.8-8).</li>
+    <li>Add new <label>Sky + X with Errors</label>
+        <ref id="matchCriteria">Match Algorithm</ref> option.</li>
     </ul>
     </p></dd>
 

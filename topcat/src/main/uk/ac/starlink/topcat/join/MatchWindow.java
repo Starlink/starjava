@@ -468,6 +468,14 @@ public class MatchWindow extends AuxWindow implements ItemListener {
                 new AnisotropicCartesianMatchEngine( someLengths1 ),
             }
         );
+        MatchEngine skyPlus1ErrEngine =
+                createCombinedEngine( "Sky + X with Errors",
+            new MatchEngine[] {
+                new FixedSkyMatchEngine( new CdsHealpixSkyPixellator(),
+                                         someAngle ),
+                new ErrorCartesianMatchEngine( 1, someLength ),
+            }
+        );
         MatchEngine skyPlus2Engine = createCombinedEngine( "Sky + XY",
             new MatchEngine[] {
                 new FixedSkyMatchEngine( new CdsHealpixSkyPixellator(),
@@ -501,6 +509,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             new ErrorCartesianMatchEngine( 3, someLength ),
             new AnisotropicCartesianMatchEngine( someLengths4 ),
             skyPlus1Engine,
+            skyPlus1ErrEngine,
             skyPlus2Engine,
             htmEngine,
         };
