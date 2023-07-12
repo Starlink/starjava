@@ -106,6 +106,56 @@ public class Surround {
     }
 
     /**
+     * Extends this surround by a given rectangle assumed to be attached
+     * to one of the edges of a supplied inner rectangle.
+     * Attached to an edge means that it does not overlap with the inner
+     * rectangle, but that it is not entirely contained in one of the
+     * external "corner zones" defined by the inner rectangle.
+     * If it is not attached to an edge in this sense, no action will
+     * be taken, and the return value will be false.
+     *
+     * @param  inner   inner rectangle
+     * @param  addBox   external box to add to this surround
+     * @return  true iff the supplied box was a suitable external rectangle,
+     *               indicating that an extension may have been made
+     */
+    public boolean addExternalRectangle( Rectangle inner, Rectangle addBox ) {
+        int ixlo = inner.x;
+        int ixhi = inner.x + inner.width;
+        int iylo = inner.y;
+        int iyhi = inner.y + inner.height;
+        int axlo = addBox.x;
+        int axhi = addBox.x + addBox.width;
+        int aylo = addBox.y;
+        int ayhi = addBox.y + addBox.height;
+        int extLeft = Math.max( 0, ixlo - axlo );
+        int extRight = Math.max( 0, axhi - ixhi );
+        int extTop = Math.max( 0, iylo - aylo );
+        int extBottom = Math.max( 0, ayhi - iyhi );
+        boolean isOverlapX = axhi > ixlo && axlo < ixhi;
+        boolean isOverlapY = ayhi > iylo && aylo < iyhi;
+        int nedge = 0;
+        if ( axhi <= ixlo && isOverlapY ) {
+            left = left.union( new Block( extLeft, extTop, extBottom ) );
+            nedge++;
+        }
+        if ( axlo >= ixhi && isOverlapY ) {
+            right = right.union( new Block( extRight, extTop, extBottom ) );
+            nedge++;
+        }
+        if ( ayhi <= iylo && isOverlapX ) {
+            top = top.union( new Block( extTop, extLeft, extRight ) );
+            nedge++;
+        }
+        if ( aylo >= iyhi && isOverlapX ) {
+            bottom = bottom.union( new Block( extBottom, extLeft, extRight ) );
+            nedge++;
+        }
+        assert nedge <= 1;
+        return nedge > 0;
+    }
+
+    /**
      * Adds another surround to this one.
      * Block extents are stacked, but under and over regions are
      * set to the larger value.

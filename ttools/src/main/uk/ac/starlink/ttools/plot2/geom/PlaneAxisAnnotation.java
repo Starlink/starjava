@@ -144,7 +144,9 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
          * the annotations on the X and Y axes.
          * I feel there may be a more straightforward way to do this than
          * the following, since we are effectively rotating the graphics
-         * space twice, but this does do the right thing, so leave it be. */
+         * space twice, but this does do the right thing, so leave it be.
+         * If it needs rewriting in future, consider using
+         * Surround.addExternalRectangle(). */
         Rectangle xrect =
             getLabelBounds( xaxis_, xticks_, xlabel_,
                             getCaptioner( annotateFlags_.isBottom() ),
