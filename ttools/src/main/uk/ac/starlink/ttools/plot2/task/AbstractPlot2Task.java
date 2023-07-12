@@ -2808,7 +2808,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                                 profiles[ iz ], aspects[ iz ] );
                     Decoration[] decs =
                         PlotPlacement
-                       .createPlotDecorations( surface, content.getLegend(),
+                       .createPlotDecorations( surface, withScroll,
+                                               content.getLegend(),
                                                content.getLegendPosition(),
                                                content.getTitle(),
                                                shadeAxes[ iz ] );

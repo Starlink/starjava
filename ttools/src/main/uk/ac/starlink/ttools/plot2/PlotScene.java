@@ -295,7 +295,8 @@ public class PlotScene<P,A> {
                 PlotLayer[] layers = content.getLayers();
                 Decoration[] decs =
                     PlotPlacement
-                   .createPlotDecorations( zone.surface_, content.getLegend(),
+                   .createPlotDecorations( zone.surface_, WITH_SCROLL,
+                                           content.getLegend(),
                                            content.getLegendPosition(),
                                            content.getTitle(),
                                            zone.shadeAxis_ );

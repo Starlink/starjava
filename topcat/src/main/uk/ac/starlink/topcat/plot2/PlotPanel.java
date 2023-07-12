@@ -1649,8 +1649,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 /* Get the basic plot decorations. */
                 Decoration[] basicDecs =
                     PlotPlacement
-                   .createPlotDecorations( surface, zone.legend_, zone.legpos_,
-                                           zone.title_, shadeAxes[ iz ] );
+                   .createPlotDecorations( surface, WITH_SCROLL, zone.legend_,
+                                           zone.legpos_, zone.title_,
+                                           shadeAxes[ iz ] );
                 List<Decoration> decList = new ArrayList<Decoration>();
                 decList.addAll( Arrays.asList( basicDecs ) );
 

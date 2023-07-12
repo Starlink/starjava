@@ -180,8 +180,8 @@ public class PlotPlacement {
             calculateDataBounds( extBounds, padding, surfFact, profile, aspect,
                                  withScroll, legend, legPos, title, shadeAxis );
         Surface surf = surfFact.createSurface( dataBounds, profile, aspect );
-        Decoration[] decs =
-            createPlotDecorations( surf, legend, legPos, title, shadeAxis );
+        Decoration[] decs = createPlotDecorations( surf, withScroll, legend,
+                                                   legPos, title, shadeAxis );
         return new PlotPlacement( extBounds, surf, decs );
     }
 
@@ -357,6 +357,8 @@ public class PlotPlacement {
      * and shade colour ramp.
      *
      * @param  surf  plot surface
+     * @param   withScroll  true if the decorations should work well
+     *                      with future scrolling
      * @param   legend   legend icon if required, or null
      * @param   legPos  legend position if internal legend is required;
      *                  2-element (x,y) array, each element in range 0-1
@@ -365,12 +367,13 @@ public class PlotPlacement {
      * @return   list of decorations (may have zero elements)
      */
     public static Decoration[] createPlotDecorations( Surface surf,
+                                                      boolean withScroll,
                                                       Icon legend,
                                                       float[] legPos,
                                                       String title,
                                                       ShadeAxis shadeAxis ) {
         Rectangle dataBounds = surf.getPlotBounds();
-        Surround surround = surf.getSurround( false );
+        Surround surround = surf.getSurround( withScroll );
         List<Decoration> decList = new ArrayList<Decoration>();
         int gxlo = dataBounds.x;
         int gylo = dataBounds.y;
