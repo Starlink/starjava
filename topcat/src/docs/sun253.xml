@@ -31979,6 +31979,8 @@ introduced since the last version:
     <li>Fix missing secondary X axis bug in stacked Time plots.</li>
     <li>Fix TAP capabilities parsing to identify language features
         with non-standard capitalisations.</li>
+    <li>Fix aux axis/legend positioning issue in sky plot
+        (regression bug introduced at v4.8-8).</li>
     </ul>
     </p></dd>
 

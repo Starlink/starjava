@@ -14640,6 +14640,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix missing secondary X axis bug in stacked Time plots.</li>
     <li>Fix some IVOID case-sensitivity issues that could result in
         spurious taplint error reports.</li>
+    <li>Fix aux axis/legend positioning issue in sky plot
+        (regression bug introduced at v3.4-8).</li>
     </ul>
     </p></dd>
 

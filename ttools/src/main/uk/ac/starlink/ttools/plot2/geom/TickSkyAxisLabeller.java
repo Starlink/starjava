@@ -329,24 +329,57 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
          * @return  surround space
          */
         private Surround getTickSurround( boolean withScroll ) {
-            Rectangle bounds = new Rectangle( plotBounds_ );
-            for ( int i = 0; i < ticks_.length; i++ ) {
-                SkyTick tick = ticks_[ i ];
-                if ( withScroll ) {
-                    extendScrollBounds( bounds, tick );
+
+            /* If the tickmarks are aligned with the axes, treat this
+             * like a 2d plot.  This will calculate the surround nicely
+             * taking proper account of tick labels that overflow the X/Y
+             * boundaries of the axes etc. */
+            boolean isAllExternal = Arrays.stream( ticks_ )
+                                   .allMatch( t -> t.anchor_ == X_ANCHOR ||
+                                                   t.anchor_ == Y_ANCHOR );
+            if ( isAllExternal ) {
+                Surround surround = new Surround();
+                for ( SkyTick tick : ticks_ ) {
+                    Rectangle tickBox = getTickBounds( tick, withScroll );
+                    boolean isExternal =
+                        surround.addExternalRectangle( plotBounds_, tickBox );
+                    assert isExternal;
                 }
+                return surround;
+            }
+
+            /* Otherwise, the job is more complicated to do properly. */
+            else {
+
+                /* In case of scrolling, don't even attempt it,
+                 * because the usual method of moving the labels to
+                 * both ends of the axis won't work to find out their
+                 * maximum footprint, and it's too hard to do it properly.
+                 * The effect is that internal tick labels may overflow
+                 * the plot bounds sometimes. */
+                if ( withScroll ) {
+                    return new Surround();
+                }
+
+                /* If not scrolling, get the actual position of the tick
+                 * labels and create a simple Surround object that just
+                 * leaves any required space clear round the edges. */
                 else {
-                    extendBounds( bounds, tick );
+                    Rectangle bounds = new Rectangle( plotBounds_ );
+                    for ( SkyTick tick : ticks_ ) {
+                        bounds.add( tick.getCaptionBounds( captioner_ ) );
+                    }
+                    int top = plotBounds_.y - bounds.y;
+                    int left = plotBounds_.x - bounds.x;
+                    int bottom = bounds.y + bounds.height
+                               - plotBounds_.y - plotBounds_.height;
+                    int right = bounds.x + bounds.width
+                              - plotBounds_.x - plotBounds_.width;
+                    assert top >= 0 && left >= 0 && bottom >= 0 && right >= 0;
+                    return Surround
+                          .fromInsets( new Insets( top, left, bottom, right ));
                 }
             }
-            int top = plotBounds_.y - bounds.y;
-            int left = plotBounds_.x - bounds.x;
-            int bottom = bounds.y + bounds.height
-                       - plotBounds_.y - plotBounds_.height;
-            int right = bounds.x + bounds.width
-                      - plotBounds_.x - plotBounds_.width;
-            assert top >= 0 && left >= 0 && bottom >= 0 && right >= 0;
-            return Surround.fromInsets( new Insets( top, left, bottom, right ));
         }
 
         public void drawLabels( Graphics g ) {
@@ -373,48 +406,42 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
         }
 
         /**
-         * Adds the bounds of a tickmark to a rectangle.
+         * Returns the effective bounding rectangle for a tick's annotation.
          *
-         * @param  bounds  bounding rectangle, altered in place
-         * @param  tick  tick mark whose bounds are added to <code>bounds</code>
+         * @param  tick  tick
+         * @param  withScroll  true if the padding should be large enough to
+         *                     accommodate labelling requirements if the
+         *                     surface is scrolled
+         * @return  space on axis to reserve for this tick
          */
-        private void extendBounds( Rectangle bounds, SkyTick tick ) {
-            bounds.add( tick.getCaptionBounds( captioner_ ) );
-        }
-
-        /**
-         * Adds the bounds of a tickmark to a rectangle,
-         * with adjustment for future scrolling.
-         *
-         * @param  bounds  bounding rectangle, altered in place
-         * @param  tick  tick mark whose bounds are added to <code>bounds</code>
-         * @param   Surface#getSurround
-         */
-        private void extendScrollBounds( Rectangle bounds, SkyTick tick ) {
-            Rectangle box = plotBounds_;
-            Anchor anchor = tick.anchor_;
-            final Point[] points;
-            if ( anchor == X_ANCHOR ) {
-                int py = box.y + box.height;
-                points = new Point[] {
-                    new Point( box.x, py ),
-                    new Point( box.x + box.width, py ),
-                };
+        private Rectangle getTickBounds( SkyTick tick, boolean withScroll ) {
+            Rectangle box = tick.getCaptionBounds( captioner_ );
+            if ( withScroll ) {
+                Anchor anchor = tick.anchor_;
+                final Point[] points;
+                if ( anchor == X_ANCHOR ) {
+                    int py = plotBounds_.y + plotBounds_.height;
+                    points = new Point[] {
+                        new Point( plotBounds_.x, py ),
+                        new Point( plotBounds_.x + plotBounds_.width, py ),
+                    };
+                }
+                else if ( anchor == Y_ANCHOR ) {
+                    int px = plotBounds_.x;
+                    points = new Point[] {
+                        new Point( px, plotBounds_.y ),
+                        new Point( px, plotBounds_.y + plotBounds_.height ),
+                    };
+                }
+                else {
+                    points = new Point[ 0 ];
+                }
+                for ( int ip = 0; ip < points.length; ip++ ) {
+                    Point p = points[ ip ];
+                    box.add( tick.getCaptionBoundsAt( p.x, p.y, captioner_ ) );
+                }
             }
-            else if ( anchor == Y_ANCHOR ) {
-                int px = box.x;
-                points = new Point[] {
-                    new Point( px, box.y ),
-                    new Point( px, box.y + box.height ),
-                };
-            }
-            else {
-                points = new Point[ 0 ];
-            }
-            for ( int ip = 0; ip < points.length; ip++ ) {
-                Point p = points[ ip ];
-                bounds.add( tick.getCaptionBoundsAt( p.x, p.y, captioner_ ) );
-            }
+            return box;
         }
     }
 
