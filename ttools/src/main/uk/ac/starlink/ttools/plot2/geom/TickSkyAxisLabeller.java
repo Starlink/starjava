@@ -155,8 +155,11 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
              * return a tick for this position. */
             if ( Math.abs( py - bounds.y - bounds.height ) < 0.5 ) {
                 if ( upness >= 0.5 ) {
-                    return new SkyTick( label, (int) Math.round( px ),
-                                        bounds.y + bounds.height, X_ANCHOR );
+                    int x = (int) Math.round( px );
+                    if ( x >= bounds.x & x < bounds.x + bounds.width ) {
+                        return new SkyTick( label, x, bounds.y + bounds.height,
+                                            X_ANCHOR );
+                    }
                 }
             }
 
@@ -164,8 +167,10 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
              * return a tick for this position. */
             if ( Math.abs( px - bounds.x ) < 0.5 ) {
                 if ( upness <= 0.5 ) {
-                    return new SkyTick( label, bounds.x,
-                                        (int) Math.round( py ), Y_ANCHOR );
+                    int y = (int) Math.round( py );
+                    if ( y >= bounds.y && y < bounds.y + bounds.height ) {
+                        return new SkyTick( label, bounds.x, y, Y_ANCHOR );
+                    }
                 }
             }
         }

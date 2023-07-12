@@ -206,6 +206,10 @@ public class SkySurface implements Surface {
         if ( gridColor_ != null ) {
             Graphics2D gGrid =
                 (Graphics2D) PlotUtil.createLineGraphics( g2, gridColor_ );
+            Rectangle bounds1 = new Rectangle( getPlotBounds() );
+            bounds1.width += 1;
+            bounds1.height += 1;
+            gGrid.clip( bounds1 );
             double[][][] lines = gl.getLines();
             String[] labels = gl.getLabels();
             int nl = labels.length;
@@ -222,6 +226,7 @@ public class SkySurface implements Surface {
                 }
                 gGrid.draw( path );
             }
+            gGrid.dispose();
             g2.setColor( gridColor_ );
         }
         if ( skyFillsBounds_ ) {
