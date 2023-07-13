@@ -79,9 +79,7 @@ public class DatalinkValidator {
     private static final VocabChecker CONTENTQUALIFIER_CHECKER =
         VocabChecker.PRODUCT_TYPE;
 
-    /** DataLink 1.1 sec 2.2. */
-    private static final Ivoid LINKS_ID =
-        new Ivoid( "ivo://ivoa.net/std/DataLink#links-1.0" );
+    private static final String DATALINK_URI = "ivo://ivoa.net/std/DataLink";
 
     /**
      * Constructor.
@@ -342,35 +340,22 @@ public class DatalinkValidator {
 
         /* Check for standardID INFO if applicable (Datalink 1.1 sec 3.3.1). */
         if ( version.is11() ) {
-            List<String> stdids = new ArrayList<>();
-            NodeList infos = resultsResource.getElementsByVOTagName( "INFO" );
-            boolean hasDlid = false;
-            for ( int ii = 0; ii < infos.getLength(); ii++ ) {
-                Node info = infos.item( ii );
-                if ( info instanceof Element ) {
-                    Element infoEl = (Element) info;
-                    if ( "standardID".equals( infoEl.getAttribute( "name" ) )) {
-                        String stdId = infoEl.getAttribute( "value" );
-                        if ( LINKS_ID.equalsIvoid( new Ivoid( stdId ) ) ) {
-                            hasDlid = true;
-                        }
-                        stdids.add( stdId );
-                    }
-                }
-            }
+            String[] stdids = getDeclaredStandardIdStrings( resultsResource );
+            Ivoid reqStdid = version.getStandardId();
+            boolean hasDlid =
+                Arrays.stream( stdids )
+                      .anyMatch( s -> new Ivoid( s ).equalsIvoid( reqStdid ) );
             if ( ! hasDlid ) {
                 StringBuffer sbuf = new StringBuffer()
-                   .append( "No DataLink standard identifier; " )
+                   .append( "Missing DataLink standard identifier; " )
                    .append( "<INFO name=\"standardID\" " )
                    .append( "value=\"" )
-                   .append( LINKS_ID )
+                   .append( reqStdid )
                    .append( "\">" )
                    .append( " should appear in results RESOURCE" );
-                if ( stdids.size() > 0 ) {
+                if ( stdids.length > 0 ) {
                     sbuf.append( ". These standardIDs do appear: " )
-                        .append( stdids.stream()
-                                       .map( s -> '"' + s + '"' )
-                                       .collect( Collectors.joining( ", " ) ) );
+                        .append( Arrays.toString( stdids ) );
                 }
                 reporter_.report( DatalinkCode.E_DSTD, sbuf.toString() );
             }
@@ -513,35 +498,126 @@ public class DatalinkValidator {
 
     /**
      * Returns the DataLink version against which the given document
-     * should be validated.  The choice is reported.
+     * should be validated.  The choice is reported, but no attempt is
+     * made to report conflicts between requested and declared versions.
      *
      * @param  vodoc  document to validate
      * @return   validation version, not null
      */
     private DatalinkVersion getEffectiveVersion( VODocument vodoc ) {
-
-        /* In principle the document might report its own version.
-         * At time of writing however (PR-DataLink-1.1-20230413)
-         * it can't actually do that, so ignore the vodoc argument. */
+        DatalinkVersion requestedVersion = version_;
         final DatalinkVersion version;
         final String vtype;
-        if ( version_ != null ) {
-            version = version_;
+        if ( requestedVersion != null ) {
+            version = requestedVersion;
             vtype = "requested";
         }
         else {
-            version = DatalinkVersion.V11;
-            vtype = "assumed";
+            DatalinkVersion declaredVersion = getDeclaredVersion( vodoc );
+            if ( declaredVersion != null ) {
+                version = declaredVersion;
+                vtype = "declared";
+            }
+            else {
+                version = DatalinkVersion.V10;
+                vtype = "assumed";
+            }
         }
         String msg = new StringBuffer()
            .append( "Using " )
            .append( vtype )
            .append( " DataLink version " )
-           .append( version )
+           .append( version.getNumber() )
+           .append( " (" )
+           .append( version.getFullName() )
+           .append( ")" )
            .append( " for validation" )
            .toString();
         reporter_.report( DatalinkCode.I_DLVR, msg );
         return version;
+    }
+
+    /**
+     * Returns a DatalinkVersion corresponding to an explicit
+     * standardID declaration in a VOTable document.
+     * If there is no such unambiguous declaration, null is returned.
+     *
+     * @param  vodoc  VOTable document
+     * @return  unique declared DatalinkVersion
+     */
+    private DatalinkVersion getDeclaredVersion( VODocument vodoc ) {
+        VOElement voel = (VOElement) vodoc.getDocumentElement();
+        Ivoid[] declaredDlIvoids =
+            Arrays.stream( getDeclaredStandardIdStrings( voel ) )
+           .map( Ivoid::new )
+           .filter( ivoid -> ivoid.matchesRegistryPart( DATALINK_URI ) )
+           .distinct()
+           .toArray( n -> new Ivoid[ n ] );
+        int nDecl = declaredDlIvoids.length;
+        if ( nDecl == 0 ) {
+            return null;
+        }
+        else if ( nDecl == 1 ) {
+            Ivoid stdid = declaredDlIvoids[ 0 ];
+            DatalinkVersion[] knownVersions = DatalinkVersion.values();
+            for ( DatalinkVersion dv : knownVersions ) {
+                if ( dv.getStandardId().equalsIvoid( stdid ) ) {
+                    return dv;
+                }
+            }
+            String msg = new StringBuffer()
+               .append( "Declared standardID \"" )
+               .append( stdid )
+               .append( "\" does not match any of the known " )
+               .append( "DataLink versions (" )
+               .append( Arrays.stream( knownVersions )
+                              .map( dv -> dv.getStandardId().toString() )
+                              .collect( Collectors.joining( ", " ) ) )
+               .append( ")" )
+               .toString();
+            reporter_.report( DatalinkCode.E_STDX, msg );
+            return null;
+        }
+        else {
+            assert nDecl > 1; 
+
+            /* Note this is not absolutely guaranteed to be an error;
+             * you could in principle declare different DataLink versions
+             * in different RESOURCE elements of the same VOTable.
+             * But that seems pretty unlikely.  Worry about it if it happens. */
+            String msg = new StringBuffer()
+               .append( "Multiple declared DataLink standardID values: " )
+               .append( Arrays.toString( declaredDlIvoids ) )
+               .toString();
+            reporter_.report( DatalinkCode.E_STD2, msg );
+            return null;
+        }
+    }
+
+    /**
+     * Returns standardID string values declared within a supplied element.
+     * These declarations are done using INFO elements with name="standardID".
+     * See DALI 1.1 sec 4.4.3 and PR-DataLink-1.1-20231108 section 3.3.1.
+     *
+     * @param  voel  element whose descendants will be searched for INFOs
+     * @return  array of standardID values encountered
+     */
+    private String[] getDeclaredStandardIdStrings( VOElement voel ) {
+        NodeList infoEls = voel.getElementsByVOTagName( "INFO" );
+        int ninfo = infoEls.getLength();
+        List<String> stdids = new ArrayList<>();
+        for ( int ii = 0; ii < ninfo; ii++ ) {
+            Node info = infoEls.item( ii );
+            assert info instanceof Element;
+            if ( info instanceof Element ) {
+                Element infoEl = (Element) info;
+                if ( "standardID".equals( infoEl.getAttribute( "name" ) ) &&
+                     infoEl.hasAttribute( "value" ) ) {
+                    stdids.add( infoEl.getAttribute( "value" ) );
+                }
+            }
+        }
+        return stdids.toArray( new String[ 0 ] );
     }
 
     /**

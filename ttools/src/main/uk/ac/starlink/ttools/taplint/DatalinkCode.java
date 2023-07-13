@@ -37,6 +37,8 @@ public enum DatalinkCode implements ReportCode {
     E_SACB( "Bad service descriptor Access URL", Doc.DATALINK, "4.1" ),
     E_SARF( "No FIELD with inputParam ID", Doc.DATALINK, "4.1" ),
     E_SMCO( "Unknown semantics term", Doc.DATALINK, "3.2.6" ),
+    E_STD2( "Multiple declared DataLink standardIDs", Doc.DATALINK11, "3.3.1" ),
+    E_STDX( "Unknown declared DataLink standardID", Doc.DATALINK11,  "3.3.1" ),
     E_TDSR( "Non-TABLEDATA serialization", Doc.DATALINK, "3.3.1" ),
     E_URES( "No unique results resource", Doc.DALI, "4.4" ),
     E_UTAB( "No unique result table", Doc.DATALINK, "3.3.1" ),
@@ -151,8 +153,8 @@ public enum DatalinkCode implements ReportCode {
             new Doc( "DataLink-1.0",
                      "http://www.ivoa.net/documents/DataLink/20150617/" );
         public static final Doc DATALINK11 =
-            new Doc( "DataLink-1.1-PR-20230413",
-                     "https://www.ivoa.net/documents/DataLink/20230413/" );
+            new Doc( "DataLink-1.1-PR-20231108",
+                     "https://www.ivoa.net/documents/DataLink/20231108/" );
         public static final Doc DALI =
             new Doc( "DALI-1.1",
                      "http://www.ivoa.net/documents/DALI/20170517/" );

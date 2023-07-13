@@ -6521,7 +6521,7 @@ where the parts have the following meanings:
 <p>If you don't like that format, others may be selected using the
 <code>format</code> parameter, which currently also supports JSON.
 For more flexible interaction with the output you can invoke
-<code>taplint</code> <ref id="taskApi">programmatically</ref>
+<code>datalinklint</code> <ref id="taskApi">programmatically</ref>
 and supply your own 
 <javadoc docset="&stiltsjavadocs;"
          class="uk.ac.starlink.ttools.taplint.OutputReporter"/>
@@ -14924,6 +14924,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Previously empty cells for integer and array fields
         provoked an error report
         (which is correct for VOTable 1.0-1.2, but not for 1.3+).</li>
+    <li><ref id="datalinklint"><code>datalinklint</code></ref>
+        now checks and uses <code>INFO/@name="standardID"</code>
+        version declarations in the links document being validated.
+        DataLink handling and <code>datalinklint</code> are now believed
+        to be up to date w.r.t. PR-DataLink-1.1-20231108.</li>
     </ul>
     </p></dd>
 
