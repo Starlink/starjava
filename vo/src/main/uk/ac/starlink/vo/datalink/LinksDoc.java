@@ -21,7 +21,7 @@ import uk.ac.starlink.votable.datalink.ServiceDescriptorFactory;
  * Such documents are usually:
  * <ul>
  * <li>returned from a service with standardID
- *     "<code>ivo://ivoa.net/std/DataLink#links-1.0</code>"</li>
+ *     "<code>ivo://ivoa.net/std/DataLink#links-1.*</code>"</li>
  * <li>described by a MIME type
  *     "<code>application/x-votable+xml;content=datalink</code>"</li>
  * </ul>

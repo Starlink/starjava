@@ -10,6 +10,8 @@ public class VersionTest extends TestCase {
 
         assertFalse( DatalinkVersion.V10.is11() );
         assertTrue( DatalinkVersion.V11.is11() );
+        assertTrue( DatalinkVersion.V10.getStandardId().isValid() );
+        assertTrue( DatalinkVersion.V11.getStandardId().isValid() );
 
         assertTrue( SiaVersion.V20.compareTo( SiaVersion.V10 ) > 0 );
     }

@@ -10,14 +10,17 @@ package uk.ac.starlink.vo;
 public enum DatalinkVersion {
 
     /** DataLink version 1.0. */
-    V10( "1.0", "V1.0", "REC-DataLink-1.0" ),
+    V10( "1.0", "V1.0", "REC-DataLink-1.0",
+         new Ivoid( "ivo://ivoa.net/std/DataLink#links-1.0" ) ),
 
     /** DataLink version 1.1. */
-    V11( "1.1", "V1.1-PR", "PR-DataLink-1.1-20230413" );
+    V11( "1.1", "V1.1-PR", "PR-DataLink-1.1-20231108",
+         new Ivoid( "ivo://ivoa.net/std/DataLink#links-1.1" ) );
 
     private final String number_;
     private final String name_;
     private final String fullName_;
+    private final Ivoid standardId_;
 
     /**
      * Constructor.
@@ -25,11 +28,14 @@ public enum DatalinkVersion {
      * @param  number  numeric version, in form A.B
      * @param  name  human-readable version, may contain more information
      * @param  fullname  full version specification
+     * @param  standardId  standard ID as used to register services
      */
-    private DatalinkVersion( String number, String name, String fullName ) {
+    private DatalinkVersion( String number, String name, String fullName,
+                             Ivoid standardId ) {
         number_ = number;
         name_ = name;
         fullName_ = fullName;
+        standardId_ = standardId;
     }
 
     /**
@@ -57,6 +63,15 @@ public enum DatalinkVersion {
      */
     public String getFullName() {
         return fullName_;
+    }
+
+    /**
+     * Returns the Standard ID 
+     *
+     * @return  ivoid used as capability identifier for this version
+     */
+    public Ivoid getStandardId() {
+        return standardId_;
     }
 
     /**
