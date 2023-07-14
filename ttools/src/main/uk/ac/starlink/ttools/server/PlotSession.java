@@ -294,7 +294,7 @@ public class PlotSession<P,A> {
         if ( "click".equals( cmdName ) ) {
             iz = scene_.getGang().getNavigationZoneIndex( pos );
             if ( iz >= 0 ) {
-                PlotLayer[] layers = scene_.getZoneContent( iz ).getLayers();
+                PlotLayer[] layers = scene_.getLayers( iz );
                 Supplier<CoordSequence> dposSupplier =
                     new PointCloud( SubCloud.createSubClouds( layers, true ) )
                    .createDataPosSupplier( dataStore_ );
@@ -1210,7 +1210,7 @@ public class PlotSession<P,A> {
                                         ? dataStore.getTupleRunner()
                                         : TupleRunner.SEQUENTIAL;
                 for ( int iz = 0; iz < nz; iz++ ) {
-                    PlotLayer[] layers = scene.getZoneContent( iz ).getLayers();
+                    PlotLayer[] layers = scene.getLayers( iz );
                     Surface surface = scene.getSurfaces()[ iz ];
                     SubCloud[] clouds =
                         SubCloud.createSubClouds( layers, true );
@@ -1270,7 +1270,7 @@ public class PlotSession<P,A> {
                 int iz = scene.getZoneIndex( pos );
                 if ( iz >= 0 ) {
                     Surface surface = scene.getSurfaces()[ iz ];
-                    PlotLayer[] layers = scene.getZoneContent( iz ).getLayers();
+                    PlotLayer[] layers = scene.getLayers( iz );
                     int nl = layers.length;
                     if ( surface != null && nl > 0 &&
                          surface.getPlotBounds().contains( pos ) ) {

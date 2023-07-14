@@ -12,7 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.ttools.plot.Range;
@@ -35,6 +34,7 @@ import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.ZoneContent;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -106,8 +106,7 @@ public class PlotDisplay<P,A> extends JComponent {
                         createDataPosSupplier( Point pos ) {
                     int iz = scene.getZoneIndex( pos );
                     if ( iz >= 0 ) {
-                        PlotLayer[] layers =
-                            scene.getZoneContent( iz ).getLayers();
+                        PlotLayer[] layers = scene.getLayers( iz );
                         return new PointCloud( SubCloud
                                               .createSubClouds( layers, true ) )
                               .createDataPosSupplier( dataStore_ );
@@ -141,8 +140,7 @@ public class PlotDisplay<P,A> extends JComponent {
                 final int iz = scene.getZoneIndex( p );
                 if ( iz >= 0 && pslList_.size() > 0 ) {
                     final Surface surface = scene.getSurfaces()[ iz ];
-                    final PlotLayer[] layers =
-                        scene.getZoneContent( iz ).getLayers();
+                    final PlotLayer[] layers = scene.getLayers( iz );
                     if ( surface != null && layers.length > 0 &&
                          surface.getPlotBounds().contains( p ) ) {
                         clickExecutor_.execute( () -> {
@@ -248,11 +246,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  surfFact   surface factory
      * @param  config   map containing surface profile, initial aspect
      *                  and navigator configuration
-     * @param  legend   legend icon, or null if none required
-     * @param  legPos   2-element array giving x,y fractional legend placement
-     *                  position within plot (elements in range 0..1),
-     *                  or null for external legend
-     * @param  title    plot title, or null
+     * @param  trimming  additional decoration specification, or null
      * @param  shadeFact  makes shader axis, or null if not required
      * @param  shadeFixSpan  fixed shader range,
      *                        or null for auto-range where required
@@ -268,8 +262,7 @@ public class PlotDisplay<P,A> extends JComponent {
     public static <P,A> PlotDisplay<P,A>
             createPlotDisplay( PlotLayer[] layers,
                                SurfaceFactory<P,A> surfFact, ConfigMap config,
-                               Icon legend, float[] legPos, String title,
-                               ShadeAxisFactory shadeFact,
+                               Trimming trimming, ShadeAxisFactory shadeFact,
                                Span shadeFixSpan, PaperTypeSelector ptSel,
                                Compositor compositor, Padding padding,
                                DataStore dataStore, boolean navigable,
@@ -294,17 +287,16 @@ public class PlotDisplay<P,A> extends JComponent {
 
         /* Prepare gang configuration; the gang has only a single member. */
         Ganger<P,A> ganger = new SingleGanger<P,A>( padding );
-        ZoneContent[] contents = new ZoneContent[] {
-            new ZoneContent( layers, legend, legPos, title ),
-        };
-        A[] aspects = PlotUtil.singletonArray( aspect );
-        P[] profiles = PlotUtil.singletonArray( profile );
+        ZoneContent<P,A>[] contents =
+            PlotUtil
+           .singletonArray( new ZoneContent<P,A>( profile, aspect, layers ) );
+        Trimming[] trimmings = new Trimming[] { trimming };
         ShadeAxisFactory[] shadeFacts = new ShadeAxisFactory[] { shadeFact };
         Span[] shadeFixSpans = new Span[] { shadeFixSpan };
 
         /* Construct and return the component. */
         PlotScene<P,A> scene =
-            new PlotScene<>( ganger, surfFact, 1, contents, profiles, aspects, 
+            new PlotScene<>( ganger, surfFact, 1, contents, trimmings,
                              shadeFacts, shadeFixSpans, ptSel, compositor,
                              caching );
         return new PlotDisplay<>( scene, navigator, dataStore );

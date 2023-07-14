@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.ZoneContent;
 
 /**
@@ -71,9 +72,9 @@ public abstract class StackGanger<P,A> implements Ganger<P,A> {
 
     public Gang createGang( Rectangle gangExtBox,
                             SurfaceFactory<P,A> surfFact,
-                            int nz, ZoneContent[] contents,
-                            P[] profiles, A[] aspects,
-                            ShadeAxis[] shadeAxes, boolean withScroll ) {
+                            int nz, ZoneContent<P,A>[] contents,
+                            Trimming[] trimmings, ShadeAxis[] shadeAxes,
+                            boolean withScroll ) {
         if ( nz == 0 ) {
             throw new IllegalArgumentException( "no zones" );
         }
@@ -91,15 +92,13 @@ public abstract class StackGanger<P,A> implements Ganger<P,A> {
                                isUp_ ? gangExtBox.height - y - h : y,
                                gangExtBox.width, h );
             y += h;
-            ZoneContent content = contents[ iz ];
+            ZoneContent<P,A> content = contents[ iz ];
             zboxes[ iz ] =
                 PlotPlacement
                .calculateDataBounds( zoneExtBox, padding_, surfFact,
-                                     profiles[ iz ], aspects[ iz ],
-                                     withScroll,
-                                     content.getLegend(),
-                                     content.getLegendPosition(),
-                                     content.getTitle(), shadeAxes[ iz ] );
+                                     content.getProfile(), content.getAspect(),
+                                     withScroll, trimmings[ iz ],
+                                     shadeAxes[ iz ] );
         }
         assert y == gangExtBox.height : y + " !=" + gangExtBox.height;
         int maxxlo = zboxes[ 0 ].x;

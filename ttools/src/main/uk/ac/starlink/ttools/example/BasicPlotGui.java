@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
-import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -42,6 +41,7 @@ import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -212,9 +212,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
         /* Perform a load of other setup required for the plot.
          * We are skipping some optional items such as legends here.
          * Some layer types would require more work. */
-        Icon legend = null;
-        float[] legPos = null;
-        String title = null;
+        Trimming trimming = null;
         ShadeAxisFactory shadeFact = null;
         Span shadeFixSpan = null;
         PaperTypeSelector ptSel = plotType_.getPaperTypeSelector();
@@ -228,8 +226,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
          * See the implementation in that class for the various bits of
          * magic this involves. */
         return PlotDisplay
-              .createPlotDisplay( layers, sfact_, config,
-                                  legend, legPos, title, shadeFact,
+              .createPlotDisplay( layers, sfact_, config, trimming, shadeFact,
                                   shadeFixSpan, ptSel, compositor,
                                   padding, dataStore, navigable, caching );
     }

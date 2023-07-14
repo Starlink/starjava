@@ -3,7 +3,6 @@ package uk.ac.starlink.ttools.example;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.function.DoubleUnaryOperator;
-import javax.swing.Icon;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot2.BasicCaptioner;
@@ -15,6 +14,8 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Span;
+import uk.ac.starlink.ttools.plot2.Trimming;
+import uk.ac.starlink.ttools.plot2.ZoneContent;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -132,14 +133,16 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         PlaneAspect aspect = new PlaneAspect( xlimits, ylimits );
 
         /* We will not use optional decorations for this plot. */
-        Icon legend = null;
-        float[] legPos = null;
-        String title = null;
+        Trimming trimming = null;
         ShadeAxisFactory shadeFact = null;
         Span shadeFixSpan = null;
 
         /* Prepare the list of plot layers; in this case there is only one. */
         PlotLayer[] layers = { createScatterLayer( geom, table), };
+
+        /* Assemble a content object. */
+        ZoneContent<PlaneSurfaceFactory.Profile,PlaneAspect> content =
+            new ZoneContent<>( profile, aspect, layers );
 
         /* Prepare the data cache. */
         int nl = layers.length;
@@ -162,9 +165,8 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
 
         /* Construct and return the plot generator. */
         return new PlotGenerator<PlaneSurfaceFactory.Profile,PlaneAspect>
-                                ( layers, surfFact, profile, aspect,
-                                  legend, legPos, title, shadeFact,
-                                  shadeFixSpan, ptSel, compositor,
+                                ( surfFact, content, trimming,
+                                  shadeFact, shadeFixSpan, ptSel, compositor,
                                   dataStore, xpix, ypix, padding );
     }
 

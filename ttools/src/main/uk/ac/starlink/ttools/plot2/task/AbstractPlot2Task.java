@@ -81,6 +81,7 @@ import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.ZoneContent;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -1279,8 +1280,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* Prepare parallel arrays of per-zone information for the plotting. */
         final int nz = zoneSuffixes.length;
-        final ZoneContent[] contents = new ZoneContent[ nz ];
+        final PlotLayer[][] layerArrays = new PlotLayer[ nz ][];
         final P[] profiles = PlotUtil.createProfileArray( surfFact, nz );
+        final Trimming[] trimmings = new Trimming[ nz ];
         final ConfigMap[] aspectConfigs = new ConfigMap[ nz ];
         final ShadeAxisFactory[] shadeFacts = new ShadeAxisFactory[ nz ];
         final Span[] shadeFixSpans = new Span[ nz ];
@@ -1349,10 +1351,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
              .stringValue( env );
 
             /* Populate per-zone arrays. */
-            contents[ iz ] =
-                new ZoneContent( zoneLayers, legend, legPos, title );
+            layerArrays[ iz ] = zoneLayers;
             profiles[ iz ] = profile;
             aspectConfigs[ iz ] = aspectConfig;
+            trimmings[ iz ] = new Trimming( legend, legPos, title );
             shadeFacts[ iz ] = shadeFact;
             shadeFixSpans[ iz ] = shadeFixSpan;
         }
@@ -1381,31 +1383,31 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             public PlotScene<P,A> createPlotScene( DataStore dataStore,
                                                    PlotCaching caching ) {
                 return PlotScene
-                      .createGangScene( ganger, surfFact, nz, contents,
-                                        profiles, aspectConfigs,
+                      .createGangScene( ganger, surfFact, nz, layerArrays,
+                                        profiles, aspectConfigs, trimmings,
                                         shadeFacts, shadeFixSpans,
                                         ptSel, compositor, dataStore, caching );
             }
 
             public Icon createPlotIcon( DataStore dataStore ) {
-                A[] aspects = PlotUtil.createAspectArray( surfFact, nz );
+                ZoneContent<P,A>[] contents =
+                    PlotUtil.createZoneContentArray( surfFact, nz );
                 long t0 = System.currentTimeMillis();
                 for ( int iz = 0; iz < nz; iz++ ) {
-                    ZoneContent content = contents[ iz ];
                     P profile = profiles[ iz ];
                     ConfigMap config = aspectConfigs[ iz ];
-                    PlotLayer[] layers = content.getLayers();
+                    PlotLayer[] layers = layerArrays[ iz ];
                     Range[] ranges =
                           surfFact.useRanges( profile, config )
                         ? surfFact.readRanges( profile, layers, dataStore )
                         : null;
-                    aspects[ iz ] =
-                        surfFact.createAspect( profile, config, ranges );
+                    A aspect = surfFact.createAspect( profile, config, ranges );
+                    contents[ iz ] =
+                        new ZoneContent<P,A>( profile, aspect, layers );
                 }
                 return AbstractPlot2Task
-                      .createPlotIcon( ganger, surfFact,
-                                       nz, contents, profiles, aspects,
-                                       shadeFacts, shadeFixSpans,
+                      .createPlotIcon( ganger, surfFact, nz, contents,
+                                       trimmings, shadeFacts, shadeFixSpans,
                                        ptSel, compositor, dataStore,
                                        xpix, ypix, forceBitmap );
             }
@@ -1551,7 +1553,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  suffixSeq  ordered array of suffixes for layers to be plotted
      * @return  legend icon, may be null
      */
-    private Icon createLegend( Environment env, Map<String,PlotLayer> layerMap,                                String[] suffixSeq )
+    private Icon createLegend( Environment env, Map<String,PlotLayer> layerMap,
+                               String[] suffixSeq )
             throws TaskException {
 
         /* Make a map from layer labels to arrays of styles.
@@ -2716,7 +2719,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  surfFact   surface factory
      * @param  nz   number of plot zones in gang
      * @param  contents   zone contents (nz-element array)
-     * @param  aspects    plot surface aspects by zone (nz-element array)
+     * @param  trimmings   zone trimmings (nz-element array)
      * @param  shadeFacts   shader axis factories by zone (nz-element array),
      *                      elements may be null if not required
      * @param  shadeFixSpans  fixed shader ranges by zone (nz-element array)
@@ -2734,8 +2737,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     public static <P,A> Icon
             createPlotIcon( Ganger<P,A> ganger,
                             final SurfaceFactory<P,A> surfFact,
-                            final int nz, final ZoneContent[] contents,
-                            final P[] profiles, final A[] aspects,
+                            final int nz, final ZoneContent<P,A>[] contents,
+                            final Trimming[] trimmings,
                             ShadeAxisFactory[] shadeFacts,
                             Span[] shadeFixSpans,
                             final PaperTypeSelector ptSel,
@@ -2752,8 +2755,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Acquire nominal plot bounds that are good enough for working
          * out aux data ranges. */
         Gang approxGang =
-            ganger.createGang( extBox, surfFact, nz, contents, profiles,
-                               aspects, new ShadeAxis[ nz ], withScroll );
+            ganger.createGang( extBox, surfFact, nz, contents, trimmings,
+                               new ShadeAxis[ nz ], withScroll );
 
         /* Calculate aux ranges if required.
          * Although this should maybe belong with the aspect determination
@@ -2764,12 +2767,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             new ArrayList<Map<AuxScale,Span>>();
         long start = System.currentTimeMillis();
         for ( int iz = 0; iz < nz; iz++ ) {
-            ZoneContent content = contents[ iz ];
-            P profile = profiles[ iz ];
+            ZoneContent<P,A> content = contents[ iz ];
             ShadeAxisFactory shadeFact = shadeFacts[ iz ];
             Surface approxSurf =
                 surfFact.createSurface( approxGang.getZonePlotBounds( iz ),
-                                        profiles[ iz ], aspects[ iz ] );
+                                        content.getProfile(),
+                                        content.getAspect() );
             Map<AuxScale,Span> auxSpans =
                 PlotScene.getAuxSpans( content.getLayers(), approxSurf,
                                        shadeFixSpans[ iz ], shadeFact,
@@ -2784,8 +2787,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* Work out plot bounds. */
         final Gang gang =
-            ganger.createGang( extBox, surfFact, nz, contents, profiles,
-                               aspects, shadeAxes, withScroll );
+            ganger.createGang( extBox, surfFact, nz, contents, trimmings,
+                               shadeAxes, withScroll );
 
         /* Construct and return an icon that paints all the zones. */
         return new Icon() {
@@ -2801,17 +2804,16 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 long planMillis = 0;
                 long paintMillis = 0;
                 for ( int iz = 0; iz < nz; iz++ ) {
-                    ZoneContent content = contents[ iz ];
+                    ZoneContent<P,A> content = contents[ iz ];
                     PlotLayer[] layers = content.getLayers();
                     Surface surface =
                         surfFact.createSurface( gang.getZonePlotBounds( iz ),
-                                                profiles[ iz ], aspects[ iz ] );
+                                                content.getProfile(),
+                                                content.getAspect() );
                     Decoration[] decs =
                         PlotPlacement
                        .createPlotDecorations( surface, withScroll,
-                                               content.getLegend(),
-                                               content.getLegendPosition(),
-                                               content.getTitle(),
+                                               trimmings[ iz ],
                                                shadeAxes[ iz ] );
                     PlotPlacement placer =
                         new PlotPlacement( extBox, surface, decs );

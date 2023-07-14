@@ -75,9 +75,10 @@ public class PlotScene<P,A> {
      * @param  ganger  defines plot surface grouping
      * @param  surfFact   surface factory
      * @param  nz   number of plot zones in group
-     * @param  zoneContents   plot content by zone (nz-element array)
-     * @param  profiles   plot surface profiles by zone (nz-element array)
-     * @param  aspects    plot surface aspects by zone (nz-element array)
+     * @param  zoneContents   plot content with initial aspect by zone
+     *                        (nz-element array)
+     * @param  trimmings   plot decoration specification by zone
+     *                     (nz-element array)
      * @param  shadeFacts   shader axis factories by zone (nz-element array),
      *                      elements may be null if not required
      * @param  shadeFixSpans  fixed shader ranges by zone (nz-element array)
@@ -88,7 +89,7 @@ public class PlotScene<P,A> {
      * @param  caching  plot caching policy
      */
     public PlotScene( Ganger<P,A> ganger, SurfaceFactory<P,A> surfFact, int nz,
-                      ZoneContent[] zoneContents, P[] profiles, A[] aspects,
+                      ZoneContent<P,A>[] zoneContents, Trimming[] trimmings,
                       ShadeAxisFactory[] shadeFacts, Span[] shadeFixSpans,
                       PaperTypeSelector ptSel, Compositor compositor,
                       PlotCaching caching ) {
@@ -98,11 +99,19 @@ public class PlotScene<P,A> {
         @SuppressWarnings("unchecked")
         Zone<P,A>[] zs = (Zone<P,A>[]) new Zone<?,?>[ nz_ ];
         zones_ = zs;
-        profiles = ganger.adjustProfiles( profiles.clone() );
+        P[] initialProfiles = PlotUtil.createProfileArray( surfFact, nz );
+        A[] initialAspects = PlotUtil.createAspectArray( surfFact, nz );
+        for ( int iz = 0; iz < nz; iz++ ) {
+            ZoneContent<P,A> content = zoneContents[ iz ];
+            initialProfiles[ iz ] = content.getProfile();
+            initialAspects[ iz ] = content.getAspect();
+        }
+        P[] okProfiles = ganger.adjustProfiles( initialProfiles );
+        A[] okAspects = ganger.adjustAspects( initialAspects, -1 );
         boolean usePlans = caching.getUsePlans();
-        A[] okAspects = ganger.adjustAspects( aspects.clone(), -1 );
         for ( int iz = 0; iz < nz_; iz++ ) {
-            zones_[ iz ] = new Zone<P,A>( zoneContents[ iz ], profiles[ iz ],
+            zones_[ iz ] = new Zone<P,A>( zoneContents[ iz ].getLayers(),
+                                          okProfiles[ iz ], trimmings[ iz ],
                                           shadeFacts[ iz ], shadeFixSpans[ iz ],
                                           okAspects[ iz ], usePlans );
         }
@@ -116,13 +125,8 @@ public class PlotScene<P,A> {
      * Constructs a PlotScene containing a single plot surface.
      *
      * @param  surfFact   surface factory
-     * @param   layers   plot layers to be painted
-     * @param   profile  surface profile
-     * @param   legend   legend icon if required, or null
-     * @param   legPos  legend position if intenal legend is required;
-     *                  2-element (x,y) array, each element in range 0-1
-     * @param   title   title text, or null
-     * @param  aspect    plot surface aspect
+     * @param  content  plot content with initial aspect
+     * @param  trimming    specification of additional decoration
      * @param  shadeFact   shader axis factory, or null if not required
      * @param  shadeFixSpan  fixed shader span, or null for auto-range
      * @param  ptSel    paper type selector
@@ -130,17 +134,14 @@ public class PlotScene<P,A> {
      * @param  padding   user requirements for external space
      * @param  caching  plot caching policy
      */
-    public PlotScene( SurfaceFactory<P,A> surfFact, PlotLayer[] layers,
-                      P profile, Icon legend, float[] legPos, String title,
-                      A aspect, ShadeAxisFactory shadeFact, Span shadeFixSpan,
-                      PaperTypeSelector ptSel, Compositor compositor,
-                      Padding padding, PlotCaching caching ) {
+    public PlotScene( SurfaceFactory<P,A> surfFact, ZoneContent<P,A> content,
+                      Trimming trimming, ShadeAxisFactory shadeFact,
+                      Span shadeFixSpan, PaperTypeSelector ptSel,
+                      Compositor compositor, Padding padding,
+                      PlotCaching caching ) {
         this( new SingleGanger<P,A>( padding ), surfFact, 1,
-              new ZoneContent[] {
-                  new ZoneContent( layers, legend, legPos, title )
-              },
-              PlotUtil.singletonArray( profile ),
-              PlotUtil.singletonArray( aspect ),
+              PlotUtil.singletonArray( content ),
+              new Trimming[] { trimming },
               new ShadeAxisFactory[] { shadeFact },
               new Span[] { shadeFixSpan },
               ptSel, compositor, caching );
@@ -165,13 +166,13 @@ public class PlotScene<P,A> {
     }
 
     /**
-     * Returns the current zone content for a given zone.
+     * Returns the plot layers contained in a given zone.
      *
      * @param   iz  zone index
-     * @return  zone content
+     * @return  plot layers
      */
-    public ZoneContent getZoneContent( int iz ) {
-        return zones_[ iz ].content_;
+    public PlotLayer[] getLayers( int iz ) {
+        return zones_[ iz ].layers_;
     }
 
     /**
@@ -227,7 +228,6 @@ public class PlotScene<P,A> {
         for ( int iz = 0; iz < nz_; iz++ ) {
             Zone<P,A> zone = zones_[ iz ];
             if ( zone.surface_ == null ) {
-                ZoneContent content = zone.content_;
                 Surface oldApproxSurf = zone.approxSurf_;
                 zone.approxSurf_ =
                     surfFact_.createSurface( approxGang.getZonePlotBounds( iz ),
@@ -239,7 +239,7 @@ public class PlotScene<P,A> {
                                    ? null
                                    : zone.plans_.toArray();
                     zone.auxSpans_ =
-                        getAuxSpans( content.getLayers(), zone.approxSurf_,
+                        getAuxSpans( zone.layers_, zone.approxSurf_,
                                      zone.shadeFixSpan_, zone.shadeFact_,
                                      plans, dataStore );
                     Span shadeSpan = zone.auxSpans_.get( AuxScale.COLOR );
@@ -291,15 +291,11 @@ public class PlotScene<P,A> {
             if ( zone.icon_ == null ) {
 
                 /* Work out plot positioning. */
-                ZoneContent content = zone.content_;
-                PlotLayer[] layers = content.getLayers();
+                PlotLayer[] layers = zone.layers_;
                 Decoration[] decs =
                     PlotPlacement
                    .createPlotDecorations( zone.surface_, WITH_SCROLL,
-                                           content.getLegend(),
-                                           content.getLegendPosition(),
-                                           content.getTitle(),
-                                           zone.shadeAxis_ );
+                                           zone.trimming_, zone.shadeAxis_ );
                 PlotPlacement placer =
                     new PlotPlacement( extBounds, zone.surface_, decs );
 
@@ -419,19 +415,19 @@ public class PlotScene<P,A> {
      *                     (includes space for axis labels etc)
      */
     private Gang createGang( Rectangle extBounds ) {
-        ZoneContent[] contents = new ZoneContent[ nz_ ];
-        A[] aspects = PlotUtil.createAspectArray( surfFact_, nz_ );
-        P[] profiles = PlotUtil.createProfileArray( surfFact_, nz_ );
+        ZoneContent<P,A>[] contents =
+            PlotUtil.createZoneContentArray( surfFact_, nz_ );
+        Trimming[] trimmings = new Trimming[ nz_ ];
         ShadeAxis[] shadeAxes = new ShadeAxis[ nz_ ];
         for ( int iz = 0; iz < nz_; iz++ ) {
             Zone<P,A> zone = zones_[ iz ];
-            contents[ iz ] = zone.content_;
-            profiles[ iz ] = zone.profile_;
-            aspects[ iz ] = zone.aspect_;
+            contents[ iz ] = new ZoneContent<P,A>( zone.profile_, zone.aspect_,
+                                                   zone.layers_ );
+            trimmings[ iz ] = zone.trimming_;
             shadeAxes[ iz ] = zone.shadeAxis_;
         }
         return ganger_.createGang( extBounds, surfFact_, nz_, contents,
-                                   profiles, aspects, shadeAxes, WITH_SCROLL );
+                                   trimmings, shadeAxes, WITH_SCROLL );
     }
 
     /**
@@ -529,7 +525,7 @@ public class PlotScene<P,A> {
      * @param  ganger  definses plot grouping
      * @param  surfFact   surface factory
      * @param  nz   number of plot zones in group
-     * @param  contents   per-zone content information (nz-element array)
+     * @param  layerArrays   per-zone layer arrays (nz-element array)
      * @param  profiles   per-zone profiles (nz-element array)
      * @param  aspectConfigs   per-zone config map providing entries
      *                         for surf.getAspectKeys (nz-element arrays)
@@ -548,8 +544,8 @@ public class PlotScene<P,A> {
     @Slow
     public static <P,A> PlotScene<P,A>
             createGangScene( Ganger<P,A> ganger, SurfaceFactory<P,A> surfFact,
-                             int nz, ZoneContent[] contents, P[] profiles,
-                             ConfigMap[] aspectConfigs,
+                             int nz, PlotLayer[][] layerArrays, P[] profiles,
+                             ConfigMap[] aspectConfigs, Trimming[] trimmings,
                              ShadeAxisFactory[] shadeFacts,
                              Span[] shadeFixSpans,
                              PaperTypeSelector ptSel, Compositor compositor,
@@ -557,23 +553,24 @@ public class PlotScene<P,A> {
 
         /* Determine aspects.  This may or may not require reading the ranges
          * from the data (slow).  */
-        A[] aspects = PlotUtil.createAspectArray( surfFact, nz );
         long t0 = System.currentTimeMillis();
+        ZoneContent<P,A>[] contents =
+            PlotUtil.createZoneContentArray( surfFact, nz );
         for ( int iz = 0; iz < nz; iz++ ) {
+            PlotLayer[] layers = layerArrays[ iz ];
             P profile = profiles[ iz ];
             ConfigMap config = aspectConfigs[ iz ];
             Range[] ranges = surfFact.useRanges( profile, config )
-                           ? surfFact.readRanges( profile,
-                                                  contents[ iz ].getLayers(),
-                                                  dataStore )
+                           ? surfFact.readRanges( profile, layers, dataStore )
                            : null;
-            aspects[ iz ] = surfFact.createAspect( profile, config, ranges );
+            A aspect = surfFact.createAspect( profile, config, ranges );
+            contents[ iz ] = new ZoneContent<P,A>( profile, aspect, layers );
         }
         PlotUtil.logTimeFromStart( logger_, "Range", t0 );
  
         /* Construct and return display. */
-        return new PlotScene<P,A>( ganger, surfFact, nz, contents,
-                                   profiles, aspects, shadeFacts, shadeFixSpans,
+        return new PlotScene<P,A>( ganger, surfFact, nz, contents, trimmings,
+                                   shadeFacts, shadeFixSpans,
                                    ptSel, compositor, caching );
     }
 
@@ -638,8 +635,9 @@ public class PlotScene<P,A> {
      * Some of the members are mutable.
      */
     private static class Zone<P,A> {
-        final ZoneContent content_;
+        final PlotLayer[] layers_;
         final P profile_;
+        final Trimming trimming_;
         final ShadeAxisFactory shadeFact_;
         final Span shadeFixSpan_;
         final Set<Object> plans_;
@@ -657,17 +655,20 @@ public class PlotScene<P,A> {
         /**
          * Constructor.
          *
-         * @param  content   zone content
+         * @param  layers   plot layers
          * @param  profile   zone profile
+         * @param  trimming   specification for decorations
          * @param  shadeFact  shade axis factory, or null
          * @param  shadeFixSpan   fixed range for shader axis, or null
          * @param  initialAspect   aspect for initial display
          * @param  usePlans  if true, store plotting plans for reuse
          */
-        Zone( ZoneContent content, P profile, ShadeAxisFactory shadeFact,
-              Span shadeFixSpan, A initialAspect, boolean usePlans ) {
-            content_ = content;
+        Zone( PlotLayer[] layers, P profile, Trimming trimming,
+              ShadeAxisFactory shadeFact, Span shadeFixSpan,
+              A initialAspect, boolean usePlans ) {
+            layers_ = layers;
             profile_ = profile;
+            trimming_ = trimming;
             shadeFact_ = shadeFact;
             shadeFixSpan_ = shadeFixSpan;
             aspect_ = initialAspect;

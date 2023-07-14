@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.ZoneContent;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
@@ -44,13 +45,9 @@ import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
  */
 public class PlotGenerator<P,A> {
 
-    private final PlotLayer[] layers_;
     private final SurfaceFactory<P,A> surfFact_;
-    private final P profile_;
-    private final A aspect_;
-    private final Icon legend_;
-    private final float[] legPos_;
-    private final String title_;
+    private final ZoneContent<P,A> content_;
+    private final Trimming trimming_;
     private final ShadeAxisFactory shadeFact_;
     private final Span shadeFixSpan_;
     private final PaperTypeSelector ptSel_;
@@ -63,15 +60,9 @@ public class PlotGenerator<P,A> {
     /**
      * Constructor.
      *
-     * @param  layers   layers constituting plot content
-     * @param  surfFact   surface factory
-     * @param  profile   surface profile
-     * @param  aspect   initial surface aspect (may get changed by zooming etc)
-     * @param  legend   legend icon, or null if none required
-     * @param  legPos   2-element array giving x,y fractional legend placement
-     *                  position within plot (elements in range 0..1),
-     *                  or null for external legend
-     * @param  title   plot title, or null if not required
+     * @param  surfFact  surface factory
+     * @param  content   layer content of plot
+     * @param  trimming  specification of additional decorations
      * @param  shadeFact creates shader axis, or null if not required
      * @param  shadeFixSpan  fixed shader span,
      *                       or null for auto-range where required
@@ -88,20 +79,15 @@ public class PlotGenerator<P,A> {
      *                   those requirements not specified will be
      *                   calculated automatically
      */
-    public PlotGenerator( PlotLayer[] layers,
-                          SurfaceFactory<P,A> surfFact, P profile, A aspect,
-                          Icon legend, float[] legPos, String title,
+    public PlotGenerator( SurfaceFactory<P,A> surfFact,
+                          ZoneContent<P,A> content, Trimming trimming,
                           ShadeAxisFactory shadeFact, Span shadeFixSpan,
                           PaperTypeSelector ptSel, Compositor compositor,
                           DataStore dataStore, int xpix, int ypix,
                           Padding padding ) {
-        layers_ = layers;
         surfFact_ = surfFact;
-        profile_ = profile;
-        aspect_ = aspect;
-        legend_ = legend;
-        legPos_ = legPos;
-        title_ = title;
+        content_ = content;
+        trimming_ = trimming;
         shadeFact_ = shadeFact;
         shadeFixSpan_ = shadeFixSpan;
         ptSel_ = ptSel;
@@ -132,8 +118,7 @@ public class PlotGenerator<P,A> {
         cachePolicy.setCacheImage( cacheImage );
         cachePolicy.setUsePlans( true );
         PlotScene<P,A> scene =
-            new PlotScene<>( surfFact_, layers_, profile_, legend_,
-                             legPos_, title_, aspect_,
+            new PlotScene<>( surfFact_, content_, trimming_,
                              shadeFact_, shadeFixSpan_,
                              ptSel_, compositor_, padding_,
                              cachePolicy );
@@ -172,12 +157,8 @@ public class PlotGenerator<P,A> {
     public Icon createIcon( boolean forceBitmap ) {
         return AbstractPlot2Task
               .createPlotIcon( new SingleGanger<P,A>( padding_ ), surfFact_, 1,
-                               new ZoneContent[] {
-                                   new ZoneContent( layers_, legend_,
-                                                    legPos_, title_ )
-                               },
-                               PlotUtil.singletonArray( profile_ ),
-                               PlotUtil.singletonArray( aspect_ ),
+                               PlotUtil.singletonArray( content_ ),
+                               new Trimming[] { trimming_ },
                                new ShadeAxisFactory[] { shadeFact_ },
                                new Span[] { shadeFixSpan_ },
                                ptSel_, compositor_, dataStore_,

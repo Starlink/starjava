@@ -1,9 +1,9 @@
 package uk.ac.starlink.topcat.plot2;
 
-import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
+import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 
 /**
@@ -37,27 +37,12 @@ public interface ZoneDef<P,A> {
     TopcatLayer[] getLayers();
 
     /**
-     * Returns the legend icon associated with this zone, if any.
+     * Returns the specification for additional decorations of this zone,
+     * if any.
      *
-     * @return  legend icon, or null
+     * @return  zone trimming, or null
      */
-    LegendIcon getLegend();
-
-    /**
-     * Returns an array indicating the fractional position of the legend
-     * within the plot surface.  A null value indicates that the legend,
-     * if any, is to be displayed externally to the plot.
-     *
-     * @return   2-element x,y fractional location in range 0..1, or null
-     */
-    float[] getLegendPosition();
-
-    /**
-     * Returns a title string associated with this zone, if any.
-     *
-     * @return  title string, or null
-     */
-    String getTitle();
+    Trimming getTrimming();
 
     /**
      * Returns the shade axis factory for this zone.

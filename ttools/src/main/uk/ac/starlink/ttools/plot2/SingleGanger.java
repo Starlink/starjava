@@ -43,20 +43,17 @@ public class SingleGanger<P,A> implements Ganger<P,A> {
 
     public Gang createGang( Rectangle extBounds,
                             SurfaceFactory<P,A> surfFact, int nz,
-                            ZoneContent[] contents,
-                            P[] profiles, A[] aspects,
+                            ZoneContent<P,A>[] contents, Trimming[] trimmings,
                             ShadeAxis[] shadeAxes, boolean withScroll ) {
         if ( nz != 1 ) {
             throw new IllegalArgumentException( "Not single zone" );
         }
-        ZoneContent content = contents[ 0 ];
+        ZoneContent<P,A> content = contents[ 0 ];
         Rectangle plotBounds =
             PlotPlacement
            .calculateDataBounds( extBounds, padding_, surfFact,
-                                 profiles[ 0 ], aspects[ 0 ], withScroll,
-                                 content.getLegend(),
-                                 content.getLegendPosition(),
-                                 content.getTitle(), shadeAxes[ 0 ] );
+                                 content.getProfile(), content.getAspect(),
+                                 withScroll, trimmings[ 0 ], shadeAxes[ 0 ] );
         return new SingleGang( plotBounds );
     }
 

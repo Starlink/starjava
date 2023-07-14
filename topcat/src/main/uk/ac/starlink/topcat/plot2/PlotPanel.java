@@ -65,6 +65,7 @@ import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.ZoneContent;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -636,10 +637,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             auxFixSpans.put( AuxScale.COLOR, zoneDef.getShadeFixSpan() );
             auxSubranges.put( AuxScale.COLOR, zoneDef.getShadeSubrange() );
             auxLogFlags.put( AuxScale.COLOR, zoneDef.isShadeLog() );
-            Icon legend = zoneDef.getLegend();
-            assert legend == null || zoneDef.getLegend().equals( legend );
-            float[] legpos = zoneDef.getLegendPosition();
-            String title = zoneDef.getTitle();
+            Trimming trimming = zoneDef.getTrimming();
+            Icon legend = trimming == null ? null : trimming.getLegend();
+            String title = trimming == null ? null : trimming.getTitle();
             LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
             PaperType paperType = ptSel_.getPixelPaperType( opts, compositor_ );
             ZoneId zid = zoneDef.getZoneId();
@@ -647,23 +647,25 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 new PlotJob.Zone<P,A>( layers, profile, fixAspect,
                                        geomFixRanges, surfConfig, shadeFact,
                                        auxFixSpans, auxSubranges, auxLogFlags,
-                                       legend, legpos, title, highlights,
-                                       paperType, axisController, zid );
+                                       trimming, highlights, paperType,
+                                       axisController, zid );
             zoneList.add( zone );
             ConfigMap zconfig = zoneDef.getConfig();
             boolean hasAux = StackPlotWindow.hasShadedLayers( layers );
             final ZoneSpec.LegendSpec legSpec;
-            if ( legend == null ) {
-                legSpec = null;
-            }
-            else {
-                float[] legPos = zoneDef.getLegendPosition();
-                LegendIcon legIcon = zoneDef.getLegend();
+            if ( legend instanceof LegendIcon ) {
+                LegendIcon legIcon = (LegendIcon) legend;
+                assert legIcon.equals( zoneDef.getTrimming().getLegend() );
+                float[] legPos = trimming.getLegendPosition();
                 boolean hasBorder = legIcon.hasBorder();
                 Color legBg = legIcon.getBackground();
                 boolean isOpaque = legBg != null && legBg.getAlpha() > 250;
                 legSpec = new ZoneSpec
                              .LegendSpec( hasBorder, isOpaque, legPos );
+            }
+            else {
+                assert legend == null;
+                legSpec = null;
             }
             ZoneSpec.RampSpec auxSpec = createRampSpec( shadeFact );
             zoneSpecs.add( new ZoneSpec( zconfig, hasAux, title,
@@ -1649,8 +1651,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 /* Get the basic plot decorations. */
                 Decoration[] basicDecs =
                     PlotPlacement
-                   .createPlotDecorations( surface, WITH_SCROLL, zone.legend_,
-                                           zone.legpos_, zone.title_,
+                   .createPlotDecorations( surface, WITH_SCROLL, zone.trimming_,
                                            shadeAxes[ iz ] );
                 List<Decoration> decList = new ArrayList<Decoration>();
                 decList.addAll( Arrays.asList( basicDecs ) );
@@ -1892,18 +1893,19 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          */
         private Gang createGang( A[] aspects, ShadeAxis[] shadeAxes ) {
             int nz = zones_.size();
-            ZoneContent[] zoneContents = new ZoneContent[ nz ];
-            P[] profiles = PlotUtil.createProfileArray( surfFact_, nz );
+            ZoneContent<P,A>[] zoneContents =
+                PlotUtil.createZoneContentArray( surfFact_, nz );
+            Trimming[] trimmings = new Trimming[ nz ];
             for ( int iz = 0; iz < nz; iz++ ) {
                 Zone<P,A> zone = zones_.get( iz );
-                profiles[ iz ] = zone.profile_;
                 zoneContents[ iz ] =
-                    new ZoneContent( zone.layers_, zone.legend_,
-                                     zone.legpos_, zone.title_ );
+                    new ZoneContent<P,A>( zone.profile_, aspects[ iz ],
+                                          zone.layers_ );
+                trimmings[ iz ] = zone.trimming_;
 	    }
             return ganger_.createGang( extBounds_, surfFact_, nz,
-                                       zoneContents, profiles, aspects,
-                                       shadeAxes, WITH_SCROLL );
+                                       zoneContents, trimmings, shadeAxes,
+                                       WITH_SCROLL );
         }
 
         /**
@@ -2022,9 +2024,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             final Map<AuxScale,Span> auxFixSpans_;
             final Map<AuxScale,Subrange> auxSubranges_;
             final Map<AuxScale,Boolean> auxLogFlags_;
-            final Icon legend_;
-            final float[] legpos_;
-            final String title_;
+            final Trimming trimming_;
             final double[][] highlights_;
             final PaperType paperType_;
             final AxisController<P,A> axisController_;
@@ -2044,11 +2044,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * @param   auxSubranges  subranges for aux scales, where present
              * @param   auxLogFlags  logarithmic scale flags for aux scales
              *                       (either absent or false means linear)
-             * @param   legend   legend icon, or null
-             * @param   legpos   legend position as (x,y) array of
-             *                   relative positions (0-1),
-             *                   or null if legend absent/external
-             * @param   title    plot title, or null
+             * @param   trimming  specification for additional decoration,
+             *                    or null
              * @param   highlights  array of highlight data positions
              * @param   paperType   rendering implementation
              * @param   axisController  GUI component corresponding to this zone
@@ -2060,8 +2057,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                   Map<AuxScale,Span> auxFixSpans,
                   Map<AuxScale,Subrange> auxSubranges,
                   Map<AuxScale,Boolean> auxLogFlags,
-                  Icon legend, float[] legpos, String title,
-                  double[][] highlights, PaperType paperType,
+                  Trimming trimming, double[][] highlights, PaperType paperType,
                   AxisController<P,A> axisController, ZoneId zid ) {
                 layers_ = layers;
                 profile_ = profile;
@@ -2072,9 +2068,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 auxFixSpans_ = auxFixSpans;
                 auxSubranges_ = auxSubranges;
                 auxLogFlags_ = auxLogFlags;
-                legend_ = legend;
-                legpos_ = legpos;
-                title_ = title;
+                trimming_ = trimming;
                 highlights_ = highlights;
                 paperType_ = paperType;
                 axisController_ = axisController;

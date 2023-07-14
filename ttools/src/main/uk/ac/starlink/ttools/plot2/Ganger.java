@@ -42,8 +42,8 @@ public interface Ganger<P,A> {
      * @param  surfFact   surface factory
      * @param  nz        number of zones
      * @param  zoneContents  plot content for each zone (nz-element array)
-     * @param  profiles  profile for each zone (nz-element array)
-     * @param  aspects   aspect for each zone (nz-element array)
+     * @param  trimmings   additional decorations for each zone
+     *                     (nz-element array, elements may be empty)
      * @param  shadeAxes   shading axis for each zone
      *                     (nz-element array, elements may be empty)
      * @param  withScroll  true if the positioning should work well
@@ -51,9 +51,9 @@ public interface Ganger<P,A> {
      * @return   new gang
      */
     Gang createGang( Rectangle extBounds, SurfaceFactory<P,A> surfFact,
-                     int nz, ZoneContent[] zoneContents,
-                     P[] profiles, A[] aspects,
-                     ShadeAxis[] shadeAxes, boolean withScroll );
+                     int nz, ZoneContent<P,A>[] zoneContents,
+                     Trimming[] trimmings, ShadeAxis[] shadeAxes,
+                     boolean withScroll );
 
     /**
      * Constructs an approximate gang instance given only minimal information.

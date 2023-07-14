@@ -98,6 +98,7 @@ import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.CachedDataStoreFactory;
@@ -973,14 +974,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
             final TopcatLayer[] layers =
                 layerList.toArray( new TopcatLayer[ 0 ] );
-            final LegendIcon legend =
+            LegendIcon legend =
                 legendControl_
                .createLegendIcon( legList.toArray( new LegendEntry[ 0 ] ),
                                   zid );
+            float[] legpos = legendControl_.getLegendPosition();
+            String title = frameControl_.getPlotTitle();
+            final Trimming trimming = new Trimming( legend, legpos, title );
             final AxisController<P,A> axisController =
                 multiAxisController_.getController( zid );
-            final float[] legpos = legendControl_.getLegendPosition();
-            final String title = frameControl_.getPlotTitle();
             ShaderControl shaderControl =
                 multiShaderControl_.getController( zid );
             final ShadeAxisFactory shadeFact =
@@ -1002,14 +1004,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 public TopcatLayer[] getLayers() {
                     return layers;
                 }
-                public LegendIcon getLegend() {
-                    return legend;
-                }
-                public float[] getLegendPosition() {
-                    return legpos;
-                }
-                public String getTitle() {
-                    return title;
+                public Trimming getTrimming() {
+                    return trimming;
                 }
                 public ShadeAxisFactory getShadeAxisFactory() {
                     return shadeFact;

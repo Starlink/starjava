@@ -163,10 +163,7 @@ public class PlotPlacement {
      * @param   aspect   factory-specific surface aspect
      * @param   withScroll  true if the placement should work well
      *                      with future scrolling
-     * @param   legend   legend icon if required, or null
-     * @param   legPos  legend position if intenal legend is required;
-     *                  2-element (x,y) array, each element in range 0-1
-     * @param   title   title text, or null
+     * @param   trimming   specification for static decorations, or null
      * @param   shadeAxis  shader axis if required, or null
      * @return   new plot placement
      */
@@ -174,14 +171,13 @@ public class PlotPlacement {
             createPlacement( Rectangle extBounds, Padding padding,
                              SurfaceFactory<P,A> surfFact,
                              P profile, A aspect, boolean withScroll,
-                             Icon legend, float[] legPos, String title,
-                             ShadeAxis shadeAxis ) {
+                             Trimming trimming, ShadeAxis shadeAxis ) {
         Rectangle dataBounds =
             calculateDataBounds( extBounds, padding, surfFact, profile, aspect,
-                                 withScroll, legend, legPos, title, shadeAxis );
+                                 withScroll, trimming, shadeAxis );
         Surface surf = surfFact.createSurface( dataBounds, profile, aspect );
-        Decoration[] decs = createPlotDecorations( surf, withScroll, legend,
-                                                   legPos, title, shadeAxis );
+        Decoration[] decs =
+            createPlotDecorations( surf, withScroll, trimming, shadeAxis );
         return new PlotPlacement( extBounds, surf, decs );
     }
 
@@ -195,20 +191,20 @@ public class PlotPlacement {
      * @param   aspect   factory-specific surface aspect
      * @param   withScroll  true if the placement should work well
      *                      with future scrolling
-     * @param   legend   legend icon if required, or null
-     * @param   legPos  legend position if intenal legend is required;
-     *                  2-element (x,y) array, each element in range 0-1
-     * @param   title   title text, or null
+     * @param   trimming  specification for static decorations, or null
      * @param   shadeAxis  shader axis if required, or null
      * @param   pad   extra padding in pixels around the outside
      * @return  data bounds rectangle
      */
     public static <P,A> Insets
             calculateDataInsets( Rectangle extBounds,
-                                 SurfaceFactory<P,A> surfFact, P profile,
-                                 A aspect, boolean withScroll, Icon legend,
-                                 float[] legPos, String title,
-                                 ShadeAxis shadeAxis, int pad ) {
+                                 SurfaceFactory<P,A> surfFact,
+                                 P profile, A aspect, boolean withScroll,
+                                 Trimming trimming, ShadeAxis shadeAxis,
+                                 int pad ) {
+        Icon legend = trimming == null ? null : trimming.getLegend();
+        float[] legPos = trimming == null ? null : trimming.getLegendPosition();
+        String title = trimming == null ? null : trimming.getTitle();
         boolean hasExtLegend = legend != null && legPos == null;
 
         /* Calculate surrounding space required for decorations that
@@ -321,19 +317,15 @@ public class PlotPlacement {
      * @param   aspect   factory-specific surface aspect
      * @param   withScroll  true if the placement should work well
      *                      with future scrolling
-     * @param   legend   legend icon if required, or null
-     * @param   legPos  legend position if intenal legend is required;
-     *                  2-element (x,y) array, each element in range 0-1
-     * @param   title   title text, or null
+     * @param   trimming  specification for static decorations, or null
      * @param   shadeAxis  shader axis if required, or null
      * @return  data bounds rectangle
      */
     public static <P,A> Rectangle
             calculateDataBounds( Rectangle extBounds, Padding padding,
                                  SurfaceFactory<P,A> surfFact, P profile,
-                                 A aspect, boolean withScroll, Icon legend,
-                                 float[] legPos, String title,
-                                 ShadeAxis shadeAxis ) {
+                                 A aspect, boolean withScroll,
+                                 Trimming trimming, ShadeAxis shadeAxis ) {
         padding = padding == null ? new Padding() : padding;
         final Insets insets;
         if ( padding.isDefinite() ) {
@@ -342,8 +334,7 @@ public class PlotPlacement {
         else {
             Insets dataInsets =
                 calculateDataInsets( extBounds, surfFact, profile, aspect,
-                                     withScroll, legend, legPos,
-                                     title, shadeAxis, PAD );
+                                     withScroll, trimming, shadeAxis, PAD );
             insets = padding.overrideInsets( dataInsets );
         }
         Rectangle plotBounds = PlotUtil.subtractInsets( extBounds, insets );
@@ -359,19 +350,17 @@ public class PlotPlacement {
      * @param  surf  plot surface
      * @param   withScroll  true if the decorations should work well
      *                      with future scrolling
-     * @param   legend   legend icon if required, or null
-     * @param   legPos  legend position if internal legend is required;
-     *                  2-element (x,y) array, each element in range 0-1
-     * @param   title   title text, or null
+     * @param   trimming  specification for static decorations, or null
      * @param   shadeAxis  shader axis if required, or null
      * @return   list of decorations (may have zero elements)
      */
     public static Decoration[] createPlotDecorations( Surface surf,
                                                       boolean withScroll,
-                                                      Icon legend,
-                                                      float[] legPos,
-                                                      String title,
+                                                      Trimming trimming,
                                                       ShadeAxis shadeAxis ) {
+        Icon legend = trimming == null ? null : trimming.getLegend();
+        float[] legPos = trimming == null ? null : trimming.getLegendPosition();
+        String title = trimming == null ? null : trimming.getTitle();
         Rectangle dataBounds = surf.getPlotBounds();
         Surround surround = surf.getSurround( withScroll );
         List<Decoration> decList = new ArrayList<Decoration>();

@@ -456,6 +456,23 @@ public class PlotUtil {
     }
 
     /**
+     * Returns an empty array suitable (it has the right parameterised type)
+     * for containing elements that are ZoneContents for a given
+     * surface factory.
+     *
+     * @param   surfFact  surface factory
+     * @param   length   array size
+     * @return   new empty array
+     */
+    public static <P,A> ZoneContent<P,A>[]
+            createZoneContentArray( SurfaceFactory<P,A> surfFact, int length ) {
+        @SuppressWarnings("unchecked")
+        ZoneContent<P,A>[] contents =
+            (ZoneContent<P,A>[]) new ZoneContent<?,?>[ length ];
+        return contents;
+    }
+
+    /**
      * Turns an Icon into a Picture.
      *
      * @param   icon   icon
