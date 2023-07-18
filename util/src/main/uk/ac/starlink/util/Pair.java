@@ -10,6 +10,7 @@ import java.util.Collection;
  *
  * @author   Mark Taylor
  * @since    12 Sep 2019
+ * @see    Bi
  */
 public class Pair<T> {
 
