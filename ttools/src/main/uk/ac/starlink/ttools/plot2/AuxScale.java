@@ -1,13 +1,17 @@
 package uk.ac.starlink.ttools.plot2;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.util.Bi;
+import uk.ac.starlink.util.Util;
 
 /**
  * Represents a ranged value that can differ according to the content
@@ -54,6 +58,21 @@ public class AuxScale {
     }
 
     /**
+     * Utility method that produces a list of paired (surface,layer) objects
+     * from an array of PlotLayers and a single Surface.
+     *
+     * @param  surf  surface common to all layers
+     * @param  layers   plot layer array
+     * @return   list of pairs
+     */
+    public static List<Bi<Surface,PlotLayer>>
+            pairSurfaceLayers( Surface surf, PlotLayer[] layers ) {
+        return Arrays.stream( layers )
+              .map( layer -> new Bi<Surface,PlotLayer>( surf, layer ) )
+              .collect( Collectors.toList() );
+    }
+
+    /**
      * Utility method to acquire all the scales that are used in an
      * array of layers.  The result is unordered and contains each scale
      * only once (like a Set).
@@ -78,21 +97,21 @@ public class AuxScale {
      * it behaves identically.
      *
      * @param   scales  scales to calculate ranges for
-     * @param   layers   plot layers
-     * @param   surface   approximate plot surface
+     * @param   surfLayers  list (layer, approximate surface) pairs
+     *                      over which spans should be calculated
      * @param   knownPlans  array of available plan objects; may be empty
      * @param   dataStore  data repository
      * @return   map with a range entry for each of the <code>scales</code>
      */
     public static Map<AuxScale,Span>
-             calculateAuxSpans( AuxScale[] scales, PlotLayer[] layers,
-                                Surface surface, Object[] knownPlans,
-                                DataStore dataStore ) {
+             calculateAuxSpans( AuxScale[] scales,
+                                List<Bi<Surface,PlotLayer>> surfLayers,
+                                Object[] knownPlans, DataStore dataStore ) {
         Map<AuxScale,Span> spanMap = new HashMap<AuxScale,Span>();
         for ( int is = 0; is < scales.length; is++ ) {
             AuxScale scale = scales[ is ];
             spanMap.put( scale,
-                         calculateSpan( scale, layers, surface, knownPlans,
+                         calculateSpan( scale, surfLayers, knownPlans,
                                         dataStore ) );
         }
         return spanMap;
@@ -103,31 +122,34 @@ public class AuxScale {
      * data in a given list of layers.
      *
      * @param   scale  scale to calculate ranges for
-     * @param   layers   plot layers
-     * @param   surface  approximate plot surface
+     * @param   surfLayers  list (layer, approximate surface) pairs
+     *                      over which spans should be calculated
      * @param   knownPlans  array of available plan objects; may be empty
      * @param   dataStore   data repository
      * @return   span for <code>scale</code>
      */
-    private static Span calculateSpan( AuxScale scale, PlotLayer[] layers,
-                                       Surface surface, Object[] knownPlans,
-                                       DataStore dataStore ) {
+    @Slow
+    public static Span
+            calculateSpan( AuxScale scale,
+                           List<Bi<Surface,PlotLayer>> surfLayers,
+                           Object[] knownPlans, DataStore dataStore ) {
 
         /* Work out what kind of ranging is required, and construct a
          * suitable ranger object. */
-        Collection<Scaling> scalings = new HashSet<Scaling>();
-        for ( PlotLayer layer : layers ) {
-            AuxReader rdr = layer.getAuxRangers().get( scale );
-            if ( rdr != null ) {
-                scalings.add( rdr.getScaling() );
-            }
-        }
-        Ranger ranger =
-            Scalings.createRanger( scalings.toArray( new Scaling[ 0 ] ) );
+        Scaling[] scalings =
+            surfLayers.stream()
+           .map( sl -> Util.get( sl.getItem2().getAuxRangers(), scale ) )
+           .filter( rdr -> rdr != null )
+           .map( AuxReader::getScaling )
+           .distinct()
+           .toArray( n -> new Scaling[ n ] );
+        Ranger ranger = Scalings.createRanger( scalings );
 
         /* Feed the data from all the relevant layers to the ranger
          * to generate the result. */
-        for ( PlotLayer layer : layers ) {
+        for ( Bi<Surface,PlotLayer> surfLayer : surfLayers ) {
+            Surface surface = surfLayer.getItem1();
+            PlotLayer layer = surfLayer.getItem2();
             AuxReader rdr = layer.getAuxRangers().get( scale );
             if ( rdr != null ) {
                 rdr.adjustAuxRange( surface, layer.getDataSpec(), dataStore,
@@ -138,60 +160,18 @@ public class AuxScale {
     }
 
     /**
-     * Amalgamates range requirements for a set of scales to return
-     * actual ranges to be used.
-     * An array of input scales is supplied, along with several 
-     * maps of optional range constraints, each of which may contain entries
-     * for zero or more of the input scales.  It is not required to supply
-     * entries to any of these maps for each given scale.
-     * The returned map has one entry for each scales element.
-     *
-     * @param   scales  list of scales for which output ranges are required
-     * @param   dataSpans   actual data ranges acquired by scanning the data,
-     *                      keyed by scale (optional per scale)
-     * @param   fixSpans    single- or double-ended fixed data ranges,
-     *                      keyed by scale (optional per scale)
-     * @param   subranges   subrange keyed by scale; optional per scale,
-     *                      if absent 0-1 is assumed
-     * @param   logFlags    flags indicating logarithmic scale; optional
-     *                      per scale, absent equivalent to false indicates
-     *                      linear scaling
-     * @return   map with one entry for each input scale giving definite
-     *           ranges to use in the plot
-     */
-    public static Map<AuxScale,Span>
-            getClippedSpans( AuxScale[] scales,
-                             Map<AuxScale,Span> dataSpans,
-                             Map<AuxScale,Span> fixSpans,
-                             Map<AuxScale,Subrange> subranges,
-                             Map<AuxScale,Boolean> logFlags ) {
-        Map<AuxScale,Span> clipSpans = new HashMap<AuxScale,Span>();
-        for ( int i = 0; i < scales.length; i++ ) {
-            AuxScale scale = scales[ i ];
-            boolean logFlag = logFlags.containsKey( scale )
-                            ? logFlags.get( scale )
-                            : false;
-            clipSpans.put( scale, clipSpan( dataSpans.get( scale ),
-                                            fixSpans.get( scale ),
-                                            subranges.get( scale ),
-                                            logFlag ) );
-        }
-        return clipSpans;
-    }
-
-    /**
      * Amalgamates range requirements for a single scale to return the
      * actual range to use.  Any or all of the arguments may be null.
      *
-     * @param   dataRange  actual data range acquired by scanning the data,
-     *                     or null
-     * @param   fixRange   single- or double-ended fixed data range, or null
+     * @param   dataSpan  actual data span acquired by scanning the data,
+     *                    or null
+     * @param   fixSpan   single- or double-ended fixed data span, or null
      * @param   subrange   subrange, if null 0-1 is assumed
      * @param   isLog   true for logarithmic scale, false for linear
      * @return   definite range for plotting
      */
-    private static Span clipSpan( Span dataSpan, Span fixSpan,
-                                  Subrange subrange, boolean isLog ) {
+    public static Span clipSpan( Span dataSpan, Span fixSpan,
+                                 Subrange subrange, boolean isLog ) {
         Span span = dataSpan == null ? PlotUtil.EMPTY_SPAN : dataSpan;
         if ( fixSpan != null ) {
             span = span.limit( fixSpan.getLow(), fixSpan.getHigh() );
@@ -222,7 +202,6 @@ public class AuxScale {
      *                      keyed by scale (optional per scale)
      * @return  list of scales for which data scans are required
      */
-
     public static AuxScale[] getMissingScales( PlotLayer[] layers,
                                                Map<AuxScale,Span> dataSpans,
                                                Map<AuxScale,Span> fixSpans ) {

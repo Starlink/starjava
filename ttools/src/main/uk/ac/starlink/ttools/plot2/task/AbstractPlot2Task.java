@@ -79,6 +79,7 @@ import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
+import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.Trimming;
@@ -116,6 +117,7 @@ import uk.ac.starlink.ttools.task.InputFormatParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
 import uk.ac.starlink.ttools.task.StringMultiParameter;
 import uk.ac.starlink.ttools.task.TableProducer;
+import uk.ac.starlink.util.Bi;
 
 /**
  * Abstract superclass for tasks performing plot2 plots using STILTS.
@@ -2774,14 +2776,22 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                         content.getProfile(),
                                         content.getAspect() );
             Map<AuxScale,Span> auxSpans =
-                PlotScene.getAuxSpans( content.getLayers(), approxSurf,
-                                       shadeFixSpans[ iz ], shadeFact,
-                                       planArray, dataStore );
-            auxSpanList.add( auxSpans );
-            Span shadeSpan = auxSpans.get( AuxScale.COLOR );
+                PlotScene
+               .calculateNonShadeSpans( content.getLayers(), approxSurf,
+                                        planArray, dataStore );
+            List<Bi<Surface,PlotLayer>> surfLayers =
+                AuxScale.pairSurfaceLayers( approxSurf,
+                                            contents[ iz ].getLayers() );
+            Subrange shadeSubrange = null;
+            Span shadeSpan =
+                PlotScene
+               .calculateShadeSpan( surfLayers, shadeFixSpans[ iz ], shadeFact,
+                                    shadeSubrange, planArray, dataStore );
+            auxSpans.put( AuxScale.COLOR, shadeSpan );
             if ( shadeFact != null && shadeSpan != null ) {
                 shadeAxes[ iz ] = shadeFact.createShadeAxis( shadeSpan );
             }
+            auxSpanList.add( auxSpans );
         }
         PlotUtil.logTimeFromStart( logger_, "Range", start );
 

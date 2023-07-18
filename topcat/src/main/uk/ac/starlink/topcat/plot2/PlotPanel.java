@@ -54,6 +54,7 @@ import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
+import uk.ac.starlink.ttools.plot2.PlotScene;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
@@ -82,6 +83,7 @@ import uk.ac.starlink.ttools.plot2.task.HighlightIcon;
 import uk.ac.starlink.ttools.plot2.task.LayerSpec;
 import uk.ac.starlink.ttools.plot2.task.PlotSpec;
 import uk.ac.starlink.ttools.plot2.task.ZoneSpec;
+import uk.ac.starlink.util.Bi;
 
 /**
  * Component which paints plot graphics for Topcat.
@@ -630,13 +632,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             A fixAspect = axisController.getAspect();
             Range[] geomFixRanges = axisController.getRanges();
             ShadeAxisFactory shadeFact = zoneDef.getShadeAxisFactory();
-            Map<AuxScale,Span> auxFixSpans = new HashMap<AuxScale,Span>();
-            Map<AuxScale,Subrange> auxSubranges =
-                new HashMap<AuxScale,Subrange>();
-            Map<AuxScale,Boolean> auxLogFlags = new HashMap<AuxScale,Boolean>();
-            auxFixSpans.put( AuxScale.COLOR, zoneDef.getShadeFixSpan() );
-            auxSubranges.put( AuxScale.COLOR, zoneDef.getShadeSubrange() );
-            auxLogFlags.put( AuxScale.COLOR, zoneDef.isShadeLog() );
+            Span shadeFixSpan = zoneDef.getShadeFixSpan();
+            Subrange shadeSubrange = zoneDef.getShadeSubrange();
+            boolean shadeLog = zoneDef.isShadeLog();
             Trimming trimming = zoneDef.getTrimming();
             Icon legend = trimming == null ? null : trimming.getLegend();
             String title = trimming == null ? null : trimming.getTitle();
@@ -646,7 +644,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             PlotJob.Zone<P,A> zone =
                 new PlotJob.Zone<P,A>( layers, profile, fixAspect,
                                        geomFixRanges, surfConfig, shadeFact,
-                                       auxFixSpans, auxSubranges, auxLogFlags,
+                                       shadeFixSpan, shadeSubrange, shadeLog,
                                        trimming, highlights, paperType,
                                        axisController, zid );
             zoneList.add( zone );
@@ -1564,10 +1562,20 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
                 /* Work out which scales we are going to have to calculate,
                  * if any, and calculate them. */
+                Map<AuxScale,Span> auxFixSpans =
+                    Collections.singletonMap( AuxScale.COLOR,
+                                              zone.shadeFixSpan_ );
                 AuxScale[] calcScales =
                     AuxScale.getMissingScales( zone.layers_, auxDataSpanMap,
-                                               zone.auxFixSpans_ );
+                                               auxFixSpans );
                 if ( calcScales.length > 0 ) {
+
+                    /* Split required scales into Aux shade scale and others. */
+                    List<AuxScale> scaleList =
+                        new ArrayList<AuxScale>( Arrays.asList( calcScales ) );
+                    boolean requiresShade = scaleList.remove( AuxScale.COLOR );
+                    AuxScale[] nonShadeScales =
+                        scaleList.toArray( new AuxScale[ 0 ] );
 
                     /* If we have to do some ranging work, we need to supply
                      * a surface to do it with.  If possible, use the actual
@@ -1584,24 +1592,43 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                     Surface rangeSurf = hasSameSurface
                                       ? oldZoneWork.placer_.getSurface()
                                       : approxSurf;
+
+                    /* Do the ranging and store results. */
+                    List<Bi<Surface,PlotLayer>> surfLayers =
+                        AuxScale.pairSurfaceLayers( rangeSurf, zone.layers_ );
+                    Object[] planArray = oldPlans.toArray();
                     Map<AuxScale,Span> calcSpanMap =
-                        AuxScale.calculateAuxSpans( calcScales, zone.layers_,
-                                                    rangeSurf,
-                                                    oldPlans.toArray(),
-                                                    dataStore1 );
+                        AuxScale.calculateAuxSpans( nonShadeScales, surfLayers,
+                                                    planArray, dataStore1 );
                     if ( Thread.currentThread().isInterrupted() ) {
                         return null;
+                    }
+                    if ( requiresShade ) {
+                        Span shadeDataSpan =
+                            AuxScale
+                           .calculateSpan( AuxScale.COLOR, surfLayers,
+                                           planArray, dataStore1 );
+                        if ( Thread.currentThread().isInterrupted() ) {
+                            return null;
+                        }
+                        auxDataSpanMap.put( AuxScale.COLOR, shadeDataSpan );
                     }
                     auxDataSpanMap.putAll( calcSpanMap );
                 }
 
                 /* Combine available aux scale information to get the
                  * actual ranges for use in the plot. */
-                Map<AuxScale,Span> auxClipSpanMap =
-                    AuxScale.getClippedSpans( scales, auxDataSpanMap,
-                                              zone.auxFixSpans_,
-                                              zone.auxSubranges_,
-                                              zone.auxLogFlags_ );
+                Map<AuxScale,Span> auxClipSpanMap = new HashMap<>();
+                for ( AuxScale scale : scales ) {
+                    Span dataSpan = auxDataSpanMap.get( scale );
+                    final Span clipSpan =
+                          AuxScale.COLOR.equals( scale )
+                        ? AuxScale.clipSpan( dataSpan, zone.shadeFixSpan_,
+                                             zone.shadeSubrange_,
+                                             zone.shadeLogFlag_ )
+                        : dataSpan;
+                    auxClipSpanMap.put( scale, clipSpan );
+                }
 
                 /* Extract and use colour scale range for the shader. */
                 Span shadeSpan = auxClipSpanMap.get( AuxScale.COLOR );
@@ -2021,9 +2048,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             final Range[] geomFixRanges_;
             final ConfigMap aspectConfig_;
             final ShadeAxisFactory shadeFact_;
-            final Map<AuxScale,Span> auxFixSpans_;
-            final Map<AuxScale,Subrange> auxSubranges_;
-            final Map<AuxScale,Boolean> auxLogFlags_;
+            final Span shadeFixSpan_;
+            final Subrange shadeSubrange_;
+            final boolean shadeLogFlag_;
             final Trimming trimming_;
             final double[][] highlights_;
             final PaperType paperType_;
@@ -2040,10 +2067,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              *                         if known, else null
              * @param   aspectConfig  config map containing aspect keys
              * @param   shadeFact   shader axis factory
-             * @param   auxFixSpans  fixed ranges for aux scales, where known
-             * @param   auxSubranges  subranges for aux scales, where present
-             * @param   auxLogFlags  logarithmic scale flags for aux scales
-             *                       (either absent or false means linear)
+             * @param   shadeFixSpan  fixed range for aux shading scale
+             * @param   shadeSubrange  subrange for aux shading scale
+             * @param   shadeLogFlag  logarithmic scale flag for aux shading
              * @param   trimming  specification for additional decoration,
              *                    or null
              * @param   highlights  array of highlight data positions
@@ -2053,10 +2079,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              */
             Zone( PlotLayer[] layers, P profile, A fixAspect,
                   Range[] geomFixRanges, ConfigMap aspectConfig,
-                  ShadeAxisFactory shadeFact,
-                  Map<AuxScale,Span> auxFixSpans,
-                  Map<AuxScale,Subrange> auxSubranges,
-                  Map<AuxScale,Boolean> auxLogFlags,
+                  ShadeAxisFactory shadeFact, Span shadeFixSpan,
+                  Subrange shadeSubrange, boolean shadeLogFlag,
                   Trimming trimming, double[][] highlights, PaperType paperType,
                   AxisController<P,A> axisController, ZoneId zid ) {
                 layers_ = layers;
@@ -2065,9 +2089,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 geomFixRanges_ = geomFixRanges;
                 aspectConfig_ = aspectConfig;
                 shadeFact_ = shadeFact;
-                auxFixSpans_ = auxFixSpans;
-                auxSubranges_ = auxSubranges;
-                auxLogFlags_ = auxLogFlags;
+                shadeFixSpan_ = shadeFixSpan;
+                shadeSubrange_ = shadeSubrange;
+                shadeLogFlag_ = shadeLogFlag;
                 trimming_ = trimming;
                 highlights_ = highlights;
                 paperType_ = paperType;

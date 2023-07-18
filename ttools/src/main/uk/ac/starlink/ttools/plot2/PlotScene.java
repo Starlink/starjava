@@ -5,9 +5,11 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -44,6 +46,8 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
+import uk.ac.starlink.util.Bi;
+import uk.ac.starlink.util.Util;
 
 /**
  * Contains the state of a plot, which can be painted to a graphics context.
@@ -239,11 +243,18 @@ public class PlotScene<P,A> {
                                    ? null
                                    : zone.plans_.toArray();
                     zone.auxSpans_ =
-                        getAuxSpans( zone.layers_, zone.approxSurf_,
-                                     zone.shadeFixSpan_, zone.shadeFact_,
-                                     plans, dataStore );
-                    Span shadeSpan = zone.auxSpans_.get( AuxScale.COLOR );
+                        calculateNonShadeSpans( zone.layers_, zone.approxSurf_,
+                                                plans, dataStore );
                     ShadeAxisFactory shadeFact = zone.shadeFact_;
+                    List<Bi<Surface,PlotLayer>> surfLayers =
+                        AuxScale.pairSurfaceLayers( zone.approxSurf_,
+                                                    zone.layers_ );
+                    Subrange shadeSubrange = null;
+                    Span shadeSpan =
+                        calculateShadeSpan( surfLayers, zone.shadeFixSpan_,
+                                            shadeFact, shadeSubrange,
+                                            plans, dataStore );
+                    zone.auxSpans_.put( AuxScale.COLOR, shadeSpan );
                     zone.shadeAxis_ = shadeSpan != null && shadeFact != null
                                     ? shadeFact.createShadeAxis( shadeSpan )
                                     : null;
@@ -575,59 +586,92 @@ public class PlotScene<P,A> {
     }
 
     /**
-     * Gathers requested ranging information from data.
+     * Gathers requested ranging information from data,
+     * excluding the AuxScale.COLOR item (the aux shading axis).
+     * The result is a map with an entry for every AuxScale required
+     * by any of the submitted layers, apart from AuxScale.COLOR,
+     * which must be calculated separately.
      *
      * @param  layers  plot layers
-     * @param  surface  plot surface
-     * @param  shadeFixSpan   fixed shade range limits, if any
-     * @param  shadeFact  makes shader axis, or null
+     * @param  surface  surface on which layers will be plotted
      * @param  plans   array of calculated plan objects, or null
      * @param  dataStore  data storage object
      * @return   ranging information
+     * @see    #calculateShadeSpan
+     * @see    AuxScale#COLOR
      */
     @Slow
-    public static Map<AuxScale,Span> getAuxSpans( PlotLayer[] layers,
-                                                  Surface surface,
-                                                  Span shadeFixSpan,
-                                                  ShadeAxisFactory shadeFact,
-                                                  Object[] plans,
-                                                  DataStore dataStore ) {
+    public static Map<AuxScale,Span>
+            calculateNonShadeSpans( PlotLayer[] layers, Surface surface,
+                                    Object[] plans, DataStore dataStore ) {
 
-        /* Work out what ranges have been requested by plot layers. */
-        AuxScale[] scales = AuxScale.getAuxScales( layers );
+        /* Work out what ranges have been requested by plot layers,
+         * but remove AuxScale.COLOR, which is treated specially. */
+        AuxScale[] scales = Arrays.stream( AuxScale.getAuxScales( layers ) )
+                           .filter( s -> ! Util.equals( s, AuxScale.COLOR ) )
+                           .toArray( n -> new AuxScale[ n ] );
 
-        /* Add any known fixed range values. */
+        /* Calculate the ranges from the data. */
+        plans = plans == null ? new Object[ 0 ] : plans;
+        long start = System.currentTimeMillis();
+        List<Bi<Surface,PlotLayer>> surfLayers =
+            AuxScale.pairSurfaceLayers( surface, layers );
+        return AuxScale.calculateAuxSpans( scales, surfLayers, plans,
+                                           dataStore );
+    }
+
+    /**
+     * Gathers ranging information for the aux shading axis from data.
+     * The result is a Span relating to the AuxScale.COLOR scale.
+     *
+     * @param   surfLayers  list of paired (surface,layer) items corresponding
+     *                      to the plot that will be performed
+     * @param  shadeFixSpan   fixed shade range limits, if any
+     * @param  shadeFact  makes shader axis, or null
+     * @param  shadeSubrange  subrange to apply to scale, or null
+     * @param  plans   array of calculated plan objects, or null
+     * @param  dataStore  data storage object
+     * @return   AuxScale.COLOR ranging information,
+     *           or null if none is required by the surfLayers
+     * @see    AuxScale#COLOR
+     */
+    @Slow
+    public static Span
+            calculateShadeSpan( List<Bi<Surface,PlotLayer>> surfLayers,
+                                Span shadeFixSpan, ShadeAxisFactory shadeFact,
+                                Subrange shadeSubrange,
+                                Object[] plans, DataStore dataStore ) {
+
+        /* Find out if we need to calculate the AuxScale.COLOR span. */
+        PlotLayer[] layers = surfLayers.stream()
+                            .map( Bi::getItem2 )
+                            .toArray( n -> new PlotLayer[ n ] );
+        Map<AuxScale,Span> dataSpans = Collections.emptyMap();
         Map<AuxScale,Span> auxFixSpans = new HashMap<AuxScale,Span>();
         if ( shadeFixSpan != null ) {
             auxFixSpans.put( AuxScale.COLOR, shadeFixSpan );
         }
+        boolean requireColor =
+            Arrays.asList( AuxScale
+                          .getMissingScales( layers, dataSpans, auxFixSpans ) )
+           .contains( AuxScale.COLOR );
 
-        /* Prepare list of ranges known to be logarithmic. */
-        Map<AuxScale,Boolean> auxLogFlags = new HashMap<AuxScale,Boolean>();
-        if ( shadeFact != null ) {
-            auxLogFlags.put( AuxScale.COLOR, shadeFact.isLog() );
+        /* Do the calculation if required. */
+        if ( requireColor ) {
+            long start = System.currentTimeMillis();
+            plans = plans == null ? new Object[ 0 ] : plans;
+            Span shadeDataSpan =
+                AuxScale.calculateAuxSpans( new AuxScale[] { AuxScale.COLOR },
+                                            surfLayers, plans, dataStore )
+               .get( AuxScale.COLOR );
+            boolean shadeLog = shadeFact != null && shadeFact.isLog();
+            PlotUtil.logTimeFromStart( logger_, "AuxRange.COLOR", start );
+            return AuxScale.clipSpan( shadeDataSpan, shadeFixSpan,
+                                      shadeSubrange, shadeLog );
         }
-
-        /* We will not be using subranges, so prepare an empty map. */
-        Map<AuxScale,Subrange> auxSubranges = new HashMap<AuxScale,Subrange>();
-
-        /* Work out what ranges we need to calculate. */
-        AuxScale[] calcScales =
-            AuxScale.getMissingScales( layers, new HashMap<AuxScale,Span>(),
-                                       auxFixSpans );
-
-        /* Calculate the ranges from the data. */
-        long start = System.currentTimeMillis();
-        plans = plans == null ? new Object[ 0 ] : plans;
-        Map<AuxScale,Span> auxDataSpans =
-            AuxScale.calculateAuxSpans( calcScales, layers, surface, plans,
-                                        dataStore );
-        PlotUtil.logTimeFromStart( logger_, "AuxRange", start );
-
-        /* Combine all the gathered information to acquire actual
-         * data ranges for the plot. */
-        return AuxScale.getClippedSpans( scales, auxDataSpans, auxFixSpans,
-                                         auxSubranges, auxLogFlags );
+        else {
+            return shadeFixSpan;
+        }
     }
 
     /**
