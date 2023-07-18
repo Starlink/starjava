@@ -14,9 +14,8 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotScene;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
-import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
-import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.ZoneContent;
@@ -48,8 +47,7 @@ public class PlotGenerator<P,A> {
     private final SurfaceFactory<P,A> surfFact_;
     private final ZoneContent<P,A> content_;
     private final Trimming trimming_;
-    private final ShadeAxisFactory shadeFact_;
-    private final Span shadeFixSpan_;
+    private final ShadeAxisKit shadeKit_;
     private final PaperTypeSelector ptSel_;
     private final Compositor compositor_;
     private final DataStore dataStore_;
@@ -63,9 +61,7 @@ public class PlotGenerator<P,A> {
      * @param  surfFact  surface factory
      * @param  content   layer content of plot
      * @param  trimming  specification of additional decorations
-     * @param  shadeFact creates shader axis, or null if not required
-     * @param  shadeFixSpan  fixed shader span,
-     *                       or null for auto-range where required
+     * @param  shadeKit  specifies shader axis, or null if not required
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
@@ -81,15 +77,13 @@ public class PlotGenerator<P,A> {
      */
     public PlotGenerator( SurfaceFactory<P,A> surfFact,
                           ZoneContent<P,A> content, Trimming trimming,
-                          ShadeAxisFactory shadeFact, Span shadeFixSpan,
-                          PaperTypeSelector ptSel, Compositor compositor,
-                          DataStore dataStore, int xpix, int ypix,
-                          Padding padding ) {
+                          ShadeAxisKit shadeKit, PaperTypeSelector ptSel,
+                          Compositor compositor, DataStore dataStore,
+                          int xpix, int ypix, Padding padding ) {
         surfFact_ = surfFact;
         content_ = content;
         trimming_ = trimming;
-        shadeFact_ = shadeFact;
-        shadeFixSpan_ = shadeFixSpan;
+        shadeKit_ = shadeKit;
         ptSel_ = ptSel;
         compositor_ = compositor;
         dataStore_ = dataStore;
@@ -118,8 +112,7 @@ public class PlotGenerator<P,A> {
         cachePolicy.setCacheImage( cacheImage );
         cachePolicy.setUsePlans( true );
         PlotScene<P,A> scene =
-            new PlotScene<>( surfFact_, content_, trimming_,
-                             shadeFact_, shadeFixSpan_,
+            new PlotScene<>( surfFact_, content_, trimming_, shadeKit_,
                              ptSel_, compositor_, padding_,
                              cachePolicy );
         PlotDisplay<P,A> display =
@@ -159,8 +152,7 @@ public class PlotGenerator<P,A> {
               .createPlotIcon( new SingleGanger<P,A>( padding_ ), surfFact_, 1,
                                PlotUtil.singletonArray( content_ ),
                                new Trimming[] { trimming_ },
-                               new ShadeAxisFactory[] { shadeFact_ },
-                               new Span[] { shadeFixSpan_ },
+                               new ShadeAxisKit[] { shadeKit_ },
                                ptSel_, compositor_, dataStore_,
                                xpix_, ypix_, forceBitmap );
     }

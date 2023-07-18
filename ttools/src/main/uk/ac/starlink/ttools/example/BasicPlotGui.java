@@ -37,8 +37,7 @@ import uk.ac.starlink.ttools.plot2.PlotCaching;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
-import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
-import uk.ac.starlink.ttools.plot2.Span;
+import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.Trimming;
@@ -213,8 +212,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
          * We are skipping some optional items such as legends here.
          * Some layer types would require more work. */
         Trimming trimming = null;
-        ShadeAxisFactory shadeFact = null;
-        Span shadeFixSpan = null;
+        ShadeAxisKit shadeKit = null;
         PaperTypeSelector ptSel = plotType_.getPaperTypeSelector();
         Compositor compositor = Compositor.SATURATION;
         Padding padding = new Padding();
@@ -226,9 +224,9 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
          * See the implementation in that class for the various bits of
          * magic this involves. */
         return PlotDisplay
-              .createPlotDisplay( layers, sfact_, config, trimming, shadeFact,
-                                  shadeFixSpan, ptSel, compositor,
-                                  padding, dataStore, navigable, caching );
+              .createPlotDisplay( layers, sfact_, config, trimming, shadeKit,
+                                  ptSel, compositor, padding, dataStore,
+                                  navigable, caching );
     }
 
     /**

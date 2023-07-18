@@ -76,6 +76,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
@@ -1286,8 +1287,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final P[] profiles = PlotUtil.createProfileArray( surfFact, nz );
         final Trimming[] trimmings = new Trimming[ nz ];
         final ConfigMap[] aspectConfigs = new ConfigMap[ nz ];
-        final ShadeAxisFactory[] shadeFacts = new ShadeAxisFactory[ nz ];
-        final Span[] shadeFixSpans = new Span[ nz ];
+        final ShadeAxisKit[] shadeKits = new ShadeAxisKit[ nz ];
         for ( int iz = 0; iz < nz; iz++ ) {
             String zoneSuffix = zoneSuffixes[ iz ];
 
@@ -1329,6 +1329,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                             shadeConfig.get( StyleKeys.SHADE_HIGH ) );
             ShadeAxisFactory shadeFact =
                 createShadeAxisFactory( env, zoneLayers, zoneSuffix );
+            Subrange shadeSubrange = null;
+            ShadeAxisKit shadeKit =
+                new ShadeAxisKit( shadeFact, shadeFixSpan, shadeSubrange );
 
             /* Get the legend position for the current zone. */
             final float[] legPos;
@@ -1357,8 +1360,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             profiles[ iz ] = profile;
             aspectConfigs[ iz ] = aspectConfig;
             trimmings[ iz ] = new Trimming( legend, legPos, title );
-            shadeFacts[ iz ] = shadeFact;
-            shadeFixSpans[ iz ] = shadeFixSpan;
+            shadeKits[ iz ] = shadeKit;
         }
 
         /* We have all we need.  Construct and return the object
@@ -1387,8 +1389,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 return PlotScene
                       .createGangScene( ganger, surfFact, nz, layerArrays,
                                         profiles, aspectConfigs, trimmings,
-                                        shadeFacts, shadeFixSpans,
-                                        ptSel, compositor, dataStore, caching );
+                                        shadeKits, ptSel, compositor,
+                                        dataStore, caching );
             }
 
             public Icon createPlotIcon( DataStore dataStore ) {
@@ -1409,7 +1411,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 }
                 return AbstractPlot2Task
                       .createPlotIcon( ganger, surfFact, nz, contents,
-                                       trimmings, shadeFacts, shadeFixSpans,
+                                       trimmings, shadeKits,
                                        ptSel, compositor, dataStore,
                                        xpix, ypix, forceBitmap );
             }
@@ -2722,11 +2724,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  nz   number of plot zones in gang
      * @param  contents   zone contents (nz-element array)
      * @param  trimmings   zone trimmings (nz-element array)
-     * @param  shadeFacts   shader axis factories by zone (nz-element array),
-     *                      elements may be null if not required
-     * @param  shadeFixSpans  fixed shader ranges by zone (nz-element array)
-     *                        elements may be null for auto-range or if no
-     *                        shade axis
+     * @param  shadeKits   shader axis specifiers by zone (nz-element array),
+     *                     elements may be null if not required
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
@@ -2741,8 +2740,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                             final SurfaceFactory<P,A> surfFact,
                             final int nz, final ZoneContent<P,A>[] contents,
                             final Trimming[] trimmings,
-                            ShadeAxisFactory[] shadeFacts,
-                            Span[] shadeFixSpans,
+                            ShadeAxisKit[] shadeKits,
                             final PaperTypeSelector ptSel,
                             final Compositor compositor,
                             final DataStore dataStore,
@@ -2770,7 +2768,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         long start = System.currentTimeMillis();
         for ( int iz = 0; iz < nz; iz++ ) {
             ZoneContent<P,A> content = contents[ iz ];
-            ShadeAxisFactory shadeFact = shadeFacts[ iz ];
+            ShadeAxisKit shadeKit = shadeKits[ iz ];
+            Span shadeFixSpan = shadeKit == null ? null
+                                                 : shadeKit.getFixSpan();
+            ShadeAxisFactory shadeFact = shadeKit == null
+                                       ? null
+                                       : shadeKit.getAxisFactory();
             Surface approxSurf =
                 surfFact.createSurface( approxGang.getZonePlotBounds( iz ),
                                         content.getProfile(),
@@ -2782,11 +2785,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             List<Bi<Surface,PlotLayer>> surfLayers =
                 AuxScale.pairSurfaceLayers( approxSurf,
                                             contents[ iz ].getLayers() );
-            Subrange shadeSubrange = null;
             Span shadeSpan =
-                PlotScene
-               .calculateShadeSpan( surfLayers, shadeFixSpans[ iz ], shadeFact,
-                                    shadeSubrange, planArray, dataStore );
+                PlotScene.calculateShadeSpan( surfLayers, shadeKit,
+                                              planArray, dataStore );
             auxSpans.put( AuxScale.COLOR, shadeSpan );
             if ( shadeFact != null && shadeSpan != null ) {
                 shadeAxes[ iz ] = shadeFact.createShadeAxis( shadeSpan );

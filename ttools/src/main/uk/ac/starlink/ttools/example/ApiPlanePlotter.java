@@ -12,8 +12,7 @@ import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
-import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
-import uk.ac.starlink.ttools.plot2.Span;
+import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.ZoneContent;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -134,8 +133,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
 
         /* We will not use optional decorations for this plot. */
         Trimming trimming = null;
-        ShadeAxisFactory shadeFact = null;
-        Span shadeFixSpan = null;
+        ShadeAxisKit shadeKit = null;
 
         /* Prepare the list of plot layers; in this case there is only one. */
         PlotLayer[] layers = { createScatterLayer( geom, table), };
@@ -166,7 +164,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         /* Construct and return the plot generator. */
         return new PlotGenerator<PlaneSurfaceFactory.Profile,PlaneAspect>
                                 ( surfFact, content, trimming,
-                                  shadeFact, shadeFixSpan, ptSel, compositor,
+                                  shadeKit, ptSel, compositor,
                                   dataStore, xpix, ypix, padding );
     }
 

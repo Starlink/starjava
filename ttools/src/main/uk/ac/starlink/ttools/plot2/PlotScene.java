@@ -33,6 +33,7 @@ import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
@@ -83,20 +84,16 @@ public class PlotScene<P,A> {
      *                        (nz-element array)
      * @param  trimmings   plot decoration specification by zone
      *                     (nz-element array)
-     * @param  shadeFacts   shader axis factories by zone (nz-element array),
-     *                      elements may be null if not required
-     * @param  shadeFixSpans  fixed shader ranges by zone (nz-element array)
-     *                        elements may be null for auto-range or if no
-     *                        shade axis
+     * @param  shadeKits   shader axis specifiers by zone (nz-element array),
+     *                     elements may be null if not required
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  caching  plot caching policy
      */
     public PlotScene( Ganger<P,A> ganger, SurfaceFactory<P,A> surfFact, int nz,
                       ZoneContent<P,A>[] zoneContents, Trimming[] trimmings,
-                      ShadeAxisFactory[] shadeFacts, Span[] shadeFixSpans,
-                      PaperTypeSelector ptSel, Compositor compositor,
-                      PlotCaching caching ) {
+                      ShadeAxisKit[] shadeKits, PaperTypeSelector ptSel,
+                      Compositor compositor, PlotCaching caching ) {
         ganger_ = ganger;
         surfFact_ = surfFact;
         nz_ = nz;
@@ -116,8 +113,8 @@ public class PlotScene<P,A> {
         for ( int iz = 0; iz < nz_; iz++ ) {
             zones_[ iz ] = new Zone<P,A>( zoneContents[ iz ].getLayers(),
                                           okProfiles[ iz ], trimmings[ iz ],
-                                          shadeFacts[ iz ], shadeFixSpans[ iz ],
-                                          okAspects[ iz ], usePlans );
+                                          shadeKits[ iz ], okAspects[ iz ],
+                                          usePlans );
         }
         ptSel_ = ptSel;
         compositor_ = compositor;
@@ -131,24 +128,19 @@ public class PlotScene<P,A> {
      * @param  surfFact   surface factory
      * @param  content  plot content with initial aspect
      * @param  trimming    specification of additional decoration
-     * @param  shadeFact   shader axis factory, or null if not required
-     * @param  shadeFixSpan  fixed shader span, or null for auto-range
+     * @param  shadeKit   shader axis specifier, or null if not required
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  padding   user requirements for external space
      * @param  caching  plot caching policy
      */
     public PlotScene( SurfaceFactory<P,A> surfFact, ZoneContent<P,A> content,
-                      Trimming trimming, ShadeAxisFactory shadeFact,
-                      Span shadeFixSpan, PaperTypeSelector ptSel,
-                      Compositor compositor, Padding padding,
-                      PlotCaching caching ) {
+                      Trimming trimming, ShadeAxisKit shadeKit,
+                      PaperTypeSelector ptSel, Compositor compositor,
+                      Padding padding, PlotCaching caching ) {
         this( new SingleGanger<P,A>( padding ), surfFact, 1,
-              PlotUtil.singletonArray( content ),
-              new Trimming[] { trimming },
-              new ShadeAxisFactory[] { shadeFact },
-              new Span[] { shadeFixSpan },
-              ptSel, compositor, caching );
+              PlotUtil.singletonArray( content ), new Trimming[] { trimming },
+              new ShadeAxisKit[] { shadeKit }, ptSel, compositor, caching );
     }
 
     /**
@@ -245,14 +237,15 @@ public class PlotScene<P,A> {
                     zone.auxSpans_ =
                         calculateNonShadeSpans( zone.layers_, zone.approxSurf_,
                                                 plans, dataStore );
-                    ShadeAxisFactory shadeFact = zone.shadeFact_;
+                    ShadeAxisKit shadeKit = zone.shadeKit_;
+                    ShadeAxisFactory shadeFact = shadeKit == null
+                                               ? null
+                                               : shadeKit.getAxisFactory();
                     List<Bi<Surface,PlotLayer>> surfLayers =
                         AuxScale.pairSurfaceLayers( zone.approxSurf_,
                                                     zone.layers_ );
-                    Subrange shadeSubrange = null;
                     Span shadeSpan =
-                        calculateShadeSpan( surfLayers, zone.shadeFixSpan_,
-                                            shadeFact, shadeSubrange,
+                        calculateShadeSpan( surfLayers, zone.shadeKit_,
                                             plans, dataStore );
                     zone.auxSpans_.put( AuxScale.COLOR, shadeSpan );
                     zone.shadeAxis_ = shadeSpan != null && shadeFact != null
@@ -540,11 +533,8 @@ public class PlotScene<P,A> {
      * @param  profiles   per-zone profiles (nz-element array)
      * @param  aspectConfigs   per-zone config map providing entries
      *                         for surf.getAspectKeys (nz-element arrays)
-     * @param  shadeFacts   shader axis factorys by zone (nz-element array),
-     *                      elements may be null if not required
-     * @param  shadeFixSpans   fixed shader ranges by zone (nz-element array)
-     *                         elements may be null for auto-range or if no
-     *                         shade axis
+     * @param  shadeKits   shader axis specifiers by zone (nz-element array),
+     *                     elements may be null if not required
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
@@ -557,8 +547,7 @@ public class PlotScene<P,A> {
             createGangScene( Ganger<P,A> ganger, SurfaceFactory<P,A> surfFact,
                              int nz, PlotLayer[][] layerArrays, P[] profiles,
                              ConfigMap[] aspectConfigs, Trimming[] trimmings,
-                             ShadeAxisFactory[] shadeFacts,
-                             Span[] shadeFixSpans,
+                             ShadeAxisKit[] shadeKits,
                              PaperTypeSelector ptSel, Compositor compositor,
                              DataStore dataStore, PlotCaching caching ) {
 
@@ -581,8 +570,7 @@ public class PlotScene<P,A> {
  
         /* Construct and return display. */
         return new PlotScene<P,A>( ganger, surfFact, nz, contents, trimmings,
-                                   shadeFacts, shadeFixSpans,
-                                   ptSel, compositor, caching );
+                                   shadeKits, ptSel, compositor, caching );
     }
 
     /**
@@ -626,9 +614,7 @@ public class PlotScene<P,A> {
      *
      * @param   surfLayers  list of paired (surface,layer) items corresponding
      *                      to the plot that will be performed
-     * @param  shadeFixSpan   fixed shade range limits, if any
-     * @param  shadeFact  makes shader axis, or null
-     * @param  shadeSubrange  subrange to apply to scale, or null
+     * @param  shadeKit   specifies shader axis, or null
      * @param  plans   array of calculated plan objects, or null
      * @param  dataStore  data storage object
      * @return   AuxScale.COLOR ranging information,
@@ -638,8 +624,7 @@ public class PlotScene<P,A> {
     @Slow
     public static Span
             calculateShadeSpan( List<Bi<Surface,PlotLayer>> surfLayers,
-                                Span shadeFixSpan, ShadeAxisFactory shadeFact,
-                                Subrange shadeSubrange,
+                                ShadeAxisKit shadeKit,
                                 Object[] plans, DataStore dataStore ) {
 
         /* Find out if we need to calculate the AuxScale.COLOR span. */
@@ -648,6 +633,7 @@ public class PlotScene<P,A> {
                             .toArray( n -> new PlotLayer[ n ] );
         Map<AuxScale,Span> dataSpans = Collections.emptyMap();
         Map<AuxScale,Span> auxFixSpans = new HashMap<AuxScale,Span>();
+        Span shadeFixSpan = shadeKit == null ? null : shadeKit.getFixSpan();
         if ( shadeFixSpan != null ) {
             auxFixSpans.put( AuxScale.COLOR, shadeFixSpan );
         }
@@ -664,6 +650,12 @@ public class PlotScene<P,A> {
                 AuxScale.calculateAuxSpans( new AuxScale[] { AuxScale.COLOR },
                                             surfLayers, plans, dataStore )
                .get( AuxScale.COLOR );
+            ShadeAxisFactory shadeFact = shadeKit == null
+                                       ? null
+                                       : shadeKit.getAxisFactory();
+            Subrange shadeSubrange = shadeKit == null
+                                   ? null
+                                   : shadeKit.getSubrange();
             boolean shadeLog = shadeFact != null && shadeFact.isLog();
             PlotUtil.logTimeFromStart( logger_, "AuxRange.COLOR", start );
             return AuxScale.clipSpan( shadeDataSpan, shadeFixSpan,
@@ -682,8 +674,7 @@ public class PlotScene<P,A> {
         final PlotLayer[] layers_;
         final P profile_;
         final Trimming trimming_;
-        final ShadeAxisFactory shadeFact_;
-        final Span shadeFixSpan_;
+        final ShadeAxisKit shadeKit_;
         final Set<Object> plans_;
         A aspect_;
         Map<AuxScale,Span> auxSpans_;
@@ -702,19 +693,16 @@ public class PlotScene<P,A> {
          * @param  layers   plot layers
          * @param  profile   zone profile
          * @param  trimming   specification for decorations
-         * @param  shadeFact  shade axis factory, or null
-         * @param  shadeFixSpan   fixed range for shader axis, or null
+         * @param  shadeKit  shade axis specifier, or null
          * @param  initialAspect   aspect for initial display
          * @param  usePlans  if true, store plotting plans for reuse
          */
         Zone( PlotLayer[] layers, P profile, Trimming trimming,
-              ShadeAxisFactory shadeFact, Span shadeFixSpan,
-              A initialAspect, boolean usePlans ) {
+              ShadeAxisKit shadeKit, A initialAspect, boolean usePlans ) {
             layers_ = layers;
             profile_ = profile;
             trimming_ = trimming;
-            shadeFact_ = shadeFact;
-            shadeFixSpan_ = shadeFixSpan;
+            shadeKit_ = shadeKit;
             aspect_ = initialAspect;
             plans_ = usePlans ? new HashSet<Object>() : null;
         }

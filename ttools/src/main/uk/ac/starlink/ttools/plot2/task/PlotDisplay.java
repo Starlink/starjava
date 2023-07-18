@@ -28,9 +28,9 @@ import uk.ac.starlink.ttools.plot2.PlotScene;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Slow;
-import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -247,9 +247,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  config   map containing surface profile, initial aspect
      *                  and navigator configuration
      * @param  trimming  additional decoration specification, or null
-     * @param  shadeFact  makes shader axis, or null if not required
-     * @param  shadeFixSpan  fixed shader range,
-     *                        or null for auto-range where required
+     * @param  shadeKit  makes shader axis, or null if not required
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  padding   user requirements for external space
@@ -262,8 +260,8 @@ public class PlotDisplay<P,A> extends JComponent {
     public static <P,A> PlotDisplay<P,A>
             createPlotDisplay( PlotLayer[] layers,
                                SurfaceFactory<P,A> surfFact, ConfigMap config,
-                               Trimming trimming, ShadeAxisFactory shadeFact,
-                               Span shadeFixSpan, PaperTypeSelector ptSel,
+                               Trimming trimming, ShadeAxisKit shadeKit,
+                               PaperTypeSelector ptSel,
                                Compositor compositor, Padding padding,
                                DataStore dataStore, boolean navigable,
                                PlotCaching caching ) {
@@ -291,14 +289,12 @@ public class PlotDisplay<P,A> extends JComponent {
             PlotUtil
            .singletonArray( new ZoneContent<P,A>( profile, aspect, layers ) );
         Trimming[] trimmings = new Trimming[] { trimming };
-        ShadeAxisFactory[] shadeFacts = new ShadeAxisFactory[] { shadeFact };
-        Span[] shadeFixSpans = new Span[] { shadeFixSpan };
+        ShadeAxisKit[] shadeKits = new ShadeAxisKit[] { shadeKit };
 
         /* Construct and return the component. */
         PlotScene<P,A> scene =
             new PlotScene<>( ganger, surfFact, 1, contents, trimmings,
-                             shadeFacts, shadeFixSpans, ptSel, compositor,
-                             caching );
+                             shadeKits, ptSel, compositor, caching );
         return new PlotDisplay<>( scene, navigator, dataStore );
     }
 }
