@@ -1,8 +1,6 @@
 package uk.ac.starlink.topcat.plot2;
 
-import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
-import uk.ac.starlink.ttools.plot2.Span;
-import uk.ac.starlink.ttools.plot2.Subrange;
+import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 
@@ -45,33 +43,11 @@ public interface ZoneDef<P,A> {
     Trimming getTrimming();
 
     /**
-     * Returns the shade axis factory for this zone.
+     * Returns the shade axis kit for this zone.
      *
-     * @return  shade axis factory
+     * @return  shade axis kit, not null
      */
-    ShadeAxisFactory getShadeAxisFactory();
-
-    /**
-     * Fixed range for shading coordinate if known.  May be definite,
-     * partial (one-ended) or null.
-     *
-     * @return  aux fixed range if known
-     */
-    Span getShadeFixSpan();
-
-    /**
-     * Subrange for shading coordinate.
-     *
-     * @return  aux shade subrange
-     */
-    Subrange getShadeSubrange();
-
-    /**
-     * Log flag for shade axis.
-     *
-     * @return  true for log aux scaling, false for linear
-     */
-    boolean isShadeLog();
+    ShadeAxisKit getShadeAxisKit();
 
     /**
      * Returns the user configuration object for per-zone configuration.

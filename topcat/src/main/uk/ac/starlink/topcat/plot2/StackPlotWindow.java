@@ -92,6 +92,7 @@ import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
@@ -985,11 +986,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 multiAxisController_.getController( zid );
             ShaderControl shaderControl =
                 multiShaderControl_.getController( zid );
-            final ShadeAxisFactory shadeFact =
+            ShadeAxisFactory shadeFact =
                 shaderControl.createShadeAxisFactory( controls, zid );
-            final Span shadeFixSpan = shaderControl.getFixSpan();
-            final Subrange shadeSubrange = shaderControl.getSubrange();
-            final boolean isShadeLog = shaderControl.isLog();
+            Span shadeFixSpan = shaderControl.getFixSpan();
+            Subrange shadeSubrange = shaderControl.getSubrange();
+            final ShadeAxisKit shadeKit =
+                new ShadeAxisKit( shadeFact, shadeFixSpan, shadeSubrange );
             final ConfigMap config = new ConfigMap();
             for ( MultiConfigger zc : zoneConfiggers_ ) {
                 config.putAll( zc.getZoneConfig( zid ) );
@@ -1007,17 +1009,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 public Trimming getTrimming() {
                     return trimming;
                 }
-                public ShadeAxisFactory getShadeAxisFactory() {
-                    return shadeFact;
-                }
-                public Span getShadeFixSpan() {
-                    return shadeFixSpan;
-                }
-                public Subrange getShadeSubrange() {
-                    return shadeSubrange;
-                }
-                public boolean isShadeLog() {
-                    return isShadeLog;
+                public ShadeAxisKit getShadeAxisKit() {
+                    return shadeKit;
                 }
                 public ConfigMap getConfig() {
                     return config;

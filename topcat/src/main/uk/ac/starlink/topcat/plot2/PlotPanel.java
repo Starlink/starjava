@@ -60,6 +60,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
@@ -631,10 +632,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             axisController.updateState( profile, layers, axisLock );
             A fixAspect = axisController.getAspect();
             Range[] geomFixRanges = axisController.getRanges();
-            ShadeAxisFactory shadeFact = zoneDef.getShadeAxisFactory();
-            Span shadeFixSpan = zoneDef.getShadeFixSpan();
-            Subrange shadeSubrange = zoneDef.getShadeSubrange();
-            boolean shadeLog = zoneDef.isShadeLog();
+            ShadeAxisKit shadeKit = zoneDef.getShadeAxisKit();
             Trimming trimming = zoneDef.getTrimming();
             Icon legend = trimming == null ? null : trimming.getLegend();
             String title = trimming == null ? null : trimming.getTitle();
@@ -643,8 +641,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             ZoneId zid = zoneDef.getZoneId();
             PlotJob.Zone<P,A> zone =
                 new PlotJob.Zone<P,A>( layers, profile, fixAspect,
-                                       geomFixRanges, surfConfig, shadeFact,
-                                       shadeFixSpan, shadeSubrange, shadeLog,
+                                       geomFixRanges, surfConfig, shadeKit,
                                        trimming, highlights, paperType,
                                        axisController, zid );
             zoneList.add( zone );
@@ -665,6 +662,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 assert legend == null;
                 legSpec = null;
             }
+            ShadeAxisFactory shadeFact = shadeKit == null
+                                       ? null
+                                       : shadeKit.getAxisFactory();
             ZoneSpec.RampSpec auxSpec = createRampSpec( shadeFact );
             zoneSpecs.add( new ZoneSpec( zconfig, hasAux, title,
                                          legSpec, auxSpec ) );
@@ -1525,6 +1525,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                       iz < oldWorkings_.zones_.size()
                     ? oldWorkings_.zones_.get( iz )
                     : dummyZoneWork_;
+                ShadeAxisKit shadeKit = zone.shadeKit_;
 
                 /* Work out the required aux scale ranges.
                  * First find out which ones we need. */
@@ -1564,7 +1565,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                  * if any, and calculate them. */
                 Map<AuxScale,Span> auxFixSpans =
                     Collections.singletonMap( AuxScale.COLOR,
-                                              zone.shadeFixSpan_ );
+                                              shadeKit.getFixSpan() );
                 AuxScale[] calcScales =
                     AuxScale.getMissingScales( zone.layers_, auxDataSpanMap,
                                                auxFixSpans );
@@ -1619,13 +1620,15 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 /* Combine available aux scale information to get the
                  * actual ranges for use in the plot. */
                 Map<AuxScale,Span> auxClipSpanMap = new HashMap<>();
+                boolean isShadeLog = shadeKit.getAxisFactory() != null
+                                  && shadeKit.getAxisFactory().isLog();
                 for ( AuxScale scale : scales ) {
                     Span dataSpan = auxDataSpanMap.get( scale );
                     final Span clipSpan =
                           AuxScale.COLOR.equals( scale )
-                        ? AuxScale.clipSpan( dataSpan, zone.shadeFixSpan_,
-                                             zone.shadeSubrange_,
-                                             zone.shadeLogFlag_ )
+                        ? AuxScale.clipSpan( dataSpan, shadeKit.getFixSpan(),
+                                             shadeKit.getSubrange(),
+                                             isShadeLog )
                         : dataSpan;
                     auxClipSpanMap.put( scale, clipSpan );
                 }
@@ -1633,7 +1636,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 /* Extract and use colour scale range for the shader. */
                 Span shadeSpan = auxClipSpanMap.get( AuxScale.COLOR );
                 ShadeAxis shadeAxis =
-                    zone.shadeFact_.createShadeAxis( shadeSpan );
+                    shadeKit.getAxisFactory().createShadeAxis( shadeSpan );
 
                 /* Store results for later. */
                 shadeAxes[ iz ] = shadeAxis;
@@ -1903,7 +1906,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         private boolean usesShadeAxes() {
             Span dummySpan = PlotUtil.createSpan( 1, 2 );
             for ( Zone<P,A> zone : zones_ ) {
-                if ( zone.shadeFact_.createShadeAxis( dummySpan ) != null ) {
+                if ( zone.shadeKit_.getAxisFactory()
+                                   .createShadeAxis( dummySpan ) != null ) {
                     return true;
                 }
             }
@@ -2047,10 +2051,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             final A fixAspect_;
             final Range[] geomFixRanges_;
             final ConfigMap aspectConfig_;
-            final ShadeAxisFactory shadeFact_;
-            final Span shadeFixSpan_;
-            final Subrange shadeSubrange_;
-            final boolean shadeLogFlag_;
+            final ShadeAxisKit shadeKit_;
             final Trimming trimming_;
             final double[][] highlights_;
             final PaperType paperType_;
@@ -2066,10 +2067,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * @param   geomFixRanges  data ranges for geometry coordinates,
              *                         if known, else null
              * @param   aspectConfig  config map containing aspect keys
-             * @param   shadeFact   shader axis factory
-             * @param   shadeFixSpan  fixed range for aux shading scale
-             * @param   shadeSubrange  subrange for aux shading scale
-             * @param   shadeLogFlag  logarithmic scale flag for aux shading
+             * @param   shadeKit   shader axis specification
              * @param   trimming  specification for additional decoration,
              *                    or null
              * @param   highlights  array of highlight data positions
@@ -2079,19 +2077,15 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              */
             Zone( PlotLayer[] layers, P profile, A fixAspect,
                   Range[] geomFixRanges, ConfigMap aspectConfig,
-                  ShadeAxisFactory shadeFact, Span shadeFixSpan,
-                  Subrange shadeSubrange, boolean shadeLogFlag,
-                  Trimming trimming, double[][] highlights, PaperType paperType,
+                  ShadeAxisKit shadeKit, Trimming trimming,
+                  double[][] highlights, PaperType paperType,
                   AxisController<P,A> axisController, ZoneId zid ) {
                 layers_ = layers;
                 profile_ = profile;
                 fixAspect_ = fixAspect;
                 geomFixRanges_ = geomFixRanges;
                 aspectConfig_ = aspectConfig;
-                shadeFact_ = shadeFact;
-                shadeFixSpan_ = shadeFixSpan;
-                shadeSubrange_ = shadeSubrange;
-                shadeLogFlag_ = shadeLogFlag;
+                shadeKit_ = shadeKit;
                 trimming_ = trimming;
                 highlights_ = highlights;
                 paperType_ = paperType;
