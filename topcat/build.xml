@@ -1229,6 +1229,7 @@
              destdir="${dist.javadocs}"
              author="true"
              version="true"
+             failonerror="true"
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
