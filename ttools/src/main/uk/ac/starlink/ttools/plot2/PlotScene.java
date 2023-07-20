@@ -68,6 +68,7 @@ public class PlotScene<P,A> {
     private final boolean surfaceAuxRanging_;
     private final boolean cacheImage_;
     private final Zone<P,A>[] zones_;
+    private final Set<Object> plans_;
     private Gang gang_;
 
     private static final boolean WITH_SCROLL = true;
@@ -109,17 +110,16 @@ public class PlotScene<P,A> {
         }
         P[] okProfiles = ganger.adjustProfiles( initialProfiles );
         A[] okAspects = ganger.adjustAspects( initialAspects, -1 );
-        boolean usePlans = caching.getUsePlans();
         for ( int iz = 0; iz < nz_; iz++ ) {
             zones_[ iz ] = new Zone<P,A>( zoneContents[ iz ].getLayers(),
                                           okProfiles[ iz ], trimmings[ iz ],
-                                          shadeKits[ iz ], okAspects[ iz ],
-                                          usePlans );
+                                          shadeKits[ iz ], okAspects[ iz ] );
         }
         ptSel_ = ptSel;
         compositor_ = compositor;
         surfaceAuxRanging_ = ! caching.getReuseRanges();
         cacheImage_ = caching.getCacheImage();
+        plans_ = caching.getUsePlans() ? new HashSet<Object>() : null;
     }
 
     /**
@@ -221,6 +221,7 @@ public class PlotScene<P,A> {
 
         /* (Re)calculate aux ranges if required. */
         long rangeStart = System.currentTimeMillis();
+        Object[] plans = plans_ == null ? null : plans_.toArray();
         for ( int iz = 0; iz < nz_; iz++ ) {
             Zone<P,A> zone = zones_[ iz ];
             if ( zone.surface_ == null ) {
@@ -231,9 +232,6 @@ public class PlotScene<P,A> {
                 if ( zone.auxSpans_ == null ||
                      ( surfaceAuxRanging_ &&
                        ! zone.approxSurf_.equals( oldApproxSurf ) ) ) {
-                    Object[] plans = zone.plans_ == null
-                                   ? null
-                                   : zone.plans_.toArray();
                     zone.auxSpans_ =
                         calculateNonShadeSpans( zone.layers_, zone.approxSurf_,
                                                 plans, dataStore );
@@ -312,7 +310,7 @@ public class PlotScene<P,A> {
                 zone.icon_ =
                     PlotUtil.createPlotIcon( placer, layers, zone.auxSpans_,
                                              dataStore, paperType,
-                                             cacheImage_, zone.plans_ );
+                                             cacheImage_, plans_ );
             }
         }
         PlotUtil.logTimeFromStart( logger_, "Plan", planStart );
@@ -675,7 +673,6 @@ public class PlotScene<P,A> {
         final P profile_;
         final Trimming trimming_;
         final ShadeAxisKit shadeKit_;
-        final Set<Object> plans_;
         A aspect_;
         Map<AuxScale,Span> auxSpans_;
         Surface approxSurf_;
@@ -695,16 +692,14 @@ public class PlotScene<P,A> {
          * @param  trimming   specification for decorations
          * @param  shadeKit  shade axis specifier, or null
          * @param  initialAspect   aspect for initial display
-         * @param  usePlans  if true, store plotting plans for reuse
          */
         Zone( PlotLayer[] layers, P profile, Trimming trimming,
-              ShadeAxisKit shadeKit, A initialAspect, boolean usePlans ) {
+              ShadeAxisKit shadeKit, A initialAspect ) {
             layers_ = layers;
             profile_ = profile;
             trimming_ = trimming;
             shadeKit_ = shadeKit;
             aspect_ = initialAspect;
-            plans_ = usePlans ? new HashSet<Object>() : null;
         }
     }
 }
