@@ -319,7 +319,7 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
 
         //  Radius field.
         JLabel radiusLabel = new JLabel( "Radius:" );
-        radiusField = new JTextField( "10.0", 10 );
+        radiusField = new JTextField( "", 10 );
       //  queryLine.setRadius(10.0);
         radiusField.addActionListener( this );
         radiusField.setToolTipText( "Enter radius of field to search" +
@@ -674,14 +674,14 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         }
         
     
-        
+            String upperBand = upperBandField.getText();
             String lowerBand = lowerBandField.getText();
             if ( ! lowerBand.isEmpty() ) 
-                queryString += " AND em_max>=\'"+ lowerBand+"\'";
+                queryString += " AND em_max<=\'"+ upperBand+"\'";
             
-            String upperBand = upperBandField.getText();
+          
             if ( ! upperBand.isEmpty() ) 
-                queryString += " AND em_min<=\'"+ upperBand+"\'";
+                queryString += " AND em_min>=\'"+ lowerBand+"\'";
    
             String lowerTime = lowerTimeField.getText();
             if ( ! lowerTime.isEmpty() ) 
@@ -727,7 +727,7 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
         
        queryParams=queryParams.replace(DATA_PRODUCT_DEFAULT_PARAM, "dataproduct_type=\'" + dataProductTypeBox.getSelectedItem().toString() + "\'");
 
-       // logger.info( "QUERY= "+queryParams);
+       System.out.println( "QUERY= "+queryParams);
        this.firePropertyChange("NewQuery", false, true); // trigger query
        //makeQuery(serverTable.getSelectedRows(), queryParams);       
         
