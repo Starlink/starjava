@@ -1513,6 +1513,17 @@ public class ControlWindow extends AuxWindow
                 }
             }
         }
+
+        /* Cone Search 1.03 Section 2 paragraph 3 requires a non-DALI
+         * variant. */
+        for ( DescribedValue dval : table.getParameters() ) {
+            ValueInfo info = dval.getInfo();
+            if ( "Error".equals( info.getName() ) ) {
+                Object vobj = dval.getValue();
+                return vobj instanceof String ? ((String) vobj).trim()
+                                              : "Error";
+            }
+        }
         return "";
     }
 

@@ -32001,6 +32001,7 @@ introduced since the last version:
         (regression bug introduced at v4.8-8).</li>
     <li>Add new <label>Sky + X with Errors</label>
         <ref id="matchCriteria">Match Algorithm</ref> option.</li>
+    <li>Flag ConeSearch 1.03-style error result tables.</li>
     </ul>
     </p></dd>
 
