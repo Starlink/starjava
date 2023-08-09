@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import javax.swing.Icon;
 
 /**
@@ -182,33 +183,25 @@ public class PlotPlacement {
     }
 
     /**
-     * Determines the required insets for a plot to accommodate
-     * axis annotations etc.
+     * Calculates the space surrounding a plot required for trimming and
+     * shade axis.  These do not depend much on the size of the plot bounds.
      *
      * @param   extBounds  external bounds of plot placement
-     * @param   surfFact  surface factory
-     * @param   profile  factory-specific surface profile
-     * @param   aspect   factory-specific surface aspect
-     * @param   withScroll  true if the placement should work well
-     *                      with future scrolling
      * @param   trimming  specification for static decorations, or null
      * @param   shadeAxis  shader axis if required, or null
-     * @param   pad   extra padding in pixels around the outside
-     * @return  data bounds rectangle
+     * @param   capFact   supplier for a Captioner;
+     *                    may return null if no title is required
+     * @return   padding space required to accommodate decorations
      */
-    public static <P,A> Insets
-            calculateDataInsets( Rectangle extBounds,
-                                 SurfaceFactory<P,A> surfFact,
-                                 P profile, A aspect, boolean withScroll,
-                                 Trimming trimming, ShadeAxis shadeAxis,
-                                 int pad ) {
+    public static Surround
+            calculateApproxDecorationSurround( Rectangle extBounds,
+                                               Trimming trimming,
+                                               ShadeAxis shadeAxis,
+                                               Supplier<Captioner> capFact ) {
         Icon legend = trimming == null ? null : trimming.getLegend();
         float[] legPos = trimming == null ? null : trimming.getLegendPosition();
         String title = trimming == null ? null : trimming.getTitle();
         boolean hasExtLegend = legend != null && legPos == null;
-
-        /* Calculate surrounding space required for decorations that
-         * do not depend (much) on the size of the plot bounds. */
         Surround decSurround = new Surround();
         if ( hasExtLegend ) {
             decSurround.right.extent =
@@ -236,18 +229,51 @@ public class PlotPlacement {
                 Math.max( decSurround.right.under, yShadePad );
         }
         if ( title != null ) {
-
-            /* Slightly annoying that we have to create a surface just to
-             * get the captioner, but it should be cheap. */
-            Captioner captioner =
-                surfFact.createSurface( extBounds, profile, aspect )
-                        .getCaptioner();
-            Caption caption = Caption.createCaption( title );
-            int titleHeight = captioner.getCaptionBounds( caption ).height
-                            + captioner.getPad();
-            decSurround.top.extent =
-                Math.max( decSurround.top.extent, titleHeight );
+            Captioner captioner = capFact.get();
+            if ( captioner != null ) {
+                Caption caption = Caption.createCaption( title );
+                int titleHeight = captioner.getCaptionBounds( caption ).height
+                                + captioner.getPad();
+                decSurround.top.extent =
+                    Math.max( decSurround.top.extent, titleHeight );
+            }
         }
+        return decSurround;
+    }
+
+    /**
+     * Determines the required insets for a plot to accommodate
+     * axis annotations etc.
+     *
+     * @param   extBounds  external bounds of plot placement
+     * @param   surfFact  surface factory
+     * @param   profile  factory-specific surface profile
+     * @param   aspect   factory-specific surface aspect
+     * @param   withScroll  true if the placement should work well
+     *                      with future scrolling
+     * @param   trimming  specification for static decorations, or null
+     * @param   shadeAxis  shader axis if required, or null
+     * @param   pad   extra padding in pixels around the outside
+     * @return  data bounds rectangle
+     */
+    public static <P,A> Insets
+            calculateDataInsets( Rectangle extBounds,
+                                 SurfaceFactory<P,A> surfFact,
+                                 P profile, A aspect, boolean withScroll,
+                                 Trimming trimming, ShadeAxis shadeAxis,
+                                 int pad ) {
+
+        /* Slightly annoying that we have to create a surface just to
+         * get the captioner, but it should be cheap. */
+        Supplier<Captioner> capFact =
+            () -> surfFact.createSurface( extBounds, profile, aspect )
+                          .getCaptioner();
+
+        /* Calculate surrounding space required for decorations that
+         * do not depend (much) on the size of the plot bounds. */
+        Surround decSurround =
+            calculateApproxDecorationSurround( extBounds, trimming, shadeAxis,
+                                               capFact );
 
         /* Insets for padding outside space that is actually painted on
          * by the axes and decorations. */
