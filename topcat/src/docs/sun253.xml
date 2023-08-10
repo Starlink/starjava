@@ -32002,6 +32002,8 @@ introduced since the last version:
     <li>Add new <label>Sky + X with Errors</label>
         <ref id="matchCriteria">Match Algorithm</ref> option.</li>
     <li>Flag ConeSearch 1.03-style error result tables.</li>
+    <li>Column names with embedded carriage returns are now
+        recognised in column selectors.</li>
     </ul>
     </p></dd>
 

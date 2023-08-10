@@ -3,7 +3,9 @@ package uk.ac.starlink.topcat;
 import gnu.jel.CompilationException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.UnaryOperator;
 import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;
 import javax.swing.event.ChangeEvent;
@@ -172,19 +174,23 @@ public class ColumnDataComboBoxModel
             return null;
         }
 
-        /* See if the string is a column name.  Try case-sensitive first,
-         * then case-insensitive. */
+        /* See if the string is a column name.
+         * Try an exact match first, but if that fails attempt case-insensitive
+         * and whitespace-folded matches. */
         int ncol = getSize();
-        for ( int i = 0; i < ncol; i++ ) {
-            ColumnData item = getColumnDataAt( i );
-            if ( item != null && txt.equals( item.toString() ) ) {
-                return item;
-            }
-        }
-        for ( int i = 0; i < ncol; i++ ) {
-            ColumnData item = getColumnDataAt( i );
-            if ( item != null && txt.equalsIgnoreCase( item.toString() ) ) {
-                return item;
+        List<UnaryOperator<String>> normalisers = Arrays.asList(
+            s -> s,
+            s -> s.toLowerCase(),
+            s -> s.toLowerCase().replaceAll( "\\s+", " " )
+        );
+        for ( UnaryOperator<String> normaliser : normalisers ) {
+            String normTxt = normaliser.apply( txt );
+            for ( int i = 0; i < ncol; i++ ) {
+                ColumnData item = getColumnDataAt( i );
+                if ( item != null &&
+                     normTxt.equals( normaliser.apply( item.toString() ) ) ) {
+                    return item;
+                }
             }
         }
 
