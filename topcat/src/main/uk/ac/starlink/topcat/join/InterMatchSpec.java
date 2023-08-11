@@ -148,7 +148,7 @@ public class InterMatchSpec extends MatchSpec {
         }
         matchCount = 0;
         int irow = 0;
-        for ( RowLink link : matches ) {
+        for ( RowLink link : links ) {
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
                 int iTable = link.getRef( i ).getTableIndex();

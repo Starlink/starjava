@@ -165,12 +165,12 @@ public class PairMatchSpec extends MatchSpec {
         if ( joinType_.getUsedMatchFlag() ) {
             BitSet matched = new BitSet();
             int iLink = 0;
-            for ( RowLink link : links ) {
+            for ( RowLink link : orderedLinks ) {
                 matched.set( iLink++, link.size() == 2 );
             }
-            assert iLink == links.size();
+            assert iLink == orderedLinks.size();
             int nMatch = matched.cardinality();
-            if ( nMatch > 0 && nMatch < links.size() ) {
+            if ( nMatch > 0 && nMatch < orderedLinks.size() ) {
                 matchSubset_ = new BitsRowSubset( "matched", matched );
             }
         }

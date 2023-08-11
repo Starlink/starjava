@@ -26105,6 +26105,7 @@ Some of the notable contributers are these:
 <li>Bertrand Goldman (MPIA)</li>
 <li>Eduardo Gonzalez-Solares (IoA)</li>
 <li>Norman Gray (Starlink, Glasgow)</li>
+<li>Claire Greenwell (Durham)</li>
 <li>Phil Hall (Son of Ken)</li>
 <li>Haggis Harris (Bath)</li>
 <li>Evanthia Hatziminaoglou (ESO)</li>
@@ -32004,6 +32005,17 @@ introduced since the last version:
     <li>Flag ConeSearch 1.03-style error result tables.</li>
     <li>Column names with embedded carriage returns are now
         recognised in column selectors.</li>
+    <li>Fix a bug in the
+        <ref id="MatchWindow">Pair Match</ref> and
+        <ref id="MatchWindowN">Multiple Match</ref> windows
+        which assigned the created
+        <code>matched</code>/<code>match&lt;N&gt;</code> subsets
+        to completely the wrong rows.
+        These subsets are only created for some match types,
+        and everything else about the matches was unaffected.
+        STILTS was not affected.
+        This was a regression bug since v4.8-4.
+        Thanks to Claire Greenwell (Durham) for reporting this.</li>
     </ul>
     </p></dd>
 
