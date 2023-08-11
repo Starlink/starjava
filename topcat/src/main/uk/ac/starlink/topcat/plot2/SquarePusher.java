@@ -209,9 +209,6 @@ public class SquarePusher extends JComponent {
                              Math.max( 0f, Math.min( 1f, pos[ 1 ] ) ) );
                 repaint( evt );
             }
-            else {
-                assert ! isEnabled();
-            }
         }
 
         @Override
