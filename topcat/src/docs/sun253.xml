@@ -32016,6 +32016,10 @@ introduced since the last version:
         STILTS was not affected.
         This was a regression bug since v4.8-4.
         Thanks to Claire Greenwell (Durham) for reporting this.</li>
+    <li>Fix bug which ignored some points in multi-threaded,
+        multi-dataset or multi-subset plots.
+        This bug was introduced in v4.7 and was supposed to be fixed
+        at v4.8-8 but wasn't.</li>
     </ul>
     </p></dd>
 

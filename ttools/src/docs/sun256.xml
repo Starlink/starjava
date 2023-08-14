@@ -14660,6 +14660,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Introduced alternative syntax ("<code>*</code>" separator)
         for <ref id="CombinedMatchEngine">matcher combinations</ref>
         to restrict match separations to the scaled unit sphere.</li>
+    <li>Fix bug which could ignore some points in multi-threaded
+        multi-dataset plots.  This bug was introduced in v3.2,
+        and was supposed to be fixed at v3.4-8 but wasn't.</li>
     </ul>
     </p></dd>
 

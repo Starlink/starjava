@@ -53,14 +53,8 @@ public class DataPosSequence implements CoordSequence {
         clouds_ = clouds;
         dataStore_ = dataStore;
         dpos_ = new double[ ndim ];
-        ic_ = ic;
         icHi_ = icHi;
-        if ( ic < icHi ) {
-            initCloud( clouds[ ic ], tseq );
-        }
-        else {
-            tseq_ = PlotUtil.EMPTY_TUPLE_SEQUENCE;
-        }
+        setCloudIndex( ic, tseq );
         assert tseq_ != null;
     }
 
@@ -75,7 +69,7 @@ public class DataPosSequence implements CoordSequence {
             }
         }
         if ( ic_ + 1 < icHi_ ) {
-            initCloud( clouds_[ ++ic_ ], null );
+            setCloudIndex( ic_ + 1, null );
             return next();
         }
         else {
@@ -88,7 +82,7 @@ public class DataPosSequence implements CoordSequence {
         if ( ncloud >= 2 ) {
             int lo = ic_;
             int mid = ( ic_ + icHi_ ) / 2;
-            ic_ = mid;
+            setCloudIndex( mid, null );
             return new DataPosSequence( ndim_, clouds_, dataStore_,
                                         lo, mid, null );
         }
@@ -119,16 +113,23 @@ public class DataPosSequence implements CoordSequence {
     /**
      * Prepare to start iterating over a new cloud.
      *
-     * @param  cloud  cloud to initialise for
+     * @param  ic   index of cloud
      * @param  tseq   tuple sequence to use for iteration,
      *                or null to start at the beginning
      */
-    private void initCloud( PositionCloud cloud, TupleSequence tseq ) {
-        geom_ = cloud.getDataGeom();
-        iPosCoord_ = cloud.getPosCoordIndex();
-        tseq_ = tseq == null
-              ? cloud.createTupleSequence( dataStore_ )
-              : tseq;
+    private void setCloudIndex( int ic, TupleSequence tseq ) {
+        ic_ = ic;
+        if ( ic < icHi_ ) {
+            PositionCloud cloud = clouds_[ ic ];
+            geom_ = cloud.getDataGeom();
+            iPosCoord_ = cloud.getPosCoordIndex();
+            tseq_ = tseq == null
+                  ? cloud.createTupleSequence( dataStore_ )
+                  : tseq;
+        }
+        else {
+            tseq_ = PlotUtil.EMPTY_TUPLE_SEQUENCE;
+        }
     }
 
     /**
