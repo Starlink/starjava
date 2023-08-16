@@ -33,9 +33,12 @@ public class PlotPlacement {
     private final Rectangle bounds_;
     private final Surface surface_;
     private final List<Decoration> decorations_;
+
+    /** Default external padding in pixels to accommodate axis line width. */
+    public static final int PAD = 2;
+
     private static final int EXTERNAL_LEGEND_GAP = 10;
     private static final int MIN_DIM = 24;
-    private static final int PAD = 2;
 
     /**
      * Constructs a placement with no decorations.

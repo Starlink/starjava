@@ -872,11 +872,18 @@ public class PlaneSurfaceFactory
          * except that the flags for which sides to annotate are replaced.
          *
          * @param  annotateFlags  which sides to annotate
+         * @param  addSecondary   if true, secondary axis annotations
+         *                        duplicating the primary axis ones
+         *                        will be added
          * @return   adjusted profile
          */
-        public Profile fixAnnotation( SideFlags annotateFlags ) {
+        public Profile fixAnnotation( SideFlags annotateFlags,
+                                      boolean addSecondary ) {
             return new Profile( xlog_, ylog_, xflip_, yflip_, xlabel_, ylabel_,
-                                x2func_, y2func_, x2label_, y2label_,
+                                addSecondary ? x -> x : x2func_,
+                                addSecondary ? y -> y : y2func_,
+                                addSecondary ? xlabel_ : x2label_,
+                                addSecondary ? ylabel_ : y2label_,
                                 captioner_, annotateFlags,
                                 xyfactor_, xcrowd_, ycrowd_, minor_, shadow_,
                                 gridcolor_, axlabelcolor_ );
