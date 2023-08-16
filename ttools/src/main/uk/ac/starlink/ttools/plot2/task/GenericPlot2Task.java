@@ -33,9 +33,13 @@ public class GenericPlot2Task extends AbstractPlot2Task {
 
     /**
      * Constructor.
+     *
+     * @param  allowAnimate  true iff animation options should be provided
+     * @param  hasZoneSuffixes  true iff zone content can be controlled
+     *                          explicitly by use of parameter suffixes
      */
-    public GenericPlot2Task() {
-        super( true, null );
+    public GenericPlot2Task( boolean allowAnimate, boolean hasZoneSuffixes ) {
+        super( allowAnimate, hasZoneSuffixes );
 
         /* Plot type parameter. */
         typeParam_ = new ChoiceParameter<PlotType<?,?>>
@@ -62,7 +66,7 @@ public class GenericPlot2Task extends AbstractPlot2Task {
     public PlotContext<?,?> getPlotContext( Environment env )
             throws TaskException {
         return PlotContext
-              .createStandardContext( typeParam_.objectValue( env ), null );
+              .createStandardContext( typeParam_.objectValue( env ) );
     }
 
     protected <T> String getConfigParamDefault( Environment env,

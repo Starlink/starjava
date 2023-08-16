@@ -18,6 +18,13 @@ import java.awt.Rectangle;
 public interface Ganger<P,A> {
 
     /**
+     * Returns the number of zones in gangs produced by this ganger.
+     *
+     * @return   zone count
+     */
+    int getZoneCount();
+
+    /**
      * Creates a gang given the graphics coordinates of the individual zones.
      * This can be used if the layout of the zones is already known.
      *
@@ -40,7 +47,6 @@ public interface Ganger<P,A> {
      * @param  extBounds  total area enclosing all zones and associated
      *                    axis labels, annotations etc
      * @param  surfFact   surface factory
-     * @param  nz        number of zones
      * @param  zoneContents  plot content for each zone (nz-element array)
      * @param  trimmings   additional decorations for each zone
      *                     (nz-element array, elements may be empty)
@@ -51,9 +57,8 @@ public interface Ganger<P,A> {
      * @return   new gang
      */
     Gang createGang( Rectangle extBounds, SurfaceFactory<P,A> surfFact,
-                     int nz, ZoneContent<P,A>[] zoneContents,
-                     Trimming[] trimmings, ShadeAxis[] shadeAxes,
-                     boolean withScroll );
+                     ZoneContent<P,A>[] zoneContents, Trimming[] trimmings,
+                     ShadeAxis[] shadeAxes, boolean withScroll );
 
     /**
      * Constructs an approximate gang instance given only minimal information.
@@ -63,10 +68,9 @@ public interface Ganger<P,A> {
      *
      * @param  extBounds  total area enclosing all zones and associated
      *                    axis labels, annotations etc
-     * @param  nz        number of zones
      * @return  new approximate gang
      */
-    Gang createApproxGang( Rectangle extBounds, int nz );
+    Gang createApproxGang( Rectangle extBounds );
 
     /**
      * Adjusts plot surface aspects as required to ensure that plot data

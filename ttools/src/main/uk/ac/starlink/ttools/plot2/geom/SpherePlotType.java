@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.SingleGangerFactory;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.AreaForm;
 import uk.ac.starlink.ttools.plot2.layer.CentralForm;
@@ -85,6 +87,11 @@ public class SpherePlotType
     public SurfaceFactory<CubeSurfaceFactory.Profile,CubeAspect>
                           getSurfaceFactory() {
         return SURFACE_FACTORY;
+    }
+
+    public GangerFactory<CubeSurfaceFactory.Profile,CubeAspect>
+            getGangerFactory() {
+        return SingleGangerFactory.instance();
     }
 
     public PaperTypeSelector getPaperTypeSelector() {

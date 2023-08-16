@@ -9,8 +9,6 @@ import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
-import uk.ac.starlink.ttools.plot2.GangerFactory;
-import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -98,10 +96,6 @@ public class PlanePlotWindow
         }
         public FigureMode[] getFigureModes() {
             return PlaneFigureMode.MODES;
-        }
-        public GangerFactory<PlaneSurfaceFactory.Profile,PlaneAspect>
-                getGangerFactory() {
-            return SingleGanger.createFactory( PLOT_TYPE );
         }
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.FIXED;

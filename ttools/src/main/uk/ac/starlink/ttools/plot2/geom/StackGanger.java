@@ -2,6 +2,8 @@ package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import uk.ac.starlink.ttools.plot2.Gang;
 import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.Padding;
@@ -20,6 +22,8 @@ import uk.ac.starlink.ttools.plot2.ZoneContent;
  */
 public abstract class StackGanger<P,A> implements Ganger<P,A> {
 
+    private final String[] zoneNames_;
+    private final int nz_;
     private final boolean isUp_;
     private final Padding padding_;
 
@@ -30,12 +34,18 @@ public abstract class StackGanger<P,A> implements Ganger<P,A> {
      * apply this padding outside the union of plot zones, or to
      * be able to supply different paddings for each zone.
      *
+     * @param  zoneNames   one string identifier for each required zone
      * @param  isUp  true if zones are ordered upwards on the graphics plane,
      *               false if they go down
      * @param  padding  defines user preferences, if any, for space
      *                  reserved outside each plot zone
      */
-    protected StackGanger( boolean isUp, Padding padding ) {
+    protected StackGanger( String[] zoneNames, boolean isUp, Padding padding ) {
+        zoneNames_ = zoneNames == null || zoneNames.length == 0
+                   ? new String[] { "" }
+                   : new LinkedHashSet<String>( Arrays.asList( zoneNames ) )
+                    .toArray( new String[ 0 ] );
+        nz_ = zoneNames_.length;
         isUp_ = isUp;
         padding_ = padding;
     }
@@ -61,31 +71,37 @@ public abstract class StackGanger<P,A> implements Ganger<P,A> {
      */
     public abstract A fixXLimits( A aspect, double xmin, double xmax );
 
+    public int getZoneCount() {
+        return nz_;
+    }
+
+    /**
+     * Returns a list of identifiers, one for each zone in gangs
+     * produced by this ganger.
+     *
+     * @return  zone names
+     */
+    public String[] getZoneNames() {
+        return zoneNames_;
+    }
+
     public Gang createGang( Rectangle[] zonePlotBounds ) {
-        if ( zonePlotBounds.length > 0 ) {
-            return new StackGang( zonePlotBounds );
-        }
-        else {
-            throw new IllegalArgumentException( "no regions" );
-        }
+        return new StackGang( zonePlotBounds );
     }
 
     public Gang createGang( Rectangle gangExtBox,
                             SurfaceFactory<P,A> surfFact,
-                            int nz, ZoneContent<P,A>[] contents,
+                            ZoneContent<P,A>[] contents,
                             Trimming[] trimmings, ShadeAxis[] shadeAxes,
                             boolean withScroll ) {
-        if ( nz == 0 ) {
-            throw new IllegalArgumentException( "no zones" );
+        int[] heights = new int[ nz_ ];
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            heights[ iz ] = gangExtBox.height / nz_
+                          + ( iz < gangExtBox.height % nz_ ? 1 : 0 );
         }
-        int[] heights = new int[ nz ];
-        for ( int iz = 0; iz < nz; iz++ ) {
-            heights[ iz ] = gangExtBox.height / nz
-                          + ( iz < gangExtBox.height % nz ? 1 : 0 );
-        }
-        Rectangle[] zboxes = new Rectangle[ nz ];
+        Rectangle[] zboxes = new Rectangle[ nz_ ];
         int y = 0;
-        for ( int iz = 0; iz < nz; iz++ ) {
+        for ( int iz = 0; iz < nz_; iz++ ) {
             int h = heights[ iz ];
             Rectangle zoneExtBox =
                 new Rectangle( gangExtBox.x,
@@ -103,24 +119,24 @@ public abstract class StackGanger<P,A> implements Ganger<P,A> {
         assert y == gangExtBox.height : y + " !=" + gangExtBox.height;
         int maxxlo = zboxes[ 0 ].x;
         int minxhi = zboxes[ 0 ].x + zboxes[ 0 ].width;
-        for ( int iz = 1; iz < nz; iz++ ) {
+        for ( int iz = 1; iz < nz_; iz++ ) {
             maxxlo = Math.max( maxxlo, zboxes[ iz ].x );
             minxhi = Math.min( minxhi, zboxes[ iz ].x + zboxes[ iz ].width );
         }
-        for ( int iz = 0; iz < nz; iz++ ) {
+        for ( int iz = 0; iz < nz_; iz++ ) {
             zboxes[ iz ].x = maxxlo;
             zboxes[ iz ].width = Math.max( minxhi - maxxlo, 10 );
         }
         return new StackGang( zboxes );
     }
 
-    public Gang createApproxGang( Rectangle extBounds, int nz ) {
-        int h = extBounds.height / nz;
-        Rectangle[] boxes = new Rectangle[ nz ];
-        for ( int iz = 0; iz < nz; iz++ ) {
+    public Gang createApproxGang( Rectangle extBounds ) {
+        int h = extBounds.height / nz_;
+        Rectangle[] boxes = new Rectangle[ nz_ ];
+        for ( int iz = 0; iz < nz_; iz++ ) {
             boxes[ iz ] =
                new Rectangle( extBounds.x,
-                              extBounds.y + h * ( isUp_ ? nz - 1 - iz : iz ),
+                              extBounds.y + h * ( isUp_ ? nz_ - 1 - iz : iz ),
                               extBounds.width,
                               h );
         }

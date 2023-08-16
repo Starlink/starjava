@@ -1934,7 +1934,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                           zone.layers_ );
                 trimmings[ iz ] = zone.trimming_;
 	    }
-            return ganger_.createGang( extBounds_, surfFact_, nz,
+            return ganger_.createGang( extBounds_, surfFact_,
                                        zoneContents, trimmings, shadeAxes,
                                        WITH_SCROLL );
         }

@@ -4,8 +4,6 @@ import java.awt.Component;
 import java.awt.Rectangle;
 import javax.swing.ListModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.ttools.plot2.GangerFactory;
-import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.geom.CubeAspect;
 import uk.ac.starlink.ttools.plot2.geom.CubePlotType;
@@ -66,10 +64,6 @@ public class CubePlotWindow
         }
         public FigureMode[] getFigureModes() {
             return new FigureMode[ 0 ];
-        }
-        public GangerFactory<CubeSurfaceFactory.Profile,CubeAspect>
-                getGangerFactory() {
-            return SingleGanger.createFactory( PLOT_TYPE );
         }
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.FIXED;

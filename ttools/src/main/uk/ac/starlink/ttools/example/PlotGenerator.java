@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
+import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotCaching;
@@ -15,7 +16,7 @@ import uk.ac.starlink.ttools.plot2.PlotScene;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
-import uk.ac.starlink.ttools.plot2.SingleGanger;
+import uk.ac.starlink.ttools.plot2.SingleGangerFactory;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.ZoneContent;
@@ -148,8 +149,9 @@ public class PlotGenerator<P,A> {
      * @return  icon to paint plot; it may be painted in a headless context
      */
     public Icon createIcon( boolean forceBitmap ) {
+        Ganger<P,A> ganger = SingleGangerFactory.createGanger( padding_ );
         return AbstractPlot2Task
-              .createPlotIcon( new SingleGanger<P,A>( padding_ ), surfFact_, 1,
+              .createPlotIcon( ganger, surfFact_, 1,
                                PlotUtil.singletonArray( content_ ),
                                new Trimming[] { trimming_ },
                                new ShadeAxisKit[] { shadeKit_ },

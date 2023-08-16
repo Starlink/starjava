@@ -1,8 +1,11 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
 import uk.ac.starlink.ttools.plot2.Ganger;
+import uk.ac.starlink.ttools.plot2.GangContext;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.Padding;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 
 /**
  * Ganger that stacks time plots vertically with a shared time axis.
@@ -19,23 +22,29 @@ public class TimeStackGanger
     public static final GangerFactory<TimeSurfaceFactory.Profile,TimeAspect>
             FACTORY =
             new GangerFactory<TimeSurfaceFactory.Profile,TimeAspect>() {
-        public boolean isMultiZone() {
+        public boolean hasIndependentZones() {
             return true;
         }
+        public ConfigKey<?>[] getGangerKeys() {
+            return new ConfigKey<?>[ 0 ];
+        }
         public Ganger<TimeSurfaceFactory.Profile,TimeAspect>
-                createGanger( Padding padding ) {
-            return new TimeStackGanger( padding );
+                createGanger( Padding padding, ConfigMap config,
+                              GangContext context ) {
+            return new TimeStackGanger( context.getRequestedZoneNames(),
+                                        padding );
         }
     };
 
     /**
      * Constructor.
      *
+     * @param  zoneNames   zone identifiers, one for each zone in the gang
      * @param  padding  defines user preferences, if any, for space
      *                  reserved outside each plot zone
      */
-    public TimeStackGanger( Padding padding ) {
-        super( UP, padding );
+    public TimeStackGanger( String[] zoneNames, Padding padding ) {
+        super( zoneNames, UP, padding );
     }
 
     public double[] getXLimits( TimeAspect aspect ) {

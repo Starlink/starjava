@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.plot2;
 
-import java.awt.Component;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
@@ -33,6 +32,13 @@ public interface PlotType<P,A> {
      * @return   surface factory
      */
     SurfaceFactory<P,A> getSurfaceFactory();
+
+    /**
+     * Returns the object that controls how multi-zone plots are arranged.
+     *
+     * @return  ganger factory
+     */
+    GangerFactory<P,A> getGangerFactory();
 
     /**
      * Returns a list of plotters that can be used to paint

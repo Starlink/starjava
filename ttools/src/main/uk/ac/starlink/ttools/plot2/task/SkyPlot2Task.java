@@ -4,7 +4,6 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.DataGeom;
-import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
@@ -76,8 +75,7 @@ public class SkyPlot2Task
          * Constructor.
          */
         SkyPlotContext() {
-            super( SKY_TYPE, new DataGeom[] { SkyDataGeom.GENERIC },
-                   SingleGanger.createFactory( SKY_TYPE ) );
+            super( SKY_TYPE, new DataGeom[] { SkyDataGeom.GENERIC } );
         }
 
         /**

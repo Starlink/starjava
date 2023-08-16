@@ -9,12 +9,10 @@ import uk.ac.starlink.table.TimeDomain;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
-import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.geom.TimeAspect;
 import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
-import uk.ac.starlink.ttools.plot2.geom.TimeStackGanger;
 import uk.ac.starlink.ttools.plot2.geom.TimeSurfaceFactory;
 
 /**
@@ -115,10 +113,6 @@ public class TimePlotWindow
         }
         public FigureMode[] getFigureModes() {
             return new FigureMode[ 0 ];
-        }
-        public GangerFactory<TimeSurfaceFactory.Profile,TimeAspect>
-                getGangerFactory() {
-            return TimeStackGanger.FACTORY;
         }
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.createIntegerZoneFactory( true );

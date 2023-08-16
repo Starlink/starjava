@@ -6,6 +6,8 @@ import java.util.List;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
+import uk.ac.starlink.ttools.plot2.SingleGangerFactory;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -89,6 +91,11 @@ public class PlanePlotType
     public SurfaceFactory<PlaneSurfaceFactory.Profile,PlaneAspect>
                           getSurfaceFactory() {
         return surfFact_;
+    }
+
+    public GangerFactory<PlaneSurfaceFactory.Profile,PlaneAspect>
+                         getGangerFactory() {
+        return SingleGangerFactory.instance();
     }
 
     public PaperTypeSelector getPaperTypeSelector() {

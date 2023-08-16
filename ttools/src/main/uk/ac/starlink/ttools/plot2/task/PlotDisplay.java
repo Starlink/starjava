@@ -29,7 +29,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
-import uk.ac.starlink.ttools.plot2.SingleGanger;
+import uk.ac.starlink.ttools.plot2.SingleGangerFactory;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -284,7 +284,7 @@ public class PlotDisplay<P,A> extends JComponent {
                                            : null;
 
         /* Prepare gang configuration; the gang has only a single member. */
-        Ganger<P,A> ganger = new SingleGanger<P,A>( padding );
+        Ganger<P,A> ganger = SingleGangerFactory.createGanger( padding );
         ZoneContent<P,A>[] contents =
             PlotUtil
            .singletonArray( new ZoneContent<P,A>( profile, aspect, layers ) );
@@ -293,7 +293,7 @@ public class PlotDisplay<P,A> extends JComponent {
 
         /* Construct and return the component. */
         PlotScene<P,A> scene =
-            new PlotScene<>( ganger, surfFact, 1, contents, trimmings,
+            new PlotScene<>( ganger, surfFact, contents, trimmings,
                              shadeKits, ptSel, compositor, caching );
         return new PlotDisplay<>( scene, navigator, dataStore );
     }

@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
@@ -103,6 +104,11 @@ public class TimePlotType
     public SurfaceFactory<TimeSurfaceFactory.Profile,TimeAspect>
                           getSurfaceFactory() {
         return SURFACE_FACTORY;
+    }
+
+    public GangerFactory<TimeSurfaceFactory.Profile,TimeAspect>
+                         getGangerFactory() {
+        return TimeStackGanger.FACTORY;
     }
 
     public PaperTypeSelector getPaperTypeSelector() {

@@ -4,8 +4,6 @@ import java.awt.Component;
 import javax.swing.ListModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
-import uk.ac.starlink.ttools.plot2.GangerFactory;
-import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.AreaCoord;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -67,10 +65,6 @@ public class SpherePlotWindow
         }
         public FigureMode[] getFigureModes() {
             return new FigureMode[ 0 ];
-        }
-        public GangerFactory<CubeSurfaceFactory.Profile,CubeAspect>
-                getGangerFactory() {
-            return SingleGanger.createFactory( PLOT_TYPE );
         }
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.FIXED;

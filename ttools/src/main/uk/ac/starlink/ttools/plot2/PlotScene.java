@@ -30,7 +30,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
-import uk.ac.starlink.ttools.plot2.SingleGanger;
+import uk.ac.starlink.ttools.plot2.SingleGangerFactory;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
@@ -80,7 +80,6 @@ public class PlotScene<P,A> {
      *
      * @param  ganger  defines plot surface grouping
      * @param  surfFact   surface factory
-     * @param  nz   number of plot zones in group
      * @param  zoneContents   plot content with initial aspect by zone
      *                        (nz-element array)
      * @param  trimmings   plot decoration specification by zone
@@ -91,19 +90,19 @@ public class PlotScene<P,A> {
      * @param  compositor  compositor for pixel composition
      * @param  caching  plot caching policy
      */
-    public PlotScene( Ganger<P,A> ganger, SurfaceFactory<P,A> surfFact, int nz,
+    public PlotScene( Ganger<P,A> ganger, SurfaceFactory<P,A> surfFact,
                       ZoneContent<P,A>[] zoneContents, Trimming[] trimmings,
                       ShadeAxisKit[] shadeKits, PaperTypeSelector ptSel,
                       Compositor compositor, PlotCaching caching ) {
         ganger_ = ganger;
         surfFact_ = surfFact;
-        nz_ = nz;
+        nz_ = ganger.getZoneCount();
         @SuppressWarnings("unchecked")
         Zone<P,A>[] zs = (Zone<P,A>[]) new Zone<?,?>[ nz_ ];
         zones_ = zs;
-        P[] initialProfiles = PlotUtil.createProfileArray( surfFact, nz );
-        A[] initialAspects = PlotUtil.createAspectArray( surfFact, nz );
-        for ( int iz = 0; iz < nz; iz++ ) {
+        P[] initialProfiles = PlotUtil.createProfileArray( surfFact, nz_ );
+        A[] initialAspects = PlotUtil.createAspectArray( surfFact, nz_ );
+        for ( int iz = 0; iz < nz_; iz++ ) {
             ZoneContent<P,A> content = zoneContents[ iz ];
             initialProfiles[ iz ] = content.getProfile();
             initialAspects[ iz ] = content.getAspect();
@@ -138,9 +137,10 @@ public class PlotScene<P,A> {
                       Trimming trimming, ShadeAxisKit shadeKit,
                       PaperTypeSelector ptSel, Compositor compositor,
                       Padding padding, PlotCaching caching ) {
-        this( new SingleGanger<P,A>( padding ), surfFact, 1,
-              PlotUtil.singletonArray( content ), new Trimming[] { trimming },
-              new ShadeAxisKit[] { shadeKit }, ptSel, compositor, caching );
+        this( SingleGangerFactory.createGanger( padding ), surfFact,
+              PlotUtil.singletonArray( content ),
+              new Trimming[] { trimming }, new ShadeAxisKit[] { shadeKit },
+              ptSel, compositor, caching );
     }
 
     /**
@@ -428,7 +428,7 @@ public class PlotScene<P,A> {
             trimmings[ iz ] = zone.trimming_;
             shadeAxes[ iz ] = zone.shadeAxis_;
         }
-        return ganger_.createGang( extBounds, surfFact_, nz_, contents,
+        return ganger_.createGang( extBounds, surfFact_, contents,
                                    trimmings, shadeAxes, WITH_SCROLL );
     }
 
@@ -526,7 +526,6 @@ public class PlotScene<P,A> {
      *
      * @param  ganger  definses plot grouping
      * @param  surfFact   surface factory
-     * @param  nz   number of plot zones in group
      * @param  layerArrays   per-zone layer arrays (nz-element array)
      * @param  profiles   per-zone profiles (nz-element array)
      * @param  aspectConfigs   per-zone config map providing entries
@@ -543,7 +542,7 @@ public class PlotScene<P,A> {
     @Slow
     public static <P,A> PlotScene<P,A>
             createGangScene( Ganger<P,A> ganger, SurfaceFactory<P,A> surfFact,
-                             int nz, PlotLayer[][] layerArrays, P[] profiles,
+                             PlotLayer[][] layerArrays, P[] profiles,
                              ConfigMap[] aspectConfigs, Trimming[] trimmings,
                              ShadeAxisKit[] shadeKits,
                              PaperTypeSelector ptSel, Compositor compositor,
@@ -551,6 +550,7 @@ public class PlotScene<P,A> {
 
         /* Determine aspects.  This may or may not require reading the ranges
          * from the data (slow).  */
+        int nz = ganger.getZoneCount();
         long t0 = System.currentTimeMillis();
         ZoneContent<P,A>[] contents =
             PlotUtil.createZoneContentArray( surfFact, nz );
@@ -567,7 +567,7 @@ public class PlotScene<P,A> {
         PlotUtil.logTimeFromStart( logger_, "Range", t0 );
  
         /* Construct and return display. */
-        return new PlotScene<P,A>( ganger, surfFact, nz, contents, trimmings,
+        return new PlotScene<P,A>( ganger, surfFact, contents, trimmings,
                                    shadeKits, ptSel, compositor, caching );
     }
 

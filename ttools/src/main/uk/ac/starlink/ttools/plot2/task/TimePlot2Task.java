@@ -10,7 +10,6 @@ import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.geom.TimeAspect;
 import uk.ac.starlink.ttools.plot2.geom.TimeDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
-import uk.ac.starlink.ttools.plot2.geom.TimeStackGanger;
 import uk.ac.starlink.ttools.plot2.geom.TimeSurfaceFactory;
 
 /**
@@ -30,8 +29,7 @@ public class TimePlot2Task extends
      * Constructor.
      */
     public TimePlot2Task() {
-        super( PLOTTYPE, AXLABEL_MAP,
-               createDefaultPlotContext( PLOTTYPE, TimeStackGanger.FACTORY ) );
+        super( PLOTTYPE, AXLABEL_MAP, createDefaultPlotContext( PLOTTYPE ) );
     }
 
     /**

@@ -76,6 +76,7 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gang;
+import uk.ac.starlink.ttools.plot2.GangContext;
 import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.IndicatedRow;
@@ -295,7 +296,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Prepare options to display the text of a STILTS command
          * corresponding to the current plot. */
         final boolean isMultiZone =
-            plotTypeGui_.getGangerFactory().isMultiZone();
+            plotType_.getGangerFactory().hasIndependentZones();
         ToggleButtonModel stiltsWindowToggle =
                  new WindowToggle( "STILTS Command Window", ResourceIcon.STILTS,
                                    "Display this information "
@@ -762,7 +763,24 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     private Ganger<P,A> getGanger() {
         Padding padding = frameControl_.getPlotPosition().getPadding();
-        return plotTypeGui_.getGangerFactory().createGanger( padding );
+        ConfigMap gangConfig =
+            multiAxisController_.getConfigger().getGlobalConfig();
+        String[] zoneNames = Arrays.stream( multiAxisController_.getZones() )
+                                   .map( zoneId -> zoneId.toString() )
+                                   .toArray( n -> new String[ n ] );
+        Plotter<?>[] plotters = Arrays.stream( readPlotLayers( true ) )
+                                      .map( PlotLayer::getPlotter )
+                                      .toArray( n -> new Plotter<?>[ n ] );
+        GangContext gangContext = new GangContext() {
+            public Plotter<?>[] getPlotters() {
+                return plotters;
+            }
+            public String[] getRequestedZoneNames() {
+                return zoneNames;
+            }
+        };
+        return plotType_.getGangerFactory()
+                        .createGanger( padding, gangConfig, gangContext );
     }
 
     /**
@@ -1050,7 +1068,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         Map<ZoneId,LayerControl[]> zoneMap = getLayerControlsByZone();
         ZoneId[] zones = zoneMap.keySet().toArray( new ZoneId[ 0 ] );
         Arrays.sort( zones, zoneFact_.getComparator() );
-        Gang gang = getGanger().createApproxGang( getBounds(), zones.length );
+        Gang gang = getGanger().createApproxGang( getBounds() );
         multiAxisController_.setZones( zones, gang );
         multiShaderControl_.setZones( zones, gang );
         for ( Map.Entry<ZoneId,LayerControl[]> entry : zoneMap.entrySet() ) {

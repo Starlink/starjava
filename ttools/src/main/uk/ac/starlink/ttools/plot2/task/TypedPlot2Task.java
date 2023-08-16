@@ -10,9 +10,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Ganger;
-import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
-import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Input;
@@ -50,7 +48,7 @@ public class TypedPlot2Task<P,A> extends AbstractPlot2Task {
     public TypedPlot2Task( PlotType<P,A> plotType,
                            Map<ConfigKey<String>,Input> axlabelMap,
                            PlotContext<P,A> context ) {
-        super( context.getGangerFactory() );
+        super( true, plotType.getGangerFactory().hasIndependentZones() );
         plotType_ = plotType;
         context_ = context;
         axlabelMap_ = axlabelMap == null
@@ -60,6 +58,12 @@ public class TypedPlot2Task<P,A> extends AbstractPlot2Task {
 
         /* Standard parameters applicable to all plot tasks. */
         paramList.addAll( Arrays.asList( getBasicParameters() ) );
+
+        /* Gang parameters. */
+        for ( ConfigKey<?> gangKey :
+              plotType.getGangerFactory().getGangerKeys() ) {
+           paramList.add( ConfigParameter.createConfigParameter( gangKey ) );
+        }
 
         /* Parameters specific to the plotting surface type. */
         SurfaceFactory<P,A> surfFact = plotType.getSurfaceFactory();
@@ -73,7 +77,7 @@ public class TypedPlot2Task<P,A> extends AbstractPlot2Task {
         paramList.add( createLabelParameter( EXAMPLE_LAYER_SUFFIX ) );
         paramList.add( createLayerTypeParameter( EXAMPLE_LAYER_SUFFIX,
                                                  context ) );
-        if ( context.getGangerFactory().isMultiZone() ) {
+        if ( hasZoneSuffixes() ) {
             paramList.add( createZoneParameter( EXAMPLE_LAYER_SUFFIX ) );
         }
 
@@ -99,10 +103,7 @@ public class TypedPlot2Task<P,A> extends AbstractPlot2Task {
      */
     public TypedPlot2Task( PlotType<P,A> plotType,
                            Map<ConfigKey<String>,Input> axlabelMap ) {
-        this( plotType, axlabelMap,
-              createDefaultPlotContext( plotType,
-                                        SingleGanger
-                                       .createFactory( plotType ) ) );
+        this( plotType, axlabelMap, createDefaultPlotContext( plotType ) );
     }
 
     /**
@@ -190,16 +191,13 @@ public class TypedPlot2Task<P,A> extends AbstractPlot2Task {
      * parameter.
      *
      * @param  plotType  plot type
-     * @param  gangerFact  defines plot grouping
      * @return  context
      */
     public static <P,A> PlotContext<P,A>
-            createDefaultPlotContext( PlotType<P,A> plotType,
-                                      GangerFactory<P,A> gangerFact ) {
+            createDefaultPlotContext( PlotType<P,A> plotType ) {
         final DataGeom[] geoms = plotType.getPointDataGeoms();
         return geoms.length == 1
-             ? PlotContext.createFixedContext( plotType, geoms[ 0 ],
-                                               gangerFact )
-             : PlotContext.createStandardContext( plotType, gangerFact );
+             ? PlotContext.createFixedContext( plotType, geoms[ 0 ] )
+             : PlotContext.createStandardContext( plotType );
     }
 }

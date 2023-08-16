@@ -60,6 +60,7 @@ import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gang;
+import uk.ac.starlink.ttools.plot2.GangContext;
 import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
@@ -77,7 +78,6 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
-import uk.ac.starlink.ttools.plot2.SingleGanger;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -131,7 +131,7 @@ import uk.ac.starlink.util.Bi;
 public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
     private final boolean allowAnimate_;
-    private final GangerFactory<?,?> gangerFact_;
+    private final boolean hasZoneSuffixes_;
     private final IntegerParameter xpixParam_;
     private final IntegerParameter ypixParam_;
     private final PaddingParameter paddingParam_;
@@ -166,12 +166,13 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * Constructor with explicit animation capability.
      *
      * @param  allowAnimate  true iff animation options should be provided
-     * @param  gangerFact    controls how plots can be grouped
+     * @param  hasZoneSuffixes  true iff zone content can be controlled
+     *                          explicitly by use of parameter suffixes
      */
     protected AbstractPlot2Task( boolean allowAnimate,
-                                 GangerFactory<?,?> gangerFact ) {
+                                 boolean hasZoneSuffixes ) {
         allowAnimate_ = allowAnimate;
-        gangerFact_ = gangerFact;
+        hasZoneSuffixes_ = hasZoneSuffixes;
         List<Parameter<?>> plist = new ArrayList<Parameter<?>>();
 
         paddingParam_ = new PaddingParameter( "insets" );
@@ -444,15 +445,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     }
 
     /**
-     * Constructor with default animation capability.
-     *
-     * @param  gangerFact    controls how plots can be grouped
-     */
-    protected AbstractPlot2Task( GangerFactory<?,?> gangerFact ) {
-        this( true, gangerFact );
-    }
-
-    /**
      * Concrete subclasses must implement this method to provide
      * the PlotType and other information from the environment
      * that may not be available at construction time.
@@ -637,6 +629,16 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 };
             }
         }
+    }
+
+    /**
+     * Indicates whether relevant parameters can be suffixed by zone label
+     * for explicit control of per-zone characteristics.
+     *
+     * @return  true iff zone suffixes are in use
+     */
+    public boolean hasZoneSuffixes() {
+        return hasZoneSuffixes_;
     }
 
     /**
@@ -1229,6 +1231,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         PlotType<P,A> plotType = context.getPlotType();
         final SurfaceFactory<P,A> surfFact = plotType.getSurfaceFactory();
         final PaperTypeSelector ptSel = plotType.getPaperTypeSelector();
+        final GangerFactory<P,A> gangerFact = plotType.getGangerFactory();
 
         /* Set up generic configuration. */
         final int xpix = xpixParam_.intValue( env );
@@ -1236,10 +1239,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final boolean forceBitmap = bitmapParam_.booleanValue( env );
         final DataStoreFactory storeFact = dstoreParam_.objectValue( env );
         final Compositor compositor = compositorParam_.objectValue( env );
-        Padding padding = paddingParam_.objectValue( env );
-        @SuppressWarnings("unchecked")
-        final Ganger<P,A> ganger = ((GangerFactory<P,A>) gangerFact_)
-                                  .createGanger( padding );
 
         /* Gather the defined plot layers from the environment. */
         Map<String,PlotLayer> layerMap = createLayerMap( env, context );
@@ -1280,6 +1279,24 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         Map<String,String[]> zoneSuffixMap = getZoneSuffixMap( env, layerSeq );
         String[] zoneSuffixes =
             zoneSuffixMap.keySet().toArray( new String[ 0 ] );
+
+        /* Get ganger. */
+        Padding padding = paddingParam_.objectValue( env );
+        ConfigMap gangConfig =
+            createBasicConfigMap( env, gangerFact.getGangerKeys() );
+        Plotter<?>[] plotters = Arrays.stream( layers )
+                                      .map( PlotLayer::getPlotter )
+                                      .toArray( n -> new Plotter<?>[ n ] );
+        GangContext gangContext = new GangContext() {
+            public Plotter<?>[] getPlotters() {
+                return plotters;
+            }
+            public String[] getRequestedZoneNames() {
+                return zoneSuffixes;
+            }
+        };
+        final Ganger<P,A> ganger =
+            gangerFact.createGanger( padding, gangConfig, gangContext );
 
         /* Prepare parallel arrays of per-zone information for the plotting. */
         final int nz = zoneSuffixes.length;
@@ -1387,7 +1404,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             public PlotScene<P,A> createPlotScene( DataStore dataStore,
                                                    PlotCaching caching ) {
                 return PlotScene
-                      .createGangScene( ganger, surfFact, nz, layerArrays,
+                      .createGangScene( ganger, surfFact, layerArrays,
                                         profiles, aspectConfigs, trimmings,
                                         shadeKits, ptSel, compositor,
                                         dataStore, caching );
@@ -1424,7 +1441,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *
      * @param   env  execution environment
      * @param   context  plot context
-     * @return   suffix->layer map for all the layers specified
+     * @return   suffix-&gt;layer map for all the layers specified
      *           by the environment
      */
     private Map<String,PlotLayer> createLayerMap( Environment env,
@@ -1514,7 +1531,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* If no ganging, just group all the layer suffixes under
          * a single key. */
-        if ( ! gangerFact_.isMultiZone() || layerSuffixes.length == 0 ) {
+        if ( ! hasZoneSuffixes_ || layerSuffixes.length == 0 ) {
             Map<String,String[]> map = new HashMap<String,String[]>();
             map.put( "", layerSuffixes );
             return map;
@@ -2478,7 +2495,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @return  non-null string containing zero or more XML &lt;p&gt; elements
      */
     private String getZoneDoc( String baseName, String suffix ) {
-        if ( ! gangerFact_.isMultiZone() ) {
+        if ( ! hasZoneSuffixes_ ) {
             return "";
         }
         else if ( suffix != null && suffix.length() > 0 ) {
@@ -2755,7 +2772,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Acquire nominal plot bounds that are good enough for working
          * out aux data ranges. */
         Gang approxGang =
-            ganger.createGang( extBox, surfFact, nz, contents, trimmings,
+            ganger.createGang( extBox, surfFact, contents, trimmings,
                                new ShadeAxis[ nz ], withScroll );
 
         /* Calculate aux ranges if required.
@@ -2798,7 +2815,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* Work out plot bounds. */
         final Gang gang =
-            ganger.createGang( extBox, surfFact, nz, contents, trimmings,
+            ganger.createGang( extBox, surfFact, contents, trimmings,
                                shadeAxes, withScroll );
 
         /* Construct and return an icon that paints all the zones. */
@@ -2862,12 +2879,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @return  parameters for acquiring config key values
      */
     public final List<Parameter<?>> getZoneKeyParams( ConfigKey<?>[] keys ) {
-        boolean isMultiZone = gangerFact_.isMultiZone();
         List<Parameter<?>> plist = new ArrayList<Parameter<?>>();
         for ( int ik = 0; ik < keys.length; ik++ ) {
             plist.add( ConfigParameter
                       .createZoneSuffixedParameter( keys[ ik ], DOC_ZONE_SUFFIX,
-                                                    isMultiZone ) );
+                                                    hasZoneSuffixes_ ) );
         }
         return plist;
     }
