@@ -36,6 +36,7 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.ttools.plot2.geom.MatrixPlotType;
 import uk.ac.starlink.ttools.plot2.layer.HealpixPlotter;
 import uk.ac.starlink.ttools.plot2.task.CoordSpec;
 import uk.ac.starlink.util.Loader;
@@ -130,7 +131,7 @@ public class GroupControlManager<P,A> implements ControlManager {
                                   + " plot control to the stack";
                 final CoordsType ctyp0 = ctyp;
                 stackActList.add( new LayerControlAction( actName,
-                                                          ctyp.getIcon(),
+                                                          getIcon( ctyp ),
                                                           actDescrip,
                                                           (Plotter) null,
                                                           stack_ ) {
@@ -378,7 +379,7 @@ public class GroupControlManager<P,A> implements ControlManager {
                 new MultiFormLayerControl( plotTypeGui_, coordPanel,
                                            tablesModel_, zsel, autoPop,
                                            nextSupplier_, tcListener_,
-                                           ctyp.getIcon(),
+                                           getIcon( ctyp ),
                                            plotterList
                                           .toArray( new Plotter<?>[ 0 ] ),
                                            zoneConfigger );
@@ -452,6 +453,21 @@ public class GroupControlManager<P,A> implements ControlManager {
         else {
             return CoordsType.MISC;
         }
+    }
+
+    /**
+     * Nasty hack to yield a different icon for the Matrix Plot
+     * single position control.  If more special cases need to be added
+     * on top of this, rework it in a more principled way.
+     *
+     * @param  ctyp  coordinate type
+     * @return  icon for coordinate position control
+     */
+    private Icon getIcon( CoordsType ctyp ) {
+        return ctyp == CoordsType.SINGLE_POS &&
+                       plotType_ instanceof MatrixPlotType
+             ? ResourceIcon.PLOT_MATRIX
+             : ctyp.getIcon();
     }
 
     /**

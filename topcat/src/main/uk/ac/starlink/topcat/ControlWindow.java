@@ -441,6 +441,7 @@ public class ControlWindow extends AuxWindow
             new Plot2WindowAction( PlotWindowType.SKY ),
             new Plot2WindowAction( PlotWindowType.CUBE ),
             new Plot2WindowAction( PlotWindowType.SPHERE ),
+            new Plot2WindowAction( PlotWindowType.MATRIX ),
             new Plot2WindowAction( PlotWindowType.TIME ),
         };
         Action[] morePlot2Acts = new Action[] {

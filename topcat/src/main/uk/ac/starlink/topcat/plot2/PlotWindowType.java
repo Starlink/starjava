@@ -59,6 +59,15 @@ public enum PlotWindowType {
         }
     },
 
+    /** Matrix. */
+    MATRIX( "Corner", ResourceIcon.PLOT2_MATRIX,
+            "Window for grid of scatter plots" ) {
+        public StackPlotWindow<?,?>
+                createWindow( Component parent, ListModel<TopcatModel> tm ) {
+            return new MatrixPlotWindow( parent, tm );
+        }
+    },
+
     /** Time. */
     TIME( "Time", ResourceIcon.PLOT2_TIME, "Time series plotting window" ) {
         public StackPlotWindow<?,?>
