@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.plot2;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -202,9 +201,9 @@ public class AuxScale {
      *                      keyed by scale (optional per scale)
      * @return  list of scales for which data scans are required
      */
-    public static AuxScale[] getMissingScales( PlotLayer[] layers,
-                                               Map<AuxScale,Span> dataSpans,
-                                               Map<AuxScale,Span> fixSpans ) {
+    public static Set<AuxScale>
+            getMissingScales( PlotLayer[] layers, Map<AuxScale,Span> dataSpans,
+                              Map<AuxScale,Span> fixSpans ) {
 
         /* Get a set of scales along with associated scalings for all
          * the layers that will be plotted. */
@@ -225,7 +224,7 @@ public class AuxScale {
 
         /* For each of the scales, add it to the missing list if we don't
          * have the relevant scaling information already. */
-        List<AuxScale> missingScales = new ArrayList<AuxScale>();
+        Set<AuxScale> missingScales = new HashSet<AuxScale>();
         for ( Map.Entry<AuxScale,Collection<Scaling>> entry :
               reqMap.entrySet() ) {
             AuxScale scale = entry.getKey();
@@ -235,6 +234,6 @@ public class AuxScale {
                 missingScales.add( scale );
             }
         }
-        return missingScales.toArray( new AuxScale[ 0 ] );
+        return missingScales;
     }
 }

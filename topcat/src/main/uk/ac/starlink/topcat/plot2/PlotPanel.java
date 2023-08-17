@@ -1566,14 +1566,13 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 Map<AuxScale,Span> auxFixSpans =
                     Collections.singletonMap( AuxScale.COLOR,
                                               shadeKit.getFixSpan() );
-                AuxScale[] calcScales =
+                Set<AuxScale> calcScales =
                     AuxScale.getMissingScales( zone.layers_, auxDataSpanMap,
                                                auxFixSpans );
-                if ( calcScales.length > 0 ) {
+                if ( ! calcScales.isEmpty() ) {
 
                     /* Split required scales into Aux shade scale and others. */
-                    List<AuxScale> scaleList =
-                        new ArrayList<AuxScale>( Arrays.asList( calcScales ) );
+                    List<AuxScale> scaleList = new ArrayList<>( calcScales );
                     boolean requiresShade = scaleList.remove( AuxScale.COLOR );
                     AuxScale[] nonShadeScales =
                         scaleList.toArray( new AuxScale[ 0 ] );

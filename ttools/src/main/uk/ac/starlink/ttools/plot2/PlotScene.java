@@ -636,8 +636,7 @@ public class PlotScene<P,A> {
             auxFixSpans.put( AuxScale.COLOR, shadeFixSpan );
         }
         boolean requireColor =
-            Arrays.asList( AuxScale
-                          .getMissingScales( layers, dataSpans, auxFixSpans ) )
+            AuxScale.getMissingScales( layers, dataSpans, auxFixSpans )
            .contains( AuxScale.COLOR );
 
         /* Do the calculation if required. */
