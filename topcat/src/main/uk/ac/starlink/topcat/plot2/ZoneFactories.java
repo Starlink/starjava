@@ -1,14 +1,17 @@
 package uk.ac.starlink.topcat.plot2;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.SpecifierPanel;
+import uk.ac.starlink.ttools.plot2.geom.StackGanger;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -22,6 +25,9 @@ public class ZoneFactories {
     /** Single-zone factory. */
     public static final ZoneFactory FIXED =
         createSingleZoneFactory( new ZoneId() {
+            public int getZoneIndex( Ganger<?,?> ganger ) {
+                return 0;
+            }
             public String toString() {
                 return "FIXED";
             }
@@ -46,6 +52,9 @@ public class ZoneFactories {
             }
         };
         return new AbstractZoneFactory( true, zid0, comparator ) {
+            public ZoneId nameToId( String name ) {
+                return zid0.toString().equals( name ) ? zid0 : null;
+            }
             public Specifier<ZoneId> createZoneSpecifier() {
                 return new SpecifierPanel<ZoneId>( false ) {
                     protected JComponent createComponent() {
@@ -83,6 +92,9 @@ public class ZoneFactories {
         return new AbstractZoneFactory( false, new IntZoneId( 0 ),
                                         comparator ) {
             private int index_;
+            public ZoneId nameToId( String name ) {
+                return IntZoneId.fromString( name );
+            }
             public Specifier<ZoneId> createZoneSpecifier() {
                 return new SpecifierPanel<ZoneId>( false ) {
                     private final SpinnerNumberModel model_ =
@@ -127,6 +139,22 @@ public class ZoneFactories {
             ival_ = ival;
         }
 
+        public int getZoneIndex( Ganger<?,?> ganger ) {
+            if ( ganger instanceof StackGanger ) {
+                String[] zoneNames = ((StackGanger) ganger).getZoneNames();
+                int izone = Arrays.asList( zoneNames ).indexOf( toString() );
+                if ( izone >= 0 ) {
+                    return izone;
+                }
+            }
+
+            /* This shouldn't be necessary, but it seems that it is
+             * before the plot is properly started. */
+            return ival_ >= 0 & ival_ < ganger.getZoneCount()
+                 ? ival_
+                 : 0;
+        }
+
         @Override
         public int hashCode() {
             return ival_;
@@ -141,6 +169,21 @@ public class ZoneFactories {
         @Override
         public String toString() {
             return Integer.toString( ival_ );
+        }
+
+        /**
+         * Returns an IntZoneId corresponding to the given string.
+         *
+         * @param  txt  zone name
+         * @return  zoneId
+         */
+        static IntZoneId fromString( String txt ) {
+            try {
+                return new IntZoneId( Integer.parseInt( txt ) );
+            }
+            catch ( RuntimeException e ) {
+                return null;
+            }
         }
     }
 

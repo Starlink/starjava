@@ -41,4 +41,12 @@ public interface ZoneFactory {
      * @return  comparator
      */
     Comparator<ZoneId> getComparator();
+
+    /**
+     * Returns the ZoneId corresponding to a zone name.
+     *
+     * @param  name  zone name
+     * @return   zone identifier in this factory, or null if not known
+     */
+    ZoneId nameToId( String name );
 }
