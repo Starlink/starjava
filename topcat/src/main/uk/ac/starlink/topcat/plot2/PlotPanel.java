@@ -52,6 +52,7 @@ import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.Padding;
+import uk.ac.starlink.ttools.plot2.PlotFrame;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotScene;
@@ -1678,9 +1679,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                              aspects[ iz ] );
 
                 /* Get the basic plot decorations. */
+                PlotFrame frame =
+                    PlotFrame.createPlotFrame( surface, WITH_SCROLL );
                 Decoration[] basicDecs =
                     PlotPlacement
-                   .createPlotDecorations( surface, WITH_SCROLL, zone.trimming_,
+                   .createPlotDecorations( frame, zone.trimming_,
                                            shadeAxes[ iz ] );
                 List<Decoration> decList = new ArrayList<Decoration>();
                 decList.addAll( Arrays.asList( basicDecs ) );

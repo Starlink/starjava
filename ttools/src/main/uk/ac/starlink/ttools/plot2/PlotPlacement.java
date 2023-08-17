@@ -177,8 +177,8 @@ public class PlotPlacement {
             calculateDataBounds( extBounds, padding, surfFact, profile, aspect,
                                  withScroll, trimming, shadeAxis );
         Surface surf = surfFact.createSurface( dataBounds, profile, aspect );
-        Decoration[] decs =
-            createPlotDecorations( surf, withScroll, trimming, shadeAxis );
+        PlotFrame frame = PlotFrame.createPlotFrame( surf, withScroll );
+        Decoration[] decs = createPlotDecorations( frame, trimming, shadeAxis );
         return new PlotPlacement( extBounds, surf, decs );
     }
 
@@ -373,27 +373,26 @@ public class PlotPlacement {
      * Returns a list of plot decorations for things like the legend
      * and shade colour ramp.
      *
-     * @param  surf  plot surface
-     * @param   withScroll  true if the decorations should work well
-     *                      with future scrolling
+     * @param  frame   geometry of area to be decorated
      * @param   trimming  specification for static decorations, or null
      * @param   shadeAxis  shader axis if required, or null
      * @return   list of decorations (may have zero elements)
      */
-    public static Decoration[] createPlotDecorations( Surface surf,
-                                                      boolean withScroll,
+    public static Decoration[] createPlotDecorations( PlotFrame frame,
                                                       Trimming trimming,
                                                       ShadeAxis shadeAxis ) {
+
+        Rectangle intBounds = frame.getInternalBounds();
+        Surround surround = frame.getSurround();
+        Captioner captioner = frame.getCaptioner();
         Icon legend = trimming == null ? null : trimming.getLegend();
         float[] legPos = trimming == null ? null : trimming.getLegendPosition();
         String title = trimming == null ? null : trimming.getTitle();
-        Rectangle dataBounds = surf.getPlotBounds();
-        Surround surround = surf.getSurround( withScroll );
         List<Decoration> decList = new ArrayList<Decoration>();
-        int gxlo = dataBounds.x;
-        int gylo = dataBounds.y;
-        int gxhi = dataBounds.x + dataBounds.width;
-        int gyhi = dataBounds.y + dataBounds.height;
+        int gxlo = intBounds.x;
+        int gylo = intBounds.y;
+        int gxhi = intBounds.x + intBounds.width;
+        int gyhi = intBounds.y + intBounds.height;
         int xRightExtra = gxhi + surround.right.extent + EXTERNAL_LEGEND_GAP;
         int yTopExtra = gylo - surround.top.extent;
         
@@ -435,10 +434,9 @@ public class PlotPlacement {
 
         /* Position title. */
         if ( title != null ) {
-            Captioner captioner = surf.getCaptioner();
             Icon titleIcon = new CaptionIcon( title, captioner );
-            int px = dataBounds.x
-                   + dataBounds.width / 2
+            int px = intBounds.x
+                   + intBounds.width / 2
                    - titleIcon.getIconWidth() / 2;
             int py = yTopExtra - titleIcon.getIconHeight()
                                - captioner.getPad();

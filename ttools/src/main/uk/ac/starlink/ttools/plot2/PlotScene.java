@@ -294,10 +294,11 @@ public class PlotScene<P,A> {
 
                 /* Work out plot positioning. */
                 PlotLayer[] layers = zone.layers_;
+                PlotFrame frame =
+                    PlotFrame.createPlotFrame( zone.surface_, WITH_SCROLL );
                 Decoration[] decs =
-                    PlotPlacement
-                   .createPlotDecorations( zone.surface_, WITH_SCROLL,
-                                           zone.trimming_, zone.shadeAxis_ );
+                    PlotPlacement.createPlotDecorations( frame, zone.trimming_,
+                                                         zone.shadeAxis_ );
                 PlotPlacement placer =
                     new PlotPlacement( extBounds, zone.surface_, decs );
 

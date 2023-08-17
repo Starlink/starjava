@@ -69,6 +69,7 @@ import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotCaching;
+import uk.ac.starlink.ttools.plot2.PlotFrame;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotScene;
@@ -2838,10 +2839,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                         surfFact.createSurface( gang.getZonePlotBounds( iz ),
                                                 content.getProfile(),
                                                 content.getAspect() );
+                   PlotFrame frame =
+                        PlotFrame.createPlotFrame( surface, withScroll );
                     Decoration[] decs =
                         PlotPlacement
-                       .createPlotDecorations( surface, withScroll,
-                                               trimmings[ iz ],
+                       .createPlotDecorations( frame, trimmings[ iz ],
                                                shadeAxes[ iz ] );
                     PlotPlacement placer =
                         new PlotPlacement( extBox, surface, decs );
