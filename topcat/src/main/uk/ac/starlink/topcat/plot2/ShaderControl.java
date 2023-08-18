@@ -15,10 +15,12 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.SingleGangerFactory;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
@@ -203,11 +205,16 @@ public class ShaderControl extends ConfigControl {
     private static PlotLayer[] getScaleLayers( LayerControl[] layerControls,
                                                AuxScale scale ) {
         List<PlotLayer> list = new ArrayList<PlotLayer>();
+
+        // NOTE: a default ganger is used here, so this will not work
+        // for non-single-zone gangs.  Needs some work.
+        Ganger<?,?> ganger = SingleGangerFactory.createGanger();
         for ( LayerControl lc : layerControls ) {
-            for ( TopcatLayer tcLayer : lc.getLayers() ) {
-                PlotLayer plotLayer = tcLayer.getPlotLayer();
-                if ( plotLayer.getAuxRangers().containsKey( scale ) ) {
-                    list.add( plotLayer );
+            for ( TopcatLayer tcLayer : lc.getLayers( ganger ) ) {
+                for ( PlotLayer plotLayer : tcLayer.getPlotLayers() ) {
+                    if ( plotLayer.getAuxRangers().containsKey( scale ) ) {
+                        list.add( plotLayer );
+                    }
                 }
             }
         }

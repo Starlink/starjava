@@ -7,7 +7,6 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
-import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -20,8 +19,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
  * @author   Mark Taylor
  * @since    10 Apr 2017
  */
-public class DatalessLayerControl extends ConfigControl
-                                  implements LayerControl {
+public class DatalessLayerControl extends SingleZoneLayerControl {
 
     private final Plotter<?> plotter_;
     private final Specifier<ZoneId> zsel_;
@@ -37,7 +35,7 @@ public class DatalessLayerControl extends ConfigControl
      */
     public DatalessLayerControl( Plotter<?> plotter, Specifier<ZoneId> zsel,
                                  Configger baseConfigger ) {
-        super( plotter.getPlotterName(), plotter.getPlotterIcon() );
+        super( plotter.getPlotterName(), plotter.getPlotterIcon(), zsel );
         plotter_ = plotter;
         zsel_ = zsel;
         baseConfigger_ = baseConfigger;
@@ -53,7 +51,7 @@ public class DatalessLayerControl extends ConfigControl
         return new Plotter<?>[] { plotter_ };
     }
 
-    public TopcatLayer[] getLayers() {
+    protected SingleZoneLayer getSingleZoneLayer() {
         DataGeom geom = null;
         DataSpec dataSpec = null;
         ConfigMap config = baseConfigger_.getConfig();
@@ -61,27 +59,12 @@ public class DatalessLayerControl extends ConfigControl
         PlotLayer plotLayer =
             styler_.createLayer( plotter_, geom, dataSpec, config );
         return plotLayer == null
-             ? new TopcatLayer[ 0 ]
-             : new TopcatLayer[] { new TopcatLayer( plotLayer, config, null ) };
+             ? null
+             : new SingleZoneLayer( plotLayer, config, null );
     }
 
     public LegendEntry[] getLegendEntries() {
         return new LegendEntry[ 0 ];
-    }
-
-    public void submitReports( Map<LayerId,ReportMap> reports ) {
-        TopcatLayer[] tcLayers = getLayers();
-        PlotLayer layer = tcLayers.length == 1
-                        ? tcLayers[ 0 ].getPlotLayer()
-                        : null;
-        if ( layer != null ) {
-            ReportMap report = reports.get( LayerId.createLayerId( layer ) );
-            if ( report != null ) {
-                for ( Specifier<ConfigMap> cspec : getConfigSpecifiers() ) {
-                    cspec.submitReport( report );
-                }
-            }
-        }
     }
 
     public String getCoordLabel( String userCoordName ) {

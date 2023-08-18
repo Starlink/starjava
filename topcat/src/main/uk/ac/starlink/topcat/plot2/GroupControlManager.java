@@ -146,8 +146,8 @@ public class GroupControlManager<P,A> implements ControlManager {
         for ( Plotter<?> plotter : plotterMap_.get( CoordsType.MISC ) ) {
             Action stackAct =
                 LayerControlAction
-               .createPlotterAction( plotter, stack, tablesModel_, zfact_,
-                                     nextSupplier_, tcListener_,
+               .createPlotterAction( plotTypeGui_, plotter, stack, tablesModel_,
+                                     zfact_, nextSupplier_, tcListener_,
                                      baseConfigger_ );
             if ( stackAct != null ) {
                 stackActList.add( stackAct );
@@ -375,8 +375,9 @@ public class GroupControlManager<P,A> implements ControlManager {
             Specifier<ZoneId> zsel = zfact_.isSingleZone() ? null : zs0;
             boolean autoPop = ctyp.isAutoPopulate();
             MultiFormLayerControl control = 
-                new MultiFormLayerControl( coordPanel, tablesModel_, zsel,
-                                           autoPop, nextSupplier_, tcListener_,
+                new MultiFormLayerControl( plotTypeGui_, coordPanel,
+                                           tablesModel_, zsel, autoPop,
+                                           nextSupplier_, tcListener_,
                                            ctyp.getIcon(),
                                            plotterList
                                           .toArray( new Plotter<?>[ 0 ] ),

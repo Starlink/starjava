@@ -108,6 +108,9 @@ public class TimePlotWindow
         public PositionCoordPanel createAreaCoordPanel() {
             throw new UnsupportedOperationException();
         }
+        public ZoneLayerManager createLayerManager( FormLayerControl flc ) {
+            return new SingleZoneLayerManager( flc );
+        }
         public boolean hasPositions() {
             return true;
         }

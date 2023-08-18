@@ -7,7 +7,6 @@ import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
@@ -23,7 +22,6 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
-import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
@@ -36,8 +34,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    25 Nov 2013
  */
-public class BasicCoordLayerControl extends ConfigControl
-                                    implements LayerControl {
+public class BasicCoordLayerControl extends SingleZoneLayerControl {
 
     private final Plotter<?> plotter_;
     private final TablesListComboBox tableSelector_;
@@ -68,7 +65,7 @@ public class BasicCoordLayerControl extends ConfigControl
                                    ListModel<TopcatModel> tablesModel,
                                    Configger baseConfigger,
                                    boolean autoPopulate ) {
-        super( null, plotter.getPlotterIcon() );
+        super( (String) null, plotter.getPlotterIcon(), zsel );
         plotter_ = plotter;
         zsel_ = zsel;
         coordPanel_ = coordPanel;
@@ -137,12 +134,12 @@ public class BasicCoordLayerControl extends ConfigControl
         return new Plotter<?>[] { plotter_ };
     }
 
-    public TopcatLayer[] getLayers() {
+    protected SingleZoneLayer getSingleZoneLayer() {
         RowSubset subset =
             subsetSelector_.getItemAt( subsetSelector_.getSelectedIndex() );
         GuiCoordContent[] coordContents = coordPanel_.getContents();
         if ( tcModel_ == null || coordContents == null || subset == null ) {
-            return new TopcatLayer[ 0 ];
+            return null;
         }
         DataGeom geom = coordPanel_.getDataGeom();
         DataSpec dataSpec = new GuiDataSpec( tcModel_, subset, coordContents );
@@ -152,11 +149,9 @@ public class BasicCoordLayerControl extends ConfigControl
         PlotLayer plotLayer =
             styler_.createLayer( plotter_, geom, dataSpec, config );
         return plotLayer == null
-             ? new TopcatLayer[ 0 ]
-             : new TopcatLayer[] {
-                   new TopcatLayer( plotLayer, config, null, tcModel_,
-                                    coordContents, subset ),
-               };
+             ? null
+             : new SingleZoneLayer( plotLayer, config, null, tcModel_,
+                                    coordContents, subset );
     }
 
     public String getCoordLabel( String userCoordName ) {
@@ -181,21 +176,6 @@ public class BasicCoordLayerControl extends ConfigControl
         ConfigMap config = super.getConfig();
         config.putAll( coordPanel_.getConfigSpecifier().getSpecifiedValue() );
         return config;
-    }
-
-    public void submitReports( Map<LayerId,ReportMap> reports ) {
-        TopcatLayer[] tcLayers = getLayers();
-        PlotLayer layer = tcLayers.length == 1
-                        ? tcLayers[ 0 ].getPlotLayer()
-                        : null;
-        if ( layer != null ) {
-            ReportMap report = reports.get( LayerId.createLayerId( layer ) );
-            if ( report != null ) {
-                for ( Specifier<ConfigMap> cspec : getConfigSpecifiers() ) {
-                    cspec.submitReport( report );
-                }
-            }
-        }
     }
 
     /**

@@ -85,6 +85,7 @@ public abstract class LayerControlAction extends BasicAction {
      * a given plotter.  If no suitable implementation is available,
      * null is returned.
      *
+     * @param  plotTypeGui  plot type
      * @param  plotter   plotter to provide an action for
      * @param  stack    stack to which controls are to be added
      * @param  tablesModel  list of available tables
@@ -96,7 +97,8 @@ public abstract class LayerControlAction extends BasicAction {
      * @return  new action to add plotter control to stack, or null
      */
     public static LayerControlAction
-            createPlotterAction( final Plotter<?> plotter, ControlStack stack,
+            createPlotterAction( final PlotTypeGui<?,?> plotTypeGui,
+                                 final Plotter<?> plotter, ControlStack stack,
                                  final ListModel<TopcatModel> tablesModel,
                                  final ZoneFactory zfact,
                                  final NextSupplier nextSupplier,
@@ -159,7 +161,8 @@ public abstract class LayerControlAction extends BasicAction {
                     Specifier<ZoneId> zs0 = zfact.createZoneSpecifier();
                     Configger configger = baseConfigger.layerConfigger( zs0 );
                     Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
-                    return new SingleFormLayerControl( posCoordPanel,
+                    return new SingleFormLayerControl( plotTypeGui,
+                                                       posCoordPanel,
                                                        tablesModel, zsel,
                                                        true, nextSupplier,
                                                        tcListener,

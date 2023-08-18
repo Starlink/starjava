@@ -29,21 +29,26 @@ import uk.ac.starlink.ttools.task.TableNamer;
 import uk.ac.starlink.util.URLUtils;
 
 /**
- * Aggregates a PlotLayer and some additional
+ * Aggregates information about gang of PlotLayers and some additional
  * information about how it was configured.
- * The resulting object is able to come up with a suitable LayerSpec.
+ * The plot layer array has one entry per plot zone, but some entries
+ * may be null.
+ *
+ * <p>The resulting object is able to come up with a suitable LayerSpec.
  *
  * @author   Mark Taylor
  * @since    14 Jul 2017
  */
 public class TopcatLayer {
 
-    private final PlotLayer plotLayer_;
+    private final PlotLayer[] plotLayers_;
     private final ConfigMap config_;
     private final String leglabel_;
     private final TopcatModel tcModel_;
     private final GuiCoordContent[] contents_;
     private final RowSubset rset_;
+    private final Plotter<?> plotter_;
+    private final int izone_;
     public static final TopcatNamer PATHNAME_NAMER;
     public static final TopcatNamer FILENAME_NAMER;
     public static final TopcatNamer LABEL_NAMER;
@@ -61,8 +66,9 @@ public class TopcatLayer {
     /**
      * Constructs a layer based on a table.
      *
-     * @param  plotLayer  plot layer, not null
-     * @param  config   configuration used to set up the plot layer
+     * @param  plotLayers  per-zone array of plot layers,
+     *                     at least one non-null member
+     * @param  config   configuration used to set up the plot layers
      *                  (superset is permitted)
      * @param  leglabel  label used in the legend;
      *                   if null, excluded from the legend
@@ -71,38 +77,70 @@ public class TopcatLayer {
      *                   (superset is not permitted)
      * @param  rset    row subset for which layer is plotted
      */
-    public TopcatLayer( PlotLayer plotLayer, ConfigMap config, String leglabel,
-                        TopcatModel tcModel, GuiCoordContent[] contents,
-                        RowSubset rset ) {
-        plotLayer_ = plotLayer;
+    public TopcatLayer( PlotLayer[] plotLayers, ConfigMap config,
+                        String leglabel, TopcatModel tcModel,
+                        GuiCoordContent[] contents, RowSubset rset ) {
+        plotLayers_ = plotLayers;
         config_ = config;
         leglabel_ = leglabel;
         tcModel_ = tcModel;
         contents_ = contents == null ? new GuiCoordContent[ 0 ] : contents;
         rset_ = rset;
+ 
+        /* Plotter should be the same for all non-null layers.
+         * If there's exactly one zone populated, assign that one as
+         * the zone index, otherwise, record no zone index (izone=-1). */
+        Plotter<?> plotter = null;
+        int izone = -1;
+        int nl = 0;
+        for ( int iz = 0; iz < plotLayers.length; iz++ ) {
+            PlotLayer layer = plotLayers[ iz ];
+            if ( layer != null ) {
+                nl++;
+                izone = iz;
+                Plotter<?> p = layer.getPlotter();
+                assert p == null || plotter == null || p == plotter;
+                if ( p != null ) {
+                    plotter = p;
+                }
+            }
+        }
+        assert plotter != null;
+        plotter_ = plotter;
+        izone_ = nl == 1 ? izone : -1;
     }
 
     /**
      * Constructs a layer with no table data.
      *
-     * @param  plotLayer  plot layer, not null
+     * @param  plotLayers  per-zone array of plot layers,
+     *                     at least one non-null member
      * @param  config   configuration used to set up the plot layer
      *                  (superset is permitted)
      * @param  leglabel  label used in the legend;
      *                   if null, excluded from the legend
      */
-    public TopcatLayer( PlotLayer plotLayer, ConfigMap config,
+    public TopcatLayer( PlotLayer[] plotLayers, ConfigMap config,
                         String leglabel ) {
-        this( plotLayer, config, leglabel, null, null, null );
+        this( plotLayers, config, leglabel, null, null, null );
     }
 
     /**
-     * Returns this object's plot layer.
+     * Returns the plotter used by this layer.
      *
-     * @return  plot layer, not null
+     * @return  plotter
      */
-    public PlotLayer getPlotLayer() {
-        return plotLayer_;
+    public Plotter<?> getPlotter() {
+        return plotter_;
+    }
+
+    /**
+     * Returns the plot layers stored by this object.
+     *
+     * @return  per-zone array of plot layers, at least one non-null member
+     */
+    public PlotLayer[] getPlotLayers() {
+        return plotLayers_;
     }
 
     /**
@@ -112,20 +150,18 @@ public class TopcatLayer {
      * <p>It shouldn't be null, unless it was impossible to write the
      * specification for some reason??
      *
-     * @param   izone   zone index for created layer
      * @return  layer specification, hopefully not null??
      */
-    public LayerSpec getLayerSpec( int izone ) {
-        Plotter<?> plotter = plotLayer_.getPlotter();
+    public LayerSpec getLayerSpec() {
         if ( tcModel_ == null ) {
-            return new LayerSpec( plotter, config_, leglabel_, izone );
+            return new LayerSpec( plotter_, config_, leglabel_, izone_ );
         }
         else {
             CoordSpec[] coordSpecs =
                 GuiCoordContent.getCoordSpecs( contents_ );
             CredibleString selectExpr = getSelectExpression( rset_ );
             StarTable table = getLayerTable( tcModel_ );
-            return new LayerSpec( plotter, config_, leglabel_, izone,
+            return new LayerSpec( plotter_, config_, leglabel_, izone_,
                                   table, coordSpecs, selectExpr );
         }
     }
@@ -245,7 +281,7 @@ public class TopcatLayer {
 
     /**
      * TableNamer implementation for use by this class.
-     * An instance of this class can be used prepare a DescribedValue
+     * An instance of this class can be used to prepare a DescribedValue
      * to be stashed in the Parameter list of a StarTable, where the
      * value is the name to be used for that table.
      */

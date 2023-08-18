@@ -64,11 +64,8 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
      * @return  style or null
      */
     private Style getLegendStyle() {
-        TopcatLayer[] tcLayers = getLayers();
-        if ( tcLayers.length == 1 ) {
-            return tcLayers[ 0 ].getPlotLayer().getStyle();
-        }
-        return null;
+        SingleZoneLayer szLayer = getSingleZoneLayer();
+        return szLayer == null ? null : szLayer.getPlotLayer().getStyle();
     }
 
     /**

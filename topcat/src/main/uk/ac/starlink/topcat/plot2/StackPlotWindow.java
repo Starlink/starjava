@@ -239,6 +239,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         navdecModel.setSelected( true );
         Supplier<Ganger<P,A>> gangerSupplier = () -> getGanger();
         Supplier<List<ZoneDef<P,A>>> zonesSupplier = () -> getZoneDefs();
+        Supplier<TopcatLayer[]> layersSupplier = () -> getTopcatLayers( true );
 
         /* Provide an option for preparing the cache in parallel.
          * This is experimental; in particular cancelling it doesn't
@@ -280,8 +281,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
             new PlotPanel<P,A>( plotType_, storeFact, surfFact_,
-                                gangerSupplier, zonesSupplier, posSupplier,
-                                plotType.getPaperTypeSelector(),
+                                gangerSupplier, zonesSupplier, layersSupplier,
+                                posSupplier, plotType.getPaperTypeSelector(),
                                 compositor, sketchModel_,
                                 placeProgressBar().getModel(),
                                 showProgressModel_, axisLockModel_,
@@ -906,14 +907,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @return  plot layer list
      */
     private PlotLayer[] readPlotLayers( boolean activeOnly ) {
-        List<PlotLayer> layerList = new ArrayList<PlotLayer>();
-        LayerControl[] controls = stackModel_.getLayerControls( activeOnly );
-        for ( int ic = 0; ic < controls.length; ic++ ) {
-            for ( TopcatLayer tcLayer : controls[ ic ].getLayers() ) {
-                layerList.add( tcLayer.getPlotLayer() );
-            }
-        }
-        return layerList.toArray( new PlotLayer[ 0 ] );
+        return Arrays.stream( getTopcatLayers( activeOnly ) )
+                     .flatMap( tcl -> Arrays.stream( tcl.getPlotLayers() ) )
+                     .filter( layer -> layer != null )
+                     .toArray( n -> new PlotLayer[ n ] );
     }
 
     /**
@@ -986,14 +983,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
               getLayerControlsByZone().entrySet() ) {
             final ZoneId zid = entry.getKey();
             LayerControl[] controls = entry.getValue();
-            List<TopcatLayer> layerList = new ArrayList<TopcatLayer>();
             List<LegendEntry> legList = new ArrayList<LegendEntry>();
             for ( LayerControl control : controls ) {
-                layerList.addAll( Arrays.asList( control.getLayers() ) );
                 legList.addAll( Arrays.asList( control.getLegendEntries() ) );
             }
-            final TopcatLayer[] layers =
-                layerList.toArray( new TopcatLayer[ 0 ] );
             LegendIcon legend =
                 legendControl_
                .createLegendIcon( legList.toArray( new LegendEntry[ 0 ] ),
@@ -1022,9 +1015,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 public AxisController<P,A> getAxisController() {
                     return axisController;
                 }
-                public TopcatLayer[] getLayers() {
-                    return layers;
-                }
                 public Trimming getTrimming() {
                     return trimming;
                 }
@@ -1037,6 +1027,20 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             } );
         }
         return zdefs;
+    }
+
+    /**
+     * Returns the list of topcat layers specified by the stack.
+     *
+     * @param  activeOnly  if true, include only active layers
+     * @return  layer array
+     */
+    private TopcatLayer[] getTopcatLayers( boolean activeOnly ) {
+        Ganger<P,A> ganger = getGanger();
+        return Arrays
+              .stream( stackModel_.getLayerControls( activeOnly ) )
+              .flatMap( control -> Arrays.stream( control.getLayers( ganger ) ))
+              .toArray( n -> new TopcatLayer[ n ] );
     }
 
     /**
@@ -1771,6 +1775,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Update plot reports. */
         Map<LayerId,ReportMap> reportsMap = new HashMap<LayerId,ReportMap>();
+        Ganger<P,A> ganger = plotPanel_.getGanger();
         int nz = plotPanel_.getZoneCount();
         for ( int iz = 0; iz < nz; iz++ ) {
             Surface surface = plotPanel_.getSurface( iz );
@@ -1802,7 +1807,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             reportsMap.putAll( rmap );
         }
         for ( LayerControl control : stackModel_.getLayerControls( false ) ) {
-            control.submitReports( reportsMap );
+            control.submitReports( reportsMap, ganger );
         }
 
         /* Provide menu items for exporting generated table data. */

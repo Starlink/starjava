@@ -24,6 +24,7 @@ public class SingleFormLayerControl extends FormLayerControl {
     /**
      * Constructor.
      *
+     * @param  plotTypeGui   plot type
      * @param  posCoordPanel  panel for entering table and basic positional
      *                        coordinates
      * @param  tablesModel   list of available tables
@@ -38,15 +39,16 @@ public class SingleFormLayerControl extends FormLayerControl {
      * @param  baseConfigger  configuration source for some global config
      *                        options
      */
-    public SingleFormLayerControl( PositionCoordPanel posCoordPanel,
+    public SingleFormLayerControl( PlotTypeGui<?,?> plotTypeGui,
+                                   PositionCoordPanel posCoordPanel,
                                    ListModel<TopcatModel> tablesModel,
                                    Specifier<ZoneId> zsel, boolean autoPopulate,
                                    NextSupplier nextSupplier,
                                    TopcatListener tcListener, Icon controlIcon,
                                    Plotter<?> plotter,
                                    Configger baseConfigger ) {
-        super( posCoordPanel, tablesModel, zsel, autoPopulate, nextSupplier,
-               tcListener, controlIcon );
+        super( plotTypeGui, posCoordPanel, tablesModel, zsel, autoPopulate,
+               nextSupplier, tcListener, controlIcon );
         formControl_ =
             new SimpleFormControl( baseConfigger, plotter, new Coord[ 0 ] );
         formControl_.addActionListener( getActionForwarder() );

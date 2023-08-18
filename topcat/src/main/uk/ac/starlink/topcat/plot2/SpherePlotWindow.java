@@ -60,6 +60,9 @@ public class SpherePlotWindow
                 }
             };
         }
+        public ZoneLayerManager createLayerManager( FormLayerControl flc ) {
+            return new SingleZoneLayerManager( flc );
+        }
         public boolean hasPositions() {
             return true;
         }

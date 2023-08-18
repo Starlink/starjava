@@ -13,7 +13,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
-import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
@@ -32,8 +31,7 @@ import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
  * @author   Mark Taylor
  * @since    26 Mar 2013
  */
-public class FunctionLayerControl extends ConfigControl
-                                  implements LayerControl {
+public class FunctionLayerControl extends SingleZoneLayerControl {
 
     private final FunctionPlotter plotter_;
     private final Specifier<ZoneId> zsel_;
@@ -48,7 +46,7 @@ public class FunctionLayerControl extends ConfigControl
      */
     public FunctionLayerControl( FunctionPlotter plotter,
                                  Specifier<ZoneId> zsel ) {
-        super( plotter.getPlotterName(), plotter.getPlotterIcon() );
+        super( plotter.getPlotterName(), plotter.getPlotterIcon(), zsel );
         plotter_ = plotter;
         zsel_ = zsel;
         AutoConfigSpecifier legendSpecifier =
@@ -105,7 +103,7 @@ public class FunctionLayerControl extends ConfigControl
         return new Plotter<?>[] { plotter_ };
     }
 
-    public TopcatLayer[] getLayers() {
+    public SingleZoneLayer getSingleZoneLayer() {
         ConfigMap config = getConfig();
         PlotLayer plotLayer =
             plotter_.createLayer( null, null, getFunctionStyle( config ) );
@@ -114,9 +112,8 @@ public class FunctionLayerControl extends ConfigControl
                         ? legents[ 0 ].getLabel()
                         : null;
         return plotLayer == null
-             ? new TopcatLayer[ 0 ]
-             : new TopcatLayer[] { new TopcatLayer( plotLayer, config,
-                                                    leglabel ) };
+             ? null
+             : new SingleZoneLayer( plotLayer, config, leglabel );
     }
 
     public LegendEntry[] getLegendEntries() {
@@ -135,21 +132,6 @@ public class FunctionLayerControl extends ConfigControl
 
     public TablesListComboBox getTableSelector() {
         return null;
-    }
-
-    public void submitReports( Map<LayerId,ReportMap> reports ) {
-        TopcatLayer[] tcLayers = getLayers();
-        PlotLayer layer = tcLayers.length == 1
-                        ? tcLayers[ 0 ].getPlotLayer()
-                        : null;
-        if ( layer != null ) {
-            ReportMap report = reports.get( LayerId.createLayerId( layer ) );
-            if ( report != null ) {
-                for ( Specifier<ConfigMap> cspec : getConfigSpecifiers() ) {
-                    cspec.submitReport( report );
-                }
-            }
-        }
     }
 
     public String getCoordLabel( String userCoordName ) {

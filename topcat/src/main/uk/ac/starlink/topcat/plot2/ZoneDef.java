@@ -28,13 +28,6 @@ public interface ZoneDef<P,A> {
     AxisController<P,A> getAxisController();
 
     /**
-     * Returns the layers to be plotted on this zone.
-     *
-     * @return   plot layer array
-     */
-    TopcatLayer[] getLayers();
-
-    /**
      * Returns the specification for additional decorations of this zone,
      * if any.
      *

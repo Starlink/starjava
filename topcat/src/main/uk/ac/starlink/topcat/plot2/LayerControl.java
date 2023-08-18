@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.util.Map;
+import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
@@ -26,11 +27,23 @@ public interface LayerControl extends Control {
     Plotter<?>[] getPlotters();
 
     /**
+     * Indicates whether this control will yield any layers in its
+     * current state.
+     * It returns true if {@link #getLayers getLayers}
+     * will return a non-empty array.
+     * False positives are best avoided, but permitted.
+     *
+     * @return  true if there is a non-zero number of layers
+     */
+    boolean hasLayers();
+
+    /**
      * Returns the layers contributed by this control.
      *
+     * @param   ganger  ganger within which layers will be used
      * @return  layers
      */
-    TopcatLayer[] getLayers();
+    TopcatLayer[] getLayers( Ganger<?,?> ganger );
 
     /**
      * Returns legend entries associated with this control.
@@ -44,10 +57,11 @@ public interface LayerControl extends Control {
      * The submitted map may contain entries unrelated to this layer.
      * Null map values are permitted, with the same meaning as an empty map.
      *
+     * @param   ganger  ganger within which layers will be used
      * @param   reports  per-layer plot reports for layers generated on
      *                   behalf of this and possibly other controls
      */
-    void submitReports( Map<LayerId,ReportMap> reports );
+    void submitReports( Map<LayerId,ReportMap> reports, Ganger<?,?> ganger );
 
     /**
      * Returns a text label associated with one of the user coords for

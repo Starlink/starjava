@@ -62,6 +62,14 @@ public interface PlotTypeGui<P,A> {
     ZoneFactory createZoneFactory();
 
     /**
+     * Returns a ZoneLayerManager for a given FormLayerControl.
+     *
+     * @param   flc  form layer control
+     * @return  zone layer manager
+     */
+    ZoneLayerManager createLayerManager( FormLayerControl flc );
+
+    /**
      * Returns an object that can characterise surfaces used by this plot type
      * as hypercubes in data coordinate space.
      * If it can't be done, null is returned.

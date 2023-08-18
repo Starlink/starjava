@@ -492,6 +492,9 @@ public class HistogramPlotWindow
         public PositionCoordPanel createAreaCoordPanel() {
             throw new UnsupportedOperationException();
         }
+        public ZoneLayerManager createLayerManager( FormLayerControl flc ) {
+            return new SingleZoneLayerManager( flc );
+        }
         public ZoneFactory createZoneFactory() {
             return ZoneFactories.FIXED;
         }

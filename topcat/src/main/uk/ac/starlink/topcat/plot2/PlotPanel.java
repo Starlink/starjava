@@ -62,6 +62,7 @@ import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
+import uk.ac.starlink.ttools.plot2.SingleGangerFactory;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.SubCloud;
@@ -133,6 +134,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final SurfaceFactory<P,A> surfFact_;
     private final Supplier<Ganger<P,A>> gangerSupplier_;
     private final Supplier<List<ZoneDef<P,A>>> zonesSupplier_;
+    private final Supplier<TopcatLayer[]> layersSupplier_;
     private final Supplier<PlotPosition> posSupplier_;
     private final PaperTypeSelector ptSel_;
     private final Compositor compositor_;
@@ -187,6 +189,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  gangerSupplier  supplier for defining how
      *                         multi-zone plots are grouped
      * @param  zonesSupplier  acquires per-zone information
+     * @param  layersSupplier  acuires layers
      * @param  posSupplier  supplier of plot position settings
      * @param  ptSel   rendering policy
      * @param  compositor  compositor for composition of transparent pixels
@@ -204,6 +207,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                       SurfaceFactory<P,A> surfFact,
                       Supplier<Ganger<P,A>> gangerSupplier,
                       Supplier<List<ZoneDef<P,A>>> zonesSupplier,
+                      Supplier<TopcatLayer[]> layersSupplier,
                       Supplier<PlotPosition> posSupplier,
                       PaperTypeSelector ptSel, Compositor compositor,
                       ToggleButtonModel sketchModel,
@@ -218,6 +222,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         surfFact_ = surfFact;
         gangerSupplier_ = gangerSupplier;
         zonesSupplier_ = zonesSupplier;
+        layersSupplier_ = layersSupplier;
         posSupplier_ = posSupplier;
         ptSel_ = ptSel;
         compositor_ = compositor;
@@ -380,6 +385,15 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public DataStore getDataStore() {
         return workings_.dataStore_;
+    }
+
+    /**
+     * Returns the ganger used for the most recently completed plot.
+     *
+     * @return  ganger
+     */
+    public Ganger<P,A> getGanger() {
+        return workings_.ganger_;
     }
 
     /**
@@ -589,6 +603,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         boolean axisLock = axisLockModel_.isSelected();
         boolean auxLock = auxLockModel_.isSelected();
         List<ZoneDef<P,A>> zoneDefs = zonesSupplier_.get();
+        TopcatLayer[] tcLayers = layersSupplier_.get();
         int nz = zoneDefs.size();
 
         /* Get profiles, made consistent across multi-zone plots. */
@@ -601,24 +616,21 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         }
         P[] profiles =
             ganger.adjustProfiles( profileList.toArray( profiles0_ ) );
+        LayerSpec[] layerSpecs = Arrays.stream( tcLayers )
+                                .map( TopcatLayer::getLayerSpec )
+                                .toArray( n -> new LayerSpec[ n ] );
 
         /* Acquire per-zone state. */
         List<PlotJob.Zone<P,A>> zoneList = new ArrayList<PlotJob.Zone<P,A>>();
         List<SubCloud> allSubclouds = new ArrayList<SubCloud>();
         List<ZoneSpec> zoneSpecs = new ArrayList<ZoneSpec>();
-        List<LayerSpec> layerSpecs = new ArrayList<LayerSpec>();
         for ( int iz = 0; iz < nz; iz++ ) {
             ZoneDef<P,A> zoneDef = zoneDefs.get( iz );
-            TopcatLayer[] tclayers = zoneDef.getLayers();
-            int nl = tclayers.length;
-            PlotLayer[] layers = new PlotLayer[ nl ];
-            for ( int il = 0; il < nl; il++ ) {
-                TopcatLayer tclayer = tclayers[ il ];
-                layers[ il ] = tclayer.getPlotLayer();
-                layerSpecs.add( tclayer.getLayerSpec( iz ) );
-            }
-            assert layerListEquals( layers, getPlotLayers( zoneDef ) );
-            assert layerSetEquals( layers, getPlotLayers( zoneDef ) );
+            final int iz0 = iz;
+            PlotLayer[] layers = Arrays.stream( tcLayers )
+                                       .map( tcl -> tcl.getPlotLayers()[ iz0 ] )
+                                       .filter( layer -> layer != null )
+                                       .toArray( n -> new PlotLayer[ n ] );
             List<SubCloud> subClouds =
                 Arrays.asList( SubCloud.createSubClouds( layers, true ) );
             allSubclouds.addAll( subClouds );
@@ -676,7 +688,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             new PlotSpec<P,A>( plotType_, bounds.getSize(),
                                plotpos.getPadding(),
                                zoneSpecs.toArray( new ZoneSpec[ 0 ] ),
-                               layerSpecs.toArray( new LayerSpec[ 0 ] ) );
+                               layerSpecs );
 
         /* For any of the currently highlighted points, if no layer
          * in any zone contains it, drop that highlight permanently.
@@ -851,21 +863,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
-     * Utility method to extract an array of PlotLayers from the array
-     * of TopcatLayers in a ZoneDef.
-     *
-     * @param  zoneDef   zone definition
-     * @return  array of plot layers in zone
-     */
-    private static PlotLayer[] getPlotLayers( ZoneDef<?,?> zoneDef ) {
-        List<PlotLayer> plotLayers = new ArrayList<PlotLayer>();
-        for ( TopcatLayer tclayer : zoneDef.getLayers() ) {
-            plotLayers.add( tclayer.getPlotLayer() );
-        }
-        return plotLayers.toArray( new PlotLayer[ 0 ] );
-    }
-
-    /**
      * Returns a specification for a colour ramp from a ShadeAxisFactory.
      *
      * @param  shadeFact  shade axis factory
@@ -987,6 +984,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private static <P,A> Workings<P,A>
             createDummyWorkings( PlotType<P,A> plotType ) {
         final Rectangle bounds = new Rectangle( 400, 300 );
+        Ganger<P,A> ganger = SingleGangerFactory.createGanger();
         Gang gang = new Gang() {
             public int getNavigationZoneIndex( Point p ) {
                 return -1;
@@ -1015,7 +1013,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         PlotSpec<P,A> plotSpec =
             new PlotSpec<P,A>( plotType, bounds.getSize(), new Padding(),
                                new ZoneSpec[ 0 ], new LayerSpec[ 0 ] );
-        return new Workings<P,A>( gang, zones, bounds, dataStore, 1, 0L,
+        return new Workings<P,A>( ganger, gang, zones, bounds, dataStore, 1, 0L,
                                   plotSpec );
     }
 
@@ -1065,6 +1063,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * similar.
      */
     private static class Workings<P,A> {
+        final Ganger<P,A> ganger_;
         final Gang gang_;
         final List<ZoneWork<A>> zones_;
         final Rectangle extBounds_;
@@ -1076,6 +1075,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         /**
          * Constructs a fully populated workings object.
          *
+         * @param  ganger  ganger
          * @param  gang   plot surface gang
          * @param  zones   per-zone working objects
          * @param  extBounds   external bounds
@@ -1085,9 +1085,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *                     plot (plans+paint), but not data acquisition
          * @param  plotSpec  plot specification
          */
-        Workings( Gang gang, List<ZoneWork<A>> zones, Rectangle extBounds,
-                  DataStore dataStore, int rowStep, long plotMillis,
-                  PlotSpec<P,A> plotSpec ) {
+        Workings( Ganger<P,A> ganger, Gang gang, List<ZoneWork<A>> zones,
+                  Rectangle extBounds, DataStore dataStore, int rowStep,
+                  long plotMillis, PlotSpec<P,A> plotSpec ) {
+            ganger_ = ganger;
             gang_ = gang;
             zones_ = zones;
             extBounds_ = extBounds;
@@ -1817,9 +1818,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * for all zones, unless it's exactly the same as last time,
              * in which case return null to indicate that no replotting
              * needs to be done.. */
-            return changed ? new Workings<P,A>( gang, zoneWorks, extBounds_,
-                                                dataStore0, rowStep, plotMillis,
-                                                plotSpec )
+            return changed ? new Workings<P,A>( ganger_, gang, zoneWorks,
+                                                extBounds_, dataStore0, rowStep,
+                                                plotMillis, plotSpec )
                            : null;
         }
 

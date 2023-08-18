@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
@@ -54,46 +55,54 @@ public class ReportLogger {
      * generated with this object's layer control.
      *
      * @param   reports   plot reports
+     * @param   ganger   ganger in effect when these reports were generated
      */
-    public void submitReports( Map<LayerId,ReportMap> reports ) {
+    public void submitReports( Map<LayerId,ReportMap> reports,
+                               Ganger<?,?> ganger ) {
         if ( logger_.isLoggable( level_ ) ) {
 
             /* Only attempt any work for those map entries that correspond
              * to plot layers this object's control has issued. */
-            Set<String> rstrings = new HashSet<String>();
-            for ( TopcatLayer tcLayer : control_.getLayers() ) {
-                PlotLayer layer = tcLayer.getPlotLayer();
-                if ( layer.getPlotter().hasReports() ) {
-                    ReportMap report =
-                        reports.get( LayerId.createLayerId( layer ) );
-                    if ( report != null ) {
-                        StringBuffer sbuf = new StringBuffer();
+            Set<String> rstrings = new HashSet<>();
+            for ( TopcatLayer tcLayer : control_.getLayers( ganger ) ) {
+                if ( tcLayer.getPlotter().hasReports() ) {
+                    for ( PlotLayer plotLayer : tcLayer.getPlotLayers() ) {
+                        if ( plotLayer != null ) {
+                            ReportMap report =
+                                reports.get( LayerId.createLayerId(plotLayer) );
+                            if ( report != null ) {
+                                StringBuffer sbuf = new StringBuffer();
 
-                        /* Only report items listed by the layer's plotter.
-                         * Others are special-purpose items not intended
-                         * for general reporting to the user. */
-                        for ( ReportKey<?> key : report.keySet() ) {
-                            if ( key.isGeneralInterest() ) {
-                                Object value = report.get( key );
-                                if ( value != null ) {
-                                    if ( sbuf.length() > 0 ) {
-                                        sbuf.append( "; " );
+                                /* Only report items listed by the layer's
+                                 * plotter.  Others are special-purpose items
+                                 * not intended for general reporting
+                                 * to the user. */
+                                for ( ReportKey<?> key : report.keySet() ) {
+                                    if ( key.isGeneralInterest() ) {
+                                        Object value = report.get( key );
+                                        if ( value != null ) {
+                                            if ( sbuf.length() > 0 ) {
+                                                sbuf.append( "; " );
+                                            }
+                                            sbuf.append( key.getMeta()
+                                                        .getShortName() )
+                                            .append( ": " )
+                                            .append( value.toString() );
+                                        }
                                     }
-                                    sbuf.append( key.getMeta().getShortName() )
-                                        .append( ": " )
-                                        .append( value.toString() );
                                 }
-                            }
-                        }
 
-                        /* Write a message through the logging system if there
-                         * is anything to say, and if it's different from the
-                         * last time this method was called. */
-                        if ( sbuf.length() > 0 ) {
-                            String text = sbuf.toString();
-                            rstrings.add( text );
-                            if ( ! reportStrings_.contains( text ) ) {
-                                logger_.log( level_, text );
+                                /* Write a message through the logging system
+                                 * if there  is anything to say, and if
+                                 * it's different from the last time
+                                 * this method was called. */
+                                if ( sbuf.length() > 0 ) {
+                                    String text = sbuf.toString();
+                                    rstrings.add( text );
+                                    if ( ! reportStrings_.contains( text ) ) {
+                                        logger_.log( level_, text );
+                                    }
+                                }
                             }
                         }
                     }
