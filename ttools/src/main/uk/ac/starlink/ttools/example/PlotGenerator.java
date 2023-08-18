@@ -151,7 +151,7 @@ public class PlotGenerator<P,A> {
     public Icon createIcon( boolean forceBitmap ) {
         Ganger<P,A> ganger = SingleGangerFactory.createGanger( padding_ );
         return AbstractPlot2Task
-              .createPlotIcon( ganger, surfFact_, 1,
+              .createPlotIcon( ganger, surfFact_,
                                PlotUtil.singletonArray( content_ ),
                                new Trimming[] { trimming_ },
                                new ShadeAxisKit[] { shadeKit_ },

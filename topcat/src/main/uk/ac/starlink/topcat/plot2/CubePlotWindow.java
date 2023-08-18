@@ -47,9 +47,10 @@ public class CubePlotWindow
      */
     private static class CubePlotTypeGui
             implements PlotTypeGui<CubeSurfaceFactory.Profile,CubeAspect> {
-        public AxisController<CubeSurfaceFactory.Profile,CubeAspect>
-                createAxisController() {
-            return new CubeAxisController( false );
+        public AxesController<CubeSurfaceFactory.Profile,CubeAspect>
+                createAxesController() {
+            return SingleAdapterAxesController
+                  .create( new CubeAxisController( false ) );
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel

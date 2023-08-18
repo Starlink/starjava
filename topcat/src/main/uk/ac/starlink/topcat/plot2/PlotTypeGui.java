@@ -14,7 +14,7 @@ public interface PlotTypeGui<P,A> {
      *
      * @return  new axis control for this plot type
      */
-    AxisController<P,A> createAxisController();
+    AxesController<P,A> createAxesController();
 
     /**
      * Returns a user panel for entering basic standard data positions.

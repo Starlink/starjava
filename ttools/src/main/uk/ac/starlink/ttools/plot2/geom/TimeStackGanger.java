@@ -47,6 +47,14 @@ public class TimeStackGanger
         super( zoneNames, UP, padding );
     }
 
+    public boolean isTrimmingGlobal() {
+        return false;
+    }
+
+    public boolean isShadingGlobal() {
+        return false;
+    }
+
     public double[] getXLimits( TimeAspect aspect ) {
         return new double[] { aspect.getTMin(), aspect.getTMax() };
     }

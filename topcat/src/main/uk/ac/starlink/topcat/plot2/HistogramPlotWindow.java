@@ -387,7 +387,7 @@ public class HistogramPlotWindow
             PlotUtil.padRange( yrange, ylogFlag );
             double[] ybounds = yrange.getFiniteBounds( ylogFlag );
             PlaneAspect aspect = new PlaneAspect( xbounds, ybounds );
-            getAxisController( iz ).setAspect( aspect );
+            getZoneController( iz ).setAspect( aspect );
             plotPanel.replot();
         }
     }
@@ -480,9 +480,10 @@ public class HistogramPlotWindow
      */
     private static class HistogramPlotTypeGui
             implements PlotTypeGui<PlaneSurfaceFactory.Profile,PlaneAspect> {
-        public AxisController<PlaneSurfaceFactory.Profile,PlaneAspect>
-                createAxisController() {
-            return new HistogramAxisController();
+        public AxesController<PlaneSurfaceFactory.Profile,PlaneAspect>
+                createAxesController() {
+            return SingleAdapterAxesController
+                  .create( new HistogramAxisController() );
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel

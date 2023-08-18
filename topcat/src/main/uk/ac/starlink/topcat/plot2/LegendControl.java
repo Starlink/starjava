@@ -122,10 +122,9 @@ public class LegendControl extends TabberControl {
      * Returns the legend icon for the current state of the stack model.
      *
      * @param   entries   entries to include in legend
-     * @param   zid      zone identifier for legend zone
      * @return  legend icon, or null if not visible
      */
-    public LegendIcon createLegendIcon( LegendEntry[] entries, ZoneId zid ) {
+    public LegendIcon createLegendIcon( LegendEntry[] entries ) {
 
         /* Update visibility defaults based on how many entries the legend
          * would have - it's not very useful if it only has one entry.
@@ -147,7 +146,7 @@ public class LegendControl extends TabberControl {
             else {
                 Captioner captioner =
                     StyleKeys.CAPTIONER
-                   .createValue( configger_.getZoneConfig( zid ) );
+                   .createValue( configger_.getGlobalConfig() );
                 boolean border = borderModel_.isSelected();
                 Color bgColor = opaqueModel_.isSelected() ? Color.WHITE : null;
                 return new LegendIcon( entries, captioner, border, bgColor );

@@ -63,9 +63,9 @@ public class SkyPlotWindow
             axisController_ = new SkyAxisController();
         }
 
-        public AxisController<SkySurfaceFactory.Profile,SkyAspect>
-                createAxisController() {
-            return axisController_;
+        public AxesController<SkySurfaceFactory.Profile,SkyAspect>
+                createAxesController() {
+            return SingleAdapterAxesController.create( axisController_ );
         }
 
         public PositionCoordPanel createPositionCoordPanel( int npos ) {

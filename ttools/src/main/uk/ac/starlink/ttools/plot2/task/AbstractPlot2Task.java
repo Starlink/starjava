@@ -1428,7 +1428,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                         new ZoneContent<P,A>( profile, aspect, layers );
                 }
                 return AbstractPlot2Task
-                      .createPlotIcon( ganger, surfFact, nz, contents,
+                      .createPlotIcon( ganger, surfFact, contents,
                                        trimmings, shadeKits,
                                        ptSel, compositor, dataStore,
                                        xpix, ypix, forceBitmap );
@@ -1775,7 +1775,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param   env  execution environment
      * @return   captioner
      */
-    private Captioner getCaptioner( Environment env ) throws TaskException {
+    public Captioner getCaptioner( Environment env ) throws TaskException {
         KeySet<Captioner> capKeys = StyleKeys.CAPTIONER;
         ConfigMap capConfig = createBasicConfigMap( env, capKeys.getKeys() );
         return capKeys.createValue( capConfig );
@@ -1789,9 +1789,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  zoneSuffix   identifier for zone whose shader is to be calculated
      * @return   shade axis factory, may be null
      */
-    private ShadeAxisFactory createShadeAxisFactory( Environment env,
-                                                     PlotLayer[] layers,
-                                                     String zoneSuffix )
+    public ShadeAxisFactory createShadeAxisFactory( Environment env,
+                                                    PlotLayer[] layers,
+                                                    String zoneSuffix )
             throws TaskException {
 
         /* Locate the first layer that references the aux colour scale. */
@@ -2737,13 +2737,19 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * This icon is expected to be painted once and then discarded,
      * so it's not cached.
      *
+     * <p>The contents array must have a number of entries that
+     * matches the zone count of the ganger.
+     * The trimmings and shadeKits are supplied as arrays, and in each case
+     * may be either a 1- or nzone-element array depending on the Ganger's
+     * {@link Ganger#isTrimmingGlobal}/{@link Ganger#isShadingGlobal} flags.
+     *
      * @param  ganger  defines plot surface grouping
      * @param  surfFact   surface factory
-     * @param  nz   number of plot zones in gang
      * @param  contents   zone contents (nz-element array)
-     * @param  trimmings   zone trimmings (nz-element array)
-     * @param  shadeKits   shader axis specifiers by zone (nz-element array),
-     *                     elements may be null if not required
+     * @param  trimmings   zone trimmings
+     *                     (nz- or 1-element array, elements may be null)
+     * @param  shadeKits   shader axis kits by zone
+     *                     (nz- or 1-element array, elements may be null)
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
@@ -2756,7 +2762,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     public static <P,A> Icon
             createPlotIcon( Ganger<P,A> ganger,
                             final SurfaceFactory<P,A> surfFact,
-                            final int nz, final ZoneContent<P,A>[] contents,
+                            final ZoneContent<P,A>[] contents,
                             final Trimming[] trimmings,
                             ShadeAxisKit[] shadeKits,
                             final PaperTypeSelector ptSel,
@@ -2769,48 +2775,98 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final Object[] planArray = null;
         final Set<Object> planSet = null;
         final boolean withScroll = false;
+        final int nz = ganger.getZoneCount();
+        boolean isTrimGlobal = ganger.isTrimmingGlobal();
+        boolean isShadeGlobal = ganger.isShadingGlobal();
+        if ( contents.length != nz ) {
+            throw new IllegalArgumentException( "zone count mismatch" );
+        }
+        if ( trimmings.length != ( isTrimGlobal ? 1 : nz ) ) {
+            throw new IllegalArgumentException( "trimmings count mismatch" );
+        }
+        if ( shadeKits.length != ( isShadeGlobal ? 1 : nz ) ) {
+            throw new IllegalArgumentException( "shadings count mismatch" );
+        }
 
         /* Acquire nominal plot bounds that are good enough for working
          * out aux data ranges. */
         Gang approxGang =
             ganger.createGang( extBox, surfFact, contents, trimmings,
-                               new ShadeAxis[ nz ], withScroll );
+                               new ShadeAxis[ shadeKits.length ], withScroll );
 
         /* Calculate aux ranges if required.
          * Although this should maybe belong with the aspect determination
          * since it involves ranging, it's convenient to do it here
          * because we will need the aux ranges anyway. */
-        final ShadeAxis[] shadeAxes = new ShadeAxis[ nz ];
-        final List<Map<AuxScale,Span>> auxSpanList =
-            new ArrayList<Map<AuxScale,Span>>();
+        final List<Map<AuxScale,Span>> auxSpanList = new ArrayList<>();
         long start = System.currentTimeMillis();
+
+        /* First calculate the non-shading ranges,
+         * which are always per zone. */
+        Surface[] approxSurfs = new Surface[ nz ];
         for ( int iz = 0; iz < nz; iz++ ) {
             ZoneContent<P,A> content = contents[ iz ];
-            ShadeAxisKit shadeKit = shadeKits[ iz ];
-            Span shadeFixSpan = shadeKit == null ? null
-                                                 : shadeKit.getFixSpan();
-            ShadeAxisFactory shadeFact = shadeKit == null
-                                       ? null
-                                       : shadeKit.getAxisFactory();
             Surface approxSurf =
                 surfFact.createSurface( approxGang.getZonePlotBounds( iz ),
                                         content.getProfile(),
                                         content.getAspect() );
+            approxSurfs[ iz ] = approxSurf;
             Map<AuxScale,Span> auxSpans =
                 PlotScene
                .calculateNonShadeSpans( content.getLayers(), approxSurf,
                                         planArray, dataStore );
-            List<Bi<Surface,PlotLayer>> surfLayers =
-                AuxScale.pairSurfaceLayers( approxSurf,
-                                            contents[ iz ].getLayers() );
+            auxSpanList.add( auxSpans );
+        }
+
+        /* Next calculate the shading ranges and shading axes,
+         * which may be either global or per-layer. */
+        final ShadeAxis[] shadeAxes;
+        if ( isShadeGlobal ) {
+            ShadeAxisKit shadeKit = shadeKits[ 0 ];
+            ShadeAxisFactory shadeFact = shadeKit == null
+                                       ? null
+                                       : shadeKit.getAxisFactory();
+            List<Bi<Surface,PlotLayer>> surfLayers = new ArrayList<>();
+            for ( int iz = 0; iz < nz; iz++ ) {
+                surfLayers.addAll( AuxScale
+                                  .pairSurfaceLayers( approxSurfs[ iz ],
+                                                      contents[ iz ]
+                                                     .getLayers() ) );
+            }
             Span shadeSpan =
                 PlotScene.calculateShadeSpan( surfLayers, shadeKit,
                                               planArray, dataStore );
-            auxSpans.put( AuxScale.COLOR, shadeSpan );
-            if ( shadeFact != null && shadeSpan != null ) {
-                shadeAxes[ iz ] = shadeFact.createShadeAxis( shadeSpan );
+            if ( shadeSpan != null ) {
+                for ( Map<AuxScale,Span> auxMap : auxSpanList ) {
+                    auxMap.put( AuxScale.COLOR, shadeSpan );
+                }
             }
-            auxSpanList.add( auxSpans );
+            ShadeAxis shadeAxis = shadeFact != null && shadeSpan != null
+                                ? shadeFact.createShadeAxis( shadeSpan )
+                                : null;
+            shadeAxes = new ShadeAxis[] { shadeAxis };
+        }
+        else {
+            shadeAxes = new ShadeAxis[ nz ];
+            for ( int iz = 0; iz < nz; iz++ ) {
+                ShadeAxisKit shadeKit = shadeKits[ iz ];
+                ShadeAxisFactory shadeFact = shadeKit == null
+                                           ? null
+                                           : shadeKit.getAxisFactory();
+                Surface surf = approxSurfs[ iz ];
+                List<Bi<Surface,PlotLayer>> surfLayers =
+                    AuxScale.pairSurfaceLayers( approxSurfs[ iz ],
+                                                contents[ iz ].getLayers() );
+                Span shadeSpan =
+                    PlotScene.calculateShadeSpan( surfLayers, shadeKit,
+                                                  planArray, dataStore );
+                if ( shadeSpan != null ) {
+                    auxSpanList.get( iz ).put( AuxScale.COLOR, shadeSpan );
+                }
+                shadeAxes[ iz ] = shadeFact != null && shadeSpan != null
+                                ? shadeFact.createShadeAxis( shadeSpan )
+                                : null;
+            }
         }
         PlotUtil.logTimeFromStart( logger_, "Range", start );
 
@@ -2832,6 +2888,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 Shape clip = g.getClip();
                 long planMillis = 0;
                 long paintMillis = 0;
+                Surface[] surfs = new Surface[ nz ];
                 for ( int iz = 0; iz < nz; iz++ ) {
                     ZoneContent<P,A> content = contents[ iz ];
                     PlotLayer[] layers = content.getLayers();
@@ -2839,12 +2896,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                         surfFact.createSurface( gang.getZonePlotBounds( iz ),
                                                 content.getProfile(),
                                                 content.getAspect() );
-                   PlotFrame frame =
+                    surfs[ iz ] = surface;
+                    Trimming trimming = isTrimGlobal ? null : trimmings[ iz ];
+                    ShadeAxis shadeAxis = isShadeGlobal ? null : shadeAxes[ iz];
+                    PlotFrame frame =
                         PlotFrame.createPlotFrame( surface, withScroll );
                     Decoration[] decs =
                         PlotPlacement
-                       .createPlotDecorations( frame, trimmings[ iz ],
-                                               shadeAxes[ iz ] );
+                       .createPlotDecorations( frame, trimming, shadeAxis );
                     PlotPlacement placer =
                         new PlotPlacement( extBox, surface, decs );
                     LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
@@ -2865,6 +2924,21 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     long paintStart = System.currentTimeMillis();
                     zicon.paintIcon( c, g, 0, 0 );
                     paintMillis += System.currentTimeMillis() - paintStart;
+                }
+                if ( isTrimGlobal && trimmings[ 0 ] != null ||
+                     isShadeGlobal && shadeAxes[ 0 ] != null ) {
+                    Captioner captioner = approxSurfs.length > 0
+                                        ? approxSurfs[ 0 ].getCaptioner()
+                                        : null;
+                    PlotFrame extFrame =
+                        PlotFrame.createPlotFrame( surfs, withScroll, extBox );
+                    Decoration[] decs =
+                        PlotPlacement
+                       .createPlotDecorations( extFrame, trimmings[ 0 ],
+                                               shadeAxes[ 0 ] );
+                    for ( Decoration dec : decs ) {
+                        dec.paintDecoration( g );
+                    }
                 }
                 PlotUtil.logTimeElapsed( logger_, "Plan", planMillis );
                 PlotUtil.logTimeElapsed( logger_, "Paint", paintMillis );

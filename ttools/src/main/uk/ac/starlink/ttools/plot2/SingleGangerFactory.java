@@ -89,6 +89,14 @@ public class SingleGangerFactory<P,A> implements GangerFactory<P,A> {
             return 1;
         }
 
+        public boolean isTrimmingGlobal() {
+            return false;
+        }
+
+        public boolean isShadingGlobal() {
+            return false;
+        }
+
         public Gang createGang( Rectangle[] zonePlotBounds ) {
             if ( zonePlotBounds.length == 1 ) {
                 return new SingleGang( zonePlotBounds[ 0 ] );

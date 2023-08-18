@@ -19,6 +19,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.filter.SelectFilter;
+import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
@@ -49,7 +50,6 @@ import uk.ac.starlink.ttools.task.SettingGroup;
 import uk.ac.starlink.ttools.task.TableNamer;
 import uk.ac.starlink.util.LoadException;
 
-
 /**
  * Represents an abstract model of a STILTS command line.
  * A list of parameter-value pairs along with basic parameter
@@ -72,6 +72,7 @@ public class StiltsPlot {
 
     private static final Collection<String> autoFormatNames_ =
         getAutoFormatNames();
+    private static final ConfigKey<?>[] AUX_KEYS = getAuxKeys(); 
 
     /**
      * Constructor.
@@ -127,8 +128,7 @@ public class StiltsPlot {
      */
     private static AbstractPlot2Task createTask( String taskName )
             throws LoadException {
-        return (AbstractPlot2Task)
-               Stilts.getTaskFactory().createObject( taskName );
+        return Stilts.getPlot2TaskFactory().createObject( taskName );
     }
 
     /**
@@ -152,8 +152,16 @@ public class StiltsPlot {
             throws LoadException {
         PlotType<P,A> plotType = plotSpec.getPlotType();
         Dimension extSize = plotSpec.getExtSize();
-        ZoneSpec[] zoneSpecs = plotSpec.getZoneSpecs();
+        ConfigMap globalConfig = plotSpec.getGlobalConfig();
+        ConfigMap[] zoneConfigs = plotSpec.getZoneConfigs();
+        TrimmingSpec[] trimSpecs = plotSpec.getTrimmingSpecs();
+        ShadeSpec[] shadeSpecs = plotSpec.getShadeSpecs();
         LayerSpec[] layerSpecs = plotSpec.getLayerSpecs();
+        GangerFactory<P,A> gangerFact = plotType.getGangerFactory();
+        boolean hasIndependentZones = gangerFact.hasIndependentZones();
+        int nz = zoneConfigs.length;
+        boolean isShadeGlobal = nz > 1 && shadeSpecs.length == 1;
+        boolean isTrimGlobal = nz > 1 && trimSpecs.length == 1;
         Suffixer zoneSuffixer = formatter.getZoneSuffixer();
         Suffixer layerSuffixer = formatter.getLayerSuffixer();
         TableNamer namer = formatter.getTableNamer();
@@ -176,105 +184,79 @@ public class StiltsPlot {
             createParamSetting( task.getPaddingParameter(),
                                 plotSpec.getPadding() ),
         } ) );
+        ConfigKey<?>[] gangKeys = gangerFact.getGangerKeys();
+        List<Setting> globalSettings = new ArrayList<>();
+        globalSettings.addAll( getConfigSettings( globalConfig, gangKeys ) );
+        globalSettings.add( null );
 
         /* Plot surface settings. */
         SurfaceFactory<P,A> sfact = plotType.getSurfaceFactory();
         ConfigKey<?>[] profileKeys = sfact.getProfileKeys();
         ConfigKey<?>[] aspectKeys = sfact.getAspectKeys();
-        ConfigKey<?>[] auxKeys = PlotUtil.arrayConcat(
-            StyleKeys.AUX_RAMP.getKeys(),
-            new ConfigKey<?>[] { StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH }
-        );
-        Map<String,List<Setting>> zoneSettings =
-            new LinkedHashMap<String,List<Setting>>();
+        Map<String,List<Setting>> zoneSettings = new LinkedHashMap<>();
 
         /* Zone suffixes. */
-        int nz = zoneSpecs.length;
         String[] zkeys =
             zoneSuffixer.createSuffixes( nz ).toArray( new String[ 0 ] );
 
-        /* Set up zone adjusters to deal with zone-layer interactions. */
+        /* Set up adjusters to deal with plot-type specific situations. */
         ZoneAdjuster[] zadjusters = new ZoneAdjuster[ nz ];
         for ( int iz = 0; iz < nz; iz++ ) {
-            List<LayerSpec> lspecs = new ArrayList<LayerSpec>();
+            List<LayerSpec> lspecs = new ArrayList<>();
             for ( LayerSpec ls : layerSpecs ) {
                 if ( ls.getZoneIndex() == iz ) {
                     lspecs.add( ls );
                 }
             }
             zadjusters[ iz ] =
-                createZoneAdjuster( zoneSpecs[ iz ], lspecs, plotType );
+                createZoneAdjuster( zoneConfigs[ iz ], lspecs, plotType );
         }
 
         /* Per-zone settings. */
-        for ( int iz = 0; iz < nz; iz++ ) {
-            ZoneSpec zoneSpec = zoneSpecs[ iz ];
-            ConfigMap zoneConfig = zoneSpec.getConfig();
-            List<Setting> settings = new ArrayList<Setting>();
-            settings.addAll( getConfigSettings( zoneConfig, profileKeys ) );
-            settings.add( null );
-            settings.addAll( getConfigSettings( zoneConfig, aspectKeys ) );
-            settings.add( null );
-            if ( zoneSpec.getHasAux() ) {
-                ZoneSpec.RampSpec auxSpec = zoneSpec.getAuxSpec();
-                settings.addAll( getConfigSettings( zoneConfig, auxKeys ) );
+        if ( hasIndependentZones || nz == 1 ) {
+            for ( int iz = 0; iz < nz; iz++ ) {
+                ConfigMap zoneConfig = zoneConfigs[ iz ];
+                List<Setting> settings = new ArrayList<>();
+                settings.addAll( getConfigSettings( zoneConfig, profileKeys ) );
                 settings.add( null );
-                settings.add( createParamSetting(
-                                  task.createAuxVisibleParameter( null),
-                                  Boolean.valueOf( auxSpec != null ) ) );
-                if ( auxSpec != null ) {
-                    settings.add( createParamSetting(
-                                      task.createAuxLabelParameter( null ),
-                                      auxSpec.getLabel() ) );
-                    settings.add( createParamSetting(
-                                      task.createAuxCrowdParameter( null ),
-                                      auxSpec.getCrowding() ) );
-                }
+                settings.addAll( getConfigSettings( zoneConfig, aspectKeys ) );
                 settings.add( null );
+                TrimmingSpec trimSpec = isTrimGlobal ? null : trimSpecs[ iz ];
+                settings.addAll( getTrimSettings( task, trimSpec ) );
+                ShadeSpec shadeSpec = isShadeGlobal ? null : shadeSpecs[ iz ];
+                settings.addAll( getShadeSettings( task, shadeSpec ) );
+                zadjusters[ iz ].adjustZoneSettings( settings );
+                zoneSettings.put( zkeys[ iz ], settings );
             }
-            settings.add( createParamSetting( task.createTitleParameter( null ),
-                                              zoneSpec.getTitle() ) );
-            ZoneSpec.LegendSpec legSpec = zoneSpec.getLegendSpec();
-            boolean hasLegend = legSpec != null;
-            settings.add( createParamSetting( task.getLegendParameter(),
-                                              hasLegend ) );
-            if ( hasLegend ) {
-                settings.addAll( Arrays.asList( new Setting[] {
-                    createParamSetting( task.getLegendBorderParameter(),
-                                        legSpec.hasBorder() ),
-                    createParamSetting( task.getLegendOpaqueParameter(),
-                                        legSpec.isOpaque() ),
-                    createParamSetting( task
-                                       .createLegendPositionParameter( null ),
-                                        toDoubles( legSpec.getPosition() ) ),
-                } ) );
-            }
-            settings.add( null );
-            zadjusters[ iz ].adjustZoneSettings( settings );
-            zoneSettings.put( zkeys[ iz ], settings );
         }
 
+        /* Global shader and trimming settings if applicable. */
+        TrimmingSpec trimSpec = isTrimGlobal ? trimSpecs[ 0 ] : null;
+        globalSettings.addAll( getTrimSettings( task, trimSpec ) );
+        ShadeSpec shadeSpec = isShadeGlobal ? shadeSpecs[ 0 ] : null;
+        globalSettings.addAll( getShadeSettings( task, shadeSpec ) );
+
         /* Per-layer settings. */
-        Map<String,String> layerTypes = new LinkedHashMap<String,String>();
-        Map<String,List<Setting>> layerSettings =
-            new LinkedHashMap<String,List<Setting>>();
+        Map<String,String> layerTypes = new LinkedHashMap<>();
+        Map<String,List<Setting>> layerSettings = new LinkedHashMap<>();
         int nl = layerSpecs.length;
-        Collection<String> legKeys = new ArrayList<String>( nl );
+        Collection<String> legKeys = new ArrayList<>( nl );
         List<String> lkeys = layerSuffixer.createSuffixes( nl );
         boolean excludeLegend = false;
         for ( int il = 0; il < nl; il++ ) {
             LayerSpec lspec = layerSpecs[ il ];
             int iz = lspec.getZoneIndex();
-            ZoneSpec zoneSpec = zoneSpecs[ iz ];
-            List<Setting> lsettings = new ArrayList<Setting>();
+            List<Setting> lsettings = new ArrayList<>();
 
             /* Assign a layer suffix. */
             String lkey = lkeys.get( il );
 
             /* Zone identifier. */
-            lsettings.add( new Setting( AbstractPlot2Task.ZONE_PREFIX,
-                                        zkeys[ iz ], "" ) );
-            lsettings.add( null );
+            if ( iz >= 0 ) {
+                lsettings.add( new Setting( AbstractPlot2Task.ZONE_PREFIX,
+                                            zkeys[ iz ], "" ) );
+                lsettings.add( null );
+            }
 
             /* Work out the layer type and possibly associated shading type. */
             Plotter<?> plotter = lspec.getPlotter();
@@ -305,11 +287,17 @@ public class StiltsPlot {
             lsettings.addAll( modeSettings );
             lsettings.addAll( getConfigSettings( lspec.getConfig(),
                                                  plotter.getStyleKeys() ) );
-            zadjusters[ iz ].adjustLayerSettings( lspec, lsettings );
+            if ( iz >= 0 ) {
+                zadjusters[ iz ].adjustLayerSettings( lspec, lsettings );
+            }
             lsettings.add( null );
 
             /* Legend label, if any. */
-            if ( zoneSpec.getLegendSpec() != null ) {
+            TrimmingSpec.LegendSpec legSpec =
+                  iz >= 0 && iz < trimSpecs.length && trimSpecs[ iz ] != null
+                ? trimSpecs[ iz ].getLegendSpec()
+                : null;
+            if ( legSpec != null ) {
                 String leglabel = lspec.getLegendLabel();
                 if ( leglabel != null ) {
                     lsettings.add(
@@ -359,6 +347,7 @@ public class StiltsPlot {
          * plot object. */
         List<SettingGroup> groups = new ArrayList<SettingGroup>();
         groups.addAll( toGroups( 1, taskSettings ) );
+        groups.addAll( toGroups( 1, globalSettings ) );
         groups.addAll( toGroups( 1, commonZoneSettings ) );
         for ( String zkey : zoneSettings.keySet() ) {
             List<Setting> zsettings = zoneSettings.get( zkey );
@@ -407,6 +396,70 @@ public class StiltsPlot {
     }
 
     /**
+     * Returns a list of settings relevant to the aux shade axis.
+     *
+     * @param  task   plot task
+     * @param  shadeSpec  shading specification
+     * @return  settings
+     */
+    private static List<Setting> getShadeSettings( AbstractPlot2Task task,
+                                                   ShadeSpec shadeSpec ) {
+        List<Setting> settings = new ArrayList<>();
+        if ( shadeSpec != null ) {
+            settings.addAll( getConfigSettings( shadeSpec.getConfig(),
+                                                AUX_KEYS ) );
+            settings.add( null );
+            boolean isVisible = shadeSpec.isVisible();
+            settings.add( createParamSetting(
+                              task.createAuxVisibleParameter( null ),
+                              Boolean.valueOf( isVisible ) ) );
+            if ( isVisible ) {
+                settings.addAll( Arrays.asList( new Setting[] {
+                    createParamSetting( task.createAuxLabelParameter( null ),
+                                        shadeSpec.getLabel() ),
+                    createParamSetting( task.createAuxCrowdParameter( null ),
+                                        shadeSpec.getCrowding() ),
+                } ) );
+            }
+            settings.add( null );
+        }
+        return settings;
+    }
+
+    /**
+     * Returns a list of settings relevant to plot trimmings.
+     *
+     * @param  task  plot task
+     * @param  trimSpec  trimming specification
+     * @return  settings
+     */
+    private static List<Setting> getTrimSettings( AbstractPlot2Task task,
+                                                  TrimmingSpec trimSpec ) {
+        List<Setting> settings = new ArrayList<>();
+        if ( trimSpec != null ) {
+            settings.add( createParamSetting( task.createTitleParameter( null ),
+                                              trimSpec.getTitle() ) );
+            TrimmingSpec.LegendSpec legSpec = trimSpec.getLegendSpec();
+            boolean hasLegend = legSpec != null;
+            settings.add( createParamSetting( task.getLegendParameter(),
+                                              hasLegend ) );
+            if ( hasLegend ) {
+                settings.addAll( Arrays.asList( new Setting[] {
+                    createParamSetting( task.getLegendBorderParameter(),
+                                        legSpec.hasBorder() ),
+                    createParamSetting( task.getLegendOpaqueParameter(),
+                                        legSpec.isOpaque() ),
+                    createParamSetting( task
+                                       .createLegendPositionParameter( null ),
+                                        toDoubles( legSpec.getPosition() ) ),
+                } ) );
+            }
+            settings.add( null );
+        }
+        return settings;
+    }
+
+    /**
      * For each non-null setting in a supplied list, appends a given
      * suffix to the key part.  Null entries are left untouched.
      *
@@ -443,9 +496,9 @@ public class StiltsPlot {
      */
     private static List<Setting>
             extractCommonSettings( Collection<List<Setting>> lists ) {
-        List<Setting> common = new ArrayList<Setting>();
+        List<Setting> common = new ArrayList<>();
         if ( lists.size() > 1 ) {
-            Set<String> allkeys = new LinkedHashSet<String>();
+            Set<String> allkeys = new LinkedHashSet<>();
             for ( List<Setting> list : lists ) {
                 for ( Setting s : list ) {
                     if ( s != null ) {
@@ -532,7 +585,7 @@ public class StiltsPlot {
     private static List<Setting> getConfigSettings( ConfigMap config,
                                                     ConfigKey<?>[] keys ) {
         int nk = keys.length;
-        List<Setting> settings = new ArrayList<Setting>( nk );
+        List<Setting> settings = new ArrayList<>( nk );
         for ( int ik = 0; ik < nk; ik++ ) {
             settings.add( createConfigSetting( keys[ ik ], config ) );
         }
@@ -742,17 +795,17 @@ public class StiltsPlot {
      * zone/layer interactions not otherwise handled by the configuration
      * logic.
      *
-     * @param   zspec   specification for a zone
+     * @param   config   configuration in effect for the zone
      * @param   lspecs  array of specifications for all the layers that
      *                  appear within the given zone
      * @param  plotType  plot type
      * @return  appropriate zone adjuster, not null (but may be a noop)
      */
-    private static ZoneAdjuster createZoneAdjuster( ZoneSpec zspec,
+    private static ZoneAdjuster createZoneAdjuster( ConfigMap config,
                                                     List<LayerSpec> lspecs,
                                                     PlotType<?,?> plotType ) {
         if ( plotType instanceof SkyPlotType ) {
-            return new SkySysZoneAdjuster( zspec, lspecs );
+            return new SkySysZoneAdjuster( config, lspecs );
         }
         else {
             return new ZoneAdjuster() {
@@ -777,10 +830,10 @@ public class StiltsPlot {
      */
     private static List<SettingGroup> toGroups( int level,
                                                 List<Setting> settings ) {
-        List<Setting> inList = new ArrayList<Setting>( settings );
+        List<Setting> inList = new ArrayList<>( settings );
         inList.add( null );
-        List<SettingGroup> glist = new ArrayList<SettingGroup>();
-        List<Setting> slist = new ArrayList<Setting>();
+        List<SettingGroup> glist = new ArrayList<>();
+        List<Setting> slist = new ArrayList<>();
         for ( Setting s : inList ) {
             if ( s != null ) {
                 slist.add( s );
@@ -788,7 +841,7 @@ public class StiltsPlot {
             else if ( slist.size() > 0 ) {
                 Setting[] line = slist.toArray( new Setting[ 0 ] );
                 glist.add( new SettingGroup( level, line ) );
-                slist = new ArrayList<Setting>();
+                slist = new ArrayList<>();
             }
         }
         return glist;
@@ -812,6 +865,20 @@ public class StiltsPlot {
             }
         }
         return list;
+    }
+
+    /**
+     * Returns the list of config keys used for configuring the
+     * Aux shade axis.
+     *
+     * @return  shade axis config keys
+     */
+    private static ConfigKey<?>[] getAuxKeys() {
+        List<ConfigKey<?>> keys = new ArrayList<>();
+        keys.addAll( Arrays.asList( StyleKeys.AUX_RAMP.getKeys() ) );
+        keys.add( StyleKeys.SHADE_LOW );
+        keys.add( StyleKeys.SHADE_HIGH );
+        return keys.toArray( new ConfigKey<?>[ 0 ] );
     }
 
     /**
@@ -861,11 +928,10 @@ public class StiltsPlot {
         /**
          * Constructor.
          *
-         * @param  zspec  zone specifier
+         * @param  zconfig  zone configuration
          * @param  lspecs  layer specifiers
          */
-        SkySysZoneAdjuster( ZoneSpec zspec, List<LayerSpec> lspecs ) {
-            ConfigMap zconfig = zspec.getConfig();
+        SkySysZoneAdjuster( ConfigMap zconfig, List<LayerSpec> lspecs ) {
             viewsys_ = getExplicitValue( VIEWSYS_KEY, zconfig );
             boolean differs = false;
             for ( LayerSpec lspec : lspecs ) {

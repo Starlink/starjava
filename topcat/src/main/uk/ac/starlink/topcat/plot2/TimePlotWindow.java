@@ -44,9 +44,13 @@ public class TimePlotWindow
      */
     private static class TimePlotTypeGui
             implements PlotTypeGui<TimeSurfaceFactory.Profile,TimeAspect> {
-        public AxisController<TimeSurfaceFactory.Profile,TimeAspect>
-                createAxisController() {
-            return new TimeAxisController();
+        public AxesController<TimeSurfaceFactory.Profile,TimeAspect>
+                createAxesController() {
+            return new DisjointAxesController<TimeSurfaceFactory.Profile,
+                                              TimeAspect>(
+                ZoneFactories.createIntegerZoneFactory( true ),
+                TimeAxisController::new
+            );
         }
         public PositionCoordPanel createPositionCoordPanel( final int npos ) {
             final TimeDomain domain = TimeDomain.INSTANCE;

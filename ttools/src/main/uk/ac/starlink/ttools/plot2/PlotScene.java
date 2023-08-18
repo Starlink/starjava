@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -68,7 +69,11 @@ public class PlotScene<P,A> {
     private final boolean surfaceAuxRanging_;
     private final boolean cacheImage_;
     private final Zone<P,A>[] zones_;
+    private final Trimming globalTrimming_;
+    private final ShadeAxisKit globalShadeKit_;
     private final Set<Object> plans_;
+    private Span globalShadeSpan_;
+    private ShadeAxis globalShadeAxis_;
     private Gang gang_;
 
     private static final boolean WITH_SCROLL = true;
@@ -78,14 +83,20 @@ public class PlotScene<P,A> {
     /**
      * Constructs a PlotScene containing multiple plot surfaces.
      *
+     * <p>The zoneContents array must have a number of entries that
+     * matches the zone count of the ganger.
+     * The trimmings and shadeKits are supplied as arrays, and in each case
+     * may be either a 1- or nzone-element array depending on the Ganger's
+     * {@link Ganger#isTrimmingGlobal}/{@link Ganger#isShadingGlobal} flags.
+     *
      * @param  ganger  defines plot surface grouping
      * @param  surfFact   surface factory
      * @param  zoneContents   plot content with initial aspect by zone
      *                        (nz-element array)
      * @param  trimmings   plot decoration specification by zone
-     *                     (nz-element array)
-     * @param  shadeKits   shader axis specifiers by zone (nz-element array),
-     *                     elements may be null if not required
+     *                     (nz- or 1-element array, elements may be null)
+     * @param  shadeKits   shader axis kits by zone
+     *                     (nz- or 1-element array, elements may be null)
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  caching  plot caching policy
@@ -97,6 +108,19 @@ public class PlotScene<P,A> {
         ganger_ = ganger;
         surfFact_ = surfFact;
         nz_ = ganger.getZoneCount();
+        boolean isTrimGlobal = ganger.isTrimmingGlobal();
+        boolean isShadeGlobal = ganger.isShadingGlobal();
+        if ( zoneContents.length != nz_ ) {
+            throw new IllegalArgumentException( "zone count mismatch" );
+        }
+        if ( trimmings.length != ( isTrimGlobal ? 1 : nz_ ) ) {
+            throw new IllegalArgumentException( "trimmings count mismatch" );
+        }
+        if ( shadeKits.length != ( isShadeGlobal ? 1 : nz_ ) ) {
+            throw new IllegalArgumentException( "shadings count mismatch" );
+        }
+        globalTrimming_ = isTrimGlobal ? trimmings[ 0 ] : null;
+        globalShadeKit_ = isShadeGlobal ? shadeKits[ 0 ] : null;
         @SuppressWarnings("unchecked")
         Zone<P,A>[] zs = (Zone<P,A>[]) new Zone<?,?>[ nz_ ];
         zones_ = zs;
@@ -110,9 +134,11 @@ public class PlotScene<P,A> {
         P[] okProfiles = ganger.adjustProfiles( initialProfiles );
         A[] okAspects = ganger.adjustAspects( initialAspects, -1 );
         for ( int iz = 0; iz < nz_; iz++ ) {
-            zones_[ iz ] = new Zone<P,A>( zoneContents[ iz ].getLayers(),
-                                          okProfiles[ iz ], trimmings[ iz ],
-                                          shadeKits[ iz ], okAspects[ iz ] );
+            zones_[ iz ] =
+                new Zone<P,A>( zoneContents[ iz ].getLayers(), okProfiles[ iz ],
+                               isTrimGlobal ? null : trimmings[ iz ],
+                               isShadeGlobal ? null : shadeKits[ iz ],
+                               okAspects[ iz ] );
         }
         ptSel_ = ptSel;
         compositor_ = compositor;
@@ -221,6 +247,7 @@ public class PlotScene<P,A> {
 
         /* (Re)calculate aux ranges if required. */
         long rangeStart = System.currentTimeMillis();
+        boolean surfChanged = false;
         Object[] plans = plans_ == null ? null : plans_.toArray();
         for ( int iz = 0; iz < nz_; iz++ ) {
             Zone<P,A> zone = zones_[ iz ];
@@ -229,27 +256,60 @@ public class PlotScene<P,A> {
                 zone.approxSurf_ =
                     surfFact_.createSurface( approxGang.getZonePlotBounds( iz ),
                                              zone.profile_, zone.aspect_ );
+                boolean zoneSurfChanged =
+                    ! zone.approxSurf_.equals( oldApproxSurf );
+                surfChanged = surfChanged || zoneSurfChanged;
                 if ( zone.auxSpans_ == null ||
-                     ( surfaceAuxRanging_ &&
-                       ! zone.approxSurf_.equals( oldApproxSurf ) ) ) {
+                     ( surfaceAuxRanging_ && zoneSurfChanged ) ) {
+
+                    /* Calculate non-shading spans, which is always per-zone. */
                     zone.auxSpans_ =
                         calculateNonShadeSpans( zone.layers_, zone.approxSurf_,
                                                 plans, dataStore );
+
+                    /* If shading span is per-zone, calculate it now. */
                     ShadeAxisKit shadeKit = zone.shadeKit_;
-                    ShadeAxisFactory shadeFact = shadeKit == null
-                                               ? null
-                                               : shadeKit.getAxisFactory();
-                    List<Bi<Surface,PlotLayer>> surfLayers =
-                        AuxScale.pairSurfaceLayers( zone.approxSurf_,
-                                                    zone.layers_ );
-                    Span shadeSpan =
-                        calculateShadeSpan( surfLayers, zone.shadeKit_,
-                                            plans, dataStore );
-                    zone.auxSpans_.put( AuxScale.COLOR, shadeSpan );
-                    zone.shadeAxis_ = shadeSpan != null && shadeFact != null
-                                    ? shadeFact.createShadeAxis( shadeSpan )
-                                    : null;
+                    if ( shadeKit != null ) {
+                        ShadeAxisFactory shadeFact = shadeKit.getAxisFactory();
+                        List<Bi<Surface,PlotLayer>> surfLayers =
+                            AuxScale.pairSurfaceLayers( zone.approxSurf_,
+                                                        zone.layers_ );
+                        Span shadeSpan =
+                            calculateShadeSpan( surfLayers, shadeKit,
+                                                plans, dataStore );
+                        if ( shadeSpan != null ) {
+                            zone.auxSpans_.put( AuxScale.COLOR, shadeSpan );
+                        }
+                        zone.shadeAxis_ = shadeSpan != null && shadeFact != null
+                                        ? shadeFact.createShadeAxis( shadeSpan )
+                                        : null;
+                    }
                 }
+            }
+        }
+
+        /* If shading span is global, calculate and record it here. */
+        if ( globalShadeKit_ != null ) {
+            if ( globalShadeSpan_ == null ||
+                 ( surfaceAuxRanging_ && surfChanged ) ) {
+                List<Bi<Surface,PlotLayer>> surfLayers =
+                    Arrays.stream( zones_ )
+                   .flatMap( z -> AuxScale
+                                 .pairSurfaceLayers( z.approxSurf_, z.layers_ )
+                                 .stream() )
+                   .collect( Collectors.toList() );
+                globalShadeSpan_ =
+                    calculateShadeSpan( surfLayers, globalShadeKit_, plans,
+                                        dataStore );
+                if ( globalShadeSpan_ != null ) {
+                    for ( Zone<P,A> zone : zones_ ) {
+                        zone.auxSpans_.put( AuxScale.COLOR, globalShadeSpan_ );
+                    }
+                }
+                ShadeAxisFactory shadeFact = globalShadeKit_.getAxisFactory();
+                globalShadeAxis_ = globalShadeSpan_ != null && shadeFact != null
+                                 ? shadeFact.createShadeAxis( globalShadeSpan_ )
+                                 : null;
             }
         }
         PlotUtil.logTimeFromStart( logger_, "Range", rangeStart );
@@ -333,6 +393,22 @@ public class PlotScene<P,A> {
                 zone.icon_ = null;
             }
         }
+
+        /* Paint global decorations if applicable. */
+        if ( globalTrimming_ != null || globalShadeAxis_ != null ) {
+            Surface[] surfs = Arrays.stream( zones_ )
+                             .map( z -> z.surface_ )
+                             .toArray( n -> new Surface[ n ] );
+            PlotFrame extFrame =
+                PlotFrame.createPlotFrame( surfs, WITH_SCROLL, extBounds );
+            Decoration[] decs =
+                PlotPlacement.createPlotDecorations( extFrame, globalTrimming_,
+                                                     globalShadeAxis_ );
+            for ( Decoration dec : decs ) {
+                dec.paintDecoration( g );
+            }
+        }
+
         PlotUtil.logTimeFromStart( logger_, "Paint", paintStart );
     }
 
@@ -419,16 +495,19 @@ public class PlotScene<P,A> {
      */
     private Gang createGang( Rectangle extBounds ) {
         ZoneContent<P,A>[] contents =
-            PlotUtil.createZoneContentArray( surfFact_, nz_ );
-        Trimming[] trimmings = new Trimming[ nz_ ];
-        ShadeAxis[] shadeAxes = new ShadeAxis[ nz_ ];
-        for ( int iz = 0; iz < nz_; iz++ ) {
-            Zone<P,A> zone = zones_[ iz ];
-            contents[ iz ] = new ZoneContent<P,A>( zone.profile_, zone.aspect_,
-                                                   zone.layers_ );
-            trimmings[ iz ] = zone.trimming_;
-            shadeAxes[ iz ] = zone.shadeAxis_;
-        }
+            Arrays.stream( zones_ )
+           .map( z -> new ZoneContent<P,A>( z.profile_, z.aspect_, z.layers_ ) )
+           .toArray( n -> PlotUtil.createZoneContentArray( surfFact_, n ) );
+        Trimming[] trimmings = ganger_.isTrimmingGlobal()
+                             ? new Trimming[] { globalTrimming_ }
+                             : Arrays.stream( zones_ )
+                                     .map( z -> z.trimming_ )
+                                     .toArray( n -> new Trimming[ n ] );
+        ShadeAxis[] shadeAxes = ganger_.isShadingGlobal()
+                              ? new ShadeAxis[] { globalShadeAxis_ }
+                              : Arrays.stream( zones_ )
+                                      .map( z -> z.shadeAxis_ )
+                                      .toArray( n -> new ShadeAxis[ n ] );
         return ganger_.createGang( extBounds, surfFact_, contents,
                                    trimmings, shadeAxes, WITH_SCROLL );
     }
@@ -525,14 +604,22 @@ public class PlotScene<P,A> {
      * This will perform ranging from data if it is required;
      * in that case, it may take time to execute.
      *
-     * @param  ganger  definses plot grouping
+     * <p>The layerArrays, profiles and aspectConfigs arrays must have the
+     * same length as the ganger zone count.
+     * The trimmings and shadeKits are supplied as arrays, and in each case
+     * may be either a 1- or nzone-element array depending on the Ganger's
+     * {@link Ganger#isTrimmingGlobal}/{@link Ganger#isShadingGlobal} flags.
+     *
+     * @param  ganger  defines plot grouping
      * @param  surfFact   surface factory
      * @param  layerArrays   per-zone layer arrays (nz-element array)
      * @param  profiles   per-zone profiles (nz-element array)
      * @param  aspectConfigs   per-zone config map providing entries
      *                         for surf.getAspectKeys (nz-element arrays)
-     * @param  shadeKits   shader axis specifiers by zone (nz-element array),
-     *                     elements may be null if not required
+     * @param  trimmings   plot decoration specification by zone
+     *                     (nz- or 1-element array,elements may be null)
+     * @param  shadeKits   shader axis specifiers by zone
+     *                     (nz- or 1-element array, elements may be null)
      * @param  ptSel    paper type selector
      * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object

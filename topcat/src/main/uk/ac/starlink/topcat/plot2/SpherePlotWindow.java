@@ -42,9 +42,10 @@ public class SpherePlotWindow
      */
     private static class SpherePlotTypeGui
             implements PlotTypeGui<CubeSurfaceFactory.Profile,CubeAspect> {
-        public AxisController<CubeSurfaceFactory.Profile,CubeAspect>
-                createAxisController() {
-            return new CubeAxisController( true );
+        public AxesController<CubeSurfaceFactory.Profile,CubeAspect>
+                createAxesController() {
+            return SingleAdapterAxesController
+                  .create( new CubeAxisController( true ) );
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel

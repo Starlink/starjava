@@ -3,7 +3,9 @@ package uk.ac.starlink.topcat.plot2;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
@@ -15,12 +17,10 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Captioner;
-import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
-import uk.ac.starlink.ttools.plot2.SingleGangerFactory;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
@@ -78,7 +78,7 @@ public class ShaderControl extends ConfigControl {
         visibleSpecifier_ = axisSpecifier.getAutoSpecifier( AUXVISIBLE_KEY );
         labelSpecifier_.setAutoValue( null );
         visibleSpecifier_.setAutoValue( false );
-        configureForLayers( new LayerControl[ 0 ] );
+        configureForLayers( new TopcatLayer[ 0 ], -1 );
         rangeSpecifier_ = new ConfigSpecifier( new ConfigKey<?>[] {
             StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH, StyleKeys.SHADE_SUBRANGE,
         } ) {
@@ -135,17 +135,19 @@ public class ShaderControl extends ConfigControl {
 
     /**
      * Returns an object which can turn a range into a ShadeAxis
-     * based on current config of this component and a set of layer controls.
+     * based on current config of this component and a set of layers.
      *
-     * @param  controls   list of layer controls to which the axis will apply
+     * @param  tclayers   list of layers to which the axis will apply
      * @param  zid     identifier for zone to which axis factory applies
+     * @param  iz     zone index to which axis factory applies,
+     *                or -1  for all zones
      * @return   shade axis factory
      */
-    public ShadeAxisFactory createShadeAxisFactory( LayerControl[] controls,
-                                                    ZoneId zid ) {
+    public ShadeAxisFactory createShadeAxisFactory( TopcatLayer[] tclayers,
+                                                    ZoneId zid, int iz ) {
         final ConfigMap config = getConfig();
         config.putAll( configger_.getZoneConfig( zid ) );
-        PlotLayer[] layers = getScaleLayers( controls, SCALE );
+        PlotLayer[] layers = getScaleLayers( tclayers, iz, SCALE );
         boolean autoVis = layers.length > 0;
         String autoLabel = PlotUtil.getScaleAxisLabel( layers, SCALE );
         boolean visible = visibleSpecifier_.isAuto()
@@ -178,10 +180,12 @@ public class ShaderControl extends ConfigControl {
     /**
      * Configures state according to the current state of the control stack.
      *
-     * @param  layerControls   list of layer controls relevant to this shading
+     * @param  tclayers   list of layers relevant to this shading
+     * @param  iz  zone index, or -1
      */
-    public void configureForLayers( LayerControl[] layerControls ) {
-        PlotLayer[] layers = getScaleLayers( layerControls, SCALE );
+    public void configureForLayers( TopcatLayer[] tclayers, int iz ) {
+        PlotLayer[] layers = iz >= 0 ? getScaleLayers( tclayers, iz, SCALE )
+                                     : new PlotLayer[ 0 ];
         boolean isAuto = layers.length > 0;
         if ( visibleSpecifier_.getAutoValue() != isAuto ) {
             visibleSpecifier_.setAutoValue( isAuto );
@@ -195,29 +199,22 @@ public class ShaderControl extends ConfigControl {
     }
 
     /**
-     * Given a list of layer controls, extracts and returns all the layers
+     * Given a list of layers, extracts and returns all the layers
      * they produce that have AuxReaders for a given AuxScale.
      *
-     * @param  layerControls  layer controls
+     * @param  tclayers    layers
+     * @param  iz    zone index, or -1 for all zones
      * @param  scale   aux scale of interest
      * @return  relevant layers
      */
-    private static PlotLayer[] getScaleLayers( LayerControl[] layerControls,
+    private static PlotLayer[] getScaleLayers( TopcatLayer[] tclayers, int iz,
                                                AuxScale scale ) {
-        List<PlotLayer> list = new ArrayList<PlotLayer>();
-
-        // NOTE: a default ganger is used here, so this will not work
-        // for non-single-zone gangs.  Needs some work.
-        Ganger<?,?> ganger = SingleGangerFactory.createGanger();
-        for ( LayerControl lc : layerControls ) {
-            for ( TopcatLayer tcLayer : lc.getLayers( ganger ) ) {
-                for ( PlotLayer plotLayer : tcLayer.getPlotLayers() ) {
-                    if ( plotLayer.getAuxRangers().containsKey( scale ) ) {
-                        list.add( plotLayer );
-                    }
-                }
-            }
-        }
-        return list.toArray( new PlotLayer[ 0 ] );
+        return Arrays.stream( tclayers )
+              .flatMap( tclayer -> iz >= 0
+                            ? Stream.of( tclayer.getPlotLayers()[ iz ] )
+                            : Arrays.stream( tclayer.getPlotLayers() ) )
+              .filter( player -> player != null &&
+                                 player.getAuxRangers().containsKey( scale ) )
+              .toArray( n -> new PlotLayer[ n ] );
     }
 }

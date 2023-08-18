@@ -56,9 +56,10 @@ public class PlanePlotWindow
      */
     private static class PlanePlotTypeGui
             implements PlotTypeGui<PlaneSurfaceFactory.Profile,PlaneAspect> {
-        public AxisController<PlaneSurfaceFactory.Profile,PlaneAspect>
-                createAxisController() {
-            return new PlaneAxisController();
+        public AxesController<PlaneSurfaceFactory.Profile,PlaneAspect>
+                createAxesController() {
+            return SingleAdapterAxesController
+                  .create( new PlaneAxisController() );
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             final PositionCoordPanel panel =

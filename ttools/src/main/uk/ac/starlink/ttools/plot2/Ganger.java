@@ -25,6 +25,28 @@ public interface Ganger<P,A> {
     int getZoneCount();
 
     /**
+     * Indicates whether Trimming objects (legend and title) are to be
+     * applied to each zone individually or to the whole plot.
+     * For a single-zone ganger it ought not to make a difference,
+     * but false should be returned.
+     *
+     * @return  true for per-gang trimmings, false for per-zone trimmings
+     * @see   Trimming
+     */
+    boolean isTrimmingGlobal();
+
+    /**
+     * Indicates whether shared Aux colour ramps are to be
+     * applied to each zone individually or to the whole plot.
+     * For a single-zone ganger it ought not to make a difference,
+     * but false should be returned.
+     *
+     * @return  true for per-gang shade axis, false for per-zone shade axis
+     * @see   ShadeAxisKit
+     */
+    boolean isShadingGlobal();
+
+    /**
      * Creates a gang given the graphics coordinates of the individual zones.
      * This can be used if the layout of the zones is already known.
      *
@@ -44,14 +66,20 @@ public interface Ganger<P,A> {
      * The supplied aspects are not modified by this method;
      * any required aspect resolution should be performed before calling it.
      *
+     * <p>The form of the <code>trimmings</code> and <code>shadeAxes</code>
+     * arrays are as determined by the {@link #isTrimmingGlobal} and
+     * {@link #isShadingGlobal} methods; the length of each respective array
+     * must be one for the global case, and the same as the length of the
+     * <code>zoneContents</code> array in the per-zone case.
+     *
      * @param  extBounds  total area enclosing all zones and associated
      *                    axis labels, annotations etc
      * @param  surfFact   surface factory
      * @param  zoneContents  plot content for each zone (nz-element array)
-     * @param  trimmings   additional decorations for each zone
-     *                     (nz-element array, elements may be empty)
-     * @param  shadeAxes   shading axis for each zone
-     *                     (nz-element array, elements may be empty)
+     * @param  trimmings   additional decorations
+     *                     (1- or nz-element array, elements may be null)
+     * @param  shadeAxes   shading axes
+     *                     (1- or nz-element array, elements may be null)
      * @param  withScroll  true if the positioning should work well
      *                     even after some user scrolling
      * @return   new gang
