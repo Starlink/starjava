@@ -112,12 +112,12 @@ public class GroupControlManager<P,A> implements ControlManager {
             plotterMap_.put( ctyp, new ArrayList<Plotter<?>>() );
         }
         for ( Plotter<?> plotter : plotType_.getPlotters() ) {
-            CoordsType ctyp = CoordsType.getInstance( plotter );
+            CoordsType ctyp = getCoordsType( plotter );
             plotterMap_.get( ctyp ).add( plotter );
         }
         for ( Plotter<?> plotter :
               Loader.getClassInstances( PLOTTERS_PROP, Plotter.class ) ) {
-            CoordsType ctyp = CoordsType.getInstance( plotter );
+            CoordsType ctyp = getCoordsType( plotter );
             plotterMap_.get( ctyp ).add( plotter );
         }
 
@@ -316,7 +316,7 @@ public class GroupControlManager<P,A> implements ControlManager {
             throws LayerException {
 
         /* Create the control. */
-        CoordsType ctyp = CoordsType.getInstance( lcmd.getPlotter() );
+        CoordsType ctyp = getCoordsType( lcmd.getPlotter() );
         MultiFormLayerControl control = createGroupControl( ctyp, false );
 
         /* Set the table. */
@@ -389,6 +389,63 @@ public class GroupControlManager<P,A> implements ControlManager {
         }
         else {
             return null;
+        }
+    }
+
+    /**
+     * Returns the appropriate CoordsType for use with a given plotter.
+     *
+     * @param   plotter  plotter
+     * @return   coords type for plotter, not null
+     */
+    private static CoordsType getCoordsType( Plotter<?> plotter ) {
+        CoordGroup cgrp = plotter.getCoordGroup();
+        int npos = cgrp.getBasicPositionCount();
+        Coord[] extraCoords = cgrp.getExtraCoords();
+
+        /* Treat HealpixPlotter as a special case since although it has
+         * positional coordinates, they are not the standard coordinates
+         * for its plot type (it's a pixel index, not a lon/lat pair).
+         * This special handling is a bit messy and should really be
+         * generalised, but since it's the only such special case so far,
+         * it's not clear how best to do that generalisation.
+         * If other instances of this kind of requirement come up,
+         * consider this more carefully and generalise the handling
+         * as appropriate. */
+        if ( plotter instanceof HealpixPlotter ) {
+            return CoordsType.MISC;
+        }
+
+        /* For other layer types, examine their declared characteristics
+         * to decide how they are categorised. */
+        else if ( npos == 0 &&
+                  extraCoords.length > 0 &&
+                  extraCoords[ 0 ] instanceof AreaCoord ) {
+            return CoordsType.AREA;
+        }
+        else if ( npos == 0 &&
+                  extraCoords.length >= 2 &&
+                  extraCoords[ 0 ] instanceof FloatingArrayCoord &&
+                  extraCoords[ 1 ] instanceof FloatingArrayCoord ) {
+            return CoordsType.XYARRAY;
+        }
+        else if ( npos == 1 ) {
+            return CoordsType.SINGLE_POS;
+        }
+        else if ( npos == 2 ) {
+            return CoordsType.DOUBLE_POS;
+        }
+        else if ( npos == 4 ) {
+            return CoordsType.QUAD_POS;
+        }
+        else if ( cgrp.isSinglePartialPosition() &&
+                  cgrp.getExtraCoords().length == 2 &&
+                  cgrp.getExtraCoords()[ 1 ]
+                       == FloatingCoord.WEIGHT_COORD ) {
+            return CoordsType.WEIGHTED_HISTO;
+        }
+        else {
+            return CoordsType.MISC;
         }
     }
 
@@ -534,62 +591,5 @@ public class GroupControlManager<P,A> implements ControlManager {
         public abstract <P,A> PositionCoordPanel
                 createPositionCoordPanel( PlotType<P,A> plotType,
                                           PlotTypeGui<P,A> plotTypeGui );
-
-        /**
-         * Categorises plotters in terms of this enum.
-         *
-         * @param  plotter  plotter to categorise
-         * @return  instance of this class corresponding to plotter, not null
-         */
-        public static CoordsType getInstance( Plotter<?> plotter ) {
-            CoordGroup cgrp = plotter.getCoordGroup();
-            int npos = cgrp.getBasicPositionCount();
-            Coord[] extraCoords = cgrp.getExtraCoords();
-
-            /* Treat HealpixPlotter as a special case since although it has
-             * positional coordinates, they are not the standard coordinates
-             * for its plot type (it's a pixel index, not a lon/lat pair).
-             * This special handling is a bit messy and should really be
-             * generalised, but since it's the only such special case so far,
-             * it's not clear how best to do that generalisation.
-             * If other instances of this kind of requirement come up,
-             * consider this more carefully and generalise the handling
-             * as appropriate. */
-            if ( plotter instanceof HealpixPlotter ) {
-                return CoordsType.MISC;
-            }
-
-            /* For other layer types, examine their declared characteristics
-             * to decide how they are categorised. */
-            else if ( npos == 0 &&
-                      extraCoords.length > 0 &&
-                      extraCoords[ 0 ] instanceof AreaCoord ) {
-                return CoordsType.AREA;
-            }
-            else if ( npos == 0 &&
-                      extraCoords.length >= 2 &&
-                      extraCoords[ 0 ] instanceof FloatingArrayCoord &&
-                      extraCoords[ 1 ] instanceof FloatingArrayCoord ) {
-                return CoordsType.XYARRAY;
-            }
-            else if ( npos == 1 ) {
-                return CoordsType.SINGLE_POS;
-            }
-            else if ( npos == 2 ) {
-                return CoordsType.DOUBLE_POS;
-            }
-            else if ( npos == 4 ) {
-                return CoordsType.QUAD_POS;
-            }
-            else if ( cgrp.isSinglePartialPosition() &&
-                      cgrp.getExtraCoords().length == 2 &&
-                      cgrp.getExtraCoords()[ 1 ]
-                           == FloatingCoord.WEIGHT_COORD ) {
-                return CoordsType.WEIGHTED_HISTO;
-            }
-            else {
-                return CoordsType.MISC;
-            }
-        }
     }
 }
