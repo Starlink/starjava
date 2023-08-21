@@ -438,6 +438,24 @@ public class CoordPanel {
     }
 
     /**
+     * Returns a list of coordinates which do not correspond to the
+     * selectors displayed here, but which should not be acquired by
+     * other means.
+     *
+     * <p>This is a hack to work round situations when coordinates are
+     * added into results by non-obvious means.  In most cases
+     * the output result will be an empty array, which is what the
+     * implementation in this class does.  But subclasses can override
+     * it for special behaviour.
+     *
+     * @return   list of coords which this panel will arrange to provide
+     *           values for in some non-standard way
+     */
+    public Coord[] getAdditionalManagedCoords() {
+        return new Coord[ 0 ];
+    }
+
+    /**
      * Returns a list of column metadata items for the items in a
      * list model of columns.
      *
@@ -468,7 +486,7 @@ public class CoordPanel {
      * @return  true if selection was successfully performed
      */
     public static boolean populate( ColumnDataComboBoxModel model,
-                                     ValueInfo info ) {
+                                    ValueInfo info ) {
         for ( int i = 0; i < model.getSize(); i++ ) {
             ColumnData cdata = model.getColumnDataAt( i );
             if ( cdata != null &&

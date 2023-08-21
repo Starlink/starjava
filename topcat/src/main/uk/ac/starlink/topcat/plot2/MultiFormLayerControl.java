@@ -27,6 +27,7 @@ import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
@@ -384,8 +385,12 @@ public class MultiFormLayerControl extends FormLayerControl {
         List<Coord> extraCoords =
             new ArrayList<Coord>( Arrays.asList( plotter.getCoordGroup()
                                                         .getExtraCoords() ) );
-        extraCoords.removeAll( Arrays.asList( getPositionCoordPanel()
-                                             .getCoords() ) );
+        PositionCoordPanel posCoordPanel = getPositionCoordPanel();
+        Coord[] excludeCoords = PlotUtil.arrayConcat(
+            posCoordPanel.getCoords(),
+            posCoordPanel.getAdditionalManagedCoords()
+        );
+        extraCoords.removeAll( Arrays.asList( excludeCoords ) );
         FormControl fc =
             new SimpleFormControl( baseConfigger_, plotter,
                                    extraCoords.toArray( new Coord[ 0 ] ) );
@@ -400,9 +405,14 @@ public class MultiFormLayerControl extends FormLayerControl {
      * @return   new form control configured for the current table
      */
     private ModeFormControl createModeFormControl( ModePlotter<?>[] plotters ) {
+        PositionCoordPanel posCoordPanel = getPositionCoordPanel();
+        Coord[] excludeCoords = PlotUtil.arrayConcat(
+            posCoordPanel.getCoords(),
+            posCoordPanel.getAdditionalManagedCoords()
+        );
         ModeFormControl fc =
             new ModeFormControl( baseConfigger_, plotters, subsetKeys_,
-                                 getPositionCoordPanel().getCoords() );
+                                 excludeCoords );
         fc.setTable( getTopcatModel(), getSubsetManager(), getSubsetStack() );
         return fc;
     }
