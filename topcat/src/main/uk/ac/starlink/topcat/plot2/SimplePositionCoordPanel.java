@@ -23,7 +23,7 @@ public class SimplePositionCoordPanel extends PositionCoordPanel {
      * @param  geom  fixed data geom
      */
     public SimplePositionCoordPanel( Coord[] coords, DataGeom geom ) {
-        this( coords, new ConfigKey<?>[ 0 ], geom );
+        this( coords, new ConfigKey<?>[ 0 ], createDefaultStack(), geom );
     }
 
     /**
@@ -31,11 +31,12 @@ public class SimplePositionCoordPanel extends PositionCoordPanel {
      *
      * @param  coords  coordinate definitions for which values are required
      * @param  configKeys   config value keys
+     * @param  stack  coord stack implementation
      * @param  geom  fixed data geom
      */
     public SimplePositionCoordPanel( Coord[] coords, ConfigKey<?>[] configKeys,
-                                     DataGeom geom ) {
-        super( coords, configKeys );
+                                     CoordStack stack, DataGeom geom ) {
+        super( coords, configKeys, stack );
         geom_ = geom;
     }
 

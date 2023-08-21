@@ -22,13 +22,25 @@ import uk.ac.starlink.ttools.plot2.data.StorageType;
 public abstract class PositionCoordPanel extends CoordPanel {
 
     /**
-     * Constructor.
+     * Constructor with supplied coord stack.
+     *
+     * @param  coords  coordinate definitions for which values are required
+     * @param  configKeys  config value keys (often empty)
+     * @param  stack   coord stack implementation
+     */
+    protected PositionCoordPanel( Coord[] coords, ConfigKey<?>[] configKeys,
+                                  CoordStack stack ) {
+        super( coords, configKeys, stack );
+    }
+
+    /**
+     * Constructor with default coord stack.
      *
      * @param  coords  coordinate definitions for which values are required
      * @param  configKeys  config value keys (often empty)
      */
     protected PositionCoordPanel( Coord[] coords, ConfigKey<?>[] configKeys ) {
-        super( coords, configKeys );
+        this( coords, configKeys, createDefaultStack() );
     }
 
     /**

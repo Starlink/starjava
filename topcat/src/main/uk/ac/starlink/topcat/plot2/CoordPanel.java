@@ -49,6 +49,7 @@ public class CoordPanel {
     private final ConfigSpecifier cspec_;
     private final ActionForwarder forwarder_;
     private final List<List<ColumnDataComboBox>> colSelectors_;
+    private final CoordStack stack_;
     private final JComponent panel_;   
     private final JComponent controlBox_;
     private TopcatModel tcModel_;
@@ -59,18 +60,23 @@ public class CoordPanel {
      * @param  coords  coordinate definitions for which values are required
      */
     public CoordPanel( Coord[] coords ) {
-        this( coords, new ConfigKey<?>[ 0 ] );
+        this( coords, new ConfigKey<?>[ 0 ], createDefaultStack() );
     }
 
     /**
      * Constructs a CoordPanel for selecting Coords and Config values.
+     * For the stack parameter {@link #createDefaultStack} may be used
+     * if there are no special requirements.
      *
      * @param  coords  coordinate definitions for which values are required
      * @param  configKeys   config value keys
+     * @param  stack   coord stack implementation
      */
-    public CoordPanel( Coord[] coords, ConfigKey<?>[] configKeys ) {
+    public CoordPanel( Coord[] coords, ConfigKey<?>[] configKeys,
+                       CoordStack stack ) {
         panel_ = new JPanel( new BorderLayout() );
         coords_ = coords;
+        stack_ = stack;
         forwarder_ = new ActionForwarder();
         controlBox_ = Box.createVerticalBox();
 
@@ -84,7 +90,6 @@ public class CoordPanel {
         /* Place entry components for each required coordinate. */
         int nc = coords.length;
         colSelectors_ = new ArrayList<List<ColumnDataComboBox>>();
-        LabelledComponentStack stack = new LabelledComponentStack();
         for ( int ic = 0; ic < nc; ic++ ) {
             Input[] inputs = coords[ ic ].getInputs();
             int ni = inputs.length;
@@ -116,12 +121,10 @@ public class CoordPanel {
                 size.width = 80;
                 cs.setMinimumSize( size );
                 cs.setPreferredSize( cs.getMinimumSize() );
-                stack.addLine( meta.getLongName(), null, line, true );
+                JLabel label = stack_.addCoordLine( meta.getLongName(), line );
 
                 /* Arrange for the coordinate entry labels to display tooltips
                  * giving the current value in a stilts-friendly format. */
-                JLabel[] labels = stack.getLabels();
-                final JLabel label = labels[ labels.length - 1 ];
                 label.addMouseListener( InstantTipper.getInstance() );
                 final String shortName = meta.getShortName();
                 ActionListener tipListener = new ActionListener() {
@@ -141,7 +144,7 @@ public class CoordPanel {
             }
         }
         if ( nc > 0 ) {
-            controlBox_.add( new LineBox( null, stack, true ) );
+            controlBox_.add( new LineBox( null, stack_.getPanel(), true ) );
         }
 
         /* Place the lot at the top of the component so it doesn't fill
@@ -201,6 +204,15 @@ public class CoordPanel {
     }
 
     /**
+     * Returns the component listing all the coordinates.
+     *
+     * @return  coordinate stack
+     */
+    public CoordStack getStack() {
+        return stack_;
+    }
+
+    /**
      * Adds a listener which will be notified when the coordinate selection
      * changes.
      *
@@ -225,7 +237,7 @@ public class CoordPanel {
      *
      * @return  action forwarder
      */
-    public ActionListener getActionForwarder() {
+    public ActionForwarder getActionForwarder() {
         return forwarder_;
     }
 
@@ -499,6 +511,25 @@ public class CoordPanel {
     }
 
     /**
+     * Returns a CoordStack implementation suitable for general-purpose use.
+     *
+     * @return  new coord stack 
+     */
+    public static CoordStack createDefaultStack() {
+        final LabelledComponentStack lstack = new LabelledComponentStack();
+        return new CoordStack() {
+            public JComponent getPanel() {
+                return lstack;
+            }
+            public JLabel addCoordLine( String labelTxt, JComponent line ) {
+                lstack.addLine( labelTxt, null, line, true );
+                JLabel[] labels = lstack.getLabels();
+                return labels[ labels.length - 1 ];
+            }
+        };
+    }
+
+    /**
      * Indicates whether two infos match.
      * The criterion is that both name and UCD are the same.
      *
@@ -545,5 +576,30 @@ public class CoordPanel {
             is++;
         }
         return is;
+    }
+
+    /**
+     * Interface for presenting a list of coordinate selection components.
+     * The term "stack" here is used in a simply visual sense.
+     * @see  #createDefaultStack
+     */
+    public static interface CoordStack {
+
+        /**
+         * Adds a labelled line to the stack of components.
+         *
+         * @param  labelTxt  text of displayed label to associate with the
+         *                   component
+         * @param  line   component to add
+         * @return   label component displaying supplied <code>labelTxt</code>
+         */
+        JLabel addCoordLine( String labelTxt, JComponent line );
+
+        /**
+         * Returns the visual component displaying this stack.
+         *
+         * @return  panel for user interaction
+         */
+        JComponent getPanel();
     }
 }
