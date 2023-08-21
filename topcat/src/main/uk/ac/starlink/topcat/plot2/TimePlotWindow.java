@@ -127,6 +127,9 @@ public class TimePlotWindow
         public CartesianRanger getCartesianRanger() {
             return null;
         }
+        public boolean hasExtraHistogram() {
+            return false;
+        }
         public String getNavigatorHelpId() {
             return "timeNavigation";
         }

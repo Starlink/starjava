@@ -76,6 +76,9 @@ public class SpherePlotWindow
         public CartesianRanger getCartesianRanger() {
             return null;
         }
+        public boolean hasExtraHistogram() {
+            return false;
+        }
         public String getNavigatorHelpId() {
             return "sphereNavigation";
         }

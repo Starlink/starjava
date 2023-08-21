@@ -79,6 +79,16 @@ public interface PlotTypeGui<P,A> {
     CartesianRanger getCartesianRanger();
 
     /**
+     * True if a histogram is to be treated in some sense like a scatter plot.
+     * This is a hacky intervention to accommodate matrix plots which
+     * can generate both scatter plots and histograms from the same
+     * input coordinates.  In most cases the return value will be false.
+     *
+     * @return   true for plots which treat histograms a bit like scatter plots
+     */
+    boolean hasExtraHistogram();
+
+    /**
      * Returns the help ID describing the navigation actions for this plot.
      *
      * @return  navigator help id

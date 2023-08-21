@@ -398,7 +398,7 @@ public class GroupControlManager<P,A> implements ControlManager {
      * @param   plotter  plotter
      * @return   coords type for plotter, not null
      */
-    private static CoordsType getCoordsType( Plotter<?> plotter ) {
+    private CoordsType getCoordsType( Plotter<?> plotter ) {
         CoordGroup cgrp = plotter.getCoordGroup();
         int npos = cgrp.getBasicPositionCount();
         Coord[] extraCoords = cgrp.getExtraCoords();
@@ -442,7 +442,12 @@ public class GroupControlManager<P,A> implements ControlManager {
                   cgrp.getExtraCoords().length == 2 &&
                   cgrp.getExtraCoords()[ 1 ]
                        == FloatingCoord.WEIGHT_COORD ) {
-            return CoordsType.WEIGHTED_HISTO;
+            if ( plotTypeGui_.hasExtraHistogram() ) {
+                return CoordsType.SINGLE_POS;
+            }
+            else {
+                return CoordsType.WEIGHTED_HISTO;
+            }
         }
         else {
             return CoordsType.MISC;

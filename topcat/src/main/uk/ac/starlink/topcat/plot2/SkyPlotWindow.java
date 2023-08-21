@@ -112,6 +112,10 @@ public class SkyPlotWindow
             return null;
         }
 
+        public boolean hasExtraHistogram() {
+            return false;
+        }
+
         public String getNavigatorHelpId() {
             return "skyNavigation";
         }

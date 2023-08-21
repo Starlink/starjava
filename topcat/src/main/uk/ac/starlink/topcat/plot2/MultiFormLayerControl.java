@@ -32,6 +32,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.layer.HandleArrayForm;
+import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.ModePlotter;
 
 /**
@@ -208,9 +209,10 @@ public class MultiFormLayerControl extends FormLayerControl {
         }
 
         /* Special case hacks for additional default forms.
-         * Currently there's only one, an inactive HandleForm in the case of
-         * the XYArray control.  If more special casing is required in future,
-         * think about generalising this. */
+         * Currently there are only two, but if these become more common
+         * think about generalising this mechanism. */
+
+        /* Make HandleForm inactive in the case of the XYArray control. */
         List<Action> extraDfltActs = new ArrayList<>();
         for ( ModePlotter.Form form : modePlotterMap_.keySet() ) {
             if ( form instanceof HandleArrayForm ) {
@@ -223,6 +225,15 @@ public class MultiFormLayerControl extends FormLayerControl {
                         formStack_.setChecked( control, false );
                     }
                 } );
+            }
+        }
+
+        /* Add an additional histogram plot to the list if required. */
+        if ( plotTypeGui.hasExtraHistogram() ) {
+            for ( Plotter<?> plotter : singlePlotterList_ ) {
+                if ( plotter instanceof HistogramPlotter ) {
+                    extraDfltActs.add( new SingleFormAction( plotter ) );
+                }
             }
         }
 

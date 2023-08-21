@@ -508,6 +508,9 @@ public class HistogramPlotWindow
         public FigureMode[] getFigureModes() {
             return new FigureMode[ 0 ];
         }
+        public boolean hasExtraHistogram() {
+            return false;
+        }
         public String getNavigatorHelpId() {
             return "histogramNavigation";
         }

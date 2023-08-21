@@ -107,6 +107,9 @@ public class PlanePlotWindow
         public CartesianRanger getCartesianRanger() {
             return PLANE_RANGER;
         }
+        public boolean hasExtraHistogram() {
+            return false;
+        }
         public String getNavigatorHelpId() {
             return "planeNavigation";
         }

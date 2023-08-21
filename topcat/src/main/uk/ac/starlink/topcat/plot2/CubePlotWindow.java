@@ -75,6 +75,9 @@ public class CubePlotWindow
         public CartesianRanger getCartesianRanger() {
             return CUBE_RANGER;
         }
+        public boolean hasExtraHistogram() {
+            return false;
+        }
         public String getNavigatorHelpId() {
             return "cubeNavigation";
         }
