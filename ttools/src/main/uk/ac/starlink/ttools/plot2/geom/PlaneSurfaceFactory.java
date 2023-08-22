@@ -43,69 +43,78 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
 public class PlaneSurfaceFactory
             implements SurfaceFactory<PlaneSurfaceFactory.Profile,PlaneAspect> {
 
+    private static final XyKeyPair<Double> MIN_XYKEY =
+        new XyKeyPair<Double>( a -> createAxisLimitKey( a, false ) );
+    private static final XyKeyPair<Double> MAX_XYKEY =
+        new XyKeyPair<Double>( a -> createAxisLimitKey( a, true ) );
+    private static final XyKeyPair<Subrange> SUBRANGE_XYKEY =
+        new XyKeyPair<Subrange>( a -> createAxisSubrangeKey( a ) );
+    private static final XyKeyPair<Boolean> LOG_XYKEY =
+        new XyKeyPair<Boolean>( a -> createAxisLogKey( a ) );
+    private static final XyKeyPair<Boolean> FLIP_XYKEY =
+        new XyKeyPair<Boolean>( a -> createAxisFlipKey( a ) );
+    private static final XyKeyPair<String> LABEL_XYKEY =
+        new XyKeyPair<String>( a -> StyleKeys.createAxisLabelKey( a ) );
+    private static final XyKeyPair<JELFunction> FUNC2_XYKEY =
+        new XyKeyPair<JELFunction>( a -> createSecondaryAxisFunctionKey( a ) );
+    private static final XyKeyPair<String> LABEL2_XYKEY =
+        new XyKeyPair<String>( a -> createSecondaryAxisLabelKey( a ) );
+    private static final XyKeyPair<Double> CROWD_XYKEY =
+        new XyKeyPair<Double>( a -> createAxisCrowdKey( a ) );
+    private static final XyKeyPair<Boolean> ANCHOR_XYKEY =
+        new XyKeyPair<Boolean>( a -> createAxisAnchorKey( a, false ) );
+
     /** Config key for X axis lower bound, before subranging. */
-    public static final ConfigKey<Double> XMIN_KEY =
-        createAxisLimitKey( "X", false );
+    public static final ConfigKey<Double> XMIN_KEY = MIN_XYKEY.getKeyX();
 
     /** Config key for X axis upper bound, before subranging. */
-    public static final ConfigKey<Double> XMAX_KEY =
-        createAxisLimitKey( "X", true );
+    public static final ConfigKey<Double> XMAX_KEY = MAX_XYKEY.getKeyX();
 
     /** Config key for X axis subrange. */
     public static final ConfigKey<Subrange> XSUBRANGE_KEY =
-        createAxisSubrangeKey( "X" );
+        SUBRANGE_XYKEY.getKeyX();
 
     /** Config key for Y axis lower bound, before subranging. */
-    public static final ConfigKey<Double> YMIN_KEY =
-        createAxisLimitKey( "Y", false );
+    public static final ConfigKey<Double> YMIN_KEY = MIN_XYKEY.getKeyY();
 
     /** Config key for Y axis upper bound, before subranging. */
-    public static final ConfigKey<Double> YMAX_KEY =
-        createAxisLimitKey( "Y", true );
+    public static final ConfigKey<Double> YMAX_KEY = MAX_XYKEY.getKeyY();
 
     /** Config key for Y axis subrange. */
     public static final ConfigKey<Subrange> YSUBRANGE_KEY =
-        createAxisSubrangeKey( "Y" );
+        SUBRANGE_XYKEY.getKeyY();
 
     /** Config key for X axis log scale flag. */
-    public static final ConfigKey<Boolean> XLOG_KEY =
-        createAxisLogKey( "X" );
+    public static final ConfigKey<Boolean> XLOG_KEY = LOG_XYKEY.getKeyX();
 
     /** Config key for Y axis log scale flag. */
-    public static final ConfigKey<Boolean> YLOG_KEY =
-        createAxisLogKey( "Y" );
+    public static final ConfigKey<Boolean> YLOG_KEY = LOG_XYKEY.getKeyY();
 
     /** Config key for X axis flip flag. */
-    public static final ConfigKey<Boolean> XFLIP_KEY =
-        createAxisFlipKey( "X" );
+    public static final ConfigKey<Boolean> XFLIP_KEY = FLIP_XYKEY.getKeyX();
 
     /** Config key for Y axis flip flag. */
-    public static final ConfigKey<Boolean> YFLIP_KEY =
-        createAxisFlipKey( "Y" );
+    public static final ConfigKey<Boolean> YFLIP_KEY = FLIP_XYKEY.getKeyY();
 
     /** Config key for X axis text label. */
-    public static final ConfigKey<String> XLABEL_KEY =
-        StyleKeys.createAxisLabelKey( "X" );
+    public static final ConfigKey<String> XLABEL_KEY = LABEL_XYKEY.getKeyX();
 
     /** Config key for Y axis text label.*/
-    public static final ConfigKey<String> YLABEL_KEY =
-        StyleKeys.createAxisLabelKey( "Y" );
+    public static final ConfigKey<String> YLABEL_KEY = LABEL_XYKEY.getKeyY();
 
     /** Config key for secondary X axis function. */
     public static final ConfigKey<JELFunction> X2FUNC_KEY =
-        createSecondaryAxisFunctionKey( "X" );
+        FUNC2_XYKEY.getKeyX();
 
     /** Config key for secondary Y axis function. */
     public static final ConfigKey<JELFunction> Y2FUNC_KEY =
-        createSecondaryAxisFunctionKey( "Y" );
+        FUNC2_XYKEY.getKeyY();
 
     /** Config key for secondary X axis text label. */
-    public static final ConfigKey<String> X2LABEL_KEY =
-        createSecondaryAxisLabelKey( "X" );
+    public static final ConfigKey<String> X2LABEL_KEY = LABEL2_XYKEY.getKeyX();
 
     /** Config key for secondary Y axis text label. */
-    public static final ConfigKey<String> Y2LABEL_KEY =
-        createSecondaryAxisLabelKey( "Y" );
+    public static final ConfigKey<String> Y2LABEL_KEY = LABEL2_XYKEY.getKeyY();
 
     /** Config key for axis aspect ratio fix. */
     public static final ConfigKey<Double> XYFACTOR_KEY =
@@ -138,12 +147,10 @@ public class PlaneSurfaceFactory
         , false );
 
     /** Config key to control tick mark crowding on X axis. */
-    public static final ConfigKey<Double> XCROWD_KEY =
-        createAxisCrowdKey( "X" );
+    public static final ConfigKey<Double> XCROWD_KEY = CROWD_XYKEY.getKeyX();
 
     /** Config key to control tick mark crowding on Y axis. */
-    public static final ConfigKey<Double> YCROWD_KEY =
-        createAxisCrowdKey( "Y" );
+    public static final ConfigKey<Double> YCROWD_KEY = CROWD_XYKEY.getKeyY();
 
     /** Config key to select which axes navigation actions will operate on. */
     public static final ConfigKey<boolean[]> NAVAXES_KEY =
@@ -166,12 +173,10 @@ public class PlaneSurfaceFactory
         , new String[] { "X", "Y" } );
 
     /** Config key to anchor X axis during zooms. */
-    public static final ConfigKey<Boolean> XANCHOR_KEY =
-        createAxisAnchorKey( "X", false );
+    public static final ConfigKey<Boolean> XANCHOR_KEY = ANCHOR_XYKEY.getKeyX();
 
     /** Config key to anchor Y axis during zooms. */
-    public static final ConfigKey<Boolean> YANCHOR_KEY =
-        createAxisAnchorKey( "Y", false );
+    public static final ConfigKey<Boolean> YANCHOR_KEY = ANCHOR_XYKEY.getKeyY();
 
     private final PlotMetric plotMetric_;
     private final boolean hasSecondaryAxes_;
@@ -340,6 +345,30 @@ public class PlaneSurfaceFactory
 
     public PlotMetric getPlotMetric() {
         return plotMetric_;
+    }
+
+    /**
+     * Returns a list of those keys which apply equally to the X and Y axes.
+     *
+     * @return   paired X/Y key objects
+     */
+    public XyKeyPair<?>[] getXyKeyPairs() {
+        List<XyKeyPair<?>> list = new ArrayList<>();
+        list.addAll( Arrays.asList( new XyKeyPair<?>[] {
+            MIN_XYKEY,
+            MAX_XYKEY,
+            SUBRANGE_XYKEY,
+            LOG_XYKEY,
+            FLIP_XYKEY,
+            LABEL_XYKEY,
+            CROWD_XYKEY,
+            ANCHOR_XYKEY,
+        } ) );
+        if ( hasSecondaryAxes_ ) {
+            list.add( FUNC2_XYKEY );
+            list.add( LABEL2_XYKEY );
+        }
+        return list.toArray( new XyKeyPair<?>[ 0 ] );
     }
 
     /**
