@@ -174,12 +174,13 @@ public class PlaneSurfaceFactory
         createAxisAnchorKey( "Y", false );
 
     private final PlotMetric plotMetric_;
+    private final boolean hasSecondaryAxes_;
 
     /**
      * Constructs a PlaneSurfaceFactory with default characteristics.
      */
     public PlaneSurfaceFactory() {
-        this( true );
+        this( true, true );
     }
 
     /**
@@ -187,9 +188,13 @@ public class PlaneSurfaceFactory
      *
      * @param  has2dMetric  true if it may make sense to measure distances
      *                      that are not parallel to either axis
+     * @param  hasSecondaryAxes  true if secondary axis labelling can be
+     *                           configured
      */
-    public PlaneSurfaceFactory( boolean has2dMetric ) {
+    public PlaneSurfaceFactory( boolean has2dMetric,
+                                boolean hasSecondaryAxes ) {
         plotMetric_ = new PlanePlotMetric( has2dMetric );
+        hasSecondaryAxes_ = hasSecondaryAxes;
     }
 
     public Surface createSurface( Rectangle plotBounds, Profile profile,
@@ -214,10 +219,16 @@ public class PlaneSurfaceFactory
             YFLIP_KEY,
             XLABEL_KEY,
             YLABEL_KEY,
-            X2FUNC_KEY,
-            Y2FUNC_KEY,
-            X2LABEL_KEY,
-            Y2LABEL_KEY,
+        } ) );
+        if ( hasSecondaryAxes_ ) {
+            list.addAll( Arrays.asList( new ConfigKey<?>[] {
+                X2FUNC_KEY,
+                Y2FUNC_KEY,
+                X2LABEL_KEY,
+                Y2LABEL_KEY,
+            } ) );
+        }
+        list.addAll( Arrays.asList( new ConfigKey<?>[] {
             XYFACTOR_KEY,
             GRID_KEY,
             XCROWD_KEY,

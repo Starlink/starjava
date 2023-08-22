@@ -362,9 +362,11 @@ public class HistogramAxisController
             createAxisAnchorKey( "X", true );
         private static final ConfigKey<Boolean> HIST_YANCHOR_KEY =
             createAxisAnchorKey( "Y", false );
+        private static final boolean HAS_2D_METRIC = false;
+        private static final boolean HAS_SECONDARY_AXES = true;
 
         HistogramSurfaceFactory() {
-            super( false );
+            super( HAS_2D_METRIC, HAS_SECONDARY_AXES );
         }
 
         @Override

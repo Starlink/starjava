@@ -63,8 +63,10 @@ public class PlanePlotType
         implements PlotType<PlaneSurfaceFactory.Profile,PlaneAspect> {
 
     private static PlaneDataGeom DATAGEOM = PlaneDataGeom.INSTANCE;
+    private static final boolean HAS_SECONDARY_AXES = true;
     private static final PlanePlotType INSTANCE =
         new PlanePlotType( createDefaultPlotters(), true );
+
     private final PlaneSurfaceFactory surfFact_;
     private final Plotter<?>[] plotters_;
 
@@ -77,7 +79,7 @@ public class PlanePlotType
      */
     public PlanePlotType( Plotter<?>[] plotters, boolean has2dMetric ) {
         plotters_ = plotters;
-        surfFact_ = new PlaneSurfaceFactory( has2dMetric );
+        surfFact_ = new PlaneSurfaceFactory( has2dMetric, HAS_SECONDARY_AXES );
     }
 
     public DataGeom[] getPointDataGeoms() {

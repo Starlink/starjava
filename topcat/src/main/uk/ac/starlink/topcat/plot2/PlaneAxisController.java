@@ -26,7 +26,7 @@ public class PlaneAxisController
      * Constructor.
      */
     public PlaneAxisController() {
-        super( new PlaneSurfaceFactory( false ), createAxisLabelKeys() );
+        super( new PlaneSurfaceFactory(), createAxisLabelKeys() );
         SurfaceFactory<PlaneSurfaceFactory.Profile,PlaneAspect> surfFact =
             getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
