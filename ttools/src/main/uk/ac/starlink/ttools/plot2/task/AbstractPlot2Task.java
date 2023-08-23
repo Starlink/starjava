@@ -126,6 +126,11 @@ import uk.ac.starlink.util.Bi;
  * Concrete subclasses must supply the PlotType (perhaps from the
  * environment), and may customise the visible task parameter set.
  *
+ * <p>As currently implemented, this will only work with single-zone
+ * plots or multi-zone plots with per-zone trimmings and shade axes.
+ * Multi-zone plots with global trimming or shade axes must be
+ * handled using custom code.
+ *
  * @author   Mark Taylor
  * @since    22 Aug 2014
  */
@@ -648,7 +653,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *
      * @return  xpix parameter
      */
-    public Parameter<Integer> getXpixParameter() {
+    public IntegerParameter getXpixParameter() {
         return xpixParam_;
     }
 
@@ -658,7 +663,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *
      * @return  ypix parameter
      */
-    public Parameter<Integer> getYpixParameter() {
+    public IntegerParameter getYpixParameter() {
         return ypixParam_;
     }
 
@@ -718,6 +723,33 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      */
     public Parameter<Padding> getPaddingParameter() {
         return paddingParam_;
+    }
+
+    /**
+     * Returns the parameter for configurig the data storage.
+     *
+     * @return  data storage parameter
+     */
+    public Parameter<DataStoreFactory> getDataStoreParameter() {
+        return dstoreParam_;
+    }
+
+    /**
+     * Returns the parameter used to force bitmap output.
+     *
+     * @return  force bitmap parameter
+     */
+    public BooleanParameter getBitmapParameter() {
+        return bitmapParam_;
+    }
+
+    /**
+     * Returns the parameter for configuring the compositor.
+     *
+     * @return  compositor parameter
+     */
+    public Parameter<Compositor> getCompositorParameter() {
+        return compositorParam_;
     }
 
     /**
@@ -1224,8 +1256,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  context   plot context
      * @return   plot configuration
      */
-    private <P,A> PlotConfiguration<P,A>
-            createPlotConfiguration( Environment env, PlotContext<P,A> context )
+    protected <P,A> PlotConfiguration<P,A>
+                    createPlotConfiguration( Environment env,
+                                             PlotContext<P,A> context )
             throws TaskException {
 
         /* What kind of plot? */
@@ -1298,6 +1331,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         };
         final Ganger<P,A> ganger =
             gangerFact.createGanger( padding, gangConfig, gangContext );
+        if ( ganger.getZoneCount() > 1 &&
+             ganger.isTrimmingGlobal() || ganger.isShadingGlobal() ) {
+            throw new IllegalStateException( "Can't cope with this ganger" );
+        }
 
         /* Prepare parallel arrays of per-zone information for the plotting. */
         final int nz = zoneSuffixes.length;
@@ -1572,12 +1609,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * Turns the map of defined layers into a legend icon.
      *
      * @param  env  execution environment
-     * @param  layerMap  suffix->layer map for all defined layers
+     * @param  layerMap  suffix-&gt;layer map for all defined layers
      * @param  suffixSeq  ordered array of suffixes for layers to be plotted
      * @return  legend icon, may be null
      */
-    private Icon createLegend( Environment env, Map<String,PlotLayer> layerMap,
-                               String[] suffixSeq )
+    public Icon createLegend( Environment env, Map<String,PlotLayer> layerMap,
+                              String[] suffixSeq )
             throws TaskException {
 
         /* Make a map from layer labels to arrays of styles.
@@ -1752,8 +1789,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  context  plot context
      * @return  mapping from suffixes to plotters for the environment
      */
-    private Map<String,Plotter<?>> getPlotters( Environment env,
-                                                PlotContext<?,?> context )
+    public static Map<String,Plotter<?>> getPlotters( Environment env,
+                                                      PlotContext<?,?> context )
             throws TaskException {
         Map<String,Plotter<?>> plotterMap =
             new LinkedHashMap<String,Plotter<?>>();
@@ -1859,8 +1896,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  keys  config keys
      * @return  config map
      */
-    private ConfigMap createBasicConfigMap( Environment env,
-                                            ConfigKey<?>[] keys )
+    public static ConfigMap createBasicConfigMap( Environment env,
+                                                  ConfigKey<?>[] keys )
             throws TaskException {
         ConfigParameterFactory cpFact = new ConfigParameterFactory() {
             public <T> ConfigParameter<T> getParameter( Environment env,
@@ -1980,8 +2017,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param   suffix  suffix to append to parameter name
      * @return   coordinate with expression values acquired from environment
      */
-    private CoordValue getCoordValue( Environment env, Coord coord,
-                                      String suffix ) throws TaskException {
+    public static CoordValue getCoordValue( Environment env, Coord coord,
+                                            String suffix )
+            throws TaskException {
         Input[] inputs = coord.getInputs();
         int ni = inputs.length;
         String[] exprs = new String[ ni ];
@@ -2026,9 +2064,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *                      shortnames to make env parameter names
      * @return  config map with values for the supplied keys
      */
-    private ConfigMap createLayerSuffixedConfigMap( Environment env,
-                                                    ConfigKey<?>[] configKeys,
-                                                    String layerSuffix )
+    public static ConfigMap
+            createLayerSuffixedConfigMap( Environment env,
+                                          ConfigKey<?>[] configKeys,
+                                          String layerSuffix )
             throws TaskException {
         return createSuffixedConfigMap( env, configKeys, layerSuffix, false );
     }
@@ -2044,9 +2083,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *                      shortnames to make env parameter names
      * @return  config map with values for the supplied keys
      */
-    private ConfigMap createZoneSuffixedConfigMap( Environment env,
-                                                   ConfigKey<?>[] configKeys,
-                                                   String zoneSuffix )
+    private static ConfigMap
+            createZoneSuffixedConfigMap( Environment env,
+                                         ConfigKey<?>[] configKeys,
+                                         String zoneSuffix )
             throws TaskException {
         return createSuffixedConfigMap( env, configKeys, zoneSuffix, true );
     }
@@ -2066,10 +2106,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  isZone  true for zone suffixes, false for layer suffixes
      * @return  config map with values for the supplied keys
      */
-    private ConfigMap createSuffixedConfigMap( Environment env,
-                                               ConfigKey<?>[] configKeys,
-                                               final String suffix,
-                                               final boolean isZone )
+    private static ConfigMap createSuffixedConfigMap( Environment env,
+                                                      ConfigKey<?>[] configKeys,
+                                                      final String suffix,
+                                                      final boolean isZone )
             throws TaskException {
         ConfigParameterFactory cpFact = new ConfigParameterFactory() {
             public <T> ConfigParameter<T>
@@ -2142,13 +2182,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  cpFact  turns config keys into Parameters
      * @return  config map with values for the supplied keys
      */
-    private ConfigMap createConfigMap( Environment env,
-                                       ConfigKey<?>[] configKeys,
-                                       ConfigParameterFactory cpFact )
+    public static ConfigMap createConfigMap( Environment env,
+                                             ConfigKey<?>[] configKeys,
+                                             ConfigParameterFactory cpFact )
             throws TaskException {
         Level level = Level.CONFIG;
         ConfigMap config = new ConfigMap();
-        if ( Logger.getLogger( getClass().getName() ).isLoggable( level ) ) {
+        if ( Logger.getLogger( AbstractPlot2Task.class.getName() )
+                   .isLoggable( level ) ) {
             config = new LoggingConfigMap( config, level );
         }
         for ( ConfigKey<?> key : configKeys ) {
@@ -2166,9 +2207,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  cpFact  turns config keys into Parameters
      * @param  map   map into which key/value pair will be written
      */
-    private <T> void putConfigValue( Environment env, ConfigKey<T> key,
-                                     ConfigParameterFactory cpFact,
-                                     ConfigMap map )
+    private static <T> void putConfigValue( Environment env, ConfigKey<T> key,
+                                            ConfigParameterFactory cpFact,
+                                            ConfigMap map )
             throws TaskException {
         ConfigParameter<T> param = cpFact.getParameter( env, key );
         T value = param.objectValue( env );
@@ -2185,7 +2226,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param   suffix   parameter suffix
      * @return   table
      */
-    private StarTable getInputTable( Environment env, String suffix )
+    public static StarTable getInputTable( Environment env, String suffix )
             throws TaskException {
 
         /* Get the basic input table from an InputTableParameter,
@@ -2983,22 +3024,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             }
         }
         return null;
-    }
-
-    /**
-     * Object that can turn a ConfigKey into a Parameter.
-     */
-    private interface ConfigParameterFactory {
-
-        /**
-         * Produces a parameter to find the value for a given config key.
-         *
-         * @param   key  config key
-         * @param   env  execution environment
-         * @return   parameter that can get a value for <code>key</code>
-         */
-        <T> ConfigParameter<T> getParameter( Environment env, ConfigKey<T> key )
-                 throws TaskException;
     }
 
     /**
