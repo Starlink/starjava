@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.IntStream;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -29,12 +30,17 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.geom.CubePlotType;
+import uk.ac.starlink.ttools.plot2.geom.MatrixGangerFactory;
+import uk.ac.starlink.ttools.plot2.geom.MatrixPlotType;
+import uk.ac.starlink.ttools.plot2.geom.MatrixShape;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
+import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.geom.SpherePlotType;
 import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
 import uk.ac.starlink.ttools.plot2.geom.SkySys;
 import uk.ac.starlink.ttools.plot2.geom.SkySurfaceFactory;
 import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
+import uk.ac.starlink.ttools.plot2.geom.XyKeyPair;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapeModePlotter;
@@ -188,6 +194,7 @@ public class StiltsPlot {
         List<Setting> globalSettings = new ArrayList<>();
         globalSettings.addAll( getConfigSettings( globalConfig, gangKeys ) );
         globalSettings.add( null );
+        globalSettings.addAll( getGlobalSettings( plotSpec ) );
 
         /* Plot surface settings. */
         SurfaceFactory<P,A> sfact = plotType.getSurfaceFactory();
@@ -375,7 +382,10 @@ public class StiltsPlot {
      * @return  stilts task name
      */
     private static String getPlotTaskName( PlotType<?,?> ptype ) {
-        if ( ptype instanceof PlanePlotType ) {
+        if ( ptype instanceof MatrixPlotType ) {
+            return "plot2matrix";
+        }
+        else if ( ptype instanceof PlanePlotType ) {
             return "plot2plane";
         }
         else if ( ptype instanceof SkyPlotType ) {
@@ -601,9 +611,25 @@ public class StiltsPlot {
      */
     private static <T> Setting createConfigSetting( ConfigKey<T> key,
                                                     ConfigMap map ) {
-        return new Setting( getSettingKey( key ),
-                            key.valueToString( map.get( key ) ),
-                            key.valueToString( key.getDefaultValue() ) );
+        return createNamedConfigSetting( key, map, getSettingKey( key ) );
+    }
+
+    /**
+     * Creates a setting based on a given config option with an explicitly
+     * supplied setting key.
+     *
+     * @param  key   config key
+     * @param  config   config map that may contain information on value
+     * @param  settingKey  key for created setting object
+     * @return  new setting object
+     */
+    private static <T> Setting createNamedConfigSetting( ConfigKey<T> configKey,
+                                                         ConfigMap config,
+                                                         String settingKey ) {
+        return new Setting( settingKey,
+                            configKey.valueToString( config.get( configKey ) ),
+                            configKey.valueToString( configKey
+                                                    .getDefaultValue() ) );
     }
 
     /**
@@ -819,6 +845,21 @@ public class StiltsPlot {
     }
 
     /**
+     * Hook for returning special settings relating to a given PlotSpec.
+     *
+     * @param  plotSpec  plot specification
+     * @return   additional settings to add to the global list
+     */
+    private static List<Setting> getGlobalSettings( PlotSpec<?,?> plotSpec ) {
+        if ( plotSpec.getPlotType() instanceof MatrixPlotType ) {
+            return getMatrixGlobalSettings( plotSpec );
+        }
+        else {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
      * Groups a list of settings into zero or more SettingGroups.
      * A group is created for each non-empty run of Settings in the
      * input list that does not contain a null value; nulls are
@@ -909,6 +950,102 @@ public class StiltsPlot {
          *                    for the layer to be adjusted
          */
         void adjustLayerSettings( LayerSpec lspec, List<Setting> lsettings );
+    }
+
+    /**
+     * Performs special processing to provide MatrixPlot-specific setttings.
+     *
+     * @param  plotSpec  plot specification
+     * @return  global settings
+     */
+    private static List<Setting>
+            getMatrixGlobalSettings( PlotSpec<?,?> plotSpec ) {
+
+        /* Prepare required information from the plotspec. */
+        PlotType<?,?> plotType = plotSpec.getPlotType();
+        GangerFactory<?,?> gangerFact0 = plotType.getGangerFactory();
+        SurfaceFactory<?,?> surfFact0 = plotType.getSurfaceFactory();
+        if ( ! ( gangerFact0 instanceof MatrixGangerFactory ) ||
+             ! ( surfFact0 instanceof PlaneSurfaceFactory ) ) {
+            assert false;
+            return Collections.emptyList();
+        }
+        MatrixGangerFactory gangerFact = (MatrixGangerFactory) gangerFact0;
+        PlaneSurfaceFactory surfFact = (PlaneSurfaceFactory) surfFact0;
+        Plotter<?>[] plotters = Arrays.stream( plotSpec.getLayerSpecs() )
+                                      .map( LayerSpec::getPlotter )
+                                      .toArray( n -> new Plotter<?>[ n ] );
+        ConfigMap globalConfig = plotSpec.getGlobalConfig();
+        ConfigMap[] zoneConfigs = plotSpec.getZoneConfigs();
+        MatrixShape shape = gangerFact.getShape( globalConfig, plotters );
+        int nc = shape.getWidth();
+        int nz = shape.getCellCount();
+        assert zoneConfigs.length == nz;
+        String[] coordNames =
+            IntStream.range( 0, nc )
+                     .mapToObj( MatrixPlotType::getCoordName )
+                     .toArray( n -> new String[ n ] );
+        XyKeyPair<?>[] xyKeyPairs = surfFact.getXyKeyPairs();
+
+        /* Go through each zone, extracting configuration information
+         * specific to the X and Y axes.  These have to be converted to
+         * settings with different names corresponding to the numbered
+         * axes (X1, X2, ...) used by the matrix plot UI.
+         * Each numbered axis with all its settings is encountered
+         * multiple times; because of the way that the plots are set up,
+         * the setting values ought to be the same each time,
+         * so the settings (which in any case have to be single-valued)
+         * are only stored the first time round is stored (in maps). */
+        List<Map<String,Setting>> settingMaps = new ArrayList<>( nc );
+        for ( int ic = 0; ic < nc; ic++ ) {
+            settingMaps.add( new LinkedHashMap<String,Setting>() );
+        }
+        for ( int iz = 0; iz < nz; iz++ ) {
+            ConfigMap zconfig = zoneConfigs[ iz ];
+            MatrixShape.Cell cell = shape.getCell( iz );
+            int ix = cell.getX();
+            int iy = cell.getY();
+
+            /* Avoid diagonal cells, which are histogram like.
+             * Although one of the axes is a numbered coordinate in this case,
+             * the other one is something else (like histogram count),
+             * and its configuration shouldn't be applied to a numbered axis.
+             * This does mean that the configuration of those histogram
+             * axis is simply not recorded; there is currently no way
+             * to specify these configuration items in the stilts UI.
+             * We could try to identify the non-weird axis and use that only,
+             * but the config for this should get picked up when looking at
+             * one of the other cells.  Unless it's a very small matrix. */
+            if ( ix != iy ) {
+                for ( XyKeyPair<?> xyPair : xyKeyPairs ) {
+                    String xname =
+                        getSettingKey( xyPair.createKey( coordNames[ ix ] ) );
+                    String yname =
+                        getSettingKey( xyPair.createKey( coordNames[ iy ] ) );
+                    Map<String,Setting> xmap = settingMaps.get( ix );
+                    Map<String,Setting> ymap = settingMaps.get( iy );
+                    if ( ! xmap.containsKey( xname ) ) {
+                        xmap.put( xname,
+                                  createNamedConfigSetting( xyPair.getKeyX(),
+                                                            zconfig, xname ) );
+                    }
+                    if ( ! ymap.containsKey( yname ) ) {
+                        ymap.put( yname,
+                                  createNamedConfigSetting( xyPair.getKeyY(),
+                                                            zconfig, yname ) );
+                    }
+                }
+            }
+        }
+
+        /* Prepare result for return, grouped by coord index for
+         * more comprehensible presentation. */
+        List<Setting> settings = new ArrayList<>();
+        for ( Map<String,Setting> settingMap : settingMaps ) {
+            settings.addAll( settingMap.values() );
+            settings.add( null );
+        }
+        return settings;
     }
 
     /**

@@ -197,6 +197,8 @@ public class Stilts {
                   new Pair<String>( "plot2cube", plot2Pkg + "CubePlot2Task" ),
                   new Pair<String>( "plot2sphere",
                                     plot2Pkg + "SpherePlot2Task" ),
+                  new Pair<String>( "plot2matrix",
+                                    plot2Pkg + "MatrixPlot2Task" ),
                   new Pair<String>( "plot2time", plot2Pkg + "TimePlot2Task" )
               ) ) {
             String name = pair.getItem1(); 
