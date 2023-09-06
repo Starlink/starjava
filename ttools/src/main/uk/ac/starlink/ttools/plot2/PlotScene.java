@@ -613,7 +613,8 @@ public class PlotScene<P,A> {
      * @param  ganger  defines plot grouping
      * @param  surfFact   surface factory
      * @param  layerArrays   per-zone layer arrays (nz-element array)
-     * @param  profiles   per-zone profiles (nz-element array)
+     * @param  profiles   per-zone profiles (nz-element array);
+     *                    should be result of ganger.adjustProfiles
      * @param  aspectConfigs   per-zone config map providing entries
      *                         for surf.getAspectKeys (nz-element arrays)
      * @param  trimmings   plot decoration specification by zone
@@ -640,8 +641,7 @@ public class PlotScene<P,A> {
          * from the data (slow).  */
         int nz = ganger.getZoneCount();
         long t0 = System.currentTimeMillis();
-        ZoneContent<P,A>[] contents =
-            PlotUtil.createZoneContentArray( surfFact, nz );
+        A[] initialAspects = PlotUtil.createAspectArray( surfFact, nz );
         for ( int iz = 0; iz < nz; iz++ ) {
             PlotLayer[] layers = layerArrays[ iz ];
             P profile = profiles[ iz ];
@@ -649,10 +649,22 @@ public class PlotScene<P,A> {
             Range[] ranges = surfFact.useRanges( profile, config )
                            ? surfFact.readRanges( profile, layers, dataStore )
                            : null;
-            A aspect = surfFact.createAspect( profile, config, ranges );
-            contents[ iz ] = new ZoneContent<P,A>( profile, aspect, layers );
+            initialAspects[ iz ] =
+                surfFact.createAspect( profile, config, ranges );
         }
         PlotUtil.logTimeFromStart( logger_, "Range", t0 );
+
+        /* Ensure aspects are consistent across the gang. */
+        A[] aspects = ganger.adjustAspects( initialAspects, -1 );
+
+        /* Package up zone information. */
+        ZoneContent<P,A>[] contents =
+            PlotUtil.createZoneContentArray( surfFact, nz );
+        for ( int iz = 0; iz < nz; iz++ ) {
+            contents[ iz ] =
+                new ZoneContent<P,A>( profiles[ iz ], aspects[ iz ],
+                                      layerArrays[ iz ] );
+        }
  
         /* Construct and return display. */
         return new PlotScene<P,A>( ganger, surfFact, contents, trimmings,

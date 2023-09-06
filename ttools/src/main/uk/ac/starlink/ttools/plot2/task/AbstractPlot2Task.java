@@ -1302,7 +1302,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Prepare parallel arrays of per-zone information for the plotting. */
         final int nz = zoneSuffixes.length;
         final PlotLayer[][] layerArrays = new PlotLayer[ nz ][];
-        final P[] profiles = PlotUtil.createProfileArray( surfFact, nz );
+        final P[] initialProfiles = PlotUtil.createProfileArray( surfFact, nz );
         final Trimming[] trimmings = new Trimming[ nz ];
         final ConfigMap[] aspectConfigs = new ConfigMap[ nz ];
         final ShadeAxisKit[] shadeKits = new ShadeAxisKit[ nz ];
@@ -1375,11 +1375,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
             /* Populate per-zone arrays. */
             layerArrays[ iz ] = zoneLayers;
-            profiles[ iz ] = profile;
+            initialProfiles[ iz ] = profile;
             aspectConfigs[ iz ] = aspectConfig;
             trimmings[ iz ] = new Trimming( legend, legPos, title );
             shadeKits[ iz ] = shadeKit;
         }
+        P[] profiles = ganger.adjustProfiles( initialProfiles );
 
         /* We have all we need.  Construct and return the object
          * that can do the plot. */
