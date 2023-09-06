@@ -524,6 +524,9 @@ public class Plot2Example {
         /** Time plot. */
         public static final PlotTask TIME = new PlotTask( "plot2time" );
 
+        /** Matrix plot. */
+        public static final PlotTask MATRIX = new PlotTask( "plot2matrix" );
+
         /**
          * Constructor.
          *
@@ -1745,6 +1748,28 @@ public class Plot2Example {
                 "!xmin=-3.58", "!xmax=2.16",
                 "!ymin=-2.03", "!ymax=0.82",
                 "!zmin=-2.61", "!zmax=0.09",
+            } ),
+            new Plot2Example( "matrix", c, PlotTask.MATRIX, new String[] {
+                "xpix=500", "ypix=500",
+                "in=" + TName.RR,
+                "icmd_A=select best_classification==\\\"RRAB\\\"",
+                "icmd_C=select best_classification==\\\"RRC\\\"",
+                null,
+                "color_A=red", "color_C=cyan",
+                null,
+                "*nvar=4",
+                "*x1=peak_to_peak_g", "*x2=p1", "*x3=r21_g", "*x4=phi21_g",
+                "*x4min=3",
+                null,
+                "*layer_A_m=mark", "*layer_C_m=mark",
+                "*layer_A_h=histogram", "*layer_C_h=histogram",
+                null,
+                "*layer_f=contour", "*color_f=#bbbb00", "*smooth_f=10",
+                "*nlevel_f=5",
+                "barform=semi_steps",
+                null,
+                "*leglabel_A=RRAB", "*leglabel_C=RRC", "*legseq=_A_m,_C_m",
+                "*legpos=1,1", "legend=true",
             } ),
         };
     }
