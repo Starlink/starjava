@@ -89,4 +89,14 @@ public class SideFlags {
         return other instanceof SideFlags
             && ((SideFlags) other).hashCode() == hashCode();
     }
+
+    @Override
+    public String toString() {
+        return new StringBuffer( 4 )
+              .append( bottom_ ? 'B' : 'b' )
+              .append( left_ ? 'L' : 'l' )
+              .append( top_ ? 'T' : 't' )
+              .append( right_ ? 'R' : 'r' )
+              .toString();
+    }
 }
