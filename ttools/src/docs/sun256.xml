@@ -14663,6 +14663,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix bug which could ignore some points in multi-threaded
         multi-dataset plots.  This bug was introduced in v3.2,
         and was supposed to be fixed at v3.4-8 but wasn't.</li>
+    <li>Votlint is aware of VOTable 1.5 and can check against
+        some features from WD-VOTable-1.5-20230913
+        (currently just vocabularised <code>system</code> and
+        <code>refposition</code> attributes of COOSYS).</li>
     </ul>
     </p></dd>
 

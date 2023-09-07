@@ -460,6 +460,12 @@ public abstract class VersionDetail {
                 createAttributeCheckers( String name ) {
             Map<String,AttributeChecker> map =
                 V14.createAttributeCheckers( name );
+            if ( "COOSYS".equals( name ) ) {
+                map.put( "system",
+                         new VocabAttributeChecker( VocabChecker.REFFRAME ) );
+                map.put( "refposition",
+                         new VocabAttributeChecker( VocabChecker.REFPOSITION ));
+            }
             return map;
         }
     }
