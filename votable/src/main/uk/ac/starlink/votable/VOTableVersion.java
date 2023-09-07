@@ -35,6 +35,9 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
     /** VOTable 1.4. */
     public static final VOTableVersion V14;
 
+    /** VOTable 1.5. */
+    public static final VOTableVersion V15;
+
     private static final Map<String,VOTableVersion> VERSION_MAP =
         Collections.unmodifiableMap( createMap( new VOTableVersion[] {
             V10 = new VersionLike10( "1.0" ),
@@ -42,6 +45,7 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
             V12 = new VersionLike12( "1.2" ),
             V13 = new VersionLike13( "1.3" ),
             V14 = new VersionLike14( "1.4" ),
+            V15 = new VersionLike15( "1.5", "WD-VOTable-1.5-20230913" ),
         } ) );
 
     /** 
@@ -438,6 +442,31 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
         @Override
         public boolean isVOUnitSyntax() {
             return true;
+        }
+    }
+
+    /**
+     * VOTable 1.5-like version instance.
+     */
+    private static class VersionLike15 extends VersionLike14 {
+
+        private final String draftIdentifier_;
+
+        /**
+         * Constructor.
+         *
+         * @param  version  version number
+         * @param  draftIdentifier  non-final draft-version identifer,
+         *                          or null for REC status
+         */
+        VersionLike15( String version, String draftIdentifier ) {
+            super( version );
+            draftIdentifier_ = draftIdentifier;
+        }
+
+        @Override
+        public String getDraftIdentifier() {
+            return draftIdentifier_;
         }
     }
 }

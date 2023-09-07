@@ -33,6 +33,7 @@ public class VOTableVersionTest extends TestCase {
             VOTableVersion.V12,
             VOTableVersion.V13,
             VOTableVersion.V14,
+            VOTableVersion.V15,
         } ), new ArrayList<VOTableVersion>( versions ) );
         SortedSet<VOTableVersion> sortedVersions =
             new TreeSet<VOTableVersion>( versions );
@@ -40,6 +41,8 @@ public class VOTableVersionTest extends TestCase {
                       new ArrayList<VOTableVersion>( versions ) );
 
         assertNull( VOTableVersion.V14.getDraftIdentifier() );
+        assertTrue( VOTableVersion.V15.getDraftIdentifier()
+                                      .startsWith( "WD-" ) );
     }
 
     /**

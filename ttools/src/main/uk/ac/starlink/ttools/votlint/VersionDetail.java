@@ -21,6 +21,7 @@ public abstract class VersionDetail {
     private static final VersionDetail V12;
     private static final VersionDetail V13;
     private static final VersionDetail V14;
+    private static final VersionDetail V15;
     private static final VersionDetail DUMMY = new DummyVersionDetail();
     private static final Map<VOTableVersion,VersionDetail> VERSION_MAP =
             createMap( new VersionDetail[] {
@@ -29,6 +30,7 @@ public abstract class VersionDetail {
         V12 = new VersionDetail12( VOTableVersion.V12 ),
         V13 = new VersionDetail13( VOTableVersion.V13 ),
         V14 = new VersionDetail14( VOTableVersion.V14 ),
+        V15 = new VersionDetail15( VOTableVersion.V15 ),
     } );
 
     /**
@@ -438,6 +440,27 @@ public abstract class VersionDetail {
         protected Map<String,AttributeChecker>
                 createAttributeCheckers( String name ) {
             return V13.createAttributeCheckers( name );
+        }
+    }
+
+    /**
+     * VersionDetail implementation for VOTable 1.5.
+     */
+    private static class VersionDetail15 extends VersionDetail {
+
+        VersionDetail15( VOTableVersion version ) {
+            super( version );
+        }
+
+        protected ElementHandler createElementHandler( String name ) {
+            return V14.createElementHandler( name );
+        }
+
+        protected Map<String,AttributeChecker>
+                createAttributeCheckers( String name ) {
+            Map<String,AttributeChecker> map =
+                V14.createAttributeCheckers( name );
+            return map;
         }
     }
 
