@@ -51,6 +51,16 @@ public class VocabChecker {
                               "HELIOCENTER", "EMBARYCENTER", "UNKNOWN",
                           } );
 
+    /** Instance for vocabulary at http://www.ivoa.net/rdf/refframe. */
+    public static final VocabChecker REFFRAME =
+        new VocabChecker( "http://www.ivoa.net/rdf/refframe",
+                          new String[] {
+                              "AZ_EL", "BODY", "ecl_FK4", "ECLIPTIC",
+                              "EQUATORIAL", "FK4", "FK5", "GALACTIC",
+                              "GALACTIC_I", "GENERIC_GALACTIC", "ICRS",
+                              "SUPER_GALACTIC", "UNKNOWN",
+                          } );
+
     /** Instance for vocabulary at http://www.ivoa.net/rdf/datalink/core. */
     /* Term list is from https://www.ivoa.net/rdf/datalink/core/2022-01-27/. */
     public static final VocabChecker DATALINK_CORE =
@@ -96,7 +106,7 @@ public class VocabChecker {
 
     /** Static instances of this class. */
     private static final VocabChecker[] INSTANCES = {
-        TIMESCALE, REFPOSITION, DATALINK_CORE, PRODUCT_TYPE, EXAMPLES,
+        TIMESCALE, REFPOSITION, REFFRAME, DATALINK_CORE, PRODUCT_TYPE, EXAMPLES,
         MESSENGER,
     };
 
