@@ -162,14 +162,19 @@ public class VocabChecker {
                 termReporter.termUnknown( sbuf.toString() );
             }
             else if ( term.isDeprecated() ) {
-                String msg = new StringBuffer()
+                StringBuffer sbuf = new StringBuffer()
                    .append( "\"" )
                    .append( value )
                    .append( "\"" )
                    .append( " is marked *deprecated* in vocabulary " )
-                   .append( vocabUrl_ )
-                   .toString();
-                termReporter.termDeprecated( msg );
+                   .append( vocabUrl_ );
+                String useInstead = term.getUseInstead();
+                if ( useInstead != null && useInstead.trim().length() > 0 ) {
+                    sbuf.append( "; use instead \"" )
+                        .append( useInstead )
+                        .append( "\"" );
+                }
+                termReporter.termDeprecated( sbuf.toString() );
             }
             else if ( term.isPreliminary() ) {
                 String msg = new StringBuffer()

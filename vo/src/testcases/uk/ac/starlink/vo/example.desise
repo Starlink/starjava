@@ -26,6 +26,14 @@
       "description": "The reference system defined by 2027A&A..1234...12B",
       "preliminary": "",
       "wider": ["EQUATORIAL"]
-     }
+     },
+     "eq_FK5": {
+      "label": "FK5",
+      "description": "Old VOTable COOSYS term for FK5.",
+      "deprecated": "",
+      "useInstead": "ICRS",
+      "wider": ["EQUATORIAL"],
+      "narrower": []
+    }
   }
 }

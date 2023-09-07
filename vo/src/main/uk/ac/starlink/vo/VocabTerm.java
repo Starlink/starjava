@@ -47,6 +47,7 @@ public interface VocabTerm {
      * Indicates whether this term is deprecated, and hence should be avoided.
      *
      * @return  deprecation flag
+     * @see   #getUseInstead
      */
     boolean isDeprecated();
 
@@ -63,4 +64,13 @@ public interface VocabTerm {
      * @return  array of narrower term strings
      */
     String[] getNarrower();
+
+    /**
+     * Returns the term that should be used instead of this one.
+     * This should only return a non-null value for deprecated terms.
+     *
+     * @return  term to use instead of this deprecated term, or null
+     * @see   #isDeprecated
+     */
+    String getUseInstead();
 }

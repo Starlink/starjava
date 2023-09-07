@@ -334,6 +334,9 @@ public class Vocabulary {
         public String[] getNarrower() {
             return new String[ 0 ];
         }
+        public String getUseInstead() {
+            return null;
+        }
         @Override
         public String toString() {
             return getTerm();
@@ -352,6 +355,7 @@ public class Vocabulary {
         private final boolean isDeprecated_;
         private final String[] wider_;
         private final String[] narrower_;
+        private final String useInstead_;
 
         /**
          * Constructor.
@@ -367,6 +371,14 @@ public class Vocabulary {
             isDeprecated_ = json.has( "deprecated" );
             wider_ = getStrings( json, "wider" );
             narrower_ = getStrings( json, "narrower" );
+
+            /* Note that the "useInstead" key is not documented in
+             * VocInVO 2.1 section 3.2.1.  * This is an oversight in
+             * that document scheduled for correction, see
+             * https://wiki.ivoa.net/twiki/bin/view/IVOA/Vocabularies-2_1-Next
+             * Such keys are actually produced by the desise serialiser at
+             * http://www.ivoa.net/rdf/. */
+            useInstead_ = getString( json, "useInstead" );
         }
 
         public String getLabel() {
@@ -391,6 +403,10 @@ public class Vocabulary {
 
         public String[] getNarrower() {
             return narrower_;
+        }
+
+        public String getUseInstead() {
+            return useInstead_;
         }
 
         /**
