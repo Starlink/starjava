@@ -114,7 +114,8 @@ public class SingleGangerFactory<P,A> implements GangerFactory<P,A> {
         }
 
         public Gang createApproxGang( Rectangle extBounds ) {
-            Insets insets = padding_.overrideInsets( new Insets( 0, 0, 0, 0 ) );
+            Insets insets =
+                Padding.padInsets( padding_, new Insets( 0, 0, 0, 0 ) );
             Rectangle plotBounds = PlotUtil.subtractInsets( extBounds, insets );
             return new SingleGang( plotBounds );
         }

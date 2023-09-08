@@ -85,7 +85,7 @@ public class Padding {
      * those of this object where they are non-null, and those of the
      * supplied insets otherwise.
      *
-     * @param  insets   input insets object
+     * @param  insets   input insets object, not null
      * @return  new insets object with values taken from this padding
      *          where available
      */
@@ -145,5 +145,21 @@ public class Padding {
         else {
             return false;
         }
+    }
+
+    /**
+     * Returns a non-null insets object based on a supplied Insets
+     * which will be modified by the state of a supplied Padding.
+     *
+     * <p>This convenience method calls {@link #overrideInsets} if
+     * <code>padding</code> is non-null,
+     * otherwise it returns the input <code>insets</code>.
+     *
+     * @param  padding   padding to override insets value, may be null
+     * @param  insets    default insets, not null
+     * @return  effective insets
+     */
+    public static Insets padInsets( Padding padding, Insets insets ) {
+        return padding == null ? insets : padding.overrideInsets( insets );
     }
 }
