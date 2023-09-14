@@ -66,7 +66,7 @@ public class TableViewerWindow extends AuxWindow {
     private final TableColumnModel dummyColModel_;
     private final PropertyChangeListener viewbaseListener_;
     private final TableRowHeader rowHeader_;
-    private final ColumnSearchWindow searchWindow_;
+    private final DataColumnSearchWindow searchWindow_;
     private final JLabel nvisLabel_;
     private final JLabel nselLabel_;
     private RowManager rowManager_;
@@ -192,7 +192,7 @@ public class TableViewerWindow extends AuxWindow {
         final Action excludeAct = new SelectionSubsetAction( false );
 
         /* Prepare cell search action. */
-        searchWindow_ = new ColumnSearchWindow( this, tcModel );
+        searchWindow_ = new DataColumnSearchWindow( this );
         Action searchAct = new BasicAction( "Search Column",
                                             ResourceIcon.SEARCH,
                                             "Search for value in cell" ) {
@@ -343,6 +343,15 @@ public class TableViewerWindow extends AuxWindow {
 
         /* Add help information. */
         addHelp( "TableViewerWindow" );
+    }
+
+    /**
+     * Returns the model whose data this window is viewing.
+     *
+     * @return  topcat model
+     */
+    public TopcatModel getTopcatModel() {
+        return tcModel_;
     }
 
     /**
@@ -524,7 +533,7 @@ public class TableViewerWindow extends AuxWindow {
         }
 
         /* Action to search for a string. */
-        if ( ! rowHead && searchWindow_.canSearchColumn( colInfo ) ) {
+        if ( ! rowHead && DataColumnSearchWindow.canSearchColumn( colInfo ) ) {
             Action searchAct =
                 new BasicAction( "Search Column", ResourceIcon.SEARCH,
                                  "Search column for cell content" ) {

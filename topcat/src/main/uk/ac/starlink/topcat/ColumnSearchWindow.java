@@ -1,94 +1,70 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
+import java.awt.Window;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
-import javax.swing.DefaultBoundedRangeModel;
-import javax.swing.JButton;
+import javax.swing.ComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumn;
-import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
-import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.util.gui.ValueButtonGroup;
 
 /**
  * Dialog window that allows the user to search for text content in
- * cells of a column and highlight the corresponding rows.
- * This dialog is associated with the TableViewerWindow.
+ * cells of a column of a displayed table.
+ *
+ * <p>This is a partial implementation that provides the basic GUI,
+ * but it must be extended to do something useful such as actually
+ * perform a search and message a user with the results.
+ *
+ * <p>It could quite easily be generalised to search for text in
+ * something that isn't a table column.
  *
  * @author   Mark Taylor
- * @since    28 Jun 2018
+ * @since    14 Sep 2023
  */
 public class ColumnSearchWindow extends AuxDialog {
 
-    private final TableViewerWindow viewWindow_;
-    private final TopcatModel tcModel_;
+    private final ActionForwarder forwarder_;
     private final JComboBox<TableColumn> colSelector_;
     private final ValueButtonGroup<SearchSyntax> syntaxGroup_;
     private final ValueButtonGroup<SearchScope> scopeGroup_;
     private final JCheckBox caseToggle_;
     private final JTextField txtField_;
     private final ToggleButtonModel tackModel_;
-    private final JProgressBar progBar_;
-    private final Action searchAct_;
-    private final Action cancelAct_;
-    private ExecutorService executor_;
-    private Future<?> searchJob_;
+    private final JComponent controlBox_;
+    private Action searchAct_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Constructor.
+     * Does not pack components.
      *
-     * @param  viewWindow  table viewer window
-     * @param  tcModel  topcat model
+     * @param  title  title of dialogue window
+     * @param  owner  window that owns this dialogue
+     * @param  colselLabel  label for selector of the column to use
+     * @param  colSelectorModel  model for selector of the column to use
      */
-    public ColumnSearchWindow( TableViewerWindow viewWindow,
-                               TopcatModel tcModel ) {
-        super( "Search Column", viewWindow );
-        viewWindow_ = viewWindow;
-        tcModel_ = tcModel;
-        ActionForwarder forwarder = new ActionForwarder();
-
-        /* Column selector. */
-        ColumnComboBoxModel colselModel =
-                new RestrictedColumnComboBoxModel( tcModel.getColumnModel(),
-                                                   false ) {
-            public boolean acceptColumn( ColumnInfo info ) {
-                return canSearchColumn( info );
-            }
-        };
-        colSelector_ = new JComboBox<TableColumn>( colselModel );
-        colSelector_.setRenderer( new ColumnCellRenderer( colSelector_ ) );
-        colSelector_.addActionListener( forwarder );
-        JComponent colselLine = Box.createHorizontalBox();
-        colselLine.add( colSelector_ );
-        colselLine.add( Box.createHorizontalStrut( 5 ) );
-        colselLine.add( new ComboBoxBumper( colSelector_ ) );
+    public ColumnSearchWindow( String title, Window owner,
+                               String colselLabel,
+                               ComboBoxModel<TableColumn> colSelectorModel ) {
+        super( title, owner );
+        forwarder_ = new ActionForwarder();
 
         /* Syntax selector. */
         syntaxGroup_ = new ValueButtonGroup<SearchSyntax>();
@@ -98,7 +74,7 @@ public class ColumnSearchWindow extends AuxDialog {
             syntaxGroup_.add( butt, syntax );
             syntaxBox.add( butt );
         }
-        syntaxGroup_.addChangeListener( forwarder );
+        syntaxGroup_.addChangeListener( forwarder_ );
         syntaxGroup_.setValue( SearchSyntax.values()[ 0 ] );
 
         /* Scope selector. */
@@ -109,71 +85,40 @@ public class ColumnSearchWindow extends AuxDialog {
             scopeGroup_.add( butt, scope );
             scopeBox.add( butt );
         }
-        scopeGroup_.addChangeListener( forwarder );
+        scopeGroup_.addChangeListener( forwarder_ );
         scopeGroup_.setValue( SearchScope.values()[ 0 ] );
 
         /* Other input components. */
         caseToggle_ = new JCheckBox();
         txtField_ = new JTextField();
-        txtField_.getCaret().addChangeListener( forwarder );
-
-        /* Action to perform search. */
-        searchAct_ =
-                new BasicAction( "Search", null,
-                                 "Search selected column for target string" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                final Search search = createSearch();
-                if ( search != null ) {
-                    cancelSearch();
-                    searchJob_ = getExecutor().submit( new Runnable() {
-                        public void run() {
-                            performSearch( search );
-                        }
-                    } );
-                    updateActions();
-                };
-            }
-        };
-        forwarder.addActionListener( new ActionListener() {
-            public void actionPerformed( ActionEvent evt ) {
-                updateActions();
-            }
-        } );
-        cancelAct_ = new BasicAction( "Stop", null,
-                                      "Interrupt running search" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                cancelSearch();
-            }
-        };
-        updateActions();
+        txtField_.getCaret().addChangeListener( forwarder_ );
 
         /* Button model for pinning the window open. */
         tackModel_ = new ToggleButtonModel( "Stay Open", ResourceIcon.KEEP_OPEN,
                                             "Keep window open"
                                           + " even after successful search" );
 
-        /* Hitting return in text field starts search. */
-        txtField_.addActionListener( searchAct_ );
+        /* Column selector component. */
+        colSelector_ = new JComboBox<TableColumn>( colSelectorModel );
+        colSelector_.setRenderer( new ColumnCellRenderer( colSelector_ ) );
+        colSelector_.addActionListener( forwarder_ );
+        Box colselLine = Box.createHorizontalBox();
+        colselLine.add( colSelector_ );
+        colselLine.add( Box.createHorizontalStrut( 5 ) );
+        colselLine.add( new ComboBoxBumper( colSelector_ ) );
 
         /* Place components. */
         LabelledComponentStack stack = new LabelledComponentStack();
-        stack.addLine( "Column", colselLine );
+        stack.addLine( colselLabel, colselLine );
         stack.addLine( "Syntax", syntaxBox );
         stack.addLine( "Scope", scopeBox );
         stack.addLine( "Case Sensitive", caseToggle_ );
         stack.addLine( "Search Text", txtField_ );
         stack.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
-        JComponent controlLine = Box.createHorizontalBox();
-        controlLine.add( Box.createHorizontalGlue() );
-        controlLine.add( new JButton( cancelAct_ ) );
-        controlLine.add( Box.createHorizontalStrut( 10 ) );
-        controlLine.add( new JButton( searchAct_ ) );
-        controlLine.add( Box.createHorizontalGlue() );
-        controlLine.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
-        progBar_ = placeProgressBar();
         JComponent main = new JPanel( new BorderLayout() );
+        controlBox_ = Box.createHorizontalBox();
         main.add( stack, BorderLayout.NORTH );
-        main.add( controlLine, BorderLayout.SOUTH );
+        main.add( controlBox_, BorderLayout.SOUTH );
         getContentPane().add( main );
 
         /* Prepare for display. */
@@ -183,32 +128,57 @@ public class ColumnSearchWindow extends AuxDialog {
         windowMenu.insert( tackModel_.createMenuItem(),
                            windowMenu.getItemCount() - 2 );
         addHelp( "ColumnSearchWindow" );
-        pack();
     }
 
     /**
-     * Indicates whether a given column can be searched by this window.
+     * Returns the action forwarder used by the components in this GUI.
      *
-     * @param  info   column metadata
-     * @return   true iff this window is prepared to search contents of
-     *                the described column
+     * @return  action forwarder
      */
-    public boolean canSearchColumn( ColumnInfo info ) {
-        Class<?> clazz = info.getContentClass();
-        return String.class.isAssignableFrom( clazz )
-            || Number.class.isAssignableFrom( clazz )
-            || Boolean.class.isAssignableFrom( clazz );
+    public ActionForwarder getActionForwarder() {
+        return forwarder_;
     }
 
     /**
-     * Stringifies a cell value for pattern matching purposes.
+     * Returns a container into which control buttons may be put.
      *
-     * @param  cell value, assumed to be from a column for which
-     *         <code>canSearchColumn</code> returns true
-     * @return  stringified value
+     * @return  control box
      */
-    public String cellToString( Object cell ) {
-        return cell == null ? "" : cell.toString();
+    public JComponent getControlBox() {
+        return controlBox_;
+    }
+
+    /**
+     * Returns the text component into which the user enters search terms.
+     *
+     * @return  search field
+     */
+    public JTextField getTextField() {
+        return txtField_;
+    }
+
+    /**
+     * Returns the component used for selecting columns to search.
+     *
+     * @return  column selector
+     */
+    public JComboBox<TableColumn> getColumnSelector() {
+        return colSelector_;
+    }
+
+    /**
+     * Should be called when a search is completed.
+     * Must be called from the Event Dispatch Thread.
+     *
+     * <p>At present, the behaviour is to dispose this dialogue if the
+     * search was successful, unless the GUI has been configured otherwise.
+     *
+     * @param  success  true iff the search was successful (terms found)
+     */
+    public void searchCompleted( boolean success ) {
+        if ( success && ! tackModel_.isSelected() ) {
+            dispose();
+        }
     }
 
     /**
@@ -220,34 +190,6 @@ public class ColumnSearchWindow extends AuxDialog {
         colSelector_.setSelectedItem( tcol );
     }
 
-    @Override
-    public void dispose() {
-        cancelSearch();
-        super.dispose();
-    }
-
-    /**
-     * Cancels a running search operation.
-     */
-    private void cancelSearch() {
-        if ( searchJob_ != null ) {
-            searchJob_.cancel( true );
-            searchJob_ = null;
-        }
-        progBar_.setModel( new DefaultBoundedRangeModel() );
-        updateActions();
-    }
-
-    /**
-     * Updates enabled state of the Cancel and Search actions
-     * based on the current state of this window.
-     */
-    private void updateActions() {
-        boolean isRunning = searchJob_ != null && !searchJob_.isDone();
-        cancelAct_.setEnabled( isRunning );
-        searchAct_.setEnabled( !isRunning && createSearch() != null );
-    }
-
     /**
      * Creates a search specification based on the current configuration
      * of this window's input components.
@@ -255,24 +197,13 @@ public class ColumnSearchWindow extends AuxDialog {
      * @return   search object if the GUI is configured to provide one,
      *           null if it is not
      */
-    private Search createSearch() {
+    public Search createSearch() {
         TableColumn tcol = (TableColumn) colSelector_.getSelectedItem();
-        String txt = txtField_.getText();
-        if ( tcol != null && txt != null && txt.trim().length() > 0 ) {
+        if ( tcol != null ) {
             int jcol = tcol.getModelIndex();
-            SearchSyntax syntax = syntaxGroup_.getValue();
-            SearchScope scope = scopeGroup_.getValue();
-            boolean isCaseSensitive = caseToggle_.isSelected();
-            String regex = syntax.getRegex( txt );
-            int flags = isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
-            final Pattern pattern;
-            try {
-                pattern = Pattern.compile( regex, flags );
-            }
-            catch ( PatternSyntaxException e ) {
-                return null;
-            }
-            return new Search( jcol, pattern, scope );
+            Pattern pattern = getPattern();
+            SearchScope scope = getSearchScope();
+            return pattern == null ? null : new Search( jcol, pattern, scope );
         }
         else {
             return null;
@@ -280,135 +211,49 @@ public class ColumnSearchWindow extends AuxDialog {
     }
 
     /**
-     * Returns an executor to which jobs can be submitted.
+     * Returns a search pattern based on the current configuration
+     * of this window's input components.
      *
-     * @return  lazily-created single-threaded executor
+     * @return   search pattern if the GUI is configured to provide one,
+     *           otherwise null
      */
-    private ExecutorService getExecutor() {
-        if ( executor_ == null ) {
-            executor_ = Executors.newSingleThreadExecutor( new ThreadFactory() {
-                public Thread newThread( Runnable r ) {
-                    Thread thread = new Thread( r, "Searcher" );
-                    thread.setDaemon( true );
-                    return thread;
-                }
-            } );
+    private Pattern getPattern() {
+        String txt = txtField_.getText();
+        if ( txt != null && txt.trim().length() > 0 ) {
+            SearchSyntax syntax = syntaxGroup_.getValue();
+            boolean isCaseSensitive = caseToggle_.isSelected();
+            String regex = syntax.getRegex( txt );
+            int flags = isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
+            final Pattern pattern;
+            try {
+                return Pattern.compile( regex, flags );
+            }
+            catch ( PatternSyntaxException e ) {
+                logger_.info( "Bad pattern \"" + regex + "\": " + e );
+                return null;
+            }
         }
-        return executor_;
+        else {
+            return null;
+        }
     }
 
     /**
-     * Does the work of searching according to a given specification,
-     * updating the GUI asynchronously as it goes.
+     * Returns the scope configured by the GUI.
      *
-     * <p>This method must be invoked from a non-EDT thread, and it
-     * checks for thread interruption status as it goes.
-     *
-     * @param  search  search specification
+     * @return  search scope object, not null
      */
-    private void performSearch( Search search ) {
-        int jcol = search.jcol_;
-        Pattern pattern = search.pattern_;
-        SearchScope scope = search.scope_;
-        StarTable dataModel = tcModel_.getDataModel();
-        final ViewerTableModel viewModel = tcModel_.getViewModel();
-        long nfind = 0;
-        long irow0 = -1;
-
-        /* Clear selection. */
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                viewWindow_.setSelection( RowSubset.NONE );
-            }
-        } );
-
-        /* Set up a progress bar.  Since we install a new model, this
-         * will have the effect of throwing out any model that is still
-         * being updated by previous invocations of this method. */
-        int nrow = viewModel.getRowCount();
-        final BoundedRangeModel progModel =
-            new DefaultBoundedRangeModel(0, 0, 0, nrow );
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                progBar_.setModel( progModel );
-            }
-        } );
-
-        /* Iterate over rows in the view model (not the whole table). */
-        long nextUpdate = System.currentTimeMillis();
-        int krow = 0;
-        final IndexSet foundSet = new IndexSet( dataModel.getRowCount() );
-        for ( Iterator<Long> irowIt = viewModel.getRowIndexIterator();
-              irowIt.hasNext() && ! Thread.currentThread().isInterrupted(); ) {
-
-            /* Look for and record matching rows. */
-            long irow = irowIt.next().longValue();
-            Object cell;
-            try {
-                cell = dataModel.getCell( irow, jcol );
-            }
-            catch ( IOException e ) {
-                cell = null;
-            }
-            if ( cell != null ) {
-                String txt = cellToString( cell );
-                if ( scope.matches( pattern.matcher( txt ) ) ) {
-                    foundSet.addIndex( irow );
-                    final boolean isFirst = nfind++ == 0;
-                    if ( isFirst ) {
-                        irow0 = irow;
-                    }
-                }
-            }
-
-            /* Update the progress bar if we haven't done it recently. */
-            long time = System.currentTimeMillis();
-            if ( time >= nextUpdate || krow == nrow - 1 ) {
-                nextUpdate = time + 100;
-                final int krow0 = krow;
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        progModel.setValue( krow0 );
-                    }
-                } );
-            }
-            krow++;
-        }
-
-        /* If we complete successfully, update the selection. */
-        if ( !Thread.currentThread().isInterrupted() ) {
-            final long nfind0 = nfind;
-            final long irow00 = irow0;
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    updateActions();
-                    progModel.setValue( 0 );
-                    if ( nfind0 == 1 ) {
-                        tcModel_.highlightRow( irow00 );
-                    }
-                    else if ( nfind0 > 0 ) {
-                        viewWindow_.setSelection( foundSet.createRowSubset() );
-                        viewWindow_.scrollToRow( viewModel
-                                                .getViewRow( irow00 ) );
-                    }
-
-                    /* If at least one row was found, and the window is not
-                     * tacked, close the dialog. */
-                    if ( nfind0 > 0 && ! tackModel_.isSelected() ) {
-                        ColumnSearchWindow.this.dispose();
-                    }
-                }
-            } );
-        }
+    private SearchScope getSearchScope() {
+        return scopeGroup_.getValue();
     }
 
     /**
      * Specifies a column content search.
      */
-    private static class Search {
-        final int jcol_;
-        final Pattern pattern_;
-        final SearchScope scope_;
+    public static class Search {
+        private final int jcol_;
+        private final Pattern pattern_;
+        private final SearchScope scope_;
 
         /**
          * Constructor.
@@ -421,6 +266,77 @@ public class ColumnSearchWindow extends AuxDialog {
             jcol_ = jcol;
             pattern_ = pattern;
             scope_ = scope;
+        }
+
+        /**
+         * Returns the model index of the column to search.
+         *
+         * @return  column model index
+         */
+        public int getColumnIndex() {
+            return jcol_;
+        }
+
+        /**
+         * Returns the regular expression defining the search.
+         *
+         * @return  compiled regex
+         */
+        public Pattern getPattern() {
+            return pattern_;
+        }
+
+        /**
+         * Returns the scope of the search.
+         *
+         * @return  scope
+         */
+        public SearchScope getScope() {
+            return scope_;
+        }
+    }
+
+    /**
+     * Enum for search target scope.
+     */
+    public static enum SearchScope {
+
+        /** Target string contains match text. */
+        CONTAINS( "Contains" ) {
+            public boolean matches( Matcher matcher ) {
+                return matcher.find();
+            }
+        },
+
+        /** Whole target string is matched by match text. */
+        FULL( "Complete" ) {
+            public boolean matches( Matcher matcher ) {
+                return matcher.matches();
+            }
+        };
+
+        final String name_;
+
+        /**
+         * Constrructor.
+         *
+         * @param  name  user-readable scope name
+         */
+        SearchScope( String name ) {
+            name_ = name;
+        }
+
+        /**
+         * Indicates whether a regex matcher matches according to this scope.
+         *
+         * @param  matcher  matcher
+         * @return   true iff match is achieved
+         */
+        public abstract boolean matches( Matcher matcher );
+
+        @Override
+        public String toString() {
+            return name_;
         }
     }
 
@@ -477,88 +393,6 @@ public class ColumnSearchWindow extends AuxDialog {
         @Override
         public String toString() {
             return name_;
-        }
-    }
-
-    /**
-     * Enum for search target scope.
-     */
-    private static enum SearchScope {
-
-        /** Target string contains match text. */
-        CONTAINS( "Contains" ) {
-            public boolean matches( Matcher matcher ) {
-                return matcher.find();
-            }
-        },
-
-        /** Whole target string is matched by match text. */
-        FULL( "Complete" ) {
-            public boolean matches( Matcher matcher ) {
-                return matcher.matches();
-            }
-        };
-
-        final String name_;
-
-        /**
-         * Constrructor.
-         *
-         * @param  name  user-readable scope name
-         */
-        SearchScope( String name ) {
-            name_ = name;
-        }
-
-        /**
-         * Indicates whether a regex matcher matches according to this scope.
-         *
-         * @param  matcher  matcher
-         * @return   true iff match is achieved
-         */
-        public abstract boolean matches( Matcher matcher );
-
-        @Override
-        public String toString() {
-            return name_;
-        }
-    }
-
-    /**
-     * Utility class to keep a set of row index values (long integers).
-     * The implementation could get cleverer, more efficient, more robust,
-     * (may be wasteful for finding few rows in large tables)
-     * but it's probably OK up to 2^31 rows.  Avoid premature optimisation
-     * for now.
-     */
-    private static class IndexSet {
-        final BitSet bitset_;
-
-        /**
-         * Constructor.
-         *
-         * @param   maximum index value that might be stored
-         */
-        IndexSet( long nrow ) {
-            bitset_ = new BitSet( (int) nrow );
-        }
-
-        /**
-         * Add an entry.
-         *
-         * @param  ix  row index
-         */
-        void addIndex( long ix ) {
-            bitset_.set( Tables.checkedLongToInt( ix ) );
-        }
-
-        /**
-         * Return a RowSubset corresponding to the values added so far.
-         *
-         * @return  row subset
-         */
-        RowSubset createRowSubset() {
-            return new BitsRowSubset( "Found", bitset_ );
         }
     }
 }
