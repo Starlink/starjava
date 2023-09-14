@@ -55,31 +55,31 @@ import uk.ac.starlink.util.gui.SizingScrollPane;
  */
 public class ColumnInfoWindow extends AuxWindow {
 
-    private final TopcatModel tcModel;
-    private final PlasticStarTable dataModel;
-    private final TableColumnModel columnModel;
-    private final ViewerTableModel viewModel;
-    private final ColumnList columnList;
-    private final Action addcolAct;
-    private final Action addskycolAct;
-    private final Action replacecolAct;
-    private final Action editcolAct;
-    private final Action hidecolAct;
-    private final Action revealcolAct;
-    private final Action hideallAct;
-    private final Action revealallAct;
-    private final Action sortupAct;
-    private final Action sortdownAct;
-    private final Action explodecolAct;
-    private final Action collapsecolsAct;
-    private final ColumnInfo indexColumnInfo;
-    private final JTable jtab;
-    private final MetaColumnTableModel metaTableModel;
+    private final TopcatModel tcModel_;
+    private final PlasticStarTable dataModel_;
+    private final TableColumnModel columnModel_;
+    private final ViewerTableModel viewModel_;
+    private final ColumnList columnList_;
+    private final Action addcolAct_;
+    private final Action addskycolAct_;
+    private final Action replacecolAct_;
+    private final Action editcolAct_;
+    private final Action hidecolAct_;
+    private final Action revealcolAct_;
+    private final Action hideallAct_;
+    private final Action revealallAct_;
+    private final Action sortupAct_;
+    private final Action sortdownAct_;
+    private final Action explodecolAct_;
+    private final Action collapsecolsAct_;
+    private final ColumnInfo indexColumnInfo_;
+    private final JTable jtab_;
+    private final MetaColumnTableModel metaTableModel_;
     private final int icolColsetIndex_;
     private final int icolColsetClass_;
-    private final MetaColumnTableSorter sorter;
+    private final MetaColumnTableSorter sorter_;
 
-    private static final Logger logger = 
+    private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
@@ -90,14 +90,14 @@ public class ColumnInfoWindow extends AuxWindow {
      */
     public ColumnInfoWindow( final TopcatModel tcModel, Component parent ) {
         super( tcModel, "Table Columns", parent );
-        this.tcModel = tcModel;
-        this.dataModel = tcModel.getDataModel();
-        this.columnModel = tcModel.getColumnModel();
-        this.columnList = tcModel.getColumnList();
-        this.viewModel = tcModel.getViewModel();
+        tcModel_ = tcModel;
+        dataModel_ = tcModel.getDataModel();
+        columnModel_ = tcModel.getColumnModel();
+        columnList_ = tcModel.getColumnList();
+        viewModel_ = tcModel.getViewModel();
 
         /* Make a dummy column to hold index values. */
-        indexColumnInfo = dummyIndexColumn();
+        indexColumnInfo_ = dummyIndexColumn();
 
         /* Assemble a list of MetaColumns which hold information about
          * the columns in the JTable this component will display.
@@ -113,9 +113,9 @@ public class ColumnInfoWindow extends AuxWindow {
                 }
                 else {
                     TableColumn tcol = getColumnFromRow( irow );
-                    int ncol = columnModel.getColumnCount();
+                    int ncol = columnModel_.getColumnCount();
                     for ( int ic = 0; ic < ncol; ic++ ) {
-                        if ( columnModel.getColumn( ic ).equals( tcol ) ) {
+                        if ( columnModel_.getColumn( ic ).equals( tcol ) ) {
                             return new Integer( ic + 1 );
                         }
                     }
@@ -132,7 +132,7 @@ public class ColumnInfoWindow extends AuxWindow {
                 }
                 else {
                     int jrow = getColumnListIndexFromRow( irow );
-                    return Boolean.valueOf( columnList.isActive( jrow ) );
+                    return Boolean.valueOf( columnList_.isActive( jrow ) );
                 }
             }
             public boolean isEditable( int irow ) {
@@ -140,7 +140,7 @@ public class ColumnInfoWindow extends AuxWindow {
             }
             public void setValue( int irow, Object value ) {
                 int jrow = getColumnListIndexFromRow( irow );
-                columnList.setActive( jrow, Boolean.TRUE.equals( value ) );
+                columnList_.setActive( jrow, Boolean.TRUE.equals( value ) );
             }
         } );
 
@@ -153,8 +153,8 @@ public class ColumnInfoWindow extends AuxWindow {
                 return irow > 0;
             }
             public void setValue( int irow, Object value ) {
-                tcModel.renameColumn( getColumnFromRow( irow ), 
-                                      (String) value );
+                tcModel_.renameColumn( getColumnFromRow( irow ), 
+                                       (String) value );
             }
         } );
 
@@ -197,8 +197,8 @@ public class ColumnInfoWindow extends AuxWindow {
                     shape = null;
                 }
                 getColumnInfo( irow ).setShape( shape );
-                metaTableModel.fireTableRowsUpdated( irow, irow );
-                viewModel.fireTableDataChanged();
+                metaTableModel_.fireTableRowsUpdated( irow, irow );
+                viewModel_.fireTableDataChanged();
                 selectionUpdated();
             }
         } );
@@ -279,7 +279,7 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Add expression column. */
         metas.add( new ValueInfoMetaColumn( TopcatUtils.EXPR_INFO ) {
             public boolean isEditable( int irow ) {
-                return dataModel.getColumnData( getModelIndexFromRow( irow ) )
+                return dataModel_.getColumnData( getModelIndexFromRow( irow ) )
                        instanceof SyntheticColumn;
             }
             public void setValue( int irow, Object value ) {
@@ -287,7 +287,7 @@ public class ColumnInfoWindow extends AuxWindow {
                 String expr = (String) value;
                 SyntheticColumnQueryWindow qwin =
                     SyntheticColumnQueryWindow
-                   .editColumnDialog( tcModel, icol, ColumnInfoWindow.this,
+                   .editColumnDialog( tcModel_, icol, ColumnInfoWindow.this,
                                       exCh -> columnChanged( icol, exCh ) );
                 qwin.setExpression( expr );
                 if ( qwin.perform() ) {
@@ -327,7 +327,7 @@ public class ColumnInfoWindow extends AuxWindow {
             }
             public void setValue( int irow, Object value ) {
                 getColumnInfo( irow ).setUCD( (String) value );
-                metaTableModel.fireTableRowsUpdated( irow, irow );
+                metaTableModel_.fireTableRowsUpdated( irow, irow );
             }
         } );
 
@@ -355,13 +355,13 @@ public class ColumnInfoWindow extends AuxWindow {
             }
             public void setValue( int irow, Object value ) {
                 getColumnInfo( irow ).setUtype( (String) value );
-                metaTableModel.fireTableRowsUpdated( irow, irow );
+                metaTableModel_.fireTableRowsUpdated( irow, irow );
             }
         } );
 
         /* Get the list of aux metadata columns. */
         List<ValueInfo> auxInfos =
-            new ArrayList<ValueInfo>( dataModel.getColumnAuxDataInfos() );
+            new ArrayList<ValueInfo>( dataModel_.getColumnAuxDataInfos() );
 
         /* Remove any from this list which we have already added explicitly
          * or otherwise don't want to show up. */
@@ -375,9 +375,9 @@ public class ColumnInfoWindow extends AuxWindow {
 
         /* Make a table model from the metadata columns.  This model has
          * an extra row 0 to represent the row index. */
-        metaTableModel = new MetaColumnTableModel( metas ) {
+        metaTableModel_ = new MetaColumnTableModel( metas ) {
             public int getRowCount() {
-                return columnList.size() + 1;
+                return columnList_.size() + 1;
             }
             public boolean isCellEditable( int irow, int icol ) {
                 return toUnsortedIndex( irow ) > 0
@@ -386,7 +386,7 @@ public class ColumnInfoWindow extends AuxWindow {
         };
 
         /* Construct and place a JTable to contain it. */
-        jtab = new JTable( metaTableModel ) {
+        jtab_ = new JTable( metaTableModel_ ) {
             public TableCellRenderer getDefaultRenderer( Class<?> clazz ) {
                 if ( Boolean.class.equals( clazz ) ) {
                     return super.getDefaultRenderer( clazz );
@@ -396,38 +396,38 @@ public class ColumnInfoWindow extends AuxWindow {
                 }
             }
         };
-        jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
-        jtab.setColumnSelectionAllowed( false );
-        jtab.setRowSelectionAllowed( true );
-        StarJTable.configureColumnWidths( jtab, 20000, 100 );
+        jtab_.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+        jtab_.setColumnSelectionAllowed( false );
+        jtab_.setRowSelectionAllowed( true );
+        StarJTable.configureColumnWidths( jtab_, 20000, 100 );
 
         /* Allow JTable sorting by clicking on column headers. */
-        sorter = new MetaColumnTableSorter( metaTableModel );
-        sorter.install( jtab.getTableHeader() );
+        sorter_ = new MetaColumnTableSorter( metaTableModel_ );
+        sorter_.install( jtab_.getTableHeader() );
 
         /* Customise the JTable's column model to provide control over
          * which columns are displayed. */
         MetaColumnModel metaColumnModel = 
-            new MetaColumnModel( jtab.getColumnModel(), metaTableModel );
+            new MetaColumnModel( jtab_.getColumnModel(), metaTableModel_ );
         metaColumnModel.purgeEmptyColumns();
-        jtab.setColumnModel( metaColumnModel );
+        jtab_.setColumnModel( metaColumnModel );
 
         /* Hide some columns by default. */
         metaColumnModel.removeColumn( sizePos );
 
         /* Place the table into a scrollpane in this frame. */
-        JScrollPane scroller = new SizingScrollPane( jtab );
+        JScrollPane scroller = new SizingScrollPane( jtab_ );
         getMainArea().add( scroller );
 
         /* Set up a row header. */
-        TableRowHeader rowHead = new TableRowHeader( jtab ) {
+        TableRowHeader rowHead = new TableRowHeader( jtab_ ) {
             public long rowNumber( int irow ) {
-                return metaTableModel.getListIndex( irow );
+                return metaTableModel_.getListIndex( irow );
             }
         };
         rowHead.installOnScroller( scroller );
         scroller.setCorner( ScrollPaneConstants.UPPER_LEFT_CORNER,
-                            sorter.getUnsortLabel() );
+                            sorter_.getUnsortLabel() );
 
         /* Arrange that dragging on the row header moves columns around
          * in the table column model. */
@@ -439,7 +439,7 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Ensure that subsequent changes to the main column model are 
          * reflected in this window.  This listener implementation is 
          * sloppy, it could be done more efficiently. */
-        columnModel.addColumnModelListener( new TableColumnModelAdapter() {
+        columnModel_.addColumnModelListener( new TableColumnModelAdapter() {
             public void columnAdded( TableColumnModelEvent evt ) {
                 changed();
 
@@ -451,12 +451,12 @@ public class ColumnInfoWindow extends AuxWindow {
                  * other than the end, it gets added then immediately moved.
                  * Doing it like this allows the final resting place of the
                  * column rather than its initial one to be made visible. */
-                TableColumn tc = columnModel.getColumn( evt.getToIndex() );
+                TableColumn tc = columnModel_.getColumn( evt.getToIndex() );
                 SwingUtilities.invokeLater( () -> {
                     int ir = getRowIndexFromColumn( tc );
                     if ( ir >= 0 ) {
-                        TopcatUtils.ensureRowIndexIsVisible( jtab, ir );
-                        tcModel.fireModelChanged( TopcatEvent.COLUMN, tc );
+                        TopcatUtils.ensureRowIndexIsVisible( jtab_, ir );
+                        tcModel_.fireModelChanged( TopcatEvent.COLUMN, tc );
                     }
                 } );
             }
@@ -473,70 +473,70 @@ public class ColumnInfoWindow extends AuxWindow {
                  * though not necessarily more robust, way to do this. */
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        metaTableModel.fireTableDataChanged();
+                        metaTableModel_.fireTableDataChanged();
                     }
                 } );
             }
         } );
 
         /* Define actions. */
-        addcolAct = new ColumnInfoAction( "New Synthetic Column",
-                                          ResourceIcon.ADD,
-                                          "Add a new column defined " +
-                                          "algebraically from existing ones" );
-        addskycolAct = new ColumnInfoAction( "New Sky Coordinate Columns",
-                                             ResourceIcon.ADDSKY,
-                                             "Add new sky coordinate columns " +
-                                             "based on existing ones" );
-        replacecolAct = new ColumnInfoAction( "Replace Column With Synthetic",
-                                              ResourceIcon.MODIFY,
-                                              "Replace the selected column " +
-                                              "with a new one based on it" );
-        editcolAct = new ColumnInfoAction( "Edit Column Definition",
-                                           ResourceIcon.EDIT,
-                                           "View and edit all metadata " +
-                                           "for the selected column" );
-        hidecolAct = new ColumnInfoAction( "Hide Selected Column(s)",
-                                           ResourceIcon.HIDE,
-                                           "Hide all selected columns" );
-        revealcolAct = new ColumnInfoAction( "Reveal Selected Column(s)",
-                                             ResourceIcon.REVEAL,
-                                             "Reveal All Selected columns" );
-        hideallAct = new ColumnInfoAction( "Hide All Columns",
-                                           ResourceIcon.HIDE_ALL,
-                                           "Make all table columns invisible" );
-        revealallAct = new ColumnInfoAction( "Reveal All Columns",
-                                             ResourceIcon.REVEAL_ALL,
-                                             "Make all table columns visible" );
-        explodecolAct = new ColumnInfoAction( "Explode Array Column",
-                                              ResourceIcon.EXPLODE,
-                                              "Replace N-element array column "
-                                              + "with N scalar columns" );
-        collapsecolsAct = new ColumnInfoAction( "Collapse Columns to Array",
-                                                ResourceIcon.COLLAPSE,
-                                                "Add new array column "
-                                              + "made from selected "
-                                              + "numeric scalar columns" );
-        sortupAct = new SortAction( true );
-        sortdownAct = new SortAction( false );
-        addcolAct.setEnabled( TopcatUtils.canJel() );
-        replacecolAct.setEnabled( TopcatUtils.canJel() );
+        addcolAct_ = new ColumnInfoAction( "New Synthetic Column",
+                                           ResourceIcon.ADD,
+                                           "Add a new column defined " +
+                                           "algebraically from existing ones" );
+        addskycolAct_ = new ColumnInfoAction( "New Sky Coordinate Columns",
+                                              ResourceIcon.ADDSKY,
+                                              "Add new sky coordinate columns "
+                                            + "based on existing ones" );
+        replacecolAct_ = new ColumnInfoAction( "Replace Column With Synthetic",
+                                               ResourceIcon.MODIFY,
+                                               "Replace the selected column " +
+                                               "with a new one based on it" );
+        editcolAct_ = new ColumnInfoAction( "Edit Column Definition",
+                                            ResourceIcon.EDIT,
+                                            "View and edit all metadata " +
+                                            "for the selected column" );
+        hidecolAct_ = new ColumnInfoAction( "Hide Selected Column(s)",
+                                            ResourceIcon.HIDE,
+                                            "Hide all selected columns" );
+        revealcolAct_ = new ColumnInfoAction( "Reveal Selected Column(s)",
+                                              ResourceIcon.REVEAL,
+                                              "Reveal All Selected columns" );
+        hideallAct_ = new ColumnInfoAction( "Hide All Columns",
+                                            ResourceIcon.HIDE_ALL,
+                                            "Make all table columns invisible");
+        revealallAct_ = new ColumnInfoAction( "Reveal All Columns",
+                                              ResourceIcon.REVEAL_ALL,
+                                              "Make all table columns visible");
+        explodecolAct_ = new ColumnInfoAction( "Explode Array Column",
+                                               ResourceIcon.EXPLODE,
+                                               "Replace N-element array column "
+                                             + "with N scalar columns" );
+        collapsecolsAct_ = new ColumnInfoAction( "Collapse Columns to Array",
+                                                 ResourceIcon.COLLAPSE,
+                                                 "Add new array column "
+                                               + "made from selected "
+                                               + "numeric scalar columns" );
+        sortupAct_ = new SortAction( true );
+        sortdownAct_ = new SortAction( false );
+        addcolAct_.setEnabled( TopcatUtils.canJel() );
+        replacecolAct_.setEnabled( TopcatUtils.canJel() );
 
         /* Construct a new menu for column operations. */
         JMenu colMenu = new JMenu( "Columns" );
         colMenu.setMnemonic( KeyEvent.VK_C );
-        colMenu.add( addcolAct );
-        colMenu.add( addskycolAct );
-        colMenu.add( replacecolAct );
-        colMenu.add( editcolAct );
-        colMenu.add( hidecolAct );
-        colMenu.add( revealcolAct );
-        colMenu.add( hideallAct );
-        colMenu.add( revealallAct );
-        colMenu.add( explodecolAct );
-        colMenu.add( collapsecolsAct );
-        colMenu.add( sortupAct );
-        colMenu.add( sortdownAct );
+        colMenu.add( addcolAct_ );
+        colMenu.add( addskycolAct_ );
+        colMenu.add( replacecolAct_ );
+        colMenu.add( editcolAct_ );
+        colMenu.add( hidecolAct_ );
+        colMenu.add( revealcolAct_ );
+        colMenu.add( hideallAct_ );
+        colMenu.add( revealallAct_ );
+        colMenu.add( explodecolAct_ );
+        colMenu.add( collapsecolsAct_ );
+        colMenu.add( sortupAct_ );
+        colMenu.add( sortdownAct_ );
         getJMenuBar().add( colMenu );
 
         /* Make a menu for controlling metadata display. */ 
@@ -545,7 +545,7 @@ public class ColumnInfoWindow extends AuxWindow {
         getJMenuBar().add( displayMenu );
 
         /* Add a selection listener for menu items. */
-        jtab.getSelectionModel()
+        jtab_.getSelectionModel()
             .addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 selectionUpdated();
@@ -554,19 +554,19 @@ public class ColumnInfoWindow extends AuxWindow {
         selectionUpdated();
 
         /* Add actions to the toolbar. */
-        getToolBar().add( addcolAct );
-        getToolBar().add( addskycolAct );
-        getToolBar().add( replacecolAct );
-        getToolBar().add( editcolAct );
-        getToolBar().add( hidecolAct );
-        getToolBar().add( revealcolAct );
-        getToolBar().add( hideallAct );
-        getToolBar().add( revealallAct );
-        getToolBar().add( explodecolAct );
-        getToolBar().add( collapsecolsAct );
+        getToolBar().add( addcolAct_ );
+        getToolBar().add( addskycolAct_ );
+        getToolBar().add( replacecolAct_ );
+        getToolBar().add( editcolAct_ );
+        getToolBar().add( hidecolAct_ );
+        getToolBar().add( revealcolAct_ );
+        getToolBar().add( hideallAct_ );
+        getToolBar().add( revealallAct_ );
+        getToolBar().add( explodecolAct_ );
+        getToolBar().add( collapsecolsAct_ );
         getToolBar().addSeparator();
-        getToolBar().add( sortupAct );
-        getToolBar().add( sortdownAct );
+        getToolBar().add( sortupAct_ );
+        getToolBar().add( sortdownAct_ );
         getToolBar().addSeparator();
 
         /* Add standard help actions. */
@@ -611,7 +611,7 @@ public class ColumnInfoWindow extends AuxWindow {
     private int getActiveIndexFromRow( int irow ) {
         int iActive = 0;
         for ( int i = 1; i <= irow; i++ ) {
-            if ( columnList.isActive( getColumnListIndexFromRow( i ) ) ) {
+            if ( columnList_.isActive( getColumnListIndexFromRow( i ) ) ) {
                 iActive++;
             }
         }
@@ -627,7 +627,7 @@ public class ColumnInfoWindow extends AuxWindow {
      * @return  table column
      */
     private TableColumn getColumnFromRow( int irow ) {
-        return columnList.getColumn( getColumnListIndexFromRow( irow ) );
+        return columnList_.getColumn( getColumnListIndexFromRow( irow ) );
     }
 
     /**
@@ -640,10 +640,10 @@ public class ColumnInfoWindow extends AuxWindow {
      */
     private ColumnInfo getColumnInfo( int irow ) {
         if ( irow == 0 ) {
-            return indexColumnInfo;
+            return indexColumnInfo_;
         }
         else {
-            return dataModel.getColumnInfo( getModelIndexFromRow( irow ) );
+            return dataModel_.getColumnInfo( getModelIndexFromRow( irow ) );
         }
     }
 
@@ -657,7 +657,7 @@ public class ColumnInfoWindow extends AuxWindow {
      * @return  row index in unsorted table model
      */
     private int toUnsortedIndex( int jrow ) {
-        return metaTableModel.getListIndex( jrow );
+        return metaTableModel_.getListIndex( jrow );
     }
 
     /**
@@ -672,15 +672,15 @@ public class ColumnInfoWindow extends AuxWindow {
 
         /* Lucky guess?  Will get the right answer if no sort order is
          * in operation. */
-        if ( metaTableModel.getListIndex( irow ) == irow ) {
+        if ( metaTableModel_.getListIndex( irow ) == irow ) {
             return irow;
         }
 
         /* Do it the hard way. */
         else {
-            int n = metaTableModel.getRowCount();
+            int n = metaTableModel_.getRowCount();
             for ( int i = 0; i < n; i++ ) {
-                if ( metaTableModel.getListIndex( i ) == irow ) {
+                if ( metaTableModel_.getListIndex( i ) == irow ) {
                     return i;
                 }
             }
@@ -696,7 +696,7 @@ public class ColumnInfoWindow extends AuxWindow {
      * @return  index of JTable row, or -1 if not found
      */
     private int getRowIndexFromColumn( TableColumn tc ) {
-        for ( int ir = 1; ir < jtab.getRowCount(); ir++ ) {
+        for ( int ir = 1; ir < jtab_.getRowCount(); ir++ ) {
             if ( getColumnFromRow( toUnsortedIndex( ir ) ) == tc ) {
                 return ir;
             }
@@ -710,35 +710,35 @@ public class ColumnInfoWindow extends AuxWindow {
      * have changed. 
      */
     private void selectionUpdated() {
-        int nsel = jtab.getSelectedRowCount();
+        int nsel = jtab_.getSelectedRowCount();
         boolean hasSelection = nsel > 0;
         boolean hasUniqueSelection = nsel == 1;
         boolean hasMultiSelection = nsel > 1;
         if ( hasUniqueSelection &&
-             toUnsortedIndex( jtab.getSelectedRow() ) == 0 ) {
+             toUnsortedIndex( jtab_.getSelectedRow() ) == 0 ) {
             hasUniqueSelection = false;
             hasSelection = false;
         }
         boolean hasArraySelection;
         if ( hasUniqueSelection ) {
-            int iSel = toUnsortedIndex( jtab.getSelectedRow() );
+            int iSel = toUnsortedIndex( jtab_.getSelectedRow() );
             StarTableColumn tcol =
                 (StarTableColumn) getColumnFromRow( iSel );
             int nel = getElementCount( tcol.getColumnInfo() );
             hasArraySelection = nel > 0;
-            tcModel.fireModelChanged( TopcatEvent.COLUMN, tcol );
+            tcModel_.fireModelChanged( TopcatEvent.COLUMN, tcol );
         }
         else {
             hasArraySelection = false;
         }
-        hidecolAct.setEnabled( hasSelection );
-        revealcolAct.setEnabled( hasSelection );
-        explodecolAct.setEnabled( hasArraySelection );
-        collapsecolsAct.setEnabled( hasMultiSelection );
-        sortupAct.setEnabled( hasUniqueSelection );
-        sortdownAct.setEnabled( hasUniqueSelection );
-        replacecolAct.setEnabled( hasUniqueSelection && TopcatUtils.canJel() );
-        editcolAct.setEnabled( hasUniqueSelection );
+        hidecolAct_.setEnabled( hasSelection );
+        revealcolAct_.setEnabled( hasSelection );
+        explodecolAct_.setEnabled( hasArraySelection );
+        collapsecolsAct_.setEnabled( hasMultiSelection );
+        sortupAct_.setEnabled( hasUniqueSelection );
+        sortdownAct_.setEnabled( hasUniqueSelection );
+        replacecolAct_.setEnabled( hasUniqueSelection && TopcatUtils.canJel() );
+        editcolAct_.setEnabled( hasUniqueSelection );
     }
 
     /**
@@ -756,7 +756,7 @@ public class ColumnInfoWindow extends AuxWindow {
          * possible that the row index we have is no longer
          * correct, so hit it with a sledgehammer and update
          * all the table cells to be sure. */
-        metaTableModel.fireTableDataChanged();
+        metaTableModel_.fireTableDataChanged();
 
         /* The other steps are only required if the expression changed. */
         if ( expressionChanged ) {
@@ -774,7 +774,7 @@ public class ColumnInfoWindow extends AuxWindow {
              * changed one.  Which is just as well, since no event
              * is defined to describe all the data in a single
              * column changing. */
-            viewModel.fireTableDataChanged();
+            viewModel_.fireTableDataChanged();
         }
     }
 
@@ -791,33 +791,35 @@ public class ColumnInfoWindow extends AuxWindow {
     private void recompileDependencies( int icol ) {
 
         /* Recompile expressions for any dependent synthetic columns. */
-        for ( int ic = 0; ic < dataModel.getColumnCount(); ic++ ) {
-            ColumnData coldata = dataModel.getColumnData( ic );
+        for ( int ic = 0; ic < dataModel_.getColumnCount(); ic++ ) {
+            ColumnData coldata = dataModel_.getColumnData( ic );
             if ( ic != icol && coldata instanceof SyntheticColumn ) {
                 SyntheticColumn scol = (SyntheticColumn) coldata;
                 String expr = scol.getExpression();
-                if ( TopcatJELUtils.isColumnReferenced( tcModel, icol, expr ) ){
+                if ( TopcatJELUtils
+                    .isColumnReferenced( tcModel_, icol, expr ) ) {
                     try {
                         scol.setExpression( expr, null );
                     }
                     catch ( CompilationException e ) {
-                        logger.warning( "Uh oh: " + e );
+                        logger_.warning( "Uh oh: " + e );
                     }
                 }
             }
         }
 
         /* Recompile expressions for any dependent synthetic subsets. */
-        for ( RowSubset rset : tcModel.getSubsets() ) {
+        for ( RowSubset rset : tcModel_.getSubsets() ) {
             if ( rset instanceof SyntheticRowSubset ) {
                 SyntheticRowSubset srset = (SyntheticRowSubset) rset;
                 String expr = srset.getExpression();
-                if ( TopcatJELUtils.isColumnReferenced( tcModel, icol, expr ) ){
+                if ( TopcatJELUtils
+                    .isColumnReferenced( tcModel_, icol, expr ) ) {
                     try {
                         srset.setExpression( expr );
                     }
                     catch ( CompilationException e ) {
-                        logger.warning( "Uh oh: " + e );
+                        logger_.warning( "Uh oh: " + e );
                     }
                 }
             }
@@ -848,7 +850,7 @@ public class ColumnInfoWindow extends AuxWindow {
         }
         List<String> colNames = new ArrayList<>();
         for ( int ic = 0; ic < nc; ic++ ) {
-            ColumnInfo sinfo = dataModel.getColumnInfo( icols[ ic ] );
+            ColumnInfo sinfo = dataModel_.getColumnInfo( icols[ ic ] );
             if ( ! Number.class.isAssignableFrom( sinfo.getContentClass() ) ) {
                 String msg = "Column " + sinfo + " is not numeric";
                 JOptionPane.showMessageDialog( ColumnInfoWindow.this, msg,
@@ -861,11 +863,11 @@ public class ColumnInfoWindow extends AuxWindow {
 
         /* Check if we have some metadata items that are exactly the same
          * for all input columns. */
-        ColumnInfo cinfo0 = dataModel.getColumnInfo( icols[ 0 ] );
+        ColumnInfo cinfo0 = dataModel_.getColumnInfo( icols[ 0 ] );
         String unit0 = cinfo0.getUnitString();
         String ucd0 = cinfo0.getUCD();
         for ( int ic = 1; ic < nc; ic++ ) {
-            ColumnInfo cinfo1 = dataModel.getColumnInfo( icols[ ic ] );
+            ColumnInfo cinfo1 = dataModel_.getColumnInfo( icols[ ic ] );
             String unit1 = cinfo1.getUnitString();
             String ucd1 = cinfo1.getUCD();
             if ( unit0 != null && ! unit0.equals( unit1 ) ) {
@@ -905,7 +907,7 @@ public class ColumnInfoWindow extends AuxWindow {
             public double[] readValue( long irow ) throws IOException {
                 double[] value = new double[ nc ];
                 for ( int ic = 0; ic < nc; ic++ ) {
-                    Object scalar = dataModel.getCell( irow, icols[ ic ] );
+                    Object scalar = dataModel_.getCell( irow, icols[ ic ] );
                     value[ ic ] = scalar instanceof Number
                                 ? ((Number) scalar).doubleValue()
                                 : Double.NaN;
@@ -961,18 +963,18 @@ public class ColumnInfoWindow extends AuxWindow {
      */
     private class ValueInfoMetaColumn extends MetaColumn {
 
-        private ValueInfo vinfo;
-        private boolean isEditable;
-        private Class<?> vclass;
-        private boolean isFormattable;
+        private ValueInfo vinfo_;
+        private boolean isEditable_;
+        private Class<?> vclass_;
+        private boolean isFormattable_;
 
         ValueInfoMetaColumn( ValueInfo vinfo, boolean isEditable ) {
             super( vinfo.getName(), canFormat( vinfo ) ? vinfo.getContentClass()
                                                        : Object.class );
-            this.vinfo = vinfo;
-            this.isEditable = isEditable;
-            this.vclass = vinfo.getContentClass();
-            this.isFormattable = canFormat( vinfo );
+            vinfo_ = vinfo;
+            isEditable_ = isEditable;
+            vclass_ = vinfo.getContentClass();
+            isFormattable_ = canFormat( vinfo );
         }
 
         ValueInfoMetaColumn( ValueInfo vinfo ) {
@@ -980,7 +982,7 @@ public class ColumnInfoWindow extends AuxWindow {
         }
 
         private DescribedValue getAuxDatum( int irow ) {
-            return getColumnInfo( irow ).getAuxDatum( vinfo );
+            return getColumnInfo( irow ).getAuxDatum( vinfo_ );
         }
 
         public Object getValue( int irow ) {
@@ -988,7 +990,7 @@ public class ColumnInfoWindow extends AuxWindow {
             if ( auxDatum != null ) {
                 Object value = auxDatum.getValue();
                 if ( value != null && 
-                     vclass.isAssignableFrom( value.getClass() ) ) {
+                     vclass_.isAssignableFrom( value.getClass() ) ) {
                     return value;
                 }
             }
@@ -996,17 +998,17 @@ public class ColumnInfoWindow extends AuxWindow {
         }
 
         public boolean isEditable( int irow ) {
-            return isEditable && isFormattable;
+            return isEditable_ && isFormattable_;
         }
 
         public void setValue( int irow, Object value ) {
             DescribedValue auxDatum = getAuxDatum( irow );
             if ( auxDatum == null ) {
-                auxDatum = new DescribedValue( vinfo );
+                auxDatum = new DescribedValue( vinfo_ );
                 getColumnInfo( irow ).getAuxData().add( auxDatum );
             }
             if ( value instanceof String ) {
-                auxDatum.setValue( vinfo.unformatString( (String) value ) );
+                auxDatum.setValue( vinfo_.unformatString( (String) value ) );
             }
             else if ( value == null ) {
                 auxDatum.setValue( null );
@@ -1044,8 +1046,8 @@ public class ColumnInfoWindow extends AuxWindow {
 
             /* Add a new column: pop up a dialogue window which will 
              * result in a new column being added when the user OKs it. */
-            if ( this == addcolAct ) {
-                int[] selrows = jtab.getSelectedRows();
+            if ( this == addcolAct_ ) {
+                int[] selrows = jtab_.getSelectedRows();
                 int insertPos;
                 if ( selrows.length > 0 ) {
                     int iSel = selrows[ selrows.length - 1 ];
@@ -1056,15 +1058,15 @@ public class ColumnInfoWindow extends AuxWindow {
                     insertPos = -1;
                 }
                 SyntheticColumnQueryWindow
-                   .newColumnDialog( tcModel, insertPos, parent )
+                   .newColumnDialog( tcModel_, insertPos, parent )
                    .setVisible( true );
             }
 
             /* Add new sky columns: pop up a dialogue window which will
              * result in new sky coordinate columns being added when the
              * user OKs it. */
-            else if ( this == addskycolAct ) {
-                new SkyColumnQueryWindow( tcModel, parent ).setVisible( true );
+            else if ( this == addskycolAct_ ) {
+                new SkyColumnQueryWindow( tcModel_, parent ).setVisible( true );
             }
 
             /* Replace a column by another one.  This creates and pops up 
@@ -1072,36 +1074,36 @@ public class ColumnInfoWindow extends AuxWindow {
              * with the same information that the old one had.
              * When the user OKs it, the new column will be inserted in the
              * column model and the old one will be hidden. */
-            else if ( this == replacecolAct ) {
-                if ( jtab.getSelectedRowCount() == 1 ) {
-                    int selrow = toUnsortedIndex( jtab.getSelectedRow() );
+            else if ( this == replacecolAct_ ) {
+                if ( jtab_.getSelectedRowCount() == 1 ) {
+                    int selrow = toUnsortedIndex( jtab_.getSelectedRow() );
                     StarTableColumn tcol = 
                         (StarTableColumn) getColumnFromRow( selrow );
                     SyntheticColumnQueryWindow
-                        .replaceColumnDialog( tcModel, tcol, parent )
+                        .replaceColumnDialog( tcModel_, tcol, parent )
                         .setVisible( true );
                 }
                 else {
-                    logger.warning( "Replace column enabled erroneously" );
+                    logger_.warning( "Replace column enabled erroneously" );
                 }
             }
 
             /* Edit an existing synthetic or non-synthetic column. */
-            else if ( this == editcolAct ) {
-                if ( jtab.getSelectedRowCount() == 1 ) {
-                    int irow = toUnsortedIndex( jtab.getSelectedRow() );
+            else if ( this == editcolAct_ ) {
+                if ( jtab_.getSelectedRowCount() == 1 ) {
+                    int irow = toUnsortedIndex( jtab_.getSelectedRow() );
                     int icol = getModelIndexFromRow( irow );
                     SyntheticColumnQueryWindow
-                   .editColumnDialog( tcModel, icol, ColumnInfoWindow.this,
+                   .editColumnDialog( tcModel_, icol, ColumnInfoWindow.this,
                                       exCh -> columnChanged( icol, exCh ) )
                    .setVisible( true );
                 }
             }
 
             /* Replace an N-element array column with N scalar columns. */
-            else if ( this == explodecolAct ) {
-                if ( jtab.getSelectedRowCount() == 1 ) {
-                    int selrow = toUnsortedIndex( jtab.getSelectedRow() );
+            else if ( this == explodecolAct_ ) {
+                if ( jtab_.getSelectedRowCount() == 1 ) {
+                    int selrow = toUnsortedIndex( jtab_.getSelectedRow() );
                     StarTableColumn tcol =
                         (StarTableColumn) getColumnFromRow( selrow );
                     ColumnInfo cinfo = tcol.getColumnInfo();
@@ -1118,17 +1120,17 @@ public class ColumnInfoWindow extends AuxWindow {
                                                null, 
                                                new String[] { yesOpt, noOpt },
                                                yesOpt ) == 0 ) {
-                            tcModel.explodeColumn( tcol );
+                            tcModel_.explodeColumn( tcol );
                         }
                     }
                 }
             }
 
             /* New array column from selected scalar columns. */
-            else if ( this == collapsecolsAct ) {
-                int nsel = jtab.getSelectedRowCount();
+            else if ( this == collapsecolsAct_ ) {
+                int nsel = jtab_.getSelectedRowCount();
                 if ( nsel > 1 ) {
-                    int[] isels = jtab.getSelectedRows();
+                    int[] isels = jtab_.getSelectedRows();
                     int nscalar = isels.length;
                     int[] icScalars = new int[ nscalar ];
                     for ( int is = 0; is < nscalar; is++ ) {
@@ -1146,15 +1148,15 @@ public class ColumnInfoWindow extends AuxWindow {
                                              "Create Collapsed Column",
                                              JOptionPane.QUESTION_MESSAGE );
                         arrayCol.getColumnInfo().setName( cname );
-                        tcModel.appendColumn( arrayCol );
+                        tcModel_.appendColumn( arrayCol );
                     }
                 }
             }
 
             /* Hide/Reveal a column. */
-            else if ( this == hidecolAct || this == revealcolAct ) {
-                boolean active = ( this == revealcolAct );
-                int[] selected = jtab.getSelectedRows().clone();
+            else if ( this == hidecolAct_ || this == revealcolAct_ ) {
+                boolean active = ( this == revealcolAct_ );
+                int[] selected = jtab_.getSelectedRows().clone();
                 for ( int i = 0; i < selected.length; i++ ) {
                     selected[ i ] = toUnsortedIndex( selected[ i ] );
                 }
@@ -1162,17 +1164,17 @@ public class ColumnInfoWindow extends AuxWindow {
                 for ( int i = 0; i < selected.length; i++ ) {
                     if ( selected[ i ] > 0 ) {
                         int jrow = getColumnListIndexFromRow( selected[ i ] );
-                        columnList.setActive( jrow, active );
+                        columnList_.setActive( jrow, active );
                     }
                 }
             }
 
             /* Hide/Reveal all columns. */
-            else if ( this == hideallAct || this == revealallAct ) {
-                boolean active = this == revealallAct;
-                int ncol = columnList.size();
+            else if ( this == hideallAct_ || this == revealallAct_ ) {
+                boolean active = this == revealallAct_;
+                int ncol = columnList_.size();
                 for ( int i = 0; i < ncol; i++ ) {
-                    columnList.setActive( i, active );
+                    columnList_.setActive( i, active );
                 }
             }
 
@@ -1187,23 +1189,23 @@ public class ColumnInfoWindow extends AuxWindow {
      * Class for an action which sorts on a column.
      */
     private class SortAction extends AbstractAction {
-        private boolean ascending;
+        private final boolean ascending_;
 
         public SortAction( boolean ascending ) {
             super( "Sort Selected " + ( ascending ? "Up" : "Down" ),
                    ascending ? ResourceIcon.UP : ResourceIcon.DOWN );
-            this.ascending = ascending;
+            ascending_ = ascending;
             putValue( SHORT_DESCRIPTION, "Sort rows by " + 
-                                         ( ascending ? "a" : "de" ) +
+                                         ( ascending_ ? "a" : "de" ) +
                                          "scending value of selected column" );
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            int irow = toUnsortedIndex( jtab.getSelectedRow() );
+            int irow = toUnsortedIndex( jtab_.getSelectedRow() );
             SortOrder order = ( irow > 0 )
                       ? new SortOrder( getColumnFromRow( irow ) )
                       : SortOrder.NONE;
-            tcModel.sortBy( order, ascending );
+            tcModel_.sortBy( order, ascending_ );
         }
     }
 
@@ -1229,7 +1231,7 @@ public class ColumnInfoWindow extends AuxWindow {
             rowHead_ = rowHead;
             hoverCursor_ = Cursor.getPredefinedCursor( Cursor.HAND_CURSOR );
             dragCursor_ = Cursor.getPredefinedCursor( Cursor.N_RESIZE_CURSOR );
-            selModel_ = jtab.getSelectionModel();
+            selModel_ = jtab_.getSelectionModel();
             kFrom_ = -1;
         }
 
@@ -1241,7 +1243,7 @@ public class ColumnInfoWindow extends AuxWindow {
          * no effect (except maybe cause the GUI to flicker).
          */
         private boolean canDrag() {
-            int icolSort = sorter.getSortIndex();
+            int icolSort = sorter_.getSortIndex();
             return icolSort < 0 || icolSort == icolColsetIndex_;
         }
 
@@ -1252,7 +1254,7 @@ public class ColumnInfoWindow extends AuxWindow {
                                         .rowAtPoint( evt.getPoint() ) );
                 if ( i > 0 ) {
                     int j = i - 1;
-                    kFrom_ = columnList.isActive( j )
+                    kFrom_ = columnList_.isActive( j )
                            ? getActiveIndexFromRow( j )
                            : -1;
                     if ( kFrom_ >= 0 ) {
@@ -1271,7 +1273,7 @@ public class ColumnInfoWindow extends AuxWindow {
                 int j = Math.max( i - 1, 0 );
                 int kTo = getActiveIndexFromRow( j );
                 if ( kTo != kFrom_ ) {
-                    columnModel.moveColumn( kFrom_, kTo );
+                    columnModel_.moveColumn( kFrom_, kTo );
                     kFrom_ = kTo;
                     adjustGui( evt, true );
                 }
@@ -1300,7 +1302,7 @@ public class ColumnInfoWindow extends AuxWindow {
             final Cursor headCursor;
             if ( isDrag ) {
                 headCursor = null;
-                int k = columnList.indexOf( columnModel.getColumn( kFrom_ ) );
+                int k = columnList_.indexOf( columnModel_.getColumn( kFrom_ ) );
                 final int isel = toSortedIndex( 1 + k );
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
@@ -1311,7 +1313,7 @@ public class ColumnInfoWindow extends AuxWindow {
             else {
                 int i =
                     toUnsortedIndex( rowHead_.rowAtPoint( evt.getPoint() ) );
-                headCursor = i > 0 && columnList.isActive( i - 1 ) && canDrag()
+                headCursor = i > 0 && columnList_.isActive( i - 1 ) && canDrag()
                            ? hoverCursor_
                            : null;
             }
