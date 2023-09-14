@@ -39,6 +39,8 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.DomainMapper;
+import uk.ac.starlink.table.RowListStarTable;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
@@ -519,6 +521,11 @@ public class ColumnInfoWindow extends AuxWindow {
                                                + "numeric scalar columns" );
         sortupAct_ = new SortAction( true );
         sortdownAct_ = new SortAction( false );
+        Action importAct =
+            createImportTableAction( "column metadata", this::getColumnsTable,
+                                     "Columns of " + tcModel_.getID() );
+        Action saveAct =
+            createSaveTableAction( "column metadata", this::getColumnsTable );
         addcolAct_.setEnabled( TopcatUtils.canJel() );
         replacecolAct_.setEnabled( TopcatUtils.canJel() );
 
@@ -544,6 +551,12 @@ public class ColumnInfoWindow extends AuxWindow {
         displayMenu.setMnemonic( KeyEvent.VK_D );
         getJMenuBar().add( displayMenu );
 
+        /* Menu for export actions. */
+        JMenu exportMenu = new JMenu( "Export" );
+        exportMenu.add( importAct );
+        exportMenu.add( saveAct );
+        getJMenuBar().add( exportMenu );
+
         /* Add a selection listener for menu items. */
         jtab_.getSelectionModel()
             .addListSelectionListener( new ListSelectionListener() {
@@ -564,6 +577,7 @@ public class ColumnInfoWindow extends AuxWindow {
         getToolBar().add( revealallAct_ );
         getToolBar().add( explodecolAct_ );
         getToolBar().add( collapsecolsAct_ );
+        getToolBar().add( importAct );
         getToolBar().addSeparator();
         getToolBar().add( sortupAct_ );
         getToolBar().add( sortdownAct_ );
@@ -915,6 +929,33 @@ public class ColumnInfoWindow extends AuxWindow {
                 return value;
             }
         };
+    }
+
+    /**
+     * Converts the displayed content of this window to a StarTable
+     * suitable for export.
+     *
+     * @return   StarTable of column metadata
+     */
+    private StarTable getColumnsTable() {
+        int ncol = jtab_.getColumnCount();
+        ColumnInfo[] infos = new ColumnInfo[ ncol ];
+        List<MetaColumn> colList = metaTableModel_.getColumnList();
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            int jcol = jtab_.getColumnModel().getColumn( icol ).getModelIndex();
+            infos[ icol ] = new ColumnInfo( colList.get( jcol ).getInfo() );
+        }
+        RowListStarTable table = new RowListStarTable( infos );
+        table.setName( "Column metadata for " + tcModel_.getLabel() );
+        int nrow = jtab_.getRowCount();
+        for ( int irow = 0; irow < nrow; irow++ ) {
+            Object[] row = new Object[ ncol ];
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                row[ icol ] = jtab_.getValueAt( irow, icol );
+            }
+            table.addRow( row );
+        }
+        return new NormaliseTable( table );
     }
 
     /**

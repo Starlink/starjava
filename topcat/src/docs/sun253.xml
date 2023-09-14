@@ -6242,6 +6242,14 @@ sideways so that the selected column is visible.
     The effect is more or less the opposite of the Explode option above.
     </p></dd>
 
+<dt>&IMG.IMPORT; Import as Table</dt>
+<dd><p>The table of column metadata as displayed by this window
+    (rows corresponding to table columns and columns corresponding
+    to items of metadata) is itself a table.
+    This action loads it into TOPCAT as a new table so it can be
+    manipulated in all the usual ways.
+    </p></dd>
+
 <dt>&IMG.UP; Sort Selected Up</dt>
 <dd><p>If a single column is selected then the table's current 
     <ref id="order">Sort Order</ref> will be set to sort ascending on 
@@ -26084,6 +26092,7 @@ Some of the notable contributers are these:
 <li>Laurent Bourges (JMMC)</li>
 <li>Danny Boxhoorn (Kapteyn, Groningen)</li>
 <li>Patrick Broos (Penn State)</li>
+<li>Johannes Buchner (MPE)</li>
 <li>Baptiste Cecconi (LESIA)</li>
 <li>Igor Chilingarian (CfA)</li>
 <li>Malcolm Currie (Starlink, RAL)</li>
@@ -32020,6 +32029,9 @@ introduced since the last version:
         multi-dataset or multi-subset plots.
         This bug was introduced in v4.7 and was supposed to be fixed
         at v4.8-8 but wasn't.</li>
+    <li>Metadata export actions
+        (<label>Import</label>/<label>Save as Table</label>)
+        added to <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
     </ul>
     </p></dd>
 
