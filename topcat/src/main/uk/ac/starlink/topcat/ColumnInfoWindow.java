@@ -80,6 +80,7 @@ public class ColumnInfoWindow extends AuxWindow {
     private final int icolColsetIndex_;
     private final int icolColsetClass_;
     private final MetaColumnTableSorter sorter_;
+    private final SmallColumnSearchWindow searchWindow_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -147,6 +148,7 @@ public class ColumnInfoWindow extends AuxWindow {
         } );
 
         /* Add name column. */
+        int icolName = metas.size();
         metas.add( new MetaColumn( "Name", String.class ) {
             public Object getValue( int irow ) {
                 return getColumnInfo( irow ).getName();
@@ -431,6 +433,26 @@ public class ColumnInfoWindow extends AuxWindow {
         scroller.setCorner( ScrollPaneConstants.UPPER_LEFT_CORNER,
                             sorter_.getUnsortLabel() );
 
+        /* Prepare a search action. */
+        searchWindow_ =
+            new SmallColumnSearchWindow( "Search by Metadata", this, jtab_,
+                                         scroller, "Field" );
+        searchWindow_.getSearchAction()
+                     .putValue( Action.SHORT_DESCRIPTION,
+                                "Search for column with text in "
+                              + "selected metadata category" );
+        searchWindow_.getColumnSelector().setSelectedIndex( icolName );
+        assert ((TableColumn)
+                searchWindow_.getColumnSelector().getSelectedItem())
+              .getHeaderValue().equals( "Name" );
+        Action searchAct =
+                new BasicAction( "Search by Metadata", ResourceIcon.SEARCH,
+                                 "Search for text in metadata column" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                searchWindow_.setVisible( true );
+            }
+        };
+
         /* Arrange that dragging on the row header moves columns around
          * in the table column model. */
         rowHead.setSelectionModel( new DefaultListSelectionModel() );
@@ -542,6 +564,7 @@ public class ColumnInfoWindow extends AuxWindow {
         colMenu.add( revealallAct_ );
         colMenu.add( explodecolAct_ );
         colMenu.add( collapsecolsAct_ );
+        colMenu.add( searchAct );
         colMenu.add( sortupAct_ );
         colMenu.add( sortdownAct_ );
         getJMenuBar().add( colMenu );
@@ -577,6 +600,7 @@ public class ColumnInfoWindow extends AuxWindow {
         getToolBar().add( revealallAct_ );
         getToolBar().add( explodecolAct_ );
         getToolBar().add( collapsecolsAct_ );
+        getToolBar().add( searchAct );
         getToolBar().add( importAct );
         getToolBar().addSeparator();
         getToolBar().add( sortupAct_ );

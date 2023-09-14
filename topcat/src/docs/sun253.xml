@@ -6242,6 +6242,13 @@ sideways so that the selected column is visible.
     The effect is more or less the opposite of the Explode option above.
     </p></dd>
 
+<dt>&IMG.SEARCH; Search Column</dt>
+<dd><p>Pops up the <ref id="ColumnSearchWindow">Column Search Window</ref>
+    that allows you to find rows in the display with a given field
+    matching text that you enter.
+    It can be useful if you have a very wide data table.
+    </p></dd>
+
 <dt>&IMG.IMPORT; Import as Table</dt>
 <dd><p>The table of column metadata as displayed by this window
     (rows corresponding to table columns and columns corresponding
@@ -25139,13 +25146,16 @@ and paste from this using your platform's usual mechanisms for this.
 </figure>
 
 <p>The Column Search window lets you search through the values
-in a chosen column to find occurrences of some particular text.
-It can be obtained using the <label>Search Column</label> (&IMG.SEARCH;)
-action from the <ref id="TableViewerWindow">Data Window</ref>
-in one of two ways:
-either using the toolbar button or menu item,
+in a chosen column of the displayed <ref id="JTable">JTable</ref>
+to find occurrences of some particular text.
+It is currently available from the
+<ref id="TableViewerWindow">Data Window</ref> and
+<ref id="ColumnInfoWindow">Columns Window</ref>.
+In each case you can get it by using the
+<label>Search Column</label> (&IMG.SEARCH;) action in one of two ways:
+either click the toolbar button or menu item,
 in which case you have to choose the column of interest using the selector,
-or using the popup menu that appears when you right-click on a column,
+or select it from the popup menu that appears when you right-click on a column,
 in which case the column in question is selected automatically.
 </p>
 
@@ -25154,15 +25164,19 @@ with the column you want to search,
 fill in the matching options,
 enter the text to search for,
 and hit the <label>Search</label> button.
-Any rows matching the query are highlighted in the <label>Data Window</label>,
+Any rows matching the query are then highlighted in the
+corresponding JTable,
 and the display is scrolled so that the first match, if any, is visible.
-If exactly one matching row was found, it is also
-<ref id="activation">activated</ref>.
-You can see how many matches there were from the <label>Selected</label>
-value indicated at the bottom of the Data Window.
 If at least one match is found, the search window usually closes
 (though this can be prevented with the
 <label>Stay Open</label> (&IMG.KEEP_OPEN;) option).
+</p>
+
+<p>When used with the <ref id="TableViewerWindow">Data Window</ref> only,
+if exactly one matching row was found, it is also
+<ref id="activation">activated</ref>.
+You can see how many matches there were from the <label>Selected</label>
+value indicated at the bottom of the Data Window.
 </p>
 
 <p>The fields to fill in are as follows:
@@ -32032,6 +32046,8 @@ introduced since the last version:
     <li>Metadata export actions
         (<label>Import</label>/<label>Save as Table</label>)
         added to <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+    <li>You can now <label>Search</label> for columns by metadata in
+        the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
     </ul>
     </p></dd>
 
