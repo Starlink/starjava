@@ -52,13 +52,12 @@ public class ColumnCellRenderer implements ListCellRenderer<TableColumn> {
                          ? ((StarTableColumn) col).getColumnInfo()
                          : null;
         Object rep;
-        if ( col == null && nullRep_ != null ) {
+        if ( col == null ) {
             rep = nullRep_;
         }
         else {
-            rep = cinfo == null
-                ? col
-                : cinfo.getName();
+            rep = cinfo == null ? col.getHeaderValue()
+                                : cinfo.getName();
         }
         Component comp = baseRenderer_
                         .getListCellRendererComponent( list, rep, index, 
