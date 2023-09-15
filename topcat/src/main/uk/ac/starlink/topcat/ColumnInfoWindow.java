@@ -6,7 +6,9 @@ import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +22,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
@@ -77,6 +80,7 @@ public class ColumnInfoWindow extends AuxWindow {
     private final ColumnInfo indexColumnInfo_;
     private final JTable jtab_;
     private final MetaColumnTableModel metaTableModel_;
+    private final MetaColumnModel metaColumnModel_;
     private final int icolColsetIndex_;
     private final int icolColsetClass_;
     private final MetaColumnTableSorter sorter_;
@@ -411,13 +415,13 @@ public class ColumnInfoWindow extends AuxWindow {
 
         /* Customise the JTable's column model to provide control over
          * which columns are displayed. */
-        MetaColumnModel metaColumnModel = 
+        metaColumnModel_ = 
             new MetaColumnModel( jtab_.getColumnModel(), metaTableModel_ );
-        metaColumnModel.purgeEmptyColumns();
-        jtab_.setColumnModel( metaColumnModel );
+        metaColumnModel_.purgeEmptyColumns();
+        jtab_.setColumnModel( metaColumnModel_ );
 
         /* Hide some columns by default. */
-        metaColumnModel.removeColumn( sizePos );
+        metaColumnModel_.removeColumn( sizePos );
 
         /* Place the table into a scrollpane in this frame. */
         JScrollPane scroller = new SizingScrollPane( jtab_ );
@@ -452,6 +456,32 @@ public class ColumnInfoWindow extends AuxWindow {
                 searchWindow_.setVisible( true );
             }
         };
+
+        /* Configure a listener for column popup menus. */
+        MouseListener mousepop = new MouseAdapter() {
+            public void mousePressed( MouseEvent evt ) {
+                maybeShowPopup( evt );
+            }
+            public void mouseReleased( MouseEvent evt ) {
+                maybeShowPopup( evt );
+            }
+            private void maybeShowPopup( MouseEvent evt ) {
+                if ( evt.isPopupTrigger() ) {
+                    Component comp = evt.getComponent();
+                    int icol = comp == rowHead
+                             ? -1
+                             : jtab_.columnAtPoint( evt.getPoint() );
+                    if ( icol >= -1 ) {
+                        JPopupMenu popper = columnPopup( icol );
+                        if ( popper != null ) {
+                            popper.show( comp, evt.getX(), evt.getY() );
+                        }
+                    }
+                }
+            }
+        };
+        jtab_.addMouseListener( mousepop );
+        jtab_.getTableHeader().addMouseListener( mousepop );
 
         /* Arrange that dragging on the row header moves columns around
          * in the table column model. */
@@ -570,7 +600,7 @@ public class ColumnInfoWindow extends AuxWindow {
         getJMenuBar().add( colMenu );
 
         /* Make a menu for controlling metadata display. */ 
-        JMenu displayMenu = metaColumnModel.makeCheckBoxMenu( "Display" );
+        JMenu displayMenu = metaColumnModel_.makeCheckBoxMenu( "Display" );
         displayMenu.setMnemonic( KeyEvent.VK_D );
         getJMenuBar().add( displayMenu );
 
@@ -966,7 +996,7 @@ public class ColumnInfoWindow extends AuxWindow {
         ColumnInfo[] infos = new ColumnInfo[ ncol ];
         List<MetaColumn> colList = metaTableModel_.getColumnList();
         for ( int icol = 0; icol < ncol; icol++ ) {
-            int jcol = jtab_.getColumnModel().getColumn( icol ).getModelIndex();
+            int jcol = metaColumnModel_.getColumn( icol ).getModelIndex();
             infos[ icol ] = new ColumnInfo( colList.get( jcol ).getInfo() );
         }
         RowListStarTable table = new RowListStarTable( infos );
@@ -980,6 +1010,69 @@ public class ColumnInfoWindow extends AuxWindow {
             table.addRow( row );
         }
         return new NormaliseTable( table );
+    }
+
+    /**
+     * Returns a popup menu for the given column.
+     *
+     * @param  jcol  column index
+     * @return  popup menu to post for requested column
+     */
+    private JPopupMenu columnPopup( int icol ) {
+        TableColumn tcol = metaColumnModel_.getColumn( icol );
+        if ( tcol == null ) {
+            return null;
+        }
+        int jcol = tcol.getModelIndex();
+        MetaColumn metaCol = metaTableModel_.getColumnList().get( jcol );
+        Object chead = tcol.getHeaderValue();
+        String cname = chead instanceof String ? (String) chead : "metadata";
+        JPopupMenu popper = new JPopupMenu();
+        popper.add( new BasicAction( "Search " + cname + " Metadata",
+                                     ResourceIcon.SEARCH,
+                                     "Find columns with " + cname + 
+                                     " matching text" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                searchWindow_.setColumn( tcol );
+                searchWindow_.setVisible( true );
+            }
+        } );
+        if ( sorter_.getSortIndex() == jcol ) {
+            popper.add( new BasicAction( "Unsort", ResourceIcon.UNSORT,
+                                         "Restore metadata display " +
+                                         "to natural order" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    sorter_.setSorting( -1, false );
+                }
+            } );
+        }
+        if ( metaTableModel_.canSort( metaCol ) ) {
+            popper.add( new BasicAction( "Sort Up by " + cname,
+                                         ResourceIcon.UP,
+                                         "Sort metadata display by " + cname +
+                                         ", ascending" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    sorter_.setSorting( jcol, false );
+                }
+            } );
+            popper.add( new BasicAction( "Sort Down by " + cname,
+                                         ResourceIcon.DOWN,
+                                         "Sort metadata display by " + cname +
+                                         ", descending" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    sorter_.setSorting( jcol, true );
+                }
+            } );
+        }
+        popper.add( new BasicAction( "Hide " + cname + " metadata",
+                                     ResourceIcon.HIDE,
+                                     "Remove " + cname + " column from " +
+                                     "metadata display" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                metaColumnModel_.removeColumn( tcol );
+            }
+        } );
+        return popper;
     }
 
     /**
@@ -1260,7 +1353,7 @@ public class ColumnInfoWindow extends AuxWindow {
             super( "Sort Selected " + ( ascending ? "Up" : "Down" ),
                    ascending ? ResourceIcon.UP : ResourceIcon.DOWN );
             ascending_ = ascending;
-            putValue( SHORT_DESCRIPTION, "Sort rows by " + 
+            putValue( SHORT_DESCRIPTION, "Sort table rows by " + 
                                          ( ascending_ ? "a" : "de" ) +
                                          "scending value of selected column" );
         }

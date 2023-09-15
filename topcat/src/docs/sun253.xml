@@ -4916,6 +4916,14 @@ used provides a common look and feel.
     Note also that some columns do not define a sort order;
     clicking on the header of such a row has no effect.
     </p></dd>
+
+<dt>Popup column menu</dt>
+<dd><p>In some cases right-clicking will show a popup menu that can
+    perform actions on the column currently under the mouse pointer.
+    This may offer actions like <label>Sorting</label> by that column
+    or <ref id="ColumnSearchWindow">Searching</ref> the content of
+    the column for chosen text.
+    </p></dd>
 </dl>
 </p>
 
@@ -6007,6 +6015,14 @@ If you want to hide or reveal all the columns in the table, use the
 <label>Reveal All</label> (&IMG.REVEAL_ALL;) buttons.
 </p>
 
+<p>If you <label>select</label> one of the JTable rows by clicking on it,
+the table view in the <ref id="TableViewerWindow">Data Window</ref>
+will be scrolled sideways so that the corresponding data column
+is visible in (approximately) the middle of the screen.
+This can be a boon if you are dealing with a table that
+contains a large number of columns.
+</p>
+
 <p>Each column in the displayed JTable corresponds to one piece of
 information for each of the columns in the data table -
 column name, description, UCD etc.
@@ -6274,12 +6290,40 @@ sideways so that the selected column is visible.
 
 <p>Several of these actions operate on the currently selected column
 or columns.  You can select columns by clicking on the corresponding
-row in the displayed JTable as usual.  A side effect of selecting a
-single column is that the table view in the 
-<ref id="TableViewerWindow">Data Window</ref> will be scrolled sideways
-so that the selected column is visible in (approximately) the middle of
-the screen.  This can be a boon if you are dealing with a table that
-contains a large number of columns.
+row in the displayed JTable as usual.
+</p>
+
+<p>As well as the normal menu, right-clicking over one of the columns
+in the displayed table will present a
+<label>Column Popup Menu</label>, which provides a convenient
+way to do some things with the column under the mouse cursor:
+<dl>
+
+<dt>&IMG.SEARCH; Search</dt>
+<dd><p>Pops up the <ref id="ColumnSearchWindow">Column Search Window</ref>
+    that allows you to find rows in the display
+    for which the chosen column value matches text you enter.
+    It can be useful if you have a very wide data table.
+    </p></dd>
+
+<dt>&IMG.UP; Sort up</dt>
+<dd><p>Sorts the table rows according to ascending value of the contents of
+    the column.  Only available if some kind of order (e.g. numeric or
+    alphabetic) can sensibly be applied to the column.
+    </p></dd>
+
+<dt>&IMG.DOWN; Sort down</dt>
+<dd><p>Sorts the table rows according to descending value of the contents of
+    the column.  Only available if some kind of order (e.g. numeric or
+    alphabetic) can sensibly be applied to the column.
+    </p></dd>
+
+<dt>&IMG.HIDE; Hide</dt>
+<dd><p>Hides the column.  It can be reinstated from the
+    <label>Display</label> menu.
+    </p></dd>
+
+</dl>
 </p>
 
 </subsubsect>
@@ -25155,8 +25199,8 @@ In each case you can get it by using the
 <label>Search Column</label> (&IMG.SEARCH;) action in one of two ways:
 either click the toolbar button or menu item,
 in which case you have to choose the column of interest using the selector,
-or select it from the popup menu that appears when you right-click on a column,
-in which case the column in question is selected automatically.
+or select it from the popup menu that appears when you right-click
+on a column, in which case that column is selected automatically.
 </p>
 
 <p>To perform a search, ensure that the column selector is filled in
@@ -32046,8 +32090,12 @@ introduced since the last version:
     <li>Metadata export actions
         (<label>Import</label>/<label>Save as Table</label>)
         added to <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
-    <li>You can now <label>Search</label> for columns by metadata in
-        the <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+    <li>You can now <ref id="ColumnSearchWindow">Search</ref>
+        for columns by metadata in the
+        the <ref id="ColumnInfoWindow">Columns Window</ref>.
+        This is available from the toolbar and Columns menu,
+        and also using the new popup menu available from the
+        metadata display JTable.</li>
     </ul>
     </p></dd>
 
