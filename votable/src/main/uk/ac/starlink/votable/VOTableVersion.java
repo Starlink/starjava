@@ -121,6 +121,27 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
      */
     public abstract URL getDtdUrl();
 
+    /**
+     * Returns a draft-version identifier for VOTable versions that are not
+     * yet in their final form.
+     *
+     * <p>If the standard to which this version applies is still
+     * subject to change, a version-specific document identifier of the form
+     * XX-VOTable-A.B-YYYYMMD should be returned,
+     * as described in the IVOA DocStd document.
+     * XX will presumably be WD or PR.
+     *
+     * <p>For final (REC-status) documents, null is returned.
+     *
+     * @return  version identifier for non-REC VOTable versions,
+     *          null for REC-status versions
+     * @see <a href="https://www.ivoa.net/documents/DocStd/"
+     *         >DocStd v2.0 sec 1.2</a>
+     */
+    public String getDraftIdentifier() {
+        return null;
+    }
+
     public int compareTo( VOTableVersion other ) {
         return this.versionNumber_.compareTo( other.versionNumber_ );
     }

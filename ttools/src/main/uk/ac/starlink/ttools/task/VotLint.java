@@ -272,6 +272,16 @@ public class VotLint implements Task {
                 }
             }
 
+            /* Report if we are using a non-final VOTable version. */
+            String votDraftId = version.getDraftIdentifier();
+            if ( votDraftId != null ) {
+                messager_.reportMessage( SaxMessager.Level.WARNING,
+                                         new VotLintCode( "DRF" ),
+                                         "Validating against draft version "
+                                       + "of VOTable standard: " + votDraftId,
+                                         (Locator) null );
+            }
+
             /* Create a context. */
             assert version != null;
             final VotLintContext context =

@@ -38,6 +38,8 @@ public class VOTableVersionTest extends TestCase {
             new TreeSet<VOTableVersion>( versions );
         assertEquals( new ArrayList<VOTableVersion>( sortedVersions ),
                       new ArrayList<VOTableVersion>( versions ) );
+
+        assertNull( VOTableVersion.V14.getDraftIdentifier() );
     }
 
     /**
