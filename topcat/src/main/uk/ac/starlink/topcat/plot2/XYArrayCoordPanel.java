@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot2;
 import gnu.jel.CompilationException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -16,6 +17,7 @@ import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 
 /**
@@ -27,14 +29,15 @@ import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 public class XYArrayCoordPanel extends PositionCoordPanel {
 
     private static final int MIN_USEFUL_SIZE = 10;
+    private static final FloatingArrayCoord[] XYARRAY_COORDS = {
+        FloatingArrayCoord.X, FloatingArrayCoord.Y,
+    };
 
     /**
      * Constructor.
-     *
-     * @param  coords  2-element array giving X and Y array coordinates
      */
-    public XYArrayCoordPanel( FloatingArrayCoord[] coords ) {
-        super( coords, new ConfigKey<?>[ 0 ] );
+    public XYArrayCoordPanel() {
+        super( XYARRAY_COORDS.clone(), new ConfigKey<?>[ 0 ] );
     }
 
     /**
@@ -42,6 +45,15 @@ public class XYArrayCoordPanel extends PositionCoordPanel {
      */
     public DataGeom getDataGeom() {
         return null;
+    }
+
+    @Override
+    public boolean isPreferredCoord( Coord coord ) {
+
+        /* Neither X nor Y is actually required for a viable plot,
+         * but at least one or the other should be filled in. */
+        return coord.isRequired()
+            || Arrays.asList( XYARRAY_COORDS ).contains( coord );
     }
 
     @Override

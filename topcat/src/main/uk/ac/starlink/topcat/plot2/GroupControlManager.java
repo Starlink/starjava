@@ -430,9 +430,7 @@ public class GroupControlManager<P,A> implements ControlManager {
             public <P,A> PositionCoordPanel
                     createPositionCoordPanel( PlotType<P,A> plotType,
                                               PlotTypeGui<P,A> plotTypeGui ) {
-                FloatingArrayCoord[] arrayCoords =
-                    { FloatingArrayCoord.X, FloatingArrayCoord.Y };
-                return new XYArrayCoordPanel( arrayCoords );
+                return new XYArrayCoordPanel();
             }
         },
 
