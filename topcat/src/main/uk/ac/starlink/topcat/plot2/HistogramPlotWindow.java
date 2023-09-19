@@ -507,9 +507,6 @@ public class HistogramPlotWindow
         public boolean hasPositions() {
             return false;
         }
-        public boolean isPlanar() {
-            return true;
-        }
         public FigureMode[] getFigureModes() {
             return new FigureMode[ 0 ];
         }

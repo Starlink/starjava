@@ -96,9 +96,6 @@ public class PlanePlotWindow
         public boolean hasPositions() {
             return true;
         }
-        public boolean isPlanar() {
-            return true;
-        }
         public FigureMode[] getFigureModes() {
             return PlaneFigureMode.MODES;
         }

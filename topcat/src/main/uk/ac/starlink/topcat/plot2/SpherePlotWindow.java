@@ -65,9 +65,6 @@ public class SpherePlotWindow
         public boolean hasPositions() {
             return true;
         }
-        public boolean isPlanar() {
-            return false;
-        }
         public FigureMode[] getFigureModes() {
             return new FigureMode[ 0 ];
         }

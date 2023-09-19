@@ -98,10 +98,6 @@ public class SkyPlotWindow
             return true;
         }
 
-        public boolean isPlanar() {
-            return false;
-        }
-
         public FigureMode[] getFigureModes() {
             return SkyFigureMode.MODES;
         }

@@ -113,9 +113,6 @@ public class TimePlotWindow
         public boolean hasPositions() {
             return true;
         }
-        public boolean isPlanar() {
-            return true;
-        }
         public FigureMode[] getFigureModes() {
             return new FigureMode[ 0 ];
         }

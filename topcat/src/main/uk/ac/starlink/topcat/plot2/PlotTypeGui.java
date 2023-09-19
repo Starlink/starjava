@@ -47,15 +47,6 @@ public interface PlotTypeGui<P,A> {
     boolean hasPositions();
 
     /**
-     * Indicates whether this plot type's surface factory produces
-     * surfaces implementing the
-     * {@link uk.ac.starlink.ttools.plot2.geom.PlanarSurface} interface.
-     *
-     * @return   true for plane surface plot types
-     */
-    boolean isPlanar();
-
-    /**
      * Returns a list of figure drawing modes that can be used for graphically
      * marking out shapes on the plot surface.
      *
