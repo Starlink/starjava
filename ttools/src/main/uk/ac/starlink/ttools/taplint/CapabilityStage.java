@@ -389,7 +389,7 @@ public class CapabilityStage implements Stage {
                        .append( "\" for language " )
                        .append( langName )
                        .toString();
-                    reporter_.report( FixedCode.W_CULF, msg );
+                    reporter_.report( FixedCode.I_CULF, msg );
                 }
             }
         }

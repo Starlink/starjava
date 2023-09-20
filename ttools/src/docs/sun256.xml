@@ -14667,6 +14667,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         some features from WD-VOTable-1.5-20230913
         (currently just vocabularised <code>system</code> and
         <code>refposition</code> attributes of COOSYS).</li>
+    <li>Downgrade taplint warning about non-standard
+        language features from Warning to Info
+        (<code>W-CAP-CULF</code> -&gt; <code>I-CAP-CULF</code>).</li>
     </ul>
     </p></dd>
 

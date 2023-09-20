@@ -219,7 +219,6 @@ public enum FixedCode implements ReportCode {
     W_CRGN( "Unknown DALI region xtype" ),
     W_CTYP( "Datatype possible mismatch" ),
     W_CUCD( "UCD mismatch" ),
-    W_CULF( "Custom language feature type" ),
     W_CUNI( "Unit mismatch" ),
     W_CUTP( "UType mismatch" ),
     W_DMDC( "DataModel not declared" ),
@@ -308,6 +307,7 @@ public enum FixedCode implements ReportCode {
 
     I_CDET( "No column metadata from /tables" ),
     I_CJOB( "Job created" ),
+    I_CULF( "Custom language feature type" ),
     I_CURL( "Reading capability metadata" ),
     I_DMID( "Data model declared" ),
     I_DQUR( "QUERY_STATUS redundancy" ),
