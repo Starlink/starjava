@@ -466,18 +466,20 @@ public class DatalinkValidator {
         if ( nSd > 1 ) {
             StringBuffer missBuf = new StringBuffer();
             if ( nameSet.size() < nSd ) {
-                missBuf.append( "@names" );
+                missBuf.append( "name attributes" );
             }
             if ( descriptionSet.size() < nSd ) {
                 missBuf.append( missBuf.length() == 0 ? "" : " and " )
-                       .append( "DESCRIPTIONs" );
+                       .append( "DESCRIPTION children" );
             }
-            String ndMsg = new StringBuffer()
-                .append( "Multiple service descriptors defined, " )
-                .append( "but not all have unique " )
-                .append( missBuf )
-                .toString();
-            reporter_.report( DatalinkCode.W_SDND, ndMsg );
+            if ( missBuf.length() > 0 ) {
+                String ndMsg = new StringBuffer()
+                    .append( "Multiple service descriptors defined, " )
+                    .append( "but not all have unique " )
+                    .append( missBuf )
+                    .toString();
+                reporter_.report( DatalinkCode.W_SDND, ndMsg );
+            }
         }
 
         /* Assemble and return a parsed LinksDoc object. */
