@@ -55,9 +55,19 @@ public class ServiceActivationType implements ActivationType {
 
     public Suitability getSuitability( TopcatModelInfo tinfo ) {
         StarTable table = tinfo.getTopcatModel().getDataModel();
+
+        /* If service descriptors are present, they can be invoked
+         * as per this activation type. */
         if ( LinksDoc.getServiceDescriptors( table ).length > 0 ) {
+
+            /* For a non-links-response table, presumably the intention
+             * is that they can be invoked directly, so mark them Suggested.
+             * For a links-response table, they are probably there to be
+             * referenced by the service_def column rather than to be
+             * invoked directly by the user, so in that case make the
+             * option less prominent (Present). */
             return LinksDoc.isLinksResponse( table, 2 )
-                 ? Suitability.AVAILABLE
+                 ? Suitability.PRESENT
                  : Suitability.SUGGESTED;
         }
         else {
