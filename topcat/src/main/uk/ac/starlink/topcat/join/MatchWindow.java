@@ -35,6 +35,7 @@ import uk.ac.starlink.table.join.CuboidCartesianMatchEngine;
 import uk.ac.starlink.table.join.EllipseCartesianMatchEngine;
 import uk.ac.starlink.table.join.EllipseSkyMatchEngine;
 import uk.ac.starlink.table.join.ErrorCartesianMatchEngine;
+import uk.ac.starlink.table.join.ErrorQuadraturesCartesianMatchEngine;
 import uk.ac.starlink.table.join.ErrorSkyMatchEngine;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
 import uk.ac.starlink.table.join.HtmSkyPixellator;
@@ -498,6 +499,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             new EqualsMatchEngine(),
             new IsotropicCartesianMatchEngine( 1, someLength, false ),
             new ErrorCartesianMatchEngine( 1, someLength ),
+            new ErrorQuadraturesCartesianMatchEngine( 1, someLength ),
             new IsotropicCartesianMatchEngine( 2, someLength, false ),
             new AnisotropicCartesianMatchEngine( someLengths2 ),
             new CuboidCartesianMatchEngine( someLengths2 ),
