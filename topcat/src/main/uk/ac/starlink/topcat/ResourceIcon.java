@@ -86,6 +86,7 @@ public class ResourceIcon implements Icon {
         ESA_LOGO = makeIcon( "esa48.png" ),
         VIZIER_LOGO = makeIcon( "vizier_logo.png" ),
         EU_LOGO = makeIcon( "eu48.png" ),
+        EUROPLANET_LOGO = makeIcon( "europlanet48.png" ),
 
         /* Generic actions. */
         CLOSE = makeIcon( "multiply4.png"),

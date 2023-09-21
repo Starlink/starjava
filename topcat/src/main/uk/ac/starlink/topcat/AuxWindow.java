@@ -682,15 +682,16 @@ public class AuxWindow extends JFrame {
                               + "http://www.esa.int/" );
         box.add( esaLogo );
         box.add( Box.createHorizontalStrut( igap ) );
-
-        /* The swirly FP7 logo is apparently discontinued since 1 Jan 2014,
-         * according to this URL:
-         * http://ec.europa.eu/research/fp7/index_en.cfm?pg=logos
-         * You're supposed to use the EU logo instead. */
         JLabel fp7Logo = new JLabel( ResourceIcon.EU_LOGO );
         fp7Logo.setToolTipText( "EU Seventh Framework Programme: "
                               + "http://ec.europa.eu/research/fp7/" );
         box.add( fp7Logo );
+        box.add( Box.createHorizontalStrut( igap ) );
+        JLabel europlanetLogo = new JLabel( ResourceIcon.EUROPLANET_LOGO );
+        europlanetLogo.setToolTipText( "Europlanet 2024 RI: "
+                                     + "https://www.europlanet-society.org/"
+                                     + "europlanet-2024-ri/" );
+        box.add( europlanetLogo );
         return box;
     }
 
