@@ -60,6 +60,7 @@ import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.BasicCheckBoxList;
+import uk.ac.starlink.topcat.CheckBoxList;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.MethodWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -142,33 +143,32 @@ public class ActivationWindow extends AuxWindow {
         final Color enabledFg = UIManager.getColor( "Label.foreground" );
         final Color disabledFg =
             UIManager.getColor( "Label.disabledForeground" );
-        list_ = new BasicCheckBoxList<ActivationEntry>( true ) {
-            @Override
-            protected void configureEntryRenderer( JComponent entryRenderer,
-                                                   ActivationEntry item,
-                                                   int index ) {
+        CheckBoxList.Rendering<ActivationEntry,JLabel> rendering =
+                new CheckBoxList.Rendering<ActivationEntry,JLabel>() {
+            public JLabel createRendererComponent() {
+                return new JLabel();
+            }
+            public void configureRendererComponent( JLabel label,
+                                                    ActivationEntry item,
+                                                    int index ) {
                 ActivationType atype = item.getType();
                 ActivatorConfigurator configurator = item.getConfigurator();
                 boolean isEnabled = configurator.getActivator() != null;
                 boolean isChecked = list_.isChecked( item );
-                if ( entryRenderer instanceof JLabel ) {
-                    JLabel label = (JLabel) entryRenderer;
-                    label.setText( atype.getName() );
-                    label.setEnabled( isEnabled );
-                    final Color fg;
-                    if ( isEnabled ) {
-                        fg = item.isBlocked() && isChecked ? WARNING_FG
-                                                           : enabledFg;
-                    }
-                    else {
-                        fg = disabledFg;
-                    }
-                    label.setForeground( fg );
+                label.setText( atype.getName() );
+                label.setEnabled( isEnabled );
+                final Color fg;
+                if ( isEnabled ) {
+                    fg = item.isBlocked() && isChecked ? WARNING_FG
+                                                       : enabledFg;
                 }
                 else {
-                    assert false;
+                    fg = disabledFg;
                 }
+                label.setForeground( fg );
             }
+        };
+        list_ = new BasicCheckBoxList<ActivationEntry>( true, rendering ) {
             @Override
             public void setChecked( ActivationEntry entry, boolean isChecked ) {
                 super.setChecked( entry, isChecked );

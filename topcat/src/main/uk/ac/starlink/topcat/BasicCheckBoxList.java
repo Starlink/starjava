@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.DefaultListModel;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.ListModel;
 
 /**
@@ -23,12 +21,23 @@ public class BasicCheckBoxList<T> extends CheckBoxList<T> {
     private final Set<T> activeSet_;
 
     /**
-     * Constructor.
+     * Constructs a list with default rendering.
      *
      * @param   canSelect   true if list item selection is permitted
      */
     public BasicCheckBoxList( boolean canSelect ) {
-        super( new DefaultListModel<T>(), canSelect, new JLabel() );
+        this( canSelect,
+              createLabelRendering( s -> s == null ? null : s.toString() ) );
+    }
+
+    /**
+     * Constructs a list with custom rendering.
+     *
+     * @param   canSelect   true if list item selection is permitted
+     * @param   rendering   how to render list entries
+     */
+    public BasicCheckBoxList( boolean canSelect, Rendering<T,?> rendering ) {
+        super( new DefaultListModel<T>(), canSelect, rendering );
         activeSet_ = new HashSet<T>();
     }
 
@@ -90,21 +99,5 @@ public class BasicCheckBoxList<T> extends CheckBoxList<T> {
     public void moveItem( int ifrom, int ito ) {
         DefaultListModel<T> listModel = getModel();
         listModel.add( ito, listModel.remove( ifrom ) );
-    }
-
-    protected void configureEntryRenderer( JComponent entryRenderer, T item,
-                                           int index ) {
-        ((JLabel) entryRenderer).setText( toString( item ) );
-    }
-
-    /**
-     * Maps list items to string values that can be displayed in the list.
-     * This method is just called by {@link #configureEntryRenderer}.
-     *
-     * @param  item  list entry
-     * @return  strinification of <code>item</code> for user display
-     */
-    protected String toString( T item ) {
-        return item == null ? null : item.toString();
     }
 }

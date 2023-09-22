@@ -15,6 +15,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
@@ -49,7 +50,7 @@ import javax.swing.event.MouseInputAdapter;
 public abstract class CheckBoxList<T> extends JList<T> {
 
     private final boolean canSelect_;
-    private final CheckBoxCellRenderer renderer_;
+    private final CheckBoxCellRenderer<?> renderer_;
     private final DragListener dragger_;
     private final List<ListDataListener> listeners_;
     private String[] msgLines_;
@@ -61,11 +62,11 @@ public abstract class CheckBoxList<T> extends JList<T> {
      *
      * @param   model  list model
      * @param   canSelect   true if list item selection is permitted
-     * @param   entryRenderer   renderer for list entry contents
-     *                          (excluding drag and checkbox decorations)
+     * @param   entryRendering   rendering for list entry contents
+     *                           (excluding drag and checkbox decorations)
      */
     public CheckBoxList( ListModel<T> model, boolean canSelect,
-                         JComponent entryRenderer ) {
+                         Rendering<T,?> entryRendering ) {
         super( model );
         canSelect_ = canSelect;
 
@@ -92,7 +93,7 @@ public abstract class CheckBoxList<T> extends JList<T> {
         } );
 
         /* Set up cell rendering. */
-        renderer_ = new CheckBoxCellRenderer( entryRenderer );
+        renderer_ = createCheckBoxCellRenderer( entryRendering );
         setCellRenderer( renderer_ );
 
         /* Remove any default mouse listeners and replace them with
@@ -113,16 +114,6 @@ public abstract class CheckBoxList<T> extends JList<T> {
         addMouseListener( dragger_ );
         addMouseMotionListener( dragger_ );
     }
-
-    /**
-     * This method is called whenever the list cell needs to be painted.
-     *
-     * @param  entryRenderer  renderer object supplied at construction time
-     * @param  item   list entry
-     * @param  index  index in list at which entry appears
-     */
-    protected abstract void configureEntryRenderer( JComponent entryRenderer,
-                                                    T item, int index );
 
     /**
      * Indicates whether the checkbox for a given item is selected.
@@ -201,6 +192,24 @@ public abstract class CheckBoxList<T> extends JList<T> {
         listeners_.remove( l );
     }
 
+    /**
+     * Returns a new action that can be used to check or uncheck all
+     * the items in the list at once.
+     *
+     * @param  isChecked   true to check all, false to uncheck all
+     */
+    public Action createCheckAllAction( final boolean isChecked ) {
+        String act = isChecked ? "Select" : "Unselect";
+        return new BasicAction( act + " All",
+                                isChecked ? ResourceIcon.REVEAL_ALL
+                                          : ResourceIcon.HIDE_ALL,
+                                act + " all the listed items" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                setCheckedAll( isChecked );
+            }
+        };
+    }
+
     @Override
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
@@ -211,7 +220,7 @@ public abstract class CheckBoxList<T> extends JList<T> {
         Point itemBase = indexToLocation( dragger_.fromIndex_ );
         if ( dragItem != null ) {
             int fromIndex = dragger_.fromIndex_;
-            CheckBoxCellRenderer dragComp =
+            CheckBoxCellRenderer<?> dragComp =
                 renderer_.getListCellRendererComponent(
                     this, dragItem, fromIndex, isSelectedIndex( fromIndex ),
                     hasFocus() );
@@ -248,6 +257,63 @@ public abstract class CheckBoxList<T> extends JList<T> {
             }
             g.setColor( color0 );
         }
+    }
+
+    /**
+     * Invokes CheckBoxCellRenderer constructor taking care of generics.
+     *
+     * @param  rendering   rendering definition
+     * @return  new renderer
+     */
+    private <C extends JComponent> CheckBoxCellRenderer<C>
+            createCheckBoxCellRenderer( Rendering<T,C> rendering ) {
+        return new CheckBoxCellRenderer<C>( rendering );
+    }
+
+    /**
+     * Returns a simple rendering based on a JLabel.
+     *
+     * @param  stringify  function that maps a list item to
+     *                    a string for display
+     * @return   cell rendering
+     */
+    public static <T> Rendering<T,JLabel>
+            createLabelRendering( Function<T,String> stringify ) {
+        return new Rendering<T,JLabel>() {
+            public JLabel createRendererComponent() {
+                return new JLabel();
+            }
+            public void configureRendererComponent( JLabel label,
+                                                    T item, int index ) {
+                label.setText( stringify.apply( item ) );
+            }
+        };
+    }
+
+    /**
+     * Defines the rendering of the contents of a list cell.
+     * This is effectively an easier to use replacement for
+     * {@link javax.swing.ListCellRenderer}.
+     */
+    public static interface Rendering<T,C extends JComponent> {
+
+        /**
+         * Creates a component which can be used for cell rendering.
+         *
+         * @return   renderer component
+         */
+        C createRendererComponent();
+
+        /**
+         * Configures the renderer component's appearance according to
+         * the cell index and content.
+         * This method is called whenever the list cell needs to be painted.
+         *
+         * @param  component   renderer component as supplied by this instance
+         * @param  item   list entry
+         * @param  index  index in list at which entry appears
+         */
+        void configureRendererComponent( C component, T item, int index );
     }
 
     /**
@@ -380,10 +446,12 @@ public abstract class CheckBoxList<T> extends JList<T> {
     /**
      * Custom ListCellRenderer implementation for a CheckBoxList.
      */
-    private class CheckBoxCellRenderer extends JPanel
-                                       implements ListCellRenderer<T> {
+    private class CheckBoxCellRenderer<C extends JComponent>
+            extends JPanel
+            implements ListCellRenderer<T> {
 
-        private final JComponent entryRenderer_;
+        private final Rendering<T,C> rendering_;
+        private final C entryRenderer_;
         private final JCheckBox checkBox_;
         private final JLabel handle_;
         private final DefaultListCellRenderer dfltRenderer_;
@@ -391,11 +459,12 @@ public abstract class CheckBoxList<T> extends JList<T> {
         /**
          * Constructor.
          *
-         * @param   entryRenderer   renderer for list entry contents
-         *                          (excluding drag and checkbox decorations)
+         * @param   rendering   defines rendering for list entry contents
+         *                      (excluding drag and checkbox decorations)
          */
-        CheckBoxCellRenderer( JComponent entryRenderer) {
-            entryRenderer_ = entryRenderer;
+        CheckBoxCellRenderer( Rendering<T,C> rendering ) {
+            rendering_ = rendering;
+            entryRenderer_ = rendering.createRendererComponent();
             setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
             checkBox_ = new JCheckBox();
             checkBox_.setOpaque( false );
@@ -407,7 +476,7 @@ public abstract class CheckBoxList<T> extends JList<T> {
             add( entryRenderer_ );
         }
 
-        public CheckBoxCellRenderer
+        public CheckBoxCellRenderer<C>
                 getListCellRendererComponent( JList<? extends T> list,
                                               T item, int index,
                                               boolean isSel,
@@ -420,7 +489,8 @@ public abstract class CheckBoxList<T> extends JList<T> {
             final int itemWidth;
             if ( item != null ) {
                 checkBox_.setSelected( isChecked( item ) );
-                configureEntryRenderer( entryRenderer_, item, index );
+                rendering_.configureRendererComponent( entryRenderer_,
+                                                       item, index );
                 entryRenderer_.validate();
                 itemWidth = entryRenderer_.getPreferredSize().width;
             }
@@ -479,23 +549,5 @@ public abstract class CheckBoxList<T> extends JList<T> {
             paintChildren( g );
             g.translate( -bounds.x, -bounds.y );
         }
-    }
-
-    /**
-     * Returns a new action that can be used to check or uncheck all
-     * the items in the list at once.
-     *
-     * @param  isChecked   true to check all, false to uncheck all
-     */
-    public Action createCheckAllAction( final boolean isChecked ) {
-        String act = isChecked ? "Select" : "Unselect";
-        return new BasicAction( act + " All",
-                                isChecked ? ResourceIcon.REVEAL_ALL
-                                          : ResourceIcon.HIDE_ALL,
-                                act + " all the listed items" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                setCheckedAll( isChecked );
-            }
-        };
     }
 }

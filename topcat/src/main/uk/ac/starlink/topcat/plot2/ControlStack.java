@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -40,7 +39,16 @@ public class ControlStack extends CheckBoxList<Control> {
      * @param  stackModel   stack model
      */
     public ControlStack( ControlStackModel stackModel ) {
-        super( stackModel, true, new JLabel() );
+        super( stackModel, true, new Rendering<Control,JLabel>() {
+            public JLabel createRendererComponent() {
+                return new JLabel();
+            }
+            public void configureRendererComponent( JLabel label,
+                                                    Control control, int ix ) {
+                label.setText( control.getControlLabel() );
+                label.setIcon( toStandardSize( control.getControlIcon() ) );
+            }
+        } );
         stackModel_ = stackModel;
     }
 
@@ -51,14 +59,6 @@ public class ControlStack extends CheckBoxList<Control> {
      */
     public ControlStackModel getStackModel() {
         return stackModel_;
-    }
-
-    @Override
-    protected void configureEntryRenderer( JComponent renderer, Control control,
-                                           int index ) {
-        JLabel label = (JLabel) renderer;
-        label.setText( control.getControlLabel() );
-        label.setIcon( toStandardSize( control.getControlIcon() ) );
     }
 
     @Override

@@ -355,7 +355,7 @@ public class SubsetStack {
          * @param  permModel  list model containing RowSubsets
          */
         public SubsetList( PermutedListModel permModel ) {
-            super( permModel, true, new JLabel() );
+            super( permModel, true, createLabelRendering( RowSubset::getName ));
             permModel_ = permModel;
             checked_ = new HashSet<RowSubset.Key>();
             permModel_.addListDataListener( new ListDataListener() {
@@ -445,16 +445,6 @@ public class SubsetStack {
                 repaint();
                 fireActionEvent();
             }
-        }
-
-        @Override
-        protected void configureEntryRenderer( JComponent renderer,
-                                               RowSubset rset, int index ) {
-
-            /* List cell is just a label with the subset name. */
-            JLabel label = (JLabel) renderer;
-            label.setText( rset.getName() );
-            label.validate();
         }
 
         @Override
