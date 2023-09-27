@@ -169,4 +169,14 @@ public class LegendControl extends TabberControl {
                              1f - pusher_.getYPosition() }
              : null;
     }
+
+    /**
+     * Returns the model used to specify whether the legend is internal
+     * or external to the plot bounds.
+     *
+     * @return  inside model
+     */
+    public ToggleButtonModel getInsideModel() {
+        return insideModel_;
+    }
 }

@@ -828,6 +828,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
+     * Returns the control used for configuring legend display.
+     *
+     * @return  legend control
+     */
+    public LegendControl getLegendControl() {
+        return legendControl_;
+    }
+
+    /**
      * Adds an action that is logically associated with rescaling the plot.
      * This takes the given action and inserts it into the toolbar and
      * menus in appropriate places.
