@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat;
 import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
+import java.util.function.Consumer;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 
@@ -13,13 +14,28 @@ import javax.swing.Icon;
  */
 public abstract class BasicAction extends AbstractAction {
 
-    public BasicAction( String name, String shortdesc ) {
-        this( name, null, shortdesc );
+    /**
+     * Constructor without icon.
+     *
+     * @param  name  action name (NAME property)
+     * @param  descrip   action description (SHORT_DESCRIPTION property),
+     *                   used as tooltip text
+     */
+    public BasicAction( String name, String descrip ) {
+        this( name, null, descrip );
     }
 
-    public BasicAction( String name, Icon icon, String shortdesc ) {
+    /**
+     * Constructor with icon.
+     *
+     * @param  name  action name (NAME property)
+     * @param  icon  action icon (SMALL_ICON property)
+     * @param  descrip   action description (SHORT_DESCRIPTION property),
+     *                   used as tooltip text
+     */
+    public BasicAction( String name, Icon icon, String descrip ) {
         super( name, icon );
-        putValue( SHORT_DESCRIPTION, shortdesc );
+        putValue( SHORT_DESCRIPTION, descrip );
     }
 
     /**
@@ -41,5 +57,25 @@ public abstract class BasicAction extends AbstractAction {
             }
         }
         return null;
+    }
+
+    /**
+     * Convenience method to create an Action with a lambda to define the
+     * actionPerformed behaviour.
+     *
+     * @param  name  action name (NAME property)
+     * @param  icon  action icon (SMALL_ICON property)
+     * @param  descrip   action description (SHORT_DESCRIPTION property),
+     *                   used as tooltip text
+     * @param  perform   provides <code>actionPerformed</code> behaviour
+     * @return   new action
+     */
+    public static BasicAction create( String name, Icon icon, String descrip,
+                                      Consumer<ActionEvent> perform ) {
+        return new BasicAction( name, icon, descrip ) {
+            public void actionPerformed( ActionEvent evt ) {
+                perform.accept( evt );
+            }
+        };
     }
 }
