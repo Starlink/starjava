@@ -195,6 +195,12 @@
   <!ENTITY FIG.HealpixLayerControl '&figs;HealpixLayerControl.png'>
   <!ENTITY FIG.HealpixLayerControl_data '&figs;HealpixLayerControl_data.png'>
   <!ENTITY FIG.HealpixLayerControl_style '&figs;HealpixLayerControl_style.png'>
+  <!ENTITY FIG.MatrixPositionCoordPanel_position
+           '&figs;MatrixPositionCoordPanel_position.png'>
+  <!ENTITY FIG.MatrixPositionCoordPanel_fill
+           '&figs;MatrixPositionCoordPanel_fill.png'>
+  <!ENTITY FIG.MatrixPositionCoordPanel_form
+           '&figs;MatrixPositionCoordPanel_form.png'>
   <!ENTITY FIG.mode_flat '&figs;mode_flat.png'>
   <!ENTITY FIG.mode_translucent '&figs;mode_translucent.png'>
   <!ENTITY FIG.mode_transparent '&figs;mode_transparent.png'>
@@ -269,6 +275,10 @@
   <!ENTITY FIG.SphereAxisControl_range '&figs;SphereAxisControl_range.png'>
   <!ENTITY FIG.SphereAxisControl_view '&figs;SphereAxisControl_view.png'>
   <!ENTITY FIG.SphereAxisControl_grid '&figs;SphereAxisControl_grid.png'>
+  <!ENTITY FIG.MatrixAxisControl_matrix '&figs;MatrixAxisControl_matrix.png'>
+  <!ENTITY FIG.MatrixAxisControl_coords '&figs;MatrixAxisControl_coords.png'>
+  <!ENTITY FIG.MatrixAxisControl_grid '&figs;MatrixAxisControl_grid.png'>
+  <!ENTITY FIG.MatrixAxisControl_labels '&figs;MatrixAxisControl_labels.png'>
   <!ENTITY FIG.TimeAxisControl_coords '&figs;TimeAxisControl_coords.png'>
   <!ENTITY FIG.TimeAxisControl_navigation
            '&figs;TimeAxisControl_navigation.png'>
@@ -281,6 +291,7 @@
   <!ENTITY FIG.SkyPlotWindow '&figs;SkyPlotWindow.png'>
   <!ENTITY FIG.CubePlotWindow '&figs;CubePlotWindow.png'>
   <!ENTITY FIG.SpherePlotWindow '&figs;SpherePlotWindow.png'>
+  <!ENTITY FIG.MatrixPlotWindow '&figs;MatrixPlotWindow.png'>
   <!ENTITY FIG.TimePlotWindow '&figs;TimePlotWindow.png'>
   <!ENTITY FIG.plotmatch_dialog '&figs;plotmatch_dialog.png'>
   <!ENTITY FIG.SkyPlotWindow_plotmatch '&figs;SkyPlotWindow_plotmatch.png'>
@@ -386,6 +397,9 @@
   <!ENTITY CONTROL.quad
            '&IMG.PLOT_QUAD;
             <ref id="GangLayerControl_quad">Quad Layer Control</ref>'>
+  <!ENTITY CONTROL.matrix
+           '&IMG.PLOT_MATRIX;
+           <ref id="GangLayerControl_matrix">Matrix Layer Control</ref>'>
   <!ENTITY CONTROL.function
            '&IMG.PLOT_FUNCTION;
             <ref id="FunctionLayerControl">Function Layer Control</ref>'>
@@ -481,6 +495,9 @@
   <!ENTITY GESTURE.CLICK2 '&IMG.CLICK2; Center click (SHIFT-click)'>
   <!ENTITY GESTURE.CLICK3 '&IMG.CLICK3; Right click (CTRL-click)'>
   <!ENTITY GESTURE.WHEEL '&IMG.MOUSE_WHEEL; Wheel'>
+
+  <!ENTITY matrix 'corner'>
+  <!ENTITY Matrix 'Corner'>
 ]>
 
 <sun>
@@ -5372,6 +5389,11 @@ functions.  They are grouped as follows:
         on 3D axes using spherical polar coordinates.
         </p></dd>
 
+    <dt>&IMG.PLOT2_MATRIX; <ref id="MatrixPlotWindow">&Matrix; Plot</ref></dt>
+    <dd><p>Displays a window for showing a grid of scatter plots using
+        all pair combinations of a larger list of coordinates.
+        </p></dd>
+
     <dt>&IMG.PLOT2_TIME; <ref id="TimePlotWindow">Time Plot</ref></dt>
     <dd><p>Displays a window with special features for plotting
         data which has a time coordinate.
@@ -6985,7 +7007,7 @@ in the first subsection below; the specific windows themselves
 are described in the later subsections.
 </p>
 
-<p>Six plot windows are currently available:
+<p>Seven plot windows are currently available:
 <ul>
 <li>&IMG.PLOT2_HISTOGRAM;
     <ref id="HistogramPlotWindow">Histogram Plot</ref></li>
@@ -6993,6 +7015,7 @@ are described in the later subsections.
 <li>&IMG.PLOT2_SKY; <ref id="SkyPlotWindow">Sky Plot</ref></li>
 <li>&IMG.PLOT2_CUBE; <ref id="CubePlotWindow">Cube Plot</ref></li>
 <li>&IMG.PLOT2_SPHERE; <ref id="SpherePlotWindow">Sphere Plot</ref></li>
+<li>&IMG.PLOT2_MATRIX; <ref id="MatrixPlotWindow">&Matrix; Plot</ref></li>
 <li>&IMG.PLOT2_TIME; <ref id="TimePlotWindow">Time Plot</ref></li>
 </ul>
 More may be introduced in future releases.
@@ -7781,8 +7804,8 @@ for instance in a STILTS command or a published paper.
 </p>
 
 <p>This action is currently only available in the
-<ref id="PlanePlotWindow">Plane</ref> and <ref id="SkyPlotWindow">Sky</ref>
-plot windows.
+<ref id="PlanePlotWindow">Plane</ref>, <ref id="SkyPlotWindow">Sky</ref> and
+<ref id="MatrixPlotWindow">&Matrix;</ref> plot windows.
 </p>
 
 <figure>
@@ -7943,7 +7966,8 @@ unwieldy than they have to be.</p>
 available from some plot windows
 (<ref id="PlanePlotWindow">Plane</ref>,
  <ref id="HistogramPlotWindow">Histogram</ref>,
- <ref id="SkyPlotWindow">Sky</ref> and
+ <ref id="SkyPlotWindow">Sky</ref>,
+ <ref id="MatrixPlotWindow">&Matrix;</ref> and
  <ref id="TimePlotWindow">Time</ref> plots).
 This allows you to use the mouse to measure the distance between
 two points on the plot.
@@ -8295,6 +8319,8 @@ along with each plot type:
             >Cube plot axes control</ref></li>
 <li><ref id="SphereAxisControl" plaintextref="yes"
             >Sphere plot axes control</ref></li>
+<li><ref id="MatrixAxisControl" plaintextref="yes"
+            >&Matrix; plot axes control</ref></li>
 <li><ref id="TimeAxisControl" plaintextref="yes"
             >Time plot axes control</ref></li>
 </ul>
@@ -8839,7 +8865,9 @@ More may be added in future releases.
 <subhead><title>Position Layer Control</title></subhead>
 
 <p>The <label>Position</label> layer control (&IMG.PLOT_DATA;)
-is available for all the plot types.
+is available for all the plot types
+(except the &Matrix; Plot, which uses the similar
+<ref id="GangLayerControl_matrix">Matrix control</ref>).
 Most plots start off with one of these in the stack by default,
 and you can add a new instance by using the
 <label>Add Position Control</label> (&IMG.ADD_PLOT_DATA;) button
@@ -9178,6 +9206,226 @@ If you want a polygon with more vertices, try the
 <ref id="form-polygon">Polygon</ref> form from the
 <ref id="GangLayerControl_single">single position</ref> layer control.
 </p>
+
+</subsubsubsect>
+
+<subsubsubsect id="GangLayerControl_matrix">
+<subhead><title>Matrix Layer Control</title></subhead>
+
+<p>The <label>Matrix</label> layer control (&IMG.PLOT_MATRIX;)
+is available only for the <ref id="MatrixPlotWindow">&Matrix; Plot</ref>.
+The &Matrix; Plot window starts with one of these in the stack by default,
+and you can add a new instance by using the
+<label>Add Position Control</label> (&IMG.ADD_PLOT_MATRIX;) button
+in the control panel toolbar,
+or the corresponding item in the <label>Layers</label> menu.
+</p>
+
+<p>This is the control that supplies all the plots for the
+&Matrix; plot.
+Each instance of this control in the stack does plotting for a
+set of multidimensional points from a single table.
+The set of points is defined in the <label>Position</label> tab
+as a column name or <ref id="jel">expression</ref> for each plot coordinate,
+while the <label>Fill</label> tab provides some controls that can
+help to fill in in the <label>Position</label> tab.
+The control can generate multiple different
+layers from these positions;
+the <label>Form</label> tab provides many options for what graphics
+will be plotted based on the positions,
+and the <label>Subsets</label> tab controls which subsets are plotted
+and how each one is identified.
+</p>
+
+<p>This control is a Table Data control as described in
+<ref id="tableDataControl"/>.  That section explains the
+<label>Subsets</label> tab;
+the <label>Position</label>, <label>Fill</label> and <label>Form</label> tabs
+are described in more detail below.
+</p>
+
+<subdiv>
+<subhead><title>Position Tab</title></subhead>
+
+<figure>
+<caption><px>Position Tab of Matrix layer control</px></caption>
+<figureimage src="&FIG.MatrixPositionCoordPanel_position;"/>
+</figure>
+
+<p>To select the quantities that will be plotted against each other,
+in the <label>Position</label> tab
+select column names or enter algebraic expressions into the
+fields marked <label>X1</label>, <label>X2</label>, <label>X3</label> etc.
+Grid cells will be plotted for each distinct pair (scatter-plot-like)
+and single (histogram-like) combination of the specified coordinates.
+</p>
+
+<p>This position entry panel has a few features not found in the
+other plot types:
+<ul>
+<li>The <label>Add</label> (&IMG.ADD;)
+    and <label>Remove</label> (&IMG.SUBTRACT;)
+    buttons can be used to increase/decrease the number of fields visible
+    for coordinate entry.
+    </li>
+<li>There is a <label>Grab Handle</label> (&IMG.UP_DOWN;)
+    by each coordinate;
+    you can drag this up or down using the mouse to re-order the coordinate
+    values you have entered.
+    </li>
+<li>There is a small <label>Delete</label> button (&IMG.SMALL_CLOSE;)
+    by each coordinate;
+    you can use this to remove the adjacent value from the plot
+    (all the ones below will move up one).
+    </li>
+</ul>
+</p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Fill Tab</title></subhead>
+
+<figure>
+<caption><px>Fill Tab of Matrix layer control</px></caption>
+<figureimage src="&FIG.MatrixPositionCoordPanel_fill;"/>
+</figure>
+
+<p>The <label>Fill</label> tab lets you choose columns from the
+table you are plotting, and use them to populate the selectors
+in the <label>Position</label> tab.
+Moving and selecting the columns in this tab does nothing on its own,
+but if you hit one of the buttons under the
+<label>Populate Position tab</label> heading on the right,
+the <label>Position</label> tab, and hence the plot, is updated accordingly.
+This doesn't do anything that can't be done by filling in fields
+in the Position tab directly, but it can be a quicker and more
+convenient way to do it.
+</p>
+
+<p>The left hand panel shows all the columns in the input table
+(as selected in the Position tab).
+They can be reordered using the mouse by dragging them with their
+<label>Grab Handle</label> (&IMG.UP_DOWN;)
+and the checkbox by each one can be selected.
+The three buttons at the top of the right hand panel also affect this list:
+<ul>
+<li>&IMG.REDO;: Reloads the column list from the table;
+    this ensures that the order of the columns in the list
+    is the same as the current column order in the table it comes from
+    </li>
+<li>&IMG.REVEAL_ALL;: Selects all the columns in the list
+    </li>
+<li>&IMG.HIDE_ALL;: Unselects all the columns in the list
+    </li>
+</ul>
+</p>
+
+<p>When you have selected the columns you're interested in,
+you can hit one of the buttons below the
+<label>Populate Position Tab</label> heading.
+<dl>
+<dt>Selected</dt>
+<dd><p>All the columns selected in this window will be used
+    to fill in the coordinate selectors in the Position tab.
+    </p></dd>
+<dt>Pair Differences</dt>
+<dd><p>All pair differences between the columns selected in this window
+    will be used to fill in the coordinate selectors in the
+    Position tab.
+    So for instance if the four columns
+    <code>A</code>, <code>B</code>, <code>C</code> and <code>D</code>
+    are selected in the list here,
+    then clicking this button
+    will fill in the selectors in the Position tab with
+    X1=<code>A-B</code>, X2=<code>A-C</code>, X3=<code>A-D</code>,
+    X4=<code>B-C</code>, X5=<code>B-D</code>,
+    X6=<code>C-D</code>.
+    The number of replacement coordinates
+    (hence the <em>linear</em> size of the grid)
+    will be <m>N(N-1)/2</m> so it can end up generating a lot of plots.
+    This is a rather special-interest option, but it can be handy
+    for instance when working with sets of correlated parameters
+    such as source magnitudes.
+    </p></dd>
+<dt>Pair Ratios</dt>
+<dd><p>Like the <label>Pair Differences</label> above,
+    but instead of differences, ratios are used,
+    so the selectors would be filled in with
+    X1=<code>A/B</code>, X2=<code>A/C</code>, X3=<code>A/D</code>,
+    X4=<code>B/C</code>, X5=<code>B/D</code>,
+    X6=<code>C/D</code>.
+    This could be useful when working with sets of fluxes.
+    </p></dd>
+</dl>
+Note these buttons will only be enabled if they would
+result in a reasonable number of position coordinates
+according to the current column selection.
+If any of them would result in fewer than two, or more than some
+reasonable maximum (64 at time of writing),
+it is disabled.
+</p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Form Tab</title></subhead>
+
+<figure>
+<caption><px>Form Tab of Matrix layer control</px></caption>
+<figureimage src="&FIG.MatrixPositionCoordPanel_form;"/>
+</figure>
+
+<p>The <label>Form</label> tab lets you define how the specified
+data set is plotted.
+The stack on the left gives a list of forms currently being plotted,
+and the panel on the right shows the detailed configuration for the
+currently selected form.
+</p>
+
+<p>When first added, the stack contains two entries,
+<label>Mark</label> and <label>Histogram</label>.
+This gives you a scatter plot on all the off-diagonal grid positions,
+and a histogram on all the diagonal ones.
+However, there are a number of other forms that you can plot as well
+or instead of the simple markers;
+two-coordinate plots like contours and linear fits on the off-diagonal
+positions, and
+one-coordinate plots like KDEs on the diagonal positions.
+You add a new form to the stack by
+clicking on the &IMG.ADD; <label>Forms</label> button,
+which gives you a menu of all the available forms.
+You can remove a form by selecting it and clicking
+the <label>Remove</label> (&IMG.DELETE;) button in the same menu.
+You can also activate/deactivate the entries in the stack
+with the checkbox and move them up and down with the drag handle as usual.
+</p>
+
+<p>The detail panel of each form depends on the form itself.
+It is divided into the following panels, though not all
+forms have all the panels.
+<dl>
+<dt>Shading</dt>
+<dd><p>The shading mode controls how points are shaded based on their
+    chosen colour.  The various options are described in <ref id="ShapeMode"/>.
+    Depending on the mode there may be more settings to fill in here.
+    </p></dd>
+<dt>Coordinates</dt>
+<dd><p>If additional coordinates are required for this form,
+    for instance the size of error bars, you need to enter the
+    column or expression here.  Each coordinate effectively adds
+    another dimension to the plot.
+    Many forms, like Mark, do not require any additional coordinates.
+    </p></dd>
+<dt>Global/Subset Styles</dt>
+<dd><p>Controls the style details for the chosen form;
+    see <ref id="tableDataControl_form"/>.
+    </p></dd>
+</dl>
+</p>
+
+</subdiv>
+
 
 </subsubsubsect>
 
@@ -15795,11 +16043,391 @@ It also affects some other things like the legend.
 
 </subsubsect>
 
+<subsubsect id="MatrixPlotWindow">
+<subhead><title>&Matrix; Plot Window</title></subhead>
+
+<figure>
+<caption><px>&Matrix; Plot Window</px></caption>
+<figureimage src="&FIG.MatrixPlotWindow;"/>
+</figure>
+
+<p>The <label>&Matrix; Plot</label> (&IMG.PLOT2_MATRIX;)
+represents the relationships between multiple quantities
+by drawing a scatter-like plot of every pair of coordinates,
+and/or a histogram-like plot of every single coordinate,
+and placing these on (half of) a square grid.
+The horizontal coordinates of all the plots on each column,
+and the vertical coordinates of all the plots on each row,
+are aligned.
+The plots are all linked, so you can
+<ref id="plot2-subsets">make graphical selections</ref>
+or click on a point to <ref id="activation">activate</ref> it
+in one of the panels, and the other panels will immediately
+reflect that action.
+Single-coordinate (histogram-like) plots appear on the diagonal,
+and coordinate-pair (scatter plot-like) plots appear off diagonal.
+By default only the diagonal and sub-diagonal part of the resulting
+plot matrix is shown, since the plots above the diagonal are equivalent
+to those below it, but this is configurable.
+This representation is variously known as a <label>corner plot</label>,
+<label>scatter plot matrix</label>, <label>splom</label> or
+<label>pairs plot</label>.
+</p>
+
+<p>In principle any number of quantities can be simultaneously compared
+in this way, but attempting to use too many will make
+the individual plots too small to be useful.
+Depending on the size of your screen, you may find about 20 is a
+reasonable upper limit, though more detail will be visible with fewer.
+Note that the <label>Float Controls</label> (&IMG.FLOAT;) button
+(or equivalent action in the <label>Window</label> menu)
+can be used to detach the control panel from the plot display and so
+free up more space for the visualisation itself.
+</p>
+
+<p>By default the linear size of the plot grid will be defined
+by the highest-numbered non-blank coordinate that is visible
+in any of the active Position layer controls,
+but it can be adjusted directly in the <label>Axes</label> control
+(&IMG.AXIS_CONFIG;).
+</p>
+
+<p>The configuration of the plots is done in the same way as for the
+<ref id="PlanePlotWindow">Plane Plot</ref>,
+and many of the plot types that are available there can be used
+in the grid cells of this plot.
+The &Matrix; Plot currently offers only one plot control type:
+<ul>
+<li>&CONTROL.matrix;, containing these scatter-plot like actions:
+    <ul>
+    <li>&FORM.mark;</li>
+    <li>&FORM.line;</li>
+    <li>&FORM.linearfit;</li>
+    <li>&FORM.label;</li>
+    <li>&FORM.contour;</li>
+    <li>&FORM.grid;</li>
+    <li>&FORM.fill;</li>
+    <li>&FORM.quantile;</li>
+    </ul>
+    and these histogram-like actions:
+    <ul>
+    <li>&FORM.histogram;</li>
+    <li>&FORM.kde;</li>
+    <li>&FORM.knn;</li>
+    <li>&FORM.densogram;</li>
+    <li>&FORM.gaussian;</li>
+    </ul>
+    The scatter-plot-like options will generate plots
+    in the off-diagonal positions of the grid,
+    and the histogram-like ones will generate plots on the leading diagonal.
+    By default the <label>Mark</label> and <label>Histogram</label>
+    options are both selected,
+    but you can hide these as well as adding others.
+    </li>
+</ul>
+</p>
+
+<p>As well as the standard actions,
+this window additionally provides the following toolbar buttons:
+<ul>
+<li>&IMG.MEASURE; <ref id="MeasurePanel">Measure Distance</ref></li>
+<li>&IMG.POLY_SUBSET; <ref id="FigurePanel">Draw Algebraic Subset</ref></li>
+</ul>
+</p>
+
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="matrixNavigation">navigation</ref> and
+<ref id="MatrixAxisControl">axis configuration</ref>.
+</p>
+
+<subsubsubsect id="matrixNavigation">
+<subhead><title>&Matrix; Navigation</title></subhead>
+
+<p>Navigation actions in the &matrix; plot are the same as for the
+<ref id="planeNavigation">Plane Plot</ref>;
+you can pan and zoom on each panel in the grid of plots using the mouse.
+However in this case the action will affect not only the panel
+that you are pointing at,
+but all the other panels in the same row and the other panels
+in the same column, so that the horizontal and vertical axes
+stay consistent per row and per column.
+</p>
+
+<p>Using the mouse to drag and zoom on one axis only, rather than
+both at once, by positioning it just outside the bounds of one of
+the panels as described below,
+can be particularly useful in this plot.
+</p>
+
+<p>The navigation actions are:
+<dl>
+<dt>&GESTURE.DRAG1;</dt>
+<dd><p><em>Pan.</em>
+    On the body of the plot this moves it around up/down/left/right.
+    To move it only vertically, drag on the left of the Y axis.
+    To move it only horizontally, drag below the X axis.
+    You can configure dragging on the body of the plot to be only vertical
+    or horizontal by setting the <label>Pan/Zoom Axes</label> in the
+    <label>Navigation</label> axis configuration tab.
+    </p></dd>
+<dt>&GESTURE.DRAG3;</dt>
+<dd><p><em>Stretch zoom.</em>
+    On the body of the plot,
+    dragging up/down stretches/squashes the plot vertically, and
+    dragging left/right stretches/squashes it horizontally.
+    Zooming is around the mouse position at the start of the drag.
+    To zoom only vertically, drag on the left of the Y axis.
+    To zoom only horizontally, drag below the X axis.
+    </p></dd>
+<dt>&GESTURE.DRAG2;</dt>
+<dd><p><em>Frame zoom.</em>
+    On the body of the plot, dragging right-and-down or right-and-up
+    drags out a frame;
+    when the button is released, the plot will be zoomed in
+    to cover the area enclosed by the frame.
+    Dragging left (and up or down) does something like the opposite,
+    you can zoom out using a similar (though not quite the same) mechanism.
+    To zoom in/out only horizontally, drag right/left below the X axis.
+    To zoom in/out only vertically, drag up/down on the left of the Y axis.
+    </p></dd>
+<dt>&GESTURE.WHEEL;</dt>
+<dd><p><em>Isotropic zoom.</em>
+    Spinning the mouse wheel forwards/backwards will zoom in/out
+    around the mouse position,
+    just like dragging with the right button up-and-right or down-and-left.
+    </p></dd>
+<dt>&GESTURE.CLICK1;</dt>
+<dd><p><em>Select.</em>
+    If there is a plotted point near the cursor,
+    it will plot a marker on it and
+    <ref id="activation" plaintextref="yes">activate</ref> it.
+    This includes causing the marker to show up in all the other visible
+    panels of the plot grid, not just the one you clicked on.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="MatrixAxisControl">
+<subhead><title>&Matrix; Axes Control</title></subhead>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;) for the
+&matrix; plot window has the following tabs:
+</p>
+
+<subdiv>
+<subhead><title>Matrix Tab</title></subhead>
+
+<figure>
+<caption><px>Matrix tab of &matrix; Axes control</px></caption>
+<figureimage src="&FIG.MatrixAxisControl_matrix;"/>
+</figure>
+
+<p>The <label>Matrix</label> tab configures the grid on which the
+individual plots are placed.
+It has the following options:
+<dl>
+<dt>Variables</dt>
+<dd><p>Sets the number of variables to be compared;
+    that corresponds to the linear size of the plot grid
+    (or size+1 if no histogram-like plots are included).
+    If the <label>Auto</label> box is checked then this value
+    will be determined automatically from the values that are filled in
+    on the <label>Position</label> controllers.
+    </p></dd>
+<dt>Matrix Format</dt>
+<dd><p>Configures which cells of the matrix grid will be filled in.
+    Below-diagonal, above-diagonal, or the full matrix can be chosen.
+    Given grid cells will only appear if there are appropriate plot layers
+    specified, i.e. 2-coordinate (scatter-plot-like) plots for the
+    off-diagonal cells and 1-coordinate (histogram-like) plots for the
+    diagonal cells.
+    The available options are:
+    <ul>
+    <li><label>lower</label>:
+        only the lower diagonal part of the matrix is populated,
+        as well as the diagonal if histogram-like elements are present
+        </li>
+    <li><label>upper</label>:
+        only the upper diagonal part of the matrix is populated,
+        as well as the diagonal if histogram-like elements are present
+        </li>
+    <li><label>full</label>:
+        all cells of the matrix are populated where present
+        </li>
+    </ul>
+    </p></dd>
+<dt>Cell Gap</dt>
+<dd><p>Sets the number of pixels between cells in the
+    displayed matrix of plots.
+    </p></dd>
+<dt>Square Panels</dt>
+<dd><p>If checked, each of the plotted panels in the matrix
+    will have the same vertical and horizontal dimension.
+    If unchecked, the shape of each panel will be determined
+    by the shape of the overall plotting area.
+    </p></dd>
+</dl>
+</p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Coords Tab</title></subhead>
+
+<figure>
+<caption><px>Coords tab of &matrix; Axes control</px></caption>
+<figureimage src="&FIG.MatrixAxisControl_coords;"/>
+</figure>
+
+<p>The <label>Coords</label> tab controls the axis coordinates.
+For each currently visible axis there are two checkboxes:
+<dl>
+<dt>Log</dt>
+<dd><p>If selected, the coordinates corresponding to this axis
+    are logarithmic, otherwise they are linear. 
+    </p></dd>
+<dt>Flip</dt>
+<dd><p>If selected, the coordinates corresponding to this axis
+    run in the opposite direction to normal.
+    </p></dd>
+</dl>
+</p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Grid Tab</title></subhead>
+
+<figure>
+<caption><px>Grid tab of &matrix; Axes control</px></caption>
+<figureimage src="&FIG.MatrixAxisControl_grid;"/>
+</figure>
+
+<p>The <label>Grid</label> tab configures the appearance of the axis grid
+in each panel.
+It has the following options:
+<dl>
+<dt>Draw Grid</dt>
+<dd><p>If true, grid lines will be drawn across the plot
+    for every tick mark.
+    </p></dd>
+<dt>Grid Colour</dt>
+<dd><p>Selects the colour with which grid lines will be drawn.
+    </p></dd>
+<dt>Grid Transparency</dt>
+<dd><p>Controls the transparency of the grid lines,
+    which are drawn over the plot content.
+    </p></dd>
+<dt>Label Colour</dt>
+<dd><p>Selects the colour in which axis label text will be written.
+    </p></dd>
+<dt>Minor Ticks</dt>
+<dd><p>If set, minor (unlabelled) tick marks will be drawn between the
+    major (labelled) ones.
+    </p></dd>
+<dt>Shadow Ticks</dt>
+<dd><p>If set then tick marks without
+    numeric labels are painted along the axis opposite to the primary axis,
+    so that tick marks are visible along all edges not just the ones
+    with numeric labels.
+    </p></dd>
+<dt>X/Y Tick Crowding</dt>
+<dd><p>Use the slider to influence how many tick marks are draw on each axis.
+    </p></dd>
+</dl>
+</p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Labels Tab</title></subhead>
+
+<figure>
+<caption><px>Labels tab of &matrix; Axes control</px></caption>
+<figureimage src="&FIG.MatrixAxisControl_labels;"/>
+</figure>
+
+<p>The <label>Labels</label> tab controls the text labels on the axes.
+The axes are labelled according to the text listed for each coordinate
+<label>X1</label>, <label>X2</label>, ....
+By default these labels are assigned automatically,
+but you can override this by unchecking the <label>Auto</label> checkbox
+for the coordinate in question to enter your own text.
+</p>
+
+<p>The automatically assigned values are generally 
+taken by looking at the values entered into the coordinate selector fields
+of the Position tabs controlling the plot,
+but the details are determined by the
+<label>Default Labels</label> selector.
+This has three options:
+<ul>
+<li><label>value</label>:
+    The quantity entered in the coordinate selector is used.
+    </li>
+<li><label>value/unit</label>:
+    Like <label>value</label> above, but if the unit of the quantity is
+    known it is appended after a "/" symbol.
+    </li>
+<li><label>xn</label>
+    The axis label is used (<label>X1</label>, <label>X2</label>, ...).
+    </li>
+</ul>
+The other plot windows effectively use the <label>value/unit</label> policy,
+but annotations can get rather crowded in the &matrix; plot,
+so the default here is <label>value</label>,
+but it can be made even more compact by selecting <label>xn</label>
+if required.
+</p>
+
+</subdiv>
+
+<subdiv>
+<subhead><title>Font Tab</title></subhead>
+
+<figure>
+<caption><px>Font tab</px></caption>
+<figureimage src="&FIG.font_tab;"/>
+</figure>
+
+<p>The <label>Font</label> tab configures the font used for axis annotation.
+It also affects some other things like the legend.
+<dl>
+<dt>Text Syntax</dt>
+<dd><p>How to turn the text into characters on the screen.
+    <label>Plain</label> and <label>Antialias</label> both take the
+    text at face value, but Antialias smooths the characters.
+    Antialiased text usually looks nicer, but can be perceptibly slower to plot.
+    <label>LaTeX</label> interprets the text as LaTeX source code
+    and typesets it accordingly.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is plain, bold or italic.
+    </p></dd>
+</dl>
+</p>
+
+</subdiv>
+
+</subsubsubsect>
+
+</subsubsect>
+
 <subsubsect id="TimePlotWindow">
 <subhead><title>Time Plot Window</title></subhead>
 
 <figure>
-<caption><px></px></caption>
+<caption><px>Time Plot Window</px></caption>
 <figureimage src="&FIG.TimePlotWindow;"/>
 </figure>
 
@@ -32104,6 +32732,8 @@ introduced since the last version:
     <li>Fix fencepost error in reverse cumulative histogram plotting.</li>
     <li>Fix TAP window to select ADQL-2.0 not ADQL-2.1
         if service declares no ADQL versions.</li>
+    <li>New <ref id="MatrixPlotWindow">&Matrix; Plot Window</ref>
+        added.</li>
     </ul>
     </p></dd>
 
