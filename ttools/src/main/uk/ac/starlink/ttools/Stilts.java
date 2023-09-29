@@ -197,7 +197,7 @@ public class Stilts {
                   new Pair<String>( "plot2cube", plot2Pkg + "CubePlot2Task" ),
                   new Pair<String>( "plot2sphere",
                                     plot2Pkg + "SpherePlot2Task" ),
-                  new Pair<String>( "plot2matrix",
+                  new Pair<String>( "plot2corner",
                                     plot2Pkg + "MatrixPlot2Task" ),
                   new Pair<String>( "plot2time", plot2Pkg + "TimePlot2Task" )
               ) ) {

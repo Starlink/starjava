@@ -525,7 +525,7 @@ public class Plot2Example {
         public static final PlotTask TIME = new PlotTask( "plot2time" );
 
         /** Matrix plot. */
-        public static final PlotTask MATRIX = new PlotTask( "plot2matrix" );
+        public static final PlotTask MATRIX = new PlotTask( "plot2corner" );
 
         /**
          * Constructor.

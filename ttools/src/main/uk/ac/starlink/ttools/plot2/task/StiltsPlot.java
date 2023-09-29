@@ -383,7 +383,7 @@ public class StiltsPlot {
      */
     private static String getPlotTaskName( PlotType<?,?> ptype ) {
         if ( ptype instanceof MatrixPlotType ) {
-            return "plot2matrix";
+            return "plot2corner";
         }
         else if ( ptype instanceof PlanePlotType ) {
             return "plot2plane";
