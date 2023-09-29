@@ -90,6 +90,7 @@
   <!ENTITY plot2plane-summary SYSTEM 'plot2plane-summary.xml'>
   <!ENTITY plot2sky-summary SYSTEM 'plot2sky-summary.xml'>
   <!ENTITY plot2sphere-summary SYSTEM 'plot2sphere-summary.xml'>
+  <!ENTITY plot2corner-summary SYSTEM 'plot2corner-summary.xml'>
   <!ENTITY plot2time-summary SYSTEM 'plot2time-summary.xml'>
   <!ENTITY plot2d-summary SYSTEM 'plot2d-summary.xml'>
   <!ENTITY plot3d-summary SYSTEM 'plot3d-summary.xml'>
@@ -145,6 +146,7 @@
   <!-- Layer type descriptions for plot2 commands. -->
   <!ENTITY plot2plane-layers SYSTEM 'plot2plane-layers.xml'>
   <!ENTITY plot2sky-layers SYSTEM 'plot2sky-layers.xml'>
+  <!ENTITY plot2corner-layers SYSTEM 'plot2corner-layers.xml'>
   <!ENTITY plot2cube-layers SYSTEM 'plot2cube-layers.xml'>
   <!ENTITY plot2sphere-layers SYSTEM 'plot2sphere-layers.xml'>
   <!ENTITY plot2time-layers SYSTEM 'plot2time-layers.xml'>
@@ -288,7 +290,8 @@ same ground as the STIL and TOPCAT user documents
     <ref id="plot2plane"><code>plot2plane</code></ref>,
     <ref id="plot2sky"><code>plot2sky</code></ref>,
     <ref id="plot2cube"><code>plot2cube</code></ref>,
-    <ref id="plot2sphere"><code>plot2sphere</code></ref> and
+    <ref id="plot2sphere"><code>plot2sphere</code></ref>,
+    <ref id="plot2corner"><code>plot2corner</code></ref> and
     <ref id="plot2time"><code>plot2time</code></ref>
     (also deprecated old-style plot commands
     <ref id="plot2d"><code>plot2d</code></ref>,
@@ -554,6 +557,7 @@ the available tasks are:
 <li><code>funcs</code></li>
 <li><code>pixfoot</code></li>
 <li><code>pixsample</code></li>
+<li><code>plot2corner</code></li>
 <li><code>plot2cube</code></li>
 <li><code>plot2plane</code></li>
 <li><code>plot2sphere</code></li>
@@ -2043,6 +2047,7 @@ by parameters with the following names (or similar ones):
            <ref id="tskymatch2"><code>tskymatch2</code></ref>,
            <ref id="pixfoot"><code>pixfoot</code></ref>,
            <ref id="pixsample"><code>pixsample</code></ref>,
+           <ref id="plot2corner"><code>plot2corner</code></ref>,
            <ref id="plot2cube"><code>plot2cube</code></ref>,
            <ref id="plot2plane"><code>plot2plane</code></ref>,
            <ref id="plot2sky"><code>plot2sky</code></ref>,
@@ -3372,6 +3377,9 @@ The commands are currently:
 <li><ref id="plot2sphere" plaintextref="yes"><code>plot2sphere</code></ref>:
     &plot2sphere-purpose;
     </li>
+<li><ref id="plot2corner" plaintextref="yes"><code>plot2corner</code></ref>:
+    &plot2corner-purpose;
+    </li>
 <li><ref id="plot2time" plaintextref="yes"><code>plot2time</code></ref>:
     &plot2time-purpose;
     </li>
@@ -3755,6 +3763,13 @@ their corresponding positional coordinates.
     The plotting surface (space) is similar to Cube,
     except that the unit distance is always
     the same in all three directions.
+    </p></dd>
+
+<dt>Matrix (<code><ref id="plot2corner">plot2corner</ref></code>)</dt>
+<dd><p>Grid of scatter plots, one for each pair of N coordinates.
+    Positional coordinates are supplied as
+    <code>x1</code>, <code>x2</code>, <code>x3</code>, ... <code>xN</code>,
+    up to the number N specified by the <code>nvar</code> parameter.
     </p></dd>
 
 <dt>Time (<code><ref id="plot2time">plot2time</ref></code>)</dt>
@@ -5571,6 +5586,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="plot2sphere" plaintextref="yes"><code>plot2sphere</code></ref>:
         &plot2sphere-purpose;
         </li>
+    <li><ref id="plot2corner" plaintextref="yes"><code>plot2corner</code></ref>:
+        &plot2corner-purpose;
+        </li>
     <li><ref id="plot2time" plaintextref="yes"><code>plot2time</code></ref>:
         &plot2time-purpose;
         </li>
@@ -7045,6 +7063,111 @@ stilts plot2sphere in=hip_main.fits lon=radeg lat=dedeg r=plx
 </dl>
 </p>
 
+</subsubsect>
+
+</subsect>
+
+<subsect id="plot2corner" tocleaf="yes">
+<subhead><title><code>plot2corner</code>: &plot2corner-purpose;</title>
+         </subhead>
+
+<p><code>plot2corner</code>
+represents the relationships between multiple quantities
+by drawing a scatter-like plot of every pair of coordinates,
+and/or a histogram-like plot of every single coordinate,
+and placing these on (half of) a square grid.
+The horizontal coordinates of all the plots on each column,
+and the vertical coordinates of all the plots on each row,
+are aligned.
+Single-coordinate (histogram-like) plots appear on the diagonal,
+and coordinate-pair (scatter plot-like) plots appear off diagonal.
+By default only the diagonal and sub-diagonal part of the resulting
+plot matrix is shown, since the plots above the diagonal are equivalent
+to those below it, but this is configurable.
+This representation is variously known as a <label>corner plot</label>,
+<label>scatter plot matrix</label>, <label>splom</label> or
+<label>pairs plot</label>.
+</p>
+
+<p>In principle any number of quantities can be simultaneously compared
+in this way, but depending on the output format,
+attempting to use too many may make the individual
+plots too small to be useful.
+</p>
+
+<p>The number D of quantities to compare (the dimensionality of the
+space from which you want to plot 2- and 1-dimensional projections)
+is given by the <code>nvar</code> parameter.
+Each specified layer then requires D positional coordinates,
+given by the parameters <code>x1</code>, <code>x2</code>, ... <code>xD</code>.
+The resulting grid of plots will have a linear dimension of D
+if there are histogram-like layers included,
+or D-1 if there are only scatter-plot like layers.
+As well as the positional coordinate parameters <code>xK</code> themselves,
+some of the other parameters are indexed by the coordinate index <code>K</code>
+as well, for instance
+<code>xKlog</code>, <code>xKflip</code>,
+<code>xKmin</code> and <code>xKmax</code>.
+</p>
+
+&plot2corner-layers;
+
+&plot2corner-summary;
+
+<subsubsect id="plot2corner-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>plot2corner</code>:
+
+<dl>
+
+<dt><verbatim>
+stilts plot2corner in=:attractor:100000,clifford
+                   nvar=2 x1=x x2=y
+                   layer_m=mark
+    </verbatim></dt>
+<dd><p>Plots a grid of scatter plots for a 3-d dataset.
+    This presents three plots: X vs. Y, X vs. Z, and Y vs. Z
+    in the lower triangle of the grid.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2corner in=:attractor:100000,clifford
+                   nvar=2 x1=x x2=y
+                   matrixformat=full
+                   layer_m=mark layer_h=histogram
+    </verbatim></dt>
+<dd><p>Same as the previous example, but also presents histograms
+    (one each for X, Y and Z) along the diagonal.
+    Additionally, the <code>matrixformat=full</code> parameter
+    means that the full grid (with redundant plots also for
+    Y vs. X, Z vs. X, and Z vs. Y are plotted above the diagonal.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2corner in=rrlyrae.fits
+                   icmd_A='select best_classification==\"RRAB\"'
+                   icmd_C='select best_classification==\"RRC\"'
+                   color_A=red color_C=cyan
+                   nvar=4 x1=peak_to_peak_g x2=p1 x3=r21_g x4=phi21_g x4min=3
+                   layer_A_m=mark layer_C_m=mark
+                   layer_A_k=kde layer_C_k=kde smooth_A_k=-50 smooth_C_k=-50
+                   layer_f=contour color_f=light_grey smooth_f=10 nlevel_f=6
+                   leglabel_A=RRAB leglabel_C=RRC legseq=_A_m,_C_m legpos=1,1
+</verbatim></dt>
+<dd><p>In this example there are two separate input datasets
+    (different selections from the same input table)
+    and four quantities to plot.
+    One of the coordinates is restricted in range using the
+    <code>x4min</code> parameter.
+    As well as the <code>mark</code> and <code>histogram</code> layers,
+    an additional <code>contour</code> layer (of the whole input table)
+    is overplotted on the scatter plot grid elements.
+    </p></dd>
+
+</dl>
+
+</p>
 
 </subsubsect>
 
@@ -14674,6 +14797,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         a <code>W-SDND</code> warning for all tables having
         multiple service descriptors.</li>
     <li>Fix fencepost error in reverse cumulative histogram plotting.</li>
+    <li>New plot command
+        <ref id="plot2corner"><code>plot2corner</code></ref>.</li>
     </ul>
     </p></dd>
 
