@@ -32101,6 +32101,7 @@ introduced since the last version:
         This is available from the toolbar and Columns menu,
         and also using the new popup menu available from the
         metadata display JTable.</li>
+    <li>Fix fencepost error in reverse cumulative histogram plotting.</li>
     </ul>
     </p></dd>
 

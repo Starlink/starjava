@@ -14673,6 +14673,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix <code>datalinklint</code> bug that reported
         a <code>W-SDND</code> warning for all tables having
         multiple service descriptors.</li>
+    <li>Fix fencepost error in reverse cumulative histogram plotting.</li>
     </ul>
     </p></dd>
 

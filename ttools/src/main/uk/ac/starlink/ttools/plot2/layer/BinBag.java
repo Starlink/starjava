@@ -148,7 +148,21 @@ public class BinBag {
         for ( int ib = 0; ib < nbin; ib++ ) {
             int jb = cumul.isReverse() ? nbin - ib - 1 : ib;
             double value = valueMap_.get( binIndices[ jb ] ).getCombinedValue();
-            binValues[ jb ] = cumul.isCumulative() ? total + value : value;
+            final double bv;
+            switch ( cumul ) {
+                case NONE:
+                   bv = value;
+                   break;
+                case FORWARD:
+                   bv = total + value;
+                   break;
+                case REVERSE:
+                   bv = total;
+                   break;
+                default:
+                   throw new AssertionError();
+            }
+            binValues[ jb ] = bv;
             total += value;
             max = Math.max( max, Math.abs( value ) );
         }
@@ -163,6 +177,7 @@ public class BinBag {
                 binValues[ ib ] *= scale;
             }
         }
+        final double stotal = scale * total;
 
         /* For a cumulative result, bins which never had values accumulated
          * into them, and hence did not appear in the bin map,
@@ -189,7 +204,7 @@ public class BinBag {
                 public Bin next() {
                     final double value;
                     if ( ib < 0 ) {
-                        value = cumul.isReverse() ? binValues[ 0 ] : 0;
+                        value = cumul.isReverse() ? stotal : 0;
                     }
                     else if ( ib >= nbin ) {
                         value = cumul.isReverse() ? 0 : binValues[ nbin - 1 ];
