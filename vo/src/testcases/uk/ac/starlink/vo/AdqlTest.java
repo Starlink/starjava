@@ -23,6 +23,8 @@ public class AdqlTest extends TestCase {
         assertEquals( AdqlVersion.V21,
                       TapCapabilityPanel.getDefaultLanguage( adqls )
                                         .getAdqlVersion() );
+        assertEquals( AdqlVersion.V20,
+                      TapCapabilityPanel.ADQL_DFLT.getAdqlVersion() );
     }
 
     public void testVersions() {

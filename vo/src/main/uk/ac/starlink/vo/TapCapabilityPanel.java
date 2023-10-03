@@ -35,8 +35,7 @@ public class TapCapabilityPanel extends JPanel {
 
     private static final VersionedLanguage[] ADQLS =
         createDefaultVersionedLanguages();
-    private static final VersionedLanguage ADQL =
-        getDefaultLanguage( ADQLS );
+    static final VersionedLanguage ADQL_DFLT = ADQLS[ 0 ];
 
     /**
      * Constructor.
@@ -101,7 +100,7 @@ public class TapCapabilityPanel extends JPanel {
             VersionedLanguage[] vlangs = ADQLS.clone();
             langSelector_.setModel( new DefaultComboBoxModel<VersionedLanguage>
                                                             ( vlangs ) );
-            langSelector_.setSelectedItem( getDefaultLanguage( vlangs ) );
+            langSelector_.setSelectedItem( ADQL_DFLT );
             uploadField_.setText( null );
             langSelector_.setEnabled( true );
             maxrecModel = new DefaultComboBoxModel<>( new String[ 1 ] );
@@ -226,7 +225,7 @@ public class TapCapabilityPanel extends JPanel {
     public VersionedLanguage getSelectedLanguage() {
         VersionedLanguage selected =
             langSelector_.getItemAt( langSelector_.getSelectedIndex() );
-        return selected == null ? ADQL : selected;
+        return selected == null ? ADQL_DFLT : selected;
     }
 
     /**
@@ -324,7 +323,7 @@ public class TapCapabilityPanel extends JPanel {
                  }
             }
         }
-        return vlangs.length > 0 ? vlangs[ 0 ] : ADQL;
+        return vlangs.length > 0 ? vlangs[ 0 ] : ADQL_DFLT;
     }
 
     /**

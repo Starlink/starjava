@@ -32102,6 +32102,8 @@ introduced since the last version:
         and also using the new popup menu available from the
         metadata display JTable.</li>
     <li>Fix fencepost error in reverse cumulative histogram plotting.</li>
+    <li>Fix TAP window to select ADQL-2.0 not ADQL-2.1
+        if service declares no ADQL versions.</li>
     </ul>
     </p></dd>
 
