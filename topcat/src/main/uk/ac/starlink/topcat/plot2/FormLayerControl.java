@@ -38,6 +38,7 @@ import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.util.Bi;
 
 /**
  * Plot layer control which manages coordinates and subsets in a common way
@@ -144,6 +145,17 @@ public abstract class FormLayerControl
 
         /* Position the components in tabs of this control. */
         addControlTab( "Position", posbox, true );
+        for ( Bi<String,JComponent> extra :
+              posCoordPanel_.getExtraTabs() ) {
+
+            /* StdPos = false is required for the MatrixPlot Fill tab,
+             * which is currently the only thing to use this hook.
+             * If others need to use it and have different positioning
+             * requirements, the getExtraTabs definition would have
+             * to change. */
+            boolean stdPos = false;
+            addControlTab( extra.getItem1(), extra.getItem2(), stdPos );
+        }
         addControlTab( "Subsets", subStack_.getComponent(), false );
     }
 

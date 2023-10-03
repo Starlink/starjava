@@ -1,8 +1,10 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import javax.swing.JComponent;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -12,6 +14,7 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.StorageType;
+import uk.ac.starlink.util.Bi;
 
 /**
  * GUI component for obtaining data position coordinates.
@@ -50,6 +53,17 @@ public abstract class PositionCoordPanel extends CoordPanel {
      * @return  data geom
      */
     public abstract DataGeom getDataGeom();
+
+    /**
+     * Returns definitions for additional tabs to add alongside the
+     * main Position tab in the FormLayerControl.
+     * In most cases an empty list will be returned.
+     *
+     * @return  list of (TabName,TabContent) pairs to add
+     */
+    public List<Bi<String,JComponent>> getExtraTabs() {
+        return Collections.emptyList();
+    }
 
     /**
      * Returns a list of coordinates which is like multiple copies of a
