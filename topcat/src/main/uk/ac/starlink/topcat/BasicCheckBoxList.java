@@ -3,9 +3,12 @@ package uk.ac.starlink.topcat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.swing.DefaultListModel;
 import javax.swing.ListModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 
 /**
  * Basic implementation of CheckBoxList.
@@ -94,10 +97,36 @@ public class BasicCheckBoxList<T> extends CheckBoxList<T> {
         else {
             activeSet_.remove( item );
         }
+        int index = getIndex( item );
+        if ( index >= 0 ) {
+            ListDataEvent evt =
+                new ListDataEvent( this, ListDataEvent.CONTENTS_CHANGED,
+                                   index, index );
+            for ( ListDataListener l : getModel().getListDataListeners() ) {
+                l.contentsChanged( evt );
+            }
+        }
     }
 
     public void moveItem( int ifrom, int ito ) {
         DefaultListModel<T> listModel = getModel();
         listModel.add( ito, listModel.remove( ifrom ) );
+    }
+
+    /**
+     * Returns the index of a given item in this list.
+     *
+     * @param  item  item to locate
+     * @return  index in list, or -1 if not found
+     */
+    private int getIndex( T item ) {
+        ListModel<T> model = getModel();
+        int n = model.getSize();
+        for ( int i = 0; i < n; i++ ) {
+            if ( Objects.equals( model.getElementAt( i ), item ) ) {
+                return i;
+            }
+        }
+        return -1;
     }
 }
