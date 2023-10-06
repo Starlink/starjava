@@ -29,7 +29,7 @@ import uk.ac.starlink.table.DomainMapper;
  * @author   Mark Taylor
  * @since    7 Apr 2020
  */
-public class ColumnDataComboBox extends JComboBox<ColumnData> {
+public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
 
     private final Domain<?> domain_;
     private final DomainMapperComboBox mapperSelector_;
