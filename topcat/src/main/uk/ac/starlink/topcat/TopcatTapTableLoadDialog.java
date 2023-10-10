@@ -62,7 +62,6 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     private AdqlExample[] uploadExamples_;
     private UrlHandler urlHandler_;
     private double[] skypos_;
-    private TapQueryPanel tqp_;
     private volatile DeletionPolicy deletionPolicy_;
 
     private static final Logger logger_ =
@@ -349,13 +348,13 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     @Override
     protected TapQueryPanel createTapQueryPanel() {
-        tqp_ = new TapQueryPanel( urlHandler_ ) {
+        TapQueryPanel tqp = new TapQueryPanel( urlHandler_ ) {
             @Override
             public double[] getSkyPos() {
                 return TopcatTapTableLoadDialog.this.skypos_;
             }
         };
-        tqp_.addCustomExamples( "Upload", getUploadExamples() );
+        tqp.addCustomExamples( "Upload", getUploadExamples() );
 
         /* Make sure the panel is kept up to date with the list of
          * tables known by the application. */
@@ -371,13 +370,13 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
                 updateTopcatTables();
             }
             private void updateTopcatTables() {
-                if ( tqp_ != null ) {
-                    tqp_.setExtraTables( createTopcatValidatorTables() );
+                if ( tqp != null ) {
+                    tqp.setExtraTables( createTopcatValidatorTables() );
                 }
             }
         } );
-        tqp_.setExtraTables( createTopcatValidatorTables() );
-        return tqp_;
+        tqp.setExtraTables( createTopcatValidatorTables() );
+        return tqp;
     }
 
     /**
