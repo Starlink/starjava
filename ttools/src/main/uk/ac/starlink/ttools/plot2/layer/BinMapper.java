@@ -93,8 +93,8 @@ public abstract class BinMapper {
         LinearBinMapper( double width, double phase, double point ) {
             width_ = width;
             width1_ = 1.0 / width;
-            int n = (int) Math.floor( point / width );
-            floor_ = ( n + phase ) * width;
+            double f0 = Math.floor( point / width );
+            floor_ = ( f0 + phase ) * width;
             assert Math.abs( floor_ - point ) <= width;
         }
 
@@ -149,8 +149,8 @@ public abstract class BinMapper {
             if ( point <= 0 ) {
                 point = 1;
             }
-            int n = (int) Math.floor( log( point ) / log( width ) );
-            floor_ = Math.pow( width, n + phase );
+            double f0 = Math.floor( log( point ) / log( width ) );
+            floor_ = Math.pow( width, f0 + phase );
             logFloor_ = log( floor_ );
             assert Math.abs( logFloor_ - log( point ) ) <= width;
             logWidth1_ = 1. / log( width );

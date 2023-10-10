@@ -32734,6 +32734,8 @@ introduced since the last version:
         if service declares no ADQL versions.</li>
     <li>New <ref id="MatrixPlotWindow">&Matrix; Plot Window</ref>
         added.</li>
+    <li>Fix bug in histogram plotting that could cause crashes
+        for small ranges far from the origin.</li>
     </ul>
     </p></dd>
 

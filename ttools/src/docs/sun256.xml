@@ -14799,6 +14799,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix fencepost error in reverse cumulative histogram plotting.</li>
     <li>New plot command
         <ref id="plot2corner"><code>plot2corner</code></ref>.</li>
+    <li>Fix bug in histogram plotting that could cause crashes
+        for small ranges far from the origin.</li>
     </ul>
     </p></dd>
 
