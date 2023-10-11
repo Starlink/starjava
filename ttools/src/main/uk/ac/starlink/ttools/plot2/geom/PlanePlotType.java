@@ -63,9 +63,18 @@ public class PlanePlotType
         implements PlotType<PlaneSurfaceFactory.Profile,PlaneAspect> {
 
     private static PlaneDataGeom DATAGEOM = PlaneDataGeom.INSTANCE;
-    private static final boolean HAS_SECONDARY_AXES = true;
+    private static final PlaneSurfaceFactory.Config PLANE_CONFIG =
+        new PlaneSurfaceFactory.Config() {
+            public boolean has2dMetric() {
+                return true;
+            }
+            public boolean hasSecondaryAxes() {
+                return true;
+            }
+        };
     private static final PlanePlotType INSTANCE =
-        new PlanePlotType( createDefaultPlotters(), true );
+        new PlanePlotType( new PlaneSurfaceFactory( PLANE_CONFIG ),
+                           createDefaultPlotters() );
 
     private final PlaneSurfaceFactory surfFact_;
     private final Plotter<?>[] plotters_;
@@ -73,13 +82,13 @@ public class PlanePlotType
     /**
      * Constructor.
      *
+     * @param  surfFact  surface factory
      * @param  plotters  available plotters for use with this plot type
-     * @param  has2dMetric  true if it may make sense to measure distances
-     *                      that are not parallel to either axis
      */
-    public PlanePlotType( Plotter<?>[] plotters, boolean has2dMetric ) {
+    public PlanePlotType( PlaneSurfaceFactory surfFact,
+                          Plotter<?>[] plotters ) {
+        surfFact_ = surfFact;
         plotters_ = plotters;
-        surfFact_ = new PlaneSurfaceFactory( has2dMetric, HAS_SECONDARY_AXES );
     }
 
     public DataGeom[] getPointDataGeoms() {
@@ -90,8 +99,7 @@ public class PlanePlotType
         return plotters_.clone();
     }
 
-    public SurfaceFactory<PlaneSurfaceFactory.Profile,PlaneAspect>
-                          getSurfaceFactory() {
+    public PlaneSurfaceFactory getSurfaceFactory() {
         return surfFact_;
     }
 

@@ -35,33 +35,36 @@ import uk.ac.starlink.ttools.plot2.layer.Unit;
  */
 public class MatrixPlotType extends PlanePlotType {
 
-    private static final boolean HAS_2D_METRIC = true;
-    private static final boolean HAS_SECONDARY_AXES = false;
-    private static final PlaneSurfaceFactory SURFACE_FACTORY =
-        new PlaneSurfaceFactory( HAS_2D_METRIC, HAS_SECONDARY_AXES );
+    /** SurfaceFactory configuration for matrix plot. */
+    public static final PlaneSurfaceFactory.Config MATRIX_CONFIG =
+        new PlaneSurfaceFactory.Config() {
+            public boolean has2dMetric() {
+                return true;
+            }
+            public boolean hasSecondaryAxes() {
+                return false;
+            }
+        };
 
     /** Default instance. */
     private static final MatrixPlotType INSTANCE =
-        new MatrixPlotType( createMatrixPlotters() );
+        new MatrixPlotType( new PlaneSurfaceFactory( MATRIX_CONFIG ),
+                            createMatrixPlotters() );
 
     /**
      * Constructor.
      *
      * @param   plotters  plotters for use with this plot type
      */
-    public MatrixPlotType( Plotter<?>[] plotters ) {
-        super( plotters, HAS_2D_METRIC );
+    public MatrixPlotType( PlaneSurfaceFactory surfFact,
+                           Plotter<?>[] plotters ) {
+        super( surfFact, plotters );
     }
 
     @Override
     public GangerFactory<PlaneSurfaceFactory.Profile,PlaneAspect>
                          getGangerFactory() {
         return MatrixGangerFactory.instance();
-    }
-
-    @Override
-    public PlaneSurfaceFactory getSurfaceFactory() {
-        return SURFACE_FACTORY;
     }
 
     @Override

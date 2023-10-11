@@ -70,7 +70,8 @@ public class HistogramPlotWindow
              extends StackPlotWindow<PlaneSurfaceFactory.Profile,PlaneAspect> {
 
     private static final PlanePlotType PLOT_TYPE =
-        new PlanePlotType( createHistogramPlotters(), false );
+        new PlanePlotType( HistogramAxisController.HISTOGRAM_SURFACE_FACTORY,
+                           createHistogramPlotters() );
     private static final HistogramPlotTypeGui PLOT_GUI =
         new HistogramPlotTypeGui();
     private static final int BINS_TABLE_INTRO_NCOL = 2;

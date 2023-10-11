@@ -178,6 +178,16 @@ public class PlaneSurfaceFactory
     /** Config key to anchor Y axis during zooms. */
     public static final ConfigKey<Boolean> YANCHOR_KEY = ANCHOR_XYKEY.getKeyY();
 
+    /** Default configuration for plane surface factory. */
+    public static final Config DFLT_CONFIG = new Config() {
+        public boolean has2dMetric() {
+            return true;
+        }
+        public boolean hasSecondaryAxes() {
+            return true;
+        }
+    };
+
     private final PlotMetric plotMetric_;
     private final boolean hasSecondaryAxes_;
 
@@ -185,21 +195,17 @@ public class PlaneSurfaceFactory
      * Constructs a PlaneSurfaceFactory with default characteristics.
      */
     public PlaneSurfaceFactory() {
-        this( true, true );
+        this( DFLT_CONFIG );
     }
 
     /**
      * Constructs a PlaneSurfaceFactory with configurable characteristics.
      *
-     * @param  has2dMetric  true if it may make sense to measure distances
-     *                      that are not parallel to either axis
-     * @param  hasSecondaryAxes  true if secondary axis labelling can be
-     *                           configured
+     * @param  config  configuration options
      */
-    public PlaneSurfaceFactory( boolean has2dMetric,
-                                boolean hasSecondaryAxes ) {
-        plotMetric_ = new PlanePlotMetric( has2dMetric );
-        hasSecondaryAxes_ = hasSecondaryAxes;
+    public PlaneSurfaceFactory( Config config ) {
+        plotMetric_ = new PlanePlotMetric( config.has2dMetric() );
+        hasSecondaryAxes_ = config.hasSecondaryAxes();
     }
 
     public Surface createSurface( Rectangle plotBounds, Profile profile,
@@ -698,6 +704,29 @@ public class PlaneSurfaceFactory
         return xlimits == null || ylimits == null
              ? null
              : new PlaneAspect( xlimits, ylimits );
+    }
+
+    /**
+     * Specifies configuration options for the PlaneSurfaceFactory.
+     * An instance of this interface is fed to the constructor.
+     */
+    public static interface Config {
+
+        /**
+         * Returns true if it may make sense to measure distances on
+         * the plane surfaces constructed.
+         *
+         * @return   true to allow 2d measurement
+         */
+        boolean has2dMetric();
+
+        /**
+         * Returns true if secondary axis labelling can be configured
+         * for the surface factory.
+         *
+         * @return  true to allow secondary axes
+         */
+        boolean hasSecondaryAxes();
     }
 
     /**

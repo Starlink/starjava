@@ -59,7 +59,9 @@ public class MatrixPlotWindow
             Arrays.stream( MatrixPlotType.getInstance().getPlotters() )
                   .filter( p -> ! ( p instanceof FunctionPlotter ) )
                   .toArray( n -> new Plotter<?>[ n ] );
-        return new MatrixPlotType( plotters );
+        PlaneSurfaceFactory surfFact =
+            new PlaneSurfaceFactory( MatrixPlotType.MATRIX_CONFIG );
+        return new MatrixPlotType( surfFact, plotters );
     }
 
     /**

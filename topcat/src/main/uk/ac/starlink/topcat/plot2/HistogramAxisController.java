@@ -50,11 +50,14 @@ public class HistogramAxisController
     private final JLabel histoCountLabel_;
     private final JLabel kdeCountLabel_;
 
+    public static PlaneSurfaceFactory HISTOGRAM_SURFACE_FACTORY =
+        new HistogramSurfaceFactory();
+
     /**
      * Constructor.
      */
     public HistogramAxisController() {
-        super( new HistogramSurfaceFactory(),
+        super( HISTOGRAM_SURFACE_FACTORY,
                PlaneAxisController.createAxisLabelKeys() );
         SurfaceFactory<PlaneSurfaceFactory.Profile,PlaneAspect> surfFact =
             getSurfaceFactory();
@@ -362,11 +365,18 @@ public class HistogramAxisController
             createAxisAnchorKey( "X", true );
         private static final ConfigKey<Boolean> HIST_YANCHOR_KEY =
             createAxisAnchorKey( "Y", false );
-        private static final boolean HAS_2D_METRIC = false;
-        private static final boolean HAS_SECONDARY_AXES = true;
+        private static final PlaneSurfaceFactory.Config HISTOGRAM_CONFIG =
+            new PlaneSurfaceFactory.Config() {
+                public boolean has2dMetric() {
+                    return false;
+                }
+                public boolean hasSecondaryAxes() {
+                    return true;
+                }
+            };
 
         HistogramSurfaceFactory() {
-            super( HAS_2D_METRIC, HAS_SECONDARY_AXES );
+            super( HISTOGRAM_CONFIG );
         }
 
         @Override
