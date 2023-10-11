@@ -44,6 +44,9 @@ public class MatrixPlotType extends PlanePlotType {
             public boolean hasSecondaryAxes() {
                 return false;
             }
+            public boolean labelFormattedPosition() {
+                return true;
+            }
         };
 
     /** Default instance. */

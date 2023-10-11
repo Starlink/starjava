@@ -186,10 +186,14 @@ public class PlaneSurfaceFactory
         public boolean hasSecondaryAxes() {
             return true;
         }
+        public boolean labelFormattedPosition() {
+            return false;
+        }
     };
 
     private final PlotMetric plotMetric_;
     private final boolean hasSecondaryAxes_;
+    private final boolean labelFormattedPosition_;
 
     /**
      * Constructs a PlaneSurfaceFactory with default characteristics.
@@ -206,6 +210,7 @@ public class PlaneSurfaceFactory
     public PlaneSurfaceFactory( Config config ) {
         plotMetric_ = new PlanePlotMetric( config.has2dMetric() );
         hasSecondaryAxes_ = config.hasSecondaryAxes();
+        labelFormattedPosition_ = config.labelFormattedPosition();
     }
 
     public Surface createSurface( Rectangle plotBounds, Profile profile,
@@ -218,7 +223,8 @@ public class PlaneSurfaceFactory
                               p.x2label_, p.y2label_, p.captioner_,
                               p.annotateflags_, p.xyfactor_,
                               p.xcrowd_, p.ycrowd_, p.minor_, p.shadow_,
-                              p.gridcolor_, p.axlabelcolor_ );
+                              p.gridcolor_, p.axlabelcolor_,
+                              labelFormattedPosition_ );
     }
 
     public ConfigKey<?>[] getProfileKeys() {
@@ -727,6 +733,15 @@ public class PlaneSurfaceFactory
          * @return  true to allow secondary axes
          */
         boolean hasSecondaryAxes();
+
+        /**
+         * Returns true if formatted position strings should be accompanied
+         * by the axis labels.
+         *
+         * @return  true to add axis labels to formatted position strings
+         * @see  uk.ac.starlink.ttools.plot2.Surface#formatPosition
+         */
+        boolean labelFormattedPosition();
     }
 
     /**

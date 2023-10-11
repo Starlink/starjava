@@ -71,6 +71,9 @@ public class PlanePlotType
             public boolean hasSecondaryAxes() {
                 return true;
             }
+            public boolean labelFormattedPosition() {
+                return false;
+            }
         };
     private static final PlanePlotType INSTANCE =
         new PlanePlotType( new PlaneSurfaceFactory( PLANE_CONFIG ),

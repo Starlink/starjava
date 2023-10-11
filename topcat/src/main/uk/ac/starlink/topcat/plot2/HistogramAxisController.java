@@ -373,6 +373,9 @@ public class HistogramAxisController
                 public boolean hasSecondaryAxes() {
                     return true;
                 }
+                public boolean labelFormattedPosition() {
+                    return false;
+                }
             };
 
         HistogramSurfaceFactory() {

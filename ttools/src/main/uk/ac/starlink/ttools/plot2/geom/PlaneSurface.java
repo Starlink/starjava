@@ -53,6 +53,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
     private final SideFlags annotateflags_;
     private final Color gridcolor_;
     private final Color axlabelcolor_;
+    private final boolean islabelposition_;
     private final Axis xAxis_;
     private final Axis yAxis_;
 
@@ -83,6 +84,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
      * @param  annotateflags  indicates which sides to annotate
      * @param  gridcolor  colour of grid lines, or null if not plotted
      * @param  axlabelcolor  colour of axis labels
+     * @param  islabelposition  whether formatted positions should include
+     *                          axis labels
      */
     public PlaneSurface( int gxlo, int gxhi, int gylo, int gyhi,
                          double dxlo, double dxhi, double dylo, double dyhi,
@@ -93,7 +96,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
                          Tick[] x2ticks, Tick[] y2ticks,
                          String x2label, String y2label,
                          Captioner captioner, SideFlags annotateflags,
-                         Color gridcolor, Color axlabelcolor ) {
+                         Color gridcolor, Color axlabelcolor,
+                         boolean islabelposition ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
         gylo_ = gylo;
@@ -118,6 +122,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
         annotateflags_ = annotateflags;
         gridcolor_ = gridcolor;
         axlabelcolor_ = axlabelcolor;
+        islabelposition_ = islabelposition;
         xAxis_ = Axis.createAxis( gxlo_, gxhi_, dxlo_, dxhi_, xlog_, xflip_ );
         yAxis_ = Axis.createAxis( gylo_, gyhi_, dylo_, dyhi_, ylog_,
                                   yflip_ ^ PlaneAxisAnnotation.INVERT_Y );
@@ -171,11 +176,18 @@ public class PlaneSurface implements Surface, PlanarSurface {
     }
 
     public String formatPosition( double[] dpos ) {
-        return new StringBuilder()
-            .append( formatPosition( xAxis_, dpos[ 0 ] ) )
+        StringBuilder sbuf = new StringBuilder();
+        sbuf.append( formatPosition( xAxis_, dpos[ 0 ] ) )
             .append( ", " )
-            .append( formatPosition( yAxis_, dpos[ 1 ] ) )
-            .toString();
+            .append( formatPosition( yAxis_, dpos[ 1 ] ) );
+        if ( islabelposition_ ) {
+            sbuf.append( " (" )
+                .append( xlabel_ )
+                .append( ", " )
+                .append( ylabel_ )
+                .append( ")" );
+        }
+        return sbuf.toString();
     }
 
     public Captioner getCaptioner() {
@@ -373,7 +385,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
                 && this.captioner_.equals( other.captioner_ )
                 && this.annotateflags_.equals( other.annotateflags_ )
                 && PlotUtil.equals( this.gridcolor_, other.gridcolor_ )
-                && PlotUtil.equals( this.axlabelcolor_, other.axlabelcolor_ );
+                && PlotUtil.equals( this.axlabelcolor_, other.axlabelcolor_ )
+                && this.islabelposition_ == other.islabelposition_;
         }
         else {
             return false;
@@ -407,6 +420,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
         code = 23 * code + annotateflags_.hashCode();
         code = 23 * code + PlotUtil.hashCode( gridcolor_ );
         code = 23 * code + PlotUtil.hashCode( axlabelcolor_ );
+        code = 23 * code + ( islabelposition_ ? 5 : 13 );
         return code;
     }
 
@@ -443,6 +457,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
      *                 if no secondary axis
      * @param  gridcolor  colour of grid lines, or null for none
      * @param  axlabelcolor  colour of axis labels
+     * @param  islabelposition  whether to include axis labels in
+     *                          formatted position text
      * @return  new plot surface
      */
     public static PlaneSurface createSurface( Rectangle plotBounds,
@@ -459,7 +475,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                               double xcrowd, double ycrowd,
                                               boolean minor, boolean shadow,
                                               Color gridcolor,
-                                              Color axlabelcolor ) {
+                                              Color axlabelcolor,
+                                              boolean islabelposition ) {
         int gxlo = plotBounds.x;
         int gxhi = plotBounds.x + plotBounds.width;
         int gylo = plotBounds.y;
@@ -546,7 +563,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                  xticks, yticks, xlabel, ylabel,
                                  x2ticks, y2ticks, x2label, y2label,
                                  captioner, annotateflags,
-                                 gridcolor, axlabelcolor );
+                                 gridcolor, axlabelcolor, islabelposition );
     }
 
     /**
