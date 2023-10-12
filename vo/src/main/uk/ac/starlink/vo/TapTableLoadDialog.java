@@ -1019,6 +1019,8 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         private final Action template_;
         private final PropertyChangeListener propForwarder_;
         private Action target_;
+        private static final String[] PROPS =
+            { NAME, SMALL_ICON, SHORT_DESCRIPTION };
 
         /**
          * Constructor.
@@ -1030,18 +1032,17 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             template_ = template;
             propForwarder_ = new PropertyChangeListener() {
                 public void propertyChange( PropertyChangeEvent evt ) {
-                    for ( PropertyChangeListener l :
-                          getPropertyChangeListeners() ) {
-                        l.propertyChange( evt );
-                    }
+                    ProxyAction.this.putValue( evt.getPropertyName(),
+                                               evt.getNewValue() );
                 }
             };
+            setTarget( null );
         }
 
         /**
          * Sets the target action.
          *
-         * @param  action providing enabledness and actionPerformed
+         * @param  action providing properties and behaviour
          */
         public void setTarget( Action target ) {
             if ( target_ != null ) {
@@ -1051,23 +1052,17 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             if ( target_ != null ) {
                 target_.addPropertyChangeListener( propForwarder_ );
             }
-            setEnabled( isEnabled() );
+            Action targ = target_ == null ? template_ : target_;
+            for ( String prop : PROPS ) {
+                putValue( prop, targ.getValue( prop ) );
+            }
+            setEnabled( target_ != null && target_.isEnabled() );
         }
 
         public void actionPerformed( ActionEvent evt ) {
             if ( target_ != null ) {
                 target_.actionPerformed( evt );
             }
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return target_ != null && target_.isEnabled();
-        }
-
-        @Override
-        public Object getValue( String key ) {
-            return template_.getValue( key );
         }
     }
 
