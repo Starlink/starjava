@@ -27014,6 +27014,7 @@ Some of the notable contributers are these:
 <li>Aaron Robotham (Bristol)</li>
 <li>Yannick Roehlly (OAMP)</li>
 <li>Mike Read (ROE)</li>
+<li>Robert Ryans (QUB)</li>
 <li>Henrik Rydberg (Gothenburg drinking water laboratory)</li>
 <li>Juan Carlos Segovia (ESAC)</li>
 <li>Petr &#x0160;koda (AIAS, CZ)</li>
@@ -32911,6 +32912,8 @@ introduced since the last version:
         can no longer be used to set authentication information
         globally for the application (this was a rather insecure
         practice anyway).</li>
+    <li>MacOS topcat-full.dmg file should now work for both Intel and
+        Apple Silicon architectures.</li>
     </ul>
     </p></dd>
 
