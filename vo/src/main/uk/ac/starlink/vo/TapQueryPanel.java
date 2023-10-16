@@ -39,6 +39,7 @@ import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -62,7 +63,12 @@ import javax.swing.text.Caret;
 import javax.swing.text.Element;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
+import uk.ac.starlink.auth.AuthManager;
+import uk.ac.starlink.auth.AuthStatus;
+import uk.ac.starlink.auth.AuthType;
+import uk.ac.starlink.auth.UserInterface;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Panel for display of a TAP query for a given TAP service.
@@ -85,6 +91,7 @@ public class TapQueryPanel extends JPanel {
     private final CaretListener caretForwarder_;
     private final List<CaretListener> caretListeners_;
     private final Map<ParseTextArea,UndoManager> undoerMap_;
+    private final AuthAction authAct_;
     private final AdqlTextAction clearAct_;
     private final AdqlTextAction interpolateColumnsAct_;
     private final AdqlTextAction interpolateTableAct_;;
@@ -138,7 +145,8 @@ public class TapQueryPanel extends JPanel {
         } );
 
         /* Prepare a panel to contain service capability information. */
-        tcapPanel_ = new TapCapabilityPanel();
+        authAct_ = new AuthAction();
+        tcapPanel_ = new TapCapabilityPanel( authAct_ );
         tcapPanel_.addPropertyChangeListener(
                 TapCapabilityPanel.LANGUAGE_PROPERTY,
                 evt -> {
@@ -478,6 +486,65 @@ public class TapQueryPanel extends JPanel {
         /* Outdate service-related state. */
         validator_ = null;
 
+        if ( serviceKit == null ) {
+            updateServiceKit( null );
+        }
+        else {
+
+            /* Attempt initial contact with the service to establish
+             * authentication, if any.  On success only, the rest of
+             * this panel will be updated with the service kit.
+             * On failure, leave it blank. */
+            Runnable popParent = pushUiParent( this );
+            boolean forceLogin = false;
+            serviceKit.acquireAuthStatus( new ResultHandler<AuthStatus>() {
+                public boolean isActive() {
+                    return serviceKit_ == serviceKit;
+                }
+                public void showWaiting() {
+                    String txt = "Checking Authentication...";
+                    tmetaPanel_.replaceTreeComponent( new JLabel( txt ) );
+                    tmetaPanel_.setAuthId( null );
+                }
+                public void showResult( AuthStatus authStatus ) {
+                    String authId = authStatus.getIdentityString();
+                    popParent.run();
+                    String msg = new StringBuffer()
+                        .append( authStatus.isAuthenticated()
+                               ? "Authenticated as " + authId
+                               : "Anonymous connection" )
+                        .append( " to TAP service " )
+                        .append( serviceKit.getTapService().getIdentity() )
+                        .toString();
+                    logger_.info( msg );
+                    tmetaPanel_.setAuthId( authId );
+                    authAct_.setAuthStatus( authStatus );
+                    warnAuthStatus( authStatus );
+                    tmetaPanel_.replaceTreeComponent( null );
+                    updateServiceKit( serviceKit );
+                }
+                public void showError( IOException e ) {
+                    popParent.run();
+                    tmetaPanel_.setAuthId( null );
+                    authAct_.setAuthStatus( new AuthStatus( AuthType.UNKNOWN ));
+                    ErrorDialog
+                   .showError( TapQueryPanel.this, "Authentication Error", e,
+                               "Authentication to TAP service failed");
+                    tmetaPanel_.replaceTreeComponent( null );
+                }
+            }, forceLogin );
+        }
+    }
+
+    /**
+     * Dispatch various asynchronous requests to populate the state of this
+     * panel displaying characteristics of the TAP service.
+     * No attempt is made to re-establish authentication.
+     *
+     * @param  serviceKit  service to be contacted
+     */
+    public void updateServiceKit( TapServiceKit serviceKit ) {
+
         /* Dispatch a request to acquire the table metadata from
          * the service. */
         tmetaPanel_.setServiceKit( serviceKit );
@@ -549,6 +616,15 @@ public class TapQueryPanel extends JPanel {
             interpolateTableAct_, interpolateColumnsAct_,
             parseErrorAct_, parseFixupAct_,
         };
+    }
+
+    /**
+     * Returns the action that logs in and out of the TAP service.
+     *
+     * @return  authentication action
+     */
+    public Action getAuthenticateAction() {
+        return authAct_;
     }
 
     /**
@@ -1085,6 +1161,26 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
+     * Alerts the user if the supplied status is something to be worried about.
+     * Otherwise, does nothing.
+     *
+     * @param  status  auth status
+     */
+    private void warnAuthStatus( AuthStatus status ) {
+        if ( ! status.isAuthenticated() &&
+             status.getAuthType() == AuthType.REQUIRED ) {
+            Object msg = new String[] {
+                "This TAP service requires authentication, " +
+                "but you are not logged in.",
+                "Things probably won't work.",
+            };
+            JOptionPane
+           .showMessageDialog( this, msg, "Not Authenticated",
+                               JOptionPane.WARNING_MESSAGE );
+        }
+    }
+
+    /**
      * Returns a button for a given action, with a shape suitable for a
      * little icon in a row of tools.
      *
@@ -1101,6 +1197,26 @@ public class TapQueryPanel extends JPanel {
         };
         butt.setMargin( new Insets( 2, 2, 2, 2 ) );
         return butt;
+    }
+
+    /**
+     * Temporarily sets the parent of the default AuthManager to the
+     * given component.  The return value is a callback which must be
+     * run to restore the parent to its original value.
+     *
+     * @param  tmpParent  component to install temporarily as
+     *                    AuthManager parent
+     * @return  runnable that restores AuthManager to previous state
+     */
+    private static Runnable pushUiParent( Component tmpParent ) {
+        UserInterface ui = AuthManager.getInstance().getUserInterface();
+        final Component parent0 = ui.getParent();
+        ui.setParent( tmpParent );
+        return () -> {
+            if ( ui.getParent() == tmpParent ) {
+                ui.setParent( parent0 );
+            }
+        };
     }
 
     /**
@@ -1212,6 +1328,104 @@ public class TapQueryPanel extends JPanel {
 
         public void actionPerformed( ActionEvent evt ) {
             act_.actionPerformed( evt );
+        }
+    }
+
+    /**
+     * Action to (re)-authenticate with authenticated TAP service.
+     */
+    private class AuthAction extends AbstractAction {
+
+        private AuthStatus authStatus_;
+        private final TapQueryPanel tqPanel_;
+
+        public AuthAction() {
+            super( "Log In/Out" );
+            setAuthStatus( AuthStatus.NO_AUTH );
+            tqPanel_ = TapQueryPanel.this;
+        }
+
+        @Override
+        public void actionPerformed( ActionEvent evt ) {
+            relogin();
+        }
+
+        /**
+         * Updates this action's state with a given status.
+         *
+         * @param  authStatus  new status
+         */
+        private void setAuthStatus( AuthStatus authStatus ) {
+            authStatus_ = authStatus;
+            AuthType authType = authStatus.getAuthType();
+            boolean isAuth = authStatus_.isAuthenticated();
+            setEnabled( ( authType == AuthType.OPTIONAL ||
+                          authType == AuthType.REQUIRED )
+                     && serviceKit_ != null );
+            final Icon icon;
+            if ( isAuth ) {
+                icon = ResourceIcon.AUTH_YES;
+            }
+            else {
+                icon = authType == AuthType.REQUIRED ? ResourceIcon.AUTH_REQNO
+                                                     : ResourceIcon.AUTH_NO;
+            }
+            putValue( SMALL_ICON, icon );
+            putValue( SHORT_DESCRIPTION,
+                      isAuth ? ( "Log in again (currently " +
+                                 authStatus.getAuthenticatedId() + ")" )
+                             : "Log in" );
+            // Note careful about changing the NAME here;
+            // it is currently used as a key in TapTableLoadDialog.
+        }
+
+        /**
+         * Attempts to interact with the user to login to an
+         * authenticated service if possible.
+         */
+        private void relogin() {
+            if ( serviceKit_ == null ) {
+                return;
+            }
+
+            /* If we are already authenticated, prompt to discard auth. */
+            AuthStatus status0 = authStatus_;
+            boolean isAuth = status0.isAuthenticated();
+            if ( status0.isAuthenticated() ) {
+                String msg = "Log out of TAP service as "
+                           + status0.getIdentityString() + "?";
+                int choice =
+                    JOptionPane
+                   .showConfirmDialog( tqPanel_, msg, "TAP Logout",
+                                       JOptionPane.OK_CANCEL_OPTION );
+                if ( choice != JOptionPane.OK_OPTION ) {
+                    return;
+                }
+            }
+
+            /* Attempt authentication. */
+            Runnable popParent = pushUiParent( tqPanel_ );
+            boolean isReset = true;
+            serviceKit_.acquireAuthStatus( new ResultHandler<AuthStatus>() {
+                public boolean isActive() {
+                    return true;
+                }
+                public void showError( IOException error ) {
+                    popParent.run();
+                    setAuthStatus( authStatus_ );
+                    ErrorDialog.showError( tqPanel_, "Authentication", error );
+                }
+                public void showWaiting() {
+                    setEnabled( false );
+                }
+                public void showResult( AuthStatus status ) {
+                    popParent.run();
+                    setAuthStatus( status );
+                    warnAuthStatus( status );
+                    tmetaPanel_.setAuthId( status.getIdentityString() );
+                    updateServiceKit( serviceKit_ );
+                }
+            }, isReset );
         }
     }
 

@@ -1,19 +1,23 @@
 package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
+import java.awt.Insets;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -28,6 +32,7 @@ public class TapCapabilityPanel extends JPanel {
     private final JComboBox<VersionedLanguage> langSelector_;
     private final JTextField uploadField_;
     private final JComboBox<Object> maxrecSelector_;
+    private final JButton authButton_;
     private VersionedLanguage lastLang_;
 
     /** Name of property associated with currently selected language. */
@@ -39,8 +44,12 @@ public class TapCapabilityPanel extends JPanel {
 
     /**
      * Constructor.
+     *
+     * @param  authAction  action for authentication; it is just included
+     *                     in this component for GUI organisation reasons,
+     *                     it's not managed as part of capabilities
      */
-    public TapCapabilityPanel() {
+    public TapCapabilityPanel( Action authAction ) {
         super( new BorderLayout() );
         langSelector_ = new JComboBox<>();
         langSelector_.setToolTipText( "Selects which supported query "
@@ -62,6 +71,9 @@ public class TapCapabilityPanel extends JPanel {
         maxrecSelector_.setToolTipText( "Indicates and allows to set MAXREC, "
                                       + "the maximum row count for result "
                                       + "tables" );
+        authButton_ = new JButton( authAction );
+        authButton_.setHorizontalTextPosition( SwingConstants.LEFT );
+        authButton_.setMargin( new Insets( 0, 5, 0, 5 ) );
         JComponent line = Box.createHorizontalBox();
         line.add( createJLabel( "Query Language: ", langSelector_ ) );
         line.add( new ShrinkWrapper( langSelector_ ) );
@@ -71,6 +83,8 @@ public class TapCapabilityPanel extends JPanel {
         line.add( Box.createHorizontalStrut( 10 ) );
         line.add( createJLabel( "Uploads: ", uploadField_ ) );
         line.add( uploadField_ );
+        line.add( Box.createHorizontalStrut( 10 ) );
+        line.add( authButton_ );
         line.add( Box.createHorizontalGlue() );
         add( line, BorderLayout.NORTH );
         setCapability( null );

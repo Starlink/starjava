@@ -25,6 +25,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
+import uk.ac.starlink.auth.AuthStatus;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
@@ -48,8 +50,9 @@ public class TapServiceKit {
     private final String ivoid_;
     private final TapMetaPolicy metaPolicy_;
     private final ContentCoding coding_;
+    private final int queueLimit_;
     private final Map<Populator<?>,Collection<Runnable>> runningMap_;
-    private final ExecutorService metaExecutor_;
+    private ExecutorService metaExecutor_;
     private volatile FutureTask<TapMetaReader> rdrFuture_;
 
     private static final Logger logger_ =
@@ -73,7 +76,7 @@ public class TapServiceKit {
         ivoid_ = ivoid;
         metaPolicy_ = metaPolicy;
         coding_ = coding;
-        metaExecutor_ = createExecutorService( queueLimit );
+        queueLimit_ = queueLimit;
         runningMap_ = new HashMap<Populator<?>,Collection<Runnable>>();
     }
 
@@ -277,6 +280,67 @@ public class TapServiceKit {
     }
 
     /**
+     * Asynchronously attempts to contact the authcheck endpoint of the
+     * TAP service to determine authentication information.
+     * This acquires the authentication status, but also sets up
+     * the authenticated connection, including acquiring credentials
+     * from the user, so that the user does not get asked
+     * on subsequent occasions.
+     *
+     * <p>On completion, the supplied handler is messaged with either
+     * the authentication status (which may represent anonymous usage)
+     * meaning that subsequent interactions with this service via
+     * the AuthManager may be successful, or with an IOException,
+     * meaning that authorization was denied and further interaction
+     * with the service is likely to fail.
+     *
+     * @param  handler  receives authentication information;
+     *                  either an authentication status
+     *                  or an authentication error
+     * @param  forceLogin  if true, the user will be asked to (re-)login if
+     *                     authentication is available; otherwise
+     *                     existing or anonymous interaction is preferred
+     */
+    public void acquireAuthStatus( final ResultHandler<AuthStatus> handler,
+                                   boolean forceLogin ) {
+        FutureTask<TapMetaReader> rdrFuture = rdrFuture_;
+        if ( rdrFuture != null ) {
+            rdrFuture.cancel( true );
+        }
+        rdrFuture_ = null;
+        runningMap_.clear();
+
+        /* These should be defined for TAP by SSO. */
+        final boolean isHead = true;
+        final URL authcheckUrl = service_.getCapabilitiesEndpoint();
+
+        /* Asynchronously enquire status with logging. */
+        ResultHandler<AuthStatus> loggingHandler =
+                new ResultHandler<AuthStatus>() {
+            public boolean isActive() {
+                return handler.isActive();
+            }
+            public void showWaiting() {
+                handler.showWaiting();
+            }
+            public void showError( IOException error ) {
+                logger_.log( Level.WARNING,
+                             "Failed to acquire authentication status at "
+                           + authcheckUrl + ": " + error, error );
+                handler.showError( error );
+            }
+            public void showResult( AuthStatus status ) {
+                logger_.info( "Authentication status: " + status
+                            + " (" + authcheckUrl + ")" );
+                handler.showResult( status );
+            }
+        };
+        acquireData( loggingHandler,
+                     () -> AuthManager.getInstance()
+                          .authcheck( authcheckUrl, isHead, forceLogin ) );
+    }
+
+    /**
      * Returns a RegTAP service that can be queried
      * for information about this service's registry record.
      *
@@ -295,7 +359,10 @@ public class TapServiceKit {
      * of this object.
      */
     public void shutdown() {
-        metaExecutor_.shutdownNow();
+        if ( metaExecutor_ != null ) {
+            metaExecutor_.shutdownNow();
+            metaExecutor_ = null;
+        }
     }
 
     /**
@@ -382,7 +449,7 @@ public class TapServiceKit {
         }
         else {
             try {
-                metaExecutor_.submit( new Runnable() {
+                getMetaExecutor().submit( new Runnable() {
                     public void run() {
                         if ( populator.populateCompleted_ ) {
                             SwingUtilities.invokeLater( callback );
@@ -471,7 +538,7 @@ public class TapServiceKit {
             return;
         }
         handler.showWaiting();
-        metaExecutor_.submit( new Runnable() {
+        getMetaExecutor().submit( new Runnable() {
             public void run() {
                 if ( ! handler.isActive() ) {
                     return;
@@ -480,11 +547,12 @@ public class TapServiceKit {
                 try {
                     data = callable.call();
                 }
-                catch ( final IOException error ) {
+                catch ( final Throwable error ) {
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
                             if ( handler.isActive() ) {
-                                handler.showError( error );
+                                handler.showError( TapTableLoadDialog
+                                                  .asIOException( error ) );
                             }
                         }
                     } );
@@ -544,6 +612,19 @@ public class TapServiceKit {
             }
         }
         return resultMap;
+    }
+
+    /**
+     * Returns a lazily constructed ExecutorService for use in acquiring
+     * metadata items.
+     *
+     * @return  executor
+     */
+    private ExecutorService getMetaExecutor() {
+        if ( metaExecutor_ == null ) {
+            metaExecutor_ = createExecutorService( queueLimit_ );
+        }
+        return metaExecutor_;
     }
 
     /**

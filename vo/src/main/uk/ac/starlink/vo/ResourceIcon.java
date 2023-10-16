@@ -45,6 +45,10 @@ public class ResourceIcon {
         NODE_TABLE = readIcon( "table_node.png" ),
         EXTLINK = readIcon( "extlink.png" ),
         RELOAD = readIcon( "reload.png" ),
+        AUTH_NO = readIcon( "auth-no.png" ),
+        AUTH_YES = readIcon( "auth-yes.png" ),
+        AUTH_REQNO = readIcon( "auth-reqno.png" ),
+        AUTH_NONE = readIcon( "auth-none.png" ),
 
         /* Placeholder and terminator. */
         VO_DOWHAT = readIcon( "burst.png" );

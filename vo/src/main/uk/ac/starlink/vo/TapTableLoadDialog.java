@@ -78,6 +78,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     private ResumeTapQueryPanel resumePanel_;
     private CaretListener adqlListener_;
     private Action reloadAct_;
+    private ProxyAction proxyAuthAct_;
     private JMenu editMenu_;
     private ProxyAction[] proxyActs_;
     private ComboBoxModel<TapRunMode> runModeModel_;
@@ -229,7 +230,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
                     searchPanel_.reload();
                 }
                 else if ( itab == tqTabIndex_ ) {
-                    tqPanel_.setServiceKit( createServiceKit() );
+                    tqPanel_.updateServiceKit( createServiceKit() );
                 }
                 else if ( itab == resumeTabIndex_ ) {
                     resumePanel_.reload();
@@ -258,11 +259,14 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
          * proxy actions that will delegate to the corresponding action
          * of whatever query panel is currently visible. */
         List<ProxyAction> pacts = new ArrayList<ProxyAction>();
-        for ( Action templateAct : createTapQueryPanel().getEditActions() ) {
-            ProxyAction proxyAct = new ProxyAction( templateAct );
-            pacts.add( proxyAct );
-            editMenu_.add( proxyAct );
+        TapQueryPanel dummyTqp = createTapQueryPanel();
+        for ( Action editAct : dummyTqp.getEditActions() ) {
+            ProxyAction proxyEditAct = new ProxyAction( editAct );
+            pacts.add( proxyEditAct );
+            editMenu_.add( proxyEditAct );
         }
+        proxyAuthAct_ = new ProxyAction( dummyTqp.getAuthenticateAction() );
+        pacts.add( proxyAuthAct_ );
         proxyActs_ = pacts.toArray( new ProxyAction[ 0 ] );
         updateQueryPanel();
 
@@ -273,7 +277,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         setToolbarActions( actList.toArray( new Action[ 0 ] ) );
 
         /* It's big. */
-        tabber_.setPreferredSize( new Dimension( 700, 650 ) );
+        tabber_.setPreferredSize( new Dimension( 750, 650 ) );
 
         /* Configure GUI changes dependent on the currently visible tab. */
         tabber_.addChangeListener( new ChangeListener() {
@@ -417,6 +421,16 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
      */
     public Action getReloadAction() {
         return reloadAct_;
+    }
+
+    /**
+     * Returns an action that can log in/out to the currently displayed
+     * TAP service.
+     *
+     * @return  authentication action
+     */
+    public Action getAuthenticateAction() {
+        return proxyAuthAct_;
     }
 
     public boolean acceptResourceIdList( String[] ivoids, String msg ) {
@@ -752,7 +766,10 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
          * corresponding actions from the curently visible TapQueryPanel. */
         Map<String,Action> actMap = new HashMap<String,Action>();
         if ( tqPanel_ != null ) {
-            for ( Action baseAct : tqPanel_.getEditActions() ) {
+            List<Action> baseActs = new ArrayList<>();
+            baseActs.addAll( Arrays.asList( tqPanel_.getEditActions() ) );
+            baseActs.add( tqPanel_.getAuthenticateAction() );
+            for ( Action baseAct : baseActs ) {
                 actMap.put( (String) baseAct.getValue( Action.NAME ), baseAct );
             }
         }

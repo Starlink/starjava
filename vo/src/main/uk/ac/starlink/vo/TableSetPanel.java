@@ -495,6 +495,15 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
+     * Displays authenticated user identifer in this panel.
+     *
+     * @param  authId  string representing user-readable authentication status
+     */
+    public void setAuthId( String authId ) {
+        servicePanel_.setAuthId( authId );
+    }
+
+    /**
      * Displays a progress bar to indicate that metadata fetching is going on.
      *
      * @return  the progress bar component
@@ -587,7 +596,7 @@ public class TableSetPanel extends JPanel {
      *
      * @param  content  component to replace tree, or null
      */
-    private void replaceTreeComponent( JComponent content ) {
+    public void replaceTreeComponent( JComponent content ) {
         treeContainer_.removeAll();
         treeContainer_.add( content != null ? content
                                             : new JScrollPane( tTree_ ),
@@ -1687,6 +1696,7 @@ public class TableSetPanel extends JPanel {
 
         private final JTextComponent ivoidField_;
         private final JTextComponent servurlField_;
+        private final JTextComponent authField_;
         private final JTextComponent nameField_;
         private final JTextComponent titleField_;
         private final JTextComponent refurlField_;
@@ -1733,6 +1743,7 @@ public class TableSetPanel extends JPanel {
             titleField_ = addLineField( "Title" );
             ivoidField_ = addLineField( "IVO ID" );
             servurlField_ = addLineField( "Service URL" );
+            authField_ = addLineField( "Authentication" );
             refurlField_ = addUrlField( "Reference URL", urlHandler );
             examplesurlField_ = addUrlField( "Examples URL", urlHandler );
             sizeField_ = addLineField( "Size" );
@@ -1818,6 +1829,15 @@ public class TableSetPanel extends JPanel {
                           getFeatureDescriptionsHtml( tcap, UDF_FILTER ) );
             setFieldText( nonstdField_,
                           getFeatureDescriptionsHtml( tcap, NONSTD_FILTER ) );
+        }
+
+        /**
+         * Displays authenticated user identifer in this panel.
+         *
+         * @param  authId  string representing authentication status
+         */
+        public void setAuthId( String authId ) {
+            setFieldText( authField_, authId );
         }
 
         /**
