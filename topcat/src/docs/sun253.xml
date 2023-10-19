@@ -16142,6 +16142,11 @@ The following subsections describe
 <ref id="MatrixAxisControl">axis configuration</ref>.
 </p>
 
+<p><em>Note: the &Matrix; Plot Window is new at TOPCAT version 4.9.
+Some of the features are experimental and may be changed in
+future releases.
+</em></p>
+
 <subsubsubsect id="matrixNavigation">
 <subhead><title>&Matrix; Navigation</title></subhead>
 
@@ -22555,13 +22560,14 @@ ADQL is essentially a particular dialect of SQL,
 so if you have used SQL before, you should be able to write ADQL queries.
 A tutorial on writing ADQL/SQL is beyond the scope of this manual,
 but the <ref id="TapTableLoadDialog_query">Use Service</ref> tab
-provides an <label>Examples</label> menu which
+provides a quick cheat sheet in the <label>Hints</label> tab
+of the metadata panel,
+and an <label>Examples</label> menu which
 will give you a good start in using it.
-You can find some introductions and tutorials elsewhere,
+There are introductions and tutorials elsewhere,
 for instance at
-<webref url="http://docs.g-vo.org/adql"/> (Markus Demleitner) or
-<webref url="http://is.gd/ADQLTutorial"/> (Simon Murphy).
-Some TAP services also provide tutorials or examples on their web pages.
+<webref url="http://docs.g-vo.org/adql"/> (Markus Demleitner)
+and in the documentation of some TAP service web pages.
 </p>
 
 <p>Once your query is written, you can submit it in either
