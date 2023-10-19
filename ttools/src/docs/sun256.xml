@@ -1067,15 +1067,35 @@ on the command line is equivalent to having the following in your
     on which you will be using the increased parallelism.
     </p></dd>
 
-<dt><code>star.basicauth.user</code></dt>
-<dt><code>star.basicauth.password</code></dt>
-<dd><p>If set, these will provide username and password for HTTP Basic
-    Authentication.  Any time the application attempts to access an
-    HTTP URL and is met by a 401 Unauthorized response, it will try again
-    supplying these user credentials.  This is a rather blunt instrument,
-    since the same identity is supplied regardless of which URL is being
-    accessed, but it may be of some use in accessing basic-authentication
-    protected services.
+<dt><code>auth.username</code></dt>
+<dt><code>auth.password</code></dt>
+<dd><p>If these are both set, they will provide username and password
+    for accessing authenticated resources.
+    Any time the application is refused access to an HTTP connection
+    and knows how to try to authenticate,
+    it will try again using these credentials.
+    In each case the values may be
+    either the username/password itself,
+    or of the form "<code>@&lt;filename&gt;</code>",
+    in which case the value is read from the first line of the named file.
+    This replaces the normal behaviour of asking for a username and
+    password on the console; see the
+    <ref id="AuthManager" plaintextref="yes">section on Authentication</ref>
+    for more details.
+    Since this setting will pass the username and password information to any
+    protected resource without checking it is the intended destination,
+    this can potentially leak secret information to third parties,
+    so these properties should be set with care.
+    </p></dd>
+
+<dt><code>auth.schemes</code></dt>
+<dd><p>Configures the list of authentication schemes
+    that will be considered when connecting to services issuing
+    a WWW-Authenticate challenge.
+    A comma-separated list of scheme names or
+    <javadoc docset="&stiltsjavadocs;"
+             class="uk.ac.starlink.auth.AuthScheme"/>
+    implementation classnames may be provided.
     </p></dd>
 
 <dt><code>startable.readers</code></dt>
@@ -2483,6 +2503,61 @@ It is also possible to add new schemes at runtime by using the
 </p>
 
 &scheme-docs;
+
+</subsect>
+
+<subsect id="AuthManager">
+<subhead><title>Authentication</title></subhead>
+
+<p>Some external data services restrict access to registered users,
+meaning that you have to log in to use them.
+If STILTS encounters such a restriction and knows how to try to
+authenticate to the service in question,
+it will report on the console the URL for which
+the access is blocked (and possibly some additional information
+about the way authentication is being carried out),
+and ask for entry of a username and password.
+If authentication is successful, the resource can be retrieved,
+and so can any other resources from the same place,
+so if multiple contacts to the same service
+are required from the same STILTS command/session,
+only one login attempt should be required.
+</p>
+
+<p>If user interaction during the command is not suitable,
+it is possible to supply a username and password using the
+<ref id="sysProperties">system properties</ref>
+<code>auth.username</code> and <code>auth.password</code>.
+If both of these are set, then instead of asking on the console
+for login credentials, they will be taken from the property values,
+for instance
+<verbatim>
+   stilts -Dauth.username=foo -Dauth.password=@~/passwd.txt
+          tpipe in=https://secret.com/data.vot
+</verbatim>
+would access the named resource, and if challenged by the service
+for authentication would supply "<code>foo</code>" for user name
+and the contents of the file at <code>~/passwd.txt</code> as the password.
+Note however that this feature should be used with care,
+since it passes private information indiscriminately to any
+service that asks for it.
+</p>
+
+<p>There is currently no way to log in to services that provide
+optional authentication (like some TAP services that grant
+enhanced resource limits to authenticated users).
+This may be added in a future release.
+</p>
+
+<p><strong>Note:</strong>
+These authentication arrangements in STILTS are new at version 3.4-9,
+and rely on VO standards that are still under discussion.
+The behaviour and user interface may change in future releases,
+and at time of writing not all data services that provide authentication
+advertise it in a way that STILTS can work with.
+It is hoped that authentication interoperability
+will improve in future versions of STILTS and of server-side software.
+</p>
 
 </subsect>
 
@@ -14801,6 +14876,18 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="plot2corner"><code>plot2corner</code></ref>.</li>
     <li>Fix bug in histogram plotting that could cause crashes
         for small ranges far from the origin.</li>
+    <li>The <ref id="AuthManager">authentication implementation</ref>
+        has changed, and authenticated access can now be made to
+        services that comply with the (draft) "SSO_next" proposal
+        for advertising authentication in the VO.
+        The <code>star.basicauth.user</code
+          >/<code>star.basicauth.password</code> system properties
+        can no longer be used to set authentication information
+        globally for the application, but the
+        <code>auth.username</code>/<code>auth.password</code>
+        <ref id="sysProperties">system properties</ref>
+        can be used in a similar way
+        (though this should be done with caution).</li>
     </ul>
     </p></dd>
 
