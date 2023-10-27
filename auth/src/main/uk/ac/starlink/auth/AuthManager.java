@@ -49,20 +49,13 @@ public class AuthManager {
     private final ContextList contexts_;
     private final Redirector dfltRedirector_;
 
-    /** Authentication schemes used by default, in order of preference. */
-    public static final AuthScheme[] DFLT_SCHEMES = new AuthScheme[] {
-        X509IvoaAuthScheme.INSTANCE,
-        CookieIvoaAuthScheme.INSTANCE,
-        BasicAuthScheme.INSTANCE,
-    };
-
     /** Default instance. */
     private static AuthManager instance_ =
-         new AuthManager( (UserInterface) null, DFLT_SCHEMES,
-                          Redirector.DEFAULT );
+        new AuthManager( (UserInterface) null, AuthUtil.getDefaultSchemes(),
+                         Redirector.DEFAULT );
 
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.auth" );
+        Logger.getLogger( "uk.ac.starlink.auth" );        
 
     /**
      * Constructor.  Note that in most cases best practice would be

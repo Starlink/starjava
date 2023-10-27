@@ -11,7 +11,7 @@ import java.util.List;
 
 public class AuthTest {
 
-    public static final AuthScheme[] SCHEMES = AuthManager.DFLT_SCHEMES;
+    public static final AuthScheme[] SCHEMES = AuthUtil.ALL_SCHEMES;
 
     public static AuthScheme getSchemeByName( String name ) {
         for ( AuthScheme scheme : SCHEMES ) {

@@ -10,10 +10,13 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Utilities used by authentication classes.
@@ -46,8 +49,35 @@ public class AuthUtil {
     public static boolean LOG_SECRETS =
         "true".equalsIgnoreCase( System.getProperty( LOGSECRETS_PROP ) );
 
+    /**
+     * Name of system property {@value} giving a comma-separated list of
+     * AuthScheme instances or classnames, which overrides the default list
+     * of authentication schemes in order of preference.
+     */
+    public static final String SCHEMES_PROP = "auth.schemes";
+
+    /** Default list of authentication schemes in order of preference. */
+    public static final AuthScheme[] DFLT_SCHEMES = new AuthScheme[] {
+        X509IvoaAuthScheme.INSTANCE,
+        CookieIvoaAuthScheme.INSTANCE,
+        BasicAuthScheme.INSTANCE,
+    };
+
+    /** Authentication schemes that are known but not in default list. */
+    private static final AuthScheme[] OTHER_SCHEMES = new AuthScheme[] {
+        BearerIvoaAuthScheme.INSTANCE,
+    };
+
+    /** List of all known authentication schemes. */
+    public static final AuthScheme[] ALL_SCHEMES =
+        Stream.concat( Stream.of( DFLT_SCHEMES ),
+                       Stream.of( OTHER_SCHEMES ) )
+              .toArray( n -> new AuthScheme[ n ] );
+
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.auth" );
+
+    private static AuthScheme[] dfltSchemes_;
 
     /**
      * Private constructor prevents authentication.
@@ -196,6 +226,81 @@ public class AuthUtil {
      */
     public static String cookieLogText( HttpCookie cookie ) {
         return LOG_SECRETS ? cookie.toString() : cookie.getName();
+    }
+
+    /**
+     * Returns a default list of AuthSchemes in order of preference.
+     * This is affected by the {@link #SCHEMES_PROP} system property;
+     * if that is not set, it will take the value of {@link #DFLT_SCHEMES}.
+     *
+     * @return  default authentication scheme list
+     */
+    public static AuthScheme[] getDefaultSchemes() {
+        if ( dfltSchemes_ == null ) {
+            dfltSchemes_ = createDefaultSchemes();
+            logger_.log( Arrays.equals( dfltSchemes_, DFLT_SCHEMES ) 
+                             ? Level.CONFIG
+                             : Level.WARNING,
+                         "Default auth schemes: "
+                              + Stream.of( dfltSchemes_ )
+                                       .map( s -> s.getName() )
+                                       .collect( Collectors.joining( "," ) ) );
+        }
+        return dfltSchemes_.clone();
+    }
+ 
+    /**
+     * Creates the default list of AuthSchemes in order of preference.
+     * This is affected by the {@link #SCHEMES_PROP} system property;
+     * if that is not set, it will take the value of {@link #DFLT_SCHEMES}.
+     *
+     * @return  default authentication scheme list
+     */
+    private static AuthScheme[] createDefaultSchemes() {
+        String propTxt = System.getProperty( SCHEMES_PROP );
+        if ( propTxt == null || propTxt.trim().length() == 0 ) {
+            return DFLT_SCHEMES;
+        }
+        else {
+            try {
+                return getNamedSchemes( propTxt.split( "," ) );
+            }
+            catch ( Throwable err ) {
+                logger_.log( Level.WARNING,
+                             "Not a list of auth schemes: " + propTxt, err );
+                return DFLT_SCHEMES;
+            }
+        }
+    }
+
+    /**
+     * Attempts to turn a list of scheme designators into a corresponding
+     * list of AuthSchemes.   Each entry may be a case-insensitive match
+     * for the name or classname of a known scheme, or the classname
+     * of an AuthScheme sub-type which has a no-arg constructor.
+     * If anything goes wrong, some kind of exception will be thrown.
+     *
+     * @param  names   scheme designators
+     * @return   array of auth schemes as designated
+     * @throws   Throwable  if something goes wrong
+     */
+    private static AuthScheme[] getNamedSchemes( String[] names )
+            throws ClassNotFoundException, InstantiationException,
+                   IllegalAccessException {
+        List<AuthScheme> schemes = new ArrayList<>();
+        for ( String name : names ) {
+            AuthScheme scheme =
+                Stream.of( ALL_SCHEMES )
+                      .filter( s -> name.equalsIgnoreCase( s.getName() ) ||
+                                    name.equals( s.getClass().getName() ) )
+                      .findFirst()
+                      .orElse( null );
+            if ( scheme == null ) {
+                scheme = (AuthScheme) Class.forName( name ).newInstance();
+            }
+            schemes.add( scheme );
+        }
+        return schemes.toArray( new AuthScheme[ 0 ] );
     }
 
     /**
