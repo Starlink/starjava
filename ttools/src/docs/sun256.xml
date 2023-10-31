@@ -7150,7 +7150,7 @@ stilts plot2sphere in=hip_main.fits lon=radeg lat=dedeg r=plx
 represents the relationships between multiple quantities
 by drawing a scatter-like plot of every pair of coordinates,
 and/or a histogram-like plot of every single coordinate,
-and placing these on (half of) a square grid.
+and placing these on (half or all of) a square grid.
 The horizontal coordinates of all the plots on each column,
 and the vertical coordinates of all the plots on each row,
 are aligned.
@@ -7187,6 +7187,11 @@ as well, for instance
 
 &plot2corner-layers;
 
+<figure>
+<caption><px>Example output from <code>plot2corner</code>.</px></caption>
+<figureimage src="&FIG.plot2-matrix;"/>
+</figure>
+
 &plot2corner-summary;
 
 <subsubsect id="plot2corner-examples">
@@ -7197,26 +7202,26 @@ as well, for instance
 <dl>
 
 <dt><verbatim>
-stilts plot2corner in=:attractor:100000,clifford
-                   nvar=2 x1=x x2=y
+stilts plot2corner in=:attractor:100000,rampe
+                   nvar=3 x1=x x2=y x3=z
                    layer_m=mark
-    </verbatim></dt>
+</verbatim></dt>
 <dd><p>Plots a grid of scatter plots for a 3-d dataset.
     This presents three plots: X vs. Y, X vs. Z, and Y vs. Z
     in the lower triangle of the grid.
     </p></dd>
 
 <dt><verbatim>
-stilts plot2corner in=:attractor:100000,clifford
-                   nvar=2 x1=x x2=y
+stilts plot2corner in=:attractor:100000,rampe
+                   nvar=3 x1=x x2=y x3=z
                    matrixformat=full
                    layer_m=mark layer_h=histogram
-    </verbatim></dt>
+</verbatim></dt>
 <dd><p>Same as the previous example, but also presents histograms
     (one each for X, Y and Z) along the diagonal.
     Additionally, the <code>matrixformat=full</code> parameter
     means that the full grid (with redundant plots also for
-    Y vs. X, Z vs. X, and Z vs. Y are plotted above the diagonal.
+    Y vs. X, Z vs. X, and Z vs. Y) are plotted above the diagonal.
     </p></dd>
 
 <dt><verbatim>
@@ -7235,7 +7240,7 @@ stilts plot2corner in=rrlyrae.fits
     and four quantities to plot.
     One of the coordinates is restricted in range using the
     <code>x4min</code> parameter.
-    As well as the <code>mark</code> and <code>histogram</code> layers,
+    As well as the <code>mark</code> and <code>kde</code> layers,
     an additional <code>contour</code> layer (of the whole input table)
     is overplotted on the scatter plot grid elements.
     </p></dd>
