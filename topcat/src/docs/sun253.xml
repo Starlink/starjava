@@ -517,7 +517,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>20 April 2023</docdate>
+<docdate>1 November 2023</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -32862,76 +32862,93 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.9">Version 4.9 (1 November 2023)</dt>
 <dd><p>
-    <ul>
-    <li>Update hard-coded Registry URLs for Euro-VO and STSci to use
-        https not http protocol.</li>
-    <li>Avoid annoying popup in Cone/SIA/SSA windows when position is
-        resolved before radius is filled in.</li>
-    <li>Fix issues to to with sky coordinate system choice
-        that sometimes caused
-        <ref id="LayerControl_skygrid">SkyGrid</ref> and
-        <ref id="HealpixLayerControl">Healpix</ref> layers
-        to generate broken STILTS commands for export.</li>
-    <li>Fix bug in ADQL syntax highlighting related to delimited
-        identifiers (quoted table names).
-        This bug was only introduced with the VOLLT upgrade
-        in the last release (TOPCAT v4.8-8).</li>
-    <li>Fix missing secondary X axis bug in stacked Time plots.</li>
-    <li>Fix TAP capabilities parsing to identify language features
-        with non-standard capitalisations.</li>
-    <li>Fix aux axis/legend positioning issue in sky plot
-        (regression bug introduced at v4.8-8).</li>
-    <li>Add new <label>Sky + X with Errors</label>
-        <ref id="matchCriteria">Match Algorithm</ref> option.</li>
-    <li>Flag ConeSearch 1.03-style error result tables.</li>
-    <li>Column names with embedded carriage returns are now
-        recognised in column selectors.</li>
-    <li>Fix a bug in the
-        <ref id="MatchWindow">Pair Match</ref> and
-        <ref id="MatchWindowN">Multiple Match</ref> windows
-        which assigned the created
-        <code>matched</code>/<code>match&lt;N&gt;</code> subsets
-        to completely the wrong rows.
-        These subsets are only created for some match types,
-        and everything else about the matches was unaffected.
-        STILTS was not affected.
-        This was a regression bug since v4.8-4.
-        Thanks to Claire Greenwell (Durham) for reporting this.</li>
-    <li>Fix bug which ignored some points in multi-threaded,
-        multi-dataset or multi-subset plots.
-        This bug was introduced in v4.7 and was supposed to be fixed
-        at v4.8-8 but wasn't.</li>
-    <li>Metadata export actions
-        (<label>Import</label>/<label>Save as Table</label>)
-        added to <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
-    <li>You can now <ref id="ColumnSearchWindow">Search</ref>
-        for columns by metadata in the
-        the <ref id="ColumnInfoWindow">Columns Window</ref>.
-        This is available from the toolbar and Columns menu,
-        and also using the new popup menu available from the
-        metadata display JTable.</li>
-    <li>Fix fencepost error in reverse cumulative histogram plotting.</li>
-    <li>Fix TAP window to select ADQL-2.0 not ADQL-2.1
-        if service declares no ADQL versions.</li>
-    <li>New <ref id="MatrixPlotWindow">&Matrix; Plot Window</ref>
-        added.</li>
-    <li>Fix bug in histogram plotting that could cause crashes
-        for small ranges far from the origin.</li>
-    <li>The <ref id="AuthManager">authentication implementation</ref>
-        has changed, and it is now possible to
-        <ref id="TapTableLoadDialog_query_auth">log in to TAP services</ref>
-        that comply with the (draft) "SSO_next" proposal for advertising
-        authentication methods in the VO.
-        The <code>star.basicauth.user</code
-          >/<code>star.basicauth.password</code> system properties
-        can no longer be used to set authentication information
-        globally for the application (this was a rather insecure
-        practice anyway).</li>
-    <li>MacOS topcat-full.dmg file should now work for both Intel and
-        Apple Silicon architectures.</li>
-    </ul>
+    <dl>
+    <dt>New functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>New <ref id="MatrixPlotWindow">&Matrix; Plot Window</ref>
+            added.</li>
+        <li>The <ref id="AuthManager">authentication handling</ref>
+            has changed, and it is now possible to
+            <ref id="TapTableLoadDialog_query_auth">log in to TAP services</ref>
+            that comply with the (draft) "SSO_next" proposal for advertising
+            authentication methods in the VO.
+            The <code>star.basicauth.user</code
+              >/<code>star.basicauth.password</code> system properties
+            can no longer be used to set authentication information
+            globally for the application (this was a rather insecure
+            practice anyway).</li>
+        <li>Column metadata export actions
+            (<label>Import as Table</label>, <label>Save as Table</label>)
+            added to <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+        <li>You can now <ref id="ColumnSearchWindow">Search</ref>
+            for columns by metadata in the
+            the <ref id="ColumnInfoWindow">Columns Window</ref>.
+            This is available as the <label>Search Column</label>
+            action in the toolbar and Columns menu,
+            and also using the new popup menu available from the
+            metadata display JTable.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>MacOS topcat-full.dmg file should now work for both Intel and
+            Apple Silicon architectures.</li>
+        <li>Add new <label>Sky + X with Errors</label>
+            <ref id="matchCriteria">Match Algorithm</ref> option.</li>
+        <li>Update hard-coded Registry URLs for Euro-VO and STSci to use
+            https not http protocol.</li>
+        <li>Avoid annoying popup in Cone/SIA/SSA windows when position is
+            resolved before radius is filled in.</li>
+        <li>Flag ConeSearch 1.03-style error result tables.</li>
+        <li>Column names with embedded carriage returns are now
+            recognised in column selectors.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix a bug in the
+            <ref id="MatchWindow">Pair Match</ref> and
+            <ref id="MatchWindowN">Multiple Match</ref> windows
+            which assigned the created
+            <code>matched</code>/<code>match&lt;N&gt;</code> subsets
+            to completely the wrong rows.
+            These subsets are only created for some match types,
+            and everything else about the matches was unaffected.
+            STILTS was not affected.
+            This was a regression bug since v4.8-4.
+            Thanks to Claire Greenwell (Durham) for reporting this.</li>
+        <li>Fix bug which ignored some points when painting multi-threaded,
+            multi-dataset or multi-subset plots.
+            This bug was introduced in v4.7 and was supposed to be fixed
+            at v4.8-8 but wasn't.</li>
+        <li>Fix TAP window to select ADQL-2.0 not ADQL-2.1
+            if service declares no ADQL versions.</li>
+        <li>Fix TAP capabilities parsing to identify language features
+            with non-standard capitalisations.</li>
+        <li>Fix fencepost error in reverse cumulative histogram plotting.</li>
+        <li>Fix missing secondary X axis bug in stacked Time plots.</li>
+        <li>Fix bug in histogram plotting that could cause crashes
+            for small ranges far from the origin.</li>
+        <li>Fix aux axis/legend positioning issue in sky plot
+            (regression bug introduced at v4.8-8).</li>
+        <li>Fix bug in ADQL syntax highlighting related to delimited
+            identifiers (quoted table names).
+            This bug was only introduced with the VOLLT upgrade
+            in the last release (TOPCAT v4.8-8).</li>
+        <li>Fix issues to do with sky coordinate system choice
+            that sometimes caused
+            <ref id="LayerControl_skygrid">SkyGrid</ref> and
+            <ref id="HealpixLayerControl">Healpix</ref> layers
+            to generate broken STILTS commands for export.</li>
+        </ul>
+        </p></dd>
+       
+    </dl>
     </p></dd>
 
 </dl>

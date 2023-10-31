@@ -185,7 +185,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>20 April 2023</docdate>
+<docdate>1 November 2023</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -14847,53 +14847,68 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v3.4-9">Version 3.4-9 (1 November 2023)</dt>
 <dd><p>
-    <ul>
-    <li>Fix rendering bug for
-        <ref id="mode-gui"><code>mode=gui</code></ref>
-        with huge (&gt;130 million row) tables.</li>
-    <li>Taplint EXA stage now checks RDFa property attributes against
-        <code>http://www.ivoa.net/rdf/examples</code> vocabulary.</li>
-    <li>Fix missing secondary X axis bug in stacked Time plots.</li>
-    <li>Fix some IVOID case-sensitivity issues that could result in
-        spurious taplint error reports.</li>
-    <li>Fix aux axis/legend positioning issue in sky plot
-        (regression bug introduced at v3.4-8).</li>
-    <li>Introduced alternative syntax ("<code>*</code>" separator)
-        for <ref id="CombinedMatchEngine">matcher combinations</ref>
-        to restrict match separations to the scaled unit sphere.</li>
-    <li>Fix bug which could ignore some points in multi-threaded
-        multi-dataset plots.  This bug was introduced in v3.2,
-        and was supposed to be fixed at v3.4-8 but wasn't.</li>
-    <li>Votlint is aware of VOTable 1.5 and can check against
-        some features from WD-VOTable-1.5-20230913
-        (currently just vocabularised <code>system</code> and
-        <code>refposition</code> attributes of COOSYS).</li>
-    <li>Downgrade taplint warning about non-standard
-        language features from Warning to Info
-        (<code>W-CAP-CULF</code> -&gt; <code>I-CAP-CULF</code>).</li>
-    <li>Fix <code>datalinklint</code> bug that reported
-        a <code>W-SDND</code> warning for all tables having
-        multiple service descriptors.</li>
-    <li>Fix fencepost error in reverse cumulative histogram plotting.</li>
-    <li>New plot command
-        <ref id="plot2corner"><code>plot2corner</code></ref>.</li>
-    <li>Fix bug in histogram plotting that could cause crashes
-        for small ranges far from the origin.</li>
-    <li>The <ref id="AuthManager">authentication implementation</ref>
-        has changed, and authenticated access can now be made to
-        services that comply with the (draft) "SSO_next" proposal
-        for advertising authentication in the VO.
-        The <code>star.basicauth.user</code
-          >/<code>star.basicauth.password</code> system properties
-        can no longer be used to set authentication information
-        globally for the application, but the
-        <code>auth.username</code>/<code>auth.password</code>
-        <ref id="sysProperties">system properties</ref>
-        can be used in a similar way
-        (though this should be done with caution).</li>
-    </ul>
+    <dl>
+    <dt>New functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>New plot command
+            <ref id="plot2corner"><code>plot2corner</code></ref>.</li>
+        <li>The <ref id="AuthManager">authentication handling</ref>
+            has changed, and authenticated access can now be made to
+            services that comply with the (draft) "SSO_next" proposal
+            for advertising authentication in the VO.
+            The <code>star.basicauth.user</code
+              >/<code>star.basicauth.password</code> system properties
+            can no longer be used to set authentication information
+            globally for the application, but the
+            <code>auth.username</code>/<code>auth.password</code>
+            <ref id="sysProperties">system properties</ref>
+            can be used in a similar way
+            (though this should be done with caution).</li>
+        <li>Introduced alternative syntax ("<code>*</code>" separator)
+            for <ref id="CombinedMatchEngine">matcher combinations</ref>
+            to restrict match separations to the scaled unit sphere.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Taplint EXA stage now checks RDFa property attributes against the
+            <code>http://www.ivoa.net/rdf/examples</code> vocabulary.</li>
+        <li>Votlint is aware of VOTable 1.5 and can check against
+            some features from WD-VOTable-1.5-20230913
+            (currently just vocabularised <code>system</code> and
+            <code>refposition</code> attributes of COOSYS).</li>
+        <li>Downgrade taplint warning about non-standard
+            language features from Warning to Info
+            (<code>W-CAP-CULF</code> -&gt; <code>I-CAP-CULF</code>).</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix some IVOID case-sensitivity issues that could result in
+            spurious taplint error reports.</li>
+        <li>Fix bug which could ignore some points in multi-threaded
+            multi-dataset plots.  This bug was introduced in v3.2,
+            and was supposed to be fixed at v3.4-8 but wasn't.</li>
+        <li>Fix fencepost error in reverse cumulative histogram plotting.</li>
+        <li>Fix missing secondary X axis bug in stacked Time plots.</li>
+        <li>Fix bug in histogram plotting that could cause crashes
+            for small ranges far from the origin.</li>
+        <li>Fix aux axis/legend positioning issue in sky plot
+            (regression bug introduced at v3.4-8).</li>
+        <li>Fix rendering bug for
+            <ref id="mode-gui"><code>omode=gui</code></ref>
+            with huge (&gt;130 million row) tables.</li>
+        <li>Fix <code>datalinklint</code> bug that reported
+            a <code>W-SDND</code> warning for all tables having
+            multiple service descriptors.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
