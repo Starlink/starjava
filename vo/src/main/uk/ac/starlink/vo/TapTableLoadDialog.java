@@ -735,7 +735,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
                 TapQueryPanel tqPanel = createTapQueryPanel();
                 if ( runModeModel_ != null && runModeModel_.getSize() > 1 ) {
                     JComponent modeLine = Box.createHorizontalBox();
-                    modeLine.add( new JLabel( "Mode: " ) );
+                    modeLine.add( new JLabel( "Query Mode: " ) );
                     modeLine.add( new ShrinkWrapper(
                                       new JComboBox<>( runModeModel_ ) ) );
                     modeLine.add( Box.createHorizontalStrut( 5 ) );

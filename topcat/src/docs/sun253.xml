@@ -2192,10 +2192,10 @@ in <ref id="vo-windows"/>.
 <subsect id="AuthManager">
 <subhead><title>Authentication</title></subhead>
 
-<p>Some services in the Virtual Observatory restrict access to
-registered users, meaning that you have to log in to use them,
+<p>Some services in the Virtual Observatory are authenticated,
+meaning that you have to log in to use them,
 or in some cases that you can optionally log in
-to gain additional rights
+to gain additional rights,
 such as access to protected datasets or increased resource usage limits.
 Authentication for these situations mostly behaves as you would expect
 for an application working with external restricted services,
@@ -2211,7 +2211,9 @@ Additional information about how the authentication will be done
 may also be shown.
 If you log in successfully data access will proceed as expected,
 otherwise it will be blocked.
-Additionally, in the TAP Window you can log in to services
+Additionally, in the
+<ref id="TapTableLoadDialog_query">TAP Window</ref>
+you can log in to services
 for which authentication is optional by using the
 <ref id="TapTableLoadDialog_query_auth">Log In/Out</ref> button.
 </p>
@@ -16121,7 +16123,7 @@ It also affects some other things like the legend.
 represents the relationships between multiple quantities
 by drawing a scatter-like plot of every pair of coordinates,
 and/or a histogram-like plot of every single coordinate,
-and placing these on (half of) a square grid.
+and placing these on (half or all of) a square grid.
 The horizontal coordinates of all the plots on each column,
 and the vertical coordinates of all the plots on each row,
 are aligned.
@@ -16228,7 +16230,7 @@ stay consistent per row and per column.
 
 <p>Using the mouse to drag and zoom on one axis only, rather than
 both at once, by positioning it just outside the bounds of one of
-the panels as described below,
+the panels (e.g. between panels) as described below,
 can be particularly useful in this plot.
 </p>
 
@@ -16237,8 +16239,10 @@ can be particularly useful in this plot.
 <dt>&GESTURE.DRAG1;</dt>
 <dd><p><em>Pan.</em>
     On the body of the plot this moves it around up/down/left/right.
-    To move it only vertically, drag on the left of the Y axis.
-    To move it only horizontally, drag below the X axis.
+    To move it only vertically, drag on the left of the Y axis
+    or between panels in a row.
+    To move it only horizontally, drag below the X axis
+    or between panels in a column.
     You can configure dragging on the body of the plot to be only vertical
     or horizontal by setting the <label>Pan/Zoom Axes</label> in the
     <label>Navigation</label> axis configuration tab.
@@ -16249,8 +16253,10 @@ can be particularly useful in this plot.
     dragging up/down stretches/squashes the plot vertically, and
     dragging left/right stretches/squashes it horizontally.
     Zooming is around the mouse position at the start of the drag.
-    To zoom only vertically, drag on the left of the Y axis.
-    To zoom only horizontally, drag below the X axis.
+    To zoom only vertically, drag on the left of the Y axis
+    or between panels in a row.
+    To zoom only horizontally, drag below the X axis
+    or between panels in a column.
     </p></dd>
 <dt>&GESTURE.DRAG2;</dt>
 <dd><p><em>Frame zoom.</em>
@@ -16260,8 +16266,10 @@ can be particularly useful in this plot.
     to cover the area enclosed by the frame.
     Dragging left (and up or down) does something like the opposite,
     you can zoom out using a similar (though not quite the same) mechanism.
-    To zoom in/out only horizontally, drag right/left below the X axis.
-    To zoom in/out only vertically, drag up/down on the left of the Y axis.
+    To zoom in/out only horizontally, drag right/left below the X axis
+    or between panels in a column.
+    To zoom in/out only vertically, drag up/down on the left of the Y axis
+    or between panels in a row.
     </p></dd>
 <dt>&GESTURE.WHEEL;</dt>
 <dd><p><em>Isotropic zoom.</em>
@@ -22966,10 +22974,12 @@ displays information about the service you have selected to query,
 including what tables are available and what columns they contain,
 and allows you to enter the query text and some additional options
 about how the query is to be executed.
-The panel has three parts: 
-<label>Metadata</label>,
-<label>Service Capabilities</label>, and
-<label>ADQL Text</label>.
+Once you have entered suitable query text,
+click the <label>Run Query</label> button at the bottom of the window
+to submit the job.
+</p>
+
+<p>The various parts of the window are described in detail below.
 </p>
 
 <subdiv id="TapTableLoadDialog_query_metadata">
@@ -23132,7 +23142,8 @@ It contains the following information:
     <dd><p>This button is used to log in or out of the TAP service
     in cases where this is permitted or required.
     If the service has no authentication, this button will be disabled.
-    See the <label>Authentication</label> item below for more detail.
+    See the <ref id="TapTableLoadDialog_query_auth">Authentication</ref>
+    item below for more detail.
     </p></dd>
 </dl>
 </p>
@@ -23146,31 +23157,44 @@ It contains the following information:
 query text for the request.
 It has the following parts:
 <dl>
-<dt>Mode selector</dt>
-<dd><p>Provides the following options to control how your job is executed:
-    Synchronous, Asynchronous or Quick Look.
+<dt>Query Mode selector</dt>
+<dd><p>Provides the following options to control what happens when you
+    hit the <label>Run Query</label> button:
     <ul>
     <li><label>Synchronous</label> means that TOPCAT sends the query
         to the server and
         waits for the result as the response of the same HTTP request.
         It's simpler and faster than async, but if the job takes a long time,
         the request may time out and the results be lost.
+        When the query is submitted,
+        the <ref id="LoadWindow">Load Window</ref> will appear
+        with a load progress indicator,
+        and once it's complete
+        the table will be loaded into TOPCAT in the usual way.
         </li>
     <li><label>Asynchronous</label> means that TOPCAT sends the query
         to the server and gets
         a message back telling it where to look for information about the
         job's progress; the application then keeps polling the server
         to find out when it has completed.
+        When the query is submitted,
+        you will be taken to the
+        <ref id="TapTableLoadDialog_jobs">Running Jobs</ref> tab
+        where you can see the progress of your submitted job;
+        when it's ready it will be loaded into TOPCAT.
         </li>
     <li><label>Quick Look</label> runs the query as for Synchronous mode
-        above, but when the result comes back it is just displayed in
+        above, but when the result comes back the data is just displayed in
         a new popup window rather than loading it into TOPCAT for
         further analysis.
         </li>
     </ul>
     Synchronous mode is suitable for short jobs (it may typically execute
     with a few seconds less delay), but for longer jobs aysnchronous is
-    more reliable.  It is possible to submit an asynchronous job
+    more reliable.
+    Some TAP services permit longer queries to be executed
+    in asynchronous than in synchronous mode.
+    It is possible to submit an asynchronous job
     on one day from one machine, and pick up the results on a different
     day from another machine, using another invocation of TOPCAT or of
     a different application altogether.
@@ -23423,14 +23447,19 @@ columns or otherwise have trouble handling it.
 <subhead><title>Authentication</title></subhead>
 
 <p>Some TAP services (at time of writing, a minority) permit or require
-you to log in before using the service.
+you to log in before using the service,
+as discussed in <ref id="AuthManager"/>.
 The behaviour of this window depends on whether the service provides
-mandatory, optional or no authentication.
+mandatory, optional or no authentication,
+and can be controlled using the
+<label>Log In/Out</label> button on the right of the
+<label>Service Capabilities</label> panel in the middle of the window.
 <dl>
 <dt>Mandatory Authentication</dt>
 <dd><p>For services that require authentication,
     when you open the <label>Use Service</label> panel
-    an authentication dialogue asking you for your username
+    an <ref id="AuthManager">authentication dialogue</ref>
+    asking you for your username
     and password will appear before you can do anything else.
     </p></dd>
 <dt>Optional Authentication</dt>
@@ -23450,7 +23479,7 @@ mandatory, optional or no authentication.
     </p></dd>
 <dt>No Authentication</dt>
 <dd><p>For services with no possibility of authentication,
-    the Log In/Out button will be disabled.
+    the <label>Log In/Out</label> button will be disabled.
     </p></dd>
 </dl>
 </p>
@@ -23463,7 +23492,8 @@ or look under the <label>Authentication</label> item in the
 </p>
 
 <p>If you have already logged in, clicking this button will pop up
-the authentication dialogue again and you can enter a different
+the <ref id="AuthManager">authentication dialogue</ref> again
+and you can enter a different
 username and password, or select Anonymous to log out.
 It is also possible to log out of all services you are currently
 authenticated with by using the <label>Reset Authentication</label>
@@ -23481,22 +23511,6 @@ will improve in future versions of TOPCAT and of server-side software.
 </p>
 
 </subdiv>
-
-<p>Having entered suitable query text,
-click the <label>Run Query</label> button at the bottom of the window
-to submit the job.  What happens then depends on the <label>Query Mode</label>
-described above:
-in <label>Synchronous</label> mode,
-the <ref id="LoadWindow">Load Window</ref> will appear
-with a load progress indicator,
-and when it's done the table will be loaded into TOPCAT in the usual way.
-In <label>Asynchronous</label> mode, you will be taken to the
-<ref id="TapTableLoadDialog_jobs">Running Jobs</ref> tab
-where you can see the progress of your submitted job;
-when it's ready it will be loaded into TOPCAT.
-In <label>Quick Look</label> mode, a window will pop up to display
-the results when they are ready.
-</p>
 
 
 </subsubsubsect>
