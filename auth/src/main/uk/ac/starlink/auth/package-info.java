@@ -23,12 +23,6 @@
  * <li>The meaning of the term "<i>domain</i>"
  *     is dependent on the authentication scheme in use.
  *     </li>
- * <li>The nature of the query to the user is determined by the
- *     {@link uk.ac.starlink.auth.UserInterface} implementation
- *     installed on the AuthManager
- *     (see {@link uk.ac.starlink.auth.AuthManager#setUserInterface
-                                       AuthManager.setUserInterface}).
- *     </li>
  * <li>The authentication schemes are recognised according to the
  *     <code>WWW-Authenticate</code> challenge headers accompanying
  *     an HTTP response (typcally, though not necessarily, 401/403).
@@ -36,6 +30,12 @@
  *     {@link uk.ac.starlink.auth.AuthScheme} interface,
  *     of which several are provided, and of which a list may be
  *     configured on the <code>AuthManager</code>.
+ *     </li>
+ * <li>The nature of the query to the user is determined by the
+ *     {@link uk.ac.starlink.auth.UserInterface} implementation
+ *     installed on the AuthManager
+ *     (see {@link uk.ac.starlink.auth.AuthManager#setUserInterface
+ *                                     AuthManager.setUserInterface}).
  *     </li>
  * </ul>
  *

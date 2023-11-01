@@ -20,22 +20,24 @@ import java.util.logging.Logger;
 /**
  * Manages authentication.  In general there would be one JVM-wide
  * instance of this class (obtained from {@link #getInstance()})
- * used for all access to URLs that might have authenticated access;
+ * used for all access to URLs that might require or allow authentication;
  * it will intercept accesses as required and retain authentication
  * information as required for use in subsequent HTTP(S) requests
  * so that the user does not have to keep supplying credentials
  * where they are already known.
  *
- * <p>An application should typically call {@link #setUserInterface}
+ * <p>An application should typically call
+ * {@link #setUserInterface setUserInterface}
  * on the default instance with an appropriate value near startup and
- * use the same instance for all subsequent potentially authenticated
+ * then use the same instance for all subsequent potentially authenticated
  * URL accesses.
  *
  * <p>To access (potentially) authenticated resources, client code
- * will usually just call one of the various overloaded
- * <code>connect</code> methods.  These are all convenience aliases
- * for calls to the {@link #makeConnection} method that actually
- * manages authentication and redirection for connecting to a given URL.
+ * will usually just call {@link #openStream openStream(URL)} or
+ * one of the various overloaded <code>connect</code> methods.
+ * These are all convenience aliases for calls to the
+ * {@link #makeConnection makeConnection} method that actually manages
+ * authentication and redirection for connecting to a given URL.
  *
  * <p>Currently no attempt is made to handle proxy-authentication (407).
  *
