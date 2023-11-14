@@ -14914,6 +14914,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Update VOTable 1.5 schema to WD-VOTable-1.5_20231022
+        (affects <code>votlint</code>).</li>
     </ul>
     </p></dd>
 

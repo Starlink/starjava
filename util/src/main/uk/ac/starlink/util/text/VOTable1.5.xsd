@@ -23,14 +23,15 @@
 .Version 1.4wd-a: TD: updates for initial draft of v1.4.
 .Version 1.4: TD: Change version to 1.4
 .Version 1.5pre1: MD: adding refposition attribute and FIELDref/PARAMref
-  in COOSYS, which no longer is derived from xs:string, either.
-.Version 1.5pre2: MD: vocabularising frame attribute in COOSYS
+   in COOSYS, which no longer is derived from xs:string, either.
+.Version 1.5pre2: MD: vocabularising system attribute in COOSYS
+.Version 1.5pre3: TD: Undo the FIELDref/PARAMref addition to COOSYS
 -->
 <xs:schema
    xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
    xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
    targetNamespace="http://www.ivoa.net/xml/VOTable/v1.3"
-   version="1.5pre1"
+   version="1.5pre3"
 >
 <xs:annotation><xs:documentation>
     VOTable is meant to serialize tabular documents in the
@@ -225,25 +226,29 @@
 
 <!-- Expresses the coordinate system we are using -->
 <xs:complexType name="CoordinateSystem">
-  <xs:sequence minOccurs="0" maxOccurs="unbounded">
-    <xs:choice>
-      <xs:element name="FIELDref" type="FieldRef"/>
-      <xs:element name="PARAMref" type="ParamRef"/>
-    </xs:choice>
-  </xs:sequence>
-
-  <xs:attribute name="ID" type="xs:ID" use="required"/>
-  <xs:attribute name="equinox" type="astroYear"/>
-  <xs:attribute name="epoch" type="astroYear"/>
-
-  <xs:attribute name="system" default="FK5">
-    <xs:annotation>
-      <xs:documentation>
-        Values for this attribute must be taken from the IVOA
-        refframe vocabulary, http://www.ivoa.net/rdf/refframe
-      </xs:documentation>
-    </xs:annotation>
-  </xs:attribute>
+  <xs:simpleContent>
+     <xs:extension base="xs:string">
+       <xs:attribute name="ID" type="xs:ID" use="required"/>
+       <xs:attribute name="equinox" type="astroYear"/>
+       <xs:attribute name="epoch" type="astroYear"/>
+       <xs:attribute name="system" default="FK5">
+         <xs:annotation>
+           <xs:documentation>
+             Values for this attribute must be taken from the IVOA
+             refframe vocabulary, http://www.ivoa.net/rdf/refframe
+           </xs:documentation>
+         </xs:annotation>
+       </xs:attribute>
+       <xs:attribute name="refposition" type="xs:token">
+         <xs:annotation>
+           <xs:documentation>
+             The reference position SHOULD be taken from the IVOA
+             refposition vocabulary (http://www.ivoa.net/rdf/refposition).
+           </xs:documentation>
+         </xs:annotation>
+       </xs:attribute>
+     </xs:extension>
+   </xs:simpleContent>
 </xs:complexType>
 
 <xs:simpleType name="Timeorigin">
