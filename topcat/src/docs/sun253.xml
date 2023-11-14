@@ -32954,6 +32954,9 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Upgrade Unity to v1.1, which corresponds to REC-VOUnits-1.1.
+        Only minor functional differences expected since previous
+        version (1.1-b1).</li>
     </ul>
     </p></dd>
 
