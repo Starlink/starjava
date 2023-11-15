@@ -26831,48 +26831,68 @@ for the latest news and releases.
 <subhead><title>Acknowledgements</title></subhead>
 
 <p>TOPCAT was initially (2003-2005) developed under the UK 
-<webref url="http://en.wikipedia.org/wiki/Starlink_Project"
-        >Starlink</webref> project
-(1980-2005, R.I.P.).
-Since then it has been supported by 
-grant PP/D002486/1 from the 
-UK's Particle Physics and Astronomy Research Council,
-the <webref url="http://eurovotc.org/">VOTech</webref> project (from EU FP6),
-the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
-    (from PPARC/STFC),
-the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
-            >AIDA</webref> project (from EU FP7),
-grants ST/H008470/1, ST/I00176X/1, ST/J001414/1 ST/L002388/1,
-ST/M000907/1, ST/R000700/1, ST/S001980/1, ST/V000454/1 and ST/X002969/1
-from the UK's Science and Technology Facilities Council
-(<webref url="http://www.stfc.ac.uk/">STFC</webref>),
-the <webref url="http://www.g-vo.org/">GAVO</webref> project
-(BMBF Bewilligungsnummer 05A08VHA),
-the <webref url="http://www.esa.int/">European Space Agency</webref>,
-the FP7 project 
-<webref url="https://gaia.am.ub.es/Twiki/bin/view/GENIUS">GENIUS</webref>,
-and
-<webref url="https://www.europlanet-society.org/europlanet-2024-ri/"
-        >Europlanet-2024 RI</webref>
-(EU Horizon 2020 grant agreement No 871149).
+Starlink project (1980-2005, R.I.P.).
+Since then it has been supported mainly by the UK's governmentally
+funded research council STFC and its forerunner PPARC,
+but it has also been funded by a number of VO-related projects and
+received interim or targetted support from various other organisations.
+Specifically:
+<ul>
+<li><webref url="http://en.wikipedia.org/wiki/Starlink_Project"
+            >Starlink</webref>, funded by PPARC
+    </li>
+<li><webref url="https://en.wikipedia.org/wiki/Particle_Physics_and_Astronomy_Research_Council"
+            >PPARC</webref>,
+    the UK's Particle Physics and Astronomy Research Council,
+    grant PP/D002486/1
+    </li>
+<li><webref url="https://www.stfc.ac.uk/">STFC</webref>,
+    the UK's Science and Technology Facilities Council,
+    grants ST/H008470/1, ST/I00176X/1, ST/J001414/1 ST/L002388/1,
+           ST/M000907/1, ST/R000700/1, ST/S001980/1, ST/V000454/1,
+           ST/X002969/1 and ST/Y002032/1
+    </li>
+<li><webref url="https://en.wikipedia.org/wiki/AstroGrid">AstroGrid</webref>,
+    the UK's VO project, funded by STFC/PPARC
+    </li>
+<li><webref url="http://www.g-vo.org/">GAVO</webref>,
+    the German Astrophysical Virtual Observatory,
+    BMBF Bewilligungsnummer 05A08VHA
+    </li>
+<li><webref url="http://www.esa.int/">ESA</webref>,
+    the European Space Agency
+    </li>
+<li>VOTech, an EU FP6 virtual observatory project
+    </li>
+<li><webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
+            >AIDA</webref>,
+    an EU FP7 virtual observatory project
+    </li>
+<li>GENIUS,
+    an EU FP7 project related to the Gaia mission
+    </li>
+<li><webref url="https://www.europlanet-society.org/europlanet-2024-ri/"
+            >Europlanet-2024 RI</webref>,
+    an EU Horizon 2020 planetary science virtual observatory project,
+    grant agreement No 871149
+    </li>
+</ul>
+Some more detail is available in the
+<webref url="http://www.starlink.ac.uk/topcat/faq.html#funding">FAQ</webref>.
 All of this support is gratefully acknowledged.
 </p>
 
-<p>Nearly all of this work has been done in the Astrophysics Group
-of the School of Physics, in the University of Bristol, UK,
-although the University of Cambridge and the University of Heidelberg
-have also been involved.
-</p>
-
-<p>Inspiration for some of TOPCAT's features has been taken from the
-following pre-existing tools:
-<ul>
-<li><webref url="http://cm.bell-labs.com/who/tkh/mirage/index.html"
-            >Mirage</webref>
-    (Bell labs)</li>
-<li><webref url="http://vo.iucaa.ernet.in/~voi/voplot.htm">VOPlot</webref>
-    (VO-India)</li>
-</ul>
+<p>Nearly all of this work has been done in the
+<webref url="http://www.bristol.ac.uk/physics/research/astrophysics/"
+           >Astrophysics Group</webref> of the
+<webref url="http://www.bristol.ac.uk/physics/">School of Physics</webref>
+at the
+<webref url="http://www.bristol.ac.uk/">University of Bristol</webref>,
+but
+the <webref url="http://www.ast.cam.ac.uk/">Institute of Astronomy</webref>
+at the University of Cambridge and
+<webref url="http://www.ari.uni-heidelberg.de/">ARI</webref>
+at the University of Heidelberg have also been involved at some time.
 </p>
 
 <p>Apart from the excellent Java 2 Standard Edition itself, 
@@ -26926,6 +26946,14 @@ functionality:
             >IVOA FITS Package</webref>
     (Sloan Digital Sky Survey) for simple (non-SoG) display of FITS images</li>
 </ul>
+</p>
+
+<p>Initial ispiration for some of TOPCAT's features was taken from the
+pre-existing tools
+<webref url="https://ui.adsabs.harvard.edu/abs/2004AAS...20511304H"
+        >Mirage</webref> (Bell labs)
+and
+<webref url="http://voi.iucaa.in/voi/voplot.htm">VOPlot</webref> (VO-India).
 </p>
 
 <p>Contributed code from the following people is gratefully acknowledged:
