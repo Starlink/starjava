@@ -45,7 +45,7 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
             V12 = new VersionLike12( "1.2" ),
             V13 = new VersionLike13( "1.3" ),
             V14 = new VersionLike14( "1.4" ),
-            V15 = new VersionLike15( "1.5", "WD-VOTable-1.5-20230913" ),
+            V15 = new VersionLike15( "1.5", "WD-VOTable-1.5-20231022" ),
         } ) );
 
     /** 
