@@ -121,12 +121,12 @@ public class DataLinkServiceResource {
 
 	protected boolean isSodaService() {
 
-		return (standardID != null && (standardID.startsWith("ivo://ivoa.net/std/SODA#")));
+		return (standardID != null && (standardID.toLowerCase().startsWith("ivo://ivoa.net/std/soda#")));
 
 	}
 	protected boolean isDataLink() {
 
-		return (standardID != null && (standardID.startsWith("ivo://ivoa.net/std/DataLink#links")));
+		return (standardID != null && (standardID.toLowerCase().startsWith("ivo://ivoa.net/std/datalink#links")));
 
 	}
 
