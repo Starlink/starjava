@@ -1,5 +1,7 @@
 package uk.ac.starlink.splat.data.ssldm;
 
+import org.vamdc.xsams.schema.DataType;
+
 /*
  ********************************************
  * IVOA Simple Spectral Line Data Model V1.0
@@ -29,7 +31,7 @@ public class SpectralLine {
     PhysicalQuantity einsteinA ;
     PhysicalQuantity oscillatorStrength ;
     PhysicalQuantity weightedOscillatorStrength ;
-    PhysicalQuantity intensity ;
+//    PhysicalQuantity intensity ;
     PhysicalQuantity observedFlux ;
     PhysicalQuantity observedFluxWaveMin ;
     PhysicalQuantity observedFluxWaveMax ;
@@ -51,7 +53,7 @@ public class SpectralLine {
         einsteinA = new PhysicalQuantity(); 
         oscillatorStrength =  new PhysicalQuantity();
         weightedOscillatorStrength =  new PhysicalQuantity();
-        intensity =  new PhysicalQuantity();
+//        intensity =  new PhysicalQuantity();
         observedFlux =  new PhysicalQuantity();
         observedFluxWaveMin =  new PhysicalQuantity();
         observedFluxWaveMax =  new PhysicalQuantity();
@@ -136,6 +138,10 @@ public class SpectralLine {
     public void setWavelength(double value, String unit) {
         this.wavelength = new PhysicalQuantity(value, unit );              
     }
+    public void setWavelength(double value, double error, String unit) {
+        this.wavelength = new PhysicalQuantity(value, error, unit );              
+    }
+
 
     public PhysicalQuantity getFrequency() {
         return frequency;
@@ -209,13 +215,14 @@ public class SpectralLine {
         this.weightedOscillatorStrength = new PhysicalQuantity(value, unit );
     }
 
-    public PhysicalQuantity getIntensity() {
+/*    public PhysicalQuantity getIntensity() {
         return intensity;
     }
 
     public void setIntensity(PhysicalQuantity intensity) {
         this.intensity = intensity;
     }
+    */
 
     public PhysicalQuantity getObservedFlux() {
         return observedFlux;
@@ -285,6 +292,19 @@ public class SpectralLine {
         // TODO Auto-generated method stub
         
     }
+
+	public void setStrength(double value, String unit) {
+		this.strength = new PhysicalQuantity(value, unit );  
+			
+	}
+/*
+	public void setIntensity(double value, String unit) {
+		this.intensity = new PhysicalQuantity(value, unit);  
+			
+	}
+	
+	*/
+
 
    
 

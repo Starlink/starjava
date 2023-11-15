@@ -25,6 +25,7 @@ public class Species {
     
     String roman1[]= {"I","II","III","IV","V","VI","VII","VIII","IX", "X"};
     String roman2[]= {"","X", "XX","XXX","XL","L","LX","LXX","LXXX","XC", "C"};
+    String roman3[]= {"","C", "CC","CCC","CD","D","DC","DCC","DCCC","DM", "C"};
 
     public Species(String name) {
         this.name = name;
@@ -79,15 +80,18 @@ public class Species {
     public String getIonizationStageRoman() {
     	if (ionizationStage <0)
     		return "";
-        if (ionizationStage>100)
-            return "!!!"; 
+        if (ionizationStage>500) 
+            return ""; 
         // TODO later make this better now just a hack
+        
         if (ionizationStage < 10)
             return roman1[ionizationStage];
         
+        
         int unit = ionizationStage %10;  
         int tens = (ionizationStage-unit)/10;
-        return roman2[tens]+roman1[unit];
+        int hundreds = (ionizationStage-tens-unit)/10;
+        return roman3[hundreds]+roman2[tens]+roman1[unit];
     }
 
 
