@@ -6,16 +6,20 @@ import java.io.InputStream;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
+import org.vamdc.dictionary.Restrictable;
 import org.vamdc.registry.client.Registry;
 import org.vamdc.registry.client.RegistryFactory;
 
-
+import edu.oswego.cs.dl.util.concurrent.BoundedPriorityQueue;
 import jsky.util.Logger;
 import net.ivoa.xml.voresource.v1.Contact;
+import net.ivoa.xml.voresource.v1.Content;
 import net.ivoa.xml.voresource.v1.Resource;
+import shaded.parquet.it.unimi.dsi.fastutil.doubles.AbstractDouble2IntFunction;
 import uk.ac.starlink.splat.data.ssldm.PhysicalQuantity;
 import uk.ac.starlink.splat.data.ssldm.SpectralLine;
 import uk.ac.starlink.splat.vo.SSAPRegResource;
@@ -60,11 +64,14 @@ public class VAMDCLib {
             Registry reg = RegistryFactory.getClient(RegistryFactory.REGISTRY_12_07);
             System.out.println("Queried Registry");
           
+        
             
             for (String ivoid : reg.getIVOAIDs(Registry.Service.VAMDC_TAP)){
-                try {
+                try {  	
                     Resource r = reg.getResourceMetadata(ivoid);
+                   
                     String title = r.getTitle();
+                   
                     String description = r.getContent().getDescription();
                     String shortname = r.getShortName();
                     if (shortname == null || shortname.isEmpty() ) {
@@ -115,6 +122,7 @@ public class VAMDCLib {
          
        // if (  inps.available()  > 0)
        //     throw new IOException( "Empty results");
+    	System.out.println("query="+query);
         ArrayList<SpectralLine> lines = new ArrayList<SpectralLine>();
         XSAMSParser  xsams = null;
         try {
@@ -169,7 +177,7 @@ public class VAMDCLib {
            rlst.addRow(getRow(l, columns));
           }
         
-        return rlst;
+        return (StarTable) rlst;
     }
 
     private ValueInfo getValueInfo(SpectralLine line, String colname, String utype) {
@@ -216,6 +224,7 @@ public class VAMDCLib {
         vinfo.setUnitString(pq.getUnitExpression());
         vinfo.setUCD(pq.getUcd());
         vinfo.setUtype(utype);
+        vinfo.setContentClass(Double.class);
        
     
         return vinfo;
@@ -231,13 +240,14 @@ public class VAMDCLib {
                 row[i]=getQuantityValue(line.getWavelength());
             if (cols[i].getName().equals("element"))
                 row[i]=line.getInitialElement().getElementName();
-            if (cols[i].getName().equals("stage"))
-                row[i]=line.getInitialElement().getIonizationStageRoman();
+            if (cols[i].getName().equals("ion charge"))
+              //  row[i]=line.getInitialElement().getIonizationStageRoman();
+            	row[i]=line.getInitialElement().getIonizationStage();
             if (cols[i].getName().equals("initial energy"))
                 row[i]=getQuantityValue(line.getInitialLevel().getEnergy());
             if (cols[i].getName().equals("final energy"))
                 row[i]=getQuantityValue(line.getFinalLevel().getEnergy());
-            if (cols[i].getName().equals("Einstein A"))
+            if (cols[i].getName().equals("einsteinA"))
                 row[i]=getQuantityValue(line.getEinsteinA());
             if (cols[i].getName().equals("initial level"))
                 row[i]=line.getInitialLevel().getConfiguration();
