@@ -44,7 +44,9 @@ public class PhysicalQuantity {
 
     public double getError() {
      // to do check if error is set?
-        return error;
+    	if (this.errorSet)
+    		return error;
+        return (Double) null;
     }
 
     public void setError(double error) {
