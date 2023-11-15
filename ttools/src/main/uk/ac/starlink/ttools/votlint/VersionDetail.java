@@ -166,7 +166,7 @@ public abstract class VersionDetail {
                 return new TrHandler();
             }
             else if ( "TD".equals( name ) ) {
-                return new TdHandler();
+                return new TdHandler( false );
             }
             else if ( "STREAM".equals( name ) ) {
                 return new StreamHandler();
@@ -400,15 +400,20 @@ public abstract class VersionDetail {
         }
 
         protected ElementHandler createElementHandler( String name ) {
-            ElementHandler handler = V11.createElementHandler( name );
-            if ( handler != null ) {
-                return handler;
-            }
-            else if ( "BINARY2".equals( name ) ) {
-                return new BinaryHandler( true );
+            if ( "TD".equals( name ) ) {
+                return new TdHandler( true );
             }
             else {
-                return null;
+                ElementHandler handler = V11.createElementHandler( name );
+                if ( handler != null ) {
+                    return handler;
+                }
+                else if ( "BINARY2".equals( name ) ) {
+                    return new BinaryHandler( true );
+                }
+                else {
+                    return null;
+                }
             }
         }
 

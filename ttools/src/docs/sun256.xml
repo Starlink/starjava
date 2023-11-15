@@ -14919,6 +14919,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Upgrade Unity to v1.1-b1, which corresponds to REC-VOUnits-1.1.
         Only minor functional differences expected since previous
         version (1.1-b1).</li>
+    <li>Fix <code>votlint</code> to permit empty <code>TD</code>
+        elements in all cases for VOTable versions &gt;=1.3.
+        Previously empty cells for integer and array fields
+        provoked an error report
+        (which is correct for VOTable 1.0-1.2, but not for 1.3+).</li>
     </ul>
     </p></dd>
 

@@ -7,7 +7,20 @@ package uk.ac.starlink.ttools.votlint;
  */
 public class TdHandler extends ElementHandler {
 
+    private final boolean emptyMeansNull_;
     private final StringBuffer content_ = new StringBuffer();
+
+    /**
+     * Constructor.
+     *
+     * @param  emptyMeansNull  if true, zero-length TD content unconditionally
+     *                         indicates a null value;
+     *                         if false, zero-length TD content will be
+     *                         assessed without special consideration
+     */
+    public TdHandler( boolean emptyMeansNull ) {
+        emptyMeansNull_ = emptyMeansNull;
+    }
 
     public void characters( char[] ch, int start, int length ) {
         content_.append( ch, start, length );
@@ -21,7 +34,12 @@ public class TdHandler extends ElementHandler {
             if ( field != null ) {
                 ValueParser parser = field.getParser();
                 if ( parser != null ) {
-                    parser.checkString( content_.toString() );
+                    if ( emptyMeansNull_ && content_.length() == 0 ) {
+                        // no action, null is intended
+                    }
+                    else {
+                        parser.checkString( content_.toString() );
+                    }
                 }
             }
         }
