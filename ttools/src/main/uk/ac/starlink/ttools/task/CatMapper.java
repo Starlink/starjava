@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.ConcatStarTable;
@@ -15,6 +16,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.EmptyStarTable;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.MetaCopyStarTable;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -24,6 +26,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.util.Bi;
 
 /**
  * TableMapper which concatenates tables top to bottom.
@@ -186,6 +189,64 @@ public class CatMapper implements TableMapper {
     }
 
     /**
+     * Returns a table with constant-valued columns.
+     * A template table defines whether the result is random-access and
+     * how many rows it declares.
+     * Each column is defined by a (ColumnInfo, constant-value) pair.
+     *
+     * @param  template  template table
+     * @param  constCols  list of pairs defining column metadata and content
+     * @return  table with column count the same as the size of constCols
+     */
+    private static StarTable
+            createConstantsTable( StarTable template,
+                                  List<Bi<ColumnInfo,Object>> constCols ) {
+
+        /* Treat the random-access and sequential-access cases separately,
+         * to avoid confusion when declaring row count. */
+        if ( template.isRandom() ) {
+            ColumnStarTable cTable =
+                ColumnStarTable.makeTableWithRows( template.getRowCount() );
+            for ( Bi<ColumnInfo,Object> bi : constCols ) {
+                cTable.addColumn( new ConstantColumn( bi.getItem1(),
+                                                      bi.getItem2() ) );
+            }
+            return cTable;
+        }
+        else {
+            Object[] row = constCols.stream()
+                                    .map( c -> c.getItem2() )
+                                    .toArray( n -> new Object[ n ] );
+            return new AbstractStarTable() {
+                public long getRowCount() {
+                    return template.getRowCount();
+                }
+                public int getColumnCount() {
+                    return constCols.size();
+                }
+                public ColumnInfo getColumnInfo( int icol ) {
+                    return constCols.get( icol ).getItem1();
+                }
+                public RowSequence getRowSequence() {
+                    return new RowSequence() {
+                        public Object getCell( int icol ) {
+                            return row[ icol ];
+                        }
+                        public Object[] getRow() {
+                            return row.clone();
+                        }
+                        public boolean next() {
+                            return true;
+                        }
+                        public void close() {
+                        }
+                    };
+                }
+            };
+        }
+    }
+
+    /**
      * Mapping which concatenates the tables.
      */
     private static class CatMapping implements TableMapping {
@@ -324,32 +385,29 @@ public class CatMapper implements TableMapper {
         private StarTable getTable( InputTableSpec inSpec, int index,
                                     Trimmer trimmer ) 
                 throws IOException, TaskException {
-            final StarTable inTable = inSpec.getWrappedTable();
-            ColumnStarTable addTable = new ColumnStarTable( inTable ) {
-                public long getRowCount() {
-                    return inTable.getRowCount();
-                }
-            };
+            StarTable inTable = inSpec.getWrappedTable();
+            List<Bi<ColumnInfo,Object>> addList = new ArrayList<>();
             if ( seqCol_ != null ) {
                 ColumnInfo seqInfo = new ColumnInfo( SEQ_INFO );
                 seqInfo.setName( seqCol_ );
                 Integer iseq = Integer.valueOf( index + 1 );
-                addTable.addColumn( new ConstantColumn( seqInfo, iseq ) );
+                addList.add( new Bi<ColumnInfo,Object>( seqInfo, iseq ) );
             }
             if ( locCol_ != null ) {
                 ColumnInfo locInfo = new ColumnInfo( LOC_INFO );
                 locInfo.setName( locCol_ );
                 locInfo.setElementSize( trimmer.getLocLength() );
                 String loc = inSpec.getLocation();
-                addTable.addColumn( new ConstantColumn( locInfo, loc ) );
+                addList.add( new Bi<ColumnInfo,Object>( locInfo, loc ) );
             }
             if ( ulocCol_ != null ) {
                 ColumnInfo ulocInfo = new ColumnInfo( ULOC_INFO );
                 ulocInfo.setName( ulocCol_ );
                 ulocInfo.setElementSize( trimmer.getTrimmedLocLength() );
                 String uloc = trimmer.trim( inSpec.getLocation() );
-                addTable.addColumn( new ConstantColumn( ulocInfo, uloc ) );
+                addList.add( new Bi<ColumnInfo,Object>( ulocInfo, uloc ) );
             }
+            StarTable addTable = createConstantsTable( inTable, addList );
             return addTable.getColumnCount() > 0
                  ? new JoinStarTable( new StarTable[] { inTable, addTable } )
                  : inTable;

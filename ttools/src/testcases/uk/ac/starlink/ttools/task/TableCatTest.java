@@ -107,6 +107,7 @@ public class TableCatTest extends TableTestCase {
                              .setValue( "nin", "2" )
                              .setValue( "in1", t1_ )
                              .setValue( "in2", t2_ )
+                             .setValue( "icmd1", "select true" )
                              .setValue( "seqcol", "seq" )
                              .setValue( "loccol", "loc" )
                              .setValue( "uloccol", "uloc" );
