@@ -14932,6 +14932,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix <ref id="tcat"><code>tcat</code></ref
           >/<ref id="tcatn"><code>tcatn</code></ref> bug that sometimes
         resulted in no rows included from an input table.</li>
+    <li>The <code>stilts</code> startup script now uses
+        <code>topcat-extra.jar</code> if present in preference to
+        <code>topcat-full.jar</code>.</li>
     </ul>
     </p></dd>
 

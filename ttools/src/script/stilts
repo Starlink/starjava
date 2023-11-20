@@ -29,6 +29,7 @@
 #          ./stilts.jar
 #          ../../lib/ttools/stilts-app.jar
 #          ./stilts-app.jar
+#          ./topcat-extra.jar
 #          ./topcat-full.jar
 #          ./topcat-lite.jar
 #       (on a Mac it looks in the resource bundle expected from a dmg
@@ -52,6 +53,7 @@ stilts_jars="\
  $bindir/stilts.jar\
  $bindir/../lib/ttools/stilts-app.jar\
  $bindir/stilts-app.jar\
+ $bindir/topcat-extra.jar\
  $bindir/topcat-full.jar\
  $bindir/topcat-lite.jar\
 "

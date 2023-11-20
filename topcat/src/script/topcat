@@ -26,6 +26,7 @@
 #     - relative to the directory in which this script is installed,
 #       one of the following jar files should exist and contain the
 #       TOPCAT classes:
+#          ./topcat-extra.jar
 #          ./topcat-full.jar
 #          ./topcat-lite.jar
 #          ../../lib/topcat/topcat.jar
@@ -44,7 +45,8 @@ test -n "$scriptname" || scriptname=$0
 bindir="`dirname $scriptname`"
 
 # Set locations of acceptable jar files.
-topcat_jars="$bindir/topcat-full.jar \
+topcat_jars="$bindir/topcat-extra.jar \
+             $bindir/topcat-full.jar \
              $bindir/topcat-lite.jar \
              $bindir/../lib/topcat/topcat.jar"
 
