@@ -34318,6 +34318,8 @@ introduced since the last version:
         <ref id="form-poly4">Poly4</ref>.
         Filled polygons no longer need outlines round them
         to avoid annoying gaps between tiles.</li>
+    <li>New class <ref id="Json">Json</ref> contains expression-language
+        functions for use with JSON text.</li> 
     </ul>
     </p></dd>
 

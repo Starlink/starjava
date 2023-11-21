@@ -8,6 +8,8 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.logging.Level;
 import uk.ac.starlink.ttools.cone.AsciiMocCoverage;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
@@ -15,6 +17,7 @@ import uk.ac.starlink.util.TestCase;
 public class FuncTest extends TestCase {
 
     private static final double TINY = 1e-13;
+    private static final double NAN = Double.NaN;
     private static final Random RANDOM = new Random( 1234567L );
 
     static {
@@ -634,6 +637,45 @@ public class FuncTest extends TestCase {
         assertEquals( "99,000", Formats.formatDecimalLocal( 99, "#.000" ) );
         Locale.setDefault( locale );
         Formats.reset();
+    }
+
+    public void testJson() {
+        String txt = String.join( "\n",
+            "{                                                 ",
+            "   \"sequence\": 23,                              ",
+            "   \"temperature\": {                             ",
+            "      \"value\": 278.5,                           ",
+            "      \"units\": \"Kelvin\"                       ",
+            "   },                                             ",
+            "   \"operational\": true,                         ",
+            "   \"readings\": [12, null, 23.2, 441, 0],        ",
+            "   \"thingies\": [ 0, \"one\", 2.0, null, 4 ] ",
+            "}                                                 "
+         ).trim();
+         JSONObject json = Json.jsonObject( txt );
+         assertEquals( 23, json.getInt( "sequence" ) );
+         assertEquals( 278.5,
+                       json.getJSONObject("temperature").getDouble("value") );
+         assertTrue( json.getBoolean( "operational" ) );
+         assertNull( json.optString( "not-appearing-in-this-object", null ) );
+         JSONArray readings = json.getJSONArray( "readings" );
+         assertEquals( 12, readings.getDouble( 0 ) );
+         assertArrayEquals( new double[] { 12, NAN, 23.2, 441, 0 },
+                            Json.jsonToDoubles( readings ) );
+         JSONArray thingies = json.getJSONArray( "thingies" );
+         assertArrayEquals( new double[] { 0, NAN, 2, NAN, 4 },
+                            Json.jsonToDoubles( thingies ) );
+         assertArrayEquals( new String[] { "0", "one", "2.0", null, "4" },
+                            Json.jsonToStrings( thingies ) );
+
+         JSONArray nums = Json.jsonArray( "[true, \"two\", 3.0, 4, null]" );
+         assertArrayEquals( new double[] { NAN, NAN, 3, 4, NAN },
+                            Json.jsonToDoubles( nums ) );
+         assertArrayEquals( new String[] { "true", "two", "3.0", "4", null },
+                            Json.jsonToStrings( nums ) );
+         String[] tkeys = Json.jsonGetKeys( json.getJSONObject("temperature") );
+         java.util.Arrays.sort( tkeys );
+         assertArrayEquals( new String[] { "units", "value" }, tkeys );
     }
  
     public void testMaths() {

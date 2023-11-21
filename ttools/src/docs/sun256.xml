@@ -15763,6 +15763,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="layer-poly4"><code>poly4</code></ref>.
         Filled polygons no longer need outlines round them
         to avoid annoying gaps between tiles.</li>
+    <li>New class <ref id="Json">Json</ref> contains expression-language
+        functions for use with JSON text.</li>
     </ul>
     </p></dd>
 
