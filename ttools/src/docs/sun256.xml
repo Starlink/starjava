@@ -14935,6 +14935,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>The <code>stilts</code> startup script now uses
         <code>topcat-extra.jar</code> if present in preference to
         <code>topcat-full.jar</code>.</li>
+    <li>New array functions
+        <ref id="Arrays-loop"><code>loop</code></ref> with arguments
+        <code>(start,end)</code> or <code>(start,end,step)</code>.</li>
     </ul>
     </p></dd>
 

@@ -275,6 +275,22 @@ public class FuncTest extends TestCase {
         assertArrayEquals( new int[] { 0, 1, 2, 3 }, Arrays.sequence( 4 ) );
         assertArrayEquals( new double[] { 100.0, 100.1, 100.2, 100.3 },
                            Arrays.sequence( 4, 100, 0.1 ) );
+        assertArrayEquals( new int[] { 0, 1, 2, 3, 4 }, Arrays.loop( 0, 5 ) );
+        assertArrayEquals( new int[ 0 ], Arrays.loop( 5, 0 ) );
+        assertArrayEquals( new double[] { 0., 1., 2., 3., 4., },
+                           Arrays.loop( 0, 5, 1 ) );
+        assertArrayEquals( new double[] { 10.0, 10.5, 11.0, 11.5 },
+                           Arrays.loop( 10, 12, 0.5 ) );
+        assertArrayEquals( new double[] { 10.0, 10.5, 11.0, 11.5 },
+                           Arrays.loop( 10, 11.51, 0.5 ) );
+        assertArrayEquals( new double[] { 0, 3, 6, 9 },
+                           Arrays.loop( 0, 10, 3 ) );
+        assertArrayEquals( new double[] { 5, 4, 3, 2, 1 },
+                           Arrays.loop( 5, 0, -1 ) );
+        assertArrayEquals( new double[ 1 ], Arrays.loop( 0, 1, 1 ) );
+        assertArrayEquals( new double[ 0 ], Arrays.loop( 0, 0, 1 ) );
+        assertArrayEquals( new double[ 0 ], Arrays.loop( 0, 1, 0 ) );
+        assertArrayEquals( new double[ 0 ], Arrays.loop( 1, 0, 0.5 ) );
 
         double[] da = new double[] { 10., 11., 12., 13., 14., 15., };
         int[] ia = new int[] { 10, 11, 12, 13, 14, 15, };

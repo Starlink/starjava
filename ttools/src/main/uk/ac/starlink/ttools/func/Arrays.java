@@ -1187,6 +1187,9 @@ public class Arrays {
      * Returns an integer array of a given length with the values
      * 0, 1, 2, ....
      *
+     * <p>See also the <code>loop</code> functions, which provide
+     * similar functionality.
+     *
      * @example <code>sequence(4) = (0, 1, 2, 3)</code>
      *
      * @param  n  length of array
@@ -1202,8 +1205,11 @@ public class Arrays {
     }
 
     /**
-     * Returns a double array of a given length with values starting
+     * Returns a floating point array of a given length with values starting
      * at a given value and increasing with a given increment.
+     *
+     * <p>See also the <code>loop</code> functions, which provide
+     * similar functionality.
      *
      * @example  <code>sequence(4, 100, 0.1) =
      *                 (100.0, 100.1, 100.2, 100.3)</code>
@@ -1220,6 +1226,71 @@ public class Arrays {
             seq[ i ] = start + i * step;
         }
         return seq;
+    }
+
+    /**
+     * Returns an integer array like the values taken in a for-loop
+     * with given start and end elements and a step of 1.
+     * The notional loop corresponds to:
+     * <pre>
+     *    for (int x = start; x &lt; end; x++)
+     * </pre>
+     *
+     * <p>If you want a floating point array, or one with a non-unit step,
+     * you can use the three-parameter version of
+     * the <code>loop</code> function.
+     * See also the <code>sequence</code> functions.
+     *
+     * @example  <code>loop(0, 5) = (0, 1, 2, 3, 4)</code>
+     * @example  <code>loop(5, 0) = ()</code>
+     *
+     * @param  start  value for first element of output array
+     * @param  end    value one greater than last element of output array
+     * @return   array with <code>end-start</code> (or 0) elements
+     *           <code>(start, start+1, start+2, ..., end-1)</code>
+     */
+    public static int[] loop( int start, int end ) {
+        int n = Math.max( end - start, 0 );
+        int[] array = new int[ n ];
+        for ( int i = 0; i < n; i++ ) {
+            array[ i ] = start + i;
+        }
+        return array;
+    }
+
+    /**
+     * Returns a floating point array like the values taken in a for-loop
+     * with given start, end, and step arguments.
+     * For a positive step, the notional loop corresponds to:
+     * <pre>
+     *    for (double x = start; x &lt; end; x += step)
+     * </pre>
+     *
+     * <p>Note that numerical precision issues may result in the output
+     * array differing from its expected length by 1
+     * (it is generally risky to rely on exact comparison of
+     * floating point values).
+     * If you want to be sure of the number of elements you can use
+     * the <code>sequence</code> function instead.
+     *
+     * @example  <code>loop(10, 12, 0.5) = (10.0, 10.5, 11.0, 11.5)</code>
+     * @example  <code>loop(0, 10, 3) = (0., 3., 6., 9.)</code>
+     * @example  <code>loop(5, 0, -1) = (5., 4., 3., 2., 1.)</code>
+     *
+     * @param  start  value for first element of output array
+     * @param  end    first value beyond last element of output array
+     * @param  step   increment between output array values; may not be zero
+     * @return   array with approximately <code>(end-start)/step</code>
+     *           (or 0) elements
+     */
+    public static double[] loop( double start, double end, double step ) {
+        double dn = step != 0 ? Math.ceil( ( end - start ) / step ) : 0;
+        int n = dn > 0 ? (int) dn : 0;
+        double[] array = new double[ n ];
+        for ( int i = 0; i < n; i++ ) {
+            array[ i ] = start + i * step;
+        }
+        return array;
     }
 
     /**

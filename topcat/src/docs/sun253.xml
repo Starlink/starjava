@@ -32988,6 +32988,9 @@ introduced since the last version:
     <li>The <code>topcat</code> startup script now uses
         <code>topcat-extra.jar</code> if present in preference to
         <code>topcat-full.jar</code>.</li>
+    <li>New array functions
+        <ref id="Arrays-loop"><code>loop</code></ref> with arguments
+        <code>(start,end)</code> or <code>(start,end,step)</code>.</li>
     </ul>
     </p></dd>
 
