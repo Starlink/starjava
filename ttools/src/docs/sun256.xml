@@ -14938,6 +14938,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New array functions
         <ref id="Arrays-loop"><code>loop</code></ref> with arguments
         <code>(start,end)</code> or <code>(start,end,step)</code>.</li>
+    <li>Upgrade snakeyaml library (used for ECSV headers)
+        from 1.25 to 2.2.
+        No change in behaviour (or security) expected,
+        but prevents vulnerability warnings in some circumstances.</li>
     </ul>
     </p></dd>
 
