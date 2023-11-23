@@ -696,6 +696,17 @@ as described in <ref id="stilts-flags"/>, in which case they will
 just result in a warning.
 </p>
 
+<p>Note that when running STILTS from the shell,
+it may be necessary to quote some parameter values,
+in case they contain spaces or other characters which the shell
+may try to interpret.
+This can typically be done by writing assignments of the form
+<verbatim>
+   &lt;param-name&gt;='&lt;param-value&gt;'
+</verbatim>
+but things can get more hairy; see <ref id="quoting"/> for more detail.
+</p>
+
 <p>Extensive help is available from <code>stilts</code> 
 itself about task and its parameters, as described in the next section.
 </p>
@@ -4737,6 +4748,135 @@ The common ones are:
   </dl>
 </p></dd>
 </dl>
+</p>
+
+</subsect>
+
+<subsect id="quoting">
+<subhead><title>Strings and Quoting</title></subhead>
+
+<p>Sometimes in an algebraic expression you will want to
+use a literal string value,
+for instance if you want to test a string-valued
+column for equality with some fixed string.
+Literal strings must always be delimited by double quote characters
+(<code>"</code>).
+This can be problematic, since (single or double) quote characters
+are interpreted within STILTS parameter values as grouping text
+that may contain spaces into a single token.
+And, depending how you are invoking STILTS,
+the shell may do a similar thing:
+interpret (single or double) quote characters
+on the command line as grouping text that may contain spaces
+or shell magic characters into a single string
+(such as a parameter value assignment) to pass to STILTS.
+To complicate matters further, literals of the <code>char</code> type
+(single characters) in the expression language are delimited using
+single-quote characters (<code>'</code>),
+though it's not very often necessary to deal with
+<code>char</code> values in STILTS.
+And in a few cases specific parameters might have their own
+requirements for quotes (like the <code>adql</code> parameter of
+<ref id="tapquery"><code>tapquery</code></ref>;
+in ADQL string literals need single quotes and
+double quotes delimit identifiers).
+</p>
+
+<p>To summarise the common uses of quotes that you might have to make:
+<ul>
+<li>Delimit a literal string in the expression language:
+    double quote (<code>"</code>)
+    </li>
+<li>Delimit a space-containing string (e.g. a list of tokens)
+    that forms part of a STILTS parameter value assignment:
+    single or double quote (<code>'</code> or <code>"</code>)
+    </li>
+<li>Protect a STILTS parameter value assignment
+    from the Unix shell
+    (avoid breaking into multiple words, ignore magic characters):
+    single or double quote (<code>'</code> or <code>"</code>)
+    </li>
+</ul>
+The last one only applies if you are running STILTS via
+a Unix-like shell; similar considerations will apply from different OSs
+like MS Windows,
+but if you are running <ref id="jystilts">JyStilts</ref>
+or using the expression language directly
+e.g. from a GUI application like TOPCAT,
+this one doesn't apply.
+</p>
+
+<p>Unfortunately, all this can lead to a kind of quoting hell
+when trying to write STILTS commands,
+especially if they have to contain String literals,
+for which the author apologises :-(.
+Working round these requirements can be quite messy,
+but here are some tips:
+<ul>
+<li>String literals in the expression language must always be delimited with
+    double quotes.
+    </li>
+<li>STILTS parameter values sometimes contain spaces or other characters
+    that have meaning for the shell, so it's often a good idea to quote them;
+    <code>ofmt=votable(format=BINARY)</code> will fail because the
+    shell tries to interpret the parenthesis characters, but
+    <code>ofmt='votable(format=BINARY)'</code>, or
+    <code>'ofmt=votable(format=BINARY)'</code>, will succeed.
+    </li>
+<li>If you can avoid spaces in arguments, you won't need so much quoting,
+    so you can write e.g. <code>cmd='select rmag&lt;12'</code>
+    instead of <code>cmd='select "rmag &lt; 12"'</code>.
+    </li>
+<li>You can use different types of quote for different purposes,
+    e.g. <code>cmd='keepcols "id ra dec"'</code>
+    or   <code>cmd="keepcols 'id ra dec'"</code>.
+    Note however that different types of quote have somewhat
+    different meanings to the shell (single quotes are generally safer).
+    </li>
+<li>In a STILTS parameter value,
+    as well in shell arguments,
+    quotes can be escaped with a preceding backslash (<code>\</code>)
+    to prevent them being interpreted as grouping constructs.
+    So although <code>cmd='select equals(release,"DR4")'</code> fails
+    (STILTS interprets the double quotes as grouping characters
+    rather than string literal delimiters),
+    <code>cmd='select equals(release,\"DR4\")'</code> succeeds.
+    </li>
+<li>In a STILTS parameter value,
+    as well as in shell arguments,
+    spaces can be escaped with a preceding backslash (<code>\</code>)
+    to prevent them being interpreted as token separators.
+    So <code>cmd='keepcols id\ ra\ dec'</code> can be used to mean the same
+    as <code>cmd='keepcols "id ra dec"'</code>.
+    </li>
+</ul>
+</p>
+
+<p>Armed with this information it is usually possible to phrase
+a STILTS command on the command line that does what you want.
+In cases where that seems to be untrue or too painful,
+there are a couple of ways to avoid use of the shell,
+removing one layer of quote (mis)interpretation:
+<ul>
+<li>Filter (<ref id="tpipe-cmd"><code>cmd</code></ref>-like) parameters
+    can be specified using file indirection;
+    <code>cmd=@filename</code>
+    reads the filter value(s) from the line(s) of the named file
+    </li>
+<li><ref id="jystilts">JyStilts</ref> allows you to use python syntax
+    to construct arguments to pass to STILTS without interference
+    from the shell
+    </li>
+</ul>
+</p>
+
+<p>The comments above concerning the Unix shell
+are in principle dependent on
+which shell is in use, but they should apply to
+<code>sh</code>, <code>bash</code> and <code>csh</code>
+on any common Unix-like OS including MacOS.
+Something similar probably applies to other OSes like MS Windows,
+but the details may be different.
 </p>
 
 </subsect>
@@ -14945,6 +15085,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Allow use of trailing backslash to specify multiline filters
         in '<code>@</code>'-indirection files for
         <ref id="tpipe-cmd"><code>cmd</code></ref>-type parameters.</li>
+    <li>Add a <ref id="quoting">Strings and Quoting</ref> section
+        to this document.</li>
     </ul>
     </p></dd>
 
