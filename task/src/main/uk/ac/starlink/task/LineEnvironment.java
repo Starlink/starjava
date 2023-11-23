@@ -548,6 +548,8 @@ public class LineEnvironment implements Environment {
 
     /**
      * Reads a file, providing the result as an array of lines.
+     * If the final character in a line is a backslash,
+     * the following line is considered as a continuation.
      *
      * @param   location  filename
      * @return   array of lines from <code>location</code>
@@ -559,7 +561,16 @@ public class LineEnvironment implements Environment {
         List<String> lineList = new ArrayList<String>();
         try {
             for ( String line; ( line = rdr.readLine() ) != null; ) {
-                lineList.add( line );
+                int nl = lineList.size();
+                String prevLine = nl > 0 ? lineList.get( nl - 1 ) : "";
+                if ( prevLine.endsWith( "\\" ) ) {
+                    String prevBase =
+                        prevLine.substring( 0, prevLine.length() - 1 );
+                    lineList.set( nl - 1, prevBase + line );
+                }
+                else {
+                    lineList.add( line );
+                }
             }
         }
         finally {

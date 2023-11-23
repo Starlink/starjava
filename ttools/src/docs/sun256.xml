@@ -14942,6 +14942,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         from 1.25 to 2.2.
         No change in behaviour (or security) expected,
         but prevents vulnerability warnings in some circumstances.</li>
+    <li>Allow use of trailing backslash to specify multiline filters
+        in '<code>@</code>'-indirection files for
+        <ref id="tpipe-cmd"><code>cmd</code></ref>-type parameters.</li>
     </ul>
     </p></dd>
 
