@@ -12,9 +12,11 @@ import javax.swing.UIManager;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import uk.ac.starlink.topcat.TablesListComboBox;
+import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -31,7 +33,8 @@ import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
  * @author   Mark Taylor
  * @since    26 Mar 2013
  */
-public class FunctionLayerControl extends SingleZoneLayerControl {
+public class FunctionLayerControl extends ConfigControl
+                                  implements LayerControl {
 
     private final FunctionPlotter plotter_;
     private final Specifier<ZoneId> zsel_;
@@ -46,7 +49,7 @@ public class FunctionLayerControl extends SingleZoneLayerControl {
      */
     public FunctionLayerControl( FunctionPlotter plotter,
                                  Specifier<ZoneId> zsel ) {
-        super( plotter.getPlotterName(), plotter.getPlotterIcon(), zsel );
+        super( plotter.getPlotterName(), plotter.getPlotterIcon() );
         plotter_ = plotter;
         zsel_ = zsel;
         AutoConfigSpecifier legendSpecifier =
@@ -103,17 +106,30 @@ public class FunctionLayerControl extends SingleZoneLayerControl {
         return new Plotter<?>[] { plotter_ };
     }
 
-    public SingleZoneLayer getSingleZoneLayer() {
+    public boolean hasLayers() {
+        ConfigMap config = getConfig();
+        return plotter_.createLayer( null, null, getFunctionStyle( config ) )
+               != null;
+    }
+
+    public TopcatLayer[] getLayers( Ganger<?,?> ganger ) {
         ConfigMap config = getConfig();
         PlotLayer plotLayer =
             plotter_.createLayer( null, null, getFunctionStyle( config ) );
-        LegendEntry[] legents = getLegendEntries();
-        String leglabel = legents.length > 0
-                        ? legents[ 0 ].getLabel()
-                        : null;
-        return plotLayer == null
-             ? null
-             : new SingleZoneLayer( plotLayer, config, leglabel );
+        if ( plotLayer == null ) {
+            return new TopcatLayer[ 0 ];
+        }
+        else {
+            PlotLayer[] plotLayers = new PlotLayer[ ganger.getZoneCount() ];
+            Arrays.fill( plotLayers, plotLayer );
+            LegendEntry[] legents = getLegendEntries();
+            String leglabel = legents.length > 0
+                            ? legents[ 0 ].getLabel()
+                            : null;
+            TopcatLayer tcLayer =
+                new TopcatLayer( plotLayers, config, leglabel );
+            return new TopcatLayer[] { tcLayer };
+        }
     }
 
     public LegendEntry[] getLegendEntries() {
@@ -124,6 +140,11 @@ public class FunctionLayerControl extends SingleZoneLayerControl {
         return showLabel && style != null && label != null
              ? new LegendEntry[] { new LegendEntry( label, style ) }
              : new LegendEntry[ 0 ];
+    }
+
+    public void submitReports( Map<LayerId,ReportMap> reports,
+                               Ganger<?,?> ganger ) {
+        // currently no reporting from Function layer
     }
 
     public Specifier<ZoneId> getZoneSpecifier() {

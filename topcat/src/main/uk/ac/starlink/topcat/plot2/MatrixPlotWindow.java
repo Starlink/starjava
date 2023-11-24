@@ -1,14 +1,11 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Component;
-import java.util.Arrays;
 import javax.swing.ListModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.geom.MatrixPlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
-import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 
 /**
  * Plot window for matrix plots.
@@ -19,7 +16,8 @@ import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 public class MatrixPlotWindow
         extends StackPlotWindow<PlaneSurfaceFactory.Profile,PlaneAspect> {
 
-    private static final MatrixPlotType PLOT_TYPE = createMatrixPlotType();
+    private static final MatrixPlotType PLOT_TYPE =
+        MatrixPlotType.getInstance();
     private static final MatrixPlotTypeGui PLOT_GUI = new MatrixPlotTypeGui();
 
     /**
@@ -38,30 +36,6 @@ public class MatrixPlotWindow
          * configure the legend to appear there rather than taking space
          * outside of the plot bounds. */
         getLegendControl().getInsideModel().setSelected( true );
-    }
-
-    /**
-     * Creates a plot type instance.
-     *
-     * @return  MatrixPlotType instance for use with this window
-     */
-    private static MatrixPlotType createMatrixPlotType() {
-
-        /* Normally, MatrixPlotType.getInstance() could be used here.
-         * However, at time of writing the layer GUI only works for
-         * 1- and 2-coordinate plotters; in particular plots from
-         * FunctionPlotter only show up in a single panel,
-         * so make sure that no layer control for FunctionPlotter
-         * shows up in the GUI.
-         * This needs to be fixed by re-implementing FunctionLayerControl
-         * to be multi-zone-aware.  Not all that hard to do. */
-        Plotter<?>[] plotters =
-            Arrays.stream( MatrixPlotType.getInstance().getPlotters() )
-                  .filter( p -> ! ( p instanceof FunctionPlotter ) )
-                  .toArray( n -> new Plotter<?>[ n ] );
-        PlaneSurfaceFactory surfFact =
-            new PlaneSurfaceFactory( MatrixPlotType.MATRIX_CONFIG );
-        return new MatrixPlotType( surfFact, plotters );
     }
 
     /**

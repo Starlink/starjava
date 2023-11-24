@@ -16164,7 +16164,7 @@ but it can be adjusted directly in the <label>Axes</label> control
 <ref id="PlanePlotWindow">Plane Plot</ref>,
 and many of the plot types that are available there can be used
 in the grid cells of this plot.
-The &Matrix; Plot currently offers only one plot control type:
+The &Matrix; Plot currently offers the following plot controls:
 <ul>
 <li>&CONTROL.matrix;, containing these scatter-plot like actions:
     <ul>
@@ -16191,6 +16191,9 @@ The &Matrix; Plot currently offers only one plot control type:
     By default the <label>Mark</label> and <label>Histogram</label>
     options are both selected,
     but you can hide these as well as adding others.
+    </li>
+<li>&CONTROL.function;; at present this draws the same function
+        in all visible grid positions, both off- and on-diagonal.
     </li>
 </ul>
 </p>
@@ -32995,6 +32998,9 @@ introduced since the last version:
         from 1.25 to 2.2.
         No change in behaviour (or security) expected,
         but prevents vulnerability warnings in some circumstances.</li>
+    <li>The <ref id="FunctionLayerControl">Function</ref> layer control
+        is now available from the
+        <ref id="MatrixPlotWindow">&Matrix; Plot Window</ref>.</li>
     </ul>
     </p></dd>
 
