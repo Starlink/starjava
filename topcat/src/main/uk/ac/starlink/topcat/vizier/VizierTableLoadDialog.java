@@ -98,17 +98,18 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
      */
     public static final String[] SERVER_URLS = new String[] {
         // Default site.
-        "http://vizier.u-strasbg.fr/",
+        "https://vizier.u-strasbg.fr/",
 
         // Mirrors.
         "http://vizier.nao.ac.jp/",
-        "http://vizier.hia.nrc.ca/",
-        "http://vizier.ast.cam.ac.uk/",
-        "http://vizier.cfa.harvard.edu/",
-        "http://www.ukirt.hawaii.edu/",
-        "http://vizier.iucaa.in/",
+        "https://vizier.cfa.harvard.edu/",
+        "https://vizier.iucaa.in/",
         "http://vizier.china-vo.org/",
         "http://vizier.idia.ac.za/",
+
+        // This one is listed, but at time of writing the certificate
+        // is not recognised, so don't include it for now.
+        // "https://vizier.inasan.ru/vizier/",
 
         // Experimental/beta services (no guarantees).
         "http://viz-beta.u-strasbg.fr/",

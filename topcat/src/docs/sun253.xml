@@ -33001,6 +33001,8 @@ introduced since the last version:
     <li>The <ref id="FunctionLayerControl">Function</ref> layer control
         is now available from the
         <ref id="MatrixPlotWindow">&Matrix; Plot Window</ref>.</li>
+    <li>Update list of VizieR mirrors servers in
+        <ref id="VizierTableLoadDialog">VizieR Query window</ref>.</li>
     </ul>
     </p></dd>
 
