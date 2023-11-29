@@ -102,7 +102,7 @@ public abstract class SkyCoverage implements Coverage {
          * the resolution is not that important.  Reduce the depth by one,
          * which should mean most calls only return a single pixel,
          * and reduce the work that the mask object has to do. */
-        final int depth = maxDepth - 1;
+        final int depth = Math.max( 0, maxDepth - 1 );
         final HealpixNested healpixNested = Healpix.getNested( depth );
         final HealpixNestedFixedRadiusCone4XMatch coneComputer =
             healpixNested.newConeComputer4Xmatch( errRad );

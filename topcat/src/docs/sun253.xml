@@ -33007,6 +33007,8 @@ introduced since the last version:
         <code>nearMoc</code> <ref id="Coverage">Coverage</ref> functions
         can now be an ASCII MOC string as well as a MOC file location
         or VizieR table identifier.</li>
+    <li>Fix sky match failure in case of very large error radius
+        (&gt;22 deg).</li>
     </ul>
     </p></dd>
 
