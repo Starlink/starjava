@@ -15087,6 +15087,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="tpipe-cmd"><code>cmd</code></ref>-type parameters.</li>
     <li>Add a <ref id="quoting">Strings and Quoting</ref> section
         to this document.</li>
+    <li>The first argument of the <code>inMoc</code> and
+        <code>nearMoc</code> <ref id="Coverage">Coverage</ref> functions
+        can now be an ASCII MOC string as well as a MOC file location
+        or VizieR table identifier.</li>
     </ul>
     </p></dd>
 

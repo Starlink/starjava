@@ -19,6 +19,10 @@ public class FuncTest extends TestCase {
     static {
         LogUtils.getLogger( "uk.ac.starlink.ttools.plot2" )
                 .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.cone" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.func" )
+                .setLevel( Level.SEVERE );
     }
 
     public FuncTest( String name ) {
@@ -500,6 +504,39 @@ public class FuncTest extends TestCase {
 
         assertEquals( -1, Conversions.parseBigDecimal("101")
                          .compareTo(Conversions.parseBigDecimal("102")) );
+    }
+
+    public void testCoverage() {
+        String[] asciiMocs = new String[] {
+            "1/1", "1/1 2 4 2/12-14 21 23 25 8/", "s10/ 2 4 10003 11/9-999",
+        };
+        String[] notAsciiMocs = new String[] {
+            "/1 2 3", "2/19-29-39", "2023-06-31T14:58", "II/351",
+            "1/1 2-3 12a",
+        };
+        for ( String m : asciiMocs ) {
+            assertTrue( Coverage.MOC_REGEX.matcher( m ).matches() );
+        }
+        for ( String m : notAsciiMocs ) {
+            assertFalse( Coverage.MOC_REGEX.matcher( m ).matches() );
+        }
+        String iphasUrl = FuncTest.class
+                         .getResource( "MOC-II_321_iphas2-512.fits" )
+                         .toString();
+        assertTrue( Coverage.inMoc( iphasUrl, 285, -5 ) );
+        assertFalse( Coverage.inMoc( iphasUrl, 284, -5 ) );
+        assertTrue( Coverage.nearMoc( iphasUrl, 285, -5, 0.5 ) );
+        assertTrue( Coverage.nearMoc( iphasUrl, 284, -5, 0.5 ) );
+        assertFalse( Coverage.nearMoc( iphasUrl, 284, -5, 0.1 ) );
+        String asciiMoc = "1/1 2 4 2/12-14 21 23 25 8/";
+        assertTrue( Coverage.inMoc( asciiMoc, 124, 30 ) );
+        assertFalse( Coverage.inMoc( asciiMoc, 123, 30 ) );
+        assertTrue( Coverage.nearMoc( asciiMoc, 124, 30, 0.5 ) );
+        assertTrue( Coverage.nearMoc( asciiMoc, 123, 30, 0.5 ) );
+        assertFalse( Coverage.nearMoc( asciiMoc, 123, 30, 0.1 ) );
+
+        assertFalse( Coverage.inMoc( "bad", 23, -12 ) );
+        assertFalse( Coverage.nearMoc( "bad", 23, -12, 18 ) );
     }
 
     public void testDistances() {

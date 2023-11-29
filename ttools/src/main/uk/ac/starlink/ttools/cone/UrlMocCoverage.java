@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.cone;
 
-import cds.moc.HealpixImpl;
 import cds.moc.HealpixMoc;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -38,7 +37,6 @@ public class UrlMocCoverage extends MocCoverage {
         new HashMap<String,HealpixMoc>();
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
-    private static HealpixImpl defaultHpi_ = CdsHealpix.getInstance();
 
     /**
      * Constructor.
@@ -46,7 +44,6 @@ public class UrlMocCoverage extends MocCoverage {
      * @param   mocUrl  URL of MOC file
      */
     public UrlMocCoverage( URL mocUrl ) {
-        super( defaultHpi_ );
         mocUrl_ = mocUrl;
     }
 
@@ -100,24 +97,6 @@ public class UrlMocCoverage extends MocCoverage {
             query.addArgument( "nside", nside );
         }
         return new UrlMocCoverage( query.toURL() );
-    }
-
-    /**
-     * Returns the HEALPix implementation used for MOC service queries.
-     *
-     * @return   indexing implementation
-     */
-    public static HealpixImpl getDefaultHealpixImpl() {
-        return defaultHpi_;
-    }
-
-    /**
-     * Sets the HEALPix implementation used for MOC service queries.
-     *
-     * @param  hpi  indexing implementation
-     */
-    public static void setDefaultHealpixImpl( HealpixImpl hpi ) {
-        defaultHpi_ = hpi;
     }
 
     /**

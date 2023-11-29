@@ -24,8 +24,18 @@ public abstract class MocCoverage implements Coverage {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
+    /** Default Healpix implementation. */
+    public static final HealpixImpl DFLT_HPI = CdsHealpix.getInstance();
+
     /**
-     * Constructor.
+     * Constructs a MocCoverage with default HEALPix implementation.
+     */
+    protected MocCoverage() {
+        this( DFLT_HPI );
+    }
+
+    /**
+     * Constructs a MocCoverage with specified HEALPix implementation.
      *
      * @param   hpi  HEALPix implementation to use for calculations
      */
@@ -39,7 +49,7 @@ public abstract class MocCoverage implements Coverage {
      * maximum of once by the {@link #initCoverage} method of
      * {@link MocCoverage}, and should not be called by anyone else.
      *
-     * @return  new MOC defining footprint
+     * @return  new MOC defining footprint, or null
      */
     protected abstract HealpixMoc createMoc() throws IOException;
 

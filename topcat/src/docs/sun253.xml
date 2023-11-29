@@ -33003,6 +33003,10 @@ introduced since the last version:
         <ref id="MatrixPlotWindow">&Matrix; Plot Window</ref>.</li>
     <li>Update list of VizieR mirrors servers in
         <ref id="VizierTableLoadDialog">VizieR Query window</ref>.</li>
+    <li>The first argument of the <code>inMoc</code> and 
+        <code>nearMoc</code> <ref id="Coverage">Coverage</ref> functions
+        can now be an ASCII MOC string as well as a MOC file location
+        or VizieR table identifier.</li>
     </ul>
     </p></dd>
 
