@@ -120,6 +120,14 @@ public class Shaders {
     public static final Shader BLACK_WHITE =
         createInterpolationShader( "Greyscale", Color.BLACK, Color.WHITE );
 
+    /** Rachel did this one. */
+    public static final Shader SUNSET =
+        createInterpolationShader( "Sunset", new Color[] {
+                                       new Color( 0xf4d9d9 ),
+                                       new Color( 0xf2b53e ),
+                                       new Color( 0xff463f ),
+                                       new Color( 0x3b20c1 ) } );
+
     /** Rainbow shader copied from SRON technical note SRON/EPS/TN/09-002. */
     public static final Shader SRON_RAINBOW =
         createSronRainbowShader( "SRON" );

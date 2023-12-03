@@ -1031,6 +1031,7 @@ public class StyleKeys {
             clip( Shaders.LUT_BUBBLEGUM, 0, true ),
             clip( Shaders.LUT_GEM, 0, true ),
             clip( Shaders.LUT_CHROMA, 0.15, true ),
+            clip( Shaders.SUNSET, 0, false ),
             clip( Shaders.LUT_NEON, 0, true ),
             clip( Shaders.LUT_TROPICAL, 0, true ),
             clip( Shaders.LUT_ACCENT, 0, true ),

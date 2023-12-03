@@ -27066,6 +27066,7 @@ Some of the notable contributers are these:
 <li>Henrik Rydberg (Gothenburg drinking water laboratory)</li>
 <li>Juan Carlos Segovia (ESAC)</li>
 <li>Petr &#x0160;koda (AIAS, CZ)</li>
+<li>Rachel Taylor (Cotham)</li>
 <li>Mattia Vaccari (Cape Town)</li>
 <li>Juande Sandander Vela (IAA-CSIC)</li>
 <li>Benjamin Steltner (MPG)</li>
@@ -33009,6 +33010,7 @@ introduced since the last version:
         or VizieR table identifier.</li>
     <li>Fix sky match failure in case of very large error radius
         (&gt;22 deg).</li>
+    <li>Add new <ref id="Shaders">colour map</ref> Sunset.</li>
     </ul>
     </p></dd>
 

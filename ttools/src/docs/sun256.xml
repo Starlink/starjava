@@ -15093,6 +15093,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         or VizieR table identifier.</li>
     <li>Fix sky match failure in case of very large error radius
         (&gt;22 deg).</li>
+    <li>Add new <ref id="Shaders">colour map</ref> Sunset.</li>
     </ul>
     </p></dd>
 
