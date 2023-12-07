@@ -33011,6 +33011,7 @@ introduced since the last version:
     <li>Fix sky match failure in case of very large error radius
         (&gt;22 deg).</li>
     <li>Add new <ref id="Shaders">colour map</ref> Sunset.</li>
+    <li>Upgrade VOLLT adqlLib to official 2.0-beta release.</li>
     </ul>
     </p></dd>
 
