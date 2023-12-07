@@ -8,7 +8,7 @@ import cds.moc.HealpixMoc;
  *
  * @author   Mark Taylor
  * @since    29 Nov 2023
- * @see  <a href="https://www.ivoa.net/documents/MOC/">MOC</a> v2.0 sec 4.2.3
+ * @see  <a href="https://www.ivoa.net/documents/MOC/">MOC v2.0 sec 4.2.3</a>
  */
 public class AsciiMocCoverage extends MocCoverage {
 
