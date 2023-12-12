@@ -66,6 +66,7 @@ public class SplatRegistryQuery implements RegistryQuery {
     public static final int SSAP = 0;
     public static final int OBSCORE = 1;
     public static final int SLAP = 2;
+    public static final int LINETAP = 3;
     
 
     private static final Logger logger_ =
@@ -142,6 +143,8 @@ public class SplatRegistryQuery implements RegistryQuery {
                adql_ = getSSAPAdql();
        else if (protocol == SLAP)
                adql_ = getSLAPAdql();
+       else if (protocol == LINETAP)
+           adql_ = getLINETAPAdql();
     }
     
     private String getSSAPAdql() {
@@ -205,6 +208,16 @@ public class SplatRegistryQuery implements RegistryQuery {
                 "WHERE standard_id='ivo://ivoa.net/std/tap' AND detail_xpath='/capability/dataModel/@ivo-id' "+                
                 "AND (1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore%'))";
     }
+    
+    private String getLINETAPAdql() {
+
+        return "SELECT DISTINCT  table_name, ivoid, access_url FROM rr.res_table " 
+        		//+ "NATURAL JOIN rr.resource "
+        		+ "NATURAL JOIN rr.capability "
+        		+ "NATURAL JOIN rr.interface WHERE "
+        		+ "table_utype LIKE 'ivo://ivoa.net/std/linetap#table-1.%' AND standard_id LIKE 'ivo://ivoa.net/std/tap#%' AND intf_role='std'" ;
+    }
+
 
     public DescribedValue[] getMetadata() {
         return new DescribedValue[] {
@@ -316,7 +329,7 @@ public class SplatRegistryQuery implements RegistryQuery {
      */
     private static class QuerySink implements TableSink {
 
-        private static Map<String,SSAPRegResource> resMap_;
+        private static Map<String, RegResource> resMap_;
         private static Map<String,Integer> colMap_;
         long nrow_;
 
@@ -324,7 +337,7 @@ public class SplatRegistryQuery implements RegistryQuery {
          * Constructor.
          */
         QuerySink() {
-            resMap_ = new LinkedHashMap<String,SSAPRegResource>();
+            resMap_ = new LinkedHashMap<String,RegResource>();
             colMap_ = new HashMap<String,Integer>();
         }
 
@@ -334,8 +347,12 @@ public class SplatRegistryQuery implements RegistryQuery {
          * @return  resource list
          */
         public SSAPRegResource[] getResources() {
+        	Collection<RegResource> values = resMap_.values();
+
             return resMap_.values().toArray( new SSAPRegResource[ 0 ] );
         }
+        
+        
 
        /* public SSAPRegResource[] getSSAPRegResource() {
             Collection col = resMap_.values();
@@ -366,7 +383,7 @@ public class SplatRegistryQuery implements RegistryQuery {
              * hard code the colum indices in here, but doing it like this
              * reduces the chance of programming error. */
             final String ivoid = getString( row, "ivoid" );
-            final String shortName = getString( row, "short_name" ); 
+            String shortName = getString( row, "short_name" ); 
             final String title = getString( row, "res_title" );
             final String refUrl = getString( row, "reference_url" );
            
@@ -381,6 +398,9 @@ public class SplatRegistryQuery implements RegistryQuery {
            
             final String [] waveBand = getString( row, "waveband" ).split("#");
             
+            String tableName = getString( row, "table_name" );
+                   
+            
             String cappaths = getString( row, "cappaths" );
             String capvals = getString( row, "capvals" );
              
@@ -389,7 +409,7 @@ public class SplatRegistryQuery implements RegistryQuery {
             String email = getString( row, "emails" ).replace("<", "&lt;").replace(">", "&gt;"); // replace needed if information is displayed in html
             String contact = "";
             String publisher = "";
-            
+           
 
             if (baseRoles!= null && roleNames!=null) {
             	String[] roles = baseRoles.split("#");
@@ -406,7 +426,7 @@ public class SplatRegistryQuery implements RegistryQuery {
             			
             			logger_.info ( shortName+" "+refUrl+" : number of role and names does not match");
             		}
-            		if (email != null)
+            		if (email != null || ! email.isEmpty())
             			contact += " ("+ email +") ";
             	}
             }
@@ -439,6 +459,8 @@ public class SplatRegistryQuery implements RegistryQuery {
                 String[] subjects = subjectTxt == null
                                   ? new String[ 0 ]
                                   : subjectTxt.split( "," );
+                if (shortName== null || shortName.isEmpty()) //LineTAP case
+                	shortName = tableName;
                 SSAPRegResource res = new SSAPRegResource( shortName, title, resDescription, accessUrl);
                 res.setContact(contact);
                 res.setPublisher(publisher);
@@ -448,11 +470,12 @@ public class SplatRegistryQuery implements RegistryQuery {
                 res.setSubjects(subjects);
                 res.setWaveband(waveBand);
                 res.setContentType(contType);
+                res.setTableName(tableName);
            //     res.capMap = new LinkedHashMap<Integer, SSAPRegCapability>();
                 resMap_.put( ivoid, res );
             }
 
-            SSAPRegResource resource = resMap_.get(ivoid);
+            SSAPRegResource resource = (SSAPRegResource) resMap_.get(ivoid);
 
             SSAPRegCapability cap = new SSAPRegCapability("", accessUrl );
 
@@ -466,6 +489,33 @@ public class SplatRegistryQuery implements RegistryQuery {
             resource.setCapabilities(caps);
            
         }
+
+ /*       public void acceptLineTAPRow( Object[] row ) {
+
+            /* Bump recorded row count. * /
+            nrow_++;
+
+            /* Get values using the column lookup table.
+             * In fact we know what sequence the columns are in so we could
+             * hard code the colum indices in here, but doing it like this
+             * reduces the chance of programming error. *
+             * 
+             *  /
+            final String ivoid = getString( row, "ivoid" );
+            final String shortName = getString( row, "short_name" ); 
+            final String accessUrl = getString( row, "access_url" );
+            String tableName = getString( row, "table_name" );
+            
+            SSAPRegResource res = new SSAPRegResource( );
+            res.setTableName(tableName);
+            res.setAccessUrl(accessUrl);
+            
+                   
+        
+            LineTAPRegResource resource = (LineTAPRegResource) resMap_.get(ivoid);
+           
+        }
+    */
 
         /**
          * Gets a value from a table row by row name.
@@ -491,5 +541,6 @@ public class SplatRegistryQuery implements RegistryQuery {
             return (str==null?"":str);
         }
     }
+  
 
 }
