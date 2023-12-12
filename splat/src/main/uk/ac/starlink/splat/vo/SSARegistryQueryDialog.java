@@ -63,6 +63,11 @@ public class SSARegistryQueryDialog
             {
                     "capability/@standardID = 'ivo://ivoa.net/std/slap'"
             };
+    
+    public static String[] defaultLINETAPQuery_ = new String[]
+            {
+                    "capability/@standardID = 'ivo://ivoa.net/std/tap'"
+            };
 
 
     public String getName()
@@ -82,6 +87,8 @@ public class SSARegistryQueryDialog
             rqPanel_.setPresetQueries( defaultSSAPQuery_ );
         else if (protocol_ == SplatRegistryQuery.OBSCORE)
             rqPanel_.setPresetQueries( defaultOBSCoreQuery_ );
+        else if (protocol_ == SplatRegistryQuery.LINETAP)
+            rqPanel_.setPresetQueries( defaultLINETAPQuery_ );
         return rqPanel_;
     }
 

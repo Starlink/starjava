@@ -2161,7 +2161,7 @@ public class SplatBrowser
     {
         if ( spectralLinesBrowser == null ) {
             try {
-            	spectralLinesBrowser = new LineBrowser(this, plotControl);
+            	spectralLinesBrowser = new LineBrowser(plotControl);
             }
             catch (Exception e) {
                 ErrorDialog.showError( this, e );
