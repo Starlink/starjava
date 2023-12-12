@@ -567,7 +567,8 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
      *
      */
     protected void updateServers () {
-        updateServers( makeRegistryQuery() );
+    	StarTable table = makeRegistryQuery();
+        updateServers( table );
     }
     public void updateServers (StarTable table) {
         TableRowSorter<DefaultTableModel> savedSorter = getTableRowSorter();

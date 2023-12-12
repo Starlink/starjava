@@ -4,6 +4,8 @@
 package uk.ac.starlink.splat.vo;
 
 import java.awt.Dimension;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -34,7 +36,9 @@ import uk.ac.starlink.table.StarTable;
  public class ServerPopupTable extends RowPopupTable {
 
 
-     private AbstractServerList serverList;
+     
+
+	protected AbstractServerList serverList;
    //  private TableRowSorter<DefaultTableModel> sorter;
 
      static final int NRCOLS = 15;                    // the number of columns in the table
@@ -56,8 +60,9 @@ import uk.ac.starlink.table.StarTable;
       public static final int STDID_INDEX = 12;
       public static final int VERSION_INDEX = 13;
       public static final int SUBJECTS_INDEX = 14;
-      public static final int TAGS_INDEX = 15;
-
+      public static final int TABLENAME_INDEX = 15;
+      public static final int TAGS_INDEX = 16;
+      
      // the table headers
      private String[] headers = { "short name", "title", "description", "identifier",
                                  "publisher", "contact", "access URL", "reference URL", "waveband", "content type",
@@ -75,7 +80,7 @@ import uk.ac.starlink.table.StarTable;
 
      public ServerPopupTable(AbstractServerList list) {
          super();
-         serverList=list;
+         serverList=list;     
          populate();
          sortTableAlphabetically();
 
@@ -109,10 +114,15 @@ import uk.ac.starlink.table.StarTable;
                     name = server.getTitle();
                 else {
                     name = name.trim();
+                    if (name.isEmpty()) { // linetap case: name is the table name
+                        name = server.getTableName();
+                        name = name.trim();
+                    }
                     if (name.isEmpty()) { // actually shortname should not be empty, but there are empty shortnames...
                         name = server.getTitle();
                         name = name.trim();
                     }
+                   
                 }
 
                 tablerow[SHORTNAME_INDEX] = name;
@@ -154,7 +164,7 @@ import uk.ac.starlink.table.StarTable;
 
 
  // server table formatting and sorting
-    private void updateServerTable() {
+    protected void updateServerTable() {
 
       for (int i=getColumnCount()-1; i>1; i--)  {
             /// update server table to show only the two first columns
@@ -166,7 +176,7 @@ import uk.ac.starlink.table.StarTable;
     }
 
     // Transform a StringArray into a comma separated String
-    private String stringJoin(String[] str) {
+    protected String stringJoin(String[] str) {
 
         if (str == null  || str.length==0 )
             return "";
@@ -267,6 +277,10 @@ import uk.ac.starlink.table.StarTable;
          return (String) getModel().getValueAt(row, TITLE_INDEX);
 
      }
+     public String getTableName(int row) {
+    		
+ 		return (String) getModel().getValueAt(row, TABLENAME_INDEX);
+ 	}	
 
     public void removeServer(int row) {
        serverList.removeServer((String)getModel().getValueAt(row, SHORTNAME_INDEX).toString());
@@ -313,6 +327,16 @@ import uk.ac.starlink.table.StarTable;
     public void sortTable() {
         TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>) getRowSorter();
         sorter.sort();
+    }
+    
+    public String getToolTipText(MouseEvent e) {
+        String tip = null;
+        java.awt.Point p = e.getPoint();
+        int rowIndex = convertRowIndexToModel(rowAtPoint(p));
+        TableModel model = this.getModel();
+        tip = model.getValueAt(rowIndex, TITLE_INDEX).toString();
+    
+        return tip;
     }
 
   /*  public void setServerTags(int row, String[] tags) {
