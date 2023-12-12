@@ -17,6 +17,7 @@ import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -105,22 +106,25 @@ public class LineIDTableSpecDataImpl
         setName( starTable );
         openTable( starTable );
     }
-
+    
+  
     /**
      * Create an object by reusing an existing instance if a StarTable.
      *
      * @param starTable reference to a {@link StarTable}.
-     * @param shortName a short name for the table.
-     * @param fullName a long name for the table.
+     * @param coordcol the name of the column containing the coordinate
+     * @param labelcol the name of the column containing the label
      */
-    public LineIDTableSpecDataImpl( StarTable starTable, String shortName,
-                                    String fullName )
+    public LineIDTableSpecDataImpl( StarTable starTable, String coordcol,
+                                    String datacol, String labelcol )
         throws SplatException
     {
-        super( shortName );
+        super(starTable.getName());
+        this.coordColName = coordcol;
+        this.labelColName = labelcol;
+        setName(starTable);
         openTable( starTable );
-        this.shortName = shortName;
-        this.fullName = fullName;
+       
     }
 
     /**
@@ -234,6 +238,14 @@ public class LineIDTableSpecDataImpl
      * Reference to the StarTable.
      */
     protected StarTable starTable = null;
+    
+    /**
+     * Names of coordinates and label columns (for linetap)
+     */
+
+	private String coordColName=null;
+
+	private String labelColName=null;
 
     /**
      * Writer for tables.
@@ -413,24 +425,35 @@ public class LineIDTableSpecDataImpl
             columnNames[i] = columnInfos[i].getName().toLowerCase();
         }
 
-        coordColumn =
-            TableColumnChooser.getInstance().getCoordMatch( columnInfos,
+        if (coordColName == null) {
+        	coordColumn =
+        			TableColumnChooser.getInstance().getCoordMatch( columnInfos,
                                                             columnNames );
-        if ( coordColumn == -1 ) {
-            // No match for coordinates, look for "first" numeric column.
-            for ( int i = 0; i < columnInfos.length; i++ ) {
-                if ( Number.class.isAssignableFrom
-                     ( columnInfos[i].getContentClass() ) ) {
-                    coordColumn = i;
-                    break;
-                }
-            }
+        	if ( coordColumn == -1 ) {
+            	// No match for coordinates, look for "first" numeric column.
+            	for ( int i = 0; i < columnInfos.length; i++ ) {
+                	if ( Number.class.isAssignableFrom
+                		( columnInfos[i].getContentClass() ) ) {
+                		coordColumn = i;
+                    	break;
+                	}
+            	}
+        	}
+        } else {
+        	coordColumn=-1;
+        	for ( int i = 0; i < columnInfos.length; i++ ) {
+        	
+            	if ( coordColName.equals(columnNames[i])) {
+            		coordColumn = i;
+                	break;
+            	}
+        	}
         }
 
-        dataColumn =
-            TableColumnChooser.getInstance().getDataMatch( columnInfos,
+        dataColumn = -1; // data makes no sense to line identifiers
+  /*          TableColumnChooser.getInstance().getDataMatch( columnInfos,
                                                            columnNames );
-     /*   if ( dataColumn == -1 ) {
+          if ( dataColumn == -1 ) {
             // No match for data, look for "second" numeric column.
             int count = 0;
             for ( int i = 0; i < columnInfos.length; i++ ) {
@@ -443,18 +466,29 @@ public class LineIDTableSpecDataImpl
                     count++;
                 }
             }
-        }*/
+        }
+        */
 
         if ( coordColumn == -1 ) {
             throw new SplatException( "Line identifier tables must "+
                                       "contain at least one numeric column" );
         }
-
-        //  Look for the labels.
-        labelColumn =
-            TableColumnChooser.getInstance().getLabelMatch( columnInfos,
+        
+        
+    	//  Look for the labels.
+        if (labelColName == null) {
+        	labelColumn =
+        			TableColumnChooser.getInstance().getLabelMatch( columnInfos,
                                                             columnNames );
-
+        } else {
+        	labelColumn=-1;
+        	for ( int i = 0; i < columnInfos.length; i++ ) {
+            	if ( labelColName.equals(columnNames[i])) {
+            		labelColumn = i;
+                	break;
+            	}
+        	}
+        }
         //  Find the size of the table. Limited to 2G cells.
         dims[0] = (int) starTable.getRowCount();
 
@@ -462,13 +496,15 @@ public class LineIDTableSpecDataImpl
         coords = new double[dims[0]];
         readColumn( coords, coordColumn );
 
-        if ( dataColumn != -1 ) {
+/*        if ( dataColumn != -1 ) {
             data = new double[dims[0]];
             readColumn( data, dataColumn );
         } else {
+        */
             data = new double[dims[0]];
             Arrays.fill(data, SpecData.BAD);
-        }
+ //       }
+
 
         labels = new String[dims[0]];
         readColumn( labels, labelColumn );
@@ -594,5 +630,45 @@ public class LineIDTableSpecDataImpl
 	public void setXparams(String xlabel, String unitstring) {
 	    this.astref.setLabel(1, xlabel);
 		this.astref.setUnit(1, UnitUtilities.fixUpUnits( unitstring ));
+	}
+
+	public void setcolumns(String coordcol, String labelcol) {
+		coordColName = coordcol;
+		labelColName = labelcol;
+		
+	}
+
+	StarTable doZoomProbabilities(float factor) {
+		int nrLines = (int) (factor*5);
+	
+
+		// get probability column number
+		int probcol = -1;
+        columnInfos = Tables.getColumnInfos( starTable );
+        for ( int i = 0; i < columnNames.length || probcol>0; i++ ) {
+            String name = columnInfos[i].getName();
+            if (name.equalsIgnoreCase("einsteina")) {
+            	probcol = i;
+            }
+        }
+        
+        int sortcol[] = {probcol};
+        
+        StarTable  sorted=null;
+		try {
+			sorted = Tables.sortTable(starTable, sortcol, false, true );
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+        if (sorted != null)  {
+        	for (int i=nrLines+1; i< sorted.getRowCount();i++) {
+        		 ((RowListStarTable) sorted).removeRow(i);
+        	}
+        }
+       
+        return sorted;
+		
 	}
 }

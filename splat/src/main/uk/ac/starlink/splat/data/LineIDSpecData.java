@@ -104,6 +104,13 @@ public class LineIDSpecData
      * The number of positions actually drawn in the last call to drawSpec.
      */
     private int drawn = 0;
+    
+    /**
+     * spectral line hovering mode
+     */
+    private boolean hovermode = false;
+
+	//private boolean probabilityzoom = true;
 
     /* TODO: Undoable support */
 
@@ -124,13 +131,23 @@ public class LineIDSpecData
    public LineIDSpecData( LineIDTableSpecDataImpl lineIDImpl )
             throws SplatException
     {
-         super( lineIDImpl );
-         setRange();               // Deferred from super constructor
-         useInAutoRanging = false; // by default.
-        // setPointSize( 1.0 );
+       super( lineIDImpl );
+       setRange();               // Deferred from super constructor
+       useInAutoRanging = false; // by default.
+      // setPointSize( 1.0 );
     }
     
-    /**
+    public LineIDSpecData(LineIDTableSpecDataImpl lineIDImpl, boolean hovermode)            
+    		throws SplatException
+    {
+    	 
+    	  super( lineIDImpl );
+    	  this.hovermode = hovermode;
+          setRange();               // Deferred from super constructor
+          useInAutoRanging = false; // by default.
+   
+	}
+	/**
      * Set the SpecData used to defined the relative positioning for
      * the labels.
      * <P>
@@ -588,66 +605,75 @@ public class LineIDSpecData
         }
 
         double[] pos = new double[2];
+
+        if ( hovermode ) {
+
+        	//onlyShortName = true;
+        	showVerticalMarks = true;
+        	defaultGrf.attribute( 4210752, colour, Grf.GRF__LINE );
+
+        }
+
         if ( onlyShortName ) {
-            String label = prefixName + post;
+        	String label = prefixName + post;
 
-            //  Positions for vertical lines.
-            double shift = 0.0;
-            if ( showVerticalMarks ) {
-                double[] extent = defaultGrf.textExtent( label, 0.0,
-                                                         0.0, "CC",
-                                                         upVector[0],
-                                                         upVector[1] );
-                shift = ( extent[5] - extent[1] ) * scales[1] * 0.75;
-            }
+        	//  Positions for vertical lines.
+        	double shift = 0.0;
+        	if ( showVerticalMarks ) {
+        		double[] extent = defaultGrf.textExtent( label, 0.0,
+        				0.0, "CC",
+        				upVector[0],
+        				upVector[1] );
+        		shift = ( extent[5] - extent[1] ) * scales[1] * 0.75;
+        	}
 
-            for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
-                pos[0] = xypos[j];
+        	for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
+        		pos[0] = xypos[j];
 
-                //  Don't display if clipped along X axis.
-                if ( pos[0] >= limits[0] && pos[0] <= limits[1] ) {
-                    drawn++;
-                    pos[1] = xypos[j+1];
-                  
-                    plot.text( label, pos, upVector, "CC" );
-                    if ( showVerticalMarks ) {
-                        pos[1] = xypos[j+1] + shift;
-                        plot.gridLine( 2, pos, lineLength );
-                        pos[1] = xypos[j+1] - shift;
-                        plot.gridLine( 2, pos, -lineLength );
-                    }
-               }
-            }
+        		//  Don't display if clipped along X axis.
+        		if ( pos[0] >= limits[0] && pos[0] <= limits[1] ) {
+        			drawn++;
+        			pos[1] = xypos[j+1];
+
+        			plot.text( label, pos, upVector, "CC" );
+        			if ( showVerticalMarks ) {
+        				pos[1] = xypos[j+1] + shift;
+        				plot.gridLine( 2, pos, lineLength );
+        				pos[1] = xypos[j+1] - shift;
+        				plot.gridLine( 2, pos, -lineLength );
+        			}
+        		}
+        	}
         }
         else {
-            String label = null;
-            double shift = 0.0;
-            for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
-                pos[0] = xypos[j];
+        	String label = null;
+        	double shift = 0.0;
+        	for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
+        		pos[0] = xypos[j];
 
-                //  Don't display if clipped along X axis.
-                if ( pos[0] >= limits[0] && pos[0] <= limits[1] ) {
-                    drawn++;
-                    label = pre + labels[i] + post;
-                    pos[1] = xypos[j+1];
-                    plot.text( label, pos, upVector, "CC" );
+        		//  Don't display if clipped along X axis.
+        		if ( pos[0] >= limits[0] && pos[0] <= limits[1] ) {
+        			drawn++;
+        			label = pre + labels[i] + post;
+        			pos[1] = xypos[j+1];
+        			plot.text( label, pos, upVector, "CC" );
 
-                    if ( showVerticalMarks ) {
-                        //  Get size of text as was drawn. Use to position
-                        //  the vertical lines.
-                        double[] extent = defaultGrf.textExtent( label, 0.0,
-                                                                 0.0, "CC",
-                                                                 upVector[0],
-                                                                 upVector[1] );
-                        shift = ( extent[5] - extent[1] ) * scales[1] * 0.75;
+        			if ( showVerticalMarks ) {
+        				//  Get size of text as was drawn. Use to position
+        				//  the vertical lines.
+        				double[] extent = defaultGrf.textExtent( label, 0.0,
+        						0.0, "CC",
+        						upVector[0],
+        						upVector[1] );
+        				shift = ( extent[5] - extent[1] ) * scales[1] * 0.75;
 
-                        pos[1] = xypos[j+1] + shift;
-                        plot.gridLine( 2, pos, lineLength );
-                        pos[1] = xypos[j+1] - shift;
-                        plot.gridLine( 2, pos, -lineLength );
-                    }
-                }
-            }
+        				pos[1] = xypos[j+1] + shift;
+        				plot.gridLine( 2, pos, lineLength );
+        				pos[1] = xypos[j+1] - shift;
+        				plot.gridLine( 2, pos, -lineLength );
+        			}
+        		}
+        	}
         }
 
         resetGrfAttributes( defaultGrf, oldState, false );
@@ -735,4 +761,23 @@ public class LineIDSpecData
             e.printStackTrace();
         }
     }
+/*
+    public LineIDTableSpecDataImpl zoomProbabilities(boolean zoom, float  factor) {
+		probabilityzoom =zoom;
+		if (probabilityzoom) {
+			LineIDTableSpecDataImpl lineImpl = (LineIDTableSpecDataImpl) getSpecDataImpl();
+			if ( lineImpl != null )
+				try {
+					return  new LineIDTableSpecDataImpl(lineImpl.doZoomProbabilities( factor));
+				} catch (SplatException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return null;
+				}
+						
+		}
+		return null;
+		
+	}
+	*/
 }
