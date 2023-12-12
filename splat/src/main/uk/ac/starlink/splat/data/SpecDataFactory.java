@@ -822,6 +822,20 @@ public class SpecDataFactory
             StarTable starTable;
             long rowCount = 0;
             String pos = i+"";
+            
+            if (exttype.equals("IMAGE")) {
+            	exttype="BINTABLE";
+            	Header hdr = ((FITSSpecDataImpl)impl).hdurefs[1].getHeader();
+      
+            	
+            	try {
+					((FITSSpecDataImpl)impl).hdurefs[1].addValue("XTENSION", "BINTABLE", "");
+				} catch (HeaderCardException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} 
+            	
+            }
 
             if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ||
                     dims == null || dims[0] == 0 ) {
@@ -1956,107 +1970,112 @@ public class SpecDataFactory
     public SpecData[] expandXMLSED( String specspec )
         throws SplatException
     {
-        ArrayList specList = new ArrayList();
+    	ArrayList specList = new ArrayList();
 
-        //  Access the VOTable.
-        VOElement root = null;
-        try {
-            root = new VOElementFactory().makeVOElement( specspec );            
-        }
-        catch (Exception e) {
-            throw new SplatException( "Failed to open VOTable"+e.getMessage(), e );
-            //throw new SplatException( "Failed to open SED VOTable"+e.getMessage(), e );
-        }
+    	//  Access the VOTable.
+    	VOElement root = null;
+    	try {
+    		root = new VOElementFactory().makeVOElement( specspec );            
+    	}
+    	catch (Exception e) {
+    		throw new SplatException( "Failed to open VOTable"+e.getMessage(), e );
+    		//throw new SplatException( "Failed to open SED VOTable"+e.getMessage(), e );
+    	}
 
-        VOElement[] resource = root.getChildren();
-    
-        String tagName = null;
-        String utype = null;
-        SpecData specData = null;
-        VOStarTable table = null;
-        String productType = "";
-        String timeRef = "";
-        String timeSystem = "";
-        String timeRefpos = "";
+    	VOElement[] resource = root.getChildren();
+
+    	String tagName = null;
+    	String utype = null;
+    	SpecData specData = null;
+    	VOStarTable table = null;
+    	String productType = "";
+    	String timeRef = "";
+    	String timeSystem = "";
+    	String timeRefpos = "";
     	double time0 = 0;
     	String timeField = "";
     	String timeScale = "";
-    	
-        for ( int i = 0; i < resource.length; i++ ) {
-            tagName = resource[i].getTagName();
-            if ( "VODML".equals( tagName ) ) {
-                VODMLReader  dml = new VODMLReader(resource[i]);
-                productType = dml.getDataProductType(); 
-                timeSystem = dml.getTimeFrameKindParameter();
-            }
-            else if ( "RESOURCE".equals( tagName ) ) {
-              //  String resourceType = resource[i].getAttribute("type");
-             //   if (resourceType.equalsIgnoreCase("results"))
-              //      throw new SplatException("results table");
 
-                //  Look for the TABLEs and check if any have utype
-                //  "sed:Segment" these are the spectra.
-                VOElement child[] = resource[i].getChildren();
-                for ( int j = 0; j < child.length; j++ ) {
-                    tagName = child[j].getTagName();
-                    if ("TIMESYS".equals(tagName)) {
-                    	timeRefpos = child[j].getAttribute("refposition");
-                    	time0 = Double.parseDouble(child[j].getAttribute("timeorigin"));
-                    	timeRef = child[j].getAttribute("ID");
-                    	VOElement timeFieldElement = child[j].getReferencedElement(timeRef, "FIELD");
-                    	if (timeFieldElement != null)
-                    		timeField = timeFieldElement.getName();
-                    	timeScale = child[j].getAttribute("timescale");
-                    	if (TimeUtilities.MJD_Origin == time0) { // TODO improve this
-                    		timeSystem="MJD";
-                    	} else {
-                    		timeSystem="JD";
-                    	}
-                    	
-                    	//productType = "TIMESERIES"; //!!!!!!!
-                    }
-                    else if ( "TABLE".equals( tagName ) ) {
-                        utype = child[j].getAttribute( "utype" );  
-                        //child[j].setAttribute("dataproducttype", productType);
-                                try {
-                                    table = new VOStarTable( (TableElement) child[j] );
+    	for ( int i = 0; i < resource.length; i++ ) {
+    		tagName = resource[i].getTagName();
+    		if ( "VODML".equals( tagName ) ) {
+    			VODMLReader  dml = new VODMLReader(resource[i]);
+    			productType = dml.getDataProductType(); 
+    			timeSystem = dml.getTimeFrameKindParameter();
+    		}
+    		else if ( "RESOURCE".equals( tagName ) ) {
+    			//  String resourceType = resource[i].getAttribute("type");
+    			//   if (resourceType.equalsIgnoreCase("results"))
+    			//      throw new SplatException("results table");
 
-                                if ( table.getRowCount() == 0 )
-                                    throw new SplatException( "The table is empty: "+specspec);
-                                
-                                TableSpecDataImpl impl = new TableSpecDataImpl(table);
-                                
-                                if (productType.equalsIgnoreCase("TIMESERIES")) {
-                                    impl.setObjectType(ObjectTypeEnum.TIMESERIES);                                   
-                                    if (timeField != null && ! timeField.isEmpty() ) 
-                                        impl.setTimeField(timeField);
-                                    if (timeRefpos != null && ! timeRefpos.isEmpty() )
-                                        impl.setTimeRefpos(timeRefpos);                                                                                                  
-                                    if (timeScale != null && ! timeScale.isEmpty() ) {
-                                    	timeScale = TimeUtilities.getSupportedTimeScale(timeRefpos, timeScale);
-                                        impl.setTimeScale(timeScale);
-                                    }
-                                    if (timeSystem != null && ! timeSystem.isEmpty() )
-                                        impl.setTimeSystem(timeSystem);
-                                    impl.setTime0(time0);       
-                                }
-                                specData = new SpecData( impl );
-                                
-                                
-                               // specData.setShortName(specData.getShortName() + " " + child[j].getAttribute("name"));
-                                specList.add( specData );
-                                } catch (IOException e) {
-                                    throw new SplatException(e);
-                                }
+    			//  Look for the TABLEs and check if any have utype
+    			//  "sed:Segment" these are the spectra.
+    			VOElement child[] = resource[i].getChildren();
+    			for ( int j = 0; j < child.length; j++ ) {
+    				tagName = child[j].getTagName();
+    				if ("TIMESYS".equals(tagName)) {
+    					if (child[j].hasAttribute("refposition"))
+    						timeRefpos = child[j].getAttribute("refposition");
+    					if (child[j].hasAttribute("timeorigin"))
+    						time0 = Double.parseDouble(child[j].getAttribute("timeorigin"));
+    					timeRef = child[j].getAttribute("ID");
+    					VOElement timeFieldElement = child[j].getReferencedElement(timeRef, "FIELD");
+    					if (timeFieldElement != null)
+    						timeField = timeFieldElement.getName();
+    					timeScale = child[j].getAttribute("timescale");
+    					if (TimeUtilities.MJD_Origin == time0) { // TODO improve this
+    						timeSystem="MJD";
+    					} else {
+    						timeSystem="JD";
+    					}
 
-                    //    }
-                    }
-                }
-            }
-        }
-        SpecData[] spectra = new SpecData[specList.size()];
-        specList.toArray( spectra );
-        return spectra;
+    					//productType = "TIMESERIES"; //!!!!!!!
+    				}
+    				else if ( "TABLE".equals( tagName ) ) {
+    					utype = child[j].getAttribute( "utype" );  
+    					//child[j].setAttribute("dataproducttype", productType);
+    					try {
+    						table = new VOStarTable( (TableElement) child[j] );
+
+    						if ( table.getRowCount() == 0 )
+    							throw new SplatException( "The table "+table.getName()+" is empty: "+specspec);
+
+    						TableSpecDataImpl impl = new TableSpecDataImpl(table);
+
+    						if (productType.equalsIgnoreCase("TIMESERIES")) {
+    							impl.setObjectType(ObjectTypeEnum.TIMESERIES);                                   
+    							if (timeField != null && ! timeField.isEmpty() ) 
+    								impl.setTimeField(timeField);
+    							if (timeRefpos != null && ! timeRefpos.isEmpty() )
+    								impl.setTimeRefpos(timeRefpos);                                                                                                  
+    							if (timeScale != null && ! timeScale.isEmpty() ) {
+    								timeScale = TimeUtilities.getSupportedTimeScale(timeRefpos, timeScale);
+    								impl.setTimeScale(timeScale);
+    							}
+    							if (timeSystem != null && ! timeSystem.isEmpty() )
+    								impl.setTimeSystem(timeSystem);
+    							impl.setTime0(time0);       
+    						}
+    						specData = new SpecData( impl );
+
+
+    						// specData.setShortName(specData.getShortName() + " " + child[j].getAttribute("name"));
+    						specList.add( specData );
+    					} catch (Exception e ) {
+    						logger.warning(e.getMessage());
+    					}
+
+    					//    }
+    				}
+    			}
+    			if (specList.isEmpty()) {
+    				throw new SplatException( "No spectra found in "+specspec);
+    			}
+    		}
+    	}
+    	SpecData[] spectra = new SpecData[specList.size()];
+    	specList.toArray( spectra );
+    	return spectra;
     }
 
     /**
