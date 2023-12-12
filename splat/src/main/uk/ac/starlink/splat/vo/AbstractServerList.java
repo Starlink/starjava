@@ -35,7 +35,7 @@ import uk.ac.starlink.vo.RegResource;
  */
 public abstract class AbstractServerList {
     
-    private HashMap<String, SSAPRegResource> serverList = new HashMap<String, SSAPRegResource>();
+    protected HashMap<String, SSAPRegResource> serverList = new HashMap<String, SSAPRegResource>();
     
     /**
      * AbstractServerList
@@ -83,6 +83,7 @@ public abstract class AbstractServerList {
 
         // now add  the new ones
         if ( table instanceof BeanStarTable ) {
+        	int nrserv=0;
             Object[] resources = ((BeanStarTable)table).getData();
             for ( int i = 0; i < resources.length; i++ ) {
 
@@ -92,6 +93,7 @@ public abstract class AbstractServerList {
                     shortname = server.getTitle(); // avoid problems if server has no name (should not happen, but it does!!!)
                 SSAPRegCapability caps[] = server.getCapabilities();
                 int nrcaps = server.getCapabilities().length;
+              
                 int nrssacaps=0;
                 // create one serverlist entry for each ssap capability  !!!! 
                 // TODO:  DO THIS ALREADY ON SSAPREGISTRYQUERY!?
@@ -106,6 +108,7 @@ public abstract class AbstractServerList {
                         name =  name + "(" + nrssacaps + ")";
                     ssapserver.setShortName(name);
                     addServer( ssapserver, false );
+                    nrserv++;
                     nrssacaps++;
                 }                    
             }
@@ -152,6 +155,7 @@ public abstract class AbstractServerList {
      */
     public void addServer( SSAPRegResource server )
     {
+
         addServer( server, true );
     }
 
@@ -177,7 +181,12 @@ public abstract class AbstractServerList {
                 server.setShortName(shortname);
             }
         }
+        int size1=serverList.size();
         serverList.put( shortname, server );
+        int size2=serverList.size();
+        if (size1==size2)
+        	Logger.info(this, "not put"+shortname );
+        
         if ( save ) {
             try {
                 saveServers();

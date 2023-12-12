@@ -19,6 +19,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
@@ -26,10 +27,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.accessibility.AccessibleComponent;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -38,10 +41,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.JToolTip;
 import javax.swing.KeyStroke;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
+import javax.swing.plaf.ToolTipUI;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
@@ -57,6 +62,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.util.TemporaryFileDataSource;
+import uk.ac.starlink.util.gui.ArrayTableSorter;
 
 public class StarPopupTable extends  BasicStarPopupTable  {
  
@@ -66,6 +72,7 @@ public class StarPopupTable extends  BasicStarPopupTable  {
     // tells if there are soda or datalink parameters associated to this results table
 	private boolean hasSodaService = false;
 	private boolean hasDatalinkService = false;
+	private int previewcol=-1;
 	
     
     public StarPopupTable() {
@@ -82,13 +89,13 @@ public class StarPopupTable extends  BasicStarPopupTable  {
    public StarPopupTable( StarTable startable, boolean rowHeader ) {
         
         super(startable, rowHeader);
+        
         initTable();
     }
    
    private void initTable() {
       // registerKeyboardAction(copylistener, "Copy", stroke, JComponent.WHEN_FOCUSED); // allow copying cell content to clipboard
        setAutoCreateRowSorter(true); // allow sorting by column
-      
    }
    
   
@@ -128,26 +135,26 @@ public class StarPopupTable extends  BasicStarPopupTable  {
                Logger.info("debug", e.getMessage());
            }
 
-           if (model.getColumnName(c).equalsIgnoreCase("preview")) {
-               try {
-                 
-                   URL url =new URL(val);
-                   BufferedImage preview = ImageIO.read(url);
-                   previewIcon=new ImageIcon(preview);
+         //  if (model.getColumnName(c).equalsIgnoreCase("preview")) {
+           //    try {
+           //        previewcol=c;
+               //    URL url =new URL(val);
+               //    BufferedImage preview = ImageIO.read(url);
+                //   previewIcon=new ImageIcon(preview);
                   
-               } catch (MalformedURLException e) {
+             // } catch (MalformedURLException e) {
                    // TODO Auto-generated catch block
                    //e.printStackTrace();
-               } catch (IOException e) {
-                   // TODO Auto-generated catch block
+            //  } catch (IOException e) {
+             //      // TODO Auto-generated catch block
                    //e.printStackTrace();
-               }
-           }
+           //    }
+        //   }
            
            if ( c==0 && model.getColumnName(c).isEmpty())
                info += "<TR><TD col width= \"25%\"><B>Index:</B></TD><TD col width= \"70%\">"+val+"</TD></TR>";   
-           else     
-               info += "<TR><TD col width= \"25%\"><B>"+model.getColumnName(c)+":</B></TD><TD col width= \"70%\">"+val+"</TD></TR>";   
+           else    
+        	   info += "<TR><TD col width= \"25%\"><B>"+model.getColumnName(c)+":</B></TD><TD col width= \"70%\">"+val+"</TD></TR>";   
            
        }
 
@@ -170,6 +177,7 @@ public class StarPopupTable extends  BasicStarPopupTable  {
    public void makeUniquePubdid() {
 
 	   StarTable startable = this.getStarTable();
+//	   ColumnModel cmodel = this.getColumnModel();
 	   int cols = startable.getColumnCount();
 	   int pubdidcol=-1;
 	   int formatcol=-1;
@@ -182,11 +190,13 @@ public class StarPopupTable extends  BasicStarPopupTable  {
 		   ColumnInfo ci =  startable.getColumnInfo(i);
 		   if (ci != null) {
 			   try { 
-				   if (ci.getUtype().endsWith("Curation.PublisherDID") ) {
+				   if (ci.getUtype().toLowerCase().endsWith("curation.publisherdid") ) {
 					   pubdidcol=i;
+					   Logger.info(this, "pubdidcol1 "+i);
 				   }
-				   if (ci.getUtype().endsWith("access.format") ) {
+				   if (ci.getUtype().toLowerCase().endsWith("access.format") ) {
 					   formatcol=i;
+					   Logger.info(this, "formatcol1 "+i);
 				   }
 			   } catch( Exception e) {}
 			   // Obscore
@@ -194,9 +204,11 @@ public class StarPopupTable extends  BasicStarPopupTable  {
 				   
 				   if (ci.getName().endsWith("obs_publisher_did") ) {
 					   pubdidcol=i;
+					   Logger.info(this, "pubdidcol2 "+i);
 				   }
 				   if (ci.getName().endsWith("access_format") ) {
 					   formatcol=i;
+					   Logger.info(this, "formatcol2 "+i);
 				   }
 			   } catch( Exception e){}
 		   }
@@ -204,6 +216,7 @@ public class StarPopupTable extends  BasicStarPopupTable  {
 	   if (pubdidcol == -1 || formatcol == -1)
 		   return; // nothing can be done
 	   
+	
 	   // sort by pubdid
 	   //
 	   
@@ -215,12 +228,29 @@ public class StarPopupTable extends  BasicStarPopupTable  {
 	   sorter.sort();
 	   int rowCount = this.getRowCount();
 	   // search for same pubdids
-	   String prevPubdid= getStringValue(this.getValueAt(0, pubdidcol));
-	   String prevFormat= getStringValue(this.getValueAt(0, formatcol));
+	   String prevPubdid="", prevFormat= "";
+	try {
+		prevPubdid = getStringValue(startable.getCell(0, pubdidcol));
+		prevFormat= getStringValue(startable.getCell(0, formatcol));
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	
+	   String prevPubdid2= getStringValue(this.getValueAt(0, pubdidcol));
+	   String prevFormat2= getStringValue(this.getValueAt(0, formatcol));
 	   
 	   for(int i=1; i<rowCount;i++){
-		    String pubdid = (String) this.getValueAt(i, pubdidcol).toString();
-		    String format = (String) this.getValueAt(i, formatcol).toString();
+		   String pubdid = "";
+		    String format = "";
+		   try {
+				pubdid = getStringValue(startable.getCell(0, pubdidcol));
+				format= getStringValue(startable.getCell(0, formatcol));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				// e.printStackTrace();
+			}
+		 
 		    if (pubdid != null && pubdid.equals(prevPubdid)) {
 		    	if (isPreferedFormat(format,prevFormat)) {
 		    		this.removeRowSelectionInterval(i-1, i-1);
@@ -235,6 +265,10 @@ public class StarPopupTable extends  BasicStarPopupTable  {
 		}	   
    }
    
+  
+
+  
+     
 
    private String getStringValue(Object value) {
 	if (value != null)
@@ -487,5 +521,38 @@ private boolean isPreferedFormat(String format1, String format2){
 	   return false;
 	
    }
+   
+   
+   public int getpreviewcol(TableModel model) {
+	     previewcol=-1;
+	     for ( int c=0; c< model.getColumnCount(); c++ ) {
+	    	 if (model.getColumnName(c).equalsIgnoreCase("preview")) {
+	    		 previewcol=c;
+	    	 }
+	     }	   
+		 return previewcol;	    
+   }
+   
+   public String getToolTipText(MouseEvent e) {
+       String tip = null;
+              
+       java.awt.Point p = e.getPoint();
+       int rowIndex = convertRowIndexToModel(rowAtPoint(p));
+     
+ 
+       TableModel model = this.getModel();
+ 	   previewcol = getpreviewcol(model);
+	   if (previewcol > 0) {	
+			String prvUrl = (String) model.getValueAt(rowIndex,previewcol );
+			if (prvUrl != null && !prvUrl.isEmpty())
+		      tip =  "<html><body><img src='" +prvUrl + "' width=200px height=auto ></body></html>";
+ 
+	   }
+       return tip;
+   }
 
 }
+
+
+
+
