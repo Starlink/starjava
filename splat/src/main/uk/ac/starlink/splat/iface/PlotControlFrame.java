@@ -174,6 +174,7 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem sidebandMatching = null;
     protected JCheckBoxMenuItem suffixLineIDs = null;
     protected JCheckBoxMenuItem trackerLineIDs = null;
+    protected JCheckBoxMenuItem probabilityZoom = null;
    
     protected JMenu analysisMenu = new JMenu();
     protected JMenu editMenu = new JMenu();
@@ -806,13 +807,19 @@ public class PlotControlFrame
         unloadLineIDs = new JMenuItem( "Unload all line identifiers" );
         lineOptionsMenu.add( unloadLineIDs );
         unloadLineIDs.addActionListener( this );
+        
+        probabilityZoom = new JCheckBoxMenuItem( "Zoom probabilities" );
+        lineOptionsMenu.add( probabilityZoom );
+        probabilityZoom.addItemListener( this );
+        boolean state = prefs.getBoolean( "PlotControlFrame_probabilityzoom", false );
+        probabilityZoom.setSelected( state );
 
         //  Make labels track the position of the current spectrum.
         trackerLineIDs =
             new JCheckBoxMenuItem( "Positions track current spectrum" );
         lineOptionsMenu.add( trackerLineIDs );
         trackerLineIDs.addItemListener( this );
-        boolean state = prefs.getBoolean( "PlotControlFrame_trackerlineids",
+        state = prefs.getBoolean( "PlotControlFrame_trackerlineids",
                                           false );
         trackerLineIDs.setSelected( state );
 
@@ -2172,6 +2179,14 @@ public class PlotControlFrame
             boolean state = trackerLineIDs.isSelected();
             prefs.putBoolean( "PlotControlFrame_trackerlineids", state );
             plot.getSpecDataComp().setTrackerLineIDs( state );
+            plot.updatePlot();
+            return;
+        }
+        
+        if ( source.equals( probabilityZoom ) ) {
+            boolean state = probabilityZoom.isSelected();
+            prefs.putBoolean( "PlotControlFrame_probabilityzoom", state );
+            plot.getSpecDataComp().setProbabilityZoom(state);
             plot.updatePlot();
             return;
         }

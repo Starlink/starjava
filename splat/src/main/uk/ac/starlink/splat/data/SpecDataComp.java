@@ -12,12 +12,15 @@ package uk.ac.starlink.splat.data;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import diva.sketch.classification.AbstractClassifier;
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.CmpFrame;
 import uk.ac.starlink.ast.DSBSpecFrame;
@@ -148,6 +151,13 @@ public class SpecDataComp
      * current spectrum.
      */
     private boolean trackerLineIDs = false;
+    
+    /**
+     * Whether line identifier spectra display lines sorted by probabilities, 
+     * zooming in more lines
+     */
+    private boolean zoomProbabilities = false;
+    private float probabilityZoomFactor = 1;
 
     /**
      * Whether line identifier spectra should prefix the short name to their
@@ -333,13 +343,27 @@ public class SpecDataComp
     {
         this.trackerLineIDs = trackerLineIDs;
     }
-
+    
     /**
      */
     public boolean isTrackerLineIDs()
     {
         return trackerLineIDs;
     }
+    
+    /**
+     */
+    public void setProbabilityZoom( boolean probabilityZoom )
+    {
+        this.zoomProbabilities= probabilityZoom;
+    }
+    /**
+     */
+    public boolean isProbabiliyZoomSet()
+    {
+        return zoomProbabilities;
+    }
+   
 
     /**
      */
@@ -1225,17 +1249,34 @@ public class SpecDataComp
                     }
                 }
                 LineIDSpecData lineSpec = (LineIDSpecData) spectrum;
+         /*       if (zoomProbabilities) {
+                    LineIDSpecDataImpl newspec = lineSpec.setProbabilityZoom( zoomProbabilities, probabilityZoomFactor );
+                    if ( newspec != null )
+                    	spectrum = new LineIDSpecData( newspec );
+                    //!!! find better wway tod o that?
+
+                	// sort spectrum by einsteinA
+                	// create subspectrum
+                	// 
+                }
+                */
                 if ( trackerLineIDs ) {
                     lineSpec.setSpecData( currentSpec, mapping );
                 }
                 else {
                     lineSpec.setSpecData( null, null );
                 }
+               
                 lineSpec.setPrefixShortName( prefixLineIDs );
                 lineSpec.setSuffixShortName( suffixLineIDs );
                 lineSpec.setOnlyShortName( shortNameLineIDs );
                 lineSpec.setShowVerticalMarks( showVerticalMarks );
                 lineSpec.setDrawHorizontal( drawHorizontalLineIDs );
+             //   LineIDSpecDataImpl newspec = lineSpec.setProbabilityZoom( zoomProbabilities, probabilityZoomFactor );
+            //    if ( newspec != null )
+            //    	spectrum = new LineIDSpecData( newspec );
+                //!!! find better wway tod o that?
+               
 
                 //  Swap data and errors if needed.
                 if ( plotErrorsAsData ) {
@@ -1321,6 +1362,13 @@ public class SpecDataComp
                 lineSpec.setOnlyShortName( shortNameLineIDs );
                 lineSpec.setShowVerticalMarks( showVerticalMarks );
                 lineSpec.setDrawHorizontal( drawHorizontalLineIDs );
+                /*
+                LineIDSpecDataImpl newspec = lineSpec.setProbabilityZoom( zoomProbabilities, probabilityZoomFactor );
+                if ( newspec != null )
+                	spectrum = new LineIDSpecData( newspec );
+                //!!! find better wway tod o that?
+                 * */
+                 
             }
 
             //  Swap data and errors if needed.
@@ -1715,4 +1763,28 @@ public class SpecDataComp
             }
         }
     }
+/*
+    public  void zoomIDProbabilities(float xScale) {
+    	if ( ! zoomProbabilities)
+    		return;
+    	
+    	probabilityZoomFactor = xScale;
+    	ArrayList<SpecData> newspectra = new ArrayList<SpecData>();
+    	SpecData spectrum = null;
+    	for ( int i = 0; i < spectra.size(); i++ ) {
+    		spectrum = (SpecData)spectra.get( i );
+    		//if (spectrum != null) {
+    			if ( spectrum instanceof LineIDSpecData ) {
+    				LineIDSpecData lineSpec = (LineIDSpecData) spectrum;
+    				LineIDSpecDataImpl newspec = lineSpec.zoomProbabilities( zoomProbabilities, probabilityZoomFactor );
+    				newspectra.add( (SpecData) newspec);
+    			} else {	            	
+    				newspectra.add(spectrum);
+    			}
+    	//	}
+    	}
+    	this.spectra = newspectra;
+    }
+*/
+
 }

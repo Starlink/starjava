@@ -1915,8 +1915,9 @@ public class SpecData
                 //  many operations will fail, so record this so that we can
                 //  check.
                 Mapping oned = astJ.get1DMapping( 1 );
+                
                 monotonic = ( oned.getI( "TranInverse" ) == 1 );
-                if ( ! monotonic ) {
+                if ( ! monotonic && ! (impl instanceof LineIDSpecDataImpl)) {
                     logger.info( impl.getFullName() + ": " +
                                  " coordinates are not" +
                                  " monotonic this means some" +
