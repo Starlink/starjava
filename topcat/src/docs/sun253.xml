@@ -26969,6 +26969,10 @@ functionality:
     and
     <webref url="http://voi.iucaa.in/voi/voplot.htm">VOPlot</webref>
     (VO-India).</li>
+<li>The MacOS DMG file since v4.9 is built using
+    <webref
+       url="https://www.ej-technologies.com/products/install4j/overview.html"
+       >Install4j</webref>.</li>
 <li>The sources for colour maps used in plotting are
     listed in <ref id="Shaders"/>.</li>
 <li>Some icons were created by or adapted from
@@ -27006,6 +27010,7 @@ Some of the notable contributers are these:
 <li>Peter Draper (Starlink, Durham)</li>
 <li>Heinz-Bernd Eggenstein (AEI, Hannover)</li>
 <li>St&#x00e9;phane Erard (Observatoire de Paris)</li>
+<li>Jeremy Faden (Cottage Systems)</li>
 <li>Pierre Fernique (CDS)</li>
 <li>Shashikiran Ganesh (PRL, India)</li>
 <li>Fedrico Garcia (RUG)</li>
