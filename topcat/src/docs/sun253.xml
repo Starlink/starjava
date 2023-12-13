@@ -26951,14 +26951,6 @@ functionality:
 </ul>
 </p>
 
-<p>Initial ispiration for some of TOPCAT's features was taken from the
-pre-existing tools
-<webref url="https://ui.adsabs.harvard.edu/abs/2004AAS...20511304H"
-        >Mirage</webref> (Bell labs)
-and
-<webref url="http://voi.iucaa.in/voi/voplot.htm">VOPlot</webref> (VO-India).
-</p>
-
 <p>Contributed code from the following people is gratefully acknowledged:
 <ul>
 <li>Thomas Boch (CDS), for the VizieR load dialogue.</li>
@@ -26967,16 +26959,22 @@ and
 </ul>
 </p>
 
-<p>The TOPCAT logo in use since version 4 was kindly drawn by Phil Hall.
-</p>
-
-<p>The sources for colour maps used in plotting are
-listed in <ref id="Shaders"/>.
-</p>
-
-<p>Some icons were created by or adapted from
-<webref url="https://smashicons.com/">Smashicons</webref> from
-<webref url="http://www.flaticons.com/">www.flaticons.com</webref>.
+<p>Other contributions to the software are gratefully acknowledged:
+<ul>
+<li>The TOPCAT logo in use since version 4 was kindly drawn by Phil Hall.</li>
+<li>Initial inspiration for some of TOPCAT's features was taken from the
+    pre-existing tools
+    <webref url="https://ui.adsabs.harvard.edu/abs/2004AAS...20511304H"
+            >Mirage</webref> (Bell labs)
+    and
+    <webref url="http://voi.iucaa.in/voi/voplot.htm">VOPlot</webref>
+    (VO-India).</li>
+<li>The sources for colour maps used in plotting are
+    listed in <ref id="Shaders"/>.</li>
+<li>Some icons were created by or adapted from
+    <webref url="https://smashicons.com/">Smashicons</webref> from
+    <webref url="http://www.flaticons.com/">www.flaticons.com</webref>.</li>
+</ul>
 </p>
 
 <p>TOPCAT has benefitted from, and is largely shaped by, advice,
