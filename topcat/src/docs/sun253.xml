@@ -3714,7 +3714,8 @@ it has been installed on your system; some of these are described below.
 starts up the program - in this case just clicking on it will probably work.
 Failing that you may be able to locate the
 jar file (probably named <code>topcat.jar</code>, 
-<code>topcat-full.jar</code> or <code>topcat-lite.jar</code>)
+<code>topcat-full.jar</code>, <code>topcat-lite.jar</code>
+or <code>topcat-extra.jar</code>)
 and click on that.  These files would be located in the
 <code>java/lib/topcat/</code> directory in a standard Starjava installation.
 Note that when you start by clicking on something
@@ -3728,7 +3729,7 @@ the program, you will have to run the program from the command line.
 On Unix-like operating systems, you can use the <code>topcat</code> script.
 If you have the full starjava installation, this is probably in 
 the <em>starjava</em>/java/bin directory.  If you have one of the
-standalone jar files (topcat-full.jar or topcat-lite.jar), it should
+standalone jar files (topcat-*.jar), it should
 be in the same directory as it/them.  If it's not there,
 you can unpack it from the jar file itself, using a command like
 <code>unzip topcat-lite.jar topcat</code>.
