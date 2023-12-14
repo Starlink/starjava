@@ -1,5 +1,11 @@
 1 Starlink SPLAT news.
 
+   4.0 
+   ===
+   - LineTAP prototype implementation
+   - bugfixes
+
+
    3.15.1
    ========
    - catch error so that querying registry does not fail because of bad registry entries
