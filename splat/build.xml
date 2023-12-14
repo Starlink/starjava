@@ -91,7 +91,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SPLAT-VO"/>
   <property name="name" value="splat"/>
-  <property name="version" value="3.15.1"/>
+  <property name="version" value="4.0-beta"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
@@ -249,7 +249,7 @@
     <pathelement location="${star.jar.dir}/vo/vo.jar"/>
 
     <!-- PLASTIC -->
-    <pathelement location="${star.jar.dir}/plastic/plastic.jar"/>
+    <!--pathelement location="${star.jar.dir}/plastic/plastic.jar"/-->
 
     <!-- HDS -->
     <pathelement location="${star.jar.dir}/hds/hds.jar"/>
@@ -507,7 +507,7 @@
       <classpath refid="classpath"/>
       <sysproperty key="java.library.path" value="${jni-ldpath}"/>
       <arg value="${src.etc}/ids"/>
-      <arg value="${build.dir}/ids/ids"/>
+      <arg value="${build.dir}/ids"/>
       <jvmarg value="-Djava.awt.headless=true"/>
     </java>
 
