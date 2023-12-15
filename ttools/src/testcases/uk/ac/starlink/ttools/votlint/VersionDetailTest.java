@@ -30,7 +30,7 @@ public class VersionDetailTest extends TestCase {
     private static VersionDetail getDetail( VOTableVersion version ) {
         VotLintContext context =
             new VotLintContext( version, true,
-                                new PrintSaxMessager( null, false, 1 ) );
+                                new PrintSaxMessager( System.out, false, 1 ) );
         return VersionDetail.getInstance( context );
     }
 }
