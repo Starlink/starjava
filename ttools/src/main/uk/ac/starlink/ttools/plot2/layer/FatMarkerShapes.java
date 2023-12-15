@@ -59,7 +59,7 @@ public class FatMarkerShapes {
 
     /** Open downward triangle with thick line. */
     public static final MarkerShape FAT_TRIANGLE_DOWN =
-        new FatOpenShape( "fat triangle up", IFAT, true,
+        new FatOpenShape( "fat triangle down", IFAT, true,
                           MarkerShape.OPEN_TRIANGLE_DOWN,
                           MarkerShape.FILLED_TRIANGLE_DOWN );
 
