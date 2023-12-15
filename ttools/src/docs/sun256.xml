@@ -15095,6 +15095,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (&gt;22 deg).</li>
     <li>Add new <ref id="Shaders">colour map</ref> Sunset.</li>
     <li>Upgrade VOLLT adqlLib to official 2.0-beta release.</li>
+    <li>Fix issue with <code>fat_triangle_up</code> and
+        <code>fat_triangle_down</code>
+        <ref id="layer-mark-shapeN">marker shape</ref> names.</li>
     </ul>
     </p></dd>
 
