@@ -7950,6 +7950,17 @@ unwieldy than they have to be.</p>
         The expression is just of the form
         <code><![CDATA[x>x0 && x<x1 && y>y0 && y<y1]]></code>.
         </li>
+    <li><label>Circle</label>:
+        Defines a circle in data space.
+        The first point selected defines the circle center,
+        and the next point is on the circumference.
+        Note that in case of one or both axes logarithmic,
+        the shape in graphics space may not be circular.
+        The expression is of the form
+        <code>hypot(x-x0, y-y0)&lt;r</code>,
+        using the <ref id="Maths-hypot"><code>hypot</code></ref> function
+        (<code>hypot(x,y) = sqrt(x*x+y*y)</code>).
+        </li>
     <li><label>Aligned Ellipse</label>:
         Defines an ellipse in graphics space aligned with the plot axes.
         The first point selected defines the ellipse center,
@@ -33015,6 +33026,8 @@ introduced since the last version:
         (&gt;22 deg).</li>
     <li>Add new <ref id="Shaders">colour map</ref> Sunset.</li>
     <li>Upgrade VOLLT adqlLib to official 2.0-beta release.</li>
+    <li>Add Circle mode for the Plane Plot in the
+        <ref id="FigurePanel">Draw Algebraic Subset</ref> action.</li>
     </ul>
     </p></dd>
 

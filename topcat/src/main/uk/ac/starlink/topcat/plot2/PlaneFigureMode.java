@@ -9,7 +9,11 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BinaryOperator;
+import java.util.stream.DoubleStream;
 import uk.ac.starlink.topcat.TopcatJELUtils;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.Axis;
@@ -40,6 +44,10 @@ public abstract class PlaneFigureMode implements FigureMode {
     /** PlanarSurface area within a rectangle aligned with the axes. */
     public static final FigureMode BOX = createBoxMode( "Box" );
 
+    /** PlanarSurface area within a graphics circle. */
+    public static final FigureMode CIRCLE =
+        createCircleMode( "Circle" );
+
     /** PlanarSurface area within a graphics ellipse (center+radius). */
     public static final FigureMode ELLIPSE =
         createEllipseMode( "Aligned Ellipse" );
@@ -69,7 +77,8 @@ public abstract class PlaneFigureMode implements FigureMode {
 
     /** Available polygon modes for use with planar surfaces. */
     public static final FigureMode[] MODES = {
-        POLYGON, BOX, ELLIPSE, ROTATED_ELLIPSE, BELOW, ABOVE, LEFT, RIGHT,
+        POLYGON, BOX, CIRCLE, ELLIPSE, ROTATED_ELLIPSE,
+        BELOW, ABOVE, LEFT, RIGHT,
     };
 
     /**
@@ -86,6 +95,7 @@ public abstract class PlaneFigureMode implements FigureMode {
     private static final String F_POLYLINE;
     private static final String F_LOG10;
     private static final String F_SQUARE;
+    private static final String F_HYPOT;
 
     /** JEL functions used when constructing expressions. */
     static final String[] JEL_FUNCTIONS = new String[] {
@@ -93,6 +103,7 @@ public abstract class PlaneFigureMode implements FigureMode {
         F_POLYLINE = "polyLine",
         F_LOG10 = "log10",
         F_SQUARE = "square",
+        F_HYPOT = "hypot",
     };
 
     /**
@@ -396,6 +407,24 @@ public abstract class PlaneFigureMode implements FigureMode {
     }
 
     /**
+     * Returns a mode for drawing circles.
+     *
+     * @param  name  mode name
+     * @return  new instance
+     */
+    private static FigureMode createCircleMode( String name ) {
+        return new PlaneFigureMode( name ) {
+            public Figure createFigure( Surface surf, Point[] points ) {
+                int np = points.length;
+                return surf instanceof PlanarSurface && np >= 2
+                     ? new CircleFigure( (PlanarSurface) surf,
+                                         points[ 0 ], points[ np - 1 ] )
+                     : null;
+            }
+        };
+    }
+
+    /**
      * Returns a mode for drawing ellipses.
      *
      * @param  name  mode name
@@ -682,6 +711,161 @@ public abstract class PlaneFigureMode implements FigureMode {
                 formatGraphicsCoordinate( axis, gs[ 0 ] ),
                 formatGraphicsCoordinate( axis, gs[ 1 ] ),
             };
+        }
+    }
+
+    /**
+     * Figure implementation for a circle in data space.
+     */
+    private static class CircleFigure extends PlaneFigure {
+
+        final PlanarSurface surf_;
+        final Point p0_;
+        final Point p1_;
+        final double cx_;
+        final double cy_;
+        final double r_;
+        final Shape shape_;
+        final double eps_;
+
+        /**
+         * Constructor.
+         *
+         * @param  surf  surface
+         * @param  p0   central point in graphics space
+         * @param  p1   point on circumference in graphics space
+         */
+        CircleFigure( PlanarSurface surf, Point p0, Point p1 ) {
+            super( surf, new Point[] { p0, p1 } );
+            surf_ = surf;
+            p0_ = p0;
+            p1_ = p1;
+            Axis[] axes = surf.getAxes();
+            Axis xAxis = axes[ 0 ];
+            Axis yAxis = axes[ 1 ];
+            boolean[] logFlags = surf.getLogFlags();
+            boolean xlog = logFlags[ 0 ];
+            boolean ylog = logFlags[ 1 ];
+            double x0 = xAxis.graphicsToData( p0_.x );
+            double y0 = yAxis.graphicsToData( p0_.y );
+            double x1 = xAxis.graphicsToData( p1_.x );
+            double y1 = yAxis.graphicsToData( p1_.y );
+            cx_ = x0;
+            cy_ = y0;
+            r_ = Math.hypot( x1 - x0, y1 - y0 );
+            double xa = xAxis.graphicsToData( p0_.x + 1 );
+            double ya = yAxis.graphicsToData( p0_.y + 1 );
+            eps_ = Math.min( Math.abs( xa - cx_ ), Math.abs( ya - cy_ ) );
+
+            /* If both axes are linear, a circle in data space is a
+             * circle in graphics space too. */
+            if ( !xlog && !ylog ) {
+                double dx = Math.abs( p0.x - xAxis.dataToGraphics( x0 + r_ ) );
+                double dy = Math.abs( p0.y - yAxis.dataToGraphics( y0 + r_ ) );
+                shape_ = new Ellipse2D.Double( p0.x - dx, p0.y - dy,
+                                               2 * dx, 2 * dy );
+            }
+
+            /* Otherwise we have to trace out the circumference in data space
+             * by hand. */
+            else {
+                Polygon poly = new Polygon();
+                for ( Point2D p : getCircleVertices() ) {
+                    poly.addPoint( (int) p.getX(), (int) p.getY() );
+                }
+                shape_ = poly;
+            }
+        }
+
+        public Area getArea() {
+            return new Area( shape_ );
+        }
+
+        public void paintPath( Graphics2D g ) {
+            g.draw( shape_ );
+            Axis xAxis = surf_.getAxes()[ 0 ];
+            int px0 = p0_.x;
+            int px1 = (int) Math.round( xAxis.dataToGraphics( cx_ + r_ ) );
+            int px2 = (int) Math.round( xAxis.dataToGraphics( cx_ - r_ ) );
+            int pxa = Math.abs( px2 - px0 ) > Math.abs( px1 - px0 ) ? px2 : px1;
+            LabelledLine xline =
+                new LabelledLine( p0_, new Point( pxa, p0_.y ),
+                                  PlotUtil.formatNumber( Math.abs( r_ ),
+                                                         eps_ ) );
+            xline.drawLine( g );
+            xline.drawLabel( g, null );
+        }
+
+        public Point[] getVertices() {
+            return new Point[] { p0_, p1_ };
+        }
+
+        public String createPlaneExpression( String xvar, String yvar ) {
+            return new StringBuffer()
+               .append( F_HYPOT )
+               .append( "(" )
+               .append( xvar )
+               .append( addFormattedValue( -cx_, eps_ ) )
+               .append( ", " )
+               .append( yvar )
+               .append( addFormattedValue( -cy_, eps_ ) )
+               .append( ")" )
+               .append( " < " )
+               .append( PlotUtil.formatNumber( r_, eps_ ) )
+               .toString();
+        }
+
+        public String createPlaneAdql( String xvar, String yvar ) {
+            return new StringBuffer()
+               .append( "SQRT(" )
+               .append( "POWER(" )
+               .append( xvar )
+               .append( addFormattedValue( -cx_, eps_ ) )
+               .append( ", 2)" )
+               .append( " + " )
+               .append( "POWER(" )
+               .append( addFormattedValue( -cy_, eps_ ) )
+               .append( ", 2)" )
+               .append( ")" )
+               .append( " < " )
+               .append( PlotUtil.formatNumber( r_, eps_ ) )
+               .toString();
+        }
+
+        /**
+         * Returns an array of vertices that trace out the circumference
+         * of this data-space circle in graphics space.
+         * Note the shape may not be a circle if the axes are not linear.
+         *
+         * @return   vertices of region boundary
+         */
+        private Point2D[] getCircleVertices() {
+            Axis[] axes = surf_.getAxes();
+            Axis xAxis = axes[ 0 ];
+            Axis yAxis = axes[ 1 ];
+
+            /* Work out how many points will be required along the
+             * border to get something looking smooth. */
+            double grmax = DoubleStream.of(
+                xAxis.dataToGraphics( cx_ + r_ ) - p0_.x,
+                xAxis.dataToGraphics( cx_ - r_ ) - p0_.x,
+                yAxis.dataToGraphics( cy_ + r_ ) - p0_.y,
+                yAxis.dataToGraphics( cy_ - r_ ) - p0_.y
+            ).map( d -> Math.abs( d ) )
+             .max()
+             .orElse( 100 );
+            double dTheta = 6. / grmax;
+
+            /* Construct and return an array of vertices. */
+            List<Point2D> vertices = new ArrayList<>();
+            for ( double theta = 0; theta < 2 * Math.PI; theta += dTheta ) {
+                 double dx = cx_ + r_ * Math.cos( theta );
+                 double dy = cy_ + r_ * Math.sin( theta );
+                 double gx = xAxis.dataToGraphics( dx );
+                 double gy = yAxis.dataToGraphics( dy );
+                 vertices.add( new Point2D.Double( gx, gy ) );
+            }
+            return vertices.toArray( new Point2D[ 0 ] );
         }
     }
 
