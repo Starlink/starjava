@@ -7942,8 +7942,8 @@ unwieldy than they have to be.</p>
     <li><label>Polygon</label>:
         Select at least three points to define a closed polygon.
         The selected region is inside it.
-        The expression generated uses the function
-        <code>isInside</code> from the <ref id="Shapes">Shapes</ref> class.
+        The expression generated uses the
+        <ref id="Shapes-isInside"><code>isInside</code></ref> function.
         </li>
     <li><label>Box</label>:
         Defines a rectangle aligned with the axes from two opposite corners.
@@ -7951,26 +7951,24 @@ unwieldy than they have to be.</p>
         <code><![CDATA[x>x0 && x<x1 && y>y0 && y<y1]]></code>.
         </li>
     <li><label>Aligned Ellipse</label>:
-        Defines an ellipse aligned with the plot axes.
+        Defines an ellipse in graphics space aligned with the plot axes.
         The first point selected defines the ellipse center,
-        and the next point is on the radius.  If later points are selected,
-        they reset the radius.
+        and the next point is on the boundary.
+        If later points are selected, they reset the radii.
         The expression generated is of the form
         <code>square((x-x0)/a) + square((y-y0)/b)&lt;1</code>,
-        using the <code>square</code> function from
-        the <ref id="Maths">Maths</ref> class
+        using the <ref id="Maths-square"><code>square</code></ref> function
         (<code>square(x)=x*x</code>).
         </li>
     <li><label>Rotated Ellipse</label>:
-        Defines an ellipse with arbitrary alignment.
+        Defines an ellipse in graphics coordinates with arbitrary alignment.
         The first point selected defines the ellipse center,
         the second point is the end of the primary radius,
         and the third point defines the extent of the secondary radius.
         If later points are selected they reset the secondary radius.
         The expression generated is of the form
         <code>square(a(x-x0)+b(y-y0))+square(c(x-x0)+d(y-y0))&lt;1</code>,
-        using the <code>square</code> function from
-        the <ref id="Maths">Maths</ref> class
+        using the <ref id="Maths-square"><code>square</code></ref> function
         (<code>square(x)=x*x</code>).
         </li>
     <li><label>Below</label>,
@@ -7987,8 +7985,8 @@ unwieldy than they have to be.</p>
         If only one point is selected, the expression generated
         is of the form <code>y&lt;y0</code>, and
         for two points it has the form <code>y&lt;m*x+c</code>.
-        If there are more points, the special function <code>polyLine</code>
-        from class <ref id="Shapes">Shapes</ref> is used.
+        If there are more points, the special
+        <ref id="Shapes-polyLine"><code>polyLine</code></ref> function is used.
         </li>
     </ul>
     </p></dd>
@@ -7999,8 +7997,8 @@ unwieldy than they have to be.</p>
         The first point selected defines the center of a small circle
         on the sphere (cone), and the next point is on its radius.
         If later points are selected, they reset the radius.
-        The expression generated uses the <code>skyDistance</code> function
-        from class <ref id="Sky">Sky</ref>.
+        The expression generated uses the
+        <ref id="Sky-skyDistance"><code>skyDistance</code></ref> function.
         </li>
     <li><label>Ellipse</label>:
         Defines an ellipse with arbitrary alignment.
@@ -8008,15 +8006,15 @@ unwieldy than they have to be.</p>
         the second point is the end of the primary radius,
         and the third point defines the extent of the secondary radius.
         If later points are selected they reset the secondary radius.
-        The expression generated uses the <code>inSkyEllipse</code> function
-        from class <ref id="Sky">Sky</ref>.
+        The expression generated uses the
+        <ref id="Sky-inSkyEllipse"><code>inSkyEllipse</code></ref> function.
         </li>
     <li><label>Polygon</label>:
         Select at least three points to define a closed polygon.
         The edges of the polygon are the minor arcs of great circles
         (geodesics on the sphere).
-        The expression generated uses the <code>inSkyPolygon</code> function
-        from class <ref id="Sky">Sky</ref>.
+        The expression generated uses the
+        <ref id="Sky-inSkyPolygon"><code>inSkyPolygon</code></ref> function.
         </li>
     </ul>
     </p></dd>
