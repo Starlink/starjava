@@ -26267,7 +26267,8 @@ will be selectable, while for sexagesimal (dms/hms) units only
 string columns will be selectable.
 On the right you make the coordinate system and units selections
 as before, but enter the names of the new columns in the text fields.
-Then just hit the <label>OK</label> button, and the new columns
+Then just hit the <label>OK</label> button, and the columns
+resulting from the coordinate conversion
 will be appended at the right of the table.
 </p>
 
