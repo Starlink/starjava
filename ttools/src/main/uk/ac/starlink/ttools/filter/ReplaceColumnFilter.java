@@ -11,9 +11,8 @@ public class ReplaceColumnFilter extends BasicFilter {
 
     public ReplaceColumnFilter() {
         super( "replacecol",
-               "[-name <name>] [-units <units>] [-ucd <ucd>] " +
-               "[-utype <utype>]\n" +
-               "[-desc <descrip>]\n" +
+               "[-name <name>] [-units <units>] [-ucd <ucd>]\n" +
+               "[-utype <utype>] [-xtype <xtype>] [-desc <descrip>]\n" +
                "<col-id> <expr>" );
     }
 
@@ -25,7 +24,7 @@ public class ReplaceColumnFilter extends BasicFilter {
             "evaluating <code>&lt;expr&gt;</code>.",
             "You can specify the metadata for the new column using the",
             "<code>-name</code>, <code>-units</code>, <code>-ucd</code>,",
-            "<code>-utype</code>",
+            "<code>-utype</code>, <code>-xtype</code>",
             "and <code>-desc</code> flags; for any of these items which you",
             "do not specify, they will take the values from the column",
             "being replaced.",
@@ -47,6 +46,7 @@ public class ReplaceColumnFilter extends BasicFilter {
         String units = null;
         String ucd = null;
         String utype = null;
+        String xtype = null;
         String description = null;
         while ( argIt.hasNext() && ( colId == null || expr == null ) ) {
             String arg = argIt.next();
@@ -70,6 +70,11 @@ public class ReplaceColumnFilter extends BasicFilter {
                 utype = argIt.next();
                 argIt.remove();
             }
+            else if ( arg.equals( "-xtype" ) && argIt.hasNext() ) {
+                argIt.remove();
+                xtype = argIt.next();
+                argIt.remove();
+            }
             else if ( arg.equals( "-desc" ) && argIt.hasNext() ) {
                 argIt.remove();
                 description = argIt.next();
@@ -85,8 +90,8 @@ public class ReplaceColumnFilter extends BasicFilter {
             }
         }
         if ( colId != null && expr != null ) {
-            return new ReplaceColumnStep( colId, expr, rename,
-                                          units, ucd, utype, description );
+            return new ReplaceColumnStep( colId, expr, rename, units, ucd,
+                                          utype, xtype, description );
         }
         else {
             throw new ArgException( "Bad " + getName() + " specification" );
@@ -101,16 +106,19 @@ public class ReplaceColumnFilter extends BasicFilter {
         final String units_;
         final String ucd_;
         final String utype_;
+        final String xtype_;
         final String description_;
 
         ReplaceColumnStep( String colId, String expr, String name, String units,
-                           String ucd, String utype, String description ) {
+                           String ucd, String utype, String xtype,
+                           String description ) {
             colId_ = colId;
             expr_ = expr;
             name_ = name;
             units_ = units;
             ucd_ = ucd;
             utype_ = utype;
+            xtype_ = xtype;
             description_ = description;
         }
 
@@ -136,6 +144,9 @@ public class ReplaceColumnFilter extends BasicFilter {
             }
             if ( utype_ != null ) {
                 cinfo.setUtype( utype_ );
+            }
+            if ( xtype_ != null ) {
+                cinfo.setXtype( xtype_ );
             }
             if ( description_ != null ) {
                 cinfo.setDescription( description_ );

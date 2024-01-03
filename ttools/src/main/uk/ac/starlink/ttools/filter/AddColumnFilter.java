@@ -23,8 +23,8 @@ public class AddColumnFilter extends BasicFilter {
         super( "addcol", 
                "[-after <col-id> | -before <col-id>]\n" +
                "[-units <units>] [-ucd <ucd>] [-utype <utype>] " +
-               "[-desc <descrip>]\n" +
-               "[-shape <n>[,<n>...][,*]] [-elsize <n>]\n" +
+               "[-xtype <xtype>]\n" +
+               "[-desc <descrip>] [-shape <n>[,<n>...][,*]] [-elsize <n>]\n" +
                "<col-name> <expr>" );
     }
 
@@ -38,7 +38,8 @@ public class AddColumnFilter extends BasicFilter {
             "or <code>-after</code> flags respectively.",
             "</p>",
             "<p>The <code>-units</code>, <code>-ucd</code>,",
-            "<code>-utype</code> and <code>-desc</code> flags can be used",
+            "<code>-utype</code>, <code>-xtype</code> and <code>-desc</code>",
+            "flags can be used",
             "to define textual metadata values for the new column.",
             "</p>",
             "<p>The <code>-shape</code> flag can also be used,",
@@ -65,6 +66,7 @@ public class AddColumnFilter extends BasicFilter {
         String units = null;
         String ucd = null;
         String utype = null;
+        String xtype = null;
         String description = null;
         int[] shape = null;
         int elsize = -1;
@@ -99,6 +101,11 @@ public class AddColumnFilter extends BasicFilter {
             else if ( arg.equals( "-utype" ) && argIt.hasNext() ) {
                 argIt.remove();
                 utype = argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.equals( "-xtype" ) && argIt.hasNext() ) {
+                argIt.remove();
+                xtype = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-desc" ) && argIt.hasNext() ) {
@@ -149,6 +156,9 @@ public class AddColumnFilter extends BasicFilter {
             }
             if ( utype != null ) {
                 colinfo.setUtype( utype );
+            }
+            if ( xtype != null ) {
+                colinfo.setXtype( xtype );
             }
             if ( description != null ) {
                 colinfo.setDescription( description );

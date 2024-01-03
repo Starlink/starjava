@@ -21,9 +21,8 @@ public class ColumnMetadataFilter extends BasicFilter {
      */
     public ColumnMetadataFilter() {
         super( "colmeta",
-               "[-name <name>] [-units <units>] [-ucd <ucd>] " +
-               "[-utype <utype>]\n" +
-               "[-desc <descrip>] " +
+               "[-name <name>] [-units <units>] [-ucd <ucd>]\n" +
+               "[-utype <utype>] [-xtype <xtype>] [-desc <descrip>]\n" +
                "[-shape <n>[,<n>...][,*]] [-elsize <n>]\n" +
                "<colid-list>" );
     }
@@ -31,7 +30,7 @@ public class ColumnMetadataFilter extends BasicFilter {
     protected String[] getDescriptionLines() {
         return new String[] {
             "<p>Modifies the metadata of one or more columns.",
-            "Some or all of the name, units, ucd, utype, description,",
+            "Some or all of the name, units, ucd, utype, xtype, description,",
             "shape and elementsize of",
             "the column(s), identified by <code>&lt;colid-list&gt;</code>",
             "can be set by using some or all of the listed flags.",
@@ -39,8 +38,8 @@ public class ColumnMetadataFilter extends BasicFilter {
             "the name of a single column.",
             "</p>",
             "<p>The <code>-name</code>, <code>-units</code>,",
-            "<code>-ucd</code>, <code>-utype</code> and <code>-desc</code>",
-            "flags just take textual arguments.",
+            "<code>-ucd</code>, <code>-utype</code>, <code>-xtype</code>",
+            "and <code>-desc</code> flags just take textual arguments.",
             "The <code>-shape</code> flag can also be used,",
             "but is intended only for array-valued columns,",
             "e.g. <code>-shape 3,3</code> to declare a 3x3 array.",
@@ -64,6 +63,7 @@ public class ColumnMetadataFilter extends BasicFilter {
         String units = null;
         String ucd = null;
         String utype = null;
+        String xtype = null;
         String desc = null;
         int[] shape = null;
         int elsize = -1;
@@ -87,6 +87,11 @@ public class ColumnMetadataFilter extends BasicFilter {
             else if ( arg.equals( "-utype" ) && argIt.hasNext() ) {
                 argIt.remove();
                 utype = argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.equals( "-xtype" ) && argIt.hasNext() ) {
+                argIt.remove();
+                xtype = argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-desc" ) && argIt.hasNext() ) {
@@ -130,8 +135,8 @@ public class ColumnMetadataFilter extends BasicFilter {
         if ( colidList == null ) {
             throw new ArgException( "No columns specified" );
         }
-        return new ColMetaStep( colidList, rename, units, ucd, utype, desc,
-                                shape, elsize );
+        return new ColMetaStep( colidList, rename, units, ucd, utype, xtype,
+                                desc, shape, elsize );
     }
 
     /**
@@ -144,6 +149,7 @@ public class ColumnMetadataFilter extends BasicFilter {
         final String units_;
         final String ucd_;
         final String utype_;
+        final String xtype_;
         final String desc_;
         final int[] shape_;
         final int elsize_;
@@ -156,18 +162,20 @@ public class ColumnMetadataFilter extends BasicFilter {
          * @param   units   new column units
          * @param   ucd     new column ucd
          * @param   utype   new column utype
+         * @param   xtype   new column xtype
          * @param   desc    new column description
          * @param   shape   new shape array
          * @param   elsize  new element size
          */
         public ColMetaStep( String colidList, String name, String units,
-                            String ucd, String utype, String desc,
-                            int[] shape, int elsize ) {
+                            String ucd, String utype, String xtype,
+                            String desc, int[] shape, int elsize ) {
             colidList_ = colidList;
             name_ = name;
             units_ = units;
             ucd_ = ucd;
             utype_ = utype;
+            xtype_ = xtype;
             desc_ = desc;
             shape_ = shape;
             elsize_ = elsize;
@@ -193,6 +201,9 @@ public class ColumnMetadataFilter extends BasicFilter {
                     }
                     if ( utype_ != null ) {
                         info.setUtype( utype_ );
+                    }
+                    if ( xtype_ != null ) {
+                        info.setXtype( xtype_ );
                     }
                     if ( desc_ != null ) {
                         info.setDescription( desc_ );
