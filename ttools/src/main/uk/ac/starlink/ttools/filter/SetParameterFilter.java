@@ -24,8 +24,8 @@ public class SetParameterFilter extends BasicFilter {
     public SetParameterFilter() {
         super( "setparam",
                "[-type byte|short|int|long|float|double|boolean|string]\n" +
-               "[-desc <descrip>] [-unit <units>] [-ucd <ucd>] " +
-               "[-utype <utype>]\n" +
+               "[-desc <descrip>] [-unit <units>] [-ucd <ucd>]\n" +
+               "[-utype <utype>] [-xtype <xtype>]\n" +
                "<pname> <pexpr>" );
     }
 
@@ -40,7 +40,7 @@ public class SetParameterFilter extends BasicFilter {
             "By default, the data type of the parameter is determined",
             "by the type of the supplied expression,",
             "but this can be overridden using the <code>-type</code> flag.",
-            "The parameter description, units, UCD and Utype attributes",
+            "The parameter description, units, UCD, Utype and Xtype attributes",
             "may optionally be set using the other flags.",
             "</p>",
         };
@@ -54,6 +54,7 @@ public class SetParameterFilter extends BasicFilter {
         String pdesc = null;
         String pucd = null;
         String putype = null;
+        String pxtype = null;
         String punits = null;
         while ( argIt.hasNext() ) {
             String arg = argIt.next();
@@ -78,6 +79,12 @@ public class SetParameterFilter extends BasicFilter {
                       argIt.hasNext() ) {
                 argIt.remove();
                 putype = argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.equals( "-xtype" ) && pxtype == null &&
+                      argIt.hasNext() ) {
+                argIt.remove();
+                pxtype = argIt.next();
                 argIt.remove();
             }
             else if ( arg.startsWith( "-unit" ) && punits == null &&
@@ -107,14 +114,15 @@ public class SetParameterFilter extends BasicFilter {
         final String descrip = pdesc;
         final String ucd = pucd;
         final String utype = putype;
+        final String xtype = pxtype;
         final String units = punits;
         final Class<?> clazz = type == null ? null : getClass( type );
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
                 Object value = evaluate( expr, base, clazz, type );
                 base.setParameter( createDescribedValue( name, value, descrip,
-                                                         ucd, utype, units,
-                                                         clazz ) );
+                                                         ucd, utype, xtype,
+                                                         units, clazz ) );
                 return base;
             }
         };
@@ -237,6 +245,7 @@ public class SetParameterFilter extends BasicFilter {
      * @param   descrip  parameter description, or null
      * @param   ucd   parameter UCD, or null
      * @param   utype  parameter Utype, or null
+     * @param   xtype  parameter Xtype, or null
      * @param   units  parameter units, or null
      * @param   type   user-supplied type string, or null
      * @param   clazz  class (possibly primitive) of parameter type,
@@ -249,6 +258,7 @@ public class SetParameterFilter extends BasicFilter {
                                                         String descrip,
                                                         String ucd,
                                                         String utype,
+                                                        String xtype,
                                                         String units,
                                                         Class<?> clazz )
             throws IOException {
@@ -260,6 +270,9 @@ public class SetParameterFilter extends BasicFilter {
         }
         if ( utype != null && utype.trim().length() > 0 ) {
             info.setUtype( utype );
+        }
+        if ( xtype != null && xtype.trim().length() > 0 ) {
+            info.setXtype( xtype );
         }
         if ( units != null && units.trim().length() > 0 ) {
             info.setUnitString( units );
