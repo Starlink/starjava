@@ -33039,6 +33039,9 @@ introduced since the last version:
     <li>Iso-8601 conversion functions in <ref id="Times">Times</ref>
         now accept a trailing "<code>Z</code>" even for date-only
         specifications.</li>
+    <li>ISO-8601 conversion functions in <ref id="Times">Times</ref>
+        now accept <code>YYYY-DDD</code> format for dates 
+        as well as <code>YYYY-MM-DD</code>.</li>
     </ul>
     </p></dd>
 

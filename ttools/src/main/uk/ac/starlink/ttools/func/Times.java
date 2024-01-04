@@ -82,9 +82,19 @@ public class Times {
     private final static Pal pal = new Pal();
     private final static long BCE_BOUNDARY_UNIXMILLIS = -62135769600000L;
 
-    /** Regular expression for parsing ISO 8601 dates. */
-    private final static Pattern ISO_REGEX = 
+    /** Regular expression for parsing ISO 8601 yyyy-mm-dd dates. */
+    private final static Pattern ISO_MMDD_REGEX = 
         Pattern.compile( "([0-9]+)-([0-9]{1,2})-([0-9]{1,2})" +
+                         "(?:[" + DATE_SEP + " ]([0-9]{1,2})" +
+                            "(?::([0-9]{1,2})" +
+                               "(?::([0-9]{1,2}(?:\\.[0-9]*)?))?" +
+                            ")?" +
+                         ")?" +
+                         "Z?" );
+
+    /** Regular expression for parsing ISO 8601 yyyy-ddd dates. */
+    private final static Pattern ISO_DDD_REGEX = 
+        Pattern.compile( "([0-9]+)-([0-9]{1,3})" +
                          "(?:[" + DATE_SEP + " ]([0-9]{1,2})" +
                             "(?::([0-9]{1,2})" +
                                "(?::([0-9]{1,2}(?:\\.[0-9]*)?))?" +
@@ -135,13 +145,16 @@ public class Times {
      * <li>The seconds, minutes and/or hours can be omitted</li>
      * <li>The decimal part of the seconds can be any length, 
      *     and is optional</li>
+     * <li>The '<code>mm-dd</code>' part may be replaced by a 3-digit
+     *     day of year '<code>ddd</code>'</li>
      * <li>A '<code>Z</code>' (which indicates UTC) may be appended
      *     to the time</li>
      * </ul>
      * Some legal examples are therefore:
      * "<code>1994-12-21T14:18:23.2</code>",
-     * "<code>1968-01-14</code>", and
-     * "<code>2112-05-25 16:45Z</code>".
+     * "<code>1968-01-14</code>",
+     * "<code>2112-05-25 16:45Z</code>", and
+     * "<code>1987-172T22:12</code>".
      *
      * @example   <code>isoToMjd("2004-10-25T18:00:00") = 53303.75</code>
      * @example   <code>isoToMjd("1970-01-01") = 40587.0</code>
@@ -153,13 +166,13 @@ public class Times {
         if ( isoDate == null || isoDate.trim().length() == 0 ) {
             return Double.NaN;
         }
-        Matcher matcher = ISO_REGEX.matcher( isoDate );
-        if ( matcher.matches() ) {
+        Matcher matcher1 = ISO_MMDD_REGEX.matcher( isoDate );
+        if ( matcher1.matches() ) {
             try {
                 String[] groups = new String[ 6 ];
-                int ng = matcher.groupCount();
+                int ng = matcher1.groupCount();
                 for ( int i = 0; i < ng; i++ ) {
-                    groups[ i ] = matcher.group( i + 1 );
+                    groups[ i ] = matcher1.group( i + 1 );
                 }
                 int year = Integer.parseInt( groups[ 0 ] );
                 int month = Integer.parseInt( groups[ 1 ] );
@@ -180,10 +193,42 @@ public class Times {
                      .initCause( e );
             }
         }
-        else {
-            throw new IllegalArgumentException( "Bad ISO-8601 date " +
-                                                isoDate );
+        Matcher matcher2 = ISO_DDD_REGEX.matcher( isoDate );
+        if ( matcher2.matches() ) {
+            try {
+                String[] groups = new String[ 5 ];
+                int ng = matcher2.groupCount();
+                for ( int i = 0; i < ng; i++ ) {
+                    groups[ i ] = matcher2.group( i + 1 );
+                }
+                int year = Integer.parseInt( groups[ 0 ] );
+                int doy = Integer.parseInt( groups[ 1 ] );
+                int hour = 
+                    groups[ 2 ] == null ? 0 : Integer.parseInt( groups[ 2 ] );
+                int min =
+                    groups[ 3 ] == null ? 0 : Integer.parseInt( groups[ 3 ] );
+                double sec = 
+                    groups[ 4 ] == null ? 0.0 
+                                        : Double.parseDouble( groups[ 4 ] );
+                int intMillis = (int) Math.round( sec * 1000.0 );
+                Calendar cal = getKit().calendar_;
+                cal.clear();
+                cal.set( Calendar.YEAR, year );
+                cal.set( Calendar.DAY_OF_YEAR, doy );
+                cal.set( Calendar.HOUR_OF_DAY, hour );
+                cal.set( Calendar.MINUTE, min );
+                cal.set( Calendar.SECOND, intMillis / 1000 );
+                cal.set( Calendar.MILLISECOND, intMillis % 1000 );
+                return unixMillisToMjd( cal.getTimeInMillis() );
+            }
+            catch ( NumberFormatException e ) {
+                throw (IllegalArgumentException) 
+                      new IllegalArgumentException( "Bad ISO-8601 date " +
+                                                    isoDate )
+                     .initCause( e );
+            }
         }
+        throw new IllegalArgumentException( "Bad ISO-8601 date " + isoDate );
     }
 
     /**
@@ -259,13 +304,16 @@ public class Times {
      * <li>The seconds, minutes and/or hours can be omitted</li>
      * <li>The decimal part of the seconds can be any length, 
      *     and is optional</li>
+     * <li>The '<code>mm-dd</code>' part may be replaced by a 3-digit
+     *     day of year '<code>ddd</code>'</li>
      * <li>A '<code>Z</code>' (which indicates UTC) may be appended
      *     to the time</li>
      * </ul>
      * Some legal examples are therefore:
      * "<code>1994-12-21T14:18:23.2</code>",
-     * "<code>1968-01-14</code>", and
-     * "<code>2112-05-25 16:45Z</code>".
+     * "<code>1968-01-14</code>",
+     * "<code>2112-05-25 16:45Z</code> and
+     * "<code>1987-172T22:12</code>".
      *
      * @example   <code>isoToUnixSec("2004-10-25T18:00:00") =  1098727200</code>
      * @example   <code>isoToUnixSec("1970-01-01") = 0</code>
