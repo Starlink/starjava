@@ -267,7 +267,7 @@ public class Times {
      * "<code>2112-05-25 16:45Z</code>".
      *
      * @example   <code>isoToUnixSec("2004-10-25T18:00:00") =  1098727200</code>
-     * @example   <code>isoToMjd("1970-01-01") = 0</code>
+     * @example   <code>isoToUnixSec("1970-01-01") = 0</code>
      * 
      * @param  isoDate  date in ISO 8601 format
      * @return  seconds since the Unix epoch
