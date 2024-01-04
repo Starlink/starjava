@@ -1,6 +1,7 @@
 package uk.ac.starlink.util;
 
 import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
 
 public class PrimitiveListTest extends TestCase {
 
@@ -124,6 +125,29 @@ public class PrimitiveListTest extends TestCase {
         assertArrayEquals( new int[] { 0, 0, 1, 2, 3 }, i.toIntArray() );
         assertArrayEquals( new float[] { 0, 0, 1, 2, 3 }, f.toFloatArray() );
         assertArrayEquals( new double[] { 0, 0, 1, 2, 3 }, d.toDoubleArray() );
+    }
+
+    public void testString() {
+        ByteList buf = new ByteList();
+        buf.add( (byte) 'R' );
+        buf.add( (byte) 'e' );
+        buf.add( (byte) 'x' );
+        assertEquals( "Rex", buf.decodeUtf8() );
+
+        buf.clear();
+        buf.add( (byte) 0 );
+        buf.add( (byte) 'R' );
+        buf.add( (byte) 0 );
+        buf.add( (byte) 'e' );
+        buf.add( (byte) 0 );
+        buf.add( (byte) 'x' );
+        assertEquals( "Rex", buf.decodeString( StandardCharsets.UTF_16 ) );
+
+        buf = new ByteList();
+        buf.add( (byte) 0x24 );
+        buf.add( (byte) 0xc2 );
+        buf.add( (byte) 0xa3 );
+        assertEquals( "$£", buf.decodeUtf8() );
     }
 
     private Object addList( PrimitiveList list1, PrimitiveList list2 ) {

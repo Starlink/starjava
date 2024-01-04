@@ -1,7 +1,14 @@
 package uk.ac.starlink.util;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 /**
  * Extendable array of bytes.
+ *
+ * <p>The {@link #decodeString} and {@link #decodeUtf8} convenience methods
+ * provide an efficient and Unicode-compliant way to build
+ * a String from bytes.
  *
  * @author   Mark Taylor
  * @since    12 Oct 2006
@@ -103,5 +110,26 @@ public class ByteList extends PrimitiveList {
      */
     public byte[] getByteBuffer() {
         return (byte[]) array_;
+    }
+
+    /**
+     * Returns a string with the current byte content of this byte list,
+     * decoded using the supplied encoding.
+     *
+     * @param  charset  character set
+     * @return   new string
+     */
+    public String decodeString( Charset charset ) {
+        return new String( (byte[]) array_, 0, size(), charset );
+    }
+
+    /**
+     * Returns a string with the current byte content of this byte list,
+     * decoded using the UTF-8 encoding.
+     *
+     * @return  new string
+     */
+    public String decodeUtf8() {
+        return decodeString( StandardCharsets.UTF_8 );
     }
 }
