@@ -133,6 +133,15 @@ public class TimesTest extends TestCase {
         assertEquals( 0, Times.decYearToUnixSec( 1970 ) );
     }
 
+    public void testIsoDoy() {
+        assertEquals( Times.isoToMjd( "2023-01-23T12:34:56.789" ),
+                      Times.isoToMjd( "2023-023T12:34:56.789" ) );
+        assertEquals( Times.isoToUnixSec( "2003-03-01" ),
+                      Times.isoToUnixSec( "2003-060" ) );
+        assertEquals( Times.isoToUnixSec( "2004-03-01" ),
+                      Times.isoToUnixSec( "2004-061" ) );
+    }
+
     private static double rnd() {
         return RANDOM.nextDouble();
     }
