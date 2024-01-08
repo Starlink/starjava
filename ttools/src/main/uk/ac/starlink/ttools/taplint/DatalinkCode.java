@@ -153,8 +153,8 @@ public enum DatalinkCode implements ReportCode {
             new Doc( "DataLink-1.0",
                      "http://www.ivoa.net/documents/DataLink/20150617/" );
         public static final Doc DATALINK11 =
-            new Doc( "DataLink-1.1-PR-20231108",
-                     "https://www.ivoa.net/documents/DataLink/20231108/" );
+            new Doc( "DataLink-1.1",
+                     "https://www.ivoa.net/documents/DataLink/20231215/" );
         public static final Doc DALI =
             new Doc( "DALI-1.1",
                      "http://www.ivoa.net/documents/DALI/20170517/" );

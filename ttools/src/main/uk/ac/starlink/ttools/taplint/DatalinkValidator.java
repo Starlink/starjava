@@ -597,7 +597,7 @@ public class DatalinkValidator {
     /**
      * Returns standardID string values declared within a supplied element.
      * These declarations are done using INFO elements with name="standardID".
-     * See DALI 1.1 sec 4.4.3 and PR-DataLink-1.1-20231108 section 3.3.1.
+     * See DALI 1.1 sec 4.4.3 and DataLink 1.1 section 3.3.1.
      *
      * @param  voel  element whose descendants will be searched for INFOs
      * @return  array of standardID values encountered
