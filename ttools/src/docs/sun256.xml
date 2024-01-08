@@ -15068,7 +15068,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         now checks and uses <code>INFO/@name="standardID"</code>
         version declarations in the links document being validated.
         DataLink handling and <code>datalinklint</code> are now believed
-        to be up to date w.r.t. PR-DataLink-1.1-20231108.</li>
+        to be up to date w.r.t. REC-DataLink-1.1.</li>
     <li>Fix <ref id="tcat"><code>tcat</code></ref
           >/<ref id="tcatn"><code>tcatn</code></ref> bug that sometimes
         resulted in no rows included from an input table.</li>

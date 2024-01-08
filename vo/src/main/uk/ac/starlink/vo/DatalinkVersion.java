@@ -14,7 +14,7 @@ public enum DatalinkVersion {
          new Ivoid( "ivo://ivoa.net/std/DataLink#links-1.0" ) ),
 
     /** DataLink version 1.1. */
-    V11( "1.1", "V1.1-PR", "PR-DataLink-1.1-20231108",
+    V11( "1.1", "V1.1", "REC-DataLink-1.1",
          new Ivoid( "ivo://ivoa.net/std/DataLink#links-1.1" ) );
 
     private final String number_;
