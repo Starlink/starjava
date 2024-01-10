@@ -8,6 +8,9 @@ import java.util.Locale;
 
 /**
  * Utility class for constructing CGI query strings.
+ * The name is somewhat out of date or misleading;
+ * the intention is to provide URLs with a query part that can be
+ * interpreted as an application/x-www-form-urlencoded string.
  *
  * @author   Mark Taylor (Starlink)
  * @since    1 Oct 2004
@@ -15,10 +18,11 @@ import java.util.Locale;
 public class CgiQuery {
 
     private final StringBuffer sbuf_;
+    private String extraChars_;
     private int narg;
 
     /** Legal characters for query part of a URI - see RFC 2396. */
-    private final static String QUERY_CHARS =
+    public static final String QUERY_CHARS =
         "abcdefghijklmnopqrstuvwxyz" +
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
         "0123456789" +
@@ -45,6 +49,20 @@ public class CgiQuery {
                  .initCause( e );
         }
         sbuf_ = new StringBuffer( base );
+        extraChars_ = "";
+    }
+  
+    /**
+     * Provides a list of characters that will be passed as parameter or
+     * value content through without percent-encoding.
+     * The default behaviour is quite conservative,
+     * but in many cases this can be relaxed without causing trouble.
+     *
+     * @param  extraChars   string each of whose characters
+     *                      will not be percent-encoded
+     */
+    public void allowUnencodedChars( String extraChars ) {
+        extraChars_ = extraChars;
     }
 
     /**
@@ -106,7 +124,8 @@ public class CgiQuery {
         if ( value != null ) {
             for ( int i = 0; i < value.length(); i++ ) {
                 char c = value.charAt( i );
-                if ( QUERY_CHARS.indexOf( c ) >= 0 ) {
+                if ( QUERY_CHARS.indexOf( c ) >= 0 ||
+                     extraChars_.indexOf( c ) >= 0 ) {
                     sbuf_.append( c );
                 }
                 else if ( c >= 0x10 && c <= 0x7f ) {
@@ -136,11 +155,13 @@ public class CgiQuery {
         }
     }
 
+    @Override
     public boolean equals( Object o ) {
         return o instanceof CgiQuery 
             && o.toString().equals( toString() );
     }
 
+    @Override
     public int hashCode() {
         return toString().hashCode();
     }
