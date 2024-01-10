@@ -15112,6 +15112,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix FITS multi-table read bug that sometimes generated a
         non-fatal error message when reading basic FITS files
         using <ref id="tmulti"><code>tmulti</code></ref>.</li>
+    <li>Iso-8601 conversion functions in <ref id="Times">Times</ref>
+        now accept a trailing "<code>Z</code>" even for date-only
+        specifications.</li>
     </ul>
     </p></dd>
 

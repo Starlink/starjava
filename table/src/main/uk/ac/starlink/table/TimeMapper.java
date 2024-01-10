@@ -235,7 +235,8 @@ public abstract class TimeMapper implements DomainMapper {
                                 "(?::([0-9]{1,2})" +
                                    "(?::([0-9]{1,2}(?:\\.[0-9]*)?))?" +
                                 ")?" +
-                             "Z?)?" );
+                             ")?" +
+                             "Z?" );
 
         Iso8601TimeMapper( String name, String description ) {
             super( String.class, name, description );
