@@ -89,7 +89,8 @@ public class Times {
                             "(?::([0-9]{1,2})" +
                                "(?::([0-9]{1,2}(?:\\.[0-9]*)?))?" +
                             ")?" +
-                         "Z?)?" );
+                         ")?" +
+                         "Z?" );
 
     /** Date of the Unix epoch as a Modified Julian Date. */
     private final static double MJD_EPOCH = 40587.0;

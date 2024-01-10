@@ -33036,6 +33036,9 @@ introduced since the last version:
         <ref id="FigurePanel">Draw Algebraic Subset</ref> action.</li>
     <li>Fix FITS multi-table read bug that sometimes generated a
         spurious error popup when reading basic FITS files.</li>
+    <li>Iso-8601 conversion functions in <ref id="Times">Times</ref>
+        now accept a trailing "<code>Z</code>" even for date-only
+        specifications.</li>
     </ul>
     </p></dd>
 
