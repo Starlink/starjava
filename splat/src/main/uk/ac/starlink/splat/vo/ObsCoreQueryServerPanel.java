@@ -676,11 +676,11 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
     
             String upperBand = upperBandField.getText();
             String lowerBand = lowerBandField.getText();
-            if ( ! lowerBand.isEmpty() ) 
+            if ( ! upperBand.isEmpty() ) 
                 queryString += " AND em_max<=\'"+ upperBand+"\'";
             
           
-            if ( ! upperBand.isEmpty() ) 
+            if ( ! lowerBand.isEmpty() ) 
                 queryString += " AND em_min>=\'"+ lowerBand+"\'";
    
             String lowerTime = lowerTimeField.getText();
