@@ -15103,6 +15103,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="colmeta"><code>colmeta</code></ref>,
         <ref id="replacecol"><code>replacecol</code></ref> and
         <ref id="setparam"><code>setparam</code></ref>.</li>
+    <li>Fix FITS multi-table read bug that sometimes generated a
+        non-fatal error message when reading basic FITS files
+        using <ref id="tmulti"><code>tmulti</code></ref>.</li>
     </ul>
     </p></dd>
 

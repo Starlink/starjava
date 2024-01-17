@@ -90,11 +90,33 @@ public class FitsUtil {
     /**
      * Reads a FITS header from an input stream.
      * The stream is read until the end of the last header block.
+     * If the stream is positioned at its end on entry,
+     * or if there is any error in reading or parsing the header,
+     * an IOException is raised.
      *
      * @param   in  input stream positioned at start of HDU
-     * @return   header
+     * @return   header, not null
      */
     public static FitsHeader readHeader( InputStream in ) throws IOException {
+        FitsHeader hdr = readHeaderIfPresent( in );
+        if ( hdr == null ) {
+            throw new EOFException( "FITS ended before header" );
+        }
+        else {
+            return hdr;
+        }
+    }
+
+    /**
+     * Reads a FITS header from an input stream if the stream has content.
+     * The stream is read until the end of the last header block.
+     * If the stream is positioned at its end on entry, null is returned.
+     *
+     * @param   in  input stream positioned where an HDU may start
+     * @return  header, or null if the stream has no content
+     */
+    public static FitsHeader readHeaderIfPresent( InputStream in )
+            throws IOException {
         List<ParsedCard<?>> list = new ArrayList<>();
         byte[] blockBuf = new byte[ BLOCK_LENG ];
         byte[] cardBuf = new byte[ CARD_LENG ];
@@ -106,7 +128,7 @@ public class FitsUtil {
                 if ( n < 0 ) {
                     if ( ngot == 0 ) {
                         if ( list.size() == 0 ) {
-                            throw new EOFException( "FITS ended before header");
+                            return null;
                         }
                         else {
                             throw new EOFException( "FITS ended mid-header" );
