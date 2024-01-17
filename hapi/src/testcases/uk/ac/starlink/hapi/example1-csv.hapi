@@ -1,0 +1,158 @@
+#{
+#  "HAPI": "3.0",
+#  "status": {
+#    "code": 1200,
+#    "message": "OK"
+#  },
+#  "format": "csv",
+#  "x_dataset": "GRACE_A_MAG",
+#  "x_datasetType": "GRACE_x_MAG",
+#  "startDate": "2008-01-01T00:00:04.787680Z",
+#  "stopDate": "2017-10-31T23:59:38.945023Z",
+#  "cadence": "PT1S",
+#  "x_maxTimeSelection": "P5D",
+#  "modificationDate": "2022-05-14T21:05:44.641Z",
+#  "description": "GRACE 1 platform magnetometer measurements",
+#  "x_dataTerms": "This dataset is provided by the European Space Agency and it is subject to terms condition described in https://vires.services/data_terms.",
+#  "resourceURL": "https://doi.org/10.1186/s40623-021-01373-9",
+#  "parameters": [
+#    {
+#      "name": "Timestamp",
+#      "description": "Time stamp",
+#      "units": "UTC",
+#      "type": "isotime",
+#      "length": 24,
+#      "x_standard": "UTC",
+#      "x_epoch": "1970-01-01T00:00:00Z",
+#      "x_unit": "ms",
+#      "x_type": "int64",
+#      "fill": null
+#    },
+#    {
+#      "name": "Latitude",
+#      "description": "Position in ITRF - Latitude",
+#      "units": "deg",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "Longitude",
+#      "description": "Position in ITRF - Longitude",
+#      "units": "deg",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "Radius",
+#      "description": "Position in ITRF - Radius",
+#      "units": "m",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "B_FGM",
+#      "size": [
+#        3
+#      ],
+#      "description": "calibrated magnetic vector from FGM, in instrument frame",
+#      "units": "nT",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "B_NEC_raw",
+#      "size": [
+#        3
+#      ],
+#      "description": "calibrated and aligned magnetic vector in NEC (North, East, Center) frame",
+#      "units": "nT",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "B_NEC",
+#      "size": [
+#        3
+#      ],
+#      "description": "calibrated and aligned magnetic vector in NEC (North, East, Center) frame, 11 sample (i.e. 11 second) robust average",
+#      "units": "nT",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "F",
+#      "description": "magnetic field intensity determined from B_NEC",
+#      "units": "nT",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "q_NEC_CRF",
+#      "size": [
+#        4
+#      ],
+#      "description": "Quaternion, transformation: NEC <- CRF",
+#      "units": null,
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "q_error",
+#      "description": "experimental error indicator of attitude given in Quaternion q_NEC_CRF. Bad attitude if > approx 40",
+#      "units": "mdeg",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "B_NEC_Model",
+#      "size": [
+#        3
+#      ],
+#      "description": "CHAOS magnetic model",
+#      "units": "nT",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "F_Model",
+#      "description": "CHAOS magnetic model, field intensity",
+#      "units": "nT",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "F_res_Model",
+#      "description": "magnetic field intensity determined from B_NEC, CHAOS magnetic model residual",
+#      "units": "nT",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    },
+#    {
+#      "name": "B_NEC_res_Model",
+#      "size": [
+#        3
+#      ],
+#      "description": "calibrated and aligned magnetic vector in NEC (North, East, Center) frame, 11 sample (i.e. 11 second) robust average, CHAOS magnetic model residual",
+#      "units": "nT",
+#      "type": "double",
+#      "x_type": "float64",
+#      "fill": null
+#    }
+#  ]
+#}
+2010-01-01T00:00:04.891Z,-87.50727984062047,-147.1054796006816,6859605.355241057,148.55987059507342,11629.04800157854,-42901.45244901421,-3954.890858431998,11063.061363746134,-42869.0909776855,-4001.6237873952823,11048.758333166039,-42907.800682580426,44487.834438828366,-0.0024816255947677276,0.00646733746352458,-0.2015607295186315,0.979451523760343,7.123322778389197e-05,-4028.5525978382652,11049.81089056659,-42905.95988193823,44488.75082693744,-0.9163881090717041,26.928810442982922,-1.05255740055145,-1.8408006421959726
+2010-01-01T00:00:05.891Z,-87.44879849679742,-146.5459496799199,6859597.066124013,153.71764416459735,11622.019317900129,-42946.73700456155,-3837.6282005050325,11097.223934542955,-42914.349723839965,-3856.39651417933,11094.855442181262,-42914.9662522139,44493.392091254755,-0.002449147794023821,0.006484780770910897,-0.19675047481693125,0.9804290897116162,5.18757023509946e-05,-3894.138643282212,11095.873484158687,-42913.13230885494,44495.16432947348,-1.7722382187275798,37.74212910288179,-1.0180419774242182,-1.8339433589571854
+2010-01-01T00:00:08.891Z,-87.27200586398081,-145.01266633180055,6859585.091712713,199.23303131178727,11608.77303526319,-42964.89347969578,-3489.0487942586497,11200.527752394562,-42932.04040673757,-3478.2652041931747,11200.527752394562,-42935.12940331065,44508.15080007136,-0.002357161382882016,0.006526493835827603,-0.18352819457524913,0.9829899544066438,2.0041379569003473e-05,-3516.1001954990593,11215.639700565565,-42933.94327772149,44513.78460490971,-5.63380483835499,37.834991305884614,-15.11194817100295,-1.1861255891635665
+2010-01-01T00:00:09.891Z,-87.21266621351742,-144.5455093943179,6859568.312807821,248.20431790405345,11593.786804209463,-42977.39990123389,-3345.6547989084825,11231.933113211484,-42943.97131871191,-3360.0073238983996,11235.222847524094,-42939.436287762466,44511.96547402721,-0.0023273512232400064,0.006533935892643918,-0.17948244105840094,0.9837367251809562,3.0103667532661654e-05,-3397.8740775417205,11250.303071537017,-42940.98017756311,44520.13753413317,-8.172060105964192,37.86675364332086,-15.080224012923281,1.5438898006468662
