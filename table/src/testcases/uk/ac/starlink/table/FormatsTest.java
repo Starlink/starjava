@@ -298,6 +298,7 @@ public class FormatsTest extends TableCase {
             "CSV",
             "TST",
             "IPAC",
+            "HAPI",
             "WDC",
         };
         StarTableFactory factory = new StarTableFactory();

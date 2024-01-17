@@ -53,6 +53,7 @@
   <!ENTITY in-ecsv SYSTEM 'in-ecsv.xml'>
   <!ENTITY in-pds4 SYSTEM 'in-pds4.xml'>
   <!ENTITY in-parquet SYSTEM 'in-parquet.xml'>
+  <!ENTITY in-hapi SYSTEM 'in-hapi.xml'>
   <!ENTITY in-feather SYSTEM 'in-feather.xml'>
   <!ENTITY in-fits SYSTEM 'in-fits.xml'>
   <!ENTITY in-gbin SYSTEM 'in-gbin.xml'>
@@ -2232,6 +2233,11 @@ similar and capable of storing more metadata.
 <subsubsubsect id="inParquet">
 <subhead><title><code>parquet</code></title></subhead>
 &in-parquet;
+</subsubsubsect>
+
+<subsubsubsect id="inHapi">
+<subhead><title><code>hapi</code></title></subhead>
+&in-hapi;
 </subsubsubsect>
 
 <subsubsubsect id="inFeather">
@@ -15150,6 +15156,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         This information is also propagated to VOTable output if the
         output VOTable version is set to 1.5
         (currently not the default).</li>
+    <li>Add support for HAPI: <ref id="inHapi">input handler</ref>
+        and <ref id="scheme-hapi">scheme</ref>.</li>
     </ul>
     </p></dd>
 

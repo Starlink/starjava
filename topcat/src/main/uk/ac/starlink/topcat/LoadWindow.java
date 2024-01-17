@@ -75,6 +75,7 @@ public class LoadWindow extends AuxWindow {
         TopcatTapTableLoadDialog.class.getName(),
         Ri1RegistryTableLoadDialog.class.getName(),
         VizierTableLoadDialog.class.getName(),
+        TopcatHapiTableLoadDialog.class.getName(),
         GavoTableLoadDialog.class.getName(),
         BaSTITableLoadDialog.class.getName(),
     };

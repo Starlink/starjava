@@ -33,6 +33,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
+import uk.ac.starlink.hapi.HapiTableLoadDialog;
 import uk.ac.starlink.table.gui.FileChooserTableLoadDialog;
 import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
 import uk.ac.starlink.table.gui.SQLTableLoadDialog;
@@ -691,6 +692,8 @@ public class ResourceIcon implements Icon {
                          new SsapTableLoadDialog().getIcon() );
         putMap( nameMap, "TAP_DIALOG",
                          new TapTableLoadDialog().getIcon() );
+        putMap( nameMap, "HAPI",
+                         new HapiTableLoadDialog().getIcon() );
         putMap( nameMap, "REGISTRY_DIALOG",
                          new Ri1RegistryTableLoadDialog().getIcon() );
         putMap( nameMap, "HELP_TOC",
