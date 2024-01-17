@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -307,6 +308,32 @@ public class TopcatUtils {
             };
         }
         return about_;
+    }
+
+    /**
+     * Returns an object that will take documentation-type URLs
+     * and display them somehow, probably in an external browser window.
+     *
+     * @return  url handler, or null if browsing is not possible
+     */
+    public static Consumer<URL> createDocUrlHandler() {
+        final Desktop desktop = getBrowserDesktop();
+        if ( desktop == null ) {
+            return null;
+        }
+        else {
+            return url -> {
+                logger_.info( "Passing URL to browser: " + url );
+                try {
+                    desktop.browse( url.toURI() );
+                }
+                catch ( Throwable e ) {
+                    logger_.log( Level.WARNING,
+                                 "Trouble sending URL " + url + " to browser",
+                                 e );
+                }
+            };
+        }
     }
 
     /**

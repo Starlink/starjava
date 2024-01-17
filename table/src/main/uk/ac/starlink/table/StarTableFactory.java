@@ -114,6 +114,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="tst")
  * <li> {@link uk.ac.starlink.table.formats.IpacTableBuilder}
  *      (format name="ipac")
+ * <li> {@link uk.ac.starlink.hapi.HapiTableBuilder}
+ *      (format name="hapi")
  * <li> {@link uk.ac.starlink.gbin.GbinTableBuilder}
  *      (format name="gbin")
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
@@ -209,6 +211,7 @@ public class StarTableFactory {
         CsvTableBuilder.class.getName(),
         TstTableBuilder.class.getName(),
         IpacTableBuilder.class.getName(),
+        "uk.ac.starlink.hapi.HapiTableBuilder",
         WDCTableBuilder.class.getName(),
     };
     private static TableScheme[] dfltSchemes = {

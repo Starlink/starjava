@@ -698,6 +698,7 @@ public class ControlWindow extends AuxWindow
                 tldClasses.add( TopcatSsapTableLoadDialog.class );
                 tldClasses.add( TopcatTapTableLoadDialog.class );
                 tldClasses.add( VizierTableLoadDialog.class );
+                tldClasses.add( TopcatHapiTableLoadDialog.class );
                 tldClasses.add( GavoTableLoadDialog.class );
                 tldClasses.add( BaSTITableLoadDialog.class );
                 LoadWindow loadWin = getLoadWindow();
@@ -2004,6 +2005,9 @@ public class ControlWindow extends AuxWindow
     private static String shorten( String label ) {
         if ( label.matches( ":([a-zA-Z0-9_-]+):(.*)" ) ) {
             // scheme syntax - leave it alone
+        }
+        else if ( label.matches( ".*[T:][0-9][0-9]:.*" ) ) {
+            // ISO-8601 syntax - leave it alone
         }
         else {
             int sindex = label.lastIndexOf( '/' );

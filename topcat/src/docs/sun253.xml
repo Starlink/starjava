@@ -22,6 +22,7 @@
   <!ENTITY in-ecsv SYSTEM 'in-ecsv.xml'>
   <!ENTITY in-pds4 SYSTEM 'in-pds4.xml'>
   <!ENTITY in-parquet SYSTEM 'in-parquet.xml'>
+  <!ENTITY in-hapi SYSTEM 'in-hapi.xml'>
   <!ENTITY in-feather SYSTEM 'in-feather.xml'>
   <!ENTITY in-fits SYSTEM 'in-fits.xml'>
   <!ENTITY in-gbin SYSTEM 'in-gbin.xml'>
@@ -132,6 +133,7 @@
   <!ENTITY FIG.SiaMultiWindow '&figs;SiaMultiWindow.png'>
   <!ENTITY FIG.SsaMultiWindow '&figs;SsaMultiWindow.png'>
   <!ENTITY FIG.VizierTableLoadDialog '&figs;VizierTableLoadDialog.png'>
+  <!ENTITY FIG.HapiTableLoadDialog '&figs;HapiTableLoadDialog.png'>
   <!ENTITY FIG.MemoryMonitor '&figs;MemoryMonitor.png'>
   <!ENTITY FIG.ParameterPanel '&figs;ParameterPanel.png'>
   <!ENTITY FIG.TupleSelector '&figs;TupleSelector.png'>
@@ -1342,6 +1344,11 @@ similar and capable of storing more metadata.
 <subsubsubsect id="inParquet">
 <subhead><title>Parquet</title></subhead>
 &in-parquet;
+</subsubsubsect>
+
+<subsubsubsect id="inHapi">
+<subhead><title>HAPI</title></subhead>
+&in-hapi;
 </subsubsubsect>
 
 <subsubsubsect id="inFeather">
@@ -19583,6 +19590,8 @@ though others may be available in your installation.
     <ref id="TapTableLoadDialog">Table Access Protocol (TAP) Query</ref></li>
 <li>&IMG.VIZIER;
     <ref id="VizierTableLoadDialog">VizieR Catalogue Service Query</ref></li>
+<li>&IMG.HAPI;
+    <ref id="HapiTableLoadDialog">HAPI query</ref></li>
 <li>&IMG.GAVO;
     <ref id="GavoTableLoadDialog">Virgo-Millennium Simulation Query</ref></li>
 <li>&IMG.BASTI;
@@ -20187,6 +20196,194 @@ The original description of the VizieR service was published in
         >A&amp;AS 143, 23 (2000)</webref>. 
 </em>
 </blockquote>
+</p>
+
+</subsubsect>
+
+<subsubsect id="HapiTableLoadDialog">
+<subhead><title>HAPI Query</title></subhead>
+
+<figure>
+<caption><px>HAPI load dialogue</px></caption>
+<figureimage src="&FIG.HapiTableLoadDialog;"/>
+</figure>
+
+<p>HAPI,
+the <webref url='http://hapi-server.org/'
+            >Heliophysics Data Application Programmer’s Interface</webref>
+is a protocol for serving streamed time series data.
+This window is
+opened using the <label>HAPI Query</label> button (&IMG.HAPI;)
+in the <ref id="LoadWindow">Load Window</ref>'s toolbar
+or the <ref id="ControlWindow">Control Window</ref>'s <label>VO</label> menu.
+It lets you choose a HAPI service, select a dataset,
+and request time series data over a given time range.
+Queries can optionally be broken up into chunks to allow
+download of datasets larger than that allowed in a single download
+by the service.
+</p>
+
+<p>The window is divided into the following parts.
+<dl>
+
+<dt>Service Selection</dt>
+<dd><p>This allows you to select and configure a HAPI service:
+    <dl>
+    <dt>HAPI Server:</dt>
+    <dd><p>Choose from one of the known servers by name.
+        By default the list of production servers is provided,
+        but you can configure which are shown using the
+        <label>HAPI|Server List</label> menu item.
+        </p></dd>
+    <dt>HAPI URL:</dt>
+    <dd><p>This is filled in automatically when you choose an item using the
+        selector above, but you can also type a URL by hand if
+        you want to use an unregistered HAPI server.
+        </p></dd>
+    <dt>Chunk Limit:</dt>
+    <dd><p>This configures whether data requests longer than the
+        server normally allows will succeed.
+        Most HAPI servers will reject requests larger than a certain size,
+        but by increasing the value here larger datasets can be downloaded
+        by breaking the request up into multiple chunks.
+        Setting this value too high may allow abuse of a service,
+        so use with care.
+        </p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Datasets</dt>
+<dd><p>The main part of this panel lists the datasets
+    provided by the selected service.
+    Clicking on one of these will populate the panels below with the details
+    of the selected dataset.
+    </p>
+    <p>To the right of the listing,
+    search text may be entered into the <label>Filter</label> field
+    to restrict the datasets listed (it is not case-sensitive).
+    The text below gives the visible and total number of datasets available
+    from the service.
+    </p></dd>
+
+<dt>Dataset Parameters</dt>
+<dd><p>A table displays all the parameters available for the selected dataset.
+    ("Parameter" is HAPI terminology for what is known as a table column
+    elsewhere in TOPCAT).
+    For each parameter, metadata items
+    <label>Name</label>, <label>Type</label>, <label>Size</label>,
+    <label>Units</label> and <label>Description</label> are shown.
+    These are mostly self-explanatory, but in the <label>Size</label>
+    column a value in square brackets indicates an array value,
+    while an unbracketed number gives string length.
+    </p>
+    <p>There is also a column of checkboxes marked <label>Include</label>.
+    This determines which parameters will be included when the data is
+    downloaded; if you don't need them all, you can uncheck some of the 
+    items (the initial timestamp item is always included).
+    As a convenience, the toolbar buttons
+    <label>Select All</label> (&IMG.REVEAL_ALL;) and
+    <label>Unselect All</label> (&IMG.HIDE_ALL;) will check/uncheck
+    all of the items at once.
+    </p></dd>
+
+<dt>Dataset Metadata</dt>
+<dd><p>Shows some additional information about the selected dataset,
+    if available:
+    <dl>
+    <dt>Cadence:</dt>
+    <dd><p>Approximate interval between time series samples in
+        ISO-8601 Duration format (e.g. "PT5M" means every 5 minutes).
+        </p></dd>
+    <dt>Max Duration:</dt>
+    <dd><p>The longest interval for which the service is likely to permit
+        a single query (though TOPCAT can split queries into multiple chunks).
+        </p></dd>
+    <dt>Resource URL</dt>
+    <dd><p>A web page which may provide more information about the dataset.
+        Clicking on it should show the page content in a desktop browser.
+        </p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Interval</dt>
+<dd><p>Selects the time interval over which data set values will be downloaded.
+    The <label>Start Date</label> and <label>Stop Date</label> fields
+    should be filled in to give the minimum and maximum epochs required.
+    The format is a restricted form of ISO-8601, basically
+    <code>yyyy-mm-ddThh:mm:ss</code> or <code>yyyy-dddThh:mm:ss</code>
+    in which any of the trailing parts can be omitted,
+    so for instance "<code>2001-01-01</code>" or "<code>2001-01-01T16</code>"
+    are both allowed.
+    The minimum and maximum values allowed for the selected dataset
+    are displayed to the right of the Start/Stop fields;
+    the entered values must fall within these bounds.
+    </p>
+    <p>As an alternative to typing in the dates, you can use the sliders
+    at the bottom: the left hand one selects the start date,
+    and the right hand one selects the length of interval.
+    Or you can use the sliders to set an approximate interval and then
+    edit the dates by hand.
+    </p>
+    <p>The <label>Lock</label> button (&IMG.LOCK;) prevents the
+    Start/Stop dates fields from being updated automatically by the sliders
+    or as a consequence of changing datasets,
+    and can be useful when you are entering dates by hand.
+    </p></dd>
+
+<dt>OK Button</dt>
+<dd><p>Once all the fields are filled in with values that specify a
+    valid HAPI query, the <label>OK</label> button at the bottom
+    will be enabled, and you can click it to download the data as a table.
+    </p></dd>
+
+<dt>HAPI Menu</dt>
+<dd><p>The <label>HAPI</label> menu contains a few items that control
+    the details of the client's interaction with HAPI services:
+    <dl>
+    <dt>Server List</dt>
+    <dd><p>Determines how the items in the <label>HAPI Server</label>
+        selector are populated;
+        choosing one of these submenu items will re-populate that selector.
+        The options here mostly correspond to different files at
+        <webref url="https://github.com/hapi-server/servers"/>,
+        but the <label>Fallback</label> option uses a hard-coded
+        (perhaps out of date) list in case the online service is
+        hard to reach.
+        </p></dd>
+    <dt>Streaming Format</dt>
+    <dd><p>Determines the data format in which time series data will be
+        downloaded from the chosen HAPI service.  Options are:
+        <ul>
+        <li><strong>Auto</strong>: binary if supported by the server,
+                                   CSV otherwise</li>
+        <li><strong>csv</strong>: force CSV format</li>
+        <li><strong>binary</strong>: force binary format</li>
+        </ul>
+        </p></dd>
+    <dt>Fail on Limit</dt>
+    <dd><p>Configures what happens if too much data is requested from the
+        service.
+        If set false (the default), the maximum permitted amount of data
+        will be downloaded, and the truncated table will be loaded
+        into TOPCAT and marked "(OVERFLOW)" in the control window.
+        If set true, the load will fail, and no table will be loaded.
+        Note the <label>Chunk Limit</label> setting in the
+        Service Selection panel influences how much data is too much.
+        </p></dd>
+    <dt>Include Header with Data</dt>
+    <dd><p>If selected, the service is requested to return the header
+        information along with the data stream downloaded.
+        Otherwise, the header information is acquired once with an initial
+        metadata request and reused to interpret the data streams.
+        </p></dd>
+    <dt>GZIP Coding</dt>
+    <dd><p>If selected, HTTP-level gzip compression is requested
+        when downloading data from the HAPI server.
+        </p></dd>
+    </dl>
+    </p></dd>
+
+</dl>
 </p>
 
 </subsubsect>
@@ -33071,6 +33268,10 @@ introduced since the last version:
     <li>The <label>CoosysRefposition</label> metadata item (VOTable 1.5)
         is now listed if present in the
         <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+    <li>Add support for HAPI:
+        <ref id="HapiTableLoadDialog">query window</ref>,
+        <ref id="inHapi">input handler</ref> and
+        <ref id="scheme-hapi">scheme</ref>.</li>
     </ul>
     </p></dd>
 
