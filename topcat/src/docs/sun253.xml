@@ -33029,6 +33029,8 @@ introduced since the last version:
     <li>Upgrade VOLLT adqlLib to official 2.0-beta release.</li>
     <li>Add Circle mode for the Plane Plot in the
         <ref id="FigurePanel">Draw Algebraic Subset</ref> action.</li>
+    <li>Fix FITS multi-table read bug that sometimes generated a
+        spurious error popup when reading basic FITS files.</li>
     </ul>
     </p></dd>
 

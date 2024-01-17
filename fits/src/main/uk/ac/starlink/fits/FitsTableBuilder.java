@@ -2,12 +2,10 @@ package uk.ac.starlink.fits;
 
 import java.awt.datatransfer.DataFlavor;
 import java.io.EOFException;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.FileChannel;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.QueueTableSequence;
@@ -20,7 +18,6 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.IOSupplier;
 import uk.ac.starlink.util.IOUtils;
 
 /**
@@ -377,40 +374,12 @@ public class FitsTableBuilder extends DocumentedTableBuilder
                                               WideFits wide, long[] pos,
                                               StoragePolicy policy )
             throws IOException {
+        FitsHeader hdr = FitsUtil.readHeader( in );
+        long datpos = pos[ 0 ] + hdr.getHeaderByteCount();
         TableResult tres =
-            attemptReadTable( in, datsrc, wide, pos[ 0 ], policy );
+            attemptReadTableData( in, datsrc, datpos, hdr, wide, policy );
         pos[ 0 ] = tres.afterPos_;
         return tres.table_;
-    }
-
-    /**
-     * Reads the next header, tries to turn it into a table, and returns
-     * information about the result.
-     * If the HDU represents a table, the returned value contains a
-     * StarTable based on it; in any case it contains information about
-     * the state of the stream following the attempt.
-     *
-     * @param   strm  stream to read for, positioned at the start of an HDU
-     *          (before the header)
-     * @param   datsrc  a DataSource which can supply the data
-     *          in <code>strm</code>
-     * @param   wide  convention for representing extended columns;
-     *                use null to avoid use of extended columns
-     * @param   pos  the position in <code>datsrc</code> at which 
-     *          <code>strm</code> is positioned
-     * @param  policy  storage policy, or null for default (normally not used)
-     * @return  an object which may contain a table and other information
-     */
-    private static TableResult attemptReadTable( InputStream in,
-                                                 DataSource datsrc,
-                                                 WideFits wide, long pos,
-                                                 StoragePolicy policy )
-           throws IOException {
-
-        /* Read the header. */
-        FitsHeader hdr = FitsUtil.readHeader( in );
-        long datpos = pos + hdr.getHeaderByteCount();
-        return attemptReadTableData( in, datsrc, datpos, hdr, wide, policy );
     }
 
     /**
@@ -508,52 +477,6 @@ public class FitsTableBuilder extends DocumentedTableBuilder
     }
 
     /**
-     * Works out whether a given ArrayDataInput is positioned at the end
-     * of the stream or not.  A best effort is made.  The position of
-     * the stream is not affected; though note the possibility of 
-     * (common) InputStream mark/reset bugs causing trouble here.
-     *
-     * @param   in   input stream
-     * @return  true if <code>in</code> is known to contain no more bytes;
-     *          false if it may contain more
-     */
-    private static IOSupplier<Boolean> eofFunction( InputStream in ) {
-        if ( in instanceof FileInputStream ) {
-            final FileChannel chan = ((FileInputStream) in).getChannel();
-            return () -> Boolean.valueOf( chan.position() >= chan.size() );
-        }
-        else if ( in.markSupported() ) {
-            return () -> {
-                in.mark( 1 );
-                boolean eof = in.read() < 0;
-                try {
-                    in.reset();
-                }
-                catch ( IOException e ) {
-                    if ( ! eof ) {
-                        throw e;
-                    }
-                }
-                return Boolean.valueOf( eof );
-            };
-        }
-        else {
-            /* The following test is commented out because there is a bug
-             * in java.util.zip.InflaterInputStream that makes it dangerously
-             * unusable.  Compressed input streams can report available bytes
-             * even when the end of stream has been reached.
-             * Sun's bug ID is 4795134 - they fixed it, then the fix caused
-             * problems so they re-assessed the behaviour as not a bug, so 
-             * it's unlikely to be fixed again.  A belt'n'braces fix has
-             * also been applied to the compression stream used by
-             * uk.ac.starlink.util.DataSource, but the assessment appears 
-             * to be that available() is not reliable. */
-            //  return () -> Boolean.valueOf( in.available() > 0 );
-            return () -> Boolean.FALSE;
-        }
-    }
-
-    /**
      * Thread which loads tables.
      */
     private static class MultiLoadWorker extends Thread {
@@ -611,12 +534,21 @@ public class FitsTableBuilder extends DocumentedTableBuilder
          */
         private void multiLoad() throws IOException {
             try ( InputStream in = datsrc_.getInputStream() ) {
-                IOSupplier<Boolean> isEof = eofFunction( in );
                 long pos = 0L;
-                boolean done = false;
-                for ( int ihdu = 0; ! done ; ihdu++ ) {
+                for ( int ihdu = 0; true; ihdu++ ) {
+                    FitsHeader hdr = FitsUtil.readHeaderIfPresent( in );
+                    if ( hdr == null ) {
+                        if ( ihdu == 0 ) {
+                            throw new EOFException( "Empty stream" );
+                        }
+                        else {
+                            return;
+                        }
+                    }
+                    long datpos = pos + hdr.getHeaderByteCount();
                     TableResult tres =
-                        attemptReadTable( in, datsrc_, wide_, pos, policy_ );
+                        attemptReadTableData( in, datsrc_, datpos, hdr,
+                                              wide_, policy_ );
                     StarTable table = tres.table_;
                     pos = tres.afterPos_;
                     if ( table != null ) {
@@ -636,7 +568,6 @@ public class FitsTableBuilder extends DocumentedTableBuilder
                         }
                         tqueue_.addTable( table );
                     }
-                    done = Boolean.TRUE.equals( isEof.get() );
                 }
             }
         }
