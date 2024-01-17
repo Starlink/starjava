@@ -973,6 +973,16 @@
 
   </target>
 
+  <target name="test-data"
+          depends="compile-tests"
+          description="-> download test files from server">
+    <java classname="uk.ac.starlink.hapi.CreateTestData"
+          fork="true"
+          dir="${tests.dir}/uk/ac/starlink/hapi">
+      <classpath refid="tests-classpath"/>
+    </java>
+  </target>
+
   <!--
    !   ============
    !   Run testcase
