@@ -37,7 +37,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
 
     private final String layerSuffix_;
     private final DataGeom[] geoms_;
-    private final Parameter<?>[] geomParams_;
+    private final Parameter<?> geomParam_;
 
     /**
      * Constructor.
@@ -52,7 +52,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                getLayerTypes( context.getPlotType().getPlotters() ) );
         layerSuffix_ = suffix;
         geoms_ = context.getExampleGeoms();
-        geomParams_ = context.getGeomParameters( suffix );
+        geomParam_ = context.getGeomParameter( suffix );
 
         /* Construct usage string. */
         StringBuffer usage = new StringBuffer()
@@ -202,10 +202,8 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                         usageWords( getCoordParams( posCoords, suffix,
                                                     false ) ) );
                 }
-                if ( npos > 0 ) {
-                    for ( int i = 0; i < geomParams_.length; i++ ) {
-                        coordWords.add( usageWord( geomParams_[ i ] ) );
-                    }
+                if ( npos > 0 && geomParam_ != null ) {
+                    coordWords.add( usageWord( geomParam_ ) );
                 }
                 coordWords.addAll(
                     usageWords( getCoordParams( extraCoords, layerSuffix_,

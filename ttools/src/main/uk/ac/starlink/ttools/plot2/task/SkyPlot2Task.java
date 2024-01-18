@@ -89,10 +89,8 @@ public class SkyPlot2Task
             viewsysParam_ = viewsysParam;
         }
 
-        public Parameter<?>[] getGeomParameters( String suffix ) {
-            return new Parameter<?>[] {
-                createDataSysParameter( suffix ),
-            };
+        public Parameter<?> getGeomParameter( String suffix ) {
+            return createDataSysParameter( suffix );
         }
 
         public DataGeom getGeom( Environment env, String suffix )

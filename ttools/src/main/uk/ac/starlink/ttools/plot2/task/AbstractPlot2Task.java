@@ -1132,12 +1132,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }
 
         /* Layer geometry-specific parameters. */
-        Parameter<?>[] geomParams = context.getGeomParameters( suffix );
-        for ( int igp = 0; igp < geomParams.length; igp++ ) {
-            final int igp0 = igp;
+        Parameter<?> geomParam = context.getGeomParameter( suffix );
+        if ( geomParam != null ) {
             finderList.add( new ParameterFinder<Parameter<?>>() {
                 public Parameter<?> createParameter( String sfix ) {
-                    return context.getGeomParameters( sfix )[ igp0 ];
+                    return context.getGeomParameter( sfix );
                 }
             } );
         }
