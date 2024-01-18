@@ -17,7 +17,8 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
  * @author   Mark Taylor
  * @since    27 Mar 2020
  */
-public abstract class AreaCoordPanel extends PositionCoordPanel {
+public abstract class AreaCoordPanel extends BasicCoordPanel
+                                     implements PositionCoordPanel {
 
     /**
      * Constructor.

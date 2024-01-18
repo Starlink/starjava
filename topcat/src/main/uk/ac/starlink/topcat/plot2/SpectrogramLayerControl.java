@@ -51,7 +51,8 @@ public class SpectrogramLayerControl extends BasicCoordLayerControl {
     @Override
     protected void tableChanged( TopcatModel tcModel ) {
         super.tableChanged( tcModel );
-        CoordPanel coordPanel = getCoordPanel();
+        SimplePositionCoordPanel coordPanel =
+            (SimplePositionCoordPanel) getCoordPanel();
 
         /* Fix default xExtent value to null, since it gives reasonable
          * results. */

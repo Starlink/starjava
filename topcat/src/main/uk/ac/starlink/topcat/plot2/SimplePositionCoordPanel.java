@@ -12,7 +12,8 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
  * @author   Mark Taylor
  * @since    13 Mar 2013
  */
-public class SimplePositionCoordPanel extends PositionCoordPanel {
+public class SimplePositionCoordPanel extends BasicCoordPanel
+                                      implements PositionCoordPanel {
 
     private final DataGeom geom_;
 

@@ -174,7 +174,7 @@ public class BasicCoordLayerControl extends SingleZoneLayerControl {
     @Override
     public ConfigMap getConfig() {
         ConfigMap config = super.getConfig();
-        config.putAll( coordPanel_.getConfigSpecifier().getSpecifiedValue() );
+        config.putAll( coordPanel_.getConfig() );
         return config;
     }
 

@@ -89,7 +89,8 @@ public class HealpixLayerControl extends BasicCoordLayerControl {
     /**
      * CoordPanel implementation for HealpixLayerControl.
      */
-    private static class HealpixCoordPanel extends PositionCoordPanel {
+    private static class HealpixCoordPanel extends BasicCoordPanel
+                                           implements PositionCoordPanel {
         private final Configger globalConfigger_;
 
         private static final ConfigKey<SkySys> DATASYS_KEY =
