@@ -56,13 +56,14 @@ public abstract class PlotContext<P,A> {
     }
 
     /**
-     * Returns an array of parameters associated with a particular layer
-     * required for determining DataGeom at runtime.
+     * Returns a parameter associated with a particular layer
+     * required for determining DataGeom at runtime, if any.
+     * The value class of the returned parameter may or may not be DataGeom.
      *
      * @param  layerSuffix  parameter suffix string identifying a plot layer
-     * @return   list of zero or more parameters used for determining DataGeom
+     * @return   parameter used for determining DataGeom, or null
      */
-    public abstract Parameter<?>[] getGeomParameters( String layerSuffix );
+    public abstract Parameter<?> getGeomParameter( String layerSuffix );
 
     /**
      * Returns the DataGeom to use for a given layer in the context of a
@@ -91,15 +92,11 @@ public abstract class PlotContext<P,A> {
         final DataGeom[] geoms = plotType.getPointDataGeoms();
         return new PlotContext<P,A>( plotType, geoms ) {
 
-            public Parameter<?>[] getGeomParameters( String suffix ) {
-                return new Parameter<?>[] { createGeomParameter( suffix ) };
-            }
-
             public DataGeom getGeom( Environment env, String suffix )
                     throws TaskException {
                 return new ParameterFinder<Parameter<DataGeom>>() {
                     public Parameter<DataGeom> createParameter( String sfix ) {
-                        return createGeomParameter( sfix );
+                        return getGeomParameter( sfix );
                     }
                 }.getParameter( env, suffix ).objectValue( env );
             }
@@ -110,7 +107,7 @@ public abstract class PlotContext<P,A> {
              * @param  suffix  layer suffix
              * @return  parameter
              */
-            private Parameter<DataGeom> createGeomParameter( String suffix ) {
+            public Parameter<DataGeom> getGeomParameter( String suffix ) {
                 return new DataGeomParameter( "geom" + suffix, geoms );
             }
         };
@@ -128,8 +125,8 @@ public abstract class PlotContext<P,A> {
             createFixedContext( final PlotType<P,A> plotType,
                                 final DataGeom geom ) {
         return new PlotContext<P,A>( plotType, new DataGeom[] { geom } ) {
-            public Parameter<?>[] getGeomParameters( String suffix ) {
-                return new Parameter<?>[ 0 ];
+            public Parameter<?> getGeomParameter( String suffix ) {
+                return null;
             }
             public DataGeom getGeom( Environment env, String suffix ) {
                 return geom;
