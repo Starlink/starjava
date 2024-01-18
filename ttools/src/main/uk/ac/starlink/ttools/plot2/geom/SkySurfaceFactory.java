@@ -43,6 +43,7 @@ public class SkySurfaceFactory
     private static final String LON_NAME = "clon";
     private static final String LAT_NAME = "clat";
     private static final String FOV_RADIUS_NAME = "radius";
+    private static final String DATASYS_NAME = "datasys";
 
     /** Config key for sky projection type. */
     public static final ConfigKey<Projection> PROJECTION_KEY =
@@ -79,8 +80,8 @@ public class SkySurfaceFactory
                 "and all lon/lat coordinates in the plotted data layers",
                 "are assumed to be in the same system.",
                 "If a value is supplied for this parameter,",
-                "then a sky system must (implicitly or explicitly)",
-                "be supplied for each data layer,",
+                "then a sky system must be supplied for each data layer",
+                "with the <code>" + DATASYS_NAME + "</code> parameter",
                 "and the coordinates are converted from data to view system",
                 "before being plotted.",
                 "</p>",
@@ -95,15 +96,16 @@ public class SkySurfaceFactory
      * may find it useful in conjunction with {@link #VIEWSYS_KEY}. */
     public static final ConfigKey<SkySys> DATASYS_KEY =
         new SkySysConfigKey(
-            new ConfigMeta( "datasys", "Data Sky System" )
+            new ConfigMeta( DATASYS_NAME, "Data Sky System" )
            .setShortDescription( "Sky coordinate system for supplied data" )
            .setXmlDescription( new String[] {
                 "<p>The sky system used to interpret",
-                "supplied data longitude and latitude coordinate values.",
+                "supplied data longitude and latitude coordinate values",
+                "for a particular plot layer.",
                 "</p>",
                 "<p>Choice of this value goes along with the",
                 "<code>" + VIEWSYS_KEY.getMeta().getShortName() + "</code>",
-                "value which specifies the view sky system.",
+                "value which specifies the view sky system for the whole plot.",
                 "If neither the view nor data system is specified,",
                 "plotting is carried out in a generic sky system",
                 "assumed the same between the data and the view.",

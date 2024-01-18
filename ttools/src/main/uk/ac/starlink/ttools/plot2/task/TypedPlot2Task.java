@@ -77,8 +77,15 @@ public class TypedPlot2Task<P,A> extends AbstractPlot2Task {
         paramList.add( createLabelParameter( EXAMPLE_LAYER_SUFFIX ) );
         paramList.add( createLayerTypeParameter( EXAMPLE_LAYER_SUFFIX,
                                                  context ) );
+
+        /* Other per-layer suffixes. */
         if ( hasZoneSuffixes() ) {
             paramList.add( createZoneParameter( EXAMPLE_LAYER_SUFFIX ) );
+        }
+        Parameter<?> geomParam =
+            context.getGeomParameter( EXAMPLE_LAYER_SUFFIX );
+        if ( geomParam != null ) {
+            paramList.add( geomParam );
         }
 
         params_ = paramList.toArray( new Parameter<?>[ 0 ] );

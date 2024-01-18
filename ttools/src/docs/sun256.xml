@@ -7076,7 +7076,10 @@ pairs giving longitude and latitude in decimal degrees.
 By default these are represented in the output in the same, unlabelled,
 coordinate system.
 However the command can can also transform between different coordinate
-systems if you specify the data and view systems e.g.:
+systems if you specify the
+(per-plot) view system with the <code>viewsys</code> parameter and
+(per-layer) data system with the <code>datasysN</code> parameter,
+e.g.:
 <verbatim>
    plot2sky viewsys=galactic
             layer1=mark in1=cat.fits lon1=RA2000 lat1=DEC2000 datasys1=equatorial
@@ -7159,11 +7162,17 @@ which is viewed from the outside and usually bounded by
 an annotated wire frame.
 </p>
 
-<p>Positional coordinates are specified as
+<p>Positional coordinates are by default specified as
 <code>x</code>, <code>y</code>, <code>z</code> triples,
 e.g.:
 <verbatim>
    plot2cube layer1=mark in1=sim.fits x1=XPOS y1=YPOS z1=ZPOS
+</verbatim>
+However other coordinate specifications can be chosen
+using the per-layer <code>geomN</code> parameter,
+e.g.:
+<verbatim>
+   plot2cube layer1=mark in1=sphere.fits geom1=polar lon1=RA lat1=DEC r1=RADIUS
 </verbatim>
 </p>
 
@@ -15118,6 +15127,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>ISO-8601 conversion functions in <ref id="Times">Times</ref>
         now accept <code>YYYY-DDD</code> format for dates
         as well as <code>YYYY-MM-DD</code>.</li>
+    <li>Parameters
+        <ref id="plot2sky-datasysN"><code>datasysN</code></ref>
+        in <ref id="plot2sky"><code>plot2sky</code></ref> and
+        <ref id="plot2cube-geomN"><code>geomN</code></ref>
+        in <ref id="plot2cube"><code>plot2cube</code></ref>
+        are now included in the documentation.
+        The previously undocumented option to supply
+        <code>plot2cube</code> coordinates in spherical polar form
+        is now documented.</li>
     </ul>
     </p></dd>
 
