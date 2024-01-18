@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.task;
 
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.task.CredibleString;
@@ -22,6 +23,7 @@ public class LayerSpec {
     private final int izone_;
     private final StarTable table_;
     private final CoordSpec[] coordSpecs_;
+    private final DataGeom dataGeom_;
     private final CredibleString selectExpr_;
 
     /**
@@ -34,7 +36,7 @@ public class LayerSpec {
      */
     public LayerSpec( Plotter<?> plotter, ConfigMap config, String leglabel,
                       int izone ) {
-        this( plotter, config, leglabel, izone, null, null, null );
+        this( plotter, config, leglabel, izone, null, null, null, null );
     }
 
     /**
@@ -48,19 +50,21 @@ public class LayerSpec {
      *                   where a string representation of the table is required,
      *                   its <code>getName</code> method will generally be used
      * @param   coordSpecs  list of coordinate specifications
+     * @param   dataGeom  data geom
      * @param   selectExpr  boolean expression evaluated in the context of
      *                      the supplied table; if non-null, only true rows
      *                      are included
      */
     public LayerSpec( Plotter<?> plotter, ConfigMap config, String leglabel,
                       int izone, StarTable table, CoordSpec[] coordSpecs,
-                      CredibleString selectExpr ) {
+                      DataGeom dataGeom, CredibleString selectExpr ) {
         plotter_ = plotter;
         config_ = config;
         leglabel_ = leglabel;
         izone_ = izone;
         table_ = table;
         coordSpecs_ = coordSpecs == null ? new CoordSpec[ 0 ] : coordSpecs;
+        dataGeom_ = dataGeom;
         selectExpr_ = selectExpr;
     }
 
@@ -118,6 +122,15 @@ public class LayerSpec {
      */
     public CoordSpec[] getCoordSpecs() {
         return coordSpecs_;
+    }
+
+    /**
+     * Returns the data geom used by this layer.
+     *
+     * @return  data geom
+     */
+    public DataGeom getDataGeom() {
+        return dataGeom_;
     }
 
     /**

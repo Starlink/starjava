@@ -18,6 +18,7 @@ import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.SingleRowSubset;
 import uk.ac.starlink.topcat.SyntheticRowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -48,6 +49,7 @@ public class TopcatLayer {
     private final GuiCoordContent[] contents_;
     private final RowSubset rset_;
     private final Plotter<?> plotter_;
+    private final DataGeom dataGeom_;
     private final int izone_;
     public static final TopcatNamer PATHNAME_NAMER;
     public static final TopcatNamer FILENAME_NAMER;
@@ -87,10 +89,11 @@ public class TopcatLayer {
         contents_ = contents == null ? new GuiCoordContent[ 0 ] : contents;
         rset_ = rset;
  
-        /* Plotter should be the same for all non-null layers.
+        /* Plotter and DataGeom should be the same for all non-null layers.
          * If there's exactly one zone populated, assign that one as
          * the zone index, otherwise, record no zone index (izone=-1). */
         Plotter<?> plotter = null;
+        DataGeom dataGeom = null;
         int izone = -1;
         int nl = 0;
         for ( int iz = 0; iz < plotLayers.length; iz++ ) {
@@ -99,14 +102,20 @@ public class TopcatLayer {
                 nl++;
                 izone = iz;
                 Plotter<?> p = layer.getPlotter();
+                DataGeom dg = layer.getDataGeom();
                 assert p == null || plotter == null || p == plotter;
+                assert dg == null || dataGeom == null || dg.equals( dataGeom );
                 if ( p != null ) {
                     plotter = p;
+                }
+                if ( dg != null ) {
+                    dataGeom = dg;
                 }
             }
         }
         assert plotter != null;
         plotter_ = plotter;
+        dataGeom_ = dataGeom;
         izone_ = nl == 1 ? izone : -1;
     }
 
@@ -132,6 +141,15 @@ public class TopcatLayer {
      */
     public Plotter<?> getPlotter() {
         return plotter_;
+    }
+
+    /**
+     * Returns the DataGeom used by this layer.
+     *
+     * @return  dataGeom, may be null
+     */
+    public DataGeom getDataGeom() {
+        return dataGeom_;
     }
 
     /**
@@ -162,7 +180,7 @@ public class TopcatLayer {
             CredibleString selectExpr = getSelectExpression( rset_ );
             StarTable table = getLayerTable( tcModel_ );
             return new LayerSpec( plotter_, config_, leglabel_, izone_,
-                                  table, coordSpecs, selectExpr );
+                                  table, coordSpecs, dataGeom_, selectExpr );
         }
     }
 
