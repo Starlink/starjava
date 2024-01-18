@@ -20,6 +20,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.filter.SelectFilter;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -285,6 +286,9 @@ public class StiltsPlot {
             /* Input table setting, if any. */
             lsettings.addAll( createInputTableSettings( lspec, namer ) );
             lsettings.add( null );
+
+            /* DataGeom setting, if any. */
+            lsettings.addAll( createGeomSettings( lspec, task ) );
 
             /* Input data coordinate settings, if any. */
             lsettings.addAll( createCoordSettings( lspec ) );
@@ -774,6 +778,36 @@ public class StiltsPlot {
                                  dfltDm == null ? null
                                                 : dfltDm.getSourceName() );
                 settings.add( setting );
+            }
+        }
+        return settings;
+    }
+
+    /**
+     * Returns a list of settings corresponding to the DataGeom selected
+     * for a given layer specification.
+     *
+     * @param   lspec  layer specification
+     * @param   task   task on behalf of which layer is working
+     * @return   list of zero or more setting objects
+     */
+    private static List<Setting> createGeomSettings( LayerSpec lspec,
+                                                     AbstractPlot2Task task ) {
+        PlotContext<?,?> context = task instanceof TypedPlot2Task
+                                 ? ((TypedPlot2Task) task).getPlotContext()
+                                 : null;
+        Parameter<?> geomParam = context == null
+                               ? null
+                               : context.getGeomParameter( "" );
+        List<Setting> settings = new ArrayList<>();
+        if ( geomParam != null &&
+             DataGeom.class.isAssignableFrom( geomParam.getValueClass() ) ) {
+            @SuppressWarnings("unchecked")
+            Parameter<DataGeom> typedGeomParam =
+                (Parameter<DataGeom>) geomParam;
+            DataGeom geom = lspec.getDataGeom();
+            if ( geom != null ) {
+                settings.add( createParamSetting( typedGeomParam, geom ) );
             }
         }
         return settings;
