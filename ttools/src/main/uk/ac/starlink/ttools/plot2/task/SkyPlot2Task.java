@@ -169,9 +169,12 @@ public class SkyPlot2Task
          */
         private ConfigParameter<SkySys>
                 createDataSysParameter( String suffix ) {
-            return ConfigParameter
-                  .createLayerSuffixedParameter( SkySurfaceFactory.DATASYS_KEY,
-                                                 suffix, false );
+            ConfigParameter<SkySys> datasysParam =
+                ConfigParameter
+               .createLayerSuffixedParameter( SkySurfaceFactory.DATASYS_KEY,
+                                              suffix, false );
+            datasysParam.setDefaultOption( null );
+            return datasysParam;
         }
     }
 }

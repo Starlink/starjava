@@ -7,6 +7,9 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotType;
+import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 
 /**
  * Aggregates some miscellaneous information required for a plot task
@@ -19,6 +22,9 @@ public abstract class PlotContext<P,A> {
 
     private final PlotType<P,A> plotType_;
     private final DataGeom[] exampleGeoms_;
+
+    /** Name of the standard geometry parameter. */
+    public static final String GEOM_PARAM_NAME = "geom";
 
     /**
      * Constructor.
@@ -77,8 +83,8 @@ public abstract class PlotContext<P,A> {
             throws TaskException;
 
     /**
-     * Constructs a PlotContext which allows per-layer choice between
-     * those known by a given plot type.
+     * Constructs a PlotContext which allows per-layer choice of DataGeom
+     * between those known by a given plot type.
      * The choice is offered (a per-layer parameter is present) even if
      * only a single DataGeom is known by the PlotType.
      * This might conceivably be useful,
@@ -108,7 +114,7 @@ public abstract class PlotContext<P,A> {
              * @return  parameter
              */
             public Parameter<DataGeom> getGeomParameter( String suffix ) {
-                return new DataGeomParameter( "geom" + suffix, geoms );
+                return new DataGeomParameter( GEOM_PARAM_NAME, suffix, geoms );
             }
         };
     }
@@ -142,18 +148,62 @@ public abstract class PlotContext<P,A> {
         /**
          * Constructor.
          *
-         * @param  name  parameter name
+         * @param  name  basic parameter name
+         * @param  suffix  layer suffix
          * @param  geoms  list of known geom options;
          *                the first item is set as the parameter default
          */
-        public DataGeomParameter( String name, DataGeom[] geoms ) {
-            super( name, geoms );
+        public DataGeomParameter( String name, String suffix,
+                                  DataGeom[] geoms ) {
+            super( name + suffix, geoms );
             setDefaultOption( geoms[ 0 ] );
+            setPrompt( "Data geometry variant for layer " + suffix );
+            StringBuffer sbuf = new StringBuffer();
+            for ( DataGeom geom : geoms ) {
+                sbuf.append( "<li>" )
+                    .append( "<code>" )
+                    .append( stringifyOption( geom ) )
+                    .append( "</code>: " );
+                int iin = 0;
+                for ( Coord coord : geom.getPosCoords() ) {
+                    for ( Input input : coord.getInputs() ) {
+                        if ( iin++ > 0 ) {
+                            sbuf.append( ", " );
+                        }
+                        InputMeta meta = input.getMeta();
+                        sbuf.append( "<code>" )
+                            .append( meta.getShortName() )
+                            .append( suffix )
+                            .append( "</code>" );
+                        String desc = meta.getShortDescription();
+                        if ( desc != null ) {
+                            sbuf.append( " (" )
+                                .append( desc )
+                                .append( ")" );
+                        }
+                    }
+                }
+                sbuf.append( "</li>\n" );
+            }
+            String optsTxt = sbuf.toString();
+            setDescription( new String[] {
+                "<p>Selects the geometry for coordinates of data in layer",
+                "<code>" + suffix + "</code>.",
+                "This determines what parameters must be supplied",
+                "to specify coordinate data for that layer.",
+                "</p>",
+                "<p>Options, with the (suffixed) coordinate parameters",
+                "they require, are:",
+                "<ul>",
+                optsTxt,
+                "</ul>",
+                "</p>",
+            } );
         }
 
         @Override
         public String stringifyOption( DataGeom geom ) {
-            return geom.getVariantName();
+            return geom.getVariantName().toLowerCase();
         }
     }
 }
