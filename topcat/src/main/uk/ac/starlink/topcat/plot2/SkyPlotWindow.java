@@ -129,7 +129,7 @@ public class SkyPlotWindow
      * is projected (set in the axis controller).
      */
     private static abstract class SkyPositionCoordPanel
-            extends PositionCoordPanel {
+            extends BasicCoordPanel implements PositionCoordPanel {
 
         private final int npos_;
         private final Specifier<SkySys> dataSysSpecifier_;
@@ -246,7 +246,8 @@ public class SkyPlotWindow
          * worth the effort to be smarter.
          */
         private boolean attemptPopulateEpn4() {
-            ValueInfo[] infos = CoordPanel.getInfos( getColumnSelector( 0, 0 ));
+            ValueInfo[] infos =
+                BasicCoordPanel.getInfos( getColumnSelector( 0, 0 ));
             ValueInfo c1minInfo = null;
             ValueInfo c1maxInfo = null;
             ValueInfo c2minInfo = null;
@@ -309,10 +310,10 @@ public class SkyPlotWindow
             /* We expect that the models are selectors on the same list
              * of table columns.  If they are not, some of the implementation
              * assumptions of this class will fail. */
-            assert Arrays
-                  .equals( getInfoNames( CoordPanel.getInfos( lonModel ) ),
-                           getInfoNames( CoordPanel.getInfos( latModel ) ) );
-            infos_ = CoordPanel.getInfos( lonModel );
+            assert Arrays.equals(
+                       getInfoNames( BasicCoordPanel.getInfos( lonModel ) ),
+                       getInfoNames( BasicCoordPanel.getInfos( latModel ) ) );
+            infos_ = BasicCoordPanel.getInfos( lonModel );
         }
 
         /**
@@ -341,10 +342,10 @@ public class SkyPlotWindow
             for ( SkySys sys : systems ) {
                 int[] pair = sys.getCoordPair( infos_ );
                 if ( pair != null ) {
-                    if ( CoordPanel.populate( lonModel_,
-                                              infos_[ pair[ 0 ] ] ) &&
-                         CoordPanel.populate( latModel_,
-                                              infos_[ pair[ 1 ] ] ) ) {
+                    if ( BasicCoordPanel.populate( lonModel_,
+                                                   infos_[ pair[ 0 ] ] ) &&
+                         BasicCoordPanel.populate( latModel_,
+                                                   infos_[ pair[ 1 ] ] ) ) {
                         return sys;
                     }
                     else {

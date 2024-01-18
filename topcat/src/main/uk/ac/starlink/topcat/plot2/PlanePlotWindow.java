@@ -62,7 +62,7 @@ public class PlanePlotWindow
                   .create( new PlaneAxisController() );
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
-            final PositionCoordPanel panel =
+            final SimplePositionCoordPanel panel =
                 SimplePositionCoordPanel
                .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
                              XY_SPOTTERS );

@@ -31,7 +31,7 @@ public class SimpleFormControl extends FormControl {
                               Coord[] extraCoords ) {
         super( baseConfigger );
         plotter_ = plotter;
-        extraCoordPanel_ = new CoordPanel( extraCoords );
+        extraCoordPanel_ = new BasicCoordPanel( extraCoords );
         if ( extraCoords.length > 0 ) {
             extraCoordPanel_.getComponent()
                             .setBorder( AuxWindow

@@ -39,10 +39,10 @@ import uk.ac.starlink.topcat.ResourceIcon;
  * @since    23 Jun 2023
  */
 public class VariableCoordStack extends JPanel
-                                implements CoordPanel.CoordStack {
+                                implements BasicCoordPanel.CoordStack {
 
     private final List<Item> items_;
-    private CoordPanel coordPanel_;
+    private SimplePositionCoordPanel coordPanel_;
     private int nVisible_;
     private Item dragItem_;
     private int dragY_;
@@ -77,7 +77,7 @@ public class VariableCoordStack extends JPanel
      *
      * @param  coordPanel  owner
      */
-    public void setCoordPanel( CoordPanel coordPanel ) {
+    public void setCoordPanel( SimplePositionCoordPanel coordPanel ) {
         coordPanel_ = coordPanel;
     }
 

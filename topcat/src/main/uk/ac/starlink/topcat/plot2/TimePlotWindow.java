@@ -56,7 +56,7 @@ public class TimePlotWindow
             final TimeDomain domain = TimeDomain.INSTANCE;
             DataGeom geom = PLOT_TYPE.getPointDataGeoms()[ 0 ];
             Coord[] coords =
-                PositionCoordPanel.multiplyCoords( geom.getPosCoords(), npos );
+                BasicCoordPanel.multiplyCoords( geom.getPosCoords(), npos );
             return new SimplePositionCoordPanel( coords, geom ) {
                 @Override
                 public void autoPopulate() {

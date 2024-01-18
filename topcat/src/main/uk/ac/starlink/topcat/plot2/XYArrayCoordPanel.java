@@ -26,7 +26,8 @@ import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
  * @author   Mark Taylor
  * @since    26 Jan 2021
  */
-public class XYArrayCoordPanel extends PositionCoordPanel {
+public class XYArrayCoordPanel extends BasicCoordPanel
+                               implements PositionCoordPanel {
 
     private static final int MIN_USEFUL_SIZE = 10;
     private static final FloatingArrayCoord[] XYARRAY_COORDS = {
