@@ -41,7 +41,7 @@ public class CubeDataGeom implements DataGeom {
     }
 
     public String getVariantName() {
-        return "Cartesian";
+        return "Components";
     }
 
     public Coord[] getPosCoords() {

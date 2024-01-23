@@ -53,6 +53,7 @@ public class CubePlotType
     private CubePlotType() {
         dataGeoms_ = new DataGeom[] {
             CubeDataGeom.INSTANCE,
+            CubeVectorDataGeom.INSTANCE,
             SphereDataGeom.INSTANCE,
         };
         Coord[] coords = dataGeoms_[ 0 ].getPosCoords();
