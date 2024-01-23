@@ -15487,9 +15487,30 @@ It also affects some other things like the legend.
 plots 3-dimensional Cartesian positions in a 3-d space.
 </p>
 
-<p>The positional coordinates are
-<label>X</label>, <label>Y</label> and <label>Z</label>.
-To control the direction and linear/logarithmic scaling of the axes,
+<p>By default the positional coordinates are
+<label>X</label>, <label>Y</label> and <label>Z</label>,
+but the <label>Coordinates</label> selector lets you specify them
+in different ways:
+<dl>
+<dt>Components:</dt>
+<dd><p>Coordinates <label>X</label>, <label>Y</label> and <label>Z</label>,
+    giving the Cartesian components of the position.
+    </p></dd>
+<dt>Vector:</dt>
+<dd><p>A single coordinate <label>XYZ</label>
+    which must be a 3-element array giving the three Cartesian components
+    of the position.  If the array has more than three elements,
+    later ones are ignored.
+    </p></dd>
+<dt>Polar:</dt>
+<dd><p>Coordinates <label>Lon</label>, <label>Lat</label> and
+    <label>Radius</label>,
+    giving the spherical polar coordinates of the position.
+    </p></dd>
+</dl>
+</p>
+
+<p>To control the direction and linear/logarithmic scaling of the axes,
 see the <label>Coords</label> tab of the
 <ref id="CubeAxisControl">Axes</ref> control.
 </p>
@@ -33042,6 +33063,11 @@ introduced since the last version:
     <li>ISO-8601 conversion functions in <ref id="Times">Times</ref>
         now accept <code>YYYY-DDD</code> format for dates 
         as well as <code>YYYY-MM-DD</code>.</li>
+    <li>The <ref id="CubePlotWindow">Cube Plot Window</ref>
+        has a new <label>Coordinates</label> selector
+        that lets you specify positions as Cartesian 3-vectors (XYZ)
+        or spherical polar (Lon, Lat, Radius) coordinates as
+        alternatives to the normal Cartesian components (X, Y, Z).</li>
     </ul>
     </p></dd>
 
