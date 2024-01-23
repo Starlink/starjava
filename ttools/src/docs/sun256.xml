@@ -7172,6 +7172,10 @@ However other coordinate specifications can be chosen
 using the per-layer <code>geomN</code> parameter,
 e.g.:
 <verbatim>
+   plot2cube layer1=mark in=sim.fits geom1=vector xyz1=POS3D
+</verbatim>
+or
+<verbatim>
    plot2cube layer1=mark in1=sphere.fits geom1=polar lon1=RA lat1=DEC r1=RADIUS
 </verbatim>
 </p>
@@ -15136,6 +15140,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         The previously undocumented option to supply
         <code>plot2cube</code> coordinates in spherical polar form
         is now documented.</li>
+    <li>Parameter
+        <ref id="plot2cube-geomN"><code>geomN</code></ref> in
+        <ref id="plot2cube"><code>plot2cube</code></ref> can now take
+        value "<code>vector</code>" to use <code>xyz</code>
+        3-element array values as coordinate specifiers.</li>
     </ul>
     </p></dd>
 
