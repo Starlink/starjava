@@ -185,4 +185,24 @@ public abstract class CoordSpotter {
                    }
                };
     }
+
+    /**
+     * Returns a CoordSpotter that looks for a single 1-dimensional array.
+     *
+     * @param   leng  declared length of a 1-d array;
+     *                if -1, only arrays of indeterminate length
+     *                will be identified
+     * @return  new spotter
+     */
+    public static CoordSpotter createVectorSpotter( int leng ) {
+        return new CoordSpotter( 1 ) {
+            public int getCoordType( ValueInfo info ) {
+                int[] shape = info.getShape();
+                final boolean isMatch;
+                return shape != null && shape.length == 1 && shape[ 0 ] == leng
+                     ? 0
+                     : -1;
+            }
+        };
+    }
 }
