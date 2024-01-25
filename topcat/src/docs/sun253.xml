@@ -2629,6 +2629,11 @@ work with null values:
     will yield a boolean value which is true if the column contains
     a blank or a floating point NaN (not-a-number) value,
     and false otherwise.
+    Note that if combined with other boolean expressions,
+    this null test should come first, i.e. write
+    "<code>NULL_i || i==999</code>" rather than
+    "<code>i==999 || NULL_i</code>",
+    though this is only essential for integer or boolean variables.
     </p></dd>
 
 <dt>Returning null</dt>
