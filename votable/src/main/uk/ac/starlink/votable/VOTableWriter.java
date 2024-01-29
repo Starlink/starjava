@@ -582,7 +582,7 @@ public class VOTableWriter
      */
     @ConfigMethod(
         property = "version",
-        usage = "V10|V11|V12|V13|V14",
+        usage = "V10|V11|V12|V13|V14|V15",
         example = "V13",
         doc = "<p>Gives the version of the VOTable format which will be used "
             + "when writing the VOTable.\n"
