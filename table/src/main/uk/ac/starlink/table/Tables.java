@@ -66,6 +66,17 @@ public class Tables {
                               "If true, data represents unsigned byte values" );
 
     /**
+     * ValueInfo that indicates result of a query.
+     * Its name is QUERY_STATUS, and it is used by DALI, but non-DALI/VO
+     * sources can use the same mechanism to flag non-standard status.
+     * Values are normally "OK", "OVERFLOW" or "ERROR".
+     */
+    public static final ValueInfo QUERY_STATUS_INFO =
+        new DefaultValueInfo( "QUERY_STATUS", String.class,
+                              "Indicator of query status; "
+                            + "anything other than OK means something wrong" );
+
+    /**
      * ValueInfo representing Right Ascension. 
      * The units are radians and it is non-nullable.
      */

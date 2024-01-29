@@ -1489,12 +1489,6 @@ public class ControlWindow extends AuxWindow
      * DALI-style INFO/@name="QUERY_STATUS" nodes in the original VOTable
      * and flattens them into a user-readable form.  An empty string
      * is returned if there's nothing to say (table apparently loaded OK).
-     * The return value is (just about) always an empty string for
-     * tables that have not originated from a VOTable source.
-     *
-     * <p>This is not bulletproof - table parameters named QUERY_STATUS
-     * originating from some source other than a DALI-compliant INFO
-     * could also show up here.  But it's unlikely to happen often.
      *
      * @param  table  table
      * @return  query status string; may be empty, but not null
@@ -1503,7 +1497,7 @@ public class ControlWindow extends AuxWindow
     private static String getQueryStatus( StarTable table ) {
         for ( DescribedValue dval : table.getParameters() ) {
             ValueInfo info = dval.getInfo();
-            if ( "QUERY_STATUS".equals( info.getName() ) ) {
+            if ( Tables.QUERY_STATUS_INFO.getName().equals( info.getName() ) ) {
                 Object vobj = dval.getValue();
 
                 /* According to DALI, the only values of interest here
@@ -1519,12 +1513,6 @@ public class ControlWindow extends AuxWindow
                             .append( " " )
                             .append( "(" )
                             .append( status );
-                        String descrip = info.getDescription();
-                        if ( descrip != null &&
-                             descrip.trim().length() > 0 ) {
-                            sbuf.append( ": " )
-                                .append( descrip.trim() );
-                        }
                         sbuf.append( ")" );
                         return sbuf.toString();
                     }
