@@ -33068,6 +33068,9 @@ introduced since the last version:
         that lets you specify positions as Cartesian 3-vectors (XYZ)
         or spherical polar (Lon, Lat, Radius) coordinates as
         alternatives to the normal Cartesian components (X, Y, Z).</li>
+    <li>The <label>CoosysRefposition</label> metadata item (VOTable 1.5)
+        is now listed if present in the
+        <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
     </ul>
     </p></dd>
 

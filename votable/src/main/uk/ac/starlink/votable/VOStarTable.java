@@ -107,6 +107,11 @@ public class VOStarTable extends AbstractStarTable {
     public final static ValueInfo COOSYS_EPOCH_INFO = new DefaultValueInfo(
         "CoosysEpoch", String.class, "Sky epoch from COOSYS" );
 
+    /** ValueInfo for COOSYS <tt>refposition</tt> attribute. */
+    public final static ValueInfo COOSYS_REFPOSITION_INFO =
+        new DefaultValueInfo( "CoosysRefposition", String.class,
+                              "Reference position from COOSYS" );
+
     /** ValueInfo for COOSYS <tt>equinox</tt> attribute. */
     public final static ValueInfo COOSYS_EQUINOX_INFO = new DefaultValueInfo(
         "CoosysEquinox", String.class, "Sky equinox from COOSYS" );
@@ -132,7 +137,8 @@ public class VOStarTable extends AbstractStarTable {
     private final static List<ValueInfo> auxDataInfos =
             Arrays.asList( new ValueInfo[] {
         DATATYPE_INFO, nullInfo,
-        COOSYS_SYSTEM_INFO, COOSYS_EPOCH_INFO, COOSYS_EQUINOX_INFO,
+        COOSYS_SYSTEM_INFO, COOSYS_EPOCH_INFO, COOSYS_REFPOSITION_INFO,
+        COOSYS_EQUINOX_INFO,
         TIMESYS_TIMEORIGIN_INFO, TIMESYS_TIMESCALE_INFO,
         TIMESYS_REFPOSITION_INFO,
         ubyteInfo, WIDTH_INFO, PRECISION_INFO, ID_INFO, REF_INFO, TYPE_INFO,
@@ -557,6 +563,11 @@ public class VOStarTable extends AbstractStarTable {
                 String epoch = coosys.getAttribute( "epoch" );
                 auxdata.add( new DescribedValue( COOSYS_EPOCH_INFO,
                                                  epoch ) );
+            }
+            if ( coosys.hasAttribute( "refposition" ) ) {
+                String refposition = coosys.getAttribute( "refposition" );
+                auxdata.add( new DescribedValue( COOSYS_REFPOSITION_INFO,
+                                                 refposition ) );
             }
             if ( coosys.hasAttribute( "equinox" ) ) {
                 String equinox = coosys.getAttribute( "equinox" );

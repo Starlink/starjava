@@ -66,6 +66,7 @@ public class MetadataFilter extends BasicFilter {
                                            "Extended data type" ),
         VOStarTable.COOSYS_SYSTEM_INFO,
         VOStarTable.COOSYS_EPOCH_INFO,
+        VOStarTable.COOSYS_REFPOSITION_INFO,
         VOStarTable.COOSYS_EQUINOX_INFO,
         VOStarTable.TIMESYS_TIMEORIGIN_INFO,
         VOStarTable.TIMESYS_TIMESCALE_INFO,
