@@ -190,6 +190,14 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
     public abstract boolean allowTimesys();
 
     /**
+     * Indicates whether the refposition attribute of the COOSYS element
+     * is supported in this version.
+     *
+     * @return  true iff COOSYS/@refposition attribute is supported
+     */
+    public abstract boolean allowCoosysRefposition();
+
+    /**
      * Indicates whether this version of VOTable is supposed to use the
      * VOUnit standard for the content of unit attributes.
      *
@@ -291,6 +299,9 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
             return false;
         }
         public boolean allowTimesys() {
+            return false;
+        }
+        public boolean allowCoosysRefposition() {
             return false;
         }
         public boolean isVOUnitSyntax() {
@@ -462,6 +473,11 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
         VersionLike15( String version, String draftIdentifier ) {
             super( version );
             draftIdentifier_ = draftIdentifier;
+        }
+
+        @Override
+        public boolean allowCoosysRefposition() {
+            return true;
         }
 
         @Override

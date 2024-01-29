@@ -15145,6 +15145,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="plot2cube"><code>plot2cube</code></ref> can now take
         value "<code>vector</code>" to use <code>xyz</code>
         3-element array values as coordinate specifiers.</li>
+    <li>The <code>CoosysRefposition</code> metadata item (VOTable 1.5)
+        is now listed if present by the <ref id="meta">meta</ref> filter.
+        This information is also propagated to VOTable output if the
+        output VOTable version is set to 1.5
+        (currently not the default).</li>
     </ul>
     </p></dd>
 

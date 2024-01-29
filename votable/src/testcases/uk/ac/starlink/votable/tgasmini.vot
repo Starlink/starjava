@@ -1,10 +1,11 @@
 <?xml version='1.0'?>
-<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+<VOTABLE version="1.5" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
 <RESOURCE>
 <TIMESYS ID="tsys-julian" timescale="UTC" refposition="TOPOCENTER"/>
 <COOSYS ID="sys-gal" system="galactic"/>
 <COOSYS ID="sys-icrs" system="ICRS" epoch="J2000.0"/>
-<COOSYS ID="sys-eq-gaia" system="ICRS" epoch="J2015.0"/>
+<COOSYS ID="sys-eq-gaia" system="ICRS" epoch="J2015.0"
+                         refposition="BARYCENTER"/>
 <TIMESYS ID="tsys-gaia" timescale="TDB" refposition="BARYCENTER"
                         timeorigin="2455197.5"/>
 

@@ -14,6 +14,8 @@ import javax.xml.transform.stream.StreamSource;
 import junit.framework.TestCase;
 import org.xml.sax.SAXException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
@@ -76,13 +78,32 @@ public class CoosysTest extends TestCase {
         checkMeta( roundTripFile( t1, cfpWriter, cfpBuilder ) );
 
         VOTableWriter vWriter = new VOTableWriter();
+        assertEquals( VOTableVersion.V14, vWriter.getVotableVersion() );
         assertEquals( 3, countTimesys( roundTrip( t1, vWriter, votBuilder ) ) );
         assertEquals( 2, countElements( t1, "TIMESYS", vWriter ) );
         assertEquals( 3, countElements( t1, "COOSYS", vWriter ) );
+        assertEquals( 0, countAttributes( t1, "COOSYS", "refposition",
+                                          vWriter ) );
+        AuxMeta meta14 = new AuxMeta( roundTrip( t1, vWriter, votBuilder ) );
+        meta14.assertMeta( "ra", "CoosysRefposition", null );
+        meta14.assertMeta( "l", "CoosysRefposition", null );
+
+        vWriter.setVotableVersion( VOTableVersion.V15 );
+        assertEquals( 3, countTimesys( roundTrip( t1, vWriter, votBuilder ) ) );
+        assertEquals( 2, countElements( t1, "TIMESYS", vWriter ) );
+        assertEquals( 3, countElements( t1, "COOSYS", vWriter ) );
+        assertEquals( 1, countAttributes( t1, "COOSYS", "refposition",
+                                          vWriter ) );
+        AuxMeta meta15 = new AuxMeta( roundTrip( t1, vWriter, votBuilder ) );
+        meta15.assertMeta( "ra", "CoosysRefposition", "BARYCENTER" );
+        meta15.assertMeta( "l", "CoosysRefposition", null );
+
         vWriter.setVotableVersion( VOTableVersion.V13 );
         assertEquals( 0, countTimesys( roundTrip( t1, vWriter, votBuilder ) ) );
         assertEquals( 0, countElements( t1, "TIMESYS", vWriter ) );
         assertEquals( 3, countElements( t1, "COOSYS", vWriter ) );
+        assertEquals( 0, countAttributes( t1, "COOSYS", "refposition",
+                                          vWriter ) );
     }
 
     private StarTable roundTrip( StarTable table, StarTableWriter writer,
@@ -174,6 +195,28 @@ public class CoosysTest extends TestCase {
         return doc.getElementsByTagName( tagName ).getLength();
     }
 
+    private int countAttributes( StarTable table, String tagName,
+                                 String attName, StarTableWriter writer )
+            throws IOException, TransformerException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        writer.writeStarTable( table, bout );
+        bout.close();
+        Document doc =
+            (Document)
+            new SourceReader()
+           .getDOM( new StreamSource(
+                       new ByteArrayInputStream( bout.toByteArray() ) ) );
+        NodeList elList = doc.getElementsByTagName( tagName );
+        int natt = 0;
+        for ( int i = 0; i < elList.getLength(); i++ ) {
+            Element el = (Element) elList.item( i );
+            if ( el.hasAttribute( attName ) ) {
+                natt++;
+            }
+        }
+        return natt;
+    }
+    
 
     public void testTimeMapping() throws IOException {
         URL votloc = getClass().getResource( "gaiats.vot" );

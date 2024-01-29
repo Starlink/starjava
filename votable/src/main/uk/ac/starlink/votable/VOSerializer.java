@@ -55,6 +55,7 @@ public abstract class VOSerializer {
 
     private final StarTable table_;
     private final DataFormat format_;
+    private final VOTableVersion version_;
     private final List<DescribedValue> paramList_;
     private final String ucd_;
     private final String utype_;
@@ -83,6 +84,7 @@ public abstract class VOSerializer {
                           VOTableVersion version ) {
         table_ = table;
         format_ = format;
+        version_ = version;
 
         /* Doctor the table's parameter list.  Take out items which are
          * output specially so that only the others get output as PARAM
@@ -157,7 +159,7 @@ public abstract class VOSerializer {
             infos.add( dval.getInfo() );
         }
         for ( ValueInfo info : infos ) {
-            MetaEl coosys = getCoosys( info );
+            MetaEl coosys = getCoosys( info, version );
             if ( coosys != null && ! coosysMap_.containsKey( coosys ) ) {
                 String id = baseId + "-coosys-" + ++ics;
                 coosysMap_.put( coosys, id );
@@ -188,6 +190,16 @@ public abstract class VOSerializer {
      */
     public StarTable getTable() {
         return table_;
+    }
+
+    /**
+     * Returns the version of the VOTable standard for which this
+     * serializer will write.
+     *
+     * @return  VOTable version
+     */
+    public VOTableVersion getVersion() {
+        return version_;
     }
 
     /**
@@ -361,8 +373,8 @@ public abstract class VOSerializer {
                 String valtext = encoder.encodeAsText( pvalue );
                 String content = encoder.getFieldContent();
                 Map<String,String> attMap = new LinkedHashMap<String,String>();
-                attMap.putAll( getFieldAttributes( encoder, coosysMap_,
-                                                   timesysMap_ ) );
+                attMap.putAll( getFieldAttributes( encoder, version_,
+                                                   coosysMap_, timesysMap_ ) );
                 attMap.put( "value", valtext );
                 writer.write( "<PARAM" );
                 writer.write( formatAttributes( attMap ) );
@@ -1197,6 +1209,7 @@ public abstract class VOSerializer {
      *
      * @param  encoders  the list of encoders (some may be null)
      * @param  table   the table being serialized
+     * @param  version   VOTable version
      * @param  coosysMap   MetaEl-&gt;ID map for COOSYS elements
      *                     that will be available
      * @param  timesysMap  MetaEl-&gt;ID map for TIMESYS elements
@@ -1204,6 +1217,7 @@ public abstract class VOSerializer {
      * @param  writer  destination stream
      */
     private static void outputFields( Encoder[] encoders, StarTable table,
+                                      VOTableVersion version,
                                       Map<MetaEl,String> coosysMap,
                                       Map<MetaEl,String> timesysMap,
                                       BufferedWriter writer )
@@ -1214,7 +1228,8 @@ public abstract class VOSerializer {
             if ( encoder != null ) {
                 String content = encoder.getFieldContent();
                 Map<String,String> atts =
-                    getFieldAttributes( encoder, coosysMap, timesysMap );
+                    getFieldAttributes( encoder, version,
+                                        coosysMap, timesysMap );
                 writeFieldElement( writer, content, atts );
             }
             else {
@@ -1238,8 +1253,8 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            outputFields( encoders, getTable(), coosysMap_, timesysMap_,
-                          writer );
+            outputFields( encoders, getTable(), getVersion(),
+                          coosysMap_, timesysMap_, writer );
         }
      
         public void writeInlineDataElement( BufferedWriter writer )
@@ -1479,8 +1494,8 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            outputFields( encoders, getTable(), coosysMap_, timesysMap_,
-                          writer );
+            outputFields( encoders, getTable(), getVersion(),
+                          coosysMap_, timesysMap_, writer );
         }
 
         public void streamData( OutputStream out ) throws IOException {
@@ -1514,8 +1529,8 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            outputFields( encoders, getTable(), coosysMap_, timesysMap_,
-                          writer );
+            outputFields( encoders, getTable(), getVersion(),
+                          coosysMap_, timesysMap_, writer );
         }
 
         public void streamData( OutputStream out ) throws IOException {
@@ -1604,7 +1619,8 @@ public abstract class VOSerializer {
                                             true, false );
                     String content = encoder.getFieldContent();
                     Map<String,String> atts =
-                        getFieldAttributes( encoder, coosysMap_, timesysMap_ );
+                        getFieldAttributes( encoder, getVersion(),
+                                            coosysMap_, timesysMap_ );
 
                     /* Modify the datatype attribute to match what the FITS
                      * serializer will write. */
@@ -1708,6 +1724,7 @@ public abstract class VOSerializer {
      * Encoder being used to write the column or parameter in question.
      *
      * @param  encoder   encoder to write FIELD/PARAM data
+     * @param  version    version of the VOTable standard
      * @param  coosysMap   MetaEl-&gt;ID map for COOSYS elements that will be
      *                     available in the output document
      * @param  timesysMap  MetaEl-&gt;ID map for TIMESYS elements that will be
@@ -1715,7 +1732,8 @@ public abstract class VOSerializer {
      * @return   map of FIELD/PARAM attribute name-&gt;value pairs
      */
     private static Map<String,String>
-            getFieldAttributes( Encoder encoder, Map<MetaEl,String> coosysMap,
+            getFieldAttributes( Encoder encoder, VOTableVersion version,
+                                Map<MetaEl,String> coosysMap,
                                 Map<MetaEl,String> timesysMap ) {
 
         /* Query encoder for basic items. */
@@ -1726,7 +1744,7 @@ public abstract class VOSerializer {
          * has been provided.  Note this relies on the fact that
          * the MetaEl class has suitable equality semantics. */
         ValueInfo info = encoder.getInfo();
-        MetaEl coosys = getCoosys( info );
+        MetaEl coosys = getCoosys( info, version );
         MetaEl timesys = getTimesys( info );
         String csId = coosysMap != null ? coosysMap.get( coosys ) : null;
         String tsId = timesysMap != null ? timesysMap.get( timesys ) : null;
@@ -1744,12 +1762,17 @@ public abstract class VOSerializer {
      * for a given ValueInfo, if such metadata is present.
      *
      * @param  info  item metadata
+     * @param  version   VOTable version
      * @retun   MetaEl object representing COOSYS, or null if none required
      */
-    private static MetaEl getCoosys( ValueInfo info ) {
+    private static MetaEl getCoosys( ValueInfo info, VOTableVersion version ) {
         Map<String,String> map = new LinkedHashMap<String,String>();
         addAtt( map, info, VOStarTable.COOSYS_SYSTEM_INFO, "system" );
         addAtt( map, info, VOStarTable.COOSYS_EPOCH_INFO, "epoch" );
+        if ( version.allowCoosysRefposition() ) {
+            addAtt( map, info, VOStarTable.COOSYS_REFPOSITION_INFO,
+                    "refposition" );
+        }
         addAtt( map, info, VOStarTable.COOSYS_EQUINOX_INFO, "equinox" );
         return map.size() > 0 ? new MetaEl( "COOSYS", map ) : null;
     }
