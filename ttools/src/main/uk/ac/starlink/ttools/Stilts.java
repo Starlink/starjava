@@ -7,7 +7,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.auth.UserInterface;
-import uk.ac.starlink.hapi.HapiTableScheme;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.task.Task;
@@ -252,7 +251,6 @@ public class Stilts {
         stdSchemes_ = new TableScheme[] {
             new SkySimScheme(),
             new AttractorScheme(),
-            new HapiTableScheme(),
         };
     }
 }

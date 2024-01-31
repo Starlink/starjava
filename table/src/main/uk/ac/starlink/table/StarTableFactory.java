@@ -143,6 +143,7 @@ import uk.ac.starlink.util.URLDataSource;
  * <li>{@link LoopTableScheme} (scheme name="loop")
  * <li>{@link TestTableScheme} (scheme name="test")
  * <li>{@link ClassTableScheme} (scheme name="class")
+ * <li>{@link uk.ac.starlink.hapi.HapiTableScheme} (scheme name="hapi")
  * </ul>
  * <p>Additionally, any classes named in the <code>startable.schemes</code>
  * system property (as a colon-separated list) which implement the
@@ -219,6 +220,7 @@ public class StarTableFactory {
         LoopTableScheme.class.getName(),
         TestTableScheme.class.getName(),
         ClassTableScheme.class.getName(),
+        "uk.ac.starlink.hapi.HapiTableScheme",
     };
 
     /**
