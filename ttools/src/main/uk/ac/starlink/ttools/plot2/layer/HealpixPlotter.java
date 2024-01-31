@@ -608,17 +608,20 @@ public class HealpixPlotter
             int degrade = dataLevel_ - viewLevel_;
             assert degrade >= 0;
             final int shift = degrade * 2;
-            long nbin = 12 * ( 1L << ( 2 * viewLevel_ ) );
+            long dataNpix = 12 * ( 1L << ( 2 * dataLevel_ ) );
+            long viewNbin = 12 * ( 1L << ( 2 * viewLevel_ ) );
             Combiner combiner = hstyle_.combiner_;
             BinListCollector collector =
-                    new BinListCollector( combiner, nbin ) {
+                    new BinListCollector( combiner, viewNbin ) {
                 public void accumulate( TupleSequence tseq, BinList binList ) {
                     while ( tseq.next() ) {
                         double value = tseq.getDoubleValue( icValue_ );
                         if ( ! Double.isNaN( value ) ) {
                             long hpx = indexReader_.getHealpixIndex( tseq );
-                            long ibin = hpx >> shift;
-                            binList.submitToBin( ibin, value );
+                            if ( hpx >= 0 && hpx < dataNpix ) {
+                                long ibin = hpx >> shift;
+                                binList.submitToBin( ibin, value );
+                            }
                         }
                     }
                 }
