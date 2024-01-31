@@ -141,6 +141,7 @@ import uk.ac.starlink.util.URLDataSource;
  * <ul>
  * <li>{@link uk.ac.starlink.table.jdbc.JDBCTableScheme} (scheme name="jdbc")
  * <li>{@link LoopTableScheme} (scheme name="loop")
+ * <li>{@link TestTableScheme} (scheme name="test")
  * <li>{@link ClassTableScheme} (scheme name="class")
  * </ul>
  * <p>Additionally, any classes named in the <code>startable.schemes</code>
@@ -214,10 +215,10 @@ public class StarTableFactory {
         "uk.ac.starlink.hapi.HapiTableBuilder",
         WDCTableBuilder.class.getName(),
     };
-    private static TableScheme[] dfltSchemes = {
-        new LoopTableScheme(),
-        new TestTableScheme(),
-        new ClassTableScheme(),
+    private static String[] dfltSchemeClasses = {
+        LoopTableScheme.class.getName(),
+        TestTableScheme.class.getName(),
+        ClassTableScheme.class.getName(),
     };
 
     /**
@@ -236,50 +237,17 @@ public class StarTableFactory {
      */
     public StarTableFactory( boolean requireRandom ) {
         requireRandom_ = requireRandom;
-        defaultBuilders_ = new ArrayList<TableBuilder>();
 
-        /* Attempt to add default handlers if they are available. */
-        for ( int i = 0; i < defaultBuilderClasses.length; i++ ) {
-            String className = defaultBuilderClasses[ i ];
-            try {
-                @SuppressWarnings("unchecked")
-                Class<? extends TableBuilder> clazz =
-                    (Class<? extends TableBuilder>) Class.forName( className );
-                TableBuilder builder = clazz.newInstance();
-                defaultBuilders_.add( builder );
-                logger.config( className + " registered" );
-            }
-            catch ( ClassNotFoundException e ) {
-                logger.info( className + " not found - can't register" );
-            }
-            catch ( Throwable e ) {
-                logger.log( Level.WARNING, "Failed to register " + className,
-                            e );
-            }
-        }
+        /* List of default builders. */
+        defaultBuilders_ =
+            listFromClassNames( defaultBuilderClasses, TableBuilder.class );
 
-        /* Assemble list of all known builders - this includes the default
-         * list plus perhaps some others. */
-        knownBuilders_ = new ArrayList<TableBuilder>( defaultBuilders_ );
-        for ( int i = 0; i < knownBuilderClasses.length; i++ ) {
-            String className = knownBuilderClasses[ i ];
-            try {
-                @SuppressWarnings("unchecked")
-                Class<? extends TableBuilder> clazz =
-                    (Class<? extends TableBuilder>) Class.forName( className );
-                TableBuilder builder = clazz.newInstance();
-                knownBuilders_.add( builder );
-                logger.config( className + " registered as known" );
-            }
-            catch ( ClassNotFoundException e ) {
-                logger.config( className + " not found - can't register" );
-            }
-            catch ( Exception e ) {
-                logger.config( "Failed to register " + className + " - " + e );
-            }
-        }
-
-        /* Attempt to add known handlers listed in system property. */
+        /* List of all known builders - this includes the default list,
+         * some others, and any listed in a system property. */
+        knownBuilders_ = new ArrayList<TableBuilder>();
+        knownBuilders_.addAll( defaultBuilders_ );
+        knownBuilders_.addAll( listFromClassNames( knownBuilderClasses,
+                                                   TableBuilder.class ) );
         knownBuilders_.addAll( Loader
                               .getClassInstances( KNOWN_BUILDERS_PROPERTY,
                                                   TableBuilder.class ) );
@@ -289,7 +257,8 @@ public class StarTableFactory {
          * other default instances, and any supplied by system property. */
         List<TableScheme> schemeList = new ArrayList<TableScheme>();
         schemeList.add( new JDBCTableScheme( this ) );
-        schemeList.addAll( Arrays.asList( dfltSchemes ) );
+        schemeList.addAll( listFromClassNames( dfltSchemeClasses,
+                                               TableScheme.class ) );
         schemeList.addAll( Loader.getClassInstances( SCHEMES_PROPERTY,
                                                      TableScheme.class ) );
         schemes_ = new LinkedHashMap<String,TableScheme>();
@@ -1422,5 +1391,37 @@ public class StarTableFactory {
                  ? new String[] { matcher.group( 1 ), matcher.group( 2 ) }
                  : null;
         }
+    }
+
+    /**
+     * Turns an array of classnames into an array of instances of those
+     * classes.  A no-arg constructor is required.
+     * Behaviour is logged.
+     *
+     * @param  classNames  names of classes to instantiate
+     * @param  type    required type of instances
+     * @return  mutable list of instances
+     */
+    private static <T> List<T> listFromClassNames( String[] classNames,
+                                                   Class<T> type ) {
+        List<T> list = new ArrayList<>();
+        for ( String cname : classNames ) {
+            try {
+                @SuppressWarnings("unchecked")
+                Class<? extends T> clazz =
+                    (Class<? extends T>) Class.forName( cname );
+                T instance = clazz.newInstance();
+                list.add( instance );
+                logger.config( cname + " registered" );
+            }
+            catch ( ClassNotFoundException e ) {
+                logger.info( cname + " not found - can't register" );
+            }
+            catch ( Throwable e ) {
+                logger.log( Level.WARNING,
+                            "Failed to register " + cname + " - " + e, e );
+            }
+        }
+        return list;
     }
 }
