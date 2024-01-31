@@ -33272,6 +33272,8 @@ introduced since the last version:
         <ref id="HapiTableLoadDialog">query window</ref>,
         <ref id="inHapi">input handler</ref> and
         <ref id="scheme-hapi">scheme</ref>.</li>
+    <li>Cope better with out of range pixel indices in
+        <ref id="HealpixLayerControl">healpix</ref> plots.</li>
     </ul>
     </p></dd>
 

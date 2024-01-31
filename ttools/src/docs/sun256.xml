@@ -15158,6 +15158,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (currently not the default).</li>
     <li>Add support for HAPI: <ref id="inHapi">input handler</ref>
         and <ref id="scheme-hapi">scheme</ref>.</li>
+    <li>Cope better with out of range pixel indices in
+        <ref id="layer-healpix">healpix</ref> plots.</li>
     </ul>
     </p></dd>
 
