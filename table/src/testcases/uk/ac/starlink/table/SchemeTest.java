@@ -13,7 +13,7 @@ public class SchemeTest extends TestCase {
         Map<String,TableScheme> schemes = tfact.getSchemes();
         assertEquals(
             new HashSet<String>( Arrays.asList( "jdbc", "class", "loop",
-                                                "test" ) ),
+                                                "test", "hapi" ) ),
                       schemes.keySet() );
         failCreateTable( tfact, ":num:10" );
         tfact.addScheme( new NumTableScheme() );
