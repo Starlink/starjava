@@ -752,6 +752,7 @@ might most often want to do in TOPCAT, and fall into a few groups:
     &IMG.PLOT2_CUBE;
     &IMG.PLOT2_SKY;
     &IMG.PLOT2_SPHERE;
+    &IMG.PLOT2_MATRIX;
     &IMG.PLOT2_TIME;</dt>
 <dd><p>Open plotting/visualisation windows of various kinds.</p></dd>
 
@@ -759,8 +760,11 @@ might most often want to do in TOPCAT, and fall into a few groups:
 <dd><p>Join tables in various ways including spatial crossmatching,
     and access remote databases.</p></dd>
 
-<dt>&IMG.SAMP; &IMG.FUNCTION; &IMG.HELP;</dt>
+<dt>&IMG.FUNCTION; &IMG.HELP;</dt>
 <dd><p>Help and information</p></dd>
+
+<dt>&IMG.EXIT;</dt>
+<dd><p>Exit</p></dd>
 </dl>
 </p>
 
