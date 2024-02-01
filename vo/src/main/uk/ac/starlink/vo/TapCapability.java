@@ -31,6 +31,14 @@ public interface TapCapability {
         createTapRegExtIvoid( "#features-adqlgeo" );
 
     /**
+     * Returns the version of the TAP protocol implemented by this capability.
+     * The value is not null, and may be a best guess.
+     *
+     * @return  TAP version
+     */
+    TapVersion getTapVersion();
+
+    /**
      * Returns an array of upload methods known by this capability.
      *
      * @return  uploadMethod element ivo-id attribute values
