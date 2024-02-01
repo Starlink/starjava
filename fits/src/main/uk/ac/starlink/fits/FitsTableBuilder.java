@@ -187,7 +187,7 @@ public class FitsTableBuilder extends DocumentedTableBuilder
                     }
                 }
                 catch ( EOFException e ) {
-                    throw new IOException( "No table HDUs in " + datsrc );
+                    throw new IOException( "No table HDUs in " + datsrc, e );
                 }
             }
         }
@@ -433,7 +433,13 @@ public class FitsTableBuilder extends DocumentedTableBuilder
             }
             StarTable table =
                 BintableStarTable.createTable( hdr, inFact, wide );
-            IOUtils.skip( in, datasize );
+            try {
+                IOUtils.skip( in, datasize );
+            }
+            catch ( EOFException e ) {
+                throw new EOFException( "FITS file too short for HDU"
+                                      + " - corrupted/truncated?" );
+            }
             return new TableResult( table, afterpos );
         }
 

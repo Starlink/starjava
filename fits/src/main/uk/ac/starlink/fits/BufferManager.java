@@ -1,5 +1,6 @@
 package uk.ac.starlink.fits;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -124,9 +125,15 @@ public class BufferManager {
     private synchronized MappedByteBuffer getMappedBuffer()
             throws IOException {
         if ( buffer0_ == null ) {
+            logger_.config( "Mapping " + logLabel_ );
+            if ( offset_ + leng_ > channel_.size() ) {
+                String msg = "File too short mapping " + logLabel_
+                           + " (" + channel_.size() + " < "
+                           + ( offset_ + leng_ ) + ") - truncated/corrupted?";
+                throw new EOFException( msg );
+            }
             buffer0_ = channel_.map( FileChannel.MapMode.READ_ONLY,
                                      offset_, leng_ );
-            logger_.config( "Mapping " + logLabel_ );
         }
         return buffer0_;
     }
