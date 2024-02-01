@@ -11,10 +11,21 @@ public class Capability {
     private final Ivoid[] standardIds_;
     private final String xsiTypeTail_;
 
+    /** Ivoid identifying the Cone Search standard. */
+    public static final Ivoid CONE_IVOID =
+        new Ivoid( "ivo://ivoa.net/std/ConeSearch" );
+
+    /** Ivoid identifying the Simple Spectral Access standard. */
+    public static final Ivoid SSA_IVOID =
+        new Ivoid( "ivo://ivoa.net/std/SSA" );
+
+    /** Ivoid identifying the TAP standard. */
+    public static final Ivoid TAP_IVOID =
+        new Ivoid( "ivo://ivoa.net/std/TAP" );
+
     /** Cone search capability. */
     public static final Capability CONE =
-        new Capability( new Ivoid( "ivo://ivoa.net/std/ConeSearch" ),
-                        "ConeSearch" );
+        new Capability( CONE_IVOID, "ConeSearch" );
 
     /** Simple Image Access capability. */
     public static final Capability SIA =
@@ -26,12 +37,11 @@ public class Capability {
 
     /** Simple Spectral Access capability. */
     public static final Capability SSA =
-        new Capability( new Ivoid( "ivo://ivoa.net/std/SSA" ),
-                        "SimpleSpectralAccess" );
+        new Capability( SSA_IVOID, "SimpleSpectralAccess" );
 
     /** Table Access Protocol capability. */
     public static final Capability TAP =
-        new Capability( new Ivoid( "ivo://ivoa.net/std/TAP" ), "TableAccess" );
+        new Capability( TAP_IVOID, "TableAccess" );
 
     /**
      * Constructs a capability with a unique standardID.
