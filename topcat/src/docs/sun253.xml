@@ -33279,6 +33279,10 @@ introduced since the last version:
     <li>Cope better with out of range pixel indices in
         <ref id="HealpixLayerControl">healpix</ref> plots.</li>
     <li>Improve error reporting for corrupted/truncated FITS files.</li>
+    <li>Use TAP 1.1-specific communications
+        (avoid <code>REQUEST=doQuery</code>)
+        in data queries to TAP services
+        known to declare TAP 1.1 compliance.</li>
     </ul>
     </p></dd>
 

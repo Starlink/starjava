@@ -448,8 +448,15 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         if ( surl == null || surl.trim().length() == 0 ) {
             return null;
         }
+        TapQueryPanel tqPanel = tqMap_.get( surl );
+        TapCapabilityPanel tcapPanel =
+            tqPanel == null ? null : tqPanel.getCapabilityPanel();
+        TapCapability tcap =
+            tcapPanel == null ? null : tcapPanel.getCapability();
+        TapVersion version =
+            tcap == null ? TapVersion.V10 : tcap.getTapVersion();
         try {
-            return TapServices.createDefaultTapService( new URL( surl ) );
+            return TapServices.createTapService( new URL( surl ), version );
         }
         catch ( MalformedURLException e ) {
             return null;
