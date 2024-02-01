@@ -137,7 +137,8 @@ public class TapServices {
         StdCapabilityInterface[] intfs = capsDoc.getInterfaces();
         for ( StdCapabilityInterface intf : intfs ) {
             URL accessUrl = getBaseUrl( intf.getAccessUrl() );
-            if ( "ivo://ivoa.net/std/TAP".equals( intf.getStandardId() ) &&
+            if ( Capability.TAP_IVOID
+                           .equalsIvoid( new Ivoid( intf.getStandardId() ) ) &&
                  "std".equals( intf.getRole() ) &&
                  accessUrl != null ) {
                 TapVersion version = getTapVersion( intf.getVersion() );
