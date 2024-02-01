@@ -141,7 +141,7 @@ public class TapServices {
                            .equalsIvoid( new Ivoid( intf.getStandardId() ) ) &&
                  "std".equals( intf.getRole() ) &&
                  accessUrl != null ) {
-                TapVersion version = getTapVersion( intf.getVersion() );
+                TapVersion version = TapVersion.fromString( intf.getVersion() );
                 taps.add( createTapService( accessUrl, version ) );
             }
         }
@@ -171,28 +171,6 @@ public class TapServices {
                                + accessUrl );
                 return null;
             }
-        }
-    }
-
-    /**
-     * Returns the TAP version object corresponding to a version string.
-     * If it's unrecognised, log it and make something up.
-     *
-     * @param  version string
-     * @return  TAP version object, not null
-     */
-    private static TapVersion getTapVersion( String versStr ) {
-        if ( versStr == null || "1.0".equals( versStr ) ) {
-            return TapVersion.V10;
-        }
-        else if ( "1.1".equals( versStr ) ) {
-            return TapVersion.V11;
-        }
-        else {
-            /* PR-TAP-1.1-20190626 (section 2.4) says 'clients should
-             * treat a missing version attribute [as] equivalent to
-             * version="1.0"'. */
-            return TapVersion.V10;
         }
     }
 

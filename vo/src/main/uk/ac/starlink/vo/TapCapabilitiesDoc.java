@@ -184,6 +184,18 @@ public class TapCapabilitiesDoc {
             return null;
         }
 
+        /* Get TAP version. */
+        String versionTxt = null;
+        for ( StdCapabilityInterface intf : getInterfaces( capsEl ) ) {
+            if ( Capability.TAP_IVOID
+                           .equalsIvoid( new Ivoid( intf.getStandardId() ) ) &&
+                 "std".equals( intf.getRole() ) &&
+                 versionTxt == null ) {
+                versionTxt = intf.getVersion();
+            }
+        }
+        TapVersion version = TapVersion.fromString( versionTxt );
+
         /* Get upload methods. */
         NodeList upNodeList =
             (NodeList) xpath.evaluate( "uploadMethod/@ivo-id",
@@ -253,6 +265,9 @@ public class TapCapabilitiesDoc {
 
         /* Construct and return a new TapCapability. */
         return new TapCapability() {
+            public TapVersion getTapVersion() {
+                return version;
+            }
             public Ivoid[] getUploadMethods() {
                 return uploadMethods;
             }
