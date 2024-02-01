@@ -534,7 +534,10 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             String ofmtSpec =
                 getOutputFormatSpecifier( ofmtName_, tcap.getOutputFormats() );
             if ( ofmtSpec != null ) {
-                extraParams.put( "FORMAT", ofmtSpec );
+                String responseformatParam = tcap.getTapVersion().is11()
+                                           ? "RESPONSEFORMAT"
+                                           : "FORMAT";
+                extraParams.put( responseformatParam, ofmtSpec );
             }
         }
         final TapRunMode runMode = (TapRunMode) runModeModel_.getSelectedItem();
@@ -813,8 +816,8 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
 
     /**
      * Returns a specification string suitable for use with the TAP
-     * FORMAT request parameter that indicates preference for a particular
-     * table output format.
+     * RESPONSEFORMAT/FORMAT request parameter that indicates preference
+     * for a particular table output format.
      *
      * @param  ofmtName  preferred output format MIME type, alias or ivo-id
      * @param  ofmts   available output formats
