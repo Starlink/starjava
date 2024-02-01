@@ -19,7 +19,7 @@ public class TapServices {
 
     /** GAVO RegTAP service is pretty reliable. */
     private static final TapService REGTAP =
-        createDefaultTapService( RegTapRegistryQuery.GAVO_REG );
+        createTapService( RegTapRegistryQuery.GAVO_REG, TapVersion.V11 );
 
     /**
      * Sole private constructor prevents instantiation.
@@ -39,23 +39,6 @@ public class TapServices {
      */
     public static TapService getRegTapService() {
         return REGTAP;
-    }
-
-    /**
-     * Creates a TAP 1.0 service given a base URL string.
-     * If the URL is bad, a warning is logged, and null is returned.
-     *
-     * @param   baseUrl   base TAP URL
-     * @return   service with standard (v1.0) TAP endpoints
-     */
-    public static TapService createDefaultTapService( String baseUrl ) {
-        try {
-            return createDefaultTapService( new URL( baseUrl ) );
-        }
-        catch ( MalformedURLException e ) {
-            logger_.warning( "Bad URL for TAP service: " + baseUrl );
-            return null;
-        }
     }
 
     /**
@@ -118,6 +101,26 @@ public class TapServices {
                 return tapVersion;
             }
         };
+    }
+
+    /**
+     * Creates a TAP 1.0 service given a base URL string,
+     * with the endpoints in the default places and a specified TAP version.
+     * If the URL is bad, a warning is logged, and null is returned.
+     *
+     * @param   baseUrl   base TAP URL
+     * @param  tapVersion  TAP protocol version
+     * @return   service with standard (v1.0) TAP endpoints
+     */
+    public static TapService createTapService( String baseUrl,
+                                               TapVersion tapVersion ) {
+        try {
+            return createTapService( new URL( baseUrl ), tapVersion );
+        }
+        catch ( MalformedURLException e ) {
+            logger_.warning( "Bad URL for TAP service: " + baseUrl );
+            return null;
+        }
     }
 
     /**

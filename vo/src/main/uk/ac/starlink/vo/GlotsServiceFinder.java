@@ -41,7 +41,7 @@ public class GlotsServiceFinder implements TapServiceFinder {
      * Constructs a default instance.
      */
     public GlotsServiceFinder() {
-        this( TapServices.createDefaultTapService( GAVO_DC_TAP_URL ),
+        this( TapServices.createTapService( GAVO_DC_TAP_URL, TapVersion.V11 ),
               ContentCoding.GZIP );
     }
 
