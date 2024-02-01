@@ -3,6 +3,7 @@ package uk.ac.starlink.votable;
 import java.awt.datatransfer.DataFlavor;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Logger;
@@ -547,7 +548,13 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
                      * the VOTable to create an output table. */
                     tqueue_.addTable( createFitsPlusTable( tabEls[ itab ],
                                                            dataTable ) );
-                    IOUtils.skip( in, datasize );
+                    try {
+                        IOUtils.skip( in, datasize );
+                    }
+                    catch ( EOFException e ) {
+                        throw new EOFException( "FITS file too short for HDU"
+                                              + " - corrupted/truncated?" );
+                    }
                     pos += headsize + datasize;
                 }
             }

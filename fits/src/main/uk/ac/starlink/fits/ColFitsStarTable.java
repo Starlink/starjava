@@ -228,6 +228,10 @@ public class ColFitsStarTable extends AbstractStarTable {
                 inputFacts_[ icol ] =
                     createInputFactory( chan, offset, leng, logName );
             }
+            if ( pos > chan.size() ) {
+                logger_.warning( "HDU too short for data"
+                               + ": FITS file corrupted/truncated" );
+            }
         }
 
         /* Otherwise use a different stream for each column. */

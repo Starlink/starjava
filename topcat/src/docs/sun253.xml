@@ -33278,6 +33278,7 @@ introduced since the last version:
         <ref id="scheme-hapi">scheme</ref>.</li>
     <li>Cope better with out of range pixel indices in
         <ref id="HealpixLayerControl">healpix</ref> plots.</li>
+    <li>Improve error reporting for corrupted/truncated FITS files.</li>
     </ul>
     </p></dd>
 
