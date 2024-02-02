@@ -8,11 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.table.EmptyRowSequence;
 import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.DOMUtils;
 
 /**
@@ -146,6 +148,7 @@ class TableBodies {
         private final URL url;
         private final String encoding;
         private final boolean isBinary2;
+        private final ContentCoding coding;
 
         public HrefBinaryTabularData( Decoder[] decoders, URL url,
                                       String encoding, boolean isBinary2 ) {
@@ -154,10 +157,13 @@ class TableBodies {
             this.url = url;
             this.encoding = encoding;
             this.isBinary2 = isBinary2;
+            this.coding = ContentCoding.GZIP;
         }
 
         public RowSequence getRowSequence() throws IOException {
-            InputStream istrm = new BufferedInputStream( url.openStream() );
+            InputStream istrm =
+                new BufferedInputStream(
+                    coding.openStreamAuth( url, AuthManager.getInstance() ) );
             return new BinaryRowSequence( decoders, istrm, encoding,
                                           isBinary2 );
         }

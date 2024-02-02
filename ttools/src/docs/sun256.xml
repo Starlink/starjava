@@ -15161,6 +15161,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Cope better with out of range pixel indices in
         <ref id="layer-healpix">healpix</ref> plots.</li>
     <li>Improve error reporting for corrupted/truncated FITS files.</li>
+    <li>Use authentication and HTTP-level compression for
+        external (href-referenced) VOTable STREAM data.</li>
     </ul>
     </p></dd>
 
