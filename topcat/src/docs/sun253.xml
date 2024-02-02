@@ -33287,6 +33287,8 @@ introduced since the last version:
     <li>Improve scrolling in
         <ref id="TapTableLoadDialog_query">TAP window</ref>
         Service, Schema and Table tabs.</li>
+    <li>Use authentication and HTTP-level compression for
+        external (href-referenced) VOTable STREAM data.</li>
     </ul>
     </p></dd>
 

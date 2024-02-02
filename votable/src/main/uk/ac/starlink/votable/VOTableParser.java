@@ -6,9 +6,11 @@ import java.io.InputStream;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Extends SkeletonDOMBuilder so it can optionally message the TableHandler
@@ -19,6 +21,7 @@ import uk.ac.starlink.table.TableSink;
  */
 class VOTableParser extends SkeletonDOMBuilder {
 
+    private final ContentCoding coding_;
     private boolean readHrefs_;
 
     /**
@@ -28,6 +31,7 @@ class VOTableParser extends SkeletonDOMBuilder {
      */
     public VOTableParser( boolean strict ) {
         super( strict );
+        coding_ = ContentCoding.GZIP;
     }
 
     /**
@@ -60,7 +64,7 @@ class VOTableParser extends SkeletonDOMBuilder {
         if ( getReadHrefTables() && tableHandler != null && tableEl != null ) {
             InputStream in = null;
             try {
-                in = url.openStream();
+                in = coding_.openStreamAuth( url, AuthManager.getInstance() );
                 tableHandler.startTable( tableEl.getMetadataTable() );
                 Decoder[] decoders = getDecoders( tableEl.getFields() );
                 String encoding = getAttribute( atts, "encoding" );
@@ -110,7 +114,7 @@ class VOTableParser extends SkeletonDOMBuilder {
                 TableSink sink = 
                     new TableHandlerSink( tableHandler,
                                           tableEl.getMetadataTable() );
-                in = url.openStream();
+                in = coding_.openStreamAuth( url, AuthManager.getInstance() );
                 new FitsTableBuilder().streamStarTable( in, sink, extnum );
             }
             catch ( IOException e ) {
