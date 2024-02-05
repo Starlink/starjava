@@ -3,6 +3,9 @@ package uk.ac.starlink.vo;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -26,12 +29,15 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -75,6 +81,8 @@ public class TableSetPanel extends JPanel {
     private final AndButton keyAndButt_;
     private final JCheckBox useNameButt_;
     private final JCheckBox useDescripButt_;
+    private final JRadioButton sortAlphaButt_;
+    private final JRadioButton sortServiceButt_;
     private final TreeSelectionModel selectionModel_;
     private final JTable colTable_;
     private final JTable foreignTable_;
@@ -95,6 +103,7 @@ public class TableSetPanel extends JPanel {
     private TapServiceKit serviceKit_;
     private SchemaMeta[] schemas_;
     private ColumnMeta[] selectedColumns_;
+    private TapMetaTreeModel treeModel_;
     private static final List<ColMetaColumn<?>> colMetaColumns_ =
         createColumnMetaColumns();
 
@@ -129,6 +138,8 @@ public class TableSetPanel extends JPanel {
      */
     public TableSetPanel( UrlHandler urlHandler ) {
         super( new BorderLayout() );
+
+        /* Set up the schema/table metadata display tree. */
         renderer_ = new CountTableTreeCellRenderer();
         tTree_ = new JTree();
         tTree_.setRootVisible( true );
@@ -152,20 +163,20 @@ public class TableSetPanel extends JPanel {
             }
         } );
 
+        /* Construct components for filtering tree by keyword. */
         keywordField_ = new JTextField();
         keywordField_.addCaretListener( new CaretListener() {
             public void caretUpdate( CaretEvent evt ) {
                 updateTree( false );
             }
         } );
-        JLabel keywordLabel = new JLabel( " Find: " );
+        JLabel keywordLabel = new JLabel( "Find: " );
         String keywordTip = "Enter one or more search terms to restrict "
                           + "the content of the metadata display tree";
         keywordField_.setToolTipText( keywordTip );
         keywordLabel.setToolTipText( keywordTip );
-
         keyAndButt_ = new AndButton( false );
-        keyAndButt_.setMargin( new java.awt.Insets( 0, 0, 0, 0 ) );
+        keyAndButt_.setMargin( new Insets( 0, 0, 0, 0 ) );
         keyAndButt_.setToolTipText( "Choose to match either "
                                   + "all (And) or any (Or) "
                                   + "of the entered search terms "
@@ -191,6 +202,19 @@ public class TableSetPanel extends JPanel {
         useNameButt_.addActionListener( findParamListener );
         useDescripButt_.addActionListener( findParamListener );
 
+        /* Construct components for sorting the tree. */
+        sortAlphaButt_ = new JRadioButton( "Alphabetic" );
+        sortServiceButt_ = new JRadioButton( "Service" );
+        ButtonGroup sortGrp = new ButtonGroup();
+        sortGrp.add( sortAlphaButt_ );
+        sortGrp.add( sortServiceButt_ );
+        sortAlphaButt_.setToolTipText( "Select for alphabetic ordering" );
+        sortServiceButt_.setToolTipText( "Select for service-defined ordering");
+        sortAlphaButt_.addActionListener( evt -> updateTreeOrder() );
+        sortServiceButt_.addActionListener( evt -> updateTreeOrder() );
+        sortAlphaButt_.setSelected( true );
+
+        /* Create table for column metadata display. */
         colTableModel_ = new ArrayTableModel<ColumnMeta>( new ColumnMeta[ 0 ] );
         colTableModel_.setColumns( colMetaColumns_ );
         colTable_ = new JTable( colTableModel_ );
@@ -208,6 +232,7 @@ public class TableSetPanel extends JPanel {
         } );
         selectedColumns_ = new ColumnMeta[ 0 ];
 
+        /* Create table for foreign key display. */
         foreignTableModel_ =
             new ArrayTableModel<ForeignMeta>( new ForeignMeta[ 0 ] );
         foreignTableModel_.setColumns( createForeignMetaColumns() );
@@ -218,6 +243,7 @@ public class TableSetPanel extends JPanel {
         new ArrayTableSorter<ForeignMeta>( foreignTableModel_ )
            .install( foreignTable_.getTableHeader() );
 
+        /* Construct and place tabs to display individual metadata items. */
         tablePanel_ = new TableMetaPanel();
         schemaPanel_ = new SchemaMetaPanel();
         servicePanel_ = new ResourceMetaPanel( urlHandler );
@@ -238,34 +264,65 @@ public class TableSetPanel extends JPanel {
         itabHint_ = itab++;
         detailTabber_.setSelectedIndex( itabSchema_ );
 
-        final JComponent findParamLine = Box.createHorizontalBox();
+        /* Prepare container for tree search filter query components. */
+        JComponent findWordBox = Box.createHorizontalBox();
+        findWordBox.add( keywordField_ );
+        findWordBox.add( Box.createHorizontalStrut( 5 ) );
+        findWordBox.add( keyAndButt_ );
+        JComponent findFieldBox = Box.createHorizontalBox();
+        useNameButt_.setMargin( new Insets( 0, 0, 0, 0 ) );
+        useDescripButt_.setMargin( new Insets( 0, 0, 0, 0 ) );
+        findFieldBox.add( useNameButt_ );
+        findFieldBox.add( useDescripButt_ );
+        GridBagLayout gridLayer = new GridBagLayout();
+        JComponent findBox = new JPanel( gridLayer );
+        GridBagConstraints gcons = new GridBagConstraints();
+        gcons.gridx = 0;
+        gcons.gridy = 0;
+        gcons.anchor = GridBagConstraints.WEST;
+        JLabel findLabel = new JLabel( "Find: " );
+        gridLayer.setConstraints( findLabel, gcons );
+        findBox.add( findLabel );
+        gcons.gridx++;
+        gcons.weightx = 1.0;
+        gcons.fill = GridBagConstraints.HORIZONTAL;
+        gridLayer.setConstraints( findWordBox, gcons );
+        findBox.add( findWordBox );
+        gcons.gridy++;
+        gcons.fill = GridBagConstraints.NONE;
+        gridLayer.setConstraints( findFieldBox, gcons );
+        findBox.add( findFieldBox );
+
+        /* Prepare container for tree sort option components. */
+        JComponent sortBox = Box.createHorizontalBox();
+        sortBox.add( new JLabel( "Sort: " ) );
+        sortBox.add( sortAlphaButt_ );
+        sortBox.add( sortServiceButt_ );
+        sortBox.add( Box.createHorizontalGlue() );
+
+        /* Position search and sort components near the tree. */
         JComponent treePanel = new JPanel( new BorderLayout() );
         treeContainer_ = new JPanel( new BorderLayout() );
         treeContainer_.add( new JScrollPane( tTree_ ), BorderLayout.CENTER );
         treePanel.add( treeContainer_, BorderLayout.CENTER );
-        JComponent keywordLine = Box.createHorizontalBox();
-        keywordLine.add( keywordLabel );
-        keywordLine.add( keywordField_ );
-        findParamLine.add( useNameButt_ );
-        findParamLine.add( useDescripButt_ );
-        findParamLine.add( Box.createHorizontalGlue() );
-        findParamLine.add( keyAndButt_ );
-        JComponent findBox = Box.createVerticalBox();
-        findBox.add( keywordLine );
-        findBox.add( findParamLine );
-        findBox.setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 5 ) );
-        treePanel.add( findBox, BorderLayout.NORTH );
+        treePanel.add( sortBox, BorderLayout.SOUTH );
+        JComponent treeOptBox = Box.createVerticalBox();
+        treeOptBox.add( findBox );
+        treeOptBox.add( sortBox );
+        treeOptBox.setBorder( BorderFactory.createEmptyBorder( 0, 2, 0, 2 ) );
+        treePanel.add( treeOptBox, BorderLayout.NORTH );
 
+        /* Place tree and tabber in this panel. */
         JSplitPane metaSplitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
         metaSplitter.setBorder( BorderFactory.createEmptyBorder() );
         JComponent detailPanel = new JPanel( new BorderLayout() );
         detailPanel.add( detailTabber_, BorderLayout.CENTER );
         detailPanel.add( createHorizontalStrut( 500 ), BorderLayout.SOUTH );
-        treePanel.add( createHorizontalStrut( 200 ), BorderLayout.SOUTH );
         metaSplitter.setLeftComponent( treePanel );
         metaSplitter.setRightComponent( detailPanel );
         add( metaSplitter, BorderLayout.CENTER );
 
+        /* Set initial state. */
         setSchemas( null );
     }
 
@@ -395,10 +452,11 @@ public class TableSetPanel extends JPanel {
         }
         SchemaMeta[] oldSchemas = schemas_;
         schemas_ = schemas;
-        TreeModel treeModel =
+        treeModel_ =
             new TapMetaTreeModel( schemas_ == null ? new SchemaMeta[ 0 ]
-                                                   : schemas_ );
-        tTree_.setModel( new MaskTreeModel( treeModel, true ) );
+                                                   : schemas_,
+                                  getTreeOrder() );
+        tTree_.setModel( new MaskTreeModel( treeModel_, true ) );
         keywordField_.setText( null );
         selectionModel_.setSelectionPath( null );
         updateTree( true );
@@ -501,6 +559,55 @@ public class TableSetPanel extends JPanel {
      */
     public void setAuthId( String authId ) {
         servicePanel_.setAuthId( authId );
+    }
+
+    /**
+     * Returns the tree ordering option currently selected in the GUI.
+     *
+     * @return   metadata tree order
+     */
+    private TapMetaOrder getTreeOrder() {
+        return sortServiceButt_.isSelected() ? TapMetaOrder.INDEXED
+                                             : TapMetaOrder.ALPHABETIC;
+    }
+
+    /**
+     * Called if the metadata ordering sequence might have changed.
+     * Updates the tree state, retaining as much of the GUI state
+     * (current node selection, path expansion states) as is possible.
+     */
+    private void updateTreeOrder() {
+        TapMetaOrder order = getTreeOrder();
+        if ( treeModel_ != null && treeModel_.getOrder() != order ) {
+
+            /* Gather GUI state information that we would like to preserve
+             * over the ordering reset. */
+            TreePath selPath = tTree_.getSelectionPath();
+            List<TreePath> expandeds = new ArrayList<>();
+            TreePath rootPath = new TreePath( treeModel_.getRoot() );
+            for ( Enumeration<TreePath> exEn =
+                      tTree_.getExpandedDescendants( rootPath );
+                  exEn.hasMoreElements(); ) {
+                expandeds.add( exEn.nextElement() );
+            }
+
+            /* Actually reset the order. */
+            treeModel_.setOrder( order );
+
+            /* Restore GUI state information. */
+            for ( TreePath exp : expandeds ) {
+                tTree_.expandPath( exp );
+            }
+            if ( selPath != null ) {
+                tTree_.setSelectionPath( selPath );
+                JScrollBar hbar = getScrollBar( tTree_, false );
+                int hscroll = hbar == null ? 0 : hbar.getValue();
+                tTree_.scrollPathToVisible( selPath );
+                if ( hbar != null ) {
+                    hbar.setValue( hscroll );
+                }
+            }
+        }
     }
 
     /**
@@ -1172,6 +1279,27 @@ public class TableSetPanel extends JPanel {
         JComponent c = new JPanel();
         c.setPreferredSize( new Dimension( width, 0 ) );
         return c;
+    }
+
+    /**
+     * Returns one of the scrollbars controlling a given component.
+     *
+     * @param  comp  component to query
+     * @param  isVertical   true for vertical bar, false for horizontal
+     * @return  scrollbar, or null if it can't be found
+     */
+    private static JScrollBar getScrollBar( JComponent comp,
+                                            boolean isVertical ) {
+        Component a1 = comp.getParent();
+        Component a2 = a1 == null ? null : a1.getParent();
+        if ( a2 instanceof JScrollPane ) {
+            JScrollPane scroller = (JScrollPane) a2;
+            return isVertical ? scroller.getVerticalScrollBar()
+                              : scroller.getHorizontalScrollBar();
+        }
+        else {
+            return null;
+        }
     }
 
     /**

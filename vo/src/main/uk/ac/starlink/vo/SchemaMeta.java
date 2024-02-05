@@ -1,5 +1,7 @@
 package uk.ac.starlink.vo;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -25,6 +27,7 @@ public class SchemaMeta {
     String utype_;
     Map<String,Object> extras_;
     private TableMeta[] tables_;
+    private Comparator<TableMeta> tableComparator_;
 
     /**
      * Constructor.
@@ -93,10 +96,13 @@ public class SchemaMeta {
      * If the result is null, nothing is known about the tables,
      * and the list may need to be explicitly set.
      *
+     * <p>If {@link #setTableOrder} has been called with a non-null
+     * comparator, the returned array will obey that ordering.
+     *
      * @return  tables contained in this schema, or null
      */
     public TableMeta[] getTables() {
-        return tables_;
+        return tables_ == null ? null : tables_.clone();
     }
 
     /**
@@ -105,7 +111,28 @@ public class SchemaMeta {
      * @param  tables  table list
      */
     public void setTables( TableMeta[] tables ) {
-        tables_ = tables;
+        if ( tables == null ) {
+            tables_ = null;
+        }
+        else {
+            tables_ = tables.clone();
+            if ( tableComparator_ != null ) {
+                Arrays.sort( tables_, tableComparator_ );
+            }
+        }
+    }
+
+    /**
+     * Configures a comparator that will define the ordering of tables
+     * returned by this schema's {@link #getTables} method.
+     *
+     * @param  tableComparator  defines table list ordering
+     */
+    public void setTableOrder( Comparator<TableMeta> tableComparator ) {
+        tableComparator_ = tableComparator;
+        if ( tables_ != null && tableComparator != null ) {
+            Arrays.sort( tables_, tableComparator );
+        }
     }
 
     /**

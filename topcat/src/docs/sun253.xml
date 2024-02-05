@@ -23227,9 +23227,9 @@ to submit the job.
 
 <p>The <label>Metadata</label> panel displays information about
 the tables held by the selected service.
-On the left of the panel is a searchable tree summarising the
-schemas and tables in the service, and on the right are some tabs
-containing more detail.
+On the left of the panel is a searchable <label>tree</label>
+summarising the schemas and tables in the service,
+and on the right are some <label>tabs</label> containing more detail.
 Note all this information has to be loaded from the server,
 so in some cases you may have to wait before it is visible.
 </p>
@@ -23243,19 +23243,40 @@ you can reveal or hide the tables by clicking on the schema node's handle.
 If the service contains only a small number of tables it may be
 convenient just to scroll up and down to see them all.
 But for services with hundreds or thousands of tables, 
-you may need to restrict the displayed tables to those you're interested in.
-To do this, type one or more search terms into the <label>Keywords</label>
-field.  The nodes displayed in the tree will be filtered to include only
-those that match the search terms as you type them.
-The <label>Name</label> and <label>Descrip</label> checkboxes indicate
-whether you want your search terms to match tables/schemas by name
-and/or by description.
-The <label>And</label>/<label>Or</label> toggle button determines
-whether each displayed table/schema has to match all of the search
-terms or just one.
-So for instance if you want to list just two tables, you can type in
-both table full names, uncheck the Descrip control,
-and set the toggle button to "Or".
+you might need some help to find the tables that you're interested in
+by using the controls above the tree:
+<dl>
+<dt>Find</dt>
+<dd><p>You can restrict the displayed tables to those that you're
+    interested in.
+    To do this, type one or more search terms into the <label>Find</label>
+    field.  The nodes displayed in the tree will be filtered to include only
+    those that match the search terms as you type them.
+    The <label>Name</label> and <label>Descrip</label> checkboxes
+    below the field indicate
+    whether you want your search terms to match tables/schemas by name
+    and/or by description.
+    The <label>And</label>/<label>Or</label> toggle button determines
+    whether each displayed table/schema has to match all of the search
+    terms or just one.
+    So for instance if you want to list just two tables, you can type in
+    both table full names, uncheck the Descrip control,
+    and set the toggle button to "Or".
+    </p></dd>
+<dt>Sort</dt>
+<dd><p>You can choose between two options to determine the order
+    in which entries are displayed in the tree.
+    <label>Alphabetic</label> means that the schemas are listed
+    in alphabetical order, and within each schema the tables are listed
+    in alphabetical order.
+    <label>Service</label> attempts to use information provided by
+    the data service about how to order the schemas and tables.
+    Depending on how the data provider has organised its metadata
+    this may list more important schemas and tables first,
+    or it may show them in a more or less random order,
+    or it may be alphabetical as with the other option.
+    </p></dd>
+</dl>
 </p>
 
 <p>To the right of the tree is a tabbed panel giving detail relating
@@ -23270,7 +23291,7 @@ or because the information has not been retrieved from the service;
 either it's on its way and will be filled in later, or there's an error.
 The tabs are as follows:
 <dl>
-<dt>Service</dt>
+<dt>Service tab</dt>
 <dd><p>Provides various items of information about the TAP service itself,
     gathered from the service and its registry record if available.
     This includes the service's name, Service URL, Reference URL,
@@ -23288,19 +23309,19 @@ The tabs are as follows:
     The content of this tab is not sensitive to which node of the tree
     is currently selected.
     </p></dd>
-<dt>Schema</dt>
+<dt>Schema tab</dt>
 <dd><p>Provides a textual description of the currently selected schema,
     or the schema of the currently selected table.
     A schema is just a higher-level grouping of tables within the TAP service.
     Depending on how the service has arranged its tables this may or may
     not provide useful information that's not available at the table level.
     </p></dd>
-<dt>Table</dt>
+<dt>Table tab</dt>
 <dd><p>Provides a textual description of the currently selected table (if any).
     Some additional information like the number of columns, rows and
     foreign keys may also be displayed if available.
     </p></dd>
-<dt>Columns</dt>
+<dt>Columns tab</dt>
 <dd><p>Tabulates a list of all the columns in the currently selected table;
     column names, data types, units, descriptions, UCDs, and possibly other
     metadata are shown.  This is generally the information you will need
@@ -23314,14 +23335,14 @@ The tabs are as follows:
     click on the <label>Unit</label> column header.
     If no table is selected in the tree, this tab will be empty.
     </p></dd>
-<dt>FKeys</dt>
+<dt>FKeys tab</dt>
 <dd><p>If the service provides information about foreign keys
     (links between fields in different tables in the database)
     they will be tabulated here for the currently selected table.
     If any are present, they may help you to formulate efficient queries.
     If no table is selected in the tree, this tab will be empty.
     </p></dd>
-<dt>Hints</dt>
+<dt>Hints tab</dt>
 <dd><p>This panel gives you a very basic "Cheat Sheet" for writing ADQL queries.
     There are just a few hints to jog your memory about the required syntax
     for some common operations.  But the very best advice it gives
@@ -33289,6 +33310,8 @@ introduced since the last version:
         Service, Schema and Table tabs.</li>
     <li>Use authentication and HTTP-level compression for
         external (href-referenced) VOTable STREAM data.</li>
+    <li>Add a metadata tree <label>Sort</label> control in the
+        <ref id="TapTableLoadDialog_query">TAP window</ref>.</li>
     </ul>
     </p></dd>
 
