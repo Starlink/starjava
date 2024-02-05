@@ -33284,6 +33284,9 @@ introduced since the last version:
         use <code>RESPONSEFORMAT</code> not <code>FORMAT</code>)
         in data queries to TAP services
         known to declare TAP 1.1 compliance.</li>
+    <li>Improve scrolling in
+        <ref id="TapTableLoadDialog_query">TAP window</ref>
+        Service, Schema and Table tabs.</li>
     </ul>
     </p></dd>
 

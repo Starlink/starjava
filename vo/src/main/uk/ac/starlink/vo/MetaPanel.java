@@ -29,6 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -313,8 +314,11 @@ public class MetaPanel extends JPanel implements Scrollable {
 
     public int getScrollableBlockIncrement( Rectangle visibleRect,
                                             int orientation, int direction ) {
-        return getScrollableUnitIncrement( visibleRect, orientation,
-                                           direction );
+        int unit = getFontMetrics( getFont() ).getHeight();
+        int block = orientation == SwingConstants.VERTICAL
+                  ? visibleRect.height
+                  : visibleRect.width;
+        return Math.max( block - unit, unit );
     }
 
     public boolean getScrollableTracksViewportWidth() {
