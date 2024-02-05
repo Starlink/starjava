@@ -55,6 +55,8 @@ public class TableSetSaxHandler extends DefaultHandler {
     private ColumnMeta column_;
     private ForeignMeta foreign_;
     private ForeignMeta.Link link_;
+    private int iSchema_;
+    private int iTable_;
     private final StringBuffer txtbuf_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -129,10 +131,12 @@ public class TableSetSaxHandler extends DefaultHandler {
         String tname = getTagName( uri, localName, qName );
         if ( "schema".equals( tname ) ) {
             schema_ = new SchemaMeta();
+            schema_.index_ = Integer.valueOf( ++iSchema_ );
             tableList_ = new ArrayList<TableMeta>();
         }
         else if ( "table".equals( tname ) ) {
             table_ = new TableMeta();
+            table_.index_ = Integer.valueOf( ++iTable_ );
             String type = atts.getValue( "", "type" );
             if ( type != null ) {
                 table_.type_ = type;

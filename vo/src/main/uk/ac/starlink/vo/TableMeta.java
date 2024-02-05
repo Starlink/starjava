@@ -21,6 +21,7 @@ public class TableMeta {
     String type_;
     String name_;
     String title_;
+    Integer index_;
     String description_;
     String utype_;
     String nrows_;
@@ -77,6 +78,15 @@ public class TableMeta {
      */
     public String getDescription() {
         return description_;
+    }
+
+    /**
+     * Returns this table's table index.
+     *
+     * @return table index, or null if not available
+     */
+    public Integer getIndex() {
+        return index_;
     }
 
     /**
