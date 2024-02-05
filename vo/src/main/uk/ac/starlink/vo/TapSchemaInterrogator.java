@@ -512,12 +512,6 @@ public class TapSchemaInterrogator {
             cUtype = "utype",
         };
         final String cNrows = "nrows";
-
-        /* TAP 1.1 defines "table_index" as an optional display ordering
-         * column, so maybe should use that.  But I'm inclined to stick
-         * with alphabetic ordering here, since that's what you'll see
-         * for other metadata read policies, and it's probably what
-         * users expect. */
         final String cTableIndex = "table_index";
         String rankColName = null;
         return new MetaQuerier<TableMeta>( "TAP_SCHEMA.tables", attCols,
@@ -534,11 +528,10 @@ public class TapSchemaInterrogator {
                 if ( nrows instanceof String || nrows instanceof Number ) {
                     tmeta.nrows_ = nrows.toString();
                 }
-                for ( Iterator<String> it = tmeta.extras_.keySet().iterator();
-                      it.hasNext(); ) {
-                    if ( cTableIndex.equalsIgnoreCase( it.next() ) ) {
-                        it.remove();
-                    }
+                Object index = tmeta.extras_.get( cTableIndex );
+                if ( index instanceof Number ) {
+                    tmeta.index_ =
+                        Integer.valueOf( ((Number) index).intValue() );
                 }
                 return tmeta;
             }
@@ -559,13 +552,20 @@ public class TapSchemaInterrogator {
             cDescription = "description",
             cUtype = "utype",
         };
+        final String cSchemaIndex = "schema_index";
         return new MetaQuerier<SchemaMeta>( "TAP_SCHEMA.schemas", attCols,
-                                            true, null, null, cSchemaName ) {
+                                            false, null, null, cSchemaName ) {
             public SchemaMeta createMeta( ColSet colset, Object[] row ) {
                 SchemaMeta smeta = new SchemaMeta();
                 smeta.name_ = colset.getCellString( cSchemaName, row );
                 smeta.description_ = colset.getCellString( cDescription, row );
                 smeta.utype_ = colset.getCellString( cUtype, row );
+                smeta.extras_ = colset.getExtras( row );
+                Object index = smeta.extras_.get( cSchemaIndex );
+                if ( index instanceof Number ) {
+                    smeta.index_ =
+                        Integer.valueOf( ((Number) index).intValue() );
+                }
                 return smeta;
             }
         };
@@ -935,12 +935,12 @@ public class TapSchemaInterrogator {
          * in the returned map.
          *
          * @param  row   row from query result
-         * @return   map from column name to value in row
+         * @return   map from lowercased column name to value in row
          */
         Map<String,Object> getExtras( Object[] row ) {
             Map<String,Object> map = new LinkedHashMap<String,Object>();
             for ( String col : extraCols_ ) {
-                Object obj = getCellObject( col, row );
+                Object obj = getCellObject( col.toLowerCase(), row );
                 if ( ! Tables.isBlank( obj ) ) {
                     map.put( col, obj );
                 }

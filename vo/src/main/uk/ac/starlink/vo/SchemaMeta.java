@@ -20,6 +20,7 @@ public class SchemaMeta {
 
     String name_;
     String title_;
+    Integer index_;
     String description_;
     String utype_;
     Map<String,Object> extras_;
@@ -58,6 +59,15 @@ public class SchemaMeta {
      */
     public String getDescription() {
         return description_;
+    }
+
+    /**
+     * Returns this schema's schema index.
+     *
+     * @return  schema index, or null if not available
+     */
+    public Integer getIndex() {
+        return index_;
     }
 
     /**
