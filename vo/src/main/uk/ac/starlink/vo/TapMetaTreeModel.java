@@ -17,38 +17,58 @@ public class TapMetaTreeModel implements TreeModel {
 
     private final List<TreeModelListener> listeners_;
     private SchemaMeta[] schemas_;
-
-    /**
-     * Constructs an empty tree model.
-     */
-    public TapMetaTreeModel() {
-        this( new SchemaMeta[ 0 ] );
-    }
+    private TapMetaOrder order_;
 
     /**
      * Constructs a tree model to display a given table set.
+     * Note this may reorder the schemas array in place,
+     * and the table ordering within each schema.
      *
      * @param  schemas  schema array defining the table metadata to be
      *                  represented
+     * @param  order  initial ordering policy for contents
      */
-    public TapMetaTreeModel( SchemaMeta[] schemas ) {
+    public TapMetaTreeModel( SchemaMeta[] schemas, TapMetaOrder order ) {
         listeners_ = new ArrayList<TreeModelListener>();
+        order_ = order;
         setSchemas( schemas );
     }
 
     /**
      * Sets the content of this tree.
+     * Note this may reorder the schemas array in place,
+     * and the table ordering within each schema.
      *
      * @param  schemas  schema array defining the table metadata to be
      *                  represented
      */
     public void setSchemas( SchemaMeta[] schemas ) {
         schemas_ = schemas;
+        order_.sortSchemas( schemas_ );
         TreeModelEvent evt =
             new TreeModelEvent( this, new Object[] { schemas } );
         for ( TreeModelListener lnr : listeners_ ) {
             lnr.treeStructureChanged( evt );
         }
+    }
+
+    /**
+     * Returns the node ordering being used by this model.
+     *
+     * @return  ordering
+     */
+    public TapMetaOrder getOrder() {
+        return order_;
+    }
+
+    /**
+     * Sets the node ordering to be used by this model.
+     *
+     * @param  order  ordering
+     */
+    public void setOrder( TapMetaOrder order ) {
+        order_ = order;
+        setSchemas( schemas_ );
     }
 
     /**
