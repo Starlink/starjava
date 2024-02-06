@@ -170,11 +170,9 @@ public class TableSetPanel extends JPanel {
                 updateTree( false );
             }
         } );
-        JLabel keywordLabel = new JLabel( "Find: " );
-        String keywordTip = "Enter one or more search terms to restrict "
-                          + "the content of the metadata display tree";
-        keywordField_.setToolTipText( keywordTip );
-        keywordLabel.setToolTipText( keywordTip );
+        keywordField_.setToolTipText( "Enter one or more search terms "
+                                    + "to restrict the content of "
+                                    + "the metadata display tree" );
         keyAndButt_ = new AndButton( false );
         keyAndButt_.setMargin( new Insets( 0, 0, 0, 0 ) );
         keyAndButt_.setToolTipText( "Choose to match either "
