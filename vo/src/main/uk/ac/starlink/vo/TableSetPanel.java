@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.LinkedHashSet;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -244,7 +245,7 @@ public class TableSetPanel extends JPanel {
            .install( foreignTable_.getTableHeader() );
 
         /* Construct and place tabs to display individual metadata items. */
-        UrlHandler urlHandler = url -> tld.getUrlHandler().clickUrl( url );
+        Consumer<URL> urlHandler = url -> tld.getUrlHandler().accept( url );
         tablePanel_ = new TableMetaPanel();
         schemaPanel_ = new SchemaMetaPanel();
         servicePanel_ = new ResourceMetaPanel( urlHandler );
@@ -1867,7 +1868,7 @@ public class TableSetPanel extends JPanel {
          *
          * @param  urlHandler  handles URLs that the user clicks on; may be null
          */
-        ResourceMetaPanel( UrlHandler urlHandler ) {
+        ResourceMetaPanel( Consumer<URL> urlHandler ) {
             nameField_ = addLineField( "Short Name" );
             titleField_ = addLineField( "Title" );
             ivoidField_ = addLineField( "IVO ID" );

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.swing.JEditorPane;
@@ -24,7 +25,7 @@ import javax.swing.text.html.HTMLEditorKit;
  */
 public class HintPanel extends JPanel {
 
-    private final UrlHandler urlHandler_;
+    private final Consumer<URL> urlHandler_;
     private final JEditorPane edPanel_;
     private final Map<AdqlVersion,HTMLDocument> docMap_;
     private final Supplier<HTMLDocument> docSupplier_;
@@ -39,7 +40,7 @@ public class HintPanel extends JPanel {
      *
      * @param   urlHandler   handler for link click actions
      */
-    public HintPanel( final UrlHandler urlHandler ) {
+    public HintPanel( final Consumer<URL> urlHandler ) {
         super( new BorderLayout() );
         urlHandler_ = urlHandler;
         docMap_ = new HashMap<AdqlVersion,HTMLDocument>();
@@ -57,7 +58,7 @@ public class HintPanel extends JPanel {
                     if ( HyperlinkEvent.EventType.ACTIVATED
                                        .equals( evt.getEventType() ) ) {
                         URL url = evt.getURL();
-                        urlHandler.clickUrl( url );
+                        urlHandler.accept( url );
                     }
                 }
             } );

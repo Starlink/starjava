@@ -10,6 +10,6 @@ import uk.ac.starlink.hapi.HapiTableLoadDialog;
  */
 public class TopcatHapiTableLoadDialog extends HapiTableLoadDialog {
     public TopcatHapiTableLoadDialog() {
-        super( TopcatUtils.createDocUrlHandler() );
+        super( TopcatUtils.getDocUrlHandler() );
     }
 }

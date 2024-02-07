@@ -1,6 +1,8 @@
 package uk.ac.starlink.vo;
 
 import java.awt.event.ActionEvent;
+import java.net.URL;
+import java.util.function.Consumer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -21,7 +23,7 @@ import javax.swing.SwingConstants;
  */
 public class TapExampleLine extends JPanel {
 
-    private final UrlHandler urlHandler_;
+    private final Consumer<URL> urlHandler_;
     private final JLabel titleLabel_;
     private final JTextField nameField_;
     private final Action infoAct_;
@@ -32,7 +34,7 @@ public class TapExampleLine extends JPanel {
      *
      * @param  urlHandler  handles URL clicks
      */
-    public TapExampleLine( UrlHandler urlHandler ) {
+    public TapExampleLine( Consumer<URL> urlHandler ) {
         urlHandler_ = urlHandler;
         titleLabel_ = new JLabel();
         nameField_ = new JTextField();
@@ -40,7 +42,7 @@ public class TapExampleLine extends JPanel {
         nameField_.setBorder( BorderFactory.createEmptyBorder() );
         infoAct_ = new AbstractAction( "Info" ) {
             public void actionPerformed( ActionEvent evt ) {
-                urlHandler_.clickUrl( example_.getInfoUrl() );
+                urlHandler_.accept( example_.getInfoUrl() );
             }
         };
         infoAct_.putValue( Action.SMALL_ICON, ResourceIcon.EXTLINK );

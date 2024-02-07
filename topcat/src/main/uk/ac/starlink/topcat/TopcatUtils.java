@@ -66,7 +66,9 @@ public class TopcatUtils {
     private static DecimalFormat longFormat_;
     private static Map<Object,Object> statusMap_;
     private static Boolean canBrowse_;
-    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
+    private static Consumer<URL> urlHandler_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
 
     static final TopcatCodec DFLT_SESSION_ENCODER;
     static final TopcatCodec[] SESSION_DECODERS = new TopcatCodec[] {
@@ -316,24 +318,34 @@ public class TopcatUtils {
      *
      * @return  url handler, or null if browsing is not possible
      */
-    public static Consumer<URL> createDocUrlHandler() {
-        final Desktop desktop = getBrowserDesktop();
-        if ( desktop == null ) {
-            return null;
+    public static Consumer<URL> getDocUrlHandler() {
+        if ( urlHandler_ == null ) {
+            final Desktop desktop = getBrowserDesktop();
+            final Consumer<URL> handler;
+            if ( desktop == null ) {
+                logger_.warning( "No browser control"
+                               + "; clicking URLs won't open them" );
+                handler = url -> {
+                    logger_.info( "Clicked URL: " + url );
+                };
+            }
+            else {
+                handler = url -> {
+                    logger_.info( "Passing URL to browser: " + url );
+                    try {
+                        desktop.browse( url.toURI() );
+                    }
+                    catch ( Throwable e ) {
+                        logger_.log( Level.WARNING,
+                                     "Trouble sending URL " + url
+                                   + " to browser", e );
+                    }
+                };
+            }
+            urlHandler_ = handler;
         }
-        else {
-            return url -> {
-                logger_.info( "Passing URL to browser: " + url );
-                try {
-                    desktop.browse( url.toURI() );
-                }
-                catch ( Throwable e ) {
-                    logger_.log( Level.WARNING,
-                                 "Trouble sending URL " + url + " to browser",
-                                 e );
-                }
-            };
-        }
+        assert urlHandler_ != null;
+        return urlHandler_;
     }
 
     /**

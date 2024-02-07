@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,7 +72,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
                                 implements DalLoader {
 
     private final Map<String,TapQueryPanel> tqMap_;
-    private UrlHandler urlHandler_;
+    private Consumer<URL> urlHandler_;
     private JTabbedPane tabber_;
     private JComponent tqContainer_;
     private TapQueryPanel tqPanel_;
@@ -135,7 +136,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
      *
      * @return  url click handler
      */
-    public UrlHandler getUrlHandler() {
+    public Consumer<URL> getUrlHandler() {
         return urlHandler_;
     }
 
@@ -144,7 +145,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
      *
      * @param  urlHandler  url click handler
      */
-    public void setUrlHandler( UrlHandler urlHandler ) {
+    public void setUrlHandler( Consumer<URL> urlHandler ) {
         urlHandler_ = urlHandler;
     }
 

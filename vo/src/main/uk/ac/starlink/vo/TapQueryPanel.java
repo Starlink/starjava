@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -133,7 +134,7 @@ public class TapQueryPanel extends JPanel {
      */
     public TapQueryPanel( TapTableLoadDialog tld ) {
         super( new BorderLayout() );
-        UrlHandler urlHandler = url -> tld.getUrlHandler().clickUrl( url );
+        Consumer<URL> urlHandler = url -> tld.getUrlHandler().accept( url );
 
         /* Prepare a panel for table metadata display. */
         tmetaPanel_ = new TableSetPanel( tld );

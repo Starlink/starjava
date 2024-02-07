@@ -1,7 +1,6 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Component;
-import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -14,8 +13,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.function.Consumer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
@@ -44,7 +42,6 @@ import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapQueryPanel;
 import uk.ac.starlink.vo.TapServiceFinder;
 import uk.ac.starlink.vo.TapTableLoadDialog;
-import uk.ac.starlink.vo.UrlHandler;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOTableVersion;
@@ -60,12 +57,9 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     private final RegistryDialogAdjuster adjuster_;
     private AdqlExample[] uploadExamples_;
-    private UrlHandler urlHandler_;
+    private Consumer<URL> urlHandler_;
     private double[] skypos_;
     private volatile DeletionPolicy deletionPolicy_;
-
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Constructor.
@@ -252,7 +246,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         }
 
         /* Prepare a handler for clickable URLs. */
-        setUrlHandler( createUrlHandler() );
+        setUrlHandler( TopcatUtils.getDocUrlHandler() );
 
         return comp;
     }
@@ -492,29 +486,6 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             }
             public Collection<String> getColumnNames() {
                 return colList;
-            }
-        };
-    }
-
-    /**
-     * Tries on a best-efforts basis to returns a handler
-     * that launches a browser when a URL is clicked.
-     *
-     * @return  browser handler, or null if it can't be done
-     */
-    private static UrlHandler createUrlHandler() {
-        final Desktop desktop = TopcatUtils.getBrowserDesktop();
-        return new UrlHandler() {
-            public void clickUrl( URL url ) {
-                logger_.info( "Passing URL to browser: " + url );
-                try {
-                    desktop.browse( url.toURI() );
-                }
-                catch ( Throwable e ) {
-                    logger_.log( Level.WARNING,
-                                 "Trouble sending URL " + url + " to browser",
-                                 e );
-                }
             }
         };
     }
