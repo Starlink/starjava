@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -118,15 +119,15 @@ public class MetaPanel extends JPanel implements Scrollable {
 
     /**
      * Adds a field intended to contain a clickable URL.
-     * If a non-null UrlHandler is supplied, its {@link UrlHandler#clickUrl}
-     * method is invoked when the user clicks on this field.
+     * If a non-null UrlHandler is supplied, it is invoked
+     * when the user clicks on this field.
      *
      * @param  heading  item heading text
      * @param  urlHandler  handler used when the field is clicked on;
      *                     may be null
      */
     public JTextComponent addUrlField( String heading,
-                                       final UrlHandler urlHandler ) {
+                                       final Consumer<URL> urlHandler ) {
         final JTextField field = new JTextField() {
             @Override
             public Dimension getMinimumSize() {
@@ -145,7 +146,7 @@ public class MetaPanel extends JPanel implements Scrollable {
                 String txt = field.getText();
                 if ( txt != null && txt.length() > 0 && urlHandler != null ) {
                     try {
-                        urlHandler.clickUrl( new URL( txt ) );
+                        urlHandler.accept( new URL( txt ) );
                     }
                     catch ( MalformedURLException e ) {
                     }
