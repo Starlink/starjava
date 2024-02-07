@@ -847,7 +847,8 @@ public class FuncTest extends TestCase {
         double ra2 = 0.2;
         double dec2 = 1.3;
         assertEquals( CoordsRadians.skyDistanceRadians( ra1, dec1, ra2, dec2 ),
-                      CoordsRadians.skyDistanceRadians( ra2, dec2, ra1, dec1 ));
+                      CoordsRadians.skyDistanceRadians( ra2, dec2, ra1, dec1 ),
+                      1e-15 );
         assertEquals(
             CoordsRadians
            .radiansToDegrees( CoordsRadians.skyDistanceRadians( ra1, dec1,

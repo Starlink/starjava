@@ -21,11 +21,11 @@ import uk.ac.starlink.pal.Pal;
  */
 public class CoordsRadians {
 
-    private static Pattern dmsPattern = 
+    private static final Pattern dmsPattern = 
         getSexPattern( "[:d ]", "[:m' ]", "[s\"]?" );
-    private static Pattern hmsPattern = 
+    private static final Pattern hmsPattern = 
         getSexPattern( "[:h ]", "[:m' ]", "[s\"]?" );
-
+    private static final boolean USE_VINCENTY = false;
    
     /** The size of one degree in radians. */
     public static final double DEGREE_RADIANS = Math.PI / 180;
@@ -267,7 +267,9 @@ public class CoordsRadians {
      */
     public static double skyDistanceRadians( double ra1, double dec1,
                                              double ra2, double dec2 ) {
-        return haversineSeparationFormula( ra1, dec1, ra2, dec2 );
+        return USE_VINCENTY
+             ? vincentySeparationFormula( ra1, dec1, ra2, dec2 )
+             : haversineSeparationFormula( ra1, dec1, ra2, dec2 );
     }
 
     /**
@@ -597,7 +599,7 @@ public class CoordsRadians {
     }
 
     /**
-     * Haversine formula for spherical trigonometry.
+     * Haversine formula for separation between two points on the sphere.
      * This does not have the numerical instabilities of the cosine formula
      * at small angles.
      * <p>
@@ -613,8 +615,8 @@ public class CoordsRadians {
      * @return  angular separation of point 1 and point 2 in radians
      * @see  <http://www.census.gov/geo/www/gis-faq.txt>
      */
-    private static double haversineSeparationFormula( double ra1, double dec1,
-                                                     double ra2, double dec2 ) {
+    static double haversineSeparationFormula( double ra1, double dec1,
+                                              double ra2, double dec2 ) {
         double sd2 = Math.sin( 0.5 * ( dec2 - dec1 ) );
         double sr2 = Math.sin( 0.5 * ( ra2 - ra1 ) );
         double a = sd2 * sd2 +
@@ -626,6 +628,32 @@ public class CoordsRadians {
                        : Math.PI;
     }
 
+    /**
+     * Vincenty formula for separation between two points on the sphere.
+     * This is a special case of the Vincenty formula for distance between
+     * two points on an ellipsoid.
+     * It is stable for all angles, unlike the Cosine formula for
+     * small angles and the Haversine formula for angles near Pi.
+     * Benchmarking reports it about 50% slower than Haversine.
+     *
+     * @param   ra1  right ascension of point 1 in radians
+     * @param   dec1 declination of point 1 in radians
+     * @param   ra2  right ascension of point 2 in radians
+     * @param   dec2 declination of point 2 in radians
+     * @return  angular separation of point 1 and point 2 in radians
+     */
+     static double vincentySeparationFormula( double ra1, double dec1,
+                                              double ra2, double dec2 ) {
+        double cd1 = Math.cos( dec1 );
+        double sd1 = Math.sin( dec1 );
+        double cd2 = Math.cos( dec2 );
+        double sd2 = Math.sin( dec2 );
+        double dra = ra2 - ra1;
+        double cdr = Math.cos( dra );
+        double sdr = Math.sin( dra );
+        return Math.atan2( Math.hypot( cd2 * sdr, cd1 * sd2 - sd1 * cd2 * cdr ),
+                           sd1 * sd2 + cd1 * cd2 * cdr );
+    }
 
     /**
      * Helper class for sexagesimal formatting.
