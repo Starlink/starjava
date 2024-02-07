@@ -252,7 +252,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         }
 
         /* Prepare a handler for clickable URLs. */
-        urlHandler_ = createUrlHandler();
+        setUrlHandler( createUrlHandler() );
 
         return comp;
     }
@@ -356,7 +356,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     @Override
     protected TapQueryPanel createTapQueryPanel() {
-        TapQueryPanel tqp = new TapQueryPanel( urlHandler_ ) {
+        TapQueryPanel tqp = new TapQueryPanel( this ) {
             @Override
             public double[] getSkyPos() {
                 return TopcatTapTableLoadDialog.this.skypos_;

@@ -129,13 +129,14 @@ public class TapQueryPanel extends JPanel {
     /**
      * Constructor.
      *
-     * @param   urlHandler  handles URLs that the user clicks on; may be null
+     * @param   tld  load dialogue configuring this panel
      */
-    public TapQueryPanel( UrlHandler urlHandler ) {
+    public TapQueryPanel( TapTableLoadDialog tld ) {
         super( new BorderLayout() );
+        UrlHandler urlHandler = url -> tld.getUrlHandler().clickUrl( url );
 
         /* Prepare a panel for table metadata display. */
-        tmetaPanel_ = new TableSetPanel( urlHandler );
+        tmetaPanel_ = new TableSetPanel( tld );
         tmetaPanel_.addPropertyChangeListener( TableSetPanel.SCHEMAS_PROPERTY,
                                                new PropertyChangeListener() {
             public void propertyChange( PropertyChangeEvent evt ) {
