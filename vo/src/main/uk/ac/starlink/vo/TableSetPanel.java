@@ -75,6 +75,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  */
 public class TableSetPanel extends JPanel {
 
+    private final TapTableLoadDialog tld_;
     private final JTree tTree_;
     private final CountTableTreeCellRenderer renderer_;
     private final JTextField keywordField_;
@@ -134,10 +135,11 @@ public class TableSetPanel extends JPanel {
     /**
      * Constructor.
      *
-     * @param  urlHandler  handles URLs that the user clicks on; may be null
+     * @param   tld  table load dialog configuring this panel
      */
-    public TableSetPanel( UrlHandler urlHandler ) {
+    public TableSetPanel( TapTableLoadDialog tld ) {
         super( new BorderLayout() );
+        tld_ = tld;
 
         /* Set up the schema/table metadata display tree. */
         renderer_ = new CountTableTreeCellRenderer();
@@ -242,6 +244,7 @@ public class TableSetPanel extends JPanel {
            .install( foreignTable_.getTableHeader() );
 
         /* Construct and place tabs to display individual metadata items. */
+        UrlHandler urlHandler = url -> tld.getUrlHandler().clickUrl( url );
         tablePanel_ = new TableMetaPanel();
         schemaPanel_ = new SchemaMetaPanel();
         servicePanel_ = new ResourceMetaPanel( urlHandler );

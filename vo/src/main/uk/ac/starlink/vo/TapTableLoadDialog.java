@@ -71,6 +71,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
                                 implements DalLoader {
 
     private final Map<String,TapQueryPanel> tqMap_;
+    private UrlHandler urlHandler_;
     private JTabbedPane tabber_;
     private JComponent tqContainer_;
     private TapQueryPanel tqPanel_;
@@ -126,6 +127,25 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         metaPolicy_ = TapMetaPolicy.getDefaultInstance();
         coding_ = ContentCoding.GZIP;
         setIcon( ResourceIcon.TLD_TAP );
+        setUrlHandler( url -> logger_.warning( "Click: " + url ) );
+    }
+
+    /**
+     * Returns a callback invoked when the user clicks on a displayed URL.
+     *
+     * @return  url click handler
+     */
+    public UrlHandler getUrlHandler() {
+        return urlHandler_;
+    }
+
+    /**
+     * Sets a callback invoked when the user clicks on a displayed URL.
+     *
+     * @param  urlHandler  url click handler
+     */
+    public void setUrlHandler( UrlHandler urlHandler ) {
+        urlHandler_ = urlHandler;
     }
 
     @Override
@@ -632,11 +652,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
      * @return  new query panel
      */
     protected TapQueryPanel createTapQueryPanel() {
-        return new TapQueryPanel( new UrlHandler() {
-            public void clickUrl( URL url ) {
-                logger_.warning( "Click: " + url );
-            }
-        } );
+        return new TapQueryPanel( this );
     }
 
     @Override
