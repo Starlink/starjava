@@ -62,6 +62,7 @@ public class TapServiceFinderPanel extends JPanel {
     private Future<TapServiceFinder.Service[]> serviceReader_;
     private Thread activeWorker_;
     private TapServiceFinder.Service selectedService_;
+    private TapServiceFinder.Table selectedTable_;
 
     /** Bound property name for currently selected TapServiceFinder.Service. */
     public static final String TAP_SERVICE_PROPERTY = "TAP_SERVICE_PROPERTY";
@@ -127,7 +128,7 @@ public class TapServiceFinderPanel extends JPanel {
         /* Notify listeners if selection changes. */
         sTree_.addTreeSelectionListener( new TreeSelectionListener() {
             public void valueChanged( TreeSelectionEvent evt ) {
-                updateServiceSelection( evt.getNewLeadSelectionPath() );
+                updateTreeSelection( evt.getNewLeadSelectionPath() );
             }
         } );
 
@@ -137,7 +138,7 @@ public class TapServiceFinderPanel extends JPanel {
                 TreePath selPath =
                     sTree_.getPathForLocation( evt.getX(), evt.getY() );
                 if ( selPath != null ) {
-                    updateServiceSelection( selPath );
+                    updateTreeSelection( selPath );
                     if ( evt.getClickCount() == 2 ) {
                         ActionEvent actEvt =
                             new ActionEvent( this, 0, "click2" );
@@ -201,6 +202,15 @@ public class TapServiceFinderPanel extends JPanel {
      */
     public TapServiceFinder.Service getSelectedService() {
         return selectedService_;
+    }
+
+    /**
+     * Returns the TAP table currently selected in this panel's GUI.
+     *
+     * @return  selected table object
+     */
+    public TapServiceFinder.Table getSelectedTable() {
+        return selectedTable_;
     }
 
     /**
@@ -594,9 +604,10 @@ public class TapServiceFinderPanel extends JPanel {
      *
      * @param  path  new selection path (may be null)
      */
-    private void updateServiceSelection( TreePath path ) {
+    private void updateTreeSelection( TreePath path ) {
         TapServiceFinder.Service oldService = selectedService_;
         selectedService_ = TapServiceTreeModel.getService( path );
+        selectedTable_ = TapServiceTreeModel.getTable( path );
 
         /* Jump through an extra hoop to ensure that property listeners
          * are informed even if the property hasn't actually changed.

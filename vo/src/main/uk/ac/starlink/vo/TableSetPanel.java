@@ -462,10 +462,8 @@ public class TableSetPanel extends JPanel {
                                                    : schemas_,
                                   getTreeOrder() );
         tTree_.setModel( new MaskTreeModel( treeModel_, true ) );
-        keywordField_.setText( null );
-        selectionModel_.setSelectionPath( null );
         updateTree( true );
-
+        SwingUtilities.invokeLater( () -> highlightFinderSelection() );
         final String countTxt;
         if ( schemas == null ) {
             countTxt = "no metadata";
@@ -564,6 +562,23 @@ public class TableSetPanel extends JPanel {
      */
     public void setAuthId( String authId ) {
         servicePanel_.setAuthId( authId );
+    }
+
+    /**
+     * Configure this panel so that it makes prominent the table
+     * currently selected in the table finder panel, if any.
+     */
+    public void highlightFinderSelection() {
+        TapServiceFinderPanel finderPanel = tld_ == null
+                                          ? null
+                                          : tld_.getFinderPanel();
+        TapServiceFinder.Table selTable = finderPanel == null
+                                        ? null
+                                        : finderPanel.getSelectedTable();
+        String tname = selTable == null ? null : selTable.getName();
+        TreePath selPath = treeModel_.getPathForTableName( tname );
+        selectionModel_.setSelectionPath( selPath );
+        scrollTreeToPath( selPath );
     }
 
     /**
