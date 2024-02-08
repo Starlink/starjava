@@ -264,7 +264,7 @@ public class TableSetPanel extends JPanel {
         itabForeign_ = itab++;
         detailTabber_.addTab( "Hints", new JScrollPane( hintPanel_ ) );
         itabHint_ = itab++;
-        detailTabber_.setSelectedIndex( itabSchema_ );
+        detailTabber_.setSelectedIndex( itabCol_ );
 
         /* Prepare container for tree search filter query components. */
         JComponent findWordBox = Box.createHorizontalBox();
