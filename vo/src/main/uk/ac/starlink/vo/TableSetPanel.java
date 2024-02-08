@@ -3,6 +3,7 @@ package uk.ac.starlink.vo;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -95,6 +96,7 @@ public class TableSetPanel extends JPanel {
     private final TableMetaPanel tablePanel_;
     private final HintPanel hintPanel_;
     private final JTabbedPane detailTabber_;
+    private final JScrollPane treeScroller_;
     private final int itabService_;
     private final int itabSchema_;
     private final int itabTable_;
@@ -305,7 +307,8 @@ public class TableSetPanel extends JPanel {
         /* Position search and sort components near the tree. */
         JComponent treePanel = new JPanel( new BorderLayout() );
         treeContainer_ = new JPanel( new BorderLayout() );
-        treeContainer_.add( new JScrollPane( tTree_ ), BorderLayout.CENTER );
+        treeScroller_ = new JScrollPane( tTree_ );
+        treeContainer_.add( treeScroller_, BorderLayout.CENTER );
         treePanel.add( treeContainer_, BorderLayout.CENTER );
         treePanel.add( sortBox, BorderLayout.SOUTH );
         JComponent treeOptBox = Box.createVerticalBox();
@@ -602,12 +605,63 @@ public class TableSetPanel extends JPanel {
             }
             if ( selPath != null ) {
                 tTree_.setSelectionPath( selPath );
-                JScrollBar hbar = getScrollBar( tTree_, false );
-                int hscroll = hbar == null ? 0 : hbar.getValue();
-                tTree_.scrollPathToVisible( selPath );
-                if ( hbar != null ) {
-                    hbar.setValue( hscroll );
+                scrollTreeToPath( selPath );
+            }
+        }
+    }
+
+    /**
+     * Make sure that the tree is scrolled appropriately so that
+     * a given path is visible to the user.
+     * If the supplied path is null, the scroller position is reset
+     * to view the top.
+     *
+     * @param  path  path in tree to scroll to, or null
+     */
+    private void scrollTreeToPath( TreePath path ) {
+        JScrollBar hbar = treeScroller_.getHorizontalScrollBar();
+        JScrollBar vbar = treeScroller_.getVerticalScrollBar();
+        if ( path == null ) {
+            hbar.setValue( hbar.getMinimum() );
+            vbar.setValue( vbar.getMinimum() );
+        }
+        else {
+            int hscroll = hbar == null ? 0 : hbar.getValue();
+
+            /* Get the position of the node in the tree.
+             * If it doesn't seem to be in the tree, assume that it's
+             * been filtered out by a keyword search condition and reset
+             * the filter to include all paths.  After that we should
+             * be able to get a position for the indicated path.
+             * Unless the path isn't in the tree at all; that shouldn't
+             * happen, but nothing terrible will happen in that case. */
+            Rectangle pathBounds = tTree_.getPathBounds( path );
+            if ( pathBounds == null ) {
+                keywordField_.setText( "" );
+                pathBounds = tTree_.getPathBounds( path );
+            }
+            assert pathBounds != null;
+
+            /* If possible, try to get both the path and its parent in view. */
+            TreePath parentPath = path.getParentPath();
+            if ( parentPath != null ) {
+                tTree_.scrollPathToVisible( parentPath );
+            }
+            if ( pathBounds != null ) {
+                Rectangle viewBounds =
+                    treeScroller_.getViewport().getViewRect();
+                if ( ! ( viewBounds.y <= pathBounds.y &&
+                         viewBounds.y + viewBounds.height >=
+                         pathBounds.y + pathBounds.height ) ) {
+                    tTree_.scrollPathToVisible( path );
                 }
+            }
+
+            /* We only want to change the scroll position vertically,
+             * not horizontally, so reset the horizontal scroll to its
+             * former position. */
+            if ( hbar != null ) {
+                hbar.setValue( hscroll );
             }
         }
     }
@@ -640,7 +694,7 @@ public class TableSetPanel extends JPanel {
 
     /**
      * Displays an indication that metadata fetching failed.
-     * 
+     *
      * @param  error   error that caused the failure
      * @param  metaReader   metadata reader
      */
@@ -707,8 +761,7 @@ public class TableSetPanel extends JPanel {
      */
     public void replaceTreeComponent( JComponent content ) {
         treeContainer_.removeAll();
-        treeContainer_.add( content != null ? content
-                                            : new JScrollPane( tTree_ ),
+        treeContainer_.add( content != null ? content : treeScroller_,
                             BorderLayout.CENTER );
         treeContainer_.revalidate();
         treeContainer_.repaint();
@@ -1281,27 +1334,6 @@ public class TableSetPanel extends JPanel {
         JComponent c = new JPanel();
         c.setPreferredSize( new Dimension( width, 0 ) );
         return c;
-    }
-
-    /**
-     * Returns one of the scrollbars controlling a given component.
-     *
-     * @param  comp  component to query
-     * @param  isVertical   true for vertical bar, false for horizontal
-     * @return  scrollbar, or null if it can't be found
-     */
-    private static JScrollBar getScrollBar( JComponent comp,
-                                            boolean isVertical ) {
-        Component a1 = comp.getParent();
-        Component a2 = a1 == null ? null : a1.getParent();
-        if ( a2 instanceof JScrollPane ) {
-            JScrollPane scroller = (JScrollPane) a2;
-            return isVertical ? scroller.getVerticalScrollBar()
-                              : scroller.getHorizontalScrollBar();
-        }
-        else {
-            return null;
-        }
     }
 
     /**
