@@ -80,6 +80,27 @@ public class TapMetaTreeModel implements TreeModel {
         return schemas_;
     }
 
+    /**
+     * Returns the path in this tree that corresponds to a given table name.
+     *
+     * @param  tname  table name
+     * @return   path in tree corresponding to table name, or null
+     */
+    public TreePath getPathForTableName( String tname ) {
+        if ( schemas_ != null && tname != null ) {
+            for ( SchemaMeta schema : schemas_ ) {
+                for ( TableMeta table : schema.getTables() ) {
+                    if ( tname.equalsIgnoreCase( table.getName() ) ) {
+                        return new TreePath( new Object[] {
+                            getRoot(), schema, table,
+                        } );
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     public Object getRoot() {
         return schemas_;
     }

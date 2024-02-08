@@ -467,6 +467,15 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
+     * Returns the panel that displays table metadata.
+     *
+     * @return  table set panel
+     */
+    public TableSetPanel getMetadataPanel() {
+        return tmetaPanel_;
+    }
+
+    /**
      * Returns the text currently entered in the ADQL text component.
      *
      * @return  adql text supplied by user

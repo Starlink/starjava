@@ -168,6 +168,22 @@ public class TapServiceTreeModel implements TreeModel {
     }
 
     /**
+     * Returns a table that forms part of a supplied path.
+     *
+     * @param  path  path to examine
+     * @return  table at the end of the path, or null if there isn't one
+     */
+    public static TapServiceFinder.Table getTable( TreePath path ) {
+        if ( path != null ) {
+            Object node = path.getLastPathComponent();
+            if ( node instanceof TapServiceFinder.Table ) {
+                return (TapServiceFinder.Table) node;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Constructs a tree model based on some given constraints.
      * May require a read of service data, hence should not be executed
      * on the Event Dispatch Thread.

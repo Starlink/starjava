@@ -667,8 +667,22 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         }
     }
 
+    /**
+     * Returns the registry panel for this window.
+     *
+     * @return  registry panel
+     */
     public RegistryPanel getRegistryPanel() {
         return searchPanel_.regPanel_;
+    }
+
+    /**
+     * Returns the finder panel for this window.
+     *
+     * @return  finder panel
+     */
+    public TapServiceFinderPanel getFinderPanel() {
+        return searchPanel_.finderPanel_;
     }
 
     /**
@@ -896,8 +910,13 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             } );
             finderPanel_.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
+                    assert "click2".equals( evt.getActionCommand() );
                     if ( getTapService() != null ) {
                         tabber_.setSelectedIndex( tqTabIndex_ );
+                        if ( tqPanel_ != null ) {
+                            tqPanel_.getMetadataPanel()
+                                    .highlightFinderSelection();
+                        }
                     }
                 }
             } );

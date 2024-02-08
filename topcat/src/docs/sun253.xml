@@ -33315,6 +33315,12 @@ introduced since the last version:
     <li>The TAP <ref id="TapTableLoadDialog_query">Use Service</ref> tab
         now initially displays the
         Columns not the Schema metadata.</li>
+    <li>Initially selecting, or subsequently double-clicking,
+        a table in the TAP
+        <ref id="TapTableLoadDialog_service">Select Service</ref> tab
+        will now select it for display in the
+        <ref id="TapTableLoadDialog_query">Use Service</ref> tab
+        metadata panel.</li>
     </ul>
     </p></dd>
 
