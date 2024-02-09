@@ -33321,6 +33321,8 @@ introduced since the last version:
         will now select it for display in the
         <ref id="TapTableLoadDialog_query">Use Service</ref> tab
         metadata panel.</li>
+    <li>Fix some problems with images in the PDF version of this
+        document.</li>
     </ul>
     </p></dd>
 
