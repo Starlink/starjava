@@ -47,6 +47,28 @@ public class DisjointAxesController<P,A> extends AbstractAxesController<P,A> {
     }
 
     public void configureForLayers( LayerControl[] layerControls ) {
+        for ( ZoneId zid : multiController_.getZones() ) {
+            ZoneController<P,A> zc = multiController_.getController( zid );
+            assert zc instanceof SingleAdapterZoneController;
+            if ( zc instanceof SingleAdapterZoneController ) {
+                AxisController<P,A> axisController =
+                    ((SingleAdapterZoneController<P,A>) zc).getAxisController();
+                List<LayerControl> zoneLayerControls = new ArrayList<>();
+                for ( LayerControl lc : layerControls ) {
+                    ZoneId czid = lc.getZoneSpecifier() == null
+                                ? null
+                                : lc.getZoneSpecifier().getSpecifiedValue();
+                    if ( czid != null && czid.equals( zid ) ) {
+                        zoneLayerControls.add( lc );
+                    }
+                }
+                LayerControl[] zlcs =
+                    zoneLayerControls.toArray( new LayerControl[ 0 ] );
+                if ( zlcs.length > 0 ) {
+                    axisController.configureForLayers( zlcs );
+                }
+            }
+        }
     }
 
     public ConfigMap getConfig() {
