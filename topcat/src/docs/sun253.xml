@@ -165,6 +165,8 @@
   <!ENTITY FIG.SpectrogramLayerControl '&figs;SpectrogramLayerControl.png'>
   <!ENTITY FIG.SpectrogramLayerControl_data
            '&figs;SpectrogramLayerControl_data.png'>
+  <!ENTITY FIG.SpectrogramLayerControl_style
+           '&figs;SpectrogramLayerControl_style.png'>
   <!ENTITY FIG.GangLayerControl_xyarray '&figs;GangLayerControl_xyarray.png'>
   <!ENTITY FIG.GangLayerControl_xyarray_position
            '&figs;GangLayerControl_xyarray_position.png'>
@@ -10002,11 +10004,6 @@ divided into two parts:
 <subsubsubsect id="SpectrogramLayerControl">
 <subhead><title>Spectrogram Layer Control</title></subhead>
 
-<p><em>This control is experimental.
-It is missing some important features, and the interface may be
-changed in a future version.
-</em></p>
-
 <p>The <label>Spectrogram Layer Control</label> (&IMG.PLOT_SPECTRO;)
 plots a spectrum at successive (usually, but not necessarily,
 regularly-spaced) points in a time series.
@@ -10023,9 +10020,14 @@ or the corresponding item in the <label>Layers</label> menu.
 <figureimage src="&FIG.SpectrogramLayerControl;"/>
 </figure>
 
-<p>This control has only one layer-specific tab, <label>Data</label>,
+<p>This control has layer-specific tabs
+<label>Data</label> and <label>Style</label>,
 described below.
 The <label>Zone</label> tab is described in <ref id="plotZones"/>.
+</p>
+
+<p>To control the colour map used to represent the spectral values,
+use the <ref id="ShaderControl">Aux</ref> &IMG.COLORS; fixed control.
 </p>
 
 <subdiv>
@@ -10070,9 +10072,38 @@ It has the following fields:
 
 </subdiv>
 
-<p>To control the colour map used to represent the spectral values,
-use the <ref id="ShaderControl">Aux</ref> &IMG.COLORS; fixed control.
+<subdiv>
+<subhead><title>Style Tab</title></subhead>
+
+<figure>
+<caption><px>Spectrogram control Style tab</px></caption>
+<figureimage src="&FIG.SpectrogramLayerControl_style;"/>
+</figure>
+
+<p>The <label>Style</label> tab configures the plotting style.
+Options are:
+<dl>
+<dt>Scale Spectra</dt>
+<dd><p>If this option is checked (the default), an attempt will be made
+    to plot the spectra on a vertical axis that represents
+    their physical values.
+    This is only possible if the column or table metadata contains a
+    suitable array that gives bin extents or central wavelengths or similar.
+    An ad hoc search is made of column and table metadata
+    to find an array that looks like it is intended for this purpose.
+    </p>
+    <p>If this option is unchecked, or if no suitable array can be found,
+    the vertical axis just represents channel indices
+    and so is labelled from 0 to the number of channels per spectrum.
+    </p>
+    <p>This configuration item is somewhat experimental;
+    the details of how the spectral axis is configured may change
+    in future releases. 
+    </p></dd>
+</dl>
 </p>
+
+</subdiv>
 
 </subsubsubsect>
 
@@ -33324,6 +33355,10 @@ introduced since the last version:
     <li>Fix some problems with images in the PDF version of this
         document.</li>
     <li>Some spectrogram/time plot bug fixes.</li>
+    <li>The <ref id="SpectrogramLayerControl">spectrogram</ref> plot
+        now tries to plot spectra on a spectral axis,
+        as controlled by the new <label>Scale Spectra</label>
+        style control.</li>
     </ul>
     </p></dd>
 

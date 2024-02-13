@@ -5,12 +5,17 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.swing.Icon;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
@@ -32,8 +37,10 @@ import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -75,6 +82,8 @@ public class SpectrogramPlotter
     private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
     private static final ConfigKey<Color> NULLCOLOR_KEY =
         StyleKeys.AUX_NULLCOLOR;
+    private static final ConfigKey<Boolean> SCALESPECTRA_KEY =
+        createScaleSpectraKey();
     private static final ChannelGrid DEFAULT_CHANGRID =
         new AssumedChannelGrid();
     private static final int MAX_SAMPLE = 100;
@@ -200,6 +209,7 @@ public class SpectrogramPlotter
 
     public ConfigKey<?>[] getStyleKeys() {
         List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
+        keyList.add( SCALESPECTRA_KEY );
         if ( reportAuxKeys_ ) {
             keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
             keyList.add( NULLCOLOR_KEY );
@@ -213,7 +223,9 @@ public class SpectrogramPlotter
         Scaling scaling = ramp.getScaling();
         Subrange dataclip = ramp.getDataClip();
         Color nullColor = config.get( NULLCOLOR_KEY );
-        return new SpectroStyle( shader, scaling, dataclip, nullColor );
+        boolean scaleSpectra = config.get( SCALESPECTRA_KEY );
+        return new SpectroStyle( shader, scaling, dataclip, nullColor,
+                                 scaleSpectra );
     }
 
     public Object getRangeStyleKey( SpectroStyle style ) {
@@ -323,6 +335,47 @@ public class SpectrogramPlotter
                 }
             };
         }
+    }
+
+    /**
+     * Returns the channel grid to use for a given style, spectrum column
+     * and table.  The column metadata aux items, and the per-table metadata,
+     * are trawled to find something appropriate.  If nothing is found,
+     * a suitable default grid is returned.
+     *
+     * <p>Currently, anything that looks like an array with shape
+     * <code>(n)</code> is interpreted as central channel positions,
+     * and an array with shape <code>(2,n)</code> is interpreted as
+     * channel low/high bounds.
+     *
+     * <p>It's a bit ad hoc.
+     *
+     * @param  style  style
+     * @param  specInfo  column metadata for spectral column
+     * @param  table   table from which spectral column is taken
+     * @return  channel grid, not null
+     */
+    public ChannelGrid getChannelGrid( SpectroStyle style, ColumnInfo specInfo,
+                                       StarTable table ) {
+        if ( style.scaleSpectra_ ) {
+            int[] shape = specInfo != null ? specInfo.getShape() : null;
+            int nchan = shape != null && shape.length == 1 ? shape[ 0 ] : -1;
+            if ( nchan > 0 ) {
+                for ( DescribedValue dval : specInfo.getAuxData() ) {
+                    ChannelGrid grid = findChannelGrid( dval, nchan );
+                    if ( grid != null ) {
+                        return grid;
+                    }
+                }
+                for ( DescribedValue dval : table.getParameters() ) {
+                    ChannelGrid grid = findChannelGrid( dval, nchan );
+                    if ( grid != null ) {
+                        return grid;
+                    }
+                }
+            }
+        }
+        return DEFAULT_CHANGRID;
     }
 
     /**
@@ -473,7 +526,169 @@ public class SpectrogramPlotter
      */
     private ChannelGrid getChannelGrid( SpectroStyle style,
                                         DataSpec dataSpec ) {
-        return DEFAULT_CHANGRID;
+        ValueInfo[] coordInfos = dataSpec.getUserCoordInfos( icSpectrum_ );
+        ValueInfo cinfo = coordInfos != null && coordInfos.length > 0
+                        ? coordInfos[ 0 ]
+                        : null;
+        ColumnInfo specInfo = cinfo instanceof ColumnInfo ? (ColumnInfo) cinfo
+                                                          : null;
+        StarTable table = dataSpec.getSourceTable();
+        return getChannelGrid( style, specInfo, table );
+    }
+
+    /**
+     * Tries to interpret a DescribedValue as a channel grid with a given
+     * number of channels.  This is somewhat guesswork - if it looks like
+     * it is one (array value with the right number of elements) it will
+     * be interpreted as such.  It's probably good enough more often than not.
+     *
+     * @param  dval  metadata item
+     * @param  nchan   number of channels required
+     * @return   channel grid corresponding to metadata item
+     *           if it looks appropriate, otherwise null
+     */
+    private ChannelGrid findChannelGrid( DescribedValue dval, int nchan ) {
+        ValueInfo dinfo = dval.getInfo();
+        Object dobj = dval.getValue();
+        Class<?> dclazz = dobj == null ? null : dobj.getClass();
+        if ( double[].class.equals( dclazz ) ||
+             float[].class.equals( dclazz ) ||
+             int[].class.equals( dclazz ) ||
+             long[].class.equals( dclazz ) ||
+             short[].class.equals( dclazz ) ) {
+            int dleng = Array.getLength( dobj );
+            int[] dshape = dinfo.getShape();
+            if ( dshape == null ) {
+                dshape = new int[] { -1 };
+            }
+            if ( dshape.length == 1 && dleng == nchan ) {
+                ChannelGrid grid =
+                    createCenterGrid( toDoubleArray( dobj ), dinfo );
+                if ( grid != null ) {
+                    return grid;
+                }
+            }
+            else if ( dshape.length == 2 && dshape[ 0 ] == 2 &&
+                      dleng == nchan * 2 ) {
+                ChannelGrid grid =
+                    createBoundsGrid( toDoubleArray( dobj ), dinfo );
+                if ( grid != null ) {
+                    return grid;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Converts a numeric array object into a double[] array.
+     *
+     * @param   arrayObj  non-null primitive numerical 1-d array
+     * @return  double[] array version of input
+     */
+    private static double[] toDoubleArray( Object arrayObj ) {
+        int n = Array.getLength( arrayObj );
+        double[] array = new double[ n ];
+        for ( int i = 0; i < n; i++ ) {
+            array[ i ] = Array.getDouble( arrayObj, i );
+        }
+        return array;
+    }
+
+    /**
+     * Returns a ChannelGrid based on a (2,n)-shape array
+     * assumed to specify upper and lower bounds of the channels.
+     * 
+     * @param  darray  array assumed to contain channel bounds
+     * @param  info    metadata associated with array
+     * @return  channel grid, or null if the numbers don't look right
+     */
+    private static ChannelGrid createBoundsGrid( double[] darray,
+                                                 ValueInfo info ) {
+        int nc2 = darray.length;
+        if ( nc2 % 2 != 0 ) {
+            return null;
+        }
+        int nc = nc2 / 2;
+        double[] los = new double[ nc ];
+        double[] his = new double[ nc ];
+        for ( int ic = 0; ic < nc; ic++ ) {
+            double lo = darray[ 2 * ic + 0 ];
+            double hi = darray[ 2 * ic + 1 ];
+            if ( lo < hi ) {
+                los[ ic ] = lo;
+                his[ ic ] = hi;
+            }
+            else {
+                return null;
+            }
+        }
+        return new DataChannelGrid( nc, los, his, info );
+    }
+
+    /**
+     * Returns a channel grid based on an (n)-shape array
+     * assumed to specify channel central positions.
+     *
+     * @param  darray  array assumed to contain channel centers
+     * @param  info    metadata associated with array
+     * @return  channel grid, or null if the numbers don't look right
+     */
+    private static ChannelGrid createCenterGrid( double[] darray,
+                                                 ValueInfo info ) {
+        int nc = darray.length;
+        if ( nc < 2 ) {
+            return null;
+        }
+        double[] los = new double[ nc ];
+        double[] his = new double[ nc ];
+        for ( int ic = 0; ic < nc; ic++ ) {
+            double c = darray[ ic ];
+            double lo = ic > 0
+                      ? 0.5 * ( c + darray[ ic - 1 ] )
+                      : 0.5 * ( 3 * c - darray[ ic + 1 ] );
+            double hi = ic < nc - 1
+                      ? 0.5 * ( c + darray[ ic + 1 ] )
+                      : 0.5 * ( 3 * c - darray[ ic - 1 ] );
+            if ( lo < hi ) {
+                los[ ic ] = lo;
+                his[ ic ] = hi;
+            }
+            else {
+                return null;
+            }
+        }
+        return new DataChannelGrid( nc, los, his, info );
+    }
+
+    /**
+     * Returns a config key that configures whether an attempt is made
+     * to plot spectra on a scaled axis.
+     *
+     * @return  config key
+     */
+    private static ConfigKey<Boolean> createScaleSpectraKey() {
+        ConfigMeta meta = new ConfigMeta( "scalespec", "Scale Spectra" );
+        meta.setXmlDescription( new String[] {
+            "<p>If true, an attempt will be made to plot the spectra",
+            "on a vertical axis that represents their physical values.",
+            "This is only possible if the column or table metadata",
+            "contains a suitable array that gives bin extents",
+            "or central wavelengths or similar.",
+            "An ad hoc search is made of column and table metadata to find",
+            "an array that looks like it is intended for this purpose.",
+            "</p>",
+            "<p>If this flag is set false,",
+            "or if no suitable array can be found,",
+            "the vertical axis just represents channel indices",
+            "and so is labelled from 0 to the number of channels per spectrum.",
+            "</p>",
+            "<p>This configuration item is somewhat experimental;",
+            "the details of how the spectral axis is configured",
+            "may change in future releases.",
+            "</p>",
+        } );
+        return new BooleanConfigKey( meta, true );
     }
 
     /**
@@ -489,7 +704,7 @@ public class SpectrogramPlotter
      * are monotonically increasing with channel index.
      */
     @Equality
-    public interface ChannelGrid {
+    public static interface ChannelGrid {
 
         /**
          * Returns the number of channels if known.
@@ -517,6 +732,20 @@ public class SpectrogramPlotter
          *          bounds of channel on the Y (spectral) axis
          */
         void getChannelBounds( int ichan, double[] ybounds );
+
+        /**
+         * Returns the name of the quantity plotted on the spectral axis.
+         *
+         * @return  spectral quantity name, may be null
+         */
+        String getSpectralName();
+
+        /**
+         * Returns the unit of the quantity plotted on the spectral axis.
+         *
+         * @return  spectral quanity units, may be null
+         */
+        String getSpectralUnit();
     }
 
     /**
@@ -535,6 +764,12 @@ public class SpectrogramPlotter
             bounds[ 0 ] = ichan;
             bounds[ 1 ] = ichan + 1;
         }
+        public String getSpectralName() {
+            return "channel index";
+        }
+        public String getSpectralUnit() {
+            return null;
+        }
     }
 
     /**
@@ -545,18 +780,24 @@ public class SpectrogramPlotter
         private final int count_;
         private final double[] lows_;
         private final double[] highs_;
+        private final String axName_;
+        private final String axUnit_;
 
         /**
          * Constructor.
          *
          * @param   count  number of channels
          * @param   lows   count-element array of channel lower bounds
-         * @parma   highs  count-element array of channel upper bounds
+         * @param   highs  count-element array of channel upper bounds
+         * @param   info   metadata associated with channels
          */
-        DataChannelGrid( int count, double[] lows, double[] highs ) {
+        DataChannelGrid( int count, double[] lows, double[] highs,
+                         ValueInfo info ) {
             count_ = count;
             lows_ = lows;
             highs_ = highs;
+            axName_ = info.getName();
+            axUnit_ = info.getUnitString();
         }
 
         public int getChannelCount() {
@@ -582,12 +823,22 @@ public class SpectrogramPlotter
             bounds[ 1 ] = highs_[ ichan ];
         }
 
+        public String getSpectralName() {
+            return axName_;
+        }
+
+        public String getSpectralUnit() {
+            return axUnit_;
+        }
+
         @Override
         public int hashCode() {
             int code = 5501;
             code = 23 * code + count_;
             code = 23 * code + Arrays.hashCode( lows_ );
             code = 23 * code + Arrays.hashCode( highs_ );
+            code = 23 * code + Objects.hashCode( axName_ );
+            code = 23 * code + Objects.hashCode( axUnit_ );
             return code;
         }
 
@@ -597,7 +848,9 @@ public class SpectrogramPlotter
                 DataChannelGrid other = (DataChannelGrid) o;
                 return this.count_ == other.count_
                     && Arrays.equals( this.lows_, other.lows_ )
-                    && Arrays.equals( this.highs_, other.highs_ );
+                    && Arrays.equals( this.highs_, other.highs_ )
+                    && Objects.equals( this.axName_, other.axName_ )
+                    && Objects.equals( this.axUnit_, other.axUnit_ );
             }
             else {
                 return false;
@@ -613,6 +866,7 @@ public class SpectrogramPlotter
         private final Scaling scaling_;
         private final Subrange dataclip_;
         private final Color nullColor_;
+        private final boolean scaleSpectra_;
 
         /**
          * Constructor.
@@ -621,13 +875,24 @@ public class SpectrogramPlotter
          * @param   scaling   maps data values to shader ramp
          * @param   dataclip  scaling range adjustment
          * @param   nullColor  colour to use for blank spectral values
+         * @param   scaleSpectra   whether attempt is made to plot spectra
+         *                         on scaled axis
          */
         public SpectroStyle( Shader shader, Scaling scaling, Subrange dataclip,
-                             Color nullColor ) {
+                             Color nullColor, boolean scaleSpectra ) {
             shader_ = shader;
             scaling_ = scaling;
             dataclip_ = dataclip;
             nullColor_ = nullColor;
+            scaleSpectra_ = scaleSpectra;
+        }
+
+        /**
+         * Indicates whether an attempt will be made to plot spectra
+         * on a scaled axis.
+         */
+        public boolean getScaleSpectra() {
+            return scaleSpectra_;
         }
 
         public Icon getLegendIcon() {
@@ -641,6 +906,7 @@ public class SpectrogramPlotter
             code = 23 * code + scaling_.hashCode();
             code = 23 * code + dataclip_.hashCode();
             code = 23 * code + PlotUtil.hashCode( nullColor_ );
+            code = 23 * code + ( scaleSpectra_ ? 11 : 19 );
             return code;
         }
 
@@ -651,7 +917,8 @@ public class SpectrogramPlotter
                 return this.shader_.equals( other.shader_ )
                     && this.scaling_ == other.scaling_
                     && this.dataclip_ == other.dataclip_
-                    && PlotUtil.equals( this.nullColor_, other.nullColor_ );
+                    && PlotUtil.equals( this.nullColor_, other.nullColor_ )
+                    && this.scaleSpectra_ == other.scaleSpectra_;
             }
             else {
                 return false;
