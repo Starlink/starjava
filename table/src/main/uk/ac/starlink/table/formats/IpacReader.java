@@ -3,14 +3,9 @@ package uk.ac.starlink.table.formats;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Date;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -496,8 +491,8 @@ class IpacReader implements RowSequence {
         }
         else if ( typeMatch( type, "date" ) ) {
             info.setContentClass( String.class );
-            info.setUnitString( "iso-8601" );
-            info.setUCD( "TIME" );
+            info.setXtype( "timestamp" );
+            info.setUCD( "time.epoch" );
             info.setDomainMappers( new DomainMapper[] { TimeMapper.ISO_8601 } );
             info.setNullable( hasBlank );
             return new ColumnReader( info ) {
