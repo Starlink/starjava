@@ -189,6 +189,16 @@ public class BasicCoordLayerControl extends SingleZoneLayerControl {
     }
 
     /**
+     * Returns the topcat model currently selected in the GUI.
+     *
+     * @return  topcat model
+     */
+    public TopcatModel getTopcatModel() {
+        Object selected = tableSelector_.getSelectedItem();
+        return selected instanceof TopcatModel ? (TopcatModel) selected : null;
+    }
+
+    /**
      * Returns the coord panel.
      *
      * @return  coord panel
