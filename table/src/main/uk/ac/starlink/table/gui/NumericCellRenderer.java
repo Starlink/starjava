@@ -148,7 +148,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
                     }
                     sbuf.append( Array.get( value, i ) );
                 }
-                sbuf.append( ") " );
+                sbuf.append( nel <= MAX_SHOW_ELEMENTS ? ") " : ", ... " );
                 setText( sbuf.toString() );
                 return;
             }
