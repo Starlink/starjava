@@ -6,11 +6,13 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JMenu;
+import uk.ac.starlink.hapi.HapiTableLoadDialog;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.vo.TapTableLoadDialog;
 
 /**
  * Window to contain a single TableLoadDialog.
@@ -130,7 +132,7 @@ public class TableLoadDialogWindow extends AuxWindow {
      *           if true, it will stay posted
      */
     private static boolean isPinnedDflt( TableLoadDialog tld ) {
-        String cname = tld.getClass().getName();
-        return cname.endsWith( "TapTableLoadDialog" );
+        return tld instanceof TapTableLoadDialog
+            || tld instanceof HapiTableLoadDialog;
     }
 }
