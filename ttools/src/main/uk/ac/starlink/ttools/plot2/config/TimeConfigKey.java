@@ -2,6 +2,9 @@ package uk.ac.starlink.ttools.plot2.config;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+import java.util.TimeZone;
 import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.geom.TimeFormat;
@@ -30,6 +33,8 @@ public class TimeConfigKey extends ConfigKey<Double> {
             "if accessed programmatically is seconds since 1 Jan 1970.",
             "</p>",
         } );
+
+    private static final TimeZone UTC = TimeZone.getTimeZone( "UTC" );
 
     /**
      * Constructs a key with no default value.
@@ -102,8 +107,10 @@ public class TimeConfigKey extends ConfigKey<Double> {
      * @return   formatted value (currently ISO-8601)
      */
     private String formatTime( double unixSec ) {
-        String ftime = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" )
-                      .format( new Date( (long) ( unixSec * 1000 ) ) );
+        SimpleDateFormat fmt = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" );
+        fmt.setTimeZone( UTC );
+        fmt.setCalendar( new GregorianCalendar( UTC, Locale.UK ) );
+        String ftime = fmt.format( new Date( Math.round( unixSec * 1000 ) ) );
         while ( ftime.endsWith( ":00" ) ) {
             ftime = ftime.substring( 0, ftime.length() - 3 );
         }
