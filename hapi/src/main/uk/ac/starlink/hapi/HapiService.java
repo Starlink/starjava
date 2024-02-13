@@ -238,10 +238,39 @@ public class HapiService {
         if ( query != null ) {
             for ( String assignment : query.split( "&", -1 ) ) {
                 String[] parts = assignment.split( "=", 2 );
-                map.put( parts[ 0 ], parts[ 1 ] );
+                map.put( urlDecode( parts[ 0 ] ), urlDecode( parts[ 1 ] ) );
             }
         }
         return map;
+    }
+
+    /**
+     * Unescapes percent-encoded characters in a string.
+     *
+     * @param  txt  URL-like string
+     * @return  string without percent-encoded characters
+     */
+    private static String urlDecode( String txt ) {
+        if ( txt.indexOf( '%' ) < 0 ) {
+            return txt;
+        }
+        else {
+            int nc = txt.length();
+            StringBuffer sbuf = new StringBuffer( nc * 2 );
+            for ( int i = 0; i < nc; i++ ) {
+                char c = txt.charAt( i );
+                if ( c == '%' ) {
+                    sbuf.append( (char)
+                                 Integer.parseInt( txt.substring( i+1, i+3 ),
+                                                   16 ) );
+                    i += 2;
+                }
+                else {
+                    sbuf.append( c );
+                }
+            }
+            return sbuf.toString();
+        }
     }
 
     /**
