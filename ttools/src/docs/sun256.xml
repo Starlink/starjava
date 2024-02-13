@@ -15163,6 +15163,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Improve error reporting for corrupted/truncated FITS files.</li>
     <li>Use authentication and HTTP-level compression for
         external (href-referenced) VOTable STREAM data.</li>
+    <li>Some spectrogram bug fixes.</li>
     </ul>
     </p></dd>
 

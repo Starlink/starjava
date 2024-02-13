@@ -47,6 +47,7 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
+import uk.ac.starlink.util.DoubleList;
 
 /**
  * Plotter for spectrograms.
@@ -359,23 +360,23 @@ public class SpectrogramPlotter
          * median of sample separations.  This will only be used if the
          * extent parameter has missing values. */
         TupleSequence tseq0 = dataStore.getTupleSequence( dataSpec );
-        double[] diffs = new double[ MAX_SAMPLE ];
-        int idiff = 0;
+        DoubleList difflist = new DoubleList( MAX_SAMPLE );
         double lastx = Double.NaN;
-        while ( tseq0.next() && idiff < MAX_SAMPLE ) {
+        for ( int idiff = 0; tseq0.next() && idiff < MAX_SAMPLE; idiff++ ) {
             double x = xCoord_.readDoubleCoord( tseq0, icX_ );
             if ( ! Double.isNaN( x ) ) {
                 if ( ! Double.isNaN( lastx ) ) {
-                    diffs[ idiff++ ] = x - lastx;
+                    difflist.add( x - lastx );
                 }
                 lastx = x;
             }
         }
-        if ( idiff == 0 ) {
+        double[] diffs = difflist.toDoubleArray();
+        if ( diffs.length == 0 ) {
             return;
         }
         Arrays.sort( diffs );
-        double median = diffs[ idiff / 2 ];
+        double median = diffs[ diffs.length / 2 ];
         double dfltExtent = Double.isNaN( median ) ? 1 : median;
 
         /* Work out which channels are visible. */
