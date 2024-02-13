@@ -266,6 +266,7 @@ public abstract class HapiType<S,A> {
     private static class IsotimeType extends StringType {
         IsotimeType() {
             super( "isotime", info -> {
+                info.setUCD( "time.epoch" );
                 info.setXtype( "timestamp" );
                 info.setDomainMappers( new DomainMapper[] {
                     TimeMapper.ISO_8601,
