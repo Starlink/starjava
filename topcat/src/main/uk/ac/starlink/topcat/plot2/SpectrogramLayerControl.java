@@ -1,11 +1,15 @@
 package uk.ac.starlink.topcat.plot2;
 
 import javax.swing.ListModel;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
+import uk.ac.starlink.ttools.plot2.geom.TimeDataGeom;
 import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 
 /**
@@ -46,6 +50,44 @@ public class SpectrogramLayerControl extends BasicCoordLayerControl {
      */
     public LegendEntry[] getLegendEntries() {
         return new LegendEntry[ 0 ];
+    }
+
+    @Override
+    public String getCoordLabel( String userCoordName ) {
+        if ( TimeDataGeom.Y_COORD.getInput().getMeta().getLongName()
+                                 .equals( userCoordName ) ) {
+            ColumnDataComboBoxModel spectrumSelector =
+                ((SimplePositionCoordPanel) getCoordPanel())
+               .getColumnSelector( plotter_.getSpectrumCoordIndex(), 0 );
+            Object specCol = spectrumSelector.getSelectedItem();
+            ColumnInfo specInfo = specCol instanceof ColumnData
+                                ? ((ColumnData) specCol).getColumnInfo()
+                                : null;
+            TopcatModel tcModel = getTopcatModel();
+            StarTable table = tcModel == null ? null : tcModel.getDataModel();
+            SpectrogramPlotter.SpectroStyle style =
+                plotter_.createStyle( getConfig() );
+            SpectrogramPlotter.ChannelGrid grid =
+                plotter_.getChannelGrid( style, specInfo, table );
+            if ( grid != null ) {
+                String specname = grid.getSpectralName();
+                String specunit = grid.getSpectralUnit();
+                if ( specname != null || specunit != null ) {
+                    StringBuffer sbuf = new StringBuffer();
+                    if ( specname != null ) {
+                        sbuf.append( specname );
+                    }
+                    if ( specunit != null ) {
+                        if ( sbuf.length() > 0 ) {
+                            sbuf.append( " / " );
+                        }
+                        sbuf.append( specunit );
+                    }
+                    return sbuf.toString();
+                }
+            }
+        }
+        return super.getCoordLabel( userCoordName );
     }
 
     @Override
