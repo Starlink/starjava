@@ -15164,6 +15164,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Use authentication and HTTP-level compression for
         external (href-referenced) VOTable STREAM data.</li>
     <li>Some spectrogram bug fixes.</li>
+    <li>The <ref id="layer-spectrogram">spectrogram</ref> plot layer
+        now tries to plot spectra on a spectral axis,
+        as controlled by the new
+        <ref id="layer-spectrogram-scalespecN">scalespecN</ref>
+        option.</li>
     </ul>
     </p></dd>
 

@@ -3,6 +3,8 @@ package uk.ac.starlink.topcat.plot2;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
@@ -11,6 +13,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.geom.TimeAspect;
 import uk.ac.starlink.ttools.plot2.geom.TimeSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 
 /**
  * Axis control for plot with a horizontal time axis.
@@ -104,6 +107,37 @@ public class TimeAxisController
         return config;
     }
 
+    @Override
+    protected boolean clearRange( TimeSurfaceFactory.Profile oldProfile,
+                                  TimeSurfaceFactory.Profile newProfile,
+                                  PlotLayer[] oldLayers, PlotLayer[] newLayers,
+                                  boolean lock ) {
+        if ( super.clearRange( oldProfile, newProfile, oldLayers, newLayers,
+                               lock ) ) {
+            return true;
+        }
+        else if ( lock ) {
+            return false;
+        }
+        else {
+
+            /* Special handling for spectrograms.
+             * The vertical axis range will (at least may) depend on whether 
+             * the spectral axis is channel bins or spectral coordinate.
+             * So if that characteristic has changed for any of the visible
+             * spectrograms, signal that a re-range is required. */
+            SpecState oldState = getSpecState( oldLayers );
+            SpecState newState = getSpecState( newLayers );
+            if ( newState.nspec_ == oldState.nspec_ &&
+                 newState.nscale_ != oldState.nscale_ ) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+    }
+
     /**
      * Returns the config keys for axis labelling.
      *
@@ -116,5 +150,52 @@ public class TimeAxisController
         ConfigKey<String>[] keys =
             (ConfigKey<String>[]) list.toArray( new ConfigKey<?>[ 0 ] );
         return keys;
+    }
+
+    /**
+     * Returns information about the spectrogram plots
+     * in a given set of layers.
+     *
+     * @param  layers
+     * @return  spectrogram group state
+     */
+    private static SpecState getSpecState( PlotLayer[] layers ) {
+        int nspec = 0;
+        int nscale = 0;
+        for ( PlotLayer layer : layers ) {
+            Style style = layer.getStyle();
+            if ( style instanceof SpectrogramPlotter.SpectroStyle ) {
+                nspec++;
+                if ( ((SpectrogramPlotter.SpectroStyle) style)
+                    .getScaleSpectra() ) {
+                    nscale++;
+                }
+            }
+        }
+        return new SpecState( nspec, nscale );
+    }
+
+    /**
+     * Characterises some aspects of the content of visible spectrogram layers.
+     */
+    private static class SpecState {
+        final int nspec_;
+        final int nscale_;
+
+        /**
+         * Constructor.
+         *
+         * @param  nspec  number of spectrograms in group
+         * @param  nscale  number of those spectrograms with scaleSpectra
+         *                 flag set true
+         */
+        SpecState( int nspec, int nscale ) {
+            nspec_ = nspec;
+            nscale_ = nscale;
+        }
+        @Override
+        public String toString() {
+            return nscale_ + "/" + nspec_;
+        }
     }
 }

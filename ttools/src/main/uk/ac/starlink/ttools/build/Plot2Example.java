@@ -1463,7 +1463,8 @@ public class Plot2Example {
                 "*t2func=mjd", "*t2label=MJD", null,
                 "auxfunc=linear", "auxmap=plasma", "auxclip=0,1", null,
                 "xpix=600", "ypix=320", null,
-                "tmin=2007-11-01T00", "tmax=2007-11-01T12", "ymax=480",
+                "tmin=2007-11-01T00", "tmax=2007-11-01T12", null,
+                "ylog=true", "ylabel=Frequency/Hz", "ymin=8e4", "ymax=2e7",
             } ),
             new Plot2Example( "layer-yerror", c, PlotTask.TIME, new String[] {
                 "*in=" + TName.ACE, "*t=epoch", "*y=Bmag", null,
