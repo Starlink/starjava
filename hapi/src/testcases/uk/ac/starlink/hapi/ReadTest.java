@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
@@ -73,6 +74,17 @@ public class ReadTest extends TestCase {
                            t.getCell( 3, 8 ) );
         assertArrayEquals( new int[] { 0, 1, 2 },
                            t.getCell( 3, 9 ) );
+        ColumnInfo specCinfo = t.getColumnInfo( 14 );
+        assertEquals( "spectra", specCinfo.getName() );
+        DescribedValue binsValue =
+            specCinfo.getAuxData().stream()
+           .filter( dval -> "frequency".equals( dval.getInfo().getName() ) )
+           .findFirst().get();
+        assertEquals( "Hz", binsValue.getInfo().getUnitString() );
+        assertArrayEquals( new int[] { 10 }, binsValue.getInfo().getShape() );
+        assertEquals( double[].class, binsValue.getInfo().getContentClass() );
+        assertArrayEquals( new double[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, },
+                           binsValue.getValue() );
     }
 
     private double getDouble( Object obj ) {

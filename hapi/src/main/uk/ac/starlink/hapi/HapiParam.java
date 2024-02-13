@@ -80,6 +80,14 @@ public interface HapiParam {
     String getDescription();
 
     /**
+     * Returns an array of bins objects for this parameter.
+     * If not null, there should be one per dimension.
+     *
+     * @return  array of bins objects describing dimensions, or null
+     */
+    HapiBins[] getBins();
+
+    /**
      * Reads HapiParam from a HAPI Parameter JSON object.
      *
      * @param  json  JSON object
@@ -109,6 +117,21 @@ public interface HapiParam {
         String[] label = stringOrArray( json.opt( "labels" ) );
         String fill = json.optString( "fill", null );
         String description = json.optString( "description", null );
+        JSONArray binsArrayJson = json.optJSONArray( "bins" );
+        final HapiBins[] binsArray;
+        if ( binsArrayJson != null ) {
+            int binsDim = binsArrayJson.length();
+            binsArray = new HapiBins[ binsDim ];
+            for ( int idim = 0; idim < binsDim; idim++ ) {
+                JSONObject binsObj = binsArrayJson.optJSONObject( idim );
+                binsArray[ idim ] = binsObj == null
+                                  ? null
+                                  : HapiBins.fromJson( binsObj );
+            }
+        }
+        else {
+            binsArray = null;
+        }
         return new HapiParam() {
             public String getName() {
                 return name;
@@ -133,6 +156,9 @@ public interface HapiParam {
             }
             public String getDescription() {
                 return description;
+            }
+            public HapiBins[] getBins() {
+                return binsArray;
             }
         };
     }

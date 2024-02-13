@@ -1,7 +1,10 @@
 package uk.ac.starlink.hapi;
 
 import java.util.Arrays;
+import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 
 /**
  * Reads values specified by a particular parameter from a HAPI data stream.
@@ -188,6 +191,57 @@ public class ParamReader {
             ColumnInfo info = new ColumnInfo( param.getName(),
                                               type.getArrayClass(),
                                               param.getDescription() );
+
+            /* If the param has bins metadata, store it as AuxData
+             * items in the column info. */
+            HapiBins[] binsArray = param.getBins() == null
+                                 ? new HapiBins[ 0 ]
+                                 : param.getBins();
+            for ( HapiBins bins : binsArray ) {
+                String binsName = bins.getName();
+                if ( binsName == null || binsName.trim().length() == 0 ) {
+                    binsName = "Bins";
+                }
+                String binsUnits = bins.getUnits();
+                String binsDescription = bins.getDescription();
+                double[] centers = bins.getCenters();
+                double[][] ranges = bins.getRanges();
+                if ( centers != null ) {
+                    DefaultValueInfo centersInfo =
+                        new DefaultValueInfo( binsName, double[].class );
+                    centersInfo.setShape( new int[] { centers.length } );
+                    centersInfo.setDescription( binsDescription == null
+                                              ? "bin centers"
+                                              : binsDescription );
+                    if ( binsUnits != null ) {
+                        centersInfo.setUnitString( binsUnits );
+                    }
+                    info.getAuxData()
+                        .add( new DescribedValue( centersInfo, centers ) );
+                }
+                if ( ranges != null ) {
+                    DefaultValueInfo rangesInfo =
+                        new DefaultValueInfo( binsName, double[].class );
+                    int nr = ranges.length;
+                    rangesInfo.setShape( new int[] { 2, nr } );
+                    rangesInfo.setDescription( binsDescription == null
+                                             ? "bins lower,upper bounds"
+                                             : binsDescription );
+                    if ( binsUnits != null ) {
+                        rangesInfo.setUnitString( binsUnits );
+                    }
+                    double[] flatRanges = new double[ 2 * nr ];
+                    for ( int ir = 0; ir < nr; ir++ ) {
+                        double[] range = ranges[ ir ];
+                        flatRanges[ 2 * ir + 0 ] = range == null ? Double.NaN
+                                                                 : range[ 0 ];
+                        flatRanges[ 2 * ir + 1 ] = range == null ? Double.NaN
+                                                                 : range[ 1 ];
+                    }
+                    info.getAuxData()
+                        .add( new DescribedValue( rangesInfo, flatRanges ) );
+                }
+            }
 
             /* HAPI has C-like array indices (last varying fastest), and
              * STIL has FITS/FORTRAN-like indices (first varying fastest),
