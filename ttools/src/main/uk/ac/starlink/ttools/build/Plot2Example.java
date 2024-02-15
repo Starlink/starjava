@@ -1550,6 +1550,7 @@ public class Plot2Example {
                                  + "lon_corner_2,lat_corner_2)", null,
                 "shading=weighted", "weight=IR_TEMPERATURE",
                 "auxmap=plasma", null,
+                "texttype=latex", "fontsize=14", "auxlabel=T_{IR}", null,
                 "clon=83", "clat=34", "radius=11",
             } ),
             new Plot2Example( "layer-area", c, PlotTask.SKY, new String[] {
