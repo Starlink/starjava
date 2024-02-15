@@ -33363,6 +33363,9 @@ introduced since the last version:
     <li>Fix bug in legend/aux axis text style configuration
         for <ref id="TimePlotWindow">Time Plot</ref>.
         This was a regression bug present only in TOPCAT v4.9.</li>
+    <li>Fix <ref id="StiltsControl">STILTS control</ref> bug that
+        did not include all settings for the
+        <ref id="MatrixPlotWindow">&Matrix; Plot</ref>.</li>
     </ul>
     </p></dd>
 
