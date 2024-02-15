@@ -958,13 +958,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         final ConfigMap globalConfig = new ConfigMap();
         globalConfig.putAll( axesController_.getConfig() );
         globalConfig.putAll( multiConfigger_.getGlobalConfig() );
-        List<ZoneController<P,A>> zoneControllerList =
-            axesController_.getZoneControllers( ganger );
-        int nz = zoneControllerList.size();
         @SuppressWarnings("unchecked")
-        final ZoneController<P,A>[] zoneControllers =
-            (ZoneController<P,A>[]) new ZoneController<?,?>[ nz ];
-        zoneControllerList.toArray( zoneControllers );
+        ZoneController<P,A>[] zoneControllers =
+            axesController_.getZoneControllers( ganger )
+           .stream()
+           .toArray( n -> (ZoneController<P,A>[]) new ZoneController<?,?>[n] );
+        int nz = zoneControllers.length;
         final TopcatLayer[] tcLayers = getTopcatLayers( ganger, true );
 
         /* Trimming, i.e. title and legend. */
