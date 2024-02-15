@@ -1361,7 +1361,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 }
             }
             Icon legend =
-                createLegend( env, layerMap,
+                createLegend( env, layerMap, zoneSuffix,
                               zoneLegendList.toArray( new String[ 0 ] ) );
 
             /* Get profile for the current zone. */
@@ -1609,11 +1609,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *
      * @param  env  execution environment
      * @param  layerMap  suffix-&gt;layer map for all defined layers
-     * @param  suffixSeq  ordered array of suffixes for layers to be plotted
+     * @param  zoneSuffix   suffix identifying zone if any
+     * @param  layerSuffixSeq  ordered array of suffixes for layers plotted
      * @return  legend icon, may be null
      */
     public Icon createLegend( Environment env, Map<String,PlotLayer> layerMap,
-                              String[] suffixSeq )
+                              String zoneSuffix, String[] layerSuffixSeq )
             throws TaskException {
 
         /* Make a map from layer labels to arrays of styles.
@@ -1622,7 +1623,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             new LinkedHashMap<List<SubCloud>,String>();
         Map<String,List<Style>> labelMap =
             new LinkedHashMap<String,List<Style>>();
-        for ( String suffix : suffixSeq ) {
+        for ( String suffix : layerSuffixSeq ) {
             PlotLayer layer = layerMap.get( suffix );
             if ( layer == null ) {
                 String msg = new StringBuffer()
@@ -1680,7 +1681,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* Construct and return the legend, or return null, as required. */
         if ( hasLegend ) {
-            Captioner captioner = getCaptioner( env );
+            Captioner captioner = createCaptioner( env, zoneSuffix );
             boolean hasBorder = legborderParam_.booleanValue( env );
             boolean isOpaque = legopaqueParam_.booleanValue( env );
             Color bgColor = isOpaque ? Color.WHITE : null;
@@ -1810,11 +1811,16 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * use different parameter sets for different purposes.
      *
      * @param   env  execution environment
+     * @param   zoneSuffix  suffix for zone to which the caption will apply,
+     *                      may be the empty string for global
      * @return   captioner
      */
-    public Captioner getCaptioner( Environment env ) throws TaskException {
+    public Captioner createCaptioner( Environment env, String zoneSuffix )
+            throws TaskException {
         KeySet<Captioner> capKeys = StyleKeys.CAPTIONER;
-        ConfigMap capConfig = createBasicConfigMap( env, capKeys.getKeys() );
+        ConfigMap capConfig =
+            createZoneConfigMap( env, capKeys.getKeys(), zoneSuffix,
+                                 new String[ 0 ] );
         return capKeys.createValue( capConfig );
     }
 
@@ -1878,7 +1884,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* Configure and return a shade axis accordingly. */
         RampKeySet rampKeys = StyleKeys.AUX_RAMP;
-        Captioner captioner = getCaptioner( env );
+        Captioner captioner = createCaptioner( env, zoneSuffix );
         ConfigMap auxConfig =
             createZoneSuffixedConfigMap( env, rampKeys.getKeys(), zoneSuffix );
         RampKeySet.Ramp ramp = rampKeys.createValue( auxConfig );

@@ -15169,6 +15169,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         as controlled by the new
         <ref id="layer-spectrogram-scalespecN">scalespecN</ref>
         option.</li>
+    <li>Fix <ref id="plot2time"><code>plot2time</code></ref> so that
+        zone-specific text style configuration works correctly for
+        legends and colour ramp annotations.</li>
     </ul>
     </p></dd>
 

@@ -264,7 +264,7 @@ public class MatrixPlot2Task extends
                 layerMap.put( entry.getKey(), layer1 );
             }
         }
-        Icon legend = createLegend( env, layerMap, legendSeq );
+        Icon legend = createLegend( env, layerMap, "", legendSeq );
 
         /* Prepare the global trimmings object. */
         String title = createTitleParameter( null ).stringValue( env );
