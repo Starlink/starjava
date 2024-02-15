@@ -27345,6 +27345,7 @@ Some of the notable contributers are these:
 <li>Ada Nebot (CDS)</li>
 <li>Fran&#x00e7;ois Ochsenbein (CDS)</li>
 <li>Clive Page (Leicester)</li>
+<li>Olivia Panzenb&#x00f6;ck (TU-Wien)</li>
 <li>Menelaus Perdikeas (ESAC)</li>
 <li>Fran&#x00e7;ois-Xavier Pineau (CDS)</li>
 <li>Roy Platon (RAL)</li>
@@ -33359,6 +33360,9 @@ introduced since the last version:
         now tries to plot spectra on a spectral axis,
         as controlled by the new <label>Scale Spectra</label>
         style control.</li>
+    <li>Fix bug in legend/aux axis text style configuration
+        for <ref id="TimePlotWindow">Time Plot</ref>.
+        This was a regression bug present only in TOPCAT v4.9.</li>
     </ul>
     </p></dd>
 

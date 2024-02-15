@@ -138,15 +138,13 @@ public class ShaderControl extends ConfigControl {
      * based on current config of this component and a set of layers.
      *
      * @param  tclayers   list of layers to which the axis will apply
-     * @param  zid     identifier for zone to which axis factory applies
      * @param  iz     zone index to which axis factory applies,
      *                or -1  for all zones
+     * @param   config   configuration for shade axis
      * @return   shade axis factory
      */
     public ShadeAxisFactory createShadeAxisFactory( TopcatLayer[] tclayers,
-                                                    ZoneId zid, int iz ) {
-        final ConfigMap config = getConfig();
-        config.putAll( configger_.getZoneConfig( zid ) );
+                                                    int iz, ConfigMap config ) {
         PlotLayer[] layers = getScaleLayers( tclayers, iz, SCALE );
         boolean autoVis = layers.length > 0;
         String autoLabel = PlotUtil.getScaleAxisLabel( layers, SCALE );

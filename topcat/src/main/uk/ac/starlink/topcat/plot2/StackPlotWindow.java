@@ -256,7 +256,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         multiShaderControl_ =
             new MultiShaderController( zoneFact_, multiConfigger_,
                                        auxLockModel_ );
-        legendControl_ = new LegendControl( multiConfigger_ );
+        legendControl_ = new LegendControl();
 
         /* Prepare the panel containing the user controls.  This may appear
          * either at the bottom of the plot window or floated into a
@@ -976,7 +976,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 Arrays.stream( layerControls )
                .flatMap( ctrl -> Arrays.stream( ctrl.getLegendEntries() ) )
                .toArray( n -> new LegendEntry[ n ] );
-            LegendIcon legIcon = legendControl_.createLegendIcon( legEntries );
+            LegendIcon legIcon =
+                legendControl_.createLegendIcon( legEntries,
+                                                 axesController_.getConfig() );
             trimmings = new Trimming[] {
                 new Trimming( legIcon, legpos, title )
             };
@@ -991,10 +993,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 LegendEntry[] entries =
                     Arrays
                    .stream( getLayerControlsForZone( layerControls, ganger,
-                                                     iz ))
+                                                     iz ) )
                    .flatMap( c -> Arrays.stream( c.getLegendEntries() ) )
                    .toArray( n -> new LegendEntry[ n ] );
-                LegendIcon legIcon = legendControl_.createLegendIcon( entries );
+                ConfigMap legConfig = zoneControllers[ iz ].getConfig();
+                LegendIcon legIcon =
+                    legendControl_.createLegendIcon( entries, legConfig );
                 trimmings[ iz ] = new Trimming( legIcon, legpos, title );
                 trimConfigs[ iz ] = new ConfigMap();
             }
@@ -1007,15 +1011,18 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             ShaderControl shaderControl =
                 multiShaderControl_.getController( dfltZone_ );
             int iz = -1;
+            ConfigMap shadeConfig = new ConfigMap();
+            shadeConfig.putAll( axesController_.getConfig() );
+            shadeConfig.putAll( multiShaderControl_.getConfigger()
+                               .getZoneConfig( dfltZone_ ) );
+            shadeConfigs = new ConfigMap[] { shadeConfig };
             ShadeAxisFactory shadeFact =
-                shaderControl.createShadeAxisFactory( tcLayers, dfltZone_, iz );
+                shaderControl
+               .createShadeAxisFactory( tcLayers, iz, shadeConfig );
             Span shadeFixSpan = shaderControl.getFixSpan();
             Subrange shadeSubrange = shaderControl.getSubrange();
             shadeKits = new ShadeAxisKit[] {
                 new ShadeAxisKit( shadeFact, shadeFixSpan, shadeSubrange )
-            };
-            shadeConfigs = new ConfigMap[] {
-                multiShaderControl_.getConfigger().getZoneConfig( dfltZone_ ),
             };
         }
         else {
@@ -1034,14 +1041,18 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 ShaderControl shaderControl =
                     multiShaderControl_.getController( zid );
                 int iz = zid.getZoneIndex( ganger );
+                ConfigMap shadeConfig = new ConfigMap();
+                shadeConfig.putAll( zoneControllers[ iz ].getConfig() );
+                shadeConfig.putAll( multiShaderControl_.getConfigger()
+                                                       .getZoneConfig( zid ) );
+                shadeConfigs[ iz ] = shadeConfig;
                 ShadeAxisFactory shadeFact =
-                    shaderControl.createShadeAxisFactory( tcLayers, zid, iz );
+                    shaderControl
+                   .createShadeAxisFactory( tcLayers, iz, shadeConfig );
                 Span shadeFixSpan = shaderControl.getFixSpan();
                 Subrange shadeSubrange = shaderControl.getSubrange();
                 shadeKits[ iz ] =
                     new ShadeAxisKit( shadeFact, shadeFixSpan, shadeSubrange );
-                shadeConfigs[ iz ] =
-                    multiShaderControl_.getConfigger().getZoneConfig( zid );
             }
         }
 
