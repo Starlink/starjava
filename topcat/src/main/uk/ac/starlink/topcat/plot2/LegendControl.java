@@ -17,6 +17,7 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.LegendIcon;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 
 /**
@@ -30,7 +31,6 @@ public class LegendControl extends TabberControl {
     /* This class could perhaps be written in a more generic way
      * (subclassing ConfigControl). */
 
-    private final MultiConfigger configger_;
     private final ToggleButtonModel visibleModel_;
     private final ToggleButtonModel opaqueModel_;
     private final ToggleButtonModel borderModel_;
@@ -41,13 +41,9 @@ public class LegendControl extends TabberControl {
 
     /**
      * Constructor.
-     *
-     * @param   configger   config source containing some plot-wide config,
-     *                      specifically captioner style
      */
-    public LegendControl( MultiConfigger configger ) {
+    public LegendControl() {
         super( "Legend", ResourceIcon.LEGEND );
-        configger_ = configger;
         final ActionListener forwarder = getActionForwarder();
 
         /* Set up control for selecting whether legend is visible at all. */
@@ -122,9 +118,11 @@ public class LegendControl extends TabberControl {
      * Returns the legend icon for the current state of the stack model.
      *
      * @param   entries   entries to include in legend
+     * @param   config   legend configuration options to control text style etc
      * @return  legend icon, or null if not visible
      */
-    public LegendIcon createLegendIcon( LegendEntry[] entries ) {
+    public LegendIcon createLegendIcon( LegendEntry[] entries,
+                                        ConfigMap config ) {
 
         /* Update visibility defaults based on how many entries the legend
          * would have - it's not very useful if it only has one entry.
@@ -144,9 +142,7 @@ public class LegendControl extends TabberControl {
                 return null;
             }
             else {
-                Captioner captioner =
-                    StyleKeys.CAPTIONER
-                   .createValue( configger_.getGlobalConfig() );
+                Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
                 boolean border = borderModel_.isSelected();
                 Color bgColor = opaqueModel_.isSelected() ? Color.WHITE : null;
                 return new LegendIcon( entries, captioner, border, bgColor );
