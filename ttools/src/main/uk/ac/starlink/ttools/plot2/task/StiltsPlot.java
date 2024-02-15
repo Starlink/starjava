@@ -222,6 +222,7 @@ public class StiltsPlot {
 
         /* Per-zone settings. */
         if ( hasIndependentZones || nz == 1 ) {
+            assert ! ( plotSpec.getPlotType() instanceof MatrixPlotType );
             for ( int iz = 0; iz < nz; iz++ ) {
                 ConfigMap zoneConfig = zoneConfigs[ iz ];
                 List<Setting> settings = new ArrayList<>();
@@ -1079,6 +1080,23 @@ public class StiltsPlot {
             settings.addAll( settingMap.values() );
             settings.add( null );
         }
+
+        /* Add global items from the profile keys, apart from the X/Y-specific
+         * ones which we have taken care of in the previous step.
+         * By special arrangement these are not extracted in other parts
+         * of the configuration in the special case of the Matrix Plot. */
+        List<ConfigKey<?>> profileKeyList =
+            new ArrayList<>( Arrays.asList( surfFact.getProfileKeys() ) );
+        for ( XyKeyPair<?> xyk : xyKeyPairs ) {
+            profileKeyList.remove( xyk.getKeyX() );
+            profileKeyList.remove( xyk.getKeyY() );
+        }
+        ConfigKey<?>[] profileKeys =
+            profileKeyList.toArray( new ConfigKey<?>[ 0 ] );
+        settings.add( null );
+        settings.addAll( getConfigSettings( globalConfig, profileKeys ) );
+
+        /* Return the result. */
         return settings;
     }
 
