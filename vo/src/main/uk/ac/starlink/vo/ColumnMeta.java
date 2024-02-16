@@ -129,6 +129,7 @@ public class ColumnMeta {
 
     /**
      * Indicates whether this column is declared indexed.
+     * Available from both TAP_SCHEMA and VODataService metadata.
      *
      * @return  true iff one of the flag values is "indexed"
      */
@@ -138,6 +139,7 @@ public class ColumnMeta {
 
     /**
      * Indicates whether this column is declared primary.
+     * Only available from VODataService metadata.
      *
      * @return  true iff one of the flag values is "primary"
      */
@@ -147,11 +149,32 @@ public class ColumnMeta {
 
     /**
      * Indicates whether this column is declared nullable.
+     * Only available from VODataService metadata.
      *
      * @return  true iff one of the flag values is "nullable"
      */
     public boolean isNullable() {
         return hasFlag( "nullable" );
+    }
+
+    /**
+     * Indicates whether this column is declared principal.
+     * Only available from TAP_SCHEMA metadata.
+     *
+     * @return  true iff one of the flag values is "principal"
+     */
+    public boolean isPrincipal() {
+        return hasFlag( "principal" );
+    }
+
+    /**
+     * Indicates whether this column is declared standard.
+     * Only available from TAP_SCHEMA metadata.
+     *
+     * @return  true iff one of the flag values is "std"
+     */
+    public boolean isStd() {
+        return hasFlag( "std" );
     }
 
     /**
