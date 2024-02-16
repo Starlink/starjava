@@ -412,7 +412,16 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     TableMeta ptable = getPopulatedTable( table, tables );
                     Breaker breaker = createBreaker( lineBreaks );
                     TableRef tref = createTableRef( ptable );
-                    ColumnMeta[] cols = ptable.getColumns();
+                    ColumnMeta[] allCols = ptable.getColumns();
+                    ColumnMeta[] principalCols =
+                        allCols == null ? null
+                                        : Arrays.stream( allCols )
+                                         .filter( ColumnMeta::isPrincipal )
+                                         .toArray( n -> new ColumnMeta[ n ] );
+                    ColumnMeta[] cols = ( principalCols != null &&
+                                          principalCols.length >= COL_COUNT )
+                                      ? principalCols
+                                      : allCols;
                     final String colSelection;
                     if ( cols != null && cols.length > 0 ) {
                         StringBuffer sbuf = new StringBuffer();

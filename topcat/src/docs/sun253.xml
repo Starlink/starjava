@@ -33366,6 +33366,8 @@ introduced since the last version:
     <li>Fix <ref id="StiltsControl">STILTS control</ref> bug that
         did not include all settings for the
         <ref id="MatrixPlotWindow">&Matrix; Plot</ref>.</li>
+    <li>Choose better columns for TAP window ADQL examples
+        under some circumstances.</li>
     </ul>
     </p></dd>
 
