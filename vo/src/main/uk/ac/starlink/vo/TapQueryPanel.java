@@ -450,8 +450,8 @@ public class TapQueryPanel extends JPanel {
                 "Service Capabilities" ) );
         splitter.setTopComponent( servicePanel );
         splitter.setBottomComponent( qPanel );
-        servicePanel.setPreferredSize( new Dimension( 500, 500 ) );
-        adqlPanel.setPreferredSize( new Dimension( 500, 200 ) );
+        servicePanel.setPreferredSize( new Dimension( 580, 500 ) );
+        adqlPanel.setPreferredSize( new Dimension( 580, 200 ) );
         splitter.setResizeWeight( 0.6 );
         add( splitter, BorderLayout.CENTER );
     }
