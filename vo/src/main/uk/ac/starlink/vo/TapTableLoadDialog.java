@@ -298,7 +298,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         setToolbarActions( actList.toArray( new Action[ 0 ] ) );
 
         /* It's big. */
-        tabber_.setPreferredSize( new Dimension( 750, 650 ) );
+        tabber_.setPreferredSize( new Dimension( 830, 650 ) );
 
         /* Configure GUI changes dependent on the currently visible tab. */
         tabber_.addChangeListener( new ChangeListener() {
