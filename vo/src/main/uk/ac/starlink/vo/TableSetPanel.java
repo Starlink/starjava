@@ -87,6 +87,8 @@ public class TableSetPanel extends JPanel {
     private final JRadioButton sortAlphaButt_;
     private final JRadioButton sortServiceButt_;
     private final TreeSelectionModel selectionModel_;
+    private final JTree udfTree_;
+    private final UdfTreeModel udfTreeModel_;
     private final JTable colTable_;
     private final JTable foreignTable_;
     private final ArrayTableModel<ColumnMeta> colTableModel_;
@@ -98,6 +100,7 @@ public class TableSetPanel extends JPanel {
     private final JTabbedPane detailTabber_;
     private final JScrollPane treeScroller_;
     private final int itabService_;
+    private final int itabUdf_;
     private final int itabSchema_;
     private final int itabTable_;
     private final int itabCol_;
@@ -131,6 +134,11 @@ public class TableSetPanel extends JPanel {
 
     /** Number of nodes below which tree nodes are expanded. */
     private static final int TREE_EXPAND_THRESHOLD = 100;
+
+    private static final Ivoid UDF_FTYPE =
+        TapCapability.createTapRegExtIvoid( "#features-udf" );
+    private static final Predicate<Ivoid> UDF_FILTER =
+        ftype -> UDF_FTYPE.equals( ftype );
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -246,6 +254,17 @@ public class TableSetPanel extends JPanel {
         new ArrayTableSorter<ForeignMeta>( foreignTableModel_ )
            .install( foreignTable_.getTableHeader() );
 
+        /* Create tree for UDF display. */
+        udfTree_ = new JTree();
+        JScrollPane udfScroller = metaScroller( udfTree_ );
+        udfTreeModel_ = new UdfTreeModel( udfScroller );
+        udfTree_.setModel( udfTreeModel_ );
+        udfTree_.setRootVisible( true );
+        udfTree_.setShowsRootHandles( false );
+        udfTree_.setLargeModel( false );
+        udfTree_.putClientProperty( "JTree.lineStyle", "None" );
+        udfTree_.setCellRenderer( UdfTreeModel.createRenderer() );
+
         /* Construct and place tabs to display individual metadata items. */
         Consumer<URL> urlHandler = url -> tld.getUrlHandler().accept( url );
         tablePanel_ = new TableMetaPanel();
@@ -256,6 +275,8 @@ public class TableSetPanel extends JPanel {
         int itab = 0;
         detailTabber_.addTab( "Service", metaScroller( servicePanel_ ) );
         itabService_ = itab++;
+        detailTabber_.addTab( "UDFs", udfScroller );
+        itabUdf_ = itab++;
         detailTabber_.addTab( "Schema", metaScroller( schemaPanel_ ) );
         itabSchema_ = itab++;
         detailTabber_.addTab( "Table", metaScroller( tablePanel_ ) );
@@ -328,7 +349,8 @@ public class TableSetPanel extends JPanel {
         add( metaSplitter, BorderLayout.CENTER );
 
         /* Set initial state. */
-        setSchemas( null );
+        setServiceKit( null );
+        setCapability( null );
     }
 
     /**
@@ -489,6 +511,16 @@ public class TableSetPanel extends JPanel {
      */
     public void setCapability( TapCapability capability ) {
         servicePanel_.setCapability( capability );
+        TapLanguageFeature[] udfs =
+              capability == null
+            ? new TapLanguageFeature[ 0 ]
+            : Arrays.stream( capability.getLanguages() )
+                    .flatMap( l -> l.getFeaturesMap().entrySet().stream() )
+                    .filter( entry -> UDF_FILTER.test( entry.getKey() ) )
+                    .flatMap( e -> Arrays.stream( e.getValue() ) )
+                    .toArray( n -> new TapLanguageFeature[ n ] );
+        udfTreeModel_.setUdfs( udfs );
+        detailTabber_.setIconAt( itabUdf_, activeIcon( udfs.length > 0 ) );
     }
 
     /**
@@ -1333,7 +1365,7 @@ public class TableSetPanel extends JPanel {
      * @param  panel  panel to wrap
      * @return   wrapped panel
      */
-    private static JScrollPane metaScroller( MetaPanel panel ) {
+    private static JScrollPane metaScroller( JComponent panel ) {
         return new JScrollPane( panel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                        JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
     }
@@ -1886,7 +1918,6 @@ public class TableSetPanel extends JPanel {
         private final JTextComponent dmField_;
         private final JTextComponent geoField_;
         private final JTextComponent adql21Field_;
-        private final JTextComponent udfField_;
         private final JTextComponent nonstdField_;
 
         private static final Ivoid[] ADQLGEO_FTYPES = new Ivoid[] {
@@ -1902,10 +1933,6 @@ public class TableSetPanel extends JPanel {
             TapCapability.createTapRegExtIvoid( "#features-adql-unit" ),
             TapCapability.createTapRegExtIvoid( "#features-adql-offset" ),
         };
-        private static final Ivoid UDF_FTYPE =
-            TapCapability.createTapRegExtIvoid( "#features-udf" );
-        private static final Predicate<Ivoid> UDF_FILTER =
-            ftype -> UDF_FTYPE.equals( ftype );
         private static final Predicate<Ivoid> NONSTD_FILTER =
             createExcludeFilter( ADQLGEO_FTYPES, ADQL21MISC_FTYPES,
                                  new Ivoid[] { UDF_FTYPE } );
@@ -1931,7 +1958,6 @@ public class TableSetPanel extends JPanel {
             dmField_ = addMultiLineField( "Data Models" );
             geoField_ = addMultiLineField( "Geometry Functions" );
             adql21Field_ = addMultiLineField( "ADQL 2.1 Optional Features" );
-            udfField_ = addHtmlField( "User-Defined Functions" );
             nonstdField_ = addHtmlField( "Non-Standard Language Features" );
         }
 
@@ -2002,8 +2028,6 @@ public class TableSetPanel extends JPanel {
                           getFeatureFormsText( tcap, ADQLGEO_FTYPES ) );
             setFieldText( adql21Field_,
                           getFeatureFormsText( tcap, ADQL21MISC_FTYPES ) );
-            setFieldText( udfField_,
-                          getFeatureDescriptionsHtml( tcap, UDF_FILTER ) );
             setFieldText( nonstdField_,
                           getFeatureDescriptionsHtml( tcap, NONSTD_FILTER ) );
         }
