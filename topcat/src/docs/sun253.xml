@@ -23328,15 +23328,23 @@ The tabs are as follows:
     This includes the service's name, Service URL, Reference URL,
     curation and contact information, detailed description,
     declared data models, and listing with description of any
-    service-specific User-Defined Functions it supports.
+    service-specific language features supported
+    (except for UDFs, shown in the next tab).
     It also displays your currently authenticated identity for
     service interaction, if any.
-    This may provide some useful reference information
-    for writing queries (available UDFs especially).
     If a Reference URL or Examples URL are provided,
     clicking on the URLs or the little link icon (&IMG.EXTLINK;)
     in the panel will try to open the relevant pages in
     an external web browser (or you can copy and paste them yourself).
+    The content of this tab is not sensitive to which node of the tree
+    is currently selected.
+    </p></dd>
+<dt>UDFs tab</dt>
+<dd><p>Lists any User-Defined Functions defined by the service. 
+    They are displayed in a tree; initially only the basic function
+    signatures are visible, but you can see additional documentation
+    (if provided) by clicking on the handle (&IMG.COLLAPSED;) for the
+    function of interest.
     The content of this tab is not sensitive to which node of the tree
     is currently selected.
     </p></dd>
@@ -33368,6 +33376,10 @@ introduced since the last version:
         <ref id="MatrixPlotWindow">&Matrix; Plot</ref>.</li>
     <li>Choose better columns for TAP window ADQL examples
         under some circumstances.</li>
+    <li>User-defined functions are now listed in a separate
+        <label>UDFs</label> tab with the
+        <ref id="TapTableLoadDialog_query_metadata"
+             >TAP metadata</ref>.</li>
     </ul>
     </p></dd>
 
