@@ -10,7 +10,9 @@ import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.geom.StackGanger;
 import uk.ac.starlink.ttools.plot2.geom.TimeAspect;
 import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
 import uk.ac.starlink.ttools.plot2.geom.TimeSurfaceFactory;
@@ -35,6 +37,12 @@ public class TimePlotWindow
     public TimePlotWindow( Component parent,
                            ListModel<TopcatModel> tablesModel ) {
         super( "Time Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );
+        FrameControl frameControl = getFrameControl();
+        getFrameControl()
+           .addSpecifierTab( "Spacing",
+                              new ConfigSpecifier( new ConfigKey<?>[] {
+                StackGanger.ZONEGAP_KEY,
+            } ) );
         getToolBar().addSeparator();
         addHelp( "TimePlotWindow" );
     }
