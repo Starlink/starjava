@@ -16666,6 +16666,15 @@ in the <label>Spacing</label> tab of the
 <ref id="FrameControl">Frame Control</ref>.
 </p>
 
+<p>It is possible to abuse this plot type to stack plots that
+do not actually have time on the horizontal axis.
+To do that, select <label>mjd</label> as the <label>Time Format</label>
+in the <ref id="TimeAxisControl_grid">Grid tab</ref> of the
+<label>Axes Control</label>,
+and make sure that any <label>time format</label> selectors
+(described above) are similarly set to <label>MJD</label>.
+</p>
+
 <p>The Time Plot offers the following plot controls:
 <ul>
 <li>&CONTROL.single;, with these form options:
@@ -16936,7 +16945,7 @@ For the time axis, the range may be entered as an ISO-8601 date/time value.
 
 </subdiv>
 
-<subdiv>
+<subdiv id="TimeAxisControl_grid">
 <subhead><title>Grid Tab</title></subhead>
 
 <figure>
@@ -33412,6 +33421,9 @@ introduced since the last version:
         <ref id="FrameControl_spacing">Spacing tab</ref>.</li>
     <li>The <ref id="TimeAxisControl_labels">Time Axis label</ref>
         can now be configured in the Time Plot.</li>
+    <li>Add instructions in the
+        <ref id="TimePlotWindow">Time Plot</ref> documentation
+        about abusing it to stack non-temporal plots.</li>
     </ul>
     </p></dd>
 
