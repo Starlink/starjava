@@ -776,7 +776,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
         String[] zoneNames = zoneIds.stream().map( ZoneId::toString )
                             .toArray( n -> new String[ n ] );
-        ConfigMap gangConfig = axesController_.getConfig();
+        ConfigMap gangConfig = new ConfigMap();
+        gangConfig.putAll( axesController_.getConfig() );
+        gangConfig.putAll( frameControl_.getConfig() );
         GangContext gangContext = new GangContext() {
             public Plotter<?>[] getPlotters() {
                 return plotters;
@@ -834,6 +836,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     public LegendControl getLegendControl() {
         return legendControl_;
+    }
+
+    /**
+     * Returns the control used for configuring the external plot frame.
+     *
+     * @return  frame control
+     */
+    public FrameControl getFrameControl() {
+        return frameControl_;
     }
 
     /**
@@ -956,6 +967,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         final Ganger<P,A> ganger = getGanger();
         final PlotPosition plotPosition = frameControl_.getPlotPosition();
         final ConfigMap globalConfig = new ConfigMap();
+        globalConfig.putAll( frameControl_.getConfig() );
         globalConfig.putAll( axesController_.getConfig() );
         globalConfig.putAll( multiConfigger_.getGlobalConfig() );
         @SuppressWarnings("unchecked")

@@ -251,6 +251,7 @@
   <!ENTITY FIG.font_tab '&figs;font_tab.png'>
   <!ENTITY FIG.size_tab '&figs;size_tab.png'>
   <!ENTITY FIG.title_tab '&figs;title_tab.png'>
+  <!ENTITY FIG.spacing_tab '&figs;spacing_tab.png'>
   <!ENTITY FIG.zone_tab '&figs;zone_tab.png'>
   <!ENTITY FIG.zone_axes '&figs;zone_axes.png'>
   <!ENTITY FIG.BinsControl_histogram '&figs;BinsControl_histogram.png'>
@@ -8320,6 +8321,26 @@ similar plots.
 If text is filled in the <label>Plot Title</label> field,
 and if the <label>Title Visible</label> checkbox is checked,
 then the given text will appear at the top of the plot.
+</p>
+
+</subdiv>
+
+<subdiv id="FrameControl_spacing">
+<subhead><title>Spacing Tab</title></subhead>
+
+<figure>
+<caption><px>Frame control Spacing tab</px></caption>
+<figureimage src="&FIG.spacing_tab;"/>
+</figure>
+
+<p>For some plot types only, this tab provides options to
+control the spacing between elements of the plot.
+For the <ref id="TimePlotWindow">Time Plot</ref>
+it contains the <label>Cell Gap</label> option which
+controls the number of blank pixels between individual
+panels in the stack of plots.
+For other plot types this configuration is not relevant,
+or is available from the <label>Axes</label> control.
 </p>
 
 </subdiv>
@@ -16634,13 +16655,15 @@ a new Time value; if you want to stop it doing that, use the
 Lock button (&IMG.LOCK;).
 </p>
 
-<p>Unlike the other plot windows (at time of writing) the Time plot
+<p>Unlike most of the other plot windows the Time plot
 can display different data plots in different plot
 <ref id="plotZones" plaintextref="yes">Zones</ref>
 stacked vertically on top of each other, so that different plots
 share a time axis but have their own Y axis.
-<em><strong>Note:</strong> This multi-zone feature is somewhat experimental,
-and the user interface may change in future versions.</em>
+The vertical spacing between the stacked plots can be configured
+using the <label>Cell Gap</label> configuration option in
+in the <label>Spacing</label> tab of the
+<ref id="FrameControl">Frame Control</ref>.
 </p>
 
 <p>The Time Plot offers the following plot controls:
@@ -33380,6 +33403,11 @@ introduced since the last version:
         <label>UDFs</label> tab with the
         <ref id="TapTableLoadDialog_query_metadata"
              >TAP metadata</ref>.</li>
+    <li>The gap between vertically stacked plots in the
+        <ref id="TimePlotWindow">Time Plot</ref> window
+        can now be adjusted using the
+        can now be adjusted using the Frame Control
+        <ref id="FrameControl_spacing">Spacing tab</ref>.</li>
     </ul>
     </p></dd>
 
