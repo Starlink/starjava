@@ -26,13 +26,14 @@ public class TimeStackGanger
             return true;
         }
         public ConfigKey<?>[] getGangerKeys() {
-            return new ConfigKey<?>[ 0 ];
+            return new ConfigKey<?>[] { ZONEGAP_KEY };
         }
         public Ganger<TimeSurfaceFactory.Profile,TimeAspect>
                 createGanger( Padding padding, ConfigMap config,
                               GangContext context ) {
+            int zoneGap = config.get( ZONEGAP_KEY ).intValue();
             return new TimeStackGanger( context.getRequestedZoneNames(),
-                                        padding );
+                                        padding, zoneGap );
         }
     };
 
@@ -41,10 +42,11 @@ public class TimeStackGanger
      *
      * @param  zoneNames   zone identifiers, one for each zone in the gang
      * @param  padding  defines user preferences, if any, for space
-     *                  reserved outside each plot zone
+     *                  reserved outside the whole gang
+     * @param  zoneGap  vertical gap between zones in gang
      */
-    public TimeStackGanger( String[] zoneNames, Padding padding ) {
-        super( zoneNames, UP, padding );
+    public TimeStackGanger( String[] zoneNames, Padding padding, int zoneGap ) {
+        super( zoneNames, UP, padding, zoneGap );
     }
 
     public boolean isTrimmingGlobal() {
