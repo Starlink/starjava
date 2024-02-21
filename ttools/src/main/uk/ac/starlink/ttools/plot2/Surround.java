@@ -155,6 +155,11 @@ public class Surround {
         return nedge > 0;
     }
 
+    @Override
+    public String toString() {
+        return top + ", " + left + ", " + bottom + ", " + right;
+    }
+
     /**
      * Adds another surround to this one.
      * Block extents are stacked, but under and over regions are
@@ -300,6 +305,11 @@ public class Surround {
             return new Block( Math.max( this.extent, other.extent ),
                               Math.max( this.under, other.under ),
                               Math.max( this.over, other.over ) );
+        }
+
+        @Override
+        public String toString() {
+            return under + "-" + extent + "-" + over;
         }
     }
 }
