@@ -99,15 +99,6 @@ public class TimeAxisController
     }
 
     @Override
-    public ConfigMap getConfig() {
-        ConfigMap config = super.getConfig();
-        assert ! config.keySet().contains( TimeSurfaceFactory.TLABEL_KEY );
-        config.put( TimeSurfaceFactory.TLABEL_KEY,
-                    TimeSurfaceFactory.TLABEL_KEY.getDefaultValue() );
-        return config;
-    }
-
-    @Override
     protected boolean clearRange( TimeSurfaceFactory.Profile oldProfile,
                                   TimeSurfaceFactory.Profile newProfile,
                                   PlotLayer[] oldLayers, PlotLayer[] newLayers,
@@ -145,6 +136,7 @@ public class TimeAxisController
      */
     private static ConfigKey<String>[] createAxisLabelKeys() {
         List<ConfigKey<String>> list = new ArrayList<ConfigKey<String>>();
+        list.add( TimeSurfaceFactory.TLABEL_KEY );
         list.add( TimeSurfaceFactory.YLABEL_KEY );
         @SuppressWarnings("unchecked")
         ConfigKey<String>[] keys =
