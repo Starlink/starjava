@@ -1,17 +1,25 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.function.Supplier;
+import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Gang;
 import uk.ac.starlink.ttools.plot2.Ganger;
 import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.ZoneContent;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
 
 /**
  * Ganger implementation for a vertically stacked gang of plots,
@@ -26,21 +34,25 @@ public abstract class StackGanger<P,A> implements Ganger<P,A> {
     private final int nz_;
     private final boolean isUp_;
     private final Padding padding_;
+    private final int zoneGap_;
+
+    /** Config key for vertical gap between zones. */
+    public static final ConfigKey<Integer> ZONEGAP_KEY = createZoneGapKey();
+
+    private static final int PAD = PlotPlacement.PAD;
 
     /**
      * Constructor.
-     * The supplied padding is currently applied outside each plot zone.
-     * That's not the only way to do it; you could imagine wanting to
-     * apply this padding outside the union of plot zones, or to
-     * be able to supply different paddings for each zone.
      *
      * @param  zoneNames   one string identifier for each required zone
      * @param  isUp  true if zones are ordered upwards on the graphics plane,
      *               false if they go down
      * @param  padding  defines user preferences, if any, for space
-     *                  reserved outside each plot zone
+     *                  reserved outside the whole gang
+     * @param  zoneGap  vertical gap between zones in gang
      */
-    protected StackGanger( String[] zoneNames, boolean isUp, Padding padding ) {
+    protected StackGanger( String[] zoneNames, boolean isUp, Padding padding,
+                           int zoneGap ) {
         zoneNames_ = zoneNames == null || zoneNames.length == 0
                    ? new String[] { "" }
                    : new LinkedHashSet<String>( Arrays.asList( zoneNames ) )
@@ -48,6 +60,7 @@ public abstract class StackGanger<P,A> implements Ganger<P,A> {
         nz_ = zoneNames_.length;
         isUp_ = isUp;
         padding_ = padding;
+        zoneGap_ = zoneGap;
     }
 
     /**
@@ -94,42 +107,49 @@ public abstract class StackGanger<P,A> implements Ganger<P,A> {
                             ZoneContent<P,A>[] contents,
                             Trimming[] trimmings, ShadeAxis[] shadeAxes,
                             boolean withScroll ) {
-        int[] heights = new int[ nz_ ];
-        for ( int iz = 0; iz < nz_; iz++ ) {
-            heights[ iz ] = gangExtBox.height / nz_
-                          + ( iz < gangExtBox.height % nz_ ? 1 : 0 );
-        }
-        Rectangle[] zboxes = new Rectangle[ nz_ ];
-        int y = 0;
-        for ( int iz = 0; iz < nz_; iz++ ) {
-            int h = heights[ iz ];
-            Rectangle zoneExtBox =
-                new Rectangle( gangExtBox.x,
-                               isUp_ ? gangExtBox.height - y - h : y,
-                               gangExtBox.width, h );
-            y += h;
-            ZoneContent<P,A> content = contents[ iz ];
-            zboxes[ iz ] =
-                PlotPlacement
-               .calculateDataBounds( zoneExtBox, padding_, surfFact,
-                                     content.getProfile(), content.getAspect(),
-                                     withScroll, trimmings[ iz ],
-                                     shadeAxes[ iz ] );
-        }
-        assert y == gangExtBox.height : y + " !=" + gangExtBox.height;
-        int maxxlo = zboxes[ 0 ].x;
-        int minxhi = zboxes[ 0 ].x + zboxes[ 0 ].width;
-        for ( int iz = 1; iz < nz_; iz++ ) {
-            maxxlo = Math.max( maxxlo, zboxes[ iz ].x );
-            minxhi = Math.min( minxhi, zboxes[ iz ].x + zboxes[ iz ].width );
-        }
-        for ( int iz = 0; iz < nz_; iz++ ) {
-            zboxes[ iz ].x = maxxlo;
-            zboxes[ iz ].width = Math.max( minxhi - maxxlo, 10 );
-        }
-        return new StackGang( zboxes );
-    }
 
+        /* Calculate how much space is required for decorations that
+         * do not depend (much) on the size of the plot bounds. */
+        ZoneContent<P,A> zc0 = contents.length > 0 ? contents[ 0 ] : null;
+        Supplier<Captioner> capSupplier =
+              zc0 == null
+            ? () -> null
+            : new Supplier<Captioner>() {
+                  private Captioner captioner_;
+                  public Captioner get() {
+                      if ( captioner_ == null ) {
+                          captioner_ = surfFact.createSurface( gangExtBox,
+                                                               zc0.getProfile(),
+                                                               zc0.getAspect() )
+                                               .getCaptioner();
+                      }
+                      return captioner_;
+                  }
+              };
+        Surround decSurround = Surround.fromInsets( new Insets( 0, 0, 0, 0 ) );
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            Surround surround =
+                PlotPlacement
+               .calculateApproxDecorationSurround( gangExtBox, trimmings[ iz ],
+                                                   shadeAxes[ iz ],
+                                                   capSupplier );
+            decSurround = decSurround.union( surround );
+        }
+
+        /* Calculate how much space is required for axis labels. */
+        Rectangle decBox =
+            PlotUtil.subtractInsets( gangExtBox, decSurround.toInsets() );
+        Surround axisSurround =
+            calculateAxisSurround( decBox, surfFact, contents, withScroll );
+
+        /* Combine the two to work out the area available for the plots
+         * themselves, and create a gang based on that. */
+        Surround gangSurround = decSurround.union( axisSurround );
+        Insets gangInsets =
+            Padding.padInsets( padding_, gangSurround.toInsets() );
+        return createGang( PlotUtil.subtractInsets( gangExtBox, gangInsets ) );
+    }
+ 
     public Gang createApproxGang( Rectangle extBounds ) {
         int h = extBounds.height / nz_;
         Rectangle[] boxes = new Rectangle[ nz_ ];
@@ -173,6 +193,83 @@ public abstract class StackGanger<P,A> implements Ganger<P,A> {
 
     public P[] adjustProfiles( P[] profiles ) {
         return profiles;
+    }
+
+    /**
+     * Creates a gang given the bounds of the cells excluding any
+     * space for decorations.
+     *
+     * @param  gangInBox  bounding box for plot internal bounds only
+     * @return   new gang
+     */
+    private StackGang createGang( Rectangle gangInBox ) {
+        int zh = ( gangInBox.height + zoneGap_ ) / nz_;
+        int cw = gangInBox.width;
+        int xoff = gangInBox.x;
+        int yoff = gangInBox.y;
+        Rectangle[] boxes = new Rectangle[ nz_ ];
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            int rx = xoff;
+            int ry = yoff + ( isUp_ ? nz_ - 1 - iz : iz ) * zh;
+            int rw = cw;
+            int rh = zh - zoneGap_;
+            boxes[ iz ] = new Rectangle( rx, ry, rw, rh );
+        }
+        return new StackGang( boxes );
+    }
+
+    /**
+     * Calculates the space surrounding a gang required to accommodate
+     * axis labels.
+     *
+     * @param  gangExtBox  total area available for all zones and associated
+     *                     decorations
+     * @param  surfFact   surface factory
+     * @param  zoneContents  plot content for each zone
+     * @param  withScroll  true if the positioning should work well
+     *                     even after some user scrolling
+     * @return     required surround
+     */
+    private Surround
+            calculateAxisSurround( Rectangle gangExtBox,
+                                   SurfaceFactory<P,A> surfFact,
+                                   ZoneContent<P,A>[] zoneContents,
+                                   boolean withScroll ) {
+        Surround surround =
+            Surround.fromInsets( new Insets( PAD, PAD, PAD, PAD ) );
+        int cw0 = gangExtBox.width;
+        int ch0 = gangExtBox.height / nz_;
+        Padding zonePadding = null;
+        for ( int iz = 0; iz < nz_; iz++ ) {
+            ZoneContent<P,A> content = zoneContents[ iz ];
+            Rectangle zoneExtBox = new Rectangle( 0, 0, cw0, ch0 );
+            Surround zoneSurround =
+                PlotPlacement
+               .createPlacement( zoneExtBox, zonePadding, surfFact,
+                                 content.getProfile(),
+                                 content.getAspect(), withScroll,
+                                 (Trimming) null, (ShadeAxis) null )
+               .getSurface()
+               .getSurround( withScroll );
+            surround = surround.union( zoneSurround );
+        }
+        return surround;
+    }
+
+    /**
+     * Creates a config key suitable for configuring inter-plot gap.
+     *
+     * @return  new config key
+     */
+    private static ConfigKey<Integer> createZoneGapKey() {
+        ConfigMeta meta = new ConfigMeta( "cellgap", "Cell Gap" );
+        meta.setShortDescription( "Vertical gap between plots" );
+        meta.setXmlDescription( new String[] {
+            "<p>Gives the number of pixels between individual members",
+            "in the stack of plots.",
+            "</p>",
+        } );
+        return IntegerConfigKey.createSpinnerKey( meta, 4, 0, 32 );
     }
 
     /**

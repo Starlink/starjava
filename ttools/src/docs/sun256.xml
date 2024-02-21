@@ -15172,6 +15172,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix <ref id="plot2time"><code>plot2time</code></ref> so that
         zone-specific text style configuration works correctly for
         legends and colour ramp annotations.</li>
+    <li>New <code>plot2time</code> parameter
+        <ref id="plot2time-cellgap"><code>cellgap</code></ref>
+        configures gap between stacked plots.</li>
     </ul>
     </p></dd>
 
