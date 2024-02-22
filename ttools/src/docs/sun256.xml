@@ -15079,7 +15079,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
-    <li>Update VOTable 1.5 schema to WD-VOTable-1.5-20231120
+    <li>Update VOTable 1.5 schema from WD to REC-VOTable-1.5
         (affects <code>votlint</code>).</li>
     <li>Upgrade Unity to v1.1-b1, which corresponds to REC-VOUnits-1.1.
         Only minor functional differences expected since previous
