@@ -18,8 +18,8 @@ public enum AdqlVersion {
              "features-adqlgeo",
          } ),
  
-    /** ADQL version 2.1.  This corresponds to PR-ADQL-2.1-20230418.  */
-    V21( "2.1-PR", "2.1", new Ivoid( "ivo://ivoa.net/std/ADQL#v2.1" ),
+    /** ADQL version 2.1. */
+    V21( "2.1", "2.1", new Ivoid( "ivo://ivoa.net/std/ADQL#v2.1" ),
          ADQLParser.ADQLVersion.V2_1,
          new String[] {
              "features-udf",
