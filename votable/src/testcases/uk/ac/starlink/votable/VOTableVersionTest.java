@@ -41,8 +41,7 @@ public class VOTableVersionTest extends TestCase {
                       new ArrayList<VOTableVersion>( versions ) );
 
         assertNull( VOTableVersion.V14.getDraftIdentifier() );
-        assertTrue( VOTableVersion.V15.getDraftIdentifier()
-                                      .startsWith( "WD-" ) );
+        assertNull( VOTableVersion.V15.getDraftIdentifier() );
     }
 
     /**
