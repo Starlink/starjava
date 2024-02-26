@@ -8,7 +8,9 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,20 +39,26 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 /**
- * Model for tree which displays TAP User Defined Function definitions.
+ * Model for tree which displays ADQL language features.
+ * This includes standard and user-defined functions,
+ * as well as other mandatory and declared language features.
  *
  * @author   Mark Taylor
  * @since    19 Feb 2024
  * @see  <a href="https://www.ivoa.net/documents/TAPRegExt/20120827/REC-TAPRegExt-1.0.html#langs">TAPRegExt 1.0 sec 2.3</a>
  */
-public class UdfTreeModel implements TreeModel {
+public class FeatureTreeModel implements TreeModel {
 
     private final List<TreeModelListener> listeners_;
     private final NodeRenderer rootRenderer_;
-    private final NodeRenderer nameRenderer_;
+    private final NodeRenderer categoryRenderer_;
+    private final NodeRenderer functionRenderer_;
+    private final NodeRenderer featureRenderer_;
     private final NodeRenderer signatureRenderer_;
-    private final NodeRenderer argRenderer_;
+    private final NodeRenderer plainRenderer_;
     private final NodeRenderer descriptionRenderer_;
+    private TapCapability tcap_;
+    private AdqlVersion adqlVersion_;
     private Node root_;
 
     private static final Pattern FUNC_REGEX =
@@ -66,7 +74,7 @@ public class UdfTreeModel implements TreeModel {
      *
      * @param  treeScroller   scroll pane containing tree
      */
-    public UdfTreeModel( JScrollPane treeScroller ) {
+    public FeatureTreeModel( JScrollPane treeScroller ) {
         listeners_ = new ArrayList<TreeModelListener>();
 
         /* Arrange to re-render some of the cells when the viewport
@@ -84,9 +92,9 @@ public class UdfTreeModel implements TreeModel {
         } );
 
         /* Set up renderers for different types of tree node. */
-        Font labelFont =
-            UIManager.getFont( "Label.font" ).deriveFont( Font.BOLD );
+        Font labelFont = UIManager.getFont( "Label.font" );
         Color sigColor = new Color( 0x2020d0 );
+        Color descripColor = new Color( 0x707070 );
         Font sigFont =
             new Font( Font.MONOSPACED, Font.PLAIN, labelFont.getSize() );
         Border descripBorder =
@@ -100,8 +108,19 @@ public class UdfTreeModel implements TreeModel {
             public Component renderNode( Node node,
                                          Supplier<JLabel> dfltRendering ) {
                 JLabel label = dfltRendering.get();
-                label.setText( node.getText() );
-                label.setFont( labelFont );
+                label.setText( node.text_ );
+                return label;
+            }
+        };
+        categoryRenderer_ = new NodeRenderer() {
+            public boolean isWidthSensitive() {
+                return false;
+            }
+            public Component renderNode( Node node,
+                                         Supplier<JLabel> dfltRendering ) {
+                JLabel label = dfltRendering.get();
+                label.setText( node.text_
+                             + " (" + node.children_.size() + ")" );
                 return label;
             }
         };
@@ -115,7 +134,7 @@ public class UdfTreeModel implements TreeModel {
             public void paintIcon( Component c, Graphics g, int x, int y ) {
             }
         };
-        argRenderer_ = new NodeRenderer() {
+        plainRenderer_ = new NodeRenderer() {
             public boolean isWidthSensitive() {
                 return false;
             }
@@ -126,25 +145,24 @@ public class UdfTreeModel implements TreeModel {
                 return label;
             }
         };
-        nameRenderer_ = new NodeRenderer() {
+        functionRenderer_ = new NodeRenderer() {
+            private final Icon icon_ = ResourceIcon.NODE_FUNCTION;
             public boolean isWidthSensitive() {
                 return true;
             }
             public Component renderNode( Node node,
                                          Supplier<JLabel> dfltRendering ) {
                 JLabel label = dfltRendering.get();
-                Icon icon = ResourceIcon.NODE_FUNCTION;
-                String text = node.getText();
-                label.setIcon( icon );
-                label.setFont( labelFont );
+                String text = node.text_;
+                label.setIcon( icon_ );
                 label.setText( text );
-                int extraWidth = 50 + ( icon == null ? 0 : icon.getIconWidth());
-                int wrapWidth = viewport.getWidth() - extraWidth;
+                int wrapWidth = viewport.getWidth()
+                              - getIndentX( node ) - icon_.getIconWidth();
                 int labelWidth = viewport.getGraphics()
-                                .getFontMetrics( labelFont )
+                                .getFontMetrics( label.getFont() )
                                 .stringWidth( text );
                 if ( labelWidth > wrapWidth ) {
-                    Matcher matcher = FUNC_REGEX.matcher( node.getText() );
+                    Matcher matcher = FUNC_REGEX.matcher( node.text_ );
                     if ( matcher.matches() ) {
                         int narg = matcher.group( 2 ).replaceAll( "[^,]", "" )
                                   .length() + 1;
@@ -156,7 +174,20 @@ public class UdfTreeModel implements TreeModel {
                 return label;
             }
         };
+        featureRenderer_ = new NodeRenderer() {
+            private final Icon icon_ = ResourceIcon.NODE_FEATURE;
+            public boolean isWidthSensitive() {
+                return false;
+            }
+            public Component renderNode( Node node,
+                                         Supplier<JLabel> dfltRendering ) {
+                JLabel label = dfltRendering.get();
+                label.setIcon( icon_ );
+                return label;
+            }
+        };
         signatureRenderer_ = new NodeRenderer() {
+            private final Icon icon_ = ResourceIcon.NODE_SIGNATURE;
             public boolean isWidthSensitive() {
                 return true;
             }
@@ -164,14 +195,14 @@ public class UdfTreeModel implements TreeModel {
                                          Supplier<JLabel> dfltRendering ) {
 
                 /* Form is an xs:token, so whitespace is collapsed. */
-                String text = node.getText().trim().replaceAll( "\\s+", " " );
-                return createWrappedTextComponent( viewport, text,
-                                                   ResourceIcon.NODE_SIGNATURE,
+                String text = node.text_.trim().replaceAll( "\\s+", " " );
+                return createWrappedTextComponent( viewport, node, text, icon_,
                                                    sigFont, sigColor,
                                                    (Border) null );
             }
         };
         descriptionRenderer_ = new NodeRenderer() {
+            private final Icon icon_ = ResourceIcon.NODE_DOC;
             public boolean isWidthSensitive() {
                 return true;
             }
@@ -185,38 +216,42 @@ public class UdfTreeModel implements TreeModel {
                  * Leading spaces are elided since it's common for text in
                  * XML content to have non-significant indentation.
                  * But this will in some cases lose intended formatting. */
-                String text = node.getText().trim()
+                String text = node.text_.trim()
                              .replaceAll( "\\t", " " )
                              .replaceAll( " *\\n *", "\n" )
                              .replaceAll( " +", " " )
                              .replaceAll( "([^\\n])\\n([^\\n])", "$1 $2" );
-                return createWrappedTextComponent( viewport, text,
-                                                   ResourceIcon.NODE_DOC,
-                                                   (Font) null, (Color) null,
+                return createWrappedTextComponent( viewport, node, text, icon_,
+                                                   (Font) null, descripColor,
                                                    descripBorder );
             }
         };
 
         /* Set the initial, empty, content of the model. */
-        setUdfs( new TapLanguageFeature[ 0 ] );
+        adqlVersion_ = AdqlVersion.V20;
+        tcap_ = null;
+        updateContent();
     }
 
     /**
-     * Set the content of this tree by providing TAP language features
-     * which are assumed to represent UDFs.
-     *
-     * @param  features  features representing UDFs
+     * Set the content of this tree according to a supplied TapCapability.
+     * 
+     * @param  tcap  capability
      */
-    public void setUdfs( TapLanguageFeature[] features ) {
-        root_ = createArrayNode( "User-Defined Functions", rootRenderer_,
-                                 features == null
-                               ? new Node[ 0 ]
-                               : Arrays.stream( features )
-                                       .map( f -> createUdfNode( f ) )
-                                       .toArray( n -> new Node[ n ] ) );
-        TreeModelEvent evt = new TreeModelEvent( this, new Object[] { root_ } );
-        for ( TreeModelListener l : listeners_ ) {
-            l.treeStructureChanged( evt );
+    public void setCapability( TapCapability tcap ) {
+        tcap_ = tcap;
+        updateContent();
+    }
+
+    /**
+     * Sets the ADQL version for which this tree should display information.
+     *
+     * @param  adqlVersion  version
+     */
+    public void setAdqlVersion( AdqlVersion adqlVersion ) {
+        if ( ! Objects.equals( adqlVersion, adqlVersion_ ) ) {
+            adqlVersion_ = adqlVersion;
+            updateContent();
         }
     }
 
@@ -225,21 +260,21 @@ public class UdfTreeModel implements TreeModel {
     }
 
     public int getChildCount( Object parent ) {
-        return ((Node) parent).getChildCount();
+        return ((Node) parent).children_.size();
     }
 
     public Object getChild( Object parent, int index ) {
-        return ((Node) parent).getChild( index );
+        return ((Node) parent).children_.get( index ) ;
     }
 
     public boolean isLeaf( Object node ) {
-        return ((Node) node).isLeaf();
+        return ((Node) node).children_.isEmpty();
     }
 
     public int getIndexOfChild( Object parent, Object child ) {
         return parent == null || child == null
              ? -1
-             : ((Node) parent).getChildIndex( (Node) child );
+             : ((Node) parent).children_.indexOf( child );
     }
 
     public void addTreeModelListener( TreeModelListener l ) {
@@ -255,6 +290,82 @@ public class UdfTreeModel implements TreeModel {
     }
 
     /**
+     * Populates the tree according to the current configuration.
+     * Should be called if the content (TAP capabilities or ADQL version)
+     * may have changed.
+     */
+    private void updateContent() {
+
+        /* Build function subtree. */
+        Node mathNode = createFunctionsNode( "ADQL Maths",
+                                             AdqlFeature.getMathsFunctions() );
+        Node trigNode = createFunctionsNode( "ADQL Trig",
+                                             AdqlFeature.getTrigFunctions() );
+        Node geomNode = createFunctionsNode(
+            "ADQL " + adqlVersion_.getNumber() + " Geometry",
+            AdqlFeature.getGeomFunctions( adqlVersion_, tcap_ ) );
+        Node optfuncNode = AdqlVersion.V20.equals( adqlVersion_ )
+                     ? null
+                     : createFunctionsNode(
+                          "ADQL " + adqlVersion_.getNumber() + " Optional",
+                          AdqlFeature.getOptionalFunctions( tcap_ ) );
+        Node udfNode = new Node( "Service-specific UDFs", categoryRenderer_ );
+        TapLanguageFeature[] udfFeatures =
+            Arrays.stream( tcap_ == null ? new TapLanguage[ 0 ]
+                                         : tcap_.getLanguages() )
+           .flatMap( lang -> lang.getFeaturesMap().entrySet().stream() )
+           .filter( entry -> AdqlFeature.UDF_FILTER.test( entry.getKey() ) )
+           .flatMap( entry -> Arrays.stream( entry.getValue() ) )
+           .toArray( n -> new TapLanguageFeature[ n ] );
+        for ( TapLanguageFeature feat : udfFeatures ) {
+            udfNode.addChild( createUdfNode( feat ) );
+        }
+        Node functionNode = new Node( "Functions", rootRenderer_ );
+        functionNode.addChild( udfNode );
+        functionNode.addChild( geomNode );
+        if ( optfuncNode != null ) {
+            functionNode.addChild( optfuncNode );
+        }
+        functionNode.addChild( mathNode );
+        functionNode.addChild( trigNode );
+
+        /* Build feature subtree. */
+        Node optFeatureNode = AdqlVersion.V20.equals( adqlVersion_ )
+            ? null
+            : createFeaturesNode( "ADQL " + adqlVersion_.getNumber() +
+                                  " Optional",
+                                  AdqlFeature.getOptionalFeatures( tcap_ ) );
+        Node customFeatureNode =
+            new Node( "Service-specific", categoryRenderer_ );
+        Node[] customFeatureNodes =
+            Arrays.stream( tcap_ == null ? new TapLanguage[ 0 ]
+                                         : tcap_.getLanguages() )
+           .flatMap( lang -> lang.getFeaturesMap().entrySet().stream() )
+           .filter( entry -> AdqlFeature.NONSTD_FILTER.test( entry.getKey() ) )
+           .flatMap( e -> Arrays.stream( e.getValue() )
+                         .map( f -> createCustomFeatureNode( e.getKey(), f ) ) )
+           .toArray( n -> new Node[ n ] );
+
+        for ( Node node : customFeatureNodes ) {
+            customFeatureNode.addChild( node );
+        }
+        Node featureNode = new Node( "Features", rootRenderer_ );
+        featureNode.addChild( customFeatureNode );
+        if ( optFeatureNode != null ) {
+            featureNode.addChild( optFeatureNode );
+        }
+
+        /* Update root node content. */
+        root_ = new Node( "Language Variant", rootRenderer_ );
+        root_.addChild( functionNode );
+        root_.addChild( featureNode );
+        TreeModelEvent evt = new TreeModelEvent( this, new Object[] { root_ } );
+        for ( TreeModelListener l : listeners_ ) {
+            l.treeStructureChanged( evt );
+        }
+    }
+
+    /**
      * Recursive method called if the viewport may have changed width
      * to make sure that nodes with wrapping text are wrapped at
      * the right width.
@@ -267,7 +378,7 @@ public class UdfTreeModel implements TreeModel {
         /* If this node has wrapped text, signal to listeners that it has
          * undergone a change.  This will trigger re-rendering appropriate
          * for the current viewport width. */
-        if ( node.getRenderer().isWidthSensitive() ) {
+        if ( node.renderer_.isWidthSensitive() ) {
             TreeModelEvent evt = new TreeModelEvent( this, path );
             for ( TreeModelListener l : listeners_ ) {
                 l.treeNodesChanged( evt );
@@ -275,14 +386,13 @@ public class UdfTreeModel implements TreeModel {
         }
 
         /* Recurse. */
-        int nchild = node.getChildCount();
-        for ( int ic = 0; ic < nchild; ic++ ) {
-            updateTextNodes( path.pathByAddingChild( node.getChild( ic ) ) );
+        for ( Node child : node.children_ ) {
+            updateTextNodes( path.pathByAddingChild( child ) );
         }
     }
 
     /**
-     * Creates a tree node for a given feature.
+     * Creates a tree node representing a UDF.
      *
      * @param  feature   features assumed to represent a UDF
      * @return  tree node
@@ -294,28 +404,106 @@ public class UdfTreeModel implements TreeModel {
         if ( label == null || label.trim().length() == 0 ) {
             label = form;
         }
-        Arg[] args = sig.getArgs();
-        int narg = args.length;
-        String[] sigItems = new String[ narg + 1 ];
-        for ( int i = 0; i < narg; i++ ) {
-            Arg arg = args[ i ];
-            sigItems[ i ] = Integer.toString( i + 1 ) + ": "
+        Node signatureNode = new Node( form, signatureRenderer_ );
+        int iarg = 0;
+        for ( Arg arg : sig.getArgs() ) {
+            String argTxt = Integer.toString( ++iarg ) + ": "
                           + arg.getArgName() + " " + arg.getArgType();
+            signatureNode.addChild( new Node( argTxt, plainRenderer_ ) );
         }
-        sigItems[ narg ] = "return: " + sig.getReturnType();
-        Node[] argNodes = Arrays.stream( sigItems )
-                         .map( txt -> createLeafNode( txt, argRenderer_ ) )
-                         .toArray( n -> new Node[ n ] );
-        String description = feature.getDescription();
-        return createArrayNode( label, nameRenderer_, new Node[] {
-            createArrayNode( form, signatureRenderer_, argNodes ),
-            createLeafNode( description, descriptionRenderer_ ),
-        } );
+        signatureNode.addChild( new Node( "return: " + sig.getReturnType(),
+                                          plainRenderer_ ) );
+        Node udfNode = new Node( label, functionRenderer_ );
+        udfNode.addChild( signatureNode );
+        udfNode.addChild( new Node( feature.getDescription(),
+                                    descriptionRenderer_ ) );
+        return udfNode;
+    }
+
+    /**
+     * Creates a node representing a non-standard feature.
+     *
+     * @param   ivoid  feature type
+     * @param   feature   feature object
+     * @return  new node
+     */
+    private Node createCustomFeatureNode( Ivoid ivoid,
+                                          TapLanguageFeature feature ) {
+        Node node = new Node( feature.getForm(), featureRenderer_ );
+        if ( ivoid != null ) {
+            node.addChild( new Node( ivoid.toString(), plainRenderer_ ) );
+        }
+        node.addChild( new Node( feature.getDescription(),
+                                 descriptionRenderer_ ) );
+        return node;
+    }
+
+    /**
+     * Creates a node to display a group of more or less standard
+     * ADQL functions.
+     *
+     * @param   name    node name
+     * @param  funcs   child functions in the node
+     */
+    private Node createFunctionsNode( String name,
+                                      AdqlFeature.Function[] funcs ) {
+        Node funcsNode = new Node( name, categoryRenderer_ );
+        for ( AdqlFeature.Function func : funcs ) {
+            String fname = func.getName();
+            AdqlFeature.Arg[] args = func.getArgs();
+            int narg = args.length;
+            StringBuffer lbuf = new StringBuffer( fname ).append( '(' );
+            StringBuffer sbuf = new StringBuffer( fname ).append( '(' );
+            for ( int iarg = 0; iarg < narg; iarg++ ) {
+                AdqlFeature.Arg arg = args[ iarg ];
+                if ( iarg > 0 ) {
+                    lbuf.append( ", " );
+                    sbuf.append( ", " );
+                }
+                lbuf.append( arg.getName() );
+                sbuf.append( arg.getName() );
+                if ( arg.getType() != null ) {
+                    sbuf.append( ' ' )
+                        .append( arg.getType() );
+                }
+            }
+            lbuf.append( ')' );
+            sbuf.append( ") -> " )
+                .append( func.getReturnType() );
+            String label = lbuf.toString();
+            String sig = sbuf.toString();
+            Node funcNode = new Node( label, functionRenderer_ );
+            funcNode.addChild( new Node( sig, signatureRenderer_ ) );
+            funcNode.addChild( new Node( func.getDescription(),
+                                         descriptionRenderer_ ) );
+            funcsNode.addChild( funcNode );
+        }
+        return funcsNode;
+    }
+
+    /**
+     * Creates a node containing a number of non-function
+     * language features.
+     *
+     * @param  name  node name
+     * @param  features   features to form children
+     */
+    private Node createFeaturesNode( String name, AdqlFeature[] features ) {
+        Node featsNode = new Node( name, categoryRenderer_ );
+        for ( AdqlFeature feat : features ) {
+            Node featNode = new Node( feat.getName(), featureRenderer_ );
+            featNode.addChild( new Node( feat.getDescription(),
+                                         descriptionRenderer_ ) );
+            featsNode.addChild( featNode );
+        }
+        return featsNode;
     }
 
     /**
      * Returns a renderer that can be used for the JTree displaying
      * this model.
+     *
+     * @return   renderer
      */
     public static TreeCellRenderer createRenderer() {
         return new DefaultTreeCellRenderer() {
@@ -329,11 +517,11 @@ public class UdfTreeModel implements TreeModel {
                 Node node = (Node) value;
                 Supplier<JLabel> dfltRendering = () ->
                     (JLabel) super.getTreeCellRendererComponent( tree,
-                                                                 node.getText(),
+                                                                 node.text_,
                                                                  isSel, isExp,
                                                                  isLeaf, irow,
                                                                  hasFocus );
-                return node.getRenderer().renderNode( node, dfltRendering );
+                return node.renderer_.renderNode( node, dfltRendering );
             }
         };
     }
@@ -344,6 +532,7 @@ public class UdfTreeModel implements TreeModel {
      * containing viewport.
      *
      * @param  viewport  viewport containing the text
+     * @param  node     node to be rendered
      * @param  text     text to display
      * @param  icon     icon to display
      * @param  font     text font
@@ -352,7 +541,7 @@ public class UdfTreeModel implements TreeModel {
      * @return  component for display in a tree
      */
     private static JComponent
-            createWrappedTextComponent( JViewport viewport,
+            createWrappedTextComponent( JViewport viewport, Node node,
                                         String text, Icon icon,
                                         Font font, Color color,
                                         Border border ) {
@@ -370,17 +559,14 @@ public class UdfTreeModel implements TreeModel {
             textArea.setForeground( color );
         }
 
-        /* Work out what width corresponds to the current available width
-         * for the text component.  The constant here is obviously a bit
-         * of a hack, it represents the offset from the left margin of
-         * the tree at which these components are expected to appear. */
-        int extraWidth = 50 + ( icon == null ? 0 : icon.getIconWidth() );
-        int wrapWidth = viewport.getWidth() - extraWidth;
-
         /* Wrap the lines so they will fit in the required width.
          * This is done using bad magic from
          * https://stackoverflow.com/questions/4083322/.
          * It seems to work. */
+        int wrapWidth = viewport.getWidth() - getIndentX( node );
+        if ( icon != null ) {
+            wrapWidth -= icon.getIconWidth();
+        }
         textArea.setSize( wrapWidth, 1 );
         textArea.setSize( textArea.getPreferredSize() );
 
@@ -418,65 +604,21 @@ public class UdfTreeModel implements TreeModel {
     }
 
     /**
-     * Returns a tree node that does not have children.
+     * Returns the horizontal position in the JTree window at which
+     * the text part of a node will start.
      *
-     * @param  text  text representation of node
-     * @param  renderer  renderer for node
-     * @return  new node
+     * @param   node  node to display
+     * @return  horizontal indent of node text, in pixels
      */
-    private static Node createLeafNode( String text, NodeRenderer renderer ) {
-        return new Node() {
-            public int getChildIndex( Node child ) {
-                return -1;
-            }
-            public boolean isLeaf() {
-                return true;
-            }
-            public int getChildCount() {
-                return 0;
-            }
-            public Node getChild( int index ) {
-                return null;
-            }
-            public String getText() {
-                return text;
-            }
-            public NodeRenderer getRenderer() {
-                return renderer;
-            }
-        };
-    }
+    private static int getIndentX( Node node ) {
 
-    /**
-     * Returns a tree node that has children.
-     *
-     * @param   text  text representation of node
-     * @param   renderer   renderer for node
-     * @param   children   child nodes
-     * @return   new node
-     */
-    private static Node createArrayNode( String text, NodeRenderer renderer,
-                                         Node[] children ) {
-        return new Node() {
-            public int getChildIndex( Node child ) {
-                return Arrays.asList( children ).indexOf( child );
-            }
-            public boolean isLeaf() {
-                return children == null || children.length == 0;
-            }
-            public int getChildCount() {
-                return children.length;
-            }
-            public Node getChild( int index ) {
-                return children[ index ];
-            }
-            public String getText() {
-                return text;
-            }
-            public NodeRenderer getRenderer() {
-                return renderer;
-            }
-        };
+        /* This number is a bit of a guess.  It works OK for me on linux. */
+        int indentPerLevel = 24;
+        int indent = 0;
+        while ( ( node = node.parent_ ) != null ) {
+            indent += indentPerLevel;
+        }
+        return indent;
     }
 
     /**
@@ -549,51 +691,36 @@ public class UdfTreeModel implements TreeModel {
     /**
      * Represents an entry in this tree model.
      */
-    private static interface Node {
+    private static class Node {
+
+        final String text_;
+        final NodeRenderer renderer_;
+        final List<Node> children_;
+        Node parent_;
+        private final List<Node> mutableChildren_;  // don't use it
 
         /**
-         * Gives a textual representation for this node.
+         * Constructor.
          *
-         * @return  text of node, may be short or long
+         * @param  text  node text
+         * @param  renderer  node renderer
          */
-        String getText();
+        public Node( String text, NodeRenderer renderer ) {
+            text_ = text;
+            renderer_ = renderer;
+            mutableChildren_ = new ArrayList<Node>();
+            children_ = Collections.unmodifiableList( mutableChildren_ );
+        }
 
         /**
-         * Returns a renderer for this node.
+         * Adds a child to this node.
          *
-         * @return  renderer
+         * @param  child  new child
          */
-        NodeRenderer getRenderer();
-
-        /**
-         * Indicates whether this node is a leaf of the tree.
-         *
-         * @return  false if this node type cannot have children
-         */
-        boolean isLeaf();
-
-        /**
-         * Returns the number of children owned by this node.
-         *
-         * @return  child count
-         */
-        int getChildCount();
-
-        /**
-         * Returns a child of this node.
-         *
-         * @param  index  index
-         * @return  child at given index
-         */
-        Node getChild( int index );
-
-        /**
-         * Returns the index of a child from this parent.
-         *
-         * @param  child  child
-         * @return   index of child, or -1 if it's not a child
-         */
-        int getChildIndex( Node child );
+        public void addChild( Node child ) {
+            child.parent_ = this;
+            mutableChildren_.add( child );
+        }
     }
 
     /**

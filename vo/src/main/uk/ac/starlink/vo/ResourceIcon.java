@@ -44,6 +44,7 @@ public class ResourceIcon {
         NODE_SERVICE = readIcon( "service_node.png" ),
         NODE_TABLE = readIcon( "table_node.png" ),
         NODE_FUNCTION = readIcon( "function_node.png" ),
+        NODE_FEATURE = readIcon( "feature_node.png" ),
         NODE_SIGNATURE = readIcon( "signature_node.png" ),
         NODE_DOC = readIcon( "doc_node.png" ),
         EXTLINK = readIcon( "extlink.png" ),

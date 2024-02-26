@@ -53,6 +53,8 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.JTextComponent;
@@ -87,8 +89,8 @@ public class TableSetPanel extends JPanel {
     private final JRadioButton sortAlphaButt_;
     private final JRadioButton sortServiceButt_;
     private final TreeSelectionModel selectionModel_;
-    private final JTree udfTree_;
-    private final UdfTreeModel udfTreeModel_;
+    private final JTree featureTree_;
+    private final FeatureTreeModel featureTreeModel_;
     private final JTable colTable_;
     private final JTable foreignTable_;
     private final ArrayTableModel<ColumnMeta> colTableModel_;
@@ -100,7 +102,7 @@ public class TableSetPanel extends JPanel {
     private final JTabbedPane detailTabber_;
     private final JScrollPane treeScroller_;
     private final int itabService_;
-    private final int itabUdf_;
+    private final int itabFeature_;
     private final int itabSchema_;
     private final int itabTable_;
     private final int itabCol_;
@@ -134,11 +136,6 @@ public class TableSetPanel extends JPanel {
 
     /** Number of nodes below which tree nodes are expanded. */
     private static final int TREE_EXPAND_THRESHOLD = 100;
-
-    private static final Ivoid UDF_FTYPE =
-        TapCapability.createTapRegExtIvoid( "#features-udf" );
-    private static final Predicate<Ivoid> UDF_FILTER =
-        ftype -> UDF_FTYPE.equals( ftype );
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -254,16 +251,37 @@ public class TableSetPanel extends JPanel {
         new ArrayTableSorter<ForeignMeta>( foreignTableModel_ )
            .install( foreignTable_.getTableHeader() );
 
-        /* Create tree for UDF display. */
-        udfTree_ = new JTree();
-        JScrollPane udfScroller = metaScroller( udfTree_ );
-        udfTreeModel_ = new UdfTreeModel( udfScroller );
-        udfTree_.setModel( udfTreeModel_ );
-        udfTree_.setRootVisible( true );
-        udfTree_.setShowsRootHandles( false );
-        udfTree_.setLargeModel( false );
-        udfTree_.putClientProperty( "JTree.lineStyle", "None" );
-        udfTree_.setCellRenderer( UdfTreeModel.createRenderer() );
+        /* Create tree for ADQL language feature display. */
+        featureTree_ = new JTree();
+        JScrollPane featureScroller = metaScroller( featureTree_ );
+        featureTreeModel_ = new FeatureTreeModel( featureScroller );
+        featureTree_.setModel( featureTreeModel_ );
+        featureTree_.setRootVisible( false );
+        featureTree_.setShowsRootHandles( true );
+        featureTree_.setSelectionModel( null );
+        featureTree_.setLargeModel( false );
+        featureTree_.putClientProperty( "JTree.lineStyle", "None" );
+        featureTree_.setCellRenderer( FeatureTreeModel.createRenderer() );
+        featureTreeModel_.addTreeModelListener( new TreeModelListener() {
+            public void treeNodesChanged( TreeModelEvent evt ) {
+            }
+            public void treeNodesInserted( TreeModelEvent evt ) {
+            }
+            public void treeNodesRemoved( TreeModelEvent evt ) {
+            }
+            public void treeStructureChanged( TreeModelEvent evt ) {
+                TreePath path = evt.getTreePath();
+                if ( path.getPathCount() == 1 ) {
+                    Object root = path.getLastPathComponent();
+                    int nc = featureTreeModel_.getChildCount( root );
+                    for ( int i = 0; i < nc; i++ ) {
+                        Object child = featureTreeModel_.getChild( root, i );
+                        featureTree_.expandPath( path
+                                                .pathByAddingChild( child ) );
+                    }
+                }
+            }
+        } );
 
         /* Construct and place tabs to display individual metadata items. */
         Consumer<URL> urlHandler = url -> tld.getUrlHandler().accept( url );
@@ -275,8 +293,8 @@ public class TableSetPanel extends JPanel {
         int itab = 0;
         detailTabber_.addTab( "Service", metaScroller( servicePanel_ ) );
         itabService_ = itab++;
-        detailTabber_.addTab( "UDFs", udfScroller );
-        itabUdf_ = itab++;
+        detailTabber_.addTab( "ADQL", featureScroller );
+        itabFeature_ = itab++;
         detailTabber_.addTab( "Schema", metaScroller( schemaPanel_ ) );
         itabSchema_ = itab++;
         detailTabber_.addTab( "Table", metaScroller( tablePanel_ ) );
@@ -511,16 +529,9 @@ public class TableSetPanel extends JPanel {
      */
     public void setCapability( TapCapability capability ) {
         servicePanel_.setCapability( capability );
-        TapLanguageFeature[] udfs =
-              capability == null
-            ? new TapLanguageFeature[ 0 ]
-            : Arrays.stream( capability.getLanguages() )
-                    .flatMap( l -> l.getFeaturesMap().entrySet().stream() )
-                    .filter( entry -> UDF_FILTER.test( entry.getKey() ) )
-                    .flatMap( e -> Arrays.stream( e.getValue() ) )
-                    .toArray( n -> new TapLanguageFeature[ n ] );
-        udfTreeModel_.setUdfs( udfs );
-        detailTabber_.setIconAt( itabUdf_, activeIcon( udfs.length > 0 ) );
+        featureTreeModel_.setCapability( capability );
+        detailTabber_.setIconAt( itabFeature_,
+                                 activeIcon( capability != null ) );
     }
 
     /**
@@ -547,6 +558,7 @@ public class TableSetPanel extends JPanel {
     public void setAdqlVersion( AdqlVersion version ) {
         hintPanel_.setAdqlVersion( version == null ? AdqlVersion.V20
                                                    : version );
+        featureTreeModel_.setAdqlVersion( version );
     }
 
     /**
@@ -1920,23 +1932,6 @@ public class TableSetPanel extends JPanel {
         private final JTextComponent adql21Field_;
         private final JTextComponent nonstdField_;
 
-        private static final Ivoid[] ADQLGEO_FTYPES = new Ivoid[] {
-            TapCapability.createTapRegExtIvoid( "#features-adqlgeo" ),
-            // error from early ADQL2.1 draft
-            TapCapability.createTapRegExtIvoid( "#features-adql-geo" ),
-        };
-        private static final Ivoid[] ADQL21MISC_FTYPES = new Ivoid[] {
-            TapCapability.createTapRegExtIvoid( "#features-adql-string" ),
-            TapCapability.createTapRegExtIvoid( "#features-adql-common-table" ),
-            TapCapability.createTapRegExtIvoid( "#features-adql-sets" ),
-            TapCapability.createTapRegExtIvoid( "#features-adql-type" ),
-            TapCapability.createTapRegExtIvoid( "#features-adql-unit" ),
-            TapCapability.createTapRegExtIvoid( "#features-adql-offset" ),
-        };
-        private static final Predicate<Ivoid> NONSTD_FILTER =
-            createExcludeFilter( ADQLGEO_FTYPES, ADQL21MISC_FTYPES,
-                                 new Ivoid[] { UDF_FTYPE } );
-
         /**
          * Constructor.
          *
@@ -2025,11 +2020,16 @@ public class TableSetPanel extends JPanel {
         public void setCapability( TapCapability tcap ) {
             setFieldText( dmField_, getDataModelText( tcap ) );
             setFieldText( geoField_,
-                          getFeatureFormsText( tcap, ADQLGEO_FTYPES ) );
+                          getFeatureFormsText( tcap,
+                                               AdqlFeature.ADQLGEO_FTYPES ) );
             setFieldText( adql21Field_,
-                          getFeatureFormsText( tcap, ADQL21MISC_FTYPES ) );
+                          getFeatureFormsText( tcap,
+                                               AdqlFeature
+                                              .ADQL21MISC_FTYPES ) );
             setFieldText( nonstdField_,
-                          getFeatureDescriptionsHtml( tcap, NONSTD_FILTER ) );
+                          getFeatureDescriptionsHtml( tcap,
+                                                      AdqlFeature
+                                                     .NONSTD_FILTER ) );
         }
 
         /**
@@ -2212,23 +2212,6 @@ public class TableSetPanel extends JPanel {
             return txt.replace( "&", "&amp;" )
                       .replace( "<", "&lt;" )
                       .replace( ">", "&gt;" );
-        }
-
-        /**
-         * Utility method to create a filter that excludes strings in a
-         * number of given lists.
-         *
-         * @param  excludes   one or more arrays of strings none of which
-         *                    a target ivoid should equal to pass the test
-         * @return   predicate indicating non-inclusion in supplied arrays
-         */
-        private static Predicate<Ivoid>
-                createExcludeFilter( Ivoid[]... excludes ) {
-            Collection<Ivoid> excludeSet = new HashSet<>();
-            for ( Ivoid[] items : excludes ) {
-                excludeSet.addAll( Arrays.asList( items ) );
-            }
-            return f -> ! excludeSet.contains( f );
         }
     }
 }
