@@ -664,7 +664,7 @@ public class AuxWindow extends JFrame {
         box.add( Box.createHorizontalStrut( igap ) );
         JLabel brisLogo = new JLabel( ResourceIcon.BRISTOL_LOGO );
         brisLogo.setToolTipText( "Bristol University, Astrophysics group: "
-                               + "http://www.star.bris.ac.uk/" );
+                               + "http://www.star.bristol.ac.uk/" );
         box.add( brisLogo );
         box.add( Box.createHorizontalStrut( igap ) );
         JLabel votechLogo = new JLabel( ResourceIcon.VOTECH_LOGO );
