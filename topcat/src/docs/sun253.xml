@@ -23361,9 +23361,9 @@ The tabs are as follows:
     gathered from the service and its registry record if available.
     This includes the service's name, Service URL, Reference URL,
     curation and contact information, detailed description,
-    declared data models, and listing with description of any
-    service-specific language features supported
-    (except for UDFs, shown in the next tab).
+    declared data models, and a summary of optional and custom features
+    of the ADQL implementation
+    (these are listed with more detail in the next tab).
     It also displays your currently authenticated identity for
     service interaction, if any.
     If a Reference URL or Examples URL are provided,
@@ -23373,14 +23373,17 @@ The tabs are as follows:
     The content of this tab is not sensitive to which node of the tree
     is currently selected.
     </p></dd>
-<dt>UDFs tab</dt>
-<dd><p>Lists any User-Defined Functions defined by the service. 
-    They are displayed in a tree; initially only the basic function
-    signatures are visible, but you can see additional documentation
-    (if provided) by clicking on the handle (&IMG.COLLAPSED;) for the
-    function of interest.
+<dt>ADQL tab</dt>
+<dd><p>Lists language features associated with the service.
+    This includes User-Defined Functions (UDFs) alongside all other
+    standard mandatory and optional functions the service provides,
+    as well as supported optional and custom language features
+    such as Common Table Expressions.
+    These functions and features are displayed in a tree
+    which can be explored by clicking on node handles (&IMG.COLLAPSED;).
     The content of this tab is not sensitive to which node of the tree
-    is currently selected.
+    is currently selected, but it may change according to which
+    ADQL version is selected.
     </p></dd>
 <dt>Schema tab</dt>
 <dd><p>Provides a textual description of the currently selected schema,
@@ -33410,8 +33413,9 @@ introduced since the last version:
         <ref id="MatrixPlotWindow">&Matrix; Plot</ref>.</li>
     <li>Choose better columns for TAP window ADQL examples
         under some circumstances.</li>
-    <li>User-defined functions are now listed in a separate
-        <label>UDFs</label> tab with the
+    <li>ADQL functions and declared features, including UDFs,
+        are now listed in a separate
+        <label>ADQL</label> tab with the
         <ref id="TapTableLoadDialog_query_metadata"
              >TAP metadata</ref>.</li>
     <li>The gap between vertically stacked plots in the

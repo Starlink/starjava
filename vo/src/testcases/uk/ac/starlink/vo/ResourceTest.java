@@ -59,11 +59,11 @@ public class ResourceTest extends TestCase {
     }
 
     public void testUdf() {
-        UdfTreeModel.Signature mocSig =
-            UdfTreeModel
+        FeatureTreeModel.Signature mocSig =
+            FeatureTreeModel
            .createSignature( "moc_intersect(moc1 MOC, moc2 MOC) -> MOC" );
         assertEquals( "moc_intersect", mocSig.getName() );
-        UdfTreeModel.Arg[] args = mocSig.getArgs();
+        FeatureTreeModel.Arg[] args = mocSig.getArgs();
         assertEquals( 2, args.length );
         assertEquals( "moc1", args[ 0 ].getArgName() );
         assertEquals( "moc2", args[ 1 ].getArgName() );
