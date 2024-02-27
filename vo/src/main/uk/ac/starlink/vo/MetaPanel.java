@@ -193,6 +193,15 @@ public class MetaPanel extends JPanel implements Scrollable {
     }
 
     /**
+     * Adds a heading with no associated field.
+     *
+     * @param  txt  text content
+     */
+    public void addTextLine( String txt ) {
+        addHeadedComponent( txt, (JComponent) null );
+    }
+
+    /**
      * Sets the content of a field.
      * As well as the obvious, it fixes it so that after the text is
      * added it's positioned correctly.
@@ -341,8 +350,10 @@ public class MetaPanel extends JPanel implements Scrollable {
         headLine.add( new JLabel( heading + ":" ) );
         headLine.add( Box.createHorizontalGlue() );
         add( headLine );
-        comp.setBorder( BorderFactory.createEmptyBorder( 0, 20, 0, 0 ) );
-        add( comp );
+        if ( comp != null ) {
+            comp.setBorder( BorderFactory.createEmptyBorder( 0, 20, 0, 0 ) );
+            add( comp );
+        }
     }
 
     /**

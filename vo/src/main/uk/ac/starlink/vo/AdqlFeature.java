@@ -47,6 +47,11 @@ public class AdqlFeature {
 
     private static final Ivoid UDF_FTYPE =
         TapCapability.createTapRegExtIvoid( "#features-udf" );
+    private static final Ivoid[] ADQLGEO_FTYPES = new Ivoid[] {
+        TapCapability.createTapRegExtIvoid( "#features-adqlgeo" ),
+        // error from early ADQL2.1 draft
+        TapCapability.createTapRegExtIvoid( "#features-adql-geo" ),
+    };
     private static final Ivoid STRING_FTYPE;
     private static final Ivoid CONDITIONAL_FTYPE;
     private static final Ivoid CTA_FTYPE;
@@ -54,9 +59,7 @@ public class AdqlFeature {
     private static final Ivoid TYPE_FTYPE;
     private static final Ivoid UNIT_FTYPE;
     private static final Ivoid OFFSET_FTYPE;
-
-    /** Feature types for miscellaneous language features. */
-    public static final Ivoid[] ADQL21MISC_FTYPES = new Ivoid[] {
+    private static final Ivoid[] ADQL21MISC_FTYPES = new Ivoid[] {
         STRING_FTYPE =
             TapCapability.createTapRegExtIvoid( "#features-adql-string" ),
         CONDITIONAL_FTYPE =
@@ -73,21 +76,22 @@ public class AdqlFeature {
             TapCapability.createTapRegExtIvoid( "#features-adql-offset" ),
     };
 
-    /** Feature types for geometric functions. */
-    public static final Ivoid[] ADQLGEO_FTYPES = new Ivoid[] {
-        TapCapability.createTapRegExtIvoid( "#features-adqlgeo" ),
-        // error from early ADQL2.1 draft
-        TapCapability.createTapRegExtIvoid( "#features-adql-geo" ),
-    };
+    /** Includes feature types for Ivoids representing UDFs. */
+    public static final Predicate<Ivoid> UDF_FILTER =
+        ftype -> UDF_FTYPE.equals( ftype );
+
+    /** Includes feature types for Ivoids representing Geometry functions. */
+    public static final Predicate<Ivoid> ADQLGEO_FILTER =
+        ftype -> Arrays.asList( ADQLGEO_FTYPES ).contains( ftype );
+
+    /** Includes feature types for Ivoids representing optional features. */
+    public static final Predicate<Ivoid> ADQL21MISC_FILTER =
+        ftype -> Arrays.asList( ADQL21MISC_FTYPES ).contains( ftype );
 
     /** Includes feature types for Ivoids representing non-standard features. */
     public static final Predicate<Ivoid> NONSTD_FILTER =
         createExcludeFilter( ADQLGEO_FTYPES, ADQL21MISC_FTYPES,
                              new Ivoid[] { UDF_FTYPE } );
-
-    /** Includes feature types for Ivoids representing UDFs. */
-    public static final Predicate<Ivoid> UDF_FILTER =
-        ftype -> UDF_FTYPE.equals( ftype );
 
     private static final Function[] MATHS_FUNCS = createMathsFunctions();
     private static final Function[] TRIG_FUNCS = createTrigFunctions();

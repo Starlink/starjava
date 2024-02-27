@@ -23,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.LinkedHashSet;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -113,6 +112,7 @@ public class TableSetPanel extends JPanel {
     private SchemaMeta[] schemas_;
     private ColumnMeta[] selectedColumns_;
     private TapMetaTreeModel treeModel_;
+    private static final String featureTitle_ = "ADQL";
     private static final List<ColMetaColumn<?>> colMetaColumns_ =
         createColumnMetaColumns();
 
@@ -293,7 +293,7 @@ public class TableSetPanel extends JPanel {
         int itab = 0;
         detailTabber_.addTab( "Service", metaScroller( servicePanel_ ) );
         itabService_ = itab++;
-        detailTabber_.addTab( "ADQL", featureScroller );
+        detailTabber_.addTab( featureTitle_, featureScroller );
         itabFeature_ = itab++;
         detailTabber_.addTab( "Schema", metaScroller( schemaPanel_ ) );
         itabSchema_ = itab++;
@@ -1951,9 +1951,17 @@ public class TableSetPanel extends JPanel {
             contactField_ = addMultiLineField( "Contact" );
             descripField_ = addMultiLineField( "Description" );
             dmField_ = addMultiLineField( "Data Models" );
-            geoField_ = addMultiLineField( "Geometry Functions" );
-            adql21Field_ = addMultiLineField( "ADQL 2.1 Optional Features" );
-            nonstdField_ = addHtmlField( "Non-Standard Language Features" );
+            String star = " [*]";
+            geoField_ =
+                addMultiLineField( "Geometry Functions" + star );
+            adql21Field_ =
+                addMultiLineField( "ADQL 2.1 Optional Features" + star );
+            nonstdField_ =
+                addMultiLineField( "Non-Standard Language Features" + star );
+            addTextLine( "<html></html>" );
+            addTextLine( "<html>" + star
+                       + " <em>see " + featureTitle_ + " tab for details</em>"
+                       + "</html>" );
         }
 
         /**
@@ -2021,15 +2029,13 @@ public class TableSetPanel extends JPanel {
             setFieldText( dmField_, getDataModelText( tcap ) );
             setFieldText( geoField_,
                           getFeatureFormsText( tcap,
-                                               AdqlFeature.ADQLGEO_FTYPES ) );
+                                               AdqlFeature.ADQLGEO_FILTER ) );
             setFieldText( adql21Field_,
                           getFeatureFormsText( tcap,
-                                               AdqlFeature
-                                              .ADQL21MISC_FTYPES ) );
+                                               AdqlFeature.ADQL21MISC_FILTER ));
             setFieldText( nonstdField_,
-                          getFeatureDescriptionsHtml( tcap,
-                                                      AdqlFeature
-                                                     .NONSTD_FILTER ) );
+                          getFeatureFormsText( tcap,
+                                               AdqlFeature.NONSTD_FILTER ) );
         }
 
         /**
@@ -2074,76 +2080,20 @@ public class TableSetPanel extends JPanel {
          * a given list of feature types.
          *
          * @param  tcap   capability object, may be null
-         * @param  featureTypes  feature type identifiers of interest
-         * @return  forms list string or null
-         */
-        private static String getFeatureFormsText( TapCapability tcap,
-                                                   Ivoid[] featureTypes ) {
-            if ( tcap == null ) {
-                return null;
-            }
-            Collection<Ivoid> ftypeSet =
-                new HashSet<Ivoid>( Arrays.asList( featureTypes ) );
-            Collection<String> formList = new LinkedHashSet<>();
-            for ( TapLanguage lang : tcap.getLanguages() ) {
-                for ( Map.Entry<Ivoid,TapLanguageFeature[]> fentry :
-                      lang.getFeaturesMap().entrySet() ) {
-                    Ivoid ftype = fentry.getKey();
-                    if ( ftypeSet.contains( ftype ) ) {
-                        for ( TapLanguageFeature feat : fentry.getValue() ) {
-                            String form = feat.getForm();
-                            if ( form != null && form.trim().length() > 0 ) {
-                                formList.add( form.trim() );
-                            }
-                        }
-                    }
-                }
-            }
-            return formList.stream().collect( Collectors.joining( ", " ) );
-        }
-
-        /**
-         * Returns an HTML string containing a description of the language
-         * features in the given capability that match a given feature type
-         * criterion.
-         *
-         * @param  tcap   capability object, may be null
          * @param  featTypeFilter   predicate indicating which feature type
          *                          identifier strings should be included
-         * @return  HTML list or null
+         * @return  forms list string
          */
         private static String
-                getFeatureDescriptionsHtml( TapCapability tcap,
-                                            Predicate<Ivoid> featTypeFilter ) {
-            if ( tcap == null ) {
-                return null;
-            }
-            StringBuffer sbuf = new StringBuffer();
-            for ( TapLanguage lang : tcap.getLanguages() ) {
-                for ( Map.Entry<Ivoid,TapLanguageFeature[]> fentry :
-                      lang.getFeaturesMap().entrySet() ) {
-                    Ivoid featType = fentry.getKey();
-                    if ( featType != null && featTypeFilter.test( featType ) ) {
-                        for ( TapLanguageFeature feature : fentry.getValue() ) {
-                            String form = feature.getForm();
-                            String description = feature.getDescription();
-                            sbuf.append( "<dt>" )
-                                .append( "<strong><code>" )
-                                .append( escapeHtml( form == null ? "??"
-                                                                  : form ) )
-                                .append( "</code></strong>" )
-                                .append( "</dt>\n" );
-                            if ( description != null ) {
-                                sbuf.append( "<dd>" )
-                                    .append( escapeHtml( description ) )
-                                    .append( "</dd>\n" );
-                            }
-                        }
-                    }
-                }
-            }
-            return sbuf.length() > 0 ? "<dl>\n" + sbuf + "\n</dl>"
-                                     : null;
+                getFeatureFormsText( TapCapability tcap,
+                                     Predicate<Ivoid> featTypeFilter ) {
+            return Arrays.stream( tcap == null ? new TapLanguage[ 0 ]
+                                               : tcap.getLanguages() )
+                  .flatMap( lang -> lang.getFeaturesMap().entrySet().stream() )
+                  .filter( entry -> featTypeFilter.test( entry.getKey() ) )
+                  .flatMap( entry -> Arrays.stream( entry.getValue() ) )
+                  .map( feature -> feature.getForm() )
+                  .collect( Collectors.joining( ", " ) );
         }
 
         /**
@@ -2200,18 +2150,6 @@ public class TableSetPanel extends JPanel {
                 }
             }
             return null;
-        }
-
-        /**
-         * Makes plain text safe for interpolation into HTML source.
-         *
-         * @param  txt  raw text
-         * @return  escaped text
-         */
-        private static String escapeHtml( String txt ) {
-            return txt.replace( "&", "&amp;" )
-                      .replace( "<", "&lt;" )
-                      .replace( ">", "&gt;" );
         }
     }
 }
