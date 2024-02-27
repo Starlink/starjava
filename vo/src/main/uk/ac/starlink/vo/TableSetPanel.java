@@ -220,7 +220,7 @@ public class TableSetPanel extends JPanel {
         sortServiceButt_.setToolTipText( "Select for service-defined ordering");
         sortAlphaButt_.addActionListener( evt -> updateTreeOrder() );
         sortServiceButt_.addActionListener( evt -> updateTreeOrder() );
-        sortAlphaButt_.setSelected( true );
+        sortServiceButt_.setSelected( true );
 
         /* Create table for column metadata display. */
         colTableModel_ = new ArrayTableModel<ColumnMeta>( new ColumnMeta[ 0 ] );
@@ -339,8 +339,8 @@ public class TableSetPanel extends JPanel {
         /* Prepare container for tree sort option components. */
         JComponent sortBox = Box.createHorizontalBox();
         sortBox.add( new JLabel( "Sort: " ) );
-        sortBox.add( sortAlphaButt_ );
         sortBox.add( sortServiceButt_ );
+        sortBox.add( sortAlphaButt_ );
         sortBox.add( Box.createHorizontalGlue() );
 
         /* Position search and sort components near the tree. */
