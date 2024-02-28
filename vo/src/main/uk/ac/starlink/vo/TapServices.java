@@ -29,7 +29,7 @@ public class TapServices {
     }
 
     /**
-     * Returns a default service  corresponding to a Relational Registry
+     * Returns a default service corresponding to a Relational Registry
      * (RegTAP) service.
      *
      * <p>The current implementation returns a hardcoded value,
@@ -39,6 +39,16 @@ public class TapServices {
      * @return  default RegTAP service
      */
     public static TapService getRegTapService() {
+        return REGTAP;
+    }
+
+    /**
+     * Returns a TapService instance corresponding to a Relational Registry
+     * (RegTAP) service, and known to implement RegTAP version 1.2.
+     *
+     * @return  default RegTAP 1.2 service
+     */
+    public static TapService getRegTap12Service() {
         return REGTAP;
     }
 

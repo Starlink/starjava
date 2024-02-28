@@ -148,19 +148,20 @@ public interface TapServiceFinder {
 
         /** Table name. */
         TABLE_NAME( "Table Name", false,
-                    "table_name", "table_name" ),
+                    "table_name", "table_name", "table_name" ),
 
         /** Table description. */
         TABLE_DESCRIP( "Table Description", true,
-                       "table_desc", "table_description" ),
+                       "table_desc", "table_description", "table_description" ),
 
         /** Service name. */
-        SERVICE_META( "Service", false, null, null );
+        SERVICE_META( "Service", false, null, null, null );
 
         private final String displayName_;
         private final boolean isWords_;
         private final String glotsTablesCol_;
         private final String rrTablesCol_;
+        private final String rrTapTablesCol_;
 
         /**
          * Constructor.
@@ -175,13 +176,17 @@ public interface TapServiceFinder {
          * @param  rrTablesCol   column name in RegTAP rr.tables table
          *                       corresponding to this value;
          *                       null if not applicable
+         * @param  rrTapTablesCol  column name in RegTAP 1.2 rr.tap_tables table
+         *                         corresponding to this value;
+                                   null if not applicable
          */
-        Target( String displayName, boolean isWords,
-                String glotsTablesCol, String rrTablesCol ) {
+        Target( String displayName, boolean isWords, String glotsTablesCol,
+                String rrTablesCol, String rrTapTablesCol ) {
             displayName_ = displayName;
             isWords_ = isWords;
             glotsTablesCol_ = glotsTablesCol;
             rrTablesCol_ = rrTablesCol;
+            rrTapTablesCol_ = rrTapTablesCol;
         }
 
         /**
@@ -234,6 +239,16 @@ public interface TapServiceFinder {
          */
         String getRrTablesCol() {
             return rrTablesCol_;
+        }
+
+        /**
+         * Returns the name of the column in the RegTAP 1.2 rr.tap_tables table
+         * to which this target corresponds.
+         *
+         * @return  rr.tap_tables column name; null iff isServiceMeta()==true
+         */
+        String getRrTapTablesCol() {
+            return rrTapTablesCol_;
         }
 
         /**
