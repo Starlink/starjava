@@ -23442,14 +23442,20 @@ by clicking on the appropriate tab at the top.
         required bandwidth and some services may (though shouldn't)
         have non-standard requirements for serialization format.
         </p></dd>
-    <dt>Service Discovery</dt>
-    <dd><p>Configures how TOPCAT searches for available TAP services.
-        There are currently two options,
+    <dt>Service Discovery submenu</dt>
+    <dd><p>Configures how TOPCAT searches for available TAP services
+        in the <label>By Table Properties</label> sub-tab of the
+        <ref id="TapTableLoadDialog_service">Select Service</ref> tab.
+        There are currently three options,
         <label>GloTS</label>, which uses the Global TAP Schema
-        service list maintained by GAVO, and
+        service list maintained by GAVO,
+        and two variants which use the IVOA Registry:
+        <label>RegTAP 1.2</label> which uses some features of the
+        RegTAP v1.2 standard, and
         <label>Reg Prototype</label> which uses a proposed convention
-        based on the IVOA Registry.  You are advised to use the default
-        value (currently GloTS) unless you understand what you're doing here.
+        related to auxiliary resources.
+        Unless you are a registry nerd you will probably want
+        to stick with the default option (currently GloTS).
         </p></dd>
     <dt>HTTP gzip</dt>
     <dd><p>If checked, this option sends <code>Accept-Encoding: gzip</code>
@@ -33982,6 +33988,11 @@ introduced since the last version:
     <li>MOC-ASCII and UNIQ shapes can now be plotted in the
         <ref id="GangLayerControl_area">Area layer control</ref> of the
         <ref id="SpherePlotWindow">Sphere Plot Window</ref>.</li>
+    <li>New <ref id="TapTableLoadDialog">TAP window</ref>
+        menu option
+        <label>TAP</label>|<label
+              >Service Discovery</label>|<label
+              >RegTAP 1.2</label>.</li>
     </ul>
     </p></dd>
 

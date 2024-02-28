@@ -50,6 +50,7 @@ import uk.ac.starlink.vo.AdqlValidator;
 import uk.ac.starlink.vo.AuxServiceFinder;
 import uk.ac.starlink.vo.GlotsServiceFinder;
 import uk.ac.starlink.vo.RegistryPanel;
+import uk.ac.starlink.vo.Regtap12ServiceFinder;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapCapabilityPanel;
 import uk.ac.starlink.vo.TapMetaPolicy;
@@ -231,6 +232,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog
         Map<String,TapServiceFinder> finderMap =
             new LinkedHashMap<String,TapServiceFinder>();
         finderMap.put( "GloTS", new GlotsServiceFinder() );
+        finderMap.put( "RegTAP 1.2", new Regtap12ServiceFinder() );
         finderMap.put( "Reg Prototype", new AuxServiceFinder() );
         ButtonGroup finderButtGroup = new ButtonGroup();
         for ( Map.Entry<String,TapServiceFinder> entry :
