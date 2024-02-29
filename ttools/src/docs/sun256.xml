@@ -3313,6 +3313,13 @@ Matching in any number of Cartesian dimensions can be done by extending
 this syntax in the obvious way.
 </p>
 
+<p>A variant form <code>1d_qerr</code>, <code>2d_qerr</code>, ...
+does the same thing but combines the two per-row <code>error</code> values
+in quadrature.
+In that case the separation beween the two positions
+must be no larger than <m>sqrt(error1<sup>2</sup>+error2<sup>2</sup>)</m>.
+</p>
+
 <p>The <code>scale</code> parameter must be supplied, and should be 
 approximately the characteristic size of the per-object error values.
 In conjunction with the <code>bin-factor</code> tuning parameter
@@ -15279,6 +15286,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add compression type configuration option to
         <ref id="outParquet">Parquet output handler</ref>.</li>
     <li>Fix parquet input handler bug related to compression.</li>
+    <li>New <ref id="ErrorCartesianMatchEngine">matcher variants</ref>
+        <code>nd_qerr</code> introduced for combining per-object errors
+        in quadrature.</li>
     </ul>
     </p></dd>
 

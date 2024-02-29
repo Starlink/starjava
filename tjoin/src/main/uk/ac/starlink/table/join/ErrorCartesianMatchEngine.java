@@ -12,7 +12,9 @@ import uk.ac.starlink.table.ValueInfo;
  * isotropic per-row errors.
  * Tuples are N+1 element, with the last element being the error radius,
  * so that a match results when the distance between two objects is
- * no greater than the sum of their error radii.
+ * no greater than the combination of their error radii.
+ * This combination may be either a simple sum or the sum in quadrature,
+ * according to configuration.
  *
  * @author   Mark Taylor
  * @since    1 Sep 2011
@@ -20,6 +22,7 @@ import uk.ac.starlink.table.ValueInfo;
 public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
 
     private final int ndim_;
+    private final ErrorSummation errorSummation_;
     private final DescribedValue[] matchParams_;
 
     private static final DefaultValueInfo SCORE_INFO =
@@ -37,12 +40,21 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
     /**
      * Constructor.
      *
+     * <p>The <code>errorSummation</code> parameter configures how the
+     * match score is assessed from the error values of two tuples.
+     * The match threshold is determined by summing the error values,
+     * either by simple addition or by addition in quadrature.
+     *
      * @param  ndim  dimensionality
+     * @param  errorSummation  how to combine errors; if null, simple is used
      * @param   scale   rough scale of errors
      */
-    public ErrorCartesianMatchEngine( int ndim, double scale ) {
+    public ErrorCartesianMatchEngine( int ndim, ErrorSummation errorSummation,
+                                      double scale ) {
         super( ndim );
         ndim_ = ndim;
+        errorSummation_ = errorSummation == null ? ErrorSummation.SIMPLE
+                                                 : errorSummation;
         matchParams_ = new DescribedValue[] {
                            new IsotropicScaleParameter( ERRSCALE_INFO ) };
         setIsotropicScale( scale );
@@ -85,13 +97,19 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return SCORE_INFO;
     }
 
+    @Override
     public String toString() {
-        return ndim_ + "-d Cartesian with Errors";
+        return new StringBuffer()
+              .append( ndim_ )
+              .append( "-d Cartesian with Errors" )
+              .append( errorSummation_.getTail() )
+              .toString();
     }
 
     public Supplier<MatchKit> createMatchKitFactory() {
         final Supplier<CartesianBinner> binnerFact = createBinnerFactory();
-        return () -> new ErrorCartesianMatchKit( binnerFact.get() );
+        return () -> new ErrorCartesianMatchKit( errorSummation_,
+                                                 binnerFact.get() );
     }
 
     public Supplier<Coverage> createCoverageFactory() {
@@ -139,6 +157,7 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
      * MatchKit implementation for use with this class.
      */
     private static class ErrorCartesianMatchKit implements MatchKit {
+        final ErrorSummation errorSummation_;
         final CartesianBinner binner_;
         final int ndim_;
         final double[] work0_;
@@ -148,9 +167,12 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
         /**
          * Constructor.
          *
+         * @param  errorSummation  error combination method
          * @param  binner  binner
          */
-        ErrorCartesianMatchKit( CartesianBinner binner ) {
+        ErrorCartesianMatchKit( ErrorSummation errorSummation,
+                                CartesianBinner binner ) {
+            errorSummation_ = errorSummation;
             binner_ = binner;
             ndim_ = binner_.getNdim();
             work0_ = new double[ ndim_ ];
@@ -161,8 +183,9 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
         public double matchScore( Object[] tuple1, Object[] tuple2 ) {
             binner_.toCoords( tuple1, work1_ );
             binner_.toCoords( tuple2, work2_ );
-            double err = getTupleError( tuple1 ) + getTupleError( tuple2 );
-            double err2 = err * err;
+            double e1 = getTupleError( tuple1 );
+            double e2 = getTupleError( tuple2 );
+            double err2 = errorSummation_.combineSquared( e1, e2 );
             double dist2 = 0;
             for ( int id = 0; id < ndim_; id++ ) {
                 double d = work2_[ id ] - work1_[ id ];

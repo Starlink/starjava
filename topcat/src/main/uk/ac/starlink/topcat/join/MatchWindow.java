@@ -35,16 +35,15 @@ import uk.ac.starlink.table.join.CuboidCartesianMatchEngine;
 import uk.ac.starlink.table.join.EllipseCartesianMatchEngine;
 import uk.ac.starlink.table.join.EllipseSkyMatchEngine;
 import uk.ac.starlink.table.join.ErrorCartesianMatchEngine;
-import uk.ac.starlink.table.join.ErrorQuadraturesCartesianMatchEngine;
 import uk.ac.starlink.table.join.ErrorSkyMatchEngine;
+import uk.ac.starlink.table.join.ErrorSummation;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
+import uk.ac.starlink.table.join.FixedSkyMatchEngine;
 import uk.ac.starlink.table.join.HtmSkyPixellator;
 import uk.ac.starlink.table.join.IsotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RangeModelProgressIndicator;
-import uk.ac.starlink.table.join.ErrorSkyMatchEngine;
-import uk.ac.starlink.table.join.FixedSkyMatchEngine;
 import uk.ac.starlink.table.join.SphericalPolarMatchEngine;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
@@ -474,7 +473,8 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             new MatchEngine[] {
                 new FixedSkyMatchEngine( new CdsHealpixSkyPixellator(),
                                          someAngle ),
-                new ErrorCartesianMatchEngine( 1, someLength ),
+                new ErrorCartesianMatchEngine( 1, ErrorSummation.SIMPLE,
+                                               someLength ),
             }
         );
         MatchEngine skyPlus2Engine = createCombinedEngine( "Sky + XY",
@@ -498,17 +498,25 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             new SphericalPolarMatchEngine( someLength ),
             new EqualsMatchEngine(),
             new IsotropicCartesianMatchEngine( 1, someLength, false ),
-            new ErrorCartesianMatchEngine( 1, someLength ),
-            new ErrorQuadraturesCartesianMatchEngine( 1, someLength ),
+            new ErrorCartesianMatchEngine( 1, ErrorSummation.SIMPLE,
+                                           someLength ),
+            new ErrorCartesianMatchEngine( 1, ErrorSummation.QUADRATURE,
+                                           someLength ),
             new IsotropicCartesianMatchEngine( 2, someLength, false ),
             new AnisotropicCartesianMatchEngine( someLengths2 ),
             new CuboidCartesianMatchEngine( someLengths2 ),
-            new ErrorCartesianMatchEngine( 2, someLength ),
+            new ErrorCartesianMatchEngine( 2, ErrorSummation.SIMPLE,
+                                           someLength ),
+            new ErrorCartesianMatchEngine( 2, ErrorSummation.QUADRATURE,
+                                           someLength ),
             new EllipseCartesianMatchEngine( someLength ),
             new IsotropicCartesianMatchEngine( 3, someLength, false ),
             new AnisotropicCartesianMatchEngine( someLengths3 ),
             new CuboidCartesianMatchEngine( someLengths3 ),
-            new ErrorCartesianMatchEngine( 3, someLength ),
+            new ErrorCartesianMatchEngine( 3, ErrorSummation.SIMPLE,
+                                           someLength ),
+            new ErrorCartesianMatchEngine( 3, ErrorSummation.QUADRATURE,
+                                           someLength ),
             new AnisotropicCartesianMatchEngine( someLengths4 ),
             skyPlus1Engine,
             skyPlus1ErrEngine,

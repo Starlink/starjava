@@ -9,8 +9,8 @@ import uk.ac.starlink.table.join.CdsHealpixSkyPixellator;
 import uk.ac.starlink.table.join.CombinedMatchEngine;
 import uk.ac.starlink.table.join.CuboidCartesianMatchEngine;
 import uk.ac.starlink.table.join.ErrorCartesianMatchEngine;
-import uk.ac.starlink.table.join.ErrorQuadraturesCartesianMatchEngine;
 import uk.ac.starlink.table.join.ErrorSkyMatchEngine;
+import uk.ac.starlink.table.join.ErrorSummation;
 import uk.ac.starlink.table.join.EllipseCartesianMatchEngine;
 import uk.ac.starlink.table.join.EllipseSkyMatchEngine;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
@@ -488,11 +488,16 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
             }
             else if ( cName.toLowerCase().matches( "[0-9]d_err" ) ) {
                 int ndim = Integer.parseInt( cName.substring( 0, 1 ) );
-                component = new ErrorCartesianMatchEngine( ndim, 1.0 );
+                component =
+                    new ErrorCartesianMatchEngine( ndim, ErrorSummation.SIMPLE,
+                                                   1.0 );
             }
             else if ( cName.toLowerCase().matches( "[0-9]d_qerr" ) ) {
                 int ndim = Integer.parseInt( cName.substring( 0, 1 ) );
-                component = new ErrorQuadraturesCartesianMatchEngine( ndim, 1.0 );
+                component =
+                    new ErrorCartesianMatchEngine( ndim,
+                                                   ErrorSummation.QUADRATURE,
+                                                   1.0 );
             }
             else if ( cName.toLowerCase().matches( "[0-9]d_anisotropic" ) ) {
                 int ndim = Integer.parseInt( cName.substring( 0, 1 ) );
@@ -621,7 +626,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
             "exact", "1d", "2d", "3d",
             "2d_anisotropic", "3d_anisotropic",
             "2d_cuboid", "3d_cuboid",
-            "1d_err", "1d_qerr", "2d_err", "2d_qerr",
+            "1d_err", "2d_err", "2d_qerr",
             "2d_ellipse",
             "sky+1d",
         };

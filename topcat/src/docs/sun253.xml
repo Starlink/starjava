@@ -21336,6 +21336,15 @@ of a metric on that space to count as a match.
     affects the performance of the match but not the result.
     </p></dd>
 
+<dt>N-dimensional Cartesian with Errors in Quadrature</dt>
+<dd><p>This is the same as the previous
+    <label>N-dimensional Cartesian with Errors</label> option,
+    except that the match criterion is that the separation is constrained
+    to be no larger than the combination of the two Error values in quadrature
+    (<m>sqrt(err<sub>1</sub><sup>2</sup>+err<sub>2</sub><sup>2</sup>)</m>)
+    rather then their simple sum (<m>err<sub>1</sub>+err<sub>2</sub></m>).
+    </p></dd>
+
 <dt>2-d Cartesian Ellipses</dt>
 <dd><p>Compares elliptical regions in the plane for overlap.
     You will need to specify columns giving the central position,
@@ -33536,6 +33545,9 @@ introduced since the last version:
     <li>Improve metadata in tables created by
         <ref id="match-windows">Match windows</ref>;
         they now record match parameters such as max error.</li>
+    <li>New matcher option
+        "N-dimensional Cartesian with Errors in Quadrature" is added
+        to the <ref id="matchCriteria">match criteria</ref> list.</li>
     </ul>
     </p></dd>
 
