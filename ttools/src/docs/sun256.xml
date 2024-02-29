@@ -790,11 +790,15 @@ as described in <ref id="taskApi"/>.
 
 <p>If you're using a Unix-like operating system,
 the easiest way is to use the <code>stilts</code> script.
-If you have a full starjava installation it is in the 
-<code>starjava/bin</code> directory.
+It is a simple shell script which just invokes java with the
+right classpath and the supplied arguments.
+</p>
+
+<p>If you have a full starjava installation the <code>stilts</code> script
+is in the <code>starjava/bin</code> directory.
 Otherwise you can download it separately from wherever you got your
 STILTS installation in the first place, or find it 
-at the top of the <code>stilts.jar</code> or <code>topcat-*.jar</code>
+at the top of the <code>stilts.jar</code> or <code>topcat-*.jar</code> file
 that contains your STILTS installation, so do something like
 <verbatim>
    unzip stilts.jar stilts
@@ -802,8 +806,10 @@ that contains your STILTS installation, so do something like
 </verbatim>
 to extract it (if you don't have <code>unzip</code>, 
 try <code>jar xvf stilts.jar stilts</code>).
-<code>stilts</code> is a simple shell script which just invokes java with the
-right classpath and the supplied arguments.
+If you have mounted the <code>topcat-all.dmg</code> file on MacOS
+(<code>hdiutil attach topcat-all.dmg</code>) it will probably be
+present at a location like
+<code>/Volumes/topcat/TOPCAT.app/Contents/Resources/app/stilts</code>.
 </p>
 
 <p>To run using the <code>stilts</code> script, first make sure that
@@ -15175,6 +15181,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New <code>plot2time</code> parameter
         <ref id="plot2time-cellgap"><code>cellgap</code></ref>
         configures gap between stacked plots.</li>
+    <li>Some fixes/improvements to <code>stilts</code>
+        startup script.</li>
     </ul>
     </p></dd>
 

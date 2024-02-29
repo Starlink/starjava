@@ -32,52 +32,51 @@
 #          ./topcat-extra.jar
 #          ./topcat-full.jar
 #          ./topcat-lite.jar
-#       (on a Mac it looks in the resource bundle expected from a dmg
-#       installation as well)
 
 #  Authors:
 #     MBT: Mark Taylor (Starlink)
 #-
 
-#  Find where this script is located.
+# Find where this script is located.
 scriptname="$0"
 while [ -L "$scriptname" ]
 do
    scriptname=`readlink "$scriptname" 2>/dev/null`
 done
 test -n "$scriptname" || scriptname=$0
-bindir="`dirname $scriptname`"
+bindir="`dirname \"$scriptname\"`"
 
-#  Set locations of acceptable jar files (relative to this script).
-stilts_jars="\
- $bindir/stilts.jar\
- $bindir/../lib/ttools/stilts-app.jar\
- $bindir/stilts-app.jar\
- $bindir/topcat-extra.jar\
- $bindir/topcat-full.jar\
- $bindir/topcat-lite.jar\
+# Set locations of acceptable jar files (relative to this script).
+bindir_stilts_jars="\
+ stilts.jar\
+ ../lib/ttools/stilts-app.jar\
+ stilts-app.jar\
+ topcat-extra.jar\
+ topcat-full.jar\
+ topcat-lite.jar\
 "
 
-# If we're on a Mac, look for the jar in the resource bundle,
-# since we may have been installed that way.  This is a bit of a mess,
-# because of historical changes in the locations of these scripts.
-if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -iq 'Mac *OS'; then
-   bundle_jar="Java/topcat-full.jar"
-   stilts_jars="$stilts_jars \
-                $bindir/../../$bundle_jar"
+# Set default java command.
+java=java
 
-fi
+# If we appear to have been installed using the topcat application bundle DMG,
+# use the bundled JRE.
+mac_bundled_java="$bindir/../jre.bundle/Contents/Home/bin/java"
+test -x "$mac_bundled_java" && java="$mac_bundled_java"
 
 #  Locate the application jar file.
-for j in $stilts_jars; do
-   if test -z "$appjar" -a -f "$j"; then
-      appjar="$j"
+for j in $bindir_stilts_jars; do
+   if test -z "$appjar" -a -f "$bindir/$j"; then
+      appjar="$bindir/$j"
    fi
 done
 if test ! -f "$appjar"
 then
    echo 1>&2 "Can't find stilts classes relative to ${scriptname} - looked for:"
-   echo " " "$stilts_jars" | sed 1>&2 's/  */\n   /g'
+   for j in $bindir_stilts_jars
+   do
+      echo "   $bindir/$j"
+   done
    exit 1
 fi
 
@@ -115,8 +114,8 @@ case "`uname`" in
 esac
 
 # Execute the command.
-java \
+"$java" \
    $javaArgs \
-   -classpath $CLASSPATH \
+   -classpath "$CLASSPATH" \
    uk.ac.starlink.ttools.Stilts \
    "$@"

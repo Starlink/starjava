@@ -42,37 +42,32 @@ do
    scriptname=`readlink "$scriptname" 2>/dev/null`
 done
 test -n "$scriptname" || scriptname=$0
-bindir="`dirname $scriptname`"
+bindir="`dirname \"$scriptname\"`"
 
-# Set locations of acceptable jar files.
-topcat_jars="$bindir/topcat-extra.jar \
-             $bindir/topcat-full.jar \
-             $bindir/topcat-lite.jar \
-             $bindir/../lib/topcat/topcat.jar"
+# Set locations of acceptable jar files (relative to this script).
+bindir_topcat_jars="topcat-extra.jar \
+                    topcat-full.jar \
+                    topcat-lite.jar \
+                    ../lib/topcat/topcat.jar"
+
+# Set default java command.
+java=java
+
+# If we appear to have been installed using the topcat application bundle DMG,
+# use the bundled JRE.
+mac_bundled_java="$bindir/../jre.bundle/Contents/Home/bin/java"
+test -x "$mac_bundled_java" && java="$mac_bundled_java"
 
 # Mac-specific items.
+# Some of this relies on being installed in the topcat application bundle
+# as currently packaged in the topcat DMG.
 javaArgs0=""
 if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -iq 'Mac *OS'; then
 
-   # Look for the jar in the resource bundle, since we may have been
-   # installed that way.  This is a bit of a mess, because of historical
-   # changes in the locations of these scripts.
-   bundle_jar="Java/topcat-full.jar"
-   topcat_jars="$topcat_jars \
-                $bindir/../../$bundle_jar"
-
    # Look for an icon file and prepare to start java in such a way that
    # it gets used for the dock icon (rather than the generic java one).
-   icns_files="$bindir/../Topcat.icns \
-               /Applications/TOPCAT.app/Contents/Resources/Topcat.icns \
-               $bindir/../lib/topcat/MacOS/Topcat.icns"
-   icns_file=""
-   for f in $icns_files; do
-      if test -r "$f"; then
-         icns_file="$f"
-      fi
-   done
-   if test -r "$icns_file" && java -X 2>&1 | grep -q -- -Xdock:icon; then
+   icns_file=$bindir/../app.icns
+   if test -r "$icns_file" && "$java" -X 2>&1 | grep -q -- -Xdock:icon; then
       javaArgs0="$javaArgs0 "\'-Xdock:icon=$icns_file\'
    fi
 
@@ -82,15 +77,18 @@ if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -iq 'Mac *OS'; then
 fi
 
 #  Locate the application jar file. 
-for j in $topcat_jars; do
-   if test -z "$appjar" -a -f "$j"; then
-      appjar="$j"
+for j in $bindir_topcat_jars; do
+   if test -z "$appjar" -a -f "$bindir/$j"; then
+      appjar="$bindir/$j"
    fi
 done
 if test ! -f "$appjar"
 then
    echo 1>&2 "Can't find topcat classes relative to ${scriptname} - looked for:"
-   echo " " "$topcat_jars" | sed 1>&2 's/  */\n   /g'
+   for j in $bindir_topcat_jars
+   do
+      echo "   $bindir/$j"
+   done
    exit 1
 fi
 
@@ -128,10 +126,10 @@ case "`uname`" in
 esac
 
 #  Run topcat.
-cmd="java \
+cmd="\"$java\" \
         $javaArgs0 \
         $javaArgs \
         -Duk.ac.starlink.topcat.cmdname=topcat \
-        -classpath \${CLASSPATH} uk.ac.starlink.topcat.Driver \
+        -classpath \"\${CLASSPATH}\" uk.ac.starlink.topcat.Driver \
         $appArgs"
 eval "$cmd"

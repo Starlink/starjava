@@ -33428,6 +33428,8 @@ introduced since the last version:
     <li>Add instructions in the
         <ref id="TimePlotWindow">Time Plot</ref> documentation
         about abusing it to stack non-temporal plots.</li>
+    <li>Some fixes/improvements to <code>topcat</code>
+        startup script.</li>
     </ul>
     </p></dd>
 
