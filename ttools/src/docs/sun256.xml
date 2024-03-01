@@ -186,7 +186,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>1 November 2023</docdate>
+<docdate>29 February 2024</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -15082,108 +15082,123 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v3.4-10">Version 3.4-10 (29 February 2024)</dt>
 <dd><p>
-    <ul>
-    <li>Update VOTable 1.5 schema from WD to REC-VOTable-1.5
-        (affects <code>votlint</code>).</li>
-    <li>Upgrade Unity to v1.1-b1, which corresponds to REC-VOUnits-1.1.
-        Only minor functional differences expected since previous
-        version (1.1-b1).</li>
-    <li>Fix <code>votlint</code> to permit empty <code>TD</code>
-        elements in all cases for VOTable versions &gt;=1.3.
-        Previously empty cells for integer and array fields
-        provoked an error report
-        (which is correct for VOTable 1.0-1.2, but not for 1.3+).</li>
-    <li><ref id="datalinklint"><code>datalinklint</code></ref>
-        now checks and uses <code>INFO/@name="standardID"</code>
-        version declarations in the links document being validated.
-        DataLink handling and <code>datalinklint</code> are now believed
-        to be up to date w.r.t. REC-DataLink-1.1.</li>
-    <li>Fix <ref id="tcat"><code>tcat</code></ref
-          >/<ref id="tcatn"><code>tcatn</code></ref> bug that sometimes
-        resulted in no rows included from an input table.</li>
-    <li>The <code>stilts</code> startup script now uses
-        <code>topcat-extra.jar</code> if present in preference to
-        <code>topcat-full.jar</code>.</li>
-    <li>New array functions
-        <ref id="Arrays-loop"><code>loop</code></ref> with arguments
-        <code>(start,end)</code> or <code>(start,end,step)</code>.</li>
-    <li>Upgrade snakeyaml library (used for ECSV headers)
-        from 1.25 to 2.2.
-        No change in behaviour (or security) expected,
-        but prevents vulnerability warnings in some circumstances.</li>
-    <li>Allow use of trailing backslash to specify multiline filters
-        in '<code>@</code>'-indirection files for
-        <ref id="tpipe-cmd"><code>cmd</code></ref>-type parameters.</li>
-    <li>Add a <ref id="quoting">Strings and Quoting</ref> section
-        to this document.</li>
-    <li>The first argument of the <code>inMoc</code> and
-        <code>nearMoc</code> <ref id="Coverage">Coverage</ref> functions
-        can now be an ASCII MOC string as well as a MOC file location
-        or VizieR table identifier.</li>
-    <li>Fix sky match failure in case of very large error radius
-        (&gt;22 deg).</li>
-    <li>Add new <ref id="Shaders">colour map</ref> Sunset.</li>
-    <li>Upgrade VOLLT adqlLib to official 2.0-beta release.</li>
-    <li>Fix issue with <code>fat_triangle_up</code> and
-        <code>fat_triangle_down</code>
-        <ref id="layer-mark-shapeN">marker shape</ref> names.</li>
-    <li>Add <code>-xtype</code> flag to filters
-        <ref id="addcol"><code>addcol</code></ref>,
-        <ref id="colmeta"><code>colmeta</code></ref>,
-        <ref id="replacecol"><code>replacecol</code></ref> and
-        <ref id="setparam"><code>setparam</code></ref>.</li>
-    <li>Fix FITS multi-table read bug that sometimes generated a
-        non-fatal error message when reading basic FITS files
-        using <ref id="tmulti"><code>tmulti</code></ref>.</li>
-    <li>Iso-8601 conversion functions in <ref id="Times">Times</ref>
-        now accept a trailing "<code>Z</code>" even for date-only
-        specifications.</li>
-    <li>ISO-8601 conversion functions in <ref id="Times">Times</ref>
-        now accept <code>YYYY-DDD</code> format for dates
-        as well as <code>YYYY-MM-DD</code>.</li>
-    <li>Parameters
-        <ref id="plot2sky-datasysN"><code>datasysN</code></ref>
-        in <ref id="plot2sky"><code>plot2sky</code></ref> and
-        <ref id="plot2cube-geomN"><code>geomN</code></ref>
-        in <ref id="plot2cube"><code>plot2cube</code></ref>
-        are now included in the documentation.
-        The previously undocumented option to supply
-        <code>plot2cube</code> coordinates in spherical polar form
-        is now documented.</li>
-    <li>Parameter
-        <ref id="plot2cube-geomN"><code>geomN</code></ref> in
-        <ref id="plot2cube"><code>plot2cube</code></ref> can now take
-        value "<code>vector</code>" to use <code>xyz</code>
-        3-element array values as coordinate specifiers.</li>
-    <li>The <code>CoosysRefposition</code> metadata item (VOTable 1.5)
-        is now listed if present by the <ref id="meta">meta</ref> filter.
-        This information is also propagated to VOTable output if the
-        output VOTable version is set to 1.5
-        (currently not the default).</li>
-    <li>Add support for HAPI: <ref id="inHapi">input handler</ref>
-        and <ref id="scheme-hapi">scheme</ref>.</li>
-    <li>Cope better with out of range pixel indices in
-        <ref id="layer-healpix">healpix</ref> plots.</li>
-    <li>Improve error reporting for corrupted/truncated FITS files.</li>
-    <li>Use authentication and HTTP-level compression for
-        external (href-referenced) VOTable STREAM data.</li>
-    <li>Some spectrogram bug fixes.</li>
-    <li>The <ref id="layer-spectrogram">spectrogram</ref> plot layer
-        now tries to plot spectra on a spectral axis,
-        as controlled by the new
-        <ref id="layer-spectrogram-scalespecN">scalespecN</ref>
-        option.</li>
-    <li>Fix <ref id="plot2time"><code>plot2time</code></ref> so that
-        zone-specific text style configuration works correctly for
-        legends and colour ramp annotations.</li>
-    <li>New <code>plot2time</code> parameter
-        <ref id="plot2time-cellgap"><code>cellgap</code></ref>
-        configures gap between stacked plots.</li>
-    <li>Some fixes/improvements to <code>stilts</code>
-        startup script.</li>
-    </ul>
+    <dl>
+    <dt>New functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>Add support for HAPI time series services:
+            <ref id="inHapi">input handler</ref> and
+            <ref id="scheme-hapi">scheme</ref>.</li>
+        <li>Parameter
+            <ref id="plot2cube-geomN"><code>geomN</code></ref> in
+            <ref id="plot2cube"><code>plot2cube</code></ref> can now take
+            value "<code>vector</code>" to use <code>xyz</code>
+            3-element array values as coordinate specifiers.</li>
+        <li>The <ref id="layer-spectrogram">spectrogram</ref> plot layer
+            now tries to plot spectra on a spectral axis,
+            as controlled by the new
+            <ref id="layer-spectrogram-scalespecN">scalespecN</ref>
+            option.</li>
+        <li>New <code>plot2time</code> parameter
+            <ref id="plot2time-cellgap"><code>cellgap</code></ref>
+            configures gap between stacked plots.</li>
+        <li>New array functions
+            <ref id="Arrays-loop"><code>loop</code></ref> with arguments
+            <code>(start,end)</code> or <code>(start,end,step)</code>.</li>
+        <li>The first argument of the <code>inMoc</code> and
+            <code>nearMoc</code> <ref id="Coverage">Coverage</ref> functions
+            can now be an ASCII MOC string as well as a MOC file location
+            or VizieR table identifier.</li>
+        <li>Add <code>-xtype</code> flag to filters
+            <ref id="addcol"><code>addcol</code></ref>,
+            <ref id="colmeta"><code>colmeta</code></ref>,
+            <ref id="replacecol"><code>replacecol</code></ref> and
+            <ref id="setparam"><code>setparam</code></ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Add a <ref id="quoting">Strings and Quoting</ref> section
+            to this document.</li>
+        <li>The <code>CoosysRefposition</code> metadata item (VOTable 1.5)
+            is now listed if present by the <ref id="meta">meta</ref> filter.
+            This information is also propagated to VOTable output if the
+            output VOTable version is set to 1.5
+            (currently not the default).</li>
+        <li>Allow use of trailing backslash to specify multiline filters
+            in '<code>@</code>'-indirection files for
+            <ref id="tpipe-cmd"><code>cmd</code></ref>-type parameters.</li>
+        <li>ISO-8601 conversion functions in <ref id="Times">Times</ref>
+            now accept a trailing "<code>Z</code>" even for date-only
+            specifications,
+            and now accept <code>YYYY-DDD</code> format for dates
+            as well as <code>YYYY-MM-DD</code>.</li>
+        <li>Add new <ref id="Shaders">colour map</ref> Sunset.</li>
+        <li><ref id="datalinklint"><code>datalinklint</code></ref>
+            now checks and uses <code>INFO/@name="standardID"</code>
+            version declarations in the links document being validated.
+            DataLink handling and <code>datalinklint</code> are now believed
+            to be up to date w.r.t. REC-DataLink-1.1.</li>
+        <li>Some fixes/improvements to the <code>stilts</code> startup script.
+            It now works better in the MacOS DMG image,
+            it's more robust against pathnames with embedded spaces,
+            and it will use <code>topcat-extra.jar</code> if present
+            in preference to <code>topcat-full.jar</code>.</li>
+        <li>Parameters
+            <ref id="plot2sky-datasysN"><code>datasysN</code></ref>
+            in <ref id="plot2sky"><code>plot2sky</code></ref> and
+            <ref id="plot2cube-geomN"><code>geomN</code></ref>
+            in <ref id="plot2cube"><code>plot2cube</code></ref>
+            are now included in the documentation.
+            The previously undocumented option to supply
+            <code>plot2cube</code> coordinates in spherical polar form
+            is now documented.</li>
+        <li>Improve error reporting for corrupted/truncated FITS files.</li>
+        <li>Use authentication and HTTP-level compression for
+            external (href-referenced) VOTable STREAM data.</li>
+        <li>Update VOTable 1.5 schema from WD to REC-VOTable-1.5
+            (affects <code>votlint</code>).</li>
+        <li>Upgrade Unity to v1.1-b1, which corresponds to REC-VOUnits-1.1.
+            Only minor functional differences expected since previous
+            version (1.1-b1).</li>
+        <li>Upgrade VOLLT adqlLib to official 2.0-beta release.</li>
+        <li>Upgrade snakeyaml library (used for ECSV headers)
+            from 1.25 to 2.2.
+            No change in behaviour (or security) expected,
+            but prevents vulnerability warnings in some circumstances.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix sky match failure in case of very large error radius
+            (&gt;22 deg).</li>
+        <li>Fix <code>votlint</code> to permit empty <code>TD</code>
+            elements in all cases for VOTable versions &gt;=1.3.
+            Previously empty cells for integer and array fields
+            provoked an error report
+            (which is correct for VOTable 1.0-1.2, but not for 1.3+).</li>
+        <li>Fix <ref id="tcat"><code>tcat</code></ref
+              >/<ref id="tcatn"><code>tcatn</code></ref> bug that sometimes
+            resulted in no rows included from an input table.</li>
+        <li>Cope better with out of range pixel indices in
+            <ref id="layer-healpix">healpix</ref> plots.</li>
+        <li>Fix issue with <code>fat_triangle_up</code> and
+            <code>fat_triangle_down</code>
+            <ref id="layer-mark-shapeN">marker shape</ref> names.</li>
+        <li>Fix FITS multi-table read bug that sometimes generated a
+            non-fatal error message when reading basic FITS files
+            using <ref id="tmulti"><code>tmulti</code></ref>.</li>
+        <li>Some spectrogram bug fixes.</li>
+        <li>Fix <ref id="plot2time"><code>plot2time</code></ref> so that
+            zone-specific text style configuration works correctly for
+            legends and colour ramp annotations.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
