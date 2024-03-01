@@ -522,7 +522,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>1 November 2023</docdate>
+<docdate>29 February 2024</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -16673,6 +16673,9 @@ in the <ref id="TimeAxisControl_grid">Grid tab</ref> of the
 <label>Axes Control</label>,
 and make sure that any <label>time format</label> selectors
 (described above) are similarly set to <label>MJD</label>.
+You may need to check that the right
+<ref id="plotZones">Zone</ref> is chosen (usually the bottom one)
+when you configure the axes.
 </p>
 
 <p>The Time Plot offers the following plot controls:
@@ -23223,10 +23226,11 @@ you want to use.
     all of your search terms, or just one of them.
     When you've decided which service you want to use, click it, and
     its access URL will be filled in the <label>TAP URL</label> selector
-    at the bottom.  Clicking on a table will automatically select its
-    parent service.
-    If you double-click on a service it will take you directly to
+    at the bottom.  If you double-click it, it will take you directly to
     the Use Service tab.
+    If you select or double-click on a table from the tree,
+    then when you look at the service, that table's metadata will be
+    displayed first.
     </p></dd>
 
 <dt>By Service Properties</dt>
@@ -23451,8 +23455,9 @@ It contains the following information:
     which is not a variant of ADQL it may not work.
     The ADQL version selected here will affect the syntax
     highlighting in the ADQL Text panel below,
-    as well as the exact form of the example queries in
-    some of the Examples menu entries and the Hints tab. 
+    as well as the content of the ADQL and Hints tabs,
+    and the exact form of the example queries in
+    some of the Examples menu entries.
     It's usually best to stick with the default language selection,
     but experimenting with earlier ADQL versions if available
     can help to understand differences between the ADQL versions.
@@ -33323,114 +33328,135 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.9-1">Version 4.9-1 (29 February 2024)</dt>
 <dd><p>
-    <ul>
-    <li>Upgrade Unity to v1.1, which corresponds to REC-VOUnits-1.1.
-        Only minor functional differences expected since previous
-        version (1.1-b1).</li>
-    <li>The <code>topcat</code> startup script now uses
-        <code>topcat-extra.jar</code> if present in preference to
-        <code>topcat-full.jar</code>.</li>
-    <li>New array functions
-        <ref id="Arrays-loop"><code>loop</code></ref> with arguments
-        <code>(start,end)</code> or <code>(start,end,step)</code>.</li>
-    <li>Upgrade snakeyaml library (used for ECSV headers) 
-        from 1.25 to 2.2.
-        No change in behaviour (or security) expected,
-        but prevents vulnerability warnings in some circumstances.</li>
-    <li>The <ref id="FunctionLayerControl">Function</ref> layer control
-        is now available from the
-        <ref id="MatrixPlotWindow">&Matrix; Plot Window</ref>.</li>
-    <li>Update list of VizieR mirrors servers in
-        <ref id="VizierTableLoadDialog">VizieR Query window</ref>.</li>
-    <li>The first argument of the <code>inMoc</code> and 
-        <code>nearMoc</code> <ref id="Coverage">Coverage</ref> functions
-        can now be an ASCII MOC string as well as a MOC file location
-        or VizieR table identifier.</li>
-    <li>Fix sky match failure in case of very large error radius
-        (&gt;22 deg).</li>
-    <li>Add new <ref id="Shaders">colour map</ref> Sunset.</li>
-    <li>Upgrade VOLLT adqlLib to official 2.0-beta release.</li>
-    <li>Add Circle mode for the Plane Plot in the
-        <ref id="FigurePanel">Draw Algebraic Subset</ref> action.</li>
-    <li>Fix FITS multi-table read bug that sometimes generated a
-        spurious error popup when reading basic FITS files.</li>
-    <li>Iso-8601 conversion functions in <ref id="Times">Times</ref>
-        now accept a trailing "<code>Z</code>" even for date-only
-        specifications.</li>
-    <li>ISO-8601 conversion functions in <ref id="Times">Times</ref>
-        now accept <code>YYYY-DDD</code> format for dates 
-        as well as <code>YYYY-MM-DD</code>.</li>
-    <li>The <ref id="CubePlotWindow">Cube Plot Window</ref>
-        has a new <label>Coordinates</label> selector
-        that lets you specify positions as Cartesian 3-vectors (XYZ)
-        or spherical polar (Lon, Lat, Radius) coordinates as
-        alternatives to the normal Cartesian components (X, Y, Z).</li>
-    <li>The <label>CoosysRefposition</label> metadata item (VOTable 1.5)
-        is now listed if present in the
-        <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
-    <li>Add support for HAPI:
-        <ref id="HapiTableLoadDialog">query window</ref>,
-        <ref id="inHapi">input handler</ref> and
-        <ref id="scheme-hapi">scheme</ref>.</li>
-    <li>Cope better with out of range pixel indices in
-        <ref id="HealpixLayerControl">healpix</ref> plots.</li>
-    <li>Improve error reporting for corrupted/truncated FITS files.</li>
-    <li>Use TAP 1.1-specific communications
-        (avoid <code>REQUEST=doQuery</code>,
-        use <code>RESPONSEFORMAT</code> not <code>FORMAT</code>)
-        in data queries to TAP services
-        known to declare TAP 1.1 compliance.</li>
-    <li>Improve scrolling in
-        <ref id="TapTableLoadDialog_query">TAP window</ref>
-        Service, Schema and Table tabs.</li>
-    <li>Use authentication and HTTP-level compression for
-        external (href-referenced) VOTable STREAM data.</li>
-    <li>Add a metadata tree <label>Sort</label> control in the
-        <ref id="TapTableLoadDialog_query">TAP window</ref>.</li>
-    <li>The TAP <ref id="TapTableLoadDialog_query">Use Service</ref> tab
-        now initially displays the
-        Columns not the Schema metadata.</li>
-    <li>Initially selecting, or subsequently double-clicking,
-        a table in the TAP
-        <ref id="TapTableLoadDialog_service">Select Service</ref> tab
-        will now select it for display in the
-        <ref id="TapTableLoadDialog_query">Use Service</ref> tab
-        metadata panel.</li>
-    <li>Fix some problems with images in the PDF version of this
-        document.</li>
-    <li>Some spectrogram/time plot bug fixes.</li>
-    <li>The <ref id="SpectrogramLayerControl">spectrogram</ref> plot
-        now tries to plot spectra on a spectral axis,
-        as controlled by the new <label>Scale Spectra</label>
-        style control.</li>
-    <li>Fix bug in legend/aux axis text style configuration
-        for <ref id="TimePlotWindow">Time Plot</ref>.
-        This was a regression bug present only in TOPCAT v4.9.</li>
-    <li>Fix <ref id="StiltsControl">STILTS control</ref> bug that
-        did not include all settings for the
-        <ref id="MatrixPlotWindow">&Matrix; Plot</ref>.</li>
-    <li>Choose better columns for TAP window ADQL examples
-        under some circumstances.</li>
-    <li>ADQL functions and declared features, including UDFs,
-        are now listed in a separate
-        <label>ADQL</label> tab with the
-        <ref id="TapTableLoadDialog_query_metadata"
-             >TAP metadata</ref>.</li>
-    <li>The gap between vertically stacked plots in the
-        <ref id="TimePlotWindow">Time Plot</ref> window
-        can now be adjusted using the
-        can now be adjusted using the Frame Control
-        <ref id="FrameControl_spacing">Spacing tab</ref>.</li>
-    <li>The <ref id="TimeAxisControl_labels">Time Axis label</ref>
-        can now be configured in the Time Plot.</li>
-    <li>Add instructions in the
-        <ref id="TimePlotWindow">Time Plot</ref> documentation
-        about abusing it to stack non-temporal plots.</li>
-    <li>Some fixes/improvements to <code>topcat</code>
-        startup script.</li>
-    </ul>
+    <dl>
+    <dt>TAP window improvements:</dt>
+    <dd><p>
+        <ul>
+        <li>ADQL functions and declared features, including UDFs,
+            are now listed in a separate
+            <label>ADQL</label> tab with the
+            <ref id="TapTableLoadDialog_query_metadata"
+                 >TAP metadata</ref>.</li>
+        <li>Schemas and tables are now listed by default
+            in service-defined order in the
+            <ref id="TapTableLoadDialog_query">TAP window</ref> metadata tree.
+            A new <label>Sort</label> control
+            can switch back to alphabetic.</li>
+        <li>Initially selecting, or subsequently double-clicking,
+            a table in the TAP
+            <ref id="TapTableLoadDialog_service">Select Service</ref> tab
+            will now select it for display in the
+            <ref id="TapTableLoadDialog_query">Use Service</ref> tab
+            metadata panel.</li>
+        <li>The TAP <ref id="TapTableLoadDialog_query">Use Service</ref> tab
+            now initially displays the
+            Columns not the Schema metadata tab.</li>
+        <li>Choose better columns for TAP window ADQL examples
+            under some circumstances.</li>
+        <li>Use TAP 1.1-specific communications
+            (avoid <code>REQUEST=doQuery</code>,
+            use <code>RESPONSEFORMAT</code> not <code>FORMAT</code>)
+            in data queries to TAP services
+            known to declare TAP 1.1 compliance.</li>
+        <li>Improve scrolling in
+            <ref id="TapTableLoadDialog_query">TAP window</ref>
+            Service, Schema and Table tabs.</li>
+        </ul>
+        </p></dd>
+    <dt>Other new functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>Add support for HAPI time-series services:
+            <ref id="HapiTableLoadDialog">query window</ref>,
+            <ref id="inHapi">input handler</ref> and
+            <ref id="scheme-hapi">scheme</ref>.</li>
+        <li>The <ref id="CubePlotWindow">Cube Plot Window</ref>
+            has a new <label>Coordinates</label> selector
+            that lets you specify positions as Cartesian 3-vectors (XYZ)
+            or spherical polar (Lon, Lat, Radius) coordinates as
+            alternatives to the normal Cartesian components (X, Y, Z).</li>
+        <li>Add Circle mode for the Plane Plot in the
+            <ref id="FigurePanel">Draw Algebraic Subset</ref> action.</li>
+        <li>The <ref id="SpectrogramLayerControl">spectrogram</ref> plot
+            now tries to plot spectra on a spectral axis,
+            as controlled by the new <label>Scale Spectra</label>
+            style control.</li>
+        <li>New array functions
+            <ref id="Arrays-loop"><code>loop</code></ref> with arguments
+            <code>(start,end)</code> or <code>(start,end,step)</code>.</li>
+        <li>The first argument of the <code>inMoc</code> and 
+            <code>nearMoc</code> <ref id="Coverage">Coverage</ref> functions
+            can now be an ASCII MOC string as well as a MOC file location
+            or VizieR table identifier.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>The gap between vertically stacked plots in the
+            <ref id="TimePlotWindow">Time Plot</ref> window
+            can now be adjusted using the Frame Control
+            <ref id="FrameControl_spacing">Spacing tab</ref>.</li>
+        <li>The <ref id="TimeAxisControl_labels">Time Axis label</ref>
+            can now be configured in the Time Plot.</li>
+        <li>Add instructions in the
+            <ref id="TimePlotWindow">Time Plot</ref> documentation
+            about abusing it to stack non-temporal plots.</li>
+        <li>The <ref id="FunctionLayerControl">Function</ref> layer control
+            is now available from the
+            <ref id="MatrixPlotWindow">&Matrix; Plot Window</ref>.</li>
+        <li>ISO-8601 conversion functions in <ref id="Times">Times</ref>
+            now accept a trailing "<code>Z</code>" even for date-only
+            specifications,
+            and now accept <code>YYYY-DDD</code> format for dates
+            as well as <code>YYYY-MM-DD</code>.</li>
+        <li>The <label>CoosysRefposition</label> metadata item (VOTable 1.5)
+            is now listed if present in the
+            <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+        <li>Some fixes/improvements to the <code>topcat</code> startup script.
+            It now works better in the MacOS DMG image,
+            it's more robust against pathnames with embedded spaces,
+            and it will use <code>topcat-extra.jar</code> if present
+            in preference to <code>topcat-full.jar</code>.</li>
+        <li>Update list of VizieR mirrors servers in
+            <ref id="VizierTableLoadDialog">VizieR Query window</ref>.</li>
+        <li>Add new <ref id="Shaders">colour map</ref> Sunset.</li>
+        <li>Use authentication and HTTP-level compression for
+            external (href-referenced) VOTable STREAM data.</li>
+        <li>Improve error reporting for corrupted/truncated FITS files.</li>
+        <li>Upgrade VOLLT adqlLib to official 2.0-beta release.</li>
+        <li>Upgrade Unity to v1.1, which corresponds to REC-VOUnits-1.1.
+            Only minor functional differences expected since previous
+            version (1.1-b1).</li>
+        <li>Upgrade snakeyaml library (used for ECSV headers) 
+            from 1.25 to 2.2.
+            No change in behaviour (or security) expected,
+            but prevents vulnerability warnings in some circumstances.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix sky match failure in case of very large error radius
+            (&gt;22 deg).</li>
+        <li>Fix bug in legend/aux axis text style configuration
+            for <ref id="TimePlotWindow">Time Plot</ref>.
+            This was a regression bug present only in TOPCAT v4.9.</li>
+        <li>Fix <ref id="StiltsControl">STILTS control</ref> bug that
+            did not include all settings for the
+            <ref id="MatrixPlotWindow">&Matrix; Plot</ref>.</li>
+        <li>Fix FITS multi-table read bug that sometimes generated a
+            spurious error popup when reading basic FITS files.</li>
+        <li>Cope better with out of range pixel indices in
+            <ref id="HealpixLayerControl">healpix</ref> plots.</li>
+        <li>Some spectrogram/time plot bug fixes.</li>
+        <li>Fix some problems with images in the PDF version of this
+            document.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

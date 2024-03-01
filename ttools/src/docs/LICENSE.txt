@@ -46,6 +46,7 @@ this list up to date, but if there are missing entries please complain.
       ecsv.jar
       fits.jar
       gbin.jar
+      hapi.jar
       mirage.jar
       pal.jar
       parquet.jar
@@ -61,8 +62,8 @@ this list up to date, but if there are missing entries please complain.
       votable.jar
 
    LGPL (other):
-      adqlParser.jar
-      ucidy-1.1.jar
+      adql-2.0-beta.jar
+      ucidy-1.3.jar
       iText_shrunk.jar
       jcdf.jar
       dpac.jar
@@ -78,7 +79,7 @@ this list up to date, but if there are missing entries please complain.
       gov.nasa.pds.* in pds.jar
 
    BSD 2-clause:
-      unity-1.0.jar
+      unity-1.1.jar
 
    BSD 3-clause:
       cdshealpix.jar
