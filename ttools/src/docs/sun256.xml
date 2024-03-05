@@ -15204,6 +15204,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Retire some taplint DALI-examples warnings related to
+        old TOPCAT versions.</li>
     </ul>
     </p></dd>
 
