@@ -70,7 +70,10 @@ public class Regtap12ServiceFinder implements TapServiceFinder {
         };
 
         /* Assemble a query that returns the ivoid of all known TAP services
-         * along with the number of tables in each one. */
+         * along with the number of tables in each one.
+         * Note this figure may end up being incorrect if registry bugs
+         * mean that rr.tap_table contains duplicate (svcid, table_name)
+         * values (forbidden by RegTAP 1.2 sec 8.18). */
         String adql = String.join( "\n", new String[] {
             "SELECT " + String.join( ", ", colNames ),
             "FROM (",
@@ -167,10 +170,23 @@ public class Regtap12ServiceFinder implements TapServiceFinder {
                        .map( targ -> getAdqlTest( word, targ ) )
                        .collect( Collectors.joining( " OR " ) ) );
         }
+
+        /* RegTAP 1.2 sec 8.18 says of rr.tap_table "there cannot be
+         * two rows in the view having the same (svcid, table_name)".
+         * However at time of writing, publishing registry bugs
+         * can result in violations of this rule.
+         * We could work round this by adding a DISTINCT here,
+         * but Markus has lobbied that this would be a bad idea,
+         * since service providers are less likely to fix things if they
+         * look OK in topcat, so turn this fix off for now. */
+        boolean fixDuplicates = false;
         StringBuffer sbuf = new StringBuffer()
-           .append( "SELECT DISTINCT " )
-           .append( String.join( ", ", colNames ) )
-           .append( "\nFROM rr.tap_table" );
+            .append( "SELECT " );
+        if ( fixDuplicates ) {
+            sbuf.append( "DISTINCT " );
+        }
+        sbuf.append( String.join( ", ", colNames ) )
+            .append( "\nFROM rr.tap_table" );
         for ( int iw = 0; iw < wheres.size(); iw++ ) {
             sbuf.append( "\n" );
             if ( iw == 0 ) {
