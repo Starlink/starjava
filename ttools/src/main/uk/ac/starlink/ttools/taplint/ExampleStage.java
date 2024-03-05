@@ -84,17 +84,19 @@ public class ExampleStage implements Stage {
             new ContentType( "application", "xhtml+xml" ),
         } );
 
-    // The 'correct' value for the RDFa @vocab attribute is a real mess.
+    // The 'correct' value for the RDFa @vocab attribute is a bit of a mess.
     // The values listed below have some claim to legitimacy.
-    // The worst problem is that TOPCAT versions 4.4 and earlier
+    // The worst problem was that TOPCAT versions 4.4 and earlier
     // (from 4.3, when TAP examples support was introduced)
     // required one of the forms TAPNOTE_VOCAB or PRAGMATIC_VOCAB,
     // and failed to find the example elements otherwise
-    // (including in absence of any @vocab),
-    // so until TOPCAT versions 4.3-4.4 inclusive fall out of use,
-    // services probably need to use one of those forms,
-    // despite the fact that they are not permitted by any REC.
-    // If that's not a concern, the DALI 1.1 value is probably preferred.
+    // (including in absence of any @vocab).
+    // While TOPCAT versions 4.3-4.4 inclusive were in common use,
+    // services arguably needed to use one of those forms,
+    // despite the fact that they were not permitted by any REC.
+    // This was fixed in TOPCAT v4.5 (Sep 2017) so is of mainly
+    // historic interest; now the DALI 1.1 value, expected to be used
+    // as well for subsequent DALI versions, is preferred.
     // See dal list thread "DALI examples vocab" starting 19 May 2016,
     // also private thread "examples @vocab" between MBT,
     // Markus Demleitner and Pat Dowler in July 2017.
@@ -723,8 +725,8 @@ public class ExampleStage implements Stage {
                 String msgIntro =
                     "Examples document vocab attribute \"" + vatt + "\"";
                 String workWithTopcat =
-                    "work with some TOPCAT versions " +
-                    "(v4.3-4.4 require \"" + PRAGMATIC_VOCAB + "\", " +
+                    "work with some old TOPCAT versions " +
+                    "(v4.3-4.4 required \"" + PRAGMATIC_VOCAB + "\", " +
                     "later versions don't care)";
                 if ( DALI10_VOCAB.equalsIvoid( vatt ) ||
                      DALI11_VOCAB.equalsIvoid( vatt ) ) {
@@ -736,32 +738,21 @@ public class ExampleStage implements Stage {
                        .append( daliVersion )
                        .append( ", but won't " )
                        .append( workWithTopcat )
-                       .append( " :-(." )
                        .toString();
                     reporter_.report( FixedCode.I_EXVT, msg );
                 }
-                else if ( TAPNOTE_VOCAB.equalsIvoid( vatt ) ||
-                          PRAGMATIC_VOCAB.equalsIvoid( vatt ) ) {
-                    String msg = new StringBuffer()
-                       .append( msgIntro )
-                       .append( " is contrary to DALI, but is required to " )
-                       .append( workWithTopcat )
-                       .append( " :-(." )
-                       .toString();
-                    reporter_.report( FixedCode.W_EXVC, msg );
-                }
                 else {
-                    assert ! Arrays.asList( EXAMPLES_VOCABS ).contains( vatt );
-                    String msg = new StringBuffer()
+                    StringBuffer sbuf = new StringBuffer()
                        .append( msgIntro )
-                       .append( " wrong, should probably be \"" )
+                       .append( " wrong, should be \"" )
                        .append( DALI11_VOCAB )
-                       .append( "\" (DALI 1.1)" )
-                       .append( " or maybe \"" )
-                       .append( PRAGMATIC_VOCAB )
-                       .append( "\" (to work with some TOPCAT versions)" )
-                       .toString();
-                    reporter_.report( FixedCode.E_EXVC, msg );
+                       .append( "\" (DALI 1.1)" );
+                    if ( TAPNOTE_VOCAB.equalsIvoid( vatt ) ||
+                         PRAGMATIC_VOCAB.equalsIvoid( vatt ) ) {
+                        sbuf.append( " - it used to be required to " )
+                            .append( workWithTopcat );
+                    }
+                    reporter_.report( FixedCode.E_EXVC, sbuf.toString() );
                 }
                 return examplesEl;
             }
