@@ -309,97 +309,94 @@ public class XSAMSParser  {
             //   String elSymbol=null;
             //   if (id != null)
             //       elSymbol=elements.get(id);
-           
-            try {
-              
-            	    double error=-9999999;
-            	    boolean error_set=false;
-
-            		ArrayList  wls =  (ArrayList) radtrans.getEnergyWavelength().getWavelengths();
-            		WlType wl =  radtrans.getEnergyWavelength().getWavelengths().get(0);
-
-            		AccuracyType er = null;
-            		try {
-            			 er = wl.getAccuracies().get(0);
-            		} catch (Exception e) {}
-            			
-            	           		
-            		if (er != null) {
-            		    error = er.getValue();
-            		    error_set=true;
-            		}
-            	
-            	    MethodType method = (MethodType) wl.getMethodRef();
-          //  		System.out.println( "wl method cat "+ method.getCategory().value());
-            				
-            		
-            		String unit = wl.getValue().getUnits();
-  //          		EnvironmentType env = environments.get(wl.getEnvRef());
-            		
-            		if (unit.equals("A"))
-            			unit="Angstrom"; // correct unit for AST 
-            		
-    
-            		if (wl.isVacuum()) { // ?!!!!!! check if it's correct
-            			line.setWavelength(wl.getValue().getValue(), unit);
-
-            		} else {
-            			line.setAirWavelength(wl.getValue().getValue(), unit);    
-            			if (error_set)
-            			    line.setWavelength(wl.getValue().getValue()*wl.getAirToVacuum().getValue().getValue(), error, unit);
-            			else
-            				line.setWavelength(wl.getValue().getValue()*wl.getAirToVacuum().getValue().getValue(), unit);
-            		}
-
-
+            EnergyWavelengthType energyWavelength = null;
+          //  EnergyWavenumberType energyWavenumber = null;
+          //  EnergyFrequencyType  energyFrequency = null;
             
-            } catch (Exception e) {
-            	// if no wavelenghts are present, try  wavenumbers instead
-            	try {
-            		DataType wn = radtrans.getEnergyWavelength().getWavenumbers().get(0);
-            		AccuracyType er = wn.getAccuracies().get(0);
-            		double error = er.getValue(); // does error have to be converted?
-
-            		Double wavelength = 1/wn.getValue().getValue()*1e8;            
-            		// convert 1/cm to angstrom
-            		String unit = "Angstrom";
-            		//String unit = wn.getValue().getUnits();
-            		//unit = unit.replaceAll("1/", "");//!!!
-            		System.out.println("WaveNumber: "+wn.getValue().getValue()+" "+wn.getValue().getUnits() + " Wavelength: "+wavelength+" "+unit);
-            		line.setWavelength(wavelength, error, unit);  
-            		
-            	}
-            	catch (Exception ee) {
-            		
-            		//System.out.println("no  wl wn.WaveNumber: ");
-            		List <DataType> freqs = radtrans.getEnergyWavelength().getFrequencies();
-            		if (freqs.size()>0) {
-            			DataType freq=freqs.get(0);
-            			Double  frequency=freq.getValue().getValue();
-                		String unit=freq.getValue().getUnits();
-                		AccuracyType er = freq.getAccuracies().get(0);
-                		double error = er.getValue(); // does error have to be converted?
-
-                		System.out.println("Frequency: "+freq+" "+unit);// + " Wavelength: "+wavelength+" "+unit);
-                       /// convert to angstrom!!!	
-                		//line.setWavelength(wl.getValue().getValue(), unit);
-					} else {
-					//	System.out.println("no  wl wn. no freq: ");
-	            		List <DataType> energies = radtrans.getEnergyWavelength().getEnergies();
-	            		if (energies.size()>0) {
-	            			DataType energy=energies.get(0);
-	            			Double  energyuency=energy.getValue().getValue();
-	                		String unit=energy.getValue().getUnits();
-	                		System.out.println("energy: "+energy+" "+unit);// + " Wavelength: "+wavelength+" "+unit);
-	              //  		System.out.println("no  wl wn freq ");
-	            		}
-	            	//	else System.out.println("no  wl wn freq energy");
-						
-					}
-            	}
+            Boolean hasWaveLength = false;
+            Boolean hasWaveNumber = false;
+            Boolean hasFrequency = false;
+            double error=-9999999;
+    	    boolean error_set=false;
+    	    energyWavelength = radtrans.getEnergyWavelength();
+    	    WlType wl = null;
+    	    DataType wn = null; 
+    	    AccuracyType er = null;
+            
            
+            ArrayList  wls =  (ArrayList<?>) energyWavelength.getWavelengths();
+            ArrayList  wns =  (ArrayList<?>) energyWavelength.getWavenumbers();
+        	List <DataType> freqs = energyWavelength.getFrequencies();
+            if (wls!= null &&  wls.size()>0) {
+            	wl =  (WlType) wls.get(0);   
+    			try {
+    				er = wl.getAccuracies().get(0);
+    			} catch (Exception e) {}
+    			  		
+    			if (er != null) {
+    				error = er.getValue();
+    				error_set=true;
+    			}
+    			//MethodType method = (MethodType) wl.getMethodRef();            		
+    			String unit = wl.getValue().getUnits();
+   		
+    			if (unit.equals("A"))
+    				unit="Angstrom"; // correct unit for AST 
+
+    			if (wl.isVacuum()) { // ?!!!!!! check if it's correct
+    				line.setWavelength(wl.getValue().getValue(), unit);
+
+    			} else {
+    				line.setAirWavelength(wl.getValue().getValue(), unit);    
+    			if (error_set)
+    			    line.setWavelength(wl.getValue().getValue()*wl.getAirToVacuum().getValue().getValue(), error, unit);
+    			else
+    				line.setWavelength(wl.getValue().getValue()*wl.getAirToVacuum().getValue().getValue(), unit);
+    			}
+        	} else  if (wns!= null &&  wns.size()>0) {
+        		wn = (DataType) wns.get(0);
+        		
+    		//	MethodType method = (MethodType) wn.getMethodRef();            		
+    			String unit = wl.getValue().getUnits();
+
+        		Double wavelength = 1/wn.getValue().getValue()*1e8;            
+        		// convert 1/cm to angstrom
+        		unit = "Angstrom";
+        		//String unit = wn.getValue().getUnits();
+        		//unit = unit.replaceAll("1/", "");//!!!
+        		System.out.println("WaveNumber: "+wn.getValue().getValue()+" "+wn.getValue().getUnits() + " Wavelength: "+wavelength+" "+unit);
+        		try {
+    				er = wl.getAccuracies().get(0);
+    			} catch (Exception e) {}
+    			  		
+    			if (er != null) {
+    				error = er.getValue();
+    			
+    				line.setWavelength(wavelength, error, unit);
+    			} else 
+    				line.setWavelength(wavelength, unit);  
+        		
+        	} else if (freqs!= null &&  freqs.size()>0)  {
+        		
+        		DataType freq=freqs.get(0);
+        		Double  frequency=freq.getValue().getValue();
+            	String unit=freq.getValue().getUnits();
+            	//MethodType method = (MethodType) freq.getMethodRef(); 
+            	try {
+    				er = wl.getAccuracies().get(0);
+    			} catch (Exception e) {}
+    			  		
+    			if (er != null) {
+    				error = er.getValue();
+    			
+    				line.setWavelength(frequency, error, unit);
+    			} else      
+    				line.setWavelength(frequency, unit);
+         		
             }
-            /*                try {
+            
+        
+              /*                try {
                     String e1 = null;
                     String e2 = null;
                    if ( line.getInitialLevel().getEnergy() != null ) 
