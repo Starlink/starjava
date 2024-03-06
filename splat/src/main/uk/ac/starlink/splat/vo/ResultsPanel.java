@@ -95,10 +95,11 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
     protected JPopupMenu popupMenuWithDataLink;
     
     private VOBrowser browser;
-    private int datatype=-1;
+    protected int datatype=-1;
     
     private static final int SSAP=0;
     private static final int OBSCORE=1;
+    protected static final int LINE=2;
    
     /**
      * @uml.property  name="dataLinkFrame"
@@ -438,7 +439,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
        
       if (datatype==SSAP)
           ((SSAQueryBrowser) browser).deselectSpectra(all, resultsPane.getSelectedComponent());
-      else if (datatype==OBSCORE){
+      else if (datatype==OBSCORE || datatype == LINE){
           if (all ) {
               for (int i=0;i<resultsPane.getTabCount(); i++) {
                   JScrollPane pane = (JScrollPane) resultsPane.getComponentAt(i);
@@ -450,7 +451,7 @@ public class ResultsPanel extends JPanel implements ActionListener, MouseListene
               StarPopupTable table = (StarPopupTable) pane.getViewport().getView();
               table.clearSelection();
           }
-      }
+      } 
       
     }
     
