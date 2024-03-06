@@ -60,6 +60,7 @@ public class LinesResultsPanel extends ResultsPanel implements ItemListener, Pro
     
     public LinesResultsPanel(LineBrowser browser) {
             super();
+            datatype = LINE;
             slQueryBrowser=browser;
             controlPanel = initControlPanel();
             initComponents();      

@@ -13,9 +13,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -26,6 +28,7 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import jsky.util.Logger;
 import uk.ac.starlink.splat.vo.TapQueryWithDatalink;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -37,9 +40,10 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 	JTextField textf;
 	JComboBox<String> matchesBox;
 
-	Boolean elementChosen=false;
-	Boolean makeQuery=false;
-	Map <String,String> speciesInChiKey = null;
+	Boolean elementChosen=false; // true: a choice has been made in the combobox
+	Boolean makeQuery=false;  // true :query database for species ; false: get list of elements. 
+	Map <String,SpeciesItem> speciesInChiKey = null;
+	String[] emptyBox= {"",""};
 
 	public AutoFillCombo( String label, boolean querySpecies ) {
 		
@@ -79,18 +83,12 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 	}
 	
 	private void updateCombo(ArrayList<String> results ) {
-		
-		ComboBoxModel<String> results2;
-		
-		if (results.size()==0) {
-			
-			//matchesBox.removeAllItems();
+		elementChosen=false;
+		matchesBox.removeAllItems();
+		if (results.size()==0) {			
 			matchesBox.addItem("");
 			matchesBox.setSelectedItem("");
 		} else {
-		    //results2 = new DefaultComboBoxModel(results.toArray()) ;
-		   
-		   // matchesBox.setModel( results2 ) ;	
 		    matchesBox.setModel ( new DefaultComboBoxModel(results.toArray()));
 			matchesBox.addItem("");	    
 		    matchesBox.showPopup();
@@ -98,50 +96,84 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 		
 	}
 	
+/*	private void updateComboSpecies(ArrayList<SpeciesItem> results ) {
+		
+		if (results.size()==0) {
+			
+			//matchesBox.removeAllItems();
+			matchesBox.addItem(emptyBox);
+			matchesBox.setSelectedItem("");
+		} else {
+		DefaultComboBoxModel<String[]> results2 = new DefaultComboBoxModel<>();
+
+		   for (int i=0;i<results.size();i++) {
+			   results2.addElement(results.get(i));
+		   }
+		    matchesBox.setModel(  results2 ) ;	
+//		    matchesBox.setModel ( new DefaultComboBoxModel(String[2] results.toArray()));
+			matchesBox.addItem(emptyBox);	    
+		    matchesBox.showPopup();
+	    }
+		
+	}
+	*/
+	
 	public String getElement(  ) {
 
 		return textf.getText();
 	}
 	
-	public String getInChiKey(  ) {
-		if ( makeQuery)
+	public String getInChiKey() {
+		if ( makeQuery ) {
+			
 			try {
 				String spcs = textf.getText();
 				if (! (spcs == null) && ! spcs.isEmpty())
-					return speciesInChiKey.get( textf.getText()) ;
+					Logger.info (this, spcs);
+					SpeciesItem chosen = (SpeciesItem) speciesInChiKey.get(spcs);
+					String inchik = chosen.getInchikey();
+					return (  speciesInChiKey.get( spcs ).getInchikey() );
 			} catch ( Exception e) {
+				Logger.info( this, "no inchiHey found");
 				return "";
 			}
+		} else {
+			
+		}
 		return "";
 	}
+	
 
-
-	private void updateCombo(Map<String, String> results ) {
+	private void updateCombo(Map<String, SpeciesItem> results ) {
 		
 		speciesInChiKey = results;
-		List<String>  resultList =  new ArrayList<>(results.keySet());
+		elementChosen=false;
 		
-		if (resultList.size()==0) {
+	
+		String [] resultList =  (results.keySet()).toArray(new String[0]);
+				 
+		if (results.size()==0) {
 			
 			//matchesBox.removeAllItems();
 			matchesBox.addItem("");
 			matchesBox.setSelectedItem("");
 		} else {
-
-			ComboBoxModel<String> results2 = new DefaultComboBoxModel(resultList.toArray()) ;
-			matchesBox.setModel( results2 ) ;
-			matchesBox.addItem("");
-			matchesBox.showPopup();
-		}
+			
+		    matchesBox.setModel ( new DefaultComboBoxModel<String>( resultList));
+			matchesBox.addItem("");	    
+		    matchesBox.showPopup();
+	    }
+	
 	}
-    private void resetCombo()  {
+   private void resetCombo()  {
 		
-        matchesBox.removeAllItems();
+       matchesBox.removeAllItems();
+      //  elementChosen=false;
       //  matchesBox.addActionListener(this);
        // matchesBox.addItem("");
        // matchesBox.setSelectedItem("");
-       // textf.setText("");
-       // this.firePropertyChange("AutoFillCombo", true, false );
+       textf.setText("");
+       this.firePropertyChange("AutoFillCombo", true, false );
 
 	}
 	
@@ -220,7 +252,7 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 		   	TapQueryWithDatalink tq;
 	    	StarTable startable;
 	    	
-	    	String query = "SELECT DISTINCT name, inchikey FROM "+SPECIES_TABLE+" WHERE name ILIKE '%"+pref+"%' OR FORMULA ILIKE '%"+pref+"'" ;
+	    	String query = "SELECT DISTINCT name, formula, inchikey FROM "+SPECIES_TABLE+" WHERE name ILIKE '"+pref+"%' OR FORMULA ILIKE '"+pref+"'" ;
 	       
 	    	try {
 				tq =  new TapQueryWithDatalink( new URL(SPECIESDB_URL), query,  null );
@@ -241,25 +273,35 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 		
 		}
 		
-		private static Map<String,String>  getMatches(String pref) {
+		private static Map<String,SpeciesItem>  getMatches(String pref) {
 			
 		//	ArrayList <String> results = new ArrayList<String>();
-			Map <String, String> results = new HashMap<String,String>();
+			Map <String, SpeciesItem> results = new HashMap<String,SpeciesItem>();
 			
-			StarTable st = querySpecies(pref);
-			String prefl = pref.toLowerCase();
+			//  !!!!!!!!!!! if user already edited the  line, separate name and formula and query again
+			
+	
+			StarTable st = querySpecies(pref.toLowerCase());
+			
 			
 			
 			for (int i = 0; i < st.getRowCount(); i++) {  // Loop through the rows						
-		        // name, inchi, inchikey
+		        // name, formula, inchikey
 				try {
-					results.put( (String) st.getCell(i,0),(String) st.getCell(i,1));
+					
+					SpeciesItem species = new SpeciesItem();
+					species.setName( (String) st.getCell(i,0) );
+					species.setFormula( (String) st.getCell(i,1) );
+					species.setInchikey( (String) st.getCell(i,2) );
+			
+					results.put( species.getKey(), species);
 				
 				} catch (IOException e) {
 					
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			
 			}
 			
 			return  results;
@@ -268,19 +310,55 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 		
 		
 	} // SpeciesQuery
+	
+	static class SpeciesItem {
+		String name;
+		String formula;
+		String inchikey;
+		
+		public SpeciesItem () {
+			name = "";
+			formula= "";
+			inchikey= "";
+		}
+		
+		public String getName() 
+		{ return name;
+		}
+		public void setName ( String speciesname ) {
+			name = speciesname;
+		}
+		public String getFormula() 
+		{ return formula;
+		}
+		public void setFormula ( String speciesformula ) {
+			formula = speciesformula;
+		}
+		public String getInchikey() { 
+			return inchikey;
+		}
+		public void setInchikey ( String speciesinchikey ) {
+			inchikey = speciesinchikey;
+		}
+		public String getKey() {
+			return(String.format("%s  [ %s ]", name, formula));
+		}
+		
+	}
 
 	@Override
 	public void insertUpdate(DocumentEvent e) {
+		
 		updateAction(e);
+		
 		
 	}
 
 	@Override
 	public void removeUpdate(DocumentEvent e) {
-	//	if (elementChosen)
-	//		updateAction(e);
-	//	if (textf.getText().isEmpty() )
-	//		resetCombo();
+		//if (! elementChosen)
+			if (textf.getText().isEmpty() )
+				resetCombo();
 	//	else 
 			updateAction(e);
 		
@@ -293,31 +371,28 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 	}
   
 	protected void updateAction(DocumentEvent e) {
+		
+		
 		  ArrayList<String> result = new ArrayList<String>();
-		  Map<String, String> resultMap;
-		  
-				  
-		  
-		  if (elementChosen==true) {
-			  elementChosen = false;
-			  return;
-		  }
+		  Map<String, SpeciesItem> resultMap;
 		  Object owner = e.getDocument().getProperty("owner");
 		  if(owner != null && owner.getClass() == JTextField.class) {
 			  String text = textf.getText();
-
 			  if ( text != null && ! text.isEmpty() ) {
-				  if ( makeQuery ) {
-					  try {
-						  resultMap = SpeciesQuery.getMatches(text);
-						 
-					  }
-					  catch (Exception e1) {
+				  if ( makeQuery ) {					  
+					  if (! elementChosen ) { // did not select new combobox element
+						  try {
 
-						  return;
+							  resultMap = SpeciesQuery.getMatches(text);
+						  }
+						  catch (Exception e1) {
+
+							  return;
+						  }	 
+						  updateCombo(resultMap);
+					  } else {
+						  elementChosen=false;
 					  }
-					 
-					  updateCombo(resultMap);
 
 				  } else {
 					  try {
@@ -326,16 +401,15 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 					  catch (Exception e1) {
 
 						  return;
-					  }
-					  
+					  }					  
 					  updateCombo(result);
 					 
 				  }
-
-				
+			
 			  }
-			  else
-				  matchesBox.removeAllItems();
+			  			 
+			//  else
+			//	  matchesBox.removeAllItems();
 	      
 	      }
 		  
@@ -345,15 +419,19 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		
+		Logger.info( this,"changeselection");
 
 		if (e.getSource() == matchesBox) {
 			try {
 				
 				String chosen = (String) matchesBox.getSelectedItem();
-				if (chosen == null)
+				if (chosen == null) 
 					chosen="";
 				if (!chosen.isEmpty())
 				   elementChosen=true;
+				else 
+				   elementChosen = false;
 				textf.setText( chosen);
 				
 				

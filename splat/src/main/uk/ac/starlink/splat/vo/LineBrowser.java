@@ -373,14 +373,17 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
        
        String request="SELECT * from "+table+" WHERE ";
      
+     
        // frequency range from selection
        String wlist="vacuum_wavelength";
-       for (int spec =0;spec<ranges.size();spec++) {
-           int[] range=ranges.get(spec);
-           double[] lambda=lambdas.get(spec);
+       for (int spec =0;spec<ranges.size();spec++) { 
+    	   int[] range=ranges.get(spec);
+    	   
            for (int i=0;i<range.length;i+=2) {// have to convert from meters to angstrom
-               wlist+=" between "+ lambda[range[i]]*1E10+" and "+lambda[range[i+1]]*1E10;
-               if (i+1<range.length-1)
+        	   double []  = getRanges(i, range, lambdas, spec);        	
+        		   wlist+=" between "+ rangeval[0]*1E10+" and "+rangeval[1]*1E10;
+        	
+               if (i+1<rangeval.length-1)
                    wlist+=" OR vacuum_wavelength ";
            }
            if (spec<ranges.size()-1)
@@ -410,6 +413,20 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
 
 }
 
+private double[] getRanges(int index, int[] range, ArrayList<double[]> lambdas, int spec) {
+	double [] rangevalue = new double [2]; 
+   
+    double[] lambda=lambdas.get(spec);
+    if (lambda[range[index]] > lambda[range[index+1]]) { // check how spectrum is sorted
+    	rangevalue[0] = lambda[range[index+1]];
+    	rangevalue[1] = lambda[range[index]];
+    } else {
+    	rangevalue[0] = lambda[range[index]];
+    	rangevalue[1] = lambda[range[index+1]];
+    }
+	return rangevalue;
+}
+
 private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element, String stage,String inchiKey, String accessURL) {
 
 
@@ -418,11 +435,13 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
 
        String wlist="";
        
-       for (int spec =0;spec<ranges.size();spec++) {
-           int[] range=ranges.get(spec);
-           double[] lambda=lambdas.get(spec);
-           for (int i=0;i<range.length;i+=2) { // have to convert from meters to angstroms
-               wlist+="(RadTransWaveLength >= "+lambda[range[i]]*1E10+" AND RadTransWavelength <= "+lambda[range[i+1]]*1E10+")";
+       for (int spec =0;spec<ranges.size();spec++) { 
+    	   int[] range=ranges.get(spec);
+    	   
+           for (int i=0;i<range.length;i+=2) {// have to convert from meters to angstrom
+        	   double [] rangeval = getRanges(i, range, lambdas, spec);      
+        	   wlist+="(RadTransWaveLength >= "+rangeval[0]*1E10+" AND RadTransWavelength <= "+rangeval[1]*1E10+")";
+        	  // wlist+=" between "+ rangeval[0]*1E10+" and "+rangeval[1]*1E10;        	
                if (i+1<range.length-1)
                    wlist+=" OR ";
            }
@@ -471,7 +490,8 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
            int[] range=ranges.get(spec);
            double[] lambda=lambdas.get(spec);
            for (int i=0;i<range.length;i+=2) {
-               wlist+=lambda[range[i]]+"/"+lambda[range[i+1]];
+        	   double [] rangeval = getRanges(i, range, lambdas, spec); 
+               wlist+=rangeval[0]+"/"+rangeval[1];
                if (i+1<range.length-1)
                    wlist+=",";
            }
