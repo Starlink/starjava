@@ -36,9 +36,9 @@ import java.util.stream.Collectors;
  * the format is a comma-separated list of <code>name=value</code>
  * settings within a pair of parentheses.  Obvious serializations are
  * supported for numeric and boolean values; string values are unquoted;
- * commas may be backslash-escaped; and symbolic values are permitted
- * for Enums and static public members on the value class or
- * created object class.
+ * commas may be backslash-escaped; and symbolic values, matched
+ * case-insensitively, are permitted for Enums and static public members
+ * on the value class or created object class.
  *
  * @author   Mark Taylor
  * @since    11 Sep 2020
@@ -421,9 +421,9 @@ public class BeanConfig {
             return (T) Charset.forName( txt );
         }
         else if ( Enum.class.isAssignableFrom( clazz ) ) {
-            @SuppressWarnings("unchecked")
-            Enum<?> evalue = Enum.valueOf( (Class<Enum>) clazz, txt );
-            return (T) evalue;
+            return Arrays.stream( clazz.getEnumConstants() )
+                         .filter( k -> k.toString().equalsIgnoreCase( txt ) )
+                         .findFirst().orElse( null );
         }
         else {
             T targetMember = getTypedMember( clazz, txt, target.getClass() );
@@ -472,16 +472,26 @@ public class BeanConfig {
      */
     private static <T> T getTypedMember( Class<T> reqClazz, String txt,
                                          Class<?> ownerClazz ) {
-        try {
-            Field field = ownerClazz.getField( txt );
-            if ( reqClazz.isAssignableFrom( field.getType() ) ) {
+        Field field = Arrays.stream( ownerClazz.getFields() )
+                     .filter( f -> reqClazz.isAssignableFrom( f.getType() ) )
+                     .filter( f -> {
+                          int mods = f.getModifiers();
+                          return Modifier.isPublic( mods )
+                              && Modifier.isStatic( mods )
+                              && Modifier.isFinal( mods );
+                      } )
+                     .filter( f -> f.getName().equalsIgnoreCase( txt ) )
+                     .findFirst().orElse( null );
+        if ( field != null ) {
+            try {
                 return reqClazz.cast( field.get( null ) );
             }
-            else {
+            catch ( IllegalAccessException e ) {
+                assert false;
                 return null;
             }
         }
-        catch ( ReflectiveOperationException | NullPointerException e ) {
+        else {
             return null;
         }
     }
