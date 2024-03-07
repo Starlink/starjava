@@ -15161,7 +15161,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             external (href-referenced) VOTable STREAM data.</li>
         <li>Update VOTable 1.5 schema from WD to REC-VOTable-1.5
             (affects <code>votlint</code>).</li>
-        <li>Upgrade Unity to v1.1-b1, which corresponds to REC-VOUnits-1.1.
+        <li>Upgrade Unity to v1.1, which corresponds to REC-VOUnits-1.1.
             Only minor functional differences expected since previous
             version (1.1-b1).</li>
         <li>Upgrade VOLLT adqlLib to official 2.0-beta release.</li>
