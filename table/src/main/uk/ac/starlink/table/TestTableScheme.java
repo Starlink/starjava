@@ -180,7 +180,7 @@ public class TestTableScheme implements TableScheme, Documented {
                 addShapeColumn( t, "f_short", short[].class, s3, nPhase++,
                                 i -> new short[] { (short) ( i + 0 ),
                                                    (short) ( i + 1 ),
-                                                   (short) ( i + 2 ) } ); 
+                                                   (short) ( i + 2 ) } );
                 addShapeColumn( t, "f_int", int[].class, s3, nPhase++,
                                 i -> new int[] { i + 0, i + 1, i + 2 } );
                 addShapeColumn( t, "f_long", long[].class, s3, nPhase++,
@@ -193,6 +193,33 @@ public class TestTableScheme implements TableScheme, Documented {
                                 i -> new String[] { "foo", null,
                                                     valString( i, true ) } );
                 addShapeColumn( t, "f_boolean", boolean[].class, s3, nPhase++,
+                                i -> new boolean[] { (i/1)%2==1,
+                                                     (i/2)%2==1,
+                                                     (i/4)%2==1 } );
+            } ),
+            new ContentOpt( 'g', "fixed-vectors-nostr",
+                            "a selection of fixed-length 1-d array columns "
+                          + "excluding strings",
+                            t -> {
+                int nPhase = 1;
+                int[] s3 = new int[] { 3 };
+                addShapeColumn( t, "g_byte", byte[].class, s3, nPhase++,
+                                i -> new byte[] { (byte) ( i + 0 ),
+                                                  (byte) ( i + 1 ),
+                                                  (byte) ( i + 2 ) } );
+                addShapeColumn( t, "g_short", short[].class, s3, nPhase++,
+                                i -> new short[] { (short) ( i + 0 ),
+                                                   (short) ( i + 1 ),
+                                                   (short) ( i + 2 ) } ); 
+                addShapeColumn( t, "g_int", int[].class, s3, nPhase++,
+                                i -> new int[] { i + 0, i + 1, i + 2 } );
+                addShapeColumn( t, "g_long", long[].class, s3, nPhase++,
+                                i -> new long[] { i + 0, i + 1, i + 2 } );
+                addShapeColumn( t, "g_float", float[].class, s3, nPhase++,
+                                i -> new float[] { i, Float.NaN, i + 2.5f } );
+                addShapeColumn( t, "g_double", double[].class, s3, nPhase++,
+                                i -> new double[] { i, Double.NaN, i + 2.5 } );
+                addShapeColumn( t, "g_boolean", boolean[].class, s3, nPhase++,
                                 i -> new boolean[] { (i/1)%2==1,
                                                      (i/2)%2==1,
                                                      (i/4)%2==1 } );
@@ -221,6 +248,32 @@ public class TestTableScheme implements TableScheme, Documented {
                               i -> new String[] { "foo", null,
                                                   valString( i, true ) } );
                 addVarColumn( t, "v_boolean", boolean[].class, nPhase++,
+                              i -> new boolean[] { (i/1)%2==1,
+                                                   (i/2)%2==1,
+                                                   (i/4)%2==1 } );
+            } ),
+            new ContentOpt( 'w', "var-vectors-nostr",
+                            "a selection of variable-length 1-d array columns "
+                          + "excluding strings",
+                            t -> {
+                int nPhase = 1;
+                addVarColumn( t, "w_byte", byte[].class, nPhase++,
+                              i -> new byte[] { (byte) ( i + 0 ),
+                                                (byte) ( i + 1 ),
+                                                (byte) ( i + 2 ) } );
+                addVarColumn( t, "w_short", short[].class, nPhase++,
+                              i -> new short[] { (short) ( i + 0 ),
+                                                 (short) ( i + 1 ),
+                                                 (short) ( i + 2 ) } ); 
+                addVarColumn( t, "w_int", int[].class, nPhase++,
+                              i -> new int[] { i + 0, i + 1, i + 2 } );
+                addVarColumn( t, "w_long", long[].class, nPhase++,
+                              i -> new long[] { i + 0, i + 1, i + 2 } );
+                addVarColumn( t, "w_float", float[].class, nPhase++,
+                              i -> new float[] { i + 0, Float.NaN, i + 2.5f } );
+                addVarColumn( t, "w_double", double[].class, nPhase++,
+                              i -> new double[] { i + 0, Double.NaN, i + 2.5 });
+                addVarColumn( t, "w_boolean", boolean[].class, nPhase++,
                               i -> new boolean[] { (i/1)%2==1,
                                                    (i/2)%2==1,
                                                    (i/4)%2==1 } );

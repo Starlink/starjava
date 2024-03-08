@@ -15208,6 +15208,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <ul>
     <li>Retire some taplint DALI-examples warnings related to
         old TOPCAT versions.</li>
+    <li>Add new <ref id="scheme-test">Test scheme</ref> options
+        "<code>g</code>" and "<code>w</code>".</li>
     </ul>
     </p></dd>
 
