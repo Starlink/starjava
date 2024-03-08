@@ -1,0 +1,104 @@
+<p>FITS is a very well-established format for storage of
+astronomical table or image data
+(see <a href="https://fits.gsfc.nasa.gov/">https://fits.gsfc.nasa.gov/</a>).
+This writer stores tables in BINTABLE extensions of a FITS file.
+</p>
+
+<p>There are a number of variations in exactly how the table data is
+written to FITS.
+These can be configured with <code>name=value</code> options in brackets
+as described below, but for most purposes this isn't required;
+you can just choose <code>fits</code> or one of the standard
+aliases for commonly-used combinations like <code>colfits</code>
+or <code>fits-basic</code>.
+</p>
+
+<p>In all cases the output from this handler is legal FITS,
+but some non-standard conventions are used:
+<dl>
+<dt>fits-plus</dt>
+<dd><p>In "fits-plus" format, the primary HDU contains an array of bytes
+    which stores the full table metadata as the text of a VOTable document,
+    along with headers that indicate this has been done.
+    Most FITS table readers will ignore this altogether and treat the
+    file just as if it contained only the table.
+    When it is re-read by this or compatible applications however,
+    they can read out the metadata and make it available for use.
+    In this way you can store your data in the efficient and widely portable
+    FITS format without losing the additional metadata such as table parameters,
+    column UCDs, lengthy column descriptions etc that may be attached
+    to the table.
+    This variant, which is the default, can be explicitly selected with the
+    <code>primary=votable</code> option or <code>fits-plus</code> alias
+    (if you don't want it,
+    use <code>primary=basic</code> or <code>fits-basic</code>).
+    </p></dd>
+<dt>colfits</dt>
+<dd><p>In Column-Oriented FITS output, the HDU containing the table data,
+    instead of containing a multi-row table, contains a single-row table
+    in which each cell is an (nrow-element) array containing the data
+    for an entire column.
+    The point of this is to keep all the data for a single row
+    localised on the disk rather than scattered through the whole file.
+    This can be more efficient for certain applications,
+    especially when the table is larger than physical memory,
+    and has many columns of which only a few are needed for a particular task,
+    for instance plotting two columns against each other.
+    The overhead for writing this format is somewhat higher than for
+    normal (row-oriented) FITS however, and other FITS table applications
+    may not be able to work with it,  so in most cases normal FITS
+    is a better choice.
+    This variant can be selected with the
+    <code>col=true</code> option or the <code>colfits-plus/colfits-basic</code>
+    aliases.
+    If you write to a file with the "<code>.colfits</code>" extension
+    it is used by default.
+    </p></dd>
+<dt>wide</dt>
+<dd><p>A private convention is used where required
+    to support encoding of tables with
+    more than 999 columns (not possible in standard FITS);
+    this was discussed on the FITSBITS mailing list in July 2017
+    in the thread
+    <a href="https://listmgr.nrao.edu/pipermail/fitsbits/2017-July/002967.html"
+       >BINTABLE convention for >999 columns</a>.
+    If software unaware of this convention (e.g. CFITSIO) is used
+    to read such tables, it will only see the first 998 columns written
+    as intended, plus a column 999 containing an undescribed byte buffer
+    where the rest of the column data is stored.
+    </p></dd>
+</dl>
+</p>
+
+<p>For convenience, and compatibility with earlier versions,
+these standard aliases are provided:
+<dl>
+<dt>fits-plus</dt>
+<dd><p>Alias for <code>fits</code> or <code>fits(primary=votable)</code>.
+    </p></dd>
+<dt>fits-basic</dt>
+<dd><p>Alias for <code>fits(primary=basic)</code>.
+    </p></dd>
+<dt>fits-var</dt>
+<dd><p>Alias for <code>fits(primary=basic,var=true)</code>.
+    </p></dd>
+<dt>colfits-plus</dt>
+<dd><p>Alias for <code>fits(col=true)</code>.
+    </p></dd>
+<dt>colfits-basic</dt>
+<dd><p>Alias for <code>fits(col=true,primary=basic)</code>.
+    </p></dd>
+<dt>fits-healpix</dt>
+<dd><p>This is a special case.
+    It is used for storing HEALPix pixel data in a way that conforms to the
+    <a
+    href="https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf"
+       >HEALPix-FITS</a>
+    serialization convention.
+    In most ways it behaves the same as <code>fits-basic</code>,
+    but it will rearrange and rename columns as required to follow
+    the convention, and it will fail if the table does not contain
+    the required HEALPix metadata (<code>STIL_HPX_*</code> parameters).
+    </p></dd>
+</dl>
+</p>
