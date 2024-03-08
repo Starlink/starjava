@@ -187,10 +187,10 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      *           currently configured for this writer
      */
     public FitsTableSerializerConfig getConfig() {
-        final boolean allowSignedByte = allowSignedByte_;
-        final boolean allowZeroLengthString = allowZeroLengthString_;
-        final WideFits wide = wide_;
-        final byte padChar = padChar_;
+        final boolean allowSignedByte = getAllowSignedByte();
+        final boolean allowZeroLengthString = getAllowZeroLengthString();
+        final WideFits wide = getWide();
+        final byte padChar = getPadCharacter();
         return new FitsTableSerializerConfig() {
             public boolean allowSignedByte() {
                 return allowSignedByte;
