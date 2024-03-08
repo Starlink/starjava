@@ -165,6 +165,7 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
         /* Get an object that knows how to write a VOTable document. */
         VOTableWriter votWriter =
             new VOTableWriter( (DataFormat) null, false, votVersion_ );
+        votWriter.setWriteDate( getWriteDate() );
 
         /* Output preamble. */
         votWriter.writePreTableXML( writer );

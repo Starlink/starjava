@@ -33475,6 +33475,9 @@ introduced since the last version:
     <li>Add new <ref id="outVotable">VOTable output handler</ref>
         configuration option "<code>date</code>"
         to control whether a datestamp comment is written.</li>
+    <li>Fits-plus output handlers now honour <code>date</code> 
+        config option for VOTable metadata 
+        as well as DATE-HDU header card.</li>
     </ul>
     </p></dd>
 
