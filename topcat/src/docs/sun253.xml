@@ -33472,6 +33472,9 @@ introduced since the last version:
         some versions of Java.</li>
     <li>Add new <ref id="scheme-test">Test scheme</ref> options
         "<code>g</code>" and "<code>w</code>".</li>
+    <li>Add new <ref id="outVotable">VOTable output handler</ref>
+        configuration option "<code>date</code>"
+        to control whether a datestamp comment is written.</li>
     </ul>
     </p></dd>
 
