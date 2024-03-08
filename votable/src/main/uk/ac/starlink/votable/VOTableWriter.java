@@ -27,7 +27,7 @@ import uk.ac.starlink.util.IOUtils;
  * Implementation of the <tt>StarTableWriter</tt> interface for
  * VOTables.  The <tt>dataFormat</tt> and <tt>inline</tt> attributes
  * can be modified to affect how the bulk cell data are output -
- * this may be in TABLEDATA, FITS, BINARY or BINARY2 format, and in the 
+ * this may be in TABLEDATA, FITS, BINARY or BINARY2 format, and in the
  * latter three cases may be either inline as base64 encoded CDATA or
  * to a separate stream.
  *
@@ -39,7 +39,7 @@ import uk.ac.starlink.util.IOUtils;
  *     integer columns</li>
  * <li>{@link uk.ac.starlink.table.Tables#UBYTE_FLAG_INFO}:
  *     if set to <code>Boolean.TRUE</code> and if the column has content class
- *     <code>Short</code> or <code>short[]</code>, the data will be written 
+ *     <code>Short</code> or <code>short[]</code>, the data will be written
  *     with <code>datatype="unsignedByte"</code> instead of
  *     (signed 16-bit) <code>"short"</code>.</li>
  * <li>The <code>COOSYS_*_INFO</code> and <code>TIMESYS_*_INFO</code>
@@ -64,6 +64,7 @@ public class VOTableWriter
     private Boolean compact_;
     private Charset encoding_;
     private boolean writeSchemaLocation_;
+    private boolean writeDate_;
     private String xmlDeclaration_ = DEFAULT_XML_DECLARATION;
 
     /** Default XML declaration in written documents. */
@@ -108,6 +109,7 @@ public class VOTableWriter
         inline_ = inline;
         version_ = version;
         encoding_ = StandardCharsets.UTF_8;
+        writeDate_ = true;
     }
 
     /**
@@ -119,7 +121,7 @@ public class VOTableWriter
      */
     public void writeStarTable( StarTable startab, String location,
                                 StarTableOutput sto )
-            throws IOException { 
+            throws IOException {
         writeStarTables( Tables.singleTableSequence( startab ), location, sto );
     }
 
@@ -136,7 +138,7 @@ public class VOTableWriter
             throws IOException {
 
         /* Get the stream to write to. */
-        OutputStream out = null; 
+        OutputStream out = null;
         try {
             out = sto.getOutputStream( location );
             File file = out instanceof FileOutputStream
@@ -162,7 +164,7 @@ public class VOTableWriter
      * @param   startab  the table to write
      * @param   out  the stream down which to write the table
      */
-    public void writeStarTable( StarTable startab, OutputStream out ) 
+    public void writeStarTable( StarTable startab, OutputStream out )
             throws IOException {
         writeStarTable( startab, out, null );
     }
@@ -225,7 +227,7 @@ public class VOTableWriter
 
             /* Get the format to provide a configuration object which describes
              * exactly how the data from each cell is going to get written. */
-            VOSerializer serializer = 
+            VOSerializer serializer =
                 VOSerializer.makeSerializer( dataFormat_, version_, startab );
             if ( compact_ != null ) {
                 serializer.setCompact( compact_.booleanValue() );
@@ -381,8 +383,11 @@ public class VOTableWriter
                     + " (" + VOSerializer.formatText( getClass().getName() )
                     + ")" );
         writer.newLine();
-        writer.write( " !  at " + AbstractFitsTableWriter.getCurrentDate() );
-        writer.newLine();
+        if ( writeDate_ ) {
+            writer.write( " !  at "
+                        + AbstractFitsTableWriter.getCurrentDate() );
+            writer.newLine();
+        }
         writer.write( " !-->" );
         writer.newLine();
 
@@ -523,7 +528,7 @@ public class VOTableWriter
      * Sets whether STREAM elements should be written inline or to an
      * external file in the case of FITS and BINARY encoding.
      *
-     * @param  inline  <tt>true</tt> iff streamed data will be encoded 
+     * @param  inline  <tt>true</tt> iff streamed data will be encoded
      *         inline in the STREAM element
      */
     @ConfigMethod(
@@ -541,7 +546,7 @@ public class VOTableWriter
     }
 
     /**
-     * Indicates whether STREAM elements will be written inline or to 
+     * Indicates whether STREAM elements will be written inline or to
      * an external file in the case of FITS and BINARY encoding.
      *
      * @return  <tt>true</tt> iff streamed data will be encoded inline in
@@ -664,6 +669,31 @@ public class VOTableWriter
      */
     public Charset getEncoding() {
         return encoding_;
+    }
+
+    /**
+     * Configures whether a datestamp is written to output VOTable files.
+     *
+     * @param  writeDate  true to include a date in the XML comments,
+     *                    false to omit it
+     */
+    @ConfigMethod(
+        property = "date",
+        doc = "<p>If true, the output file will contain a comment recording "
+            + "the current date; otherwise it is not included.</p>"
+    )
+    public void setWriteDate( boolean writeDate ) {
+        writeDate_ = writeDate;
+    }
+
+    /**
+     * Indicates whether a datestamp is written to output VOTable files.
+     *
+     * @return   true if a date is included in the XML comments,
+     *           false if not
+     */
+    public boolean getWriteDate() {
+        return writeDate_;
     }
 
     /**
