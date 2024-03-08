@@ -33470,6 +33470,8 @@ introduced since the last version:
         MacOS.</li>
     <li>Fix ADQL Hints tab in TAP window which failed to load for
         some versions of Java.</li>
+    <li>Add new <ref id="scheme-test">Test scheme</ref> options
+        "<code>g</code>" and "<code>w</code>".</li>
     </ul>
     </p></dd>
 
