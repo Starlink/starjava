@@ -405,14 +405,16 @@ public class FeatureTreeModel implements TreeModel {
             label = form;
         }
         Node signatureNode = new Node( form, signatureRenderer_ );
-        int iarg = 0;
-        for ( Arg arg : sig.getArgs() ) {
-            String argTxt = Integer.toString( ++iarg ) + ": "
-                          + arg.getArgName() + " " + arg.getArgType();
-            signatureNode.addChild( new Node( argTxt, plainRenderer_ ) );
+        if ( sig != null ) {
+            int iarg = 0;
+            for ( Arg arg : sig.getArgs() ) {
+                String argTxt = Integer.toString( ++iarg ) + ": "
+                              + arg.getArgName() + " " + arg.getArgType();
+                signatureNode.addChild( new Node( argTxt, plainRenderer_ ) );
+            }
+            signatureNode.addChild( new Node( "return: " + sig.getReturnType(),
+                                              plainRenderer_ ) );
         }
-        signatureNode.addChild( new Node( "return: " + sig.getReturnType(),
-                                          plainRenderer_ ) );
         Node udfNode = new Node( label, functionRenderer_ );
         udfNode.addChild( signatureNode );
         udfNode.addChild( new Node( feature.getDescription(),
