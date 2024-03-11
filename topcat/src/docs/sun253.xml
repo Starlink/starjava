@@ -33462,6 +33462,8 @@ introduced since the last version:
 <dt>Nex version</dt>
 <dd><p>
     <ul>
+    <li>Fix bug in TAP window ADQL tab tree population in presence
+        of illegal syntax for UDF form.</li>
     </ul>
     </p></dd>
 
