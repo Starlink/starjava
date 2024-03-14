@@ -34,11 +34,29 @@ import java.util.stream.Collectors;
  *
  * <p>The configuration syntax is fairly straightforward;
  * the format is a comma-separated list of <code>name=value</code>
- * settings within a pair of parentheses.  Obvious serializations are
- * supported for numeric and boolean values; string values are unquoted;
- * commas may be backslash-escaped; and symbolic values, matched
- * case-insensitively, are permitted for Enums and static public members
- * on the value class or created object class.
+ * settings within a pair of parentheses.  Supplied string values are
+ * interpreted using the following rules:
+ * <ul>
+ * <li>Obvious serializations are supported for numeric and boolean values.</li>
+ * <li>Hexadecimal representations (0xNNN) are allowed for integers.</li>
+ * <li>Numeric and boolean wrapper types are supported in the same way
+ *     as primitives (though null is permitted).</li>
+ * <li>String values are unquoted; commas may be backslash-escaped.</li>
+ * <li>The empty string or "<code>null</code>" represents null.</li>
+ * <li>Enum instances are matched case-insensitively.</li>
+ * <li>Static public members of a required class implementing that class
+ *     are matched case-insensitively</li>
+ * <li>If a static public <code>valueOf(String)</code> method returning
+ *     instances of the required class is present on that class,
+ *     the supplied value string is fed to it.</li>
+ * <li>If a static public <code>to&lt;ReqClass&gt;Instance(String)</code>
+ *     method, where <code>&lt;ReqClass&gt;</code> is the unqualified name
+ *     of the required class, exists on the context class, the supplied value
+ *     string is fed to it.</li>
+ * </ul>
+ * If none of these succeeds in producing a non-null value,
+ * and a null value has not been explicitly requested,
+ * an error results.
  *
  * @author   Mark Taylor
  * @since    11 Sep 2020
@@ -434,11 +452,19 @@ public class BeanConfig {
             if ( classMember != null ) {
                 return classMember;
             }
-            else {
-                throw new IllegalArgumentException( "Can't convert string "
-                                                  + "\"" + txt + "\" to "
-                                                  + clazz.getSimpleName() );
+            T classValue = invokeValueOf( clazz, txt, clazz, "valueOf" );
+            if ( classValue != null ) {
+                return classValue;
             }
+            T classInstance =
+                invokeValueOf( clazz, txt, target.getClass(),
+                               "to" + clazz.getSimpleName() + "Instance" );
+            if ( classInstance != null ) {
+                return classInstance;
+            }
+            throw new IllegalArgumentException( "Can't convert string "
+                                              + "\"" + txt + "\" to "
+                                              + clazz.getSimpleName() );
         }
     }
 
@@ -488,6 +514,58 @@ public class BeanConfig {
             }
             catch ( IllegalAccessException e ) {
                 assert false;
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Attempts to return the result of feeding a supplied string to
+     * a suitable static valueOf-type method on the target class.
+     * The required output type and the name of the public static
+     * method that takes a string and returns an instance of the required
+     * class, are specified.
+     *
+     * @param  reqClazz  required output class
+     * @param  txt   value representation
+     * @param  ownerClazz   class to search for static members
+     * @param  methodName  name of public static method to invoke
+     * @return   instance of required class,
+     *           or null if method doesn't exist or if anything else went wrong
+     */
+    private static <T> T invokeValueOf( Class<T> reqClazz, String txt,
+                                        Class<?> ownerClass,
+                                        String methodName ) {
+        final Method method;
+        try {
+            method = ownerClass.getMethod( methodName,
+                                           new Class<?>[] { String.class } );
+        }
+        catch ( NoSuchMethodException e ) {
+            return null;
+        }
+        if ( reqClazz.isAssignableFrom( method.getReturnType() ) ) {
+            int mods = method.getModifiers();
+            if ( Modifier.isPublic( mods ) && Modifier.isStatic( mods ) ) {
+                final Object value;
+                try {
+                    value = method.invoke( null, new Object[] { txt } );
+                }
+                catch ( ReflectiveOperationException e ) {
+                    return null;
+                }
+                try {
+                    return reqClazz.cast( value );
+                }
+                catch ( ClassCastException e ) {
+                    assert false;
+                    return null;
+                }
+            }
+            else {
                 return null;
             }
         }

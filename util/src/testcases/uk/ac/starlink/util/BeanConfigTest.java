@@ -32,6 +32,18 @@ public class BeanConfigTest extends TestCase {
         assertEquals( TBean.NORTH, createTBean( "(dir=NORTH)" ).dir_ );
         assertEquals( TBean.NORTH, createTBean( "(dir=North)" ).dir_ );
 
+        assertEquals( Dir.LEFT, createTBean( "(dir=links)" ).dir_ );
+        assertEquals( Dir.RIGHT, createTBean( "(dir=droite)" ).dir_ );
+        try {
+            createTBean( "(dir=sideways)" );
+            fail();
+        }
+        catch ( LoadException e ) {
+            assertTrue( e.getMessage().toLowerCase().indexOf( "usage" ) > 0 );
+        }
+
+        assertEquals( null, createTBean( "(dir=)" ).dir_ );
+
         assertFalse( createTBean( "()" ).flag_ );
         assertFalse( createTBean( "()" ).flagObj_.booleanValue() );
         assertTrue( createTBean( "(flag=true)" ).flag_ );
@@ -93,6 +105,18 @@ public class BeanConfigTest extends TestCase {
         public void setDir( Dir dir ) {
             dir_ = dir;
         }
+
+        public static Dir toDirInstance( String txt ) {
+            if ( "gauche".equals( txt ) ) {
+                return Dir.LEFT;
+            }
+            else if ( "droite".equals( txt ) ) {
+                return Dir.RIGHT;
+            }
+            else {
+                return null;
+            }
+        }
     }
 
     private enum Primary { RED, BLUE, GREEN };
@@ -100,5 +124,16 @@ public class BeanConfigTest extends TestCase {
     static class Dir {
         public static final Dir LEFT = new Dir();
         public static final Dir RIGHT = new Dir();
+        public static Dir valueOf( String txt ) {
+            if ( "links".equals( txt ) ) {
+                return LEFT;
+            }
+            else if ( "recht".equals( txt ) ) {
+                return RIGHT;
+            }
+            else {
+                return null;
+            }
+        }
     }
 }
