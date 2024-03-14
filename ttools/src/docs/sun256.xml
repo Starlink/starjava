@@ -15196,6 +15196,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>Fix <ref id="plot2time"><code>plot2time</code></ref> so that
             zone-specific text style configuration works correctly for
             legends and colour ramp annotations.</li>
+        <li>Update JSAMP to v1.3.8.
+            This may improve hub Web Profile browser compatibility.</li>
         </ul>
         </p></dd>
     </dl>
