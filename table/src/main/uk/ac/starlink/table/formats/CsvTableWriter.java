@@ -7,7 +7,6 @@ import java.io.Writer;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ConfigMethod;
 
@@ -227,17 +226,5 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
                 out.write( '"' );
             }
         }
-    }
-
-    /**
-     * Returns a selection of useful CsvTableWriters.
-     *
-     * @return   array containing one writer with headers and one without
-     */
-    public static StarTableWriter[] getStarTableWriters() {
-        return new StarTableWriter[] {
-            new CsvTableWriter( true ),
-            new CsvTableWriter( false ),
-        };
     }
 }
