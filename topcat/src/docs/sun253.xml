@@ -33454,6 +33454,8 @@ introduced since the last version:
         <li>Some spectrogram/time plot bug fixes.</li>
         <li>Fix some problems with images in the PDF version of this
             document.</li>
+        <li>Update JSAMP to v1.3.8.
+            This may improve hub Web Profile browser compatibility.</li>
         </ul>
         </p></dd>
     </dl>
