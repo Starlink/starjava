@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ConfigMethod;
 
@@ -170,18 +169,6 @@ public class LatexTableWriter extends DocumentedStreamStarTableWriter {
         finally {
             rseq.close();
         }
-    }
-
-    /**
-     * Returns a useful list of LatexTableWriters.
-     *
-     * @return  array containing one standalone and one tabular-only writer
-     */
-    public static StarTableWriter[] getStarTableWriters() {
-        return new LatexTableWriter[] {
-            new LatexTableWriter( false ),
-            new LatexTableWriter( true ),
-        };
     }
 
     /**

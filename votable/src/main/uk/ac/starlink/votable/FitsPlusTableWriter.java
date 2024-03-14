@@ -7,7 +7,6 @@ import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.fits.StandardFitsTableSerializer;
 import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.formats.DocumentedIOHandler;
 
 /**
@@ -95,21 +94,5 @@ public class FitsPlusTableWriter extends VOTableFitsTableWriter
     protected FitsTableSerializer createSerializer( StarTable table ) 
             throws IOException {
         return new StandardFitsTableSerializer( getConfig(), table );
-    }
-
-    /**
-     * Returns a list of FITS-plus table writers with variant values of
-     * attributes.
-     * In fact this just returns two functionally identical instances
-     * but with different format names: one is "fits" and the other is
-     * "fits-plus".
-     *
-     * @return  table writers
-     */
-    public static StarTableWriter[] getStarTableWriters() {
-        FitsPlusTableWriter w1 = new FitsPlusTableWriter();
-        FitsPlusTableWriter w2 = new FitsPlusTableWriter();
-        w1.setFormatName( "fits" );
-        return new StarTableWriter[] { w1, w2 };
     }
 }

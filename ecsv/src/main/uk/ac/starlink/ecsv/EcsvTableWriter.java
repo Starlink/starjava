@@ -15,7 +15,6 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.formats.DocumentedStreamStarTableWriter;
 import uk.ac.starlink.util.ByteList;
@@ -573,17 +572,5 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
             return false;
         }
         return true;
-    }
-
-    /**
-     * Returns a list of ECSV writers with variant characteristics.
-     *
-     * @return  variant EcsvTableWriters
-     */
-    public static StarTableWriter[] getStarTableWriters() {
-        return new StarTableWriter[] {
-            new EcsvTableWriter(),
-            COMMA_WRITER,
-        };
     }
 }

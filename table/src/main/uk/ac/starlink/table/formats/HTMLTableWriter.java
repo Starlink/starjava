@@ -10,7 +10,6 @@ import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
-import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ConfigMethod;
@@ -243,18 +242,6 @@ public class HTMLTableWriter extends DocumentedStreamStarTableWriter
         finally {
             rseq.close();
         }
-    }
-
-    /**
-     * Returns a selection of useful HTMLTableWriters.
-     *
-     * @return   array containing one standalone and one TABLE-only writer
-     */
-    public static StarTableWriter[] getStarTableWriters() {
-        return new StarTableWriter[] {
-            new HTMLTableWriter( true, true ),
-            new HTMLTableWriter( false, true ),
-        };
     }
 
     /**
