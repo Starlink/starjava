@@ -23,7 +23,6 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.JViewport;
 import javax.swing.UIManager;
@@ -203,6 +202,7 @@ public class FeatureTreeModel implements TreeModel {
         };
         descriptionRenderer_ = new NodeRenderer() {
             private final Icon icon_ = ResourceIcon.NODE_DOC;
+            private final Font font_ = UIManager.getFont( "TextArea.font" );
             public boolean isWidthSensitive() {
                 return true;
             }
@@ -222,7 +222,7 @@ public class FeatureTreeModel implements TreeModel {
                              .replaceAll( " +", " " )
                              .replaceAll( "([^\\n])\\n([^\\n])", "$1 $2" );
                 return createWrappedTextComponent( viewport, node, text, icon_,
-                                                   (Font) null, descripColor,
+                                                   font_, descripColor,
                                                    descripBorder );
             }
         };
@@ -548,29 +548,34 @@ public class FeatureTreeModel implements TreeModel {
                                         Font font, Color color,
                                         Border border ) {
 
-        /* Set up a text area with the requested content and line wrapping. */
-        JTextArea textArea = new JTextArea();
-        textArea.setLineWrap( true );
-        textArea.setWrapStyleWord( true );
-        textArea.setEditable( false );
-        textArea.setText( text );
+        /* Set up a suitable text display component. */
+        JLabel textLabel = new JLabel();
         if ( font != null ) {
-            textArea.setFont( font );
+            textLabel.setFont( font );
         }
         if ( color != null ) {
-            textArea.setForeground( color );
+            textLabel.setForeground( color );
         }
 
         /* Wrap the lines so they will fit in the required width.
-         * This is done using bad magic from
-         * https://stackoverflow.com/questions/4083322/.
-         * It seems to work. */
+         * HTML rendering is a semi-documented feature of (some?) Swing
+         * components.  This approach was adopted from a suggestion at
+         * https://stackoverflow.com/questions/4083322/.  That page also
+         * suggests another way round this (used in an earlier version)
+         * which seems to work as well but looks even hairier. */
         int wrapWidth = viewport.getWidth() - getIndentX( node );
         if ( icon != null ) {
             wrapWidth -= icon.getIconWidth();
         }
-        textArea.setSize( wrapWidth, 1 );
-        textArea.setSize( textArea.getPreferredSize() );
+        textLabel.setText(
+            new StringBuffer()
+           .append( "<html><body width='" )
+           .append( wrapWidth )
+           .append( "'><p>" )
+           .append( escapeHtml( text ) )
+           .append( "</p></body></html>" )
+           .toString()
+        );
 
         /* Add an icon etc. */
         JPanel panel = new JPanel( new BorderLayout() );
@@ -583,10 +588,10 @@ public class FeatureTreeModel implements TreeModel {
             iconLabel.setOpaque( false );
             panel.add( iconBox, BorderLayout.WEST );
         }
-        panel.add( textArea, BorderLayout.CENTER );
+        panel.add( textLabel, BorderLayout.CENTER );
         panel.setOpaque( false );
         if ( border != null ) {
-            textArea.setBorder( border );
+            textLabel.setBorder( border );
         }
 
         /* Return the configured component. */
