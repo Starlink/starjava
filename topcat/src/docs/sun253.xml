@@ -33461,11 +33461,13 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Nex version</dt>
+<dt>Next version</dt>
 <dd><p>
     <ul>
     <li>Fix bug in TAP window ADQL tab tree population in presence
         of illegal syntax for UDF form.</li>
+    <li>Fix issue with display of multi-line text in ADQL tree on
+        MacOS.</li>
     </ul>
     </p></dd>
 

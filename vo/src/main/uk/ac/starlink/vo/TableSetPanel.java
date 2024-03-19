@@ -262,6 +262,11 @@ public class TableSetPanel extends JPanel {
         featureTree_.setLargeModel( false );
         featureTree_.putClientProperty( "JTree.lineStyle", "None" );
         featureTree_.setCellRenderer( FeatureTreeModel.createRenderer() );
+
+        /* A row height of zero is required to display variable-height rows.
+         * In tests settting it explicitly to zero was required on some
+         * (e.g. MacOS on ARM), but not all, platforms. */
+        featureTree_.setRowHeight( 0 );
         featureTreeModel_.addTreeModelListener( new TreeModelListener() {
             public void treeNodesChanged( TreeModelEvent evt ) {
             }
