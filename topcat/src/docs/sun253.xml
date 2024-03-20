@@ -33468,6 +33468,8 @@ introduced since the last version:
         of illegal syntax for UDF form.</li>
     <li>Fix issue with display of multi-line text in ADQL tree on
         MacOS.</li>
+    <li>Fix ADQL Hints tab in TAP window which failed to load for
+        some versions of Java.</li>
     </ul>
     </p></dd>
 
