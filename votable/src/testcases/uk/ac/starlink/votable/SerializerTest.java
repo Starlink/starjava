@@ -200,7 +200,7 @@ public class SerializerTest extends TestCase {
             Tables.checkTable( t2r );
         }
 
-        FitsPlusTableWriter fpWriter = new FitsPlusTableWriter();
+        UnifiedFitsTableWriter fpWriter = new UnifiedFitsTableWriter();
         FitsPlusTableBuilder fpReader = new FitsPlusTableBuilder();
         StarTable fpt1r = roundTrip( t1, fpWriter, fpReader );
         StarTable fpt2r = roundTrip( t2, fpWriter, fpReader );
@@ -209,7 +209,8 @@ public class SerializerTest extends TestCase {
         assertEquals( nrow0, fpt1r.getRowCount() );
         assertEquals( nrow0, fpt2r.getRowCount() );
 
-        ColFitsPlusTableWriter cfpWriter = new ColFitsPlusTableWriter();
+        UnifiedFitsTableWriter cfpWriter = new UnifiedFitsTableWriter();
+        cfpWriter.setColfits( true );
         ColFitsPlusTableBuilder cfpReader = new ColFitsPlusTableBuilder();
         StarTable cfpt1r = roundTrip( t1, cfpWriter, cfpReader );
         StarTable cfpt2r = roundTrip( t2, cfpWriter, cfpReader );

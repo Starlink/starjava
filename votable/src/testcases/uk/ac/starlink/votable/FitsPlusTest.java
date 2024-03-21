@@ -6,9 +6,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import junit.framework.TestCase;
 import uk.ac.starlink.fits.ColFitsTableBuilder;
-import uk.ac.starlink.fits.ColFitsTableWriter;
 import uk.ac.starlink.fits.FitsTableBuilder;
-import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
@@ -22,7 +20,6 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.votable.FitsPlusTableBuilder;
-import uk.ac.starlink.votable.FitsPlusTableWriter;
 
 public class FitsPlusTest extends TestCase {
 
@@ -51,12 +48,19 @@ public class FitsPlusTest extends TestCase {
     }
 
     public void testFitsPlus() throws IOException {
-        exerciseFormats( new FitsPlusTableWriter(), new FitsTableWriter(),
+        UnifiedFitsTableWriter basicWriter = new UnifiedFitsTableWriter();
+        basicWriter.setPrimaryType( UnifiedFitsTableWriter.BASIC_PRIMARY_TYPE );
+        exerciseFormats( new UnifiedFitsTableWriter(), basicWriter,
                          new FitsPlusTableBuilder(), new FitsTableBuilder() );
     }
 
     public void testColFitsPlus() throws IOException {
-        exerciseFormats( new ColFitsPlusTableWriter(), new ColFitsTableWriter(),
+        UnifiedFitsTableWriter colfitsPlusWriter = new UnifiedFitsTableWriter();
+        colfitsPlusWriter.setColfits( true );
+        UnifiedFitsTableWriter colfitsWriter = new UnifiedFitsTableWriter();
+        colfitsWriter.setColfits( true );
+        colfitsWriter.setPrimaryType(UnifiedFitsTableWriter.BASIC_PRIMARY_TYPE);
+        exerciseFormats( colfitsPlusWriter, colfitsWriter,
                          new ColFitsPlusTableBuilder(),
                          new ColFitsTableBuilder() );
     }

@@ -80,11 +80,12 @@ public class WideTest extends TestCase {
             exerciseReadWrite(
                 configWriter( new FitsTableWriter(), true, wide ),
                 new FitsTableBuilder( wide ) );
-            exerciseReadWrite(
-                configWriter( new ColFitsTableWriter(), true, wide ),
-                new ColFitsTableBuilder( wide ) );
-            VariableFitsTableWriter vWriter = new VariableFitsTableWriter();
-            vWriter.setLongIndexing( Boolean.FALSE );
+            FitsTableWriter colfitsWriter = new FitsTableWriter();
+            colfitsWriter.setColfits( true );
+            exerciseReadWrite( configWriter( colfitsWriter, true, wide ),
+                               new ColFitsTableBuilder( wide ) );
+            FitsTableWriter vWriter = new FitsTableWriter();
+            vWriter.setVarArray( FitsTableWriter.VarArrayMode.P );
             exerciseReadWrite( configWriter( vWriter, true, wide ),
                                new FitsTableBuilder( wide ) );
         }

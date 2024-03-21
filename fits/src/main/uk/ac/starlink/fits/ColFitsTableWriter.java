@@ -16,9 +16,14 @@ import uk.ac.starlink.table.StarTable;
  * interchange, in practice most non-STIL processors are unlikely to
  * be able to do much useful with it.
  *
+ * @deprecated  Use {@link uk.ac.starlink.votable.UnifiedFitsTableWriter
+ *                         uk.ac.starlink.votable.UnifiedFitsTableWriter}
+ *              instead
+ *
  * @author   Mark Taylor
  * @since    21 Jun 2006
  */
+@Deprecated
 public class ColFitsTableWriter extends AbstractFitsTableWriter {
 
     /**

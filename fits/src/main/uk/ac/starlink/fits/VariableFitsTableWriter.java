@@ -18,9 +18,14 @@ import uk.ac.starlink.table.StoragePolicy;
  * <p>Strings and String arrays ('A' descriptor) are not currently 
  * written in variable-length form.
  *
+ * @deprecated  Use {@link uk.ac.starlink.votable.UnifiedFitsTableWriter
+ *                         uk.ac.starlink.votable.UnifiedFitsTableWriter}
+ *              instead
+ *
  * @author   Mark Taylor
  * @since    11 Jul 2008
  */
+@Deprecated
 public class VariableFitsTableWriter extends AbstractFitsTableWriter {
 
     private Boolean longIndexing_;

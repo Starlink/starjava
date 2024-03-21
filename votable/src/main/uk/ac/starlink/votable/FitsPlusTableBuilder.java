@@ -424,7 +424,7 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
         for ( int il = 0; il < ntest; il++ ) {
             System.arraycopy( buffer, il * 80, cbuf, 0, 80 );
             ParsedCard<?> card = FitsUtil.parseCard( cbuf );
-            if ( ! cardOK( il, card ) ) {
+            if ( ! primaryHeaderCardOK( il, card ) ) {
                 return false;
             }
         }
@@ -440,7 +440,7 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
      * @return  true  if <tt>card</tt> looks like the <tt>icard</tt>'th
      *          header card of a FitsPlus primary header should do
      */
-    private static boolean cardOK( int icard, ParsedCard<?> card ) {
+    static boolean primaryHeaderCardOK( int icard, ParsedCard<?> card ) {
         String key = card.getKey();
         Object value = card.getValue();
         switch ( icard ) {

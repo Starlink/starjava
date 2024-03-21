@@ -12,9 +12,14 @@ import uk.ac.starlink.table.StarTable;
  * HDU, and possibly other extension HDUs already.
  * This class can be used to generate a multi-extension FITS file.
  *
+ * @deprecated  Use {@link uk.ac.starlink.votable.UnifiedFitsTableWriter
+ *                         uk.ac.starlink.votable.UnifiedFitsTableWriter}
+ *              instead
+ *
  * @author   Mark Taylor
  * @since    23 Oct 2009
  */
+@Deprecated
 public class HduFitsTableWriter extends AbstractFitsTableWriter {
 
     /**

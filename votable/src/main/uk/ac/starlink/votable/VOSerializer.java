@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.fits.FitsTableSerializerConfig;
-import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.fits.StandardFitsTableSerializer;
 import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.ColumnInfo;
@@ -1679,9 +1678,9 @@ public abstract class VOSerializer {
 
         public void streamData( OutputStream out ) throws IOException {
             FitsUtil.writeEmptyPrimary( out );
-            new FitsTableWriter().writeTableHDU( getTable(), fitser, out );
+            new UnifiedFitsTableWriter()
+               .writeTableHDU( getTable(), fitser, out );
         }
-
     }
 
     /**

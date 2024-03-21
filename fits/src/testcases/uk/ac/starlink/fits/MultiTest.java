@@ -35,7 +35,8 @@ public class MultiTest extends TestCase {
     private void multiWriteTrial( IOer ioer ) throws IOException {
         OutputStream out = ioer.createOutputStream();
         FitsUtil.writeEmptyPrimary( out );
-        StarTableWriter writer = new HduFitsTableWriter();
+        FitsTableWriter writer = new FitsTableWriter();
+        writer.setPrimaryType( FitsTableWriter.PrimaryType.NONE );
         int nt = 3;
         StarTable[] outTables = new StarTable[ nt ];
         for ( int i = 0; i < nt; i++ ) {

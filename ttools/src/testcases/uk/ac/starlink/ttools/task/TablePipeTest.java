@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import uk.ac.starlink.fits.AbstractFitsTableWriter;
 import uk.ac.starlink.fits.FitsHeader;
-import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.fits.HealpixFitsTableWriter;
 import uk.ac.starlink.table.ColumnData;
@@ -27,7 +26,7 @@ import uk.ac.starlink.ttools.filter.ArgException;
 import uk.ac.starlink.ttools.filter.AssertException;
 import uk.ac.starlink.ttools.scheme.SkySimScheme;
 import uk.ac.starlink.util.LogUtils;
-import uk.ac.starlink.votable.FitsPlusTableWriter;
+import uk.ac.starlink.votable.UnifiedFitsTableWriter;
 
 public class TablePipeTest extends TableTestCase {
 
@@ -447,7 +446,9 @@ public class TablePipeTest extends TableTestCase {
             process( pixTable,
                      "healpixmeta -level 0 -implicit -csys G -nested" );
         {
-            FitsHeader hdr1 = getFitsHeaders( p1, new FitsTableWriter() );
+            UnifiedFitsTableWriter writer = new UnifiedFitsTableWriter();
+            writer.setPrimaryType( UnifiedFitsTableWriter.PrimaryType.BASIC );
+            FitsHeader hdr1 = getFitsHeaders( p1, writer );
             assertEquals( "HEALPIX", hdr1.getStringValue( "PIXTYPE" ) );
             assertEquals( "NESTED", hdr1.getStringValue( "ORDERING" ) );
             assertEquals( "G", hdr1.getStringValue( "COORDSYS" ) );
@@ -459,7 +460,9 @@ public class TablePipeTest extends TableTestCase {
         }
         StarTable p2 = process( p1, "healpixmeta -csys c -column hpx0" );
         {
-            FitsHeader hdr2 = getFitsHeaders( p2, new FitsPlusTableWriter() );
+            UnifiedFitsTableWriter writer = new UnifiedFitsTableWriter();
+            writer.setPrimaryType( UnifiedFitsTableWriter.VOTABLE_PRIMARY_TYPE);
+            FitsHeader hdr2 = getFitsHeaders( p2, writer );
             assertEquals( "HEALPIX", hdr2.getStringValue( "PIXTYPE" ) );
             assertEquals( "NESTED", hdr2.getStringValue( "ORDERING" ) );
             assertEquals( "C", hdr2.getStringValue( "COORDSYS" ) );
